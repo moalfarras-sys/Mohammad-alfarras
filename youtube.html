@@ -21,21 +21,21 @@
           <div class="brand-subtitle">محتوى تقني · نقل · مواقع</div>
         </div>
       </a>
-      <nav class="nav-links">
-        <a href="index.html">الرئيسية</a>
-        <a href="cv.html">السيرة الذاتية</a>
-        <a href="blog.html">المدونة والأعمال</a>
-        <a href="youtube.html">يوتيوب</a>
-        <a href="contact.html">تواصل</a>
+      <nav class="nav-links" aria-label="القائمة الرئيسية">
+        <a href="index.html" title="اذهب إلى الصفحة الرئيسية">الرئيسية</a>
+        <a href="cv.html" title="عرض السيرة الذاتية">السيرة الذاتية</a>
+        <a href="blog.html" title="زيارة المدونة والأعمال">المدونة والأعمال</a>
+        <a href="youtube.html" title="زيارة قسم يوتيوب">يوتيوب</a>
+        <a href="contact.html" title="التواصل معي">تواصل</a>
       </nav>
       <div class="nav-actions">
-        <a href="en/index.html" class="btn ghost" style="font-size:0.75rem;padding-inline:10px;">EN</a>
-        <button class="theme-toggle" type="button" aria-label="تبديل الوضع"></button>
+        <a href="en/index.html" class="btn ghost" title="عرض الموقع بالإنجليزية" style="font-size:0.75rem;padding-inline:10px;">EN</a>
+        <button class="theme-toggle" type="button" aria-label="تبديل بين الوضع الفاتح والداكن" title="تبديل الوضع"></button>
       </div>
     </div>
   </header>
       <main>
-        <section class="hero">
+        <section class="hero" aria-label="قسم البطل - معلومات قناة يوتيوب">
           <div class="container hero-grid">
             <article class="hero-content">
               <p class="eyebrow">قناة يوتيوب · عالم صغير خاص فيني</p>
@@ -52,26 +52,26 @@
                 أو يرتّب يومه بطريقة أهدى.
               </p>
             </article>
-            <aside class="hero-aside">
+            <aside class="hero-aside" aria-label="صور محتوى يوتيوب">
               <div class="image-frame hero-photo-frame">
-                <img src="assets/img/22.jpeg" alt="زاوية من تجهيز الفيديو" loading="lazy" />
+                <img src="assets/img/22.jpeg" alt="زاوية من تجهيز الفيديو" loading="lazy" decoding="async" />
               </div>
               <div class="hero-photo-row">
                 <div class="image-frame hero-mini">
-                  <img src="assets/img/44.jpeg" alt="إضاءة وتجهيزات بسيطة" loading="lazy" />
+                  <img src="assets/img/44.jpeg" alt="إضاءة وتجهيزات بسيطة" loading="lazy" decoding="async" />
                 </div>
                 <div class="image-frame hero-mini">
-                  <img src="assets/img/55.jpeg" alt="معدات وتجارب تصوير" loading="lazy" />
+                  <img src="assets/img/55.jpeg" alt="معدات وتجارب تصوير" loading="lazy" decoding="async" />
                 </div>
               </div>
             </aside>
           </div>
         </section>
 
-        <section class="section">
+        <section class="section" aria-labelledby="why-youtube-title">
           <div class="container">
             <div class="section-header">
-              <h2 class="section-title">لماذا عملت قناة يوتيوب؟</h2>
+              <h2 class="section-title" id="why-youtube-title">لماذا عملت قناة يوتيوب؟</h2>
               <p class="section-subtitle">
                 ستة أسطر تلخص الفكرة كاملة.
               </p>
@@ -111,15 +111,15 @@
           </div>
         </section>
 
-        <section class="section">
+        <section class="section" aria-labelledby="content-title">
           <div class="container section-grid three-columns">
             <article class="card video-card">
-              <h2 class="card-title">فيديو من القناة</h2>
+              <h2 class="card-title" id="content-title">فيديو من القناة</h2>
               <p class="card-meta">مراجعة جهاز أو تجربة خدمة</p>
               <div class="video-embed">
                 <iframe
                   src="https://www.youtube.com/embed/wXnHC9JlBj8"
-                  title="YouTube video"
+                  title="فيديو تجريبي من قناة محمد الفراس على يوتيوب"
                   loading="lazy"
                   frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -137,33 +137,68 @@
             <article class="card">
               <h2 class="card-title">أسئلة شائعة من المتابعين</h2>
               <div class="faq-list">
-                <div class="faq-item">
-                  <strong>هل المحتوى كله مدفوع؟</strong>
+                <details class="faq-item">
+                  <summary>هل المحتوى كله مدفوع؟</summary>
                   <p>أغلب المحتوى نابع من تجاربي الخاصة. إذا كان هناك تعاون مدفوع أذكر ذلك بوضوح.</p>
-                </div>
-                <div class="faq-item">
-                  <strong>كيف أطلب مراجعة لمنتج؟</strong>
+                </details>
+                <details class="faq-item">
+                  <summary>كيف أطلب مراجعة لمنتج؟</summary>
                   <p>يمكنك التواصل معي من صفحة التواصل وشرح نوع المنتج والفكرة العامة من الفيديو.</p>
-                </div>
-                <div class="faq-item">
-                  <strong>هل أقبل النقد؟</strong>
+                </details>
+                <details class="faq-item">
+                  <summary>هل أقبل النقد؟</summary>
                   <p>أكيد. النقد المحترم يساعدني أطور المحتوى وأركز على ما يهم الناس فعلاً.</p>
-                </div>
+                </details>
               </div>
             </article>
           </div>
         </section>
+
+        <section class="section" aria-labelledby="youtube-links-title">
+          <div class="container">
+            <div class="section-header">
+              <h2 class="section-title" id="youtube-links-title">تابع وشاهد</h2>
+              <p class="section-subtitle">
+                روابط مباشرة لقناتي ومقاطع الفيديو الهامة
+              </p>
+            </div>
+            <div class="cards-grid">
+              <article class="card">
+                <h3 class="card-title">قناة يوتيوب</h3>
+                <p class="card-text">اشترك في القناة وتابع الفيديوهات الجديدة</p>
+                <a href="https://www.youtube.com/@Moalfarras" class="card-link" target="_blank" rel="noopener noreferrer" title="اذهب إلى قناتي على يوتيوب">زيارة القناة ↗</a>
+              </article>
+              <article class="card">
+                <h3 class="card-title">مراجعة الأجهزة والخدمات</h3>
+                <p class="card-text">تجاربي الحقيقية مع الأجهزة والخدمات اليومية</p>
+                <div class="links-list">
+                  <a href="https://youtu.be/ZRPDkXiXEpw" target="_blank" rel="noopener noreferrer" title="شاهد الفيديو">فيديو ١ ↗</a>
+                  <a href="https://youtu.be/H0nwbSawHF0" target="_blank" rel="noopener noreferrer" title="شاهد الفيديو">فيديو ٢ ↗</a>
+                  <a href="https://www.youtube.com/watch?v=WpA8SwfA8h8" target="_blank" rel="noopener noreferrer" title="شاهد الفيديو">فيديو ٣ ↗</a>
+                </div>
+              </article>
+              <article class="card">
+                <h3 class="card-title">فيديوهات تقنية وعملية</h3>
+                <p class="card-text">نصائح وتجارب عملية مع التقنية</p>
+                <div class="links-list">
+                  <a href="https://www.youtube.com/watch?v=McHuaqgwdG4" target="_blank" rel="noopener noreferrer" title="شاهد الفيديو">فيديو ٤ ↗</a>
+                  <a href="https://youtu.be/u5h4lBzIwUw" target="_blank" rel="noopener noreferrer" title="شاهد الفيديو">فيديو ٥ ↗</a>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
       </main>
-  <footer class="site-footer">
+  <footer class="site-footer" role="contentinfo" aria-label="تذييل الموقع">
     <div class="container footer-inner">
-      <div class="footer-links">
-        <a href="index.html">الرئيسية</a>
-        <a href="cv.html">السيرة الذاتية</a>
-        <a href="blog.html">المدونة</a>
-        <a href="youtube.html">يوتيوب</a>
-        <a href="contact.html">تواصل</a>
-        <a href="privacy.html">الخصوصية</a>
-      </div>
+      <nav class="footer-links" aria-label="روابط التذييل">
+        <a href="index.html" title="الصفحة الرئيسية">الرئيسية</a>
+        <a href="cv.html" title="السيرة الذاتية">السيرة الذاتية</a>
+        <a href="blog.html" title="المدونة">المدونة</a>
+        <a href="youtube.html" title="يوتيوب">يوتيوب</a>
+        <a href="contact.html" title="التواصل">تواصل</a>
+        <a href="privacy.html" title="سياسة الخصوصية">الخصوصية</a>
+      </nav>
       <div class="footer-meta">
         <span>© <span id="year"></span> Mohammad Alfarras – moalfarras.space</span>
       </div>

@@ -21,22 +21,22 @@
         <div class="brand-subtitle">Tech · Logistics · Web</div>
       </div>
     </a>
-    <nav class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="cv.html">About</a>
-      <a href="blog.html">Blog & Work</a>
-      <a href="youtube.html">YouTube</a>
-      <a href="contact.html">Contact</a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="index.html" title="Go to home page">Home</a>
+      <a href="cv.html" title="View CV and background">About</a>
+      <a href="blog.html" title="Visit blog and work">Blog & Work</a>
+      <a href="youtube.html" title="Visit YouTube channel">YouTube</a>
+      <a href="contact.html" title="Contact me">Contact</a>
     </nav>
     <div class="nav-actions">
-      <a href="../index.html" class="btn ghost" style="font-size:0.75rem;padding-inline:10px;">AR</a>
-      <button class="theme-toggle" type="button" aria-label="Toggle theme"></button>
+      <a href="../index.html" class="btn ghost" title="View site in Arabic" style="font-size:0.75rem;padding-inline:10px;">AR</a>
+      <button class="theme-toggle" type="button" aria-label="Toggle between light and dark mode" title="Toggle theme"></button>
     </div>
   </div>
 </header>
 
       <main>
-        <section class="hero">
+        <section class="hero" aria-label="Hero section - Profile introduction">
           <div class="container hero-grid">
             <article class="hero-content">
               <p class="eyebrow">From Al-Hasakah to Berlin · Real tech & life</p>
@@ -48,8 +48,8 @@
                 This website is the place where my logistics work, YouTube experiments, and web projects meet.
               </p>
               <div class="hero-actions">
-                <a href="#sections" class="btn primary">Explore the site</a>
-                <a href="youtube.html" class="btn ghost">Enter my YouTube world</a>
+                <a href="#sections" class="btn primary" title="Explore the site and content">Explore the site</a>
+                <a href="youtube.html" class="btn ghost" title="Visit my YouTube channel">Enter my YouTube world</a>
               </div>
               <div class="hero-chips">
                 <span class="chip">Tech content in Arabic</span>
@@ -57,26 +57,26 @@
                 <span class="chip">Simple, clear web design</span>
               </div>
             </article>
-            <aside class="hero-aside">
+            <aside class="hero-aside" aria-label="Profile photos">
               <div class="image-frame hero-photo-frame">
-                <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" loading="lazy" />
+                <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" loading="lazy" decoding="async" />
               </div>
               <div class="hero-photo-row">
                 <div class="image-frame hero-mini">
-                  <img src="../assets/img/00.jpeg" alt="Work with devices and content" loading="lazy" />
+                  <img src="../assets/img/00.jpeg" alt="Work with devices and content" loading="lazy" decoding="async" />
                 </div>
                 <div class="image-frame hero-mini">
-                  <img src="../assets/img/11.jpeg" alt="Everyday desk and setup" loading="lazy" />
+                  <img src="../assets/img/11.jpeg" alt="Everyday desk and setup" loading="lazy" decoding="async" />
                 </div>
               </div>
             </aside>
           </div>
         </section>
 
-        <section id="sections" class="section">
+        <section id="sections" class="section" aria-labelledby="what-section-title">
           <div class="container">
             <div class="section-header">
-              <h2 class="section-title">What can you find here?</h2>
+              <h2 class="section-title" id="what-section-title">What can you find here?</h2>
               <p class="section-subtitle">
                 The site is split into a few focused sections: CV, blog & work, YouTube, and direct contact.
               </p>
@@ -88,7 +88,7 @@
                 <p class="card-text">
                   A clear timeline of my work in logistics, supervising drivers and warehouses, plus my work in content and web.
                 </p>
-                <a href="cv.html" class="card-link">Go to CV</a>
+                <a href="cv.html" class="card-link" title="View full CV">Go to CV</a>
               </article>
               <article class="card">
                 <h3 class="card-title">Blog & work</h3>
@@ -96,7 +96,7 @@
                 <p class="card-text">
                   Short notes about devices I test, ideas on time management, and the services I can offer.
                 </p>
-                <a href="blog.html" class="card-link">Open blog & work</a>
+                <a href="blog.html" class="card-link" title="View blog and work">Open blog & work</a>
               </article>
               <article class="card">
                 <h3 class="card-title">YouTube corner</h3>
@@ -138,47 +138,47 @@
           </div>
         </section>
 
-        <section class="section">
+        <section class="section" aria-labelledby="faq-title">
           <div class="container">
             <div class="section-header">
-              <h2 class="section-title">Quick questions · FAQ</h2>
+              <h2 class="section-title" id="faq-title">Quick questions · FAQ</h2>
               <p class="section-subtitle">
                 A few questions I get a lot – with short, honest answers.
               </p>
             </div>
-            <div class="faq-list">
-              <div class="faq-item">
-                <strong>Why did you build this website?</strong>
+            <div class="faq-list" role="region" aria-label="Frequently asked questions">
+              <details class="faq-item">
+                <summary>Why did you build this website?</summary>
                 <p>
                   To gather my logistics work, tech content, and web experiments in one place that feels personal and simple.
                 </p>
-              </div>
-              <div class="faq-item">
-                <strong>What kind of content do you make?</strong>
+              </details>
+              <details class="faq-item">
+                <summary>What kind of content do you make?</summary>
                 <p>
                   Real-world device reviews, thoughts about organizing time, and experiments with digital services that actually help.
                 </p>
-              </div>
-              <div class="faq-item">
-                <strong>Can we work together?</strong>
+              </details>
+              <details class="faq-item">
+                <summary>Can we work together?</summary>
                 <p>
                   Yes – if your product, service or project touches tech, logistics or user experience, feel free to reach out.
                 </p>
-              </div>
+              </details>
             </div>
           </div>
         </section>
       </main>
-<footer class="site-footer">
+<footer class="site-footer" role="contentinfo" aria-label="Site footer">
   <div class="container footer-inner">
-    <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="cv.html">About</a>
-      <a href="blog.html">Blog</a>
-      <a href="youtube.html">YouTube</a>
-      <a href="contact.html">Contact</a>
-      <a href="privacy.html">Privacy</a>
-    </div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="index.html" title="Home page">Home</a>
+      <a href="cv.html" title="CV and background">About</a>
+      <a href="blog.html" title="Blog">Blog</a>
+      <a href="youtube.html" title="YouTube">YouTube</a>
+      <a href="contact.html" title="Contact">Contact</a>
+      <a href="privacy.html" title="Privacy policy">Privacy</a>
+    </nav>
     <div class="footer-meta">
       <span>© <span id="year"></span> Mohammad Alfarras – moalfarras.space</span>
     </div>

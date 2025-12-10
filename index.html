@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  REFACTORED HERO SECTION:
+  - Split hero into two separate sections: hero-text-card + hero-portrait-card
+  - Mobile-first layout: text first (top), portrait second (bottom)
+  - Desktop (900px+): side-by-side grid layout (text right, portrait left for RTL)
+  - Removed complex orbit icons and overlapping elements
+  - Clean glassmorphism cards with better spacing and readability
+-->
 <html lang="ar" dir="rtl" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
@@ -7,7 +15,7 @@
     <meta name="description" content="محمد الفراس – من الحسكة إلى برلين. محتوى تقني بالعربي، تجربة منتجات، إدارة نقل في ألمانيا، وتصميم مواقع بسيطة وواضحة." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Poppins:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="icon" href="assets/img/logo-unboxing.png" type="image/png" />
   </head>
@@ -68,120 +76,79 @@
 </header>
 
       <main>
-        <section class="cinematic-hero" aria-label="قسم البطل - محمد الفراس">
-          <div class="container">
-            <div class="cinematic-hero-grid">
+        <!-- Hero: text LEFT, portrait RIGHT on tablet/desktop | text first, portrait second on mobile -->
+        <section class="hero hero-main" dir="rtl" aria-label="قسم البطل - محمد الفراس">
+          <div class="hero-inner">
+            <!-- Text block FIRST in DOM -->
+            <div class="hero-text">
+              <p class="hero-kicker">من الحسكة — عبر أوروبا إلى الشاشات</p>
+              <h1 class="hero-title">
+                محتوى تقني صادق<br>
+                <span class="gradient-text">يبدأ من فتح الصندوق</span>
+              </h1>
               
-              <!-- Text Content -->
-              <div class="cinematic-hero-content">
-                <p class="cinematic-hero-eyebrow">من الحسكة — عبر أوروبا إلى الشاشات</p>
-                <h1 class="cinematic-hero-title">
-                  محتوى تقني صادق<br>
-                  <span class="gradient-text">يبدأ من فتح الصندوق</span>
-                </h1>
-                
-                <p class="cinematic-hero-paragraph">
-                  أهلاً بك في عالمي… العالم الذي يبدأ من لحظة فتح الصندوق.
-                  هنا تتحوّل المنتجات إلى قصص، والأجهزة إلى تجارب، والتفاصيل الصغيرة إلى لحظات مثيرة تستحق الاكتشاف.
-                  أجرب، أختبر، ألمس، أسمع… وأعرض لك حقيقتها كما هي، بدون فلتر، بدون تلوين، وبدون مبالغة.
-                  أحب صوت التغليف، أحب أول تشغيل، أحب المفاجآت… وأحب أشاركك هذه اللحظات بكل صدق ومتعة.
-                </p>
-                
-                <p class="cinematic-hero-paragraph-secondary">
-                  سواء جئت لتستمتع… أو لتقرر ماذا تشتري… أو كنت شركة تبحث عن عرض احترافي لمنتجها—
-                  فأنت الآن في المكان الصحيح… وفي بداية تجربة مختلفة تماماً.
-                </p>
+              <p class="hero-paragraph">
+                أهلاً بك في عالمي… العالم الذي يبدأ من لحظة فتح الصندوق.
+                هنا تتحوّل المنتجات إلى قصص، والأجهزة إلى تجارب، والتفاصيل الصغيرة إلى لحظات مثيرة تستحق الاكتشاف.
+                أجرب، أختبر، ألمس، أسمع… وأعرض لك حقيقتها كما هي، بدون فلتر، بدون تلوين، وبدون مبالغة.
+              </p>
+              
+              <p class="hero-paragraph-secondary">
+                سواء جئت لتستمتع… أو لتقرر ماذا تشتري… أو كنت شركة تبحث عن عرض احترافي لمنتجها—
+                فأنت الآن في المكان الصحيح… وفي بداية تجربة مختلفة تماماً.
+              </p>
 
-                <!-- Rotating Taglines -->
-                <div class="cinematic-hero-tagline">
-                  <div class="tagline-text">التقنية… كما يجب أن تُروى</div>
-                  <div class="tagline-text">تجارب حقيقية… بدون فلتر</div>
-                  <div class="tagline-text">فتح صناديق تستحق المشاهدة</div>
-                  <div class="tagline-text">منتجات… تحت المجهر</div>
-                  <div class="tagline-text">محتوى صادق… من تجربة فعلية</div>
-                  <div class="tagline-text">جاهز للتعاون مع الشركات والمنتجات</div>
-                </div>
-                
-                <div class="cinematic-hero-actions">
-                  <a href="youtube.html" class="cinematic-hero-btn cinematic-hero-btn-primary">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    شاهد قناتي على يوتيوب
-                  </a>
-                  <a href="contact.html" class="cinematic-hero-btn cinematic-hero-btn-secondary">تعاون معي</a>
-                </div>
+              <!-- Rotating Taglines -->
+              <div class="hero-tagline">
+                <div class="tagline-text">التقنية… كما يجب أن تُروى</div>
+                <div class="tagline-text">تجارب حقيقية… بدون فلتر</div>
+                <div class="tagline-text">فتح صناديق تستحق المشاهدة</div>
+                <div class="tagline-text">منتجات… تحت المجهر</div>
+                <div class="tagline-text">محتوى صادق… من تجربة فعلية</div>
+                <div class="tagline-text">جاهز للتعاون مع الشركات والمنتجات</div>
               </div>
               
-              <!-- Portrait + Horizontal Icon Row -->
-              <div class="cinematic-hero-visual">
-                <div class="hero-portrait-container">
-                  <div class="hero-portrait-frame">
-                    <img src="assets/img/portrait.jpg" alt="صورة محمد الفراس" loading="lazy" decoding="async" />
-                  </div>
-                  
-                  <!-- Handwritten Signature -->
-                  <div class="hero-signature">Mohammad Alfarras</div>
-                  
-                  <!-- Floating Icons (3 max) -->
-                  <div class="floating-icons">
-                    <div class="floating-icon floating-icon-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                        <line x1="12" x2="12" y1="19" y2="22"/>
-                      </svg>
-                    </div>
-                    <div class="floating-icon floating-icon-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="14" x="2" y="3" rx="2"/>
-                        <line x1="8" x2="16" y1="21" y2="21"/>
-                        <line x1="12" x2="12" y1="17" y2="21"/>
-                      </svg>
-                    </div>
-                    <div class="floating-icon floating-icon-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <!-- Glass Skill Pills Under Portrait -->
-                  <div class="hero-icon-row">
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                      </span>
-                      <span class="pill-label">صناعة محتوى</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                      </span>
-                      <span class="pill-label">منتجات تقنية</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                      </span>
-                      <span class="pill-label">مراجعات وتجارب</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-                      </span>
-                      <span class="pill-label">خدمات رقمية</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-                      </span>
-                      <span class="pill-label">لوجستيات ونقل</span>
-                    </button>
-                  </div>
-                </div>
+              <!-- Pills moved to hero text -->
+              <div class="hero-pills-section">
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <span>صناعة محتوى</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                  <span>منتجات تقنية</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span>مراجعات وتجارب</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                  <span>خدمات رقمية</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                  <span>لوجستيات ونقل</span>
+                </button>
               </div>
-              
+
+              <div class="hero-actions">
+                <a href="youtube.html" class="hero-btn hero-btn-primary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                  شاهد قناتي على يوتيوب
+                </a>
+                <a href="contact.html" class="hero-btn hero-btn-secondary">تعاون معي</a>
+              </div>
+            </div>
+
+            <!-- Portrait block SECOND in DOM -->
+            <div class="hero-media">
+              <div class="hero-portrait-card">
+                <img src="assets/img/portrait.jpg" alt="صورة محمد الفراس" class="hero-portrait" loading="lazy" decoding="async" />
+                <p class="hero-signature">Mohammad Alfarras</p>
+              </div>
             </div>
           </div>
         </section>

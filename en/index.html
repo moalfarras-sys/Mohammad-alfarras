@@ -7,7 +7,7 @@
     <meta name="description" content="Mohammad Alfarras – logistics supervisor in Germany, tech content creator, and web tinkerer. Explore reviews, projects, and contact options." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Poppins:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css" />
     <link rel="icon" href="../assets/img/logo-unboxing.png" type="image/png" />
   </head>
@@ -71,120 +71,79 @@
 </header>
 
       <main>
-        <section class="cinematic-hero" aria-label="Hero section - Mohammad Alfarras">
-          <div class="container">
-            <div class="cinematic-hero-grid">
+        <!-- Hero: text LEFT, portrait RIGHT on tablet/desktop | text first, portrait second on mobile -->
+        <section class="hero hero-main" dir="ltr" aria-label="Hero section - Mohammad Alfarras">
+          <div class="hero-inner">
+            <!-- Text block FIRST in DOM -->
+            <div class="hero-text">
+              <p class="hero-kicker">From Al-Hasakah — across Europe to your screens</p>
+              <h1 class="hero-title">
+                Honest tech content<br>
+                <span class="gradient-text">that starts with unboxing</span>
+              </h1>
               
-              <!-- Text Content -->
-              <div class="cinematic-hero-content">
-                <p class="cinematic-hero-eyebrow">From Al-Hasakah — across Europe to your screens</p>
-                <h1 class="cinematic-hero-title">
-                  Honest tech content<br>
-                  <span class="gradient-text">that starts with unboxing</span>
-                </h1>
-                
-                <p class="cinematic-hero-paragraph">
-                  Welcome to my world… where everything begins with the moment a box is opened.
-                  Here, products turn into stories, devices turn into real experiences, and small details become exciting moments worth exploring.
-                  I unbox, test, touch, listen… and show you the truth with no filter, no over-editing, and no exaggeration.
-                  I love the sound of unwrapping, the first power-on, the surprises… and I love sharing these moments with complete honesty and enjoyment.
-                </p>
-                
-                <p class="cinematic-hero-paragraph-secondary">
-                  Whether you're here to enjoy, to decide what to buy, or you're a brand looking for a clean and powerful product showcase—
-                  you're in the right place… at the start of a very different experience.
-                </p>
+              <p class="hero-paragraph">
+                Welcome to my world… where everything begins with the moment a box is opened.
+                Here, products turn into stories, devices turn into real experiences, and small details become exciting moments worth exploring.
+                I unbox, test, touch, listen… and show you the truth with no filter, no over-editing, and no exaggeration.
+              </p>
+              
+              <p class="hero-paragraph-secondary">
+                Whether you're here to enjoy, to decide what to buy, or you're a brand looking for a clean and powerful product showcase—
+                you're in the right place… at the start of a very different experience.
+              </p>
 
-                <!-- Rotating Taglines -->
-                <div class="cinematic-hero-tagline">
-                  <div class="tagline-text">Tech… the way it should be told</div>
-                  <div class="tagline-text">Real experiences, no filter</div>
-                  <div class="tagline-text">Unboxings worth watching</div>
-                  <div class="tagline-text">Products under the spotlight</div>
-                  <div class="tagline-text">Honest content from real use</div>
-                  <div class="tagline-text">Ready for brand collaborations</div>
-                </div>
-                
-                <div class="cinematic-hero-actions">
-                  <a href="youtube.html" class="cinematic-hero-btn cinematic-hero-btn-primary">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    Watch my YouTube channel
-                  </a>
-                  <a href="contact.html" class="cinematic-hero-btn cinematic-hero-btn-secondary">Work with me</a>
-                </div>
+              <!-- Rotating Taglines -->
+              <div class="hero-tagline">
+                <div class="tagline-text">Tech… the way it should be told</div>
+                <div class="tagline-text">Real experiences, no filter</div>
+                <div class="tagline-text">Unboxings worth watching</div>
+                <div class="tagline-text">Products under the spotlight</div>
+                <div class="tagline-text">Honest content from real use</div>
+                <div class="tagline-text">Ready for brand collaborations</div>
               </div>
               
-              <!-- Portrait + Horizontal Icon Row -->
-              <div class="cinematic-hero-visual">
-                <div class="hero-portrait-container">
-                  <div class="hero-portrait-frame">
-                    <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" loading="lazy" decoding="async" />
-                  </div>
-                  
-                  <!-- Handwritten Signature -->
-                  <div class="hero-signature">Mohammad Alfarras</div>
-                  
-                  <!-- Floating Icons (3 max) -->
-                  <div class="floating-icons">
-                    <div class="floating-icon floating-icon-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                        <line x1="12" x2="12" y1="19" y2="22"/>
-                      </svg>
-                    </div>
-                    <div class="floating-icon floating-icon-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="14" x="2" y="3" rx="2"/>
-                        <line x1="8" x2="16" y1="21" y2="21"/>
-                        <line x1="12" x2="12" y1="17" y2="21"/>
-                      </svg>
-                    </div>
-                    <div class="floating-icon floating-icon-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <!-- Glass Skill Pills Under Portrait -->
-                  <div class="hero-icon-row">
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                      </span>
-                      <span class="pill-label">Content Creator</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                      </span>
-                      <span class="pill-label">Tech & Gadgets</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                      </span>
-                      <span class="pill-label">Honest Reviews</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-                      </span>
-                      <span class="pill-label">Digital Services</span>
-                    </button>
-                    <button class="hero-skill-pill" type="button">
-                      <span class="pill-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-                      </span>
-                      <span class="pill-label">Logistics & Delivery</span>
-                    </button>
-                  </div>
-                </div>
+              <!-- Pills moved to hero text -->
+              <div class="hero-pills-section">
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <span>Content Creator</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                  <span>Tech & Gadgets</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span>Honest Reviews</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                  <span>Digital Services</span>
+                </button>
+                <button class="hero-pill" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                  <span>Logistics & Delivery</span>
+                </button>
               </div>
-              
+
+              <div class="hero-actions">
+                <a href="youtube.html" class="hero-btn hero-btn-primary">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                  Watch my YouTube channel
+                </a>
+                <a href="contact.html" class="hero-btn hero-btn-secondary">Work with me</a>
+              </div>
+            </div>
+
+            <!-- Portrait block SECOND in DOM -->
+            <div class="hero-media">
+              <div class="hero-portrait-card">
+                <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" class="hero-portrait" loading="lazy" decoding="async" />
+                <p class="hero-signature">Mohammad Alfarras</p>
+              </div>
             </div>
           </div>
         </section>

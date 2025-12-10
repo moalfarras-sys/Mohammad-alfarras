@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <title>Hero Layout Test - محمد الفراس</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+        .test-overlay {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(99, 102, 241, 0.95);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            z-index: 10000;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            max-width: 280px;
+        }
+        .test-overlay h3 {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .test-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+        .test-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .test-label {
+            opacity: 0.9;
+        }
+        .test-value {
+            font-weight: 600;
+        }
+        .status-good {
+            color: #10b981;
+            font-weight: 700;
+        }
+        .status-warn {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+        
+        /* Visual spacing indicators */
+        .spacing-indicator {
+            position: fixed;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.5);
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .spacing-indicator.top {
+            top: 0;
+        }
+        .spacing-indicator.navbar-bottom {
+            background: rgba(0, 255, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-root">
+        <header class="navbar glass">
+            <div class="container navbar-inner">
+                <a href="index.html" class="brand">
+                    <div class="image-frame image-frame-small">
+                        <img src="assets/img/logo-unboxing.png" alt="شعار محمد الفراس" loading="lazy" />
+                    </div>
+                    <div>
+                        <div class="brand-title">MOALFARRAS</div>
+                        <div class="brand-subtitle">محتوى تقني · نقل · مواقع</div>
+                    </div>
+                </a>
+                <nav class="nav-links" aria-label="القائمة الرئيسية">
+                    <a href="index.html">الرئيسية</a>
+                    <a href="cv.html">السيرة الذاتية</a>
+                    <a href="blog.html">المدونة والأعمال</a>
+                    <a href="youtube.html">يوتيوب</a>
+                    <a href="contact.html">تواصل</a>
+                </nav>
+                <div class="nav-actions">
+                    <div class="language-selector">
+                        <button class="language-toggle-glass" type="button" aria-label="تغيير اللغة">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512" class="flag-icon">
+                                <rect width="512" height="170.67" fill="#199d4d"/>
+                                <rect y="170.67" width="512" height="170.67" fill="#fff"/>
+                                <rect y="341.33" width="512" height="170.67" fill="#000"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="theme-toggle" type="button" aria-label="تبديل الوضع"></button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="cinematic-hero" aria-label="قسم البطل - محمد الفراس">
+                <div class="container">
+                    <div class="cinematic-hero-grid">
+                        
+                        <!-- Text Content -->
+                        <div class="cinematic-hero-content">
+                            <p class="cinematic-hero-eyebrow">من الحسكة — عبر أوروبا إلى الشاشات</p>
+                            <h1 class="cinematic-hero-title">
+                                محتوى تقني صادق<br>
+                                <span class="gradient-text">يبدأ من فتح الصندوق</span>
+                            </h1>
+                            
+                            <p class="cinematic-hero-paragraph">
+                                أهلاً بك في عالمي… العالم الذي يبدأ من لحظة فتح الصندوق.
+                                هنا تتحوّل المنتجات إلى قصص، والأجهزة إلى تجارب، والتفاصيل الصغيرة إلى لحظات مثيرة تستحق الاكتشاف.
+                                أجرب، أختبر، ألمس، أسمع… وأعرض لك حقيقتها كما هي، بدون فلتر، بدون تلوين، وبدون مبالغة.
+                            </p>
+                            
+                            <p class="cinematic-hero-paragraph-secondary">
+                                سواء جئت لتستمتع… أو لتقرر ماذا تشتري… أو كنت شركة تبحث عن عرض احترافي لمنتجها—
+                                فأنت الآن في المكان الصحيح… وفي بداية تجربة مختلفة تماماً.
+                            </p>
+
+                            <!-- Rotating Taglines -->
+                            <div class="cinematic-hero-tagline">
+                                <div class="tagline-text">التقنية… كما يجب أن تُروى</div>
+                                <div class="tagline-text">تجارب حقيقية… بدون فلتر</div>
+                                <div class="tagline-text">فتح صناديق تستحق المشاهدة</div>
+                            </div>
+                            
+                            <div class="cinematic-hero-actions">
+                                <a href="youtube.html" class="cinematic-hero-btn cinematic-hero-btn-primary">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    شاهد قناتي على يوتيوب
+                                </a>
+                                <a href="contact.html" class="cinematic-hero-btn cinematic-hero-btn-secondary">تعاون معي</a>
+                            </div>
+                        </div>
+                        
+                        <!-- Portrait + Pills -->
+                        <div class="cinematic-hero-visual">
+                            <div class="hero-portrait-container">
+                                <div class="hero-portrait-frame">
+                                    <img src="assets/img/portrait.jpg" alt="صورة محمد الفراس" loading="lazy" decoding="async" />
+                                </div>
+                                
+                                <!-- Glass Skill Pills Under Portrait -->
+                                <div class="hero-icon-row">
+                                    <button class="hero-skill-pill" type="button">
+                                        <span class="pill-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                                        </span>
+                                        <span class="pill-label">صناعة محتوى</span>
+                                    </button>
+                                    <button class="hero-skill-pill" type="button">
+                                        <span class="pill-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                                        </span>
+                                        <span class="pill-label">منتجات تقنية</span>
+                                    </button>
+                                    <button class="hero-skill-pill" type="button">
+                                        <span class="pill-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        </span>
+                                        <span class="pill-label">مراجعات وتجارب</span>
+                                    </button>
+                                    <button class="hero-skill-pill" type="button">
+                                        <span class="pill-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                                        </span>
+                                        <span class="pill-label">خدمات رقمية</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dummy section to show spacing -->
+            <section style="padding: 40px 0; text-align: center; background: var(--glass-surface);">
+                <div class="container">
+                    <h2 style="font-size: 1.5rem; margin-bottom: 16px;">القسم التالي</h2>
+                    <p style="color: var(--color-text-secondary);">هذا القسم يوضح المسافة بين البطل والمحتوى التالي</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="test-overlay">
+        <h3>🧪 اختبار التباعد</h3>
+        <div class="test-info">
+            <div class="test-row">
+                <span class="test-label">العرض:</span>
+                <span class="test-value" id="width">-</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">الارتفاع:</span>
+                <span class="test-value" id="height">-</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">نقطة الانقطاع:</span>
+                <span class="test-value" id="breakpoint">-</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">التخطيط:</span>
+                <span class="test-value" id="layout">-</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">الحالة:</span>
+                <span class="test-value" id="status">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+    <script>
+        function updateTestInfo() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            let breakpoint = '';
+            let layout = '';
+            let status = '';
+            
+            if (width < 480) {
+                breakpoint = 'Mobile (<480px)';
+                layout = 'Stack Vertical';
+                status = '<span class="status-good">✓ تباعد محسّن</span>';
+            } else if (width < 768) {
+                breakpoint = 'Large Phone (480-767px)';
+                layout = 'Stack Vertical';
+                status = '<span class="status-good">✓ تباعد متوسط</span>';
+            } else if (width < 1024) {
+                breakpoint = 'Tablet (768-1023px)';
+                layout = '2 Columns';
+                status = '<span class="status-good">✓ تخطيط متوازن</span>';
+            } else if (width < 1280) {
+                breakpoint = 'Laptop (1024-1279px)';
+                layout = '2 Columns';
+                status = '<span class="status-good">✓ سطح مكتب قياسي</span>';
+            } else {
+                breakpoint = 'Large Desktop (1280px+)';
+                layout = '2 Columns Wide';
+                status = '<span class="status-good">✓ سطح مكتب كبير</span>';
+            }
+            
+            document.getElementById('width').textContent = width + 'px';
+            document.getElementById('height').textContent = height + 'px';
+            document.getElementById('breakpoint').textContent = breakpoint;
+            document.getElementById('layout').textContent = layout;
+            document.getElementById('status').innerHTML = status;
+            
+            // Check if hero grid is properly laid out
+            const heroGrid = document.querySelector('.cinematic-hero-grid');
+            if (heroGrid) {
+                const gridStyle = window.getComputedStyle(heroGrid);
+                const gridColumns = gridStyle.gridTemplateColumns;
+                console.log('Grid columns:', gridColumns);
+            }
+        }
+        
+        updateTestInfo();
+        window.addEventListener('resize', updateTestInfo);
+        
+        // Mark navbar bottom position
+        window.addEventListener('load', () => {
+            const navbar = document.querySelector('.navbar');
+            if (navbar) {
+                const navbarBottom = navbar.getBoundingClientRect().bottom;
+                console.log('Navbar bottom position:', navbarBottom);
+            }
+        });
+    </script>
+</body>
+</html>

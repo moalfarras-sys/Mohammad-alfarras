@@ -4801,7 +4801,7 @@ html[data-theme="light"] .youtube-thumb-play {
 
 /* Hero Container */
 .cinematic-hero {
-  padding: 100px 0 120px;
+  padding: 40px 0 50px;
   position: relative;
   overflow: hidden;
 }
@@ -4810,17 +4810,18 @@ html[data-theme="light"] .youtube-thumb-play {
 .cinematic-hero-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 100px;
+  gap: 60px;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
 /* Left Side - Text Content */
 .cinematic-hero-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   z-index: 2;
   position: relative;
 }
@@ -4852,8 +4853,8 @@ html[data-theme="light"] .youtube-thumb-play {
 }
 
 .cinematic-hero-paragraph {
-  font-size: 1.25rem;
-  line-height: 2;
+  font-size: 1.05rem;
+  line-height: 1.7;
   color: var(--color-text-secondary);
   margin: 0;
   animation: fadeSlideIn 0.9s ease-out 0.2s backwards;
@@ -4861,8 +4862,8 @@ html[data-theme="light"] .youtube-thumb-play {
 }
 
 .cinematic-hero-paragraph-secondary {
-  font-size: 1.08rem;
-  line-height: 1.95;
+  font-size: 0.98rem;
+  line-height: 1.65;
   color: var(--color-text-secondary);
   margin: 0;
   opacity: 0.85;
@@ -4873,8 +4874,8 @@ html[data-theme="light"] .youtube-thumb-play {
 /* Rotating Tagline Component */
 .cinematic-hero-tagline {
   position: relative;
-  min-height: 36px;
-  margin-top: 16px;
+  min-height: 32px;
+  margin-top: 8px;
   animation: fadeSlideIn 0.8s ease-out 0.4s backwards;
 }
 
@@ -4914,8 +4915,8 @@ html[dir="rtl"] .tagline-text {
 .cinematic-hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 32px;
+  gap: 12px;
+  margin-top: 20px;
   animation: fadeSlideIn 0.8s ease-out 0.5s backwards;
 }
 
@@ -5000,7 +5001,7 @@ html[data-theme="light"] .cinematic-hero-btn-primary:hover {
   justify-content: center;
   align-items: center;
   position: relative;
-  min-height: 500px;
+  min-height: auto;
 }
 
 @keyframes portraitFloat {
@@ -5023,7 +5024,7 @@ html[data-theme="light"] .cinematic-hero-btn-primary:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
 /* Portrait Frame - Keep Original Glow & Style */
@@ -5065,10 +5066,10 @@ html[data-theme="light"] .cinematic-hero-btn-primary:hover {
 
 /* Horizontal Icon Row Under Portrait */
 .hero-icon-row {
-  margin-top: 22px;
+  margin-top: 12px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
+  gap: 10px 14px;
   max-width: 420px;
   margin-left: auto;
   margin-right: auto;
@@ -5960,18 +5961,21 @@ img {
    ======================================== */
 
 .cinematic-hero {
-  padding: 60px 0 60px;
+  padding: 20px 0 40px;
 }
 
 .cinematic-hero-grid {
   display: flex;
   flex-direction: column-reverse;
-  gap: 40px;
+  gap: 24px;
   grid-template-columns: 1fr;
+  padding: 0 16px;
 }
 
 .cinematic-hero-content {
-  gap: 16px;
+  gap: 12px;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .cinematic-hero-eyebrow {
@@ -5984,8 +5988,9 @@ img {
 }
 
 .cinematic-hero-paragraph {
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 100%;
 }
 
 .cinematic-hero-paragraph-secondary {
@@ -5994,8 +5999,8 @@ img {
 }
 
 .cinematic-hero-tagline {
-  min-height: 28px;
-  margin-top: 12px;
+  min-height: 26px;
+  margin-top: 8px;
 }
 
 .tagline-text {
@@ -6207,7 +6212,7 @@ img {
   }
 
   .cinematic-hero {
-    padding: 70px 0 70px;
+    padding: 30px 0 50px;
   }
 
   .cinematic-hero-title {
@@ -6300,19 +6305,20 @@ img {
   }
 
   .cinematic-hero {
-    padding: 80px 0 100px;
+    padding: 50px 0 60px;
   }
 
   .cinematic-hero-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     flex-direction: row;
-    gap: 60px;
+    gap: 40px;
     align-items: center;
+    padding: 0 20px;
   }
 
   .cinematic-hero-content {
-    gap: 20px;
+    gap: 16px;
   }
 
   .cinematic-hero-eyebrow {
@@ -6337,7 +6343,7 @@ img {
   }
 
   .cinematic-hero-actions {
-    margin-top: 28px;
+    margin-top: 20px;
   }
 
   .cinematic-hero-btn {
@@ -6417,15 +6423,16 @@ img {
   }
 
   .cinematic-hero {
-    padding: 100px 0 120px;
+    padding: 60px 0 70px;
   }
 
   .cinematic-hero-grid {
-    gap: 80px;
+    gap: 60px;
+    padding: 0 24px;
   }
 
   .cinematic-hero-content {
-    gap: 24px;
+    gap: 18px;
   }
 
   .cinematic-hero-eyebrow {
@@ -6437,13 +6444,13 @@ img {
   }
 
   .cinematic-hero-paragraph {
-    font-size: 1.2rem;
-    line-height: 1.95;
+    font-size: 1.1rem;
+    line-height: 1.75;
   }
 
   .cinematic-hero-paragraph-secondary {
-    font-size: 1.05rem;
-    line-height: 1.9;
+    font-size: 1rem;
+    line-height: 1.7;
   }
 
   .tagline-text {
@@ -6496,8 +6503,13 @@ img {
     max-width: 1280px;
   }
 
+  .cinematic-hero {
+    padding: 70px 0 80px;
+  }
+
   .cinematic-hero-grid {
-    gap: 100px;
+    gap: 70px;
+    padding: 0 32px;
   }
 
   .cinematic-hero-title {
@@ -6505,13 +6517,13 @@ img {
   }
 
   .cinematic-hero-paragraph {
-    font-size: 1.25rem;
-    line-height: 2;
+    font-size: 1.15rem;
+    line-height: 1.8;
   }
 
   .cinematic-hero-paragraph-secondary {
-    font-size: 1.08rem;
-    line-height: 1.95;
+    font-size: 1.02rem;
+    line-height: 1.75;
   }
 
   .tagline-text {

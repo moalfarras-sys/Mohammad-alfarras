@@ -10,7 +10,7 @@
   </head>
   <body>
     <div class="page-root">
-<header class="navbar">
+<header class="navbar glass">
   <div class="container navbar-inner">
     <a href="index.html" class="brand">
       <div class="image-frame image-frame-small">
@@ -29,111 +29,215 @@
       <a href="contact.html" title="Contact me">Contact</a>
     </nav>
     <div class="nav-actions">
-      <a href="../index.html" class="btn ghost" title="View site in Arabic" style="font-size:0.75rem;padding-inline:10px;">AR</a>
-      <button class="theme-toggle" type="button" aria-label="Toggle between light and dark mode" title="Toggle theme"></button>
+      <div class="language-selector">
+        <button class="language-toggle-glass" type="button" aria-label="Change language" title="Change language">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 60 30" class="flag-icon">
+            <clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+            <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+            <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+            <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+          </svg>
+        </button>
+        <div class="language-dropdown" hidden>
+          <a href="../index.html" class="language-option">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" class="flag-icon-small">
+              <rect width="512" height="170.67" fill="#199d4d"/>
+              <rect y="170.67" width="512" height="170.67" fill="#fff"/>
+              <rect y="341.33" width="512" height="170.67" fill="#000"/>
+            </svg>
+            <span>العربية</span>
+          </a>
+          <a href="index.html" class="language-option active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 60 30" class="flag-icon-small">
+              <clipPath id="t2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+              <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+              <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t2)" stroke="#C8102E" stroke-width="4"/>
+              <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+              <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+            </svg>
+            <span>English</span>
+          </a>
+        </div>
+      </div>
+      <button class="theme-toggle" type="button" aria-label="Toggle light/dark mode" title="Toggle theme"></button>
     </div>
   </div>
 </header>
 
       <main>
-        <section class="hero" aria-label="Hero section - Profile introduction">
-          <div class="container hero-grid">
-            <article class="hero-content">
-              <p class="eyebrow">From Al-Hasakah to Berlin · Real tech & life</p>
-              <h1 class="hero-title">
-                Mohammad <span class="hero-gradient-text">Alfarras</span>
-              </h1>
-              <p class="hero-lead">
-                Logistics supervisor in Germany by day, tech content creator and web tinkerer by night.
-                This website is the place where my logistics work, YouTube experiments, and web projects meet.
+        <section class="cinematic-hero" aria-label="Hero section - Mohammad Alfarras">
+          <div class="container">
+            <div class="cinematic-hero-grid">
+              
+              <!-- Text Content -->
+              <div class="cinematic-hero-content">
+                <p class="cinematic-hero-eyebrow">From Al-Hasakah — across Europe to your screens</p>
+                <h1 class="cinematic-hero-title">
+                  Honest tech content<br>
+                  <span class="gradient-text">that starts with unboxing</span>
+                </h1>
+                
+                <p class="cinematic-hero-paragraph">
+                  Welcome to my world… where everything begins with the moment a box is opened.
+                  Here, products turn into stories, devices turn into real experiences, and small details become exciting moments worth exploring.
+                  I unbox, test, touch, listen… and show you the truth with no filter, no over-editing, and no exaggeration.
+                  I love the sound of unwrapping, the first power-on, the surprises… and I love sharing these moments with complete honesty and enjoyment.
+                </p>
+                
+                <p class="cinematic-hero-paragraph-secondary">
+                  Whether you're here to enjoy, to decide what to buy, or you're a brand looking for a clean and powerful product showcase—
+                  you're in the right place… at the start of a very different experience.
+                </p>
+
+                <!-- Rotating Taglines -->
+                <div class="cinematic-hero-tagline">
+                  <div class="tagline-text">Tech… the way it should be told</div>
+                  <div class="tagline-text">Real experiences, no filter</div>
+                  <div class="tagline-text">Unboxings worth watching</div>
+                  <div class="tagline-text">Products under the spotlight</div>
+                  <div class="tagline-text">Honest content from real use</div>
+                  <div class="tagline-text">Ready for brand collaborations</div>
+                </div>
+                
+                <div class="cinematic-hero-actions">
+                  <a href="youtube.html" class="cinematic-hero-btn cinematic-hero-btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    Watch my YouTube channel
+                  </a>
+                  <a href="contact.html" class="cinematic-hero-btn cinematic-hero-btn-secondary">Work with me</a>
+                </div>
+              </div>
+              
+              <!-- Portrait + Horizontal Icon Row -->
+              <div class="cinematic-hero-visual">
+                <div class="hero-portrait-container">
+                  <div class="hero-portrait-frame">
+                    <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" loading="lazy" decoding="async" />
+                  </div>
+                  
+                  <!-- Glass Skill Pills Under Portrait -->
+                  <div class="hero-icon-row">
+                    <button class="hero-skill-pill" type="button">
+                      <span class="pill-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                      </span>
+                      <span class="pill-label">Content Creator</span>
+                    </button>
+                    <button class="hero-skill-pill" type="button">
+                      <span class="pill-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                      </span>
+                      <span class="pill-label">Tech & Gadgets</span>
+                    </button>
+                    <button class="hero-skill-pill" type="button">
+                      <span class="pill-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      </span>
+                      <span class="pill-label">Honest Reviews</span>
+                    </button>
+                    <button class="hero-skill-pill" type="button">
+                      <span class="pill-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                      </span>
+                      <span class="pill-label">Digital Services</span>
+                    </button>
+                    <button class="hero-skill-pill" type="button">
+                      <span class="pill-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                      </span>
+                      <span class="pill-label">Logistics & Delivery</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </section>
+
+        <section class="tech-shots-section" aria-labelledby="tech-shots-title">
+          <div class="container">
+            <div class="tech-shots-header">
+              <h2 class="tech-shots-title" id="tech-shots-title">Shots from my day with tech & content</h2>
+              <p class="tech-shots-subtitle">
+                Highlights from reviews, product setups and practical tutorials.
               </p>
-              <div class="hero-actions">
-                <a href="#sections" class="btn primary" title="Explore the site and content">Explore the site</a>
-                <a href="youtube.html" class="btn ghost" title="Visit my YouTube channel">Enter my YouTube world</a>
-              </div>
-              <div class="hero-chips">
-                <span class="chip">Tech content in Arabic</span>
-                <span class="chip">Logistics & routing</span>
-                <span class="chip">Simple, clear web design</span>
-              </div>
-            </article>
-            <aside class="hero-aside" aria-label="Profile photos">
-              <div class="image-frame hero-photo-frame">
-                <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" loading="lazy" decoding="async" />
-              </div>
-              <div class="hero-photo-row">
-                <div class="image-frame hero-mini">
-                  <img src="../assets/img/00.jpeg" alt="Work with devices and content" loading="lazy" decoding="async" />
-                </div>
-                <div class="image-frame hero-mini">
-                  <img src="../assets/img/11.jpeg" alt="Everyday desk and setup" loading="lazy" decoding="async" />
+            </div>
+            <div class="tech-shots-grid">
+              <div class="tech-shot-item">
+                <img src="../assets/img/33.jpeg" alt="Tech content snapshot" loading="lazy" decoding="async" />
+                <div class="tech-shot-play-icon">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
                 </div>
               </div>
-            </aside>
+              <div class="tech-shot-item">
+                <img src="../assets/img/44.jpeg" alt="Tech content snapshot" loading="lazy" decoding="async" />
+                <div class="tech-shot-play-icon">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="tech-shot-item">
+                <img src="../assets/img/55.jpeg" alt="Tech content snapshot" loading="lazy" decoding="async" />
+                <div class="tech-shot-play-icon">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="tech-shot-item">
+                <img src="../assets/img/66.jpeg" alt="Tech content snapshot" loading="lazy" decoding="async" />
+                <div class="tech-shot-play-icon">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         <section id="sections" class="section" aria-labelledby="what-section-title">
           <div class="container">
             <div class="section-header">
-              <h2 class="section-title" id="what-section-title">What can you find here?</h2>
+              <h2 class="section-title gradient-text" id="what-section-title">How I can help</h2>
               <p class="section-subtitle">
-                The site is split into a few focused sections: CV, blog & work, YouTube, and direct contact.
+                Practical experience in logistics, concise creator content, and web projects that solve real problems.
               </p>
             </div>
             <div class="cards-grid">
-              <article class="card">
-                <h3 class="card-title">CV & background</h3>
-                <p class="card-meta">Logistics · Tech · Content</p>
+              <article class="card glass">
+                <h3 class="card-title">Professional background</h3>
+                <p class="card-meta">Disposition · Logistics in Germany</p>
                 <p class="card-text">
-                  A clear timeline of my work in logistics, supervising drivers and warehouses, plus my work in content and web.
+                  Responsibilities include daily planning, driver scheduling, route optimization, and operational coordination in live logistics environments.
                 </p>
-                <a href="cv.html" class="card-link" title="View full CV">Go to CV</a>
+                <a href="cv.html" class="card-link" title="View full CV">View CV</a>
               </article>
-              <article class="card">
-                <h3 class="card-title">Blog & work</h3>
-                <p class="card-meta">Projects & services</p>
+              <article class="card glass">
+                <h3 class="card-title">Work & services</h3>
+                <p class="card-meta">Reviews · Design · Operations</p>
                 <p class="card-text">
-                  Short notes about devices I test, ideas on time management, and the services I can offer.
+                  Practical projects: device reviews, simple site design, and consulting to improve operational flow and planning.
                 </p>
-                <a href="blog.html" class="card-link" title="View blog and work">Open blog & work</a>
+                <a href="blog.html" class="card-link" title="View blog and work">View work</a>
               </article>
-              <article class="card">
-                <h3 class="card-title">YouTube corner</h3>
-                <p class="card-meta">Selected videos</p>
+              <article class="card glass">
+                <h3 class="card-title">Creator & YouTube</h3>
+                <p class="card-meta">Reviews & short explains</p>
                 <p class="card-text">
-                  A few handpicked videos that represent the type of content I create: honest, practical and simple.
+                  Short, honest videos that focus on usefulness and clarity — designed to help you choose and act.
                 </p>
-                <a href="youtube.html" class="card-link">Go to YouTube page</a>
+                <a href="youtube.html" class="card-link">Visit YouTube</a>
               </article>
-            </div>
-          </div>
-        </section>
-
-        <section class="section">
-          <div class="container">
-            <div class="section-header">
-              <h2 class="section-title">Slices of my day with tech</h2>
-              <p class="section-subtitle">
-                Real photos from the desk, from the road, and from recording sessions at home.
-              </p>
-            </div>
-            <div class="gallery-grid">
-              <figure class="image-frame gallery-item">
-                <img src="../assets/img/22.jpeg" alt="Camera and recording gear" loading="lazy" />
-              </figure>
-              <figure class="image-frame gallery-item">
-                <img src="../assets/img/33.jpeg" alt="Simple desk for real work" loading="lazy" />
-              </figure>
-              <figure class="image-frame gallery-item">
-                <img src="../assets/img/44.jpeg" alt="Remote work and planning" loading="lazy" />
-              </figure>
-              <figure class="image-frame gallery-item">
-                <img src="../assets/img/55.jpeg" alt="Devices under testing" loading="lazy" />
-              </figure>
-              <figure class="image-frame gallery-item">
-                <img src="../assets/img/66.jpeg" alt="Details from daily setup" loading="lazy" />
-              </figure>
             </div>
           </div>
         </section>
@@ -141,7 +245,7 @@
         <section class="section" aria-labelledby="faq-title">
           <div class="container">
             <div class="section-header">
-              <h2 class="section-title" id="faq-title">Quick questions · FAQ</h2>
+              <h2 class="section-title gradient-text" id="faq-title">Quick questions · FAQ</h2>
               <p class="section-subtitle">
                 A few questions I get a lot – with short, honest answers.
               </p>
@@ -169,7 +273,7 @@
           </div>
         </section>
       </main>
-<footer class="site-footer" role="contentinfo" aria-label="Site footer">
+<footer class="site-footer glass" role="contentinfo" aria-label="Site footer">
   <div class="container footer-inner">
     <nav class="footer-links" aria-label="Footer navigation">
       <a href="index.html" title="Home page">Home</a>

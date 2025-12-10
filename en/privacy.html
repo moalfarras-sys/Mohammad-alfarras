@@ -10,7 +10,7 @@
   </head>
   <body>
     <div class="page-root">
-  <header class="navbar">
+  <header class="navbar glass">
     <div class="container navbar-inner">
       <a href="index.html" class="brand">
         <div class="image-frame image-frame-small">
@@ -29,7 +29,39 @@
         <a href="contact.html" title="Contact me">Contact</a>
       </nav>
       <div class="nav-actions">
-        <a href="../index.html" class="btn ghost" title="View site in Arabic" style="font-size:0.75rem;padding-inline:10px;">AR</a>
+        <div class="language-selector">
+          <button class="language-toggle-glass" type="button" aria-label="Change language" title="Change language">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 60 30" class="flag-icon">
+              <clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+              <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+              <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4"/>
+              <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+              <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+            </svg>
+          </button>
+          <div class="language-dropdown" hidden>
+            <a href="../privacy.html" class="language-option">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" class="flag-icon-small">
+                <rect width="512" height="170.67" fill="#199d4d"/>
+                <rect y="170.67" width="512" height="170.67" fill="#fff"/>
+                <rect y="341.33" width="512" height="170.67" fill="#000"/>
+              </svg>
+              <span>العربية</span>
+            </a>
+            <a href="privacy.html" class="language-option active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 60 30" class="flag-icon-small">
+                <clipPath id="t2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+                <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t2)" stroke="#C8102E" stroke-width="4"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+              </svg>
+              <span>English</span>
+            </a>
+          </div>
+        </div>
         <button class="theme-toggle" type="button" aria-label="Toggle between light and dark mode" title="Toggle theme"></button>
       </div>
     </div>
@@ -38,34 +70,23 @@
         <section class="section" aria-labelledby="section-title">
           <div class="container">
             <div class="section-header">
-              <h1 class="section-title">Privacy policy</h1>
+              <h1 class="section-title gradient-text">Privacy policy</h1>
               <p class="section-subtitle">
                 A short, human explanation of how this site treats data.
               </p>
             </div>
-            <article class="card">
+            <article class="card glass">
               <h2 class="card-title">Cookies & analytics</h2>
-              <p class="card-text">
-                The site may use basic analytics or embedded content (for example, YouTube videos),
-                which can create cookies in your browser. You can always control or disable cookies from
-                your browser settings.
-              </p>
+              <p class="card-text">The site may use simple analytics or embedded content (e.g., YouTube) that can create cookies. You can control or disable cookies via your browser settings.</p>
               <h2 class="card-title mt-3">Data you share</h2>
-              <p class="card-text">
-                When you contact me by email or through a form, you are sharing your data voluntarily.
-                I do not sell this data or use it for aggressive marketing. It is only used to reply
-                or follow up with you when needed.
-              </p>
+              <p class="card-text">When you contact me via form or email you share data voluntarily. I do not sell this data or use it for intrusive marketing — it is used only to respond or follow up.</p>
               <h2 class="card-title mt-3">Updates</h2>
-              <p class="card-text">
-                This page may be updated from time to time. By continuing to use the site, you agree to
-                the latest version of this policy.
-              </p>
+              <p class="card-text">This page may be updated occasionally. By continuing to use the site you accept the latest version of this policy.</p>
             </article>
           </div>
         </section>
       </main>
-  <footer class="site-footer" role="contentinfo" aria-label="Site footer">
+  <footer class="site-footer glass" role="contentinfo" aria-label="Site footer">
     <div class="container footer-inner">
       <nav class="footer-links" aria-label="Footer navigation">
         <a href="index.html" title="Go to home page">Home</a>
@@ -74,7 +95,7 @@
         <a href="youtube.html" title="Visit YouTube channel">YouTube</a>
         <a href="contact.html" title="Contact me">Contact</a>
         <a href="privacy.html" title="Privacy policy">Privacy</a>
-      </div>
+      </nav>
       <div class="footer-meta">
         <span>© <span id="year"></span> Mohammad Alfarras – moalfarras.space</span>
       </div>

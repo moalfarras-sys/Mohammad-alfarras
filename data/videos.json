@@ -1,0 +1,24 @@
+[
+  {
+    "id": "YOUR_VIDEO_ID_1",
+    "title_en": "Your Video Title (English)",
+    "title_ar": "عنوان الفيديو الخاص بك (العربية)",
+    "description_en": "Your video description in English.",
+    "description_ar": "وصف الفيديو الخاص بك بالعربية.",
+    "thumbnail": "https://i.ytimg.com/vi/YOUR_VIDEO_ID_1/hqdefault.jpg",
+    "publishedAt": "2024-12-01T12:00:00Z",
+    "duration": "10:30",
+    "url": "https://www.youtube.com/watch?v=YOUR_VIDEO_ID_1"
+  },
+  {
+    "id": "YOUR_VIDEO_ID_2",
+    "title_en": "Your Second Video Title",
+    "title_ar": "عنوان الفيديو الثاني",
+    "description_en": "Description for your second video.",
+    "description_ar": "وصف الفيديو الثاني.",
+    "thumbnail": "https://i.ytimg.com/vi/YOUR_VIDEO_ID_2/hqdefault.jpg",
+    "publishedAt": "2024-11-28T14:30:00Z",
+    "duration": "8:15",
+    "url": "https://www.youtube.com/watch?v=YOUR_VIDEO_ID_2"
+  }
+]

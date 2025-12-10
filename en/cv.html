@@ -1,197 +1,433 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <title>CV & Background · Mohammad Alfarras</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Short CV for Mohammad Alfarras: logistics work in Germany, YouTube tech content, and simple web projects." />
-    <link rel="stylesheet" href="../assets/css/style.css" />
-    <link rel="icon" href="../assets/img/logo-unboxing.png" type="image/png" />
-  </head>
-  <body>
-    <div class="page-root">
-<header class="navbar">
-  <div class="container navbar-inner">
-    <a href="index.html" class="brand">
-      <div class="image-frame image-frame-small">
-        <img src="../assets/img/logo-unboxing.png" alt="Mohammad Alfarras logo" loading="lazy" decoding="async" />
-      </div>
-      <div>
-        <div class="brand-title">MOALFARRAS</div>
-        <div class="brand-subtitle">Tech · Logistics · Web</div>
-      </div>
-    </a>
-    <nav class="nav-links" aria-label="Main navigation">
-      <a href="index.html" title="Go to home page">Home</a>
-      <a href="cv.html" title="View CV and background">About</a>
-      <a href="blog.html" title="Visit blog and work">Blog & Work</a>
-      <a href="youtube.html" title="Visit YouTube channel">YouTube</a>
-      <a href="contact.html" title="Contact me">Contact</a>
-    </nav>
-    <div class="nav-actions">
-      <a href="../index.html" class="btn ghost" title="View site in Arabic" style="font-size:0.75rem;padding-inline:10px;">AR</a>
-      <button class="theme-toggle" type="button" aria-label="Toggle between light and dark mode" title="Toggle theme"></button>
-    </div>
-  </div>
-</header>
-
-      <main>
-        <section class="hero" aria-label="Hero section - Page introduction">
-          <div class="container hero-grid">
-            <article class="hero-content">
-              <p class="eyebrow">CV · Real work · Digital side projects</p>
-              <h1 class="hero-title">
-                From Al-Hasakah to Berlin
-                <span class="hero-gradient-text">A practical journey, not just a list of jobs</span>
-              </h1>
-              <p class="hero-lead">
-                Today I work as a logistics and drivers supervisor in Germany, while creating tech content on YouTube
-                and designing small web experiences that stay simple and honest.
-              </p>
-            </article>
-            <aside class="hero-aside" aria-label="Profile photos">
-              <div class="image-frame hero-photo-frame">
-                <img src="../assets/img/000.jpeg" alt="Day of work in Germany" loading="lazy" decoding="async" />
-              </div>
-              <div class="hero-photo-row">
-                <div class="image-frame hero-mini">
-                  <img src="../assets/img/77.jpeg" alt="Desk and working setup" loading="lazy" decoding="async" />
-                </div>
-                <div class="image-frame hero-mini">
-                  <img src="../assets/img/88.jpeg" alt="Details from filming and gear" loading="lazy" decoding="async" />
-                </div>
-              </div>
-            </aside>
+<head>
+  <meta charset="UTF-8" />
+  <title>CV · Mohammad Alfarras</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Professional CV of Mohammad Alfarras: logistics disposition, fleet and route planning, customer operations, and creative tech content." />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../assets/img/logo-unboxing.png" type="image/png" />
+</head>
+<body>
+  <div class="page-root">
+    <!-- Header -->
+    <header class="navbar glass">
+      <div class="container navbar-inner">
+        <a href="index.html" class="brand">
+          <div class="image-frame image-frame-small">
+            <img src="../assets/img/logo-unboxing.png" alt="Mohammad Alfarras logo" loading="lazy" />
           </div>
-        </section>
+          <div>
+            <span class="brand-title">MOALFARRAS</span>
+            <span class="brand-subtitle">Logistics · Tech · Media</span>
+          </div>
+        </a>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="index.html">Home</a>
+          <a href="cv.html" class="active">CV</a>
+          <a href="blog.html">Blog</a>
+          <a href="youtube.html">YouTube</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+        <div class="nav-actions">
+          <div class="language-selector">
+            <button class="language-toggle-glass" type="button" aria-label="Change language" title="Change language">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 60 30" class="flag-icon">
+                <clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+                <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+                <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+              </svg>
+            </button>
+            <div class="language-dropdown" hidden>
+              <a href="../cv.html" class="language-option">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" class="flag-icon-small">
+                  <rect width="512" height="170.67" fill="#199d4d"/>
+                  <rect y="170.67" width="512" height="170.67" fill="#fff"/>
+                  <rect y="341.33" width="512" height="170.67" fill="#000"/>
+                </svg>
+                <span>العربية</span>
+              </a>
+              <a href="cv.html" class="language-option active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 60 30" class="flag-icon-small">
+                  <clipPath id="t2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+                  <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+                  <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                  <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t2)" stroke="#C8102E" stroke-width="4"/>
+                  <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+                  <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+                </svg>
+                <span>English</span>
+              </a>
+            </div>
+          </div>
+          <button class="theme-toggle" type="button" aria-label="Toggle theme"></button>
+        </div>
+      </div>
+    </header>
 
-        <section class="section" aria-labelledby="section-title">
-          <div class="container two-column-layout">
-            <div>
-              <h2 class="section-title" id="section-title">Work experience</h2>
-              <div class="timeline">
-                <div class="timeline-item">
-                  <h3 class="timeline-title">Drivers & fleet supervisor · Logistics</h3>
-                  <p class="timeline-meta">Germany · Route planning & operations</p>
-                  <p>
-                    Planning daily routes, coordinating drivers, keeping shipments on time and solving problems
-                    before they grow into bigger issues.
-                  </p>
-                </div>
-                <div class="timeline-item">
-                  <h3 class="timeline-title">Tech content creator on YouTube</h3>
-                  <p class="timeline-meta">Reviews & product experiments</p>
-                  <p>
-                    Testing home and tech devices, subscriptions and digital tools, then sharing honest and simple videos
-                    about what actually works in daily life.
-                  </p>
-                </div>
-                <div class="timeline-item">
-                  <h3 class="timeline-title">Web and landing pages</h3>
-                  <p class="timeline-meta">Small projects · Clear UX</p>
-                  <p>
-                    Designing clean landing pages and small sites that focus on content and clarity instead of heavy effects.
-                  </p>
+    <main>
+      <!-- Hero -->
+      <section class="hero" aria-label="Hero section - CV">
+        <div class="container hero-grid">
+          <article class="hero-content">
+            <div class="glass glass-hero">
+              <p class="eyebrow">Logistics · Content · Web</p>
+              <h1 class="hero-title">From Al-Hasakah to Berlin
+                <span class="hero-gradient-text">A practical journey in logistics and digital content</span>
+              </h1>
+              <p class="hero-lead">Disposition specialist at Rhenus Home Delivery GmbH for partners like IKEA — balancing daily transport operations with honest tech content that helps people decide faster.</p>
+              <p class="eyebrow" id="cv-dynamic-note" style="margin-top: 12px; font-size: 0.88rem; opacity: 0.9;">Daily route planning for 50+ drivers at Rhenus Home Delivery</p>
+            </div>
+          </article>
+          <aside class="hero-aside" aria-label="CV photos">
+            <div class="cv-portrait-card">
+              <div class="cv-portrait-glass">
+                <img src="../assets/img/portrait.jpg" alt="Mohammad Alfarras Portrait" class="cv-portrait-img" />
+              </div>
+              <div class="cv-signature">
+                Mohammad Alfarras
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="section" aria-labelledby="stats-title">
+        <div class="container">
+          <div class="stats-grid">
+            <div class="stat-card glass">
+              <div class="stat-number" data-count="3">0</div>
+              <p class="stat-label">Working languages</p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-number" data-count="159">0</div>
+              <p class="stat-label">YouTube videos</p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-number" data-count="6">0</div>
+              <p class="stat-label">Years of experience</p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-number" data-count="4">0</div>
+              <p class="stat-label">Key brands served</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timeline -->
+      <section class="section" aria-labelledby="timeline-title">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title" id="timeline-title">Experience Timeline</h2>
+            <p class="section-subtitle">A practical path across logistics, technology, and content creation</p>
+          </div>
+
+          <div class="cv-timeline">
+            <!-- 2023 - Present -->
+            <div class="cv-timeline-item">
+              <div class="cv-timeline-node"></div>
+              <div class="cv-timeline-card">
+                <div class="cv-timeline-icon">🟦</div>
+                <div class="cv-timeline-year">2023 – Present</div>
+                <h3 class="cv-timeline-card-title">Rhenus Home Delivery – Disposition / Delivery Route Planning</h3>
+                <div class="cv-timeline-card-desc">
+                  <ul>
+                    <li>Planning daily routes for delivery fleets</li>
+                    <li>Coordinating drivers and schedules</li>
+                    <li>Warehouse organization & workflow preparation</li>
+                    <li>Customer request handling & problem solving</li>
+                    <li>Using TMS systems to manage operations</li>
+                    <li>Improving team performance and reducing errors</li>
+                  </ul>
                 </div>
               </div>
             </div>
-            <aside>
-              <h2 class="section-title" id="section-title">Key skills</h2>
-              <ul class="skills-list">
-                <li>Logistics planning and drivers coordination</li>
-                <li>Warehouse / operations understanding</li>
-                <li>Tech product testing and explanation</li>
-                <li>Landing page and simple UX design</li>
-              </ul>
 
-              <div class="mt-4">
-                <h2 class="section-title" id="section-title">Skill levels</h2>
-                <div class="skill-bars">
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>Logistics & routing</span><span>90%</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="90"></div>
-                    </div>
-                  </div>
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>Tech reviews</span><span>85%</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="85"></div>
-                    </div>
-                  </div>
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>Web / landing pages</span><span>80%</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="80"></div>
-                    </div>
-                  </div>
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>Time management</span><span>75%</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="75"></div>
-                    </div>
-                  </div>
+            <!-- 2021 - 2023 -->
+            <div class="cv-timeline-item">
+              <div class="cv-timeline-node"></div>
+              <div class="cv-timeline-card">
+                <div class="cv-timeline-icon">🟦</div>
+                <div class="cv-timeline-year">2021 – 2023</div>
+                <h3 class="cv-timeline-card-title">Tech Content Creation</h3>
+                <div class="cv-timeline-card-desc">
+                  <ul>
+                    <li>Unboxing and real-life product testing</li>
+                    <li>Filming and editing tech content</li>
+                    <li>Light branding and visual identity building</li>
+                    <li>Reviewing devices honestly and practically</li>
+                    <li>Collaborating with tech/product brands</li>
+                  </ul>
                 </div>
               </div>
+            </div>
 
-              <div class="mt-4">
-                <h2 class="section-title" id="section-title">Languages</h2>
-                <div class="skill-bars">
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>Arabic</span><span>Native</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="100"></div>
-                    </div>
-                  </div>
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>German</span><span>Working</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="70"></div>
-                    </div>
-                  </div>
-                  <div class="skill-row">
-                    <div class="skill-label">
-                      <span>English</span><span>Working</span>
-                    </div>
-                    <div class="skill-track">
-                      <div class="skill-fill" data-skill="75"></div>
-                    </div>
-                  </div>
+            <!-- 2020 - 2021 -->
+            <div class="cv-timeline-item">
+              <div class="cv-timeline-node"></div>
+              <div class="cv-timeline-card">
+                <div class="cv-timeline-icon">🟦</div>
+                <div class="cv-timeline-year">2020 – 2021</div>
+                <h3 class="cv-timeline-card-title">Simple Web Design & Technical Services</h3>
+                <div class="cv-timeline-card-desc">
+                  <ul>
+                    <li>Creating landing pages</li>
+                    <li>Simple identity design for small businesses</li>
+                    <li>Basic server & hosting setup</li>
+                    <li>Improving site loading performance</li>
+                  </ul>
                 </div>
               </div>
-            </aside>
+            </div>
+
+            <!-- 2018 - 2020 -->
+            <div class="cv-timeline-item">
+              <div class="cv-timeline-node"></div>
+              <div class="cv-timeline-card">
+                <div class="cv-timeline-icon">🟦</div>
+                <div class="cv-timeline-year">2018 – 2020</div>
+                <h3 class="cv-timeline-card-title">General Work Experience in Germany</h3>
+                <div class="cv-timeline-card-desc">
+                  <ul>
+                    <li>Customer communication</li>
+                    <li>Daily task management</li>
+                    <li>Exposure to the German work environment</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
-      </main>
-<footer class="site-footer" role="contentinfo" aria-label="Site footer">
-  <div class="container footer-inner">
-    <nav class="footer-links" aria-label="Footer navigation">
-      <a href="index.html" title="Go to home page">Home</a>
-      <a href="cv.html" title="View CV and background">About</a>
-      <a href="blog.html" title="Blog">Blog</a>
-      <a href="youtube.html" title="Visit YouTube channel">YouTube</a>
-      <a href="contact.html" title="Contact me">Contact</a>
-      <a href="privacy.html" title="Privacy policy">Privacy</a>
-    </div>
-    <div class="footer-meta">
-      <span>© <span id="year"></span> Mohammad Alfarras – moalfarras.space</span>
-    </div>
-  </div>
-</footer>
+        </div>
+      </section>
 
-    </div>
-    <script src="../assets/js/main.js"></script>
-  </body>
+      <!-- Skills -->
+      <section class="section" aria-labelledby="skills-title">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title" id="skills-title">🔥 Professional Skills</h2>
+            <p class="section-subtitle">Practical skills across four key domains</p>
+          </div>
+
+          <div class="cv-skills-grid">
+            <!-- Logistics Skills -->
+            <div class="cv-skill-category">
+              <div class="cv-skill-category-header">
+                <span class="cv-skill-category-icon">📦</span>
+                <h3 class="cv-skill-category-title">Logistics & Transport</h3>
+              </div>
+              <div class="cv-skill-chips">
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+                  Delivery route planning
+                </span>
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  Driver coordination
+                </span>
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+                  TMS systems
+                </span>
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4l16-.02V7z"/></svg>
+                  Warehouse organization
+                </span>
+              </div>
+            </div>
+
+            <!-- Tech Skills -->
+            <div class="cv-skill-category">
+              <div class="cv-skill-category-header">
+                <span class="cv-skill-category-icon">🔧</span>
+                <h3 class="cv-skill-category-title">Tech & Products</h3>
+              </div>
+              <div class="cv-skill-chips">
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zM4 9h10.5v3.5H4V9zm0 5.5h10.5V18H4v-3.5zM20 18h-3.5V9H20v9z"/></svg>
+                  Product testing & unboxing
+                </span>
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 6h-7.59l3.29-3.29L16 2l-4 4-4-4-.71.71L10.59 6H3c-1.1 0-2 .89-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.11-.9-2-2-2zm0 14H3V8h18v12zM9 10v8l7-4z"/></svg>
+                  Technical product presentation
+                </span>
+              </div>
+            </div>
+
+            <!-- Content Skills -->
+            <div class="cv-skill-category">
+              <div class="cv-skill-category-header">
+                <span class="cv-skill-category-icon">🎥</span>
+                <h3 class="cv-skill-category-title">Content Creation</h3>
+              </div>
+              <div class="cv-skill-chips">
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                  Video production (shooting/editing)
+                </span>
+              </div>
+            </div>
+
+            <!-- Web Skills -->
+            <div class="cv-skill-category">
+              <div class="cv-skill-category-header">
+                <span class="cv-skill-category-icon">💻</span>
+                <h3 class="cv-skill-category-title">Web & Design</h3>
+              </div>
+              <div class="cv-skill-chips">
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+                  Simple website design
+                </span>
+                <span class="cv-skill-chip">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                  Light branding / visual identity
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Languages -->
+      <section class="section" aria-labelledby="languages-title">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title" id="languages-title">Languages</h2>
+            <p class="section-subtitle">Four languages, with three used daily at work</p>
+          </div>
+          <div class="cv-languages" dir="ltr">
+            <article class="language-item glass">
+              <div class="language-meta">
+                <span class="language-flag">🇸🇾</span>
+                <div class="language-text">
+                  <div class="language-name">Arabic</div>
+                  <div class="language-level">Native</div>
+                </div>
+              </div>
+              <div class="language-bar">
+                <div class="language-bar-fill" data-skill="100">
+                  <span class="language-percent">100%</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="language-item glass">
+              <div class="language-meta">
+                <span class="language-flag">🇩🇪</span>
+                <div class="language-text">
+                  <div class="language-name">German</div>
+                  <div class="language-level">C1 (Professional)</div>
+                </div>
+              </div>
+              <div class="language-bar">
+                <div class="language-bar-fill" data-skill="90">
+                  <span class="language-percent">90%</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="language-item glass">
+              <div class="language-meta">
+                <span class="language-flag">🇬🇧</span>
+                <div class="language-text">
+                  <div class="language-name">English</div>
+                  <div class="language-level">Intermediate (Working)</div>
+                </div>
+              </div>
+              <div class="language-bar">
+                <div class="language-bar-fill" data-skill="65">
+                  <span class="language-percent">65%</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="language-item glass">
+              <div class="language-meta">
+                <span class="language-flag">🇫🇷</span>
+                <div class="language-text">
+                  <div class="language-name">French</div>
+                  <div class="language-level">Basic communication</div>
+                </div>
+              </div>
+              <div class="language-bar">
+                <div class="language-bar-fill" data-skill="40">
+                  <span class="language-percent">40%</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact -->
+      <section class="section" aria-labelledby="contact-title">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title" id="contact-title">Contact</h2>
+            <p class="section-subtitle">Pick the channel that works for you</p>
+          </div>
+          
+          <!-- Premium Social Media Icons -->
+          <section class="cv-social-section">
+            <h2 class="cv-social-title">Social Media Links</h2>
+            <div class="cv-social-bar">
+              <a href="https://www.youtube.com/@moalfarras" target="_blank" rel="noopener noreferrer" class="cv-social-icon youtube" title="YouTube">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+              </a>
+              <a href="https://www.instagram.com/moalfarras" target="_blank" rel="noopener noreferrer" class="cv-social-icon instagram" title="Instagram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+              <a href="https://t.me/MoalFarras" target="_blank" rel="noopener noreferrer" class="cv-social-icon telegram" title="Telegram">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </a>
+              <a href="https://github.com/moalfarras-sys" target="_blank" rel="noopener noreferrer" class="cv-social-icon github" title="GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              </a>
+              <a href="https://facebook.com/moalfarras" target="_blank" rel="noopener noreferrer" class="cv-social-icon facebook" title="Facebook">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              </a>
+              <a href="https://linkedin.com/in/mohammad-alfarras-525531262" target="_blank" rel="noopener noreferrer" class="cv-social-icon linkedin" title="LinkedIn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+            </div>
+          </section>
+          
+          <!-- Contact Methods -->
+          <div class="contact-buttons-grid">
+            <a href="mailto:Mohammad.alfarras@gmail.com" class="btn btn-contact glass" title="Send me an email">
+              <span>📧</span> Email
+            </a>
+            <a href="https://wa.me/1234567890" class="btn btn-contact glass" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
+              <span>💬</span> WhatsApp
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer glass" role="contentinfo">
+      <div class="container footer-inner">
+        <nav class="footer-links" aria-label="Footer navigation">
+          <a href="index.html">Home</a>
+          <a href="cv.html">CV</a>
+          <a href="blog.html">Blog</a>
+          <a href="youtube.html">YouTube</a>
+          <a href="contact.html">Contact</a>
+          <a href="privacy.html">Privacy</a>
+        </nav>
+        <div class="footer-meta">
+          <span>© <span id="year"></span> Mohammad Alfarras</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../assets/js/main.js"></script>
+</body>
 </html>

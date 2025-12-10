@@ -10,28 +10,58 @@
   </head>
   <body>
     <div class="page-root">
-      <header class="navbar">
+      <header class="navbar glass">
   <div class="container navbar-inner">
     <a href="index.html" class="brand">
-      <div class="brand-logo-frame image-frame image-frame-small">
-        <img src="assets/img/logo-unboxing.png" alt="Mohammad Alfarras Logo" loading="lazy" />
+      <div class="image-frame image-frame-small">
+        <img src="assets/img/logo-unboxing.png" alt="شعار محمد الفراس" loading="lazy" />
       </div>
-      <div class="brand-text">
-        <div class="brand-title">MOHAMMAD ALFARRAS</div>
-        <div class="brand-subtitle">Tech · Unboxing · Digital Life</div>
+      <div>
+        <div class="brand-title">MOALFARRAS</div>
+        <div class="brand-subtitle">محتوى تقني · نقل · مواقع</div>
       </div>
     </a>
 
     <nav class="nav-links" aria-label="القائمة الرئيسية">
-      <a href="index.html">Home</a>
-      <a href="cv.html">About</a>
-      <a href="blog.html">Projects & Blog</a>
-      <a href="youtube.html">YouTube</a>
-      <a href="contact.html">Contact</a>
+      <a href="index.html">الرئيسية</a>
+      <a href="cv.html">السيرة الذاتية</a>
+      <a href="blog.html">المدونة والأعمال</a>
+      <a href="youtube.html">يوتيوب</a>
+      <a href="contact.html">تواصل</a>
     </nav>
 
     <div class="nav-actions">
-      <button class="theme-toggle" type="button" aria-label="تبديل بين الوضع الفاتح والداكن" title="تبديل الوضع" title="تبديل الوضع"></button>
+      <div class="language-selector">
+        <button class="language-toggle-glass" type="button" aria-label="تغيير اللغة" title="تغيير اللغة">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512" class="flag-icon">
+            <rect width="512" height="170.67" fill="#199d4d"/>
+            <rect y="170.67" width="512" height="170.67" fill="#fff"/>
+            <rect y="341.33" width="512" height="170.67" fill="#000"/>
+          </svg>
+        </button>
+        <div class="language-dropdown" hidden>
+          <a href="privacy.html" class="language-option active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" class="flag-icon-small">
+              <rect width="512" height="170.67" fill="#199d4d"/>
+              <rect y="170.67" width="512" height="170.67" fill="#fff"/>
+              <rect y="341.33" width="512" height="170.67" fill="#000"/>
+            </svg>
+            <span>العربية</span>
+          </a>
+          <a href="en/privacy.html" class="language-option">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 60 30" class="flag-icon-small">
+              <clipPath id="t2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+              <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+              <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t2)" stroke="#C8102E" stroke-width="4"/>
+              <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
+              <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
+            </svg>
+            <span>English</span>
+          </a>
+        </div>
+      </div>
+      <button class="theme-toggle" type="button" aria-label="تبديل بين الوضع الفاتح والداكن" title="تبديل الوضع"></button>
     </div>
   </div>
 </header>
@@ -40,32 +70,32 @@
         <section class="section">
           <div class="container">
             <header class="section-header align-start">
-              <h1 class="section-title">سياسة الخصوصية</h1>
+              <h1 class="section-title gradient-text">سياسة الخصوصية</h1>
               <p class="section-subtitle">
                 هذه صفحة توضيحية مبسطة لكيفية التعامل مع البيانات على moalfarras.space.
               </p>
             </header>
 
-            <article class="card">
+            <article class="card glass">
               <h2 class="card-title">ملفات تعريف الارتباط (Cookies)</h2>
               <p>
-                قد يستخدم الموقع أدوات تحليلات أو إعلانات تعتمد على ملفات تعريف الارتباط، وذلك لتحسين الأداء أو عرض
-                إعلانات مناسبة. يمكنك دائماً تعطيل الكوكيز من إعدادات المتصفح الخاص بك.
+                قد يستخدم الموقع أدوات تحليلية أو محتوى مضمن (مثل فيديوهات يوتيوب) قد تُنشئ كوكيز. يمكنك دائماً التحكم
+                في إعدادات الكوكيز من خلال متصفحك.
               </p>
-              <h2 class="card-title">البيانات التي ترسلها بنفسك</h2>
+              <h2 class="card-title">البيانات التي تشاركها</h2>
               <p>
-                عند استخدام نموذج التواصل أو إرسال بريد إلكتروني، فأنت تشارك بياناتك طوعاً. لن يتم بيع أو مشاركة هذه
-                البيانات مع أي جهة أخرى بهدف تجاري.
+                عند إرسال رسالة عبر النموذج أو البريد الإلكتروني، تُشارك بياناتك طوعاً. لا أبيع هذه البيانات ولا أستخدمها
+                لحملات تسويقية عدوانية — تُستخدم فقط للرد أو للمتابعة عند الحاجة.
               </p>
-              <h2 class="card-title">تحديث السياسة</h2>
+              <h2 class="card-title">تحديثات السياسة</h2>
               <p>
-                قد يتم تحديث هذه الصفحة كل فترة. زيارتك المستمرة للموقع تعني اطلاعك على آخر نسخة من سياسة الخصوصية.
+                قد يتم تعديل هذه الصفحة دوريًا. استمرارك في تصفح الموقع يعني قبولك للنسخة الأحدث من هذه السياسة.
               </p>
             </article>
           </div>
         </section>
       </main>
-      <footer class="site-footer">
+      <footer class="site-footer glass">
   <div class="container footer-inner">
     <div class="footer-links">
       <a href="index.html" title="اذهب إلى الصفحة الرئيسية">الرئيسية</a>

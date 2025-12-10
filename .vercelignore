@@ -1,0 +1,27 @@
+# Documentation files
+*.md
+!README.md
+
+# Backup files
+*.backup
+
+# Scripts
+scripts/
+*.sh
+
+# Netlify config
+netlify.toml
+
+# Old/unused files
+en/contact-old.html
+
+# Git
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+
+# Environment
+.env*

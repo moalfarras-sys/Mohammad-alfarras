@@ -5024,7 +5024,7 @@ html[data-theme="light"] .cinematic-hero-btn-primary:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* Portrait Frame - Keep Original Glow & Style */
@@ -5811,6 +5811,79 @@ html[data-theme="light"] .cv-skill-chip {
    ═══════════════════════════════════════════════════════════════ */
 
 /* ========================================
+   ULTRA-SMALL SCREENS (350px - 400px)
+   Extra optimization for smallest devices
+   ======================================== */
+
+@media (max-width: 400px) {
+  .cinematic-hero {
+    padding: 6px 0 20px !important;
+  }
+  
+  .cinematic-hero-grid {
+    gap: 10px !important;
+    padding: 0 12px !important;
+  }
+  
+  .cinematic-hero-content {
+    gap: 8px !important;
+  }
+  
+  .cinematic-hero-title {
+    font-size: 1.25rem !important;
+    line-height: 1.15 !important;
+  }
+  
+  .cinematic-hero-paragraph {
+    font-size: 0.88rem !important;
+    line-height: 1.48 !important;
+  }
+  
+  .cinematic-hero-paragraph-secondary {
+    font-size: 0.8rem !important;
+    line-height: 1.48 !important;
+  }
+  
+  .cinematic-hero-eyebrow {
+    font-size: 0.65rem !important;
+  }
+  
+  .tagline-text {
+    font-size: 0.82rem !important;
+  }
+  
+  .cinematic-hero-actions {
+    margin-top: 12px !important;
+    gap: 8px !important;
+  }
+  
+  .cinematic-hero-btn {
+    padding: 12px 20px !important;
+    font-size: 0.85rem !important;
+  }
+  
+  .hero-portrait-frame {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  
+  .hero-icon-row {
+    gap: 4px !important;
+    margin-top: 8px !important;
+  }
+  
+  .hero-skill-pill {
+    padding: 6px 8px !important;
+    font-size: 0.72rem !important;
+  }
+  
+  .hero-skill-pill .pill-icon svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+}
+
+/* ========================================
    BASE MOBILE STYLES (350px+)
    Applied to all viewports, overridden by min-width queries
    ======================================== */
@@ -5954,6 +6027,46 @@ img {
     width: 38px;
     height: 38px;
   }
+  
+  /* EXTREME MOBILE: Optimize hero for very small screens */
+  .cinematic-hero {
+    padding: 8px 0 24px;
+  }
+  
+  .cinematic-hero-grid {
+    gap: 12px;
+    padding: 0 16px;
+  }
+  
+  .cinematic-hero-title {
+    font-size: 1.3rem;
+    line-height: 1.15;
+  }
+  
+  .cinematic-hero-paragraph {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .cinematic-hero-paragraph-secondary {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+  
+  .hero-portrait-frame {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .hero-icon-row {
+    gap: 5px;
+    margin-top: 10px;
+  }
+  
+  .hero-skill-pill {
+    padding: 7px 9px;
+    font-size: 0.75rem;
+  }
 }
 
 /* ========================================
@@ -5961,21 +6074,24 @@ img {
    ======================================== */
 
 .cinematic-hero {
-  padding: 20px 0 40px;
+  padding: 12px 0 32px;
 }
 
 .cinematic-hero-grid {
   display: flex;
   flex-direction: column-reverse;
-  gap: 24px;
+  gap: 16px;
   grid-template-columns: 1fr;
-  padding: 0 16px;
+  padding: 0 20px;
+  align-items: center;
 }
 
 .cinematic-hero-content {
-  gap: 12px;
+  gap: 10px;
   max-width: 100%;
   margin: 0 auto;
+  width: 100%;
+  text-align: center;
 }
 
 .cinematic-hero-eyebrow {
@@ -5983,24 +6099,24 @@ img {
 }
 
 .cinematic-hero-title {
-  font-size: 1.5rem;
-  line-height: 1.25;
+  font-size: 1.4rem;
+  line-height: 1.2;
 }
 
 .cinematic-hero-paragraph {
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: 0.95rem;
+  line-height: 1.55;
   max-width: 100%;
 }
 
 .cinematic-hero-paragraph-secondary {
-  font-size: 0.88rem;
-  line-height: 1.65;
+  font-size: 0.85rem;
+  line-height: 1.55;
 }
 
 .cinematic-hero-tagline {
-  min-height: 26px;
-  margin-top: 8px;
+  min-height: 24px;
+  margin-top: 6px;
 }
 
 .tagline-text {
@@ -6009,8 +6125,8 @@ img {
 
 .cinematic-hero-actions {
   flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .cinematic-hero-btn {
@@ -6023,30 +6139,33 @@ img {
 /* Portrait and pills */
 .cinematic-hero-visual {
   min-height: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .hero-portrait-frame {
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
 }
 
 .hero-icon-row {
   grid-template-columns: 1fr;
   max-width: 100%;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .hero-skill-pill {
-  padding: 10px 12px;
-  font-size: 0.82rem;
+  padding: 8px 10px;
+  font-size: 0.78rem;
   width: 100%;
   justify-content: flex-start;
 }
 
 .hero-skill-pill .pill-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 /* ========================================
@@ -6212,7 +6331,16 @@ img {
   }
 
   .cinematic-hero {
-    padding: 30px 0 50px;
+    padding: 20px 0 40px;
+  }
+
+  .cinematic-hero-grid {
+    gap: 20px;
+    padding: 0 24px;
+  }
+
+  .cinematic-hero-content {
+    gap: 12px;
   }
 
   .cinematic-hero-title {

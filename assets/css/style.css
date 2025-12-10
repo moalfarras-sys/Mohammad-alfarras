@@ -5825,6 +5825,17 @@ html[data-theme="light"] .cv-skill-chip {
   }
 }
 
+/* Extra small devices (350px) */
+@media (max-width: 360px) {
+  .container {
+    width: calc(100% - 16px);
+  }
+  
+  body {
+    font-size: 14px;
+  }
+}
+
 /* ===== NAVBAR - MOBILE FIRST ===== */
 @media (max-width: 768px) {
   .navbar {
@@ -6163,7 +6174,8 @@ html[data-theme="light"] .cv-skill-chip {
 @media (max-width: 1024px) {
   .blog-grid,
   .work-grid,
-  .section-grid {
+  .section-grid,
+  .home-cards-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
@@ -6172,66 +6184,153 @@ html[data-theme="light"] .cv-skill-chip {
 @media (max-width: 768px) {
   .blog-grid,
   .work-grid,
-  .section-grid {
+  .section-grid,
+  .home-cards-grid {
     grid-template-columns: 1fr;
     gap: 18px;
   }
   
   .blog-card,
-  .work-card {
+  .work-card,
+  .home-card,
+  .feature-card {
     max-width: 100%;
+  }
+  
+  .blog-content,
+  .card-content {
+    padding: 20px 16px;
   }
 }
 
 @media (max-width: 480px) {
   .blog-grid,
   .work-grid,
-  .section-grid {
+  .section-grid,
+  .home-cards-grid {
     gap: 16px;
+  }
+  
+  .blog-content,
+  .card-content {
+    padding: 18px 14px;
+  }
+  
+  .blog-title,
+  .card-title {
+    font-size: 1.05rem;
   }
 }
 
 /* ===== YOUTUBE PAGE - MOBILE FIRST ===== */
 @media (max-width: 1200px) {
-  .youtube-grid {
+  .youtube-grid,
+  .video-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
   }
 }
 
 @media (max-width: 1024px) {
-  .youtube-grid {
+  .youtube-grid,
+  .video-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
+  }
+  
+  .youtube-simple-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .youtube-orbit-wrapper {
+    max-width: 400px;
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .youtube-simple-hero {
+    padding: 60px 0;
+  }
+  
+  .youtube-hero-card {
+    padding: 30px 24px;
+  }
+  
+  .youtube-hero-title {
+    font-size: 1.75rem;
+  }
+  
+  .youtube-hero-desc {
+    font-size: 1rem;
+  }
+  
+  .youtube-orbit-wrapper {
+    max-width: 320px;
+    height: 320px;
+  }
+  
+  .youtube-orbit-thumb {
+    width: 70px;
+    height: 70px;
   }
 }
 
 @media (max-width: 640px) {
-  .youtube-grid {
+  .youtube-grid,
+  .video-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
   
-  .youtube-hero {
+  .youtube-hero,
+  .youtube-simple-hero {
     padding: 40px 0 50px;
   }
   
-  .youtube-hero h1 {
+  .youtube-hero h1,
+  .youtube-hero-title {
     font-size: 1.8rem;
+  }
+  
+  .youtube-orbit-wrapper {
+    max-width: 280px;
+    height: 280px;
   }
 }
 
 @media (max-width: 480px) {
-  .youtube-grid {
+  .youtube-grid,
+  .video-grid {
     gap: 14px;
   }
   
-  .youtube-hero {
+  .youtube-hero,
+  .youtube-simple-hero {
     padding: 30px 0 40px;
   }
   
-  .youtube-hero h1 {
+  .youtube-hero h1,
+  .youtube-hero-title {
     font-size: 1.5rem;
+  }
+  
+  .youtube-hero-card {
+    padding: 24px 20px;
+  }
+  
+  .youtube-hero-desc {
+    font-size: 0.95rem;
+  }
+  
+  .youtube-hero-btn {
+    padding: 10px 20px;
+    font-size: 0.88rem;
+  }
+  
+  .video-card {
+    padding: 12px;
   }
 }
 
@@ -6243,13 +6342,19 @@ html[data-theme="light"] .cv-skill-chip {
     width: 100%;
   }
   
-  .social-links {
+  .social-links,
+  .cv-social-links {
     justify-content: center;
     flex-wrap: wrap;
   }
   
   .contact-portrait-frame {
     max-width: 200px;
+  }
+  
+  .cv-social-icon {
+    width: 48px;
+    height: 48px;
   }
 }
 
@@ -6262,11 +6367,13 @@ html[data-theme="light"] .cv-skill-chip {
     max-width: 180px;
   }
   
-  .social-links {
+  .social-links,
+  .cv-social-links {
     gap: 12px;
   }
   
-  .social-link {
+  .social-link,
+  .cv-social-icon {
     width: 44px;
     height: 44px;
   }
@@ -6283,6 +6390,82 @@ html[data-theme="light"] .cv-skill-chip {
   .glass-photo--portrait,
   .glass-photo--gallery {
     max-width: 100%;
+  }
+}
+
+/* ===== FAQ SECTION - MOBILE ===== */
+@media (max-width: 768px) {
+  .faq-section,
+  .faq-container {
+    padding: 40px 20px;
+  }
+  
+  .faq-item,
+  .faq-question {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .faq-section,
+  .faq-container {
+    padding: 30px 16px;
+  }
+  
+  .faq-item,
+  .faq-question {
+    padding: 14px;
+    font-size: 0.95rem;
+  }
+}
+
+/* ===== STATS SECTION - MOBILE ===== */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 20px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 18px 12px;
+  }
+}
+
+/* ===== SKILLS SECTION - MOBILE ===== */
+@media (max-width: 768px) {
+  .cv-skill-category {
+    padding: 20px 16px;
+  }
+  
+  .cv-skill-chips {
+    gap: 8px;
+  }
+  
+  .cv-skill-chip {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cv-skill-category {
+    padding: 16px 12px;
+  }
+  
+  .cv-skill-chip {
+    padding: 7px 10px;
+    font-size: 0.8rem;
   }
 }
 
@@ -6322,6 +6505,23 @@ body {
 }
 
 /* ===== RESPONSIVE TYPOGRAPHY ===== */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+    line-height: 1.25;
+  }
+  
+  h2 {
+    font-size: 1.65rem;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    font-size: 1.35rem;
+    line-height: 1.35;
+  }
+}
+
 @media (max-width: 480px) {
   h1 {
     font-size: 1.75rem;
@@ -6338,9 +6538,32 @@ body {
     line-height: 1.4;
   }
   
+  h4 {
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+  
   p {
     font-size: 0.9rem;
     line-height: 1.65;
+  }
+}
+
+/* ===== SECTION HEADERS - MOBILE ===== */
+@media (max-width: 768px) {
+  .section-header,
+  .home-section-header,
+  .cv-section-header {
+    padding: 40px 20px 30px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-header,
+  .home-section-header,
+  .cv-section-header {
+    padding: 30px 16px 24px;
   }
 }
 
@@ -6356,6 +6579,84 @@ body {
   .theme-toggle {
     width: 40px;
     height: 40px;
+  }
+}
+
+/* ===== BUTTONS - MOBILE ===== */
+@media (max-width: 768px) {
+  .btn,
+  .button,
+  .cta-button {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn,
+  .button,
+  .cta-button {
+    padding: 11px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* ===== MODALS - MOBILE ===== */
+@media (max-width: 768px) {
+  .modal-content,
+  .video-modal-content {
+    width: 95%;
+    max-width: 95vw;
+    padding: 20px;
+  }
+  
+  .modal-close {
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content,
+  .video-modal-content {
+    width: 98%;
+    padding: 16px;
+  }
+  
+  .modal-close {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ===== LANGUAGE/LOCATION SECTIONS - MOBILE ===== */
+@media (max-width: 768px) {
+  .language-cards,
+  .location-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-cards,
+  .location-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  
+  .language-card,
+  .location-card {
+    padding: 16px 14px;
   }
 }
 

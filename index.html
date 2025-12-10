@@ -5,6 +5,9 @@
     <title>محمد الفراس | محتوى تقني · نقل · مواقع</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="محمد الفراس – من الحسكة إلى برلين. محتوى تقني بالعربي، تجربة منتجات، إدارة نقل في ألمانيا، وتصميم مواقع بسيطة وواضحة." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="icon" href="assets/img/logo-unboxing.png" type="image/png" />
   </head>
@@ -117,6 +120,32 @@
                     <img src="assets/img/portrait.jpg" alt="صورة محمد الفراس" loading="lazy" decoding="async" />
                   </div>
                   
+                  <!-- Handwritten Signature -->
+                  <div class="hero-signature">Mohammad Alfarras</div>
+                  
+                  <!-- Floating Icons (3 max) -->
+                  <div class="floating-icons">
+                    <div class="floating-icon floating-icon-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" x2="12" y1="19" y2="22"/>
+                      </svg>
+                    </div>
+                    <div class="floating-icon floating-icon-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="3" rx="2"/>
+                        <line x1="8" x2="16" y1="21" y2="21"/>
+                        <line x1="12" x2="12" y1="17" y2="21"/>
+                      </svg>
+                    </div>
+                    <div class="floating-icon floating-icon-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </div>
+                  </div>
+                  
                   <!-- Glass Skill Pills Under Portrait -->
                   <div class="hero-icon-row">
                     <button class="hero-skill-pill" type="button">
@@ -157,89 +186,192 @@
           </div>
         </section>
 
-        <section class="tech-shots-section" aria-labelledby="tech-shots-title">
-          <div class="container">
-            <div class="tech-shots-header">
-              <h2 class="tech-shots-title" id="tech-shots-title">لقطات من يومي مع التقنية وصناعة المحتوى</h2>
-              <p class="tech-shots-subtitle">
-                مقاطع من مراجعات، تجهيز منتجات، وشروحات عملية.
-              </p>
-            </div>
-            <div class="tech-shots-grid">
-              <div class="tech-shot-item">
-                <img src="assets/img/33.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
-                <div class="tech-shot-play-icon">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="tech-shot-item">
-                <img src="assets/img/44.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
-                <div class="tech-shot-play-icon">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="tech-shot-item">
-                <img src="assets/img/55.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
-                <div class="tech-shot-play-icon">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="tech-shot-item">
-                <img src="assets/img/66.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
-                <div class="tech-shot-play-icon">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="sections" class="section" aria-labelledby="sections-title">
+        <!-- New Gallery Section: Moments from My Tech Day -->
+        <section class="tech-moments-gallery" aria-labelledby="tech-moments-title">
           <div class="container">
             <div class="section-header">
-              <h2 class="section-title gradient-text" id="sections-title">أين تساعدك مهاراتي؟</h2>
+              <h2 class="section-title gradient-text" id="tech-moments-title">لمحات من يومي مع التقنية</h2>
               <p class="section-subtitle">
-                هنا أشارك خبرتي العملية في النقل والتخطيط، أعمالي الإبداعية على يوتيوب ومشاريعي في الويب — كل شيء واضح ومباشر.
+                لقطات من مراجعات المنتجات، تجهيز الأجهزة، وزوايا العمل الذكية.
               </p>
             </div>
-            <div class="cards-grid">
-              <article class="card glass">
-                <h3 class="card-title">السيرة المهنية</h3>
-                <p class="card-meta">Disposition · إدارة النقل في ألمانيا</p>
-                <p class="card-text">
-                  سجل عملي يوضح مسؤولياتي في التخطيط اليومي، جدولة السائقين، تحسين المسارات، وإدارة العمليات اليومية في بيئات نقل حقيقية.
+            <div class="gallery-grid">
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/00.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/11.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/22.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/33.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/44.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/55.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/66.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="gallery-item reveal-on-scroll">
+                <img src="assets/img/77.jpeg" alt="لقطة من المحتوى التقني" loading="lazy" decoding="async" />
+                <div class="gallery-overlay">
+                  <svg class="gallery-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3.2"/>
+                    <path d="M9 2 L15 2 L16.5 4 L21 4 C21.5 4 22 4.5 22 5 L22 19 C22 19.5 21.5 20 21 20 L3 20 C2.5 20 2 19.5 2 19 L2 5 C2 4.5 2.5 4 3 4 L7.5 4 L9 2 Z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Updated Skills Section with New Copy -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Updated Skills Section with New Copy -->
+        <section id="sections" class="section skills-section" aria-labelledby="sections-title">
+          <div class="container">
+            <div class="section-header">
+              <h2 class="section-title gradient-text" id="sections-title">أين يمكن أن تساعدك مهاراتي؟</h2>
+              <p class="section-subtitle">
+                من التخطيط اليومي للرحلات، إلى مراجعة أحدث الأجهزة، إلى ترتيب عملك الرقمي… كل هذا في مكان واحد.
+              </p>
+            </div>
+            <div class="skills-cards-grid">
+              <article class="skill-card glass reveal-on-scroll">
+                <div class="skill-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
+                    <path d="M15 18H9"/>
+                    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/>
+                    <circle cx="17" cy="18" r="2"/>
+                    <circle cx="7" cy="18" r="2"/>
+                  </svg>
+                </div>
+                <h3 class="skill-title">اللوجستيات والتخطيط اليومي</h3>
+                <p class="skill-text">
+                  أعمل كـ Disponent في شركة Rhenus، أرتّب رحلات التوصيل، أوزّع المهام على السائقين، وأحل المشاكل تحت الضغط. أستطيع مساعدتك في تنظيم المستودع، جدول السائقين، وتبسيط عملياتك اليومية.
                 </p>
-                <a href="cv.html" class="card-link" title="عرض السيرة الذاتية الكاملة">اطلع على السيرة</a>
+                <div class="skill-tags">
+                  <span class="skill-tag">تخطيط رحلات</span>
+                  <span class="skill-tag">تنظيم مستودع</span>
+                  <span class="skill-tag">حل مشاكل ميدانية</span>
+                </div>
               </article>
-              <article class="card glass">
-                <h3 class="card-title">الأعمال والخدمات</h3>
-                <p class="card-meta">مراجعات · تصميم · خدمات تنظيمية</p>
-                <p class="card-text">
-                  مشاريع ومقترحات عملية: مراجعات أجهزة وتجهيزات، خدمات تصميم مواقع بسيطة، واستشارات لتحسين تدفق العمل والنقل.
+              
+              <article class="skill-card glass reveal-on-scroll">
+                <div class="skill-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
+                    <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </div>
+                <h3 class="skill-title">يوتيوب: مراجعات وتجهيز منتجات</h3>
+                <p class="skill-text">
+                  أحب فتح الصناديق، تجربة الأجهزة، وترتيب زوايا منزل ذكي بسيطة وقابلة للتطبيق. أصوّر مراجعات صادقة بدون مبالغة، وأشرح إعدادات وبرامج تجعل التقنية أقرب للحياة اليومية.
                 </p>
-                <a href="blog.html" class="card-link" title="عرض المدونة والأعمال">اطّلع على الأعمال</a>
+                <div class="skill-tags">
+                  <span class="skill-tag">مراجعات تقنية</span>
+                  <span class="skill-tag">منزل ذكي</span>
+                  <span class="skill-tag">تجهيز منتجات</span>
+                </div>
               </article>
-              <article class="card glass">
-                <h3 class="card-title">صانع محتوى · يوتيوب</h3>
-                <p class="card-meta">مراجعات وتجارب</p>
-                <p class="card-text">
-                  فيديوهات قصيرة ومباشرة تشرح اختياراتي وتجربتي مع الأجهزة والخدمات، بهدف أن تساعدك في قراراتك اليومية.
+              
+              <article class="skill-card glass reveal-on-scroll">
+                <div class="skill-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="14" x="2" y="3" rx="2"/>
+                    <line x1="8" x2="16" y1="21" y2="21"/>
+                    <line x1="12" x2="12" y1="17" y2="21"/>
+                  </svg>
+                </div>
+                <h3 class="skill-title">خدمات رقمية للشركات والأفراد</h3>
+                <p class="skill-text">
+                  أصمّم مواقع بسيطة وواضحة، أرتّب الإيميلات والملفات، وأبني نظام عمل يساعدك تتابع طلباتك وعمّالك بسهولة. مثالي للشركات الصغيرة وروّاد الأعمال اللي يحتاجون تنظيم بدون تعقيد.
                 </p>
-                <a href="youtube.html" class="card-link" title="زيارة قسم يوتيوب">راجع الفيديوهات</a>
+                <div class="skill-tags">
+                  <span class="skill-tag">تصميم مواقع</span>
+                  <span class="skill-tag">تنظيم عمل</span>
+                  <span class="skill-tag">خدمات عن بُعد</span>
+                </div>
+              </article>
+              
+              <article class="skill-card glass reveal-on-scroll">
+                <div class="skill-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <h3 class="skill-title">شراكات وتعاونات محتوى</h3>
+                <p class="skill-text">
+                  جاهز للتعاون مع شركات وقنوات أخرى لعرض منتجات، تقييم خدمات، أو تصوير مشترك. أساعد في التسويق الإلكتروني، ترتيب المحتوى، وجدولة النشر حتى يظهر شغلك بأفضل صورة.
+                </p>
+                <div class="skill-tags">
+                  <span class="skill-tag">تعاونات</span>
+                  <span class="skill-tag">تسويق إلكتروني</span>
+                  <span class="skill-tag">دعم سوشيال ميديا</span>
+                </div>
               </article>
             </div>
           </div>
         </section>
 
-        <section class="section" aria-labelledby="faq-title">
+        <!-- Enhanced FAQ Section -->
+
+        <!-- Enhanced FAQ Section -->
+        <section class="section faq-section" aria-labelledby="faq-title">
           <div class="container">
             <div class="section-header">
               <h2 class="section-title gradient-text" id="faq-title">أسئلة سريعة · FAQ</h2>
@@ -248,22 +380,77 @@
               </p>
             </div>
             <div class="faq-list" role="region" aria-label="الأسئلة الشائعة">
-              <details class="faq-item">
-                <summary>ليش عملت هذا الموقع؟</summary>
+              <details class="faq-item reveal-on-scroll">
+                <summary>
+                  <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <span>هل يمكننا البدء بمشروع صغير كتجربة؟</span>
+                </summary>
                 <p>
-                  عشان أجمع كل شيء أعمله في مكان واحد: شغلي في النقل، محتوى يوتيوب، وتجارب تصميم المواقع.
+                  طبعاً، أفضل شيء نبدأ بخطوة صغيرة واضحة: صفحة هبوط، فيديو واحد، أو ترتيب نظام عمل بسيط. إذا أعجبك الأسلوب، نكبر المشروع خطوة خطوة.
                 </p>
               </details>
-              <details class="faq-item">
-                <summary>شو نوع المحتوى اللي أقدمه؟</summary>
+              
+              <details class="faq-item reveal-on-scroll">
+                <summary>
+                  <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span>هل تعمل عن بُعد فقط؟</span>
+                </summary>
                 <p>
-                  مراجعات أجهزة أستخدمها فعلياً، أفكار تنظيم وقت، وتجارب مع خدمات رقمية تناسب حياتنا اليومية.
+                  أغلب الشغل يتم أونلاين، لكن لو كنا في نفس المدينة يمكننا التنسيق لتصوير أو جلسة عمل ميدانية حسب المشروع.
                 </p>
               </details>
-              <details class="faq-item">
-                <summary>ممكن نتعاون بمشروع؟</summary>
+              
+              <details class="faq-item reveal-on-scroll">
+                <summary>
+                  <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span>كم يستغرق تحضير فيديو مراجعة لمنتج؟</span>
+                </summary>
                 <p>
-                  نعم، إذا عندك منتج أو خدمة أو مشروع له علاقة بالتقنية أو النقل أو تجربة المستخدم، تواصل معي من صفحة التواصل.
+                  عادةً من ٣ إلى ٧ أيام: تجربة حقيقية للمنتج، كتابة الأفكار، التصوير، ثم المونتاج الخفيف بدون مبالغة.
+                </p>
+              </details>
+              
+              <details class="faq-item reveal-on-scroll">
+                <summary>
+                  <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                    <path d="M3 9h18"/>
+                    <path d="M9 21V9"/>
+                  </svg>
+                  <span>أنا صاحب مشروع صغير، هل أستفيد منك؟</span>
+                </summary>
+                <p>
+                  أكيد. أقدر أساعدك في تنظيم طلباتك، ترتيب موقعك أو متجرك، وضبط طريقة التواصل مع عملائك بشكل بسيط وواضح.
+                </p>
+              </details>
+              
+              <details class="faq-item reveal-on-scroll">
+                <summary>
+                  <svg class="faq-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"/>
+                    <path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
+                    <path d="M12 2v2"/>
+                    <path d="M12 20v2"/>
+                    <path d="m4.93 4.93 1.41 1.41"/>
+                    <path d="m17.66 17.66 1.41 1.41"/>
+                    <path d="M2 12h2"/>
+                    <path d="M20 12h2"/>
+                    <path d="m6.34 17.66-1.41 1.41"/>
+                    <path d="m19.07 4.93-1.41 1.41"/>
+                  </svg>
+                  <span>هل تقدم أفكار أم تنفّذ فقط؟</span>
+                </summary>
+                <p>
+                  أعمل الاثنين معاً: أساعدك تكتشف ما تحتاجه فعلاً، ثم ننفّذ خطوة عملية تناسب ميزانيتك ووقتك.
                 </p>
               </details>
             </div>

@@ -5,6 +5,9 @@
   <title>YouTube · Mohammad Alfarras</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Mohammad Alfarras YouTube channel hub: logistics & life in Germany, tech/design reviews, premium glass UI with inline playback." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css" />
   <link rel="icon" href="../assets/img/logo-unboxing.png" type="image/png" />
 </head>
@@ -127,29 +130,53 @@
         </div>
       </section>
 
-      <!-- Stats strip -->
-      <section class="section stats-strip" id="channel-stats">
-        <div class="container stats-grid compact">
-          <div class="stat-card glass">
-            <span class="stat-icon">🎥</span>
-            <div>
-              <div class="stat-number" data-count="159">0</div>
-              <div class="stat-label">Uploaded videos</div>
-            </div>
-          </div>
-          <div class="stat-card glass">
-            <span class="stat-icon">⏳</span>
-            <div>
-              <div class="stat-number" data-count="6">0</div>
-              <div class="stat-label">Years of experience</div>
-            </div>
-          </div>
-          <div class="stat-card glass">
-            <span class="stat-icon">🌐</span>
-            <div>
-              <div class="stat-number" data-count="3">0</div>
-              <div class="stat-label">Languages spoken</div>
-            </div>
+      <!-- Stats Section - Modern Glassmorphism -->
+      <section class="yt-stats" id="channel-stats">
+        <div class="container">
+          <div class="yt-stats-grid">
+            <article class="yt-stat-card">
+              <div class="yt-stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                  <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>
+                </svg>
+              </div>
+              <div class="yt-stat-number" data-target="159">0</div>
+              <p class="yt-stat-label">Videos Published</p>
+            </article>
+            <article class="yt-stat-card">
+              <div class="yt-stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="yt-stat-number" data-target="6">0</div>
+              <p class="yt-stat-label">Years of Experience</p>
+            </article>
+            <article class="yt-stat-card">
+              <div class="yt-stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <div class="yt-stat-number" data-target="3">0</div>
+              <p class="yt-stat-label">Languages Used</p>
+            </article>
+            <article class="yt-stat-card">
+              <div class="yt-stat-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div class="yt-stat-number" data-target="25">0</div>
+              <p class="yt-stat-label">Digital Projects & Collabs</p>
+            </article>
           </div>
         </div>
       </section>
@@ -264,5 +291,71 @@
 
   <!-- YouTube Static Loader (No API required) -->
   <script src="../assets/js/youtube-local.js"></script>
+  
+  <!-- Animated Stats Counter -->
+  <script>
+    (function() {
+      let hasAnimated = false;
+      
+      function easeOutQuart(t) {
+        return 1 - Math.pow(1 - t, 4);
+      }
+      
+      function animateCounter(element, target, duration) {
+        const start = 0;
+        const startTime = performance.now();
+        
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easedProgress = easeOutQuart(progress);
+          const current = Math.floor(start + (target - start) * easedProgress);
+          
+          element.textContent = current;
+          
+          if (progress < 1) {
+            requestAnimationFrame(update);
+          } else {
+            element.textContent = target;
+          }
+        }
+        
+        requestAnimationFrame(update);
+      }
+      
+      function initStatsCounter() {
+        const statsSection = document.querySelector('.yt-stats');
+        if (!statsSection) return;
+        
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting && !hasAnimated) {
+              hasAnimated = true;
+              
+              const statNumbers = document.querySelectorAll('.yt-stat-number');
+              statNumbers.forEach((el, index) => {
+                const target = parseInt(el.getAttribute('data-target'), 10);
+                setTimeout(() => {
+                  animateCounter(el, target, 1500);
+                }, index * 100);
+              });
+              
+              observer.disconnect();
+            }
+          });
+        }, {
+          threshold: 0.3
+        });
+        
+        observer.observe(statsSection);
+      }
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStatsCounter);
+      } else {
+        initStatsCounter();
+      }
+    })();
+  </script>
 </body>
 </html>

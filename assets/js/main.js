@@ -663,3 +663,166 @@
     });
   }
 })();
+
+/* ================================
+   SCROLL REVEAL ANIMATIONS
+   ================================ */
+(function initScrollReveal() {
+  // Check if user prefers reduced motion
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
+  if (prefersReducedMotion) {
+    // Skip animations if user prefers reduced motion
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+      el.classList.add('revealed');
+    });
+    return;
+  }
+
+  // Create IntersectionObserver for scroll reveal
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.15
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        // Optionally unobserve after revealing
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Observe all elements with reveal-on-scroll class
+  document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+    observer.observe(el);
+  });
+})();
+
+/* ================================
+   SMOOTH SCROLL FOR ANCHOR LINKS
+   ================================ */
+(function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      
+      // Skip if href is just "#"
+      if (href === '#' || !href) return;
+      
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+        
+        // Update URL without triggering scroll
+        history.pushState(null, null, href);
+      }
+    });
+  });
+})();
+
+/* ================================
+   GLASS HIGHLIGHT CURSOR EFFECT
+   ================================ */
+(function initGlassHighlight() {
+  // Only on desktop
+  if (window.innerWidth < 1024) return;
+  
+  const hero = document.querySelector('.cinematic-hero');
+  if (!hero) return;
+  
+  let mouseX = 0;
+  let mouseY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  
+  hero.addEventListener('mousemove', (e) => {
+    const rect = hero.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  });
+  
+  function animate() {
+    // Smooth follow
+    currentX += (mouseX - currentX) * 0.1;
+    currentY += (mouseY - currentY) * 0.1;
+    
+    hero.style.setProperty('--mouse-x', `${currentX}px`);
+    hero.style.setProperty('--mouse-y', `${currentY}px`);
+    
+    requestAnimationFrame(animate);
+  }
+  
+  animate();
+  
+  // Add subtle radial gradient that follows cursor
+  hero.style.background = `
+    radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+      rgba(102, 126, 234, 0.05), 
+      transparent 40%)
+  `;
+})();
+
+/* ================================
+   AUTO-SCROLL YEAR IN FOOTER
+   ================================ */
+(function updateYear() {
+  const yearSpan = document.getElementById('year');
+  if (yearSpan) {
+    yearSpan.textContent = new Date().getFullYear();
+  }
+})();
+
+/* ================================
+   FAQ ACCORDION ENHANCEMENTS
+   ================================ */
+(function enhanceFAQ() {
+  const faqItems = document.querySelectorAll('.faq-item');
+  
+  faqItems.forEach(item => {
+    const summary = item.querySelector('summary');
+    if (!summary) return;
+    
+    summary.addEventListener('click', (e) => {
+      // Close other open FAQs (optional - for accordion behavior)
+      const wasOpen = item.hasAttribute('open');
+      
+      // Uncomment below to close other FAQs when opening one (single-open accordion)
+      // faqItems.forEach(otherItem => {
+      //   if (otherItem !== item) {
+      //     otherItem.removeAttribute('open');
+      //   }
+      // });
+    });
+  });
+})();
+
+/* ================================
+   PERFORMANCE: LAZY LOAD ANIMATIONS
+   ================================ */
+(function initLazyAnimations() {
+  // Pause animations for elements not in viewport to save resources
+  const animatedElements = document.querySelectorAll('.floating-icon, .gallery-item');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationPlayState = 'running';
+      } else {
+        entry.target.style.animationPlayState = 'paused';
+      }
+    });
+  }, { threshold: 0.1 });
+  
+  animatedElements.forEach(el => {
+    observer.observe(el);
+  });
+})();
+

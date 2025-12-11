@@ -1,10 +1,23 @@
-const CACHE_NAME = "moalfarras-cache-v1";
+const CACHE_NAME = "moalfarras-cache-v3";
 const OFFLINE_URLS = [
   "/",
   "/index.html",
+  "/cv.html",
+  "/blog.html",
+  "/youtube.html",
+  "/contact.html",
+  "/privacy.html",
   "/en/index.html",
+  "/en/cv.html",
+  "/en/blog.html",
+  "/en/youtube.html",
+  "/en/contact.html",
+  "/en/privacy.html",
   "/assets/css/style.css",
-  "/assets/js/main.js"
+  "/assets/js/main.js",
+  "/assets/js/youtube-local.js",
+  "/data/videos.json",
+  "/manifest.webmanifest"
 ];
 
 self.addEventListener("install", (event) => {

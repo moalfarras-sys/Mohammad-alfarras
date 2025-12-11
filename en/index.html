@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr" data-theme="dark">
+<html lang="en" dir="ltr" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <title>Mohammad Alfarras | Tech · Logistics · Web</title>
@@ -7,11 +7,11 @@
     <meta name="description" content="Mohammad Alfarras – logistics supervisor in Germany, tech content creator, and web tinkerer. Explore reviews, projects, and contact options." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Poppins:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css" />
     <link rel="icon" href="../assets/img/logo-unboxing.png" type="image/png" />
   </head>
-  <body>
+  <body class="theme-light light-mode">
     <div class="page-root">
 <header class="navbar glass">
   <div class="container navbar-inner">
@@ -32,40 +32,10 @@
       <a href="contact.html" title="Contact me">Contact</a>
     </nav>
     <div class="nav-actions">
-      <div class="language-selector">
-        <button class="language-toggle-glass" type="button" aria-label="Change language" title="Change language">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 60 30" class="flag-icon">
-            <clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
-            <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
-            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-            <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4"/>
-            <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
-            <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
-          </svg>
-        </button>
-        <div class="language-dropdown" hidden>
-          <a href="../index.html" class="language-option">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" class="flag-icon-small">
-              <rect width="512" height="170.67" fill="#199d4d"/>
-              <rect y="170.67" width="512" height="170.67" fill="#fff"/>
-              <rect y="341.33" width="512" height="170.67" fill="#000"/>
-            </svg>
-            <span>العربية</span>
-          </a>
-          <a href="index.html" class="language-option active">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 60 30" class="flag-icon-small">
-              <clipPath id="t2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
-              <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
-              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-              <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t2)" stroke="#C8102E" stroke-width="4"/>
-              <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
-              <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
-            </svg>
-            <span>English</span>
-          </a>
-        </div>
-      </div>
-      <button class="theme-toggle" type="button" aria-label="Toggle light/dark mode" title="Toggle theme"></button>
+      <a href="../index.html" class="lang-toggle" title="العربية" aria-label="العربية">
+        <span class="flag-icon">🇸🇾</span>
+      </a>
+      <button class="theme-toggle" type="button" aria-label="Toggle light/dark mode" title="Toggle theme">☀️</button>
     </div>
   </div>
 </header>
@@ -103,30 +73,6 @@
                 <div class="tagline-text">Ready for brand collaborations</div>
               </div>
               
-              <!-- Pills moved to hero text -->
-              <div class="hero-pills-section">
-                <button class="hero-pill" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-                  <span>Content Creator</span>
-                </button>
-                <button class="hero-pill" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                  <span>Tech & Gadgets</span>
-                </button>
-                <button class="hero-pill" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  <span>Honest Reviews</span>
-                </button>
-                <button class="hero-pill" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-                  <span>Digital Services</span>
-                </button>
-                <button class="hero-pill" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-                  <span>Logistics & Delivery</span>
-                </button>
-              </div>
-
               <div class="hero-actions">
                 <a href="youtube.html" class="hero-btn hero-btn-primary">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -143,6 +89,74 @@
               <div class="hero-portrait-card">
                 <img src="../assets/img/portrait.jpg" alt="Portrait of Mohammad Alfarras" class="hero-portrait" loading="lazy" decoding="async" />
                 <p class="hero-signature">Mohammad Alfarras</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pills Section: My Skills -->
+        <section class="pills-section" aria-label="Work Areas">
+          <div class="container">
+            <div class="pills-grid">
+              <button class="pill-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                <span>Content Creator</span>
+              </button>
+              <button class="pill-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <span>Tech & Gadgets</span>
+              </button>
+              <button class="pill-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Honest Reviews</span>
+              </button>
+              <button class="pill-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                <span>Digital Services</span>
+              </button>
+              <button class="pill-button" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                <span>Logistics & Delivery</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Features Section: Where My Skills Help You -->
+        <section class="features-section" aria-labelledby="features-title">
+          <div class="container">
+            <div class="features-intro">
+              <h2 id="features-title" class="features-title">Where My Skills Help You</h2>
+              <p class="features-description">From real-world experience</p>
+            </div>
+            <div class="features-grid">
+              <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                </div>
+                <h3 class="feature-title">Logistics & Delivery</h3>
+                <p class="feature-description">Precise planning and efficient management of supply chains and delivery operations</p>
+              </div>
+              <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #06b6d4);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                </div>
+                <h3 class="feature-title">Tech Products</h3>
+                <p class="feature-description">Honest reviews and deep analysis of the latest devices and technologies</p>
+              </div>
+              <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+                </div>
+                <h3 class="feature-title">Digital Services</h3>
+                <p class="feature-description">Website design, content management, and comprehensive digital consulting</p>
+              </div>
+              <div class="feature-card reveal-on-scroll">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h3 class="feature-title">Collaboration & Partnerships</h3>
+                <p class="feature-description">Building strong professional relationships and successful joint projects</p>
               </div>
             </div>
           </div>
@@ -411,6 +425,7 @@
             </div>
           </div>
         </section>
+
       </main>
 <footer class="site-footer glass" role="contentinfo" aria-label="Site footer">
   <div class="container footer-inner">
@@ -428,6 +443,8 @@
   </div>
 </footer>
 
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" aria-label="Scroll to top" title="Back to top">↑</button>
     </div>
     <script src="../assets/js/main.js"></script>
   </body>

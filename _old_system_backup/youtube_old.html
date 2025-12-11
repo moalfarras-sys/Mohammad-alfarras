@@ -32,8 +32,9 @@
           <a href="contact.html">تواصل</a>
         </nav>
         <div class="nav-actions">
-          <a href="en/youtube.html" class="lang-toggle" title="English" aria-label="English">
+          <a href="en/youtube.html" class="lang-toggle" title="English">
             <span class="flag-icon">🇬🇧</span>
+            <span>English</span>
           </a>
           <button class="theme-toggle" type="button" aria-label="تبديل بين الوضع الفاتح والداكن" title="تبديل الوضع">☀️</button>
         </div>
@@ -45,15 +46,16 @@
       <section class="orbit-hero">
         <div class="orbit-container">
           <!-- Center Card -->
-          <div class="orbit-center glass-card">
+          <div class="orbit-center">
             <div class="orbit-center-image">
               <img src="assets/img/portrait.jpg" alt="محمد الفراس" loading="lazy" decoding="async" />
             </div>
-            <h1 class="orbit-center-title">قناة محمد الفراس · تجربة تقنية صريحة</h1>
+            <h1 class="orbit-center-title">قناة محمد الفراس على يوتيوب</h1>
             <p class="orbit-center-desc">
-              لقطات يومية من الصندوق حتى القرار النهائي: أفتح، أجرّب، وأقيّم بدون مجاملة.<br>
-              التركيز على الوضوح: ما الذي ينجح فعلاً في المنزل والعمل؟ وكيف تختار جهازك بثقة؟
-              في النهاية، كل فيديو يرد على سؤال واحد: هل هذا المنتج يستحق وقتك ومالك؟
+              هنا يبدأ الفضول… وتبدأ التجربة.<br>
+              أفتح صناديق، أختبر أجهزة، وأغوص في عالم المنتجات التقنية بكل تفاصيله.<br>
+              ما أقدم رأيي إلا بعد ما أمسك المنتج، أستخدمه، وأجرّبه بواقعية… بدون مجاملات، بدون تعقيد.<br>
+              كل فيديو هدفه يجاوب على سؤال واحد: هل هذا المنتج فعلاً يستحق؟
             </p>
             <div class="orbit-actions">
               <a href="https://youtube.com/@moalfarras" target="_blank" rel="noopener noreferrer" class="orbit-btn orbit-btn-primary">شاهد على يوتيوب</a>
@@ -146,53 +148,6 @@
               </div>
               <div class="yt-stat-number" data-count-to="25" data-suffix="+" data-duration="2000">0</div>
               <p class="yt-stat-label">مشاريع رقمية وتعاونات</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Creator Lab Section (new content) -->
-      <section class="yt-creator-lab" aria-label="مختبر صانع المحتوى">
-        <div class="container">
-          <div class="lab-header">
-            <p class="lab-kicker">مختبر الزجاج السائل</p>
-            <h2 class="lab-title">مسار إنتاج من الفكرة إلى النشر</h2>
-            <p class="lab-subtitle">
-              طبقة إضافية توضّح أسلوبي في تنظيم الفيديوهات، دون تغيير النصوص الأصلية أو الفيديوهات الحالية.
-            </p>
-          </div>
-          <div class="lab-grid">
-            <article class="lab-card glass-card">
-              <div class="lab-chip">Pre-Production</div>
-              <h3 class="lab-card-title">خطة فيديو متوازنة</h3>
-              <p class="lab-card-text">أضع جدولاً للزوايا، اللقطات، ووقت الاختبار لكل منتج قبل التصوير.</p>
-              <ul class="lab-list">
-                <li>اختبار المنتج في سيناريوهات استخدام حقيقية</li>
-                <li>تخطيط الصوت والإضاءة بما يناسب الزجاج المتحرك</li>
-                <li>سيناريو قصير يضمن وضوح الرسالة</li>
-              </ul>
-            </article>
-
-            <article class="lab-card glass-card">
-              <div class="lab-chip">Production</div>
-              <h3 class="lab-card-title">تصوير بواجهة زجاجية</h3>
-              <p class="lab-card-text">استخدام إطارات زجاجية خفيفة، حواف مضيئة، وتنقلات هادئة أثناء التصوير.</p>
-              <ul class="lab-list">
-                <li>تراكيب لونية متناسقة مع الوضع الليلي والفاتح</li>
-                <li>تصوير مصغرات نظيفة تحافظ على العلامة</li>
-                <li>تجنب فوضى الكاميرا وإبراز المنتج</li>
-              </ul>
-            </article>
-
-            <article class="lab-card glass-card">
-              <div class="lab-chip">Post</div>
-              <h3 class="lab-card-title">تحرير + أتمتة</h3>
-              <p class="lab-card-text">توليد ترجمات، مزامنة الألوان مع الثيم، وضغط ملفات يحافظ على الجودة.</p>
-              <ul class="lab-list">
-                <li>ترجمة عربية/إنجليزية متزامنة مع المحتوى</li>
-                <li>تحسين الصوت وإزالة الضجيج</li>
-                <li>تجارب A/B على بدايات الفيديوهات</li>
-              </ul>
             </article>
           </div>
         </div>
@@ -307,9 +262,6 @@
     </footer>
   </div>
 
-  <!-- Global theme + background + nav logic -->
-  <script src="assets/js/main.js"></script>
-
   <!-- YouTube Static Loader (No API required) -->
   <script src="assets/js/youtube-local.js"></script>
   
@@ -322,7 +274,7 @@
         return 1 - Math.pow(1 - t, 4);
       }
       
-      function animateCounter(element, target, duration, suffix = '') {
+      function animateCounter(element, target, duration) {
         const start = 0;
         const startTime = performance.now();
         
@@ -332,12 +284,12 @@
           const easedProgress = easeOutQuart(progress);
           const current = Math.floor(start + (target - start) * easedProgress);
           
-          element.textContent = `${current}${suffix}`;
+          element.textContent = current;
           
           if (progress < 1) {
             requestAnimationFrame(update);
           } else {
-            element.textContent = `${target}${suffix}`;
+            element.textContent = target;
           }
         }
         
@@ -355,11 +307,9 @@
               
               const statNumbers = document.querySelectorAll('.yt-stat-number');
               statNumbers.forEach((el, index) => {
-                const { target, countTo, duration: dur, suffix } = el.dataset;
-                const parsedTarget = parseInt(target || countTo || '0', 10) || 0;
-                const parsedDuration = parseInt(dur || '1500', 10);
+                const target = parseInt(el.getAttribute('data-target'), 10);
                 setTimeout(() => {
-                  animateCounter(el, parsedTarget, parsedDuration, suffix || '');
+                  animateCounter(el, target, 1500);
                 }, index * 100);
               });
               

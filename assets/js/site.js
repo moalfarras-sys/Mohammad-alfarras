@@ -60,7 +60,7 @@
       toggle.setAttribute('aria-label', 'Switch to dark mode');
       toggle.setAttribute('title', 'Switch to dark mode');
     } else {
-      toggle.innerHTML = '🌒'; // Moon icon for dark mode
+      toggle.innerHTML = '🌙'; // Moon icon for dark mode
       toggle.setAttribute('aria-label', 'Switch to light mode');
       toggle.setAttribute('title', 'Switch to light mode');
     }
@@ -110,18 +110,6 @@
 })();
 
 // ========================================
-// NAVBAR: MOBILE TOGGLE + GLASS INTERACTION
-// ========================================
-(function initNavbarToggle() {
-  const navbar = document.querySelector('.navbar');
-  const navLinks = navbar?.querySelector('.nav-links');
-  if (!navbar || !navLinks) return;
-
-  // Keep links always visible; no burger menu required.
-  navbar.classList.remove('nav-open');
-})();
-
-// ========================================
 // GLOBAL DYNAMIC BACKGROUND (Canvas)
 // Light: flowing waves | Dark: stars + clouds
 // ========================================
@@ -134,87 +122,48 @@
 
   document.body.prepend(canvas);
 
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const isMobileScreen = () => window.innerWidth <= 960;
-  let reduceMotion = prefersReducedMotion.matches;
-
   let width = 0;
   let height = 0;
   let theme = document.documentElement.getAttribute("data-theme") || "light";
 
-  const starCount = isMobileScreen() ? 90 : 140;
+  const starCount = 120;
   const stars = Array.from({ length: starCount }, () => ({
     x: Math.random(),
     y: Math.random(),
-    size: Math.random() * 1.5 + 0.6,
-    speed: Math.random() * 0.0006 + 0.0002,
+    size: Math.random() * 1.5 + 0.5,
+    speed: Math.random() * 0.0008 + 0.0003,
     alpha: Math.random() * 0.5 + 0.5,
-    phase: Math.random() * Math.PI * 2,
-    twinkle: Math.random() * 0.5 + 0.35
   }));
-
-  let targetFps = reduceMotion || isMobileScreen() ? 24 : 60;
-  let frameInterval = 1000 / targetFps;
-  let lastFrame = 0;
-
-  const refreshFrameBudget = () => {
-    targetFps = reduceMotion || isMobileScreen() ? 24 : 60;
-    frameInterval = 1000 / targetFps;
-  };
 
   const resize = () => {
     width = window.innerWidth;
     height = window.innerHeight;
-    const pixelRatio = reduceMotion || isMobileScreen() ? 1 : Math.min(window.devicePixelRatio || 1, 1.2);
-    canvas.width = Math.round(width * pixelRatio);
-    canvas.height = Math.round(height * pixelRatio);
-    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-    refreshFrameBudget();
+    canvas.width = width;
+    canvas.height = height;
   };
 
   const drawLight = (t) => {
     ctx.clearRect(0, 0, width, height);
-
-    // Soft vertical gradient base
-    const sky = ctx.createLinearGradient(0, 0, 0, height);
-    sky.addColorStop(0, "rgba(245, 253, 255, 0.95)");
-    sky.addColorStop(1, "rgba(220, 245, 255, 0.78)");
-    ctx.fillStyle = sky;
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "rgba(231, 246, 255, 0.65)");
+    gradient.addColorStop(1, "rgba(205, 255, 241, 0.35)");
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Moving glow orbs
-    const orb = (x, y, r, c) => {
-      const g = ctx.createRadialGradient(x, y, r * 0.2, x, y, r);
-      g.addColorStop(0, c);
-      g.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    };
-
-    const t1 = t * 0.00015;
-    orb(width * 0.25 + Math.sin(t1) * 28, height * 0.25, 200, "rgba(59, 130, 246, 0.16)");
-    orb(width * 0.75 + Math.cos(t1 * 1.1) * 30, height * 0.3, 210, "rgba(16, 185, 129, 0.14)");
-    orb(width * 0.5 + Math.sin(t1 * 0.85) * 22, height * 0.7, 220, "rgba(14, 165, 233, 0.12)");
-
-    // Animated wave bands (stronger presence)
     const waves = [
-      { amp: 26, freq: 0.0014, speed: 0.0011, color: "rgba(56, 189, 248, 0.28)" },
-      { amp: 18, freq: 0.0011, speed: 0.0014, color: "rgba(34, 211, 238, 0.24)" },
-      { amp: 14, freq: 0.00095, speed: 0.0017, color: "rgba(16, 185, 129, 0.22)" }
+      { amp: 28, freq: 0.0018, speed: 0.0012, color: "rgba(56, 189, 248, 0.35)" },
+      { amp: 20, freq: 0.0013, speed: 0.0016, color: "rgba(16, 185, 129, 0.30)" },
+      { amp: 14, freq: 0.0011, speed: 0.0020, color: "rgba(59, 130, 246, 0.28)" }
     ];
-
-    const waveStep = reduceMotion || isMobileScreen() ? 24 : 18;
 
     waves.forEach((wave, idx) => {
       ctx.beginPath();
-      ctx.moveTo(0, height);
-      for (let x = 0; x <= width; x += waveStep) {
-        const y = height * 0.55 + Math.sin((x * wave.freq) + (t * wave.speed) + idx) * wave.amp;
+      for (let x = 0; x <= width; x += 16) {
+        const y = height * 0.45 + Math.sin((x * wave.freq) + (t * wave.speed) + idx) * wave.amp;
         ctx.lineTo(x, y);
       }
       ctx.lineTo(width, height);
+      ctx.lineTo(0, height);
       ctx.closePath();
       ctx.fillStyle = wave.color;
       ctx.fill();
@@ -233,7 +182,7 @@
     ctx.fillStyle = cloudGradient;
     ctx.globalCompositeOperation = "screen";
     ctx.beginPath();
-    ctx.ellipse(width * 0.35 + Math.sin(t * 0.00022) * 26, height * 0.45, width * 0.28, height * 0.16, 0, 0, Math.PI * 2);
+    ctx.ellipse(width * 0.35 + Math.sin(t * 0.0003) * 40, height * 0.45, width * 0.28, height * 0.16, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const cloudGradient2 = ctx.createRadialGradient(width * 0.7, height * 0.55, 60, width * 0.68, height * 0.55, width * 0.48);
@@ -241,80 +190,40 @@
     cloudGradient2.addColorStop(1, "rgba(148,163,184,0)");
     ctx.fillStyle = cloudGradient2;
     ctx.beginPath();
-    ctx.ellipse(width * 0.7 + Math.cos(t * 0.00018) * 22, height * 0.6, width * 0.22, height * 0.14, 0, 0, Math.PI * 2);
+    ctx.ellipse(width * 0.7 + Math.cos(t * 0.00025) * 30, height * 0.6, width * 0.22, height * 0.14, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalCompositeOperation = "source-over";
 
     // star field
     stars.forEach((star) => {
       star.y += star.speed * height;
-      star.x += star.speed * 0.6;
       if (star.y * height > height + 8) star.y = 0;
-      if (star.x * width > width + 8) star.x = 0;
       const x = star.x * width;
       const y = star.y * height;
-      const twinkle = 0.55 + 0.45 * Math.sin(t * 0.004 + star.phase);
       ctx.beginPath();
-      ctx.fillStyle = `rgba(255,255,255,${Math.min(1, star.alpha * star.twinkle * twinkle)})`;
+      ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
       ctx.arc(x, y, star.size, 0, Math.PI * 2);
       ctx.fill();
     });
   };
 
-  let rafId = 0;
-
-  const render = (time = 0) => {
-    if (time - lastFrame < frameInterval) {
-      rafId = requestAnimationFrame(render);
-      return;
-    }
-
-    lastFrame = time;
-
+  let rafId;
+  const render = (time) => {
     if (theme === "dark") {
-      drawDark(time);
+      drawDark(time || 0);
     } else {
-      drawLight(time);
+      drawLight(time || 0);
     }
-
-    rafId = requestAnimationFrame(render);
-  };
-
-  const restartAnimation = () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    lastFrame = 0;
     rafId = requestAnimationFrame(render);
   };
 
   resize();
-  restartAnimation();
+  render(0);
 
-  window.addEventListener("resize", () => {
-    resize();
-    restartAnimation();
-  });
-
+  window.addEventListener("resize", resize);
   window.addEventListener("themechange", (e) => {
     theme = e.detail?.theme || document.documentElement.getAttribute("data-theme") || "light";
-    restartAnimation();
   });
-
-  prefersReducedMotion.addEventListener("change", (e) => {
-    reduceMotion = e.matches;
-    refreshFrameBudget();
-    resize();
-    restartAnimation();
-  });
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      cancelAnimationFrame(rafId);
-      rafId = 0;
-      return;
-    }
-    restartAnimation();
-  });
-
   window.addEventListener("unload", () => cancelAnimationFrame(rafId));
 })();
 
@@ -769,11 +678,6 @@
   })();
 
 })();
-
-// ========================================
-// MICRO INTERACTIONS (LIGHT PARALLAX TILT)
-// ========================================
-// Micro-interactions removed per user request.
 
 (function initStatCounters() {
   // Animate stat numbers when visible

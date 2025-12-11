@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="dark">
+<html lang="ar" dir="rtl" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <title>تواصل معي · تقييم الموقع</title>
@@ -7,11 +7,11 @@
     <meta name="description" content="تواصل مع محمد الفراس، قيّم الموقع والمحتوى، واقترح أفكار لتطوير القناة أو الخدمات." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Poppins:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="icon" href="assets/img/logo-unboxing.png" type="image/png" />
   </head>
-  <body>
+  <body class="theme-light light-mode">
     <div class="page-root">
   <header class="navbar glass">
     <div class="container navbar-inner">
@@ -32,37 +32,10 @@
         <a href="contact.html" title="التواصل معي">تواصل</a>
       </nav>
       <div class="nav-actions">
-        <div class="language-selector">
-          <button class="language-toggle-glass" type="button" aria-label="تغيير اللغة" title="تغيير اللغة">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512" class="flag-icon">
-              <rect width="512" height="170.67" fill="#199d4d"/>
-              <rect y="170.67" width="512" height="170.67" fill="#fff"/>
-              <rect y="341.33" width="512" height="170.67" fill="#000"/>
-            </svg>
-          </button>
-          <div class="language-dropdown" hidden>
-            <a href="contact.html" class="language-option active">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" class="flag-icon-small">
-                <rect width="512" height="170.67" fill="#199d4d"/>
-                <rect y="170.67" width="512" height="170.67" fill="#fff"/>
-                <rect y="341.33" width="512" height="170.67" fill="#000"/>
-              </svg>
-              <span>العربية</span>
-            </a>
-            <a href="en/contact.html" class="language-option">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 60 30" class="flag-icon-small">
-                <clipPath id="t2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
-                <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
-                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-                <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t2)" stroke="#C8102E" stroke-width="4"/>
-                <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
-                <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
-              </svg>
-              <span>English</span>
-            </a>
-          </div>
-        </div>
-        <button class="theme-toggle" type="button" aria-label="تبديل بين الوضع الفاتح والداكن" title="تبديل الوضع"></button>
+        <a href="en/contact.html" class="lang-toggle" title="English" aria-label="English">
+          <span class="flag-icon">🇬🇧</span>
+        </a>
+        <button class="theme-toggle" type="button" aria-label="تبديل بين الوضع الفاتح والداكن" title="تبديل الوضع">☀️</button>
       </div>
     </div>
   </header>
@@ -187,13 +160,39 @@
           </div>
         </section>
 
-        <section class="section">
+        <section class="section contact-form-pro">
           <div class="container">
-            <div class="card glass" style="max-width: 800px; margin-inline: auto;">
-              <h2 class="card-title">نموذج تواصل احترافي</h2>
-              <p class="card-meta">حابب ترتّب مشروعك؟ تطلق منتج جديد؟ بدك موقع بسيط واحترافي؟ كلها تبدأ من رسالة.</p>
-              <form class="contact-form" id="contactForm" method="post" action="mailto:Mohammad.alfarras@gmail.com">
-                <div class="form-row">
+            <div class="contact-form-shell glass">
+              <div class="contact-form-header">
+                <span class="contact-badge">نموذج زجاجي · جاهز</span>
+                <h2 class="contact-form-title">نموذج تواصل احترافي</h2>
+                <p class="contact-form-sub">حابب ترتّب مشروعك، تطلق منتج، أو بدك موقع بسيط وأنيق؟ أرسل التفاصيل واختَر الخيارات الجاهزة.</p>
+                <div class="contact-quick-choices" aria-label="خيارات سريعة للموضوع">
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick" value="logistics" />
+                    <span>تنظيم لوجستي</span>
+                  </label>
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick" value="website" />
+                    <span>موقع أو صفحة هبوط</span>
+                  </label>
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick" value="content" />
+                    <span>تعاون محتوى</span>
+                  </label>
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick" value="consult" />
+                    <span>استشارة سريعة</span>
+                  </label>
+                </div>
+              </div>
+
+              <form class="contact-form-modern" id="contactForm" method="POST" action="https://formsubmit.co/el/cijuki">
+                <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_template" value="table" />
+                <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+
+                <div class="contact-form-grid">
                   <label>
                     <span>الاسم الكامل</span>
                     <input type="text" name="name" required placeholder="اسمك الكامل" />
@@ -202,22 +201,28 @@
                     <span>البريد الإلكتروني</span>
                     <input type="email" name="email" required placeholder="name@example.com" />
                   </label>
-                </div>
-                <div class="form-row">
                   <label>
                     <span>طريقة التواصل المفضلة</span>
-                    <select name="contact_method">
-                      <option value="email">البريد الإلكتروني</option>
-                      <option value="whatsapp">واتساب</option>
-                      <option value="linkedin">LinkedIn</option>
-                      <option value="other">أخرى</option>
-                    </select>
+                    <div class="pill-group" role="group" aria-label="طريقة التواصل">
+                      <label class="pill">
+                        <input type="radio" name="contact_method" value="whatsapp" required />
+                        <span>واتساب</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="contact_method" value="email" />
+                        <span>بريد إلكتروني</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="contact_method" value="linkedin" />
+                        <span>LinkedIn</span>
+                      </label>
+                    </div>
                   </label>
                   <label>
-                    <span>موضوع الرسالة</span>
-                    <select name="topic" id="topicSelect">
+                    <span>الموضوع</span>
+                    <select name="topic" id="topicSelect" required>
                       <option value="">اختر موضوع...</option>
-                      <option value="product">ترويج منتج جديد</option>
+                      <option value="product">ترويج منتج</option>
                       <option value="logistics">استفسار لوجستي</option>
                       <option value="website">تصميم موقع</option>
                       <option value="content">تعاون محتوى</option>
@@ -225,12 +230,34 @@
                       <option value="other">موضوع آخر</option>
                     </select>
                   </label>
+                  <label>
+                    <span>مدة الرد المفضلة</span>
+                    <div class="pill-group" role="group" aria-label="مدة الرد">
+                      <label class="pill">
+                        <input type="radio" name="response_time" value="سريع اليوم" />
+                        <span>سريع اليوم</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="response_time" value="خلال 24 ساعة" />
+                        <span>خلال 24 ساعة</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="response_time" value="خلال الأسبوع" />
+                        <span>خلال الأسبوع</span>
+                      </label>
+                    </div>
+                  </label>
                 </div>
+
                 <label class="form-full">
                   <span>الرسالة</span>
-                  <textarea name="message" id="messageArea" rows="6" required placeholder="اكتب رسالتك هنا..."></textarea>
+                  <textarea name="message" id="messageArea" rows="6" required placeholder="اكتب رسالتك، ما المشكلة أو الهدف، وأي تفاصيل مختصرة."></textarea>
                 </label>
-                <button type="submit" class="btn primary">أرسل الرسالة</button>
+
+                <div class="contact-submit-row">
+                  <button type="submit" class="btn primary">أرسل الرسالة</button>
+                  <p class="contact-privacy">لن أستخدم بياناتك إلا للرد. يمكنك طلب الحذف بأي وقت.</p>
+                </div>
               </form>
             </div>
           </div>
@@ -276,7 +303,28 @@
       </div>
     </div>
   </footer>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" aria-label="العودة للأعلى" title="العودة للأعلى">↑</button>
     </div>
     <script src="assets/js/main.js"></script>
+    <script>
+      // مزامنة الخيارات الجاهزة مع القائمة المنسدلة للموضوع
+      (function() {
+        const quickChoices = document.querySelectorAll('.quick-choice input');
+        const topicSelect = document.getElementById('topicSelect');
+        if (!quickChoices.length || !topicSelect) return;
+        quickChoices.forEach((input) => {
+          input.addEventListener('change', () => {
+            const map = { consult: 'consultation' };
+            const value = map[input.value] || input.value;
+            const optionExists = Array.from(topicSelect.options).some((o) => o.value === value);
+            if (optionExists) {
+              topicSelect.value = value;
+            }
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

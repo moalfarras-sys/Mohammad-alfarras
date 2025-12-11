@@ -30,54 +30,6 @@
   const backdrop = modal.querySelector('.backdrop');
   let lastActive = null;
 
-  // Minimal inline fallback to prevent empty pages if fetch fails
-  const fallbackVideos = [
-    {
-      id: "ZRPDkXiXEpw",
-      title_ar: "فتح صندوق وتجربة أولية – منتج جديد يلفت الانتباه!",
-      title_en: "Unboxing & First Look – A Surprisingly Impressive Gadget",
-      description_ar: "فتح صندوق بسيط لكنه ممتع… استعراض سريع وانطباع أول يعطيك فكرة صادقة قبل أي قرار شراء.",
-      description_en: "A clean and honest unboxing with a true first impression. Simple, real, and straight to the point.",
-      thumbnail: "https://i.ytimg.com/vi/ZRPDkXiXEpw/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=ZRPDkXiXEpw",
-      duration: "07:40",
-      views: 18900
-    },
-    {
-      id: "N6ZhjrmUNLU",
-      title_ar: "تجربة عملية لجهاز مبتكر – هل يستحق؟",
-      title_en: "Hands-On Review of an Interesting Device – Worth It?",
-      description_ar: "تجربة حقيقية بدون مجاملة… نختبر الأداء ونشوف فعليًا إذا الجهاز عملي أو مجرد شكل.",
-      description_en: "A real hands-on test with no hype. Practical results that show what the device can actually do.",
-      thumbnail: "https://i.ytimg.com/vi/N6ZhjrmUNLU/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=N6ZhjrmUNLU",
-      duration: "09:12",
-      views: 22100
-    },
-    {
-      id: "CE_ONNbvi9I",
-      title_ar: "منتج تقني جديد… نظرة سريعة وصريحة",
-      title_en: "Quick and Honest Look at a New Tech Product",
-      description_ar: "استعراض سريع يعطيك خلاصة التجربة: أهم المزايا، العيوب، والانطباع الحقيقي بدون مبالغة.",
-      description_en: "A fast, clear, and honest overview. The good, the bad, and the real experience — all in one short video.",
-      thumbnail: "https://i.ytimg.com/vi/CE_ONNbvi9I/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=CE_ONNbvi9I",
-      duration: "05:58",
-      views: 16200
-    },
-    {
-      id: "kNf8kd62OT4",
-      title_ar: "أداة صغيرة… لكن فعّالة أكثر مما تتوقع!",
-      title_en: "A Small Tool… Surprisingly Powerful!",
-      description_ar: "منتج بسيط لكن مفيد جدًا… نشوف عمليًا إذا فعلاً يستحق مكانه ضمن أدواتك اليومية.",
-      description_en: "A compact gadget that packs more usefulness than expected. A practical daily-use test.",
-      thumbnail: "https://i.ytimg.com/vi/kNf8kd62OT4/hqdefault.jpg",
-      url: "https://www.youtube.com/watch?v=kNf8kd62OT4",
-      duration: "06:45",
-      views: 17500
-    }
-  ];
-
   // ============================================
   // HELPERS
   // ============================================
@@ -251,7 +203,7 @@
     try {
       // Detect if we're in a subfolder (en/) or root
       const pathPrefix = window.location.pathname.includes('/en/') ? '../' : '';
-      const res = await fetch(`${pathPrefix}data/videos.json`, { cache: 'no-cache' });
+      const res = await fetch(`${pathPrefix}assets/data/videos.json`, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const videos = await res.json();
@@ -275,13 +227,7 @@
 
     } catch (err) {
       console.error('Video load failed:', err);
-      if (fallbackVideos.length) {
-        const [featured, ...rest] = fallbackVideos;
-        renderFeatured(featured);
-        renderGrid(rest);
-      } else {
-        showError();
-      }
+      showError();
     }
   };
 

@@ -32,8 +32,9 @@
           <a href="contact.html">Contact</a>
         </nav>
         <div class="nav-actions">
-          <a href="../youtube.html" class="lang-toggle" title="العربية" aria-label="العربية">
+          <a href="../youtube.html" class="lang-toggle" title="العربية">
             <span class="flag-icon">🇸🇾</span>
+            <span>العربية</span>
           </a>
           <button class="theme-toggle" type="button" aria-label="Toggle light/dark mode" title="Toggle theme">☀️</button>
         </div>
@@ -45,7 +46,7 @@
       <section class="orbit-hero">
         <div class="orbit-container">
           <!-- Center Card -->
-          <div class="orbit-center glass-card">
+          <div class="orbit-center">
             <div class="orbit-center-image">
               <img src="../assets/img/portrait.jpg" alt="Mohammad Alfarras" loading="lazy" decoding="async" />
             </div>
@@ -146,53 +147,6 @@
               </div>
               <div class="yt-stat-number" data-count-to="25" data-suffix="+" data-duration="2000">0</div>
               <p class="yt-stat-label">Digital Projects & Collaborations</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Creator Lab Section (new content) -->
-      <section class="yt-creator-lab" aria-label="Creator Lab">
-        <div class="container">
-          <div class="lab-header">
-            <p class="lab-kicker">Liquid Glass Lab</p>
-            <h2 class="lab-title">A clear path from idea to publish</h2>
-            <p class="lab-subtitle">
-              An added layer that explains my production method without changing any existing videos or text.
-            </p>
-          </div>
-          <div class="lab-grid">
-            <article class="lab-card glass-card">
-              <div class="lab-chip">Pre-Production</div>
-              <h3 class="lab-card-title">Balanced video plans</h3>
-              <p class="lab-card-text">Shot lists, testing windows, and review angles are mapped before recording.</p>
-              <ul class="lab-list">
-                <li>Real-world usage tests before filming</li>
-                <li>Sound and light plans that respect glass UI</li>
-                <li>Tight scripts that keep the message crisp</li>
-              </ul>
-            </article>
-
-            <article class="lab-card glass-card">
-              <div class="lab-chip">Production</div>
-              <h3 class="lab-card-title">Glass-first filming</h3>
-              <p class="lab-card-text">Lightweight glass frames, soft glows, and calm transitions while shooting.</p>
-              <ul class="lab-list">
-                <li>Color harmony for both light and dark themes</li>
-                <li>Clean thumbnails that keep the brand visible</li>
-                <li>Product-first framing with zero clutter</li>
-              </ul>
-            </article>
-
-            <article class="lab-card glass-card">
-              <div class="lab-chip">Post</div>
-              <h3 class="lab-card-title">Edit + Automate</h3>
-              <p class="lab-card-text">Synced subtitles, theme-matched grading, and compression that preserves clarity.</p>
-              <ul class="lab-list">
-                <li>Arabic/English subtitles aligned with speech</li>
-                <li>Noise reduction and consistent loudness</li>
-                <li>A/B testing on hooks and intros</li>
-              </ul>
             </article>
           </div>
         </div>
@@ -306,9 +260,6 @@
     </footer>
   </div>
 
-  <!-- Global theme + background + nav logic -->
-  <script src="../assets/js/main.js"></script>
-
   <!-- YouTube Static Loader (No API required) -->
   <script src="../assets/js/youtube-local.js"></script>
   
@@ -321,7 +272,7 @@
         return 1 - Math.pow(1 - t, 4);
       }
       
-      function animateCounter(element, target, duration, suffix = '') {
+      function animateCounter(element, target, duration) {
         const start = 0;
         const startTime = performance.now();
         
@@ -331,12 +282,12 @@
           const easedProgress = easeOutQuart(progress);
           const current = Math.floor(start + (target - start) * easedProgress);
           
-          element.textContent = `${current}${suffix}`;
+          element.textContent = current;
           
           if (progress < 1) {
             requestAnimationFrame(update);
           } else {
-            element.textContent = `${target}${suffix}`;
+            element.textContent = target;
           }
         }
         
@@ -354,11 +305,9 @@
               
               const statNumbers = document.querySelectorAll('.yt-stat-number');
               statNumbers.forEach((el, index) => {
-                const { target, countTo, duration: dur, suffix } = el.dataset;
-                const parsedTarget = parseInt(target || countTo || '0', 10) || 0;
-                const parsedDuration = parseInt(dur || '1500', 10);
+                const target = parseInt(el.getAttribute('data-target'), 10);
                 setTimeout(() => {
-                  animateCounter(el, parsedTarget, parsedDuration, suffix || '');
+                  animateCounter(el, target, 1500);
                 }, index * 100);
               });
               

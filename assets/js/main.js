@@ -126,6 +126,9 @@
 // Light: flowing waves | Dark: stars + clouds
 // ========================================
 (function initDynamicBackground() {
+  // Disabled entirely to unblock scrolling on devices with weak GPUs or when page first loads
+  return;
+
   const canvas = document.createElement("canvas");
   canvas.className = "bg-canvas";
   canvas.setAttribute("aria-hidden", "true");
@@ -134,15 +137,13 @@
 
   document.body.prepend(canvas);
 
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const isMobileScreen = () => window.innerWidth <= 960;
   let reduceMotion = prefersReducedMotion.matches;
 
   let width = 0;
   let height = 0;
   let theme = document.documentElement.getAttribute("data-theme") || "light";
 
-  const starCount = isMobileScreen() ? 90 : 140;
+  const starCount = 90;
   const stars = Array.from({ length: starCount }, () => ({
     x: Math.random(),
     y: Math.random(),
@@ -153,12 +154,12 @@
     twinkle: Math.random() * 0.5 + 0.35
   }));
 
-  let targetFps = reduceMotion || isMobileScreen() ? 24 : 60;
+  let targetFps = reduceMotion ? 24 : 30;
   let frameInterval = 1000 / targetFps;
   let lastFrame = 0;
 
   const refreshFrameBudget = () => {
-    targetFps = reduceMotion || isMobileScreen() ? 24 : 60;
+    targetFps = reduceMotion || isMobileScreen() ? 24 : 30;
     frameInterval = 1000 / targetFps;
   };
 
@@ -316,6 +317,127 @@
   });
 
   window.addEventListener("unload", () => cancelAnimationFrame(rafId));
+})();
+
+// Safety: always re-enable page scrolling in case any modal or script left overflow hidden
+(function ensureScrollUnlock() {
+  const unlock = () => {
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+  };
+
+  unlock();
+  window.addEventListener('load', () => setTimeout(unlock, 120));
+})();
+
+// Extra guard: in case any script briefly sets overflow:hidden on page load (e.g., images/modals)
+(function forceScrollUnlock() {
+  let attempts = 0;
+  const unlock = () => {
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+  };
+
+  const interval = setInterval(() => {
+    unlock();
+    attempts += 1;
+    if (attempts > 40) { // run for ~6s
+      clearInterval(interval);
+    }
+  }, 150);
+
+  window.addEventListener('pageshow', unlock);
+})();
+
+// Gentle parallax for dark-mode stars tied to scroll (no canvas)
+(function initStarParallax() {
+  const root = document.documentElement;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (prefersReduced.matches) return;
+
+  let ticking = false;
+
+  const update = () => {
+    const y = window.scrollY || 0;
+    const xShift = (y * 0.04).toFixed(2);
+    const yShift = (y * 0.02).toFixed(2);
+    root.style.setProperty('--star-pos', `${xShift}px ${yShift}px`);
+    ticking = false;
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+
+  update();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', update);
+  window.addEventListener('themechange', update);
+})();
+
+// Micro hover/touch lift for buttons and cards
+(function initMicroHovers() {
+  const selectors = [
+    '.hero-btn',
+    '.pill-button',
+    '.feature-card',
+    '.yt-card',
+    '.card',
+    '.cta-button',
+    '.cv-service-card',
+    '.cv-lang-card',
+    '.cv-neo-item',
+    '.cv-stat-card',
+    '.testimonial',
+    '.nav-links a'
+  ];
+
+  const elements = Array.from(document.querySelectorAll(selectors.join(',')));
+  if (!elements.length) return;
+
+  const finePointer = window.matchMedia('(pointer: fine)').matches;
+
+  elements.forEach((el) => {
+    el.classList.add('micro-interactive');
+
+    if (finePointer) {
+      let rafId = null;
+
+      const reset = () => {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+        el.style.transform = '';
+      };
+
+      const onMove = (e) => 
+        {
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            const rect = el.getBoundingClientRect();
+            const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+            const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+            const tx = (x * 10).toFixed(2);
+            const ty = (y * 10).toFixed(2);
+            el.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(1.02)`;
+          });
+        };
+
+      el.addEventListener('mousemove', onMove);
+      el.addEventListener('mouseleave', reset);
+    } else {
+      const reset = () => {
+        el.style.transform = '';
+      };
+      el.addEventListener('touchstart', () => {
+        el.style.transform = 'scale(0.985)';
+      }, { passive: true });
+      el.addEventListener('touchend', reset, { passive: true });
+      el.addEventListener('touchcancel', reset, { passive: true });
+    }
+  });
 })();
 
 // ========================================
@@ -1396,6 +1518,55 @@
       this.style.setProperty('--hover-x', x + '%');
       this.style.setProperty('--hover-y', y + '%');
     });
+  });
+})();
+
+/* ================================
+   MOBILE NAVIGATION MENU TOGGLE
+   ================================ */
+(function initMobileNav() {
+  const burger = document.querySelector('.nav-burger');
+  const navLinks = document.querySelector('.nav-links');
+  
+  if (!burger || !navLinks) {
+    console.log('Mobile nav elements not found');
+    return;
+  }
+  
+  // Toggle menu on burger click
+  burger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    burger.classList.toggle('active');
+    navLinks.classList.toggle('active');
+  });
+  
+  // Close menu when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!navLinks.contains(e.target) && !burger.contains(e.target)) {
+      burger.classList.remove('active');
+      navLinks.classList.remove('active');
+    }
+  });
+  
+  // Close menu when clicking on a link
+  const links = navLinks.querySelectorAll('a');
+  links.forEach(link => {
+    link.addEventListener('click', function() {
+      burger.classList.remove('active');
+      navLinks.classList.remove('active');
+    });
+  });
+  
+  // Close menu on window resize if going to desktop size
+  let resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+      if (window.innerWidth > 960) {
+        burger.classList.remove('active');
+        navLinks.classList.remove('active');
+      }
+    }, 250);
   });
 })();
 

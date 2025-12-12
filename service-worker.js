@@ -1,4 +1,4 @@
-const CACHE_NAME = "moalfarras-cache-v3";
+const CACHE_NAME = "moalfarras-cache-v4"; // bump to purge old HTML shells
 const OFFLINE_URLS = [
   "/",
   "/index.html",
@@ -43,16 +43,19 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
+  // For navigation requests, prefer network (fresh HTML), fallback to cached home when offline
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req).catch(() => caches.match("/index.html"))
+    );
+    return;
+  }
 
+  // For assets: cache-first, fallback to network
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
-      return fetch(req).catch(() => {
-        // fallback: offline home for navigation requests
-        if (req.mode === "navigate") {
-          return caches.match("/index.html");
-        }
-      });
+      return fetch(req);
     })
   );
 });

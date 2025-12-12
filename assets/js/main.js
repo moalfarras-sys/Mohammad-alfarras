@@ -110,6 +110,33 @@
 })();
 
 // ========================================
+// LANGUAGE PREFERENCE (persist + redirect)
+// ========================================
+(function initLanguagePreference() {
+  const getCurrentLocale = () => (window.location.pathname.startsWith('/en/') ? 'en' : 'ar');
+
+  const wireToggles = () => {
+    const toggles = document.querySelectorAll('.lang-toggle');
+    toggles.forEach((toggle) => {
+      toggle.addEventListener('click', () => {
+        const href = toggle.getAttribute('href') || '';
+        const targetLang = href.includes('/en/') ? 'en' : 'ar';
+        localStorage.setItem('mf-lang', targetLang);
+      });
+    });
+  };
+
+  // Persist the locale of the page the user is currently on, so navigation stays consistent.
+  localStorage.setItem('mf-lang', getCurrentLocale());
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wireToggles);
+  } else {
+    wireToggles();
+  }
+})();
+
+// ========================================
 // NAVBAR: MOBILE TOGGLE + GLASS INTERACTION
 // ========================================
 (function initNavbarToggle() {

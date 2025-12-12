@@ -1086,6 +1086,27 @@
       }
     });
   }
+
+  const attachQuickChoices = (selector, targetSelect, messageArea, langKey) => {
+    const radios = document.querySelectorAll(selector);
+    if (!radios.length || !targetSelect) return;
+
+    radios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        const topic = radio.value;
+        if (!topic) return;
+        targetSelect.value = topic;
+        targetSelect.dispatchEvent(new Event('change'));
+        if (messageArea && templates[langKey] && templates[langKey][topic]) {
+          messageArea.value = templates[langKey][topic];
+          messageArea.focus();
+        }
+      });
+    });
+  };
+
+  attachQuickChoices('.contact-quick-choices input[name="topic_quick"]', topicSelectAr, messageAreaAr, 'ar');
+  attachQuickChoices('.contact-quick-choices input[name="topic_quick_en"]', topicSelectEn, messageAreaEn, 'en');
 })();
 
 /* ================================

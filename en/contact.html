@@ -161,16 +161,39 @@
           </div>
         </section>
 
-        <section class="section">
+        <section class="section contact-form-pro">
           <div class="container">
-            <div class="card glass" style="max-width: 800px; margin-inline: auto;">
-              <h2 class="card-title">Professional Contact Form</h2>
-              <p class="card-meta">Want to organize a project? Launch a product? Need a clean website? It all starts with a message.</p>
-              <form class="contact-form" id="contactFormEn" method="POST" action="https://formsubmit.co/el/cijuki">
+            <div class="contact-form-shell glass">
+              <div class="contact-form-header">
+                <span class="contact-badge">Glass form · Ready</span>
+                <h2 class="contact-form-title">Professional Contact Form</h2>
+                <p class="contact-form-sub">Launch a product, plan logistics, or ship a clean website? Share the details and pick the ready-made options.</p>
+                <div class="contact-quick-choices" aria-label="Quick topic shortcuts">
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick_en" value="logistics" />
+                    <span>Logistics</span>
+                  </label>
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick_en" value="website" />
+                    <span>Website or landing</span>
+                  </label>
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick_en" value="content" />
+                    <span>Content collab</span>
+                  </label>
+                  <label class="quick-choice">
+                    <input type="radio" name="topic_quick_en" value="consultation" />
+                    <span>Quick consult</span>
+                  </label>
+                </div>
+              </div>
+
+              <form class="contact-form-modern" id="contactFormEn" method="POST" action="https://formsubmit.co/el/cijuki">
                 <input type="hidden" name="_captcha" value="false" />
                 <input type="hidden" name="_template" value="table" />
                 <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
-                <div class="form-row">
+
+                <div class="contact-form-grid">
                   <label>
                     <span>Full name</span>
                     <input type="text" name="name" required placeholder="Your full name" />
@@ -179,20 +202,26 @@
                     <span>Email</span>
                     <input type="email" name="email" required placeholder="name@example.com" />
                   </label>
-                </div>
-                <div class="form-row">
                   <label>
                     <span>Preferred contact method</span>
-                    <select name="contact_method">
-                      <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="linkedin">LinkedIn</option>
-                      <option value="other">Other</option>
-                    </select>
+                    <div class="pill-group" role="group" aria-label="Preferred contact method">
+                      <label class="pill">
+                        <input type="radio" name="contact_method" value="whatsapp" required />
+                        <span>WhatsApp</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="contact_method" value="email" />
+                        <span>Email</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="contact_method" value="linkedin" />
+                        <span>LinkedIn</span>
+                      </label>
+                    </div>
                   </label>
                   <label>
                     <span>Topic</span>
-                    <select name="topic" id="topicSelectEn">
+                    <select name="topic" id="topicSelectEn" required>
                       <option value="">Choose a topic...</option>
                       <option value="product">Product promotion</option>
                       <option value="logistics">Logistics question</option>
@@ -202,12 +231,34 @@
                       <option value="other">Other topic</option>
                     </select>
                   </label>
+                  <label>
+                    <span>Preferred response time</span>
+                    <div class="pill-group" role="group" aria-label="Preferred response time">
+                      <label class="pill">
+                        <input type="radio" name="response_time" value="Same day" />
+                        <span>Same day</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="response_time" value="Within 24h" />
+                        <span>Within 24h</span>
+                      </label>
+                      <label class="pill">
+                        <input type="radio" name="response_time" value="This week" />
+                        <span>This week</span>
+                      </label>
+                    </div>
+                  </label>
                 </div>
+
                 <label class="form-full">
                   <span>Message</span>
-                  <textarea name="message" id="messageAreaEn" rows="6" required placeholder="Write your message here..."></textarea>
+                  <textarea name="message" id="messageAreaEn" rows="6" required placeholder="Write your message, goal, and any useful context."></textarea>
                 </label>
-                <button type="submit" class="btn primary">Send message</button>
+
+                <div class="contact-submit-row">
+                  <button type="submit" class="btn primary">Send message</button>
+                  <p class="contact-privacy">I only use your data to reply. You can request deletion anytime.</p>
+                </div>
               </form>
             </div>
           </div>

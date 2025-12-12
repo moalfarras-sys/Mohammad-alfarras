@@ -12,11 +12,11 @@
   margin: 0;
   border-radius: 0;
   padding: 0;
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(185%);
+  -webkit-backdrop-filter: blur(24px) saturate(185%);
   transition: all 0.25s ease;
-  border-bottom: 1px solid var(--lux-stroke-dark);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
 }
 
 .navbar-compact {
@@ -28,22 +28,22 @@
 html[data-theme="light"] .navbar,
 body.theme-light .navbar,
 body.light-mode .navbar {
-  background: rgba(255, 255, 255, 0.78);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.18));
   border-bottom-color: rgba(15, 163, 177, 0.16);
   box-shadow:
-    0 12px 34px rgba(12, 18, 32, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 14px 40px rgba(12, 18, 32, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 [data-theme="light"] .navbar:hover,
 html[data-theme="light"] .navbar:hover,
 body.theme-light .navbar:hover,
 body.light-mode .navbar:hover {
-  background: rgba(255, 255, 255, 0.86);
-  border-bottom-color: rgba(15, 163, 177, 0.24);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.24));
+  border-bottom-color: rgba(15, 163, 177, 0.2);
   box-shadow:
-    0 14px 40px rgba(12, 18, 32, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
+    0 16px 44px rgba(12, 18, 32, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 /* Dark Mode Navbar - Glass Effect */
@@ -51,10 +51,10 @@ body.light-mode .navbar:hover {
 html[data-theme="dark"] .navbar,
 body.theme-dark .navbar,
 body.dark-mode .navbar {
-  background: rgba(10, 15, 26, 0.82);
+  background: linear-gradient(135deg, rgba(9, 12, 20, 0.42), rgba(6, 10, 18, 0.3));
   border-bottom-color: rgba(126, 233, 207, 0.16);
   box-shadow:
-    0 14px 44px rgba(0, 0, 0, 0.46),
+    0 16px 48px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -62,10 +62,10 @@ body.dark-mode .navbar {
 html[data-theme="dark"] .navbar:hover,
 body.theme-dark .navbar:hover,
 body.dark-mode .navbar:hover {
-  background: rgba(12, 18, 32, 0.9);
-  border-bottom-color: rgba(126, 233, 207, 0.24);
+  background: linear-gradient(135deg, rgba(12, 18, 32, 0.52), rgba(8, 12, 22, 0.38));
+  border-bottom-color: rgba(126, 233, 207, 0.22);
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.52),
+    0 18px 54px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 [data-theme="light"] .yt-stat-card,
@@ -176,8 +176,8 @@ body.dark-mode .navbar:hover {
 .theme-toggle,
 .lang-toggle,
 .nav-burger {
-  border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-heading);
   border-radius: 12px;
   padding: 10px 12px;
@@ -196,7 +196,7 @@ body.dark-mode .navbar:hover {
 [data-theme="dark"] .lang-toggle,
 [data-theme="dark"] .nav-burger {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .theme-toggle:hover,
@@ -816,7 +816,7 @@ body.light-mode::after {
 html[data-theme="dark"] body,
 body.theme-dark,
 body.dark-mode {
-  background-color: #000;
+  background-color: #02050d;
   --star-pos: 0px 0px;
 }
 
@@ -824,19 +824,20 @@ body.dark-mode {
 html[data-theme="dark"] body::before,
 body.theme-dark::before,
 body.dark-mode::before {
-  background-color: #000;
+  background-color: #02050d;
   background-image:
-    radial-gradient(2px 2px at 18% 22%, rgba(255, 255, 255, 0.78), transparent 55%),
-    radial-gradient(2.4px 2.4px at 42% 14%, rgba(200, 220, 255, 0.72), transparent 55%),
-    radial-gradient(2.2px 2.2px at 64% 36%, rgba(160, 210, 255, 0.7), transparent 55%),
-    radial-gradient(1.8px 1.8px at 82% 70%, rgba(255, 255, 255, 0.68), transparent 55%),
-    radial-gradient(1.6px 1.6px at 32% 78%, rgba(190, 220, 255, 0.65), transparent 55%),
-    radial-gradient(320% 220% at 55% 85%, rgba(40, 80, 150, 0.12), transparent 80%);
+    radial-gradient(3.4px 3.4px at 18% 22%, rgba(255, 255, 255, 0.82), transparent 55%),
+    radial-gradient(3.8px 3.8px at 42% 14%, rgba(200, 225, 255, 0.78), transparent 55%),
+    radial-gradient(3.6px 3.6px at 64% 36%, rgba(156, 214, 255, 0.76), transparent 55%),
+    radial-gradient(3px 3px at 82% 70%, rgba(255, 255, 255, 0.75), transparent 55%),
+    radial-gradient(2.6px 2.6px at 32% 78%, rgba(196, 226, 255, 0.7), transparent 55%),
+    radial-gradient(320% 220% at 55% 85%, rgba(40, 80, 150, 0.14), transparent 80%),
+    radial-gradient(160% 140% at 50% 55%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.42));
   background-size: 100% 100%;
   background-position: var(--star-pos, 0px 0px), var(--star-pos, 0px 0px), var(--star-pos, 0px 0px), var(--star-pos, 0px 0px), var(--star-pos, 0px 0px), var(--star-pos, 0px 0px);
-  animation: starDrift 120s linear infinite;
+  animation: starDrift 120s linear infinite, starPulse 8s ease-in-out infinite;
   z-index: -10;
-  opacity: 0.95;
+  opacity: 0.98;
 }
 
 [data-theme="dark"] body::after,
@@ -855,8 +856,13 @@ body.dark-mode::after {
 
 @keyframes starDrift {
   0% { background-position: 0 0; }
-  50% { background-position: 1% 0.6%; }
+  50% { background-position: 1.4% 1%; }
   100% { background-position: 0 0; }
+}
+
+@keyframes starPulse {
+  0%, 100% { filter: brightness(0.94) saturate(1); opacity: 0.92; }
+  50% { filter: brightness(1.16) saturate(1.12); opacity: 1; }
 }
 
 @keyframes cloudFloat {
@@ -10816,8 +10822,39 @@ video {
 }
 
 .micro-interactive {
-  transition: transform 0.16s ease, box-shadow 0.22s ease;
+  transition: transform 0.2s ease, box-shadow 0.28s ease, background-color 0.25s ease, border-color 0.25s ease, filter 0.25s ease;
   will-change: transform;
+  position: relative;
+}
+
+.micro-interactive:hover,
+.micro-interactive:focus-visible {
+  box-shadow:
+    0 18px 45px rgba(12, 18, 32, 0.18),
+    0 0 0 1px rgba(126, 233, 207, 0.28);
+  filter: saturate(1.04);
+}
+
+.micro-interactive:focus-visible {
+  outline: 2px solid rgba(126, 233, 207, 0.45);
+  outline-offset: 3px;
+}
+
+.micro-interactive.micro-press {
+  transform: scale(0.97) translate3d(0, 0, 0) !important;
+  box-shadow:
+    0 10px 30px rgba(12, 18, 32, 0.2),
+    0 0 0 1px rgba(126, 233, 207, 0.24);
+  animation: micro-press-pop 180ms ease;
+}
+
+@keyframes micro-press-pop {
+  0% {
+    transform: scale(0.99) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(0.97) translate3d(0, 0, 0);
+  }
 }
 
 /* Reveal on scroll - enhanced */

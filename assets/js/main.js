@@ -399,9 +399,38 @@
   if (!elements.length) return;
 
   const finePointer = window.matchMedia('(pointer: fine)').matches;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarsePointer = !finePointer;
+
+  const maybeWiggle = (el) => {
+    if (prefersReducedMotion) return;
+    const now = performance.now();
+    if (el._lastWiggle && now - el._lastWiggle < 700) return;
+    el._lastWiggle = now;
+    el.animate(
+      [
+        { transform: 'translate3d(0, 0, 0) scale(1)' },
+        { transform: 'translate3d(1px, -1px, 0) scale(1.015) rotate(-0.4deg)' },
+        { transform: 'translate3d(-1px, 1px, 0) scale(1.01) rotate(0.35deg)' },
+        { transform: 'translate3d(0, 0, 0) scale(1)' }
+      ],
+      { duration: 260, easing: 'ease-out' }
+    );
+  };
+
+  const addPressHandlers = (node) => {
+    const add = () => node.classList.add('micro-press');
+    const remove = () => node.classList.remove('micro-press');
+    node.addEventListener('pointerdown', add);
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((evt) => {
+      node.addEventListener(evt, remove);
+    });
+  };
 
   elements.forEach((el) => {
     el.classList.add('micro-interactive');
+    addPressHandlers(el);
+    el.addEventListener('pointerenter', () => maybeWiggle(el), { passive: true });
 
     if (finePointer) {
       let rafId = null;
@@ -431,6 +460,7 @@
       const reset = () => {
         el.style.transform = '';
       };
+
       el.addEventListener('touchstart', () => {
         el.style.transform = 'scale(0.985)';
       }, { passive: true });

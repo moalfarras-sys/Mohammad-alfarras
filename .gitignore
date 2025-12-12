@@ -1,0 +1,36 @@
+# Development and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+.DS_Store
+Thumbs.db
+
+# Build artifacts (if any)
+dist/
+build/
+.cache/
+
+# Backup files
+*.backup
+*.bak
+backup_*/
+
+# Documentation/development files that should not be in production
+*_GUIDE.md
+*_SUMMARY.md
+*_COMPLETE.md
+*_REFERENCE.md
+*_CHECKLIST.md
+CHANGELOG.md

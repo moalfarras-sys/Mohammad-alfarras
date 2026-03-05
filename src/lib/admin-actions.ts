@@ -430,6 +430,7 @@ export async function upsertServiceOfferingAction(formData: FormData) {
     sort_order: Number(formData.get("sort_order") || 0),
     icon: String(formData.get("icon") || ""),
     color_token: String(formData.get("color_token") || ""),
+    cover_media_id: formData.get("cover_media_id") ? String(formData.get("cover_media_id")) : null,
   });
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 

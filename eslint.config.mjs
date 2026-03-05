@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "playwright-report/**",
     "next-env.d.ts",
+    "MOA/**",
+    "legacy_static/**"
   ]),
 ]);
 

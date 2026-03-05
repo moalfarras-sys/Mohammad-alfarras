@@ -1,9 +1,53 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "installCommand": "cd app-next && npm ci",
-  "buildCommand": "cd app-next && npm run build",
-  "devCommand": "cd app-next && npm run dev",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/ar",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ar/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/ar/cv",
+      "destination": "/cv.html"
+    },
+    {
+      "source": "/ar/blog",
+      "destination": "/blog.html"
+    },
+    {
+      "source": "/ar/youtube",
+      "destination": "/youtube.html"
+    },
+    {
+      "source": "/ar/contact",
+      "destination": "/contact.html"
+    },
+    {
+      "source": "/ar/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/en",
+      "destination": "/en/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/en/admin",
+      "destination": "/en/admin.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

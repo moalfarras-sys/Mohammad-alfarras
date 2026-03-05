@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
+import { CookieConsent } from "@/components/layout/cookie-consent";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { PwaRegister } from "@/components/layout/pwa-register";
@@ -51,12 +52,26 @@ export default async function LocaleLayout({
   }, {});
 
   const themeStyle = { ...lightVars, ...darkVars } as CSSProperties;
+  const siteUrl = "https://www.moalfarras.space";
+  const profileUrl = `${siteUrl}/${locale}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Mohammad Alfarras",
+    alternateName: ["محمد الفراس", "alfarras", "moalfarras"],
+    url: profileUrl,
+    sameAs: ["https://www.moalfarras.space"],
+    knowsLanguage: ["ar", "en"],
+    jobTitle: "Logistics and Tech Content Creator",
+  };
 
   return (
     <div lang={locale} dir={localeMeta[locale].dir} className="app-shell" style={themeStyle}>
       <PwaRegister />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Navbar locale={locale} nav={nav} />
       <main className="site-main">{children}</main>
+      <CookieConsent locale={locale} />
       <Footer locale={locale} />
     </div>
   );

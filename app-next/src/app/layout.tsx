@@ -16,8 +16,17 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "MOALFARRAS App",
-  description: "Bilingual web app with admin control",
+  title: {
+    default: "Mohammad Alfarras | Official Website",
+    template: "%s | Mohammad Alfarras",
+  },
+  description: "Official bilingual website for Mohammad Alfarras with tech, logistics, and digital services.",
+  metadataBase: new URL("https://www.moalfarras.space"),
+  applicationName: "MOALFARRAS",
+  keywords: ["Mohammad Alfarras", "alfarras", "moalfarras", "محمد الفراس"],
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

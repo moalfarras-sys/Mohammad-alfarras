@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const routes = ["", "/cv", "/blog", "/youtube", "/contact", "/privacy"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://moalfarras.space";
+  const base = "https://www.moalfarras.space";
   const now = new Date();
 
   return ["ar", "en"].flatMap((locale) =>

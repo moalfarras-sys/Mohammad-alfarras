@@ -367,6 +367,32 @@ a {
   color: #dc2626;
 }
 
+.cookie-banner {
+  position: fixed;
+  inset-inline: 1rem;
+  bottom: 1rem;
+  z-index: 80;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 10px 30px var(--shadow);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.cookie-banner p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.cookie-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
 @keyframes sectionIn {
   from {
     opacity: 0;
@@ -438,6 +464,10 @@ a {
 
   .actions-row {
     width: 100%;
+  }
+
+  .cookie-banner {
+    inset-inline: 0.5rem;
   }
 }
 

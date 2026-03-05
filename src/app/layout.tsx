@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Tajawal, Poppins } from "next/font/google";
 
 import "./globals.css";
+import "./pages.css";
 
 const tajawal = Tajawal({
   subsets: ["latin", "arabic"],

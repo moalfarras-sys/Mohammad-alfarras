@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-
-import { SitePage } from "@/components/site/page-view";
 import { isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
+import { BlogPage } from "@/components/site/blog-page";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -11,10 +10,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMetadata(locale, "blog");
 }
 
-export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function BlogPageRoute({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const content = await SitePage({ locale, slug: "blog" });
-  if (!content) notFound();
-  return content;
+  return <BlogPage locale={locale as "ar" | "en"} />;
 }

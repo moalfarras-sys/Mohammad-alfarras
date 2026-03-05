@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local artifacts
+coverage/
+test-results/
+playwright-report/
+
+src/lib/_tmp.ts

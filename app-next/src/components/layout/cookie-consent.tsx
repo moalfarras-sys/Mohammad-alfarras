@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { Locale } from "@/types/cms";
 
 const COOKIE_KEY = "mf_cookie_consent";
 
 export function CookieConsent({ locale }: { locale: Locale }) {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !localStorage.getItem(COOKIE_KEY);
-  });
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const hasConsent = localStorage.getItem(COOKIE_KEY);
+    if (!hasConsent) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVisible(true);
+    }
+  }, []);
 
   const accept = () => {
     localStorage.setItem(COOKIE_KEY, "accepted");

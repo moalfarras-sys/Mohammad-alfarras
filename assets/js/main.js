@@ -1,4 +1,265 @@
 /* ================================
+   ADMIN OVERRIDES (safe, optional)
+   ================================ */
+const MF_ADMIN_KEYS = {
+  videos: 'mf-admin-videos',
+  dynamicContent: 'mf-admin-dynamic-content',
+  themeTokens: 'mf-admin-theme-tokens',
+  siteOverrides: 'mf-admin-site-overrides'
+};
+
+function readAdminJson(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return parsed === null || parsed === undefined ? fallback : parsed;
+  } catch (error) {
+    console.warn(`Invalid admin JSON in ${key}:`, error);
+    return fallback;
+  }
+}
+
+function applyThemeTokenOverrides(themeMode) {
+  const html = document.documentElement;
+  const allTokens = readAdminJson(MF_ADMIN_KEYS.themeTokens, null);
+  const modeTokens = allTokens && typeof allTokens === 'object' ? allTokens[themeMode] : null;
+
+  const previousKeys = (html.getAttribute('data-admin-token-keys') || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  previousKeys.forEach((key) => html.style.removeProperty(key));
+
+  if (!modeTokens || typeof modeTokens !== 'object') {
+    html.removeAttribute('data-admin-token-keys');
+    return;
+  }
+
+  const nextKeys = [];
+  Object.entries(modeTokens).forEach(([tokenKey, tokenValue]) => {
+    if (typeof tokenKey !== 'string' || !tokenKey.startsWith('--')) return;
+    if (typeof tokenValue !== 'string' || !tokenValue.trim()) return;
+    html.style.setProperty(tokenKey, tokenValue.trim());
+    nextKeys.push(tokenKey);
+  });
+
+  html.setAttribute('data-admin-token-keys', nextKeys.join(','));
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function normalizeAbsoluteUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^(https?:|mailto:|tel:)/i.test(raw)) return raw;
+  return `https://${raw.replace(/^\/+/, '')}`;
+}
+
+function normalizeWhatsappUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  const digits = raw.replace(/[^\d]/g, '');
+  return digits ? `https://wa.me/${digits}` : '';
+}
+
+function normalizeEmailLink(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^mailto:/i.test(raw)) return raw;
+  return `mailto:${raw}`;
+}
+
+function setText(selector, value) {
+  if (!value) return;
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.textContent = value;
+}
+
+function setMultiline(selector, value) {
+  if (!value) return;
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.innerHTML = escapeHtml(value).replace(/\n/g, '<br>');
+}
+
+function setImage(selector, src, alt) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  if (src) el.setAttribute('src', src);
+  if (alt) el.setAttribute('alt', alt);
+}
+
+function setTitleWithAccent(selector, main, accent) {
+  if (!main && !accent) return;
+  const el = document.querySelector(selector);
+  if (!el) return;
+
+  const span = el.querySelector('span');
+  const spanClass = span ? span.className : '';
+  const safeMain = main ? escapeHtml(main) : '';
+  const safeAccent = accent ? escapeHtml(accent) : '';
+
+  if (span) {
+    const mergedMain = safeMain || escapeHtml(el.childNodes[0]?.textContent || '').trim();
+    const mergedAccent = safeAccent || escapeHtml(span.textContent || '').trim();
+    el.innerHTML = `${mergedMain}<br><span class=\"${spanClass}\">${mergedAccent}</span>`;
+    return;
+  }
+
+  if (main) el.textContent = main;
+}
+
+function updateLinksByPattern(pattern, newHref) {
+  if (!newHref) return;
+  document.querySelectorAll(`a[href*=\"${pattern}\"]`).forEach((link) => {
+    link.setAttribute('href', newHref);
+  });
+}
+
+function applyJourneyCards(items) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  const rail = document.querySelector('.journey-rail');
+  if (!rail) return;
+
+  const existing = Array.from(rail.querySelectorAll('.journey-card'));
+  if (!existing.length) return;
+
+  const template = existing[0].cloneNode(true);
+  rail.innerHTML = '';
+
+  items.forEach((item) => {
+    const card = template.cloneNode(true);
+    const period = card.querySelector('.journey-period');
+    const tag = card.querySelector('.journey-tag');
+    const title = card.querySelector('.journey-title');
+    const sub = card.querySelector('.journey-sub');
+    const pointsList = card.querySelector('.journey-points');
+
+    if (period && item.period) period.textContent = item.period;
+    if (tag && item.tag) tag.textContent = item.tag;
+    if (title && item.title) title.textContent = item.title;
+    if (sub && item.sub) sub.textContent = item.sub;
+
+    if (pointsList && Array.isArray(item.points)) {
+      pointsList.innerHTML = '';
+      item.points.forEach((point) => {
+        const li = document.createElement('li');
+        li.textContent = String(point || '');
+        pointsList.appendChild(li);
+      });
+    }
+
+    rail.appendChild(card);
+  });
+}
+
+function applyBlogItems(items) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  const section = document.querySelector('.blog-text-section');
+  if (!section) return;
+
+  const existing = Array.from(section.querySelectorAll('.blog-text-item'));
+  if (!existing.length) return;
+
+  const template = existing[0].cloneNode(true);
+  section.innerHTML = '';
+
+  items.forEach((item) => {
+    const card = template.cloneNode(true);
+    const title = card.querySelector('.blog-text-title');
+    const meta = card.querySelector('.blog-text-meta');
+    const content = card.querySelector('.blog-text-content');
+    const tagsWrap = card.querySelector('.blog-text-tags');
+
+    if (title && item.title) title.textContent = item.title;
+    if (meta && item.meta) meta.textContent = item.meta;
+    if (content && item.content) content.textContent = item.content;
+
+    if (tagsWrap && Array.isArray(item.tags)) {
+      tagsWrap.innerHTML = '';
+      item.tags.forEach((tagValue) => {
+        const span = document.createElement('span');
+        span.className = 'blog-tag';
+        span.textContent = String(tagValue || '');
+        tagsWrap.appendChild(span);
+      });
+    }
+
+    section.appendChild(card);
+  });
+}
+
+(function applySiteOverrides() {
+  const overrides = readAdminJson(MF_ADMIN_KEYS.siteOverrides, null);
+  if (!overrides || typeof overrides !== 'object') return;
+
+  const path = window.location.pathname.toLowerCase();
+  const isHome = path.endsWith('/index.html') || path === '/' || path.endsWith('/en/') || path.endsWith('/ar/');
+  const isCv = path.includes('/cv');
+  const isBlog = path.includes('/blog');
+  const isContact = path.includes('/contact');
+
+  if (isHome && overrides.home) {
+    setText('.hero-kicker', overrides.home.kicker);
+    setTitleWithAccent('.hero-title', overrides.home.titleMain, overrides.home.titleAccent);
+    setMultiline('.hero-paragraph', overrides.home.paragraph);
+    setMultiline('.hero-paragraph-secondary', overrides.home.paragraphSecondary);
+    setImage('.hero-portrait', overrides.home.portraitSrc, overrides.home.portraitAlt);
+  }
+
+  if (isCv && overrides.cv) {
+    setText('.cv-eyebrow', overrides.cv.eyebrow);
+    setText('.cv-main-heading', overrides.cv.heading);
+    setText('.cv-sub-heading', overrides.cv.subheading);
+    setMultiline('.cv-intro-text', overrides.cv.intro);
+    setImage('.cv-portrait-img', overrides.cv.portraitSrc, overrides.cv.portraitAlt);
+    applyJourneyCards(overrides.cv.journeyCards);
+  }
+
+  if (isBlog && overrides.blog) {
+    setTitleWithAccent('.hero-title', overrides.blog.titleMain, overrides.blog.titleAccent);
+    setMultiline('.hero-lead', overrides.blog.lead);
+    applyBlogItems(overrides.blog.items);
+  }
+
+  if (isContact && overrides.contact) {
+    setTitleWithAccent('.hero-title', overrides.contact.titleMain, overrides.contact.titleAccent);
+    setMultiline('.hero-lead', overrides.contact.lead);
+  }
+
+  if (overrides.links && typeof overrides.links === 'object') {
+    const whatsapp = normalizeWhatsappUrl(overrides.links.whatsapp);
+    const email = normalizeEmailLink(overrides.links.email);
+    const linkedin = normalizeAbsoluteUrl(overrides.links.linkedin);
+    const github = normalizeAbsoluteUrl(overrides.links.github);
+    const facebook = normalizeAbsoluteUrl(overrides.links.facebook);
+    const youtube = normalizeAbsoluteUrl(overrides.links.youtube);
+    const instagram = normalizeAbsoluteUrl(overrides.links.instagram);
+    const telegram = normalizeAbsoluteUrl(overrides.links.telegram);
+
+    updateLinksByPattern('wa.me/', whatsapp);
+    updateLinksByPattern('mailto:', email);
+    updateLinksByPattern('linkedin.com', linkedin);
+    updateLinksByPattern('github.com', github);
+    updateLinksByPattern('facebook.com', facebook);
+    updateLinksByPattern('youtube.com', youtube);
+    updateLinksByPattern('instagram.com', instagram);
+    updateLinksByPattern('t.me/', telegram);
+  }
+})();
+
+/* ================================
    THEME SYSTEM - Light/Dark Mode
    UNIFIED: data-theme + body classes
    ================================ */
@@ -46,6 +307,9 @@
     
     // Save to localStorage
     localStorage.setItem("mf-theme", theme);
+
+    // Apply optional admin theme token overrides for this mode
+    applyThemeTokenOverrides(theme);
     
     // Update toggle icon
     updateToggleIcon(theme);
@@ -705,6 +969,11 @@
   const truncate = (text, n = 120) => (text && text.length > n ? text.slice(0, n - 1) + '…' : text || '');
 
   const fetchLocalVideos = () => {
+    const localOverride = readAdminJson(MF_ADMIN_KEYS.videos, null);
+    if (Array.isArray(localOverride) && localOverride.length > 0) {
+      return Promise.resolve(localOverride);
+    }
+
     return fetch('data/videos.json', { cache: 'no-cache' })
       .then(r => r.ok ? r.json() : [])
       .catch(() => []);
@@ -1052,26 +1321,43 @@
   
   // Load JSON and initialize rotations
   const pathPrefix = window.location.pathname.includes('/en/') ? '../' : '';
+  const localOverride = readAdminJson(MF_ADMIN_KEYS.dynamicContent, null);
+
+  const mergeDynamicContent = (baseData, overrideData) => {
+    if (!overrideData || typeof overrideData !== 'object') return baseData;
+    if (!baseData || typeof baseData !== 'object') return overrideData;
+    return {
+      ...baseData,
+      ...overrideData
+    };
+  };
+
+  const initFromData = (data) => {
+    if (!data || typeof data !== 'object') return;
+
+    dynamicData = data;
+    
+    if (data.hero_taglines && data.hero_taglines[currentLang]) {
+      startRotation('hero-dynamic-text', data.hero_taglines[currentLang]);
+    }
+    
+    if (data.cv_highlights && data.cv_highlights[currentLang]) {
+      startRotation('cv-dynamic-note', data.cv_highlights[currentLang]);
+    }
+    
+    if (data.youtube_notes && data.youtube_notes[currentLang]) {
+      startRotation('youtube-dynamic-note', data.youtube_notes[currentLang]);
+    }
+  };
+
   fetch(`${pathPrefix}data/dynamic-content.json`)
-    .then(response => response.json())
-    .then(data => {
-      dynamicData = data;
-      
-      // Initialize each dynamic element
-      if (data.hero_taglines && data.hero_taglines[currentLang]) {
-        startRotation('hero-dynamic-text', data.hero_taglines[currentLang]);
-      }
-      
-      if (data.cv_highlights && data.cv_highlights[currentLang]) {
-        startRotation('cv-dynamic-note', data.cv_highlights[currentLang]);
-      }
-      
-      if (data.youtube_notes && data.youtube_notes[currentLang]) {
-        startRotation('youtube-dynamic-note', data.youtube_notes[currentLang]);
-      }
-    })
+    .then(response => response.ok ? response.json() : {})
+    .then((data) => initFromData(mergeDynamicContent(data, localOverride)))
     .catch(error => {
       console.warn('Dynamic content not loaded:', error);
+      if (localOverride) {
+        initFromData(localOverride);
+      }
     });
   
   // Cleanup on page unload

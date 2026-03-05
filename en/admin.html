@@ -42,10 +42,126 @@
         </header>
 
         <nav class="tabs" aria-label="Admin sections">
+          <button class="tab" data-tab="site" type="button">Site Builder</button>
           <button class="tab active" data-tab="videos" type="button">Videos</button>
           <button class="tab" data-tab="dynamic" type="button">Dynamic Content</button>
           <button class="tab" data-tab="theme" type="button">Theme</button>
         </nav>
+
+        <section class="panel" data-panel="site">
+          <h3>Full Website Controls</h3>
+          <p>Edit core page content and contact links with simple fields. Changes are connected directly to the current website.</p>
+
+          <div class="builder-grid">
+            <article class="builder-card">
+              <h4>Home · Hero</h4>
+              <label>Kicker
+                <input id="site-home-kicker" type="text" placeholder="From Al-Hasakah — across Europe to your screens" />
+              </label>
+              <label>Main title
+                <input id="site-home-title-main" type="text" placeholder="Honest tech content" />
+              </label>
+              <label>Accent title
+                <input id="site-home-title-accent" type="text" placeholder="that starts with unboxing" />
+              </label>
+              <label>First paragraph
+                <textarea id="site-home-paragraph" spellcheck="true"></textarea>
+              </label>
+              <label>Second paragraph
+                <textarea id="site-home-paragraph-secondary" spellcheck="true"></textarea>
+              </label>
+              <label>Hero image URL/path
+                <input id="site-home-portrait-src" type="text" placeholder="../assets/img/portrait.jpg" />
+              </label>
+              <label>Hero image alt
+                <input id="site-home-portrait-alt" type="text" placeholder="Portrait of Mohammad Alfarras" />
+              </label>
+            </article>
+
+            <article class="builder-card">
+              <h4>CV</h4>
+              <label>Eyebrow
+                <input id="site-cv-eyebrow" type="text" />
+              </label>
+              <label>Main heading
+                <input id="site-cv-heading" type="text" />
+              </label>
+              <label>Sub heading
+                <textarea id="site-cv-subheading" spellcheck="true"></textarea>
+              </label>
+              <label>Intro text
+                <textarea id="site-cv-intro" spellcheck="true"></textarea>
+              </label>
+              <label>CV image URL/path
+                <input id="site-cv-portrait-src" type="text" placeholder="../assets/img/portrait.jpg" />
+              </label>
+              <label>CV image alt
+                <input id="site-cv-portrait-alt" type="text" />
+              </label>
+              <label>Timeline (JSON Array)
+                <textarea id="site-cv-journey" spellcheck="false" class="code-area" placeholder='[{"period":"2022 - now","tag":"Today","title":"Disponent","sub":"Short summary","points":["Point 1","Point 2"]}]'></textarea>
+              </label>
+            </article>
+
+            <article class="builder-card">
+              <h4>Blog / Work</h4>
+              <label>Main title
+                <input id="site-blog-title-main" type="text" />
+              </label>
+              <label>Accent title
+                <input id="site-blog-title-accent" type="text" />
+              </label>
+              <label>Lead text
+                <textarea id="site-blog-lead" spellcheck="true"></textarea>
+              </label>
+              <label>Blog items (JSON Array)
+                <textarea id="site-blog-items" spellcheck="false" class="code-area" placeholder='[{"title":"Title","meta":"Category","content":"Description","tags":["Tag1","Tag2"]}]'></textarea>
+              </label>
+            </article>
+
+            <article class="builder-card">
+              <h4>Contact + Social links</h4>
+              <label>Hero title
+                <input id="site-contact-title-main" type="text" />
+              </label>
+              <label>Hero accent
+                <input id="site-contact-title-accent" type="text" />
+              </label>
+              <label>Hero lead
+                <textarea id="site-contact-lead" spellcheck="true"></textarea>
+              </label>
+              <label>WhatsApp
+                <input id="site-link-whatsapp" type="text" placeholder="+4917623419358 or https://wa.me/..." />
+              </label>
+              <label>Email
+                <input id="site-link-email" type="text" placeholder="name@example.com or mailto:name@example.com" />
+              </label>
+              <label>LinkedIn
+                <input id="site-link-linkedin" type="text" />
+              </label>
+              <label>GitHub
+                <input id="site-link-github" type="text" />
+              </label>
+              <label>Facebook
+                <input id="site-link-facebook" type="text" />
+              </label>
+              <label>YouTube
+                <input id="site-link-youtube" type="text" />
+              </label>
+              <label>Instagram
+                <input id="site-link-instagram" type="text" />
+              </label>
+              <label>Telegram
+                <input id="site-link-telegram" type="text" />
+              </label>
+            </article>
+          </div>
+
+          <div class="actions">
+            <button type="button" data-save="site">Save changes</button>
+            <button type="button" data-reset="site" class="secondary">Reset to source</button>
+          </div>
+        </section>
 
         <section class="panel active" data-panel="videos">
           <h3>YouTube video dataset</h3>

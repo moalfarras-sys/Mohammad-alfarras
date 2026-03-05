@@ -162,6 +162,7 @@ export const serviceOfferingSchema = z.object({
   sort_order: z.number().int().min(0),
   icon: z.string().min(1),
   color_token: z.string().min(1),
+  cover_media_id: z.string().nullable(),
 });
 
 export const serviceOfferingTranslationSchema = z.object({

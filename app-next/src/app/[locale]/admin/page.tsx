@@ -1,4 +1,7 @@
-﻿import { AdminDashboard } from "@/components/admin/dashboard";
+﻿import Link from "next/link";
+
+import { AdminDashboard } from "@/components/admin/dashboard";
+import { AdminLiteDashboard } from "@/components/admin/lite-dashboard";
 import { loginAdminAction } from "@/lib/admin-actions";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { readSnapshot } from "@/lib/content/store";
@@ -9,7 +12,7 @@ export default async function AdminPage({
   searchParams,
 }: {
   params: Promise<{ locale: Locale }>;
-  searchParams: Promise<{ error?: string; unauthorized?: string }>;
+  searchParams: Promise<{ error?: string; unauthorized?: string; mode?: string }>;
 }) {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
   const authenticated = await isAdminAuthenticated();
@@ -47,6 +50,7 @@ export default async function AdminPage({
   }
 
   const snapshot = await readSnapshot();
+  const isAdvanced = query.mode === "advanced";
 
   return (
     <section className="page-section">
@@ -54,10 +58,21 @@ export default async function AdminPage({
         <h1>{locale === "ar" ? "لوحة التحكم" : "Admin Control Panel"}</h1>
         <p>
           {locale === "ar"
-            ? "لوحة Galaxy متكاملة لإدارة الثيم، الصفحات، SEO، البلوكات، الأعمال، الخبرات، الشهادات، الخدمات، الوسائط، وقنوات التواصل."
-            : "Complete Galaxy-style panel for theme, pages, SEO, blocks, projects, experiences, certifications, services, media, and contact channels."}
+            ? "لوحة إدارة احترافية مع وضع مبسط للموبايل ووضع متقدم عند الحاجة."
+            : "Professional admin with a mobile-friendly simple mode and an advanced mode when needed."}
         </p>
-        <AdminDashboard locale={locale} snapshot={snapshot} />
+        {isAdvanced ? (
+          <>
+            <div className="actions-row">
+              <Link href={`/${locale}/admin`} className="btn secondary">
+                {locale === "ar" ? "العودة للوضع المبسط" : "Back to simple mode"}
+              </Link>
+            </div>
+            <AdminDashboard locale={locale} snapshot={snapshot} />
+          </>
+        ) : (
+          <AdminLiteDashboard locale={locale} snapshot={snapshot} />
+        )}
       </div>
     </section>
   );

@@ -3,6 +3,7 @@
 import { BlockRenderer } from "@/components/site/block-renderer";
 import { SectionRenderer } from "@/components/site/section-renderer";
 import { readPage, readSnapshot, readVideos } from "@/lib/content/store";
+import { ScrollReveal } from "@/components/layout/scroll-reveal";
 
 import { YoutubeGrid } from "./youtube-grid";
 
@@ -21,11 +22,13 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
     <>
       {hasBlocks
         ? page.blocks.map((block) => (
-            <BlockRenderer key={block.id} block={block} locale={locale} snapshot={snapshot} />
-          ))
+          <ScrollReveal key={block.id}>
+            <BlockRenderer block={block} locale={locale} snapshot={snapshot} />
+          </ScrollReveal>
+        ))
         : page.sections.map((section) => (
-            <SectionRenderer key={section.id} locale={locale} section={section} />
-          ))}
+          <SectionRenderer key={section.id} locale={locale} section={section} />
+        ))}
       {slug === "youtube" && !hasVideosBlock ? <YoutubeGrid locale={locale} videos={videos} /> : null}
     </>
   );

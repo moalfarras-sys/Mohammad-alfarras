@@ -49,6 +49,13 @@ a {
   text-decoration: none;
 }
 
+@keyframes floatAmbient {
+  0% { background-position: 0% 0%, 100% 0%, 50% 100%; }
+  33% { background-position: 10% 100%, 80% 10%, 20% 20%; }
+  66% { background-position: 90% 10%, 10% 90%, 80% 80%; }
+  100% { background-position: 0% 0%, 100% 0%, 50% 100%; }
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;
@@ -57,6 +64,8 @@ a {
     radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--secondary) 15%, transparent), transparent 40%),
     radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--primary) 20%, transparent), transparent 45%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 85%, transparent), var(--bg));
+  background-size: 200% 200%;
+  animation: floatAmbient 25s ease-in-out infinite;
 }
 
 .container {

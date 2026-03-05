@@ -110,8 +110,10 @@ export const defaultSnapshot: CmsSnapshot = {
     { id: "t18", mode: "dark", token_key: "shadow", token_value: "rgba(2, 6, 23, 0.55)" },
   ],
   media_assets: [
-    { id: "m1", path: "/assets/img/portrait.jpg", alt_ar: "صورة شخصية", alt_en: "Portrait", width: 1000, height: 1200, type: "image/jpeg" },
+    { id: "m1", path: "/images/portrait.jpg", alt_ar: "صورة شخصية", alt_en: "Portrait", width: 1000, height: 1200, type: "image/jpeg" },
     { id: "m2", path: "/images/moplayer-logo.svg", alt_ar: "شعار MoPlayer", alt_en: "MoPlayer Logo", width: 900, height: 900, type: "image/svg+xml" },
+    { id: "m3", path: "/images/hero_tech.png", alt_ar: "محتوى تقني مميز", alt_en: "Premium Tech Experience", width: 1024, height: 1024, type: "image/png" },
+    { id: "m4", path: "/images/logistics_truck.png", alt_ar: "نقل سريع وآمن", alt_en: "Premium Transport", width: 1024, height: 1024, type: "image/png" },
   ],
   youtube_videos: [
     {
@@ -131,8 +133,8 @@ export const defaultSnapshot: CmsSnapshot = {
     },
   ],
   work_projects: [
-    { id: "wp-seel", slug: "seeltransport", is_active: true, sort_order: 1, project_url: "https://seeltransport.de/", repo_url: "", cover_media_id: null, created_at: now, updated_at: now },
-    { id: "wp-schnell", slug: "schnellsicherumzug", is_active: true, sort_order: 2, project_url: "https://schnellsicherumzug.de/", repo_url: "", cover_media_id: null, created_at: now, updated_at: now },
+    { id: "wp-seel", slug: "seeltransport", is_active: true, sort_order: 1, project_url: "https://seeltransport.de/", repo_url: "", cover_media_id: "m4", created_at: now, updated_at: now },
+    { id: "wp-schnell", slug: "schnellsicherumzug", is_active: true, sort_order: 2, project_url: "https://schnellsicherumzug.de/", repo_url: "", cover_media_id: "m3", created_at: now, updated_at: now },
     { id: "wp-moplayer", slug: "moplayer", is_active: true, sort_order: 3, project_url: "", repo_url: "", cover_media_id: "m2", created_at: now, updated_at: now },
   ],
   work_project_translations: [

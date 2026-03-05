@@ -6,6 +6,23 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "https://app-next-blond.vercel.app/ar/admin",
+      "permanent": false
+    },
+    {
+      "source": "/ar/admin",
+      "destination": "https://app-next-blond.vercel.app/ar/admin",
+      "permanent": false
+    },
+    {
+      "source": "/en/admin",
+      "destination": "https://app-next-blond.vercel.app/en/admin",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/ar",

@@ -114,6 +114,9 @@ export const defaultSnapshot: CmsSnapshot = {
     { id: "m2", path: "/images/moplayer-logo.svg", alt_ar: "شعار MoPlayer", alt_en: "MoPlayer Logo", width: 900, height: 900, type: "image/svg+xml" },
     { id: "m3", path: "/images/hero_tech.png", alt_ar: "محتوى تقني مميز", alt_en: "Premium Tech Experience", width: 1024, height: 1024, type: "image/png" },
     { id: "m4", path: "/images/logistics_truck.png", alt_ar: "نقل سريع وآمن", alt_en: "Premium Transport", width: 1024, height: 1024, type: "image/png" },
+    { id: "m5", path: "/images/service_logistics.png", alt_ar: "عمليات لوجستية", alt_en: "Logistics Operations", width: 1024, height: 1024, type: "image/png" },
+    { id: "m6", path: "/images/service_tech.png", alt_ar: "محتوى تقني واستوديو", alt_en: "Tech Content Studio", width: 1024, height: 1024, type: "image/png" },
+    { id: "m7", path: "/images/service_web.png", alt_ar: "تطوير الويب", alt_en: "Web Development", width: 1024, height: 1024, type: "image/png" },
   ],
   youtube_videos: [
     {
@@ -160,9 +163,9 @@ export const defaultSnapshot: CmsSnapshot = {
     { certification_id: "cert-a", locale: "en", name: "Operations Management Certificate", description: "Professional certificate in operations setup." },
   ],
   service_offerings: [
-    { id: "srv-1", is_active: true, sort_order: 1, icon: "truck", color_token: "primary" },
-    { id: "srv-2", is_active: true, sort_order: 2, icon: "video", color_token: "secondary" },
-    { id: "srv-3", is_active: true, sort_order: 3, icon: "globe", color_token: "accent" },
+    { id: "srv-1", is_active: true, sort_order: 1, icon: "truck", color_token: "primary", cover_media_id: "m5" },
+    { id: "srv-2", is_active: true, sort_order: 2, icon: "video", color_token: "secondary", cover_media_id: "m6" },
+    { id: "srv-3", is_active: true, sort_order: 3, icon: "globe", color_token: "accent", cover_media_id: "m7" },
   ],
   service_offering_translations: [
     { service_id: "srv-1", locale: "ar", title: "لوجستيات", description: "تخطيط عمليات التوصيل", bullets_json: ["تخطيط رحلات", "تنظيم أسطول", "تقارير تشغيل"] },

@@ -178,6 +178,7 @@ export type ServiceOffering = {
   sort_order: number;
   icon: string;
   color_token: string;
+  cover_media_id: string | null;
 };
 
 export type ServiceOfferingTranslation = {
@@ -313,6 +314,7 @@ export type ServiceView = {
   bullets: string[];
   icon: string;
   colorToken: string;
+  cover: MediaAsset | null;
   order: number;
 };
 

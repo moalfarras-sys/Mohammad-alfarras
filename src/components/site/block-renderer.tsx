@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import Image from "next/image";
 
 import type {
   CertificationView,
@@ -88,6 +89,9 @@ function getServiceViews(snapshot: CmsSnapshot, locale: Locale): ServiceView[] {
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((entry) => {
       const tr = snapshot.service_offering_translations.find((item) => item.service_id === entry.id && item.locale === locale);
+      const cover = entry.cover_media_id
+        ? snapshot.media_assets.find((item) => item.id === entry.cover_media_id) ?? null
+        : null;
       return {
         id: entry.id,
         title: tr?.title ?? entry.id,
@@ -95,6 +99,7 @@ function getServiceViews(snapshot: CmsSnapshot, locale: Locale): ServiceView[] {
         bullets: tr?.bullets_json ?? [],
         icon: entry.icon,
         colorToken: entry.color_token,
+        cover,
         order: entry.sort_order,
       };
     });
@@ -207,8 +212,15 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
           {body ? <p>{body}</p> : null}
           <div className="admin-columns-2">
             {services.map((item) => (
-              <article className="card" key={item.id}>
-                <h3>{item.title}</h3>
+              <article className="card" key={item.id} style={{ overflow: "hidden" }}>
+                {item.cover && (
+                  <div style={{ margin: "-1.5rem -1.5rem 1rem -1.5rem", position: "relative", height: "200px" }}>
+                    <Image src={item.cover.path} alt={locale === "ar" ? item.cover.alt_ar : item.cover.alt_en} fill style={{ objectFit: "cover" }} />
+                  </div>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+                  <h3 style={{ margin: 0 }}>{item.title}</h3>
+                </div>
                 <p>{item.description}</p>
                 {item.bullets.length ? (
                   <ul>

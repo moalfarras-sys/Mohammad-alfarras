@@ -42,10 +42,126 @@
         </header>
 
         <nav class="tabs" aria-label="Admin sections">
+          <button class="tab" data-tab="site" type="button">إدارة الموقع</button>
           <button class="tab active" data-tab="videos" type="button">الفيديوهات</button>
           <button class="tab" data-tab="dynamic" type="button">النصوص الديناميكية</button>
           <button class="tab" data-tab="theme" type="button">الثيم</button>
         </nav>
+
+        <section class="panel" data-panel="site">
+          <h3>تحكم كامل بالمحتوى</h3>
+          <p>عدّل محتوى الصفحات الأساسية وروابط التواصل بشكل مباشر. هذا القسم يربط الأدمن بالموقع الحالي فورًا.</p>
+
+          <div class="builder-grid">
+            <article class="builder-card">
+              <h4>الرئيسية · Hero</h4>
+              <label>سطر صغير
+                <input id="site-home-kicker" type="text" placeholder="من الحسكة — عبر أوروبا إلى الشاشات" />
+              </label>
+              <label>العنوان الرئيسي
+                <input id="site-home-title-main" type="text" placeholder="محتوى تقني صادق" />
+              </label>
+              <label>العنوان الملوّن
+                <input id="site-home-title-accent" type="text" placeholder="يبدأ من فتح الصندوق" />
+              </label>
+              <label>الفقرة الأولى
+                <textarea id="site-home-paragraph" spellcheck="true"></textarea>
+              </label>
+              <label>الفقرة الثانية
+                <textarea id="site-home-paragraph-secondary" spellcheck="true"></textarea>
+              </label>
+              <label>رابط صورة Hero
+                <input id="site-home-portrait-src" type="text" placeholder="assets/img/portrait.jpg" />
+              </label>
+              <label>Alt الصورة
+                <input id="site-home-portrait-alt" type="text" placeholder="صورة محمد الفراس" />
+              </label>
+            </article>
+
+            <article class="builder-card">
+              <h4>السيرة الذاتية · CV</h4>
+              <label>Eyebrow
+                <input id="site-cv-eyebrow" type="text" />
+              </label>
+              <label>العنوان الرئيسي
+                <input id="site-cv-heading" type="text" />
+              </label>
+              <label>العنوان الفرعي
+                <textarea id="site-cv-subheading" spellcheck="true"></textarea>
+              </label>
+              <label>النص التعريفي
+                <textarea id="site-cv-intro" spellcheck="true"></textarea>
+              </label>
+              <label>رابط صورة CV
+                <input id="site-cv-portrait-src" type="text" placeholder="assets/img/portrait.jpg" />
+              </label>
+              <label>Alt صورة CV
+                <input id="site-cv-portrait-alt" type="text" />
+              </label>
+              <label>Timeline (JSON Array)
+                <textarea id="site-cv-journey" spellcheck="false" class="code-area" placeholder='[{"period":"2022 - الآن","tag":"اليوم","title":"Disponent","sub":"وصف مختصر","points":["نقطة 1","نقطة 2"]}]'></textarea>
+              </label>
+            </article>
+
+            <article class="builder-card">
+              <h4>المدونة والأعمال · Blog</h4>
+              <label>العنوان الرئيسي
+                <input id="site-blog-title-main" type="text" />
+              </label>
+              <label>العنوان الملوّن
+                <input id="site-blog-title-accent" type="text" />
+              </label>
+              <label>الوصف المختصر
+                <textarea id="site-blog-lead" spellcheck="true"></textarea>
+              </label>
+              <label>Blog Items (JSON Array)
+                <textarea id="site-blog-items" spellcheck="false" class="code-area" placeholder='[{"title":"عنوان","meta":"تصنيف","content":"وصف","tags":["Tag1","Tag2"]}]'></textarea>
+              </label>
+            </article>
+
+            <article class="builder-card">
+              <h4>التواصل + الروابط</h4>
+              <label>عنوان Hero
+                <input id="site-contact-title-main" type="text" />
+              </label>
+              <label>العنوان الملوّن
+                <input id="site-contact-title-accent" type="text" />
+              </label>
+              <label>الوصف
+                <textarea id="site-contact-lead" spellcheck="true"></textarea>
+              </label>
+              <label>WhatsApp
+                <input id="site-link-whatsapp" type="text" placeholder="+4917623419358 أو https://wa.me/..." />
+              </label>
+              <label>Email
+                <input id="site-link-email" type="text" placeholder="name@example.com أو mailto:name@example.com" />
+              </label>
+              <label>LinkedIn
+                <input id="site-link-linkedin" type="text" />
+              </label>
+              <label>GitHub
+                <input id="site-link-github" type="text" />
+              </label>
+              <label>Facebook
+                <input id="site-link-facebook" type="text" />
+              </label>
+              <label>YouTube
+                <input id="site-link-youtube" type="text" />
+              </label>
+              <label>Instagram
+                <input id="site-link-instagram" type="text" />
+              </label>
+              <label>Telegram
+                <input id="site-link-telegram" type="text" />
+              </label>
+            </article>
+          </div>
+
+          <div class="actions">
+            <button type="button" data-save="site">حفظ التعديلات</button>
+            <button type="button" data-reset="site" class="secondary">رجوع للأصلي</button>
+          </div>
+        </section>
 
         <section class="panel active" data-panel="videos">
           <h3>بيانات فيديوهات YouTube</h3>

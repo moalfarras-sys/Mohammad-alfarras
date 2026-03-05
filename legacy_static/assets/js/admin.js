@@ -3,7 +3,8 @@
     auth: 'mf-admin-auth',
     videos: 'mf-admin-videos',
     dynamic: 'mf-admin-dynamic-content',
-    theme: 'mf-admin-theme-tokens'
+    theme: 'mf-admin-theme-tokens',
+    site: 'mf-admin-site-overrides'
   };
 
   const DEFAULT_ADMIN = {
@@ -132,6 +133,168 @@
     return result;
   }
 
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  function setField(id, value) {
+    const field = byId(id);
+    if (!field) return;
+    field.value = value || '';
+  }
+
+  function getField(id) {
+    const field = byId(id);
+    if (!field) return '';
+    return String(field.value || '').trim();
+  }
+
+  function normalizeSiteOverrides(data) {
+    const source = data && typeof data === 'object' ? data : {};
+
+    return {
+      home: {
+        kicker: source.home?.kicker || '',
+        titleMain: source.home?.titleMain || '',
+        titleAccent: source.home?.titleAccent || '',
+        paragraph: source.home?.paragraph || '',
+        paragraphSecondary: source.home?.paragraphSecondary || '',
+        portraitSrc: source.home?.portraitSrc || '',
+        portraitAlt: source.home?.portraitAlt || ''
+      },
+      cv: {
+        eyebrow: source.cv?.eyebrow || '',
+        heading: source.cv?.heading || '',
+        subheading: source.cv?.subheading || '',
+        intro: source.cv?.intro || '',
+        portraitSrc: source.cv?.portraitSrc || '',
+        portraitAlt: source.cv?.portraitAlt || '',
+        journeyCards: Array.isArray(source.cv?.journeyCards) ? source.cv.journeyCards : []
+      },
+      blog: {
+        titleMain: source.blog?.titleMain || '',
+        titleAccent: source.blog?.titleAccent || '',
+        lead: source.blog?.lead || '',
+        items: Array.isArray(source.blog?.items) ? source.blog.items : []
+      },
+      contact: {
+        titleMain: source.contact?.titleMain || '',
+        titleAccent: source.contact?.titleAccent || '',
+        lead: source.contact?.lead || ''
+      },
+      links: {
+        whatsapp: source.links?.whatsapp || '',
+        email: source.links?.email || '',
+        linkedin: source.links?.linkedin || '',
+        github: source.links?.github || '',
+        facebook: source.links?.facebook || '',
+        youtube: source.links?.youtube || '',
+        instagram: source.links?.instagram || '',
+        telegram: source.links?.telegram || ''
+      }
+    };
+  }
+
+  function renderSiteOverrides(data) {
+    const value = normalizeSiteOverrides(data);
+
+    setField('site-home-kicker', value.home.kicker);
+    setField('site-home-title-main', value.home.titleMain);
+    setField('site-home-title-accent', value.home.titleAccent);
+    setField('site-home-paragraph', value.home.paragraph);
+    setField('site-home-paragraph-secondary', value.home.paragraphSecondary);
+    setField('site-home-portrait-src', value.home.portraitSrc);
+    setField('site-home-portrait-alt', value.home.portraitAlt);
+
+    setField('site-cv-eyebrow', value.cv.eyebrow);
+    setField('site-cv-heading', value.cv.heading);
+    setField('site-cv-subheading', value.cv.subheading);
+    setField('site-cv-intro', value.cv.intro);
+    setField('site-cv-portrait-src', value.cv.portraitSrc);
+    setField('site-cv-portrait-alt', value.cv.portraitAlt);
+    setField('site-cv-journey', JSON.stringify(value.cv.journeyCards, null, 2));
+
+    setField('site-blog-title-main', value.blog.titleMain);
+    setField('site-blog-title-accent', value.blog.titleAccent);
+    setField('site-blog-lead', value.blog.lead);
+    setField('site-blog-items', JSON.stringify(value.blog.items, null, 2));
+
+    setField('site-contact-title-main', value.contact.titleMain);
+    setField('site-contact-title-accent', value.contact.titleAccent);
+    setField('site-contact-lead', value.contact.lead);
+
+    setField('site-link-whatsapp', value.links.whatsapp);
+    setField('site-link-email', value.links.email);
+    setField('site-link-linkedin', value.links.linkedin);
+    setField('site-link-github', value.links.github);
+    setField('site-link-facebook', value.links.facebook);
+    setField('site-link-youtube', value.links.youtube);
+    setField('site-link-instagram', value.links.instagram);
+    setField('site-link-telegram', value.links.telegram);
+  }
+
+  function parseArrayFromField(id, label) {
+    const raw = getField(id);
+    if (!raw) return [];
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(t(`تنسيق ${label} غير صحيح.`, `${label} JSON is invalid.`));
+    }
+
+    if (!Array.isArray(parsed)) {
+      throw new Error(t(`${label} يجب أن يكون Array.`, `${label} must be an array.`));
+    }
+
+    return parsed;
+  }
+
+  function collectSiteOverrides() {
+    return {
+      home: {
+        kicker: getField('site-home-kicker'),
+        titleMain: getField('site-home-title-main'),
+        titleAccent: getField('site-home-title-accent'),
+        paragraph: getField('site-home-paragraph'),
+        paragraphSecondary: getField('site-home-paragraph-secondary'),
+        portraitSrc: getField('site-home-portrait-src'),
+        portraitAlt: getField('site-home-portrait-alt')
+      },
+      cv: {
+        eyebrow: getField('site-cv-eyebrow'),
+        heading: getField('site-cv-heading'),
+        subheading: getField('site-cv-subheading'),
+        intro: getField('site-cv-intro'),
+        portraitSrc: getField('site-cv-portrait-src'),
+        portraitAlt: getField('site-cv-portrait-alt'),
+        journeyCards: parseArrayFromField('site-cv-journey', 'CV Timeline')
+      },
+      blog: {
+        titleMain: getField('site-blog-title-main'),
+        titleAccent: getField('site-blog-title-accent'),
+        lead: getField('site-blog-lead'),
+        items: parseArrayFromField('site-blog-items', 'Blog items')
+      },
+      contact: {
+        titleMain: getField('site-contact-title-main'),
+        titleAccent: getField('site-contact-title-accent'),
+        lead: getField('site-contact-lead')
+      },
+      links: {
+        whatsapp: getField('site-link-whatsapp'),
+        email: getField('site-link-email'),
+        linkedin: getField('site-link-linkedin'),
+        github: getField('site-link-github'),
+        facebook: getField('site-link-facebook'),
+        youtube: getField('site-link-youtube'),
+        instagram: getField('site-link-instagram'),
+        telegram: getField('site-link-telegram')
+      }
+    };
+  }
+
   function wireTabs() {
     const tabs = document.querySelectorAll('.tab');
     const panels = document.querySelectorAll('.panel');
@@ -152,10 +315,12 @@
     const savedVideos = readJson(STORAGE_KEYS.videos, null);
     const savedDynamic = readJson(STORAGE_KEYS.dynamic, null);
     const savedTheme = readJson(STORAGE_KEYS.theme, { light: {}, dark: {} });
+    const savedSite = readJson(STORAGE_KEYS.site, null);
 
     videosArea.value = JSON.stringify(savedVideos || sourceVideos, null, 2);
     dynamicArea.value = JSON.stringify(savedDynamic || sourceDynamic, null, 2);
     buildThemeInputs(savedTheme || { light: {}, dark: {} });
+    renderSiteOverrides(savedSite || {});
   }
 
   function wireActions() {
@@ -180,6 +345,11 @@
           if (scope === 'theme') {
             const themeTokens = collectThemeInputs();
             localStorage.setItem(STORAGE_KEYS.theme, JSON.stringify(themeTokens));
+          }
+
+          if (scope === 'site') {
+            const siteOverrides = collectSiteOverrides();
+            localStorage.setItem(STORAGE_KEYS.site, JSON.stringify(siteOverrides));
           }
 
           setStatus(t('تم الحفظ بنجاح. حدّث صفحات الموقع لمشاهدة التغيير.', 'Saved successfully. Refresh site pages to see changes.'), 'ok');
@@ -208,6 +378,11 @@
         if (scope === 'theme') {
           localStorage.removeItem(STORAGE_KEYS.theme);
           buildThemeInputs({ light: {}, dark: {} });
+        }
+
+        if (scope === 'site') {
+          localStorage.removeItem(STORAGE_KEYS.site);
+          renderSiteOverrides({});
         }
 
         setStatus(t('تم الرجوع للإعدادات الأصلية.', 'Reset to source values.'), 'ok');

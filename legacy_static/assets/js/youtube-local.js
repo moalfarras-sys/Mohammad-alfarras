@@ -264,12 +264,39 @@
 
   const loadVideos = async () => {
     try {
+<<<<<<< HEAD:legacy_static/assets/js/youtube-local.js
       const pathPrefix = window.location.pathname.includes('/en/') ? '../' : '';
       const res = await fetch(`${pathPrefix}data/videos.json`, { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const videos = await res.json();
       if (!Array.isArray(videos) || !videos.length) throw new Error('No videos');
+=======
+      // Admin override from localStorage (used by /admin panel)
+      let videos = null;
+      try {
+        const overrideRaw = localStorage.getItem('mf-admin-videos');
+        if (overrideRaw) {
+          const overrideParsed = JSON.parse(overrideRaw);
+          if (Array.isArray(overrideParsed) && overrideParsed.length > 0) {
+            videos = overrideParsed;
+          }
+        }
+      } catch (overrideError) {
+        console.warn('Invalid mf-admin-videos override:', overrideError);
+      }
+
+      // Detect if we're in a subfolder (en/) or root
+      if (!videos) {
+        const pathPrefix = window.location.pathname.includes('/en/') ? '../' : '';
+        const res = await fetch(`${pathPrefix}data/videos.json`, { cache: 'no-cache' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        videos = await res.json();
+      }
+      if (!Array.isArray(videos) || !videos.length) {
+        throw new Error('No videos');
+      }
+>>>>>>> ae9119734e5ed33054138f0130e783c2e4643aa0:assets/js/youtube-local.js
 
       videos.sort((a, b) => (b.views || 0) - (a.views || 0));
       allVideos = videos;

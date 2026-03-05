@@ -1,0 +1,71 @@
+{
+  "imported_at": "2026-03-05T14:51:58.057Z",
+  "videos_count": 4,
+  "dynamic_keys": [
+    "hero_taglines",
+    "cv_highlights",
+    "youtube_notes"
+  ],
+  "videos": [
+    {
+      "id": "legacy-1",
+      "youtube_id": "ZRPDkXiXEpw",
+      "title_ar": "فتح صندوق وتجربة أولية – منتج جديد يلفت الانتباه!",
+      "title_en": "Unboxing & First Look – A Surprisingly Impressive Gadget",
+      "description_ar": "فتح صندوق بسيط لكنه ممتع... استعراض سريع وانطباع أول يعطيك فكرة صادقة قبل أي قرار شراء.",
+      "description_en": "A clean and honest unboxing with a true first impression. Simple, real, and straight to the point.",
+      "thumbnail": "https://i.ytimg.com/vi/ZRPDkXiXEpw/hqdefault.jpg",
+      "duration": "07:40",
+      "views": 18900,
+      "published_at": "2024-01-12T12:00:00Z",
+      "sort_order": 1,
+      "is_featured": true,
+      "is_active": true
+    },
+    {
+      "id": "legacy-2",
+      "youtube_id": "N6ZhjrmUNLU",
+      "title_ar": "تجربة عملية لجهاز مبتكر – هل يستحق؟",
+      "title_en": "Hands-On Review of an Interesting Device – Worth It?",
+      "description_ar": "تجربة حقيقية بدون مجاملة... نختبر الأداء ونشوف فعليًا إذا الجهاز عملي أو مجرد شكل.",
+      "description_en": "A real hands-on test with no hype. Practical results that show what the device can actually do.",
+      "thumbnail": "https://i.ytimg.com/vi/N6ZhjrmUNLU/hqdefault.jpg",
+      "duration": "09:12",
+      "views": 22100,
+      "published_at": "2024-01-05T14:30:00Z",
+      "sort_order": 2,
+      "is_featured": false,
+      "is_active": true
+    },
+    {
+      "id": "legacy-3",
+      "youtube_id": "CE_ONNbvi9I",
+      "title_ar": "منتج تقني جديد... نظرة سريعة وصريحة",
+      "title_en": "Quick and Honest Look at a New Tech Product",
+      "description_ar": "استعراض سريع يعطيك خلاصة التجربة: أهم المزايا، العيوب، والانطباع الحقيقي بدون مبالغة.",
+      "description_en": "A fast, clear, and honest overview. The good, the bad, and the real experience — all in one short video.",
+      "thumbnail": "https://i.ytimg.com/vi/CE_ONNbvi9I/hqdefault.jpg",
+      "duration": "05:58",
+      "views": 16200,
+      "published_at": "2023-12-18T10:00:00Z",
+      "sort_order": 3,
+      "is_featured": false,
+      "is_active": true
+    },
+    {
+      "id": "legacy-4",
+      "youtube_id": "kNf8kd62OT4",
+      "title_ar": "أداة صغيرة... لكن فعّالة أكثر مما تتوقع!",
+      "title_en": "A Small Tool… Surprisingly Powerful!",
+      "description_ar": "منتج بسيط لكن مفيد جدًا... نشوف عمليًا إذا فعلاً يستحق مكانه ضمن أدواتك اليومية.",
+      "description_en": "A compact gadget that packs more usefulness than expected. A practical daily-use test.",
+      "thumbnail": "https://i.ytimg.com/vi/kNf8kd62OT4/hqdefault.jpg",
+      "duration": "06:45",
+      "views": 17500,
+      "published_at": "2023-12-01T09:00:00Z",
+      "sort_order": 4,
+      "is_featured": false,
+      "is_active": true
+    }
+  ]
+}

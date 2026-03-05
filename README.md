@@ -41,7 +41,26 @@ http://localhost:8080/
 
 ---
 
-## 🌐 Deploy to GitHub Pages
+## 🚀 Deploy to Vercel (Recommended)
+
+This site is optimized for **Vercel** deployment with automatic continuous deployment from GitHub.
+
+### Quick Start (5 minutes)
+See **[VERCEL_QUICK_START.md](VERCEL_QUICK_START.md)** for fast deployment checklist.
+
+### Detailed Setup Guide
+See **[VERCEL_SETUP_GUIDE.md](VERCEL_SETUP_GUIDE.md)** for complete step-by-step instructions.
+
+### What's Included
+✅ `vercel.json` - Full configuration for security headers, caching, redirects  
+✅ `.vercelignore` - Excludes documentation and unnecessary files  
+✅ Verification script: `bash verify-vercel.sh`  
+✅ Clean URLs, custom 404, multi-language support  
+✅ Zero-config deployment - just import from GitHub!
+
+---
+
+## 🌐 Deploy to GitHub Pages (Alternative)
 
 ### 1. Create the repository
 

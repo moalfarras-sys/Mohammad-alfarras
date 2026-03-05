@@ -3,16 +3,23 @@ import { redirect } from "next/navigation";
 
 const ADMIN_COOKIE = "mf_admin_session";
 
-function expectedAdminEmail() {
-  return process.env.ADMIN_EMAIL ?? "mohammad.alfarras@gmail.com";
+function expectedAdminEmails() {
+  const fromAllowlist = (process.env.ADMIN_ALLOWLIST || "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (fromAllowlist.length) return fromAllowlist;
+  return [(process.env.ADMIN_EMAIL ?? "mohammad.alfarras@gmail.com").trim().toLowerCase()];
 }
 
 function expectedPassword() {
-  return process.env.ADMIN_PASSWORD ?? "change-me";
+  return process.env.ADMIN_PASSWORD ?? "123123.Mmm";
 }
 
 export async function createAdminSession(email: string, password: string): Promise<boolean> {
-  if (email.trim().toLowerCase() !== expectedAdminEmail().trim().toLowerCase()) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!expectedAdminEmails().includes(normalizedEmail)) {
     return false;
   }
 

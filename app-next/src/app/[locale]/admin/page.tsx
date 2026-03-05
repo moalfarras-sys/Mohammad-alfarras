@@ -1,34 +1,44 @@
 ﻿import { AdminDashboard } from "@/components/admin/dashboard";
 import { loginAdminAction } from "@/lib/admin-actions";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { readThemeTokens, readVideos } from "@/lib/content/store";
+import { readSnapshot } from "@/lib/content/store";
+import type { Locale } from "@/types/cms";
 
 export default async function AdminPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: Locale }>;
   searchParams: Promise<{ error?: string; unauthorized?: string }>;
 }) {
-  const params = await searchParams;
+  const [{ locale }, query] = await Promise.all([params, searchParams]);
   const authenticated = await isAdminAuthenticated();
 
   if (!authenticated) {
+    const loginTitle = locale === "ar" ? "تسجيل دخول الأدمن" : "Admin Login";
+    const invalidText = locale === "ar" ? "بيانات الدخول غير صحيحة" : "Invalid credentials";
+    const requiredText = locale === "ar" ? "سجّل الدخول أولًا" : "Please login first";
+    const emailLabel = locale === "ar" ? "البريد الإلكتروني" : "Email";
+    const passwordLabel = locale === "ar" ? "كلمة المرور" : "Password";
+    const loginLabel = locale === "ar" ? "دخول" : "Login";
+
     return (
       <section className="page-section">
         <div className="container section-stack admin-login-card">
-          <h2>Admin Login</h2>
-          {params.error ? <p className="error-text">Invalid credentials</p> : null}
-          {params.unauthorized ? <p className="error-text">Please login first</p> : null}
+          <h2>{loginTitle}</h2>
+          {query.error ? <p className="error-text">{invalidText}</p> : null}
+          {query.unauthorized ? <p className="error-text">{requiredText}</p> : null}
           <form action={loginAdminAction} className="token-form">
             <label>
-              <span>Email</span>
+              <span>{emailLabel}</span>
               <input name="email" type="email" defaultValue="mohammad.alfarras@gmail.com" required />
             </label>
             <label>
-              <span>Password</span>
+              <span>{passwordLabel}</span>
               <input name="password" type="password" required />
             </label>
             <button className="btn primary" type="submit">
-              Login
+              {loginLabel}
             </button>
           </form>
         </div>
@@ -36,16 +46,18 @@ export default async function AdminPage({
     );
   }
 
-  const tokensLight = await readThemeTokens("light");
-  const tokensDark = await readThemeTokens("dark");
-  const videos = await readVideos();
+  const snapshot = await readSnapshot();
 
   return (
     <section className="page-section">
       <div className="container section-stack">
-        <h1>Admin Control Panel</h1>
-        <p>Manage theme tokens and YouTube content. Full schema is ready for Supabase migration.</p>
-        <AdminDashboard tokensLight={tokensLight} tokensDark={tokensDark} videos={videos} />
+        <h1>{locale === "ar" ? "لوحة التحكم" : "Admin Control Panel"}</h1>
+        <p>
+          {locale === "ar"
+            ? "لوحة Galaxy متكاملة لإدارة الثيم، الصفحات، SEO، البلوكات، الأعمال، الخبرات، الشهادات، الخدمات، الوسائط، وقنوات التواصل."
+            : "Complete Galaxy-style panel for theme, pages, SEO, blocks, projects, experiences, certifications, services, media, and contact channels."}
+        </p>
+        <AdminDashboard locale={locale} snapshot={snapshot} />
       </div>
     </section>
   );

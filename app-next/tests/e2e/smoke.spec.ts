@@ -10,5 +10,5 @@ test("home renders in arabic and english", async ({ page }) => {
 
 test("admin login view exists", async ({ page }) => {
   await page.goto("/ar/admin");
-  await expect(page.getByRole("heading", { name: "Admin Login" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Admin Login|تسجيل دخول الأدمن/ })).toBeVisible();
 });

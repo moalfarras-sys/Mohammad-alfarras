@@ -15,11 +15,23 @@ const conflictMap: Record<string, string[]> = {
   page_translations: ["page_id", "locale"],
   sections: ["id"],
   section_translations: ["section_id", "locale"],
+  page_blocks: ["id"],
+  page_block_translations: ["block_id", "locale"],
   navigation_items: ["id"],
   navigation_translations: ["nav_item_id", "locale"],
   theme_tokens: ["mode", "token_key"],
   media_assets: ["id"],
   youtube_videos: ["id"],
+  work_projects: ["id"],
+  work_project_translations: ["project_id", "locale"],
+  experiences: ["id"],
+  experience_translations: ["experience_id", "locale"],
+  certifications: ["id"],
+  certification_translations: ["certification_id", "locale"],
+  service_offerings: ["id"],
+  service_offering_translations: ["service_id", "locale"],
+  contact_channels: ["id"],
+  contact_channel_translations: ["channel_id", "locale"],
   site_settings: ["key"],
   audit_logs: ["id"],
 };
@@ -62,8 +74,11 @@ async function upsertRows(client: Client, table: string, rows: Row[]) {
 }
 
 async function main() {
-  const migrationPath = path.resolve(process.cwd(), "supabase/migrations/001_init.sql");
-  const migrationSql = await readFile(migrationPath, "utf8");
+  const migrationPaths = [
+    path.resolve(process.cwd(), "supabase/migrations/001_init.sql"),
+    path.resolve(process.cwd(), "supabase/migrations/002_full_cms_upgrade.sql"),
+  ];
+  const migrationSqlList = await Promise.all(migrationPaths.map((migrationPath) => readFile(migrationPath, "utf8")));
 
   const client = new Client({
     connectionString: getDatabaseUrl(),
@@ -74,17 +89,31 @@ async function main() {
 
   try {
     await client.query("BEGIN");
-    await client.query(migrationSql);
+    for (const migrationSql of migrationSqlList) {
+      await client.query(migrationSql);
+    }
 
     await upsertRows(client, "pages", defaultSnapshot.pages);
     await upsertRows(client, "page_translations", defaultSnapshot.page_translations);
     await upsertRows(client, "sections", defaultSnapshot.sections);
     await upsertRows(client, "section_translations", defaultSnapshot.section_translations);
+    await upsertRows(client, "page_blocks", defaultSnapshot.page_blocks);
+    await upsertRows(client, "page_block_translations", defaultSnapshot.page_block_translations);
     await upsertRows(client, "navigation_items", defaultSnapshot.navigation_items);
     await upsertRows(client, "navigation_translations", defaultSnapshot.navigation_translations);
     await upsertRows(client, "theme_tokens", defaultSnapshot.theme_tokens);
     await upsertRows(client, "media_assets", defaultSnapshot.media_assets);
     await upsertRows(client, "youtube_videos", defaultSnapshot.youtube_videos);
+    await upsertRows(client, "work_projects", defaultSnapshot.work_projects);
+    await upsertRows(client, "work_project_translations", defaultSnapshot.work_project_translations);
+    await upsertRows(client, "experiences", defaultSnapshot.experiences);
+    await upsertRows(client, "experience_translations", defaultSnapshot.experience_translations);
+    await upsertRows(client, "certifications", defaultSnapshot.certifications);
+    await upsertRows(client, "certification_translations", defaultSnapshot.certification_translations);
+    await upsertRows(client, "service_offerings", defaultSnapshot.service_offerings);
+    await upsertRows(client, "service_offering_translations", defaultSnapshot.service_offering_translations);
+    await upsertRows(client, "contact_channels", defaultSnapshot.contact_channels);
+    await upsertRows(client, "contact_channel_translations", defaultSnapshot.contact_channel_translations);
     await upsertRows(client, "site_settings", defaultSnapshot.site_settings);
 
     await client.query("COMMIT");

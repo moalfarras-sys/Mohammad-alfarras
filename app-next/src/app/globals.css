@@ -245,6 +245,12 @@ a {
   color: var(--text);
 }
 
+.btn.danger {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
 .pill-row {
   display: flex;
   flex-wrap: wrap;
@@ -305,6 +311,171 @@ a {
   padding: 0.8rem;
 }
 
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.work-card {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.work-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.work-card p {
+  margin: 0;
+}
+
+.moplayer-card {
+  background:
+    radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface) 94%, transparent);
+}
+
+.moplayer-logo-wrap {
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  border-radius: 14px;
+  background: #140603;
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--accent) 25%, transparent);
+  overflow: hidden;
+}
+
+.moplayer-logo-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.work-cta {
+  width: fit-content;
+}
+
+.admin-showcase-wrap {
+  padding: 0;
+}
+
+.admin-showcase-stack {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.admin-galaxy {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-orbit-nav {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.8rem;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--secondary) 25%, transparent), transparent 52%),
+    color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.admin-orbit-nav a {
+  padding: 0.52rem 0.7rem;
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid transparent;
+}
+
+.admin-orbit-nav a:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--secondary) 35%, var(--border));
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.admin-logout-form {
+  margin-top: 0.55rem;
+}
+
+.admin-galaxy-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-hero-panel {
+  background:
+    radial-gradient(circle at 95% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 42%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--secondary) 18%, transparent), transparent 46%),
+    color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.stat-card {
+  text-align: center;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.stat-card p {
+  margin: 0.4rem 0 0;
+}
+
+.admin-columns-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.admin-subcard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.8rem;
+}
+
+.admin-subcard h3,
+.admin-subcard h4 {
+  margin: 0;
+}
+
+.galaxy-form {
+  border-color: color-mix(in srgb, var(--secondary) 16%, var(--border));
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--secondary) 12%, transparent), transparent 45%),
+    color-mix(in srgb, var(--surface) 96%, transparent);
+}
+
+.token-form select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .admin-stack {
   display: grid;
   gap: 1rem;
@@ -355,6 +526,11 @@ a {
   font: inherit;
   background: var(--surface);
   color: var(--text);
+}
+
+.media-card a {
+  color: var(--secondary);
+  word-break: break-all;
 }
 
 .check-row {
@@ -430,6 +606,23 @@ a {
   .hero-stack {
     padding: 1.4rem;
   }
+
+  .work-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-galaxy {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-orbit-nav {
+    position: static;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -468,6 +661,22 @@ a {
 
   .cookie-banner {
     inset-inline: 0.5rem;
+  }
+
+  .work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-orbit-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-columns-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -45,6 +45,20 @@ export function createSupabaseDataClient() {
   });
 }
 
+export function createSupabaseAdminClient() {
+  const { url, service } = getSupabaseEnv();
+  if (!url || !service) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
+  }
+
+  return createClient(url, service, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
 export async function createSupabaseServer() {
   const { url, anon } = getSupabaseEnv();
   if (!url || !anon) {

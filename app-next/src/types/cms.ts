@@ -1,8 +1,21 @@
-export const locales = ["ar", "en"] as const;
+﻿export const locales = ["ar", "en"] as const;
 
 export type Locale = (typeof locales)[number];
 export type ThemeMode = "light" | "dark";
 export type PageStatus = "draft" | "published";
+export type BlockType =
+  | "hero"
+  | "feature-grid"
+  | "work-showcase"
+  | "experience-timeline"
+  | "certifications-grid"
+  | "services-grid"
+  | "contact-channels"
+  | "faq"
+  | "cta"
+  | "rich-text"
+  | "cards"
+  | "videos";
 
 export type Page = {
   id: string;
@@ -34,6 +47,21 @@ export type Section = {
 
 export type SectionTranslation = {
   section_id: string;
+  locale: Locale;
+  content_json: Record<string, unknown>;
+};
+
+export type PageBlock = {
+  id: string;
+  page_slug: string;
+  block_type: BlockType;
+  sort_order: number;
+  is_enabled: boolean;
+  config_json: Record<string, unknown>;
+};
+
+export type PageBlockTranslation = {
+  block_id: string;
   locale: Locale;
   content_json: Record<string, unknown>;
 };
@@ -85,6 +113,101 @@ export type YoutubeVideo = {
   is_active: boolean;
 };
 
+export type WorkProject = {
+  id: string;
+  slug: string;
+  is_active: boolean;
+  sort_order: number;
+  project_url: string;
+  repo_url: string;
+  cover_media_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WorkProjectTranslation = {
+  project_id: string;
+  locale: Locale;
+  title: string;
+  summary: string;
+  description: string;
+  cta_label: string;
+};
+
+export type Experience = {
+  id: string;
+  is_active: boolean;
+  sort_order: number;
+  company: string;
+  location: string;
+  start_date: string;
+  end_date: string | null;
+  current_role: boolean;
+  logo_media_id: string | null;
+};
+
+export type ExperienceTranslation = {
+  experience_id: string;
+  locale: Locale;
+  role_title: string;
+  description: string;
+  highlights_json: string[];
+};
+
+export type Certification = {
+  id: string;
+  is_active: boolean;
+  sort_order: number;
+  issuer: string;
+  issue_date: string;
+  expiry_date: string | null;
+  credential_url: string;
+  certificate_media_id: string | null;
+};
+
+export type CertificationTranslation = {
+  certification_id: string;
+  locale: Locale;
+  name: string;
+  description: string;
+};
+
+export type ServiceOffering = {
+  id: string;
+  is_active: boolean;
+  sort_order: number;
+  icon: string;
+  color_token: string;
+};
+
+export type ServiceOfferingTranslation = {
+  service_id: string;
+  locale: Locale;
+  title: string;
+  description: string;
+  bullets_json: string[];
+};
+
+export type ContactChannelType = "whatsapp" | "email" | "linkedin" | "telegram" | "instagram" | "youtube" | "custom";
+
+export type ContactChannel = {
+  id: string;
+  channel_type: ContactChannelType;
+  value: string;
+  is_primary: boolean;
+  is_active: boolean;
+  sort_order: number;
+  icon: string;
+  label_default: string;
+};
+
+export type ContactChannelTranslation = {
+  channel_id: string;
+  locale: Locale;
+  label: string;
+  description: string;
+};
+
 export type SiteSetting = {
   key: string;
   value_json: Record<string, unknown>;
@@ -105,11 +228,23 @@ export type CmsSnapshot = {
   page_translations: PageTranslation[];
   sections: Section[];
   section_translations: SectionTranslation[];
+  page_blocks: PageBlock[];
+  page_block_translations: PageBlockTranslation[];
   navigation_items: NavigationItem[];
   navigation_translations: NavigationTranslation[];
   theme_tokens: ThemeToken[];
   media_assets: MediaAsset[];
   youtube_videos: YoutubeVideo[];
+  work_projects: WorkProject[];
+  work_project_translations: WorkProjectTranslation[];
+  experiences: Experience[];
+  experience_translations: ExperienceTranslation[];
+  certifications: Certification[];
+  certification_translations: CertificationTranslation[];
+  service_offerings: ServiceOffering[];
+  service_offering_translations: ServiceOfferingTranslation[];
+  contact_channels: ContactChannel[];
+  contact_channel_translations: ContactChannelTranslation[];
   site_settings: SiteSetting[];
   audit_logs: AuditLog[];
 };
@@ -123,6 +258,75 @@ export type SectionView = {
   content: Record<string, unknown>;
 };
 
+export type PageBlockView = {
+  id: string;
+  type: BlockType;
+  order: number;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  content: Record<string, unknown>;
+};
+
+export type WorkProjectView = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  description: string;
+  ctaLabel: string;
+  projectUrl: string;
+  repoUrl: string;
+  cover: MediaAsset | null;
+  order: number;
+};
+
+export type ExperienceView = {
+  id: string;
+  roleTitle: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate: string | null;
+  currentRole: boolean;
+  description: string;
+  highlights: string[];
+  logo: MediaAsset | null;
+  order: number;
+};
+
+export type CertificationView = {
+  id: string;
+  name: string;
+  description: string;
+  issuer: string;
+  issueDate: string;
+  expiryDate: string | null;
+  credentialUrl: string;
+  certificate: MediaAsset | null;
+  order: number;
+};
+
+export type ServiceView = {
+  id: string;
+  title: string;
+  description: string;
+  bullets: string[];
+  icon: string;
+  colorToken: string;
+  order: number;
+};
+
+export type ContactChannelView = {
+  id: string;
+  type: ContactChannelType;
+  label: string;
+  description: string;
+  value: string;
+  icon: string;
+  isPrimary: boolean;
+  order: number;
+};
+
 export type PageView = {
   id: string;
   slug: string;
@@ -134,4 +338,5 @@ export type PageView = {
     ogDescription: string;
   };
   sections: SectionView[];
+  blocks: PageBlockView[];
 };

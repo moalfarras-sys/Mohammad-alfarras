@@ -1,0 +1,39 @@
+﻿<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">MoPlayer Logo</title>
+  <desc id="desc">Orange glowing emblem for MoPlayer Android TV app</desc>
+  <defs>
+    <radialGradient id="bgGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(450 450) rotate(90) scale(460)">
+      <stop stop-color="#FF7A00" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#140603"/>
+    </radialGradient>
+    <linearGradient id="emblem" x1="180" y1="170" x2="760" y2="730" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD18A"/>
+      <stop offset="0.5" stop-color="#FF7A00"/>
+      <stop offset="1" stop-color="#C93800"/>
+    </linearGradient>
+    <linearGradient id="play" x1="560" y1="300" x2="760" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB15A"/>
+      <stop offset="1" stop-color="#FF4D00"/>
+    </linearGradient>
+    <filter id="outerGlow" x="70" y="80" width="760" height="760" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 0.55 0 0 0  0 0 0 0 0  0 0 0 1 0" result="warm"/>
+      <feBlend in="SourceGraphic" in2="warm" mode="screen"/>
+    </filter>
+  </defs>
+
+  <rect width="900" height="900" fill="#050203"/>
+  <circle cx="450" cy="450" r="460" fill="url(#bgGlow)"/>
+
+  <g filter="url(#outerGlow)">
+    <rect x="175" y="175" width="550" height="550" rx="110" fill="url(#emblem)" stroke="#FFB86A" stroke-width="6"/>
+
+    <path d="M255 430C315 350 400 340 470 390C530 430 590 440 655 395" stroke="#FFF0D0" stroke-opacity="0.45" stroke-width="34" stroke-linecap="round"/>
+    <path d="M250 470C320 390 402 390 468 438C530 482 588 486 652 448" stroke="#7A2200" stroke-opacity="0.42" stroke-width="30" stroke-linecap="round"/>
+    <path d="M565 356L716 450L565 544V356Z" fill="url(#play)" stroke="#FFE3B1" stroke-opacity="0.5" stroke-width="7"/>
+
+    <g fill="#FFF4D8">
+      <text x="450" y="640" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="86" font-weight="700" letter-spacing="1.5">MoPlayer</text>
+    </g>
+  </g>
+</svg>

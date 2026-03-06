@@ -5,69 +5,20 @@
   "buildCommand": "",
   "outputDirectory": ".",
   "cleanUrls": true,
-  "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/ar",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/ar/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/ar/cv",
-      "destination": "/cv.html"
-    },
-    {
-      "source": "/ar/blog",
-      "destination": "/blog.html"
-    },
-    {
-      "source": "/ar/youtube",
-      "destination": "/youtube.html"
-    },
-    {
-      "source": "/ar/contact",
-      "destination": "/contact.html"
-    },
-    {
-      "source": "/ar/privacy",
-      "destination": "/privacy.html"
-    },
-    {
-      "source": "/en",
-      "destination": "/en/index.html"
-    },
-    {
-      "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/en/admin",
-      "destination": "/en/admin.html"
+      "source": "/(.*)",
+      "destination": "https://app-next-gules.vercel.app/$1"
     }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     }
   ]

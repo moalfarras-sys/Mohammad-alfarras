@@ -275,6 +275,131 @@ export async function readVideos(): Promise<YoutubeVideo[]> {
   return snapshot.youtube_videos.filter((entry) => entry.is_active).sort((a, b) => a.sort_order - b.sort_order);
 }
 
+function parseIsoDurationToClock(value: string): string {
+  if (!value) return "00:00";
+  const match = value.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return "00:00";
+  const hours = Number(match[1] || 0);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+  const totalMinutes = hours * 60 + minutes;
+  return `${String(totalMinutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export async function upsertSiteSetting(key: string, value_json: Record<string, unknown>): Promise<void> {
+  const idx = mutableSnapshot.site_settings.findIndex((entry) => entry.key === key);
+  if (idx === -1) {
+    mutableSnapshot.site_settings.push({ key, value_json });
+  } else {
+    mutableSnapshot.site_settings[idx] = { key, value_json };
+  }
+
+  if (!hasSupabasePublicEnv()) return;
+  const supabase = createSupabaseDataClient();
+  await supabase.from("site_settings").upsert({ key, value_json }, { onConflict: "key" });
+}
+
+export async function syncYoutubeLatest(options?: { maxResults?: number; channelId?: string }): Promise<number> {
+  const apiKey = process.env.YOUTUBE_API_KEY || "";
+  const channelId = options?.channelId || process.env.YOUTUBE_CHANNEL_ID || "";
+  const maxResults = Math.max(1, Math.min(25, options?.maxResults ?? 12));
+
+  if (!apiKey || !channelId) {
+    throw new Error("Missing YOUTUBE_API_KEY or YOUTUBE_CHANNEL_ID");
+  }
+
+  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+  searchUrl.searchParams.set("key", apiKey);
+  searchUrl.searchParams.set("channelId", channelId);
+  searchUrl.searchParams.set("part", "snippet");
+  searchUrl.searchParams.set("order", "date");
+  searchUrl.searchParams.set("type", "video");
+  searchUrl.searchParams.set("maxResults", String(maxResults));
+
+  const searchRes = await fetch(searchUrl.toString(), { cache: "no-store" });
+  if (!searchRes.ok) {
+    throw new Error(`YouTube search failed (${searchRes.status})`);
+  }
+
+  const searchJson = (await searchRes.json()) as {
+    items?: Array<{
+      id?: { videoId?: string };
+      snippet?: { title?: string; description?: string; publishedAt?: string; thumbnails?: { high?: { url?: string }; medium?: { url?: string } } };
+    }>;
+  };
+
+  const items = searchJson.items ?? [];
+  const videoIds = items.map((item) => item.id?.videoId).filter((id): id is string => Boolean(id));
+  if (!videoIds.length) return 0;
+
+  const detailsUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
+  detailsUrl.searchParams.set("key", apiKey);
+  detailsUrl.searchParams.set("part", "contentDetails,statistics");
+  detailsUrl.searchParams.set("id", videoIds.join(","));
+
+  const detailsRes = await fetch(detailsUrl.toString(), { cache: "no-store" });
+  if (!detailsRes.ok) {
+    throw new Error(`YouTube details failed (${detailsRes.status})`);
+  }
+
+  const detailsJson = (await detailsRes.json()) as {
+    items?: Array<{
+      id?: string;
+      contentDetails?: { duration?: string };
+      statistics?: { viewCount?: string };
+    }>;
+  };
+
+  const detailsMap = new Map<string, { duration: string; views: number }>();
+  for (const detail of detailsJson.items ?? []) {
+    const id = detail.id;
+    if (!id) continue;
+    detailsMap.set(id, {
+      duration: parseIsoDurationToClock(detail.contentDetails?.duration || "PT0M0S"),
+      views: Number(detail.statistics?.viewCount || 0),
+    });
+  }
+
+  let synced = 0;
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i];
+    const id = item.id?.videoId;
+    if (!id) continue;
+
+    const snippet = item.snippet || {};
+    const detail = detailsMap.get(id) ?? { duration: "00:00", views: 0 };
+    const title = snippet.title || id;
+    const description = snippet.description || "";
+    const thumbnail = snippet.thumbnails?.high?.url || snippet.thumbnails?.medium?.url || "";
+
+    await upsertVideo({
+      id: `yt-${id}`,
+      youtube_id: id,
+      title_ar: title,
+      title_en: title,
+      description_ar: description,
+      description_en: description,
+      thumbnail,
+      duration: detail.duration,
+      views: detail.views,
+      published_at: new Date(snippet.publishedAt || new Date().toISOString()).toISOString(),
+      sort_order: i + 1,
+      is_featured: i === 0,
+      is_active: true,
+    });
+    synced += 1;
+  }
+
+  await upsertSiteSetting("youtube_sync", {
+    status: "ok",
+    channel_id: channelId,
+    synced_count: synced,
+    last_sync: new Date().toISOString(),
+  });
+
+  return synced;
+}
+
 export async function upsertVideo(video: YoutubeVideo): Promise<void> {
   updateMutableById(mutableSnapshot.youtube_videos, video);
 

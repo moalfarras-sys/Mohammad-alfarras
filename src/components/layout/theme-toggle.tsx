@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
+
+import type { Locale } from "@/types/cms";
 
 type ThemeMode = "light" | "dark";
 
@@ -11,7 +13,7 @@ function getInitialTheme(): ThemeMode {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ locale }: { locale: Locale }) {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     if (typeof window === "undefined") return "light";
     return getInitialTheme();
@@ -30,8 +32,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="btn secondary" type="button" aria-label="Toggle theme">
-        🌙
+      <button className="theme-toggle" type="button" aria-label="Toggle theme">
+        <span>🌙</span>
       </button>
     );
   }
@@ -43,8 +45,14 @@ export function ThemeToggle() {
   }
 
   return (
-    <button className="btn secondary" type="button" onClick={toggle} aria-label="Toggle theme">
-      {theme === "light" ? "🌙" : "☀️"}
+    <button
+      className="theme-toggle"
+      type="button"
+      onClick={toggle}
+      aria-label={locale === "ar" ? "تبديل الثيم" : "Toggle theme"}
+      title={locale === "ar" ? "تبديل الثيم" : "Toggle theme"}
+    >
+      <span aria-hidden="true">{theme === "light" ? "🌙" : "☀️"}</span>
     </button>
   );
 }

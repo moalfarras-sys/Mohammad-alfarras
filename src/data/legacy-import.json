@@ -1,11 +1,21 @@
 {
-  "imported_at": "2026-03-05T14:51:58.057Z",
+  "imported_at": "2026-03-06T01:07:55.478Z",
   "videos_count": 4,
   "dynamic_keys": [
     "hero_taglines",
     "cv_highlights",
     "youtube_notes"
   ],
+  "contact_links": {
+    "whatsapp": "https://wa.me/4917623419358",
+    "email": "mailto:Mohammad.alfarras@gmail.com",
+    "linkedin": "https://de.linkedin.com/in/mohammad-alfarras-525531262",
+    "github": "https://github.com/moalfarras-sys",
+    "facebook": "https://www.facebook.com/share/14TQSSocNQG/?mibextid=wwXIfr",
+    "youtube": "https://www.youtube.com/@Moalfarras",
+    "instagram": "https://www.instagram.com/moalfarras?igsh=MTlhcWJhNTh4MzBvOQ==&utm_source=qr",
+    "telegram": "https://t.me/MoalFarras"
+  },
   "videos": [
     {
       "id": "legacy-1",

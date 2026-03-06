@@ -53,13 +53,13 @@ export default async function AdminPage({
   const isAdvanced = query.mode === "advanced";
 
   return (
-    <section className="page-section">
-      <div className="container section-stack">
+    <section className="page-section admin-showcase-wrap">
+      <div className="container section-stack admin-showcase-stack">
         <h1>{locale === "ar" ? "لوحة التحكم" : "Admin Control Panel"}</h1>
         <p>
           {locale === "ar"
-            ? "لوحة إدارة احترافية مع وضع مبسط للموبايل ووضع متقدم عند الحاجة."
-            : "Professional admin with a mobile-friendly simple mode and an advanced mode when needed."}
+            ? "لوحة إدارة متكاملة للمحتوى، التصميم، الثيم، الروابط، وفيديوهات يوتيوب."
+            : "A complete control panel for content, design, theme, links, and YouTube videos."}
         </p>
         {isAdvanced ? (
           <>

@@ -1,70 +1,69 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import type { Locale } from "@/types/cms";
 
 const contacts = [
-    { href: "https://wa.me/4917623419358", ar: "واتساب", en: "WhatsApp", ar_desc: "تواصل مباشر وسريع", en_desc: "Direct and quick contact", icon: "wa" },
-    { href: "mailto:Mohammad.alfarras@gmail.com", ar: "البريد الإلكتروني", en: "Email", ar_desc: "راسلني لأي تفاصيل أو تعاون", en_desc: "Message me for details or collaboration", icon: "mail" },
-    { href: "https://de.linkedin.com/in/mohammad-alfarras-525531262", ar: "LinkedIn", en: "LinkedIn", ar_desc: "ملفي المهني وخبراتي في مجال اللوجستيات", en_desc: "My professional profile and logistics experience", icon: "li" },
-    { href: "https://github.com/moalfarras-sys", ar: "GitHub", en: "GitHub", ar_desc: "مشاريعي البرمجية والمواقع التي أعمل عليها", en_desc: "My coding projects and websites", icon: "gh" },
-    { href: "https://www.facebook.com/share/14TQSSocNQG/", ar: "Facebook", en: "Facebook", ar_desc: "مجتمعي الشخصي ومنشورات متنوعة", en_desc: "My personal community and varied posts", icon: "fb" },
-    { href: "https://www.youtube.com/@Moalfarras", ar: "YouTube", en: "YouTube", ar_desc: "أكثر من 159 فيديو من الشغل والحياة في ألمانيا", en_desc: "159+ videos from work and life in Germany", icon: "yt" },
-    { href: "https://www.instagram.com/moalfarras", ar: "Instagram", en: "Instagram", ar_desc: "تابع محتواي اليومي وأفكاري الجديدة", en_desc: "Follow my daily content and new ideas", icon: "ig" },
-    { href: "https://t.me/MoalFarras", ar: "Telegram", en: "Telegram", ar_desc: "تواصل سريع عبر تليغرام", en_desc: "Quick contact via Telegram", icon: "tg" },
+    { href: "https://wa.me/4917623419358", ar: "ÙˆØ§ØªØ³Ø§Ø¨", en: "WhatsApp", ar_desc: "ØªÙˆØ§ØµÙ„ Ù…Ø¨Ø§Ø´Ø± ÙˆØ³Ø±ÙŠØ¹", en_desc: "Direct and quick contact", icon: "wa" },
+    { href: "mailto:Mohammad.alfarras@gmail.com", ar: "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ", en: "Email", ar_desc: "Ø±Ø§Ø³Ù„Ù†ÙŠ Ù„Ø£ÙŠ ØªÙØ§ØµÙŠÙ„ Ø£Ùˆ ØªØ¹Ø§ÙˆÙ†", en_desc: "Message me for details or collaboration", icon: "mail" },
+    { href: "https://de.linkedin.com/in/mohammad-alfarras-525531262", ar: "LinkedIn", en: "LinkedIn", ar_desc: "Ù…Ù„ÙÙŠ Ø§Ù„Ù…Ù‡Ù†ÙŠ ÙˆØ®Ø¨Ø±Ø§ØªÙŠ ÙÙŠ Ù…Ø¬Ø§Ù„ Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠØ§Øª", en_desc: "My professional profile and logistics experience", icon: "li" },
+    { href: "https://github.com/moalfarras-sys", ar: "GitHub", en: "GitHub", ar_desc: "Ù…Ø´Ø§Ø±ÙŠØ¹ÙŠ Ø§Ù„Ø¨Ø±Ù…Ø¬ÙŠØ© ÙˆØ§Ù„Ù…ÙˆØ§Ù‚Ø¹ Ø§Ù„ØªÙŠ Ø£Ø¹Ù…Ù„ Ø¹Ù„ÙŠÙ‡Ø§", en_desc: "My coding projects and websites", icon: "gh" },
+    { href: "https://www.facebook.com/share/14TQSSocNQG/", ar: "Facebook", en: "Facebook", ar_desc: "Ù…Ø¬ØªÙ…Ø¹ÙŠ Ø§Ù„Ø´Ø®ØµÙŠ ÙˆÙ…Ù†Ø´ÙˆØ±Ø§Øª Ù…ØªÙ†ÙˆØ¹Ø©", en_desc: "My personal community and varied posts", icon: "fb" },
+    { href: "https://www.youtube.com/@Moalfarras", ar: "YouTube", en: "YouTube", ar_desc: "Ø£ÙƒØ«Ø± Ù…Ù† 159 ÙÙŠØ¯ÙŠÙˆ Ù…Ù† Ø§Ù„Ø´ØºÙ„ ÙˆØ§Ù„Ø­ÙŠØ§Ø© ÙÙŠ Ø£Ù„Ù…Ø§Ù†ÙŠØ§", en_desc: "159+ videos from work and life in Germany", icon: "yt" },
+    { href: "https://www.instagram.com/moalfarras", ar: "Instagram", en: "Instagram", ar_desc: "ØªØ§Ø¨Ø¹ Ù…Ø­ØªÙˆØ§ÙŠ Ø§Ù„ÙŠÙˆÙ…ÙŠ ÙˆØ£ÙÙƒØ§Ø±ÙŠ Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©", en_desc: "Follow my daily content and new ideas", icon: "ig" },
+    { href: "https://t.me/MoalFarras", ar: "Telegram", en: "Telegram", ar_desc: "ØªÙˆØ§ØµÙ„ Ø³Ø±ÙŠØ¹ Ø¹Ø¨Ø± ØªÙ„ÙŠØºØ±Ø§Ù…", en_desc: "Quick contact via Telegram", icon: "tg" },
 ];
 
 const testimonials = {
     ar: [
-        { meta: "تعليق من زائر", text: "أعجبني أن الموقع خفيف وواضح، وكل شيء مرتب بدون إعلانات مزعجة." },
-        { meta: "متابع من يوتيوب", text: "مراجعاتك صريحة وتتكلم عن العيوب قبل المميزات – استمر على هذا الأسلوب." },
-        { meta: "صاحب مشروع صغير", text: "ساعدتني أفهم أي نوع فيديو مناسب لمنتجي وكيف أجهز له بدون تكاليف ضخمة." },
+        { meta: "ØªØ¹Ù„ÙŠÙ‚ Ù…Ù† Ø²Ø§Ø¦Ø±", text: "Ø£Ø¹Ø¬Ø¨Ù†ÙŠ Ø£Ù† Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø®ÙÙŠÙ ÙˆÙˆØ§Ø¶Ø­ØŒ ÙˆÙƒÙ„ Ø´ÙŠØ¡ Ù…Ø±ØªØ¨ Ø¨Ø¯ÙˆÙ† Ø¥Ø¹Ù„Ø§Ù†Ø§Øª Ù…Ø²Ø¹Ø¬Ø©." },
+        { meta: "Ù…ØªØ§Ø¨Ø¹ Ù…Ù† ÙŠÙˆØªÙŠÙˆØ¨", text: "Ù…Ø±Ø§Ø¬Ø¹Ø§ØªÙƒ ØµØ±ÙŠØ­Ø© ÙˆØªØªÙƒÙ„Ù… Ø¹Ù† Ø§Ù„Ø¹ÙŠÙˆØ¨ Ù‚Ø¨Ù„ Ø§Ù„Ù…Ù…ÙŠØ²Ø§Øª â€“ Ø§Ø³ØªÙ…Ø± Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ù„ÙˆØ¨." },
+        { meta: "ØµØ§Ø­Ø¨ Ù…Ø´Ø±ÙˆØ¹ ØµØºÙŠØ±", text: "Ø³Ø§Ø¹Ø¯ØªÙ†ÙŠ Ø£ÙÙ‡Ù… Ø£ÙŠ Ù†ÙˆØ¹ ÙÙŠØ¯ÙŠÙˆ Ù…Ù†Ø§Ø³Ø¨ Ù„Ù…Ù†ØªØ¬ÙŠ ÙˆÙƒÙŠÙ Ø£Ø¬Ù‡Ø² Ù„Ù‡ Ø¨Ø¯ÙˆÙ† ØªÙƒØ§Ù„ÙŠÙ Ø¶Ø®Ù…Ø©." },
     ],
     en: [
         { meta: "Visitor comment", text: "I liked that the site is light and clear, everything is organised without annoying ads." },
-        { meta: "YouTube follower", text: "Your reviews are honest and talk about flaws before features — keep up this style." },
+        { meta: "YouTube follower", text: "Your reviews are honest and talk about flaws before features â€” keep up this style." },
         { meta: "Small business owner", text: "You helped me understand what type of video suits my product and how to set it up without big costs." },
     ],
 };
 
 const labels = {
     ar: {
-        eyebrow: "تعاون · استشارة · تواصل مباشر",
-        heroTitle: "خلينا نشتغل سوا",
-        heroSpan: "رح نخلق شيء واقعي",
-        heroLead: "سواء كنت صاحب مشروع، شركة، أو حتى شخص عنده فكرة صغيرة… إذا بدك حدا يفهم اللوجستيات، التخطيط، تنظيم العمليات، أو حتى تبسيط فكرتك وتحويلها لشيء عملي – راسلني.",
-        chips: ["استشارات لوجستية", "تصميم مواقع", "تعاون محتوى"],
-        contactTitle: "طرق التواصل",
-        contactSub: "اختر الطريقة الأنسب لك – كلها تصل مباشرة",
-        formTitle: "نموذج تواصل احترافي",
-        formBadge: "نموذج زجاجي · جاهز",
-        formSub: "حابب ترتّب مشروعك، تطلق منتج، أو بدك موقع بسيط وأنيق؟ أرسل التفاصيل واختَر الخيارات الجاهزة.",
-        topics: ["تنظيم لوجستي", "موقع أو صفحة هبوط", "تعاون محتوى", "استشارة سريعة"],
-        nameLabel: "الاسم الكامل", namePH: "اسمك الكامل",
-        emailLabel: "البريد الإلكتروني", emailPH: "name@example.com",
-        methodLabel: "طريقة التواصل المفضلة",
-        methods: ["واتساب", "بريد إلكتروني", "LinkedIn"],
-        subjectLabel: "الموضوع",
-        subjectOptions: ["اختر موضوع...", "ترويج منتج", "استفسار لوجستي", "تصميم موقع", "تعاون محتوى", "استشارة", "موضوع آخر"],
-        responseLabel: "مدة الرد المفضلة",
-        responseTimes: ["سريع اليوم", "خلال 24 ساعة", "خلال الأسبوع"],
-        messageLabel: "الرسالة", messagePH: "اكتب رسالتك، ما المشكلة أو الهدف، وأي تفاصيل مختصرة.",
-        sendBtn: "أرسل الرسالة", privacy: "لن أستخدم بياناتك إلا للرد. يمكنك طلب الحذف بأي وقت.",
-        reviewsTitle: "آراء وتعليقات",
-        reviewsSub: "تعليقات أحب أستقبل مثلها.",
+        eyebrow: "ØªØ¹Ø§ÙˆÙ† Â· Ø§Ø³ØªØ´Ø§Ø±Ø© Â· ØªÙˆØ§ØµÙ„ Ù…Ø¨Ø§Ø´Ø±",
+        heroTitle: "Ø®Ù„ÙŠÙ†Ø§ Ù†Ø´ØªØºÙ„ Ø³ÙˆØ§",
+        heroSpan: "Ø±Ø­ Ù†Ø®Ù„Ù‚ Ø´ÙŠØ¡ ÙˆØ§Ù‚Ø¹ÙŠ",
+        heroLead: "Ø³ÙˆØ§Ø¡ ÙƒÙ†Øª ØµØ§Ø­Ø¨ Ù…Ø´Ø±ÙˆØ¹ØŒ Ø´Ø±ÙƒØ©ØŒ Ø£Ùˆ Ø­ØªÙ‰ Ø´Ø®Øµ Ø¹Ù†Ø¯Ù‡ ÙÙƒØ±Ø© ØµØºÙŠØ±Ø©â€¦ Ø¥Ø°Ø§ Ø¨Ø¯Ùƒ Ø­Ø¯Ø§ ÙŠÙÙ‡Ù… Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠØ§ØªØŒ Ø§Ù„ØªØ®Ø·ÙŠØ·ØŒ ØªÙ†Ø¸ÙŠÙ… Ø§Ù„Ø¹Ù…Ù„ÙŠØ§ØªØŒ Ø£Ùˆ Ø­ØªÙ‰ ØªØ¨Ø³ÙŠØ· ÙÙƒØ±ØªÙƒ ÙˆØªØ­ÙˆÙŠÙ„Ù‡Ø§ Ù„Ø´ÙŠØ¡ Ø¹Ù…Ù„ÙŠ â€“ Ø±Ø§Ø³Ù„Ù†ÙŠ.",
+        chips: ["Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ù„ÙˆØ¬Ø³ØªÙŠØ©", "ØªØµÙ…ÙŠÙ… Ù…ÙˆØ§Ù‚Ø¹", "ØªØ¹Ø§ÙˆÙ† Ù…Ø­ØªÙˆÙ‰"],
+        contactTitle: "Ø·Ø±Ù‚ Ø§Ù„ØªÙˆØ§ØµÙ„",
+        contactSub: "Ø§Ø®ØªØ± Ø§Ù„Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø£Ù†Ø³Ø¨ Ù„Ùƒ â€“ ÙƒÙ„Ù‡Ø§ ØªØµÙ„ Ù…Ø¨Ø§Ø´Ø±Ø©",
+        formTitle: "Ù†Ù…ÙˆØ°Ø¬ ØªÙˆØ§ØµÙ„ Ø§Ø­ØªØ±Ø§ÙÙŠ",
+        formBadge: "Ù†Ù…ÙˆØ°Ø¬ Ø²Ø¬Ø§Ø¬ÙŠ Â· Ø¬Ø§Ù‡Ø²",
+        formSub: "Ø­Ø§Ø¨Ø¨ ØªØ±ØªÙ‘Ø¨ Ù…Ø´Ø±ÙˆØ¹ÙƒØŒ ØªØ·Ù„Ù‚ Ù…Ù†ØªØ¬ØŒ Ø£Ùˆ Ø¨Ø¯Ùƒ Ù…ÙˆÙ‚Ø¹ Ø¨Ø³ÙŠØ· ÙˆØ£Ù†ÙŠÙ‚ØŸ Ø£Ø±Ø³Ù„ Ø§Ù„ØªÙØ§ØµÙŠÙ„ ÙˆØ§Ø®ØªÙŽØ± Ø§Ù„Ø®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ø¬Ø§Ù‡Ø²Ø©.",
+        topics: ["ØªÙ†Ø¸ÙŠÙ… Ù„ÙˆØ¬Ø³ØªÙŠ", "Ù…ÙˆÙ‚Ø¹ Ø£Ùˆ ØµÙØ­Ø© Ù‡Ø¨ÙˆØ·", "ØªØ¹Ø§ÙˆÙ† Ù…Ø­ØªÙˆÙ‰", "Ø§Ø³ØªØ´Ø§Ø±Ø© Ø³Ø±ÙŠØ¹Ø©"],
+        nameLabel: "Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„", namePH: "Ø§Ø³Ù…Ùƒ Ø§Ù„ÙƒØ§Ù…Ù„",
+        emailLabel: "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ", emailPH: "name@example.com",
+        methodLabel: "Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ù…ÙØ¶Ù„Ø©",
+        methods: ["ÙˆØ§ØªØ³Ø§Ø¨", "Ø¨Ø±ÙŠØ¯ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ", "LinkedIn"],
+        subjectLabel: "Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹",
+        subjectOptions: ["Ø§Ø®ØªØ± Ù…ÙˆØ¶ÙˆØ¹...", "ØªØ±ÙˆÙŠØ¬ Ù…Ù†ØªØ¬", "Ø§Ø³ØªÙØ³Ø§Ø± Ù„ÙˆØ¬Ø³ØªÙŠ", "ØªØµÙ…ÙŠÙ… Ù…ÙˆÙ‚Ø¹", "ØªØ¹Ø§ÙˆÙ† Ù…Ø­ØªÙˆÙ‰", "Ø§Ø³ØªØ´Ø§Ø±Ø©", "Ù…ÙˆØ¶ÙˆØ¹ Ø¢Ø®Ø±"],
+        responseLabel: "Ù…Ø¯Ø© Ø§Ù„Ø±Ø¯ Ø§Ù„Ù…ÙØ¶Ù„Ø©",
+        responseTimes: ["Ø³Ø±ÙŠØ¹ Ø§Ù„ÙŠÙˆÙ…", "Ø®Ù„Ø§Ù„ 24 Ø³Ø§Ø¹Ø©", "Ø®Ù„Ø§Ù„ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹"],
+        messageLabel: "Ø§Ù„Ø±Ø³Ø§Ù„Ø©", messagePH: "Ø§ÙƒØªØ¨ Ø±Ø³Ø§Ù„ØªÙƒØŒ Ù…Ø§ Ø§Ù„Ù…Ø´ÙƒÙ„Ø© Ø£Ùˆ Ø§Ù„Ù‡Ø¯ÙØŒ ÙˆØ£ÙŠ ØªÙØ§ØµÙŠÙ„ Ù…Ø®ØªØµØ±Ø©.",
+        sendBtn: "Ø£Ø±Ø³Ù„ Ø§Ù„Ø±Ø³Ø§Ù„Ø©", privacy: "Ù„Ù† Ø£Ø³ØªØ®Ø¯Ù… Ø¨ÙŠØ§Ù†Ø§ØªÙƒ Ø¥Ù„Ø§ Ù„Ù„Ø±Ø¯. ÙŠÙ…ÙƒÙ†Ùƒ Ø·Ù„Ø¨ Ø§Ù„Ø­Ø°Ù Ø¨Ø£ÙŠ ÙˆÙ‚Øª.",
+        reviewsTitle: "Ø¢Ø±Ø§Ø¡ ÙˆØªØ¹Ù„ÙŠÙ‚Ø§Øª",
+        reviewsSub: "ØªØ¹Ù„ÙŠÙ‚Ø§Øª Ø£Ø­Ø¨ Ø£Ø³ØªÙ‚Ø¨Ù„ Ù…Ø«Ù„Ù‡Ø§.",
     },
     en: {
-        eyebrow: "Collaboration · Consultation · Direct Contact",
+        eyebrow: "Collaboration Â· Consultation Â· Direct Contact",
         heroTitle: "Let's work together",
         heroSpan: "We'll create something real",
-        heroLead: "Whether you're a business owner, a company, or just someone with a small idea… if you need someone who understands logistics, planning, operation organisation, or simplifying your idea into something practical – message me.",
+        heroLead: "Whether you're a business owner, a company, or just someone with a small ideaâ€¦ if you need someone who understands logistics, planning, operation organisation, or simplifying your idea into something practical â€“ message me.",
         chips: ["Logistics consultations", "Website design", "Content collaboration"],
         contactTitle: "Contact methods",
-        contactSub: "Choose the method that suits you best — they all reach me directly",
+        contactSub: "Choose the method that suits you best â€” they all reach me directly",
         formTitle: "Professional Contact Form",
-        formBadge: "Glass form · Ready",
+        formBadge: "Glass form Â· Ready",
         formSub: "Want to organise your project, launch a product, or need a simple elegant website? Send the details and choose the ready options.",
         topics: ["Logistics organisation", "Website or landing page", "Content collaboration", "Quick consultation"],
         nameLabel: "Full name", namePH: "Your full name",
@@ -98,7 +97,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
 
     return (
         <div className="contact-page-full" dir={dir}>
-            {/* ─── HERO ─── */}
+            {/* â”€â”€â”€ HERO â”€â”€â”€ */}
             <section className="contact-hero-section">
                 <div className="container contact-hero-grid">
                     <article className="contact-hero-content reveal-item">
@@ -122,7 +121,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
                 </div>
             </section>
 
-            {/* ─── CONTACT METHODS ─── */}
+            {/* â”€â”€â”€ CONTACT METHODS â”€â”€â”€ */}
             <section className="contact-methods-section">
                 <div className="container">
                     <div className="section-header-full">
@@ -140,7 +139,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
                 </div>
             </section>
 
-            {/* ─── FORM ─── */}
+            {/* â”€â”€â”€ FORM â”€â”€â”€ */}
             <section className="contact-form-section">
                 <div className="container">
                     <div className="contact-form-shell glass">
@@ -214,7 +213,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
                 </div>
             </section>
 
-            {/* ─── REVIEWS ─── */}
+            {/* â”€â”€â”€ REVIEWS â”€â”€â”€ */}
             <section className="contact-reviews-section">
                 <div className="container">
                     <div className="section-header-full">
@@ -225,7 +224,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
                         {reviews.map((r, i) => (
                             <article key={i} className="contact-review-card glass reveal-item">
                                 <p className="review-meta">{r.meta}</p>
-                                <p className="review-text">"{r.text}"</p>
+                                <p className="review-text">&quot;{r.text}&quot;</p>
                             </article>
                         ))}
                     </div>
@@ -234,3 +233,4 @@ export function ContactPage({ locale }: { locale: Locale }) {
         </div>
     );
 }
+

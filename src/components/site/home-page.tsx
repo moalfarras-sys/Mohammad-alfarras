@@ -100,7 +100,7 @@ const galleryImages = [
     "/images/33.jpeg", "/images/44.jpeg", "/images/77.jpeg", "/images/88.jpeg",
 ];
 
-const particles = Array.from({ length: 12 }, (_, i) => ({
+const particles = Array.from({ length: 12 }, () => ({
     size: 4 + Math.random() * 8,
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -320,4 +320,5 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
         </div>
     );
 }
+
 

@@ -26,14 +26,12 @@ export function Navbar({ locale, nav }: { locale: Locale; nav: NavItem[] }) {
   const info = flagMap[locale];
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currentPath, setCurrentPath] = useState("");
+  const [currentPath] = useState(() => (typeof window !== "undefined" ? window.location.pathname : ""));
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    setCurrentPath(window.location.pathname);
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -96,3 +94,4 @@ export function Navbar({ locale, nav }: { locale: Locale; nav: NavItem[] }) {
     </header>
   );
 }
+

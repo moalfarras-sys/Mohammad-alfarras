@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -16,64 +16,64 @@ const socialLinks = {
 
 const content = {
     ar: {
-        kicker: "مرحباً، أنا",
-        name: "محمد الفراس",
-        heroTitle: "خبير منتجات تقنية\nومنسق لوجستي",
-        heroBody: "من الحسكة — عبر أوروبا إلى شاشتك. أشتغل في اللوجستيك بألمانيا وأتخصص بمراجعة المنتجات التقنية على يوتيوب بأمانة بدون مبالغة.",
-        taglines: ["162 فيديو تقني 🎬", "6,060 مشترك 📺", "مراجعات صادقة 💯", "لوجستي محترف 🚛", "محتوى من ألمانيا 🇩🇪"],
-        ctaPrimary: "تواصل معي",
-        ctaSecondary: "شاهد القناة",
-        ctaCV: "السيرة الذاتية",
-        pillsTitle: "مجالات العمل",
-        pills: ["📦 مراجعات تقنية", "🚛 لوجستيك وشحن", "🧠 محتوى تعليمي", "📱 أجهزة ذكية", "🔧 مشاريع DIY", "🌍 خبرة أوروبية"],
-        galleryTitle: "من يومياتي",
-        gallerySub: "صور حقيقية من عملي وحياتي",
-        skillsTitle: "ما أقدمه",
-        skillsSub: "مهارات حقيقية مبنية على تجربة فعلية",
+        kicker: "Ù…Ø±Ø­Ø¨Ø§Ù‹ØŒ Ø£Ù†Ø§",
+        name: "Ù…Ø­Ù…Ø¯ Ø§Ù„ÙØ±Ø§Ø³",
+        heroTitle: "Ø®Ø¨ÙŠØ± Ù…Ù†ØªØ¬Ø§Øª ØªÙ‚Ù†ÙŠØ©\nÙˆÙ…Ù†Ø³Ù‚ Ù„ÙˆØ¬Ø³ØªÙŠ",
+        heroBody: "Ù…Ù† Ø§Ù„Ø­Ø³ÙƒØ© â€” Ø¹Ø¨Ø± Ø£ÙˆØ±ÙˆØ¨Ø§ Ø¥Ù„Ù‰ Ø´Ø§Ø´ØªÙƒ. Ø£Ø´ØªØºÙ„ ÙÙŠ Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠÙƒ Ø¨Ø£Ù„Ù…Ø§Ù†ÙŠØ§ ÙˆØ£ØªØ®ØµØµ Ø¨Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ØªÙ‚Ù†ÙŠØ© Ø¹Ù„Ù‰ ÙŠÙˆØªÙŠÙˆØ¨ Ø¨Ø£Ù…Ø§Ù†Ø© Ø¨Ø¯ÙˆÙ† Ù…Ø¨Ø§Ù„ØºØ©.",
+        taglines: ["162 ÙÙŠØ¯ÙŠÙˆ ØªÙ‚Ù†ÙŠ ðŸŽ¬", "6,060 Ù…Ø´ØªØ±Ùƒ ðŸ“º", "Ù…Ø±Ø§Ø¬Ø¹Ø§Øª ØµØ§Ø¯Ù‚Ø© ðŸ’¯", "Ù„ÙˆØ¬Ø³ØªÙŠ Ù…Ø­ØªØ±Ù ðŸš›", "Ù…Ø­ØªÙˆÙ‰ Ù…Ù† Ø£Ù„Ù…Ø§Ù†ÙŠØ§ ðŸ‡©ðŸ‡ª"],
+        ctaPrimary: "ØªÙˆØ§ØµÙ„ Ù…Ø¹ÙŠ",
+        ctaSecondary: "Ø´Ø§Ù‡Ø¯ Ø§Ù„Ù‚Ù†Ø§Ø©",
+        ctaCV: "Ø§Ù„Ø³ÙŠØ±Ø© Ø§Ù„Ø°Ø§ØªÙŠØ©",
+        pillsTitle: "Ù…Ø¬Ø§Ù„Ø§Øª Ø§Ù„Ø¹Ù…Ù„",
+        pills: ["ðŸ“¦ Ù…Ø±Ø§Ø¬Ø¹Ø§Øª ØªÙ‚Ù†ÙŠØ©", "ðŸš› Ù„ÙˆØ¬Ø³ØªÙŠÙƒ ÙˆØ´Ø­Ù†", "ðŸ§  Ù…Ø­ØªÙˆÙ‰ ØªØ¹Ù„ÙŠÙ…ÙŠ", "ðŸ“± Ø£Ø¬Ù‡Ø²Ø© Ø°ÙƒÙŠØ©", "ðŸ”§ Ù…Ø´Ø§Ø±ÙŠØ¹ DIY", "ðŸŒ Ø®Ø¨Ø±Ø© Ø£ÙˆØ±ÙˆØ¨ÙŠØ©"],
+        galleryTitle: "Ù…Ù† ÙŠÙˆÙ…ÙŠØ§ØªÙŠ",
+        gallerySub: "ØµÙˆØ± Ø­Ù‚ÙŠÙ‚ÙŠØ© Ù…Ù† Ø¹Ù…Ù„ÙŠ ÙˆØ­ÙŠØ§ØªÙŠ",
+        skillsTitle: "Ù…Ø§ Ø£Ù‚Ø¯Ù…Ù‡",
+        skillsSub: "Ù…Ù‡Ø§Ø±Ø§Øª Ø­Ù‚ÙŠÙ‚ÙŠØ© Ù…Ø¨Ù†ÙŠØ© Ø¹Ù„Ù‰ ØªØ¬Ø±Ø¨Ø© ÙØ¹Ù„ÙŠØ©",
         skills: [
-            { icon: "📦", title: "مراجعات تقنية", body: "162 مراجعة حقيقية لمنتجات تقنية بدون مبالغة. أختبر وأجرب وأشارك تجربتي الحقيقية.", tags: ["يوتيوب", "تقنية", "مراجعات"] },
-            { icon: "🚛", title: "لوجستيك وتخطيط", body: "خبرة في شركات Rhenus و IKEA بألمانيا. تنسيق الشحنات وإدارة السائقين والخدمات اللوجستية.", tags: ["Rhenus", "IKEA", "لوجستيك"] },
-            { icon: "💻", title: "ويب وخدمات رقمية", body: "تصميم وتطوير مواقع احترافية. حلول رقمية لأصحاب الأعمال.", tags: ["ويب", "رقمي", "تطوير"] },
-            { icon: "🤝", title: "تعاون وشراكات", body: "منفتح للتعاون مع الشركات والعلامات التجارية. تواصل API معي لشراكات مثمرة.", tags: ["شراكة", "علامات", "تعاون"] },
+            { icon: "ðŸ“¦", title: "Ù…Ø±Ø§Ø¬Ø¹Ø§Øª ØªÙ‚Ù†ÙŠØ©", body: "162 Ù…Ø±Ø§Ø¬Ø¹Ø© Ø­Ù‚ÙŠÙ‚ÙŠØ© Ù„Ù…Ù†ØªØ¬Ø§Øª ØªÙ‚Ù†ÙŠØ© Ø¨Ø¯ÙˆÙ† Ù…Ø¨Ø§Ù„ØºØ©. Ø£Ø®ØªØ¨Ø± ÙˆØ£Ø¬Ø±Ø¨ ÙˆØ£Ø´Ø§Ø±Ùƒ ØªØ¬Ø±Ø¨ØªÙŠ Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠØ©.", tags: ["ÙŠÙˆØªÙŠÙˆØ¨", "ØªÙ‚Ù†ÙŠØ©", "Ù…Ø±Ø§Ø¬Ø¹Ø§Øª"] },
+            { icon: "ðŸš›", title: "Ù„ÙˆØ¬Ø³ØªÙŠÙƒ ÙˆØªØ®Ø·ÙŠØ·", body: "Ø®Ø¨Ø±Ø© ÙÙŠ Ø´Ø±ÙƒØ§Øª Rhenus Ùˆ IKEA Ø¨Ø£Ù„Ù…Ø§Ù†ÙŠØ§. ØªÙ†Ø³ÙŠÙ‚ Ø§Ù„Ø´Ø­Ù†Ø§Øª ÙˆØ¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø³Ø§Ø¦Ù‚ÙŠÙ† ÙˆØ§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠØ©.", tags: ["Rhenus", "IKEA", "Ù„ÙˆØ¬Ø³ØªÙŠÙƒ"] },
+            { icon: "ðŸ’»", title: "ÙˆÙŠØ¨ ÙˆØ®Ø¯Ù…Ø§Øª Ø±Ù‚Ù…ÙŠØ©", body: "ØªØµÙ…ÙŠÙ… ÙˆØªØ·ÙˆÙŠØ± Ù…ÙˆØ§Ù‚Ø¹ Ø§Ø­ØªØ±Ø§ÙÙŠØ©. Ø­Ù„ÙˆÙ„ Ø±Ù‚Ù…ÙŠØ© Ù„Ø£ØµØ­Ø§Ø¨ Ø§Ù„Ø£Ø¹Ù…Ø§Ù„.", tags: ["ÙˆÙŠØ¨", "Ø±Ù‚Ù…ÙŠ", "ØªØ·ÙˆÙŠØ±"] },
+            { icon: "ðŸ¤", title: "ØªØ¹Ø§ÙˆÙ† ÙˆØ´Ø±Ø§ÙƒØ§Øª", body: "Ù…Ù†ÙØªØ­ Ù„Ù„ØªØ¹Ø§ÙˆÙ† Ù…Ø¹ Ø§Ù„Ø´Ø±ÙƒØ§Øª ÙˆØ§Ù„Ø¹Ù„Ø§Ù…Ø§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©. ØªÙˆØ§ØµÙ„ API Ù…Ø¹ÙŠ Ù„Ø´Ø±Ø§ÙƒØ§Øª Ù…Ø«Ù…Ø±Ø©.", tags: ["Ø´Ø±Ø§ÙƒØ©", "Ø¹Ù„Ø§Ù…Ø§Øª", "ØªØ¹Ø§ÙˆÙ†"] },
         ],
-        servicesTitle: "الخدمات",
-        servicesSub: "ما أقدمه لك أو لشركتك",
+        servicesTitle: "Ø§Ù„Ø®Ø¯Ù…Ø§Øª",
+        servicesSub: "Ù…Ø§ Ø£Ù‚Ø¯Ù…Ù‡ Ù„Ùƒ Ø£Ùˆ Ù„Ø´Ø±ÙƒØªÙƒ",
         services: [
-            { title: "مراجعة منتجات تقنية", body: "مراجعة منتجك على قناتي بأمانة ومهنية", chips: ["يوتيوب", "6K+ متابع"] },
-            { title: "استشارة لوجستية", body: "استشارات في التخطيط اللوجستي وإدارة الشحنات", chips: ["شحن", "تخطيط"] },
-            { title: "تطوير موقع إلكتروني", body: "تصميم وبرمجة موقعك الاحترافي", chips: ["Next.js", "React"] },
+            { title: "Ù…Ø±Ø§Ø¬Ø¹Ø© Ù…Ù†ØªØ¬Ø§Øª ØªÙ‚Ù†ÙŠØ©", body: "Ù…Ø±Ø§Ø¬Ø¹Ø© Ù…Ù†ØªØ¬Ùƒ Ø¹Ù„Ù‰ Ù‚Ù†Ø§ØªÙŠ Ø¨Ø£Ù…Ø§Ù†Ø© ÙˆÙ…Ù‡Ù†ÙŠØ©", chips: ["ÙŠÙˆØªÙŠÙˆØ¨", "6K+ Ù…ØªØ§Ø¨Ø¹"] },
+            { title: "Ø§Ø³ØªØ´Ø§Ø±Ø© Ù„ÙˆØ¬Ø³ØªÙŠØ©", body: "Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙÙŠ Ø§Ù„ØªØ®Ø·ÙŠØ· Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠ ÙˆØ¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø´Ø­Ù†Ø§Øª", chips: ["Ø´Ø­Ù†", "ØªØ®Ø·ÙŠØ·"] },
+            { title: "ØªØ·ÙˆÙŠØ± Ù…ÙˆÙ‚Ø¹ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ", body: "ØªØµÙ…ÙŠÙ… ÙˆØ¨Ø±Ù…Ø¬Ø© Ù…ÙˆÙ‚Ø¹Ùƒ Ø§Ù„Ø§Ø­ØªØ±Ø§ÙÙŠ", chips: ["Next.js", "React"] },
         ],
-        faqTitle: "أسئلة شائعة",
+        faqTitle: "Ø£Ø³Ø¦Ù„Ø© Ø´Ø§Ø¦Ø¹Ø©",
         faqItems: [
-            { q: "ما هي مجالات تخصصك؟", a: "أتخصص في مراجعة المنتجات التقنية على يوتيوب، واللوجستيك بألمانيا، وتطوير الويب. خبرة عملية في Rhenus وIKEA ألمانيا." },
-            { q: "كيف يمكن التعاون معك؟", a: "يمكنك التواصل عبر WhatsApp أو البريد الإلكتروني. منفتح لمراجعات المنتجات، شراكات المحتوى، والاستشارات اللوجستية." },
-            { q: "ما هو محتوى قناتك على يوتيوب؟", a: "162 فيديو مراجعة لمنتجات تقنية متنوعة — سماعات، مكانس، شاشات، أجهزة صوت، ومزيد. 6,060 مشترك ومستمرون." },
-            { q: "في أي دولة أنت مقيم؟", a: "أقيم في ألمانيا وأعمل في شركات لوجستية ألمانية مع استمراري بنشر محتوى تقني باللغة العربية." },
-            { q: "هل تقدم استشارات مدفوعة؟", a: "نعم، أقدم استشارات في اللوجستيك وتطوير الويب. تواصل معي للتفاصيل." },
+            { q: "Ù…Ø§ Ù‡ÙŠ Ù…Ø¬Ø§Ù„Ø§Øª ØªØ®ØµØµÙƒØŸ", a: "Ø£ØªØ®ØµØµ ÙÙŠ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ØªÙ‚Ù†ÙŠØ© Ø¹Ù„Ù‰ ÙŠÙˆØªÙŠÙˆØ¨ØŒ ÙˆØ§Ù„Ù„ÙˆØ¬Ø³ØªÙŠÙƒ Ø¨Ø£Ù„Ù…Ø§Ù†ÙŠØ§ØŒ ÙˆØªØ·ÙˆÙŠØ± Ø§Ù„ÙˆÙŠØ¨. Ø®Ø¨Ø±Ø© Ø¹Ù…Ù„ÙŠØ© ÙÙŠ Rhenus ÙˆIKEA Ø£Ù„Ù…Ø§Ù†ÙŠØ§." },
+            { q: "ÙƒÙŠÙ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ¹Ø§ÙˆÙ† Ù…Ø¹ÙƒØŸ", a: "ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„ØªÙˆØ§ØµÙ„ Ø¹Ø¨Ø± WhatsApp Ø£Ùˆ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ. Ù…Ù†ÙØªØ­ Ù„Ù…Ø±Ø§Ø¬Ø¹Ø§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§ØªØŒ Ø´Ø±Ø§ÙƒØ§Øª Ø§Ù„Ù…Ø­ØªÙˆÙ‰ØŒ ÙˆØ§Ù„Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠØ©." },
+            { q: "Ù…Ø§ Ù‡Ùˆ Ù…Ø­ØªÙˆÙ‰ Ù‚Ù†Ø§ØªÙƒ Ø¹Ù„Ù‰ ÙŠÙˆØªÙŠÙˆØ¨ØŸ", a: "162 ÙÙŠØ¯ÙŠÙˆ Ù…Ø±Ø§Ø¬Ø¹Ø© Ù„Ù…Ù†ØªØ¬Ø§Øª ØªÙ‚Ù†ÙŠØ© Ù…ØªÙ†ÙˆØ¹Ø© â€” Ø³Ù…Ø§Ø¹Ø§ØªØŒ Ù…ÙƒØ§Ù†Ø³ØŒ Ø´Ø§Ø´Ø§ØªØŒ Ø£Ø¬Ù‡Ø²Ø© ØµÙˆØªØŒ ÙˆÙ…Ø²ÙŠØ¯. 6,060 Ù…Ø´ØªØ±Ùƒ ÙˆÙ…Ø³ØªÙ…Ø±ÙˆÙ†." },
+            { q: "ÙÙŠ Ø£ÙŠ Ø¯ÙˆÙ„Ø© Ø£Ù†Øª Ù…Ù‚ÙŠÙ…ØŸ", a: "Ø£Ù‚ÙŠÙ… ÙÙŠ Ø£Ù„Ù…Ø§Ù†ÙŠØ§ ÙˆØ£Ø¹Ù…Ù„ ÙÙŠ Ø´Ø±ÙƒØ§Øª Ù„ÙˆØ¬Ø³ØªÙŠØ© Ø£Ù„Ù…Ø§Ù†ÙŠØ© Ù…Ø¹ Ø§Ø³ØªÙ…Ø±Ø§Ø±ÙŠ Ø¨Ù†Ø´Ø± Ù…Ø­ØªÙˆÙ‰ ØªÙ‚Ù†ÙŠ Ø¨Ø§Ù„Ù„ØºØ© Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©." },
+            { q: "Ù‡Ù„ ØªÙ‚Ø¯Ù… Ø§Ø³ØªØ´Ø§Ø±Ø§Øª Ù…Ø¯ÙÙˆØ¹Ø©ØŸ", a: "Ù†Ø¹Ù…ØŒ Ø£Ù‚Ø¯Ù… Ø§Ø³ØªØ´Ø§Ø±Ø§Øª ÙÙŠ Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠÙƒ ÙˆØªØ·ÙˆÙŠØ± Ø§Ù„ÙˆÙŠØ¨. ØªÙˆØ§ØµÙ„ Ù…Ø¹ÙŠ Ù„Ù„ØªÙØ§ØµÙŠÙ„." },
         ],
-        ctaTitle: "هل لديك فكرة أو مشروع؟",
-        ctaBody: "سواء كنت تريد مراجعة منتجك، شراكة في محتوى، أو تطوير موقع — أنا هنا.",
+        ctaTitle: "Ù‡Ù„ Ù„Ø¯ÙŠÙƒ ÙÙƒØ±Ø© Ø£Ùˆ Ù…Ø´Ø±ÙˆØ¹ØŸ",
+        ctaBody: "Ø³ÙˆØ§Ø¡ ÙƒÙ†Øª ØªØ±ÙŠØ¯ Ù…Ø±Ø§Ø¬Ø¹Ø© Ù…Ù†ØªØ¬ÙƒØŒ Ø´Ø±Ø§ÙƒØ© ÙÙŠ Ù…Ø­ØªÙˆÙ‰ØŒ Ø£Ùˆ ØªØ·ÙˆÙŠØ± Ù…ÙˆÙ‚Ø¹ â€” Ø£Ù†Ø§ Ù‡Ù†Ø§.",
     },
     en: {
         kicker: "Hi, I'm",
         name: "Mohammad Alfarras",
         heroTitle: "Tech Product Expert\n& Logistics Coordinator",
-        heroBody: "From Hasakah — through Europe to your screen. I work in logistics in Germany and specialize in honest tech product reviews on YouTube.",
-        taglines: ["162 Tech Videos 🎬", "6,060 Subscribers 📺", "Honest Reviews 💯", "Professional Logistics 🚛", "Content from Germany 🇩🇪"],
+        heroBody: "From Hasakah â€” through Europe to your screen. I work in logistics in Germany and specialize in honest tech product reviews on YouTube.",
+        taglines: ["162 Tech Videos ðŸŽ¬", "6,060 Subscribers ðŸ“º", "Honest Reviews ðŸ’¯", "Professional Logistics ðŸš›", "Content from Germany ðŸ‡©ðŸ‡ª"],
         ctaPrimary: "Contact Me",
         ctaSecondary: "Watch Channel",
         ctaCV: "My CV",
         pillsTitle: "Fields of work",
-        pills: ["📦 Tech Reviews", "🚛 Logistics", "🧠 Educational Content", "📱 Smart Devices", "🔧 DIY Projects", "🌍 European Experience"],
+        pills: ["ðŸ“¦ Tech Reviews", "ðŸš› Logistics", "ðŸ§  Educational Content", "ðŸ“± Smart Devices", "ðŸ”§ DIY Projects", "ðŸŒ European Experience"],
         galleryTitle: "My Daily Life",
         gallerySub: "Real photos from my work and life",
         skillsTitle: "What I Offer",
         skillsSub: "Real skills built on real experience",
         skills: [
-            { icon: "📦", title: "Tech Reviews", body: "162 honest tech product reviews. I test, try, and share my genuine experience — no exaggeration.", tags: ["YouTube", "Tech", "Reviews"] },
-            { icon: "🚛", title: "Logistics & Planning", body: "Experience at Rhenus and IKEA Germany. Coordinating shipments, driver management, and logistics services.", tags: ["Rhenus", "IKEA", "Logistics"] },
-            { icon: "💻", title: "Web & Digital Services", body: "Professional website design and development. Digital solutions for business owners.", tags: ["Web", "Digital", "Dev"] },
-            { icon: "🤝", title: "Collaboration", body: "Open for collaboration with companies and brands. Contact me for fruitful partnerships.", tags: ["Partnership", "Brands", "Collab"] },
+            { icon: "ðŸ“¦", title: "Tech Reviews", body: "162 honest tech product reviews. I test, try, and share my genuine experience â€” no exaggeration.", tags: ["YouTube", "Tech", "Reviews"] },
+            { icon: "ðŸš›", title: "Logistics & Planning", body: "Experience at Rhenus and IKEA Germany. Coordinating shipments, driver management, and logistics services.", tags: ["Rhenus", "IKEA", "Logistics"] },
+            { icon: "ðŸ’»", title: "Web & Digital Services", body: "Professional website design and development. Digital solutions for business owners.", tags: ["Web", "Digital", "Dev"] },
+            { icon: "ðŸ¤", title: "Collaboration", body: "Open for collaboration with companies and brands. Contact me for fruitful partnerships.", tags: ["Partnership", "Brands", "Collab"] },
         ],
         servicesTitle: "Services",
         servicesSub: "What I offer you or your company",
@@ -86,18 +86,18 @@ const content = {
         faqItems: [
             { q: "What are your areas of expertise?", a: "I specialize in YouTube tech product reviews, logistics in Germany, and web development. Real experience at Rhenus and IKEA Germany." },
             { q: "How can we collaborate?", a: "Contact me via WhatsApp or email. Open for product reviews, content partnerships, and logistics consulting." },
-            { q: "What's on your YouTube channel?", a: "162 videos reviewing diverse tech products — headphones, vacuums, screens, audio devices, and more. 6,060 subscribers and growing." },
+            { q: "What's on your YouTube channel?", a: "162 videos reviewing diverse tech products â€” headphones, vacuums, screens, audio devices, and more. 6,060 subscribers and growing." },
             { q: "Where are you based?", a: "I'm based in Germany, working for German logistics companies while continuing to publish Arabic tech content." },
             { q: "Do you offer paid consultations?", a: "Yes, I offer logistics and web development consultations. Contact me for details." },
         ],
         ctaTitle: "Have an idea or project?",
-        ctaBody: "Whether you want a product review, content partnership, or website development — I'm here.",
+        ctaBody: "Whether you want a product review, content partnership, or website development â€” I'm here.",
     },
 };
 
 const galleryImages = [
-    "/images/gallery-1.jpg", "/images/gallery-2.jpg", "/images/gallery-3.jpg", "/images/gallery-4.jpg",
-    "/images/gallery-5.jpg", "/images/gallery-6.jpg", "/images/gallery-7.jpg", "/images/gallery-8.jpg",
+    "/images/00.jpeg", "/images/000.jpeg", "/images/11.jpeg", "/images/22.jpeg",
+    "/images/33.jpeg", "/images/44.jpeg", "/images/77.jpeg", "/images/88.jpeg",
 ];
 
 const particles = Array.from({ length: 12 }, (_, i) => ({
@@ -145,7 +145,7 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                 ))}
             </div>
 
-            {/* ─── HERO ─── */}
+            {/* â”€â”€â”€ HERO â”€â”€â”€ */}
             <section className="home-hero">
                 <div className="home-hero-inner">
                     {/* Left */}
@@ -167,16 +167,16 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                         </div>
                         <div className="home-hero-actions">
                             <Link href={`/${locale}/contact`} className="btn primary">{tx.ctaPrimary}</Link>
-                            <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="btn secondary">▶ {tx.ctaSecondary}</a>
+                            <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="btn secondary">â–¶ {tx.ctaSecondary}</a>
                             <Link href={`/${locale}/cv`} className="btn ghost">{tx.ctaCV}</Link>
                         </div>
                         {/* Social quick row */}
                         <div style={{ display: "flex", gap: "0.6rem", marginTop: "1rem", flexWrap: "wrap" }}>
                             {[
-                                { emoji: "💬", href: socialLinks.whatsapp, label: "WhatsApp" },
-                                { emoji: "📷", href: socialLinks.instagram, label: "Instagram" },
-                                { emoji: "✈️", href: socialLinks.telegram, label: "Telegram" },
-                                { emoji: "💼", href: socialLinks.linkedin, label: "LinkedIn" },
+                                { emoji: "ðŸ’¬", href: socialLinks.whatsapp, label: "WhatsApp" },
+                                { emoji: "ðŸ“·", href: socialLinks.instagram, label: "Instagram" },
+                                { emoji: "âœˆï¸", href: socialLinks.telegram, label: "Telegram" },
+                                { emoji: "ðŸ’¼", href: socialLinks.linkedin, label: "LinkedIn" },
                             ].map((s) => (
                                 <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
                                     title={s.label}
@@ -187,7 +187,7 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                         </div>
                     </div>
 
-                    {/* Right — Portrait */}
+                    {/* Right â€” Portrait */}
                     <div className="home-hero-media reveal-item" data-delay="2">
                         <div className="portrait-container">
                             <div className="portrait-ring" />
@@ -198,17 +198,17 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                             </div>
                             {/* Floating Badges */}
                             <div className="portrait-floaters">
-                                <span className="portrait-badge badge-subs">📺 6,060 Subs</span>
-                                <span className="portrait-badge badge-vids">🎬 162 Videos</span>
-                                <span className="portrait-badge badge-views">👁 +100K Views</span>
+                                <span className="portrait-badge badge-subs">ðŸ“º 6,060 Subs</span>
+                                <span className="portrait-badge badge-vids">ðŸŽ¬ 162 Videos</span>
+                                <span className="portrait-badge badge-views">ðŸ‘ +100K Views</span>
                             </div>
                         </div>
-                        <p className="portrait-sig">Mohammad Alfarras — محمد الفراس</p>
+                        <p className="portrait-sig">Mohammad Alfarras â€” Ù…Ø­Ù…Ø¯ Ø§Ù„ÙØ±Ø§Ø³</p>
                     </div>
                 </div>
             </section>
 
-            {/* ─── PILLS ─── */}
+            {/* â”€â”€â”€ PILLS â”€â”€â”€ */}
             <section className="home-pills-section">
                 <div className="container">
                     <div className="home-pills-wrap">
@@ -219,29 +219,29 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                 </div>
             </section>
 
-            {/* ─── GALLERY ─── */}
+            {/* â”€â”€â”€ GALLERY â”€â”€â”€ */}
             <section className="home-gallery-section">
                 <div className="container">
                     <div className="section-header">
-                        <span className="section-kicker">📸 {tx.galleryTitle}</span>
+                        <span className="section-kicker">ðŸ“¸ {tx.galleryTitle}</span>
                         <h2 className="section-title">{tx.gallerySub}</h2>
                     </div>
                     <div className="home-gallery-grid">
                         {galleryImages.map((src, i) => (
                             <div key={src} className="home-gallery-item reveal-item" data-delay={String(i % 4)}>
                                 <Image src={src} alt={`Gallery ${i + 1}`} fill style={{ objectFit: "cover" }} loading="lazy" />
-                                <div className="home-gallery-overlay">🔍</div>
+                                <div className="home-gallery-overlay">ðŸ”</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* ─── SKILLS ─── */}
+            {/* â”€â”€â”€ SKILLS â”€â”€â”€ */}
             <section className="home-skills-section">
                 <div className="container">
                     <div className="section-header reveal-item">
-                        <span className="section-kicker">💡 {tx.skillsTitle}</span>
+                        <span className="section-kicker">ðŸ’¡ {tx.skillsTitle}</span>
                         <h2 className="section-title">{tx.skillsSub}</h2>
                     </div>
                     <div className="home-skills-grid">
@@ -259,18 +259,18 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                 </div>
             </section>
 
-            {/* ─── SERVICES ─── */}
+            {/* â”€â”€â”€ SERVICES â”€â”€â”€ */}
             <section className="home-services-section">
                 <div className="container">
                     <div className="section-header reveal-item">
-                        <span className="section-kicker">🛠️ {tx.servicesTitle}</span>
+                        <span className="section-kicker">ðŸ› ï¸ {tx.servicesTitle}</span>
                         <h2 className="section-title">{tx.servicesSub}</h2>
                     </div>
                     <div className="home-services-grid">
                         {tx.services.map((svc, i) => (
                             <div key={svc.title} className="home-service-card glass reveal-item" data-delay={String(i)}>
                                 <div className="home-service-img">
-                                    <Image src={i === 0 ? "/images/service-tech.png" : i === 1 ? "/images/service-logistics.png" : "/images/service-web.png"}
+                                    <Image src={i === 0 ? "/images/service_tech.png" : i === 1 ? "/images/service_logistics.png" : "/images/service_web.png"}
                                         alt={svc.title} fill style={{ objectFit: "cover" }} loading="lazy" />
                                 </div>
                                 <div className="home-service-body">
@@ -286,11 +286,11 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                 </div>
             </section>
 
-            {/* ─── FAQ ─── */}
+            {/* â”€â”€â”€ FAQ â”€â”€â”€ */}
             <section className="home-faq-section">
                 <div className="container">
                     <div className="section-header reveal-item">
-                        <span className="section-kicker">❓ {tx.faqTitle}</span>
+                        <span className="section-kicker">â“ {tx.faqTitle}</span>
                     </div>
                     <div className="home-faq-list">
                         {tx.faqItems.map((item) => (
@@ -303,16 +303,16 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
                 </div>
             </section>
 
-            {/* ─── CTA ─── */}
+            {/* â”€â”€â”€ CTA â”€â”€â”€ */}
             <section className="home-cta-section">
                 <div className="container">
                     <div className="home-cta-card glass reveal-item">
                         <h2 className="gradient-text">{tx.ctaTitle}</h2>
                         <p>{tx.ctaBody}</p>
                         <div className="home-cta-btns">
-                            <a href={socialLinks.whatsapp} target="_blank" rel="noreferrer" className="btn primary">💬 WhatsApp</a>
-                            <Link href={`/${locale}/contact`} className="btn secondary">✉️ {locale === "ar" ? "تواصل" : "Contact"}</Link>
-                            <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="btn ghost">▶ YouTube</a>
+                            <a href={socialLinks.whatsapp} target="_blank" rel="noreferrer" className="btn primary">ðŸ’¬ WhatsApp</a>
+                            <Link href={`/${locale}/contact`} className="btn secondary">âœ‰ï¸ {locale === "ar" ? "ØªÙˆØ§ØµÙ„" : "Contact"}</Link>
+                            <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="btn ghost">â–¶ YouTube</a>
                         </div>
                     </div>
                 </div>
@@ -320,3 +320,4 @@ export function HomePage({ locale }: { locale: "ar" | "en" }) {
         </div>
     );
 }
+

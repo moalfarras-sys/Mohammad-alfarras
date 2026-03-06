@@ -104,8 +104,9 @@
 }
 
 html[data-theme="light"] .glass {
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.93);
+    border-color: rgba(15, 118, 110, 0.28);
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.14);
 }
 
 html[data-theme="dark"] .glass {
@@ -175,6 +176,18 @@ html[data-theme="dark"] .glass {
 /* ─── HOME PAGE ─── */
 .home-page-full {
     overflow-x: hidden;
+}
+
+html[data-theme="light"] .home-page-full {
+    background:
+        radial-gradient(1200px 420px at 8% 10%, rgba(15, 118, 110, 0.14), transparent 60%),
+        radial-gradient(1000px 360px at 92% 20%, rgba(3, 105, 161, 0.12), transparent 60%),
+        radial-gradient(900px 340px at 50% 92%, rgba(245, 158, 11, 0.09), transparent 64%);
+}
+
+html[data-theme="light"] .section-title {
+    color: #0b1325;
+    text-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 /* Particles */
@@ -676,6 +689,15 @@ html[data-theme="dark"] .glass {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
 }
 
+html[data-theme="light"] .home-service-card,
+html[data-theme="light"] .home-skill-card,
+html[data-theme="light"] .home-faq-item,
+html[data-theme="light"] .home-cta-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 118, 110, 0.24);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+}
+
 .home-service-card:hover {
     transform: translateY(-7px);
     box-shadow: 0 20px 60px rgba(20, 184, 166, 0.2);
@@ -685,6 +707,7 @@ html[data-theme="dark"] .glass {
     height: 200px;
     overflow: hidden;
     position: relative;
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.2), rgba(3, 105, 161, 0.16));
 }
 
 .home-service-img img {
@@ -2086,6 +2109,23 @@ html[data-theme="dark"] .glass {
     margin-bottom: 2rem;
 }
 
+.yt-search-input {
+    min-width: 220px;
+    flex: 1 1 260px;
+    padding: 0.5rem 0.85rem;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--surface-glass);
+    color: var(--text);
+    font-size: 0.88rem;
+}
+
+.yt-search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
 .yt-filter-btn {
     padding: 0.4rem 1.1rem;
     border-radius: 50px;
@@ -2305,4 +2345,66 @@ html[data-theme="dark"] .glass {
     .yt-stat-divider {
         display: none;
     }
+}
+
+/* ─── FINAL VISUAL POLISH (GLOBAL CARD CONSISTENCY) ─── */
+html[data-theme="light"] .glass,
+html[data-theme="light"] .card,
+html[data-theme="light"] .home-service-card,
+html[data-theme="light"] .home-skill-card,
+html[data-theme="light"] .home-faq-item,
+html[data-theme="light"] .home-cta-card,
+html[data-theme="light"] .cv-svc-card,
+html[data-theme="light"] .contact-method-card,
+html[data-theme="light"] .yt-video-item {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 118, 110, 0.24);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .glass:hover,
+html[data-theme="light"] .card:hover,
+html[data-theme="light"] .home-service-card:hover,
+html[data-theme="light"] .home-skill-card:hover,
+html[data-theme="light"] .cv-svc-card:hover,
+html[data-theme="light"] .contact-method-card:hover,
+html[data-theme="light"] .yt-video-item:hover {
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.16);
+    border-color: rgba(15, 118, 110, 0.34) !important;
+}
+
+html[data-theme="dark"] .glass,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .home-service-card,
+html[data-theme="dark"] .home-skill-card,
+html[data-theme="dark"] .home-faq-item,
+html[data-theme="dark"] .home-cta-card,
+html[data-theme="dark"] .cv-svc-card,
+html[data-theme="dark"] .contact-method-card,
+html[data-theme="dark"] .yt-video-item {
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.46);
+}
+
+html[data-theme="light"] .site-nav {
+    background: rgba(255, 255, 255, 0.86);
+    border-bottom-color: rgba(15, 118, 110, 0.22);
+    box-shadow: 0 8px 26px rgba(15, 23, 42, 0.1);
+}
+
+/* Force premium cards style across entire site */
+html[data-theme="light"] :where(.glass, .card, [class*="card"], [class*="-card"]) {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(15, 118, 110, 0.24);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] :where(.glass, .card, [class*="card"], [class*="-card"]):hover {
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+    border-color: rgba(15, 118, 110, 0.36);
+}
+
+html[data-theme="dark"] :where(.glass, .card, [class*="card"], [class*="-card"]) {
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.48);
 }

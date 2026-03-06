@@ -147,6 +147,7 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
                 <select name="block_type" defaultValue="hero">
                   <option value="hero">hero</option>
                   <option value="feature-grid">feature-grid</option>
+                  <option value="media-gallery">media-gallery</option>
                   <option value="work-showcase">work-showcase</option>
                   <option value="experience-timeline">experience-timeline</option>
                   <option value="certifications-grid">certifications-grid</option>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
-import { HomePage } from "@/components/site/home-page";
+import { SitePage } from "@/components/site/page-view";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -13,5 +13,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function LocaleHome({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <HomePage locale={locale as "ar" | "en"} />;
+  return <SitePage locale={locale} slug="home" />;
 }
+

@@ -155,6 +155,17 @@ function portraitFromSnapshot(snapshot: CmsSnapshot, locale: Locale) {
   };
 }
 
+function getGalleryMedia(snapshot: CmsSnapshot, block: PageBlockView) {
+  const selectedIds = Array.isArray(block.content.items)
+    ? block.content.items.map((entry) => String(entry))
+    : [];
+  const selected = selectedIds.length
+    ? snapshot.media_assets.filter((asset) => selectedIds.includes(asset.id))
+    : snapshot.media_assets.filter((asset) => asset.path.startsWith("/images/"));
+
+  return selected.filter((asset) => !asset.path.endsWith(".svg"));
+}
+
 function renderItems(items: unknown[]) {
   if (!items.length) return null;
   return (
@@ -215,6 +226,33 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
 
   if (block.type === "work-showcase") {
     return <WorkShowcase locale={locale} projects={getProjectViews(snapshot, locale)} title={title} body={body} />;
+  }
+
+  if (block.type === "media-gallery") {
+    const media = getGalleryMedia(snapshot, block);
+    return (
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            {title ? <h2>{title}</h2> : null}
+            {body ? <p>{body}</p> : null}
+          </div>
+          <div className="media-gallery-grid">
+            {media.map((item, index) => (
+              <article className="media-gallery-card glass-card" key={item.id} style={{ animationDelay: `${index * 60}ms` }}>
+                <Image
+                  src={item.path}
+                  alt={locale === "ar" ? item.alt_ar : item.alt_en}
+                  width={item.width || 1200}
+                  height={item.height || 900}
+                  loading="lazy"
+                />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (block.type === "experience-timeline") {

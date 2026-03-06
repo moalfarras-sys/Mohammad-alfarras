@@ -5,20 +5,20 @@
 
 /* ─── DESIGN TOKENS ─── */
 :root {
-  --bg: #f4f7fb;
-  --surface: rgba(255, 255, 255, 0.85);
-  --surface-glass: rgba(255, 255, 255, 0.6);
-  --text: #0f172a;
-  --muted: #475569;
+  --bg: #f6fbff;
+  --surface: rgba(255, 255, 255, 0.97);
+  --surface-glass: rgba(255, 255, 255, 0.9);
+  --text: #0b1325;
+  --muted: #334155;
   --primary: #0f766e;
   --primary-glow: rgba(15, 118, 110, 0.4);
   --secondary: #0369a1;
   --accent: #f59e0b;
-  --border: rgba(15, 118, 110, 0.2);
-  --shadow: rgba(15, 23, 42, 0.12);
-  --orb1: rgba(15, 118, 110, 0.35);
-  --orb2: rgba(3, 105, 161, 0.3);
-  --orb3: rgba(245, 158, 11, 0.25);
+  --border: rgba(15, 118, 110, 0.34);
+  --shadow: rgba(15, 23, 42, 0.2);
+  --orb1: rgba(15, 118, 110, 0.3);
+  --orb2: rgba(3, 105, 161, 0.24);
+  --orb3: rgba(245, 158, 11, 0.2);
   --glass-blur: 20px;
   --radius-card: 20px;
   --radius-btn: 50px;
@@ -95,22 +95,35 @@ body {
     radial-gradient(ellipse 80% 60% at 10% 20%, var(--orb1) 0%, transparent 55%),
     radial-gradient(ellipse 70% 50% at 90% 80%, var(--orb2) 0%, transparent 50%),
     radial-gradient(ellipse 60% 60% at 50% 50%, var(--orb3) 0%, transparent 60%);
-  animation: floatOrbs 20s ease-in-out infinite alternate;
+  animation: floatOrbs 14s ease-in-out infinite alternate;
 }
 
 /* Mesh grid overlay */
 .app-shell::after {
   background-image:
-    linear-gradient(rgba(20, 184, 166, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(20, 184, 166, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(20, 184, 166, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.07) 1px, transparent 1px);
   background-size: 40px 40px;
+  animation: meshShift 18s linear infinite;
 }
 
 html[data-theme="light"] .app-shell::before {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(15, 118, 110, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 80%, rgba(3, 105, 161, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 60% at 50% 50%, rgba(245, 158, 11, 0.10) 0%, transparent 60%);
+    radial-gradient(ellipse 95% 70% at 6% 16%, rgba(15, 118, 110, 0.3) 0%, transparent 58%),
+    radial-gradient(ellipse 78% 58% at 92% 18%, rgba(3, 105, 161, 0.24) 0%, transparent 56%),
+    radial-gradient(ellipse 70% 62% at 84% 86%, rgba(245, 158, 11, 0.18) 0%, transparent 62%),
+    radial-gradient(ellipse 62% 52% at 26% 84%, rgba(14, 165, 233, 0.14) 0%, transparent 64%);
+  filter: saturate(1.2);
+  animation: floatOrbs 12s ease-in-out infinite alternate, auroraPulse 7s ease-in-out infinite;
+}
+
+html[data-theme="light"] .app-shell::after {
+  background-image:
+    linear-gradient(rgba(20, 184, 166, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.09) 1px, transparent 1px),
+    repeating-radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.06) 0 2px, transparent 2px 18px);
+  background-size: 36px 36px, 36px 36px, 280px 280px;
+  animation: meshShift 14s linear infinite, auroraDrift 22s ease-in-out infinite alternate;
 }
 
 @keyframes floatOrbs {
@@ -173,9 +186,51 @@ html[data-theme="light"] .app-shell::before {
 }
 
 html[data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.75);
-  border-color: rgba(15, 118, 110, 0.18);
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 118, 110, 0.3);
+  box-shadow: 0 12px 38px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+@keyframes meshShift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(-12px, -8px, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes auroraDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(10px, -8px, 0) scale(1.03);
+  }
+
+  100% {
+    transform: translate3d(-8px, 6px, 0) scale(1.01);
+  }
+}
+
+@keyframes auroraPulse {
+  0% {
+    opacity: 0.88;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.9;
+  }
 }
 
 html[data-theme="dark"] .glass {
@@ -687,6 +742,31 @@ html[data-theme="dark"] .card {
   box-shadow: 0 20px 50px var(--shadow);
 }
 
+/* ─── MEDIA GALLERY ─── */
+.media-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.9rem;
+}
+
+.media-gallery-card {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.media-gallery-card img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.media-gallery-card:hover img {
+  transform: scale(1.05);
+  filter: saturate(1.08);
+}
+
 /* ─── VIDEO GRID ─── */
 .video-grid {
   display: grid;
@@ -1086,5 +1166,51 @@ html[data-theme="dark"] .card {
 
   .section-title {
     font-size: 1.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell::before,
+  .app-shell::after {
+    animation: none !important;
+  }
+}
+/* Strong light-theme polish: animated backdrop + clear card depth */
+html[data-theme="light"] .app-shell::before {
+  background:
+    radial-gradient(900px 420px at 4% 10%, rgba(20, 184, 166, 0.34) 0%, rgba(20, 184, 166, 0.05) 46%, transparent 70%),
+    radial-gradient(860px 360px at 95% 8%, rgba(59, 130, 246, 0.28) 0%, rgba(59, 130, 246, 0.04) 48%, transparent 72%),
+    radial-gradient(820px 460px at 50% 96%, rgba(249, 115, 22, 0.2) 0%, rgba(249, 115, 22, 0.03) 52%, transparent 72%);
+  animation: floatOrbs 10s ease-in-out infinite alternate, auroraPulse 5s ease-in-out infinite;
+}
+
+html[data-theme="light"] .app-shell::after {
+  background-image:
+    linear-gradient(rgba(15, 118, 110, 0.11) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 118, 110, 0.11) 1px, transparent 1px),
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.12) 0 1px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.1) 0 1px, transparent 2px);
+  background-size: 34px 34px, 34px 34px, 220px 220px, 240px 240px;
+  animation: meshShift 12s linear infinite, auroraDrift 18s ease-in-out infinite alternate;
+}
+
+:where(.card, .glass-card, .glass, .home-service-card, .work-card, [class*="card"]) {
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.14);
+}
+
+html[data-theme="light"] :where(.card, .glass-card, .glass, .home-service-card, .work-card, [class*="card"]) {
+  border-color: rgba(15, 118, 110, 0.26);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+html[data-theme="light"] :where(.card, .glass-card, .glass, .home-service-card, .work-card, [class*="card"]):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(20, 184, 166, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="light"] .app-shell::before,
+  html[data-theme="light"] .app-shell::after {
+    animation: none !important;
   }
 }

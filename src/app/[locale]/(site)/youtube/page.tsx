@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
-import { YouTubePage } from "@/components/site/youtube-page";
+import { readVideos } from "@/lib/content/store";
+import { YouTubeHub } from "@/components/site/youtube-hub";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -13,5 +14,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function YouTubePageRoute({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <YouTubePage locale={locale as "ar" | "en"} />;
+  const videos = await readVideos();
+  return <YouTubeHub locale={locale as "ar" | "en"} videos={videos} />;
 }

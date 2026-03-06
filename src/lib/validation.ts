@@ -6,6 +6,7 @@ export const pageStatusSchema = z.enum(["draft", "published"]);
 export const blockTypeSchema = z.enum([
   "hero",
   "feature-grid",
+  "media-gallery",
   "work-showcase",
   "experience-timeline",
   "certifications-grid",

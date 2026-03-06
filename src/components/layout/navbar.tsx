@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
@@ -10,12 +10,16 @@ import { ThemeToggle } from "./theme-toggle";
 type NavItem = { id: string; slug: string; icon: string; label: string };
 
 const navIcons: Record<string, string> = {
-  home: "🏠", cv: "📄", blog: "✍️", youtube: "▶️", contact: "✉️",
+  home: "🏠",
+  cv: "📄",
+  blog: "✍️",
+  youtube: "▶️",
+  contact: "✉️",
 };
 
 const flagMap: Record<Locale, { flag: string; label: string; switchLabel: string; switchFlag: string; switchLocale: Locale }> = {
-  ar: { flag: "🇸🇾", label: "عربي", switchLabel: "English", switchFlag: "🇬🇧", switchLocale: "en" },
-  en: { flag: "🇬🇧", label: "English", switchLabel: "عربي", switchFlag: "🇸🇾", switchLocale: "ar" },
+  ar: { flag: "🇸🇾", label: "العربية", switchLabel: "English", switchFlag: "🇬🇧", switchLocale: "en" },
+  en: { flag: "🇬🇧", label: "English", switchLabel: "العربية", switchFlag: "🇸🇾", switchLocale: "ar" },
 };
 
 export function Navbar({ locale, nav }: { locale: Locale; nav: NavItem[] }) {
@@ -43,13 +47,11 @@ export function Navbar({ locale, nav }: { locale: Locale; nav: NavItem[] }) {
   return (
     <header className={`site-nav${scrolled ? " scrolled" : ""}`}>
       <div className="container nav-inner">
-        {/* Brand */}
         <Link href={withLocale(locale, "")} className="nav-brand">
           <Image src="/images/logo-unboxing.png" alt="Logo" width={36} height={36} className="nav-brand-logo" />
           <span>MOALFARRAS</span>
         </Link>
 
-        {/* Desktop Nav Links */}
         <nav className="nav-links" aria-label={locale === "ar" ? "التنقل الرئيسي" : "Main navigation"}>
           {nav.map((item) => {
             const href = withLocale(locale, item.slug);
@@ -63,27 +65,15 @@ export function Navbar({ locale, nav }: { locale: Locale; nav: NavItem[] }) {
           })}
         </nav>
 
-        {/* Controls */}
         <div className="nav-controls">
-          {/* Language Toggle with Flag */}
-          <Link
-            href={withLocale(info.switchLocale, "")}
-            className="lang-toggle"
-            aria-label={`Switch to ${info.switchLabel}`}
-          >
+          <Link href={withLocale(info.switchLocale, "")} className="lang-toggle" aria-label={`Switch to ${info.switchLabel}`}>
             <span className="lang-flag">{info.switchFlag}</span>
             <span>{info.switchLabel}</span>
           </Link>
 
-          {/* Theme Toggle */}
-          <ThemeToggle />
+          <ThemeToggle locale={locale} />
 
-          {/* Mobile Menu Button */}
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Menu"
-          >
+          <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
             <span className={`hamburger${menuOpen ? " open" : ""}`}>
               <span /><span /><span />
             </span>
@@ -91,17 +81,11 @@ export function Navbar({ locale, nav }: { locale: Locale; nav: NavItem[] }) {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
         <div className="mobile-nav glass" ref={menuRef}>
           <div className="container">
             {nav.map((item) => (
-              <Link
-                key={item.id}
-                href={withLocale(locale, item.slug)}
-                className="mobile-nav-link"
-                onClick={() => setMenuOpen(false)}
-              >
+              <Link key={item.id} href={withLocale(locale, item.slug)} className="mobile-nav-link" onClick={() => setMenuOpen(false)}>
                 <span>{navIcons[item.slug] || navIcons[item.id] || "•"}</span>
                 {item.label}
               </Link>

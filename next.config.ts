@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.ytimg.com",
       },
+      {
+        protocol: "https",
+        hostname: "ckefrnalgnbuaxsuufyx.supabase.co",
+      },
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],
@@ -23,7 +27,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; img-src 'self' https://i.ytimg.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://ckefrnalgnbuaxsuufyx.supabase.co; frame-src https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
+              "default-src 'self'; img-src 'self' https://i.ytimg.com https://ckefrnalgnbuaxsuufyx.supabase.co data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://ckefrnalgnbuaxsuufyx.supabase.co; frame-src https://www.youtube.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
           },
         ],
       },

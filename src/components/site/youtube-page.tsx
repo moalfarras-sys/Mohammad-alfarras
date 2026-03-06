@@ -4,17 +4,17 @@ import { useEffect } from "react";
 import Image from "next/image";
 
 const videos = [
-  { id: "QwG-5J9XQCg", ar: "اكتشف أفضل ستاند للسيارة من Volport", en: "Best Car Stand from Volport – Review", views: "283", duration: "3:26", cat: "review" },
-  { id: "SmaOMAsn4zY", ar: "Smart DEVIL Fan | مراوح مميزة ومفيدة", en: "Smart DEVIL Fan – Useful & Unique Fans", views: "133", duration: "3:01", cat: "review" },
-  { id: "H0nwbSawHF0", ar: "BYINTEK U4 | مراجعة بروجيكتور BYINTEK U4", en: "BYINTEK U4 Projector – Full Review", views: "2,780", duration: "8:39", cat: "review" },
-  { id: "CwFUXgMK01s", ar: "Syncwire | ثبّت هاتفك بأمان", en: "Syncwire – Secure Phone Holder", views: "91", duration: "3:29", cat: "unboxing" },
-  { id: "dvZviJfHxu8", ar: "Syncwire | أفضل ملحقات للسيارة Bluetooth 5.3", en: "Syncwire – Best Car Accessories Bluetooth 5.3", views: "1,392", duration: "3:56", cat: "unboxing" },
-  { id: "NuwnE1-cb6Q", ar: "Oule Smart Doorbell | جرس منزلي مميز", en: "Oule Smart Home Doorbell – Review", views: "182", duration: "3:57", cat: "smarthome" },
-  { id: "2jDmck7Sllo", ar: "Nilox J3 | تركيب دراجة كهربائية", en: "Nilox J3 – Electric Bike Assembly", views: "1,854", duration: "6:00", cat: "unboxing" },
-  { id: "wXnHC9JlBj8", ar: "Bissell Crosswave HF3 | تنظيف جاف ورطب", en: "Bissell Crosswave HF3 – Wet & Dry Cleaning", views: "20,019", duration: "9:19", cat: "review" },
-  { id: "LTI1cnmuom8", ar: "IFA Berlin 2023 | معرض برلين للتكنولوجيا", en: "IFA Berlin 2023 – Tech Exhibition", views: "944", duration: "10:11", cat: "event" },
-  { id: "QcF_eKcPQAM", ar: "Tranya Nova | سماعات مريحة مع عزل ضوضاء", en: "Tranya Nova – Comfortable Noise Cancelling Earbuds", views: "644", duration: "13:01", cat: "review" },
-  { id: "McHuaqgwdG4", ar: "Amazon Alexa Echo Dot 4th Gen | كل ما تحتاج معرفته", en: "Amazon Alexa Echo Dot 4th Gen – Full Guide", views: "77,904", duration: "12:00", cat: "review" },
+  { id: "QwG-5J9XQCg", ar: "اكتشف أفضل ستاند للسيارة من Volport", en: "Best Car Stand from Volport - Review", views: "283", duration: "3:26", cat: "review" },
+  { id: "SmaOMAsn4zY", ar: "Smart DEVIL Fan | مراوح مميزة ومفيدة", en: "Smart DEVIL Fan - Useful & Unique Fans", views: "133", duration: "3:01", cat: "review" },
+  { id: "H0nwbSawHF0", ar: "BYINTEK U4 | مراجعة بروجيكتور BYINTEK U4", en: "BYINTEK U4 Projector - Full Review", views: "2,780", duration: "8:39", cat: "review" },
+  { id: "CwFUXgMK01s", ar: "Syncwire | تثبيت هاتف آمن", en: "Syncwire - Secure Phone Holder", views: "91", duration: "3:29", cat: "unboxing" },
+  { id: "dvZviJfHxu8", ar: "Syncwire | ملحقات سيارة Bluetooth 5.3", en: "Syncwire - Best Car Accessories Bluetooth 5.3", views: "1,392", duration: "3:56", cat: "unboxing" },
+  { id: "NuwnE1-cb6Q", ar: "Oule Smart Doorbell | جرس منزلي ذكي", en: "Oule Smart Home Doorbell - Review", views: "182", duration: "3:57", cat: "smarthome" },
+  { id: "2jDmck7Sllo", ar: "Nilox J3 | تركيب دراجة كهربائية", en: "Nilox J3 - Electric Bike Assembly", views: "1,854", duration: "6:00", cat: "unboxing" },
+  { id: "wXnHC9JlBj8", ar: "Bissell Crosswave HF3 | تنظيف جاف ورطب", en: "Bissell Crosswave HF3 - Wet & Dry Cleaning", views: "20,019", duration: "9:19", cat: "review" },
+  { id: "LTI1cnmuom8", ar: "IFA Berlin 2023 | معرض برلين للتكنولوجيا", en: "IFA Berlin 2023 - Tech Exhibition", views: "944", duration: "10:11", cat: "event" },
+  { id: "QcF_eKcPQAM", ar: "Tranya Nova | سماعات مريحة مع عزل", en: "Tranya Nova - Comfortable Noise Cancelling Earbuds", views: "644", duration: "13:01", cat: "review" },
+  { id: "McHuaqgwdG4", ar: "Amazon Alexa Echo Dot 4th Gen | كل ما تحتاج معرفته", en: "Amazon Alexa Echo Dot 4th Gen - Full Guide", views: "77,904", duration: "12:00", cat: "review" },
   { id: "ZRPDkXiXEpw", ar: "فتح صندوق وتجربة أولية", en: "Unboxing & First Look", views: "18,900", duration: "7:40", cat: "unboxing" },
 ] as const;
 
@@ -28,7 +28,7 @@ const t = {
     kicker: "قناة يوتيوب",
     title: "محتوى تقني صادق",
     span: "من الصندوق إلى شاشتك",
-    sub: "162 فيديو · 6,060 مشترك · مراجعات بدون فلتر",
+    sub: "162 فيديو - 6,060 مشترك - مراجعات بدون فلتر",
     statsVids: "162 فيديو",
     statsSubs: "6,060 مشترك",
     statsViews: "+100 ألف مشاهدة",
@@ -44,7 +44,7 @@ const t = {
     kicker: "YouTube Channel",
     title: "Honest Tech Content",
     span: "From the box to your screen",
-    sub: "162 videos · 6,060 subscribers · No-filter reviews",
+    sub: "162 videos - 6,060 subscribers - No-filter reviews",
     statsVids: "162 Videos",
     statsSubs: "6,060 Subs",
     statsViews: "+100K Views",
@@ -133,7 +133,7 @@ export function YouTubePage({ locale }: { locale: "ar" | "en" }) {
               />
             </div>
             <div className="yt-featured-info">
-              <h2>{locale === "ar" ? "Amazon Alexa Echo Dot 4th Gen | كل ما تحتاج معرفته" : "Amazon Alexa Echo Dot 4th Gen – Full Guide"}</h2>
+              <h2>{locale === "ar" ? "Amazon Alexa Echo Dot 4th Gen | كل ما تحتاج معرفته" : "Amazon Alexa Echo Dot 4th Gen - Full Guide"}</h2>
               <div className="yt-video-meta">
                 <span>👁 77,904</span>
                 <span>⏱ 12:00</span>
@@ -153,7 +153,7 @@ export function YouTubePage({ locale }: { locale: "ar" | "en" }) {
             {Object.entries(catLabels).map(([key, label]) => (
               <button
                 key={key}
-                className="yt-filter-btn"
+                className={`yt-filter-btn ${key === "all" ? "active" : ""}`}
                 onClick={(e) => {
                   document.querySelectorAll(".yt-filter-btn").forEach((btn) => btn.classList.remove("active"));
                   (e.target as HTMLElement).classList.add("active");

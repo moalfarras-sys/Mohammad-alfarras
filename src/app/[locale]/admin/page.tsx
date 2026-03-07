@@ -29,9 +29,7 @@ export default async function AdminPage({
     return (
       <section className="page-section" style={{ minHeight: "100vh", display: "grid", placeItems: "center", position: "relative", zIndex: 10 }}>
         <div className="container" style={{ maxWidth: 440 }}>
-          <div className="admin-card" style={{ padding: "3.5rem 3rem", textAlign: "center", position: "relative" }}>
-            {/* Glowing Backdrop for Logo */}
-            <div style={{ position: "absolute", top: "3.5rem", left: "50%", transform: "translate(-50%, -50%)", width: "120px", height: "120px", background: "rgba(var(--primary-rgb), 0.3)", filter: "blur(40px)", borderRadius: "50%", zIndex: 0 }}></div>
+          <div className="admin-card" style={{ padding: "3.5rem 3rem", textAlign: "center" }}>
 
             <div
               style={{
@@ -45,9 +43,7 @@ export default async function AdminPage({
                 margin: "0 auto 2rem",
                 fontSize: "1.8rem",
                 fontWeight: 900,
-                boxShadow: "0 10px 30px rgba(var(--primary-rgb), 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.2)",
-                position: "relative",
-                zIndex: 1
+                boxShadow: "0 0 40px rgba(var(--primary-rgb), 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.2)"
               }}
             >
               M
@@ -56,7 +52,7 @@ export default async function AdminPage({
             <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem", fontWeight: 800, background: "linear-gradient(135deg, var(--text), var(--primary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               {loginTitle}
             </h1>
-            <p style={{ opacity: 0.7, marginBottom: "2.5rem", fontSize: "1.05rem" }}>
+            <p style={{ opacity: 0.7, marginBottom: "2.5rem", fontSize: "1.05rem", color: "var(--text)" }}>
               {locale === "ar" ? "لوحة إدارة المحتوى والتصميم والوسائط" : "Content, design, and media control center"}
             </p>
 

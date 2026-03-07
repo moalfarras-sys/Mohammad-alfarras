@@ -27,61 +27,69 @@ export default async function AdminPage({
         : "Set ADMIN_PASSWORD in the runtime environment before signing in.";
 
     return (
-      <section className="page-section" style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-        <div className="container" style={{ maxWidth: 460 }}>
-          <div className="admin-card glass revealed" style={{ padding: "3rem", textAlign: "center" }}>
+      <section className="page-section" style={{ minHeight: "100vh", display: "grid", placeItems: "center", position: "relative", zIndex: 10 }}>
+        <div className="container" style={{ maxWidth: 440 }}>
+          <div className="admin-card" style={{ padding: "3.5rem 3rem", textAlign: "center", position: "relative" }}>
+            {/* Glowing Backdrop for Logo */}
+            <div style={{ position: "absolute", top: "3.5rem", left: "50%", transform: "translate(-50%, -50%)", width: "120px", height: "120px", background: "rgba(var(--primary-rgb), 0.3)", filter: "blur(40px)", borderRadius: "50%", zIndex: 0 }}></div>
+
             <div
               style={{
-                width: 68,
-                height: 68,
-                borderRadius: 20,
+                width: 72,
+                height: 72,
+                borderRadius: 22,
                 background: "linear-gradient(135deg, var(--primary), var(--secondary))",
                 display: "grid",
                 placeItems: "center",
                 color: "white",
-                margin: "0 auto 1.75rem",
-                fontSize: "1.6rem",
+                margin: "0 auto 2rem",
+                fontSize: "1.8rem",
                 fontWeight: 900,
-                boxShadow: "0 18px 44px rgba(15, 118, 110, 0.28)",
+                boxShadow: "0 10px 30px rgba(var(--primary-rgb), 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.2)",
+                position: "relative",
+                zIndex: 1
               }}
             >
               M
             </div>
-            <h1 style={{ fontSize: "1.9rem", marginBottom: "0.5rem" }}>{loginTitle}</h1>
-            <p style={{ opacity: 0.72, marginBottom: "2rem" }}>
+
+            <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem", fontWeight: 800, background: "linear-gradient(135deg, var(--text), var(--primary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              {loginTitle}
+            </h1>
+            <p style={{ opacity: 0.7, marginBottom: "2.5rem", fontSize: "1.05rem" }}>
               {locale === "ar" ? "لوحة إدارة المحتوى والتصميم والوسائط" : "Content, design, and media control center"}
             </p>
 
             {!process.env.ADMIN_PASSWORD ? (
-              <p className="error-text" style={{ color: "#ef4444", marginBottom: "1rem" }}>
-                {envText}
-              </p>
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", padding: "1rem", borderRadius: "12px", marginBottom: "1.5rem" }}>
+                <p style={{ color: "#ef4444", margin: 0, fontSize: "0.9rem", fontWeight: 600 }}>{envText}</p>
+              </div>
             ) : null}
             {query.error ? (
-              <p className="error-text" style={{ color: "#ef4444", marginBottom: "1rem" }}>
-                {invalidText}
-              </p>
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", padding: "1rem", borderRadius: "12px", marginBottom: "1.5rem" }}>
+                <p style={{ color: "#ef4444", margin: 0, fontSize: "0.9rem", fontWeight: 600 }}>{invalidText}</p>
+              </div>
             ) : null}
             {query.unauthorized ? (
-              <p className="error-text" style={{ color: "#ef4444", marginBottom: "1rem" }}>
-                {requiredText}
-              </p>
+              <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.2)", padding: "1rem", borderRadius: "12px", marginBottom: "1.5rem" }}>
+                <p style={{ color: "#f59e0b", margin: 0, fontSize: "0.9rem", fontWeight: 600 }}>{requiredText}</p>
+              </div>
             ) : null}
 
             <form
               action={loginAdminAction}
-              className="admin-form"
-              style={{ display: "flex", flexDirection: "column", gap: "1.25rem", textAlign: "start" }}
+              className="galaxy-form"
+              style={{ textAlign: "start" }}
             >
-              <div className="admin-field">
-                <label>{emailLabel}</label>
-                <input name="email" type="email" autoComplete="username" defaultValue="mohammad.alfarras@gmail.com" required />
-              </div>
-              <div className="admin-field">
-                <label>{passwordLabel}</label>
-                <input name="password" type="password" autoComplete="current-password" required placeholder="••••••••" />
-              </div>
-              <button className="btn primary" type="submit" style={{ marginTop: "0.5rem", width: "100%" }}>
+              <label>
+                <span>{emailLabel}</span>
+                <input name="email" type="email" autoComplete="username" defaultValue="mohammad.alfarras@gmail.com" required style={{ padding: "1rem" }} />
+              </label>
+              <label>
+                <span>{passwordLabel}</span>
+                <input name="password" type="password" autoComplete="current-password" required placeholder="••••••••" style={{ padding: "1rem" }} />
+              </label>
+              <button className="btn primary" type="submit" style={{ marginTop: "1rem", width: "100%", padding: "1rem", fontSize: "1.05rem" }}>
                 {loginLabel}
               </button>
             </form>

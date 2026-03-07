@@ -179,6 +179,11 @@ function renderItems(items: unknown[]) {
   );
 }
 
+function isRenderableImage(path?: string | null) {
+  if (!path) return false;
+  return path.startsWith("/") || path.startsWith("https://");
+}
+
 export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockView; locale: Locale; snapshot: CmsSnapshot }) {
   if (!block.enabled) return null;
 
@@ -208,7 +213,7 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
               ) : null}
             </div>
 
-            {portrait ? (
+            {portrait && isRenderableImage(portrait.src) ? (
               <aside className="hero-portrait-card glass-card">
                 <div className="portrait-ring" />
                 <Image src={portrait.src} alt={portrait.alt} width={portrait.width} height={portrait.height} className="portrait-image" priority={false} />
@@ -238,7 +243,7 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
             {body ? <p>{body}</p> : null}
           </div>
           <div className="media-gallery-grid">
-            {media.map((item, index) => (
+            {media.filter((item) => isRenderableImage(item.path)).map((item, index) => (
               <article className="media-gallery-card glass-card" key={item.id} style={{ animationDelay: `${index * 60}ms` }}>
                 <Image
                   src={item.path}
@@ -322,7 +327,7 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
           <div className="cards-grid three-col">
             {services.map((item, index) => (
               <article className="card glass-card" key={item.id} style={{ animationDelay: `${index * 70}ms` }}>
-                {item.cover ? (
+                {item.cover && isRenderableImage(item.cover.path) ? (
                   <div className="work-media-wrap">
                     <Image
                       src={item.cover.path}

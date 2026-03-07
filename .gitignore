@@ -54,3 +54,8 @@ tsc_output.txt
 src/lib/_tmp.ts
 .vercel
 .env*.local
+
+# nested local workspace artifacts
+/app-next/.next/
+/app-next/node_modules/
+/app-next/src/lib/

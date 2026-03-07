@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -27,10 +27,10 @@ export function CookieConsent({ locale }: { locale: Locale }) {
   if (!visible) return null;
 
   return (
-    <div className="cookie-banner" role="dialog" aria-live="polite">
+    <div className="cookie-banner glass-card" role="dialog" aria-live="polite">
       <p>
         {locale === "ar"
-          ? "نستخدم ملفات تعريف الارتباط الضرورية لتحسين تجربتك. بالمتابعة أنت توافق على سياسة الخصوصية."
+          ? "نستخدم ملفات تعريف الارتباط الأساسية لتحسين التجربة. بالمتابعة أنت توافق على سياسة الخصوصية."
           : "We use essential cookies to improve your experience. By continuing, you agree to our privacy policy."}
       </p>
       <div className="cookie-actions">

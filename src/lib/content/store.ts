@@ -18,9 +18,316 @@ import type {
 import { defaultSnapshot } from "@/data/default-content";
 
 const mutableSnapshot: CmsSnapshot = structuredClone(defaultSnapshot);
+const YOUTUBE_PUBLIC_CHANNEL = {
+  channelId: "UCfQKyFnNaW026LVb5TGx87g",
+  handle: "@Moalfarras",
+  videosUrl: "https://www.youtube.com/@Moalfarras/videos?view=0&sort=dd&shelf_id=0&cbrd=1&ucbcb=1",
+};
+const PUBLIC_YOUTUBE_TTL_MS = 1000 * 60 * 30;
+
+let publicYoutubeCache: { loadedAt: number; videos: YoutubeVideo[] } | null = null;
+let publicYoutubePromise: Promise<YoutubeVideo[]> | null = null;
 
 function deepClone<T>(input: T): T {
   return structuredClone(input);
+}
+
+function textFromRuns(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return "";
+
+  const record = value as { simpleText?: string; runs?: Array<{ text?: string }> };
+  if (record.simpleText) return record.simpleText.trim();
+  if (Array.isArray(record.runs)) {
+    return record.runs
+      .map((item) => item.text ?? "")
+      .join("")
+      .trim();
+  }
+  return "";
+}
+
+function parseNumberText(value: string): number {
+  const normalized = value.toLowerCase().replace(/,/g, "").trim();
+  const match = normalized.match(/([\d.]+)\s*([kmb])?/);
+  if (!match) return 0;
+
+  const raw = Number(match[1] ?? 0);
+  if (!Number.isFinite(raw)) return 0;
+
+  switch (match[2]) {
+    case "k":
+      return Math.round(raw * 1_000);
+    case "m":
+      return Math.round(raw * 1_000_000);
+    case "b":
+      return Math.round(raw * 1_000_000_000);
+    default:
+      return Math.round(raw);
+  }
+}
+
+function relativeTimeToIso(label: string, index: number): string {
+  const now = new Date();
+  const normalized = label.toLowerCase().trim();
+  const match = normalized.match(/(\d+)\s+(minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)/);
+
+  if (!match) {
+    const fallback = new Date(now.getTime() - index * 86_400_000);
+    return fallback.toISOString();
+  }
+
+  const amount = Number(match[1] ?? 0);
+  const unit = match[2];
+  const fallback = new Date(now);
+
+  switch (unit) {
+    case "minute":
+    case "minutes":
+      fallback.setMinutes(fallback.getMinutes() - amount);
+      break;
+    case "hour":
+    case "hours":
+      fallback.setHours(fallback.getHours() - amount);
+      break;
+    case "day":
+    case "days":
+      fallback.setDate(fallback.getDate() - amount);
+      break;
+    case "week":
+    case "weeks":
+      fallback.setDate(fallback.getDate() - amount * 7);
+      break;
+    case "month":
+    case "months":
+      fallback.setMonth(fallback.getMonth() - amount);
+      break;
+    case "year":
+    case "years":
+      fallback.setFullYear(fallback.getFullYear() - amount);
+      break;
+    default:
+      fallback.setDate(fallback.getDate() - index);
+  }
+
+  fallback.setMinutes(fallback.getMinutes() - index);
+  return fallback.toISOString();
+}
+
+function parseYoutubeInitialData(html: string): unknown {
+  const match = html.match(/var ytInitialData = ([\s\S]*?);<\/script>/);
+  if (!match) return null;
+
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return null;
+  }
+}
+
+function getSelectedVideosTab(initialData: unknown): Record<string, unknown> | null {
+  if (!initialData || typeof initialData !== "object") return null;
+
+  const tabs = ((initialData as {
+    contents?: { twoColumnBrowseResultsRenderer?: { tabs?: Array<{ tabRenderer?: Record<string, unknown> }> } };
+  }).contents?.twoColumnBrowseResultsRenderer?.tabs ?? []) as Array<{ tabRenderer?: Record<string, unknown> }>;
+
+  const selected = tabs.find((entry) => Boolean(entry.tabRenderer?.selected))?.tabRenderer;
+  return selected?.content && typeof selected.content === "object" ? (selected.content as Record<string, unknown>) : null;
+}
+
+function extractVideoRenderersFromItems(items: unknown[]): {
+  renderers: Array<Record<string, unknown>>;
+  continuation: string | null;
+} {
+  const renderers: Array<Record<string, unknown>> = [];
+  let continuation: string | null = null;
+
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const record = item as {
+      richItemRenderer?: { content?: { videoRenderer?: Record<string, unknown> } };
+      continuationItemRenderer?: {
+        continuationEndpoint?: {
+          continuationCommand?: { token?: string };
+        };
+      };
+    };
+
+    const videoRenderer = record.richItemRenderer?.content?.videoRenderer;
+    if (videoRenderer) {
+      renderers.push(videoRenderer);
+    }
+
+    const token = record.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token;
+    if (token) {
+      continuation = token;
+    }
+  }
+
+  return { renderers, continuation };
+}
+
+function mapYoutubeRenderer(renderer: Record<string, unknown>, index: number): YoutubeVideo | null {
+  const videoId = typeof renderer.videoId === "string" ? renderer.videoId : "";
+  if (!videoId) return null;
+
+  const thumbnailList =
+    ((renderer.thumbnail as { thumbnails?: Array<{ url?: string }> } | undefined)?.thumbnails ?? []).filter(
+      (entry): entry is { url: string } => Boolean(entry?.url),
+    );
+  const title = textFromRuns(renderer.title);
+  const description = textFromRuns(renderer.descriptionSnippet);
+  const duration = textFromRuns(renderer.lengthText) || "00:00";
+  const views = parseNumberText(textFromRuns(renderer.shortViewCountText) || textFromRuns(renderer.viewCountText));
+  const publishedText = textFromRuns(renderer.publishedTimeText);
+
+  return {
+    id: `yt-${videoId}`,
+    youtube_id: videoId,
+    title_ar: title,
+    title_en: title,
+    description_ar: description,
+    description_en: description,
+    thumbnail: (thumbnailList.at(-1)?.url ?? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`).split("?")[0],
+    duration,
+    views,
+    published_at: relativeTimeToIso(publishedText, index),
+    sort_order: index + 1,
+    is_featured: index === 0,
+    is_active: true,
+  };
+}
+
+async function fetchYoutubePublicPage() {
+  const response = await fetch(YOUTUBE_PUBLIC_CHANNEL.videosUrl, {
+    cache: "no-store",
+    headers: {
+      "accept-language": "en-US,en;q=0.9",
+      "user-agent": "Mozilla/5.0",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`YouTube public page failed (${response.status})`);
+  }
+
+  const html = await response.text();
+  const initialData = parseYoutubeInitialData(html);
+  const content = getSelectedVideosTab(initialData);
+  const richGrid = (content as { richGridRenderer?: { contents?: unknown[] } } | null)?.richGridRenderer;
+  const items = richGrid?.contents ?? [];
+  const { renderers, continuation } = extractVideoRenderersFromItems(items);
+
+  return {
+    renderers,
+    continuation,
+    apiKey: html.match(/INNERTUBE_API_KEY":"([^"]+)"/)?.[1] ?? "",
+    clientVersion: html.match(/INNERTUBE_CLIENT_VERSION":"([^"]+)"/)?.[1] ?? "",
+    visitorData: html.match(/"visitorData":"([^"]+)"/)?.[1] ?? "",
+  };
+}
+
+async function fetchYoutubePublicContinuation(params: {
+  apiKey: string;
+  clientVersion: string;
+  continuation: string;
+  visitorData: string;
+}) {
+  const response = await fetch(`https://www.youtube.com/youtubei/v1/browse?key=${params.apiKey}`, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "content-type": "application/json",
+      "user-agent": "Mozilla/5.0",
+      "x-youtube-client-name": "1",
+      "x-youtube-client-version": params.clientVersion,
+    },
+    body: JSON.stringify({
+      context: {
+        client: {
+          clientName: "WEB",
+          clientVersion: params.clientVersion,
+          originalUrl: "https://www.youtube.com/@Moalfarras/videos",
+          visitorData: params.visitorData,
+        },
+      },
+      continuation: params.continuation,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`YouTube continuation failed (${response.status})`);
+  }
+
+  const payload = (await response.json()) as {
+    onResponseReceivedActions?: Array<{
+      appendContinuationItemsAction?: { continuationItems?: unknown[] };
+    }>;
+    onResponseReceivedEndpoints?: Array<{
+      appendContinuationItemsAction?: { continuationItems?: unknown[] };
+    }>;
+  };
+
+  const items =
+    payload.onResponseReceivedActions?.[0]?.appendContinuationItemsAction?.continuationItems ??
+    payload.onResponseReceivedEndpoints?.[0]?.appendContinuationItemsAction?.continuationItems ??
+    [];
+
+  return extractVideoRenderersFromItems(items);
+}
+
+async function readPublicYoutubeVideos(maxResults = 180): Promise<YoutubeVideo[]> {
+  const firstPage = await fetchYoutubePublicPage();
+  const allRenderers = [...firstPage.renderers];
+  let continuation = firstPage.continuation;
+
+  while (
+    continuation &&
+    firstPage.apiKey &&
+    firstPage.clientVersion &&
+    firstPage.visitorData &&
+    allRenderers.length < maxResults
+  ) {
+    const nextPage = await fetchYoutubePublicContinuation({
+      apiKey: firstPage.apiKey,
+      clientVersion: firstPage.clientVersion,
+      continuation,
+      visitorData: firstPage.visitorData,
+    });
+
+    if (!nextPage.renderers.length) {
+      break;
+    }
+
+    allRenderers.push(...nextPage.renderers);
+    continuation = nextPage.continuation;
+  }
+
+  return allRenderers
+    .slice(0, maxResults)
+    .map((renderer, index) => mapYoutubeRenderer(renderer, index))
+    .filter((video): video is YoutubeVideo => video !== null);
+}
+
+async function maybeReadPublicYoutubeVideos(maxResults = 180): Promise<YoutubeVideo[]> {
+  const now = Date.now();
+  if (publicYoutubeCache && now - publicYoutubeCache.loadedAt < PUBLIC_YOUTUBE_TTL_MS) {
+    return deepClone(publicYoutubeCache.videos);
+  }
+
+  if (!publicYoutubePromise) {
+    publicYoutubePromise = readPublicYoutubeVideos(maxResults)
+      .then((videos) => {
+        publicYoutubeCache = { loadedAt: Date.now(), videos };
+        return videos;
+      })
+      .finally(() => {
+        publicYoutubePromise = null;
+      });
+  }
+
+  return deepClone(await publicYoutubePromise);
 }
 
 async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
@@ -272,7 +579,171 @@ export async function updateThemeToken(mode: ThemeMode, tokenKey: string, value:
 
 export async function readVideos(): Promise<YoutubeVideo[]> {
   const snapshot = await readSnapshot();
-  return snapshot.youtube_videos.filter((entry) => entry.is_active).sort((a, b) => a.sort_order - b.sort_order);
+  const snapshotVideos = snapshot.youtube_videos
+    .filter((entry) => entry.is_active)
+    .sort((a, b) => a.sort_order - b.sort_order);
+
+  if (snapshotVideos.length >= 24) {
+    return snapshotVideos;
+  }
+
+  try {
+    const publicVideos = await maybeReadPublicYoutubeVideos(180);
+    if (publicVideos.length > snapshotVideos.length) {
+      mutableSnapshot.youtube_videos = publicVideos;
+      await upsertSiteSetting("youtube_sync", {
+        status: "public-fallback",
+        channel_id: YOUTUBE_PUBLIC_CHANNEL.channelId,
+        handle: YOUTUBE_PUBLIC_CHANNEL.handle,
+        synced_count: publicVideos.length,
+        last_sync: new Date().toISOString(),
+      });
+      return publicVideos;
+    }
+  } catch {
+    // Keep the local snapshot if the public fetch fails.
+  }
+
+  return snapshotVideos;
+}
+
+function parseIsoDurationToClock(value: string): string {
+  if (!value) return "00:00";
+  const match = value.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return "00:00";
+  const hours = Number(match[1] || 0);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+  const totalMinutes = hours * 60 + minutes;
+  return `${String(totalMinutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export async function upsertSiteSetting(key: string, value_json: Record<string, unknown>): Promise<void> {
+  const idx = mutableSnapshot.site_settings.findIndex((entry) => entry.key === key);
+  if (idx === -1) {
+    mutableSnapshot.site_settings.push({ key, value_json });
+  } else {
+    mutableSnapshot.site_settings[idx] = { key, value_json };
+  }
+
+  if (!hasSupabasePublicEnv()) return;
+  const supabase = createSupabaseDataClient();
+  await supabase.from("site_settings").upsert({ key, value_json }, { onConflict: "key" });
+}
+
+export async function syncYoutubeLatest(options?: { maxResults?: number; channelId?: string }): Promise<number> {
+  const apiKey = process.env.YOUTUBE_API_KEY || "";
+  const channelId = options?.channelId || process.env.YOUTUBE_CHANNEL_ID || "";
+  const maxResults = Math.max(1, Math.min(25, options?.maxResults ?? 12));
+
+  if (!apiKey || !channelId) {
+    const publicVideos = await maybeReadPublicYoutubeVideos(Math.max(60, options?.maxResults ?? 180));
+
+    for (const video of publicVideos) {
+      await upsertVideo(video);
+    }
+
+    await upsertSiteSetting("youtube_sync", {
+      status: "public-fallback",
+      channel_id: YOUTUBE_PUBLIC_CHANNEL.channelId,
+      handle: YOUTUBE_PUBLIC_CHANNEL.handle,
+      synced_count: publicVideos.length,
+      last_sync: new Date().toISOString(),
+    });
+
+    return publicVideos.length;
+  }
+
+  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+  searchUrl.searchParams.set("key", apiKey);
+  searchUrl.searchParams.set("channelId", channelId);
+  searchUrl.searchParams.set("part", "snippet");
+  searchUrl.searchParams.set("order", "date");
+  searchUrl.searchParams.set("type", "video");
+  searchUrl.searchParams.set("maxResults", String(maxResults));
+
+  const searchRes = await fetch(searchUrl.toString(), { cache: "no-store" });
+  if (!searchRes.ok) {
+    throw new Error(`YouTube search failed (${searchRes.status})`);
+  }
+
+  const searchJson = (await searchRes.json()) as {
+    items?: Array<{
+      id?: { videoId?: string };
+      snippet?: { title?: string; description?: string; publishedAt?: string; thumbnails?: { high?: { url?: string }; medium?: { url?: string } } };
+    }>;
+  };
+
+  const items = searchJson.items ?? [];
+  const videoIds = items.map((item) => item.id?.videoId).filter((id): id is string => Boolean(id));
+  if (!videoIds.length) return 0;
+
+  const detailsUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
+  detailsUrl.searchParams.set("key", apiKey);
+  detailsUrl.searchParams.set("part", "contentDetails,statistics");
+  detailsUrl.searchParams.set("id", videoIds.join(","));
+
+  const detailsRes = await fetch(detailsUrl.toString(), { cache: "no-store" });
+  if (!detailsRes.ok) {
+    throw new Error(`YouTube details failed (${detailsRes.status})`);
+  }
+
+  const detailsJson = (await detailsRes.json()) as {
+    items?: Array<{
+      id?: string;
+      contentDetails?: { duration?: string };
+      statistics?: { viewCount?: string };
+    }>;
+  };
+
+  const detailsMap = new Map<string, { duration: string; views: number }>();
+  for (const detail of detailsJson.items ?? []) {
+    const id = detail.id;
+    if (!id) continue;
+    detailsMap.set(id, {
+      duration: parseIsoDurationToClock(detail.contentDetails?.duration || "PT0M0S"),
+      views: Number(detail.statistics?.viewCount || 0),
+    });
+  }
+
+  let synced = 0;
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i];
+    const id = item.id?.videoId;
+    if (!id) continue;
+
+    const snippet = item.snippet || {};
+    const detail = detailsMap.get(id) ?? { duration: "00:00", views: 0 };
+    const title = snippet.title || id;
+    const description = snippet.description || "";
+    const thumbnail = snippet.thumbnails?.high?.url || snippet.thumbnails?.medium?.url || "";
+
+    await upsertVideo({
+      id: `yt-${id}`,
+      youtube_id: id,
+      title_ar: title,
+      title_en: title,
+      description_ar: description,
+      description_en: description,
+      thumbnail,
+      duration: detail.duration,
+      views: detail.views,
+      published_at: new Date(snippet.publishedAt || new Date().toISOString()).toISOString(),
+      sort_order: i + 1,
+      is_featured: i === 0,
+      is_active: true,
+    });
+    synced += 1;
+  }
+
+  await upsertSiteSetting("youtube_sync", {
+    status: "ok",
+    channel_id: channelId,
+    synced_count: synced,
+    last_sync: new Date().toISOString(),
+  });
+
+  return synced;
 }
 
 export async function upsertVideo(video: YoutubeVideo): Promise<void> {

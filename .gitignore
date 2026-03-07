@@ -44,6 +44,12 @@ next-env.d.ts
 coverage/
 test-results/
 playwright-report/
+build_err*.txt
+error.txt
+eslint_out.json
+lint_log.txt
+live_site.html
+tsc_output.txt
 
 src/lib/_tmp.ts
 .vercel

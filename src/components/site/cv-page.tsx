@@ -1,301 +1,223 @@
-"use client";
-
-import { useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import type { Locale } from "@/types/cms";
+import Link from "next/link";
 
-const content = {
-    ar: {
-        eyebrow: "من الحسكة – عبر أوروبا إلى الشاشات",
-        heroTitle: "محمد الفراس – سيرة ذاتية حيّة",
-        heroSub: "من اللوجستيات اليومية إلى صناعة المحتوى التقني، هذه الصفحة تحكي قصتي كما هي.",
-        heroIntro: "أعمل اليوم كـ Disponent في شركة Rhenus Home Delivery، أخطط رحلات التوصيل اليومية، أتابع السائقين، وأحل مشاكل الطريق والزبائن. وبنفس الوقت أصنع محتوى تقني صادق على يوتيوب: فتح صناديق، مراجعات منتجات، شروحات برامج، وتجارب منزل ذكي. أحب التنظيم، التفاصيل الصغيرة، والشفافية مع الناس – سواء في الشغل أو في المحتوى.",
-        floatIcons: ["🎥", "⚡", "🧭", "🛠️"],
-        timelineTitle: "رحلتي في العمل والحياة",
-        timelineSub: "خط زمني واضح يربط اللوجستيات بالمحتوى والخدمات الرقمية.",
-        timeline: [
-            { period: "2022 – الآن", tag: "اليوم", title: "Disponent · Rhenus Home Delivery", sub: "تخطيط مسارات IKEA، دعم السائقين، وتحليل الأداء اليومي", points: ["توزيع 30-40 رحلة يومياً مع توازن بين الزمن والتكلفة", "مراقبة السائقين لحظياً وحل مشكلات الطريق والزبائن", "تقارير قصيرة باستخدام TMS لتهدئة العمليات"] },
-            { period: "2019 – 2022", tag: "فِرق ومخازن", title: "منسق لوجستي · IKEA Deutschland", sub: "تنسيق نقل وتخزين الأثاث مع فريق متعدد الثقافات", points: ["تحسين جداول الشحن وتقليل زمن التسليم", "تدريب موظفين جدد على الأنظمة اللوجستية", "ضبط المخزون وتوثيق الطلبات اليومية"] },
-            { period: "2017 – الآن", tag: "محتوى", title: "صانع محتوى تقني صادق", sub: "159+ فيديو بثلاث لغات عن الأجهزة، البرمجيات، وتجارب الاستخدام", points: ["مصغرات وغرافيكس بنَفَس زجاجي يحافظ على الهوية", "اختبارات واقعية للأجهزة قبل أي مراجعة", "بناء مجتمع يهتم بالوضوح أكثر من الضجة"] },
-            { period: "2018 – الآن", tag: "خدمات", title: "خدمات رقمية للشركات الصغيرة", sub: "مواقع بسيطة، تنظيم بريد ومهام، وتحسين تدفق العمل", points: ["تصميم مواقع ثابتة وصفحات هبوط بواجهات صافية", "إعداد قوالب بريد وتنظيم عمليات الطلبات", "نصائح سريعة لتحويل الفوضى إلى خطوات واضحة"] },
-        ],
-        skillsTitle: "مهاراتي وأدواتي",
-        skills: [
-            { title: "تخطيط رحلات وتوزيع الطلبات", level: 90, badge: "مستوى متقدّم", highlight: true },
-            { title: "إدارة سائقين وتواصل مع العملاء", level: 88, badge: "مستوى متقدّم", highlight: true },
-            { title: "تحليل بيانات بسيطة وتقارير", level: 75, badge: "مستوى جيّد", highlight: false },
-            { title: "صناعة محتوى فيديو ومونتاج بسيط", level: 85, badge: "مستوى متقدّم", highlight: true },
-            { title: "تصميم مواقع بسيطة على الويب", level: 70, badge: "مستوى جيّد", highlight: false },
-            { title: "تنظيم عمل الشركات الصغيرة", level: 92, badge: "مستوى متقدّم", highlight: true },
-        ],
-        toolsTitle: "الأدوات والتقنيات",
-        toolsHead: "شريط البرامج اليومية",
-        toolsSub: "البرامج التي أستخدمها فعلياً في اللوجستيات، المحتوى، والمواقع.",
-        toolsPrimary: ["TMS · تتبع وتسليم", "Microsoft Excel", "Microsoft Outlook", "Notion", "Task Tools"],
-        toolsSecondary: ["YouTube Studio", "Canva", "WordPress", "Static Sites", "Telegram · تواصل سريع"],
-        langsTitle: "تواصل واضح بثلاث لغات",
-        langsSub: "من رسائل السائقين إلى فيديوهات يوتيوب – العربية، الألمانية، والإنجليزية.",
-        langs: [
-            { flag: "🇸🇾", name: "العربية", level: "اللغة الأم", pct: 1 },
-            { flag: "🇩🇪", name: "الألمانية", level: "C1 · متقدّم", pct: 0.92 },
-            { flag: "🇬🇧", name: "الإنجليزية", level: "A2 · أساسيات ومحادثة بسيطة", pct: 0.45 },
-        ],
-        softSkills: [
-            { title: "حل المشاكل تحت الضغط", desc: "تنسيق فرق وسائقين مع رد فعل سريع للمفاجآت." },
-            { title: "تواصل واضح", desc: "رسائل دقيقة للزبائن والسائقين والشركاء." },
-            { title: "تنظيم وتفاصيل", desc: "هيكلة الطلبات، المواعيد، ومستندات العمل اليومية." },
-            { title: "محتوى صادق", desc: "قصص منتجات بدون مبالغة، مع وضوح بصري وصوتي." },
-        ],
-        servicesTitle: "ماذا أقدّم اليوم؟",
-        services: [
-            { icon: "truck", title: "لوجستيات وتخطيط", desc: "مساعدة الشركات الصغيرة في تنظيم التوصيل، المستودع، وتخطيط الرحلات اليومية.", chips: ["خطط يومية", "تنظيم مخزون", "دعم سائقين"] },
-            { icon: "video", title: "محتوى ومنتجات تقنية", desc: "تصوير ومراجعة منتجات، شروحات برامج، وتجهيز منزل ذكي بشكل عملي.", chips: ["فتح صناديق", "تجارب عملية", "مراجعات صادقة"] },
-            { icon: "monitor", title: "مواقع وخدمات رقمية", desc: "تصميم مواقع بسيطة، صفحات تعريفية، ونماذج تواصل تساعد الناس يجدونك بسهولة.", chips: ["مواقع بسيطة", "نماذج تواصل", "تحسين حضور"] },
-            { icon: "users", title: "تعاون مع العلامات التجارية", desc: "شراكات مع شركات وقنوات أخرى لعرض منتجاتهم وخدماتهم بشكل صادق وجذاب.", chips: ["شراكات محتوى", "إطلاق حملات", "تنسيق تواصل"] },
-        ],
-        ctaTitle: "هل تبحث عن تعاون؟",
-        ctaDesc: "كل قنوات التواصل في مكان واحد: واتساب، بريد، لينكدإن، ويوتيوب.",
-        contactBtn: "صفحة التواصل",
-        ytBtn: "قناة يوتيوب",
-        socials: [
-            { href: "https://wa.me/4917623419358", label: "واتساب" },
-            { href: "mailto:Mohammad.alfarras@gmail.com", label: "البريد الإلكتروني" },
-            { href: "https://de.linkedin.com/in/mohammad-alfarras-525531262", label: "LinkedIn" },
-            { href: "https://www.youtube.com/@Moalfarras", label: "يوتيوب" },
-            { href: "https://www.instagram.com/moalfarras", label: "إنستغرام" },
-            { href: "https://t.me/MoalFarras", label: "تليغرام" },
-        ],
-    },
-    en: {
-        eyebrow: "From Hasakah – through Europe to the screens",
-        heroTitle: "Mohammad Alfarras – A Living CV",
-        heroSub: "From daily logistics to tech content creation, this page tells my story as it is.",
-        heroIntro: "Today I work as a Disponent at Rhenus Home Delivery, planning daily delivery routes, tracking drivers, and solving road and customer issues. At the same time I create honest tech content on YouTube: unboxings, product reviews, app walkthroughs, and smart home experiments. I love organisation, small details, and transparency — both in work and in content.",
-        floatIcons: ["🎥", "⚡", "🧭", "🛠️"],
-        timelineTitle: "My journey in work and life",
-        timelineSub: "A clear timeline connecting logistics, content, and digital services.",
-        timeline: [
-            { period: "2022 – Present", tag: "Current", title: "Disponent · Rhenus Home Delivery", sub: "IKEA route planning, driver support, and daily performance analysis", points: ["Distributing 30-40 trips daily with time/cost balance", "Real-time driver monitoring and problem resolution", "Short TMS-based reports to streamline operations"] },
-            { period: "2019 – 2022", tag: "Teams & Warehouses", title: "Logistics Coordinator · IKEA Deutschland", sub: "Coordinating furniture transport and storage with multicultural team", points: ["Improving shipment schedules and reducing delivery time", "Training new staff on logistics systems", "Stock control and daily order documentation"] },
-            { period: "2017 – Present", tag: "Content", title: "Honest Tech Content Creator", sub: "159+ videos in three languages about devices, software, and usage experiences", points: ["Thumbnails and graphics with a glass aesthetic", "Real device testing before any review", "Building a community that values clarity over hype"] },
-            { period: "2018 – Present", tag: "Services", title: "Digital Services for Small Businesses", sub: "Simple websites, email/task organisation, and workflow improvement", points: ["Static site and landing page design with clean UIs", "Email templates and order management setup", "Quick tips to turn digital chaos into clear steps"] },
-        ],
-        skillsTitle: "My skills & tools",
-        skills: [
-            { title: "Route planning and order distribution", level: 90, badge: "Advanced", highlight: true },
-            { title: "Driver management and customer communication", level: 88, badge: "Advanced", highlight: true },
-            { title: "Simple data analysis and reporting", level: 75, badge: "Good", highlight: false },
-            { title: "Video content creation and basic editing", level: 85, badge: "Advanced", highlight: true },
-            { title: "Simple web design", level: 70, badge: "Good", highlight: false },
-            { title: "Organising small businesses", level: 92, badge: "Advanced", highlight: true },
-        ],
-        toolsTitle: "Tools & Technologies",
-        toolsHead: "Daily software stack",
-        toolsSub: "The tools I actually use in logistics, content, and websites.",
-        toolsPrimary: ["TMS · Tracking & Delivery", "Microsoft Excel", "Microsoft Outlook", "Notion", "Task Tools"],
-        toolsSecondary: ["YouTube Studio", "Canva", "WordPress", "Static Sites", "Telegram · Quick comms"],
-        langsTitle: "Clear communication in three languages",
-        langsSub: "From driver messages to YouTube videos – Arabic, German, and English.",
-        langs: [
-            { flag: "🇸🇾", name: "Arabic", level: "Native language", pct: 1 },
-            { flag: "🇩🇪", name: "German", level: "C1 · Advanced", pct: 0.92 },
-            { flag: "🇬🇧", name: "English", level: "A2 · Basic conversations", pct: 0.45 },
-        ],
-        softSkills: [
-            { title: "Problem solving under pressure", desc: "Coordinating teams and drivers with quick reactions to surprises." },
-            { title: "Clear communication", desc: "Precise messages to customers, drivers, and partners." },
-            { title: "Organisation and detail", desc: "Structuring orders, appointments, and daily work documents." },
-            { title: "Honest content", desc: "Product stories without exaggeration, with visual and audio clarity." },
-        ],
-        servicesTitle: "What do I offer today?",
-        services: [
-            { icon: "truck", title: "Logistics & Planning", desc: "Helping small businesses organise delivery, warehouse, and daily route planning.", chips: ["Daily plans", "Inventory setup", "Driver support"] },
-            { icon: "video", title: "Tech Content & Products", desc: "Filming and reviewing products, software walkthroughs, and practical smart home setup.", chips: ["Unboxings", "Hands-on tests", "Honest reviews"] },
-            { icon: "monitor", title: "Websites & Digital Services", desc: "Designing simple websites, landing pages, and contact forms that help people find you easily.", chips: ["Simple websites", "Contact forms", "Visibility boost"] },
-            { icon: "users", title: "Brand Collaborations", desc: "Partnering with companies and channels to showcase their products honestly and attractively.", chips: ["Content partnerships", "Campaign launch", "Comms coordination"] },
-        ],
-        ctaTitle: "Looking to collaborate?",
-        ctaDesc: "All contact channels in one place: WhatsApp, email, LinkedIn, and YouTube.",
-        contactBtn: "Contact page",
-        ytBtn: "YouTube channel",
-        socials: [
-            { href: "https://wa.me/4917623419358", label: "WhatsApp" },
-            { href: "mailto:Mohammad.alfarras@gmail.com", label: "Email" },
-            { href: "https://de.linkedin.com/in/mohammad-alfarras-525531262", label: "LinkedIn" },
-            { href: "https://www.youtube.com/@Moalfarras", label: "YouTube" },
-            { href: "https://www.instagram.com/moalfarras", label: "Instagram" },
-            { href: "https://t.me/MoalFarras", label: "Telegram" },
-        ],
-    },
-};
+import type { CmsSnapshot, Locale, PageView } from "@/types/cms";
 
-export function CVPage({ locale }: { locale: Locale }) {
-    const t = content[locale];
-    const dir = locale === "ar" ? "rtl" : "ltr";
+import { findBlock, getExperiences, getPortrait, getServices } from "./cms-views";
 
-    useEffect(() => {
-        const obs = new IntersectionObserver(
-            (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("revealed")),
-            { threshold: 0.1 }
-        );
-        document.querySelectorAll(".reveal-item").forEach((el) => obs.observe(el));
-        return () => obs.disconnect();
-    }, []);
+function formatDateLabel(locale: Locale, value: string | null) {
+  if (!value) {
+    return locale === "ar" ? "حتى الآن" : "Present";
+  }
 
-    return (
-        <div className="cv-page-full" dir={dir}>
-            {/* ─── HERO ─── */}
-            <section className="cv-hero-section">
-                <div className="container">
-                    <div className="cv-hero-grid">
-                        <div className="cv-hero-text-card glass reveal-item">
-                            <p className="cv-eyebrow">{t.eyebrow}</p>
-                            <h1 className="cv-main-heading">{t.heroTitle}</h1>
-                            <h2 className="cv-sub-heading">{t.heroSub}</h2>
-                            <p className="cv-intro-text">{t.heroIntro}</p>
-                        </div>
-                        <div className="cv-hero-portrait-card glass reveal-item">
-                            <div className="cv-portrait-wrapper">
-                                <div className="cv-portrait-glow" />
-                                <div className="cv-portrait-floaters" aria-hidden="true">
-                                    {t.floatIcons.map((icon, i) => (
-                                        <span key={i} className={`cv-float-icon icon-${i + 1}`}>{icon}</span>
-                                    ))}
-                                </div>
-                                <Image src="/images/portrait.jpg" alt="Mohammad Alfarras" width={300} height={370} className="cv-portrait-img" />
-                            </div>
-                            <div className="cv-signature-block">
-                                <span className="cv-sig-name">Mohammad Alfarras</span>
-                            </div>
-                        </div>
-                    </div>
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+    year: "numeric",
+    month: "short",
+  }).format(date);
+}
+
+export function CVPage({ locale, page, snapshot }: { locale: Locale; page: PageView; snapshot: CmsSnapshot }) {
+  const portrait = getPortrait(snapshot, locale);
+  const experiences = getExperiences(snapshot, locale);
+  const services = getServices(snapshot, locale);
+  const experienceBlock = findBlock(page, "experience-timeline");
+  const certificationBlock = findBlock(page, "certifications-grid");
+
+  const intro =
+    locale === "ar"
+      ? "أبني مساري بين التشغيل اللوجستي اليومي، متابعة السائقين، حل المشاكل تحت الضغط، وصناعة محتوى تقني يشرح المنتجات والخدمات بطريقة صادقة وواضحة."
+      : "My path sits between daily logistics execution, driver coordination, solving problems under pressure, and creating honest tech content that explains products and services clearly.";
+
+  const tools =
+    locale === "ar"
+      ? ["TMS", "Excel", "Outlook", "Notion", "YouTube Studio", "Canva", "WordPress", "Task tools"]
+      : ["TMS", "Excel", "Outlook", "Notion", "YouTube Studio", "Canva", "WordPress", "Task tools"];
+
+  const languageCards =
+    locale === "ar"
+      ? [
+          { flag: "🇸🇾", title: "العربية", level: "اللغة الأم" },
+          { flag: "🇩🇪", title: "الألمانية", level: "C1 · مستوى عمل يومي" },
+          { flag: "🇬🇧", title: "الإنجليزية", level: "A2 · للتواصل والمحتوى" },
+        ]
+      : [
+          { flag: "🇸🇾", title: "Arabic", level: "Native language" },
+          { flag: "🇩🇪", title: "German", level: "C1 · Daily operational level" },
+          { flag: "🇬🇧", title: "English", level: "A2 · For collaboration and content" },
+        ];
+
+  const softSkills =
+    locale === "ar"
+      ? [
+          { title: "حل المشاكل تحت الضغط", body: "رد سريع على الأعطال والمفاجآت والمواقف التشغيلية اليومية." },
+          { title: "تنظيم وتخطيط", body: "تحويل اليوم المزدحم إلى خطوات واضحة قابلة للمتابعة." },
+          { title: "تواصل مباشر وواضح", body: "مع السائقين والعملاء والشركاء بدون ضبابية أو تعقيد." },
+          { title: "محتوى صادق", body: "شرح وتجربة حقيقية للمنتجات بعيداً عن المبالغات التسويقية." },
+        ]
+      : [
+          { title: "Problem solving under pressure", body: "Fast response to operational surprises and daily exceptions." },
+          { title: "Structure and planning", body: "Turning a busy day into clear, trackable actions." },
+          { title: "Direct communication", body: "With drivers, clients, and partners without ambiguity." },
+          { title: "Honest content", body: "Real testing and clear product storytelling instead of hype." },
+        ];
+
+  return (
+    <div className="premium-page">
+      <section className="hero-stage">
+        <div className="container hero-stage-grid">
+          <div className="hero-stage-copy glass-card">
+            <span className="section-kicker">{locale === "ar" ? "السيرة الذاتية" : "Resume"}</span>
+            <h1 className="display-title">{page.title}</h1>
+            <p className="hero-lead">{intro}</p>
+            <p>
+              {locale === "ar"
+                ? "أعمل اليوم في Rhenus Home Delivery، وأحمل معي خبرة من IKEA، وفي الوقت نفسه أبني قناة يوتيوب ومشاريع رقمية تعكس نفس الفكرة: وضوح، تفاصيل، وتنفيذ محترم."
+                : "I currently work at Rhenus Home Delivery, carry experience from IKEA, and at the same time build a YouTube channel and digital projects shaped by the same principles: clarity, detail, and polished execution."}
+            </p>
+            <div className="hero-action-row">
+              <Link href={`/${locale}/contact`} className="btn primary">
+                {locale === "ar" ? "تواصل معي" : "Contact me"}
+              </Link>
+              <a href="https://www.youtube.com/@Moalfarras" target="_blank" rel="noreferrer noopener" className="btn secondary">
+                {locale === "ar" ? "قناة يوتيوب" : "YouTube channel"}
+              </a>
+            </div>
+          </div>
+
+          {portrait ? (
+            <aside className="hero-stage-visual glass-card">
+              <div className="portrait-shell">
+                <div className="portrait-glow-ring" />
+                <div className="portrait-frame portrait-frame-cv">
+                  <Image
+                    src={portrait.path}
+                    alt={locale === "ar" ? portrait.alt_ar : portrait.alt_en}
+                    width={portrait.width}
+                    height={portrait.height}
+                    priority
+                    sizes="(max-width: 768px) 68vw, 28rem"
+                    className="portrait-image"
+                  />
                 </div>
-            </section>
-
-            {/* ─── TIMELINE ─── */}
-            <section className="cv-timeline-section">
-                <div className="container">
-                    <div className="cv-section-header">
-                        <h2 className="cv-section-title gradient-text">{t.timelineTitle}</h2>
-                        <p className="cv-section-sub">{t.timelineSub}</p>
-                    </div>
-                    <div className="cv-timeline-rail">
-                        {t.timeline.map((item, i) => (
-                            <article key={i} className="cv-timeline-card glass reveal-item">
-                                <div className="cv-timeline-node" aria-hidden="true" />
-                                <div className="cv-timeline-meta">
-                                    <span className="cv-period">{item.period}</span>
-                                    <span className="cv-tag">{item.tag}</span>
-                                </div>
-                                <h3 className="cv-card-title">{item.title}</h3>
-                                <p className="cv-card-sub">{item.sub}</p>
-                                <ul className="cv-card-points">
-                                    {item.points.map((p, j) => <li key={j}>{p}</li>)}
-                                </ul>
-                            </article>
-                        ))}
-                    </div>
+                <div className="portrait-caption">
+                  <strong>Mohammad Alfarras</strong>
+                  <span>{locale === "ar" ? "تشغيل · محتوى · حلول رقمية" : "Operations · Content · Digital Delivery"}</span>
                 </div>
-            </section>
-
-            {/* ─── SKILLS ─── */}
-            <section className="cv-skills-section">
-                <div className="container">
-                    <h2 className="cv-section-title gradient-text reveal-item">{t.skillsTitle}</h2>
-                    <div className="cv-skills-grid">
-                        {t.skills.map((skill, i) => (
-                            <div key={i} className="cv-skill-card glass reveal-item">
-                                <h3 className="cv-skill-name">{skill.title}</h3>
-                                <div className="cv-skill-bar-wrap">
-                                    <div className="cv-skill-bar">
-                                        <div className="cv-skill-fill" style={{ width: `${skill.level}%` }} />
-                                    </div>
-                                    <span className={`cv-skill-badge ${skill.highlight ? "highlight" : ""}`}>{skill.badge}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="cv-tools-block reveal-item">
-                        <div className="cv-tools-head">
-                            <span className="cv-tools-kicker">{t.toolsTitle}</span>
-                            <h3 className="cv-tools-heading">{t.toolsHead}</h3>
-                            <p className="cv-tools-sub">{t.toolsSub}</p>
-                        </div>
-                        <div className="cv-tools-rail">
-                            {t.toolsPrimary.map((tool, i) => <span key={i} className="cv-tool-chip primary">{tool}</span>)}
-                        </div>
-                        <div className="cv-tools-rail mt-2">
-                            {t.toolsSecondary.map((tool, i) => <span key={i} className="cv-tool-chip">{tool}</span>)}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ─── LANGUAGES ─── */}
-            <section className="cv-langs-section">
-                <div className="container">
-                    <h2 className="cv-section-title gradient-text">{t.langsTitle}</h2>
-                    <p className="cv-section-sub">{t.langsSub}</p>
-                    <div className="cv-langs-grid">
-                        {t.langs.map((lang, i) => (
-                            <article key={i} className="cv-lang-card glass reveal-item">
-                                <div className="cv-lang-flag" aria-hidden="true">{lang.flag}</div>
-                                <div className="cv-lang-meta">
-                                    <div className="cv-lang-name">{lang.name}</div>
-                                    <div className="cv-lang-level">{lang.level}</div>
-                                    <div className="cv-lang-bar"><span style={{ width: `${lang.pct * 100}%` }} /></div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-                    <div className="cv-soft-grid">
-                        {t.softSkills.map((s, i) => (
-                            <div key={i} className="cv-soft-pill glass reveal-item">
-                                <div className="cv-soft-title">{s.title}</div>
-                                <div className="cv-soft-desc">{s.desc}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ─── SERVICES ─── */}
-            <section className="cv-services-section">
-                <div className="container">
-                    <h2 className="cv-section-title gradient-text">{t.servicesTitle}</h2>
-                    <div className="cv-services-grid">
-                        {t.services.map((svc, i) => (
-                            <div key={i} className="cv-service-card glass reveal-item">
-                                <h3>{svc.title}</h3>
-                                <p>{svc.desc}</p>
-                                <div className="cv-service-chips">
-                                    {svc.chips.map((chip, j) => <span key={j} className="cv-chip">{chip}</span>)}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ─── CTA ─── */}
-            <section className="cv-cta-section">
-                <div className="container">
-                    <div className="cv-cta-card glass reveal-item">
-                        <h2 className="gradient-text">{t.ctaTitle}</h2>
-                        <p>{t.ctaDesc}</p>
-                        <div className="cv-cta-btns">
-                            <Link href={`/${locale}/contact`} className="home-hero-btn primary">{t.contactBtn}</Link>
-                            <a href="https://www.youtube.com/@Moalfarras" target="_blank" rel="noreferrer noopener" className="home-hero-btn secondary">{t.ytBtn}</a>
-                        </div>
-                        <div className="cv-socials">
-                            {t.socials.map((s, i) => (
-                                <a key={i} href={s.href} target="_blank" rel="noreferrer noopener" className="cv-social-btn">{s.label}</a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
+              </div>
+            </aside>
+          ) : null}
         </div>
-    );
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "الخبرة" : "Experience"}</span>
+            <h2>{String(experienceBlock?.content.title ?? (locale === "ar" ? "محطات الخبرة الأساسية" : "Core professional milestones"))}</h2>
+          </div>
+          <div className="timeline-grid">
+            {experiences.map((item) => (
+              <article key={item.id} className="glass-card timeline-entry">
+                <div className="timeline-line" />
+                <div className="timeline-entry-meta">
+                  <strong>{item.roleTitle}</strong>
+                  <span>{item.company}</span>
+                </div>
+                <p className="muted">
+                  {item.location} · {formatDateLabel(locale, item.startDate)} - {item.currentRole ? (locale === "ar" ? "حتى الآن" : "Present") : formatDateLabel(locale, item.endDate)}
+                </p>
+                <p>{item.description}</p>
+                {item.highlights.length ? (
+                  <ul className="bullet-list">
+                    {item.highlights.map((highlight) => (
+                      <li key={highlight}>{highlight}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "القيمة العملية" : "Practical value"}</span>
+            <h2>{String(certificationBlock?.content.title ?? (locale === "ar" ? "ما أضيفه عملياً" : "What I bring in practice"))}</h2>
+          </div>
+          <div className="feature-card-grid">
+            {services.map((service) => (
+              <article key={service.id} className="glass-card service-rich-card">
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+                {service.bullets.length ? (
+                  <ul className="bullet-list">
+                    {service.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "الأدوات" : "Tools"}</span>
+            <h2>{locale === "ar" ? "برامج أستخدمها فعلياً" : "The software I actually use"}</h2>
+          </div>
+          <div className="pillars-grid">
+            {tools.map((tool) => (
+              <article key={tool} className="glass-card pillar-card">
+                <span className="pillar-mark">•</span>
+                <p>{tool}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "اللغات" : "Languages"}</span>
+            <h2>{locale === "ar" ? "تواصل واضح عبر ثلاث بيئات" : "Clear communication across three working languages"}</h2>
+          </div>
+          <div className="language-card-grid">
+            {languageCards.map((item) => (
+              <article key={item.title} className="glass-card language-card">
+                <span className="language-flag">{item.flag}</span>
+                <h3>{item.title}</h3>
+                <p>{item.level}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "أسلوب العمل" : "Work style"}</span>
+            <h2>{locale === "ar" ? "المهارات الشخصية التي أشتغل بها يومياً" : "The soft skills behind the day-to-day work"}</h2>
+          </div>
+          <div className="feature-card-grid">
+            {softSkills.map((item) => (
+              <article key={item.title} className="glass-card service-rich-card">
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

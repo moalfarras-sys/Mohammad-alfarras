@@ -4,6 +4,7 @@ import {
   deleteContactChannelAction,
   deleteWorkProjectAction,
   logoutAdminAction,
+  syncYoutubeAction,
   updateThemeTokenAction,
   upsertContactChannelAction,
   upsertWorkProjectAction,
@@ -56,6 +57,12 @@ export function AdminLiteDashboard({ locale, snapshot }: { locale: Locale; snaps
         <p>{t.subtitle}</p>
         <div className="actions-row">
           <Link href={`/${locale}/admin?mode=advanced`} className="btn secondary">{t.quick}</Link>
+          <form action={syncYoutubeAction}>
+            <input type="hidden" name="max_results" value="12" />
+            <button className="btn secondary" type="submit">
+              {locale === "ar" ? "مزامنة يوتيوب" : "Sync YouTube"}
+            </button>
+          </form>
           <form action={logoutAdminAction}>
             <button className="btn danger" type="submit">{t.logout}</button>
           </form>
@@ -193,4 +200,3 @@ export function AdminLiteDashboard({ locale, snapshot }: { locale: Locale; snaps
     </div>
   );
 }
-

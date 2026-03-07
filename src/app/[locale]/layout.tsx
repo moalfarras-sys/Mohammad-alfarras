@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
@@ -61,7 +61,13 @@ export default async function LocaleLayout({
     name: "Mohammad Alfarras",
     alternateName: ["محمد الفراس", "alfarras", "moalfarras"],
     url: profileUrl,
-    sameAs: ["https://www.moalfarras.space"],
+    sameAs: [
+      "https://www.moalfarras.space",
+      "https://www.youtube.com/@Moalfarras",
+      "https://de.linkedin.com/in/mohammad-alfarras-525531262",
+      "https://www.instagram.com/moalfarras",
+      "https://github.com/moalfarras-sys"
+    ],
     knowsLanguage: ["ar", "en"],
     jobTitle: "Logistics and Tech Content Creator",
   };

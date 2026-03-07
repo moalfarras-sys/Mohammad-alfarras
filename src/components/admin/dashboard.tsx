@@ -9,6 +9,7 @@
   duplicatePageBlockAction,
   logoutAdminAction,
   publishPageAction,
+  syncYoutubeAction,
   updateNavigationItemAction,
   updateNavigationTranslationAction,
   updatePageCoreAction,
@@ -38,6 +39,7 @@ function ui(locale: Locale) {
       seo: "SEO",
       nav: "الملاحة",
       videos: "فيديوهات يوتيوب",
+      syncYoutube: "مزامنة من القناة",
       work: "الأعمال",
       experiences: "الخبرات",
       certifications: "الشهادات",
@@ -69,6 +71,7 @@ function ui(locale: Locale) {
     seo: "SEO",
     nav: "Navigation",
     videos: "YouTube Videos",
+    syncYoutube: "Sync from channel",
     work: "Projects",
     experiences: "Experiences",
     certifications: "Certifications",
@@ -144,6 +147,7 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
                 <select name="block_type" defaultValue="hero">
                   <option value="hero">hero</option>
                   <option value="feature-grid">feature-grid</option>
+                  <option value="media-gallery">media-gallery</option>
                   <option value="work-showcase">work-showcase</option>
                   <option value="experience-timeline">experience-timeline</option>
                   <option value="certifications-grid">certifications-grid</option>
@@ -619,7 +623,13 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
         </section>
 
         <section id="videos" className="card admin-card">
-          <h2>{t.videos}</h2>
+          <div className="admin-head">
+            <h2>{t.videos}</h2>
+            <form action={syncYoutubeAction}>
+              <input type="hidden" name="max_results" value="12" />
+              <button className="btn secondary" type="submit">{t.syncYoutube}</button>
+            </form>
+          </div>
           <div className="token-grid">
             {snapshot.youtube_videos.map((video) => (
               <form key={video.id} action={upsertVideoAction} className="token-form galaxy-form">

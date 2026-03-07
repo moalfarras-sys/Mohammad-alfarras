@@ -1,322 +1,405 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const socialLinks = {
-    whatsapp: "https://wa.me/4917645678923",
-    telegram: "https://t.me/moalfarras",
-    instagram: "https://www.instagram.com/moalfarras",
-    youtube: "https://www.youtube.com/@Moalfarras",
-    linkedin: "https://linkedin.com/in/mohammad-alfarras",
-    github: "https://github.com/moalfarras-sys",
-    facebook: "https://www.facebook.com/moalfarras",
-};
+import type { CmsSnapshot, Locale, PageView, YoutubeVideo } from "@/types/cms";
 
-const content = {
-    ar: {
-        kicker: "مرحباً، أنا",
-        name: "محمد الفراس",
-        heroTitle: "خبير منتجات تقنية\nومنسق لوجستي",
-        heroBody: "من الحسكة — عبر أوروبا إلى شاشتك. أشتغل في اللوجستيك بألمانيا وأتخصص بمراجعة المنتجات التقنية على يوتيوب بأمانة بدون مبالغة.",
-        taglines: ["162 فيديو تقني 🎬", "6,060 مشترك 📺", "مراجعات صادقة 💯", "لوجستي محترف 🚛", "محتوى من ألمانيا 🇩🇪"],
-        ctaPrimary: "تواصل معي",
-        ctaSecondary: "شاهد القناة",
-        ctaCV: "السيرة الذاتية",
-        pillsTitle: "مجالات العمل",
-        pills: ["📦 مراجعات تقنية", "🚛 لوجستيك وشحن", "🧠 محتوى تعليمي", "📱 أجهزة ذكية", "🔧 مشاريع DIY", "🌍 خبرة أوروبية"],
-        galleryTitle: "من يومياتي",
-        gallerySub: "صور حقيقية من عملي وحياتي",
-        skillsTitle: "ما أقدمه",
-        skillsSub: "مهارات حقيقية مبنية على تجربة فعلية",
-        skills: [
-            { icon: "📦", title: "مراجعات تقنية", body: "162 مراجعة حقيقية لمنتجات تقنية بدون مبالغة. أختبر وأجرب وأشارك تجربتي الحقيقية.", tags: ["يوتيوب", "تقنية", "مراجعات"] },
-            { icon: "🚛", title: "لوجستيك وتخطيط", body: "خبرة في شركات Rhenus و IKEA بألمانيا. تنسيق الشحنات وإدارة السائقين والخدمات اللوجستية.", tags: ["Rhenus", "IKEA", "لوجستيك"] },
-            { icon: "💻", title: "ويب وخدمات رقمية", body: "تصميم وتطوير مواقع احترافية. حلول رقمية لأصحاب الأعمال.", tags: ["ويب", "رقمي", "تطوير"] },
-            { icon: "🤝", title: "تعاون وشراكات", body: "منفتح للتعاون مع الشركات والعلامات التجارية. تواصل API معي لشراكات مثمرة.", tags: ["شراكة", "علامات", "تعاون"] },
-        ],
-        servicesTitle: "الخدمات",
-        servicesSub: "ما أقدمه لك أو لشركتك",
-        services: [
-            { title: "مراجعة منتجات تقنية", body: "مراجعة منتجك على قناتي بأمانة ومهنية", chips: ["يوتيوب", "6K+ متابع"] },
-            { title: "استشارة لوجستية", body: "استشارات في التخطيط اللوجستي وإدارة الشحنات", chips: ["شحن", "تخطيط"] },
-            { title: "تطوير موقع إلكتروني", body: "تصميم وبرمجة موقعك الاحترافي", chips: ["Next.js", "React"] },
-        ],
-        faqTitle: "أسئلة شائعة",
-        faqItems: [
-            { q: "ما هي مجالات تخصصك؟", a: "أتخصص في مراجعة المنتجات التقنية على يوتيوب، واللوجستيك بألمانيا، وتطوير الويب. خبرة عملية في Rhenus وIKEA ألمانيا." },
-            { q: "كيف يمكن التعاون معك؟", a: "يمكنك التواصل عبر WhatsApp أو البريد الإلكتروني. منفتح لمراجعات المنتجات، شراكات المحتوى، والاستشارات اللوجستية." },
-            { q: "ما هو محتوى قناتك على يوتيوب؟", a: "162 فيديو مراجعة لمنتجات تقنية متنوعة — سماعات، مكانس، شاشات، أجهزة صوت، ومزيد. 6,060 مشترك ومستمرون." },
-            { q: "في أي دولة أنت مقيم؟", a: "أقيم في ألمانيا وأعمل في شركات لوجستية ألمانية مع استمراري بنشر محتوى تقني باللغة العربية." },
-            { q: "هل تقدم استشارات مدفوعة؟", a: "نعم، أقدم استشارات في اللوجستيك وتطوير الويب. تواصل معي للتفاصيل." },
-        ],
-        ctaTitle: "هل لديك فكرة أو مشروع؟",
-        ctaBody: "سواء كنت تريد مراجعة منتجك، شراكة في محتوى، أو تطوير موقع — أنا هنا.",
-    },
-    en: {
-        kicker: "Hi, I'm",
-        name: "Mohammad Alfarras",
-        heroTitle: "Tech Product Expert\n& Logistics Coordinator",
-        heroBody: "From Hasakah — through Europe to your screen. I work in logistics in Germany and specialize in honest tech product reviews on YouTube.",
-        taglines: ["162 Tech Videos 🎬", "6,060 Subscribers 📺", "Honest Reviews 💯", "Professional Logistics 🚛", "Content from Germany 🇩🇪"],
-        ctaPrimary: "Contact Me",
-        ctaSecondary: "Watch Channel",
-        ctaCV: "My CV",
-        pillsTitle: "Fields of work",
-        pills: ["📦 Tech Reviews", "🚛 Logistics", "🧠 Educational Content", "📱 Smart Devices", "🔧 DIY Projects", "🌍 European Experience"],
-        galleryTitle: "My Daily Life",
-        gallerySub: "Real photos from my work and life",
-        skillsTitle: "What I Offer",
-        skillsSub: "Real skills built on real experience",
-        skills: [
-            { icon: "📦", title: "Tech Reviews", body: "162 honest tech product reviews. I test, try, and share my genuine experience — no exaggeration.", tags: ["YouTube", "Tech", "Reviews"] },
-            { icon: "🚛", title: "Logistics & Planning", body: "Experience at Rhenus and IKEA Germany. Coordinating shipments, driver management, and logistics services.", tags: ["Rhenus", "IKEA", "Logistics"] },
-            { icon: "💻", title: "Web & Digital Services", body: "Professional website design and development. Digital solutions for business owners.", tags: ["Web", "Digital", "Dev"] },
-            { icon: "🤝", title: "Collaboration", body: "Open for collaboration with companies and brands. Contact me for fruitful partnerships.", tags: ["Partnership", "Brands", "Collab"] },
-        ],
-        servicesTitle: "Services",
-        servicesSub: "What I offer you or your company",
-        services: [
-            { title: "Tech Product Review", body: "Honest and professional review of your product on my channel", chips: ["YouTube", "6K+ Subs"] },
-            { title: "Logistics Consulting", body: "Planning logistics and shipment management consulting", chips: ["Shipping", "Planning"] },
-            { title: "Website Development", body: "Design and develop your professional website", chips: ["Next.js", "React"] },
-        ],
-        faqTitle: "Frequently Asked Questions",
-        faqItems: [
-            { q: "What are your areas of expertise?", a: "I specialize in YouTube tech product reviews, logistics in Germany, and web development. Real experience at Rhenus and IKEA Germany." },
-            { q: "How can we collaborate?", a: "Contact me via WhatsApp or email. Open for product reviews, content partnerships, and logistics consulting." },
-            { q: "What's on your YouTube channel?", a: "162 videos reviewing diverse tech products — headphones, vacuums, screens, audio devices, and more. 6,060 subscribers and growing." },
-            { q: "Where are you based?", a: "I'm based in Germany, working for German logistics companies while continuing to publish Arabic tech content." },
-            { q: "Do you offer paid consultations?", a: "Yes, I offer logistics and web development consultations. Contact me for details." },
-        ],
-        ctaTitle: "Have an idea or project?",
-        ctaBody: "Whether you want a product review, content partnership, or website development — I'm here.",
-    },
-};
+import { findBlock, getChannels, getGallery, getPortrait, getProjects, getServices, getVideoStats } from "./cms-views";
 
-const galleryImages = [
-    "/images/gallery-1.jpg", "/images/gallery-2.jpg", "/images/gallery-3.jpg", "/images/gallery-4.jpg",
-    "/images/gallery-5.jpg", "/images/gallery-6.jpg", "/images/gallery-7.jpg", "/images/gallery-8.jpg",
-];
+function compact(locale: Locale, value: number) {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
 
-const particles = Array.from({ length: 12 }, (_, i) => ({
-    size: 4 + Math.random() * 8,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: 6 + Math.random() * 8,
-    delay: Math.random() * 4,
-}));
+export function HomePage({
+  locale,
+  page,
+  snapshot,
+  videos,
+}: {
+  locale: Locale;
+  page: PageView;
+  snapshot: CmsSnapshot;
+  videos: YoutubeVideo[];
+}) {
+  const hero = findBlock(page, "hero");
+  const features = findBlock(page, "feature-grid");
+  const galleryBlock = findBlock(page, "media-gallery");
+  const contactCta = findBlock(page, "cta");
+  const projects = getProjects(snapshot, locale).slice(0, 3);
+  const services = getServices(snapshot, locale);
+  const channels = getChannels(snapshot, locale).slice(0, 6);
+  const gallery = getGallery(snapshot, galleryBlock).slice(0, 8);
+  const portrait = getPortrait(snapshot, locale);
+  const latestVideos = videos.filter((video) => video.is_active).slice(0, 4);
+  const stats = getVideoStats(videos);
 
-export function HomePage({ locale }: { locale: "ar" | "en" }) {
-    const tx = content[locale];
-    const dir = locale === "ar" ? "rtl" : "ltr";
-    const [taglineIdx, setTaglineIdx] = useState(0);
+  const heroTitle = String(hero?.content.title ?? (locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"));
+  const heroBody = String(
+    hero?.content.body ??
+      (locale === "ar"
+        ? "من الحسكة إلى ألمانيا ثم إلى الشاشة. هنا تجد محتوى تقني صادق، خبرة لوجستية عملية، ومواقع واضحة الهوية."
+        : "From Al-Hasakah to Germany and onto the screen. Honest tech content, real logistics experience, and websites with a clear identity."),
+  );
 
-    useEffect(() => {
-        const obs = new IntersectionObserver(
-            (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add("revealed")),
-            { threshold: 0.1 }
-        );
-        document.querySelectorAll(".reveal-item").forEach((el) => obs.observe(el));
-        return () => obs.disconnect();
-    }, []);
+  const featureItems = Array.isArray(features?.content.items) ? features.content.items.map(String) : [];
 
-    useEffect(() => {
-        const timer = setInterval(() => setTaglineIdx((i) => (i + 1) % tx.taglines.length), 2500);
-        return () => clearInterval(timer);
-    }, [tx.taglines.length]);
+  const tags =
+    locale === "ar"
+      ? ["صناعة محتوى", "مراجعات وتجارب", "خدمات رقمية", "لوجستيات ونقل", "تعاونات وشراكات"]
+      : ["Content creation", "Hands-on reviews", "Digital services", "Logistics", "Brand collaborations"];
 
-    return (
-        <div className="home-page-full" dir={dir}>
-            {/* Particles */}
-            <div className="home-particles" aria-hidden>
-                {particles.map((p, i) => (
-                    <span
-                        key={i}
-                        className="particle"
-                        style={{
-                            width: p.size, height: p.size,
-                            left: `${p.x}%`, top: `${p.y}%`,
-                            ["--duration" as string]: `${p.duration}s`,
-                            ["--delay" as string]: `${p.delay}s`,
-                        }}
-                    />
-                ))}
+  const identityCards =
+    locale === "ar"
+      ? [
+          {
+            title: "محتوى تقني يبدأ من التجربة",
+            body: "أفتح الصندوق، أجرّب المنتج كما يستخدمه الناس فعلاً، ثم أعرض المميزات والعيوب بدون مبالغة.",
+          },
+          {
+            title: "تشغيل يومي من أرض الواقع",
+            body: "خبرتي في اللوجستيات تعني أنني أفهم السرعة، الضغط، واتخاذ القرار العملي عندما تكون التفاصيل هي كل شيء.",
+          },
+          {
+            title: "موقع أو خدمة رقمية بهوية واضحة",
+            body: "أحوّل الفكرة إلى صفحة أو موقع واضح وسريع وسهل الفهم، من غير فوضى ولا تصميم عام بلا شخصية.",
+          },
+        ]
+      : [
+          {
+            title: "Tech content that starts with the real test",
+            body: "I unbox, test products in realistic conditions, and explain the strengths and tradeoffs without hype.",
+          },
+          {
+            title: "Daily operations from the ground",
+            body: "My logistics work means I understand speed, pressure, and practical decision-making when details matter.",
+          },
+          {
+            title: "Digital execution with a clear identity",
+            body: "I turn an idea into a sharp website or landing page that feels intentional, fast, and easy to understand.",
+          },
+        ];
+
+  const primaryCta = (hero?.content.primaryCta as { href?: string; label?: string } | undefined) ?? {
+    href: `/${locale}/contact`,
+    label: locale === "ar" ? "ابدأ مشروعك" : "Start your project",
+  };
+  const secondaryCta = (hero?.content.secondaryCta as { href?: string; label?: string } | undefined) ?? {
+    href: `/${locale}/youtube`,
+    label: locale === "ar" ? "قناة يوتيوب" : "YouTube channel",
+  };
+
+  return (
+    <div className="premium-page">
+      <section className="hero-stage">
+        <div className="container hero-stage-grid">
+          <div className="hero-stage-copy glass-card">
+            <span className="section-kicker">
+              {locale === "ar" ? "من الحسكة، عبر أوروبا، إلى الشاشات" : "From Al-Hasakah, through Europe, onto the screen"}
+            </span>
+            <h1 className="display-title">{heroTitle}</h1>
+            <p className="hero-lead">{heroBody}</p>
+            <p>
+              {locale === "ar"
+                ? "إذا جئت لتستمتع، لتقرر ماذا تشتري، أو لأنك تبحث عن شخص يفهم التشغيل والمحتوى والمواقع معاً، فهذا هو المكان الصحيح."
+                : "Whether you are here to enjoy the content, decide what to buy, or work with someone who understands operations, content, and websites together, this is the right place."}
+            </p>
+
+            <div className="hero-action-row">
+              {primaryCta.href && primaryCta.label ? (
+                <Link href={primaryCta.href} className="btn primary">
+                  {primaryCta.label}
+                </Link>
+              ) : null}
+              {secondaryCta.href && secondaryCta.label ? (
+                <Link href={secondaryCta.href} className="btn secondary">
+                  {secondaryCta.label}
+                </Link>
+              ) : null}
             </div>
 
-            {/* ─── HERO ─── */}
-            <section className="home-hero">
-                <div className="home-hero-inner">
-                    {/* Left */}
-                    <div className="hero-stack reveal-item">
-                        <div className="home-hero-eyebrow">
-                            <span className="home-hero-dot" />
-                            {tx.kicker}
-                        </div>
-                        <h1 className="home-hero-title">
-                            <span className="gradient-text">{tx.name}</span>
-                            <br />
-                            <span style={{ whiteSpace: "pre-line", fontSize: "0.6em", fontWeight: 700, color: "var(--text)" }}>
-                                {tx.heroTitle}
-                            </span>
-                        </h1>
-                        <p className="home-hero-para">{tx.heroBody}</p>
-                        <div className="home-tagline-wrap">
-                            <span className="home-tagline-text">{tx.taglines[taglineIdx]}</span>
-                        </div>
-                        <div className="home-hero-actions">
-                            <Link href={`/${locale}/contact`} className="btn primary">{tx.ctaPrimary}</Link>
-                            <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="btn secondary">▶ {tx.ctaSecondary}</a>
-                            <Link href={`/${locale}/cv`} className="btn ghost">{tx.ctaCV}</Link>
-                        </div>
-                        {/* Social quick row */}
-                        <div style={{ display: "flex", gap: "0.6rem", marginTop: "1rem", flexWrap: "wrap" }}>
-                            {[
-                                { emoji: "💬", href: socialLinks.whatsapp, label: "WhatsApp" },
-                                { emoji: "📷", href: socialLinks.instagram, label: "Instagram" },
-                                { emoji: "✈️", href: socialLinks.telegram, label: "Telegram" },
-                                { emoji: "💼", href: socialLinks.linkedin, label: "LinkedIn" },
-                            ].map((s) => (
-                                <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
-                                    title={s.label}
-                                    style={{ width: 38, height: 38, borderRadius: "50%", border: "1.5px solid var(--border)", background: "var(--surface-glass)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", backdropFilter: "blur(10px)", transition: "all 0.2s", textDecoration: "none" }}>
-                                    {s.emoji}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
+            <div className="pillars-grid">
+              {tags.map((tag) => (
+                <article key={tag} className="glass-card pillar-card">
+                  <span className="pillar-mark">✦</span>
+                  <p>{tag}</p>
+                </article>
+              ))}
+            </div>
 
-                    {/* Right — Portrait */}
-                    <div className="home-hero-media reveal-item" data-delay="2">
-                        <div className="portrait-container">
-                            <div className="portrait-ring" />
-                            <div className="portrait-ring-2" />
-                            <div className="portrait-glow" />
-                            <div className="portrait-img-wrap">
-                                <Image src="/images/portrait.jpg" alt="Mohammad Alfarras" fill style={{ objectFit: "cover" }} priority />
-                            </div>
-                            {/* Floating Badges */}
-                            <div className="portrait-floaters">
-                                <span className="portrait-badge badge-subs">📺 6,060 Subs</span>
-                                <span className="portrait-badge badge-vids">🎬 162 Videos</span>
-                                <span className="portrait-badge badge-views">👁 +100K Views</span>
-                            </div>
-                        </div>
-                        <p className="portrait-sig">Mohammad Alfarras — محمد الفراس</p>
-                    </div>
-                </div>
-            </section>
+            <div className="hero-stat-grid">
+              <article className="hero-stat-card">
+                <strong>{compact(locale, videos.length)}</strong>
+                <span>{locale === "ar" ? "فيديو على القناة" : "videos on the channel"}</span>
+              </article>
+              <article className="hero-stat-card">
+                <strong>{compact(locale, stats.totalViews)}</strong>
+                <span>{locale === "ar" ? "مشاهدة تراكمية" : "cumulative views"}</span>
+              </article>
+              <article className="hero-stat-card">
+                <strong>{projects.length}</strong>
+                <span>{locale === "ar" ? "مشاريع معروضة" : "featured projects"}</span>
+              </article>
+              <article className="hero-stat-card">
+                <strong>{services.length}</strong>
+                <span>{locale === "ar" ? "مسارات خدمة" : "service tracks"}</span>
+              </article>
+            </div>
+          </div>
 
-            {/* ─── PILLS ─── */}
-            <section className="home-pills-section">
-                <div className="container">
-                    <div className="home-pills-wrap">
-                        {tx.pills.map((p) => (
-                            <span key={p} className="home-pill reveal-item">{p}</span>
-                        ))}
-                    </div>
+          <aside className="hero-stage-visual glass-card">
+            {portrait ? (
+              <div className="portrait-shell">
+                <div className="portrait-glow-ring" />
+                <div className="portrait-frame">
+                  <Image
+                    src={portrait.path}
+                    alt={locale === "ar" ? portrait.alt_ar : portrait.alt_en}
+                    width={portrait.width}
+                    height={portrait.height}
+                    priority
+                    sizes="(max-width: 768px) 70vw, 32rem"
+                    className="portrait-image"
+                  />
                 </div>
-            </section>
-
-            {/* ─── GALLERY ─── */}
-            <section className="home-gallery-section">
-                <div className="container">
-                    <div className="section-header">
-                        <span className="section-kicker">📸 {tx.galleryTitle}</span>
-                        <h2 className="section-title">{tx.gallerySub}</h2>
-                    </div>
-                    <div className="home-gallery-grid">
-                        {galleryImages.map((src, i) => (
-                            <div key={src} className="home-gallery-item reveal-item" data-delay={String(i % 4)}>
-                                <Image src={src} alt={`Gallery ${i + 1}`} fill style={{ objectFit: "cover" }} loading="lazy" />
-                                <div className="home-gallery-overlay">🔍</div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="portrait-caption">
+                  <strong>Mohammad Alfarras</strong>
+                  <span>{locale === "ar" ? "لوجستيات · محتوى تقني · مواقع" : "Logistics · Tech Content · Websites"}</span>
                 </div>
-            </section>
-
-            {/* ─── SKILLS ─── */}
-            <section className="home-skills-section">
-                <div className="container">
-                    <div className="section-header reveal-item">
-                        <span className="section-kicker">💡 {tx.skillsTitle}</span>
-                        <h2 className="section-title">{tx.skillsSub}</h2>
-                    </div>
-                    <div className="home-skills-grid">
-                        {tx.skills.map((sk, i) => (
-                            <div key={sk.title} className="home-skill-card glass reveal-item" data-delay={String(i % 4)}>
-                                <div className="home-skill-icon">{sk.icon}</div>
-                                <h3 className="home-skill-title">{sk.title}</h3>
-                                <p className="home-skill-text">{sk.body}</p>
-                                <div className="home-skill-tags">
-                                    {sk.tags.map((t) => <span key={t} className="home-skill-tag">{t}</span>)}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ─── SERVICES ─── */}
-            <section className="home-services-section">
-                <div className="container">
-                    <div className="section-header reveal-item">
-                        <span className="section-kicker">🛠️ {tx.servicesTitle}</span>
-                        <h2 className="section-title">{tx.servicesSub}</h2>
-                    </div>
-                    <div className="home-services-grid">
-                        {tx.services.map((svc, i) => (
-                            <div key={svc.title} className="home-service-card glass reveal-item" data-delay={String(i)}>
-                                <div className="home-service-img">
-                                    <Image src={i === 0 ? "/images/service-tech.png" : i === 1 ? "/images/service-logistics.png" : "/images/service-web.png"}
-                                        alt={svc.title} fill style={{ objectFit: "cover" }} loading="lazy" />
-                                </div>
-                                <div className="home-service-body">
-                                    <h3>{svc.title}</h3>
-                                    <p>{svc.body}</p>
-                                    <div className="home-service-chips">
-                                        {svc.chips.map((c) => <span key={c} className="home-service-chip">{c}</span>)}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ─── FAQ ─── */}
-            <section className="home-faq-section">
-                <div className="container">
-                    <div className="section-header reveal-item">
-                        <span className="section-kicker">❓ {tx.faqTitle}</span>
-                    </div>
-                    <div className="home-faq-list">
-                        {tx.faqItems.map((item) => (
-                            <details key={item.q} className="home-faq-item reveal-item">
-                                <summary>{item.q}</summary>
-                                <p>{item.a}</p>
-                            </details>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ─── CTA ─── */}
-            <section className="home-cta-section">
-                <div className="container">
-                    <div className="home-cta-card glass reveal-item">
-                        <h2 className="gradient-text">{tx.ctaTitle}</h2>
-                        <p>{tx.ctaBody}</p>
-                        <div className="home-cta-btns">
-                            <a href={socialLinks.whatsapp} target="_blank" rel="noreferrer" className="btn primary">💬 WhatsApp</a>
-                            <Link href={`/${locale}/contact`} className="btn secondary">✉️ {locale === "ar" ? "تواصل" : "Contact"}</Link>
-                            <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="btn ghost">▶ YouTube</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+              </div>
+            ) : null}
+          </aside>
         </div>
-    );
+      </section>
+
+      {featureItems.length ? (
+        <section className="page-section">
+          <div className="container section-stack">
+            <div className="section-heading">
+              <span className="section-kicker">{locale === "ar" ? "ما يميز هذه المساحة" : "What defines this space"}</span>
+              <h2>{locale === "ar" ? "قيمة عملية وليست شعارات" : "Practical value, not empty claims"}</h2>
+            </div>
+            <div className="feature-card-grid">
+              {featureItems.map((item) => (
+                <article key={item} className="glass-card service-rich-card">
+                  <h3>{item}</h3>
+                  <p>
+                    {locale === "ar"
+                      ? "هذا الجزء ليس وصفاً عاماً، بل شيء أمارسه فعلياً في العمل أو المحتوى أو بناء الصفحات."
+                      : "This is not generic branding copy. It reflects something I actually do in operations, content, or digital delivery."}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "الهوية" : "Identity"}</span>
+            <h2>{locale === "ar" ? "ثلاث طبقات تصنع أسلوب العمل" : "Three layers define the work style"}</h2>
+          </div>
+          <div className="feature-card-grid">
+            {identityCards.map((card) => (
+              <article key={card.title} className="glass-card service-rich-card">
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "نماذج من شغلي" : "Selected work"}</span>
+            <h2>{locale === "ar" ? "مشاريع تعكس التنفيذ الحقيقي" : "Projects that reflect real delivery"}</h2>
+            <p>
+              {locale === "ar"
+                ? "مواقع وخدمات رقمية منشورة تُظهر كيف أترجم الفكرة إلى نتيجة واضحة، سريعة، وقابلة للاستخدام."
+                : "Published websites and digital services that show how an idea turns into a clear, fast, usable result."}
+            </p>
+          </div>
+
+          <div className="feature-card-grid">
+            {projects.map((project) => (
+              <article key={project.id} className="glass-card project-spotlight-card">
+                {project.cover ? (
+                  <div className="card-media-shell">
+                    <Image
+                      src={project.cover.path}
+                      alt={locale === "ar" ? project.cover.alt_ar : project.cover.alt_en}
+                      width={project.cover.width}
+                      height={project.cover.height}
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="card-media"
+                    />
+                  </div>
+                ) : null}
+                <div className="project-spotlight-body">
+                  <h3>{project.title}</h3>
+                  <p className="muted">{project.summary}</p>
+                  <p>{project.description}</p>
+                  <div className="actions-row">
+                    {project.projectUrl ? (
+                      <a href={project.projectUrl} className="btn secondary" target="_blank" rel="noreferrer noopener">
+                        {project.ctaLabel}
+                      </a>
+                    ) : null}
+                    {project.repoUrl ? (
+                      <a href={project.repoUrl} className="btn ghost" target="_blank" rel="noreferrer noopener">
+                        GitHub
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            <span className="section-kicker">{locale === "ar" ? "الخدمات" : "Services"}</span>
+            <h2>{locale === "ar" ? "ماذا أقدم اليوم؟" : "What I deliver today"}</h2>
+          </div>
+
+          <div className="feature-card-grid">
+            {services.map((service) => (
+              <article key={service.id} className="glass-card service-rich-card">
+                {service.cover ? (
+                  <div className="card-media-shell">
+                    <Image
+                      src={service.cover.path}
+                      alt={locale === "ar" ? service.cover.alt_ar : service.cover.alt_en}
+                      width={service.cover.width}
+                      height={service.cover.height}
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="card-media"
+                    />
+                  </div>
+                ) : null}
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+                {service.bullets.length ? (
+                  <ul className="bullet-list">
+                    {service.bullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {gallery.length ? (
+        <section className="page-section">
+          <div className="container section-stack">
+            <div className="section-heading">
+              <span className="section-kicker">{locale === "ar" ? "المعرض" : "Gallery"}</span>
+              <h2>
+                {String(
+                  galleryBlock?.content.title ??
+                    (locale === "ar" ? "لمحات من الرحلة والمحتوى" : "Moments from the journey and the content"),
+                )}
+              </h2>
+              <p>{String(galleryBlock?.content.body ?? "")}</p>
+            </div>
+            <div className="visual-gallery-grid">
+              {gallery.map((item) => (
+                <article key={item.id} className="visual-gallery-card">
+                  <Image
+                    src={item.path}
+                    alt={locale === "ar" ? item.alt_ar : item.alt_en}
+                    width={item.width}
+                    height={item.height}
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="visual-gallery-image"
+                  />
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {latestVideos.length ? (
+        <section className="page-section">
+          <div className="container section-stack">
+            <div className="section-heading">
+              <span className="section-kicker">{locale === "ar" ? "يوتيوب" : "YouTube"}</span>
+              <h2>{locale === "ar" ? "أحدث الفيديوهات من القناة" : "Latest channel uploads"}</h2>
+              <p>
+                {locale === "ar"
+                  ? "مراجعات، تطبيقات، منزل ذكي، وتجارب عملية من القناة الرسمية. الصفحة الآن تعتمد على أرشيف القناة الحقيقي كلما كان متاحاً."
+                  : "Reviews, apps, smart-home setups, and practical videos from the official channel. The page now uses the real public channel catalog whenever available."}
+              </p>
+            </div>
+            <div className="feature-card-grid">
+              {latestVideos.map((video) => (
+                <article key={video.id} className="glass-card video-teaser-card">
+                  <a href={`https://www.youtube.com/watch?v=${video.youtube_id}`} target="_blank" rel="noreferrer noopener" className="card-media-shell">
+                    <Image
+                      src={video.thumbnail}
+                      alt={locale === "ar" ? video.title_ar : video.title_en}
+                      width={480}
+                      height={270}
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="card-media"
+                    />
+                  </a>
+                  <h3>{locale === "ar" ? video.title_ar : video.title_en}</h3>
+                  <p>{locale === "ar" ? video.description_ar : video.description_en}</p>
+                  <div className="meta-inline">
+                    <span>{video.duration}</span>
+                    <span>{compact(locale, video.views)}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="page-section">
+        <div className="container">
+          <div className="glass-card contact-band">
+            <div>
+              <span className="section-kicker">{locale === "ar" ? "تواصل" : "Contact"}</span>
+              <h2>
+                {String(
+                  contactCta?.content.title ??
+                    (locale === "ar" ? "جاهز لتعاون واضح ومحترف" : "Ready for a clear professional collaboration"),
+                )}
+              </h2>
+              <p>
+                {String(
+                  contactCta?.content.body ??
+                    (locale === "ar"
+                      ? "كل القنوات الأساسية موجودة هنا لتبدأ بشكل سريع ومباشر."
+                      : "Your main direct channels are here so we can start quickly."),
+                )}
+              </p>
+            </div>
+            <div className="contact-band-links">
+              {channels.map((channel) => (
+                <a key={channel.id} href={channel.value} target="_blank" rel="noreferrer noopener" className="contact-band-link">
+                  <span>{channel.label}</span>
+                  <small>{channel.description}</small>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

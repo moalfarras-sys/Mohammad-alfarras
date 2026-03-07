@@ -1,4 +1,4 @@
-﻿import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const ADMIN_COOKIE = "mf_admin_session";
@@ -14,7 +14,7 @@ function expectedAdminEmails() {
 }
 
 function expectedPassword() {
-  return process.env.ADMIN_PASSWORD ?? "123123.Mmm";
+  return process.env.ADMIN_PASSWORD;
 }
 
 export async function createAdminSession(email: string, password: string): Promise<boolean> {
@@ -23,7 +23,8 @@ export async function createAdminSession(email: string, password: string): Promi
     return false;
   }
 
-  if (password !== expectedPassword()) {
+  const expected = expectedPassword();
+  if (!expected || password !== expected) {
     return false;
   }
 

@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import Image from "next/image";
 
 import type { Locale, WorkProjectView } from "@/types/cms";
 
@@ -6,23 +7,25 @@ function copy(locale: Locale) {
   if (locale === "ar") {
     return {
       title: "أعمالي الرقمية",
-      body: "نماذج لمشاريع حقيقية نفذتها من الفكرة إلى الإطلاق.",
+      body: "مشاريع حقيقية من التنفيذ إلى الإطلاق، مع تركيز على الجودة والنتيجة.",
       cta: "تواصل معي لتنفيذ مشروعك",
       ctaHref: "/ar/contact",
       projectLabel: "زيارة المشروع",
       noProjects: "لا توجد مشاريع مفعلة حاليًا.",
-      liveSite: "موقع حي على الإنترنت",
+      liveSite: "مشروع حي على الإنترنت",
+      repoLabel: "مستودع المشروع",
     };
   }
 
   return {
     title: "Featured Work",
-    body: "Selected production projects built and polished end-to-end.",
-    cta: "Need a website or app like this? Contact me.",
+    body: "Real production projects from concept to launch, optimized for quality and conversions.",
+    cta: "Need a website or app like this? Contact me",
     ctaHref: "/en/contact",
     projectLabel: "Open project",
     noProjects: "No active projects yet.",
     liveSite: "Live production project",
+    repoLabel: "Source repository",
   };
 }
 
@@ -32,21 +35,32 @@ export function WorkShowcase({ locale, projects, title, body }: { locale: Locale
   return (
     <section className="page-section">
       <div className="container section-stack">
-        <h2>{title || t.title}</h2>
-        <p>{body || t.body}</p>
+        <div className="section-heading">
+          <h2>{title || t.title}</h2>
+          <p>{body || t.body}</p>
+        </div>
 
         {projects.length ? (
           <div className="work-grid">
-            {projects.map((project) => (
-              <article className="card work-card" key={project.id}>
+            {projects.map((project, index) => (
+              <article className="card work-card glass-card" key={project.id} style={{ animationDelay: `${Math.min(index, 8) * 80}ms` }}>
                 {project.cover ? (
-                  <div className="moplayer-logo-wrap">
-                    <img src={project.cover.path} alt={locale === "ar" ? project.cover.alt_ar : project.cover.alt_en} width={project.cover.width || 900} height={project.cover.height || 900} />
+                  <div className="work-media-wrap">
+                    <Image
+                      src={project.cover.path}
+                      alt={locale === "ar" ? project.cover.alt_ar : project.cover.alt_en}
+                      width={project.cover.width || 960}
+                      height={project.cover.height || 960}
+                    />
                   </div>
                 ) : null}
-                <h3>{project.title}</h3>
-                <p>{project.summary || t.liveSite}</p>
-                <p className="muted">{project.description}</p>
+
+                <div className="work-body">
+                  <h3>{project.title}</h3>
+                  <p className="work-summary">{project.summary || t.liveSite}</p>
+                  <p className="muted">{project.description}</p>
+                </div>
+
                 <div className="actions-row">
                   {project.projectUrl ? (
                     <a href={project.projectUrl} target="_blank" rel="noreferrer noopener" className="btn secondary">
@@ -54,8 +68,8 @@ export function WorkShowcase({ locale, projects, title, body }: { locale: Locale
                     </a>
                   ) : null}
                   {project.repoUrl ? (
-                    <a href={project.repoUrl} target="_blank" rel="noreferrer noopener" className="btn secondary">
-                      GitHub
+                    <a href={project.repoUrl} target="_blank" rel="noreferrer noopener" className="btn ghost">
+                      {t.repoLabel}
                     </a>
                   ) : null}
                 </div>

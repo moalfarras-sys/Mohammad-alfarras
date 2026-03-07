@@ -21,6 +21,7 @@ import {
   updateSectionCore,
   updateSectionTranslation,
   updateThemeToken,
+  syncYoutubeLatest,
   upsertCertification,
   upsertCertificationTranslation,
   upsertContactChannel,
@@ -135,6 +136,12 @@ export async function upsertVideoAction(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 
   await upsertVideo(parsed.data);
+  revalidateAll();
+}
+
+export async function syncYoutubeAction(formData: FormData) {
+  const maxResults = Number(formData.get("max_results") || 12);
+  await syncYoutubeLatest({ maxResults });
   revalidateAll();
 }
 

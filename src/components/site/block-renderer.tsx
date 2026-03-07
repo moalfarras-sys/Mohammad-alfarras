@@ -1,6 +1,8 @@
-﻿import Link from "next/link";
-import Image from "next/image";
+﻿import Image from "next/image";
+import Link from "next/link";
 
+import { WorkShowcase } from "@/components/site/work-showcase";
+import { YoutubeGrid } from "@/components/site/youtube-grid";
 import type {
   CertificationView,
   CmsSnapshot,
@@ -11,7 +13,6 @@ import type {
   ServiceView,
   WorkProjectView,
 } from "@/types/cms";
-import { WorkShowcase } from "@/components/site/work-showcase";
 
 function getProjectViews(snapshot: CmsSnapshot, locale: Locale): WorkProjectView[] {
   return snapshot.work_projects
@@ -124,12 +125,53 @@ function getChannelViews(snapshot: CmsSnapshot, locale: Locale): ContactChannelV
     });
 }
 
+function iconByType(type: string) {
+  switch (type) {
+    case "whatsapp":
+      return "💬";
+    case "email":
+      return "✉️";
+    case "linkedin":
+      return "💼";
+    case "telegram":
+      return "📨";
+    case "instagram":
+      return "📸";
+    case "youtube":
+      return "▶️";
+    default:
+      return "🔗";
+  }
+}
+
+function portraitFromSnapshot(snapshot: CmsSnapshot, locale: Locale) {
+  const portrait = snapshot.media_assets.find((item) => item.path.includes("portrait")) ?? snapshot.media_assets[0] ?? null;
+  if (!portrait) return null;
+  return {
+    src: portrait.path,
+    alt: locale === "ar" ? portrait.alt_ar : portrait.alt_en,
+    width: portrait.width || 960,
+    height: portrait.height || 1200,
+  };
+}
+
+function getGalleryMedia(snapshot: CmsSnapshot, block: PageBlockView) {
+  const selectedIds = Array.isArray(block.content.items)
+    ? block.content.items.map((entry) => String(entry))
+    : [];
+  const selected = selectedIds.length
+    ? snapshot.media_assets.filter((asset) => selectedIds.includes(asset.id))
+    : snapshot.media_assets.filter((asset) => asset.path.startsWith("/images/"));
+
+  return selected.filter((asset) => !asset.path.endsWith(".svg"));
+}
+
 function renderItems(items: unknown[]) {
   if (!items.length) return null;
   return (
     <ul className="item-grid">
       {items.map((item, index) => (
-        <li className="card" key={`${index}-${String(item)}`}>
+        <li className="card glass-card" key={`${index}-${String(item)}`}>
           {String(item)}
         </li>
       ))}
@@ -146,8 +188,71 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
   const primaryCta = block.content.primaryCta as { href?: string; label?: string } | undefined;
   const secondaryCta = block.content.secondaryCta as { href?: string; label?: string } | undefined;
 
+  if (block.type === "hero") {
+    const portrait = portraitFromSnapshot(snapshot, locale);
+
+    return (
+      <section className="page-section section-hero" data-block-type="hero">
+        <div className="container section-stack hero-stack">
+          <div className="hero-layout">
+            <div className="hero-content">
+              {title ? <h1 className="hero-title">{title}</h1> : null}
+              {body ? <p className="hero-body">{body}</p> : null}
+
+              {primaryCta || secondaryCta || cta ? (
+                <div className="actions-row">
+                  {primaryCta?.href && primaryCta.label ? <Link href={primaryCta.href} className="btn primary">{primaryCta.label}</Link> : null}
+                  {secondaryCta?.href && secondaryCta.label ? <Link href={secondaryCta.href} className="btn secondary">{secondaryCta.label}</Link> : null}
+                  {cta?.href && cta.label ? <Link href={cta.href} className="btn ghost">{cta.label}</Link> : null}
+                </div>
+              ) : null}
+            </div>
+
+            {portrait ? (
+              <aside className="hero-portrait-card glass-card">
+                <div className="portrait-ring" />
+                <Image src={portrait.src} alt={portrait.alt} width={portrait.width} height={portrait.height} className="portrait-image" priority={false} />
+                <div className="signature-wrap">
+                  <span className="signature-main">Mohammad Alfarras</span>
+                  <span className="signature-sub">MOALFARRAS</span>
+                </div>
+              </aside>
+            ) : null}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (block.type === "work-showcase") {
     return <WorkShowcase locale={locale} projects={getProjectViews(snapshot, locale)} title={title} body={body} />;
+  }
+
+  if (block.type === "media-gallery") {
+    const media = getGalleryMedia(snapshot, block);
+    return (
+      <section className="page-section">
+        <div className="container section-stack">
+          <div className="section-heading">
+            {title ? <h2>{title}</h2> : null}
+            {body ? <p>{body}</p> : null}
+          </div>
+          <div className="media-gallery-grid">
+            {media.map((item, index) => (
+              <article className="media-gallery-card glass-card" key={item.id} style={{ animationDelay: `${index * 60}ms` }}>
+                <Image
+                  src={item.path}
+                  alt={locale === "ar" ? item.alt_ar : item.alt_en}
+                  width={item.width || 1200}
+                  height={item.height || 900}
+                  loading="lazy"
+                />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (block.type === "experience-timeline") {
@@ -155,17 +260,19 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
     return (
       <section className="page-section">
         <div className="container section-stack">
-          {title ? <h2>{title}</h2> : null}
-          {body ? <p>{body}</p> : null}
-          <div className="admin-columns-2">
-            {experiences.map((item) => (
-              <article className="card" key={item.id}>
+          <div className="section-heading">
+            {title ? <h2>{title}</h2> : null}
+            {body ? <p>{body}</p> : null}
+          </div>
+          <div className="cards-grid two-col">
+            {experiences.map((item, index) => (
+              <article className="card glass-card" key={item.id} style={{ animationDelay: `${index * 70}ms` }}>
                 <h3>{item.roleTitle}</h3>
-                <p>{item.company} - {item.location}</p>
-                <p>{item.startDate} - {item.currentRole ? (locale === "ar" ? "حتى الآن" : "Present") : item.endDate}</p>
+                <p className="muted">{item.company} · {item.location}</p>
+                <p className="muted">{item.startDate} - {item.currentRole ? (locale === "ar" ? "حتى الآن" : "Present") : item.endDate}</p>
                 <p>{item.description}</p>
                 {item.highlights.length ? (
-                  <ul>
+                  <ul className="bullet-list">
                     {item.highlights.map((highlight, idx) => <li key={`${item.id}-h-${idx}`}>{highlight}</li>)}
                   </ul>
                 ) : null}
@@ -183,12 +290,12 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
       <section className="page-section">
         <div className="container section-stack">
           {title ? <h2>{title}</h2> : null}
-          <div className="admin-columns-2">
-            {certifications.map((item) => (
-              <article className="card" key={item.id}>
+          <div className="cards-grid two-col">
+            {certifications.map((item, index) => (
+              <article className="card glass-card" key={item.id} style={{ animationDelay: `${index * 70}ms` }}>
                 <h3>{item.name}</h3>
-                <p>{item.issuer}</p>
-                <p>{item.issueDate}</p>
+                <p className="muted">{item.issuer}</p>
+                <p className="muted">{item.issueDate}</p>
                 <p>{item.description}</p>
                 {item.credentialUrl ? (
                   <a className="btn secondary" target="_blank" rel="noreferrer noopener" href={item.credentialUrl}>
@@ -208,22 +315,28 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
     return (
       <section className="page-section">
         <div className="container section-stack">
-          {title ? <h2>{title}</h2> : null}
-          {body ? <p>{body}</p> : null}
-          <div className="admin-columns-2">
-            {services.map((item) => (
-              <article className="card" key={item.id} style={{ overflow: "hidden" }}>
-                {item.cover && (
-                  <div style={{ margin: "-1.5rem -1.5rem 1rem -1.5rem", position: "relative", height: "200px" }}>
-                    <Image src={item.cover.path} alt={locale === "ar" ? item.cover.alt_ar : item.cover.alt_en} fill style={{ objectFit: "cover" }} />
+          <div className="section-heading">
+            {title ? <h2>{title}</h2> : null}
+            {body ? <p>{body}</p> : null}
+          </div>
+          <div className="cards-grid three-col">
+            {services.map((item, index) => (
+              <article className="card glass-card" key={item.id} style={{ animationDelay: `${index * 70}ms` }}>
+                {item.cover ? (
+                  <div className="work-media-wrap">
+                    <Image
+                      src={item.cover.path}
+                      alt={locale === "ar" ? item.cover.alt_ar : item.cover.alt_en}
+                      width={item.cover.width || 960}
+                      height={item.cover.height || 960}
+                      loading="lazy"
+                    />
                   </div>
-                )}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-                  <h3 style={{ margin: 0 }}>{item.title}</h3>
-                </div>
+                ) : null}
+                <h3>{item.title}</h3>
                 <p>{item.description}</p>
                 {item.bullets.length ? (
-                  <ul>
+                  <ul className="bullet-list">
                     {item.bullets.map((bullet, idx) => <li key={`${item.id}-b-${idx}`}>{bullet}</li>)}
                   </ul>
                 ) : null}
@@ -240,12 +353,23 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
     return (
       <section className="page-section">
         <div className="container section-stack">
-          {title ? <h2>{title}</h2> : null}
-          {body ? <p>{body}</p> : null}
-          <div className="contact-list contact-panel">
-            {channels.map((channel) => (
-              <a key={channel.id} className={`btn ${channel.isPrimary ? "primary" : "secondary"}`} href={channel.value} target="_blank" rel="noreferrer noopener">
-                {channel.label}
+          <div className="section-heading">
+            {title ? <h2>{title}</h2> : null}
+            {body ? <p>{body}</p> : null}
+          </div>
+          <div className="cards-grid three-col">
+            {channels.map((channel, index) => (
+              <a
+                key={channel.id}
+                className={`card glass-card channel-card ${channel.isPrimary ? "is-primary" : ""}`}
+                href={channel.value}
+                target="_blank"
+                rel="noreferrer noopener"
+                style={{ animationDelay: `${index * 70}ms` }}
+              >
+                <span className="channel-icon" aria-hidden="true">{iconByType(channel.type)}</span>
+                <h3>{channel.label}</h3>
+                <p>{channel.description}</p>
               </a>
             ))}
           </div>
@@ -256,31 +380,7 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
 
   if (block.type === "videos") {
     const videos = snapshot.youtube_videos.filter((video) => video.is_active).sort((a, b) => a.sort_order - b.sort_order);
-    return (
-      <section className="page-section">
-        <div className="container section-stack">
-          {title ? <h2>{title}</h2> : null}
-          {body ? <p>{body}</p> : null}
-          <div className="video-grid item-grid">
-            {videos.map((video) => (
-              <article className="card video-card" key={video.id}>
-                <img src={video.thumbnail} alt={locale === "ar" ? video.title_ar : video.title_en} loading="lazy" />
-                <h3>{locale === "ar" ? video.title_ar : video.title_en}</h3>
-                <p>{locale === "ar" ? video.description_ar : video.description_en}</p>
-                <a
-                  className="btn secondary"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
-                >
-                  YouTube
-                </a>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
+    return <YoutubeGrid locale={locale} videos={videos} />;
   }
 
   const genericItems = Array.isArray(block.content.items)
@@ -293,12 +393,12 @@ export function BlockRenderer({ block, locale, snapshot }: { block: PageBlockVie
 
   return (
     <section className={`page-section section-${block.type}`} data-block-type={block.type}>
-      <div className={`container section-stack ${block.type === "hero" ? "hero-stack" : ""}`}>
-        {title ? <h2 className={block.type === "hero" ? "hero-title" : ""}>{title}</h2> : null}
-        {body ? <p className={block.type === "hero" ? "hero-body" : ""}>{body}</p> : null}
+      <div className="container section-stack">
+        {title ? <h2>{title}</h2> : null}
+        {body ? <p>{body}</p> : null}
         {renderItems(genericItems)}
 
-        {(primaryCta || secondaryCta) ? (
+        {primaryCta || secondaryCta ? (
           <div className="actions-row">
             {primaryCta?.href && primaryCta.label ? (
               <Link href={primaryCta.href} className="btn primary">{primaryCta.label}</Link>

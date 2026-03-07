@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/page-view";
+import { PrivacyPolicyPage } from "@/components/site/privacy-policy-page";
 import { isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
@@ -14,7 +14,5 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const content = await SitePage({ locale, slug: "privacy" });
-  if (!content) notFound();
-  return content;
+  return <PrivacyPolicyPage locale={locale} />;
 }

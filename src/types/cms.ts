@@ -6,6 +6,7 @@ export type PageStatus = "draft" | "published";
 export type BlockType =
   | "hero"
   | "feature-grid"
+  | "media-gallery"
   | "work-showcase"
   | "experience-timeline"
   | "certifications-grid"

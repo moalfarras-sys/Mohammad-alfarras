@@ -1,5 +1,5 @@
 {
-  "name": "app-next",
+  "name": "mohammad-alfarras",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,6 @@
     "test:e2e": "playwright test",
     "format": "prettier . --check",
     "format:write": "prettier . --write",
-    "migrate:static": "node --import tsx scripts/migrate-static-content.ts",
     "setup:supabase": "node --import tsx scripts/setup-supabase.ts"
   },
   "dependencies": {

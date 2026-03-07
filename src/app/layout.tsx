@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Tajawal, Poppins } from "next/font/google";
 
 import "./globals.css";
 import "./pages.css";
 import "./admin.css";
+import { defaultLocale, localeMeta } from "@/lib/i18n";
 
 const tajawal = Tajawal({
   subsets: ["latin", "arabic"],
@@ -31,9 +33,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const requestHeaders = await headers();
+  const locale = requestHeaders.get("x-site-locale") === "en" ? "en" : defaultLocale;
+
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={localeMeta[locale].dir}
+      data-theme="light"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className={`${tajawal.variable} ${poppins.variable}`}>{children}</body>
     </html>
   );

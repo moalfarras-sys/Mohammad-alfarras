@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
-import type { Locale } from "@/types/cms";
 
 const videos = [
     { id: "QwG-5J9XQCg", ar: "اكتشف افضل ستاند للسيارة من volport", en: "Best Car Stand from Volport – Review", views: "283", duration: "3:26", cat: "review" },

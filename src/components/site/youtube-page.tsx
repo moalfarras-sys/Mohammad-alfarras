@@ -76,6 +76,11 @@ export function YouTubePage({ locale }: { locale: "ar" | "en" }) {
     <div className="yt-page-full" dir={dir}>
       <section className="yt-hero">
         <div className="container">
+          {/* Channel Banner */}
+          <div className="yt-channel-banner reveal-item">
+            <Image src="/images/yt_channel_banner.png" alt="Tech YouTube Studio" fill style={{ objectFit: "cover" }} priority />
+            <div className="yt-banner-overlay" />
+          </div>
           <div className="yt-hero-inner glass reveal-item">
             <div className="yt-hero-text">
               <span className="section-kicker">📺 {tx.kicker}</span>

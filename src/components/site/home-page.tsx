@@ -1,9 +1,96 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import type { CmsSnapshot, Locale, PageView, YoutubeVideo } from "@/types/cms";
 
-import { findBlock, getChannels, getGallery, getPortrait, getProjects, getServices, getVideoStats } from "./cms-views";
+const socialLinks = {
+    youtube: "https://www.youtube.com/@Moalfarras",
+    whatsapp: "https://wa.me/4917623419358",
+    instagram: "https://www.instagram.com/moalfarras",
+    telegram: "https://t.me/MoalFarras",
+    linkedin: "https://de.linkedin.com/in/mohammad-alfarras-525531262",
+    github: "https://github.com/moalfarras-sys",
+};
+
+const content = {
+    ar: {
+        kicker: "مرحباً، أنا محمد الفراس",
+        name: "Mohammad Alfarras",
+        heroTitle: "تشغيل · محتوى · حلول رقمية",
+        heroBody: "أدير عمليات التسليم يومياً في Rhenus Home Delivery، وأبني قناة يوتيوب ومشاريع رقمية بنفس الأسلوب: وضوح، تفاصيل، وتنفيذ محترم.",
+        taglines: ["📦 لوجستيات ذكية", "🎬 محتوى صادق", "💻 حلول رقمية", "🚀 تنفيذ محترف"],
+        ctaPrimary: "تواصل معي",
+        ctaSecondary: "يوتيوب",
+        ctaCV: "السيرة الذاتية",
+        pillsTitle: "ما أقدمه",
+        pills: ["إدارة عمليات", "مراجعات تقنية", "تصميم مواقع", "استشارات لوجستية", "محتوى رقمي", "حلول ذكية"],
+        galleryTitle: "لقطات من الحياة",
+        gallerySub: "لحظات من العمل والمحتوى والحياة اليومية",
+        skillsTitle: "المهارات",
+        skillsSub: "خبرات عملية حقيقية",
+        skills: [
+            { icon: "📦", title: "لوجستيات", body: "إدارة عمليات التسليم والتوزيع بكفاءة عالية.", tags: ["TMS", "التخطيط", "التنسيق"] },
+            { icon: "🎬", title: "محتوى تقني", body: "مراجعات صادقة وفيديوهات احترافية على يوتيوب.", tags: ["YouTube", "مراجعات", "تصوير"] },
+            { icon: "💻", title: "حلول رقمية", body: "تصميم مواقع وأدوات رقمية تخدم الأعمال.", tags: ["Next.js", "React", "تصميم"] },
+            { icon: "🤝", title: "استشارات", body: "مساعدة الشركات في تنظيم عملياتها وتحسين أدائها.", tags: ["تخطيط", "تحليل", "تطوير"] },
+        ],
+        servicesTitle: "الخدمات",
+        servicesSub: "ثلاث محاور أساسية أعمل عليها",
+        services: [
+            { title: "محتوى تقني", body: "مراجعات صادقة ومفصلة للمنتجات التقنية مع تصوير احترافي.", chips: ["يوتيوب", "مراجعات", "Unboxing"] },
+            { title: "خدمات لوجستية", body: "استشارات وحلول لتنظيم عمليات التسليم والتشغيل.", chips: ["إدارة", "تخطيط", "تنسيق"] },
+            { title: "حلول رقمية", body: "تصميم مواقع وصفحات هبوط بتصميم عصري وأنيق.", chips: ["تصميم", "برمجة", "تطوير"] },
+        ],
+        faqTitle: "أسئلة شائعة",
+        faqItems: [
+            { q: "كيف أتواصل معك؟", a: "يمكنك التواصل عبر واتساب، تليغرام، أو نموذج التواصل في صفحة Contact." },
+            { q: "هل تقبل تعاون محتوى؟", a: "نعم، إذا كان المنتج مناسب وحقيقي، أرحب بالتعاون." },
+            { q: "هل تقدم خدمات تصميم مواقع؟", a: "نعم، أصمم مواقع بسيطة وأنيقة باستخدام أحدث التقنيات." },
+        ],
+        ctaTitle: "جاهز نشتغل سوا؟",
+        ctaBody: "سواء كنت تبحث عن استشارة، تعاون محتوى، أو حل رقمي — راسلني الآن.",
+    },
+    en: {
+        kicker: "Hi, I'm Mohammad Alfarras",
+        name: "Mohammad Alfarras",
+        heroTitle: "Operations · Content · Digital Solutions",
+        heroBody: "I manage last-mile delivery at Rhenus Home Delivery, build a YouTube channel, and create digital projects all with the same mindset: clarity, detail, and polished execution.",
+        taglines: ["📦 Smart Logistics", "🎬 Honest Content", "💻 Digital Solutions", "🚀 Pro Execution"],
+        ctaPrimary: "Contact me",
+        ctaSecondary: "YouTube",
+        ctaCV: "My CV",
+        pillsTitle: "What I do",
+        pills: ["Operations", "Tech Reviews", "Web Design", "Logistics Consulting", "Digital Content", "Smart Solutions"],
+        galleryTitle: "Snapshots",
+        gallerySub: "Moments from work, content, and everyday life",
+        skillsTitle: "Skills",
+        skillsSub: "Real-world experience",
+        skills: [
+            { icon: "📦", title: "Logistics", body: "Managing delivery and distribution operations efficiently.", tags: ["TMS", "Planning", "Coordination"] },
+            { icon: "🎬", title: "Tech Content", body: "Honest reviews and professional videos on YouTube.", tags: ["YouTube", "Reviews", "Production"] },
+            { icon: "💻", title: "Digital Solutions", body: "Building websites and digital tools for businesses.", tags: ["Next.js", "React", "Design"] },
+            { icon: "🤝", title: "Consulting", body: "Helping companies organise operations and improve performance.", tags: ["Planning", "Analysis", "Growth"] },
+        ],
+        servicesTitle: "Services",
+        servicesSub: "Three core pillars I work on",
+        services: [
+            { title: "Tech Content", body: "Honest, detailed product reviews with professional production.", chips: ["YouTube", "Reviews", "Unboxing"] },
+            { title: "Logistics Services", body: "Consulting and solutions for delivery and operations management.", chips: ["Management", "Planning", "Coordination"] },
+            { title: "Digital Solutions", body: "Modern, elegant websites and landing pages.", chips: ["Design", "Development", "Web"] },
+        ],
+        faqTitle: "FAQ",
+        faqItems: [
+            { q: "How can I reach you?", a: "You can reach me via WhatsApp, Telegram, or the contact form on the Contact page." },
+            { q: "Do you accept content collaborations?", a: "Yes, if the product is genuine and relevant, I'm happy to collaborate." },
+            { q: "Do you offer web design services?", a: "Yes, I design clean, modern websites using the latest technologies." },
+        ],
+        ctaTitle: "Ready to work together?",
+        ctaBody: "Whether you need consulting, content collaboration, or a digital solution — reach out now.",
+    },
+};
 
 const galleryImages = [
     "/images/00.jpeg", "/images/000.jpeg", "/images/11.jpeg", "/images/22.jpeg",
@@ -18,7 +105,7 @@ const particles = Array.from({ length: 12 }, () => ({
     delay: Math.random() * 4,
 }));
 
-export function HomePage({ locale }: { locale: "ar" | "en" }) {
+export function HomePage({ locale, page, snapshot, videos }: { locale: "ar" | "en"; page: PageView; snapshot: CmsSnapshot; videos: YoutubeVideo[] }) {
     const tx = content[locale];
     const dir = locale === "ar" ? "rtl" : "ltr";
     const [taglineIdx, setTaglineIdx] = useState(0);

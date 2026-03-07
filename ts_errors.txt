@@ -1,0 +1,2 @@
+src/app/[locale]/(site)/page.tsx(22,36): error TS2322: Type '{ locale: "ar" | "en"; page: PageView; snapshot: CmsSnapshot; videos: YoutubeVideo[]; }' is not assignable to type 'IntrinsicAttributes & { locale: "ar" | "en"; }'.
+  Property 'page' does not exist on type 'IntrinsicAttributes & { locale: "ar" | "en"; }'.

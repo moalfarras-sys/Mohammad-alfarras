@@ -157,14 +157,22 @@ export async function updateAdminCredentialsAction(formData: FormData) {
 export async function updateSiteSettingAction(formData: FormData) {
   await ensureAdmin();
   const key = String(formData.get("key") || "").trim();
-  const raw = String(formData.get("value_json") || "{}");
   if (!key) throw new Error("Missing setting key");
 
   let parsedJson: Record<string, unknown> = {};
-  try {
-    parsedJson = JSON.parse(raw) as Record<string, unknown>;
-  } catch {
-    throw new Error("Invalid setting JSON");
+  const prefixedEntries = Array.from(formData.entries()).filter(([entryKey]) => entryKey.startsWith("value_json_"));
+
+  if (prefixedEntries.length > 0) {
+    parsedJson = Object.fromEntries(
+      prefixedEntries.map(([entryKey, value]) => [entryKey.replace("value_json_", ""), String(value || "").trim()]),
+    );
+  } else {
+    const raw = String(formData.get("value_json") || "{}");
+    try {
+      parsedJson = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      throw new Error("Invalid setting JSON");
+    }
   }
 
   await upsertSiteSetting(key, parsedJson);

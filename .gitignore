@@ -1,0 +1,70 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+.cursor/
+.vscode/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next-dev*.log
+.next-start*.log
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# duplicate local exports (stable copy is portrait-hero-2026.jpeg)
+public/images/WhatsApp*.jpeg
+public/images/WhatsApp*.jpg
+
+# local artifacts
+coverage/
+test-results/
+playwright-report/
+build_err*.txt
+error.txt
+eslint_out.json
+lint_log.txt
+live_site.html
+tsc_output.txt
+ts_errors.txt
+
+src/lib/_tmp.ts
+.vercel
+.env*.local
+
+# nested local workspace artifacts
+/app-next/.next/
+/app-next/node_modules/
+/app-next/src/lib/

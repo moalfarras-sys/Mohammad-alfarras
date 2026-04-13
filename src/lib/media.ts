@@ -3,10 +3,10 @@
 export const MEDIA_PATHS = {
   fallbackWide: "/images/cine-fallback-wide.svg",
   fallbackPortrait: "/images/cine-fallback-portrait.svg",
-  brandMark: "/images/2-01.png",
-  heroBrandCinematic: "/images/hero-brand-cinematic.png",
-  brandSpotlight: "/images/brand-spotlight-premium.png",
-  portraitHeroFrame: "/images/portrait-hero-frame.png",
+  brandMark: "/images/logo.png",
+  heroBrandCinematic: "/images/hero_tech.png",
+  brandSpotlight: "/images/brand-spotlight-2026.jpeg",
+  portraitHeroFrame: "/images/hero-profile-bg.png",
 } as const;
 
 export function isPublicOrRemoteImageSrc(path?: string | null): boolean {

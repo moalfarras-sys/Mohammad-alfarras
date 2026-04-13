@@ -50,17 +50,33 @@ function sessionSecret(): string {
   return String(process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || "local-admin-secret");
 }
 
+function encodeSessionEmail(email: string): string {
+  return Buffer.from(email, "utf8").toString("base64url");
+}
+
+function decodeSessionEmail(encoded: string): string {
+  return Buffer.from(encoded, "base64url").toString("utf8");
+}
+
 function buildSignedSession(email: string): string {
   const ts = Date.now().toString();
-  const payload = `${SESSION_VERSION}.${email}.${ts}`;
+  const encodedEmail = encodeSessionEmail(email);
+  const payload = `${SESSION_VERSION}.${encodedEmail}.${ts}`;
   const sig = createHmac("sha256", sessionSecret()).update(payload).digest("hex");
   return `${payload}.${sig}`;
 }
 
 function verifySignedSession(token: string): boolean {
-  const [version = "", email = "", ts = "", sig = ""] = token.split(".");
-  if (!version || !email || !ts || !sig || version !== SESSION_VERSION) return false;
-  const payload = `${version}.${email}.${ts}`;
+  const [version = "", encodedEmail = "", ts = "", sig = ""] = token.split(".");
+  if (!version || !encodedEmail || !ts || !sig || version !== SESSION_VERSION) return false;
+  let email = "";
+  try {
+    email = decodeSessionEmail(encodedEmail);
+  } catch {
+    return false;
+  }
+  if (!email) return false;
+  const payload = `${version}.${encodedEmail}.${ts}`;
   const expected = createHmac("sha256", sessionSecret()).update(payload).digest("hex");
   const sigBuf = Buffer.from(sig);
   const expectedBuf = Buffer.from(expected);

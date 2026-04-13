@@ -18,6 +18,9 @@ type DockItem = {
 
 export function MobileDock({ locale }: { locale: Locale }) {
   const pathname = usePathname();
+  if (pathname?.endsWith("/admin")) {
+    return null;
+  }
 
   const items: DockItem[] = [
     { id: "home", label: locale === "ar" ? "الرئيسية" : "Home", href: `/${locale}`, icon: House },

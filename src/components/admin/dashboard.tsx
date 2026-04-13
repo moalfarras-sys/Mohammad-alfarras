@@ -35,6 +35,11 @@ type CvLinksSetting = {
   portrait?: string;
 };
 
+type AdminSectionLink = {
+  id: string;
+  label: string;
+};
+
 function ui(locale: Locale) {
   if (locale === "ar") {
     return {
@@ -123,6 +128,18 @@ function textAreaList(items: string[] | undefined) {
 
 export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot: CmsSnapshot }) {
   const t = ui(locale);
+  const sectionLinks: AdminSectionLink[] = [
+    { id: "overview", label: t.overview },
+    { id: "structure", label: t.structure },
+    { id: "content", label: t.content },
+    { id: "cvdocs", label: "CV" },
+    { id: "media", label: t.media },
+    { id: "security", label: t.security },
+    { id: "settings", label: t.settings },
+    { id: "seo", label: t.seo },
+    { id: "nav", label: t.nav },
+    { id: "videos", label: t.videos },
+  ];
   const pageMap = new Map(snapshot.pages.map((page) => [page.id, page]));
   const blocks = snapshot.page_blocks.slice().sort((a, b) => a.page_slug.localeCompare(b.page_slug) || a.sort_order - b.sort_order);
   const adminAuthSetting = snapshot.site_settings.find((setting) => setting.key === "admin_auth")?.value_json as
@@ -149,10 +166,18 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
       </aside>
 
       <div className="admin-content">
+        <nav className="admin-mobile-nav" aria-label="Admin sections">
+          {sectionLinks.map((link) => (
+            <a key={link.id} href={`#${link.id}`}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+
         <section id="overview">
           <h2>{t.title}</h2>
           <p>{t.subtitle}</p>
-          <div>
+          <div className="admin-overview-grid">
             <article><h3>{snapshot.pages.length}</h3><p>{t.totalPages}</p></article>
             <article><h3>{snapshot.page_blocks.length}</h3><p>{t.totalBlocks}</p></article>
             <article><h3>{snapshot.work_projects.filter((item) => item.is_active).length}</h3><p>{t.totalWork}</p></article>
@@ -584,18 +609,7 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
                 <span>CV Profile Image URL</span>
                 <input name="value_json_portrait" defaultValue={cvLinksSetting.portrait || ""} placeholder="URL /images/portrait.jpg" />
               </label>
-              <textarea name="value_json" className="hidden" readOnly style={{ display: "none" }} />
-              <button type="button" onClick={(e) => {
-                const frm = (e.target as HTMLElement).closest("form");
-                if (frm) {
-                  const ar = (frm.elements.namedItem("value_json_ar") as HTMLInputElement).value;
-                  const en = (frm.elements.namedItem("value_json_en") as HTMLInputElement).value;
-                  const de = (frm.elements.namedItem("value_json_de") as HTMLInputElement).value;
-                  const portrait = (frm.elements.namedItem("value_json_portrait") as HTMLInputElement).value;
-                  (frm.elements.namedItem("value_json") as HTMLTextAreaElement).value = JSON.stringify({ ar, en, de, portrait });
-                  frm.submit();
-                }
-              }}>{t.save}</button>
+              <button type="submit">{t.save}</button>
             </form>
             <p className="mt-4 text-xs opacity-50">Note: Upload the PDFs/Images in the Media Library first, then copy their URLs into these fields.</p>
           </article>

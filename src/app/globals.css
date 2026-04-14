@@ -66,36 +66,37 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  --background: #f7f8fc;
-  --background-muted: #eef0f7;
-  --surface: rgba(255, 255, 255, 0.82);
-  --surface-strong: rgba(255, 255, 255, 0.96);
-  --surface-soft: rgba(0, 0, 0, 0.03);
-  --border: rgba(0, 0, 0, 0.08);
-  --border-neon: rgba(0, 180, 90, 0.25);
+  /* ── PREMIUM IVORY CLEAN 2026 ── */
+  --background: #fdfdfd;
+  --background-muted: #f4f5f8;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-strong: rgba(255, 255, 255, 0.98);
+  --surface-soft: rgba(0, 0, 0, 0.04);
+  --border: rgba(0, 0, 0, 0.09);
+  --border-neon: rgba(0, 160, 80, 0.3);
 
-  --foreground: #0e0f17;
-  --foreground-muted: #525869;
-  --foreground-soft: #a0a8bc;
+  --foreground: #0f172a;
+  --foreground-muted: #475569;
+  --foreground-soft: #64748b;
 
-  --primary: #00b85a;
-  --primary-dark: #008f45;
-  --secondary: #e05a00;
-  --accent: #8b35e8;
-  --cyan: #009fc2;
-  --pink: #d42060;
-  --neon-green: #00b85a;
-  --neon-orange: #e05a00;
+  --primary: #059669; /* Refined Emerald */
+  --primary-dark: #047857;
+  --secondary: #ea580c; /* Refined Orange */
+  --accent: #7c3aed; /* Refined Purple */
+  --cyan: #0891b2;
+  --pink: #db2777;
+  --neon-green: #10b981;
+  --neon-orange: #f59e0b;
 
-  --glow-green: 0 0 30px rgba(0, 184, 90, 0.14), 0 0 60px rgba(0, 184, 90, 0.07);
-  --glow-orange: 0 0 30px rgba(224, 90, 0, 0.12), 0 0 60px rgba(224, 90, 0, 0.06);
-  --glow-purple: 0 0 30px rgba(139, 53, 232, 0.12), 0 0 60px rgba(139, 53, 232, 0.06);
+  --glow-green: 0 0 35px rgba(0, 168, 82, 0.16), 0 0 70px rgba(0, 168, 82, 0.08);
+  --glow-orange: 0 0 35px rgba(212, 86, 0, 0.14), 0 0 70px rgba(212, 86, 0, 0.07);
+  --glow-purple: 0 0 35px rgba(126, 34, 206, 0.14), 0 0 70px rgba(126, 34, 206, 0.07);
 
-  --mesh-1: radial-gradient(ellipse at 8% 12%, rgba(0, 184, 90, 0.08) 0%, transparent 38%);
-  --mesh-2: radial-gradient(ellipse at 88% 8%, rgba(224, 90, 0, 0.07) 0%, transparent 32%);
-  --mesh-3: radial-gradient(ellipse at 70% 88%, rgba(139, 53, 232, 0.07) 0%, transparent 35%);
-  --mesh-4: radial-gradient(ellipse at 22% 78%, rgba(0, 159, 194, 0.05) 0%, transparent 28%);
-  --mesh-5: radial-gradient(ellipse at 50% 50%, rgba(0, 184, 90, 0.03) 0%, transparent 60%);
+  --mesh-1: radial-gradient(ellipse at 8% 12%, rgba(0, 168, 82, 0.14) 0%, transparent 40%);
+  --mesh-2: radial-gradient(ellipse at 88% 8%, rgba(212, 86, 0, 0.12) 0%, transparent 34%);
+  --mesh-3: radial-gradient(ellipse at 70% 88%, rgba(126, 34, 206, 0.12) 0%, transparent 38%);
+  --mesh-4: radial-gradient(ellipse at 22% 78%, rgba(0, 136, 176, 0.09) 0%, transparent 30%);
+  --mesh-5: radial-gradient(ellipse at 50% 50%, rgba(0, 168, 82, 0.06) 0%, transparent 65%);
 
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
 }

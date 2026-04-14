@@ -218,9 +218,9 @@ function FeaturedProject({
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       className="group relative overflow-hidden rounded-[2.5rem] border"
       style={{
-        background: isLight ? "linear-gradient(160deg, rgba(255,255,255,0.84), rgba(246,248,252,0.98))" : "linear-gradient(160deg, rgba(7,10,18,0.92), rgba(4,7,15,0.98))",
-        borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-        boxShadow: `0 24px 80px ${accent.glow}`,
+        background: isLight ? "rgba(255,255,255,0.95)" : "linear-gradient(160deg, rgba(7,10,18,0.92), rgba(4,7,15,0.98))",
+        borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
+        boxShadow: isLight ? "0 24px 60px rgba(15,23,42,0.06)" : `0 24px 80px ${accent.glow}`,
       }}
     >
       <div className="absolute inset-0 opacity-70" style={{ background: `radial-gradient(circle at ${reversed ? "20%" : "85%"} 20%, ${accent.glow}, transparent 34%), radial-gradient(circle at ${reversed ? "90%" : "12%"} 100%, ${accent.glow}, transparent 30%)` }} />
@@ -245,7 +245,7 @@ function FeaturedProject({
 
           <div className="grid gap-3 md:grid-cols-3">
             {project.metrics.map((metric) => (
-              <div key={`${project.id}-${metric.label}`} className="rounded-[1.6rem] border p-4" style={{ borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.58)" : "rgba(255,255,255,0.03)" }}>
+              <div key={`${project.id}-${metric.label}`} className="rounded-[1.6rem] border p-4 shadow-sm" style={{ borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.03)" }}>
                 <div className="text-xl font-black" style={{ color: accent.tint }}>{metric.value}</div>
                 <div className="mt-1 text-xs leading-6 text-foreground-muted">{metric.label}</div>
               </div>
@@ -258,7 +258,7 @@ function FeaturedProject({
               { title: t(locale, "القرار", "Decision"), body: project.solution },
               { title: t(locale, "الأثر", "Outcome"), body: project.result },
             ].map((block) => (
-              <div key={block.title} className="rounded-[1.7rem] border p-4" style={{ borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.62)" : "rgba(255,255,255,0.025)" }}>
+              <div key={block.title} className="rounded-[1.7rem] border p-4 shadow-sm" style={{ borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.025)" }}>
                 <div className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: accent.tint }}>{block.title}</div>
                 <p className="mt-3 text-sm leading-7 text-foreground-muted">{block.body}</p>
               </div>
@@ -385,9 +385,9 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
           className="relative overflow-hidden rounded-[2.8rem] border px-6 py-8 md:px-10 md:py-12"
           style={{
             background: isLight
-              ? "linear-gradient(140deg, rgba(255,255,255,0.86), rgba(246,248,252,0.98))"
+              ? "rgba(255,255,255,0.96)"
               : "linear-gradient(140deg, rgba(8,12,20,0.78), rgba(4,6,10,0.94))",
-            borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+            borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
             boxShadow: isLight ? "0 25px 80px rgba(15,23,42,0.08)" : "0 32px 90px rgba(0,0,0,0.45)",
           }}
         >
@@ -466,9 +466,9 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
               variants={item}
               className="relative overflow-hidden rounded-[2.4rem] border p-5 md:p-6"
               style={{
-                background: isLight ? "linear-gradient(160deg, rgba(255,255,255,0.9), rgba(242,247,252,0.98))" : "linear-gradient(160deg, rgba(5,10,18,0.88), rgba(4,7,16,0.97))",
-                borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-                boxShadow: isLight ? "0 25px 70px rgba(14,165,233,0.08)" : "0 28px 80px rgba(2,6,23,0.5)",
+                background: isLight ? "rgba(255,255,255,0.96)" : "linear-gradient(160deg, rgba(5,10,18,0.88), rgba(4,7,16,0.97))",
+                borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
+                boxShadow: isLight ? "0 25px 70px rgba(15,23,42,0.06)" : "0 28px 80px rgba(2,6,23,0.5)",
               }}
             >
               <WeatherScene condition={weather.condition} isDay={weather.isDay} />

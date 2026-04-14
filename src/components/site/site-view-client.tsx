@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { useThemeMode } from "@/components/layout/use-theme-mode";
 import type { RebuildLocaleContent } from "@/data/rebuild-content";
 import type { Locale, YoutubeVideo } from "@/types/cms";
 import type { CvBuilderData, CvBuilderSection } from "@/lib/cv-builder";
@@ -348,7 +349,7 @@ function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
     <div
       className="group relative overflow-hidden rounded-[1.75rem] p-3 transition-all duration-500"
       style={{
-        background: "linear-gradient(135deg, rgba(8,10,20,0.9), rgba(5,7,15,0.95))",
+        background: "var(--surface)",
         border: "1px solid rgba(255,255,255,0.07)",
         backdropFilter: "blur(20px)",
       }}
@@ -546,7 +547,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     transition={{ delay: 0.6 + i * 0.08 }}
                     className="rounded-2xl p-4"
                     style={{
-                      background: "rgba(8,10,20,0.7)",
+                      background: "var(--surface)",
                       border: "1px solid rgba(0,255,135,0.1)",
                       backdropFilter: "blur(16px)",
                     }}
@@ -597,7 +598,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     transition={{ delay: 0.8 }}
                     className="absolute -bottom-5 -right-5 rounded-2xl px-5 py-3"
                     style={{
-                      background: "rgba(5,7,15,0.95)",
+                      background: "var(--surface-strong)",
                       border: "1px solid rgba(0,255,135,0.25)",
                       backdropFilter: "blur(20px)",
                       boxShadow: "0 0 30px rgba(0,255,135,0.15)",
@@ -618,7 +619,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     transition={{ delay: 1.0 }}
                     className="absolute -left-5 top-8 flex items-center gap-2 rounded-2xl px-4 py-2.5"
                     style={{
-                      background: "rgba(5,7,15,0.95)",
+                      background: "var(--surface-strong)",
                       border: "1px solid rgba(255,107,0,0.25)",
                       backdropFilter: "blur(20px)",
                       boxShadow: "0 0 24px rgba(255,107,0,0.12)",
@@ -658,7 +659,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
               <div
                 className="rounded-[2rem] p-8 md:p-10"
                 style={{
-                  background: "linear-gradient(135deg, rgba(8,10,20,0.85), rgba(5,7,15,0.9))",
+                  background: "var(--surface)",
                   border: "1px solid rgba(0,255,135,0.1)",
                   backdropFilter: "blur(24px)",
                 }}
@@ -711,7 +712,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       whileHover={{ translateX: locale === "ar" ? -4 : 4, borderColor: "rgba(0,255,135,0.3)" }}
                       className="flex items-start gap-4 rounded-2xl p-5 transition duration-300"
                       style={{
-                        background: "rgba(8,10,20,0.7)",
+                        background: "var(--surface)",
                         border: "1px solid rgba(255,255,255,0.06)",
                         backdropFilter: "blur(16px)",
                       }}
@@ -751,7 +752,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 >
                   <div
                     className="h-full rounded-[1.75rem] p-4"
-                    style={{ background: "rgba(7,8,18,0.96)", backdropFilter: "blur(20px)" }}
+                    style={{ background: "var(--surface-strong)", backdropFilter: "blur(20px)" }}
                   >
                     <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem]">
                       <Image
@@ -1431,7 +1432,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                         <span className="text-sm font-bold text-foreground">{skill.label}</span>
                         <span className="font-mono text-sm font-black" style={{ color: skill.color }}>{skill.pct}%</span>
                       </div>
-                      <div className="h-[3px] rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <div className="h-[3px] rounded-full" style={{ background: "var(--surface-soft)" }}>
                         <motion.div
                           initial={{ width: 0 }}
                           whileInView={{ width: `${skill.pct}%` }}
@@ -1458,7 +1459,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                         key={t}
                         whileHover={{ scale: 1.1, borderColor: "rgba(0,255,135,0.45)" }}
                         className="cursor-default rounded-full px-3 py-1.5 text-[11px] font-bold text-foreground-soft"
-                        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                        style={{ background: "var(--surface-soft)", border: "1px solid var(--border)" }}
                       >{t}</motion.span>
                     ))}
                   </div>
@@ -1511,7 +1512,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               whileHover={{ borderColor: "rgba(0,255,135,0.30)" }}
               className="relative overflow-hidden rounded-[2.5rem] p-10 md:p-16"
               style={{
-                background: "linear-gradient(135deg, rgba(0,255,135,0.06) 0%, rgba(8,10,20,0.98) 60%)",
+                background: "var(--surface)",
                 border: "1px solid rgba(0,255,135,0.14)",
                 backdropFilter: "blur(24px)",
               }}
@@ -1840,7 +1841,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                   whileHover={{ y: -4, borderColor: `${s.color}44` }}
                   className="relative overflow-hidden rounded-[2rem] p-7 text-center transition duration-300"
                   style={{
-                    background: "linear-gradient(135deg, rgba(8,10,20,0.98), rgba(12,12,24,0.9))",
+                    background: "var(--surface)",
                     border: `1px solid ${s.color}22`,
                     backdropFilter: "blur(24px)",
                   }}
@@ -1931,7 +1932,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                   whileHover={{ y: -4, borderColor: `${cat.color}44` }}
                   className="flex flex-col items-center gap-3 rounded-[2rem] p-6 text-center transition duration-300"
                   style={{
-                    background: "rgba(8,10,20,0.8)",
+                    background: "var(--surface)",
                     border: `1px solid ${cat.color}22`,
                     backdropFilter: "blur(20px)",
                   }}
@@ -2080,7 +2081,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
               <div
                 className="hidden lg:flex flex-col gap-4 rounded-[2.5rem] p-8"
                 style={{
-                  background: "rgba(8,10,20,0.75)",
+                  background: "var(--surface)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   backdropFilter: "blur(28px)",
                 }}

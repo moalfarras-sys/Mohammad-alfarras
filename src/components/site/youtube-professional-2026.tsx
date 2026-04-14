@@ -76,7 +76,11 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
     <div className="relative min-h-screen overflow-hidden py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="youtube-page">
       <div
         className="pointer-events-none absolute inset-0 z-0"
-        style={{ background: isLight ? "linear-gradient(180deg, #f8fafc 0%, #eef2f8 45%, #edf4f1 100%)" : "#04060A" }}
+        style={{ 
+          background: isLight 
+            ? "linear-gradient(180deg, #fafaf9 0%, #f4f4f0 45%, #f2f5f3 100%)" 
+            : "#04060A" 
+        }}
       />
       <motion.div
         animate={{ filter: ["blur(50px)", "blur(80px)", "blur(50px)"] }}
@@ -96,11 +100,11 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
             className="relative overflow-hidden rounded-[2.8rem] border px-7 py-10 md:col-span-12 md:px-12 md:py-14"
             style={{
               background: isLight
-                ? "linear-gradient(140deg, rgba(255,255,255,0.9), rgba(248,250,252,0.96))"
+                ? "rgba(255, 255, 255, 0.98)"
                 : "linear-gradient(145deg, rgba(20,10,15,0.6), rgba(10,8,15,0.86))",
-              borderColor: isLight ? "rgba(226,232,240,0.9)" : "rgba(255,0,50,0.1)",
+              borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(255,0,50,0.1)",
               backdropFilter: "blur(24px)",
-              boxShadow: isLight ? "0 24px 70px rgba(15,23,42,0.08)" : undefined,
+              boxShadow: isLight ? "0 20px 60px rgba(15,23,42,0.05)" : undefined,
             }}
           >
             <div className="pointer-events-none absolute inset-y-0 right-0 w-[45%] bg-[radial-gradient(circle_at_center,rgba(255,0,50,0.16),transparent_58%)] opacity-70" />
@@ -166,8 +170,9 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                       key={stat.label}
                       className="rounded-[1.9rem] border p-6 text-center lg:text-start"
                       style={{
-                        background: isLight ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.46)",
-                        borderColor: isLight ? "rgba(226,232,240,0.9)" : "rgba(255,255,255,0.1)",
+                        background: isLight ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.46)",
+                        borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(255,255,255,0.1)",
+                        boxShadow: isLight ? "0 10px 30px rgba(0,0,0,0.02)" : undefined,
                       }}
                     >
                       <Icon className="mx-auto mb-3 h-6 w-6 lg:mx-0" style={{ color: stat.color }} />

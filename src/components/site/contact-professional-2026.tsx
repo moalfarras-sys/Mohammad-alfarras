@@ -39,7 +39,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
     <div className="relative min-h-screen overflow-hidden py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="contact-page">
       <div
         className="pointer-events-none absolute inset-0 z-0"
-        style={{ background: isLight ? "linear-gradient(180deg, #fafaf9 0%, #eef2f7 52%, #edf5f1 100%)" : "#04060A" }}
+        style={{ background: isLight ? "linear-gradient(180deg, #fafaf9 0%, #f4f4f0 52%, #f2f5f3 100%)" : "#04060A" }}
       />
 
       <div
@@ -69,11 +69,11 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
           className="relative mb-16 overflow-hidden rounded-[2.8rem] border px-7 py-10 text-center md:px-12 md:py-14"
           style={{
             background: isLight
-              ? "linear-gradient(140deg, rgba(255,255,255,0.9), rgba(248,250,252,0.96))"
+              ? "rgba(255, 255, 255, 0.98)"
               : "linear-gradient(140deg, rgba(8,12,20,0.76), rgba(4,6,10,0.92))",
-            borderColor: isLight ? "rgba(226,232,240,0.95)" : "rgba(255,255,255,0.08)",
+            borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(255,255,255,0.08)",
             backdropFilter: "blur(24px)",
-            boxShadow: isLight ? "0 24px 70px rgba(15,23,42,0.08)" : "0 30px 80px rgba(0,0,0,0.45)",
+            boxShadow: isLight ? "0 20px 60px rgba(15,23,42,0.05)" : "0 30px 80px rgba(0,0,0,0.45)",
           }}
         >
           <div className="pointer-events-none absolute inset-y-0 right-0 w-[38%] bg-[radial-gradient(circle_at_center,rgba(0,255,135,0.16),transparent_58%)] opacity-70" />
@@ -211,12 +211,12 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
               className="relative flex h-full flex-col justify-center overflow-hidden rounded-[2.5rem] border p-8 shadow-2xl md:p-12"
               style={{
                 background: isLight
-                  ? "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(246,248,252,0.96))"
+                  ? "rgba(255, 255, 255, 0.98)"
                   : "linear-gradient(135deg, rgba(12,15,25,0.9), rgba(5,7,12,0.95))",
-                borderColor: isLight ? "rgba(226,232,240,0.95)" : "rgba(0,255,135,0.15)",
+                borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(0,255,135,0.15)",
                 backdropFilter: "blur(40px)",
                 boxShadow: isLight
-                  ? "0 20px 40px -10px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.85)"
+                  ? "0 20px 40px -10px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9)"
                   : "0 20px 40px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)",
               }}
             >

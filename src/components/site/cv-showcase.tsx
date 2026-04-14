@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useThemeMode } from "@/components/layout/use-theme-mode";
 import { motion, type Variants } from "framer-motion";
 import { ArrowUpRight, Download, Languages, Sparkles, Target } from "lucide-react";
 
@@ -51,6 +52,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
   const { builder, experience, projects, certifications, locale } = cv;
   const isArabic = locale === "ar";
   const orderedEducation = builder.education;
+  const { theme: activeTheme } = useThemeMode();
+  const isLight = activeTheme === "light";
 
   return (
     <div
@@ -63,13 +66,13 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60"
+        className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-700"
         style={{
           background: `
-            radial-gradient(circle at 10% 10%, rgba(0,255,135,0.12), transparent 30%),
-            radial-gradient(circle at 88% 14%, rgba(255,107,0,0.12), transparent 28%),
-            radial-gradient(circle at 78% 88%, rgba(168,85,247,0.10), transparent 30%),
-            linear-gradient(180deg, rgba(255,255,255,0.02), transparent 32%)
+            radial-gradient(circle at 10% 10%, rgba(0,255,135,${isLight ? '0.08' : '0.12'}), transparent 30%),
+            radial-gradient(circle at 88% 14%, rgba(255,107,0,${isLight ? '0.07' : '0.12'}), transparent 28%),
+            radial-gradient(circle at 78% 88%, rgba(168,85,247,${isLight ? '0.07' : '0.10'}), transparent 30%),
+            linear-gradient(180deg, rgba(255,255,255,${isLight ? '0.1' : '0.02'}), transparent 32%)
           `,
         }}
       />
@@ -80,7 +83,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
           whileInView="show"
           viewport={{ once: true, amount: 0.2 }}
           variants={fadeUp}
-          className="grid gap-6 rounded-[2.8rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5 shadow-[0_40px_140px_rgba(2,6,23,0.25)] backdrop-blur-2xl md:grid-cols-[1.1fr_0.9fr] md:p-8"
+          className="grid gap-6 rounded-[2.8rem] border border-border/70 bg-surface/40 p-5 shadow-[0_40px_140px_rgba(2,6,23,0.15)] backdrop-blur-2xl md:grid-cols-[1.1fr_0.9fr] md:p-8"
+          style={isLight ? { background: 'rgba(255,255,255,0.85)', boxShadow: '0 40px 100px rgba(15,23,42,0.08)' } : undefined}
         >
           <div className="space-y-5">
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[rgba(0,255,135,0.18)] bg-[rgba(0,255,135,0.06)] px-4 py-2 text-[11px] font-black uppercase tracking-[0.28em] text-[var(--primary)]">
@@ -139,7 +143,7 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
           </div>
 
           <div className="grid gap-4">
-            <div className="relative overflow-hidden rounded-[2.3rem] border border-border/70 bg-surface/80 p-5">
+            <div className="relative overflow-hidden rounded-[2.3rem] border border-border/70 bg-surface/80 p-5 shadow-sm" style={isLight ? { background: 'rgba(255,255,255,0.92)' } : undefined}>
               <div
                 className="absolute inset-0 opacity-70"
                 style={{
@@ -188,7 +192,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                 {metrics.map((metric) => (
                   <div
                     key={metric.label}
-                    className="rounded-[1.5rem] border border-border/70 bg-surface/75 p-4 text-center"
+                    className="rounded-[1.5rem] border border-border/70 bg-surface/75 p-4 text-center shadow-sm"
+                    style={isLight ? { background: 'rgba(255,255,255,0.92)' } : undefined}
                   >
                     <div
                       className="text-[11px] font-black uppercase tracking-[0.24em]"
@@ -210,7 +215,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
             whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
             variants={fadeUp}
-            className="rounded-[2.6rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-7"
+            className="rounded-[2.6rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-7 shadow-sm"
+            style={isLight ? { background: 'rgba(255,255,255,0.9)' } : undefined}
           >
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
@@ -244,7 +250,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                     rotateY: compact ? 0 : isArabic ? 2 : -2,
                     y: -3,
                   }}
-                  className="relative rounded-[2rem] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5 shadow-[0_24px_70px_rgba(2,6,23,0.12)] md:[transform-style:preserve-3d]"
+                  className="relative rounded-[2rem] border border-border/70 bg-surface/40 p-5 shadow-sm md:[transform-style:preserve-3d]"
+                  style={isLight ? { background: 'rgba(255,255,255,0.7)' } : undefined}
                 >
                   <div
                     className={cn(
@@ -290,7 +297,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
               variants={fadeUp}
-              className="rounded-[2.2rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6"
+              className="rounded-[2.2rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6 shadow-sm"
+              style={isLight ? { background: 'rgba(255,255,255,0.9)' } : undefined}
             >
               <div className="eyebrow">{text(locale, "المهارات", "Skills")}</div>
               <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
@@ -330,7 +338,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
               variants={fadeUp}
-              className="rounded-[2.2rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6"
+              className="rounded-[2.2rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6 shadow-sm"
+              style={isLight ? { background: 'rgba(255,255,255,0.9)' } : undefined}
             >
               <div className="eyebrow">{text(locale, "اللغات والتعليم", "Languages and Education")}</div>
               <div className="mt-4 grid gap-5">
@@ -392,7 +401,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                 whileInView="show"
                 viewport={{ once: true, amount: 0.2 }}
                 variants={fadeUp}
-                className="rounded-[2.4rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6"
+                className="rounded-[2.4rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6 shadow-sm"
+                style={isLight ? { background: 'rgba(255,255,255,0.9)' } : undefined}
               >
                 <div className="eyebrow">{text(locale, "الأعمال", "Projects")}</div>
                 <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground">
@@ -429,7 +439,8 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                 whileInView="show"
                 viewport={{ once: true, amount: 0.2 }}
                 variants={fadeUp}
-                className="rounded-[2.4rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6"
+                className="rounded-[2.4rem] border border-border/70 bg-surface/80 p-5 backdrop-blur-2xl md:p-6 shadow-sm"
+                style={isLight ? { background: 'rgba(255,255,255,0.9)' } : undefined}
               >
                 <div className="eyebrow">{text(locale, "الشهادات", "Certifications")}</div>
                 <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground">

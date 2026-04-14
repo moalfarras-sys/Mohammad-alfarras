@@ -61,7 +61,7 @@ export function SiteNavbar({
             ? "glass-panel glass-panel-strong shadow-[0_24px_64px_rgba(0,0,0,0.55),0_0_0_1px_rgba(0,255,135,0.08)]"
             : "bg-transparent",
         )}
-        style={scrolled && isLight ? { boxShadow: "0 18px 50px rgba(15,23,42,0.08), 0 0 0 1px rgba(0,184,90,0.06)" } : undefined}
+        style={scrolled && isLight ? { boxShadow: "0 18px 50px rgba(15,23,42,0.12), 0 0 0 1px rgba(0,168,82,0.1)", background: "rgba(255,255,255,0.92)" } : undefined}
       >
         {/* Logo */}
         <Link href={`/${locale}`} className="flex min-w-0 items-center gap-3 group">
@@ -106,9 +106,9 @@ export function SiteNavbar({
         <nav
           className="hidden items-center gap-1 rounded-full px-2 py-1.5 lg:flex"
           style={{
-            background: isLight ? "rgba(255,255,255,0.82)" : "rgba(8,10,20,0.7)",
-            border: isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(0,255,135,0.1)",
-            backdropFilter: "blur(20px)",
+            background: isLight ? "rgba(255,255,255,0.92)" : "rgba(8,10,20,0.7)",
+            border: isLight ? "1px solid rgba(203,213,225,0.95)" : "1px solid rgba(0,255,135,0.1)",
+            backdropFilter: "blur(24px)",
           }}
         >
           {links.map((item) => {
@@ -119,7 +119,7 @@ export function SiteNavbar({
                 href={item.href}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300",
-                  active ? "text-background" : isLight ? "text-slate-500 hover:text-slate-900" : "text-foreground-muted hover:text-foreground",
+                  active ? "text-background" : isLight ? "text-slate-600 hover:text-slate-900" : "text-foreground-muted hover:text-foreground",
                 )}
               >
                 {active && (
@@ -148,8 +148,9 @@ export function SiteNavbar({
             onClick={toggleTheme}
             className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground"
             style={{
-              background: isLight ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.04)",
-              border: isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(255,255,255,0.07)",
+              background: isLight ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.04)",
+              border: isLight ? "1px solid rgba(203,213,225,0.95)" : "1px solid rgba(255,255,255,0.07)",
+              boxShadow: isLight ? "0 8px 24px rgba(15,23,42,0.06)" : "none",
             }}
           >
             {!mounted ? <MoonStar className="h-4 w-4" /> : theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}

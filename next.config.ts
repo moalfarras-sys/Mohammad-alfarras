@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],
+  outputFileTracingIncludes: {
+    "/api/cv-pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
+  },
   async headers() {
     const devScriptDirective = process.env.NODE_ENV === "production" ? "'self' 'unsafe-inline'" : "'self' 'unsafe-inline' 'unsafe-eval'";
     return [

@@ -58,9 +58,9 @@ type YoutubeCommentThreadsResponse = {
   }>;
 };
 
-export async function getLiveYoutubeData(): Promise<LiveYoutubeStats | null> {
+export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutubeStats | null> {
   const API_KEY = process.env.YOUTUBE_API_KEY;
-  const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
+  const CHANNEL_ID = channelId || process.env.YOUTUBE_CHANNEL_ID;
 
   if (!API_KEY || !CHANNEL_ID) {
     console.warn("YouTube API keys missing. Returning null.");

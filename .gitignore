@@ -64,6 +64,10 @@ src/lib/_tmp.ts
 .vercel
 .env*.local
 
+# Sensitive/Local files
+env_api.txt
+tmp-vercel-env.json
+
 # nested local workspace artifacts
 /app-next/.next/
 /app-next/node_modules/

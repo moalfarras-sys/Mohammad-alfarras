@@ -4,10 +4,12 @@ import { BriefcaseBusiness, House, Mail, PlaySquare, UserRound } from "lucide-re
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentType } from "react";
+import { useSyncExternalStore, type ComponentType } from "react";
 
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/types/cms";
+
+import { useThemeMode } from "./use-theme-mode";
 
 type DockItem = {
   id: string;
@@ -18,6 +20,14 @@ type DockItem = {
 
 export function MobileDock({ locale }: { locale: Locale }) {
   const pathname = usePathname();
+  const { theme } = useThemeMode();
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const isLight = mounted && theme === "light";
+
   if (pathname?.endsWith("/admin")) {
     return null;
   }
@@ -39,29 +49,25 @@ export function MobileDock({ locale }: { locale: Locale }) {
         data-testid="mobile-dock"
         className="pointer-events-auto mx-auto flex max-w-sm items-center justify-between rounded-[2rem] px-2 py-2"
         style={{
-          background: "rgba(5, 7, 15, 0.92)",
-          border: "1px solid rgba(0, 255, 135, 0.15)",
+          background: isLight ? "rgba(255,255,255,0.88)" : "rgba(5, 7, 15, 0.92)",
+          border: isLight ? "1px solid rgba(226,232,240,0.95)" : "1px solid rgba(0, 255, 135, 0.15)",
           backdropFilter: "blur(32px) saturate(1.5)",
           WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-          boxShadow:
-            "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,135,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
+          boxShadow: isLight
+            ? "0 20px 60px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8)"
+            : "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,135,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
         }}
       >
         {items.map((item) => {
           const active = pathname === item.href;
           const Icon = item.icon;
           return (
-              <motion.div
-              key={item.id}
-              whileTap={{ scale: 0.88 }}
-              whileHover={{ scale: 1.05 }}
-              className="flex-1"
-            >
+            <motion.div key={item.id} whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.05 }} className="flex-1">
               <Link
                 href={item.href}
                 className={cn(
                   "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.4rem] px-2 py-2.5 text-[10px] font-semibold transition-all duration-300",
-                  active ? "text-black" : "text-foreground-soft hover:text-foreground-muted",
+                  active ? "text-black" : isLight ? "text-slate-500 hover:text-slate-900" : "text-foreground-soft hover:text-foreground-muted",
                 )}
               >
                 {active && (

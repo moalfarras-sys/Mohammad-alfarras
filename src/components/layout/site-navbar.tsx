@@ -38,6 +38,7 @@ export function SiteNavbar({
     () => false,
   );
   const [scrolled, setScrolled] = useState(false);
+  const isLight = mounted && theme === "light";
 
   useEffect(() => {
     function onScroll() {
@@ -60,6 +61,7 @@ export function SiteNavbar({
             ? "glass-panel glass-panel-strong shadow-[0_24px_64px_rgba(0,0,0,0.55),0_0_0_1px_rgba(0,255,135,0.08)]"
             : "bg-transparent",
         )}
+        style={scrolled && isLight ? { boxShadow: "0 18px 50px rgba(15,23,42,0.08), 0 0 0 1px rgba(0,184,90,0.06)" } : undefined}
       >
         {/* Logo */}
         <Link href={`/${locale}`} className="flex min-w-0 items-center gap-3 group">
@@ -68,9 +70,11 @@ export function SiteNavbar({
             whileTap={{ scale: 0.96 }}
             className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-300"
             style={{
-              background: "linear-gradient(135deg, rgba(0,255,135,0.1), rgba(168,85,247,0.08))",
-              border: "1px solid rgba(0,255,135,0.2)",
-              boxShadow: "0 0 20px rgba(0,255,135,0.08)",
+              background: isLight
+                ? "linear-gradient(135deg, rgba(0,184,90,0.08), rgba(139,53,232,0.05))"
+                : "linear-gradient(135deg, rgba(0,255,135,0.1), rgba(168,85,247,0.08))",
+              border: isLight ? "1px solid rgba(0,184,90,0.16)" : "1px solid rgba(0,255,135,0.2)",
+              boxShadow: isLight ? "0 10px 24px rgba(15,23,42,0.06)" : "0 0 20px rgba(0,255,135,0.08)",
             }}
           >
             <Image
@@ -102,8 +106,8 @@ export function SiteNavbar({
         <nav
           className="hidden items-center gap-1 rounded-full px-2 py-1.5 lg:flex"
           style={{
-            background: "rgba(8,10,20,0.7)",
-            border: "1px solid rgba(0,255,135,0.1)",
+            background: isLight ? "rgba(255,255,255,0.82)" : "rgba(8,10,20,0.7)",
+            border: isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(0,255,135,0.1)",
             backdropFilter: "blur(20px)",
           }}
         >
@@ -115,7 +119,7 @@ export function SiteNavbar({
                 href={item.href}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300",
-                  active ? "text-background" : "text-foreground-muted hover:text-foreground",
+                  active ? "text-background" : isLight ? "text-slate-500 hover:text-slate-900" : "text-foreground-muted hover:text-foreground",
                 )}
               >
                 {active && (
@@ -144,8 +148,8 @@ export function SiteNavbar({
             onClick={toggleTheme}
             className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground"
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.07)",
+              background: isLight ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.04)",
+              border: isLight ? "1px solid rgba(226,232,240,0.9)" : "1px solid rgba(255,255,255,0.07)",
             }}
           >
             {!mounted ? <MoonStar className="h-4 w-4" /> : theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}

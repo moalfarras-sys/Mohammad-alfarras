@@ -472,9 +472,27 @@
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
   }
 
+  [data-theme="light"] .admin-sidebar {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9)),
+      var(--surface-strong);
+    border-color: rgba(226, 232, 240, 0.95);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  }
+
   .admin-sidebar a,
   .admin-sidebar button {
     @apply rounded-2xl px-4 py-3 text-sm font-medium text-foreground-muted transition hover:bg-white/6 hover:text-foreground;
+  }
+
+  [data-theme="light"] .admin-sidebar a,
+  [data-theme="light"] .admin-sidebar button {
+    background: transparent;
+  }
+
+  [data-theme="light"] .admin-sidebar a:hover,
+  [data-theme="light"] .admin-sidebar button:hover {
+    background: rgba(15, 23, 42, 0.04);
   }
 
   .admin-content {
@@ -497,6 +515,12 @@
     backdrop-filter: blur(18px);
   }
 
+  [data-theme="light"] .admin-mobile-nav a {
+    background: rgba(255, 255, 255, 0.88);
+    border-color: rgba(226, 232, 240, 0.92);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  }
+
   .admin-mobile-nav a:hover {
     @apply text-foreground;
     background: rgba(255, 255, 255, 0.08);
@@ -504,6 +528,21 @@
 
   .admin-overview-grid {
     @apply grid gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .admin-spotlight {
+    @apply mb-5 grid gap-4 lg:grid-cols-[1.2fr_0.8fr];
+  }
+
+  .admin-overview-note {
+    @apply rounded-[1.5rem] border p-4 text-sm;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  [data-theme="light"] .admin-overview-note {
+    border-color: rgba(226, 232, 240, 0.92);
+    background: rgba(255, 255, 255, 0.88);
   }
 
   .admin-shell section,
@@ -517,8 +556,52 @@
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
   }
 
+  [data-theme="light"] .admin-shell section,
+  [data-theme="light"] .admin-shell article {
+    background:
+      radial-gradient(circle at top left, rgba(0, 184, 90, 0.05), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.88));
+    border-color: rgba(226, 232, 240, 0.95);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  }
+
   .admin-shell section {
     scroll-margin-top: 7rem;
+  }
+
+  .admin-legacy-shell {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .admin-legacy-shell details {
+    display: grid;
+    gap: 0;
+  }
+
+  .admin-legacy-summary {
+    @apply flex cursor-pointer list-none flex-col gap-2 px-5 py-5;
+  }
+
+  .admin-legacy-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .admin-legacy-summary span {
+    @apply text-lg font-black text-foreground;
+  }
+
+  .admin-legacy-summary small {
+    @apply text-sm leading-7 text-foreground-muted;
+  }
+
+  .admin-legacy-body {
+    @apply grid gap-6 border-t px-5 pb-5 pt-1 md:px-6 md:pb-6;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  [data-theme="light"] .admin-legacy-body {
+    border-color: rgba(226, 232, 240, 0.92);
   }
 
   .admin-shell h2,
@@ -541,6 +624,13 @@
     @apply rounded-2xl border border-border bg-white/6 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/70 focus:bg-white/10;
   }
 
+  [data-theme="light"] .admin-shell input,
+  [data-theme="light"] .admin-shell textarea,
+  [data-theme="light"] .admin-shell select {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(203, 213, 225, 0.9);
+  }
+
   .admin-shell textarea {
     @apply min-h-28 resize-y;
   }
@@ -548,6 +638,13 @@
   .admin-shell button,
   .admin-shell input[type="submit"] {
     @apply inline-flex min-h-11 items-center justify-center rounded-2xl border border-border bg-white/8 px-4 py-2 text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:bg-white/12;
+  }
+
+  [data-theme="light"] .admin-shell button,
+  [data-theme="light"] .admin-shell input[type="submit"] {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(203, 213, 225, 0.92);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
   }
 
   .admin-login-shell {
@@ -562,6 +659,259 @@
     border: 1px solid var(--border);
     backdrop-filter: blur(22px);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+  }
+
+  .admin-eyebrow {
+    @apply inline-flex w-fit rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em];
+    color: var(--primary);
+    border-color: rgba(0, 255, 135, 0.18);
+    background: rgba(0, 255, 135, 0.06);
+  }
+
+  .admin-studio-shell {
+    @apply rounded-[2rem] p-4 md:p-6;
+    background:
+      radial-gradient(circle at top right, rgba(0, 255, 135, 0.08), transparent 32%),
+      radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.08), transparent 32%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.3);
+  }
+
+  .admin-studio-header {
+    @apply flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between;
+  }
+
+  .admin-studio-header h2 {
+    @apply text-2xl font-black md:text-3xl;
+  }
+
+  .admin-project-card {
+    @apply rounded-[2rem] p-5 md:p-6;
+  }
+
+  .admin-project-card-head {
+    @apply mb-5 flex flex-col gap-4 border-b border-white/8 pb-5 lg:flex-row lg:items-start lg:justify-between;
+  }
+
+  .admin-project-card-head p {
+    @apply mt-2 max-w-3xl text-sm leading-7 text-foreground-muted;
+  }
+
+  .admin-project-card-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .admin-project-grid {
+    @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .admin-project-locale-grid {
+    @apply grid gap-4 xl:grid-cols-2;
+  }
+
+  .admin-project-locale-grid > div,
+  .admin-project-metric-card {
+    @apply rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4;
+  }
+
+  [data-theme="light"] .admin-project-locale-grid > div,
+  [data-theme="light"] .admin-project-metric-card {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(226, 232, 240, 0.95);
+  }
+
+  .admin-project-locale-grid h4,
+  .admin-project-metric-card h4 {
+    @apply mb-4 text-base font-black;
+  }
+
+  .admin-project-picker {
+    @apply md:col-span-2 xl:col-span-1;
+  }
+
+  .admin-checkbox {
+    @apply flex min-h-14 items-center gap-3 rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-foreground;
+  }
+
+  .admin-checkbox input {
+    @apply min-h-0 w-4 rounded-md border-white/20 bg-transparent px-0 py-0;
+  }
+
+  .admin-project-metrics-grid {
+    @apply grid gap-4 md:grid-cols-3;
+  }
+
+  .admin-project-submit-row {
+    @apply flex justify-end;
+  }
+
+  .admin-danger-button {
+    @apply !border-red-400/30 !bg-red-500/10 !text-red-200;
+  }
+
+  .admin-studio-header p {
+    @apply max-w-2xl text-sm leading-7 text-foreground-muted;
+  }
+
+  .admin-studio-actions {
+    @apply flex flex-col gap-3 sm:flex-row;
+  }
+
+  .admin-secondary-button {
+    @apply border-white/10 bg-transparent text-foreground-muted;
+  }
+
+  .admin-studio-tabs {
+    @apply mt-5 flex gap-2 overflow-x-auto pb-2;
+    scrollbar-width: none;
+  }
+
+  .admin-studio-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-studio-tabs button {
+    @apply whitespace-nowrap rounded-full border px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-foreground-muted;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-studio-tabs button.active {
+    color: #04110a;
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--primary), #4dffb0);
+    box-shadow: 0 0 24px rgba(0, 255, 135, 0.18);
+  }
+
+  .admin-studio-grid {
+    @apply mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr];
+  }
+
+  .admin-studio-editor,
+  .admin-studio-preview-column {
+    @apply rounded-[1.5rem] border p-4 md:p-5;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(5, 8, 16, 0.5);
+    backdrop-filter: blur(20px);
+  }
+
+  [data-theme="light"] .admin-studio-editor,
+  [data-theme="light"] .admin-studio-preview-column,
+  [data-theme="light"] .admin-repeater-card,
+  [data-theme="light"] .admin-repeater-inline,
+  [data-theme="light"] .admin-toggle-card,
+  [data-theme="light"] .admin-project-picker label,
+  [data-theme="light"] .admin-export-grid a,
+  [data-theme="light"] .admin-variant-toggle,
+  [data-theme="light"] .admin-studio-tabs button {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(226, 232, 240, 0.92);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  }
+
+  .admin-form-stack {
+    @apply grid gap-4;
+  }
+
+  .admin-form-stack h3 {
+    @apply text-lg font-black;
+  }
+
+  .admin-support-copy {
+    @apply text-sm leading-7 text-foreground-muted;
+  }
+
+  .admin-stack-header {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .admin-repeater-card {
+    @apply grid gap-3 rounded-[1.4rem] border p-4;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-repeater-head {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .admin-repeater-inline {
+    @apply grid gap-3 rounded-[1.2rem] border p-3 md:grid-cols-[0.8fr_1.4fr_auto];
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-toggle-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  .admin-toggle-card {
+    @apply flex items-center gap-3 rounded-[1.2rem] border p-4 text-sm;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-toggle-card input {
+    @apply h-4 w-4 rounded-full;
+  }
+
+  .admin-project-picker {
+    @apply grid gap-3;
+  }
+
+  .admin-project-picker label {
+    @apply rounded-[1.3rem] border p-4;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-project-picker label.selected {
+    border-color: rgba(0, 255, 135, 0.28);
+    background: rgba(0, 255, 135, 0.06);
+  }
+
+  .admin-project-picker span {
+    @apply mt-2 block text-sm font-bold text-foreground;
+  }
+
+  .admin-project-picker small {
+    @apply mt-1 block text-xs leading-6 text-foreground-muted;
+  }
+
+  .admin-preview-toolbar {
+    @apply mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .admin-preview-toolbar p {
+    @apply text-xs leading-6 text-foreground-muted;
+  }
+
+  .admin-variant-toggle {
+    @apply inline-flex rounded-full border p-1;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .admin-variant-toggle button {
+    @apply rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-foreground-muted;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .admin-variant-toggle button.active {
+    color: #04110a;
+    background: linear-gradient(135deg, var(--primary), #72ffbf);
+  }
+
+  .admin-export-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  .admin-export-grid a {
+    @apply rounded-[1.2rem] border px-4 py-3 text-sm font-semibold transition hover:-translate-y-0.5;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
   }
 }
 

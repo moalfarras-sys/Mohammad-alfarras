@@ -42,7 +42,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" suppressHydrationWarning className={`${arabic.variable} ${brand.variable} ${mono.variable}`}>
+    <html
+      lang="ar"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${arabic.variable} ${brand.variable} ${mono.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

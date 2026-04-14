@@ -980,7 +980,7 @@ export const defaultSnapshot: CmsSnapshot = {
     { certification_id: "cert-nextjs", locale: "en", name: "Modern web development with Next.js and React", description: "Building fast, scalable, and production-ready websites using Next.js App Router, TypeScript, and Tailwind." },
     { certification_id: "cert-figma", locale: "ar", name: "تصميم واجهات UI/UX بـ Figma", description: "تصميم واجهات مستخدم احترافية، نماذج أولية، وأنظمة تصميم كاملة باستخدام Figma." },
     { certification_id: "cert-figma", locale: "en", name: "UI/UX interface design with Figma", description: "Designing professional user interfaces, interactive prototypes, and complete design systems using Figma." },
-    { certification_id: "cert-yt", locale: "ar", name: "إنتاج محتوى يوتيوب تقني — 162 فيديو", description: "+١٫٥ مليون مشاهدة من خلال مراجعات تقنية صادقة وتقديم منتجات إلكترونية بأسلوب واضح وجذاب." },
+    { certification_id: "cert-yt", locale: "ar", name: "إنتاج محتوى يوتيوب تقني — 162 فيديو", description: "1.5M+ مشاهدة من خلال مراجعات تقنية صادقة وتقديم منتجات إلكترونية بأسلوب واضح وجذاب." },
     { certification_id: "cert-yt", locale: "en", name: "YouTube tech content production — 162 videos", description: "1.5M+ views through honest product reviews and clear, engaging electronics presentation to Arabic-speaking audiences." },
   ],
   service_offerings: [

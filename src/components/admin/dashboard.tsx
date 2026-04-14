@@ -26,14 +26,10 @@ import {
 } from "@/lib/admin-actions";
 import { MediaLibraryManager } from "@/components/admin/media-library-manager";
 import { MediaPickerField } from "@/components/admin/media-picker-field";
+import { CvBuilderStudio } from "@/components/admin/cv-builder-studio";
+import { getCvBuilderData } from "@/lib/cv-builder";
+import Link from "next/link";
 import type { CmsSnapshot, Locale } from "@/types/cms";
-
-type CvLinksSetting = {
-  ar?: string;
-  en?: string;
-  de?: string;
-  portrait?: string;
-};
 
 type AdminSectionLink = {
   id: string;
@@ -128,38 +124,51 @@ function textAreaList(items: string[] | undefined) {
 
 export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot: CmsSnapshot }) {
   const t = ui(locale);
+  const clean = locale === "ar"
+    ? {
+        title: "لوحة التحكم",
+        subtitle: "استوديو واضح لإدارة محتوى الموقع والسيرة والوسائط من مكان واحد.",
+        studio: "Studio",
+        operations: "الأدوات المتقدمة",
+        operationsHint: "أدوات الإدارة الخام تبقى هنا للحالات المتقدمة فقط.",
+        quickCards: [
+          { label: "الصفحات", value: snapshot.pages.length.toString() },
+          { label: "البلوكات", value: snapshot.page_blocks.length.toString() },
+          { label: "الأعمال", value: snapshot.work_projects.filter((item) => item.is_active).length.toString() },
+          { label: "قنوات التواصل", value: snapshot.contact_channels.filter((item) => item.is_active).length.toString() },
+        ],
+      }
+    : {
+        title: "Admin Control Center",
+        subtitle: "A clearer studio for managing the site, CV, and media from one place.",
+        studio: "Studio",
+        operations: "Advanced Tools",
+        operationsHint: "Raw management tools stay here for advanced operations only.",
+        quickCards: [
+          { label: "Pages", value: snapshot.pages.length.toString() },
+          { label: "Blocks", value: snapshot.page_blocks.length.toString() },
+          { label: "Projects", value: snapshot.work_projects.filter((item) => item.is_active).length.toString() },
+          { label: "Channels", value: snapshot.contact_channels.filter((item) => item.is_active).length.toString() },
+        ],
+      };
   const sectionLinks: AdminSectionLink[] = [
-    { id: "overview", label: t.overview },
-    { id: "structure", label: t.structure },
-    { id: "content", label: t.content },
-    { id: "cvdocs", label: "CV" },
-    { id: "media", label: t.media },
-    { id: "security", label: t.security },
-    { id: "settings", label: t.settings },
-    { id: "seo", label: t.seo },
-    { id: "nav", label: t.nav },
-    { id: "videos", label: t.videos },
+    { id: "overview", label: locale === "ar" ? "نظرة عامة" : "Overview" },
+    { id: "studio", label: clean.studio },
+    { id: "operations", label: clean.operations },
   ];
   const pageMap = new Map(snapshot.pages.map((page) => [page.id, page]));
   const blocks = snapshot.page_blocks.slice().sort((a, b) => a.page_slug.localeCompare(b.page_slug) || a.sort_order - b.sort_order);
   const adminAuthSetting = snapshot.site_settings.find((setting) => setting.key === "admin_auth")?.value_json as
     | { email?: string; allowlist?: string }
     | undefined;
-  const cvLinksSetting = (snapshot.site_settings.find((setting) => setting.key === "cv_links")?.value_json ?? {}) as CvLinksSetting;
+  const cvBuilder = getCvBuilderData(snapshot);
 
   return (
     <div className="admin-shell" dir={locale === "ar" ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
-        <a href="#overview">{t.overview}</a>
-        <a href="#structure">{t.structure}</a>
-        <a href="#content">{t.content}</a>
-        <a href="#cvdocs">CV & Docs</a>
-        <a href="#media">{t.media}</a>
-        <a href="#security">{t.security}</a>
-        <a href="#settings">{t.settings}</a>
-        <a href="#seo">{t.seo}</a>
-        <a href="#nav">{t.nav}</a>
-        <a href="#videos">{t.videos}</a>
+        <a href="#overview">{sectionLinks[0].label}</a>
+        <a href="#studio">{clean.studio}</a>
+        <a href="#operations">{clean.operations}</a>
         <form action={logoutAdminAction}>
           <button type="submit">{t.logout}</button>
         </form>
@@ -175,15 +184,49 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
         </nav>
 
         <section id="overview">
-          <h2>{t.title}</h2>
-          <p>{t.subtitle}</p>
+          <div className="admin-spotlight">
+            <div>
+              <span className="admin-eyebrow">{clean.studio}</span>
+              <h2>{clean.title}</h2>
+              <p>{clean.subtitle}</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link href={`/${locale}/admin/cv`} className="button-primary-shell">
+                  {locale === "ar" ? "فتح CV Studio" : "Open CV Studio"}
+                </Link>
+                <Link href={`/${locale}/admin/projects`} className="button-secondary-shell">
+                  {locale === "ar" ? "فتح Projects Studio" : "Open Projects Studio"}
+                </Link>
+              </div>
+            </div>
+            <div className="admin-overview-note">
+              <strong>{clean.operations}</strong>
+              <p>{clean.operationsHint}</p>
+              <p className="mt-3">
+                <Link href={`/${locale}/projects`} target="_blank">
+                  {locale === "ar" ? "معاينة صفحة الأعمال الحية" : "Preview live projects page"}
+                </Link>
+              </p>
+            </div>
+          </div>
           <div className="admin-overview-grid">
-            <article><h3>{snapshot.pages.length}</h3><p>{t.totalPages}</p></article>
-            <article><h3>{snapshot.page_blocks.length}</h3><p>{t.totalBlocks}</p></article>
-            <article><h3>{snapshot.work_projects.filter((item) => item.is_active).length}</h3><p>{t.totalWork}</p></article>
-            <article><h3>{snapshot.contact_channels.filter((item) => item.is_active).length}</h3><p>{t.totalChannels}</p></article>
+            {clean.quickCards.map((card) => (
+              <article key={card.label}>
+                <h3>{card.value}</h3>
+                <p>{card.label}</p>
+              </article>
+            ))}
           </div>
         </section>
+
+        <CvBuilderStudio locale={locale} snapshot={snapshot} initialData={cvBuilder} />
+
+        <section id="operations" className="admin-legacy-shell">
+          <details>
+            <summary className="admin-legacy-summary">
+              <span>{clean.operations}</span>
+              <small>{clean.operationsHint}</small>
+            </summary>
+            <div className="admin-legacy-body">
 
         <section id="structure">
           <div>
@@ -585,36 +628,6 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
           </div>
         </section>
 
-        <section id="cvdocs">
-          <h2>CV & Documents</h2>
-          <p>Upload and manage the PDF versions of your Curriculum Vitae.</p>
-          <article>
-            <form action={updateSiteSettingAction}>
-              <input type="hidden" name="key" value="cv_links" />
-              {/* Media Picker uses an empty string to remove, or a media ID. We cheat and pass raw URL config here or just let the user attach typical Media URLs via the media picker */}
-              <label>
-                <span>Arabic PDF URL</span>
-                <input name="value_json_ar" defaultValue={cvLinksSetting.ar || ""} placeholder="https://..." />
-              </label>
-              <label>
-                <span>English PDF URL</span>
-                <input name="value_json_en" defaultValue={cvLinksSetting.en || ""} placeholder="https://..." />
-              </label>
-              <label>
-                <span>German PDF URL (Lebenslauf)</span>
-                <input name="value_json_de" defaultValue={cvLinksSetting.de || ""} placeholder="https://..." />
-              </label>
-              <hr className="my-4 border-white/10" />
-              <label>
-                <span>CV Profile Image URL</span>
-                <input name="value_json_portrait" defaultValue={cvLinksSetting.portrait || ""} placeholder="URL /images/portrait.jpg" />
-              </label>
-              <button type="submit">{t.save}</button>
-            </form>
-            <p className="mt-4 text-xs opacity-50">Note: Upload the PDFs/Images in the Media Library first, then copy their URLs into these fields.</p>
-          </article>
-        </section>
-
         <section id="media">
           <h2>{t.media}</h2>
           <datalist id="media-id-list">
@@ -779,6 +792,9 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
               </form>
             ))}
           </div>
+        </section>
+            </div>
+          </details>
         </section>
       </div>
     </div>

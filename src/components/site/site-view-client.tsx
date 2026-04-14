@@ -9,9 +9,7 @@ import { motion, useInView } from "framer-motion";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
-  CheckCircle2,
   ChevronDown,
-  Circle,
   ExternalLink,
   Lightbulb,
   Mail,
@@ -26,10 +24,9 @@ import { useEffect, useRef, useState } from "react";
 
 import type { RebuildLocaleContent } from "@/data/rebuild-content";
 import type { Locale, YoutubeVideo } from "@/types/cms";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GradientOrbs } from "@/components/ui/GradientOrbs";
+import type { CvBuilderData, CvBuilderSection } from "@/lib/cv-builder";
+import { formatMonthYear, formatNumber } from "@/lib/locale-format";
 import { Reveal } from "@/components/ui/Reveal";
-import { SwipeRail } from "@/components/ui/SwipeRail";
 import { cn } from "@/lib/cn";
 
 import { ContactForm } from "./contact-form";
@@ -41,12 +38,26 @@ import { ContactProfessional2026 } from "./contact-professional-2026";
 /* ── Types ── */
 type SiteProject = {
   id: string;
+  slug: string;
   title: string;
+  ctaLabel: string;
   summary: string;
   description: string;
   image: string;
   href?: string;
   repoUrl?: string;
+  featured: boolean;
+  featuredRank: number;
+  accent: "green" | "orange" | "cyan" | "purple";
+  highlightStyle: "operations" | "trust" | "app" | "editorial";
+  deviceFrame: "browser" | "phone" | "floating";
+  eyebrow: string;
+  challenge: string;
+  solution: string;
+  result: string;
+  tags: string[];
+  gallery: string[];
+  metrics: Array<{ value: string; label: string }>;
 };
 
 type SiteService = {
@@ -98,6 +109,15 @@ type YoutubeSummary = {
   title?: string;
 };
 
+type SiteCertification = {
+  id: string;
+  name: string;
+  description: string;
+  issuer: string;
+  issueDate: string;
+  credentialUrl: string;
+};
+
 type CvLinksSetting = {
   ar?: string;
   en?: string;
@@ -113,6 +133,7 @@ export type SiteViewModel = {
   projects: SiteProject[];
   services: SiteService[];
   experience: SiteExperience[];
+  certifications: SiteCertification[];
   contact: {
     channels: SiteContactChannel[];
     emailAddress: string;
@@ -128,18 +149,33 @@ export type SiteViewModel = {
     matches: LiveMatch[];
     youtube?: LiveYoutubeStats | null;
   };
+  cvBuilder: CvBuilderData;
+  cvSections: CvBuilderSection[];
+  cvProjects: {
+    id: string;
+    title: string;
+    summary: string;
+    href?: string;
+    repoUrl?: string;
+  }[];
+  cvExperience: {
+    id: string;
+    role: string;
+    company: string;
+    period: string;
+    location: string;
+    description: string;
+    highlights: string[];
+  }[];
 };
 
 /* ── Helpers ── */
 function fmt(locale: Locale, value: number, compact = true) {
-  return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", compact ? { notation: "compact", maximumFractionDigits: 1 } : {}).format(value);
+  return formatNumber(locale, value, compact ? { notation: "compact", maximumFractionDigits: 1 } : undefined);
 }
 
 function formatVideoDate(locale: Locale, value: string) {
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
+  return formatMonthYear(locale, value);
 }
 
 function videoTitle(video: YoutubeVideo, locale: Locale) {
@@ -378,7 +414,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
     { label: locale === "ar" ? "مشاهدة" : "Views", value: "+1.5M", suffix: "" },
     { label: locale === "ar" ? "مشترك" : "Subscribers", value: "+6.1K", suffix: "" },
     { label: locale === "ar" ? "فيديو" : "Videos", value: fmt(locale, Number(youtube.videos ?? 162), false), suffix: "" },
-    { label: locale === "ar" ? "الرد" : "Response", value: locale === "ar" ? "٢٤ ساعة" : "24h", suffix: "" },
+    { label: locale === "ar" ? "الرد" : "Response", value: "24h", suffix: "" },
   ];
 
   return (
@@ -1105,6 +1141,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
     "Framer Motion", "Figma", "Node.js", "Vercel",
     "YouTube Studio", "Premiere Pro", "Git", "Supabase",
   ];
+  void techStack;
 
   // Merge CMS experiences with our rich static fallback data for a dense CV
   const cmsEntries = experience.map((e) => ({
@@ -2168,6 +2205,8 @@ function ContactPage({ model }: { model: SiteViewModel }) {
     </div>
   );
 }
+
+void [CvPage, ProjectsPage, YoutubePage, ContactPage, useCountUp];
 
 function BlogPage({ model }: { model: SiteViewModel }) {
   const { locale, t } = model;

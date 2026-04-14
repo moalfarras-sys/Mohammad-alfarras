@@ -44,7 +44,9 @@ import {
   upsertWorkProject,
   upsertWorkProjectTranslation,
   uploadMediaToStorage,
+  readSnapshot,
 } from "@/lib/content/store";
+import { getProjectsStudioData, type ProjectStudioItem } from "@/lib/projects-studio";
 import {
   certificationSchema,
   certificationTranslationSchema,
@@ -75,8 +77,12 @@ function revalidateAll() {
   revalidatePath("/en");
   revalidatePath("/ar/admin");
   revalidatePath("/en/admin");
+  revalidatePath("/ar/admin/projects");
+  revalidatePath("/en/admin/projects");
   revalidatePath("/ar/blog");
   revalidatePath("/en/blog");
+  revalidatePath("/ar/projects");
+  revalidatePath("/en/projects");
   revalidatePath("/ar/youtube");
   revalidatePath("/en/youtube");
   revalidatePath("/ar/cv");
@@ -96,15 +102,28 @@ async function ensureAdmin() {
   await requireAdmin();
 }
 
+function parseList(value: FormDataEntryValue | null) {
+  return String(value || "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function upsertStudioItem(items: ProjectStudioItem[], nextItem: ProjectStudioItem) {
+  const remaining = items.filter((item) => item.project_id !== nextItem.project_id);
+  return [...remaining, nextItem].sort((a, b) => a.featured_rank - b.featured_rank || a.project_id.localeCompare(b.project_id));
+}
+
 export async function loginAdminAction(formData: FormData) {
+  const locale = String(formData.get("locale") ?? "ar") === "en" ? "en" : "ar";
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const ok = await createAdminSession(email, password);
   if (!ok) {
-    redirect("/ar/admin?error=invalid_credentials");
+    redirect(`/${locale}/admin/cv?error=invalid_credentials`);
   }
 
-  redirect("/ar/admin?ok=1");
+  redirect(`/${locale}/admin/cv?ok=1`);
 }
 
 export async function logoutAdminAction() {
@@ -427,11 +446,96 @@ export async function upsertWorkProjectAction(formData: FormData) {
   revalidateAll();
 }
 
+export async function upsertProjectStudioAction(formData: FormData) {
+  await ensureAdmin();
+
+  const now = new Date().toISOString();
+  const parsed = workProjectSchema.safeParse({
+    id: String(formData.get("id") || `wp-${crypto.randomUUID()}`),
+    slug: String(formData.get("slug") || ""),
+    is_active: formData.get("is_active") !== null,
+    sort_order: Number(formData.get("sort_order") || 0),
+    project_url: String(formData.get("project_url") || ""),
+    repo_url: String(formData.get("repo_url") || ""),
+    cover_media_id: formData.get("cover_media_id") ? String(formData.get("cover_media_id")) : null,
+    created_at: String(formData.get("created_at") || now),
+    updated_at: now,
+  });
+  if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
+
+  await upsertWorkProject(parsed.data);
+
+  for (const locale of ["ar", "en"] as const) {
+    const translation = workProjectTranslationSchema.safeParse({
+      project_id: parsed.data.id,
+      locale,
+      title: String(formData.get(`title_${locale}`) || ""),
+      summary: String(formData.get(`summary_${locale}`) || ""),
+      description: String(formData.get(`description_${locale}`) || ""),
+      cta_label: String(formData.get(`cta_label_${locale}`) || ""),
+    });
+    if (!translation.success) throw new Error(translation.error.flatten().formErrors.join(", "));
+    await upsertWorkProjectTranslation(translation.data);
+  }
+
+  const snapshot = await readSnapshot();
+  const current = getProjectsStudioData(snapshot);
+  const nextItem: ProjectStudioItem = {
+    project_id: parsed.data.id,
+    is_featured: formData.get("studio_is_featured") !== null,
+    featured_rank: Number(formData.get("studio_featured_rank") || 99),
+    accent: ["green", "orange", "cyan", "purple"].includes(String(formData.get("studio_accent") || "green"))
+      ? (String(formData.get("studio_accent")) as ProjectStudioItem["accent"])
+      : "green",
+    highlight_style: ["operations", "trust", "app", "editorial"].includes(String(formData.get("studio_highlight_style") || "editorial"))
+      ? (String(formData.get("studio_highlight_style")) as ProjectStudioItem["highlight_style"])
+      : "editorial",
+    device_frame: ["browser", "phone", "floating"].includes(String(formData.get("studio_device_frame") || "browser"))
+      ? (String(formData.get("studio_device_frame")) as ProjectStudioItem["device_frame"])
+      : "browser",
+    eyebrow_ar: String(formData.get("studio_eyebrow_ar") || ""),
+    eyebrow_en: String(formData.get("studio_eyebrow_en") || ""),
+    challenge_ar: String(formData.get("studio_challenge_ar") || ""),
+    challenge_en: String(formData.get("studio_challenge_en") || ""),
+    solution_ar: String(formData.get("studio_solution_ar") || ""),
+    solution_en: String(formData.get("studio_solution_en") || ""),
+    result_ar: String(formData.get("studio_result_ar") || ""),
+    result_en: String(formData.get("studio_result_en") || ""),
+    tags_ar: parseList(formData.get("studio_tags_ar")),
+    tags_en: parseList(formData.get("studio_tags_en")),
+    gallery_media_ids: [
+      String(formData.get("gallery_media_id_1") || "").trim(),
+      String(formData.get("gallery_media_id_2") || "").trim(),
+      String(formData.get("gallery_media_id_3") || "").trim(),
+    ].filter(Boolean),
+    metrics: [0, 1, 2]
+      .map((index) => ({
+        value: String(formData.get(`metric_value_${index + 1}`) || "").trim(),
+        label_ar: String(formData.get(`metric_label_ar_${index + 1}`) || "").trim(),
+        label_en: String(formData.get(`metric_label_en_${index + 1}`) || "").trim(),
+      }))
+      .filter((metric) => metric.value || metric.label_ar || metric.label_en),
+  };
+
+  await upsertSiteSetting("projects_studio", {
+    version: 1,
+    items: upsertStudioItem(current.items, nextItem),
+  });
+
+  revalidateAll();
+}
+
 export async function deleteWorkProjectAction(formData: FormData) {
   await ensureAdmin();
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing project id");
   await deleteWorkProject(id);
+  const snapshot = await readSnapshot();
+  const current = getProjectsStudioData(snapshot);
+  await upsertSiteSetting("projects_studio", {
+    version: 1,
+    items: current.items.filter((item) => item.project_id !== id),
+  });
   revalidateAll();
 }
 

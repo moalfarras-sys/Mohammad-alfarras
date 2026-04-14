@@ -378,7 +378,7 @@ function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
             <span
               className="flex h-14 w-14 items-center justify-center rounded-full"
               style={{
-                background: "linear-gradient(135deg, #ff6b00, #ff3d00)",
+                background: "linear-gradient(135deg, var(--secondary), #ff3d00)",
                 boxShadow: "0 0 40px rgba(255,107,0,0.5)",
               }}
             >
@@ -430,12 +430,12 @@ function HomePage({ model }: { model: SiteViewModel }) {
         <div
           aria-hidden
           className="pointer-events-none absolute -top-1/4 left-1/4 h-[800px] w-[800px] -translate-x-1/2 rounded-full opacity-20 blur-[120px]"
-          style={{ background: "radial-gradient(circle, rgba(0,255,135,0.25), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
         />
         <div
           aria-hidden
           className="pointer-events-none absolute bottom-0 right-0 h-[600px] w-[600px] rounded-full opacity-15 blur-[100px]"
-          style={{ background: "radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, var(--accent), transparent 70%)" }}
         />
 
         <div className="section-frame">
@@ -458,8 +458,8 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-                  className="headline-arabic max-w-2xl text-4xl font-extrabold leading-[1.08] text-foreground sm:text-5xl md:text-6xl"
+                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+                  className="headline-arabic max-w-2xl text-4xl font-extrabold leading-[1.08] text-foreground sm:text-5xl md:text-6.5xl tracking-tight"
                 >
                   {locale === "ar" ? (
                     <>
@@ -472,7 +472,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       </span>{" "}
                       <span
                         style={{
-                          background: "linear-gradient(135deg, #ff6b00, #a855f7)",
+                          background: "linear-gradient(135deg, var(--secondary), var(--accent))",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                         }}
@@ -488,7 +488,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       </span>{" "}
                       <span
                         style={{
-                          background: "linear-gradient(135deg, #ff6b00, #a855f7)",
+                          background: "linear-gradient(135deg, var(--secondary), var(--accent))",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                         }}
@@ -502,7 +502,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.7 }}
+                  transition={{ delay: 0.3, duration: 1.0 }}
                   className="max-w-2xl text-base leading-8 text-foreground-muted md:text-lg"
                 >
                   {locale === "ar"
@@ -567,7 +567,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 {/* Floating glow orb */}
                 <div
                   className="absolute -inset-8 rounded-full opacity-25 blur-3xl"
-                  style={{ background: "radial-gradient(circle, rgba(0,255,135,0.4), rgba(168,85,247,0.3), transparent 70%)" }}
+                  style={{ background: "radial-gradient(circle, var(--primary), var(--accent), transparent 70%)" }}
                   aria-hidden
                 />
 
@@ -599,7 +599,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     className="absolute -bottom-5 -right-5 rounded-2xl px-5 py-3"
                     style={{
                       background: "var(--surface-strong)",
-                      border: "1px solid rgba(0,255,135,0.25)",
+                      border: "1px solid var(--primary)",
                       backdropFilter: "blur(20px)",
                       boxShadow: "0 0 30px rgba(0,255,135,0.15)",
                     }}
@@ -812,28 +812,28 @@ function HomePage({ model }: { model: SiteViewModel }) {
               const isFeatured = index === 0;
               const isMoPlayer = project.id?.toLowerCase().includes("moplayer") || project.title?.toLowerCase().includes("moplayer");
               const glowColor = story.accent === "neon-green"
-                ? "rgba(0,255,135,0.2)"
+                ? "var(--primary-glow)"
                 : story.accent === "neon-orange"
-                ? "rgba(255,107,0,0.2)"
-                : "rgba(168,85,247,0.2)";
+                ? "var(--secondary-glow)"
+                : "var(--accent-glow)";
               const borderColor = story.accent === "neon-green"
-                ? "rgba(0,255,135,0.18)"
+                ? "var(--primary-border)"
                 : story.accent === "neon-orange"
-                ? "rgba(255,107,0,0.18)"
-                : "rgba(168,85,247,0.18)";
+                ? "var(--secondary-border)"
+                : "var(--accent-border)";
 
               return (
                 <Reveal key={project.id} delay={index * 0.06}>
                   <motion.div
                     whileHover={{ y: -5, scale: 1.01 }}
-                    transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                    transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
                     className={cn(
                       "group relative overflow-hidden rounded-[2rem]",
                       isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
                       isMoPlayer ? "ring-2 ring-purple-500/30" : "",
                     )}
                     style={{
-                      background: "rgba(7,8,18,0.95)",
+                      background: "var(--surface)",
                       border: `1px solid ${borderColor}`,
                       backdropFilter: "blur(20px)",
                     }}
@@ -861,7 +861,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       {/* MoPlayer premium badge */}
                       {isMoPlayer && (
                         <div className="absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold"
-                          style={{ background: "linear-gradient(135deg, #a855f7, #7c3aed)", color: "white" }}>
+                          style={{ background: "linear-gradient(135deg, var(--accent), #7c3aed)", color: "white" }}>
                           ⭐ {locale === "ar" ? "منتج رقمي" : "Digital Product"}
                         </div>
                       )}
@@ -947,8 +947,8 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     <div
                       className="rounded-2xl p-6 text-center"
                       style={{
-                        background: "linear-gradient(135deg, rgba(255,107,0,0.08), rgba(8,10,20,0.9))",
-                        border: "1px solid rgba(255,107,0,0.18)",
+                        background: "linear-gradient(135deg, rgba(255,107,0,0.08), var(--surface-strong))",
+                        border: "1px solid var(--secondary-border)",
                         backdropFilter: "blur(20px)",
                       }}
                     >
@@ -975,7 +975,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <div
                   className="flex h-full flex-col justify-between rounded-[2rem] p-7"
                   style={{
-                    background: "linear-gradient(135deg, rgba(255,107,0,0.06), rgba(8,10,20,0.9))",
+                    background: "linear-gradient(135deg, rgba(255,107,0,0.06), var(--surface-strong))",
                     border: "1px solid rgba(255,107,0,0.15)",
                     backdropFilter: "blur(20px)",
                   }}
@@ -991,7 +991,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         <span
                           key={tag}
                           className="rounded-full px-3 py-1.5 text-xs font-bold"
-                          style={{ background: "rgba(255,107,0,0.08)", border: "1px solid rgba(255,107,0,0.2)", color: "var(--secondary)" }}
+                          style={{ background: "rgba(255,107,0,0.08)", border: "1px solid var(--secondary-glow)", color: "var(--secondary)" }}
                         >
                           {tag}
                         </span>
@@ -1021,7 +1021,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
               <div
                 className="flex flex-wrap items-center gap-6 rounded-[2rem] px-7 py-5 md:flex-nowrap md:gap-8"
                 style={{
-                  background: "linear-gradient(135deg, rgba(8,10,20,0.9), rgba(5,7,15,0.95))",
+                  background: "linear-gradient(135deg, var(--surface-strong), rgba(5,7,15,0.95))",
                   border: "1px solid rgba(255,255,255,0.07)",
                   backdropFilter: "blur(24px)",
                 }}
@@ -1065,7 +1065,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
           <Reveal>
             <div className="contact-cta-frame text-center">
               {/* Decorative top line */}
-              <div className="mx-auto mb-8 h-px w-32 opacity-50" style={{ background: "linear-gradient(90deg, transparent, #00ff87, transparent)" }} />
+              <div className="mx-auto mb-8 h-px w-32 opacity-50" style={{ background: "linear-gradient(90deg, transparent, var(--primary), transparent)" }} />
 
               <span className="eyebrow mx-auto">{locale === "ar" ? "الخطوة التالية" : "Next step"}</span>
 
@@ -1107,7 +1107,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
               </div>
 
               {/* Bottom decoration */}
-              <div className="mx-auto mt-10 h-px w-32 opacity-30" style={{ background: "linear-gradient(90deg, transparent, #a855f7, transparent)" }} />
+              <div className="mx-auto mt-10 h-px w-32 opacity-30" style={{ background: "linear-gradient(90deg, transparent, var(--accent), transparent)" }} />
             </div>
           </Reveal>
         </div>
@@ -1125,15 +1125,15 @@ function CvPage({ model }: { model: SiteViewModel }) {
 
   const skills = locale === "ar"
     ? [
-        { label: "Next.js / React", pct: 92, color: "#00ff87" },
-        { label: "UI/UX & واجهات", pct: 89, color: "#ff6b00" },
-        { label: "سرد بصري ومحتوى", pct: 86, color: "#a855f7" },
+        { label: "Next.js / React", pct: 92, color: "var(--primary)" },
+        { label: "UI/UX & واجهات", pct: 89, color: "var(--secondary)" },
+        { label: "سرد بصري ومحتوى", pct: 86, color: "var(--accent)" },
         { label: "تنفيذ منضبط", pct: 94, color: "#06b6d4" },
       ]
     : [
-        { label: "Next.js / React", pct: 92, color: "#00ff87" },
-        { label: "UI/UX interfaces", pct: 89, color: "#ff6b00" },
-        { label: "Visual storytelling", pct: 86, color: "#a855f7" },
+        { label: "Next.js / React", pct: 92, color: "var(--primary)" },
+        { label: "UI/UX interfaces", pct: 89, color: "var(--secondary)" },
+        { label: "Visual storytelling", pct: 86, color: "var(--accent)" },
         { label: "Operational execution", pct: 94, color: "#06b6d4" },
       ];
 
@@ -1201,14 +1201,14 @@ function CvPage({ model }: { model: SiteViewModel }) {
               {/* Availability badge */}
               <Reveal>
                 <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest"
-                  style={{ background: "rgba(0,255,135,0.08)", border: "1px solid rgba(0,255,135,0.25)", color: "#00ff87" }}>
-                  <span className="h-2 w-2 rounded-full bg-[#00ff87] animate-pulse" />
+                  style={{ background: "rgba(0,255,135,0.08)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
+                  <span className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
                   {locale === "ar" ? "متاح لمشاريع جديدة · 2026" : "Available for projects · 2026"}
                 </div>
               </Reveal>
 
               <Reveal delay={0.06}>
-                <h1 className="headline-arabic text-5xl font-black leading-[1.15] text-white md:text-6xl lg:text-7xl">
+                <h1 className="headline-arabic text-5xl font-black leading-[1.15] text-white md:text-6.5xl tracking-tight lg:text-7xl">
                   {locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}
                 </h1>
               </Reveal>
@@ -1224,7 +1224,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                 <div className="flex flex-wrap gap-2">
                   {t.cv.chips.map((chip, i) => {
                     const colors = ["rgba(0,255,135,0.15)", "rgba(255,107,0,0.15)", "rgba(168,85,247,0.15)", "rgba(6,182,212,0.15)"];
-                    const textColors = ["#00ff87", "#ff6b00", "#a855f7", "#06b6d4"];
+                    const textColors = ["var(--primary)", "var(--secondary)", "var(--accent)", "#06b6d4"];
                     return (
                       <motion.span
                         key={chip}
@@ -1246,10 +1246,10 @@ function CvPage({ model }: { model: SiteViewModel }) {
                     href={cvLinks[locale] || "/Lebenslauf.pdf"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(0,255,135,0.4)" }}
+                    whileHover={{ scale: 1.04, boxShadow: "0 0 30px var(--primary)" }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-black"
-                    style={{ background: "linear-gradient(135deg, #00ff87, #00cc6e)" }}
+                    style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
                   >
                     <ArrowUpRight className="h-4 w-4" />
                     {locale === "ar" ? "تحميل السيرة PDF" : (locale === "en" ? "Download CV PDF" : "Lebenslauf PDF")}
@@ -1299,7 +1299,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                           { num: "2", sub: locale === "ar" ? "دول" : "Countries" },
                         ].map((s) => (
                           <div key={s.sub} className="rounded-xl p-3 text-center"
-                            style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                            style={{ background: "var(--surface-strong)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             <p className="text-xl font-black text-white">{s.num}</p>
                             <p className="text-[11px] text-foreground-soft">{s.sub}</p>
                           </div>
@@ -1337,7 +1337,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
             {/* Vertical line */}
             <div
               className="absolute start-5 top-3 bottom-3 w-[2px] md:start-[3.5rem]"
-              style={{ background: "linear-gradient(to bottom, #00ff87, #a855f7aa, transparent)" }}
+              style={{ background: "linear-gradient(to bottom, var(--primary), var(--accent)aa, transparent)" }}
             />
 
             {entries.map((entry, i) => (
@@ -1347,15 +1347,15 @@ function CvPage({ model }: { model: SiteViewModel }) {
                   <div className="relative z-10 mt-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full md:h-14 md:w-28 md:rounded-2xl"
                     style={{
                       background: i === 0
-                        ? "linear-gradient(135deg, rgba(0,255,135,0.25), rgba(0,255,135,0.08))"
-                        : "rgba(8,10,20,0.9)",
-                      border: i === 0 ? "2px solid #00ff8788" : "2px solid rgba(255,255,255,0.08)",
+                        ? "linear-gradient(135deg, var(--primary), rgba(0,255,135,0.08))"
+                        : "var(--surface-strong)",
+                      border: i === 0 ? "2px solid var(--primary)88" : "2px solid rgba(255,255,255,0.08)",
                       boxShadow: i === 0 ? "0 0 20px rgba(0,255,135,0.3)" : "none",
                     }}
                   >
                     {/* Mobile: dot only */}
                     <span className="h-3 w-3 rounded-full md:hidden"
-                      style={{ background: i === 0 ? "#00ff87" : "rgba(255,255,255,0.2)" }} />
+                      style={{ background: i === 0 ? "var(--primary)" : "rgba(255,255,255,0.2)" }} />
                     {/* Desktop: year */}
                     {entry.period && (
                       <span className="hidden font-mono text-[10px] font-bold leading-tight text-center text-foreground-muted md:block">
@@ -1366,21 +1366,21 @@ function CvPage({ model }: { model: SiteViewModel }) {
 
                   {/* Card */}
                   <motion.div
-                    whileHover={{ borderColor: "rgba(0,255,135,0.25)", y: -2 }}
+                    whileHover={{ borderColor: "var(--primary)", y: -2 }}
                     className="flex-1 rounded-[2rem] p-6 transition duration-300 md:p-8"
-                    style={{ background: "rgba(8,10,20,0.82)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(24px)" }}
+                    style={{ background: "var(--surface)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(24px)" }}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <h3 className="text-xl font-extrabold text-white md:text-2xl">{entry.company}</h3>
                         {entry.role !== entry.company && (
-                          <p className="mt-1 text-sm font-semibold" style={{ color: "#ff6b00" }}>{entry.role}</p>
+                          <p className="mt-1 text-sm font-semibold" style={{ color: "var(--secondary)" }}>{entry.role}</p>
                         )}
                       </div>
                       <div className="text-end">
                         {entry.period && (
                           <span className="rounded-full px-3 py-1 font-mono text-[11px] font-bold"
-                            style={{ background: "rgba(0,255,135,0.07)", border: "1px solid rgba(0,255,135,0.2)", color: "#00ff87" }}>
+                            style={{ background: "rgba(0,255,135,0.07)", border: "1px solid var(--primary-glow)", color: "var(--primary)" }}>
                             {entry.period}
                           </span>
                         )}
@@ -1537,10 +1537,10 @@ function CvPage({ model }: { model: SiteViewModel }) {
                 <div className="flex shrink-0 flex-wrap gap-3">
                   <motion.a
                     href="/Lebenslauf.pdf" target="_blank" rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(0,255,135,0.4)" }}
+                    whileHover={{ scale: 1.05, boxShadow: "0 0 30px var(--primary)" }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-black text-black"
-                    style={{ background: "linear-gradient(135deg, #00ff87, #00cc6e)" }}
+                    style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
                   >
                     <ArrowUpRight className="h-4 w-4" />
                     PDF
@@ -1589,7 +1589,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
           <Reveal>
             <div className="max-w-3xl">
               <span className="eyebrow">{t.projects.eyebrow}</span>
-              <h1 className="headline-arabic mt-5 text-4xl font-black leading-tight text-white md:text-6xl">
+              <h1 className="headline-arabic mt-5 text-4xl font-black leading-tight text-white md:text-6.5xl tracking-tight">
                 {t.projects.title}
               </h1>
               <p className="mt-5 text-lg leading-8 text-foreground-muted">{t.projects.body}</p>
@@ -1604,7 +1604,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
                 { num: "3+", label: locale === "ar" ? "عملاء حقيقيون" : "Real clients" },
               ].map((s) => (
                 <div key={s.label}>
-                  <p className="text-4xl font-black" style={{ color: "#00ff87" }}>{s.num}</p>
+                  <p className="text-4xl font-black" style={{ color: "var(--primary)" }}>{s.num}</p>
                   <p className="mt-1 text-sm text-foreground-soft">{s.label}</p>
                 </div>
               ))}
@@ -1621,9 +1621,9 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
             {projects.map((project, index) => {
               const story = projectStory(project, locale);
               const accentMap = {
-                "neon-green": { border: "rgba(0,255,135,0.18)", color: "#00ff87", bg: "rgba(0,255,135,0.06)", glow: "rgba(0,255,135,0.12)" },
-                "neon-orange": { border: "rgba(255,107,0,0.18)", color: "#ff6b00", bg: "rgba(255,107,0,0.06)", glow: "rgba(255,107,0,0.12)" },
-                "neon-purple": { border: "rgba(168,85,247,0.18)", color: "#a855f7", bg: "rgba(168,85,247,0.06)", glow: "rgba(168,85,247,0.12)" },
+                "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,255,135,0.06)", glow: "rgba(0,255,135,0.12)" },
+                "neon-orange": { border: "var(--secondary-border)", color: "var(--secondary)", bg: "rgba(255,107,0,0.06)", glow: "rgba(255,107,0,0.12)" },
+                "neon-purple": { border: "var(--accent-border)", color: "var(--accent)", bg: "rgba(168,85,247,0.06)", glow: "rgba(168,85,247,0.12)" },
               };
               const accent = accentMap[story.accent as keyof typeof accentMap] ?? accentMap["neon-green"];
 
@@ -1693,7 +1693,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
                               whileHover={{ scale: 1.04, boxShadow: `0 0 20px ${accent.glow}` }}
                               whileTap={{ scale: 0.97 }}
                               className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-black"
-                              style={{ background: accent.color, color: accent.color === "#a855f7" ? "#fff" : "#000" }}
+                              style={{ background: accent.color, color: accent.color === "var(--accent)" ? "#fff" : "#000" }}
                             >
                               <ExternalLink className="h-4 w-4" />
                               {t.common.visitProject}
@@ -1724,10 +1724,10 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
             <div className="mt-16 rounded-[2.5rem] p-10 text-center"
               style={{
                 background: "linear-gradient(135deg, rgba(168,85,247,0.07), rgba(8,10,20,0.98))",
-                border: "1px solid rgba(168,85,247,0.2)",
+                border: "1px solid var(--accent-glow)",
                 backdropFilter: "blur(24px)",
               }}>
-              <Sparkles className="mx-auto h-8 w-8" style={{ color: "#a855f7" }} />
+              <Sparkles className="mx-auto h-8 w-8" style={{ color: "var(--accent)" }} />
               <h2 className="headline-arabic mt-4 text-xl font-black text-white md:text-2xl">
                 {locale === "ar" ? "مشروعك التالي يستحق نفس الاهتمام" : "Your next project deserves the same attention"}
               </h2>
@@ -1737,10 +1737,10 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <motion.a
                   href={`/${locale}/contact`}
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(0,255,135,0.4)" }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px var(--primary)" }}
                   whileTap={{ scale: 0.97 }}
                   className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-black text-black"
-                  style={{ background: "linear-gradient(135deg, #00ff87, #00cc6e)" }}
+                  style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
                 >
                   <MessageCircleMore className="h-4 w-4" />
                   {locale === "ar" ? "ابدأ المحادثة" : "Start the conversation"}
@@ -1763,9 +1763,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   const videoCount = Number(model.youtube.videos ?? 162);
 
   const stats = [
-    { num: "+1.5M",  label: locale === "ar" ? "مشاهدة إجمالية" : "Total views",       color: "#ff6b00", icon: "??️" },
-    { num: "+6.1K",  label: locale === "ar" ? "مشترك"           : "Subscribers",        color: "#00ff87", icon: "❤️" },
-    { num: String(videoCount), label: locale === "ar" ? "فيديو منشور"  : "Videos published", color: "#a855f7", icon: "🎬" },
+    { num: "+1.5M",  label: locale === "ar" ? "مشاهدة إجمالية" : "Total views",       color: "var(--secondary)", icon: "??️" },
+    { num: "+6.1K",  label: locale === "ar" ? "مشترك"           : "Subscribers",        color: "var(--primary)", icon: "❤️" },
+    { num: String(videoCount), label: locale === "ar" ? "فيديو منشور"  : "Videos published", color: "var(--accent)", icon: "🎬" },
     { num: "??",     label: locale === "ar" ? "عربي من ألمانيا" : "Arab in Germany",    color: "#06b6d4", icon: "??" },
   ];
 
@@ -1801,11 +1801,11 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest"
-                style={{ background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.3)", color: "#ff6b00" }}>
+                style={{ background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.3)", color: "var(--secondary)" }}>
                 <PlayCircle className="h-3.5 w-3.5" />
                 @Moalfarras
               </div>
-              <h1 className="headline-arabic text-4xl font-black leading-tight text-white md:text-6xl">
+              <h1 className="headline-arabic text-4xl font-black leading-tight text-white md:text-6.5xl tracking-tight">
                 {t.youtube.title}
               </h1>
               <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-foreground-muted">
@@ -1818,7 +1818,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                   whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,107,0,0.5)" }}
                   whileTap={{ scale: 0.97 }}
                   className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-white"
-                  style={{ background: "linear-gradient(135deg, #ff6b00, #e05500)" }}
+                  style={{ background: "linear-gradient(135deg, var(--secondary), #e05500)" }}
                 >
                   <PlayCircle className="h-5 w-5" />
                   {t.youtube.channelCta}
@@ -1869,7 +1869,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
             {featuredVideo ? (
               <Reveal>
                 <div className="overflow-hidden rounded-[2rem]"
-                  style={{ border: "1px solid rgba(255,107,0,0.2)", background: "rgba(8,10,20,0.8)" }}>
+                  style={{ border: "1px solid var(--secondary-glow)", background: "rgba(8,10,20,0.8)" }}>
                   <VideoCard video={featuredVideo} locale={locale} />
                 </div>
               </Reveal>
@@ -1881,7 +1881,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 className="flex h-full flex-col justify-center rounded-[2rem] p-7 md:p-9"
                 style={{
                   background: "linear-gradient(160deg, rgba(255,107,0,0.07) 0%, rgba(8,10,20,0.95) 60%)",
-                  border: "1px solid rgba(255,107,0,0.18)",
+                  border: "1px solid var(--secondary-border)",
                   backdropFilter: "blur(24px)",
                 }}
               >
@@ -1893,7 +1893,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 <div className="mt-6 flex flex-wrap gap-2">
                   {t.youtube.values.map((v) => (
                     <span key={v} className="rounded-full px-3 py-1.5 text-xs font-bold"
-                      style={{ background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.25)", color: "#ff6b00" }}>
+                      style={{ background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.25)", color: "var(--secondary)" }}>
                       {v}
                     </span>
                   ))}
@@ -1915,15 +1915,15 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
             {(locale === "ar"
               ? [
-                  { icon: "📱", label: "مراجعات منتجات", count: "60+", color: "#ff6b00" },
-                  { icon: "💻", label: "شرح تقني",        count: "40+", color: "#00ff87" },
-                  { icon: "🇩🇪", label: "حياة في ألمانيا", count: "30+", color: "#a855f7" },
+                  { icon: "📱", label: "مراجعات منتجات", count: "60+", color: "var(--secondary)" },
+                  { icon: "💻", label: "شرح تقني",        count: "40+", color: "var(--primary)" },
+                  { icon: "🇩🇪", label: "حياة في ألمانيا", count: "30+", color: "var(--accent)" },
                   { icon: "🎯", label: "بناء مهارات",     count: "30+", color: "#06b6d4" },
                 ]
               : [
-                  { icon: "📱", label: "Product reviews",   count: "60+", color: "#ff6b00" },
-                  { icon: "💻", label: "Tech explainers",   count: "40+", color: "#00ff87" },
-                  { icon: "🇩🇪", label: "Life in Germany",  count: "30+", color: "#a855f7" },
+                  { icon: "📱", label: "Product reviews",   count: "60+", color: "var(--secondary)" },
+                  { icon: "💻", label: "Tech explainers",   count: "40+", color: "var(--primary)" },
+                  { icon: "🇩🇪", label: "Life in Germany",  count: "30+", color: "var(--accent)" },
                   { icon: "🎯", label: "Skill building",    count: "30+", color: "#06b6d4" },
                 ]
             ).map((cat, i) => (
@@ -2016,17 +2016,17 @@ function ContactPage({ model }: { model: SiteViewModel }) {
               {/* Availability indicator */}
               <Reveal>
                 <div className="inline-flex items-center gap-2.5 rounded-full px-4 py-2 text-xs font-bold"
-                  style={{ background: "rgba(0,255,135,0.07)", border: "1px solid rgba(0,255,135,0.25)", color: "#00ff87" }}>
+                  style={{ background: "rgba(0,255,135,0.07)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
                   <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#00ff87" }} />
-                    <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#00ff87" }} />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "var(--primary)" }} />
+                    <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
                   </span>
                   {locale === "ar" ? "متاح الآن · الرد خلال 24 ساعة" : "Available now · Response within 24h"}
                 </div>
               </Reveal>
 
               <Reveal delay={0.05}>
-                <h1 className="headline-arabic text-4xl font-black leading-tight text-white md:text-5xl lg:text-6xl">
+                <h1 className="headline-arabic text-4xl font-black leading-tight text-white md:text-5xl lg:text-6.5xl tracking-tight">
                   {locale === "ar"
                     ? "فكرتك تستحق\nحضوراً لا يُنسى."
                     : "Your idea deserves\nan unforgettable presence."}
@@ -2043,10 +2043,10 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                   <motion.a
                     href={model.contact.whatsappUrl}
                     target="_blank" rel="noopener noreferrer"
-                    whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(0,255,135,0.4)" }}
+                    whileHover={{ scale: 1.04, boxShadow: "0 0 30px var(--primary)" }}
                     whileTap={{ scale: 0.97 }}
                     className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-sm font-black text-black"
-                    style={{ background: "linear-gradient(135deg, #00ff87, #00cc6e)" }}
+                    style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
                   >
                     <MessageCircleMore className="h-5 w-5" />
                     WhatsApp
@@ -2090,7 +2090,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                   {locale === "ar" ? "لماذا يتواصل الناس معي؟" : "Why people get in touch"}
                 </p>
                 {t.contact.reasons.map((reason, i) => {
-                  const colors = ["#00ff87", "#ff6b00", "#a855f7", "#06b6d4"];
+                  const colors = ["var(--primary)", "var(--secondary)", "var(--accent)", "#06b6d4"];
                   return (
                     <motion.div
                       key={reason.title}
@@ -2114,8 +2114,8 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                 })}
                 {/* 24h badge */}
                 <div className="mt-2 flex items-center gap-3 rounded-2xl p-4"
-                  style={{ background: "rgba(168,85,247,0.07)", border: "1px solid rgba(168,85,247,0.2)" }}>
-                  <Zap className="h-5 w-5 shrink-0" style={{ color: "#a855f7" }} />
+                  style={{ background: "rgba(168,85,247,0.07)", border: "1px solid var(--accent-glow)" }}>
+                  <Zap className="h-5 w-5 shrink-0" style={{ color: "var(--accent)" }} />
                   <p className="text-sm text-foreground-muted">
                     <span className="font-bold text-foreground">{t.contact.directTitle}</span>
                     {" — "}{t.contact.directBody}
@@ -2137,7 +2137,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
             {/* Mobile reasons (hidden on desktop) */}
             <div className="space-y-4 lg:hidden">
               {t.contact.reasons.map((reason, i) => {
-                const colors = ["#00ff87", "#ff6b00", "#a855f7", "#06b6d4"];
+                const colors = ["var(--primary)", "var(--secondary)", "var(--accent)", "#06b6d4"];
                 return (
                   <div key={reason.title} className="flex items-start gap-4 rounded-2xl p-5"
                     style={{ background: "rgba(8,10,20,0.8)", border: `1px solid ${colors[i % 4]}18`, backdropFilter: "blur(20px)" }}>
@@ -2214,9 +2214,9 @@ function BlogPage({ model }: { model: SiteViewModel }) {
 
   const insightIcons = ["🎯", "⚡", "???"];
   const insightAccents = [
-    { border: "rgba(0,255,135,0.18)", bg: "rgba(0,255,135,0.06)", color: "var(--primary)" },
-    { border: "rgba(255,107,0,0.18)", bg: "rgba(255,107,0,0.06)", color: "var(--secondary)" },
-    { border: "rgba(168,85,247,0.18)", bg: "rgba(168,85,247,0.06)", color: "var(--accent)" },
+    { border: "var(--primary-border)", bg: "rgba(0,255,135,0.06)", color: "var(--primary)" },
+    { border: "var(--secondary-border)", bg: "rgba(255,107,0,0.06)", color: "var(--secondary)" },
+    { border: "var(--accent-border)", bg: "rgba(168,85,247,0.06)", color: "var(--accent)" },
   ];
 
   const principles = locale === "ar"
@@ -2258,7 +2258,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
                   className="group h-full rounded-[2rem] p-7 transition duration-500"
                   style={{
                     background: "rgba(8,10,20,0.8)",
-                    border: `1px solid ${insightAccents[i]?.border ?? "rgba(0,255,135,0.18)"}`,
+                    border: `1px solid ${insightAccents[i]?.border ?? "var(--primary-border)"}`,
                     backdropFilter: "blur(20px)",
                   }}
                 >
@@ -2266,7 +2266,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
                   <div className="mb-5 flex items-center gap-4">
                     <span
                       className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                      style={{ background: insightAccents[i]?.bg ?? "rgba(0,255,135,0.06)", border: `1px solid ${insightAccents[i]?.border ?? "rgba(0,255,135,0.18)"}` }}
+                      style={{ background: insightAccents[i]?.bg ?? "rgba(0,255,135,0.06)", border: `1px solid ${insightAccents[i]?.border ?? "var(--primary-border)"}` }}
                     >
                       {insightIcons[i]}
                     </span>
@@ -2341,7 +2341,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
                   whileHover={{ y: -4 }}
                   className="h-full rounded-[2rem] p-6 transition duration-300"
                   style={{
-                    background: "linear-gradient(135deg, rgba(8,10,20,0.9), rgba(5,7,15,0.95))",
+                    background: "linear-gradient(135deg, var(--surface-strong), rgba(5,7,15,0.95))",
                     border: "1px solid rgba(255,255,255,0.06)",
                     backdropFilter: "blur(20px)",
                   }}
@@ -2370,7 +2370,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
               className="flex flex-col items-center gap-6 rounded-[2.5rem] p-10 text-center md:p-14"
               style={{
                 background: "linear-gradient(135deg, rgba(168,85,247,0.08), rgba(8,10,20,0.95))",
-                border: "1px solid rgba(168,85,247,0.2)",
+                border: "1px solid var(--accent-glow)",
                 backdropFilter: "blur(24px)",
               }}
             >
@@ -2403,7 +2403,7 @@ function PrivacyAccordionItem({ item, index }: { item: string; index: number }) 
 
   return (
     <motion.div
-      whileHover={{ borderColor: open ? "rgba(0,255,135,0.3)" : "rgba(0,255,135,0.18)" }}
+      whileHover={{ borderColor: open ? "rgba(0,255,135,0.3)" : "var(--primary-border)" }}
       className="overflow-hidden rounded-[1.75rem] transition duration-300"
       style={{
         background: "rgba(8,10,20,0.75)",
@@ -2443,7 +2443,7 @@ function PrivacyAccordionItem({ item, index }: { item: string; index: number }) 
         style={{ overflow: "hidden" }}
       >
         <div className="px-6 pb-6">
-          <div className="h-px w-full mb-4" style={{ background: "linear-gradient(90deg, rgba(0,255,135,0.2), transparent)" }} />
+          <div className="h-px w-full mb-4" style={{ background: "linear-gradient(90deg, var(--primary-glow), transparent)" }} />
           <p className="text-sm leading-8 text-foreground-muted">{body || item}</p>
         </div>
       </motion.div>

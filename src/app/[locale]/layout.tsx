@@ -6,6 +6,7 @@ import { MobileDock } from "@/components/layout/mobile-dock";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { rebuildContent } from "@/data/rebuild-content";
+import { AtmosphericBackground } from "@/components/layout/atmospheric-background";
 import { isLocale, localeMeta, withLocale } from "@/lib/i18n";
 
 export default async function LocaleLayout({
@@ -46,21 +47,8 @@ export default async function LocaleLayout({
       <div className="relative min-h-screen">
         <LocaleDocumentSync locale={locale} />
 
-        {/* Animated secondary mesh overlay */}
-        <div className="mesh-animated-overlay" aria-hidden="true" />
-
-        {/* Subtle grid lines pattern */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-[-1] opacity-[0.018]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0,255,135,1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0,255,135,1) 1px, transparent 1px)
-            `,
-            backgroundSize: "80px 80px",
-          }}
-        />
+        {/* Cinematic Atmospheric Engine — Fluid DRIFTING Glows */}
+        <AtmosphericBackground />
 
         <SiteNavbar locale={locale} links={links} tagline={t.navTagline} />
         <main className="pb-[7.25rem] lg:pb-0">{children}</main>

@@ -77,7 +77,7 @@ const copy = {
 } as const;
 
 const inputClass =
-  "w-full rounded-[1.4rem] border border-border bg-white/6 px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-foreground-soft focus:border-primary/70 focus:bg-white/10";
+  "w-full rounded-[1.6rem] border border-border/80 bg-surface/30 px-5 py-4 text-sm text-foreground outline-none transition-all placeholder:text-foreground-muted/60 focus:border-primary focus:bg-surface/50 focus:ring-4 focus:ring-primary/10 shadow-sm backdrop-blur-md";
 
 export function ContactForm({ locale, whatsappUrl }: ContactFormProps) {
   const t = copy[locale];
@@ -138,7 +138,7 @@ export function ContactForm({ locale, whatsappUrl }: ContactFormProps) {
 
   if (status === "success") {
     return (
-      <div className="glass-panel rounded-[1.8rem] p-6 text-center">
+      <div className="rounded-[2.2rem] border border-border/60 bg-surface/50 p-8 text-center backdrop-blur-2xl shadow-2xl">
         <span className="eyebrow">{locale === "ar" ? "تم الاستلام" : "Received"}</span>
         <h3 className="headline-display text-3xl font-semibold text-foreground">{t.successTitle}</h3>
         <p className="mt-3 text-sm leading-7 text-foreground-muted">{t.successBody}</p>
@@ -163,9 +163,9 @@ export function ContactForm({ locale, whatsappUrl }: ContactFormProps) {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       {status === "error" ? (
-        <div className="glass-panel rounded-[1.5rem] border-red-400/20 bg-red-500/8 p-4">
+        <div className="rounded-[1.8rem] border border-red-500/20 bg-red-500/5 p-6 backdrop-blur-xl">
           <p className="text-sm leading-6 text-foreground-muted">{t.error}</p>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="button-secondary-shell mt-3">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="button-secondary-shell mt-4 inline-flex">
             {t.whatsapp}
           </a>
         </div>
@@ -227,9 +227,9 @@ export function ContactForm({ locale, whatsappUrl }: ContactFormProps) {
         </div>
       </div>
 
-      <div className="glass-panel rounded-[1.5rem] p-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.22em] text-foreground-soft">{t.subjectPreview}</span>
-        <p className="mt-2 text-sm font-semibold text-foreground" data-testid="contact-subject-preview">
+      <div className="rounded-[1.8rem] border border-border/60 bg-surface/30 p-5 backdrop-blur-md">
+        <span className="text-[10px] font-black uppercase tracking-[0.28em] text-foreground-soft">{t.subjectPreview}</span>
+        <p className="mt-2 text-sm font-black text-foreground" data-testid="contact-subject-preview">
           {subjectLine}
         </p>
       </div>

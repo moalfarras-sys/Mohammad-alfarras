@@ -216,38 +216,39 @@ function FeaturedProject({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-[2.5rem] border"
-      style={{
-        background: isLight ? "rgba(255,255,255,0.95)" : "linear-gradient(160deg, rgba(7,10,18,0.92), rgba(4,7,15,0.98))",
-        borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
-        boxShadow: isLight ? "0 24px 60px rgba(15,23,42,0.06)" : `0 24px 80px ${accent.glow}`,
+      whileHover={{ 
+        rotateY: reversed ? 2 : -2, 
+        rotateX: -1,
+        transition: { duration: 0.4, ease: "easeOut" }
       }}
+      className="group relative overflow-hidden rounded-[2.8rem] border border-border/60 bg-surface/50 p-1 shadow-2xl backdrop-blur-xl perspective-[1200px]"
     >
-      <div className="absolute inset-0 opacity-70" style={{ background: `radial-gradient(circle at ${reversed ? "20%" : "85%"} 20%, ${accent.glow}, transparent 34%), radial-gradient(circle at ${reversed ? "90%" : "12%"} 100%, ${accent.glow}, transparent 30%)` }} />
+      <div className="absolute inset-0 opacity-40 mix-blend-soft-light transition-opacity duration-500 group-hover:opacity-70" 
+           style={{ background: `radial-gradient(circle at ${reversed ? "20%" : "85%"} 20%, ${accent.glow}, transparent 34%), radial-gradient(circle at ${reversed ? "90%" : "12%"} 100%, ${accent.glow}, transparent 30%)` }} />
 
-      <div className={cn("grid gap-6 p-5 md:p-8 xl:grid-cols-[0.95fr_1.05fr]", reversed && "xl:grid-cols-[1.05fr_0.95fr]")}>
+      <div className={cn("relative grid gap-6 p-6 md:p-10 xl:grid-cols-[0.95fr_1.05fr]", reversed && "xl:grid-cols-[1.05fr_0.95fr]")}>
         <div className={cn("space-y-6", reversed && "xl:order-2")}>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.24em]" style={{ color: accent.tint, borderColor: accent.glow, background: accent.badge }}>
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/80 px-4 py-2 text-[11px] font-black uppercase tracking-[0.28em]" style={{ color: accent.tint }}>
               <Sparkles className="h-4 w-4" />
               {project.eyebrow}
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-foreground-muted">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/80 px-4 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-foreground-muted">
               <BadgeIcon className="h-4 w-4" />
               {deviceBadge(project, locale).label}
             </span>
           </div>
 
           <div className="space-y-4">
-            <h2 className="headline-arabic text-3xl font-black text-foreground md:text-5xl">{project.title}</h2>
-            <p className="max-w-2xl text-base leading-8 text-foreground-muted md:text-lg">{project.summary}</p>
+            <h2 className="headline-arabic text-4xl font-black leading-tight text-foreground md:text-6xl">{project.title}</h2>
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-foreground-muted">{project.summary}</p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {project.metrics.map((metric) => (
-              <div key={`${project.id}-${metric.label}`} className="rounded-[1.6rem] border p-4 shadow-sm" style={{ borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.03)" }}>
-                <div className="text-xl font-black" style={{ color: accent.tint }}>{metric.value}</div>
-                <div className="mt-1 text-xs leading-6 text-foreground-muted">{metric.label}</div>
+              <div key={`${project.id}-${metric.label}`} className="rounded-[2rem] border border-border/40 bg-surface/60 p-5 shadow-sm transition-colors hover:bg-surface/80">
+                <div className="text-2xl font-black" style={{ color: accent.tint }}>{metric.value}</div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-wider text-foreground-soft">{metric.label}</div>
               </div>
             ))}
           </div>
@@ -258,9 +259,9 @@ function FeaturedProject({
               { title: t(locale, "القرار", "Decision"), body: project.solution },
               { title: t(locale, "الأثر", "Outcome"), body: project.result },
             ].map((block) => (
-              <div key={block.title} className="rounded-[1.7rem] border p-4 shadow-sm" style={{ borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.025)" }}>
-                <div className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: accent.tint }}>{block.title}</div>
-                <p className="mt-3 text-sm leading-7 text-foreground-muted">{block.body}</p>
+              <div key={block.title} className="rounded-[1.8rem] border border-border/40 bg-surface/50 p-5 shadow-sm backdrop-blur-md">
+                <div className="text-[10px] font-black uppercase tracking-[0.28em]" style={{ color: accent.tint }}>{block.title}</div>
+                <p className="mt-4 text-sm font-medium leading-[1.8] text-foreground-muted">{block.body}</p>
               </div>
             ))}
           </div>
@@ -360,23 +361,8 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden py-28 md:py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="projects-page">
-      <div
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{
-          background: isLight
-            ? "linear-gradient(180deg, #f7f8fc 0%, #edf2f8 50%, #eef5f1 100%)"
-            : "linear-gradient(180deg, #020205 0%, #040811 52%, #03060d 100%)",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-80"
-        style={{
-          background: isLight
-            ? "radial-gradient(circle at 10% 18%, rgba(0,184,90,0.09), transparent 26%), radial-gradient(circle at 90% 10%, rgba(224,90,0,0.08), transparent 28%), radial-gradient(circle at 65% 80%, rgba(139,53,232,0.07), transparent 26%)"
-            : "radial-gradient(circle at 10% 18%, rgba(0,255,135,0.12), transparent 26%), radial-gradient(circle at 90% 10%, rgba(255,107,0,0.11), transparent 28%), radial-gradient(circle at 65% 80%, rgba(168,85,247,0.1), transparent 26%)",
-        }}
-      />
-
+      {/* Background is handled by Global Atmospheric Engine */}
+      
       <div className="section-frame relative z-10 w-full max-w-[1420px] space-y-8">
         <motion.section
           initial={{ opacity: 0, y: 26 }}

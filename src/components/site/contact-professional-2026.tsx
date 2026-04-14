@@ -37,44 +37,15 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="contact-page">
-      <div
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{ background: isLight ? "linear-gradient(180deg, #fafaf9 0%, #f4f4f0 52%, #f2f5f3 100%)" : "#04060A" }}
-      />
-
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-10 mix-blend-screen"
-        style={{
-          backgroundImage: "radial-gradient(rgba(0, 255, 135, 0.4) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-          transform: "perspective(1000px) rotateX(60deg) scale(2.5) translateY(-20%)",
-          transformOrigin: "top center",
-        }}
-      />
-
-      <motion.div
-        animate={{ filter: ["blur(100px)", "blur(150px)", "blur(100px)"], scale: [1, 1.2, 1] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute left-1/2 top-1/3 z-0 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30 mix-blend-screen"
-        style={{
-          background: "radial-gradient(circle, rgba(0,255,135,0.15) 0%, rgba(168,85,247,0.05) 50%, transparent 70%)",
-        }}
-      />
+      {/* Background is handled by Global Atmospheric Engine */}
 
       <div className="section-frame relative z-10 w-full max-w-[1400px]">
         <motion.section
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mb-16 overflow-hidden rounded-[2.8rem] border px-7 py-10 text-center md:px-12 md:py-14"
-          style={{
-            background: isLight
-              ? "rgba(255, 255, 255, 0.98)"
-              : "linear-gradient(140deg, rgba(8,12,20,0.76), rgba(4,6,10,0.92))",
-            borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(255,255,255,0.08)",
-            backdropFilter: "blur(24px)",
-            boxShadow: isLight ? "0 20px 60px rgba(15,23,42,0.05)" : "0 30px 80px rgba(0,0,0,0.45)",
-          }}
+          whileHover={{ rotateX: -1.5, rotateY: 1.5 }}
+          className="relative mb-16 overflow-hidden rounded-[3rem] border border-border/60 bg-surface/50 p-6 text-center md:p-14 shadow-2xl backdrop-blur-2xl perspective-[1200px]"
         >
           <div className="pointer-events-none absolute inset-y-0 right-0 w-[38%] bg-[radial-gradient(circle_at_center,rgba(0,255,135,0.16),transparent_58%)] opacity-70" />
           <div className="pointer-events-none absolute -left-12 top-3 h-48 w-48 rounded-full bg-[rgba(6,182,212,0.12)] blur-[120px]" />
@@ -152,12 +123,8 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
                   <motion.div
                     key={`${reason.title}-${i}`}
                     variants={item}
-                    whileHover={{ x: locale === "ar" ? -8 : 8, backgroundColor: "rgba(255,255,255,0.05)" }}
-                    className="group relative overflow-hidden rounded-[2rem] border p-6 backdrop-blur-md"
-                    style={{
-                      borderColor: isLight ? "rgba(226,232,240,0.9)" : "rgba(255,255,255,0.05)",
-                      background: isLight ? "rgba(255,255,255,0.86)" : "rgba(10,10,15,0.8)",
-                    }}
+                    whileHover={{ x: locale === "ar" ? -8 : 8, backgroundColor: "rgba(255,255,255,0.08)" }}
+                    className="group relative overflow-hidden rounded-[2.2rem] border border-border/40 bg-surface/60 p-6 backdrop-blur-md shadow-sm transition-all"
                   >
                     <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ boxShadow: `inset 0 0 0 1px ${color}55` }} />
                     <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full opacity-0 blur-[60px] transition-opacity duration-500 group-hover:opacity-10 mix-blend-screen" style={{ background: color }} />
@@ -208,17 +175,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
 
           <motion.div variants={item} className="lg:col-span-7">
             <div
-              className="relative flex h-full flex-col justify-center overflow-hidden rounded-[2.5rem] border p-8 shadow-2xl md:p-12"
-              style={{
-                background: isLight
-                  ? "rgba(255, 255, 255, 0.98)"
-                  : "linear-gradient(135deg, rgba(12,15,25,0.9), rgba(5,7,12,0.95))",
-                borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(0,255,135,0.15)",
-                backdropFilter: "blur(40px)",
-                boxShadow: isLight
-                  ? "0 20px 40px -10px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9)"
-                  : "0 20px 40px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)",
-              }}
+              className="relative flex h-full flex-col justify-center overflow-hidden rounded-[3rem] border border-border/60 bg-surface/50 p-8 shadow-2xl md:p-12 backdrop-blur-2xl"
             >
               <div className="pointer-events-none absolute right-0 top-0 h-40 w-1/2 rounded-full bg-[#00ff87] opacity-[0.03] blur-[150px]" />
 

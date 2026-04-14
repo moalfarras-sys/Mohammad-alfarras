@@ -74,38 +74,14 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="youtube-page">
-      <div
-        className="pointer-events-none absolute inset-0 z-0"
-        style={{ 
-          background: isLight 
-            ? "linear-gradient(180deg, #fafaf9 0%, #f4f4f0 45%, #f2f5f3 100%)" 
-            : "#04060A" 
-        }}
-      />
-      <motion.div
-        animate={{ filter: ["blur(50px)", "blur(80px)", "blur(50px)"] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute inset-0 z-0 opacity-20 mix-blend-screen"
-        style={{
-          background: isLight
-            ? "radial-gradient(circle at 20% 0%, rgba(255,70,90,0.12) 0%, transparent 55%), radial-gradient(circle at 80% 80%, rgba(168,85,247,0.12) 0%, transparent 55%)"
-            : "radial-gradient(circle at 20% 0%, rgba(255,0,50,0.15) 0%, transparent 60%), radial-gradient(circle at 80% 80%, rgba(168,85,247,0.15) 0%, transparent 60%)",
-        }}
-      />
+      {/* Background is handled by Global Atmospheric Engine */}
 
       <div className="section-frame relative z-10 w-full max-w-[1400px]">
         <motion.div variants={container} initial="hidden" animate="show" className="grid grid-cols-1 gap-6 md:grid-cols-12">
           <motion.section
             variants={item}
-            className="relative overflow-hidden rounded-[2.8rem] border px-7 py-10 md:col-span-12 md:px-12 md:py-14"
-            style={{
-              background: isLight
-                ? "rgba(255, 255, 255, 0.98)"
-                : "linear-gradient(145deg, rgba(20,10,15,0.6), rgba(10,8,15,0.86))",
-              borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(255,0,50,0.1)",
-              backdropFilter: "blur(24px)",
-              boxShadow: isLight ? "0 20px 60px rgba(15,23,42,0.05)" : undefined,
-            }}
+            whileHover={{ rotateX: -1, rotateY: 1 }}
+            className="relative overflow-hidden rounded-[3rem] border border-border/60 bg-surface/50 p-6 md:col-span-12 md:p-14 shadow-2xl backdrop-blur-2xl perspective-[1200px]"
           >
             <div className="pointer-events-none absolute inset-y-0 right-0 w-[45%] bg-[radial-gradient(circle_at_center,rgba(255,0,50,0.16),transparent_58%)] opacity-70" />
             <div className="pointer-events-none absolute -left-20 top-0 h-52 w-52 rounded-full bg-[rgba(168,85,247,0.16)] blur-[120px]" />
@@ -162,27 +138,27 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
                 {statCards.map((stat) => {
                   const Icon = stat.icon;
                   return (
-                    <div
+                    <motion.div
                       key={stat.label}
-                      className="rounded-[1.9rem] border p-6 text-center lg:text-start"
-                      style={{
-                        background: isLight ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.46)",
-                        borderColor: isLight ? "rgba(15,23,42,0.08)" : "rgba(255,255,255,0.1)",
-                        boxShadow: isLight ? "0 10px 30px rgba(0,0,0,0.02)" : undefined,
-                      }}
+                      whileHover={{ x: locale === "ar" ? -8 : 8, backgroundColor: "rgba(255,255,255,0.08)" }}
+                      className="rounded-[2rem] border border-border/40 bg-surface/60 p-6 shadow-sm backdrop-blur-md transition-colors"
                     >
-                      <Icon className="mx-auto mb-3 h-6 w-6 lg:mx-0" style={{ color: stat.color }} />
-                      <p className="font-mono text-3xl font-black md:text-4xl" style={{ color: isLight ? "#0f172a" : "#ffffff" }}>
-                        {stat.value}
-                      </p>
-                      <p className="mt-1 text-xs font-bold uppercase tracking-wider" style={{ color: isLight ? "#64748b" : "var(--color-foreground-soft)" }}>
-                        {stat.label}
-                      </p>
-                    </div>
+                      <div className="flex items-center justify-between gap-4 lg:flex-col lg:items-start lg:justify-start">
+                        <Icon className="h-6 w-6" style={{ color: stat.color }} />
+                        <div>
+                          <p className="font-mono text-3xl font-black md:text-4xl text-foreground">
+                            {stat.value}
+                          </p>
+                          <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-foreground-muted">
+                            {stat.label}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -192,12 +168,7 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
           {videos.length > 0 && (
             <motion.section
               variants={item}
-              className="relative overflow-hidden rounded-[2.5rem] border p-8 md:col-span-12 md:p-12"
-              style={{
-                background: isLight ? "rgba(255,255,255,0.82)" : "rgba(10,15,25,0.4)",
-                borderColor: isLight ? "rgba(226,232,240,0.9)" : "rgba(255,255,255,0.05)",
-                backdropFilter: "blur(20px)",
-              }}
+              className="relative overflow-hidden rounded-[2.8rem] border border-border/60 bg-surface/40 p-8 md:col-span-12 md:p-12 shadow-2xl backdrop-blur-xl"
             >
               <h3 className="mb-8 flex items-center gap-3 text-2xl font-black" style={{ color: isLight ? "#0f172a" : "#ffffff" }}>
                 <Play className="h-6 w-6 text-[#ff0033]" fill="#ff0033" />

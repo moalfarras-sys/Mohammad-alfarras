@@ -66,39 +66,43 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  /* ── PREMIUM IVORY CLEAN 2026 ── */
-  --background: #fdfdfd;
-  --background-muted: #f4f5f8;
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface-strong: rgba(255, 255, 255, 0.98);
-  --surface-soft: rgba(0, 0, 0, 0.04);
-  --border: rgba(0, 0, 0, 0.09);
-  --border-neon: rgba(0, 160, 80, 0.3);
+  /* ── ULTRA-PREMIUM IVORY 2026 ── */
+  --background: #faf9f6; /* Silk Ivory - Comfortable for eyes */
+  --background-muted: #f4f2ee;
+  --surface: rgba(255, 255, 255, 0.76);
+  --surface-strong: rgba(255, 255, 255, 0.94);
+  --surface-soft: rgba(15, 23, 42, 0.03);
+  --border: rgba(15, 23, 42, 0.06);
+  --border-neon: rgba(5, 150, 105, 0.18);
 
-  --foreground: #0f172a;
+  --foreground: #020617; /* Deep midnight */
   --foreground-muted: #475569;
   --foreground-soft: #64748b;
 
-  --primary: #059669; /* Refined Emerald */
+  --primary: #059669; 
   --primary-dark: #047857;
-  --secondary: #ea580c; /* Refined Orange */
-  --accent: #7c3aed; /* Refined Purple */
-  --cyan: #0891b2;
-  --pink: #db2777;
+  --secondary: #f97316; 
+  --accent: #8b5cf6; 
+  --cyan: #06b6d4;
+  --pink: #ec4899;
   --neon-green: #10b981;
-  --neon-orange: #f59e0b;
+  --neon-orange: #fb923c;
 
-  --glow-green: 0 0 35px rgba(0, 168, 82, 0.16), 0 0 70px rgba(0, 168, 82, 0.08);
-  --glow-orange: 0 0 35px rgba(212, 86, 0, 0.14), 0 0 70px rgba(212, 86, 0, 0.07);
-  --glow-purple: 0 0 35px rgba(126, 34, 206, 0.14), 0 0 70px rgba(126, 34, 206, 0.07);
+  --glow-green: 0 0 45px rgba(5, 150, 105, 0.12), 0 0 90px rgba(5, 150, 105, 0.05);
+  --glow-orange: 0 0 45px rgba(249, 115, 22, 0.1), 0 0 90px rgba(249, 115, 22, 0.04);
+  --glow-purple: 0 0 45px rgba(139, 92, 246, 0.1), 0 0 90px rgba(139, 92, 246, 0.04);
 
-  --mesh-1: radial-gradient(ellipse at 8% 12%, rgba(0, 168, 82, 0.14) 0%, transparent 40%);
-  --mesh-2: radial-gradient(ellipse at 88% 8%, rgba(212, 86, 0, 0.12) 0%, transparent 34%);
-  --mesh-3: radial-gradient(ellipse at 70% 88%, rgba(126, 34, 206, 0.12) 0%, transparent 38%);
-  --mesh-4: radial-gradient(ellipse at 22% 78%, rgba(0, 136, 176, 0.09) 0%, transparent 30%);
-  --mesh-5: radial-gradient(ellipse at 50% 50%, rgba(0, 168, 82, 0.06) 0%, transparent 65%);
+  --primary-glow: rgba(5, 150, 105, 0.08);
+  --secondary-glow: rgba(249, 115, 22, 0.06);
+  --accent-glow: rgba(139, 92, 246, 0.06);
 
-  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
+  --mesh-1: radial-gradient(ellipse at 10% 15%, rgba(5, 150, 105, 0.08) 0%, transparent 45%);
+  --mesh-2: radial-gradient(ellipse at 90% 10%, rgba(249, 115, 22, 0.06) 0%, transparent 38%);
+  --mesh-3: radial-gradient(ellipse at 75% 90%, rgba(139, 92, 246, 0.06) 0%, transparent 42%);
+  --mesh-4: radial-gradient(ellipse at 25% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 35%);
+  --mesh-5: radial-gradient(ellipse at 50% 50%, rgba(5, 150, 105, 0.03) 0%, transparent 70%);
+
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
 }
 
 /* ── ANIMATED MESH BACKGROUND ── */
@@ -279,12 +283,24 @@
   /* ── GLASS PANELS ── */
   .glass-panel {
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
       var(--surface);
     border: 1px solid var(--border);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(28px) saturate(1.8);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow: 
+      0 30px 90px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  [data-theme="light"] .glass-panel {
+    box-shadow: 
+      0 12px 40px rgba(15, 23, 42, 0.07),
+      0 2px 8px rgba(15, 23, 42, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.75)),
+      var(--surface);
   }
 
   .glass-panel-strong {
@@ -408,21 +424,36 @@
   .bento-card {
     position: relative;
     overflow: hidden;
-    border-radius: 2rem;
+    border-radius: 2.5rem;
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
       var(--surface);
     border: 1px solid var(--border);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    backdrop-filter: blur(32px) saturate(1.6);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s ease;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
   }
+
+  [data-theme="light"] .bento-card {
+    box-shadow: 
+      0 12px 32px rgba(15, 23, 42, 0.05),
+      0 4px 12px rgba(15, 23, 42, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
   .bento-card:hover {
-    transform: translateY(-4px) scale(1.01);
+    transform: translateY(-6px) scale(1.015);
     box-shadow:
-      0 40px 100px rgba(0, 0, 0, 0.6),
-      0 0 0 1px rgba(0, 255, 135, 0.2),
+      0 45px 110px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(0, 255, 135, 0.25),
+      var(--glow-green);
+  }
+
+  [data-theme="light"] .bento-card:hover {
+    box-shadow:
+      0 32px 70px rgba(15, 23, 42, 0.1),
+      0 0 0 1px rgba(5, 150, 105, 0.3),
       var(--glow-green);
   }
 

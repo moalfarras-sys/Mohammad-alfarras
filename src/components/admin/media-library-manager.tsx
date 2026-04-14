@@ -50,7 +50,7 @@ export function MediaLibraryManager({ locale, mediaAssets, labels }: Props) {
         <h3>
           {labels.add} {labels.title}
         </h3>
-        <form action={uploadMediaAction} encType="multipart/form-data">
+        <form action={uploadMediaAction}>
           <label>
             <span>file</span>
             <input name="file" type="file" accept="image/*,video/*" />
@@ -131,7 +131,7 @@ export function MediaLibraryManager({ locale, mediaAssets, labels }: Props) {
               <small>{locale === "ar" ? "تم النسخ" : "Copied"}</small>
             ) : null}
 
-            <form action={uploadMediaAction} encType="multipart/form-data">
+            <form action={uploadMediaAction}>
               <input type="hidden" name="id" value={asset.id} />
               <input type="hidden" name="path" value={asset.path} />
               <input type="hidden" name="type" value={asset.type} />

@@ -71,7 +71,6 @@ export function MediaPickerField({ name, initialValue = "", mediaAssets, locale 
                 {locale === "ar" ? "ارفع صورة واختيارها تلقائياً" : "Upload an image and select it"}
               </p>
               <form
-                encType="multipart/form-data"
                 onSubmit={(e) => {
                   e.preventDefault();
                   setUploadError(null);
@@ -148,4 +147,3 @@ export function MediaPickerField({ name, initialValue = "", mediaAssets, locale 
     </div>
   );
 }
-

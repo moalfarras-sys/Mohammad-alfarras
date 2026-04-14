@@ -92,11 +92,11 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                   {ytData?.channelTitle || (locale === "ar" ? "قناة محمد الفراس" : "Mohammad Alfarras Official")}
                 </div>
 
-                <h1 className="headline-arabic text-5xl font-black leading-[1.05] md:text-7xl lg:text-8xl" style={{ color: isLight ? "#0f172a" : "#ffffff" }}>
+                <h1 className="headline-arabic text-5xl font-black leading-[1.05] md:text-7xl lg:text-8xl text-foreground">
                   {locale === "ar" ? "سينما" : "Tech"} <span className="bg-gradient-to-r from-[#ff0033] to-[#ff6b00] bg-clip-text text-transparent">{locale === "ar" ? "تقنية" : "Cinema"}</span>
                 </h1>
 
-                <p className="mt-6 max-w-2xl text-lg font-semibold leading-9 md:text-xl" style={{ color: isLight ? "#475569" : "var(--color-foreground-muted)" }}>
+                <p className="mt-6 max-w-2xl text-lg font-semibold leading-9 md:text-xl text-foreground-muted">
                   {locale === "ar"
                     ? "القناة هي المختبر البصري لكل ما أبني. هنا تتحول الأرقام والأكواد إلى قصص، مراجعات، وتجارب تقنية تُعرض بأعلى جودة سردية."
                     : "The channel is the visual lab for everything I build. Here, numbers and code transform into stories, reviews, and high-fidelity technical experiments."}
@@ -109,7 +109,7 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                     href={channelUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group relative flex items-center gap-3 rounded-[2rem] bg-black px-10 py-5 font-black text-white shadow-2xl transition-all hover:bg-[#ff0000]"
+                    className="group relative flex items-center gap-3 rounded-[2rem] bg-[#ff0000] px-10 py-5 font-black text-white shadow-2xl transition-all"
                   >
                     <PlayCircle className="h-6 w-6 transition-transform group-hover:rotate-12" />
                     {locale === "ar" ? "اشترك الآن" : "Subscribe"}
@@ -175,7 +175,7 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
 
                 <div className="absolute bottom-0 left-0 right-0 p-8 md:p-14">
                   <span className="eyebrow text-[#ff0033] mb-4 block">{locale === "ar" ? "الفيديو الأكثر تميزاً" : "Featured Spotlight"}</span>
-                  <h2 className="headline-arabic text-3xl font-black text-white md:text-5xl lg:text-6xl line-clamp-2 max-w-5xl">
+                  <h2 className="headline-arabic text-3xl font-black text-foreground md:text-5xl lg:text-6xl line-clamp-2 max-w-5xl">
                     {featuredVid.title}
                   </h2>
                 </div>
@@ -199,7 +199,7 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600/90 backdrop-blur-sm">
-                      <Play className="ml-1 h-8 w-8 text-white" fill="white" />
+                      <Play className="ml-1 h-8 w-8 text-foreground" fill="white" />
                     </div>
                   </div>
                 </div>
@@ -237,7 +237,7 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                         <div key={i} className="h-10 w-10 rounded-full border-2 border-surface bg-muted shadow-sm" style={{ backgroundImage: `url(https://i.pravatar.cc/100?img=${i+20})`, backgroundSize: 'cover' }} />
                      ))}
                    </div>
-                   <span className="text-sm font-black text-white">Active Global Audience</span>
+                   <span className="text-sm font-black text-foreground">Active Global Audience</span>
                 </div>
               </div>
 

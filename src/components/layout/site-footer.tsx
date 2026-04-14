@@ -27,10 +27,10 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         <section
           className="relative overflow-hidden rounded-[2.5rem] p-7 md:p-10"
           style={{
-            background: "linear-gradient(135deg, rgba(8,10,20,0.95), rgba(5,7,15,0.98))",
-            border: "1px solid rgba(0,255,135,0.15)",
+            background: "var(--surface)",
+            border: "1px solid var(--border-neon)",
             backdropFilter: "blur(32px)",
-            boxShadow: "0 0 80px rgba(0,255,135,0.06), 0 40px 120px rgba(0,0,0,0.5)",
+            boxShadow: "0 0 80px rgba(0,255,135,0.06), 0 40px 120px rgba(0,0,0,0.1)",
           }}
         >
           {/* Decorative glows */}
@@ -82,8 +82,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
         <section
           className="rounded-[2rem] p-6 md:p-8"
           style={{
-            background: "rgba(8,10,20,0.7)",
-            border: "1px solid rgba(255,255,255,0.05)",
+            background: "var(--surface-soft)",
+            border: "1px solid var(--border)",
             backdropFilter: "blur(20px)",
           }}
         >
@@ -93,9 +93,10 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                 <span
                   className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl"
                   style={{
-                    background: "linear-gradient(135deg, rgba(0,255,135,0.1), rgba(168,85,247,0.08))",
-                    border: "1px solid rgba(0,255,135,0.2)",
-                    boxShadow: "0 0 20px rgba(0,255,135,0.08)",
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    backdropFilter: "blur(32px) saturate(1.6)",
+                    boxShadow: "var(--shadow-md)",
                   }}
                 >
                   <Image

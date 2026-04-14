@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import {
   deleteCertificationAction,
   deleteContactChannelAction,
@@ -123,6 +127,7 @@ function textAreaList(items: string[] | undefined) {
 }
 
 export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot: CmsSnapshot }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const t = ui(locale);
   const clean = locale === "ar"
     ? {
@@ -165,10 +170,28 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
 
   return (
     <div className="admin-shell" dir={locale === "ar" ? "rtl" : "ltr"}>
-      <aside className="admin-sidebar">
-        <a href="#overview">{sectionLinks[0].label}</a>
-        <a href="#studio">{clean.studio}</a>
-        <a href="#operations">{clean.operations}</a>
+      {/* Mobile Menu Toggle */}
+      <button
+        type="button"
+        className="fixed top-6 right-6 z-[110] flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-strong border border-border shadow-xl xl:hidden"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        aria-label="Toggle Menu"
+      >
+        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* Backdrop for mobile */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm xl:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${isMenuOpen ? "mobile-open" : ""}`}>
+        <a href="#overview" onClick={() => setIsMenuOpen(false)}>{sectionLinks[0].label}</a>
+        <a href="#studio" onClick={() => setIsMenuOpen(false)}>{clean.studio}</a>
+        <a href="#operations" onClick={() => setIsMenuOpen(false)}>{clean.operations}</a>
         <form action={logoutAdminAction}>
           <button type="submit">{t.logout}</button>
         </form>

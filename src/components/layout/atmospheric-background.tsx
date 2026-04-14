@@ -13,57 +13,54 @@ export function AtmosphericBackground() {
   if (!mounted) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* Primary Orb - Drifts around top-left */}
+    <div className="pointer-events-none fixed inset-0 -z-50 overflow-hidden bg-background">
+      {/* Dynamic Mesh Layers */}
       <motion.div
-        animate={{
-          x: ["-10%", "10%", "-5%", "-10%"],
-          y: ["-10%", "5%", "15%", "-10%"],
-        }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute -left-[10%] -top-[10%] h-[60vw] w-[60vw] rounded-full blur-[120px] opacity-[0.07]"
-        style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
-      />
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
+        className="absolute inset-0"
+      >
+        <div 
+          className="absolute inset-0 opacity-[0.45] dark:opacity-[0.8] mix-blend-soft-light transition-opacity duration-1000"
+          style={{ 
+            background: `
+              var(--mesh-1), 
+              var(--mesh-2), 
+              var(--mesh-3), 
+              var(--mesh-4), 
+              var(--mesh-5)
+            `,
+            backgroundSize: "200% 200%",
+          }}
+        />
 
-      {/* Secondary Orb - Drifts around bottom-right */}
-      <motion.div
-        animate={{
-          x: ["10%", "-10%", "5%", "10%"],
-          y: ["10%", "-5%", "-15%", "10%"],
-        }}
-        transition={{
-          duration: 30,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute -right-[10%] -bottom-[10%] h-[50vw] w-[50vw] rounded-full blur-[110px] opacity-[0.06]"
-        style={{ background: "radial-gradient(circle, var(--secondary), transparent 70%)" }}
-      />
+        {/* Animated Drift Overlay */}
+        <motion.div
+          animate={{
+            scale: [1, 1.15, 1],
+            rotate: [0, 5, -5, 0],
+          }}
+          transition={{
+            duration: 40,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute inset-[-20%] opacity-30 blur-[100px] dark:opacity-20"
+          style={{
+            background: "radial-gradient(circle at 30% 30%, var(--primary), transparent), radial-gradient(circle at 70% 70%, var(--secondary), transparent)",
+          }}
+        />
+      </motion.div>
 
-      {/* Accent Orb - Drifts in the middle */}
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 0.9, 1],
-          opacity: [0.03, 0.05, 0.03],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute left-1/2 top-1/2 h-[40vw] w-[40vw] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px]"
-        style={{ background: "radial-gradient(circle, var(--accent), transparent 70%)" }}
-      />
-
-      {/* Subtle Grain Overlay */}
+      {/* Subtle Texture Overlay */}
       <div 
-        className="absolute inset-0 opacity-[0.15] mix-blend-overlay pointer-events-none"
+        className="absolute inset-0 opacity-[0.1] dark:opacity-[0.14] mix-blend-overlay pointer-events-none"
         style={{ backgroundImage: "var(--noise)" }}
       />
+      
+      {/* vignette to focus content */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_100%)] opacity-40" />
     </div>
   );
 }

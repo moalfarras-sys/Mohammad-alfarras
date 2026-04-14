@@ -49,8 +49,8 @@ export function MobileDock({ locale }: { locale: Locale }) {
         data-testid="mobile-dock"
         className="pointer-events-auto mx-auto flex max-w-sm items-center justify-between rounded-[2rem] px-2 py-2"
         style={{
-          background: isLight ? "rgba(255,255,255,0.88)" : "rgba(5, 7, 15, 0.92)",
-          border: isLight ? "1px solid rgba(226,232,240,0.95)" : "1px solid rgba(0, 255, 135, 0.15)",
+          background: "var(--surface-strong)",
+          border: "1px solid var(--border)",
           backdropFilter: "blur(32px) saturate(1.5)",
           WebkitBackdropFilter: "blur(32px) saturate(1.5)",
           boxShadow: isLight
@@ -59,7 +59,7 @@ export function MobileDock({ locale }: { locale: Locale }) {
         }}
       >
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href || pathname === item.href + "/";
           const Icon = item.icon;
           return (
             <motion.div key={item.id} whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.05 }} className="flex-1">
@@ -67,7 +67,7 @@ export function MobileDock({ locale }: { locale: Locale }) {
                 href={item.href}
                 className={cn(
                   "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.4rem] px-2 py-2.5 text-[10px] font-semibold transition-all duration-300",
-                  active ? "text-black" : isLight ? "text-slate-500 hover:text-slate-900" : "text-foreground-soft hover:text-foreground-muted",
+                  active ? "text-[#1A1A1A] dark:text-black" : isLight ? "text-[#495057] hover:text-[#1A1A1A]" : "text-foreground-soft hover:text-foreground-muted",
                 )}
               >
                 {active && (

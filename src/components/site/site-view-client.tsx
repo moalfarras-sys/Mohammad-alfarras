@@ -19,8 +19,19 @@ import {
   Sparkles,
   Video,
   Zap,
+  Sun,
+  Cloud,
+  CloudRain,
+  CloudLightning,
+  Snowflake,
+  Trophy,
+  Timer,
+  Activity,
+  Droplets,
+  Wind
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useMotionValue, useSpring, useTransform } from "framer-motion";
 
 import { useThemeMode } from "@/components/layout/use-theme-mode";
 import type { RebuildLocaleContent } from "@/data/rebuild-content";
@@ -385,12 +396,12 @@ function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
                 boxShadow: "0 0 40px rgba(255,107,0,0.5)",
               }}
             >
-              <PlayCircle className="h-7 w-7 text-white" />
+              <PlayCircle className="h-7 w-7 text-foreground" />
             </span>
           </motion.div>
 
           {/* Duration */}
-          <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-3 py-1 text-xs text-white backdrop-blur-sm">
+          <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-3 py-1 text-xs text-foreground backdrop-blur-sm">
             <PlayCircle className="h-3 w-3" />
             {video.duration}
           </div>
@@ -555,7 +566,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       backdropFilter: "blur(16px)",
                     }}
                   >
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-soft">{item.label}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-muted">{item.label}</p>
                     <p className="mt-1 text-xl font-extrabold text-foreground md:text-2xl" style={{ color: "var(--primary)" }}>
                       {item.value}
                     </p>
@@ -594,42 +605,44 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                   </div>
 
-                  {/* Floating badge */}
+                  {/* Floating info card: Location (Orange) */}
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="absolute -bottom-5 -right-5 rounded-2xl px-5 py-3"
+                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: 0.8, type: "spring", stiffness: 90, damping: 15 }}
+                    className="absolute -bottom-10 -right-6 z-20 flex min-w-[200px] items-center gap-4 rounded-[2.5rem] px-6 py-4"
                     style={{
-                      background: "var(--surface-strong)",
-                      border: "1px solid var(--primary)",
-                      backdropFilter: "blur(20px)",
-                      boxShadow: "0 0 30px rgba(0,255,135,0.15)",
+                      background: "rgba(10,12,24,0.92)",
+                      border: "1px solid rgba(255,107,0,0.45)",
+                      backdropFilter: "blur(32px)",
+                      boxShadow: "0 15px 45px rgba(255,107,0,0.22), inset 0 1px 1px rgba(255,255,255,0.08)",
                     }}
                   >
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-soft">
-                      {locale === "ar" ? "مقيم في ألمانيا" : "Based in Germany"}
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold" style={{ color: "var(--primary)" }}>
-                      <span dir="ltr" className="inline-block">Frontend</span> · <span dir="ltr" className="inline-block">Design</span> · <span dir="ltr" className="inline-block">Content</span>
-                    </p>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.25rem] bg-orange-500/15" style={{ border: "1px solid rgba(255,107,0,0.25)" }}>
+                      <MapPin className="h-6 w-6" style={{ color: "var(--secondary)" }} />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-foreground-soft">
+                        {locale === "ar" ? "مقيم في ألمانيا" : "Based in Germany"}
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-foreground transition-colors hover:text-secondary whitespace-nowrap">
+                        <span dir="ltr">Frontend</span> · <span dir="ltr">Design</span> · <span dir="ltr">Content</span>
+                      </p>
+                    </div>
                   </motion.div>
 
-                  {/* Top-left badge */}
+                  {/* Floating info card: Available Now (Neon Green) */}
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 1.0 }}
-                    className="absolute -left-5 top-8 flex items-center gap-2 rounded-2xl px-4 py-2.5"
-                    style={{
-                      background: "var(--surface-strong)",
-                      border: "1px solid rgba(255,107,0,0.25)",
-                      backdropFilter: "blur(20px)",
-                      boxShadow: "0 0 24px rgba(255,107,0,0.12)",
-                    }}
+                    initial={{ opacity: 0, y: -30, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: 1.0, type: "spring", stiffness: 90, damping: 15 }}
+                    className="absolute -left-10 top-12 z-20 flex items-center gap-3 rounded-full border-primary/40 bg-background/80 px-6 py-3.5 backdrop-blur-2xl shadow-[0_12px_48px_rgba(0,255,135,0.22)] border"
                   >
-                    <span className="flex h-2 w-2 rounded-full" style={{ background: "var(--secondary)", boxShadow: "0 0 8px var(--secondary)" }} />
-                    <span className="text-xs font-bold" style={{ color: "var(--secondary)" }}>
+                    <div className="relative flex h-3.5 w-3.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+                      <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-primary shadow-[0_0_15px_var(--primary)]" />
+                    </div>
+                    <span className="text-sm font-black uppercase tracking-[0.3em] text-primary">
                       {locale === "ar" ? "متاح الآن" : "Available now"}
                     </span>
                   </motion.div>
@@ -878,11 +891,11 @@ function HomePage({ model }: { model: SiteViewModel }) {
                           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: glowColor.replace("0.2", "1") }}>
                             {locale === "ar" ? "التحدي" : "Challenge"}
                           </span>
-                          <p className="line-clamp-2 text-sm text-white/80">{story.challenge}</p>
+                          <p className="line-clamp-2 text-sm text-foreground/80">{story.challenge}</p>
                           <div className="flex items-center gap-2 text-xs font-bold" style={{ color: "var(--primary)" }}>
                             <Zap className="h-3 w-3" />
                             {locale === "ar" ? "الحل: " : "Solution: "}
-                            <span className="line-clamp-1 text-white/70">{story.solution}</span>
+                            <span className="line-clamp-1 text-foreground/70">{story.solution}</span>
                           </div>
                         </div>
                       </motion.div>
@@ -1211,7 +1224,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               </Reveal>
 
               <Reveal delay={0.06}>
-                <h1 className="headline-arabic text-5xl font-black leading-[1.15] text-white md:text-6.5xl tracking-tight lg:text-7xl">
+                <h1 className="headline-arabic text-5xl font-black leading-[1.15] text-foreground md:text-6.5xl tracking-tight lg:text-7xl">
                   {locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}
                 </h1>
               </Reveal>
@@ -1289,13 +1302,20 @@ function CvPage({ model }: { model: SiteViewModel }) {
                       alt={locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}
                       fill priority
                       sizes="420px"
-                      className="object-cover object-top"
+className="object-cover object-top"
                     />
                     {/* Bottom overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/70 via-transparent to-transparent" />
                     {/* Stats strip on image */}
                     <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-3 gap-2"
+                        style={{
+                          background: "var(--surface-strong)",
+                          border: "1px solid var(--border)",
+                          backdropFilter: "blur(32px) saturate(1.5)",
+                          WebkitBackdropFilter: "blur(32px) saturate(1.5)",
+                          boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,135,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
+                        }}>
                         {[
                           { num: "+5", sub: locale === "ar" ? "سنوات" : "Years" },
                           { num: "3", sub: locale === "ar" ? "مشاريع" : "Projects" },
@@ -1303,7 +1323,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                         ].map((s) => (
                           <div key={s.sub} className="rounded-xl p-3 text-center"
                             style={{ background: "var(--surface-strong)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                            <p className="text-xl font-black text-white">{s.num}</p>
+                            <p className="text-xl font-black text-foreground">{s.num}</p>
                             <p className="text-[11px] text-foreground-soft">{s.sub}</p>
                           </div>
                         ))}
@@ -1331,7 +1351,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
           <Reveal>
             <div className="mb-14">
               <span className="eyebrow">{t.journey.eyebrow}</span>
-              <h2 className="headline-arabic mt-4 text-3xl font-black text-white md:text-4xl">{t.journey.title}</h2>
+              <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground md:text-4xl">{t.journey.title}</h2>
               <p className="mt-4 max-w-2xl text-base leading-8 text-foreground-muted">{t.journey.body}</p>
             </div>
           </Reveal>
@@ -1375,7 +1395,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-xl font-extrabold text-white md:text-2xl" dangerouslySetInnerHTML={{ __html: entry.company }} />
+                        <h3 className="text-xl font-extrabold text-foreground md:text-2xl" dangerouslySetInnerHTML={{ __html: entry.company }} />
                           <p className="mt-1 text-sm font-semibold" style={{ color: "var(--secondary)" }} dangerouslySetInnerHTML={{ __html: entry.role }} />
                       </div>
                       <div className="text-end">
@@ -1420,7 +1440,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
             <div>
               <Reveal>
                 <span className="eyebrow">{t.cv.pillarsTitle}</span>
-                <h2 className="headline-arabic mt-4 text-2xl font-black text-white md:text-3xl">
+                <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
                   {locale === "ar" ? "ما أُتقنه فعلاً" : "What I actually master"}
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-foreground-muted">{t.cv.pillarsBody ?? t.cv.creatorBody}</p>
@@ -1526,7 +1546,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center">
                 <div className="flex-1">
                   <span className="eyebrow">{locale === "ar" ? "جاهز للتعاون" : "Ready to collaborate"}</span>
-                  <h2 className="headline-arabic mt-4 text-2xl font-black text-white md:text-4xl">
+                  <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-4xl">
                     {locale === "ar" ? "تحميل السيرة أو ابدأ الحوار مباشرة" : "Download the CV or open the conversation"}
                   </h2>
                   <p className="mt-3 text-base leading-7 text-foreground-muted">
@@ -1566,10 +1586,326 @@ function CvPage({ model }: { model: SiteViewModel }) {
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   PROJECTS PAGE — Cinematic Redesign
+   3D UI HELPERS — Advanced Motion Systems
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+function TiltCard({ children, className, glowColor = "var(--primary)" }: { children: React.ReactNode, className?: string, glowColor?: string }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(y, [-100, 100], [10, -10]), { damping: 25, stiffness: 120 });
+  const rotateY = useSpring(useTransform(x, [-100, 100], [-10, 10]), { damping: 25, stiffness: 120 });
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = e.clientX - rect.left - rect.width / 2;
+    const py = e.clientY - rect.top - rect.height / 2;
+    x.set(px);
+    y.set(py);
+  }
+
+  function handleMouseLeave() {
+    x.set(0);
+    y.set(0);
+  }
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className={cn("relative group perspective-1000", className)}
+    >
+      <div className="absolute inset-0 z-0 scale-95 opacity-0 group-hover:opacity-100 transition duration-700 blur-[60px]"
+        style={{ background: `radial-gradient(circle at center, ${glowColor}33, transparent 70%)` }} />
+      <div className="relative z-10 h-full w-full" style={{ transform: "translateZ(50px)" }}>
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+
+function GlareEffect() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  useEffect(() => {
+    const handleGlobalMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
+    window.addEventListener("mousemove", handleGlobalMove);
+    return () => window.removeEventListener("mousemove", handleGlobalMove);
+  }, [mouseX, mouseY]);
+
+  return (
+    <motion.div
+      className="pointer-events-none absolute inset-0 z-20 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+      style={{
+        background: useTransform(
+          [mouseX, mouseY],
+          ([x, y]) => `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.4), transparent 40%)`
+        )
+      }}
+    />
+  );
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PROJECTS PAGE — 2026 3D Cinematic
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+function Weather3DWidget({ weather: liveWeather, locale }: { weather: LiveWeather | null, locale: Locale }) {
+  const mockWeather: LiveWeather = {
+    city: locale === "ar" ? "برلين" : "Berlin",
+    country: "DE",
+    temp: 22,
+    feelsLike: 21,
+    humidity: 42,
+    wind: 8,
+    pressure: 1018,
+    sunrise: "06:30",
+    sunset: "20:30",
+    isDay: true,
+    condition: "Clear",
+    icon: "01d"
+  };
+  
+  const weather = liveWeather || mockWeather;
+  const isDemo = !liveWeather;
+
+  const getIcon = () => {
+    switch (weather.condition) {
+      case "Clear": return <Sun className="h-10 w-10 text-yellow-400 animate-pulse" />;
+      case "Clouds": return <Cloud className="h-10 w-10 text-gray-400" />;
+      case "Rain": return <CloudRain className="h-10 w-10 text-blue-400" />;
+      case "Thunderstorm": return <CloudLightning className="h-10 w-10 text-purple-400" />;
+      case "Snow": return <Snowflake className="h-10 w-10 text-blue-200" />;
+      default: return <Sun className="h-10 w-10 text-yellow-400" />;
+    }
+  };
+
+  return (
+    <TiltCard glowColor="var(--primary)" className="h-full min-h-[220px]">
+      <div className="flex h-full flex-col justify-between overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-3xl relative">
+        {isDemo && (
+          <div className="absolute top-4 right-4 rounded-full bg-white/5 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter text-white/30 border border-white/10">
+            Preview
+          </div>
+        )}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">
+              {locale === "ar" ? "الطقس المباشر" : "Live Weather"}
+            </span>
+            <h3 className="text-xl font-bold text-foreground">{weather.city}</h3>
+          </div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 shadow-inner">
+            {getIcon()}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-5xl font-black text-foreground">{weather.temp}°</p>
+          <p className="text-sm font-semibold text-foreground-soft capitalize mt-1">{weather.condition}</p>
+        </div>
+
+        <div className="mt-6 flex gap-4 text-xs text-foreground-muted">
+          <div className="flex items-center gap-1.5 border-r border-white/10 pr-4">
+            <Wind className="h-3.5 w-3.5" />
+            <span>{weather.wind} km/h</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Droplets className="h-3.5 w-3.5" />
+            <span>{weather.humidity}%</span>
+          </div>
+        </div>
+      </div>
+    </TiltCard>
+  );
+}
+
+function Matches3DWidget({ matches: liveMatches, locale }: { matches: LiveMatch[], locale: Locale }) {
+  const mockMatches: LiveMatch[] = [
+    {
+      id: 202611,
+      league: "Champions League",
+      homeTeam: "Real Madrid",
+      awayTeam: "Man City",
+      homeScore: 2,
+      awayScore: 2,
+      homeLogo: "https://crests.football-data.org/86.svg",
+      awayLogo: "https://crests.football-data.org/65.svg",
+      status: "LIVE",
+      time: "78'"
+    }
+  ];
+
+  const matches = liveMatches.length > 0 ? liveMatches : mockMatches;
+  const isDemo = liveMatches.length === 0;
+
+  const [index, setIndex] = useState(0);
+  const current = matches[index % matches.length];
+
+  useEffect(() => {
+    if (matches.length <= 1) return;
+    const interval = setInterval(() => setIndex(i => i + 1), 6000);
+    return () => clearInterval(interval);
+  }, [matches.length]);
+
+  if (!current) return null;
+
+  return (
+    <TiltCard glowColor="var(--secondary)" className="h-full min-h-[220px]">
+      <div className="flex h-full flex-col justify-between overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-3xl relative">
+        {isDemo && (
+          <div className="absolute top-4 right-4 rounded-full bg-white/5 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter text-white/30 border border-white/10">
+            Preview
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-secondary" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-secondary/80">
+              {current.league}
+            </span>
+          </div>
+          <div className={cn(
+            "rounded-full px-2 py-1 text-[9px] font-black",
+            current.status === "LIVE" ? "bg-red-500 text-white animate-pulse" : "bg-white/10 text-foreground-soft"
+          )}>
+            {current.status}
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-around gap-4">
+          <div className="text-center w-20">
+            <div className="relative mx-auto h-12 w-12 overflow-hidden rounded-xl bg-white p-1">
+              <Image src={current.homeLogo} alt={current.homeTeam} fill className="object-contain" />
+            </div>
+            <p className="mt-2 text-[10px] font-bold text-foreground-soft truncate">{current.homeTeam}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-3xl font-black text-foreground">
+              {current.homeScore ?? "-"} <span className="text-lg text-white/20 mx-1">:</span> {current.awayScore ?? "-"}
+            </p>
+            <p className="mt-1 text-[10px] font-mono font-bold text-secondary">{current.time}</p>
+          </div>
+          <div className="text-center w-20">
+            <div className="relative mx-auto h-12 w-12 overflow-hidden rounded-xl bg-white p-1">
+              <Image src={current.awayLogo} alt={current.awayTeam} fill className="object-contain" />
+            </div>
+            <p className="mt-2 text-[10px] font-bold text-foreground-soft truncate">{current.awayTeam}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-white/5 pt-4">
+           <div className="flex items-center justify-center gap-2 text-xs text-foreground-muted">
+              <Timer className="h-3 w-3" />
+              <span>{isDemo ? (locale === "ar" ? "معاينة العرض" : "Preview Mode") : (locale === "ar" ? "محدث لحظياً" : "Updated instantly")}</span>
+           </div>
+        </div>
+      </div>
+    </TiltCard>
+  );
+}
+
+function Project3DShowcase({ project, index, locale, t }: { project: SiteProject, index: number, locale: Locale, t: any }) {
+  const story = projectStory(project, locale);
+  const accentMap = {
+    "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,255,135,0.06)", glow: "rgba(0,255,135,0.12)" },
+    "neon-orange": { border: "var(--secondary-border)", color: "var(--secondary)", bg: "rgba(255,107,0,0.06)", glow: "rgba(255,107,0,0.12)" },
+    "neon-purple": { border: "var(--accent-border)", color: "var(--accent)", bg: "rgba(168,85,247,0.06)", glow: "rgba(168,85,247,0.12)" },
+  };
+  const accent = accentMap[story.accent as keyof typeof accentMap] ?? accentMap["neon-green"];
+
+  return (
+    <Reveal delay={index * 0.08}>
+      <TiltCard glowColor={accent.color} className="mb-10 lg:mb-16">
+        <div className="relative overflow-hidden rounded-[3rem] border border-white/10 bg-surface backdrop-blur-3xl shadow-2xl transition duration-500 hover:border-white/20">
+          <GlareEffect />
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
+            {/* Visual Side */}
+            <div className="relative min-h-[350px] overflow-hidden lg:min-h-[500px]">
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className="object-cover object-top transition duration-1000 group-hover:scale-110"
+                style={{ transform: "translateZ(30px)" }}
+              />
+              <div
+                className="absolute inset-0 z-10"
+                style={{ background: `linear-gradient(to ${locale === "ar" ? "right" : "left"}, var(--background) 0%, transparent 80%)` }}
+              />
+              {/* Floating Meta */}
+              <div className="absolute top-8 start-8 z-20">
+                <span className="rounded-2xl px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em] shadow-2xl"
+                  style={{ background: "rgba(10,12,24,0.8)", border: `1px solid ${accent.border}`, color: accent.color, backdropFilter: "blur(12px)" }}>
+                  {story.type}
+                </span>
+              </div>
+            </div>
+
+            {/* Content Side */}
+            <div className="flex flex-col justify-center p-10 lg:p-14 relative z-20">
+              <motion.h2 className="text-3xl font-black text-foreground md:text-5xl tracking-tight leading-none"
+                style={{ transform: "translateZ(40px)" }}>
+                {project.title}
+              </motion.h2>
+              <p className="mt-6 text-lg leading-relaxed text-foreground-muted" style={{ transform: "translateZ(20px)" }}>
+                {project.summary}
+              </p>
+
+              {/* Problem/Solution Bento */}
+              <div className="mt-10 grid gap-4" style={{ transform: "translateZ(10px)" }}>
+                {[
+                  { label: locale === "ar" ? "التحدي" : "Challenge", text: story.challenge, color: "rgba(255,255,255,0.04)" },
+                  { label: locale === "ar" ? "الحل الفني" : "Engineering", text: story.solution, color: accent.bg },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-3xl p-6 transition hover:bg-white/5" style={{ background: item.color, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: accent.color }}>{item.label}</p>
+                    <p className="mt-2 text-sm leading-7 text-foreground/80">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Hub */}
+              <div className="mt-12 flex flex-wrap gap-4">
+                {project.href && (
+                  <motion.a
+                    href={project.href} target="_blank" rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05, boxShadow: `0 0 32px ${accent.color}44` }}
+                    whileTap={{ scale: 0.96 }}
+                    className="inline-flex items-center gap-3 rounded-full px-8 py-4 text-sm font-black text-black"
+                    style={{ background: accent.color }}
+                  >
+                    {t.common.visitProject}
+                    <ExternalLink className="h-4 w-4" />
+                  </motion.a>
+                )}
+                {project.repoUrl && (
+                  <motion.a
+                    href={project.repoUrl} target="_blank" rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+                    whileTap={{ scale: 0.96 }}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-8 py-4 text-sm font-bold text-foreground-muted"
+                  >
+                    GitHub
+                    <ArrowUpRight className="h-4 w-4" />
+                  </motion.a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </TiltCard>
+    </Reveal>
+  );
+}
+
 function ProjectsPage({ model }: { model: SiteViewModel }) {
-  const { locale, t, projects } = model;
+  const { locale, t, projects, live } = model;
 
   return (
     <div className="space-y-0" data-testid="projects-page">
@@ -1583,170 +1919,116 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
             background:
               "radial-gradient(ellipse 80% 60% at 0% 50%, rgba(0,255,135,0.09), transparent)," +
               "radial-gradient(ellipse 60% 80% at 100% 50%, rgba(168,85,247,0.08), transparent)," +
-              "#06080f",
+              "var(--background)",
           }}
         />
         <div className="section-frame relative z-10">
           <Reveal>
             <div className="max-w-3xl">
               <span className="eyebrow">{t.projects.eyebrow}</span>
-              <h1 className="headline-arabic mt-5 text-4xl font-black leading-tight text-white md:text-6.5xl tracking-tight">
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="headline-arabic mt-5 text-4xl font-black leading-tight text-foreground md:text-7xl tracking-tighter"
+              >
                 {t.projects.title}
-              </h1>
-              <p className="mt-5 text-lg leading-8 text-foreground-muted">{t.projects.body}</p>
+              </motion.h1>
+              <p className="mt-6 text-lg leading-8 text-foreground-muted">{t.projects.body}</p>
             </div>
           </Reveal>
 
-          <Reveal delay={0.1}>
-            <div className="mt-12 flex flex-wrap gap-10">
-              {[
-                { num: String(projects.length), label: locale === "ar" ? "مشروع منشور" : "Projects live" },
-                { num: "100%", label: locale === "ar" ? "مبني من الصفر" : "Built from scratch" },
-                { num: "3+", label: locale === "ar" ? "عملاء حقيقيون" : "Real clients" },
-              ].map((s) => (
-                <div key={s.label}>
-                  <p className="text-4xl font-black" style={{ color: "var(--primary)" }}>{s.num}</p>
-                  <p className="mt-1 text-sm text-foreground-soft">{s.label}</p>
+          {/* Interactive Live Bento */}
+          <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+             {/* Stats Card */}
+             <Reveal delay={0.1}>
+                <div className="flex h-full flex-col justify-between rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-8 backdrop-blur-md">
+                   <div className="space-y-6">
+                      {[
+                        { num: String(projects.length), label: locale === "ar" ? "مشروع منشور" : "Projects live", color: "var(--primary)" },
+                        { num: "100%", label: locale === "ar" ? "بناء مخصص" : "Custom built", color: "var(--accent)" },
+                        { num: "Live", label: locale === "ar" ? "بيانات حية" : "Live data APIs", color: "var(--secondary)" },
+                      ].map((s) => (
+                        <div key={s.label}>
+                          <p className="text-3xl font-black" style={{ color: s.color }}>{s.num}</p>
+                          <p className="text-xs font-bold uppercase tracking-widest text-foreground-soft/60">{s.label}</p>
+                        </div>
+                      ))}
+                   </div>
+                   <div className="mt-6 flex items-center gap-2 text-[10px] font-bold text-foreground-muted">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                      {locale === "ar" ? "جاهز للتحديات الجديدة" : "Ready for new challenges"}
+                   </div>
                 </div>
-              ))}
-            </div>
-          </Reveal>
+             </Reveal>
+
+             {/* Live Weather */}
+             <Reveal delay={0.15}>
+                <Weather3DWidget weather={live.weather} locale={locale} />
+             </Reveal>
+
+             {/* Live Sports */}
+             <Reveal delay={0.2}>
+                <Matches3DWidget matches={live.matches} locale={locale} />
+             </Reveal>
+          </div>
         </div>
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#06080f] to-transparent" />
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* ═════ PROJECT LIST ═════ */}
-      <section className="px-5 py-16 md:px-8 md:py-20">
+      {/* ═════ 3D PROJECT SHOWCASE ═════ */}
+      <section className="px-5 py-20 md:px-8">
         <div className="section-frame">
-          <div className="space-y-8">
-            {projects.map((project, index) => {
-              const story = projectStory(project, locale);
-              const accentMap = {
-                "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,255,135,0.06)", glow: "rgba(0,255,135,0.12)" },
-                "neon-orange": { border: "var(--secondary-border)", color: "var(--secondary)", bg: "rgba(255,107,0,0.06)", glow: "rgba(255,107,0,0.12)" },
-                "neon-purple": { border: "var(--accent-border)", color: "var(--accent)", bg: "rgba(168,85,247,0.06)", glow: "rgba(168,85,247,0.12)" },
-              };
-              const accent = accentMap[story.accent as keyof typeof accentMap] ?? accentMap["neon-green"];
-
-              return (
-                <Reveal key={project.id} delay={index * 0.06}>
-                  <motion.div
-                    whileHover={{ borderColor: accent.color + "44", boxShadow: `0 0 60px ${accent.glow}` }}
-                    className="overflow-hidden rounded-[2.5rem] transition duration-500"
-                    style={{
-                      background: "linear-gradient(160deg, rgba(8,10,20,0.98), rgba(5,7,15,0.99))",
-                      border: `1px solid ${accent.border}`,
-                      backdropFilter: "blur(28px)",
-                    }}
-                  >
-                    <div className="grid lg:grid-cols-[1fr_1fr]">
-                      {/* Image */}
-                      <div className="relative min-h-[300px] overflow-hidden lg:min-h-[400px]">
-                        <Image
-                          src={project.image}
-                          alt={project.title}
-                          fill
-                          priority={index === 0}
-                          sizes="(max-width: 1024px) 100vw, 50vw"
-                          className="object-cover object-top transition duration-700 hover:scale-105"
-                        />
-                        <div
-                          className="absolute inset-0"
-                          style={{ background: `linear-gradient(to ${locale === "ar" ? "right" : "left"}, rgba(5,7,15,0.6), transparent 60%)` }}
-                        />
-                        {/* Accent badge on image */}
-                        <div className="absolute top-5 start-5">
-                          <span className="rounded-full px-3 py-1.5 text-xs font-bold"
-                            style={{ background: accent.bg, border: `1px solid ${accent.border}`, color: accent.color }}>
-                            {story.type}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex flex-col justify-center p-8 md:p-10">
-                        <h2 className="text-2xl font-black text-white md:text-3xl">{project.title}</h2>
-                        <p className="mt-4 text-base leading-8 text-foreground-muted">{project.summary}</p>
-
-                        {/* Challenge / Solution / Result */}
-                        <div className="mt-6 space-y-3">
-                          {[
-                            { label: locale === "ar" ? "التحدي" : "Challenge", text: story.challenge, icon: "⚡" },
-                            { label: locale === "ar" ? "الحل" : "Solution", text: story.solution, icon: "🔧" },
-                            { label: locale === "ar" ? "النتيجة" : "Result", text: story.result, icon: "🎯" },
-                          ].map((item) => (
-                            <div key={item.label} className="flex items-start gap-3 rounded-xl p-3"
-                              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                              <span className="text-base">{item.icon}</span>
-                              <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: accent.color }}>{item.label}</p>
-                                <p className="mt-1 text-sm leading-6 text-foreground-muted">{item.text}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* CTAs */}
-                        <div className="mt-7 flex flex-wrap gap-3">
-                          {project.href && (
-                            <motion.a
-                              href={project.href} target="_blank" rel="noopener noreferrer"
-                              whileHover={{ scale: 1.04, boxShadow: `0 0 20px ${accent.glow}` }}
-                              whileTap={{ scale: 0.97 }}
-                              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-black"
-                              style={{ background: accent.color, color: accent.color === "var(--accent)" ? "#fff" : "#000" }}
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              {t.common.visitProject}
-                            </motion.a>
-                          )}
-                          {project.repoUrl && (
-                            <motion.a
-                              href={project.repoUrl} target="_blank" rel="noopener noreferrer"
-                              whileHover={{ scale: 1.04, borderColor: "rgba(255,255,255,0.25)" }}
-                              whileTap={{ scale: 0.97 }}
-                              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-6 py-3 text-sm font-bold text-foreground-muted"
-                            >
-                              <ArrowUpRight className="h-4 w-4" />
-                              GitHub
-                            </motion.a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </Reveal>
-              );
-            })}
+          <div className="mb-14">
+             <Reveal>
+                <h2 className="text-2xl font-black text-foreground md:text-4xl">
+                   {locale === "ar" ? "أبرز الإنجازات" : "Selected Masterpieces"}
+                </h2>
+             </Reveal>
+          </div>
+          
+          <div className="space-y-0">
+            {projects.map((project, index) => (
+              <Project3DShowcase 
+                key={project.id} 
+                project={project} 
+                index={index} 
+                locale={locale} 
+                t={t} 
+              />
+            ))}
           </div>
 
-          {/* Bottom CTA */}
-          <Reveal delay={0.15}>
-            <div className="mt-16 rounded-[2.5rem] p-10 text-center"
-              style={{
-                background: "linear-gradient(135deg, rgba(168,85,247,0.07), rgba(8,10,20,0.98))",
-                border: "1px solid var(--accent-glow)",
-                backdropFilter: "blur(24px)",
-              }}>
-              <Sparkles className="mx-auto h-8 w-8" style={{ color: "var(--accent)" }} />
-              <h2 className="headline-arabic mt-4 text-xl font-black text-white md:text-2xl">
-                {locale === "ar" ? "مشروعك التالي يستحق نفس الاهتمام" : "Your next project deserves the same attention"}
-              </h2>
-              <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-foreground-muted">
-                {locale === "ar" ? "تواصل لنناقش كيف نبني معًا شيئًا لا يُنسى." : "Get in touch to discuss how we build something unforgettable together."}
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <motion.a
-                  href={`/${locale}/contact`}
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px var(--primary)" }}
-                  whileTap={{ scale: 0.97 }}
-                  className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-black text-black"
-                  style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
-                >
-                  <MessageCircleMore className="h-4 w-4" />
-                  {locale === "ar" ? "ابدأ المحادثة" : "Start the conversation"}
-                </motion.a>
-              </div>
+          {/* Epic Bottom CTA */}
+          <Reveal delay={0.2}>
+            <div className="group relative mt-20 overflow-hidden rounded-[3rem] border border-primary/20 bg-background p-12 text-center md:p-20">
+               <div className="absolute inset-0 z-0 opacity-10 transition duration-1000 group-hover:opacity-20"
+                 style={{ background: "radial-gradient(circle at center, var(--primary), transparent 70%)" }} />
+               
+               <div className="relative z-10 flex flex-col items-center">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] bg-primary/10 mb-8 border border-primary/20">
+                    <Zap className="h-10 w-10 text-primary" />
+                  </div>
+                  <h2 className="headline-arabic text-3xl font-black text-foreground md:text-5xl">
+                    {locale === "ar" ? "لنصنع شيئاً مبهراً معاً" : "Let's build something epic together"}
+                  </h2>
+                  <p className="mt-6 max-w-xl text-lg leading-8 text-foreground-muted">
+                    {locale === "ar" 
+                      ? "أحول الأفكار المعقدة إلى واجهات بسيطة، تفاعلية، ومربحة. هل أنت جاهز؟" 
+                      : "I transform complex ideas into simple, interactive, and profitable interfaces. Ready?"}
+                  </p>
+                  <div className="mt-10 flex flex-wrap justify-center gap-4">
+                    <motion.a
+                      href={`/${locale}/contact`}
+                      whileHover={{ scale: 1.05, boxShadow: "0 0 50px var(--primary)" }}
+                      whileTap={{ scale: 0.96 }}
+                      className="inline-flex items-center gap-3 rounded-full px-10 py-5 text-sm font-black text-black"
+                      style={{ background: "var(--primary)" }}
+                    >
+                      {locale === "ar" ? "ابدأ مشروعك الآن" : "Start your project"}
+                      <ArrowUpRight className="h-5 w-5" />
+                    </motion.a>
+                  </div>
+               </div>
             </div>
           </Reveal>
         </div>
@@ -1806,7 +2088,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 <PlayCircle className="h-3.5 w-3.5" />
                 @Moalfarras
               </div>
-              <h1 className="headline-arabic text-4xl font-black leading-tight text-white md:text-6.5xl tracking-tight">
+              <h1 className="headline-arabic text-4xl font-black leading-tight text-foreground md:text-6.5xl tracking-tight">
                 {t.youtube.title}
               </h1>
               <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-foreground-muted">
@@ -1818,7 +2100,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                   target="_blank" rel="noopener noreferrer"
                   whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,107,0,0.5)" }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-white"
+                  className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-foreground"
                   style={{ background: "linear-gradient(135deg, var(--secondary), #e05500)" }}
                 >
                   <PlayCircle className="h-5 w-5" />
@@ -1887,7 +2169,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 }}
               >
                 <span className="text-3xl">🎬</span>
-                <h2 className="headline-arabic mt-4 text-2xl font-black text-white md:text-3xl">
+                <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
                   {t.youtube.collaborationTitle}
                 </h2>
                 <p className="mt-4 text-base leading-8 text-foreground-muted">{t.youtube.collaborationBody}</p>
@@ -1955,7 +2237,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
             <Reveal>
               <div className="mb-8">
                 <span className="eyebrow">{t.youtube.latestLabel}</span>
-                <h2 className="headline-arabic mt-3 text-2xl font-black text-white md:text-3xl">
+                <h2 className="headline-arabic mt-3 text-2xl font-black text-foreground md:text-3xl">
                   {locale === "ar" ? "أحدث الفيديوهات" : "Latest uploads"}
                 </h2>
               </div>
@@ -2027,7 +2309,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
               </Reveal>
 
               <Reveal delay={0.05}>
-                <h1 className="headline-arabic text-4xl font-black leading-tight text-white md:text-5xl lg:text-6.5xl tracking-tight">
+                <h1 className="headline-arabic text-4xl font-black leading-tight text-foreground md:text-5xl lg:text-6.5xl tracking-tight">
                   {locale === "ar"
                     ? "فكرتك تستحق\nحضوراً لا يُنسى."
                     : "Your idea deserves\nan unforgettable presence."}
@@ -2160,7 +2442,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
               <div className="space-y-6">
                 <div>
                   <span className="eyebrow">{t.contact.eyebrow}</span>
-                  <h2 className="headline-arabic mt-4 text-2xl font-black text-white md:text-3xl">
+                  <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
                     {locale === "ar" ? "ابدأ بفكرة، سنكمل الباقي" : "Start with an idea, we'll build the rest"}
                   </h2>
                   <p className="mt-3 text-base leading-7 text-foreground-muted">{t.contact.body}</p>
@@ -2213,7 +2495,7 @@ void [CvPage, ProjectsPage, YoutubePage, ContactPage, useCountUp];
 function BlogPage({ model }: { model: SiteViewModel }) {
   const { locale, t } = model;
 
-  const insightIcons = ["🎯", "⚡", "???"];
+  const insightIcons = ["🎯", "⚡", "🔍"];
   const insightAccents = [
     { border: "var(--primary-border)", bg: "rgba(0,255,135,0.06)", color: "var(--primary)" },
     { border: "var(--secondary-border)", bg: "rgba(255,107,0,0.06)", color: "var(--secondary)" },
@@ -2222,12 +2504,12 @@ function BlogPage({ model }: { model: SiteViewModel }) {
 
   const principles = locale === "ar"
     ? [
-        { icon: "??", title: "اقرأ المشكلة قبل أن تبدأ الحل", body: "أكثر المشاريع التي تُعاد من الصفر كان يمكن حلها بقراءة أولية أعمق للجمهور والهدف.", tag: "منهج" },
+        { icon: "🎯", title: "اقرأ المشكلة قبل أن تبدأ الحل", body: "أكثر المشاريع التي تُعاد من الصفر كان يمكن حلها بقراءة أولية أعمق للجمهور والهدف.", tag: "منهج" },
         { icon: "⏱", title: "السرعة في التسليم ليست اختياراً", body: "في كل مشروع، هناك لحظة يتحول فيها التردد إلى فرصة ضائعة. التسليم الحقيقي يعني أن تصل في الوقت المناسب.", tag: "تنفيذ" },
         { icon: "🪞", title: "الواجهة مرآة للقرار التجاري", body: "ما تراه على الشاشة هو انعكاس مباشر لقرارات اتخذها شخص ما. الواجهة الجيدة لا تُصنع بالصدفة.", tag: "تصميم" },
       ]
     : [
-        { icon: "??", title: "Read the problem before solving it", body: "Most projects rebuilt from scratch could have been fixed with a deeper initial reading of the audience and objective.", tag: "Method" },
+        { icon: "🎯", title: "Read the problem before solving it", body: "Most projects rebuilt from scratch could have been fixed with a deeper initial reading of the audience and objective.", tag: "Method" },
         { icon: "⏱", title: "Speed in delivery is not optional", body: "In every project, there is a moment where hesitation becomes a missed opportunity. Real delivery means arriving at the right time.", tag: "Execution" },
         { icon: "🪞", title: "The interface mirrors business decisions", body: "What you see on screen is a direct reflection of decisions someone made. A good interface is never accidental.", tag: "Design" },
       ];

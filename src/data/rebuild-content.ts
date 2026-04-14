@@ -259,15 +259,15 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
           role: "Mohammad Alfarras Studio",
           period: "2021 – Present",
           location: "Bremen, Germany",
-          body: "تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (Next.js, React, Tailwind). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.",
+          body: "تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (<span dir=\"ltr\" className=\"inline-block px-1\">Next.js</span>, <span dir=\"ltr\" className=\"inline-block px-1\">React</span>, <span dir=\"ltr\" className=\"inline-block px-1\">Tailwind</span>). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.",
           highlights: ["Next.js & React", "UI/UX Design", "Content Creation", "1.5M+ Views"],
         },
         {
-          title: "Rhenus Home Delivery GmbH",
+          title: "<span dir=\"ltr\" className=\"inline-block\">Rhenus Home Delivery GmbH</span>",
           role: "Dispositionsmitarbeiter",
           period: "2018 – 2021",
           location: "Germany",
-          body: "العمل اليومي تحت الضغط وإدارة العمليات اللوجستية. استخدام نظام (TMS) لإدارة حركة النقل وتوجيه السائقين والتواصل مع خدمة العملاء لضمان التسليم السريع الخالي من الأخطاء.",
+          body: "العمل اليومي تحت الضغط وإدارة العمليات اللوجستية. استخدام نظام (<span dir=\"ltr\" className=\"inline-block px-1\">TMS</span>) لإدارة حركة النقل وتوجيه السائقين والتواصل مع خدمة العملاء لضمان التسليم السريع الخالي من الأخطاء.",
           highlights: ["Logistics", "TMS", "Kundendienst", "Fahrerbetreuung"],
         },
         {

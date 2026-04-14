@@ -67,17 +67,17 @@
   color-scheme: light;
 
   /* ── ULTRA-PREMIUM IVORY 2026 ── */
-  --background: #faf9f6; /* Silk Ivory - Comfortable for eyes */
-  --background-muted: #f4f2ee;
-  --surface: rgba(255, 255, 255, 0.76);
+  --background: #f2f1eb; /* Premium Soft Sand - Extremely comfortable for eyes */
+  --background-muted: #ebe9df;
+  --surface: rgba(255, 255, 255, 0.82);
   --surface-strong: rgba(255, 255, 255, 0.94);
   --surface-soft: rgba(15, 23, 42, 0.03);
   --border: rgba(15, 23, 42, 0.06);
   --border-neon: rgba(5, 150, 105, 0.18);
 
   --foreground: #020617; /* Deep midnight */
-  --foreground-muted: #475569;
-  --foreground-soft: #64748b;
+  --foreground-muted: #334155; 
+  --foreground-soft: #475569;
 
   --primary: #059669; 
   --primary-dark: #047857;

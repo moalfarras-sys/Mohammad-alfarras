@@ -103,6 +103,7 @@ type SiteProfile = {
 };
 
 type YoutubeSummary = {
+  channel_id?: string;
   views?: number | string;
   subscribers?: number | string;
   videos?: number | string;
@@ -171,8 +172,10 @@ export type SiteViewModel = {
 };
 
 /* ── Helpers ── */
-function fmt(locale: Locale, value: number, compact = true) {
-  return formatNumber(locale, value, compact ? { notation: "compact", maximumFractionDigits: 1 } : undefined);
+function fmt(locale: Locale, value: number | string | undefined, compact = true) {
+  const num = typeof value === "string" ? parseInt(value, 10) : value;
+  if (!num || isNaN(num)) return "0";
+  return formatNumber(locale, num, compact ? { notation: "compact", maximumFractionDigits: 1 } : undefined);
 }
 
 function formatVideoDate(locale: Locale, value: string) {
@@ -608,7 +611,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       {locale === "ar" ? "مقيم في ألمانيا" : "Based in Germany"}
                     </p>
                     <p className="mt-0.5 text-sm font-bold" style={{ color: "var(--primary)" }}>
-                      Frontend · Design · Content
+                      <span dir="ltr" className="inline-block">Frontend</span> · <span dir="ltr" className="inline-block">Design</span> · <span dir="ltr" className="inline-block">Content</span>
                     </p>
                   </motion.div>
 
@@ -696,15 +699,15 @@ function HomePage({ model }: { model: SiteViewModel }) {
               {/* Identity cards */}
               <div className="grid gap-4">
                 {(locale === "ar"
-                  ? [
-                      { icon: "??", title: "من الحسكة إلى ألمانيا", body: "الهجرة غيّرت نظرتي للوقت، الالتزام، والنتيجة التي يجب أن تصل في موعدها." },
+                    ? [
+                      { icon: "🌍", title: "من الحسكة إلى ألمانيا", body: "الهجرة غيّرت نظرتي للوقت، الالتزام، والنتيجة التي يجب أن تصل في موعدها." },
                       { icon: "⚡", title: "اللوجستيات علّمتني", body: "كل تأخير له ثمن. لهذا أبني واجهات تعتمد على الترتيب والوضوح، لا الاستعراض." },
-                      { icon: "🎥", title: "+1.5M مشاهدة", body: "من شرح صادق يبني ثقة لا تستطيع الإعلانات شراءها." },
+                      { icon: "👁️", title: "+1.5M مشاهدة", body: "من شرح صادق يبني ثقة لا تستطيع الإعلانات شراءها." },
                     ]
                   : [
-                      { icon: "??", title: "From Syria to Germany", body: "Migration changed how I think about time, commitment, and delivery that actually arrives." },
+                      { icon: "🌍", title: "From Syria to Germany", body: "Migration changed how I think about time, commitment, and delivery that actually arrives." },
                       { icon: "⚡", title: "Logistics taught me", body: "Every delay has a cost. That's why I build interfaces built on order and clarity, not show." },
-                      { icon: "🎥", title: "+1.5M views", body: "From honest explanations that build trust no advertising budget can buy." },
+                      { icon: "👁️", title: "+1.5M views", body: "From honest explanations that build trust no advertising budget can buy." },
                     ]
                 ).map((card, i) => (
                   <Reveal key={card.title} delay={i * 0.06}>
@@ -938,7 +941,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
             {/* YouTube Stats Dashboard */}
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                { raw: 1500000, display: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total Views", icon: "??" },
+                { raw: 1500000, display: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total Views", icon: "👁️" },
                 { raw: 6100, display: "+6.1K", label: locale === "ar" ? "مشترك" : "Subscribers", icon: "❤️" },
                 { raw: Number(youtube.videos ?? 162), display: fmt(locale, Number(youtube.videos ?? 162), false), label: locale === "ar" ? "فيديو منشور" : "Videos", icon: "🎬" },
               ].map((stat, i) => {
@@ -1372,10 +1375,8 @@ function CvPage({ model }: { model: SiteViewModel }) {
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-xl font-extrabold text-white md:text-2xl">{entry.company}</h3>
-                        {entry.role !== entry.company && (
-                          <p className="mt-1 text-sm font-semibold" style={{ color: "var(--secondary)" }}>{entry.role}</p>
-                        )}
+                        <h3 className="text-xl font-extrabold text-white md:text-2xl" dangerouslySetInnerHTML={{ __html: entry.company }} />
+                          <p className="mt-1 text-sm font-semibold" style={{ color: "var(--secondary)" }} dangerouslySetInnerHTML={{ __html: entry.role }} />
                       </div>
                       <div className="text-end">
                         {entry.period && (
@@ -1391,7 +1392,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                         )}
                       </div>
                     </div>
-                    <p className="mt-4 text-base leading-8 text-foreground-muted">{entry.story}</p>
+                    <p className="mt-4 text-base leading-8 text-foreground-muted" dangerouslySetInnerHTML={{ __html: entry.story }} />
                     {entry.highlights.length > 0 && (
                       <div className="mt-5 flex flex-wrap gap-2">
                         {entry.highlights.map((h) => (

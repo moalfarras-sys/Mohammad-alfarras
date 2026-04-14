@@ -21,11 +21,11 @@ export function CookieBanner({ locale }: { locale: Locale }) {
   if (!visible) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.8rem)] z-50 px-3 lg:bottom-5 lg:px-6">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+7.5rem)] z-[9999] px-3 lg:bottom-8 lg:left-8 lg:right-auto lg:px-0">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="pointer-events-auto section-frame glass-panel mx-auto max-w-2xl rounded-[1.75rem] p-4 md:p-5"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="pointer-events-auto section-frame glass-panel mx-auto max-w-2xl rounded-[2rem] p-5 shadow-4xl lg:mx-0 lg:max-w-[22rem]"
       >
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">

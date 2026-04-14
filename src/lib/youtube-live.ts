@@ -18,12 +18,18 @@ export type LiveYoutubeStats = {
   subscribers: number;
   totalViews: number;
   videoCount: number;
+  channelTitle?: string;
+  channelHandle?: string;
   videos: LiveYoutubeVideo[];
+  popularVideos: LiveYoutubeVideo[];
   comments: LiveYoutubeComment[];
 };
 
 type YoutubeChannelResponse = {
-  items?: Array<{ statistics?: { subscriberCount?: string; viewCount?: string; videoCount?: string } }>;
+  items?: Array<{
+    snippet?: { title?: string; customUrl?: string };
+    statistics?: { subscriberCount?: string; viewCount?: string; videoCount?: string };
+  }>;
 };
 
 type YoutubeSearchResponse = {
@@ -38,7 +44,7 @@ type YoutubeVideoDetailsResponse = {
       publishedAt: string;
       thumbnails?: { high?: { url?: string }; default?: { url?: string } };
     };
-    statistics?: { viewCount?: string };
+    statistics?: { viewCount?: string; likeCount?: string; commentCount?: string };
   }>;
 };
 
@@ -68,66 +74,79 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
   }
 
   try {
-    // 1. Fetch channel stats
+    // 1. Fetch channel stats and metadata
     const channelRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${CHANNEL_ID}&key=${API_KEY}`,
+      `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${CHANNEL_ID}&key=${API_KEY}`,
       { next: { revalidate: 3600 } }
     );
     const channelData = (await channelRes.json()) as YoutubeChannelResponse;
-    const stats = channelData.items?.[0]?.statistics || {};
+    const channelItem = channelData.items?.[0];
+    const stats = channelItem?.statistics || {};
+    const snippet = channelItem?.snippet || {};
 
-    // 2. Fetch top 4 videos (Order by date or viewCount. Since it's search, we get latest first for relevance, but limit to 4)
-    const searchRes = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&order=date&type=video&maxResults=4&key=${API_KEY}`,
+    // 2. Fetch Latest 6 videos
+    const latestSearchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&order=date&type=video&maxResults=6&key=${API_KEY}`,
       { next: { revalidate: 3600 } }
     );
-    const searchData = (await searchRes.json()) as YoutubeSearchResponse;
-    
-    const videos: LiveYoutubeVideo[] = [];
-    const videoIds = searchData.items?.map((item) => item.id.videoId).join(",") || "";
+    const latestSearchData = (await latestSearchRes.json()) as YoutubeSearchResponse;
+    const latestVideoIds = latestSearchData.items?.map((item) => item.id.videoId).join(",") || "";
 
-    // 3. Fetch exact views for those videos
-    if (videoIds) {
-      const vidStatsRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${API_KEY}`,
+    // 3. Fetch Most Popular 6 videos
+    const popularSearchRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&order=viewCount&type=video&maxResults=6&key=${API_KEY}`,
+      { next: { revalidate: 3600 } }
+    );
+    const popularSearchData = (await popularSearchRes.json()) as YoutubeSearchResponse;
+    const popularVideoIds = popularSearchData.items?.map((item) => item.id.videoId).join(",") || "";
+
+    async function fetchVideoDetails(ids: string): Promise<LiveYoutubeVideo[]> {
+      if (!ids) return [];
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${ids}&key=${API_KEY}`,
         { next: { revalidate: 3600 } }
       );
-      const vidStatsData = (await vidStatsRes.json()) as YoutubeVideoDetailsResponse;
-      
-      vidStatsData.items?.forEach((item) => {
-        videos.push({
-          id: item.id,
-          title: item.snippet.title,
-          publishedAt: item.snippet.publishedAt,
-          thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "/images/placeholder.jpg",
-          views: parseInt(item.statistics?.viewCount || "0", 10),
-        });
-      });
+      const data = (await res.json()) as YoutubeVideoDetailsResponse;
+      return (data.items || []).map((item) => ({
+        id: item.id,
+        title: item.snippet.title,
+        publishedAt: item.snippet.publishedAt,
+        thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "/images/placeholder.jpg",
+        views: parseInt(item.statistics?.viewCount || "0", 10),
+      }));
     }
 
-    // 4. Fetch a few top comments from the most recent video
+    const [latestVideos, popularVideos] = await Promise.all([
+      fetchVideoDetails(latestVideoIds),
+      fetchVideoDetails(popularVideoIds),
+    ]);
+
+    // 4. Fetch comments from the most popular video for better "Social Proof"
     const comments: LiveYoutubeComment[] = [];
-    if (videos.length > 0) {
-      const topVidId = videos[0].id;
+    const targetVidId = popularVideos[0]?.id || latestVideos[0]?.id;
+
+    if (targetVidId) {
       const commentsRes = await fetch(
-        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${topVidId}&maxResults=5&order=relevance&key=${API_KEY}`,
+        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${targetVidId}&maxResults=10&order=relevance&key=${API_KEY}`,
         { next: { revalidate: 3600 } }
       );
       if (commentsRes.ok) {
-        const commentsData = (await commentsRes.json()) as YoutubeCommentThreadsResponse;
-        commentsData.items?.forEach((item) => {
-          const topComment = item.snippet.topLevelComment.snippet;
-          // Filter out too short or link spam comments
-          if (topComment.textDisplay.length > 20 && !topComment.textDisplay.includes("http")) {
-             comments.push({
-               id: item.id,
-               author: topComment.authorDisplayName,
-               text: topComment.textOriginal, // Use original to avoid HTML tags
-               likes: parseInt(String(topComment.likeCount || "0"), 10),
-               videoId: topVidId,
-             });
-          }
-        });
+        const commentsData = (await commentsRes.ok ? commentsRes.json() : {}) as YoutubeCommentThreadsResponse;
+        if (commentsData.items) {
+          commentsData.items.forEach((item) => {
+            const topComment = item.snippet.topLevelComment.snippet;
+            const text = topComment.textOriginal || topComment.textDisplay;
+            if (text.length > 15 && !text.includes("http")) {
+               comments.push({
+                 id: item.id,
+                 author: topComment.authorDisplayName,
+                 text: text,
+                 likes: parseInt(String(topComment.likeCount || "0"), 10),
+                 videoId: targetVidId,
+               });
+            }
+          });
+        }
       }
     }
 
@@ -135,8 +154,11 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
       subscribers: parseInt(stats.subscriberCount || "0", 10),
       totalViews: parseInt(stats.viewCount || "0", 10),
       videoCount: parseInt(stats.videoCount || "0", 10),
-      videos,
-      comments: comments.slice(0, 4), // Take top 4 clean comments
+      channelTitle: snippet.title,
+      channelHandle: snippet.customUrl,
+      videos: latestVideos,
+      popularVideos: popularVideos,
+      comments: comments.slice(0, 8),
     };
 
   } catch (error) {

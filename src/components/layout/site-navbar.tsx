@@ -67,7 +67,7 @@ export function SiteNavbar({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "section-frame mt-4 flex flex-col gap-3 rounded-[2.5rem] px-4 py-3 transition-all duration-500 md:px-5 md:flex-row md:items-center md:justify-between",
+          "section-frame mt-4 flex flex-row items-center justify-between gap-3 rounded-full px-4 py-3 transition-all duration-500 md:px-5",
           scrolled ? "glass-card" : "bg-transparent",
         )}
         style={
@@ -80,20 +80,20 @@ export function SiteNavbar({
             : undefined
         }
       >
-        <div className="flex items-center justify-between w-full md:w-auto">
+        <div className="flex w-full md:w-auto items-center justify-between">
           {/* Logo */}
           <Link href={`/${locale}`} className="flex min-w-0 items-center gap-3 group">
             <motion.span
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-500"
+              className="relative flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-500"
               style={{
                 background: "var(--bg-secondary)",
                 border: "1px solid var(--border-glass)",
                 boxShadow: isLight ? "0 8px 20px rgba(15,23,42,0.05)" : "0 0 20px rgba(0,255,135,0.08)",
               }}
             >
-              <Image src="/images/logo.png" alt="Logo" width={48} height={40} priority className={cn("object-contain transition-all", isLight && "filter brightness-50 invert")} />
+              <Image src="/images/logo.png" alt="Logo" width={48} height={40} priority className={cn("object-contain transition-all scale-75 md:scale-100", isLight && "filter brightness-50 invert")} />
             </motion.span>
             <span className="hidden min-w-0 sm:grid">
               <strong className="headline-display truncate text-base font-extrabold text-foreground transition-all duration-300 group-hover:text-primary">
@@ -113,7 +113,7 @@ export function SiteNavbar({
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.05 }}
               onClick={toggleTheme}
-              className="relative inline-flex h-10 w-10 overflow-hidden items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground border border-border-glass bg-bg-secondary"
+              className="relative inline-flex h-9 w-9 overflow-hidden items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground border border-border-glass bg-bg-secondary shadow-sm"
             >
               <AnimatePresence mode="wait">
                 {mounted && theme === "dark" ? (
@@ -128,17 +128,17 @@ export function SiteNavbar({
               </AnimatePresence>
             </motion.button>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
-              <Link href={localeHref} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-bold transition-all duration-300 border border-border-glass bg-bg-secondary text-primary">
-                <span className="text-xs">{localeMeta[nextLocale].flag}</span>
+              <Link href={localeHref} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-bold transition-all duration-300 border border-border-glass bg-bg-secondary text-primary shadow-sm">
+                <span className="text-[10px]">{localeMeta[nextLocale].flag}</span>
                 <span className="tracking-widest">{nextLocale === "ar" ? "AR" : "EN"}</span>
               </Link>
             </motion.div>
           </div>
         </div>
 
-        {/* Mobile Nav / Desktop nav elements */}
+        {/* Desktop nav elements - Hidden on mobile */}
         <nav
-          className="flex items-center gap-1.5 overflow-x-auto rounded-full py-1.5 lg:px-2 scrollbar-none md:justify-center w-full md:w-auto"
+          className="hidden md:flex items-center gap-1.5 overflow-x-auto rounded-full py-1.5 lg:px-2 scrollbar-none justify-center w-auto"
         >
           {links.map((item) => {
             const active = pathname === item.href;

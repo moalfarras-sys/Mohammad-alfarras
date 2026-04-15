@@ -1,26 +1,20 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Arabic, JetBrains_Mono, Syne } from "next/font/google";
+import { Noto_Kufi_Arabic, Inter } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
 
-const arabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic", "latin"],
+const arabic = Noto_Kufi_Arabic({
+  subsets: ["arabic"],
   variable: "--font-arabic",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const brand = Syne({
+const latin = Inter({
   subsets: ["latin"],
-  variable: "--font-brand",
-  weight: ["500", "700", "800"],
-  display: "swap",
-});
-
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  weight: ["400", "500", "700"],
+  variable: "--font-latin",
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -44,11 +38,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="ar"
+      dir="rtl"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${arabic.variable} ${brand.variable} ${mono.variable}`}
+      className={`${arabic.variable} ${latin.variable}`}
     >
-      <body>{children}</body>
+      <head>
+        <meta charSet="UTF-8" />
+      </head>
+      <body>
+        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

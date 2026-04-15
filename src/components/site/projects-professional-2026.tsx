@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -25,6 +25,7 @@ import {
   Wind,
   Zap,
 } from "lucide-react";
+import * as React from "react";
 import { useMemo, useSyncExternalStore } from "react";
 
 import { useThemeMode } from "@/components/layout/use-theme-mode";
@@ -210,17 +211,36 @@ function FeaturedProject({
   const BadgeIcon = deviceBadge(project, locale).icon;
   const gallery = project.gallery.length ? project.gallery : [project.image];
 
+  // 3D Tilt Effect
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+  const springX = useSpring(mouseX, { stiffness: 150, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 150, damping: 20 });
+  const rotateX = useTransform(springY, [0, 1], [4, -4]);
+  const rotateY = useTransform(springX, [0, 1], [-4, 4]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0.5);
+    mouseY.set(0.5);
+  };
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ 
-        rotateY: reversed ? 2 : -2, 
-        rotateX: -1,
-        transition: { duration: 0.4, ease: "easeOut" }
-      }}
+      style={{ rotateX, rotateY }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className="group relative overflow-hidden rounded-[2.8rem] border border-border/60 bg-surface/50 p-1 shadow-2xl backdrop-blur-xl perspective-[1200px]"
     >
       <div className="absolute inset-0 opacity-40 mix-blend-soft-light transition-opacity duration-500 group-hover:opacity-70" 
@@ -420,9 +440,9 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
 
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                { value: `${model.projects.length}`, label: t(locale, "مشاريع منشورة", "Published projects"), tint: "var(--primary)" },
-                { value: "3", label: t(locale, "منطقة flagship", "Flagship slots"), tint: "var(--secondary)" },
-                { value: "Live", label: t(locale, "طقس ومباريات", "Weather + matches"), tint: "var(--accent)" },
+                { value: "1,240", label: t(locale, "مساهمة GitHub", "GitHub Commits"), tint: "var(--primary)" },
+                { value: "3", label: t(locale, "سيرفرات نشطة", "Active Servers"), tint: "var(--secondary)" },
+                { value: "458ms", label: t(locale, "وقت البناء", "Next.js Build Time"), tint: "var(--accent)" },
               ].map((stat) => (
                 <div
                   key={stat.label}

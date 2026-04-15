@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useThemeMode } from "@/components/layout/use-theme-mode";
 import { motion, type Variants } from "framer-motion";
 import { ArrowUpRight, Download, Languages, Sparkles, Target } from "lucide-react";
 
@@ -52,8 +51,6 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
   const { builder, experience, projects, certifications, locale } = cv;
   const isArabic = locale === "ar";
   const orderedEducation = builder.education;
-  const { theme: activeTheme } = useThemeMode();
-  const isLight = activeTheme === "light";
 
   return (
     <div
@@ -196,6 +193,49 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
           </div>
         </motion.section>
 
+        {/* ── CORE PHILOSOPHY / ABOUT EXTENDED ── */}
+        {!compact ? (
+          <motion.section
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={fadeUp}
+            className="rounded-[3rem] border border-[var(--primary)]/20 bg-surface/40 p-6 shadow-2xl backdrop-blur-xl md:p-10"
+            style={{
+              background: "radial-gradient(ellipse at center, rgba(168,85,247,0.08) 0%, transparent 70%)"
+            }}
+          >
+            <div className="grid gap-8 md:grid-cols-2 lg:gap-16">
+              <div className="space-y-4">
+                <div className="eyebrow">{text(locale, "من أنا؟", "Who am I?")}</div>
+                <h2 className="text-2xl font-black md:text-3xl lg:text-4xl" style={{ color: "var(--foreground)"}}>
+                  {text(locale, "عقل هندسي، وأداة تنفيذية", "An engineering mind, an execution tool")}
+                </h2>
+                <p className="text-base leading-8 text-foreground-muted md:text-lg md:leading-9">
+                  {text(locale, 
+                    "لا أكتب الكود فقط ليعمل، بل ليحل مشكلة تجارية أو يعزز تجربة المستخدم. جذوري في قطاع اللوجستيات في ألمانيا علمتني أن الوقت هو أكبر ثمن، وأن الواجهات يجب أن ترشد المستخدم دون تعقيد.", 
+                    "I don't just write code to make things work; I build solutions to solve business problems and empower users. My roots in European logistics taught me that time is extremely valuable, and interfaces must guide users effortlessly."
+                  )}
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="eyebrow" style={{ borderColor: "rgba(255,107,0,0.2)", color: "var(--accent-warm)", backgroundColor: "rgba(255,107,0,0.05)" }}>
+                  {text(locale, "ماذا أقدم؟", "What I bring to the table?")}
+                </div>
+                <h2 className="text-2xl font-black md:text-3xl lg:text-4xl" style={{ color: "var(--foreground)"}}>
+                  {text(locale, "تأثير من الثانية الأولى", "Impact from the first second")}
+                </h2>
+                <p className="text-base leading-8 text-foreground-muted md:text-lg md:leading-9">
+                  {text(locale, 
+                    "أدمج بين صناعة المحتوى، وتصميم الجرافيك، والبرمجة الحديثة (Next.js & Frontend) لبناء هويات رقمية حقيقية تتحدث نيابة عنك عندما تكون نائماً. من الفكرة إلى الإطلاق، التفاصيل تصنع الفارق.", 
+                    "I merge content creation, graphical design, and modern engineering (Next.js & Frontend) to build digital identities that speak for you while you sleep. From idea to launch, details matter."
+                  )}
+                </p>
+              </div>
+            </div>
+          </motion.section>
+        ) : null}
+
         <div className={cn("grid gap-8", compact ? "grid-cols-1" : "lg:grid-cols-[1.15fr_0.85fr]")}>
           <motion.section
             initial="hidden"
@@ -301,7 +341,7 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                         {formatNumber(locale, skill.level)}%
                       </span>
                     </div>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--border)]">
                       <motion.div
                         initial={{ width: 0 }}
                         whileInView={{ width: `${skill.level}%` }}
@@ -332,19 +372,33 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                     <Languages className="h-4 w-4" />
                     {text(locale, "اللغات", "Languages")}
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {builder.languages.map((language) => (
-                      <div key={language.id} className="flex items-center justify-between gap-4">
-                        <div>
-                          <div className="text-sm font-bold text-foreground">
-                            {text(locale, language.label_ar, language.label_en)}
+                      <div key={language.id} className="space-y-2">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <div className="text-sm font-bold text-foreground">
+                              {text(locale, language.label_ar, language.label_en)}
+                            </div>
+                            <div className="text-xs text-foreground-muted">
+                              {text(locale, language.level_ar, language.level_en)}
+                            </div>
                           </div>
-                          <div className="text-xs text-foreground-muted">
-                            {text(locale, language.level_ar, language.level_en)}
+                          <div className="text-xs font-black text-foreground">
+                            {formatNumber(locale, language.proficiency)}%
                           </div>
                         </div>
-                        <div className="text-xs font-black text-foreground">
-                          {formatNumber(locale, language.proficiency)}%
+                        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--border)]">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            whileInView={{ width: `${language.proficiency}%` }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="h-full rounded-full"
+                            style={{
+                              background: `linear-gradient(90deg, var(--primary), var(--secondary))`,
+                            }}
+                          />
                         </div>
                       </div>
                     ))}

@@ -423,23 +423,30 @@ function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
   );
 }
 
-/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-   HOME PAGE
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
+function HeroStatAnimated({ target, suffix, prefix = "" }: { target: number, suffix: string, prefix?: string }) {
+  const { value, ref } = useCountUp(target, 2000);
+  return (
+    <span ref={ref}>
+      {prefix}{target % 1 !== 0 ? value.toFixed(1) : Math.floor(value)}{suffix}
+    </span>
+  );
+}
+
+/* ── HOME PAGE ── */
 function HomePage({ model }: { model: SiteViewModel }) {
   const { locale, t, projects, services, featuredVideo, youtube } = model;
 
   const heroStats = [
-    { label: locale === "ar" ? "مشاهدة" : "Views", value: "+1.5M", suffix: "" },
-    { label: locale === "ar" ? "مشترك" : "Subscribers", value: "+6.1K", suffix: "" },
-    { label: locale === "ar" ? "فيديو" : "Videos", value: fmt(locale, Number(youtube.videos ?? 162), false), suffix: "" },
-    { label: locale === "ar" ? "الرد" : "Response", value: "24h", suffix: "" },
+    { label: locale === "ar" ? "مشاهدة" : "Views", target: 1.5, suffix: "M", prefix: "+" },
+    { label: locale === "ar" ? "مشترك" : "Subscribers", target: 6.1, suffix: "K", prefix: "+" },
+    { label: locale === "ar" ? "فيديو" : "Videos", target: Number(youtube.videos ?? 162), suffix: "", prefix: "" },
+    { label: locale === "ar" ? "الرد" : "Response", target: 24, suffix: "h", prefix: "" },
   ];
 
   return (
     <div className="space-y-0">
 
-      {/* â•â•â•â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â•â•â•â• */}
+      {/* ── HERO ── */}
       <section
         data-testid="home-hero"
         className="relative overflow-hidden px-5 py-14 md:px-8 md:py-20"
@@ -534,16 +541,16 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.45 }}
-                className="flex flex-wrap gap-3"
+                className="mt-10 flex w-full flex-col gap-4 sm:flex-row md:w-auto md:flex-wrap"
               >
-                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.03 }}>
-                  <Link href={`/${locale}/contact`} className="button-primary-shell text-base px-8 py-4">
+                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.03 }} className="w-full sm:w-auto">
+                  <Link href={`/${locale}#contact`} className="button-primary-shell flex w-full justify-center text-base px-8 py-4 sm:w-auto">
                     <Sparkles className="h-4 w-4" />
                     {locale === "ar" ? "ابدأ مشروعك الاستثنائي" : "Start your standout project"}
                   </Link>
                 </motion.div>
-                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.03 }}>
-                  <Link href={`/${locale}/youtube`} className="button-secondary-shell text-base px-8 py-4">
+                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.03 }} className="w-full sm:w-auto">
+                  <Link href={`/${locale}/youtube`} className="button-secondary-shell flex w-full justify-center text-base px-8 py-4 sm:w-auto">
                     <PlayCircle className="h-4 w-4" />
                     {locale === "ar" ? "شاهد كيف أعمل" : "See how I work"}
                   </Link>
@@ -572,7 +579,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   >
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-muted">{item.label}</p>
                     <p className="mt-1 text-xl font-extrabold text-foreground md:text-2xl" style={{ color: "var(--primary)" }}>
-                      {item.value}
+                      <HeroStatAnimated target={item.target} suffix={item.suffix} prefix={item.prefix} />
                     </p>
                   </motion.div>
                 ))}

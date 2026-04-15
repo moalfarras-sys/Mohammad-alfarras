@@ -1,19 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 
 export function AtmosphericBackground() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <div className="pointer-events-none fixed inset-0 -z-50 overflow-hidden bg-background">
+      <div className="mesh-animated-overlay" />
+
       {/* Dynamic Mesh Layers */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -22,7 +15,7 @@ export function AtmosphericBackground() {
         className="absolute inset-0"
       >
         <div 
-          className="absolute inset-0 opacity-[0.45] dark:opacity-[0.8] mix-blend-soft-light transition-opacity duration-1000"
+          className="absolute inset-0 opacity-100 dark:opacity-[0.8] mix-blend-multiply dark:mix-blend-soft-light transition-opacity duration-1000"
           style={{ 
             background: `
               var(--mesh-1), 
@@ -46,9 +39,9 @@ export function AtmosphericBackground() {
             repeat: Infinity,
             ease: "linear",
           }}
-          className="absolute inset-[-20%] opacity-30 blur-[100px] dark:opacity-20"
+          className="absolute inset-[-20%] opacity-50 blur-[100px] dark:opacity-20"
           style={{
-            background: "radial-gradient(circle at 30% 30%, var(--primary), transparent), radial-gradient(circle at 70% 70%, var(--secondary), transparent)",
+            background: "radial-gradient(circle at 30% 30%, var(--color-primary), transparent 60%), radial-gradient(circle at 70% 70%, var(--color-accent-warm), transparent 60%)",
           }}
         />
       </motion.div>

@@ -2,12 +2,12 @@
 
 import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
-import { BarChart, Heart, MessageSquare, Play, PlayCircle, Sparkles, Users } from "lucide-react";
+import { BarChart, Eye, Heart, MessageSquare, Play, PlayCircle, Sparkles } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
 import { useThemeMode } from "@/components/layout/use-theme-mode";
 import { formatNumber } from "@/lib/locale-format";
-import type { LiveYoutubeComment, LiveYoutubeVideo } from "@/lib/youtube-live";
+import type { LiveYoutubeComment } from "@/lib/youtube-live";
 
 import type { SiteViewModel } from "./site-view-client";
 
@@ -49,16 +49,16 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
 
   const statCards = [
     {
-      icon: Users,
-      color: "#ff4d4d",
-      value: fmtSub,
-      label: locale === "ar" ? "مشترك" : "Subscribers",
-    },
-    {
-      icon: BarChart,
-      color: "#a855f7",
+      icon: Eye,
+      color: "#ff6b00",
       value: fmtViews,
       label: locale === "ar" ? "إجمالي المشاهدات" : "Total Views",
+    },
+    {
+      icon: Heart,
+      color: "#ff4d4d",
+      value: fmtSub,
+      label: locale === "ar" ? "المشتركون" : "Subscribers",
     },
     {
       icon: Sparkles,
@@ -116,8 +116,16 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                   </motion.a>
 
                   <div className="flex -space-x-3 rtl:space-x-reverse">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-14 w-14 rounded-full border-4 border-surface bg-muted shadow-sm" style={{ backgroundImage: `url(https://i.pravatar.cc/100?img=${i + 10})`, backgroundSize: "cover" }} />
+                    {["M", "A", "F", "+"].map((token, i) => (
+                      <div
+                        key={token}
+                        className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-surface text-xs font-black text-white shadow-sm"
+                        style={{
+                          background: i === 3 ? "linear-gradient(135deg, #ff6b00, #ff0033)" : "linear-gradient(135deg, #111827, #374151)",
+                        }}
+                      >
+                        {token}
+                      </div>
                     ))}
                     <div className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-surface bg-[#111] font-mono text-xs font-bold text-white">
                       +{fmtSub}
@@ -128,7 +136,7 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-1">
                 {statCards.map((stat, i) => {
-                  const Icon = stat.icon;
+                  const StatIcon = stat.icon;
                   return (
                     <motion.div
                       key={stat.label}
@@ -136,17 +144,25 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + i * 0.1 }}
                       whileHover={{ scale: 1.02, x: locale === "ar" ? -8 : 8 }}
-                      className="group relative overflow-hidden rounded-[2.5rem] border border-border/40 bg-surface/60 p-8 shadow-xl backdrop-blur-md transition-all"
+                      className="stats-glass-card group relative overflow-hidden rounded-[2.5rem] p-8 transition-all"
                     >
                       <div className="relative flex items-center gap-6">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/5 transition-transform group-hover:rotate-12" style={{ color: stat.color, border: `1px solid ${stat.color}33` }}>
-                          <Icon className="h-8 w-8" />
+                        <div
+                          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl transition-transform group-hover:rotate-12"
+                          style={{
+                            color: stat.color,
+                            border: `1px solid ${stat.color}33`,
+                            background: isLight ? `${stat.color}14` : "rgba(255,255,255,0.05)",
+                            boxShadow: isLight ? `0 12px 28px ${stat.color}16` : "none",
+                          }}
+                        >
+                          <StatIcon className="h-7 w-7" />
                         </div>
                         <div>
                           <p className="font-mono text-4xl font-black text-foreground">
                             {stat.value}
                           </p>
-                          <p className="font-bold uppercase tracking-[0.2em] text-foreground-muted" style={{ fontSize: "0.65rem" }}>
+                          <p className="stats-label font-bold uppercase tracking-[0.2em]" style={{ fontSize: "0.65rem" }}>
                             {stat.label}
                           </p>
                         </div>
@@ -161,7 +177,8 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
           {featuredVid && (
             <motion.section
               variants={item}
-              className="relative overflow-hidden rounded-[4rem] border border-border/60 bg-black md:col-span-12 shadow-3xl group"
+              className="relative overflow-hidden rounded-[4rem] border border-border/60 md:col-span-12 shadow-3xl group"
+              style={{ background: isLight ? "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94))" : "#000000" }}
             >
               <div className="relative aspect-video w-full">
                 <iframe
@@ -233,8 +250,14 @@ export function YoutubeProfessional2026({ model }: { model: SiteViewModel }) {
                 </div>
                 <div className="flex items-center gap-3 rounded-full bg-white/5 p-2 pr-6 border border-white/10 backdrop-blur-md">
                    <div className="flex -space-x-2">
-                     {[1,2,3].map(i => (
-                        <div key={i} className="h-10 w-10 rounded-full border-2 border-surface bg-muted shadow-sm" style={{ backgroundImage: `url(https://i.pravatar.cc/100?img=${i+20})`, backgroundSize: 'cover' }} />
+                     {["A", "Y", "M"].map((token, i) => (
+                        <div
+                          key={token}
+                          className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-surface text-[11px] font-black text-white shadow-sm"
+                          style={{ background: i === 1 ? "linear-gradient(135deg, #a855f7, #6366f1)" : "linear-gradient(135deg, #0f172a, #334155)" }}
+                        >
+                          {token}
+                        </div>
                      ))}
                    </div>
                    <span className="text-sm font-black text-foreground">Active Global Audience</span>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { deleteWorkProjectAction, logoutAdminAction, upsertProjectStudioAction } from "@/lib/admin-actions";
+import { deleteWorkProjectAction, upsertProjectStudioAction } from "@/lib/admin-actions";
 import { getProjectsStudioData } from "@/lib/projects-studio";
 import { MediaPickerField } from "@/components/admin/media-picker-field";
 import type { CmsSnapshot, Locale, WorkProject } from "@/types/cms";
@@ -219,17 +219,7 @@ export function ProjectsStudio({ locale, snapshot }: Props) {
 
   return (
     <div className="admin-shell" dir={locale === "ar" ? "rtl" : "ltr"}>
-      <aside className="admin-sidebar">
-        <a href="#overview">{t(locale, "نظرة عامة", "Overview")}</a>
-        <a href="#new-project">{t(locale, "مشروع جديد", "New project")}</a>
-        <a href="#all-projects">{t(locale, "كل المشاريع", "All projects")}</a>
-        <Link href={`/${locale}/admin/cv`}>{t(locale, "CV Studio", "CV Studio")}</Link>
-        <form action={logoutAdminAction}>
-          <button type="submit">{t(locale, "تسجيل خروج", "Logout")}</button>
-        </form>
-      </aside>
-
-      <div className="admin-content">
+      <div className="admin-content" style={{ marginInlineStart: 0 }}>
         <nav className="admin-mobile-nav" aria-label="Project sections">
           <a href="#overview">{t(locale, "نظرة عامة", "Overview")}</a>
           <a href="#new-project">{t(locale, "مشروع جديد", "New project")}</a>

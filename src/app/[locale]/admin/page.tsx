@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-
 import { loginAdminAction } from "@/lib/admin-actions";
 import { isAdminAuthenticated } from "@/lib/auth";
 import type { Locale } from "@/types/cms";
@@ -21,9 +20,10 @@ export default async function AdminPage({
   const copy =
     locale === "ar"
       ? {
+          brand: "M.A Admin",
           title: "دخول لوحة التحكم",
-          subtitle: "هذه الصفحة مجرد بوابة سريعة. التحكم الكامل بالسيرة والـ PDF داخل CV Studio.",
-          invalid: "بيانات الدخول غير صحيحة.",
+          subtitle: "بوابة سريعة للوصول إلى أدوات إدارة الموقع والسيرة الذاتية.",
+          invalid: "بيانات الدخول غير صحيحة. حاول مرة أخرى.",
           required: "سجل الدخول للمتابعة.",
           email: "بريد الأدمن",
           password: "كلمة المرور",
@@ -31,9 +31,10 @@ export default async function AdminPage({
           env: "يجب ضبط ADMIN_PASSWORD داخل بيئة التشغيل قبل تسجيل الدخول.",
         }
       : {
+          brand: "M.A Admin",
           title: "Admin access",
-          subtitle: "This page is only a quick gateway. Full CV control lives inside the CV Studio.",
-          invalid: "Invalid credentials.",
+          subtitle: "Quick gateway to manage your website, CV, and content.",
+          invalid: "Invalid credentials. Try again.",
           required: "Sign in to continue.",
           email: "Admin email",
           password: "Password",
@@ -44,37 +45,48 @@ export default async function AdminPage({
   return (
     <section className="admin-login-shell" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="admin-login-card">
-        <span className="eyebrow">Admin</span>
-        <h1 className="headline-display text-4xl font-semibold text-foreground">{copy.title}</h1>
-        <p className="text-sm leading-7 text-foreground-muted">{copy.subtitle}</p>
-
-        {!process.env.ADMIN_PASSWORD ? (
-          <div className="glass-panel-subtle rounded-[1.4rem] p-4">
-            <p className="text-sm text-foreground-muted">{copy.env}</p>
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/8">
+            <span className="text-xl font-black text-primary">M</span>
           </div>
-        ) : null}
+          <h1 className="text-2xl font-black text-foreground">{copy.title}</h1>
+          <p className="mt-2 text-sm leading-7 text-foreground-muted">{copy.subtitle}</p>
+        </div>
 
-        {query.error ? (
-          <div className="glass-panel-subtle rounded-[1.4rem] border-red-400/20 bg-red-500/8 p-4">
-            <p className="text-sm text-foreground-muted">{copy.invalid}</p>
+        {!process.env.ADMIN_PASSWORD && (
+          <div className="rounded-xl border border-amber-400/20 bg-amber-500/8 p-4">
+            <p className="text-xs leading-6 text-foreground-muted">{copy.env}</p>
           </div>
-        ) : null}
+        )}
 
-        {query.unauthorized ? (
-          <div className="glass-panel-subtle rounded-[1.4rem] p-4">
+        {query.error && (
+          <div className="rounded-xl border border-red-400/20 bg-red-500/8 p-4">
+            <p className="text-sm text-red-400">{copy.invalid}</p>
+          </div>
+        )}
+
+        {query.unauthorized && (
+          <div className="rounded-xl border border-amber-400/20 bg-amber-500/8 p-4">
             <p className="text-sm text-foreground-muted">{copy.required}</p>
           </div>
-        ) : null}
+        )}
 
         <form action={loginAdminAction} className="space-y-4">
           <input type="hidden" name="locale" value={locale} />
-          <label className="space-y-2">
-            <span className="text-sm text-foreground-muted">{copy.email}</span>
-            <input name="email" type="email" autoComplete="username" defaultValue="mohammad.alfarras@gmail.com" required />
+          <label className="block space-y-1.5">
+            <span className="text-xs font-bold text-foreground-muted">{copy.email}</span>
+            <input
+              name="email"
+              type="email"
+              autoComplete="username"
+              defaultValue="mohammad.alfarras@gmail.com"
+              required
+              className="w-full"
+            />
           </label>
-          <label className="space-y-2">
-            <span className="text-sm text-foreground-muted">{copy.password}</span>
-            <input name="password" type="password" autoComplete="current-password" required />
+          <label className="block space-y-1.5">
+            <span className="text-xs font-bold text-foreground-muted">{copy.password}</span>
+            <input name="password" type="password" autoComplete="current-password" required className="w-full" />
           </label>
           <button type="submit" className="button-primary-shell w-full justify-center">
             {copy.submit}

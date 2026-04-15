@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Download, Eye, Layers3, Plus, Sparkles, Trash2 } from "lucide-react";
 
 import { CvStudioPreview } from "@/components/site/cv-studio-preview";
-import { updateSiteSettingAction } from "@/lib/admin-actions";
+import { updateSiteSettingAction, uploadCvPdfAction } from "@/lib/admin-actions";
 import {
   createDefaultCvBuilder,
   type CvBuilderData,
@@ -757,17 +757,53 @@ function ExportEditor({
   setVariant: Dispatch<SetStateAction<"branded" | "ats">>;
   downloadLinks: DownloadLinks;
 }) {
+  const [pdfStatus, setPdfStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
+  const [pdfFilename, setPdfFilename] = useState("");
+
+  async function handlePdfUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPdfStatus("uploading");
+    try {
+      const form = new FormData();
+      form.set("file", file);
+      await uploadCvPdfAction(form);
+      setPdfFilename(file.name);
+      setPdfStatus("done");
+    } catch {
+      setPdfStatus("error");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <SectionIntro
         locale={locale}
-        titleAr="التصدير والروابط"
-        titleEn="Export and routes"
-        bodyAr="اختر نوع ملف الـ PDF، وافتح الصفحة العامة أو حمّل النسخ الجاهزة مباشرة."
-        bodyEn="Choose the PDF mode, open the public page, or download the ready exports directly."
+        titleAr="التصدير وإدارة PDF"
+        titleEn="Export & PDF management"
+        bodyAr="ولّد نسخ PDF من البيانات الحية، أو ارفع نسخة PDF جاهزة تديرها من هنا فقط."
+        bodyEn="Generate PDFs from live data, or upload a ready-made PDF managed only from this admin panel."
       />
+
       <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
-        <div className="text-sm font-black text-foreground">{t(locale, "نوع المعاينة الحالية", "Current preview mode")}</div>
+        <div className="text-sm font-black text-foreground">{t(locale, "رفع PDF جاهز", "Upload custom PDF")}</div>
+        <p className="mt-1 text-xs leading-6 text-foreground-muted">
+          {t(locale, "ارفع ملف PDF يُدار من لوحة التحكم فقط — لا يظهر للزوار كزر تحميل.", "Upload a PDF managed only from admin — no public download button.")}
+        </p>
+        <label className="mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-4 transition hover:border-primary/30 hover:bg-primary/5">
+          <Download className="h-5 w-5 text-foreground-soft" />
+          <span className="text-sm font-bold text-foreground">
+            {pdfStatus === "uploading" ? (t(locale, "جاري الرفع...", "Uploading...")) :
+             pdfStatus === "done" ? (pdfFilename || t(locale, "تم الرفع بنجاح", "Uploaded successfully")) :
+             pdfStatus === "error" ? (t(locale, "فشل الرفع", "Upload failed")) :
+             t(locale, "اختر ملف PDF", "Choose a PDF file")}
+          </span>
+          <input type="file" accept=".pdf" className="sr-only" onChange={handlePdfUpload} disabled={pdfStatus === "uploading"} />
+        </label>
+      </div>
+
+      <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
+        <div className="text-sm font-black text-foreground">{t(locale, "توليد PDF من البيانات الحية", "Generate PDF from live data")}</div>
         <div className="mt-3 flex flex-wrap gap-3">
           <button type="button" className={variant === "branded" ? "button-primary-shell" : "button-secondary-shell"} onClick={() => setVariant("branded")}>
             Branded

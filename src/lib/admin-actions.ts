@@ -741,3 +741,21 @@ export async function deleteMediaAction(formData: FormData) {
   await deleteMediaAsset(id);
   revalidateAll();
 }
+
+export async function uploadCvPdfAction(formData: FormData): Promise<{ url: string }> {
+  await ensureAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("No file provided");
+  if (file.type !== "application/pdf") throw new Error("File must be a PDF");
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const uploaded = await uploadMediaToStorage({
+    filename: `cv-${Date.now()}.pdf`,
+    contentType: "application/pdf",
+    bytes,
+  });
+
+  await upsertSiteSetting("cv_pdf_url", { url: uploaded.publicUrl, uploadedAt: new Date().toISOString(), filename: file.name });
+  revalidateAll();
+  return { url: uploaded.publicUrl };
+}

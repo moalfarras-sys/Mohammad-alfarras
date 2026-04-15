@@ -341,7 +341,7 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                         {formatNumber(locale, skill.level)}%
                       </span>
                     </div>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--border)]">
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-border">
                       <motion.div
                         initial={{ width: 0 }}
                         whileInView={{ width: `${skill.level}%` }}
@@ -388,7 +388,7 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                             {formatNumber(locale, language.proficiency)}%
                           </div>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-[var(--border)]">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-border">
                           <motion.div
                             initial={{ width: 0 }}
                             whileInView={{ width: `${language.proficiency}%` }}
@@ -396,7 +396,7 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                             transition={{ duration: 0.8, ease: "easeOut" }}
                             className="h-full rounded-full"
                             style={{
-                              background: `linear-gradient(90deg, var(--color-accent), var(--color-accent-warm))`,
+                              background: `linear-gradient(90deg, ${builder.theme.accent}, ${builder.theme.secondary})`,
                             }}
                           />
                         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
+import { motion, type Variants, useMotionValue, useSpring, useTransform, AnimatePresence, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -1092,6 +1092,7 @@ function ConversionCta({ locale, isLight }: { locale: SiteViewModel["locale"]; i
 export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
   const { locale } = model;
   const { theme } = useThemeMode();
+  const prefersReducedMotion = useReducedMotion();
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -1123,12 +1124,15 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
 
   const container: Variants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.12 } },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: prefersReducedMotion ? 0 : 0.12 },
+    },
   };
 
   const itemVariant: Variants = {
-    hidden: { opacity: 0, y: 28 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 28 },
+    show: { opacity: 1, y: 0, transition: { duration: prefersReducedMotion ? 0.1 : 0.55, ease: [0.22, 1, 0.36, 1] } },
   };
 
   return (

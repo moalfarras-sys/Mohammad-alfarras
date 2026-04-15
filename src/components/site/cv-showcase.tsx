@@ -396,7 +396,7 @@ export function CvShowcase({ cv, compact = false, metrics = [], cta }: Props) {
                             transition={{ duration: 0.8, ease: "easeOut" }}
                             className="h-full rounded-full"
                             style={{
-                              background: `linear-gradient(90deg, var(--primary), var(--secondary))`,
+                              background: `linear-gradient(90deg, var(--color-accent), var(--color-accent-warm))`,
                             }}
                           />
                         </div>

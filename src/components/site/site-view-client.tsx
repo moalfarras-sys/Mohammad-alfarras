@@ -9,8 +9,12 @@ import { motion, useInView } from "framer-motion";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
+  Clapperboard,
   ChevronDown,
+  Eye,
   ExternalLink,
+  Globe2,
+  Heart,
   Lightbulb,
   Mail,
   MapPin,
@@ -589,7 +593,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <motion.div
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-                  className="hero-image-frame relative"
+                  className="hero-image-frame relative pb-24 md:pb-0"
                 >
                   <div className="relative aspect-[3/4] overflow-hidden rounded-[2.5rem]">
                     <Image
@@ -610,7 +614,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     initial={{ opacity: 0, y: 30, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ delay: 0.8, type: "spring", stiffness: 90, damping: 15 }}
-                    className="absolute -bottom-10 -right-6 z-20 flex min-w-[200px] items-center gap-4 rounded-[2.5rem] px-6 py-4"
+                    className="absolute bottom-4 right-4 z-20 flex min-w-[172px] max-w-[calc(100%-2rem)] items-center gap-3 rounded-[1.6rem] px-4 py-3 md:-bottom-10 md:-right-6 md:min-w-[200px] md:gap-4 md:rounded-[2.5rem] md:px-6 md:py-4"
                     style={{
                       background: "rgba(10,12,24,0.92)",
                       border: "1px solid rgba(255,107,0,0.45)",
@@ -618,14 +622,14 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       boxShadow: "0 15px 45px rgba(255,107,0,0.22), inset 0 1px 1px rgba(255,255,255,0.08)",
                     }}
                   >
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.25rem] bg-orange-500/15" style={{ border: "1px solid rgba(255,107,0,0.25)" }}>
-                      <MapPin className="h-6 w-6" style={{ color: "var(--secondary)" }} />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-orange-500/15 md:h-11 md:w-11 md:rounded-[1.25rem]" style={{ border: "1px solid rgba(255,107,0,0.25)" }}>
+                      <MapPin className="h-5 w-5 md:h-6 md:w-6" style={{ color: "var(--secondary)" }} />
                     </div>
                     <div className="flex flex-col">
-                      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-foreground-soft">
+                      <p className="text-[9px] font-black uppercase tracking-[0.22em] text-foreground-soft md:text-[10px] md:tracking-[0.28em]">
                         {locale === "ar" ? "مقيم في ألمانيا" : "Based in Germany"}
                       </p>
-                      <p className="mt-1 text-sm font-bold text-foreground transition-colors hover:text-secondary whitespace-nowrap">
+                      <p className="mt-1 text-xs font-bold text-foreground transition-colors hover:text-secondary whitespace-nowrap md:text-sm">
                         <span dir="ltr">Frontend</span> · <span dir="ltr">Design</span> · <span dir="ltr">Content</span>
                       </p>
                     </div>
@@ -636,13 +640,13 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     initial={{ opacity: 0, y: -30, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ delay: 1.0, type: "spring", stiffness: 90, damping: 15 }}
-                    className="absolute -left-10 top-12 z-20 flex items-center gap-3 rounded-full border-primary/40 bg-background/80 px-6 py-3.5 backdrop-blur-2xl shadow-[0_12px_48px_rgba(0,255,135,0.22)] border"
+                    className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-4 py-2.5 backdrop-blur-2xl shadow-[0_12px_48px_rgba(0,255,135,0.22)] md:-left-10 md:top-12 md:gap-3 md:px-6 md:py-3.5"
                   >
-                    <div className="relative flex h-3.5 w-3.5">
+                    <div className="relative flex h-3 w-3 md:h-3.5 md:w-3.5">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                      <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-primary shadow-[0_0_15px_var(--primary)]" />
+                      <span className="relative inline-flex h-3 w-3 rounded-full bg-primary shadow-[0_0_15px_var(--primary)] md:h-3.5 md:w-3.5" />
                     </div>
-                    <span className="text-sm font-black uppercase tracking-[0.3em] text-primary">
+                    <span className="text-xs font-black uppercase tracking-[0.18em] text-primary md:text-sm md:tracking-[0.3em]">
                       {locale === "ar" ? "متاح الآن" : "Available now"}
                     </span>
                   </motion.div>
@@ -713,14 +717,14 @@ function HomePage({ model }: { model: SiteViewModel }) {
               <div className="grid gap-4">
                 {(locale === "ar"
                     ? [
-                      { icon: "🌍", title: "من الحسكة إلى ألمانيا", body: "الهجرة غيّرت نظرتي للوقت، الالتزام، والنتيجة التي يجب أن تصل في موعدها." },
-                      { icon: "⚡", title: "اللوجستيات علّمتني", body: "كل تأخير له ثمن. لهذا أبني واجهات تعتمد على الترتيب والوضوح، لا الاستعراض." },
-                      { icon: "👁️", title: "+1.5M مشاهدة", body: "من شرح صادق يبني ثقة لا تستطيع الإعلانات شراءها." },
+                      { icon: Globe2, title: "من الحسكة إلى ألمانيا", body: "الهجرة غيّرت نظرتي للوقت، الالتزام، والنتيجة التي يجب أن تصل في موعدها." },
+                      { icon: Zap, title: "اللوجستيات علّمتني", body: "كل تأخير له ثمن. لهذا أبني واجهات تعتمد على الترتيب والوضوح، لا الاستعراض." },
+                      { icon: Eye, title: "+1.5M مشاهدة", body: "من شرح صادق يبني ثقة لا تستطيع الإعلانات شراءها." },
                     ]
                   : [
-                      { icon: "🌍", title: "From Syria to Germany", body: "Migration changed how I think about time, commitment, and delivery that actually arrives." },
-                      { icon: "⚡", title: "Logistics taught me", body: "Every delay has a cost. That's why I build interfaces built on order and clarity, not show." },
-                      { icon: "👁️", title: "+1.5M views", body: "From honest explanations that build trust no advertising budget can buy." },
+                      { icon: Globe2, title: "From Syria to Germany", body: "Migration changed how I think about time, commitment, and delivery that actually arrives." },
+                      { icon: Zap, title: "Logistics taught me", body: "Every delay has a cost. That's why I build interfaces built on order and clarity, not show." },
+                      { icon: Eye, title: "+1.5M views", body: "From honest explanations that build trust no advertising budget can buy." },
                     ]
                 ).map((card, i) => (
                   <Reveal key={card.title} delay={i * 0.06}>
@@ -733,9 +737,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         backdropFilter: "blur(16px)",
                       }}
                     >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl"
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
                         style={{ background: "rgba(0,255,135,0.08)", border: "1px solid rgba(0,255,135,0.15)" }}>
-                        {card.icon}
+                        <card.icon className="h-5 w-5 text-primary" />
                       </span>
                       <div>
                         <h3 className="font-bold text-foreground">{card.title}</h3>
@@ -954,10 +958,11 @@ function HomePage({ model }: { model: SiteViewModel }) {
             {/* YouTube Stats Dashboard */}
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                { raw: 1500000, display: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total Views", icon: "👁️" },
-                { raw: 6100, display: "+6.1K", label: locale === "ar" ? "مشترك" : "Subscribers", icon: "❤️" },
-                { raw: Number(youtube.videos ?? 162), display: fmt(locale, Number(youtube.videos ?? 162), false), label: locale === "ar" ? "فيديو منشور" : "Videos", icon: "🎬" },
+                { raw: 1500000, display: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total Views", icon: Eye },
+                { raw: 6100, display: "+6.1K", label: locale === "ar" ? "مشترك" : "Subscribers", icon: Heart },
+                { raw: Number(youtube.videos ?? 162), display: fmt(locale, Number(youtube.videos ?? 162), false), label: locale === "ar" ? "فيديو منشور" : "Videos", icon: Clapperboard },
               ].map((stat, i) => {
+                const Icon = stat.icon;
                 return (
                   <Reveal key={stat.label} delay={i * 0.07}>
                     <div
@@ -968,7 +973,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         backdropFilter: "blur(20px)",
                       }}
                     >
-                      <span className="text-3xl">{stat.icon}</span>
+                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                        <Icon className="h-5 w-5 text-secondary" />
+                      </span>
                       <p
                         className="mt-3 text-3xl font-extrabold"
                         style={{ color: "var(--secondary)" }}
@@ -2046,10 +2053,10 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   const videoCount = Number(model.youtube.videos ?? 162);
 
   const stats = [
-    { num: "+1.5M",  label: locale === "ar" ? "مشاهدة إجمالية" : "Total views",       color: "var(--secondary)", icon: "??️" },
-    { num: "+6.1K",  label: locale === "ar" ? "مشترك"           : "Subscribers",        color: "var(--primary)", icon: "❤️" },
-    { num: String(videoCount), label: locale === "ar" ? "فيديو منشور"  : "Videos published", color: "var(--accent)", icon: "🎬" },
-    { num: "??",     label: locale === "ar" ? "عربي من ألمانيا" : "Arab in Germany",    color: "#06b6d4", icon: "??" },
+    { num: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total views", color: "var(--secondary)", icon: Eye },
+    { num: "+6.1K", label: locale === "ar" ? "مشترك" : "Subscribers", color: "var(--primary)", icon: Heart },
+    { num: String(videoCount), label: locale === "ar" ? "فيديو منشور" : "Videos published", color: "var(--accent)", icon: Clapperboard },
+    { num: "DE", label: locale === "ar" ? "من ألمانيا" : "Based in Germany", color: "#06b6d4", icon: Globe2 },
   ];
 
   return (
@@ -2118,7 +2125,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
       <section className="px-5 py-12 md:px-8 md:py-16">
         <div className="section-frame">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((s, i) => (
+            {stats.map((s, i) => {
+              const Icon = s.icon;
+              return (
               <Reveal key={s.label} delay={i * 0.07}>
                 <motion.div
                   whileHover={{ y: -4, borderColor: `${s.color}44` }}
@@ -2131,6 +2140,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 >
                   <div aria-hidden className="pointer-events-none absolute inset-0"
                     style={{ background: `radial-gradient(circle at center, ${s.color}12, transparent 70%)` }} />
+                  <span className="relative z-10 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                    <Icon className="h-5 w-5" style={{ color: s.color }} />
+                  </span>
                   <p className="relative z-10 text-3xl font-black md:text-4xl" style={{ color: s.color }}>
                     {s.num}
                   </p>
@@ -2139,7 +2151,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                   </p>
                 </motion.div>
               </Reveal>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -2168,7 +2180,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                   backdropFilter: "blur(24px)",
                 }}
               >
-                <span className="text-3xl">🎬</span>
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                  <Clapperboard className="h-5 w-5 text-secondary" />
+                </span>
                 <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
                   {t.youtube.collaborationTitle}
                 </h2>

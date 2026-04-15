@@ -34,8 +34,8 @@ export const projects: ProjectEntry[] = [
     coverImage: "/images/moplayer-app-cover.jpeg",
     screenshots: [
       "/images/moplayer-app-cover.jpeg",
-      "/images/brand-spotlight-2026.jpeg",
-      "/images/portrait.jpg",
+      "/images/moplayer_ui_now_playing.png",
+      "/images/moplayer_ui_playlist.png",
     ],
     features: [
       { icon: "play", labelAR: "تشغيل سريع وواجهة نظيفة", labelEN: "Fast playback, clean UI" },

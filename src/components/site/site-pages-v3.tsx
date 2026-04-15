@@ -188,7 +188,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       solution: locale === "ar" ? "تم بناء التسلسل حول الوضوح التشغيلي، القراءة السريعة، وإحساس أقوى بالاعتماد." : "The hierarchy was rebuilt around operational clarity, faster reading, and stronger dependability.",
       result: locale === "ar" ? "النتيجة واجهة أهدأ وأقرب لطبيعة شركة تعمل يومياً تحت ضغط حقيقي." : "The result is calmer, clearer, and much closer to a business that operates under real daily pressure.",
       tags: locale === "ar" ? ["لوجستيات", "واجهة تشغيل", "ثقة الخدمة"] : ["Logistics", "Operations UI", "Service trust"],
-      gallery: ["/images/seel-home-case.png", "/images/seel-gallery-case.png", "/images/brand-spotlight-2026.jpeg"],
+      gallery: ["/images/seel-home-case.png", "/images/seel-service-case.png", "/images/seel-contact-case.png"],
       metrics: locale === "ar"
         ? [{ value: "24/7", label: "إيقاع تشغيلي" }, { value: "TMS", label: "تنسيق المسارات" }, { value: "B2B", label: "ثقة الخدمة" }]
         : [{ value: "24/7", label: "Operations rhythm" }, { value: "TMS", label: "Route management" }, { value: "B2B", label: "Service trust" }],

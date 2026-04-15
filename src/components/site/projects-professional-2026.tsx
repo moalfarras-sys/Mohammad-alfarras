@@ -310,10 +310,10 @@ function FeaturedProject({
           </div>
         </div>
 
-        <div className={cn("relative flex min-h-[360px] flex-col gap-4", reversed && "xl:order-1")}>
-          <motion.div whileHover={{ rotateX: 4, rotateY: reversed ? 6 : -6, scale: 1.01 }} transition={{ duration: 0.35 }} className={cn("relative flex-1 overflow-hidden rounded-[2.1rem] border p-3 shadow-[0_25px_70px_rgba(2,6,23,0.35)]", project.deviceFrame === "phone" ? "mx-auto max-w-[340px]" : "")} style={{ borderColor: accent.glow, background: isLight ? "rgba(255,255,255,0.72)" : "rgba(6,10,18,0.88)" }}>
+        <div className={cn("relative flex min-h-[360px] flex-col gap-4 w-full h-full", reversed && "xl:order-1")}>
+          <motion.div whileHover={{ rotateX: 4, rotateY: reversed ? 6 : -6, scale: 1.01 }} transition={{ duration: 0.35 }} className={cn("relative flex-1 w-full overflow-hidden rounded-[2.1rem] border p-3 shadow-[0_25px_70px_rgba(2,6,23,0.35)]", project.deviceFrame === "phone" ? "mx-auto max-w-[340px]" : "")} style={{ borderColor: accent.glow, background: isLight ? "rgba(255,255,255,0.72)" : "rgba(6,10,18,0.88)" }}>
             <div className={cn("absolute inset-0", project.deviceFrame === "phone" ? "rounded-[2.1rem] border-[10px]" : "rounded-[1.6rem] border-[1px]")} style={{ borderColor: project.deviceFrame === "phone" ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.08)" }} />
-            <div className="relative h-full overflow-hidden rounded-[1.4rem]">
+            <div className="relative h-full min-h-[300px] w-full overflow-hidden rounded-[1.4rem]">
               <Image src={project.image} alt={project.title} fill className="object-cover transition duration-700 group-hover:scale-[1.04]" sizes="(max-width: 1024px) 100vw, 40vw" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/14 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5">
@@ -401,7 +401,7 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
           <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
             <div className="space-y-5">
               <span className="eyebrow">{t(locale, "صفحة أعمال حية مرتبطة بالموقع", "A live projects showcase connected to the site")}</span>
-              <h1 className="headline-arabic max-w-5xl text-4xl font-black leading-[0.94] text-foreground md:text-6xl xl:text-[5.5rem]">
+              <h1 className="headline-arabic max-w-5xl text-4xl font-black leading-tight xl:leading-[1.1] text-foreground md:text-5xl xl:text-6xl text-balance">
                 {t(locale, "مشاريع مبنية لتقود الانطباع، الثقة، والقرار من أول شاشة.", "Projects built to control impression, trust, and decision from the first screen.")}
               </h1>
               <p className="max-w-3xl text-base leading-8 text-foreground-muted md:text-lg">

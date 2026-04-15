@@ -877,7 +877,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
                     className={cn(
                       "group relative overflow-hidden rounded-[2rem]",
-                      isFeatured ? "lg:col-span-2 lg:row-span-2 flex flex-col lg:flex-row" : "flex flex-col",
+                      isFeatured ? "lg:col-span-2 lg:row-span-2 grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr]" : "flex flex-col",
                       isMoPlayer ? "ring-2 ring-purple-500/30" : "",
                     )}
                     style={{
@@ -888,8 +888,8 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   >
                     {/* Image */}
                     <div className={cn(
-                      "relative overflow-hidden",
-                      isFeatured ? "w-full lg:w-3/5 aspect-[16/10] lg:aspect-auto h-full min-h-[300px]" : "w-full aspect-[16/9]"
+                      "relative overflow-hidden w-full h-full",
+                      isFeatured ? "aspect-[16/10] lg:aspect-auto min-h-[300px]" : "aspect-[16/9]"
                     )}>
                       <Image
                         src={project.image}
@@ -941,7 +941,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     {/* Card content */}
                     <div className={cn(
                       "flex flex-col space-y-3 p-5",
-                      isFeatured ? "w-full lg:w-2/5 lg:p-8 lg:justify-center" : "w-full"
+                      isFeatured ? "lg:p-8 lg:justify-center w-full" : "w-full"
                     )}>
                       <h3 className={cn("font-extrabold text-foreground", isFeatured ? "text-2xl md:text-3xl" : "text-lg")}>
                         {project.title}
@@ -953,20 +953,20 @@ function HomePage({ model }: { model: SiteViewModel }) {
                             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
                               {locale === "ar" ? "المشكلة" : "Problem"}
                             </span>
-                            <p className="text-sm text-foreground-muted">{story.challenge}</p>
+                            <p className="text-sm leading-relaxed text-foreground-muted">{story.challenge}</p>
                           </div>
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
                               {locale === "ar" ? "الحل" : "Solution"}
                             </span>
-                            <p className="text-sm text-foreground-muted">{story.solution}</p>
+                            <p className="text-sm leading-relaxed text-foreground-muted">{story.solution}</p>
                           </div>
                         </div>
                       )}
 
                       <p className={cn(
                         "text-foreground-muted",
-                        isFeatured ? "mt-6 text-base leading-relaxed border-t border-border-glass pt-6" : "line-clamp-2 text-sm leading-7"
+                        isFeatured ? "mt-6 text-sm leading-relaxed border-t border-border-glass pt-6" : "line-clamp-2 text-sm leading-7"
                       )}>
                         {story.result}
                       </p>

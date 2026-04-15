@@ -49,7 +49,6 @@ export function SiteNavbar({
     () => false,
   );
   const [scrolled, setScrolled] = useState(false);
-  const isLight = mounted && theme === "light";
 
   useEffect(() => {
     function onScroll() {
@@ -70,15 +69,6 @@ export function SiteNavbar({
           "section-frame mt-2 flex flex-row items-center justify-between gap-2 rounded-full px-3 py-2 transition-all duration-500 md:mt-4 md:px-5 md:py-3",
           scrolled ? "glass-card" : "bg-transparent",
         )}
-        style={
-          scrolled
-            ? {
-                backdropFilter: "blur(16px)",
-                background: "var(--bg-glass)",
-                border: "1px solid var(--border-glass)",
-              }
-            : undefined
-        }
       >
         <div className="flex w-full md:w-auto items-center justify-between">
           {/* Logo */}
@@ -108,7 +98,7 @@ export function SiteNavbar({
           <div className="flex items-center gap-2 md:hidden">
             <motion.button
               type="button"
-              aria-label="Toggle theme"
+              aria-label={locale === "ar" ? "تبديل المظهر" : "Toggle theme"}
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.05 }}
               onClick={toggleTheme}
@@ -153,9 +143,6 @@ export function SiteNavbar({
                   !active && "bg-bg-secondary/40 border border-border-glass"
                 )}
               >
-                <div className="md:hidden">
-                    {getIcon(item.id, "w-4 h-4")}
-                </div>
                 <span className="relative z-10 whitespace-nowrap">{item.label}</span>
                 {active && (
                   <motion.div
@@ -174,7 +161,7 @@ export function SiteNavbar({
           <motion.button
             type="button"
             data-testid="theme-toggle"
-            aria-label="Toggle theme"
+            aria-label={locale === "ar" ? "تبديل المظهر" : "Toggle theme"}
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.05 }}
             onClick={toggleTheme}

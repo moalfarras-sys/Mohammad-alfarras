@@ -25,13 +25,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
         {/* CTA Banner */}
         <section
-          className="relative overflow-hidden rounded-[2.5rem] p-7 md:p-10"
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border-neon)",
-            backdropFilter: "blur(32px)",
-            boxShadow: "0 0 80px rgba(0,255,135,0.06), 0 40px 120px rgba(0,0,0,0.1)",
-          }}
+          className="contact-cta-frame relative"
+          style={{ padding: "1.75rem", borderRadius: "2.5rem" }}
         >
           {/* Decorative glows */}
           <div
@@ -80,23 +75,16 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
         {/* Footer info */}
         <section
-          className="rounded-[2rem] p-6 md:p-8"
-          style={{
-            background: "var(--surface-soft)",
-            border: "1px solid var(--border)",
-            backdropFilter: "blur(20px)",
-          }}
+          className="glass-card rounded-4xl p-6 md:p-8"
         >
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr_0.7fr]">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <span
-                  className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl"
+                  className="navbar-logo-shell relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl"
                   style={{
                     background: "var(--surface)",
-                    border: "1px solid var(--border)",
-                    backdropFilter: "blur(32px) saturate(1.6)",
-                    boxShadow: "var(--shadow-md)",
+                    border: "1px solid var(--border-glass)",
                   }}
                 >
                   <Image
@@ -109,8 +97,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
                 </span>
                 <div>
                   <strong
-                    className="text-xl text-foreground"
-                    style={{ fontFamily: "var(--font-brand)", fontWeight: 800 }}
+                    className="headline-display text-xl text-foreground font-extrabold"
                   >
                     Moalfarras
                   </strong>

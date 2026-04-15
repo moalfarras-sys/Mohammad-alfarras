@@ -367,12 +367,7 @@ function ActionLink({
 function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
   return (
     <div
-      className="group relative overflow-hidden rounded-[1.75rem] p-3 transition-all duration-500"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        backdropFilter: "blur(20px)",
-      }}
+      className="video-card-shell group relative overflow-hidden rounded-[1.75rem] p-3 transition-all duration-500"
     >
       <Link
         href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
@@ -623,11 +618,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     initial={{ opacity: 0, y: 30, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ delay: 0.8, type: "spring", stiffness: 90, damping: 15 }}
-                    className="absolute bottom-4 right-4 z-20 flex min-w-[172px] max-w-[calc(100%-2rem)] items-center gap-3 rounded-[1.6rem] px-4 py-3 md:-bottom-10 md:-right-6 md:min-w-[200px] md:gap-4 md:rounded-[2.5rem] md:px-6 md:py-4"
+                    className="hero-float-card-dark absolute bottom-4 right-4 z-20 flex min-w-[172px] max-w-[calc(100%-2rem)] items-center gap-3 rounded-[1.6rem] px-4 py-3 md:-bottom-10 md:-right-6 md:min-w-[200px] md:gap-4 md:rounded-[2.5rem] md:px-6 md:py-4"
                     style={{
-                      background: "rgba(10,12,24,0.92)",
                       border: "1px solid rgba(255,107,0,0.45)",
-                      backdropFilter: "blur(32px)",
                       boxShadow: "0 15px 45px rgba(255,107,0,0.22), inset 0 1px 1px rgba(255,255,255,0.08)",
                     }}
                   >

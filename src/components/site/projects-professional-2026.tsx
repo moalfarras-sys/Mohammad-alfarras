@@ -1228,7 +1228,8 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
 
   return (
     <div
-      className="relative min-h-screen overflow-hidden"
+      className="relative min-h-screen overflow-hidden transition-opacity duration-500"
+      style={{ opacity: mounted ? 1 : 0 }}
       dir={locale === "ar" ? "rtl" : "ltr"}
       data-testid="projects-page"
     >

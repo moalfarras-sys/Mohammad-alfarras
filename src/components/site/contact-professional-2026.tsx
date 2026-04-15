@@ -36,7 +36,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="contact-page">
+    <div className="relative min-h-screen overflow-hidden py-32 transition-opacity duration-500" style={{ opacity: mounted ? 1 : 0 }} dir={locale === "ar" ? "rtl" : "ltr"} data-testid="contact-page">
       {/* Background is handled by Global Atmospheric Engine */}
 
       <div className="section-frame relative z-10 w-full max-w-[1400px]">

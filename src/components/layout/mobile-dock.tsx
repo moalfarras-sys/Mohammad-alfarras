@@ -4,12 +4,10 @@ import { BriefcaseBusiness, House, Mail, PlaySquare, UserRound } from "lucide-re
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore, type ComponentType } from "react";
+import type { ComponentType } from "react";
 
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/types/cms";
-
-import { useThemeMode } from "./use-theme-mode";
 
 type DockItem = {
   id: string;
@@ -20,13 +18,6 @@ type DockItem = {
 
 export function MobileDock({ locale }: { locale: Locale }) {
   const pathname = usePathname();
-  const { theme } = useThemeMode();
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-  const isLight = mounted && theme === "light";
 
   if (pathname?.endsWith("/admin")) {
     return null;
@@ -47,16 +38,7 @@ export function MobileDock({ locale }: { locale: Locale }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
         data-testid="mobile-dock"
-        className="pointer-events-auto mx-auto flex max-w-sm items-center justify-between rounded-[2rem] px-2 py-2"
-        style={{
-          background: "var(--surface-strong)",
-          border: "1px solid var(--border)",
-          backdropFilter: "blur(32px) saturate(1.5)",
-          WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-          boxShadow: isLight
-            ? "0 20px 60px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.8)"
-            : "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,135,0.06), inset 0 1px 0 rgba(255,255,255,0.04)",
-        }}
+        className="mobile-dock-shell pointer-events-auto mx-auto flex max-w-sm items-center justify-between rounded-4xl px-2 py-2"
       >
         {items.map((item) => {
           const active = pathname === item.href || pathname === item.href + "/";
@@ -66,8 +48,8 @@ export function MobileDock({ locale }: { locale: Locale }) {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.4rem] px-2 py-2.5 text-[10px] font-semibold transition-all duration-300",
-                  active ? "text-[#1A1A1A] dark:text-black" : isLight ? "text-[#495057] hover:text-[#1A1A1A]" : "text-foreground-soft hover:text-foreground-muted",
+                  "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.4rem] px-2 py-2.5 text-[11px] font-semibold transition-all duration-300",
+                  active ? "text-[#0a0a0a]" : "dock-link-inactive",
                 )}
               >
                 {active && (
@@ -85,10 +67,10 @@ export function MobileDock({ locale }: { locale: Locale }) {
                 <Icon
                   className={cn(
                     "relative z-10 h-[1.15rem] w-[1.15rem] shrink-0 transition-all duration-300",
-                    active && "[filter:drop-shadow(0_0_6px_rgba(0,0,0,0.4))]",
+                    active && "filter-[drop-shadow(0_0_6px_rgba(0,0,0,0.4))]",
                   )}
                 />
-                <span className={cn("relative z-10 truncate font-bold", active ? "text-black" : "")}>{item.label}</span>
+                <span className={cn("relative z-10 truncate font-bold", active && "text-[#0a0a0a]")}>{item.label}</span>
               </Link>
             </motion.div>
           );

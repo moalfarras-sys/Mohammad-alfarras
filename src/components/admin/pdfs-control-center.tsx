@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Upload } from "lucide-react";
+import { Download, FileText, Upload } from "lucide-react";
 
 import { savePdfRegistryAction, uploadPdfSlotAction } from "@/lib/admin-actions";
 import type { PdfRegistryDocument } from "@/lib/cms-documents";
@@ -68,8 +68,18 @@ export function PdfsControlCenter({
                 aside={<StatusPill tone={uploadAction.tone === "idle" ? saveAction.tone : uploadAction.tone} message={uploadAction.message || saveAction.message} />}
               />
               <div className="rounded-[1.3rem] border border-white/8 bg-black/10 p-4 text-sm text-foreground-muted">
-                <p>{t(locale, "الرابط المولد", "Generated URL")}</p>
-                <p className="mt-2 font-bold text-foreground">{`/api/cv-pdf?locale=${locale}&variant=${slot}`}</p>
+                <p>{t(locale, "معاينة / تحميل (النسخة النشطة)", "Preview / download (active output)")}</p>
+                <p className="mt-2 break-all font-mono text-xs text-foreground">{`/api/cv-pdf?locale=${locale}&variant=${slot}`}</p>
+                <a
+                  href={`/api/cv-pdf?locale=${locale}&variant=${slot}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="mt-3 inline-flex items-center gap-2 rounded-[1rem] bg-primary px-4 py-2.5 text-xs font-black text-black transition hover:opacity-90"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {t(locale, "فتح أو تحميل PDF", "Open or download PDF")}
+                </a>
               </div>
               <Field label={t(locale, "الوضع النشط", "Active source")}>
                 <Select

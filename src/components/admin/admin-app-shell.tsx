@@ -17,6 +17,8 @@ import { cn } from "@/lib/cn";
 import { logoutAdminAction } from "@/lib/admin-actions";
 import type { Locale } from "@/types/cms";
 
+import { AdminPwaInstallBar } from "./admin-pwa-install-bar";
+
 type AdminAppShellProps = {
   locale: Locale;
   logoSrc: string;
@@ -205,6 +207,8 @@ export function AdminAppShell({
               </div>
             </div>
           </header>
+
+          <AdminPwaInstallBar locale={locale} />
 
           <main className="pb-6">{children}</main>
         </div>

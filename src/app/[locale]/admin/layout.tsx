@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import { AdminAppShell } from "@/components/admin/admin-app-shell";
+import { AdminPwaInstallBar } from "@/components/admin/admin-pwa-install-bar";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getAdminProfileDocument, getBrandAssets, resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { readSnapshot } from "@/lib/content/store";
@@ -13,6 +14,7 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export async function generateMetadata({
@@ -25,16 +27,24 @@ export async function generateMetadata({
   const isArabic = locale === "ar";
 
   return {
-    title: isArabic ? "Moalfarras Control Center" : "Moalfarras Control Center",
-    description: isArabic ? "لوحة إدارة Moalfarras" : "Moalfarras internal CMS",
+    title: isArabic ? "Moalfarras — لوحة التحكم" : "Moalfarras Control Center",
+    description: isArabic ? "تطبيق ويب لإدارة الموقع والسيرة والمشاريع" : "Web app to manage your site, CV, and projects",
+    applicationName: "Moalfarras Control Center",
     manifest: manifestPath,
+    icons: {
+      icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+      apple: [{ url: "/images/logo.png", sizes: "180x180", type: "image/png" }],
+    },
     appleWebApp: {
       capable: true,
-      title: "Moalfarras",
+      title: isArabic ? "لوحة Moalfarras" : "Moalfarras Control",
       statusBarStyle: "black-translucent",
     },
     formatDetection: {
       telephone: false,
+    },
+    other: {
+      "mobile-web-app-capable": "yes",
     },
   };
 }
@@ -51,7 +61,12 @@ export default async function AdminLayout({
   const authenticated = await isAdminAuthenticated();
 
   if (!authenticated) {
-    return <>{children}</>;
+    return (
+      <div className="px-4 pt-4 md:px-6">
+        <AdminPwaInstallBar locale={locale} />
+        {children}
+      </div>
+    );
   }
 
   const snapshot = await readSnapshot();

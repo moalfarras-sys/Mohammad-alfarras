@@ -3,6 +3,7 @@ import {
   ArrowUpRight,
   BookCopy,
   BriefcaseBusiness,
+  Download,
   FileStack,
   FolderKanban,
   Image as ImageIcon,
@@ -163,6 +164,58 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="overflow-hidden rounded-[2rem] border border-primary/20 bg-[linear-gradient(135deg,rgba(0,255,135,0.1),rgba(255,107,0,0.06))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl md:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-black text-foreground md:text-2xl">
+              {t(locale, "تحميل السيرة (PDF)", "CV downloads (PDF)")}
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-foreground-muted">
+              {t(
+                locale,
+                "حمّل النسخة النشطة مباشرة (مولدة أو مرفوعة حسب إعدادات مركز PDF). للتحكم بالمصدر استخدم «مركز ملفات PDF».",
+                "Download the active CV for this locale (generated or uploaded per your PDF registry). Manage sources in PDF control.",
+              )}
+            </p>
+          </div>
+          <Link
+            href={`${base}/pdfs`}
+            className="shrink-0 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-bold text-foreground transition hover:border-primary/30 hover:bg-primary/10"
+          >
+            {t(locale, "إدارة PDF", "Manage PDFs")}
+          </Link>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <a
+            href={`/api/cv-pdf?locale=${locale}&variant=branded`}
+            target="_blank"
+            rel="noreferrer"
+            download
+            className="inline-flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-[1.25rem] bg-primary px-5 py-3.5 text-sm font-black text-black transition hover:opacity-90"
+          >
+            <Download className="h-4 w-4" />
+            {t(locale, "سيرة براند PDF", "Branded CV PDF")}
+          </a>
+          <a
+            href={`/api/cv-pdf?locale=${locale}&variant=ats`}
+            target="_blank"
+            rel="noreferrer"
+            download
+            className="inline-flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-[1.25rem] border border-white/15 bg-white/[0.06] px-5 py-3.5 text-sm font-black text-foreground transition hover:border-primary/25 hover:bg-primary/10"
+          >
+            <Download className="h-4 w-4" />
+            {t(locale, "سيرة ATS PDF", "ATS CV PDF")}
+          </a>
+        </div>
+        <p className="mt-4 text-[11px] leading-5 text-foreground-soft">
+          {t(
+            locale,
+            `البراند النشط: ${pdfRegistry.active.branded === "uploaded" ? "مرفوع" : "مولد"} · ATS النشط: ${pdfRegistry.active.ats === "uploaded" ? "مرفوع" : "مولد"}`,
+            `Active branded: ${pdfRegistry.active.branded} · Active ATS: ${pdfRegistry.active.ats}`,
+          )}
+        </p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

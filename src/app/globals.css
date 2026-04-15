@@ -257,6 +257,23 @@
     animation: mesh-drift-2 35s ease-in-out infinite alternate;
   }
 
+  /* ── PERFORMANCE: Reduced motion for weak devices ── */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    body::before,
+    .mesh-animated-overlay {
+      animation: none !important;
+    }
+  }
+
   [lang="en"] body,
   [lang="en"] {
     direction: ltr;

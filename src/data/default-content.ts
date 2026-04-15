@@ -852,7 +852,7 @@ export const defaultSnapshot: CmsSnapshot = {
     {
       id: "yt-wfTnQK_tTSA",
       youtube_id: "wfTnQK_tTSA",
-      title_ar: "<span dir=\"ltr\" className=\"inline-block\">Voopoo Argus G2 Mini</span> | صغير وأنيق وقوي",
+      title_ar: "Voopoo Argus G2 Mini | صغير وأنيق وقوي",
       title_en: "Voopoo Argus G2 Mini | Compact, stylish, and powerful",
       description_ar: "فيديو سريع يوضح شكل الجهاز، الإحساس العام، ولماذا قد يكون خيارًا مناسبًا لمن يحب الأجهزة الصغيرة العملية.",
       description_en: "A quick product look focused on design, feel, and why this compact device can be a smart everyday pick.",
@@ -867,7 +867,7 @@ export const defaultSnapshot: CmsSnapshot = {
     {
       id: "yt-KhIJc_-7VGQ",
       youtube_id: "KhIJc_-7VGQ",
-      title_ar: "<span dir=\"ltr\" className=\"inline-block\">Aulaya Zeitschaltuhr</span> | فيش كهربائي مع مؤقت",
+      title_ar: "Aulaya Zeitschaltuhr | فيش كهربائي مع مؤقت",
       title_en: "Aulaya digital timer socket | Smart plug with timer",
       description_ar: "شرح عملي لطريقة استخدام المؤقت الرقمي وفكرة المنتج وفائدته في التنظيم اليومي وتوفير الجهد.",
       description_en: "A practical walkthrough showing how the timer socket works and where it becomes genuinely useful in daily routines.",
@@ -882,7 +882,7 @@ export const defaultSnapshot: CmsSnapshot = {
     {
       id: "yt-6nJ2vv_2zpk",
       youtube_id: "6nJ2vv_2zpk",
-      title_ar: "<span dir=\"ltr\" className=\"inline-block\">INSMART Körperfettwaage</span> | ميزان ذكي لقياس دهون الجسم",
+      title_ar: "INSMART Körperfettwaage | ميزان ذكي لقياس دهون الجسم",
       title_en: "INSMART smart body-fat scale",
       description_ar: "نظرة مباشرة على ميزان ذكي يساعد في متابعة الوزن وبعض المؤشرات الصحية بشكل سهل وواضح.",
       description_en: "A concise look at a smart scale designed to make body metrics easier to track and understand.",
@@ -954,8 +954,8 @@ export const defaultSnapshot: CmsSnapshot = {
     { project_id: "wp-moplayer", locale: "en", title: "MoPlayer", summary: "A digital product study showing identity, UX, and storytelling as one system.", description: "An applied direction for building a personal product with cohesive visuals, clear messaging, and scalable structure.", cta_label: "View case" },
   ],
   experiences: [
-    { id: "ex-rhenus", is_active: true, sort_order: 1, company: "<span dir=\"ltr\" className=\"inline-block\">Rhenus Home Delivery GmbH</span>", location: "Germany", start_date: "2023-01-01", end_date: null, current_role: true, logo_media_id: null },
-    { id: "ex-ikea", is_active: true, sort_order: 2, company: "<span dir=\"ltr\" className=\"inline-block\">IKEA</span>", location: "Germany", start_date: "2022-01-01", end_date: "2022-12-31", current_role: false, logo_media_id: null },
+    { id: "ex-rhenus", is_active: true, sort_order: 1, company: "Rhenus Home Delivery GmbH", location: "Germany", start_date: "2023-01-01", end_date: null, current_role: true, logo_media_id: null },
+    { id: "ex-ikea", is_active: true, sort_order: 2, company: "IKEA", location: "Germany", start_date: "2022-01-01", end_date: "2022-12-31", current_role: false, logo_media_id: null },
     { id: "ex-freelance", is_active: true, sort_order: 3, company: "Freelance Digital Projects", location: "Remote / Germany", start_date: "2024-01-01", end_date: null, current_role: true, logo_media_id: null },
   ],
   experience_translations: [

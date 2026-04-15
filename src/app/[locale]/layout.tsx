@@ -31,18 +31,62 @@ export default async function LocaleLayout({
     { id: "contact", label: t.nav.contact, href: withLocale(locale, "contact") },
   ];
 
-  const jsonLd = {
+  // Structured data: Person schema
+  const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: t.brandName,
+    "@id": `${siteUrl}/#person`,
+    name: locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras",
     url: profileUrl,
-    sameAs: ["https://www.youtube.com/@Moalfarras", "https://github.com/moalfarras-sys"],
-    jobTitle: "Web developer, designer, and Arabic tech content creator",
+    image: `${siteUrl}/images/portrait.jpg`,
+    sameAs: [
+      "https://www.youtube.com/@Moalfarras",
+      "https://github.com/moalfarras-sys",
+      "https://de.linkedin.com/in/mohammad-alfarras-525531262",
+      "https://www.instagram.com/moalfarras",
+    ],
+    jobTitle: locale === "ar"
+      ? "مطور ومصمم وصانع محتوى تقني"
+      : "Web developer, designer, and Arabic tech content creator",
+    worksFor: {
+      "@type": "Organization",
+      name: "Freelance",
+    },
+    knowsLanguage: ["ar", "en", "de"],
+    hasOccupation: {
+      "@type": "Occupation",
+      name: locale === "ar" ? "مطور ومصمم مواقع" : "Frontend Developer and Web Designer",
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "DE",
+    },
+  };
+
+  // Structured data: WebSite schema with search action
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    url: siteUrl,
+    name: locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras",
+    author: { "@id": `${siteUrl}/#person` },
+    inLanguage: [locale === "ar" ? "ar-SA" : "en-US", locale === "ar" ? "en-US" : "ar-SA"],
   };
 
   return (
     <div lang={locale} dir={localeMeta[locale].dir} className="min-h-screen">
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* Structured data */}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
 
       <div className="relative min-h-screen">
         <LocaleDocumentSync locale={locale} />

@@ -1462,8 +1462,10 @@ className="object-cover object-top"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-xl font-extrabold text-foreground md:text-2xl" dangerouslySetInnerHTML={{ __html: entry.company }} />
-                          <p className="mt-1 text-sm font-semibold" style={{ color: "var(--secondary)" }} dangerouslySetInnerHTML={{ __html: entry.role }} />
+                        <h3 className="text-xl font-extrabold text-foreground md:text-2xl">
+                          <span dir="ltr" className="inline-block">{entry.company}</span>
+                        </h3>
+                          <p className="mt-1 text-sm font-semibold" style={{ color: "var(--secondary)" }}>{entry.role}</p>
                       </div>
                       <div className="text-end">
                         {entry.period && (

@@ -1,7 +1,37 @@
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
+
+import { AdminAppShell } from "@/components/admin/admin-app-shell";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { logoutAdminAction } from "@/lib/admin-actions";
 import type { Locale } from "@/types/cms";
+
+export const viewport: Viewport = {
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f8fafc" }, { media: "(prefers-color-scheme: dark)", color: "#070b14" }],
+  width: "device-width",
+  initialScale: 1,
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const manifestPath = `/${locale}/admin/manifest.webmanifest`;
+
+  return {
+    title: locale === "ar" ? "لوحة التحكم" : "Admin",
+    description: locale === "ar" ? "إدارة موقع MOALFARRAS" : "Manage MOALFARRAS",
+    manifest: manifestPath,
+    appleWebApp: {
+      capable: true,
+      title: "MA Admin",
+      statusBarStyle: "black-translucent",
+    },
+    formatDetection: {
+      telephone: false,
+    },
+  };
+}
 
 export default async function AdminLayout({
   children,
@@ -18,52 +48,5 @@ export default async function AdminLayout({
     return <>{children}</>;
   }
 
-  const isArabic = locale === "ar";
-  const nav = isArabic
-    ? { dashboard: "لوحة التحكم", cv: "CV Studio", projects: "الأعمال", back: "عودة للموقع", logout: "تسجيل خروج" }
-    : { dashboard: "Dashboard", cv: "CV Studio", projects: "Projects", back: "Back to site", logout: "Logout" };
-
-  return (
-    <div dir={isArabic ? "rtl" : "ltr"} className="min-h-screen">
-      <header className="admin-topbar">
-        <div className="flex items-center gap-2">
-          <Link href={`/${locale}/admin`} className="admin-topbar-brand">
-            M<span className="text-primary">.</span>A
-          </Link>
-          <span className="hidden text-xs font-bold uppercase tracking-[0.2em] text-foreground-soft sm:inline">
-            Admin
-          </span>
-        </div>
-
-        <nav className="admin-topbar-nav" aria-label="Admin navigation">
-          <Link href={`/${locale}/admin`} className="admin-topbar-link">
-            {nav.dashboard}
-          </Link>
-          <Link href={`/${locale}/admin/cv`} className="admin-topbar-link">
-            {nav.cv}
-          </Link>
-          <Link href={`/${locale}/admin/projects`} className="admin-topbar-link">
-            {nav.projects}
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/${locale}`}
-            target="_blank"
-            className="hidden text-xs font-semibold text-foreground-muted hover:text-primary sm:inline-flex"
-          >
-            {nav.back} &rarr;
-          </Link>
-          <form action={logoutAdminAction}>
-            <button type="submit" className="admin-topbar-logout">
-              {nav.logout}
-            </button>
-          </form>
-        </div>
-      </header>
-
-      <main className="pt-16">{children}</main>
-    </div>
-  );
+  return <AdminAppShell locale={locale}>{children}</AdminAppShell>;
 }

@@ -16,5 +16,9 @@ export default async function AdminProjectsPage({
     redirect(`/${locale}/admin?unauthorized=1`);
   }
 
-  return <ProjectsStudio locale={locale} snapshot={snapshot} />;
+  return (
+    <div className="px-3 pb-6 pt-2 md:px-6">
+      <ProjectsStudio locale={locale} snapshot={snapshot} />
+    </div>
+  );
 }

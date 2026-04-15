@@ -79,6 +79,12 @@ function revalidateAll() {
   revalidatePath("/en/admin");
   revalidatePath("/ar/admin/projects");
   revalidatePath("/en/admin/projects");
+  revalidatePath("/ar/admin/pages");
+  revalidatePath("/en/admin/pages");
+  revalidatePath("/ar/admin/cv");
+  revalidatePath("/en/admin/cv");
+  revalidatePath("/ar/admin/advanced");
+  revalidatePath("/en/admin/advanced");
   revalidatePath("/ar/blog");
   revalidatePath("/en/blog");
   revalidatePath("/ar/projects");

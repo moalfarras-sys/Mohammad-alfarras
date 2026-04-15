@@ -1115,6 +1115,111 @@
     box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
   }
 
+  .admin-app-root {
+    min-height: 100dvh;
+    background: var(--bg-primary);
+  }
+
+  .admin-main-safe {
+    min-height: 100dvh;
+    padding-top: 3.5rem;
+    padding-bottom: max(5.75rem, calc(env(safe-area-inset-bottom, 0px) + 4.5rem));
+  }
+
+  @media (min-width: 768px) {
+    .admin-main-safe {
+      padding-bottom: 2rem;
+    }
+  }
+
+  .admin-mobile-dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    border-top: 1px solid var(--border);
+    background: var(--surface-strong);
+    backdrop-filter: blur(20px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  [data-theme="light"] .admin-mobile-dock {
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  .admin-mobile-dock-inner {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 0.25rem;
+    padding: 0.35rem 0.5rem 0.5rem;
+    max-width: 32rem;
+    margin-inline: auto;
+  }
+
+  .admin-mobile-dock-item {
+    display: flex;
+    min-height: 3.35rem;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    border-radius: 1rem;
+    padding: 0.35rem 0.25rem;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--foreground-soft);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .admin-mobile-dock-item-active {
+    background: rgba(0, 255, 135, 0.12);
+    color: var(--primary);
+  }
+
+  [data-theme="light"] .admin-mobile-dock-item-active {
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--primary-dark);
+  }
+
+  .admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: start;
+  }
+
+  .admin-field > span:first-child {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--foreground-muted);
+  }
+
+  .admin-input-lg {
+    min-height: 3rem;
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background: var(--surface-strong);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    color: var(--foreground);
+  }
+
+  [data-theme="light"] .admin-input-lg {
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  .admin-login-form .admin-input-lg:focus {
+    outline: 2px solid rgba(0, 255, 135, 0.35);
+    outline-offset: 0;
+  }
+
   .admin-eyebrow {
     @apply inline-flex w-fit rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em];
     color: var(--primary);

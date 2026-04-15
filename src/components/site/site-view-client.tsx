@@ -32,7 +32,10 @@ import {
   Timer,
   Activity,
   Droplets,
-  Wind
+  Wind,
+  Youtube,
+  CheckCircle,
+  Clock
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMotionValue, useSpring, useTransform } from "framer-motion";
@@ -675,6 +678,27 @@ function HomePage({ model }: { model: SiteViewModel }) {
         />
         <div className="section-frame">
           <Reveal className="space-y-12">
+            
+            {/* ── TRUST STRIP ── */}
+            <div className="mx-auto flex w-full flex-wrap items-center justify-center gap-6 rounded-[2rem] border border-border-glass bg-bg-secondary/30 px-6 py-6 sm:gap-12 md:justify-between text-sm font-bold text-foreground">
+              <div className="flex items-center gap-3">
+                <Youtube className="h-5 w-5 text-[#FF0000]" />
+                <span>1.5M+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "مشاهدات يوتيوب" : "YouTube Views"}</span></span>
+              </div>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="h-5 w-5 text-primary" />
+                <span>40+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "مشروع حقيقي" : "Real Projects"}</span></span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-secondary" />
+                <span>{'<'}24h <span className="font-medium text-foreground-muted">{locale === "ar" ? "سرعة الاستجابة" : "Response Time"}</span></span>
+              </div>
+              <div className="flex items-center gap-3">
+                 <MapPin className="h-5 w-5 text-orange-500" />
+                <span>{locale === "ar" ? "مقره في ألمانيا" : "Based in Germany"}</span>
+              </div>
+            </div>
+
             <SectionHeading
               eyebrow={locale === "ar" ? "قصتي" : "My story"}
               title={locale === "ar" ? "من اللوجستيات إلى صناعة الدهشة" : "From logistics to making impact"}
@@ -684,10 +708,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
               {/* Story text */}
               <div
-                className="rounded-[2rem] p-8 md:p-10"
+                className="rounded-[2rem] p-8 md:p-10 border border-border-glass"
                 style={{
                   background: "var(--surface)",
-                  border: "1px solid rgba(0,255,135,0.1)",
                   backdropFilter: "blur(24px)",
                 }}
               >
@@ -737,10 +760,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   <Reveal key={card.title} delay={i * 0.06}>
                     <motion.div
                       whileHover={{ translateX: locale === "ar" ? -4 : 4, borderColor: "rgba(0,255,135,0.3)" }}
-                      className="flex items-start gap-4 rounded-2xl p-5 transition duration-300"
+                      className="flex items-start gap-4 rounded-2xl p-5 transition duration-300 border border-border-glass"
                       style={{
                         background: "var(--surface)",
-                        border: "1px solid rgba(255,255,255,0.06)",
                         backdropFilter: "blur(16px)",
                       }}
                     >
@@ -856,7 +878,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
                     className={cn(
                       "group relative overflow-hidden rounded-[2rem]",
-                      isFeatured ? "lg:col-span-2 lg:row-span-2" : "",
+                      isFeatured ? "lg:col-span-2 lg:row-span-2 flex flex-col lg:flex-row" : "flex flex-col",
                       isMoPlayer ? "ring-2 ring-purple-500/30" : "",
                     )}
                     style={{
@@ -866,7 +888,10 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     }}
                   >
                     {/* Image */}
-                    <div className={cn("relative overflow-hidden", isFeatured ? "aspect-[16/10]" : "aspect-[16/9]")}>
+                    <div className={cn(
+                      "relative overflow-hidden",
+                      isFeatured ? "w-full lg:w-3/5 aspect-[16/10] lg:aspect-auto h-full min-h-[300px]" : "w-full aspect-[16/9]"
+                    )}>
                       <Image
                         src={project.image}
                         alt={project.title}
@@ -893,45 +918,74 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         </div>
                       )}
 
-                      {/* Hover reveal — Challenge → Solution */}
-                      <motion.div
-                        className="absolute inset-0 flex flex-col justify-end p-6 opacity-0 transition-all duration-500 group-hover:opacity-100"
-                        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.4), transparent)" }}
-                      >
-                        <div className="translate-y-4 space-y-3 transition-all duration-500 group-hover:translate-y-0">
-                          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: glowColor.replace("0.2", "1") }}>
-                            {locale === "ar" ? "التحدي" : "Challenge"}
-                          </span>
-                          <p className="line-clamp-2 text-sm text-foreground/80">{story.challenge}</p>
-                          <div className="flex items-center gap-2 text-xs font-bold" style={{ color: "var(--primary)" }}>
-                            <Zap className="h-3 w-3" />
-                            {locale === "ar" ? "الحل: " : "Solution: "}
-                            <span className="line-clamp-1 text-foreground/70">{story.solution}</span>
+                      {/* Hover reveal — Challenge → Solution (Only for non-featured) */}
+                      {!isFeatured && (
+                        <motion.div
+                          className="absolute inset-0 flex flex-col justify-end p-6 opacity-0 transition-all duration-500 group-hover:opacity-100"
+                          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.4), transparent)" }}
+                        >
+                          <div className="translate-y-4 space-y-3 transition-all duration-500 group-hover:translate-y-0">
+                            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: glowColor.replace("0.2", "1") }}>
+                              {locale === "ar" ? "التحدي" : "Challenge"}
+                            </span>
+                            <p className="line-clamp-2 text-sm text-foreground/80">{story.challenge}</p>
+                            <div className="flex items-center gap-2 text-xs font-bold" style={{ color: "var(--primary)" }}>
+                              <Zap className="h-3 w-3" />
+                              {locale === "ar" ? "الحل: " : "Solution: "}
+                              <span className="line-clamp-1 text-foreground/70">{story.solution}</span>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+                      )}
                     </div>
 
                     {/* Card content */}
-                    <div className="space-y-3 p-5">
-                      <h3 className={cn("font-extrabold text-foreground", isFeatured ? "text-2xl" : "text-lg")}>
+                    <div className={cn(
+                      "flex flex-col space-y-3 p-5",
+                      isFeatured ? "w-full lg:w-2/5 lg:p-8 lg:justify-center" : "w-full"
+                    )}>
+                      <h3 className={cn("font-extrabold text-foreground", isFeatured ? "text-2xl md:text-3xl" : "text-lg")}>
                         {project.title}
                       </h3>
-                      <p className="line-clamp-2 text-sm leading-7 text-foreground-muted">{story.result}</p>
+                      
+                      {isFeatured && (
+                        <div className="mt-4 space-y-5">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
+                              {locale === "ar" ? "المشكلة" : "Problem"}
+                            </span>
+                            <p className="text-sm text-foreground-muted">{story.challenge}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
+                              {locale === "ar" ? "الحل" : "Solution"}
+                            </span>
+                            <p className="text-sm text-foreground-muted">{story.solution}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className={cn(
+                        "text-foreground-muted",
+                        isFeatured ? "mt-6 text-base leading-relaxed border-t border-border-glass pt-6" : "line-clamp-2 text-sm leading-7"
+                      )}>
+                        {story.result}
+                      </p>
+                      
                       {project.href && (
-                        <motion.div whileTap={{ scale: 0.96 }}>
+                        <motion.div whileTap={{ scale: 0.96 }} className={isFeatured ? "mt-6" : "mt-2"}>
                           <a
                             href={project.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all duration-300 hover:-translate-y-0.5"
+                            className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 hover:-translate-y-0.5"
                             style={{
-                              background: "rgba(0,255,135,0.07)",
-                              border: `1px solid ${borderColor}`,
-                              color: "var(--primary)",
+                              background: isFeatured ? "var(--primary)" : "rgba(0,255,135,0.07)",
+                              border: `1px solid ${isFeatured ? "var(--primary)" : borderColor}`,
+                              color: isFeatured ? "black" : "var(--primary)",
                             }}
                           >
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="h-4 w-4" />
                             {t.common.visitProject}
                           </a>
                         </motion.div>
@@ -1569,25 +1623,27 @@ className="object-cover object-top"
                       : "Serious projects deserve direct conversation. Response within 24 hours."}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-3">
+                <div className="flex shrink-0 flex-col sm:flex-row flex-wrap gap-3 w-full md:w-auto mt-6 md:mt-0">
                   <motion.a
-                    href="/Lebenslauf.pdf" target="_blank" rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05, boxShadow: "0 0 30px var(--primary)" }}
-                    whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-black text-black"
-                    style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
+                    href={`/${locale}/contact?subject=new_project`}
+                    whileTap={{ scale: 0.96 }}
+                    className="button-primary-shell flex w-full justify-center text-sm px-6 py-3 sm:w-auto"
                   >
-                    <ArrowUpRight className="h-4 w-4" />
-                    PDF
+                    {locale === "ar" ? "ابدأ مشروعاً جديداً" : "Start a project"}
                   </motion.a>
                   <motion.a
-                    href={`/${locale}/contact`}
-                    whileHover={{ scale: 1.05, borderColor: "rgba(255,255,255,0.25)" }}
-                    whileTap={{ scale: 0.97 }}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-7 py-3.5 text-sm font-bold text-foreground-muted"
+                    href={`/${locale}/contact?subject=redesign`}
+                    whileTap={{ scale: 0.96 }}
+                    className="button-secondary-shell flex w-full justify-center text-sm px-6 py-3 sm:w-auto"
                   >
-                    <Mail className="h-4 w-4" />
-                    {locale === "ar" ? "تواصل" : "Contact"}
+                    {locale === "ar" ? "إعادة تصميم موقعي" : "Redesign my website"}
+                  </motion.a>
+                  <motion.a
+                    href={`/${locale}/contact?subject=personal_brand`}
+                    whileTap={{ scale: 0.96 }}
+                    className="button-ghost-shell flex w-full justify-center border border-border-glass bg-bg-secondary text-sm px-6 py-3 sm:w-auto hover:bg-bg-glass"
+                  >
+                    {locale === "ar" ? "بناء موقعي الشخصي" : "Build personal brand site"}
                   </motion.a>
                 </div>
               </div>

@@ -35,13 +35,13 @@
   --color-accent-warm: #FF6B6B;
   --color-accent-gold: #FFD166;
 
-  --bg-primary-light: #F4F4F5; /* Soft light zinc background */
-  --bg-secondary-light: #E4E4E7; /* Slightly darker zinc for surfaces */
-  --bg-glass-light: rgba(255, 255, 255, 0.5); /* Less opaque white glass */
-  --border-glass-light: rgba(0, 0, 0, 0.06); /* Subtle dark border */
+  --bg-primary-light: #FAFAFA; /* Crisp premium white background */
+  --bg-secondary-light: #F4F4F5; /* Subtle surface color */
+  --bg-glass-light: rgba(255, 255, 255, 0.85); /* Highly opaque glass for text clarity */
+  --border-glass-light: rgba(0, 0, 0, 0.08); /* Clearer separation */
   --text-primary-light: #09090B; /* High contrast dark text */
-  --text-secondary-light: #3F3F46;
-  --text-muted-light: #71717A;
+  --text-secondary-light: #27272A; /* Darker secondary text (Zinc 800) */
+  --text-muted-light: #52525B; /* Darker muted text (Zinc 600) */
 
   --bg-primary-dark: #0D0C1A;
   --bg-secondary-dark: #13122A;
@@ -86,6 +86,9 @@
   --mesh-3: var(--mesh-3-dark);
   --mesh-4: var(--mesh-4-dark);
   --mesh-5: var(--mesh-5-dark);
+  
+  --surface: var(--bg-secondary-dark);
+  --surface-soft: var(--bg-glass-dark);
 }
 
 [data-theme="light"] {
@@ -103,6 +106,9 @@
   --mesh-3: var(--mesh-3-light);
   --mesh-4: var(--mesh-4-light);
   --mesh-5: var(--mesh-5-light);
+  
+  --surface: var(--bg-secondary-light);
+  --surface-soft: var(--bg-glass-light);
 }
 
 [data-theme="dark"] {
@@ -120,6 +126,9 @@
   --mesh-3: var(--mesh-3-dark);
   --mesh-4: var(--mesh-4-dark);
   --mesh-5: var(--mesh-5-dark);
+
+  --surface: var(--bg-secondary-dark);
+  --surface-soft: var(--bg-glass-dark);
 }
 
 /* ── ANIMATED MESH BACKGROUND ── */

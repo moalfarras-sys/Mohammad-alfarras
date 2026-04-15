@@ -216,7 +216,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       solution: locale === "ar" ? "تم بناء الصفحة حول عرض مباشر وCTA واضح ومسار يقود الزائر للحجز." : "The page was rebuilt around a direct offer, clear CTA, and a stronger route toward booking.",
       result: locale === "ar" ? "واجهة أقوى في الانطباع والثقة والحجز الفعلي من أول زيارة." : "A more persuasive interface with stronger trust and booking intent on first visit.",
       tags: locale === "ar" ? ["حجز", "واجهة مبيعات", "تحويل"] : ["Booking", "Sales UI", "Conversion"],
-      gallery: ["/images/schnell-home-case.png", "/images/schnell-home-case.png", "/images/service-logistics-ops.png"],
+      gallery: ["/images/schnell-home-case.png", "/images/schnell-service-case.png", "/images/schnell-contact-case.png"],
       metrics: locale === "ar"
         ? [{ value: "< 60s", label: "وضوح العرض" }, { value: "Lead", label: "تركيز على الطلب" }, { value: "Trust", label: "بناء الثقة" }]
         : [{ value: "< 60s", label: "First-screen clarity" }, { value: "Lead", label: "Lead-first structure" }, { value: "Trust", label: "Trust layer" }],

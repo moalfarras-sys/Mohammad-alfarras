@@ -33,7 +33,6 @@ import {
   Activity,
   Droplets,
   Wind,
-  Youtube,
   CheckCircle,
   Clock
 } from "lucide-react";
@@ -682,7 +681,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
             {/* ── TRUST STRIP ── */}
             <div className="mx-auto flex w-full flex-wrap items-center justify-center gap-6 rounded-[2rem] border border-border-glass bg-bg-secondary/30 px-6 py-6 sm:gap-12 md:justify-between text-sm font-bold text-foreground">
               <div className="flex items-center gap-3">
-                <Youtube className="h-5 w-5 text-[#FF0000]" />
+                <PlayCircle className="h-5 w-5 text-[#FF0000]" />
                 <span>1.5M+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "مشاهدات يوتيوب" : "YouTube Views"}</span></span>
               </div>
               <div className="flex items-center gap-3">

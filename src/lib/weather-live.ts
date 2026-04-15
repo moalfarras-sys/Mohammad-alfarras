@@ -17,36 +17,35 @@ export type LiveWeather = {
 
 type WeatherCondition = LiveWeather["condition"];
 
-type GeoIpResponse = {
-  latitude?: number;
-  longitude?: number;
-  city?: string;
-  country_name?: string;
+type WeatherApiResponse = {
+  location?: { name?: string; country?: string; localtime_epoch?: number };
+  current?: {
+    temp_c?: number;
+    feelslike_c?: number;
+    humidity?: number;
+    wind_kph?: number;
+    pressure_mb?: number;
+    is_day?: number;
+    condition?: { text?: string; code?: number };
+  };
+  forecast?: {
+    forecastday?: Array<{
+      astro?: { sunrise?: string; sunset?: string };
+    }>;
+  };
 };
 
-type OpenWeatherResponse = {
-  name?: string;
-  main: { temp: number; feels_like: number; humidity: number; pressure: number };
-  weather: Array<{ main: string; icon: string }>;
-  wind?: { speed?: number };
-  sys?: { country?: string; sunrise?: number; sunset?: number };
-  dt?: number;
-};
-
-function normalizeCondition(value: string): WeatherCondition {
-  if (["Clear", "Clouds", "Rain", "Thunderstorm", "Snow", "Drizzle", "Mist"].includes(value)) {
-    return value as WeatherCondition;
-  }
+function mapCondition(text: string | undefined, code: number | undefined): WeatherCondition {
+  if (!text && !code) return "Clear";
+  const t = (text ?? "").toLowerCase();
+  if (code === 1000 || t.includes("sunny") || t.includes("clear")) return "Clear";
+  if (t.includes("thunder") || t.includes("storm")) return "Thunderstorm";
+  if (t.includes("snow") || t.includes("blizzard") || t.includes("sleet") || t.includes("ice")) return "Snow";
+  if (t.includes("drizzle")) return "Drizzle";
+  if (t.includes("rain") || t.includes("shower")) return "Rain";
+  if (t.includes("fog") || t.includes("mist") || t.includes("haze")) return "Mist";
+  if (t.includes("cloud") || t.includes("overcast") || t.includes("partly")) return "Clouds";
   return "Clear";
-}
-
-function formatClock(unixSeconds: number | undefined, locale: string) {
-  if (!unixSeconds) return "--:--";
-  return new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(unixSeconds * 1000));
 }
 
 export async function getLiveWeather(): Promise<LiveWeather | null> {
@@ -55,86 +54,77 @@ export async function getLiveWeather(): Promise<LiveWeather | null> {
 
   try {
     const headerBag = await headers();
-    const forwardedIp = headerBag.get("x-forwarded-for");
-    const realIp = headerBag.get("x-real-ip");
-    const ip = (forwardedIp?.split(",")[0].trim() || realIp || "").trim();
 
-    const vercelLat = Number(headerBag.get("x-vercel-ip-latitude") || "");
-    const vercelLon = Number(headerBag.get("x-vercel-ip-longitude") || "");
     const vercelCity = headerBag.get("x-vercel-ip-city") || "";
     const vercelCountry = headerBag.get("x-vercel-ip-country") || "";
+    const vercelLat = headerBag.get("x-vercel-ip-latitude") || "";
+    const vercelLon = headerBag.get("x-vercel-ip-longitude") || "";
+    const forwardedIp = headerBag.get("x-forwarded-for")?.split(",")[0].trim() || "";
+    const realIp = headerBag.get("x-real-ip") || "";
 
-    let lat = Number.isFinite(vercelLat) ? vercelLat : 51.2277;
-    let lon = Number.isFinite(vercelLon) ? vercelLon : 6.7735;
-    let fallbackCity = vercelCity || "Düsseldorf";
-    let fallbackCountry = vercelCountry || "DE";
-
-    if ((!Number.isFinite(vercelLat) || !Number.isFinite(vercelLon)) && ip && ip !== "127.0.0.1" && ip !== "::1") {
-      try {
-        const geoRes = await fetch(`https://ipapi.co/${ip}/json/`, { next: { revalidate: 3600 } });
-        if (geoRes.ok) {
-          const geo = (await geoRes.json()) as GeoIpResponse;
-          if (typeof geo.latitude === "number" && typeof geo.longitude === "number") {
-            lat = geo.latitude;
-            lon = geo.longitude;
-            fallbackCity = geo.city || fallbackCity;
-            fallbackCountry = geo.country_name || fallbackCountry;
-          }
-        }
-      } catch (error) {
-        console.warn("GeoIP lookup failed.", error);
-      }
+    let query = "Bremen";
+    if (vercelLat && vercelLon) {
+      query = `${vercelLat},${vercelLon}`;
+    } else if (vercelCity) {
+      query = vercelCity;
+    } else if (forwardedIp && forwardedIp !== "127.0.0.1" && forwardedIp !== "::1") {
+      query = forwardedIp;
+    } else if (realIp && realIp !== "127.0.0.1" && realIp !== "::1") {
+      query = realIp;
     }
 
-    const weatherRes = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`,
-      { next: { revalidate: 300 } },
-    );
-    if (!weatherRes.ok) return getMockWeather();
+    const url = new URL("https://api.weatherapi.com/v1/forecast.json");
+    url.searchParams.set("key", apiKey);
+    url.searchParams.set("q", query);
+    url.searchParams.set("days", "1");
+    url.searchParams.set("aqi", "no");
 
-    const data = (await weatherRes.json()) as OpenWeatherResponse;
-    const condition = normalizeCondition(data.weather[0]?.main || "Clear");
-    const locale = "en-GB";
-    const sunrise = formatClock(data.sys?.sunrise, locale);
-    const sunset = formatClock(data.sys?.sunset, locale);
-    const now = data.dt ?? Math.floor(Date.now() / 1000);
-    const isDay = typeof data.sys?.sunrise === "number" && typeof data.sys?.sunset === "number"
-      ? now >= data.sys.sunrise && now < data.sys.sunset
-      : true;
+    const res = await fetch(url.toString(), { next: { revalidate: 300 } });
+    if (!res.ok) {
+      console.warn(`WeatherAPI returned ${res.status}`);
+      return getMockWeather();
+    }
+
+    const data = (await res.json()) as WeatherApiResponse;
+    if (!data.location || !data.current) return getMockWeather();
+
+    const condition = mapCondition(data.current.condition?.text, data.current.condition?.code);
+    const astro = data.forecast?.forecastday?.[0]?.astro;
 
     return {
-      city: data.name || fallbackCity,
-      country: data.sys?.country || fallbackCountry,
-      temp: Math.round(data.main.temp),
-      feelsLike: Math.round(data.main.feels_like),
-      humidity: Math.round(data.main.humidity),
-      wind: Number((data.wind?.speed ?? 0).toFixed(1)),
-      pressure: Math.round(data.main.pressure),
-      sunrise,
-      sunset,
-      isDay,
+      city: data.location.name || vercelCity || "Bremen",
+      country: data.location.country || vercelCountry || "Germany",
+      temp: Math.round(data.current.temp_c ?? 0),
+      feelsLike: Math.round(data.current.feelslike_c ?? 0),
+      humidity: Math.round(data.current.humidity ?? 0),
+      wind: Number(((data.current.wind_kph ?? 0) / 3.6).toFixed(1)),
+      pressure: Math.round(data.current.pressure_mb ?? 0),
+      sunrise: astro?.sunrise ?? "06:00",
+      sunset: astro?.sunset ?? "20:00",
+      isDay: data.current.is_day === 1,
       condition,
-      icon: data.weather[0]?.icon || "01d",
+      icon: condition === "Clear" ? "01d" : "02d",
     };
   } catch (error) {
-    console.error("Weather fetch failed, using fallback:", error);
+    console.error("Weather fetch failed:", error);
     return getMockWeather();
   }
 }
 
 function getMockWeather(): LiveWeather {
+  const hour = new Date().getHours();
   return {
-    city: "Düsseldorf",
-    country: "DE",
-    temp: 19,
-    feelsLike: 18,
-    humidity: 54,
-    wind: 3.8,
-    pressure: 1014,
-    sunrise: "06:34",
-    sunset: "20:16",
-    isDay: true,
-    condition: "Clear",
-    icon: "01d",
+    city: "Bremen",
+    country: "Germany",
+    temp: 17,
+    feelsLike: 15,
+    humidity: 62,
+    wind: 3.2,
+    pressure: 1016,
+    sunrise: "06:28",
+    sunset: "20:22",
+    isDay: hour >= 6 && hour < 20,
+    condition: "Clouds",
+    icon: "02d",
   };
 }

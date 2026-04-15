@@ -188,7 +188,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       solution: locale === "ar" ? "تم بناء التسلسل حول الوضوح التشغيلي، القراءة السريعة، وإحساس أقوى بالاعتماد." : "The hierarchy was rebuilt around operational clarity, faster reading, and stronger dependability.",
       result: locale === "ar" ? "النتيجة واجهة أهدأ وأقرب لطبيعة شركة تعمل يومياً تحت ضغط حقيقي." : "The result is calmer, clearer, and much closer to a business that operates under real daily pressure.",
       tags: locale === "ar" ? ["لوجستيات", "واجهة تشغيل", "ثقة الخدمة"] : ["Logistics", "Operations UI", "Service trust"],
-      gallery: ["/images/seel-home-case.png", "/images/seel-service-case.png", "/images/seel-contact-case.png"],
+      gallery: ["/images/seel-service-case.png", "/images/seel-gallery-case.png", "/images/seel-contact-case.png"],
       metrics: locale === "ar"
         ? [{ value: "24/7", label: "إيقاع تشغيلي" }, { value: "TMS", label: "تنسيق المسارات" }, { value: "B2B", label: "ثقة الخدمة" }]
         : [{ value: "24/7", label: "Operations rhythm" }, { value: "TMS", label: "Route management" }, { value: "B2B", label: "Service trust" }],
@@ -216,7 +216,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       solution: locale === "ar" ? "تم بناء الصفحة حول عرض مباشر وCTA واضح ومسار يقود الزائر للحجز." : "The page was rebuilt around a direct offer, clear CTA, and a stronger route toward booking.",
       result: locale === "ar" ? "واجهة أقوى في الانطباع والثقة والحجز الفعلي من أول زيارة." : "A more persuasive interface with stronger trust and booking intent on first visit.",
       tags: locale === "ar" ? ["حجز", "واجهة مبيعات", "تحويل"] : ["Booking", "Sales UI", "Conversion"],
-      gallery: ["/images/schnell-home-case.png", "/images/schnell-service-case.png", "/images/schnell-contact-case.png"],
+      gallery: ["/images/schnell-service-case.png", "/images/schnell-contact-case.png"],
       metrics: locale === "ar"
         ? [{ value: "< 60s", label: "وضوح العرض" }, { value: "Lead", label: "تركيز على الطلب" }, { value: "Trust", label: "بناء الثقة" }]
         : [{ value: "< 60s", label: "First-screen clarity" }, { value: "Lead", label: "Lead-first structure" }, { value: "Trust", label: "Trust layer" }],

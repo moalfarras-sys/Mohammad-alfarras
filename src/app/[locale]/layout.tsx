@@ -63,7 +63,6 @@ export default async function LocaleLayout({
     },
   };
 
-  // Structured data: WebSite schema with search action
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -72,6 +71,22 @@ export default async function LocaleLayout({
     name: locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras",
     author: { "@id": `${siteUrl}/#person` },
     inLanguage: [locale === "ar" ? "ar-SA" : "en-US", locale === "ar" ? "en-US" : "ar-SA"],
+    potentialAction: {
+      "@type": "ReadAction",
+      target: `${siteUrl}/${locale}`,
+    },
+  };
+
+  const portfolioJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${siteUrl}/${locale}/projects#collection`,
+    name: locale === "ar" ? "أعمال محمد الفراس" : "Mohammad Alfarras Portfolio",
+    url: `${siteUrl}/${locale}/projects`,
+    author: { "@id": `${siteUrl}/#person` },
+    description: locale === "ar"
+      ? "دراسات حالة مختارة توضح كيف يتحول الويب من واجهة جميلة إلى أداة تقنع"
+      : "Selected case studies showing how websites become clearer and more conversion-focused",
   };
 
   return (
@@ -86,6 +101,11 @@ export default async function LocaleLayout({
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioJsonLd) }}
       />
 
       <div className="relative min-h-screen">

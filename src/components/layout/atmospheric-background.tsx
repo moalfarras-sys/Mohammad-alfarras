@@ -1,17 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 export function AtmosphericBackground() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <div className="pointer-events-none fixed inset-0 -z-50 overflow-hidden bg-background">
       <div className="mesh-animated-overlay" />
 
-      {/* Dynamic Mesh Layers */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
+        transition={{ duration: prefersReducedMotion ? 0.1 : 1.5 }}
         className="absolute inset-0"
       >
         <div 
@@ -28,31 +29,30 @@ export function AtmosphericBackground() {
           }}
         />
 
-        {/* Animated Drift Overlay */}
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            duration: 40,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="absolute inset-[-20%] opacity-50 blur-[100px] dark:opacity-20"
-          style={{
-            background: "radial-gradient(circle at 30% 30%, var(--color-primary), transparent 60%), radial-gradient(circle at 70% 70%, var(--color-accent-warm), transparent 60%)",
-          }}
-        />
+        {!prefersReducedMotion && (
+          <motion.div
+            animate={{
+              scale: [1, 1.15, 1],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{
+              duration: 40,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="absolute inset-[-20%] opacity-50 blur-[100px] dark:opacity-20"
+            style={{
+              background: "radial-gradient(circle at 30% 30%, var(--color-primary), transparent 60%), radial-gradient(circle at 70% 70%, var(--color-accent-warm), transparent 60%)",
+            }}
+          />
+        )}
       </motion.div>
 
-      {/* Subtle Texture Overlay */}
       <div 
         className="absolute inset-0 opacity-[0.1] dark:opacity-[0.14] mix-blend-overlay pointer-events-none"
         style={{ backgroundImage: "var(--noise)" }}
       />
       
-      {/* vignette to focus content */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_100%)] opacity-40" />
     </div>
   );

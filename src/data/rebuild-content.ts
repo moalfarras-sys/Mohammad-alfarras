@@ -153,7 +153,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "محتوى تقني عربي صادق من ألمانيا. شرح واضح، مراجعات حقيقية، وثقة لا تُشترى بالإعلان.",
         ogTitle: "يوتيوب | محتوى عربي حقيقي من ألمانيا",
         ogDescription: "أكثر من 1.5 مليون مشاهدة بنت سلطة مبنية على الصدق لا على الضجيج.",
-        image: "/images/yt-channel-hero.png",
+        image: "/images/yt-hero-2026.png",
       },
       contact: {
         title: "تواصل | محمد الفراس",
@@ -259,15 +259,15 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
           role: "Mohammad Alfarras Studio",
           period: "2021 – Present",
           location: "Bremen, Germany",
-          body: "تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (<span dir=\"ltr\" className=\"inline-block px-1\">Next.js</span>, <span dir=\"ltr\" className=\"inline-block px-1\">React</span>, <span dir=\"ltr\" className=\"inline-block px-1\">Tailwind</span>). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.",
+          body: "تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (<span dir=\"ltr\" class=\"inline-block px-1\">Next.js</span>، <span dir=\"ltr\" class=\"inline-block px-1\">React</span>، <span dir=\"ltr\" class=\"inline-block px-1\">Tailwind</span>). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.",
           highlights: ["Next.js & React", "UI/UX Design", "Content Creation", "1.5M+ Views"],
         },
         {
-          title: "<span dir=\"ltr\" className=\"inline-block\">Rhenus Home Delivery GmbH</span>",
+          title: "Rhenus Home Delivery GmbH",
           role: "Dispositionsmitarbeiter",
           period: "2018 – 2021",
           location: "Germany",
-          body: "العمل اليومي تحت الضغط وإدارة العمليات اللوجستية. استخدام نظام (<span dir=\"ltr\" className=\"inline-block px-1\">TMS</span>) لإدارة حركة النقل وتوجيه السائقين والتواصل مع خدمة العملاء لضمان التسليم السريع الخالي من الأخطاء.",
+          body: "العمل اليومي تحت الضغط وإدارة العمليات اللوجستية. استخدام نظام (<span dir=\"ltr\" class=\"inline-block px-1\">TMS</span>) لإدارة حركة النقل وتوجيه السائقين والتواصل مع خدمة العملاء لضمان التسليم السريع الخالي من الأخطاء.",
           highlights: ["Logistics", "TMS", "Kundendienst", "Fahrerbetreuung"],
         },
         {
@@ -414,7 +414,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "Arabic tech content from Germany built on honesty, clarity, and product storytelling that earns trust.",
         ogTitle: "YouTube | Arabic tech content without the filler",
         ogDescription: "More than 1.5M views built on clear explanation, not paid hype.",
-        image: "/images/yt-channel-hero.png",
+        image: "/images/yt-hero-2026.png",
       },
       contact: {
         title: "Contact | Mohammad Alfarras",

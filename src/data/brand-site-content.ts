@@ -464,7 +464,7 @@ export const brandSiteContent: Record<Locale, BrandPageContent> = {
       workLabel: "أعمال مختارة",
       workTitle: "أعمال تُعرض كدليل واضح، لا كواجهة مزخرفة.",
       workBody:
-        "هذه الأعمال ليست مجرد لقطات جميلة. هي أمثلة على كيف يمكن للعرض الأوضح، والبنية الأقوى، والرسالة الأدق أن تصنع ثقة أسرع. مشروع <span dir=\"ltr\" className=\"inline-block\">MoPlayer</span> سيتم نقله إلى صفحة مشاريع كتجربة قادمة.",
+        "هذه الأعمال ليست مجرد لقطات جميلة. هي أمثلة على كيف يمكن للعرض الأوضح، والبنية الأقوى، والرسالة الأدق أن تصنع ثقة أسرع. مشروع MoPlayer سيتم نقله إلى صفحة مشاريع كتجربة قادمة.",
       youtubeLabel: "المحتوى / يوتيوب",
       youtubeTitle: "المحتوى هنا ليس جانبًا منفصلًا، بل جزء من نفس الحرفة.",
       youtubeBody:
@@ -496,7 +496,7 @@ export const brandSiteContent: Record<Locale, BrandPageContent> = {
       storyTitle: "الفرق لا يأتي من مسمى واحد، بل من المزج بين أكثر من خبرة حقيقية.",
       storyBody: [
         "عملي يقف بين التصميم الرقمي، بناء المواقع، والتواصل التقني العربي. وما يجعل هذه التركيبة مفيدة فعلًا هو أنها مدعومة بخلفية تشغيلية حقيقية.",
-        "العمل في بيئات مثل <span dir=\"ltr\" className=\"inline-block\">Rhenus</span> و<span dir=\"ltr\" className=\"inline-block\">IKEA</span> علّمني أن التنظيم مهم، والمواعيد مهمة، والاعتمادية مهمة. ولهذا لا أتعامل مع الموقع كعنصر جمالي فقط، بل كنظام يجب أن يؤدي وظيفته بوضوح.",
+        "العمل في بيئات مثل Rhenus وIKEA علّمني أن التنظيم مهم، والمواعيد مهمة، والاعتمادية مهمة. ولهذا لا أتعامل مع الموقع كعنصر جمالي فقط، بل كنظام يجب أن يؤدي وظيفته بوضوح.",
       ],
       timelineLabel: "الخط الزمني",
       timelineTitle: "من التشغيل إلى بناء الحضور الرقمي.",
@@ -507,8 +507,8 @@ export const brandSiteContent: Record<Locale, BrandPageContent> = {
       stackBody:
         "الأدوات مهمة فقط عندما تخدم الوضوح. أستخدم تقنيات حديثة لبناء تجارب سريعة، قابلة للتطوير، وممسوكة بصريًا.",
       stackGroups: [
-        { title: "البناء", items: ["<span dir=\"ltr\">Next.js</span>", "<span dir=\"ltr\">React</span>", "<span dir=\"ltr\">TypeScript</span>", "<span dir=\"ltr\">Tailwind CSS</span>"] },
-        { title: "التصميم", items: ["<span dir=\"ltr\">Figma</span>", "أنظمة واجهات", "هيكلة صفحات الهبوط", "هرمية المحتوى"] },
+        { title: "البناء", items: ["Next.js", "React", "TypeScript", "Tailwind CSS"] },
+        { title: "التصميم", items: ["Figma", "أنظمة واجهات", "هيكلة صفحات الهبوط", "هرمية المحتوى"] },
         { title: "المحتوى", items: ["مراجعات تقنية عربية", "تقديم المنتجات", "سرد الفيديو", "بناء ثقة الجمهور"] },
       ],
       creatorLabel: "مصداقية صانع المحتوى",
@@ -595,7 +595,7 @@ export const brandSiteContent: Record<Locale, BrandPageContent> = {
     },
     projects: {
       "wp-seel": {
-        name: "<span dir=\"ltr\" className=\"inline-block\">SEEL Transport</span>",
+        name: "SEEL Transport",
         summary: "موقع خدمات لوجستية ونقل أُعيد بناؤه ليبدو أوضح، أقوى، وأسهل في كسب الثقة.",
         challenge:
           "كان المشروع يحتاج انطباعًا أول أكثر جدية وقصة خدمة أوضح حتى يفهم الزائر العرض بسرعة وبدون تردد.",
@@ -606,7 +606,7 @@ export const brandSiteContent: Record<Locale, BrandPageContent> = {
         cta: "زيارة الموقع",
       },
       "wp-schnell": {
-        name: "<span dir=\"ltr\" className=\"inline-block\">Schnell Sicher Umzug</span>",
+        name: "Schnell Sicher Umzug",
         summary: "موقع نقل يركز على سرعة الفهم، وضوح الحجز، وتحكم بصري أقوى.",
         challenge:
           "كان يجب أن تُفهم الخدمة بسرعة. الزائر يحتاج أن يعرف ما الذي يُعرض عليه وما الخطوة التالية تقريبًا من أول لحظة.",
@@ -617,7 +617,7 @@ export const brandSiteContent: Record<Locale, BrandPageContent> = {
         cta: "زيارة الموقع",
       },
       "wp-moplayer": {
-        name: "<span dir=\"ltr\" className=\"inline-block\">MoPlayer</span>",
+        name: "MoPlayer",
         summary: "اتجاه منتج رقمي كان يحتاج أن تبدو هويته وواجهته وسرده كنظام واحد متماسك.",
         challenge:
           "المطلوب هنا لم يكن بيع خدمة فقط، بل إثبات أن المنتج يمكن أن يبدو مقصودًا من الهوية حتى الواجهة.",

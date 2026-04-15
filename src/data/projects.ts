@@ -33,7 +33,6 @@ export const projects: ProjectEntry[] = [
     descriptionEN: "A personal app in development for a clean, focused media experience.",
     coverImage: "/images/moplayer-app-cover.jpeg",
     screenshots: [
-      "/images/moplayer-app-cover.jpeg",
       "/images/moplayer_ui_now_playing.png",
       "/images/moplayer_ui_playlist.png",
     ],

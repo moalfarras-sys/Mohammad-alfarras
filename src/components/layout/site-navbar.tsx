@@ -86,14 +86,13 @@ export function SiteNavbar({
             <motion.span
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="relative flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-500"
+              className="navbar-logo-shell relative flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-500"
               style={{
                 background: "var(--bg-secondary)",
                 border: "1px solid var(--border-glass)",
-                boxShadow: isLight ? "0 8px 20px rgba(15,23,42,0.05)" : "0 0 20px rgba(0,255,135,0.08)",
               }}
             >
-              <Image src="/images/logo.png" alt="Logo" width={48} height={40} priority className={cn("object-contain transition-all scale-75 md:scale-100", isLight && "filter brightness-50 invert")} />
+              <Image src="/images/logo.png" alt="Logo" width={48} height={40} priority className="navbar-logo-img object-contain transition-all scale-75 md:scale-100" />
             </motion.span>
             <span className="hidden min-w-0 sm:grid">
               <strong className="headline-display truncate text-base font-extrabold text-foreground transition-all duration-300 group-hover:text-primary">
@@ -147,11 +146,9 @@ export function SiteNavbar({
                 key={item.id}
                 href={item.href}
                 className={cn(
-                  "relative flex items-center gap-2 shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-all duration-300",
+                  "navbar-link relative flex items-center gap-2 shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-all duration-300",
                   active
                     ? "text-primary"
-                    : isLight
-                    ? "text-slate-600 hover:text-slate-900"
                     : "text-foreground-muted hover:text-foreground",
                   !active && "bg-bg-secondary/40 border border-border-glass"
                 )}
@@ -181,10 +178,7 @@ export function SiteNavbar({
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.05 }}
             onClick={toggleTheme}
-            className="relative inline-flex h-11 w-11 overflow-hidden items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground border border-border-glass bg-bg-secondary"
-            style={{
-              boxShadow: isLight ? "0 8px 20px rgba(15,23,42,0.04)" : "none",
-            }}
+            className="navbar-theme-btn relative inline-flex h-11 w-11 overflow-hidden items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground border border-border-glass bg-bg-secondary"
           >
               <AnimatePresence mode="wait">
                 {mounted && theme === "dark" ? (

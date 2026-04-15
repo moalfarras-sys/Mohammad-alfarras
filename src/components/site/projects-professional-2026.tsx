@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, type Variants, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -24,15 +24,24 @@ import {
   Trophy,
   Wind,
   Zap,
+  TrendingUp,
+  Clock,
+  BarChart3,
+  ChevronRight,
+  Check,
+  Star,
 } from "lucide-react";
 import * as React from "react";
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore, useRef, useState, useEffect } from "react";
 
 import { useThemeMode } from "@/components/layout/use-theme-mode";
 import { cn } from "@/lib/cn";
 
 import type { SiteViewModel } from "./site-view-client";
 
+/* ────────────────────────────────────────────────
+   PARTICLE SYSTEMS
+───────────────────────────────────────────────── */
 const rainParticles = Array.from({ length: 26 }, (_, i) => ({
   id: i,
   x: (i % 13) * 8,
@@ -48,28 +57,23 @@ const snowParticles = Array.from({ length: 24 }, (_, i) => ({
   duration: 4 + (i % 5) * 0.5,
 }));
 
-function t(locale: SiteViewModel["locale"], ar: string, en: string) {
+/* ────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────── */
+function t<T extends React.ReactNode>(locale: SiteViewModel["locale"], ar: T, en: T): T {
   return locale === "ar" ? ar : en;
 }
 
 function localizeWeatherCondition(locale: SiteViewModel["locale"], condition?: string | null) {
   switch (condition) {
-    case "Clear":
-      return t(locale, "سماء صافية", "Clear sky");
-    case "Clouds":
-      return t(locale, "غيوم", "Clouds");
-    case "Rain":
-      return t(locale, "مطر", "Rain");
-    case "Drizzle":
-      return t(locale, "رذاذ", "Drizzle");
-    case "Thunderstorm":
-      return t(locale, "عاصفة رعدية", "Thunderstorm");
-    case "Snow":
-      return t(locale, "ثلوج", "Snow");
-    case "Mist":
-      return t(locale, "ضباب", "Mist");
-    default:
-      return condition ?? t(locale, "الطقس المباشر", "Live weather");
+    case "Clear":      return t(locale, "سماء صافية", "Clear sky");
+    case "Clouds":     return t(locale, "غيوم", "Clouds");
+    case "Rain":       return t(locale, "مطر", "Rain");
+    case "Drizzle":    return t(locale, "رذاذ", "Drizzle");
+    case "Thunderstorm": return t(locale, "عاصفة رعدية", "Thunderstorm");
+    case "Snow":       return t(locale, "ثلوج", "Snow");
+    case "Mist":       return t(locale, "ضباب", "Mist");
+    default:           return condition ?? t(locale, "الطقس المباشر", "Live weather");
   }
 }
 
@@ -78,17 +82,16 @@ function localizeHighlightStyle(
   style: SiteViewModel["projects"][number]["highlightStyle"],
 ) {
   switch (style) {
-    case "operations":
-      return t(locale, "تشغيل / عمليات", "Operations");
-    case "trust":
-      return t(locale, "ثقة / تحويل", "Trust / Conversion");
-    case "app":
-      return t(locale, "تجربة تطبيق", "App Experience");
-    default:
-      return t(locale, "دراسة حالة", "Case Study");
+    case "operations": return t(locale, "تشغيل / عمليات", "Operations");
+    case "trust":      return t(locale, "ثقة / تحويل", "Trust / Conversion");
+    case "app":        return t(locale, "تجربة تطبيق", "App Experience");
+    default:           return t(locale, "دراسة حالة", "Case Study");
   }
 }
 
+/* ────────────────────────────────────────────────
+   WEATHER COMPONENTS
+───────────────────────────────────────────────── */
 function WeatherGlyph({ condition }: { condition?: string | null }) {
   switch (condition) {
     case "Clouds":
@@ -172,6 +175,9 @@ function WeatherScene({ condition, isDay }: { condition: string; isDay: boolean 
   );
 }
 
+/* ────────────────────────────────────────────────
+   ACCENT STYLES
+───────────────────────────────────────────────── */
 function accentStyles(accent: SiteViewModel["projects"][number]["accent"], isLight: boolean) {
   if (accent === "orange") {
     return { tint: "#ff6b00", glow: "rgba(255,107,0,0.25)", badge: isLight ? "rgba(255,107,0,0.08)" : "rgba(255,107,0,0.14)" };
@@ -187,15 +193,351 @@ function accentStyles(accent: SiteViewModel["projects"][number]["accent"], isLig
 
 function deviceBadge(project: SiteViewModel["projects"][number], locale: SiteViewModel["locale"]) {
   switch (project.deviceFrame) {
-    case "phone":
-      return { icon: Smartphone, label: t(locale, "عرض تطبيق", "App framing") };
-    case "floating":
-      return { icon: Sparkles, label: t(locale, "عرض سينمائي", "Floating showcase") };
-    default:
-      return { icon: Globe, label: t(locale, "عرض متصفح", "Browser framing") };
+    case "phone":    return { icon: Smartphone, label: t(locale, "عرض تطبيق", "App framing") };
+    case "floating": return { icon: Sparkles, label: t(locale, "عرض سينمائي", "Floating showcase") };
+    default:         return { icon: Globe, label: t(locale, "عرض متصفح", "Browser framing") };
   }
 }
 
+/* ────────────────────────────────────────────────
+   CINEMATIC HERO SECTION
+───────────────────────────────────────────────── */
+function CinematicHero({ locale, isLight, projects }: {
+  locale: SiteViewModel["locale"];
+  isLight: boolean;
+  projects: SiteViewModel["projects"];
+}) {
+  const featuredNames = projects.filter(p => p.featured).map(p => p.title);
+
+  return (
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.9 }}
+      className="relative overflow-hidden py-28 md:py-36"
+    >
+      {/* Cinematic background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: isLight
+              ? "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,255,135,0.12), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.1), transparent 50%)"
+              : "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,255,135,0.08), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.07), transparent 50%)",
+          }}
+        />
+        {/* Animated grid lines */}
+        <svg className="absolute inset-0 h-full w-full opacity-[0.03]" aria-hidden>
+          <defs>
+            <pattern id="hero-grid" width="80" height="80" patternUnits="userSpaceOnUse">
+              <path d="M 80 0 L 0 0 0 80" fill="none" stroke="currentColor" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hero-grid)" />
+        </svg>
+        {/* Floating orbs */}
+        <motion.div
+          animate={{ y: [0, -20, 0], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-[15%] h-32 w-32 rounded-full blur-3xl"
+          style={{ background: "rgba(0,255,135,0.15)" }}
+        />
+        <motion.div
+          animate={{ y: [0, 25, 0], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-1/3 right-[10%] h-48 w-48 rounded-full blur-3xl"
+          style={{ background: "rgba(168,85,247,0.14)" }}
+        />
+      </div>
+
+      <div className="section-frame relative z-10 w-full max-w-[1420px]">
+        <div className="max-w-5xl">
+          {/* Eyebrow */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-8 flex flex-wrap items-center gap-3"
+          >
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-black uppercase tracking-[0.28em]"
+              style={{
+                borderColor: isLight ? "rgba(0,184,90,0.3)" : "rgba(0,255,135,0.2)",
+                background: isLight ? "rgba(0,184,90,0.06)" : "rgba(0,255,135,0.06)",
+                color: isLight ? "rgb(0,150,80)" : "#00ff87",
+              }}
+            >
+              <Sparkles className="h-3 w-3" />
+              {t(locale, "الأعمال والمشاريع", "Work & Projects")}
+            </span>
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em]"
+              style={{
+                borderColor: isLight ? "rgba(148,163,184,0.2)" : "rgba(255,255,255,0.08)",
+                color: isLight ? "rgba(30,41,59,0.6)" : "rgba(255,255,255,0.4)",
+              }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00ff87] animate-pulse" />
+              {t(locale, "نظام حي ومتصل", "Live connected system")}
+            </span>
+          </motion.div>
+
+          {/* Main headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="headline-arabic text-5xl font-black leading-[1.08] text-foreground sm:text-6xl md:text-7xl xl:text-8xl"
+          >
+            {locale === "ar" ? (
+              <>
+                لا أبني مواقع.{" "}
+                <span style={{ color: "#00ff87" }}>أبني أنظمة</span>{" "}
+                <br className="hidden md:block" />
+                تحوّل الزائر عميلاً.
+              </>
+            ) : (
+              <>
+                I don&apos;t build websites.{" "}
+                <span style={{ color: "#00ff87" }}>I build systems</span>{" "}
+                <br className="hidden md:block" />
+                that convert.
+              </>
+            )}
+          </motion.h1>
+
+          {/* Subtext */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.35 }}
+            className="mt-8 max-w-2xl text-lg leading-8 text-foreground-muted md:text-xl"
+          >
+            {t(locale,
+              "كل مشروع هنا يحمل قصة حقيقية: ما كانت المشكلة، ما القرار الذي تغيّر، وكيف بات الانطباع أقوى وأوضح وأكثر تحويلاً.",
+              "Every project here carries a real story: what was broken, what decision changed everything, and how the final result became stronger, clearer, and more profitable."
+            )}
+          </motion.p>
+
+          {/* CTA row */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-10 flex flex-wrap gap-4"
+          >
+            <Link
+              href={`/${locale}/contact`}
+              className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-black text-black transition hover:-translate-y-0.5"
+              style={{ background: "linear-gradient(135deg, #00ff87, #00cc70)" }}
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              {t(locale, "ابدأ مشروعك", "Start your project")}
+            </Link>
+            <Link
+              href={`/${locale}/cv`}
+              className="inline-flex items-center gap-2 rounded-full border px-6 py-3.5 text-sm font-bold text-foreground transition hover:-translate-y-0.5"
+              style={{ borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.12)" }}
+            >
+              {t(locale, "السيرة الذاتية", "My background")}
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+
+          {/* Project pill badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="mt-10 flex flex-wrap gap-3"
+          >
+            {featuredNames.map((name, i) => (
+              <span
+                key={name}
+                className="rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.15em] transition hover:scale-105"
+                style={{
+                  borderColor: i === 0 ? "rgba(0,255,135,0.25)" : i === 1 ? "rgba(255,107,0,0.25)" : "rgba(34,211,238,0.25)",
+                  color: i === 0 ? (isLight ? "#007a45" : "#00ff87") : i === 1 ? "#ff6b00" : "#22d3ee",
+                  background: i === 0 ? "rgba(0,255,135,0.06)" : i === 1 ? "rgba(255,107,0,0.06)" : "rgba(34,211,238,0.06)",
+                }}
+              >
+                {name}
+              </span>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   LOGO SHOWCASE (horizontal scrolling)
+───────────────────────────────────────────────── */
+function LogoShowcase({ locale, isLight }: { locale: SiteViewModel["locale"]; isLight: boolean }) {
+  const logos = [
+    { name: "SEEL Transport", url: "https://seeltransport.de", abbr: "SEEL" },
+    { name: "Schnell Sicher Umzug", url: "https://schnellsicherumzug.de", abbr: "SSU" },
+    { name: "Mohammad Alfarras", url: `/${locale}`, abbr: "محمد" },
+    { name: "YouTube Channel", url: "https://youtube.com/@Moalfarras", abbr: "YT" },
+    { name: "MoPlayer", url: "#", abbr: "MP" },
+  ];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6 }}
+      className="relative overflow-hidden rounded-[2.4rem] border px-6 py-8 md:px-10 md:py-10"
+      style={{
+        background: isLight ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.02)",
+        borderColor: isLight ? "rgba(148,163,184,0.2)" : "rgba(255,255,255,0.06)",
+      }}
+    >
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <span className="text-xs font-black uppercase tracking-[0.28em] text-foreground-muted">
+          {t(locale, "العلامات والمشاريع", "Brands & Projects")}
+        </span>
+        <div className="h-px flex-1" style={{ background: isLight ? "rgba(148,163,184,0.2)" : "rgba(255,255,255,0.06)" }} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4 md:gap-6">
+        {logos.map((logo, i) => (
+          <motion.a
+            key={logo.name}
+            href={logo.url}
+            target={logo.url.startsWith("http") ? "_blank" : undefined}
+            rel={logo.url.startsWith("http") ? "noopener noreferrer" : undefined}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05, filter: "grayscale(0)" }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: i * 0.08 }}
+            className="group flex items-center gap-3 rounded-2xl border px-5 py-3 transition-all duration-300"
+            style={{
+              borderColor: isLight ? "rgba(148,163,184,0.2)" : "rgba(255,255,255,0.08)",
+              background: isLight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.03)",
+              filter: "grayscale(0.6)",
+            }}
+          >
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black"
+              style={{
+                background: i === 0 ? "rgba(0,255,135,0.15)" : i === 1 ? "rgba(255,107,0,0.15)" : i === 2 ? "rgba(168,85,247,0.15)" : i === 3 ? "rgba(255,0,0,0.15)" : "rgba(34,211,238,0.15)",
+                color: i === 0 ? "#00ff87" : i === 1 ? "#ff6b00" : i === 2 ? "#a855f7" : i === 3 ? "#ff4444" : "#22d3ee",
+              }}
+            >
+              {logo.abbr.slice(0, 2)}
+            </div>
+            <span className="text-sm font-bold text-foreground-muted group-hover:text-foreground transition-colors">
+              {logo.name}
+            </span>
+          </motion.a>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   IMPACT / METRICS SECTION
+───────────────────────────────────────────────── */
+function ImpactSection({ locale, isLight }: { locale: SiteViewModel["locale"]; isLight: boolean }) {
+  const metrics = [
+    {
+      value: "+60%",
+      label: t(locale, "تحسين قابلية القراءة البصرية", "Visual readability improvement"),
+      icon: BarChart3,
+      color: "#00ff87",
+      desc: t(locale, "تقليل معدل التشتيت وزيادة وضوح الرسالة", "Reduced cognitive noise, sharper message clarity"),
+    },
+    {
+      value: "< 3s",
+      label: t(locale, "وقت التحميل الأول", "First contentful paint"),
+      icon: Clock,
+      color: "#22d3ee",
+      desc: t(locale, "أداء متسق عبر الأجهزة المختلفة", "Consistent performance across all devices"),
+    },
+    {
+      value: "100%",
+      label: t(locale, "بناء مخصص", "Custom built"),
+      icon: Check,
+      color: "#a855f7",
+      desc: t(locale, "لا قوالب جاهزة — كل سطر كود مقصود", "Zero templates — every line of code intentional"),
+    },
+    {
+      value: "2x",
+      label: t(locale, "انطباع أول أقوى", "First impression impact"),
+      icon: TrendingUp,
+      color: "#ff6b00",
+      desc: t(locale, "من موقع عادي إلى تجربة تُقنع من النظرة الأولى", "From average site to experience that convinces instantly"),
+    },
+  ];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7 }}
+      className="overflow-hidden rounded-[2.8rem] border"
+      style={{
+        background: isLight
+          ? "linear-gradient(140deg, rgba(255,255,255,0.98), rgba(246,248,252,0.95))"
+          : "linear-gradient(140deg, rgba(8,14,24,0.9), rgba(4,8,16,0.98))",
+        borderColor: isLight ? "rgba(148,163,184,0.2)" : "rgba(255,255,255,0.06)",
+      }}
+    >
+      <div className="p-6 md:p-10">
+        <div className="mb-8">
+          <span className="eyebrow">{t(locale, "impact layer", "impact layer")}</span>
+          <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground md:text-4xl">
+            {t(locale, "أرقام تُثبت الأثر، لا مجرد شكل", "Numbers that prove impact, not just aesthetics")}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-foreground-muted">
+            {t(locale,
+              "النتيجة الحقيقية لا تُقاس بعدد الصفحات — تُقاس بمدى وضوح الرسالة وسرعة الثقة وقوة الانطباع.",
+              "Real results aren't measured in page count — they're measured in message clarity, trust velocity, and impression strength."
+            )}
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {metrics.map((metric, i) => (
+            <motion.div
+              key={metric.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="group rounded-[2rem] border p-6 transition-all hover:-translate-y-1"
+              style={{
+                borderColor: isLight ? "rgba(148,163,184,0.15)" : "rgba(255,255,255,0.07)",
+                background: isLight ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.02)",
+                boxShadow: `0 0 0 0 ${metric.color}22`,
+              }}
+            >
+              <div
+                className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
+                style={{ background: `${metric.color}18`, border: `1px solid ${metric.color}30` }}
+              >
+                <metric.icon className="h-6 w-6" style={{ color: metric.color }} />
+              </div>
+              <div className="text-4xl font-black" style={{ color: metric.color }}>{metric.value}</div>
+              <div className="mt-2 text-sm font-bold text-foreground">{metric.label}</div>
+              <p className="mt-2 text-xs leading-6 text-foreground-muted">{metric.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   FEATURED PROJECT CARD  (large cinematic)
+───────────────────────────────────────────────── */
 function FeaturedProject({
   project,
   locale,
@@ -209,9 +551,12 @@ function FeaturedProject({
 }) {
   const accent = accentStyles(project.accent, isLight);
   const BadgeIcon = deviceBadge(project, locale).icon;
-  const gallery = project.gallery.length ? project.gallery : [project.image];
 
-  // 3D Tilt Effect
+  // Deduplicate gallery: remove any image that repeats the main cover
+  const rawGallery = project.gallery.length ? project.gallery : [project.image];
+  const gallery = rawGallery.filter((img, idx) => rawGallery.indexOf(img) === idx);
+
+  // 3D Tilt
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
   const springX = useSpring(mouseX, { stiffness: 150, damping: 20 });
@@ -221,33 +566,33 @@ function FeaturedProject({
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0.5);
-    mouseY.set(0.5);
+    mouseX.set((e.clientX - rect.left) / rect.width);
+    mouseY.set((e.clientY - rect.top) / rect.height);
   };
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       style={{ rotateX, rotateY }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={() => { mouseX.set(0.5); mouseY.set(0.5); }}
       className="group relative overflow-hidden rounded-[2.8rem] border border-border/60 bg-surface/50 p-1 shadow-2xl backdrop-blur-xl perspective-[1200px]"
     >
-      <div className="absolute inset-0 opacity-40 mix-blend-soft-light transition-opacity duration-500 group-hover:opacity-70" 
-           style={{ background: `radial-gradient(circle at ${reversed ? "20%" : "85%"} 20%, ${accent.glow}, transparent 34%), radial-gradient(circle at ${reversed ? "90%" : "12%"} 100%, ${accent.glow}, transparent 30%)` }} />
+      {/* Accent glow overlay */}
+      <div
+        className="absolute inset-0 opacity-40 mix-blend-soft-light transition-opacity duration-500 group-hover:opacity-70"
+        style={{
+          background: `radial-gradient(circle at ${reversed ? "20%" : "85%"} 20%, ${accent.glow}, transparent 34%), radial-gradient(circle at ${reversed ? "90%" : "12%"} 100%, ${accent.glow}, transparent 30%)`,
+        }}
+      />
 
       <div className={cn("relative grid gap-6 p-6 md:p-10 xl:grid-cols-[0.95fr_1.05fr]", reversed && "xl:grid-cols-[1.05fr_0.95fr]")}>
+        {/* ── LEFT / TEXT SIDE ── */}
         <div className={cn("space-y-6", reversed && "xl:order-2")}>
+          {/* badges */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-surface/80 px-4 py-2 text-[11px] font-black uppercase tracking-[0.28em]" style={{ color: accent.tint }}>
               <Sparkles className="h-4 w-4" />
@@ -259,11 +604,13 @@ function FeaturedProject({
             </span>
           </div>
 
+          {/* title + summary */}
           <div className="space-y-4">
             <h2 className="headline-arabic text-4xl font-black leading-tight text-foreground md:text-6xl">{project.title}</h2>
             <p className="max-w-2xl text-lg font-medium leading-relaxed text-foreground-muted">{project.summary}</p>
           </div>
 
+          {/* metrics */}
           <div className="grid gap-4 md:grid-cols-3">
             {project.metrics.map((metric) => (
               <div key={`${project.id}-${metric.label}`} className="rounded-[2rem] border border-border/40 bg-surface/60 p-5 shadow-sm transition-colors hover:bg-surface/80">
@@ -273,6 +620,7 @@ function FeaturedProject({
             ))}
           </div>
 
+          {/* challenge / solution / result blocks */}
           <div className="grid gap-4 md:grid-cols-3">
             {[
               { title: t(locale, "التحدي", "Challenge"), body: project.challenge },
@@ -286,6 +634,7 @@ function FeaturedProject({
             ))}
           </div>
 
+          {/* tags */}
           <div className="flex flex-wrap gap-2">
             {project.tags.map((tag) => (
               <span key={tag} className="rounded-full border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: accent.glow, color: accent.tint, background: accent.badge }}>
@@ -294,9 +643,15 @@ function FeaturedProject({
             ))}
           </div>
 
+          {/* CTAs */}
           <div className="flex flex-wrap gap-3">
             {project.href ? (
-              <Link href={project.href} target="_blank" className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black text-black transition hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${accent.tint}, ${accent.tint}cc)` }}>
+              <Link
+                href={project.href}
+                target="_blank"
+                className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black text-black transition hover:-translate-y-0.5"
+                style={{ background: `linear-gradient(135deg, ${accent.tint}, ${accent.tint}cc)` }}
+              >
                 <ExternalLink className="h-4 w-4" />
                 {project.ctaLabel}
               </Link>
@@ -310,11 +665,30 @@ function FeaturedProject({
           </div>
         </div>
 
+        {/* ── RIGHT / VISUAL SIDE ── */}
         <div className={cn("relative flex min-h-[360px] flex-col gap-4 w-full h-full", reversed && "xl:order-1")}>
-          <motion.div whileHover={{ rotateX: 4, rotateY: reversed ? 6 : -6, scale: 1.01 }} transition={{ duration: 0.35 }} className={cn("relative flex-1 w-full overflow-hidden rounded-[2.1rem] border p-3 shadow-[0_25px_70px_rgba(2,6,23,0.35)]", project.deviceFrame === "phone" ? "mx-auto max-w-[340px]" : "")} style={{ borderColor: accent.glow, background: isLight ? "rgba(255,255,255,0.72)" : "rgba(6,10,18,0.88)" }}>
-            <div className={cn("absolute inset-0", project.deviceFrame === "phone" ? "rounded-[2.1rem] border-[10px]" : "rounded-[1.6rem] border-[1px]")} style={{ borderColor: project.deviceFrame === "phone" ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.08)" }} />
+          {/* Main image */}
+          <motion.div
+            whileHover={{ rotateX: 4, rotateY: reversed ? 6 : -6, scale: 1.01 }}
+            transition={{ duration: 0.35 }}
+            className={cn(
+              "relative flex-1 w-full overflow-hidden rounded-[2.1rem] border p-3 shadow-[0_25px_70px_rgba(2,6,23,0.35)]",
+              project.deviceFrame === "phone" ? "mx-auto max-w-[340px]" : ""
+            )}
+            style={{ borderColor: accent.glow, background: isLight ? "rgba(255,255,255,0.72)" : "rgba(6,10,18,0.88)" }}
+          >
+            <div
+              className={cn("absolute inset-0", project.deviceFrame === "phone" ? "rounded-[2.1rem] border-[10px]" : "rounded-[1.6rem] border-[1px]")}
+              style={{ borderColor: project.deviceFrame === "phone" ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.08)" }}
+            />
             <div className="relative h-full min-h-[300px] w-full overflow-hidden rounded-[1.4rem]">
-              <Image src={project.image} alt={project.title} fill className="object-cover transition duration-700 group-hover:scale-[1.04]" sizes="(max-width: 1024px) 100vw, 40vw" />
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className="object-cover transition duration-700 group-hover:scale-[1.04]"
+                sizes="(max-width: 1024px) 100vw, 40vw"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/14 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5">
                 <div className="flex items-center justify-between gap-3">
@@ -332,10 +706,128 @@ function FeaturedProject({
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {gallery.slice(0, 3).map((image, index) => (
-              <div key={`${project.id}-gallery-${index}`} className="relative aspect-[1.05/0.9] overflow-hidden rounded-[1.35rem] border" style={{ borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)", background: isLight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.03)" }}>
-                <Image src={image} alt={`${project.title} ${index + 1}`} fill className="object-cover" sizes="(max-width: 1024px) 33vw, 14vw" />
+          {/* Gallery thumbnails — deduped from main image */}
+          {gallery.length > 1 && (
+            <div className="grid grid-cols-3 gap-3">
+              {gallery.slice(0, 3).map((image, index) => (
+                <div
+                  key={`${project.id}-gallery-${index}`}
+                  className="relative aspect-[1.05/0.9] overflow-hidden rounded-[1.35rem] border"
+                  style={{
+                    borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+                    background: isLight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.03)",
+                  }}
+                >
+                  <Image
+                    src={image}
+                    alt={`${project.title} ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 33vw, 14vw"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   WEATHER WIDGET
+───────────────────────────────────────────────── */
+function WeatherWidget({
+  weather,
+  locale,
+  isLight,
+}: {
+  weather: SiteViewModel["live"]["weather"];
+  locale: SiteViewModel["locale"];
+  isLight: boolean;
+}) {
+  if (!weather) {
+    return (
+      <div
+        className="relative flex min-h-[280px] items-center justify-center overflow-hidden rounded-[2.4rem] border"
+        style={{
+          background: isLight ? "rgba(255,255,255,0.9)" : "linear-gradient(160deg, rgba(5,10,18,0.88), rgba(4,7,16,0.97))",
+          borderColor: isLight ? "rgba(148,163,184,0.25)" : "rgba(255,255,255,0.08)",
+        }}
+      >
+        <div className="text-center">
+          <Sun className="mx-auto h-12 w-12 text-amber-300 opacity-40" />
+          <p className="mt-4 text-sm text-foreground-muted">{t(locale, "جارٍ تحميل الطقس...", "Loading weather...")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="relative overflow-hidden rounded-[2.4rem] border p-5 md:p-6"
+      style={{
+        background: isLight ? "rgba(255,255,255,0.96)" : "linear-gradient(160deg, rgba(5,10,18,0.88), rgba(4,7,16,0.97))",
+        borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
+        boxShadow: isLight ? "0 25px 70px rgba(15,23,42,0.06)" : "0 28px 80px rgba(2,6,23,0.5)",
+      }}
+    >
+      <WeatherScene condition={weather.condition} isDay={weather.isDay} />
+      <div className="relative z-10 space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="eyebrow">{t(locale, "HTC weather deck", "HTC weather deck")}</span>
+            <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
+              {t(locale, "طقس حي مرتبط بموقعك", "Live weather from your location")}
+            </h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-foreground-muted">
+                {weather.isDay ? t(locale, "نهاري", "Day mode") : t(locale, "ليلي", "Night mode")}
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-foreground-muted">
+                {localizeWeatherCondition(locale, weather.condition)}
+              </span>
+            </div>
+          </div>
+          <WeatherGlyph condition={weather.condition} />
+        </div>
+
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-sm text-foreground-muted">
+              <Globe className="h-4 w-4 text-[var(--primary)]" />
+              {weather.city}, {weather.country}
+            </div>
+            <div className="mt-2 text-6xl font-black text-foreground">{weather.temp}°</div>
+            <div className="mt-2 text-base text-foreground-muted">{localizeWeatherCondition(locale, weather.condition)}</div>
+          </div>
+          <div className="grid min-w-[220px] grid-cols-2 gap-3">
+            {[
+              { icon: Sparkles, label: t(locale, "المحسوسة", "Feels like"), value: `${weather.feelsLike}°` },
+              { icon: Droplets, label: t(locale, "الرطوبة", "Humidity"), value: `${weather.humidity}%` },
+              { icon: Wind, label: t(locale, "الرياح", "Wind"), value: `${weather.wind} m/s` },
+              { icon: Gauge, label: t(locale, "الضغط", "Pressure"), value: `${weather.pressure} hPa` },
+              { icon: Sunrise, label: t(locale, "الشروق", "Sunrise"), value: weather.sunrise },
+              { icon: Sunset, label: t(locale, "الغروب", "Sunset"), value: weather.sunset },
+            ].map((detail) => (
+              <div
+                key={detail.label}
+                className="rounded-[1.35rem] border p-3"
+                style={{
+                  background: isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.04)",
+                  borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+                }}
+              >
+                <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-foreground-muted">
+                  <detail.icon className="h-4 w-4 text-[var(--cyan)]" />
+                  {detail.label}
+                </div>
+                <div className="mt-2 text-lg font-black text-foreground">{detail.value}</div>
               </div>
             ))}
           </div>
@@ -345,6 +837,258 @@ function FeaturedProject({
   );
 }
 
+/* ────────────────────────────────────────────────
+   MATCHES WIDGET
+───────────────────────────────────────────────── */
+function MatchesWidget({
+  matches,
+  locale,
+  isLight,
+}: {
+  matches: SiteViewModel["live"]["matches"];
+  locale: SiteViewModel["locale"];
+  isLight: boolean;
+}) {
+  const hasRealMatches = matches.length > 0;
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="relative overflow-hidden rounded-[2.4rem] border p-5 md:p-6"
+      style={{
+        background: isLight ? "linear-gradient(160deg, rgba(255,255,255,0.9), rgba(246,248,252,0.98))" : "linear-gradient(160deg, rgba(7,10,18,0.88), rgba(3,7,14,0.98))",
+        borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+      }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,107,0,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.16),transparent_36%)] opacity-80" />
+      <div className="relative z-10 space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="eyebrow">{t(locale, "طبقة المباريات", "matches layer")}</span>
+            <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
+              {t(locale, "مباريات حية من أهم الدوريات", "Live fixtures from top leagues")}
+            </h2>
+            {!hasRealMatches && (
+              <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold text-foreground-muted">
+                {t(locale, "نموذج عرض — بيانات حية عند توفر API", "Preview mode — live data when API connected")}
+              </p>
+            )}
+          </div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-[var(--secondary)]">
+            <Trophy className="h-7 w-7" />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {matches.map((match, index) => (
+            <motion.div
+              key={match.id}
+              whileHover={{ x: locale === "ar" ? -4 : 4 }}
+              className="rounded-[1.65rem] border p-4"
+              style={{
+                background: isLight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.03)",
+                borderColor: index === 0 ? "rgba(255,107,0,0.32)" : isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+                boxShadow: index === 0 ? "0 22px 55px rgba(255,107,0,0.12)" : "none",
+              }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs uppercase tracking-[0.18em] text-foreground-muted">{match.league}</div>
+                <div
+                  className="rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]"
+                  style={{
+                    background: match.status === "LIVE" || match.status === "HT" ? "rgba(255,107,0,0.14)" : "rgba(148,163,184,0.14)",
+                    color: match.status === "LIVE" || match.status === "HT" ? "#ff6b00" : "var(--foreground-muted)",
+                  }}
+                >
+                  {match.status} · {match.time}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-white/10 p-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={match.homeLogo} alt={match.homeTeam} className="h-full w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-black text-foreground">{match.homeTeam}</div>
+                    <div className="text-xs text-foreground-muted">{t(locale, "مضيف", "Home")}</div>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.05] px-4 py-3 text-center">
+                  <div className="text-2xl font-black text-foreground">
+                    {match.homeScore ?? "–"} : {match.awayScore ?? "–"}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3">
+                  <div className="min-w-0 text-end">
+                    <div className="truncate text-sm font-black text-foreground">{match.awayTeam}</div>
+                    <div className="text-xs text-foreground-muted">{t(locale, "ضيف", "Away")}</div>
+                  </div>
+                  <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-white/10 p-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={match.awayLogo} alt={match.awayTeam} className="h-full w-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   GRID CARD (rest projects)
+───────────────────────────────────────────────── */
+function GridProjectCard({
+  project,
+  locale,
+  isLight,
+}: {
+  project: SiteViewModel["projects"][number];
+  locale: SiteViewModel["locale"];
+  isLight: boolean;
+}) {
+  const accent = accentStyles(project.accent, isLight);
+  return (
+    <motion.article
+      whileHover={{ y: -6 }}
+      className="overflow-hidden rounded-[1.9rem] border transition-all duration-300"
+      style={{
+        background: isLight ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.03)",
+        borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+        boxShadow: `0 20px 55px ${accent.glow}`,
+      }}
+    >
+      <div className="relative aspect-[1.28/0.92] overflow-hidden">
+        <Image
+          src={project.image}
+          alt={project.title}
+          fill
+          className="object-cover transition duration-700 hover:scale-[1.04]"
+          sizes="(max-width: 1024px) 100vw, 33vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/18 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          <div className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: accent.tint }}>{project.eyebrow}</div>
+          <div className="mt-2 text-xl font-black text-white">{project.title}</div>
+        </div>
+      </div>
+      <div className="space-y-4 p-4">
+        <p className="text-sm leading-7 text-foreground-muted">{project.summary}</p>
+        <div className="flex flex-wrap gap-2">
+          {project.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="rounded-full px-3 py-1 text-xs font-semibold" style={{ background: accent.badge, color: accent.tint }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {project.href ? (
+            <Link
+              href={project.href}
+              target="_blank"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black text-black transition hover:opacity-90"
+              style={{ background: accent.tint }}
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              {project.ctaLabel}
+            </Link>
+          ) : null}
+          {project.repoUrl ? (
+            <Link href={project.repoUrl} target="_blank" className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-foreground">
+              <ExternalLink className="h-4 w-4" />
+              GitHub
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   CONVERSION CTA
+───────────────────────────────────────────────── */
+function ConversionCta({ locale, isLight }: { locale: SiteViewModel["locale"]; isLight: boolean }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.7 }}
+      className="relative overflow-hidden rounded-[2.8rem] border p-8 text-center md:p-16"
+      style={{
+        background: isLight ? "rgba(255,255,255,0.96)" : "linear-gradient(140deg, rgba(4,8,16,0.95), rgba(8,14,24,0.98))",
+        borderColor: "rgba(0,255,135,0.2)",
+        boxShadow: "0 0 80px rgba(0,255,135,0.06)",
+      }}
+    >
+      {/* Background glow */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="h-64 w-64 rounded-full blur-3xl opacity-10" style={{ background: "radial-gradient(circle, #00ff87, transparent 70%)" }} />
+      </div>
+
+      <div className="relative z-10">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] border border-primary/20 bg-primary/10">
+          <Zap className="h-10 w-10" style={{ color: "#00ff87" }} />
+        </div>
+        <h2 className="headline-arabic mx-auto max-w-2xl text-3xl font-black text-foreground md:text-5xl">
+          {t(locale, "فكرتك تستحق حضوراً يُقنع من أول ثانية.", "Your idea deserves a presence that converts from second one.")}
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-foreground-muted">
+          {t(locale,
+            "لا أبني مواقع جميلة فحسب. أبني أنظمة تجعل الزائر يثق، يفهم، ويتصرف دون تردد.",
+            "I don't just build beautiful websites. I build systems that make visitors trust, understand, and act without hesitation."
+          )}
+        </p>
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+          <Link
+            href={`/${locale}/contact`}
+            className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-black transition hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(0,255,135,0.4)]"
+            style={{ background: "linear-gradient(135deg, #00ff87, #00cc70)" }}
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            {t(locale, "ابدأ مشروعك الآن", "Start your project now")}
+          </Link>
+          <Link
+            href={`/${locale}/cv`}
+            className="inline-flex items-center gap-2 rounded-full border px-8 py-4 text-sm font-bold text-foreground transition hover:-translate-y-0.5"
+            style={{ borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.12)" }}
+          >
+            {t(locale, "اطلع على خبرتي", "See my background")}
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Trust indicators */}
+        <div className="mt-10 flex flex-wrap justify-center gap-6">
+          {[
+            { icon: Star, text: t(locale, "جودة تستحق الوقت", "Quality worth the wait") },
+            { icon: Check, text: t(locale, "لا قوالب جاهزة", "Zero templates") },
+            { icon: Zap, text: t(locale, "رد خلال 24 ساعة", "Reply within 24h") },
+          ].map((item) => (
+            <div key={item.text} className="flex items-center gap-2 text-sm text-foreground-muted">
+              <item.icon className="h-4 w-4" style={{ color: "#00ff87" }} />
+              {item.text}
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+/* ────────────────────────────────────────────────
+   MAIN EXPORT
+───────────────────────────────────────────────── */
 export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
   const { locale } = model;
   const { theme } = useThemeMode();
@@ -355,14 +1099,22 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
   );
   const isLight = mounted && theme === "light";
 
+  // ── Featured projects (top 3, sorted by rank)
   const featuredProjects = useMemo(() => {
-    const featured = model.projects.filter((project) => project.featured).sort((a, b) => a.featuredRank - b.featuredRank).slice(0, 3);
-    if (featured.length === 3) return featured;
-    return [...featured, ...model.projects.filter((project) => !featured.some((item) => item.id === project.id))].slice(0, 3);
+    const featured = model.projects
+      .filter((p) => p.featured)
+      .sort((a, b) => a.featuredRank - b.featuredRank)
+      .slice(0, 3);
+    if (featured.length >= 3) return featured;
+    return [
+      ...featured,
+      ...model.projects.filter((p) => !featured.some((f) => f.id === p.id)),
+    ].slice(0, 3);
   }, [model.projects]);
 
+  // ── Rest projects (not featured)
   const restProjects = useMemo(
-    () => model.projects.filter((project) => !featuredProjects.some((item) => item.id === project.id)),
+    () => model.projects.filter((p) => !featuredProjects.some((f) => f.id === p.id)),
     [featuredProjects, model.projects],
   );
 
@@ -374,357 +1126,94 @@ export function ProjectsProfessional2026({ model }: { model: SiteViewModel }) {
     show: { opacity: 1, transition: { staggerChildren: 0.12 } },
   };
 
-  const item: Variants = {
+  const itemVariant: Variants = {
     hidden: { opacity: 0, y: 28 },
     show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden py-28 md:py-32" dir={locale === "ar" ? "rtl" : "ltr"} data-testid="projects-page">
-      {/* Background is handled by Global Atmospheric Engine */}
-      
-      <div className="section-frame relative z-10 w-full max-w-[1420px] space-y-8">
-        <motion.section
-          initial={{ opacity: 0, y: 26 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative overflow-hidden rounded-[2.8rem] border px-6 py-8 md:px-10 md:py-12"
-          style={{
-            background: isLight
-              ? "rgba(255,255,255,0.96)"
-              : "linear-gradient(140deg, rgba(8,12,20,0.78), rgba(4,6,10,0.94))",
-            borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
-            boxShadow: isLight ? "0 25px 80px rgba(15,23,42,0.08)" : "0 32px 90px rgba(0,0,0,0.45)",
-          }}
-        >
-          <div className="absolute inset-y-0 left-0 w-[45%] bg-[radial-gradient(circle_at_center,rgba(0,255,135,0.16),transparent_58%)] opacity-60" />
-          <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
-            <div className="space-y-5">
-              <span className="eyebrow">{t(locale, "صفحة أعمال حية مرتبطة بالموقع", "A live projects showcase connected to the site")}</span>
-              <h1 className="headline-arabic max-w-5xl text-4xl font-black leading-tight xl:leading-[1.1] text-foreground md:text-5xl xl:text-6xl text-balance">
-                {t(locale, "مشاريع مبنية لتقود الانطباع، الثقة، والقرار من أول شاشة.", "Projects built to control impression, trust, and decision from the first screen.")}
-              </h1>
-              <p className="max-w-3xl text-base leading-8 text-foreground-muted md:text-lg">
-                {t(
-                  locale,
-                  "هذه ليست مجرد قائمة أعمال. هذا عرض حي يشرح كيف تتحول الفكرة إلى واجهة أوضح، تموضع أقوى، وتجربة تشعر المستخدم أن المشروع فعلاً يعرف ماذا يريد.",
-                  "This is not a simple portfolio list. It is a live execution layer showing how the idea becomes stronger positioning, cleaner interface logic, and a sharper commercial impression.",
-                )}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {featuredProjects.map((project) => (
-                  <span
-                    key={`hero-${project.id}`}
-                    className="rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em]"
-                    style={{
-                      borderColor: accentStyles(project.accent, isLight).glow,
-                      color: accentStyles(project.accent, isLight).tint,
-                      background: accentStyles(project.accent, isLight).badge,
-                    }}
-                  >
-                    {project.title}
-                  </span>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Link href={`/${locale}/contact`} className="button-primary-shell">
-                  <ArrowUpRight className="h-4 w-4" />
-                  {t(locale, "ابدأ مشروعك", "Start your project")}
-                </Link>
-                <Link href={`/${locale}/admin/projects`} className="button-secondary-shell">
-                  <Sparkles className="h-4 w-4" />
-                  {t(locale, "Projects Studio", "Projects Studio")}
-                </Link>
-              </div>
-            </div>
+    <div
+      className="relative min-h-screen overflow-hidden"
+      dir={locale === "ar" ? "rtl" : "ltr"}
+      data-testid="projects-page"
+    >
+      <div className="section-frame relative z-10 w-full max-w-[1420px] space-y-8 pb-28">
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                { value: "1,240", label: t(locale, "مساهمة GitHub", "GitHub Commits"), tint: "var(--primary)" },
-                { value: "3", label: t(locale, "سيرفرات نشطة", "Active Servers"), tint: "var(--secondary)" },
-                { value: "458ms", label: t(locale, "وقت البناء", "Next.js Build Time"), tint: "var(--accent)" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-[1.7rem] border p-4"
-                  style={{
-                    borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-                    background: isLight ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.03)",
-                  }}
-                >
-                  <div className="text-3xl font-black" style={{ color: stat.tint }}>{stat.value}</div>
-                  <div className="mt-2 text-sm leading-7 text-foreground-muted">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
+        {/* ── 1. CINEMATIC HERO */}
+        <CinematicHero locale={locale} isLight={isLight} projects={model.projects} />
 
+        {/* ── 2. LOGO SHOWCASE */}
+        <LogoShowcase locale={locale} isLight={isLight} />
+
+        {/* ── 3. FEATURED PROJECTS */}
         <section className="space-y-8">
+          <div className="flex items-center gap-4">
+            <span className="eyebrow">{t(locale, "flagship layer", "flagship layer")}</span>
+            <div className="h-px flex-1" style={{ background: isLight ? "rgba(148,163,184,0.2)" : "rgba(255,255,255,0.06)" }} />
+          </div>
           {featuredProjects.map((project, index) => (
-            <FeaturedProject key={project.id} project={project} locale={locale} isLight={isLight} reversed={index % 2 === 1} />
+            <FeaturedProject
+              key={project.id}
+              project={project}
+              locale={locale}
+              isLight={isLight}
+              reversed={index % 2 === 1}
+            />
           ))}
         </section>
 
-        <motion.section variants={container} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.15 }} className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          {weather ? (
-            <motion.article
-              variants={item}
-              className="relative overflow-hidden rounded-[2.4rem] border p-5 md:p-6"
-              style={{
-                background: isLight ? "rgba(255,255,255,0.96)" : "linear-gradient(160deg, rgba(5,10,18,0.88), rgba(4,7,16,0.97))",
-                borderColor: isLight ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.08)",
-                boxShadow: isLight ? "0 25px 70px rgba(15,23,42,0.06)" : "0 28px 80px rgba(2,6,23,0.5)",
-              }}
-            >
-              <WeatherScene condition={weather.condition} isDay={weather.isDay} />
-              <div className="relative z-10 space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="eyebrow">{t(locale, "HTC weather deck", "HTC weather deck")}</span>
-                    <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground md:text-4xl">
-                      {t(locale, "طبقة طقس حية مرتبطة بالموقع", "A live weather layer inside the site")}
-                    </h2>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-foreground-muted">
-                        {weather.isDay ? t(locale, "نهاري", "Day mode") : t(locale, "ليلي", "Night mode")}
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-foreground-muted">
-                        {localizeWeatherCondition(locale, weather.condition)}
-                      </span>
-                    </div>
-                  </div>
-                  <WeatherGlyph condition={weather.condition} />
-                </div>
+        {/* ── 4. IMPACT METRICS */}
+        <ImpactSection locale={locale} isLight={isLight} />
 
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 text-sm text-foreground-muted">
-                      <Globe className="h-4 w-4 text-[var(--primary)]" />
-                      {weather.city}, {weather.country}
-                    </div>
-                    <div className="mt-2 text-6xl font-black text-foreground">{weather.temp}°</div>
-                    <div className="mt-2 text-base text-foreground-muted">{localizeWeatherCondition(locale, weather.condition)}</div>
-                  </div>
-                  <div className="grid min-w-[220px] grid-cols-2 gap-3">
-                    {[
-                      { icon: Sparkles, label: t(locale, "المحسوسة", "Feels like"), value: `${weather.feelsLike}°` },
-                      { icon: Droplets, label: t(locale, "الرطوبة", "Humidity"), value: `${weather.humidity}%` },
-                      { icon: Wind, label: t(locale, "الرياح", "Wind"), value: `${weather.wind} m/s` },
-                      { icon: Gauge, label: t(locale, "الضغط", "Pressure"), value: `${weather.pressure} hPa` },
-                      { icon: Sunrise, label: t(locale, "الشروق", "Sunrise"), value: weather.sunrise },
-                      { icon: Sunset, label: t(locale, "الغروب", "Sunset"), value: weather.sunset },
-                    ].map((detail) => (
-                      <div key={detail.label} className="rounded-[1.35rem] border p-3" style={{ background: isLight ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.04)", borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)" }}>
-                        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-foreground-muted">
-                          <detail.icon className="h-4 w-4 text-[var(--cyan)]" />
-                          {detail.label}
-                        </div>
-                        <div className="mt-2 text-lg font-black text-foreground">{detail.value}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.article>
-          ) : null}
-
-          <motion.article
-            variants={item}
-            className="relative overflow-hidden rounded-[2.4rem] border p-5 md:p-6"
-            style={{
-              background: isLight ? "linear-gradient(160deg, rgba(255,255,255,0.9), rgba(246,248,252,0.98))" : "linear-gradient(160deg, rgba(7,10,18,0.88), rgba(3,7,14,0.98))",
-              borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-            }}
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,107,0,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(168,85,247,0.16),transparent_36%)] opacity-80" />
-            <div className="relative z-10 space-y-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="eyebrow">{t(locale, "طبقة المباريات", "matches layer")}</span>
-                    <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground md:text-4xl">
-                      {t(locale, "مباريات حية بأولوية الدوريات الكبيرة", "Live football cards prioritising top leagues")}
-                    </h2>
-                    <p className="mt-3 max-w-xl text-sm leading-7 text-foreground-muted">
-                      {t(
-                        locale,
-                        "الترتيب يبدأ بالمباشر ثم أهم الدوريات في اليوم نفسه، حتى تشعر الصفحة أنها حيّة وليست مجرد معرض صور.",
-                        "Ranking starts with live fixtures and then the strongest leagues of the day, so the page feels connected rather than decorative.",
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-[var(--secondary)]">
-                    <Trophy className="h-7 w-7" />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {matches.map((match, index) => (
-                  <motion.div
-                    key={match.id}
-                    whileHover={{ x: locale === "ar" ? -4 : 4, rotateX: 2, rotateY: locale === "ar" ? -3 : 3 }}
-                    className="rounded-[1.65rem] border p-4"
-                    style={{
-                      background: isLight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.03)",
-                      borderColor: index === 0 ? "rgba(255,107,0,0.32)" : isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-                      boxShadow: index === 0 ? "0 22px 55px rgba(255,107,0,0.12)" : "none",
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-xs uppercase tracking-[0.18em] text-foreground-muted">{match.league}</div>
-                      <div className="rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]" style={{ background: match.status === "LIVE" || match.status === "HT" ? "rgba(255,107,0,0.14)" : "rgba(148,163,184,0.14)", color: match.status === "LIVE" || match.status === "HT" ? "#ff6b00" : "var(--foreground-muted)" }}>
-                        {match.status} · {match.time}
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-white/10">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={match.homeLogo} alt={match.homeTeam} className="h-full w-full object-contain p-2" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-black text-foreground">{match.homeTeam}</div>
-                          <div className="text-xs text-foreground-muted">{t(locale, "مضيف", "Home")}</div>
-                        </div>
-                      </div>
-
-                      <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.05] px-4 py-3 text-center">
-                        <div className="text-2xl font-black text-foreground">
-                          {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-3">
-                        <div className="min-w-0 text-end">
-                          <div className="truncate text-sm font-black text-foreground">{match.awayTeam}</div>
-                          <div className="text-xs text-foreground-muted">{t(locale, "ضيف", "Away")}</div>
-                        </div>
-                        <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-white/10">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={match.awayLogo} alt={match.awayTeam} className="h-full w-full object-contain p-2" />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.article>
+        {/* ── 5. LIVE WIDGETS (weather + matches) */}
+        <motion.section
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]"
+        >
+          <motion.div variants={itemVariant}>
+            <WeatherWidget weather={weather} locale={locale} isLight={isLight} />
+          </motion.div>
+          <motion.div variants={itemVariant}>
+            <MatchesWidget matches={matches} locale={locale} isLight={isLight} />
+          </motion.div>
         </motion.section>
 
-        {restProjects.length ? (
+        {/* ── 6. REST PROJECTS GRID */}
+        {restProjects.length > 0 && (
           <motion.section
             variants={container}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            className="rounded-[2.5rem] border p-5 md:p-7"
+            viewport={{ once: true, amount: 0.1 }}
+            className="overflow-hidden rounded-[2.5rem] border p-5 md:p-7"
             style={{
-              background: isLight ? "linear-gradient(160deg, rgba(255,255,255,0.84), rgba(246,248,252,0.98))" : "linear-gradient(160deg, rgba(7,10,18,0.88), rgba(4,7,14,0.97))",
+              background: isLight
+                ? "linear-gradient(160deg, rgba(255,255,255,0.84), rgba(246,248,252,0.98))"
+                : "linear-gradient(160deg, rgba(7,10,18,0.88), rgba(4,7,14,0.97))",
               borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
             }}
           >
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <span className="eyebrow">{t(locale, "grid layer", "grid layer")}</span>
-                <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground md:text-4xl">
-                  {t(locale, "مشاريع إضافية تتحدث بنفس الهوية", "Additional projects speaking the same visual language")}
-                </h2>
-              </div>
-              <p className="max-w-xl text-sm leading-7 text-foreground-muted">
-                {t(locale, "أي مشروع جديد من الأدمن يظهر هنا مباشرة إذا لم يكن ضمن منطقة الـ flagship.", "Any new project from the admin panel lands here automatically if it is not part of the flagship area.")}
-              </p>
+            <div className="mb-6">
+              <span className="eyebrow">{t(locale, "grid layer", "grid layer")}</span>
+              <h2 className="headline-arabic mt-4 text-3xl font-black text-foreground md:text-4xl">
+                {t(locale, "مشاريع إضافية بنفس مستوى الاهتمام", "Additional projects with the same attention level")}
+              </h2>
             </div>
-
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {restProjects.map((project) => {
-                const accent = accentStyles(project.accent, isLight);
-                return (
-                  <motion.article
-                    key={project.id}
-                    variants={item}
-                    whileHover={{ y: -6, rotateX: 2, rotateY: 2 }}
-                    className="overflow-hidden rounded-[1.9rem] border"
-                    style={{
-                      background: isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.03)",
-                      borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-                      boxShadow: `0 20px 55px ${accent.glow}`,
-                    }}
-                  >
-                    <div className="relative aspect-[1.28/0.92] overflow-hidden">
-                      <Image src={project.image} alt={project.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 33vw" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/18 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-4">
-                        <div className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: accent.tint }}>{project.eyebrow}</div>
-                        <div className="mt-2 text-xl font-black text-white">{project.title}</div>
-                      </div>
-                    </div>
-                    <div className="space-y-4 p-4">
-                      <p className="text-sm leading-7 text-foreground-muted">{project.summary}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {project.tags.slice(0, 3).map((tag) => (
-                          <span key={tag} className="rounded-full px-3 py-1 text-xs font-semibold" style={{ background: accent.badge, color: accent.tint }}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {project.href ? (
-                          <Link href={project.href} target="_blank" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black text-black" style={{ background: accent.tint }}>
-                            <ArrowUpRight className="h-4 w-4" />
-                            {project.ctaLabel}
-                          </Link>
-                        ) : null}
-                        {project.repoUrl ? (
-                          <Link href={project.repoUrl} target="_blank" className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-foreground">
-                            <ExternalLink className="h-4 w-4" />
-                            GitHub
-                          </Link>
-                        ) : null}
-                      </div>
-                    </div>
-                  </motion.article>
-                );
-              })}
+              {restProjects.map((project) => (
+                <motion.div key={project.id} variants={itemVariant}>
+                  <GridProjectCard project={project} locale={locale} isLight={isLight} />
+                </motion.div>
+              ))}
             </div>
           </motion.section>
-        ) : null}
+        )}
 
-        <section className="grid gap-5 md:grid-cols-3">
-          {[
-            {
-              icon: Zap,
-              title: t(locale, "صفحة تعيش فوق الـ CMS", "A page powered by the CMS, not hardcoded blocks"),
-              body: t(locale, "الـ flagship والمشاريع الإضافية يأتون الآن من نفس طبقة الإدارة، لذلك أي تعديل أو صورة جديدة ينعكس مباشرة في الصفحة.", "The flagship section and the additional grid now read from the same admin-backed data layer, so every change or new image appears immediately."),
-            },
-            {
-              icon: Globe,
-              title: t(locale, "بيانات حية تضيف إحساساً حقيقياً", "Live data that adds a real-time layer"),
-              body: t(locale, "الطقس والمباريات ليسا مجرد ديكور. هما طبقة إحساس حي تعطي الصفحة نبضاً فعلياً وتؤكد أن النظام متصل بالعالم الحقيقي.", "Weather and football are not decorative. They create a live layer that gives the page a real pulse and proves the system is connected."),
-            },
-            {
-              icon: Trophy,
-              title: t(locale, "هوية واحدة من البطاقة إلى الـ CTA", "One identity from hero to CTA"),
-              body: t(locale, "تم ضبط الصفحة لتكون الأقوى بصرياً في الموقع من دون كسر الثيم الحالي: نفس الروح، لكن بعرض أوضح، أقوى، وأكثر إقناعاً.", "The page is tuned to be the strongest visual showcase in the site without breaking the current theme: same spirit, but clearer, bolder, and more persuasive."),
-            },
-          ].map((block) => (
-            <div
-              key={block.title}
-              className="rounded-[2rem] border p-5"
-              style={{
-                background: isLight ? "rgba(255,255,255,0.72)" : "rgba(255,255,255,0.03)",
-                borderColor: isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-              }}
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(0,255,135,0.1)] text-[var(--primary)]">
-                <block.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 text-xl font-black text-foreground">{block.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-foreground-muted">{block.body}</p>
-            </div>
-          ))}
-        </section>
+        {/* ── 7. CONVERSION CTA */}
+        <ConversionCta locale={locale} isLight={isLight} />
       </div>
     </div>
   );

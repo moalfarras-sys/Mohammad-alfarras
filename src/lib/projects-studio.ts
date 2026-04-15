@@ -63,7 +63,7 @@ function fallbackGalleryIds(project: Pick<WorkProject, "slug">): string[] {
   const key = projectKey(project);
   if (key === "seel") return ["m20", "m21", "m50"];
   if (key === "schnell") return ["m22", "m23", "m51"];
-  if (key === "moplayer") return ["m34", "m50", "m1"];
+  if (key === "moplayer") return ["m34", "m55", "m56"];
   return [];
 }
 

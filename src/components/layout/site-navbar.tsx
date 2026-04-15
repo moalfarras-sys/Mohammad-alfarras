@@ -61,13 +61,13 @@ export function SiteNavbar({
   }, []);
 
   return (
-    <header className="top-safe sticky top-0 z-40 px-3 md:px-6">
+    <header className="top-safe sticky top-0 z-40 px-2 md:px-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "section-frame mt-4 flex flex-row items-center justify-between gap-3 rounded-full px-4 py-3 transition-all duration-500 md:px-5",
+          "section-frame mt-2 flex flex-row items-center justify-between gap-2 rounded-full px-3 py-2 transition-all duration-500 md:mt-4 md:px-5 md:py-3",
           scrolled ? "glass-card" : "bg-transparent",
         )}
         style={

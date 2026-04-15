@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { AdminPagesPanel } from "@/components/admin/admin-pages-panel";
+import { PagesControlCenter } from "@/components/admin/pages-control-center";
+import {
+  getContactPageContentDocument,
+  getHomeContentDocument,
+  getProjectsPageContentDocument,
+  getYoutubePageContentDocument,
+} from "@/lib/cms-documents";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { readSnapshot } from "@/lib/content/store";
 import type { Locale } from "@/types/cms";
@@ -16,5 +22,15 @@ export default async function AdminPagesRoute({
   }
 
   const snapshot = await readSnapshot();
-  return <AdminPagesPanel locale={locale} snapshot={snapshot} />;
+
+  return (
+    <PagesControlCenter
+      locale={locale}
+      snapshot={snapshot}
+      homeContent={getHomeContentDocument(snapshot)}
+      projectsContent={getProjectsPageContentDocument(snapshot)}
+      youtubeContent={getYoutubePageContentDocument(snapshot)}
+      contactContent={getContactPageContentDocument(snapshot)}
+    />
+  );
 }

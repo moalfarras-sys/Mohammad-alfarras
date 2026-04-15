@@ -941,9 +941,9 @@ export const defaultSnapshot: CmsSnapshot = {
     },
   ],
   work_projects: [
-    { id: "wp-seel", slug: "seeltransport", is_active: true, sort_order: 1, project_url: "https://seeltransport.de/", repo_url: "", cover_media_id: "m20", created_at: now, updated_at: now },
-    { id: "wp-schnell", slug: "schnellsicherumzug", is_active: true, sort_order: 2, project_url: "https://schnellsicherumzug.de/", repo_url: "", cover_media_id: "m22", created_at: now, updated_at: now },
-    { id: "wp-moplayer", slug: "moplayer", is_active: false, sort_order: 3, project_url: "", repo_url: "", cover_media_id: "m34", created_at: now, updated_at: now },
+    { id: "wp-seel", slug: "seeltransport", is_active: true, sort_order: 1, category: "logistics", featured_rank: 1, project_url: "https://seeltransport.de/", repo_url: "", cover_media_id: "m20", created_at: now, updated_at: now },
+    { id: "wp-schnell", slug: "schnellsicherumzug", is_active: true, sort_order: 2, category: "service", featured_rank: 2, project_url: "https://schnellsicherumzug.de/", repo_url: "", cover_media_id: "m22", created_at: now, updated_at: now },
+    { id: "wp-moplayer", slug: "moplayer", is_active: false, sort_order: 3, category: "app", featured_rank: 3, project_url: "", repo_url: "", cover_media_id: "m34", created_at: now, updated_at: now },
   ],
   work_project_translations: [
     { project_id: "wp-seel", locale: "ar", title: "SEEL Transport", summary: "موقع خدمات نقل وتنظيف بهوية قوية وتجربة أكثر ترتيبًا.", description: "عملت على تقديم الخدمة بشكل أوضح، ورفع الثقة البصرية، وتنسيق المحتوى بحيث يشعر الزائر بسرعة أن الشركة منظمة وجاهزة للعمل.", cta_label: "زيارة المشروع" },
@@ -1026,6 +1026,8 @@ export const defaultSnapshot: CmsSnapshot = {
     { channel_id: "ch-fb", locale: "ar", label: "Facebook", description: "تواصل ومتابعة إضافية" },
     { channel_id: "ch-fb", locale: "en", label: "Facebook", description: "Additional social presence" },
   ],
+  work_project_media: [],
+  work_project_metrics: [],
   site_settings: [
     { key: "site_name", value_json: { ar: "محمد الفراس", en: "Mohammad Alfarras" } },
     { key: "contact", value_json: { email: "Mohammad.Alfarras@gmail.com", phone: "+49 176 23419358" } },

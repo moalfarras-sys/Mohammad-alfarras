@@ -48,6 +48,8 @@ next-env.d.ts
 public/images/WhatsApp*.jpeg
 public/images/WhatsApp*.jpg
 
+.codex-dev.log
+
 # local artifacts
 coverage/
 test-results/

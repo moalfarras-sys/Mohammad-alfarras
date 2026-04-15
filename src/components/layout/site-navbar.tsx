@@ -1,6 +1,6 @@
 "use client";
 
-import { MoonStar, SunMedium, Home, FileText, FolderGit2, PlaySquare, Mail } from "lucide-react";
+import { MoonStar, SunMedium } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,25 +19,18 @@ type NavLink = {
   href: string;
 };
 
-const getIcon = (id: string, className?: string) => {
-  switch (id) {
-    case "home": return <Home className={className} />;
-    case "cv": return <FileText className={className} />;
-    case "projects": return <FolderGit2 className={className} />;
-    case "youtube": return <PlaySquare className={className} />;
-    case "contact": return <Mail className={className} />;
-    default: return <Home className={className} />;
-  }
-};
-
 export function SiteNavbar({
   locale,
   links,
   tagline,
+  logoSrc,
+  brandName,
 }: {
   locale: Locale;
   links: NavLink[];
   tagline: string;
+  logoSrc: string;
+  brandName: string;
 }) {
   const pathname = usePathname();
   const localeHref = useMemo(() => alternateLocalePath(pathname || `/${locale}`, locale), [locale, pathname]);
@@ -82,11 +75,11 @@ export function SiteNavbar({
                 border: "1px solid var(--border-glass)",
               }}
             >
-              <Image src="/images/logo.png" alt="Logo" width={48} height={40} priority className="navbar-logo-img object-contain transition-all scale-75 md:scale-100" />
+              <Image src={logoSrc} alt={`${brandName} logo`} width={48} height={40} priority className="navbar-logo-img object-contain transition-all scale-75 md:scale-100" />
             </motion.span>
             <span className="hidden min-w-0 sm:grid">
               <strong className="headline-display truncate text-base font-extrabold text-foreground transition-all duration-300 group-hover:text-primary">
-                Moalfarras
+                {brandName}
               </strong>
               <small className="truncate text-[9px] font-bold uppercase tracking-[0.32em]" style={{ color: "var(--color-accent)", opacity: 0.8 }}>
                 {tagline}

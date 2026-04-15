@@ -137,13 +137,6 @@ type SiteCertification = {
   credentialUrl: string;
 };
 
-type CvLinksSetting = {
-  ar?: string;
-  en?: string;
-  de?: string;
-  portrait?: string;
-};
-
 export type SiteViewModel = {
   locale: Locale;
   pageSlug: string;
@@ -186,6 +179,11 @@ export type SiteViewModel = {
     description: string;
     highlights: string[];
   }[];
+  portraitImage: string;
+  downloads: {
+    branded: string;
+    ats: string;
+  };
 };
 
 /* ── Helpers ── */
@@ -1197,7 +1195,6 @@ function HomePage({ model }: { model: SiteViewModel }) {
 â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
 function CvPage({ model }: { model: SiteViewModel }) {
   const { locale, t, experience, gallery } = model;
-  const cvLinks = (model.settings?.cv_links?.value_json as CvLinksSetting | undefined) ?? {};
 
   const skills = locale === "ar"
     ? [
@@ -1319,7 +1316,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               <Reveal delay={0.18}>
                 <div className="flex flex-wrap gap-3">
                   <motion.a
-                    href={cvLinks[locale] || "/Lebenslauf.pdf"}
+                    href={model.downloads.branded}
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.04, boxShadow: "0 0 30px var(--primary)" }}
@@ -1358,7 +1355,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                 >
                   <div className="relative aspect-[3/4] w-full overflow-hidden">
                     <Image
-                      src={cvLinks.portrait || "/images/portrait.jpg"}
+                      src={model.portraitImage || "/images/portrait.jpg"}
                       alt={locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}
                       fill priority
                       sizes="420px"
@@ -1874,7 +1871,17 @@ function Matches3DWidget({ matches: liveMatches, locale }: { matches: LiveMatch[
   );
 }
 
-function Project3DShowcase({ project, index, locale, t }: { project: SiteProject, index: number, locale: Locale, t: any }) {
+function Project3DShowcase({
+  project,
+  index,
+  locale,
+  t,
+}: {
+  project: SiteProject;
+  index: number;
+  locale: Locale;
+  t: RebuildLocaleContent;
+}) {
   const story = projectStory(project, locale);
   const accentMap = {
     "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,255,135,0.06)", glow: "rgba(0,255,135,0.12)" },

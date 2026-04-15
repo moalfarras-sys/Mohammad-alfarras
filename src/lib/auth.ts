@@ -1,19 +1,19 @@
-﻿import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { readSnapshot } from "@/lib/content/store";
+
+import { defaultLocale, isLocale } from "@/lib/i18n";
 
 const ADMIN_COOKIE = "mf_admin_session";
+const HASH_PREFIX = "scrypt$";
+const SESSION_VERSION = "v1";
+const SESSION_MAX_AGE = 60 * 60 * 8;
 
 export type AdminCredentials = {
   emails: string[];
   passwordHash: string;
   legacyPassword: string;
 };
-
-const HASH_PREFIX = "scrypt$";
-const SESSION_VERSION = "v1";
-const SESSION_MAX_AGE = 60 * 60 * 8;
 
 function envAdminEmails() {
   const fromAllowlist = String(process.env.ADMIN_ALLOWLIST || "")
@@ -28,6 +28,10 @@ function envAdminEmails() {
 
 function envAdminPassword() {
   return String(process.env.ADMIN_PASSWORD ?? "");
+}
+
+function envAdminPasswordHash() {
+  return String(process.env.ADMIN_PASSWORD_HASH ?? "");
 }
 
 function hashAdminPassword(password: string): string {
@@ -47,7 +51,9 @@ function verifyHashedPassword(password: string, hash: string): boolean {
 }
 
 function sessionSecret(): string {
-  return String(process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || "local-admin-secret");
+  return String(
+    process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || "local-admin-secret",
+  );
 }
 
 function encodeSessionEmail(email: string): string {
@@ -97,38 +103,11 @@ export function createPasswordHash(password: string): string {
 }
 
 export async function resolveAdminCredentials(): Promise<AdminCredentials> {
-  const fallbackEmails = envAdminEmails();
-  const fallbackPassword = envAdminPassword();
-
-  try {
-    const snapshot = await readSnapshot();
-    const authSetting = snapshot.site_settings.find((setting) => setting.key === "admin_auth")?.value_json;
-    if (!authSetting || typeof authSetting !== "object") {
-      return { emails: fallbackEmails, passwordHash: "", legacyPassword: fallbackPassword };
-    }
-
-    const fromEmail = String((authSetting as Record<string, unknown>).email ?? "")
-      .trim()
-      .toLowerCase();
-    const fromAllowlist = String((authSetting as Record<string, unknown>).allowlist ?? "")
-      .split(",")
-      .map((entry) => entry.trim().toLowerCase())
-      .filter(Boolean);
-    const fromPasswordHash = String((authSetting as Record<string, unknown>).password_hash ?? "");
-    const fromPasswordLegacy = String((authSetting as Record<string, unknown>).password ?? "");
-
-    const emails = fromAllowlist.length
-      ? fromAllowlist
-      : fromEmail
-        ? [fromEmail]
-        : fallbackEmails;
-    const passwordHash = fromPasswordHash;
-    const legacyPassword = fromPasswordLegacy || fallbackPassword;
-
-    return { emails, passwordHash, legacyPassword };
-  } catch {
-    return { emails: fallbackEmails, passwordHash: "", legacyPassword: fallbackPassword };
-  }
+  return {
+    emails: envAdminEmails(),
+    passwordHash: envAdminPasswordHash(),
+    legacyPassword: envAdminPassword(),
+  };
 }
 
 export async function createAdminSession(email: string, password: string): Promise<boolean> {
@@ -163,15 +142,29 @@ export async function destroyAdminSession() {
   store.delete(ADMIN_COOKIE);
 }
 
-export async function isAdminAuthenticated(): Promise<boolean> {
+export async function getAdminSessionEmail(): Promise<string | null> {
   const store = await cookies();
   const token = store.get(ADMIN_COOKIE)?.value || "";
-  return verifySignedSession(token);
+  if (!verifySignedSession(token)) return null;
+
+  try {
+    const [, encodedEmail = ""] = token.split(".");
+    return decodeSessionEmail(encodedEmail);
+  } catch {
+    return null;
+  }
+}
+
+export async function isAdminAuthenticated(): Promise<boolean> {
+  return Boolean(await getAdminSessionEmail());
 }
 
 export async function requireAdmin() {
   const authed = await isAdminAuthenticated();
   if (!authed) {
-    redirect("/ar/admin?unauthorized=1");
+    const h = await headers();
+    const fromHeader = h.get("x-site-locale");
+    const locale = fromHeader && isLocale(fromHeader) ? fromHeader : defaultLocale;
+    redirect(`/${locale}/admin?unauthorized=1`);
   }
 }

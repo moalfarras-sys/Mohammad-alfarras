@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
-import { rebuildContent } from "@/data/rebuild-content";
+import { getBrandAssets, getSiteSeoDocument } from "@/lib/cms-documents";
+import { readSnapshot } from "@/lib/content/store";
 import type { Locale } from "@/types/cms";
 
 const BASE_URL = "https://moalfarras.space";
@@ -37,7 +38,10 @@ const keywordMap: Record<string, string[]> = {
 };
 
 export async function pageMetadata(locale: Locale, slug: string): Promise<Metadata> {
-  const entries = rebuildContent[locale].seo;
+  const snapshot = await readSnapshot();
+  const seoDoc = getSiteSeoDocument(snapshot);
+  const brand = getBrandAssets(snapshot);
+  const entries = seoDoc[locale];
   const key = (slug || "home") as keyof typeof entries;
   const seo = entries[key] ?? entries.home;
   const ogImage = seo.image ?? "/images/brand-spotlight-2026.jpeg";
@@ -47,6 +51,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   const localeTag = locale === "ar" ? "ar_SA" : "en_US";
   const altLocaleTag = locale === "ar" ? "en_US" : "ar_SA";
   const altLocalePath = locale === "ar" ? altEn : altAr;
+  const siteNameOg = `${brand.siteName.en} | ${brand.siteName.ar}`;
 
   return {
     title: seo.title,
@@ -77,7 +82,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       url: `${BASE_URL}${localizedPath}`,
       title: seo.ogTitle,
       description: seo.ogDescription,
-      siteName: "Mohammad Alfarras | موقع محمد الفراس",
+      siteName: siteNameOg,
       images: [
         {
           url: `${BASE_URL}${ogImage}`,

@@ -1,17 +1,17 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 export type SiteTheme = "dark" | "light";
 
+function subscribe() {
+  return () => {};
+}
+
 export function useThemeMode() {
   const { theme, setTheme, systemTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
   const currentTheme = mounted ? (theme === "system" ? systemTheme : theme) || "dark" : "dark";
 

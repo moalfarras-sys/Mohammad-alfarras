@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { CvBuilderStudio } from "@/components/admin/cv-builder-studio";
+import { CvControlCenter } from "@/components/admin/cv-control-center";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { readSnapshot } from "@/lib/content/store";
+import { getCvPageContentDocument } from "@/lib/cms-documents";
 import { getCvBuilderData } from "@/lib/cv-builder";
+import { readSnapshot } from "@/lib/content/store";
 import type { Locale } from "@/types/cms";
 
 export default async function AdminCvPage({ params }: { params: Promise<{ locale: Locale }> }) {
@@ -14,11 +15,13 @@ export default async function AdminCvPage({ params }: { params: Promise<{ locale
   }
 
   const snapshot = await readSnapshot();
-  const cvBuilder = getCvBuilderData(snapshot);
 
   return (
-    <div className="px-3 pb-6 pt-2 md:px-6">
-      <CvBuilderStudio locale={locale} snapshot={snapshot} initialData={cvBuilder} />
-    </div>
+    <CvControlCenter
+      locale={locale}
+      snapshot={snapshot}
+      initialBuilder={getCvBuilderData(snapshot)}
+      cvPageContent={getCvPageContentDocument(snapshot)}
+    />
   );
 }

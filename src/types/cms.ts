@@ -118,6 +118,8 @@ export type WorkProject = {
   slug: string;
   is_active: boolean;
   sort_order: number;
+  category?: string | null;
+  featured_rank?: number | null;
   project_url: string;
   repo_url: string;
   cover_media_id: string | null;
@@ -132,6 +134,29 @@ export type WorkProjectTranslation = {
   summary: string;
   description: string;
   cta_label: string;
+  tags_json?: string[];
+  challenge?: string;
+  solution?: string;
+  result?: string;
+};
+
+export type WorkProjectMediaRole = "cover" | "gallery";
+
+export type WorkProjectMedia = {
+  id: string;
+  project_id: string;
+  media_id: string;
+  role: WorkProjectMediaRole;
+  sort_order: number;
+};
+
+export type WorkProjectMetric = {
+  id: string;
+  project_id: string;
+  sort_order: number;
+  value: string;
+  label_ar: string;
+  label_en: string;
 };
 
 export type Experience = {
@@ -237,6 +262,8 @@ export type CmsSnapshot = {
   youtube_videos: YoutubeVideo[];
   work_projects: WorkProject[];
   work_project_translations: WorkProjectTranslation[];
+  work_project_media: WorkProjectMedia[];
+  work_project_metrics: WorkProjectMetric[];
   experiences: Experience[];
   experience_translations: ExperienceTranslation[];
   certifications: Certification[];
@@ -274,9 +301,17 @@ export type WorkProjectView = {
   summary: string;
   description: string;
   ctaLabel: string;
+  category: string;
+  featuredRank: number | null;
+  tags: string[];
+  challenge: string;
+  solution: string;
+  result: string;
   projectUrl: string;
   repoUrl: string;
   cover: MediaAsset | null;
+  gallery: MediaAsset[];
+  metrics: WorkProjectMetric[];
   order: number;
 };
 

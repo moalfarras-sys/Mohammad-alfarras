@@ -1,6 +1,9 @@
+import { cache } from "react";
+
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { deleteWhere, hasDatabaseUrl, updateWhere, upsertRow } from "@/lib/server-db";
 import type {
+  AuditLog,
   Certification,
   CmsSnapshot,
   ContactChannel,
@@ -12,6 +15,8 @@ import type {
   PageView,
   ServiceOffering,
   WorkProject,
+  WorkProjectMedia,
+  WorkProjectMetric,
   YoutubeVideo,
 } from "@/types/cms";
 import { defaultSnapshot } from "@/data/default-content";
@@ -23,6 +28,8 @@ const conflictMap = {
   youtube_videos: ["id"],
   work_projects: ["id"],
   work_project_translations: ["project_id", "locale"],
+  work_project_media: ["id"],
+  work_project_metrics: ["id"],
   experiences: ["id"],
   experience_translations: ["experience_id", "locale"],
   certifications: ["id"],
@@ -40,6 +47,7 @@ const conflictMap = {
   navigation_items: ["id"],
   navigation_translations: ["nav_item_id", "locale"],
   media_assets: ["id"],
+  audit_logs: ["id"],
 } as const;
 
 async function upsertDbRow(table: keyof typeof conflictMap, row: Record<string, unknown>) {
@@ -130,6 +138,8 @@ function mergeSnapshots(base: CmsSnapshot, incoming: CmsSnapshot): CmsSnapshot {
     youtube_videos: mergeByKey(base.youtube_videos, incoming.youtube_videos, (item) => item.id),
     work_projects: mergeByKey(base.work_projects, incoming.work_projects, (item) => item.id),
     work_project_translations: mergeByKey(base.work_project_translations, incoming.work_project_translations, (item) => `${item.project_id}-${item.locale}`),
+    work_project_media: mergeByKey(base.work_project_media, incoming.work_project_media, (item) => item.id),
+    work_project_metrics: mergeByKey(base.work_project_metrics, incoming.work_project_metrics, (item) => item.id),
     experiences: mergeByKey(base.experiences, incoming.experiences, (item) => item.id),
     experience_translations: mergeByKey(base.experience_translations, incoming.experience_translations, (item) => `${item.experience_id}-${item.locale}`),
     certifications: mergeByKey(base.certifications, incoming.certifications, (item) => item.id),
@@ -148,6 +158,18 @@ async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
 
   try {
     const supabase = createSupabaseDataClient();
+    const selectOptional = async <T extends Record<string, unknown>>(table: string, orderBy?: string): Promise<T[]> => {
+      try {
+        let query = supabase.from(table).select("*");
+        if (orderBy) {
+          query = query.order(orderBy);
+        }
+        const result = await query;
+        return result.error ? [] : ((result.data ?? []) as T[]);
+      } catch {
+        return [];
+      }
+    };
 
     const [
       pages,
@@ -196,6 +218,10 @@ async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
       supabase.from("site_settings").select("*"),
       supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(200),
     ]);
+    const [workProjectMedia, workProjectMetrics] = await Promise.all([
+      selectOptional<WorkProjectMedia>("work_project_media", "sort_order"),
+      selectOptional<WorkProjectMetric>("work_project_metrics", "sort_order"),
+    ]);
 
     const results = [
       pages,
@@ -239,6 +265,8 @@ async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
       youtube_videos: youtubeVideos.data ?? [],
       work_projects: workProjects.data ?? [],
       work_project_translations: workProjectTranslations.data ?? [],
+      work_project_media: workProjectMedia,
+      work_project_metrics: workProjectMetrics,
       experiences: experiences.data ?? [],
       experience_translations: experienceTranslations.data ?? [],
       certifications: certifications.data ?? [],
@@ -255,13 +283,15 @@ async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
   }
 }
 
-export async function readSnapshot(): Promise<CmsSnapshot> {
+async function readSnapshotUncached(): Promise<CmsSnapshot> {
   const remote = await readSnapshotFromSupabase();
   if (!remote || !remote.pages.length) {
     return deepClone(mutableSnapshot);
   }
   return mergeSnapshots(mutableSnapshot, remote);
 }
+
+export const readSnapshot = cache(readSnapshotUncached);
 
 export async function readPage(locale: Locale, slug: string): Promise<PageView | null> {
   const snapshot = await readSnapshot();
@@ -391,6 +421,13 @@ export async function upsertSiteSetting(key: string, value_json: Record<string, 
   }
 
   await upsertDbRow("site_settings", { key, value_json });
+}
+
+export async function appendAuditLog(log: AuditLog): Promise<void> {
+  updateMutableById(mutableSnapshot.audit_logs, log);
+
+  if (!hasDatabaseUrl()) return;
+  await upsertDbRow("audit_logs", log);
 }
 
 export async function syncYoutubeLatest(options?: { maxResults?: number; channelId?: string }): Promise<number> {
@@ -550,6 +587,10 @@ export async function upsertWorkProjectTranslation(payload: {
   summary: string;
   description: string;
   cta_label: string;
+  tags_json?: string[];
+  challenge?: string;
+  solution?: string;
+  result?: string;
 }): Promise<void> {
   const idx = mutableSnapshot.work_project_translations.findIndex(
     (entry) => entry.project_id === payload.project_id && entry.locale === payload.locale,
@@ -563,9 +604,33 @@ export async function upsertWorkProjectTranslation(payload: {
   await upsertDbRow("work_project_translations", payload);
 }
 
+export async function replaceWorkProjectMedia(projectId: string, items: WorkProjectMedia[]): Promise<void> {
+  mutableSnapshot.work_project_media = mutableSnapshot.work_project_media.filter((entry) => entry.project_id !== projectId);
+  mutableSnapshot.work_project_media.push(...items);
+
+  if (!hasDatabaseUrl()) return;
+  await deleteWhere("work_project_media", "project_id", projectId);
+  for (const item of items) {
+    await upsertDbRow("work_project_media", item);
+  }
+}
+
+export async function replaceWorkProjectMetrics(projectId: string, items: WorkProjectMetric[]): Promise<void> {
+  mutableSnapshot.work_project_metrics = mutableSnapshot.work_project_metrics.filter((entry) => entry.project_id !== projectId);
+  mutableSnapshot.work_project_metrics.push(...items);
+
+  if (!hasDatabaseUrl()) return;
+  await deleteWhere("work_project_metrics", "project_id", projectId);
+  for (const item of items) {
+    await upsertDbRow("work_project_metrics", item);
+  }
+}
+
 export async function deleteWorkProject(id: string): Promise<void> {
   deleteMutableById(mutableSnapshot.work_projects, id);
   mutableSnapshot.work_project_translations = mutableSnapshot.work_project_translations.filter((entry) => entry.project_id !== id);
+  mutableSnapshot.work_project_media = mutableSnapshot.work_project_media.filter((entry) => entry.project_id !== id);
+  mutableSnapshot.work_project_metrics = mutableSnapshot.work_project_metrics.filter((entry) => entry.project_id !== id);
 
   if (!hasDatabaseUrl()) return;
   await deleteWhere("work_projects", "id", id);

@@ -1,15 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { ProjectsControlCenter } from "@/components/admin/projects-control-center";
+import { PdfsControlCenter } from "@/components/admin/pdfs-control-center";
 import { isAdminAuthenticated } from "@/lib/auth";
+import { getPdfRegistry } from "@/lib/cms-documents";
 import { readSnapshot } from "@/lib/content/store";
 import type { Locale } from "@/types/cms";
 
-export default async function AdminProjectsPage({
-  params,
-}: {
-  params: Promise<{ locale: Locale }>;
-}) {
+export default async function AdminPdfsPage({ params }: { params: Promise<{ locale: Locale }> }) {
   const { locale } = await params;
 
   if (!(await isAdminAuthenticated())) {
@@ -17,5 +14,5 @@ export default async function AdminProjectsPage({
   }
 
   const snapshot = await readSnapshot();
-  return <ProjectsControlCenter locale={locale} snapshot={snapshot} />;
+  return <PdfsControlCenter locale={locale} registry={getPdfRegistry(snapshot)} />;
 }

@@ -5,13 +5,12 @@ import { redirect } from "next/navigation";
 
 import {
   createAdminSession,
-  createPasswordHash,
   destroyAdminSession,
+  getAdminSessionEmail,
   requireAdmin,
-  resolveAdminCredentials,
-  verifyAdminPassword,
 } from "@/lib/auth";
 import {
+  appendAuditLog,
   deleteCertification,
   deleteContactChannel,
   deleteExperience,
@@ -45,7 +44,10 @@ import {
   upsertWorkProjectTranslation,
   uploadMediaToStorage,
   readSnapshot,
+  replaceWorkProjectMedia,
+  replaceWorkProjectMetrics,
 } from "@/lib/content/store";
+import { getPdfRegistry, type PdfRegistryDocument } from "@/lib/cms-documents";
 import { getProjectsStudioData, type ProjectStudioItem } from "@/lib/projects-studio";
 import {
   certificationSchema,
@@ -67,6 +69,8 @@ import {
   serviceOfferingSchema,
   serviceOfferingTranslationSchema,
   videoSchema,
+  workProjectMediaSchema,
+  workProjectMetricSchema,
   workProjectSchema,
   workProjectTranslationSchema,
 } from "@/lib/validation";
@@ -83,6 +87,12 @@ function revalidateAll() {
   revalidatePath("/en/admin/pages");
   revalidatePath("/ar/admin/cv");
   revalidatePath("/en/admin/cv");
+  revalidatePath("/ar/admin/media");
+  revalidatePath("/en/admin/media");
+  revalidatePath("/ar/admin/pdfs");
+  revalidatePath("/en/admin/pdfs");
+  revalidatePath("/ar/admin/settings");
+  revalidatePath("/en/admin/settings");
   revalidatePath("/ar/admin/advanced");
   revalidatePath("/en/admin/advanced");
   revalidatePath("/ar/blog");
@@ -97,6 +107,20 @@ function revalidateAll() {
   revalidatePath("/en/contact");
 }
 
+/** Keys the Control Center may persist via `updateSiteSettingAction` (typed CMS + CV builder). */
+export const ALLOWED_SITE_SETTING_KEYS = new Set([
+  "brand_assets",
+  "admin_profile",
+  "home_content",
+  "projects_page_content",
+  "youtube_page_content",
+  "cv_page_content",
+  "contact_page_content",
+  "pdf_registry",
+  "site_seo",
+  "cv_builder",
+]);
+
 function parseStringArray(input: string): string[] {
   return input
     .split("\n")
@@ -108,11 +132,36 @@ async function ensureAdmin() {
   await requireAdmin();
 }
 
+async function audit(action: string, entity: string, entityId: string, payload: Record<string, unknown>) {
+  await appendAuditLog({
+    id: `audit-${crypto.randomUUID()}`,
+    admin_user_id: (await getAdminSessionEmail()) ?? "admin",
+    action,
+    entity,
+    entity_id: entityId,
+    payload,
+    created_at: new Date().toISOString(),
+  });
+}
+
 function parseList(value: FormDataEntryValue | null) {
   return String(value || "")
     .split("\n")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseJsonField<T>(formData: FormData, key: string): T {
+  const raw = String(formData.get(key) || "");
+  if (!raw) {
+    throw new Error(`Missing ${key}`);
+  }
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new Error(`Invalid JSON for ${key}`);
+  }
 }
 
 function upsertStudioItem(items: ProjectStudioItem[], nextItem: ProjectStudioItem) {
@@ -126,63 +175,30 @@ export async function loginAdminAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const ok = await createAdminSession(email, password);
   if (!ok) {
-    redirect(`/${locale}/admin/cv?error=invalid_credentials`);
+    redirect(`/${locale}/admin?error=invalid_credentials`);
   }
 
-  redirect(`/${locale}/admin/cv?ok=1`);
+  redirect(`/${locale}/admin?ok=1`);
 }
 
-export async function logoutAdminAction() {
+export async function logoutAdminAction(formData: FormData) {
   await destroyAdminSession();
-  redirect("/ar/admin");
+  const locale = String(formData.get("locale") ?? "ar") === "en" ? "en" : "ar";
+  redirect(`/${locale}/admin`);
 }
 
 export async function updateAdminCredentialsAction(formData: FormData) {
-  await ensureAdmin();
-  const currentPassword = String(formData.get("current_password") || "");
-  const newPassword = String(formData.get("new_password") || "");
-  const confirmPassword = String(formData.get("confirm_password") || "");
-  const adminEmail = String(formData.get("admin_email") || "")
-    .trim()
-    .toLowerCase();
-  const allowlist = String(formData.get("allowlist") || "")
-    .split(",")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean)
-    .join(",");
-
-  const creds = await resolveAdminCredentials();
-  if (!currentPassword || !verifyAdminPassword(currentPassword, creds)) {
-    throw new Error("Current password is invalid");
-  }
-
-  if (newPassword.length < 8) {
-    throw new Error("New password must be at least 8 characters");
-  }
-
-  if (newPassword !== confirmPassword) {
-    throw new Error("Password confirmation does not match");
-  }
-
-  const nextEmail = adminEmail || creds.emails[0] || "";
-  if (!nextEmail) {
-    throw new Error("Admin email is required");
-  }
-
-  await upsertSiteSetting("admin_auth", {
-    email: nextEmail,
-    allowlist: allowlist || nextEmail,
-    password_hash: createPasswordHash(newPassword),
-    updated_at: new Date().toISOString(),
-  });
-
-  revalidateAll();
+  void formData;
+  throw new Error("Admin credentials are managed through runtime environment variables.");
 }
 
 export async function updateSiteSettingAction(formData: FormData) {
   await ensureAdmin();
   const key = String(formData.get("key") || "").trim();
   if (!key) throw new Error("Missing setting key");
+  if (!ALLOWED_SITE_SETTING_KEYS.has(key)) {
+    throw new Error(`Unknown or disallowed site setting key: ${key}`);
+  }
 
   let parsedJson: Record<string, unknown> = {};
   const prefixedEntries = Array.from(formData.entries()).filter(([entryKey]) => entryKey.startsWith("value_json_"));
@@ -201,6 +217,7 @@ export async function updateSiteSettingAction(formData: FormData) {
   }
 
   await upsertSiteSetting(key, parsedJson);
+  await audit("upsert", "site_setting", key, parsedJson);
   revalidateAll();
 }
 
@@ -226,6 +243,7 @@ export async function upsertVideoAction(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 
   await upsertVideo(parsed.data);
+  await audit("upsert", "youtube_video", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -233,6 +251,7 @@ export async function syncYoutubeAction(formData: FormData) {
   await ensureAdmin();
   const maxResults = Number(formData.get("max_results") || 12);
   await syncYoutubeLatest({ maxResults });
+  await audit("sync", "youtube_video", "latest", { maxResults });
   revalidateAll();
 }
 
@@ -249,6 +268,7 @@ export async function updatePageCoreAction(formData: FormData) {
     status: parsed.data.status,
     template: parsed.data.template,
   });
+  await audit("update", "page_core", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -261,6 +281,7 @@ export async function publishPageAction(formData: FormData) {
   if (!slug) throw new Error("Missing page slug");
 
   await publishPageBySlug(slug, status.data);
+  await audit("publish", "page", slug, { status: status.data });
   revalidateAll();
 }
 
@@ -284,6 +305,7 @@ export async function updatePageTranslationAction(formData: FormData) {
     og_title: parsed.data.og_title,
     og_description: parsed.data.og_description,
   });
+  await audit("update", "page_translation", parsed.data.page_id, parsed.data);
   revalidateAll();
 }
 
@@ -300,6 +322,7 @@ export async function updateSectionCoreAction(formData: FormData) {
     sort_order: parsed.data.sort_order,
     is_enabled: parsed.data.is_enabled,
   });
+  await audit("update", "section_core", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -321,6 +344,10 @@ export async function updateSectionTranslationAction(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 
   await updateSectionTranslation(parsed.data.section_id, parsed.data.locale, parsed.data.content_json);
+  await audit("update", "section_translation", parsed.data.section_id, {
+    locale: parsed.data.locale,
+    content_json: parsed.data.content_json,
+  });
   revalidateAll();
 }
 
@@ -345,6 +372,7 @@ export async function upsertPageBlockAction(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 
   await upsertPageBlock(parsed.data);
+  await audit("upsert", "page_block", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -366,6 +394,7 @@ export async function upsertPageBlockTranslationAction(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 
   await upsertPageBlockTranslation(parsed.data);
+  await audit("upsert", "page_block_translation", parsed.data.block_id, parsed.data);
   revalidateAll();
 }
 
@@ -374,6 +403,7 @@ export async function deletePageBlockAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing block id");
   await deletePageBlock(id);
+  await audit("delete", "page_block", id, {});
   revalidateAll();
 }
 
@@ -382,6 +412,7 @@ export async function duplicatePageBlockAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing block id");
   await duplicatePageBlock(id);
+  await audit("duplicate", "page_block", id, {});
   revalidateAll();
 }
 
@@ -402,6 +433,7 @@ export async function updateNavigationItemAction(formData: FormData) {
     sort_order: parsed.data.sort_order,
     is_enabled: parsed.data.is_enabled,
   });
+  await audit("update", "navigation_item", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -415,6 +447,7 @@ export async function updateNavigationTranslationAction(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
 
   await updateNavigationTranslation(parsed.data.nav_item_id, parsed.data.locale, parsed.data.label);
+  await audit("update", "navigation_translation", parsed.data.nav_item_id, parsed.data);
   revalidateAll();
 }
 
@@ -449,6 +482,7 @@ export async function upsertWorkProjectAction(formData: FormData) {
     await upsertWorkProjectTranslation(translation.data);
   }
 
+  await audit("upsert", "work_project", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -528,6 +562,7 @@ export async function upsertProjectStudioAction(formData: FormData) {
     items: upsertStudioItem(current.items, nextItem),
   });
 
+  await audit("upsert", "project_studio", parsed.data.id, nextItem);
   revalidateAll();
 }
 
@@ -542,6 +577,7 @@ export async function deleteWorkProjectAction(formData: FormData) {
     version: 1,
     items: current.items.filter((item) => item.project_id !== id),
   });
+  await audit("delete", "work_project", id, {});
   revalidateAll();
 }
 
@@ -574,6 +610,7 @@ export async function upsertExperienceAction(formData: FormData) {
     await upsertExperienceTranslation(translation.data);
   }
 
+  await audit("upsert", "experience", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -582,6 +619,7 @@ export async function deleteExperienceAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing experience id");
   await deleteExperience(id);
+  await audit("delete", "experience", id, {});
   revalidateAll();
 }
 
@@ -612,6 +650,7 @@ export async function upsertCertificationAction(formData: FormData) {
     await upsertCertificationTranslation(translation.data);
   }
 
+  await audit("upsert", "certification", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -620,6 +659,7 @@ export async function deleteCertificationAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing certification id");
   await deleteCertification(id);
+  await audit("delete", "certification", id, {});
   revalidateAll();
 }
 
@@ -649,6 +689,7 @@ export async function upsertServiceOfferingAction(formData: FormData) {
     await upsertServiceOfferingTranslation(translation.data);
   }
 
+  await audit("upsert", "service_offering", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -657,6 +698,7 @@ export async function deleteServiceOfferingAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing service id");
   await deleteServiceOffering(id);
+  await audit("delete", "service_offering", id, {});
   revalidateAll();
 }
 
@@ -687,6 +729,7 @@ export async function upsertContactChannelAction(formData: FormData) {
     await upsertContactChannelTranslation(translation.data);
   }
 
+  await audit("upsert", "contact_channel", parsed.data.id, parsed.data);
   revalidateAll();
 }
 
@@ -695,6 +738,7 @@ export async function deleteContactChannelAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing channel id");
   await deleteContactChannel(id);
+  await audit("delete", "contact_channel", id, {});
   revalidateAll();
 }
 
@@ -728,6 +772,7 @@ async function runUploadMedia(formData: FormData): Promise<{ id: string }> {
 
   if (!parsed.success) throw new Error(parsed.error.flatten().formErrors.join(", "));
   await upsertMediaAsset(parsed.data);
+  await audit("upsert", "media_asset", parsed.data.id, parsed.data);
   revalidateAll();
   return { id: parsed.data.id };
 }
@@ -745,6 +790,7 @@ export async function deleteMediaAction(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) throw new Error("Missing media id");
   await deleteMediaAsset(id);
+  await audit("delete", "media_asset", id, {});
   revalidateAll();
 }
 
@@ -762,6 +808,171 @@ export async function uploadCvPdfAction(formData: FormData): Promise<{ url: stri
   });
 
   await upsertSiteSetting("cv_pdf_url", { url: uploaded.publicUrl, uploadedAt: new Date().toISOString(), filename: file.name });
+  await audit("upload", "pdf", "cv_pdf_url", { url: uploaded.publicUrl, filename: file.name });
   revalidateAll();
   return { url: uploaded.publicUrl };
+}
+
+type StructuredProjectPayload = {
+  id?: string;
+  slug: string;
+  is_active: boolean;
+  sort_order: number;
+  category?: string | null;
+  featured_rank?: number | null;
+  project_url?: string;
+  repo_url?: string;
+  cover_media_id?: string | null;
+  translations: Record<
+    "ar" | "en",
+    {
+      title: string;
+      summary: string;
+      description: string;
+      cta_label: string;
+      tags_json?: string[];
+      challenge?: string;
+      solution?: string;
+      result?: string;
+    }
+  >;
+  gallery_media_ids?: string[];
+  metrics?: Array<{ value: string; label_ar: string; label_en: string }>;
+};
+
+export async function saveProjectControlAction(formData: FormData) {
+  await ensureAdmin();
+  const payload = parseJsonField<StructuredProjectPayload>(formData, "payload_json");
+  const now = new Date().toISOString();
+  const projectId = payload.id || `wp-${crypto.randomUUID()}`;
+
+  const project = workProjectSchema.safeParse({
+    id: projectId,
+    slug: payload.slug,
+    is_active: payload.is_active,
+    sort_order: payload.sort_order,
+    category: payload.category ?? "general",
+    featured_rank: payload.featured_rank ?? null,
+    project_url: payload.project_url ?? "",
+    repo_url: payload.repo_url ?? "",
+    cover_media_id: payload.cover_media_id ?? null,
+    created_at: String(formData.get("created_at") || now),
+    updated_at: now,
+  });
+  if (!project.success) {
+    throw new Error(project.error.flatten().formErrors.join(", "));
+  }
+
+  await upsertWorkProject(project.data);
+
+  for (const locale of ["ar", "en"] as const) {
+    const translation = workProjectTranslationSchema.safeParse({
+      project_id: projectId,
+      locale,
+      title: payload.translations[locale]?.title ?? "",
+      summary: payload.translations[locale]?.summary ?? "",
+      description: payload.translations[locale]?.description ?? "",
+      cta_label: payload.translations[locale]?.cta_label ?? "",
+      tags_json: payload.translations[locale]?.tags_json ?? [],
+      challenge: payload.translations[locale]?.challenge ?? "",
+      solution: payload.translations[locale]?.solution ?? "",
+      result: payload.translations[locale]?.result ?? "",
+    });
+    if (!translation.success) {
+      throw new Error(translation.error.flatten().formErrors.join(", "));
+    }
+    await upsertWorkProjectTranslation(translation.data);
+  }
+
+  const galleryItems = (payload.gallery_media_ids ?? [])
+    .filter(Boolean)
+    .map((mediaId, index) =>
+      workProjectMediaSchema.parse({
+        id: `wpm-${projectId}-${index + 1}`,
+        project_id: projectId,
+        media_id: mediaId,
+        role: "gallery",
+        sort_order: index + 1,
+      }),
+    );
+  const mediaItems = payload.cover_media_id
+    ? [
+        workProjectMediaSchema.parse({
+          id: `wpm-${projectId}-cover`,
+          project_id: projectId,
+          media_id: payload.cover_media_id,
+          role: "cover",
+          sort_order: 0,
+        }),
+        ...galleryItems,
+      ]
+    : galleryItems;
+
+  const metricItems = (payload.metrics ?? []).map((metric, index) =>
+    workProjectMetricSchema.parse({
+      id: `wpmetric-${projectId}-${index + 1}`,
+      project_id: projectId,
+      sort_order: index + 1,
+      value: metric.value,
+      label_ar: metric.label_ar,
+      label_en: metric.label_en,
+    }),
+  );
+
+  await replaceWorkProjectMedia(projectId, mediaItems);
+  await replaceWorkProjectMetrics(projectId, metricItems);
+  await audit("save", "work_project_control", projectId, payload as Record<string, unknown>);
+  revalidateAll();
+}
+
+export async function deleteProjectControlAction(formData: FormData) {
+  await ensureAdmin();
+  const id = String(formData.get("id") || "");
+  if (!id) throw new Error("Missing project id");
+  await deleteWorkProject(id);
+  await audit("delete", "work_project_control", id, {});
+  revalidateAll();
+}
+
+type PdfUploadSlot = "branded" | "ats";
+
+export async function uploadPdfSlotAction(formData: FormData): Promise<PdfRegistryDocument> {
+  await ensureAdmin();
+  const slot = String(formData.get("slot") || "branded") as PdfUploadSlot;
+  if (slot !== "branded" && slot !== "ats") {
+    throw new Error("Invalid PDF slot");
+  }
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("No file provided");
+  if (file.type !== "application/pdf") throw new Error("File must be a PDF");
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const uploaded = await uploadMediaToStorage({
+    bucket: "documents",
+    filename: `cv-${slot}-${Date.now()}.pdf`,
+    contentType: "application/pdf",
+    bytes,
+  });
+
+  const snapshot = await readSnapshot();
+  const registry = getPdfRegistry(snapshot);
+  registry.uploads[slot] = {
+    url: uploaded.publicUrl,
+    filename: file.name,
+    uploadedAt: new Date().toISOString(),
+  };
+  registry.active[slot] = "uploaded";
+  await upsertSiteSetting("pdf_registry", registry as unknown as Record<string, unknown>);
+  await audit("upload", "pdf_registry", slot, registry as unknown as Record<string, unknown>);
+  revalidateAll();
+  return registry;
+}
+
+export async function savePdfRegistryAction(formData: FormData) {
+  await ensureAdmin();
+  const payload = parseJsonField<PdfRegistryDocument>(formData, "payload_json");
+  await upsertSiteSetting("pdf_registry", payload as unknown as Record<string, unknown>);
+  await audit("save", "pdf_registry", "pdf_registry", payload as unknown as Record<string, unknown>);
+  revalidateAll();
 }

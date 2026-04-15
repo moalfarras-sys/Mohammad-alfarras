@@ -103,6 +103,8 @@ export const workProjectSchema = z.object({
   slug: z.string().min(1),
   is_active: z.boolean(),
   sort_order: z.number().int().min(0),
+  category: z.string().trim().nullish().default("general"),
+  featured_rank: z.number().int().min(1).max(99).nullish().default(null),
   project_url: z.string().optional().default(""),
   repo_url: z.string().optional().default(""),
   cover_media_id: z.string().nullable(),
@@ -117,6 +119,27 @@ export const workProjectTranslationSchema = z.object({
   summary: z.string().min(1),
   description: z.string().min(1),
   cta_label: z.string().min(1),
+  tags_json: z.array(z.string()).default([]),
+  challenge: z.string().default(""),
+  solution: z.string().default(""),
+  result: z.string().default(""),
+});
+
+export const workProjectMediaSchema = z.object({
+  id: z.string().min(1),
+  project_id: z.string().min(1),
+  media_id: z.string().min(1),
+  role: z.enum(["cover", "gallery"]),
+  sort_order: z.number().int().min(0),
+});
+
+export const workProjectMetricSchema = z.object({
+  id: z.string().min(1),
+  project_id: z.string().min(1),
+  sort_order: z.number().int().min(0),
+  value: z.string().min(1),
+  label_ar: z.string().min(1),
+  label_en: z.string().min(1),
 });
 
 export const experienceSchema = z.object({

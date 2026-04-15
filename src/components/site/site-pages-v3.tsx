@@ -1,5 +1,5 @@
-import { rebuildContent } from "@/data/rebuild-content";
 import { projects as localProjects } from "@/data/projects";
+import { getPdfRegistry, resolveBrandAssetPaths, resolveRebuildLocaleContent } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot, readVideos } from "@/lib/content/store";
 import { buildCvPresentationModel } from "@/lib/cv-presenter";
 import { formatMonthYear } from "@/lib/locale-format";
@@ -99,6 +99,13 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
     .map((entry) => {
       const translation = snapshot.work_project_translations.find((item) => item.project_id === entry.id && item.locale === locale);
       const studio = getProjectStudioItem(snapshot, entry);
+      const projectMedia = snapshot.work_project_media
+        .filter((item) => item.project_id === entry.id && item.role === "gallery")
+        .sort((a, b) => a.sort_order - b.sort_order);
+      const projectMetrics = snapshot.work_project_metrics
+        .filter((item) => item.project_id === entry.id)
+        .sort((a, b) => a.sort_order - b.sort_order);
+      const coverAsset = snapshot.work_project_media.find((item) => item.project_id === entry.id && item.role === "cover");
       const fallbackImage = entry.slug.includes("moplayer")
         ? "/images/moplayer-app-cover.jpeg"
         : entry.slug.includes("schnell")
@@ -112,23 +119,28 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         ctaLabel: translation?.cta_label ?? (locale === "ar" ? "عرض المشروع" : "Open project"),
         summary: translation?.summary ?? "",
         description: translation?.description ?? translation?.summary ?? "",
-        image: safeImageSrc(resolveMediaPath(snapshot.media_assets, entry.cover_media_id, fallbackImage), fallbackImage),
+        image: safeImageSrc(resolveMediaPath(snapshot.media_assets, coverAsset?.media_id ?? entry.cover_media_id, fallbackImage), fallbackImage),
         href: entry.project_url || undefined,
         repoUrl: entry.repo_url || undefined,
-        featured: studio.is_featured,
-        featuredRank: studio.featured_rank,
+        featured: typeof entry.featured_rank === "number" ? entry.featured_rank < 99 : studio.is_featured,
+        featuredRank: entry.featured_rank ?? studio.featured_rank,
         accent: studio.accent,
         highlightStyle: studio.highlight_style,
         deviceFrame: studio.device_frame,
         eyebrow: locale === "ar" ? studio.eyebrow_ar : studio.eyebrow_en,
-        challenge: locale === "ar" ? studio.challenge_ar : studio.challenge_en,
-        solution: locale === "ar" ? studio.solution_ar : studio.solution_en,
-        result: locale === "ar" ? studio.result_ar : studio.result_en,
-        tags: locale === "ar" ? studio.tags_ar : studio.tags_en,
-        gallery: studio.gallery_media_ids
-          .map((mediaId) => resolveMediaPath(snapshot.media_assets, mediaId, ""))
-          .filter(Boolean),
-        metrics: studio.metrics.map((metric) => translateMetric(locale, metric)),
+        challenge: translation?.challenge || (locale === "ar" ? studio.challenge_ar : studio.challenge_en),
+        solution: translation?.solution || (locale === "ar" ? studio.solution_ar : studio.solution_en),
+        result: translation?.result || (locale === "ar" ? studio.result_ar : studio.result_en),
+        tags: translation?.tags_json?.length ? translation.tags_json : locale === "ar" ? studio.tags_ar : studio.tags_en,
+        gallery: projectMedia.length
+          ? projectMedia.map((item) => resolveMediaPath(snapshot.media_assets, item.media_id, "")).filter(Boolean)
+          : studio.gallery_media_ids.map((mediaId) => resolveMediaPath(snapshot.media_assets, mediaId, "")).filter(Boolean),
+        metrics: projectMetrics.length
+          ? projectMetrics.map((metric) => ({
+              value: metric.value,
+              label: locale === "ar" ? metric.label_ar : metric.label_en,
+            }))
+          : studio.metrics.map((metric) => translateMetric(locale, metric)),
       };
     });
 
@@ -249,7 +261,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
   ];
 }
 
-function getExperience(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["experience"] {
+function getExperience(snapshot: CmsSnapshot, locale: Locale, nowLabel: string): SiteViewModel["experience"] {
   return snapshot.experiences
     .filter((entry) => entry.is_active)
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -262,7 +274,7 @@ function getExperience(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["ex
         highlights: translation?.highlights_json ?? [],
         company: entry.company,
         location: entry.location,
-        period: `${formatDate(locale, entry.start_date)} - ${entry.end_date ? formatDate(locale, entry.end_date) : rebuildContent[locale].common.now}`,
+        period: `${formatDate(locale, entry.start_date)} - ${entry.end_date ? formatDate(locale, entry.end_date) : nowLabel}`,
       };
     });
 }
@@ -332,30 +344,31 @@ function getYoutube(snapshot: CmsSnapshot): {
   });
 }
 
-function getGallery(): SiteViewModel["gallery"] {
+function getGallery(snapshot: CmsSnapshot): SiteViewModel["gallery"] {
+  const brandMedia = resolveBrandAssetPaths(snapshot);
   return [
     {
       id: "gallery-portrait",
       title: "Digital Ecosystem",
-      image: "/images/cv-mosaic-tech.png",
+      image: brandMedia.gallery.tech,
       ratio: "portrait",
     },
     {
       id: "gallery-brand",
       title: "Brand Story",
-      image: "/images/logo-unboxing.png",
+      image: brandMedia.gallery.brand,
       ratio: "wide",
     },
     {
       id: "gallery-operations",
       title: "Logistics Ops",
-      image: "/images/cv-mosaic-ops.png",
+      image: brandMedia.gallery.logistics,
       ratio: "wide",
     },
     {
       id: "gallery-youtube",
       title: "Media Layer",
-      image: "/images/yt-hero-2026.png",
+      image: brandMedia.gallery.media,
       ratio: "square",
     },
   ];
@@ -363,6 +376,9 @@ function getGallery(): SiteViewModel["gallery"] {
 
 export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
   const snapshot = await readSnapshot();
+  const copy = resolveRebuildLocaleContent(snapshot, locale);
+  const brandMedia = resolveBrandAssetPaths(snapshot);
+  const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
 
   const [videos, liveYoutube, liveWeather, liveMatches] = await Promise.all([
@@ -375,17 +391,25 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
   const pageSlug = slug || "home";
   const profile = getProfile(snapshot, locale);
   const projects = getProjects(snapshot, locale);
-  const experience = getExperience(snapshot, locale);
+  const experience = getExperience(snapshot, locale, copy.common.now);
   const contact = getContact(snapshot, locale);
   const certifications = getCertifications(snapshot, locale);
   const services = getServices(snapshot, locale);
   const featuredVideo = videos.find((item) => item.is_featured) ?? videos[0] ?? null;
   const cvPresentation = buildCvPresentationModel(snapshot, locale);
+  const brandedDownload =
+    pdfRegistry.active.branded === "uploaded" && pdfRegistry.uploads.branded?.url
+      ? pdfRegistry.uploads.branded.url
+      : `/api/cv-pdf?locale=${locale}&variant=branded`;
+  const atsDownload =
+    pdfRegistry.active.ats === "uploaded" && pdfRegistry.uploads.ats?.url
+      ? pdfRegistry.uploads.ats.url
+      : `/api/cv-pdf?locale=${locale}&variant=ats`;
 
   const model: SiteViewModel = {
     locale,
     pageSlug,
-    t: rebuildContent[locale],
+    t: copy,
     profile,
     projects,
     services,
@@ -395,7 +419,7 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
     youtube,
     featuredVideo,
     latestVideos: videos.slice(0, 6),
-    gallery: getGallery(),
+    gallery: getGallery(snapshot),
     live: {
       youtube: liveYoutube,
       weather: liveWeather,
@@ -406,6 +430,11 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
     cvSections: cvPresentation.sections,
     cvProjects: cvPresentation.projects,
     cvExperience: cvPresentation.experience,
+    portraitImage: brandMedia.profilePortrait,
+    downloads: {
+      branded: brandedDownload,
+      ats: atsDownload,
+    },
   };
 
   return <SiteViewClient model={model} />;

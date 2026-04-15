@@ -1,9 +1,22 @@
 import Link from "next/link";
-import { ArrowUpRight, Briefcase, FileStack, Layers, Sparkles } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookCopy,
+  BriefcaseBusiness,
+  FileStack,
+  FolderKanban,
+  Image as ImageIcon,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
 
+import { getAdminProfileDocument, getPdfRegistry } from "@/lib/cms-documents";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
-type Props = { locale: Locale; snapshot: CmsSnapshot };
+type Props = {
+  locale: Locale;
+  snapshot: CmsSnapshot;
+};
 
 function t(locale: Locale, ar: string, en: string) {
   return locale === "ar" ? ar : en;
@@ -11,122 +24,235 @@ function t(locale: Locale, ar: string, en: string) {
 
 export function AdminHomeDashboard({ locale, snapshot }: Props) {
   const base = `/${locale}/admin`;
-  const pagesCount = snapshot.pages.length;
-  const projectsActive = snapshot.work_projects.filter((p) => p.is_active).length;
-  const blocksCount = snapshot.page_blocks.length;
+  const adminProfile = getAdminProfileDocument(snapshot);
+  const pdfRegistry = getPdfRegistry(snapshot);
 
-  const cards = [
+  const stats = [
     {
-      href: `${base}/pages`,
-      title: t(locale, "الصفحات", "Pages"),
-      desc: t(locale, "عناوين، حالة النشر، وSEO لكل صفحة.", "Titles, publish status, and SEO per page."),
-      stat: String(pagesCount),
-      statLabel: t(locale, "صفحة", "pages"),
-      icon: FileStack,
-      tone: "primary" as const,
+      label: t(locale, "الصفحات", "Pages"),
+      value: String(snapshot.pages.length),
+      note: t(locale, "صفحات أساسية مرتبطة بالموقع", "Core site routes connected to the website"),
     },
     {
-      href: `${base}/cv`,
-      title: t(locale, "السيرة الذاتية", "CV Studio"),
-      desc: t(locale, "الهوية، الخبرات، المهارات، وتصدير PDF.", "Identity, experience, skills, and PDF export."),
-      stat: "CV",
-      statLabel: t(locale, "مباشر", "live"),
-      icon: Layers,
-      tone: "accent" as const,
+      label: t(locale, "المشاريع", "Projects"),
+      value: String(snapshot.work_projects.filter((item) => item.is_active).length),
+      note: t(locale, "مشاريع نشطة ظاهرة للزوار", "Active projects visible on the public site"),
+    },
+    {
+      label: t(locale, "الوسائط", "Media"),
+      value: String(snapshot.media_assets.length),
+      note: t(locale, "صور وأصول قابلة لإعادة الاستخدام", "Images and reusable visual assets"),
+    },
+    {
+      label: t(locale, "سجلات الحفظ", "Audit"),
+      value: String(snapshot.audit_logs.length),
+      note: t(locale, "آخر العمليات المحفوظة في النظام", "Latest tracked admin mutations"),
+    },
+  ];
+
+  const destinations = [
+    {
+      href: `${base}/pages`,
+      title: t(locale, "إدارة الصفحات", "Page management"),
+      body: t(
+        locale,
+        "حرر محتوى الصفحة الرئيسية والمشاريع ويوتيوب والتواصل، مع تحكم آمن في إظهار الأقسام وترتيبها.",
+        "Edit home, projects, YouTube, and contact copy with safe section visibility and ordering controls.",
+      ),
+      icon: FileStack,
     },
     {
       href: `${base}/projects`,
-      title: t(locale, "المشاريع", "Projects"),
-      desc: t(locale, "إضافة وتعديل الأعمال وصور الغلاف.", "Add and edit portfolio work and covers."),
-      stat: String(projectsActive),
-      statLabel: t(locale, "نشط", "active"),
-      icon: Briefcase,
-      tone: "secondary" as const,
+      title: t(locale, "استوديو المشاريع", "Projects studio"),
+      body: t(
+        locale,
+        "أضف المشاريع أو عدلها مع الغلاف والمعرض والإحصاءات والنسختين العربية والإنجليزية.",
+        "Create and edit projects with cover, gallery, metrics, and bilingual content from one workspace.",
+      ),
+      icon: BriefcaseBusiness,
+    },
+    {
+      href: `${base}/cv`,
+      title: t(locale, "إدارة السيرة", "CV management"),
+      body: t(
+        locale,
+        "تحكم في مقدمة السيرة، الخبرات، المهارات، التعليم، والختام مع روابط PDF.",
+        "Control CV hero copy, experience, skills, education, closing CTA, and linked PDFs.",
+      ),
+      icon: BookCopy,
+    },
+    {
+      href: `${base}/media`,
+      title: t(locale, "مكتبة الوسائط", "Media library"),
+      body: t(
+        locale,
+        "ارفع الملفات، استعرضها بصرياً، واعرف أين تُستخدم داخل الموقع قبل التعديل أو الحذف.",
+        "Upload files, preview them visually, and inspect where they are used before replacing or deleting them.",
+      ),
+      icon: ImageIcon,
+    },
+    {
+      href: `${base}/pdfs`,
+      title: t(locale, "مركز ملفات PDF", "PDF control"),
+      body: t(
+        locale,
+        "بدل بين النسخ المولدة والمرفوعة، وراجع حالة كل ملف قبل جعله نشطاً للواجهة العامة.",
+        "Switch between generated and uploaded PDFs and review each slot before making it live.",
+      ),
+      icon: FolderKanban,
+    },
+    {
+      href: `${base}/settings`,
+      title: t(locale, "الهوية والإعدادات", "Brand and settings"),
+      body: t(
+        locale,
+        "أدر شعار Moalfarras والأصول العامة وملف المدير المعروض داخل النظام.",
+        "Manage the Moalfarras logo, shared brand assets, and the admin identity shown inside the CMS.",
+      ),
+      icon: Settings2,
     },
   ];
 
   return (
-    <div className="admin-dashboard-home px-4 pb-28 pt-6 md:px-8 md:pb-12 md:pt-8">
-      <div className="mx-auto max-w-3xl space-y-2 text-center md:text-start">
-        <span className="admin-eyebrow mx-auto md:mx-0">{t(locale, "مرحباً", "Welcome")}</span>
-        <h1 className="text-2xl font-black text-foreground md:text-3xl">
-          {t(locale, "لوحة التحكم", "Control center")}
-        </h1>
-        <p className="text-sm leading-7 text-foreground-muted">
-          {t(
-            locale,
-            "اختر قسمًا أدناه. كل شيء مُحسَّن للمس والجوال.",
-            "Pick a section below. Everything is touch-friendly and mobile-first.",
-          )}
-        </p>
-      </div>
+    <div className="space-y-5">
+      <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(7,10,18,0.8)] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:p-7">
+        <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-primary">
+              {t(locale, "لوحة رئيسية", "Overview")}
+            </span>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-foreground md:text-4xl">
+              {t(locale, "Moalfarras Control Center", "Moalfarras Control Center")}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-8 text-foreground-muted md:text-base">
+              {t(
+                locale,
+                "هذه اللوحة مبنية لإدارة الموقع الحقيقي: النصوص، المشاريع، السيرة، الوسائط، وملفات PDF. كل شاشة هنا مرتبطة ببيانات الواجهة العامة وليست طبقة تجميلية منفصلة.",
+                "This workspace manages the live website: copy, projects, CV, media, and PDFs. Every screen writes to the same content model the public experience reads.",
+              )}
+            </p>
+          </div>
 
-      <div className="mx-auto mt-8 grid max-w-3xl gap-4">
-        {cards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="admin-dash-card group flex items-start gap-4 rounded-3xl border border-border-glass bg-surface/60 p-5 backdrop-blur-md transition hover:border-primary/25 hover:bg-surface/80"
-            >
-              <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]"
-                style={{
-                  boxShadow:
-                    card.tone === "primary"
-                      ? "0 0 24px rgba(0,255,135,0.12)"
-                      : card.tone === "secondary"
-                        ? "0 0 24px rgba(255,107,0,0.1)"
-                        : "0 0 24px rgba(168,85,247,0.1)",
-                }}
-              >
-                <Icon className="h-7 w-7 text-foreground" aria-hidden />
+          <div className="rounded-[1.75rem] border border-white/8 bg-white/[0.04] p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-black text-foreground">{card.title}</h2>
-                  <span className="rounded-full border border-border-glass bg-surface/80 px-2.5 py-0.5 text-[11px] font-bold text-foreground-muted">
-                    {card.stat} · {card.statLabel}
-                  </span>
-                </div>
-                <p className="text-sm leading-6 text-foreground-muted">{card.desc}</p>
+              <div>
+                <p className="text-sm font-black text-foreground">{adminProfile.displayName[locale]}</p>
+                <p className="text-xs text-foreground-muted">{adminProfile.role[locale]}</p>
               </div>
-              <ArrowUpRight className="mt-1 h-5 w-5 shrink-0 text-foreground-soft transition group-hover:text-primary" aria-hidden />
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="mx-auto mt-8 max-w-3xl rounded-3xl border border-dashed border-border-glass bg-surface/30 p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
-            <div>
-              <p className="text-sm font-bold text-foreground">
-                {t(locale, "أدوات متقدمة", "Advanced tools")}
-              </p>
-              <p className="mt-1 text-xs leading-6 text-foreground-muted">
-                {t(
-                  locale,
-                  "بلوكات، يوتيوب، شهادات، ووسائط — للمستخدمين الذين يحتاجون تحكماً كاملاً.",
-                  "Blocks, YouTube, certifications, media — full CMS when you need it.",
-                )}
-              </p>
+            </div>
+            <div className="mt-5 grid gap-3 text-sm text-foreground-muted">
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/10 px-4 py-3">
+                <span>{t(locale, "البريد", "Email")}</span>
+                <span className="truncate font-bold text-foreground">{adminProfile.email}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/10 px-4 py-3">
+                <span>{t(locale, "PDF البراند", "Branded PDF")}</span>
+                <span className="font-bold text-foreground">
+                  {pdfRegistry.active.branded === "uploaded" ? t(locale, "مرفوع", "Uploaded") : t(locale, "مولد", "Generated")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 bg-black/10 px-4 py-3">
+                <span>{t(locale, "PDF ATS", "ATS PDF")}</span>
+                <span className="font-bold text-foreground">
+                  {pdfRegistry.active.ats === "uploaded" ? t(locale, "مرفوع", "Uploaded") : t(locale, "مولد", "Generated")}
+                </span>
+              </div>
             </div>
           </div>
-          <Link
-            href={`${base}/advanced`}
-            className="button-secondary-shell shrink-0 justify-center px-5 py-3 text-sm font-bold"
-          >
-            {t(locale, "فتح اللوحة المتقدمة", "Open advanced")}
-          </Link>
         </div>
-        <p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-[0.15em] text-foreground-soft">
-          {blocksCount} {t(locale, "بلوك محتوى", "content blocks")} · {snapshot.media_assets.length}{" "}
-          {t(locale, "وسائط", "media")}
-        </p>
-      </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <article
+            key={stat.label}
+            className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl"
+          >
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-foreground-soft">{stat.label}</p>
+            <p className="mt-4 text-3xl font-black text-foreground">{stat.value}</p>
+            <p className="mt-3 text-sm leading-7 text-foreground-muted">{stat.note}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl md:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-black text-foreground">{t(locale, "الأقسام", "Workspaces")}</h2>
+            <p className="mt-2 text-sm leading-7 text-foreground-muted">
+              {t(
+                locale,
+                "كل مساحة عمل مصممة لوظيفة محددة بدل لوحة مطور عامة. ابدأ من القسم الذي تريد تحديثه.",
+                "Each workspace is purpose-built instead of exposing a raw developer dashboard. Start with the area you need to update.",
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          {destinations.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group rounded-[1.6rem] border border-white/8 bg-white/[0.04] p-5 transition hover:border-primary/20 hover:bg-primary/10"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-lg font-black text-foreground">{item.title}</h3>
+                      <ArrowUpRight className="h-4 w-4 text-foreground-soft transition group-hover:text-primary" />
+                    </div>
+                    <p className="mt-2 text-sm leading-7 text-foreground-muted">{item.body}</p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl md:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-black text-foreground">{t(locale, "آخر النشاط", "Recent activity")}</h2>
+            <p className="mt-2 text-sm leading-7 text-foreground-muted">
+              {t(
+                locale,
+                "مراجعة سريعة لأحدث العمليات المسجلة بعد الحفظ داخل النظام.",
+                "A quick read on the latest tracked mutations written by the Control Center.",
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3">
+          {snapshot.audit_logs.slice(0, 6).map((entry) => (
+            <div key={entry.id} className="flex flex-col gap-2 rounded-[1.4rem] border border-white/8 bg-white/[0.04] px-4 py-3 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-foreground">
+                  {entry.action} · {entry.entity}
+                </p>
+                <p className="truncate text-xs text-foreground-muted">{entry.entity_id}</p>
+              </div>
+              <div className="shrink-0 text-xs text-foreground-soft">{new Date(entry.created_at).toLocaleString()}</div>
+            </div>
+          ))}
+
+          {snapshot.audit_logs.length === 0 && (
+            <div className="rounded-[1.4rem] border border-dashed border-white/10 bg-white/[0.03] px-4 py-5 text-sm text-foreground-muted">
+              {t(locale, "لا توجد سجلات بعد. أول عملية حفظ ستظهر هنا.", "No audit entries yet. The first saved change will appear here.")}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

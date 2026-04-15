@@ -2,7 +2,7 @@ import type { Locale } from "@/types/cms";
 
 export type RebuildPageKey = "home" | "cv" | "blog" | "projects" | "youtube" | "contact" | "privacy";
 
-type SeoEntry = {
+export type SeoEntry = {
   title: string;
   description: string;
   ogTitle: string;

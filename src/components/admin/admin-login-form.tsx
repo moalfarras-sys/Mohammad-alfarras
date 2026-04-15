@@ -29,8 +29,8 @@ export function AdminLoginForm({ locale, copy }: { locale: Locale; copy: Copy })
           type="email"
           autoComplete="username"
           inputMode="email"
-          defaultValue="mohammad.alfarras@gmail.com"
           required
+          placeholder={locale === "ar" ? "admin@moalfarras.space" : "admin@moalfarras.space"}
           className="admin-input-lg"
         />
       </label>

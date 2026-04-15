@@ -2,10 +2,15 @@ import type { Metadata, Viewport } from "next";
 
 import { AdminAppShell } from "@/components/admin/admin-app-shell";
 import { isAdminAuthenticated } from "@/lib/auth";
+import { getAdminProfileDocument, getBrandAssets, resolveBrandAssetPaths } from "@/lib/cms-documents";
+import { readSnapshot } from "@/lib/content/store";
 import type { Locale } from "@/types/cms";
 
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f8fafc" }, { media: "(prefers-color-scheme: dark)", color: "#070b14" }],
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#eefbf4" },
+    { media: "(prefers-color-scheme: dark)", color: "#070b12" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -17,14 +22,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const manifestPath = `/${locale}/admin/manifest.webmanifest`;
+  const isArabic = locale === "ar";
 
   return {
-    title: locale === "ar" ? "لوحة التحكم" : "Admin",
-    description: locale === "ar" ? "إدارة موقع MOALFARRAS" : "Manage MOALFARRAS",
+    title: isArabic ? "Moalfarras Control Center" : "Moalfarras Control Center",
+    description: isArabic ? "لوحة إدارة Moalfarras" : "Moalfarras internal CMS",
     manifest: manifestPath,
     appleWebApp: {
       capable: true,
-      title: "MA Admin",
+      title: "Moalfarras",
       statusBarStyle: "black-translucent",
     },
     formatDetection: {
@@ -48,5 +54,21 @@ export default async function AdminLayout({
     return <>{children}</>;
   }
 
-  return <AdminAppShell locale={locale}>{children}</AdminAppShell>;
+  const snapshot = await readSnapshot();
+  const brand = getBrandAssets(snapshot);
+  const brandPaths = resolveBrandAssetPaths(snapshot);
+  const admin = getAdminProfileDocument(snapshot);
+
+  return (
+    <AdminAppShell
+      locale={locale}
+      logoSrc={brandPaths.logo}
+      siteName={brand.siteName[locale]}
+      adminName={admin.displayName[locale]}
+      adminRole={admin.role[locale]}
+      adminEmail={admin.email}
+    >
+      {children}
+    </AdminAppShell>
+  );
 }

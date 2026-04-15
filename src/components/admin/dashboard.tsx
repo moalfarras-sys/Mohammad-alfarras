@@ -193,6 +193,7 @@ export function AdminDashboard({ locale, snapshot }: { locale: Locale; snapshot:
         <a href="#studio" onClick={() => setIsMenuOpen(false)}>{clean.studio}</a>
         <a href="#operations" onClick={() => setIsMenuOpen(false)}>{clean.operations}</a>
         <form action={logoutAdminAction}>
+          <input type="hidden" name="locale" value={locale} />
           <button type="submit">{t.logout}</button>
         </form>
       </aside>

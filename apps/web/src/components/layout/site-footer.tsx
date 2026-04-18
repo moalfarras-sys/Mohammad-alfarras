@@ -20,9 +20,8 @@ export function SiteFooter({
 
   const links = [
     { href: `/${locale}`, label: content.nav.home },
-    { href: "/app", label: "MoPlayer" },
-    { href: `/${locale}/cv`, label: content.nav.cv },
-    { href: `/${locale}/projects`, label: content.nav.projects },
+    { href: `/${locale}/about`, label: locale === "ar" ? "عنّي" : "About" },
+    { href: `/${locale}/work`, label: locale === "ar" ? "الأعمال" : "Work" },
     { href: `/${locale}/youtube`, label: content.nav.youtube },
     { href: `/${locale}/contact`, label: content.nav.contact },
   ];

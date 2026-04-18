@@ -12,7 +12,7 @@ function localeFromPathname(pathname: string) {
 }
 
 export function proxy(request: NextRequest) {
-  const { pathname, hostname } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
   if (
     pathname.startsWith("/_next") ||
@@ -21,13 +21,6 @@ export function proxy(request: NextRequest) {
     pathname.includes(".")
   ) {
     return NextResponse.next();
-  }
-
-  if (hostname === "admin.moalfarras.space") {
-    const url = request.nextUrl.clone();
-    url.hostname = "moalfarras.space";
-    url.pathname = pathname === "/" ? "/admin" : `/admin${pathname}`;
-    return NextResponse.rewrite(url);
   }
 
   if (
@@ -43,9 +36,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname === "/ar" || pathname.startsWith("/ar/")) {
+  if (/^\/(ar|en)\/admin(?:\/|$)/.test(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = pathname.replace(/^\/ar(?=\/|$)/, "/en");
+    url.pathname = pathname.replace(/^\/(ar|en)\/admin(?=\/|$)/, "/admin");
     return NextResponse.redirect(url);
   }
 

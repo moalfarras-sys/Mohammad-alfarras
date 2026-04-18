@@ -9,6 +9,7 @@ import { getLiveWeather } from "@/lib/weather-live";
 import { getLiveMatches } from "@/lib/matches-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
+import { PortfolioAboutPage, PortfolioHomePage, PortfolioWorkPage } from "./portfolio-pages";
 import { SiteViewClient, type SiteViewModel } from "./site-view-client";
 
 function safeImageSrc(path: string | null | undefined, fallback: string) {
@@ -107,7 +108,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         .sort((a, b) => a.sort_order - b.sort_order);
       const coverAsset = snapshot.work_project_media.find((item) => item.project_id === entry.id && item.role === "cover");
       const fallbackImage = entry.slug.includes("moplayer")
-        ? "/images/moplayer-app-cover.jpeg"
+        ? "/images/moplayer-app-cover-final.jpeg"
         : entry.slug.includes("schnell")
           ? "/images/schnell-home-case.png"
           : "/images/seel-home-case.png";
@@ -374,7 +375,7 @@ function getGallery(snapshot: CmsSnapshot): SiteViewModel["gallery"] {
   ];
 }
 
-export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
+export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: string }): Promise<SiteViewModel> {
   const snapshot = await readSnapshot();
   const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
@@ -406,7 +407,7 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
       ? pdfRegistry.uploads.ats.url
       : `/api/cv-pdf?locale=${locale}&variant=ats`;
 
-  const model: SiteViewModel = {
+  return {
     locale,
     pageSlug,
     t: copy,
@@ -436,6 +437,19 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
       ats: atsDownload,
     },
   };
+}
 
-  return <SiteViewClient model={model} />;
+export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
+  const model = await buildSiteModel({ locale, slug });
+
+  switch (slug) {
+    case "home":
+      return <PortfolioHomePage model={model} />;
+    case "about":
+      return <PortfolioAboutPage model={model} />;
+    case "work":
+      return <PortfolioWorkPage model={model} />;
+    default:
+      return <SiteViewClient model={model} />;
+  }
 }

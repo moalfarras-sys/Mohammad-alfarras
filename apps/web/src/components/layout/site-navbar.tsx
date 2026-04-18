@@ -114,7 +114,7 @@ export function SiteNavbar({
           className="hidden md:flex items-center gap-1.5 overflow-x-auto rounded-full py-1.5 lg:px-2 scrollbar-none justify-center w-auto"
         >
           {links.map((item) => {
-            const active = pathname === item.href;
+            const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.id}

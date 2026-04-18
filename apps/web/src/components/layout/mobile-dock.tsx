@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, Download, House, Mail, UserRound } from "lucide-react";
+import { BriefcaseBusiness, House, Mail, PlayCircle, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,9 +25,9 @@ export function MobileDock({ locale }: { locale: Locale }) {
 
   const items: DockItem[] = [
     { id: "home", label: locale === "ar" ? "الرئيسية" : "Home", href: `/${locale}`, icon: House },
-    { id: "app", label: "MoPlayer", href: "/app", icon: Download },
-    { id: "cv", label: locale === "ar" ? "السيرة" : "About", href: `/${locale}/cv`, icon: UserRound },
-    { id: "projects", label: locale === "ar" ? "الأعمال" : "Work", href: `/${locale}/projects`, icon: BriefcaseBusiness },
+    { id: "about", label: locale === "ar" ? "عنّي" : "About", href: `/${locale}/about`, icon: UserRound },
+    { id: "work", label: locale === "ar" ? "الأعمال" : "Work", href: `/${locale}/work`, icon: BriefcaseBusiness },
+    { id: "youtube", label: locale === "ar" ? "يوتيوب" : "YouTube", href: `/${locale}/youtube`, icon: PlayCircle },
     { id: "contact", label: locale === "ar" ? "تواصل" : "Contact", href: `/${locale}/contact`, icon: Mail },
   ];
 
@@ -41,7 +41,7 @@ export function MobileDock({ locale }: { locale: Locale }) {
         className="mobile-dock-shell pointer-events-auto mx-auto flex max-w-sm items-center justify-between rounded-4xl px-2 py-2"
       >
         {items.map((item) => {
-          const active = pathname === item.href || pathname === item.href + "/";
+          const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <motion.div key={item.id} whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.05 }} className="flex-1">

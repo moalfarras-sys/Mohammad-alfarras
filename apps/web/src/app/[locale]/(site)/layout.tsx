@@ -33,9 +33,8 @@ export default async function SiteLayout({
 
   const links = [
     { id: "home", label: copy.nav.home, href: withLocale(locale, "") },
-    { id: "app", label: "MoPlayer", href: "/app" },
-    { id: "cv", label: copy.nav.cv, href: withLocale(locale, "cv") },
-    { id: "projects", label: copy.nav.projects, href: withLocale(locale, "projects") },
+    { id: "about", label: locale === "ar" ? "عنّي" : "About", href: withLocale(locale, "about") },
+    { id: "work", label: locale === "ar" ? "الأعمال" : "Work", href: withLocale(locale, "work") },
     { id: "youtube", label: copy.nav.youtube, href: withLocale(locale, "youtube") },
     { id: "contact", label: copy.nav.contact, href: withLocale(locale, "contact") },
   ];
@@ -77,9 +76,9 @@ export default async function SiteLayout({
   const portfolioJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "@id": `${siteUrl}/${locale}/projects#collection`,
+    "@id": `${siteUrl}/${locale}/work#collection`,
     name: locale === "ar" ? `أعمال ${copy.brandName}` : `${copy.brandName} Portfolio`,
-    url: `${siteUrl}/${locale}/projects`,
+    url: `${siteUrl}/${locale}/work`,
     author: { "@id": `${siteUrl}/#person` },
     description: copy.projects.body,
   };

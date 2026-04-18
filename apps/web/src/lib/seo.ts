@@ -12,9 +12,17 @@ const keywordMap: Record<string, string[]> = {
     "digital designer Germany", "محمد الفراس", "مطور مواقع ألمانيا", "تصميم مواقع احترافي",
     "موقع شخصي محمد الفراس", "portfolio developer Germany",
   ],
+  about: [
+    "Mohammad Alfarras about", "personal website Germany", "creative developer Germany",
+    "من هو محمد الفراس", "نبذة محمد الفراس", "مطور ومصمم في ألمانيا",
+  ],
   cv: [
     "Mohammad Alfarras CV", "professional journey", "frontend and logistics Germany",
     "سيرة محمد الفراس", "سيرة ذاتية مطور مواقع", "Mohammad Alfarras background",
+  ],
+  work: [
+    "Mohammad Alfarras work", "project case studies", "product portfolio Germany",
+    "أعمال محمد الفراس", "دراسات حالة محمد الفراس", "مشاريع رقمية احترافية",
   ],
   blog: [
     "digital presentation case studies", "branding insights Germany",
@@ -42,7 +50,8 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   const seoDoc = getSiteSeoDocument(snapshot);
   const brand = getBrandAssets(snapshot);
   const entries = seoDoc[locale];
-  const key = (slug || "home") as keyof typeof entries;
+  const normalizedSlug = slug === "about" ? "cv" : slug === "work" ? "projects" : slug || "home";
+  const key = normalizedSlug as keyof typeof entries;
   const seo = entries[key] ?? entries.home;
   const ogImage = seo.image ?? "/images/brand-spotlight-2026.jpeg";
   const localizedPath = slug === "home" ? `/${locale}` : `/${locale}/${slug}`;
@@ -72,7 +81,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       languages: {
         ar: `${BASE_URL}${altAr}`,
         en: `${BASE_URL}${altEn}`,
-        "x-default": `${BASE_URL}/ar`,
+        "x-default": `${BASE_URL}/en`,
       },
     },
     openGraph: {
@@ -106,7 +115,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
         },
       ],
     },
-    keywords: keywordMap[slug] ?? keywordMap.home,
+    keywords: keywordMap[slug] ?? keywordMap[normalizedSlug] ?? keywordMap.home,
     other: {
       "og:locale:alternate": altLocaleTag,
       "canonical": `${BASE_URL}${localizedPath}`,

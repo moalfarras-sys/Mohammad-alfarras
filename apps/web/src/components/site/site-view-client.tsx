@@ -508,6 +508,162 @@ function HomePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
+      <section className="relative px-5 py-12 md:px-8 md:py-16">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            background:
+              "radial-gradient(circle at 18% 35%, rgba(0,229,255,0.12), transparent 28%), radial-gradient(circle at 82% 65%, rgba(139,92,246,0.16), transparent 30%)",
+          }}
+        />
+        <div className="section-frame">
+          <Reveal>
+            <div
+              className="relative overflow-hidden rounded-[2.5rem] border border-white/8 p-5 md:p-8 lg:p-10"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(6,12,22,0.96), rgba(8,15,29,0.88) 55%, rgba(17,11,33,0.92))",
+                boxShadow: "0 30px 80px rgba(0,0,0,0.38)",
+              }}
+            >
+              <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+                <div className="space-y-6">
+                  <span className="eyebrow">
+                    {locale === "ar" ? "ضمن نفس المنظومة" : "Inside the same ecosystem"}
+                  </span>
+
+                  <div className="space-y-4">
+                    <h2 className="headline-display max-w-3xl text-3xl font-extrabold tracking-tight text-white md:text-5xl">
+                      {locale === "ar"
+                        ? "MoPlayer صار جزءاً واضحاً من moalfarras.space"
+                        : "MoPlayer now lives as a clear product surface inside moalfarras.space"}
+                    </h2>
+                    <p className="max-w-2xl text-sm leading-8 text-white/60 md:text-base">
+                      {locale === "ar"
+                        ? "صفحة منتج حقيقية، تنزيل مباشر، دعم، خصوصية، وإيقاع بصري أقوى من مجرد مشروع داخل البورتفوليو. الفكرة الآن أوضح: هذا منتج رقمي له هويته، لكنه ما زال جزءاً من نفس البراند."
+                        : "A real product page, direct download flow, support, privacy, and a stronger visual rhythm than a simple portfolio card. The message is clearer now: this is a digital product with its own identity inside the same brand."}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      {
+                        label: locale === "ar" ? "تنزيل مباشر" : "Direct APK",
+                        body: locale === "ar" ? "من نفس الدومين" : "Served from the same domain",
+                      },
+                      {
+                        label: locale === "ar" ? "Android + TV" : "Android + TV",
+                        body: locale === "ar" ? "تجربة موجهة للشاشتين" : "Built for remote and touch flows",
+                      },
+                      {
+                        label: locale === "ar" ? "دعم واضح" : "Clear support",
+                        body: locale === "ar" ? "خصوصية ومركز مساعدة" : "Support and privacy linked cleanly",
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-[1.6rem] border border-white/8 bg-white/[0.04] p-4 backdrop-blur-xl"
+                      >
+                        <p className="text-sm font-bold text-white">{item.label}</p>
+                        <p className="mt-1 text-xs leading-6 text-white/45">{item.body}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Link href="/app" className="button-primary-shell w-full sm:w-auto">
+                      <PlayCircle className="h-4 w-4" />
+                      {locale === "ar" ? "افتح صفحة التطبيق" : "Open the app page"}
+                    </Link>
+                    <Link href="/support" className="button-secondary-shell w-full sm:w-auto">
+                      <MessageCircleMore className="h-4 w-4" />
+                      {locale === "ar" ? "الدعم والمساعدة" : "Support and help"}
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-[0.9fr_1.1fr]">
+                  <div className="grid gap-4">
+                    <div className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-black/30 p-3">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
+                        <Image
+                          src="/images/moplayer_ui_now_playing-final.png"
+                          alt="MoPlayer now playing preview"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 20vw"
+                          className="object-cover object-center"
+                        />
+                      </div>
+                    </div>
+                    <div className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-black/30 p-3">
+                      <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem]">
+                        <Image
+                          src="/images/moplayer_ui_playlist-final.png"
+                          alt="MoPlayer playlist preview"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 20vw"
+                          className="object-cover object-center"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative overflow-hidden rounded-[2.25rem] border border-white/8 bg-black/35 p-3">
+                    <div className="absolute inset-x-8 top-0 h-24 rounded-full bg-[#00E5FF]/10 blur-3xl" />
+                    <div className="relative flex h-full min-h-[24rem] flex-col overflow-hidden rounded-[1.7rem] border border-white/6 bg-[linear-gradient(180deg,rgba(12,18,33,0.94),rgba(8,11,21,0.94))]">
+                      <div className="flex items-center justify-between border-b border-white/6 px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src="/images/moplayer-brand-logo-final.png"
+                            alt="MoPlayer logo"
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 object-contain"
+                          />
+                          <div>
+                            <p className="text-sm font-bold text-white">MoPlayer</p>
+                            <p className="text-[11px] uppercase tracking-[0.24em] text-[#00E5FF]">
+                              {locale === "ar" ? "نفس الهوية" : "Same ecosystem"}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300">
+                          2.0.0
+                        </span>
+                      </div>
+
+                      <div className="relative flex-1">
+                        <Image
+                          src="/images/moplayer-brand-glow-card.png"
+                          alt="MoPlayer brand hero"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 28vw"
+                          className="object-cover object-center"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#05070E] via-[#05070E]/35 to-transparent" />
+                        <div className="absolute inset-x-0 bottom-0 p-5">
+                          <div className="rounded-[1.5rem] border border-white/8 bg-black/35 p-4 backdrop-blur-xl">
+                            <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/45">
+                              {locale === "ar" ? "صفحة تطبيق مستقلة" : "Dedicated product page"}
+                            </p>
+                            <p className="mt-2 text-sm leading-7 text-white/70">
+                              {locale === "ar"
+                                ? "شرح أوضح، صور أقوى، تنزيل مباشر، ومسار دعم مرتب."
+                                : "Clearer story, stronger imagery, direct download, and a cleaner support path."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â ABOUT Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative overflow-hidden px-5 py-16 md:px-8 md:py-20">
         <div

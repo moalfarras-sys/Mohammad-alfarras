@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingVertical="4dp"
+    android:paddingHorizontal="6dp"
+    android:background="@drawable/bg_widget_clock_premium">
+
+    <!-- Hour Digit 1 -->
+    <FrameLayout
+        android:layout_width="@dimen/flip_clock_digit_width"
+        android:layout_height="@dimen/flip_clock_digit_height"
+        android:background="@drawable/bg_flip_digit_premium"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvHour1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/flip_clock_text_size"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            tools:text="1" />
+
+    </FrameLayout>
+
+    <!-- Hour Digit 2 -->
+    <FrameLayout
+        android:layout_width="@dimen/flip_clock_digit_width"
+        android:layout_height="@dimen/flip_clock_digit_height"
+        android:layout_marginStart="@dimen/spacing_2"
+        android:background="@drawable/bg_flip_digit_premium"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvHour2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/flip_clock_text_size"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            tools:text="4" />
+
+    </FrameLayout>
+
+    <!-- Colon -->
+    <TextView
+        android:id="@+id/tvColon"
+        android:layout_width="@dimen/flip_clock_colon_width"
+        android:layout_height="@dimen/flip_clock_digit_height"
+        android:gravity="center"
+        android:text=":"
+        android:textColor="@color/moplayer_orange"
+        android:textSize="@dimen/flip_clock_text_size"
+        android:textStyle="bold"
+        android:includeFontPadding="false" />
+
+    <!-- Minute Digit 1 -->
+    <FrameLayout
+        android:layout_width="@dimen/flip_clock_digit_width"
+        android:layout_height="@dimen/flip_clock_digit_height"
+        android:background="@drawable/bg_flip_digit_premium"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvMinute1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/flip_clock_text_size"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            tools:text="3" />
+
+    </FrameLayout>
+
+    <!-- Minute Digit 2 -->
+    <FrameLayout
+        android:layout_width="@dimen/flip_clock_digit_width"
+        android:layout_height="@dimen/flip_clock_digit_height"
+        android:layout_marginStart="@dimen/spacing_2"
+        android:background="@drawable/bg_flip_digit_premium"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvMinute2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:fontFamily="sans-serif-condensed"
+            android:textColor="#FFFFFF"
+            android:textSize="@dimen/flip_clock_text_size"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            tools:text="5" />
+
+    </FrameLayout>
+
+</LinearLayout>

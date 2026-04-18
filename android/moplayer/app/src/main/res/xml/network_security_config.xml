@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Configuration for MoPlayer
+    
+    This configuration allows cleartext (HTTP) traffic for IPTV servers
+    while maintaining security best practices.
+    
+    IPTV servers often use HTTP for streaming content and API calls,
+    so we need to allow cleartext traffic to support all server types.
+-->
+<network-security-config>
+    <!-- Base configuration: prefer HTTPS but allow HTTP for IPTV compatibility -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system" />
+            <!-- Trust user-installed certificates (for enterprise environments) -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- Debug configuration: also allow user certificates for testing -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>

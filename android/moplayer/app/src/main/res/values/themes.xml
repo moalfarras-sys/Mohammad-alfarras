@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Luxury Dark & White Accent Theme (Shadcn Zinc Style) -->
+    <style name="Theme.MoPlayer" parent="Theme.AppCompat.NoActionBar">
+        <!-- Primary brand color - Shadcn White/Zinc -->
+        <item name="colorPrimary">@color/color_accent_primary</item>
+        <item name="colorPrimaryDark">@color/color_bg_primary</item>
+        <item name="colorAccent">@color/color_accent_primary</item>
+        <item name="colorError">@color/theme_critical</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/color_text_secondary</item>
+        
+        <!-- Background colors - Zinc Dark -->
+        <item name="android:colorBackground">@color/color_bg_primary</item>
+        <item name="android:windowBackground">@color/color_bg_primary</item>
+        
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/color_bg_primary</item>
+        <item name="android:navigationBarColor">@color/color_bg_primary</item>
+        
+        <!-- Window -->
+        <item name="android:windowIsTranslucent">false</item>
+        
+        <!-- Text appearances -->
+        <item name="android:textColorPrimary">@color/color_text_primary</item>
+        <item name="android:textColorSecondary">@color/color_text_secondary</item>
+        <item name="android:textColorTertiary">@color/color_text_tertiary</item>
+        
+        <!-- EditText styling -->
+        <item name="editTextStyle">@style/Widget.MoPlayer.EditText</item>
+        
+        <!-- Button styling -->
+        <item name="buttonStyle">@style/Widget.MoPlayer.Button</item>
+    </style>
+
+    <style name="Theme.MoPlayer.Splash" parent="Theme.MoPlayer">
+        <item name="android:windowBackground">@drawable/bg_splash_screen</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="windowActionBar">false</item>
+    </style>
+
+
+    <style name="Theme.MoPlayer.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="colorAccent">@color/color_accent_primary</item>
+        <item name="android:windowBackground">@drawable/bg_card_zinc</item>
+    </style>
+
+    <!-- Fullscreen Theme for Player -->
+    <style name="Theme.MoPlayer.Fullscreen">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@color/color_bg_primary</item>
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+    </style>
+
+    <!-- Base TextAppearance (Premium Font) -->
+    <style name="TextAppearance.MoPlayer" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/cinematic_text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <!-- Base Title TextAppearance -->
+    <style name="TextAppearance.MoPlayer.Title" parent="TextAppearance.MoPlayer">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Base Widget Style -->
+    <style name="Widget.MoPlayer" parent="android:Widget">
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <!-- Premium EditText -->
+    <style name="Widget.MoPlayer.EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:background">@drawable/bg_card_zinc</item>
+        <item name="android:textColor">@color/color_text_primary</item>
+        <item name="android:textColorHint">@color/zinc_500</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:imeOptions">actionNext</item>
+    </style>
+
+    <!-- Premium Button -->
+    <style name="Widget.MoPlayer.Button" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/bg_card_zinc</item>
+        <item name="android:textColor">@color/color_text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:minWidth">120dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:lines">1</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">false</item>
+        <item name="android:letterSpacing">0.05</item>
+    </style>
+
+    <!-- Large Title Text -->
+    <style name="TextAppearance.MoPlayer.Title.Large" parent="TextAppearance.MoPlayer.Title">
+        <item name="android:textSize">34sp</item>
+        <item name="android:textColor">@color/cinematic_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <!-- Medium Title Text -->
+    <style name="TextAppearance.MoPlayer.Title.Medium" parent="TextAppearance.MoPlayer.Title">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/cinematic_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Section Header Text -->
+    <style name="TextAppearance.MoPlayer.SectionHeader" parent="TextAppearance.MoPlayer">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/cinematic_text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <!-- Body Text -->
+    <style name="TextAppearance.MoPlayer.Body" parent="TextAppearance.MoPlayer">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/color_text_secondary</item>
+    </style>
+
+    <!-- Caption Text -->
+    <style name="TextAppearance.MoPlayer.Caption" parent="TextAppearance.MoPlayer">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/htc_text_tertiary</item>
+    </style>
+
+    <!-- Flip Clock Digit Style -->
+    <style name="TextAppearance.MoPlayer.FlipClock" parent="TextAppearance.MoPlayer">
+        <item name="android:textSize">72sp</item>
+        <item name="android:textColor">@color/htc_flip_text</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <!-- Weather Text -->
+    <style name="TextAppearance.MoPlayer.Weather" parent="TextAppearance.MoPlayer">
+        <item name="android:textSize">48sp</item>
+        <item name="android:textColor">@color/htc_text_primary</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+    <!-- Card Focus Style -->
+    <style name="Widget.MoPlayer.Card" parent="Widget.MoPlayer">
+        <item name="android:background">@drawable/selector_card_focus</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <!-- Dock Item Style -->
+    <style name="Widget.MoPlayer.DockItem" parent="Widget.MoPlayer">
+        <item name="android:background">@drawable/selector_dock_item</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+    
+    <!-- Primary Action Button - Gold Text on Dark -->
+    <style name="Widget.MoPlayer.Button.Primary" parent="Widget.MoPlayer.Button">
+        <item name="android:background">@drawable/bg_button_primary</item>
+        <item name="android:textColor">@color/htc_pure_white</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">32dp</item>
+        <item name="android:paddingEnd">32dp</item>
+    </style>
+
+    <!-- Secondary Button -->
+    <style name="Widget.MoPlayer.Button.Secondary" parent="Widget.MoPlayer.Button">
+        <item name="android:textColor">@color/htc_text_primary</item>
+        <item name="android:background">@drawable/bg_button_secondary_new</item>
+    </style>
+
+    <!-- Icon Button -->
+    <style name="Widget.MoPlayer.Button.Icon" parent="Widget.MoPlayer.Button">
+        <item name="android:minWidth">52dp</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:padding">14dp</item>
+    </style>
+
+    <!-- Text Button -->
+    <style name="Widget.MoPlayer.Button.Text" parent="Widget.MoPlayer.Button">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">@color/htc_accent_green</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorAccent">@color/color_accent_primary</item>
+        <item name="android:background">@color/htc_surface</item>
+        <item name="android:textColorPrimary">@color/htc_text_primary</item>
+        <item name="android:textColorSecondary">@color/htc_text_secondary</item>
+        <item name="android:windowBackground">@drawable/bg_glass_panel_premium</item>
+        <item name="android:windowMinWidthMajor">65%</item>
+        <item name="android:windowMinWidthMinor">95%</item>
+        <!-- List item focus - visible on TV for Player/Buffer size dialogs -->
+        <item name="listChoiceBackgroundIndicator">@drawable/selector_dialog_list_item</item>
+        <item name="selectableItemBackground">@drawable/selector_dialog_list_item</item>
+    </style>
+</resources>

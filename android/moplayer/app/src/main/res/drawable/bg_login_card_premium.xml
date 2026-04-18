@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Premium Glassmorphism Card Background.
+    Dark semi-transparent fill with a subtle gradient border.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="#cc0a0a0f" /> <!-- 80% opacity dark navy -->
+    <stroke
+        android:width="1dp"
+        android:color="#33ffffff" /> <!-- Subtle white border -->
+</shape>

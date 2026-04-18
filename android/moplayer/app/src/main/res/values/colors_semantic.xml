@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="theme_surface_base">#0D0D1A</color>
+    <color name="theme_surface_elevated">#12121F</color>
+    <color name="theme_surface_card">#1A1A2E</color>
+    <color name="theme_focus">#4F8BFF</color>
+    <color name="theme_success">#22C55E</color>
+    <color name="theme_critical">#EF4444</color>
+
+    <color name="color_bg_primary">@color/liquid_bg_base</color>
+    <color name="color_bg_elevated">@color/liquid_bg_layer_1</color>
+    <color name="color_surface">@color/cinematic_surface</color>
+    <color name="color_surface_alt">@color/cinematic_surface_alt</color>
+    <color name="color_text_primary">@color/liquid_text_primary</color>
+    <color name="color_text_secondary">@color/liquid_text_secondary</color>
+    <color name="color_text_tertiary">@color/liquid_text_tertiary</color>
+    <color name="color_accent_primary">@color/liquid_accent_primary</color>
+    <color name="color_focus_glow">@color/liquid_focus_glow</color>
+    <color name="color_divider">@color/liquid_divider</color>
+    <color name="color_overlay">@color/liquid_overlay_scrim</color>
+    <color name="color_scrim_strong">#E6000000</color>
+    <color name="color_glass_20">#20FFFFFF</color>
+    <color name="color_glass_15">#15FFFFFF</color>
+    <color name="color_glass_10">#10FFFFFF</color>
+    <color name="color_surface_dark">#0D0D1A</color>
+    <color name="color_black">#000000</color>
+    <color name="color_text_hint">#805B6680</color>
+    <color name="color_text_muted">#9AA5C4</color>
+    <color name="color_text_primary_80">#CDF2F4FF</color>
+</resources>

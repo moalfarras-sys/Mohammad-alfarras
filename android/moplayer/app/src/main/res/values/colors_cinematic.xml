@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MoPlayer Cinematic Palette — Ultra-Deep Space -->
+    <color name="cinematic_bg_base">#0B0F1A</color>
+    <color name="cinematic_bg_elevated">#10142A</color>
+    <color name="cinematic_surface">#161B30</color>
+    <color name="cinematic_surface_alt">#1E2440</color>
+    <color name="cinematic_text_primary">#F0F2FF</color>
+    <color name="cinematic_text_secondary">#8B97B8</color>
+    <color name="cinematic_text_tertiary">#515C78</color>
+    <color name="cinematic_focus_soft">#664F8BFF</color>
+    <color name="cinematic_focus_glow">#4D4F8BFF</color>
+    <color name="cinematic_divider">#18FFFFFF</color>
+
+    <!-- Blue glow layers -->
+    <color name="cinematic_blue_glow_strong">#504F8BFF</color>
+    <color name="cinematic_blue_glow_medium">#304F8BFF</color>
+    <color name="cinematic_blue_glow_subtle">#184F8BFF</color>
+
+    <!-- Violet accent (secondary) -->
+    <color name="cinematic_violet">#8B5CF6</color>
+    <color name="cinematic_violet_light">#A78BFA</color>
+    <color name="cinematic_violet_glow">#338B5CF6</color>
+    <color name="cinematic_violet_subtle">#188B5CF6</color>
+
+    <!-- Cyan highlight (tertiary) -->
+    <color name="cinematic_cyan">#06B6D4</color>
+    <color name="cinematic_cyan_glow">#3306B6D4</color>
+
+    <!-- Glass layers — ultra-premium -->
+    <color name="cinematic_glass_bg">#0CFFFFFF</color>
+    <color name="cinematic_glass_surface">#14FFFFFF</color>
+    <color name="cinematic_glass_border">#1AFFFFFF</color>
+    <color name="cinematic_glass_highlight">#22FFFFFF</color>
+    <color name="cinematic_glass_reflection">#08FFFFFF</color>
+</resources>

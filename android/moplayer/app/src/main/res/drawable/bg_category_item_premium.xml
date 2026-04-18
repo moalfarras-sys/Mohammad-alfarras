@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Focused state - luxury gold glow -->
+    <item android:state_focused="true">
+        <layer-list>
+            <!-- Outer gold glow effect -->
+            <item android:left="-4dp" android:right="-4dp" android:top="-4dp" android:bottom="-4dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="@color/glow_gold_medium" />
+                </shape>
+            </item>
+            <!-- Main background with gold gradient -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <gradient
+                        android:type="linear"
+                        android:angle="135"
+                        android:startColor="#30FFFFFF"
+                        android:endColor="#15FFFFFF" />
+                    <stroke
+                        android:width="2dp"
+                        android:color="@color/gradient_gold_start" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+    <!-- Selected state - luxury gold -->
+    <item android:state_selected="true">
+        <layer-list>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <gradient
+                        android:type="linear"
+                        android:angle="135"
+                        android:startColor="@color/gradient_gold_start"
+                        android:endColor="@color/gradient_gold_mid" />
+                </shape>
+            </item>
+            <!-- Inner shine -->
+            <item android:top="1dp" android:left="1dp" android:right="1dp">
+                <shape android:shape="rectangle">
+                    <corners
+                        android:topLeftRadius="9dp"
+                        android:topRightRadius="9dp"
+                        android:bottomLeftRadius="0dp"
+                        android:bottomRightRadius="0dp" />
+                    <gradient
+                        android:angle="90"
+                        android:startColor="#00FFFFFF"
+                        android:endColor="@color/shine_highlight"
+                        android:type="linear" />
+                    <size android:height="20dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+    <!-- Default state - subtle glass -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <solid android:color="#15FFFFFF" />
+            <stroke
+                android:width="1dp"
+                android:color="#10FFFFFF" />
+        </shape>
+    </item>
+</selector>

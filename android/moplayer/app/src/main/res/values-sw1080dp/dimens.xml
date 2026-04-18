@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Login Screen - 4K -->
+    <dimen name="login_padding_horizontal">80dp</dimen>
+    <dimen name="login_padding_vertical">48dp</dimen>
+    <dimen name="login_card_width">400dp</dimen>
+    <dimen name="login_card_padding">36dp</dimen>
+    <dimen name="login_app_name_size">52sp</dimen>
+    <dimen name="login_tagline_size">18sp</dimen>
+    <dimen name="login_feature_icon_size">64dp</dimen>
+    
+    <!-- Home Screen - 4K -->
+    <dimen name="home_poster_width">180dp</dimen>
+    <dimen name="home_poster_height">270dp</dimen>
+    <dimen name="home_row_title_size">22sp</dimen>
+    
+    <!-- Live TV - 4K -->
+    <dimen name="live_category_width">240dp</dimen>
+    <dimen name="live_channel_item_height">88dp</dimen>
+    
+    <!-- Cards - Extra large for 4K/1080p -->
+    <dimen name="card_margin">12dp</dimen>
+    <dimen name="card_poster_width">176dp</dimen>
+    <dimen name="card_poster_height">264dp</dimen>
+    <dimen name="card_content_height">318dp</dimen>
+    <dimen name="content_row_items_height">348dp</dimen>
+    <dimen name="card_title_size">18sp</dimen>
+
+    <!-- Clean Login Dimensions - 4K (wider fields for long URLs) -->
+    <dimen name="login_card_width_clean">520dp</dimen>
+    <dimen name="login_card_height_clean">520dp</dimen>
+    <dimen name="login_input_height">54dp</dimen>
+    <dimen name="login_input_padding">18dp</dimen>
+    <dimen name="login_title_size">24sp</dimen>
+    <dimen name="login_marketing_text_size">26sp</dimen>
+</resources>

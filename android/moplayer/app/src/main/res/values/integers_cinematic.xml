@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="cinematic_focus_duration">180</integer>
+    <integer name="cinematic_enter_duration">200</integer>
+</resources>

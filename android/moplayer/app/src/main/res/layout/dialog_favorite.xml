@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC000000">
+
+    <LinearLayout
+        android:layout_width="360dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_dialog_premium"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="28dp">
+
+        <!-- Animated Heart Icon -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <!-- Glow -->
+            <View
+                android:id="@+id/heartGlow"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:alpha="0.5"
+                android:background="@drawable/bg_heart_glow" />
+
+            <!-- Heart Icon -->
+            <ImageView
+                android:id="@+id/ivHeart"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_favorite_border"
+                app:tint="@color/htc_accent_green"
+                tools:ignore="ContentDescription" />
+
+        </FrameLayout>
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="The Dark Knight" />
+
+        <!-- Message -->
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="14sp"
+            tools:text="Add to Favorites?" />
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_secondary"
+                android:focusable="true"
+                android:text="@string/cancel"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnConfirm"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_play"
+                android:focusable="true"
+                android:text="@string/movie_add_favorite"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_pure_black"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

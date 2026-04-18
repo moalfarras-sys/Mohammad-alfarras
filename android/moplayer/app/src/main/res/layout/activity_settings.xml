@@ -1,0 +1,1671 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Animated Background -->
+    <com.mo.moplayer.ui.widgets.AnimatedBackground
+        android:id="@+id/animatedBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <!-- Left Side - Categories -->
+        <LinearLayout
+            android:id="@+id/categoryRail"
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/spacing_lg"
+            android:paddingTop="28dp"
+            android:paddingBottom="@dimen/spacing_lg"
+            android:clipChildren="false">
+
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/logo"
+                    tools:ignore="ContentDescription" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_md"
+                    android:text="@string/settings_title"
+                    android:textColor="@color/cinematic_text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="-0.01" />
+
+            </LinearLayout>
+
+            <!-- Settings Categories -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCategories"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:paddingBottom="@dimen/spacing_8"
+                android:focusable="true"
+                android:nextFocusRight="@id/settingsContent" />
+
+            <!-- Version Info -->
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="12sp"
+                tools:text="MoPlayer v1.0.0" />
+
+        </LinearLayout>
+
+        <!-- Right Side - Settings Content -->
+        <FrameLayout
+            android:id="@+id/settingsContent"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_margin="@dimen/spacing_12"
+            android:padding="@dimen/spacing_lg"
+            android:nextFocusLeft="@id/rvCategories">
+
+            <!-- Server Settings Panel -->
+            <ScrollView
+                android:id="@+id/panelServer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="none"
+                android:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_server"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <!-- Current Server Info -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:background="@drawable/bg_cinematic_surface"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_lg">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_server_info"
+                            android:textColor="@color/htc_text_secondary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvServerName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            tools:text="My IPTV Server" />
+
+                        <TextView
+                            android:id="@+id/tvServerUrl"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="14sp"
+                            tools:text="http://example.com:8080" />
+
+                        <TextView
+                            android:id="@+id/tvServerExpiry"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:textColor="@color/htc_accent_green"
+                            android:textSize="13sp"
+                            tools:text="Expires: 2026-12-31" />
+
+                    </LinearLayout>
+
+                    <!-- Server Actions -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnRefreshServer"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/selector_cinematic_button"
+                            android:drawableStart="@drawable/ic_refresh"
+                            android:drawablePadding="8dp"
+                            android:paddingHorizontal="@dimen/spacing_md"
+                            android:text="@string/settings_server_refresh"
+                            android:textAllCaps="false"
+                            android:textColor="@color/htc_pure_black"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/rvCategories"
+                            android:nextFocusRight="@id/btnDeleteServer"
+                            android:nextFocusDown="@id/btnAddServer" />
+
+                        <Button
+                            android:id="@+id/btnDeleteServer"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="@dimen/spacing_md"
+                            android:layout_weight="1"
+                            android:background="@drawable/selector_cinematic_button"
+                            android:drawableStart="@drawable/ic_delete"
+                            android:drawablePadding="8dp"
+                            android:paddingHorizontal="@dimen/spacing_md"
+                            android:text="@string/settings_server_delete"
+                            android:textAllCaps="false"
+                            android:textColor="@color/htc_error"
+                            android:textSize="13sp"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/btnRefreshServer"
+                            android:nextFocusDown="@id/btnAddServer" />
+
+                    </LinearLayout>
+
+                    <!-- Saved Servers Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="@string/settings_server_saved"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvServers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:nestedScrollingEnabled="false" />
+
+                    <Button
+                        android:id="@+id/btnAddServer"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_tv_button"
+                        android:drawableStart="@drawable/ic_add"
+                        android:drawablePadding="8dp"
+                        android:text="@string/settings_server_add"
+                        android:textAllCaps="false"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="14sp"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/btnRefreshServer"
+                        android:nextFocusDown="@id/btnLogout" />
+
+                    <Button
+                        android:id="@+id/btnLogout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:background="@drawable/selector_tv_button"
+                        android:paddingHorizontal="@dimen/spacing_xl"
+                        android:text="@string/settings_server_logout"
+                        android:textColor="@color/htc_text_primary"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/btnAddServer" />
+
+                </LinearLayout>
+
+            </ScrollView>
+
+            <!-- Player Settings Panel -->
+            <ScrollView
+                android:id="@+id/panelPlayer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="none"
+                android:focusable="false"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:clipChildren="false"
+                    android:paddingTop="@dimen/spacing_sm"
+                    android:paddingBottom="@dimen/spacing_sm">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_player"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <!-- Player Selection -->
+                    <LinearLayout
+                        android:id="@+id/optionPlayerSelection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:clickable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/rvCategories"
+                        android:nextFocusDown="@id/optionExternalPlayer">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_player_selection"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvPlayerValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="VLC (Internal)" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+
+                    </LinearLayout>
+
+                    <!-- External Player Option -->
+                    <LinearLayout
+                        android:id="@+id/optionExternalPlayer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:clickable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionPlayerSelection"
+                        android:nextFocusDown="@id/optionBufferSize">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_player_external_player"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvExternalPlayerValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="MX Player, VLC..." />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Buffer Size -->
+                    <LinearLayout
+                        android:id="@+id/optionBufferSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:clickable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionExternalPlayer"
+                        android:nextFocusDown="@id/optionPlaybackProfile">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_player_buffer"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvBufferValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Medium (2s)" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Playback Profile -->
+                    <LinearLayout
+                        android:id="@+id/optionPlaybackProfile"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionBufferSize"
+                        android:nextFocusDown="@id/optionHardwareAccel">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_player_playback_profile"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvPlaybackProfileValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Balanced" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+
+                    </LinearLayout>
+
+                    <!-- Hardware Acceleration -->
+                    <LinearLayout
+                        android:id="@+id/optionHardwareAccel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionPlaybackProfile"
+                        android:nextFocusDown="@id/optionLivePreview">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_player_hardware_accel"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchHardwareAccel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+                    
+                    <!-- Live Preview -->
+                    <LinearLayout
+                        android:id="@+id/optionLivePreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionHardwareAccel"
+                        android:nextFocusDown="@id/optionPipMode">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_player_live_preview"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchLivePreview"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+                    
+                    <!-- PIP Mode (Picture-in-Picture) -->
+                    <LinearLayout
+                        android:id="@+id/optionPipMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionLivePreview">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_player_pip_mode"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchPipMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+            <!-- Parental Settings Panel -->
+            <LinearLayout
+                android:id="@+id/panelParental"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_parental"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <!-- Enable Parental Lock -->
+                <LinearLayout
+                    android:id="@+id/optionParentalEnabled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_lg"
+                    android:background="@drawable/selector_card_focus"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/spacing_lg"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/rvCategories"
+                    android:nextFocusDown="@id/optionSetPin">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_parental_enabled"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchParentalEnabled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:focusable="false" />
+
+                </LinearLayout>
+
+                <!-- Set PIN -->
+                <LinearLayout
+                    android:id="@+id/optionSetPin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_sm"
+                    android:background="@drawable/selector_card_focus"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/spacing_lg"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/rvCategories"
+                    android:nextFocusUp="@id/optionParentalEnabled"
+                    android:nextFocusDown="@id/optionLockAdult">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_parental_pin"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="****"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <!-- Lock Adult Content -->
+                <LinearLayout
+                    android:id="@+id/optionLockAdult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_sm"
+                    android:background="@drawable/selector_card_focus"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/spacing_lg"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/rvCategories"
+                    android:nextFocusUp="@id/optionSetPin">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_parental_lock"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchLockAdult"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:focusable="false" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Interface Settings Panel -->
+            <ScrollView
+                android:id="@+id/panelInterface"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_ui"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <!-- Background Theme -->
+                    <LinearLayout
+                        android:id="@+id/optionBackground"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusDown="@id/optionAnimationToggle">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_ui_background"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvBackgroundValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="HTC Particles" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Animation Enable/Disable Toggle -->
+                    <LinearLayout
+                        android:id="@+id/optionAnimationToggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionBackground"
+                        android:nextFocusDown="@id/colorChipGreen">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_animation_enabled"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Enable or disable background animations"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchAnimationEnabled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+
+                    <!-- Particle Color Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="Particle Color"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:text="Choose accent color for animated particles"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="13sp" />
+
+                    <!-- Color Chips Container -->
+                    <LinearLayout
+                        android:id="@+id/colorChipsContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:gravity="start"
+                        android:orientation="horizontal">
+
+                        <!-- Color chips will be added programmatically -->
+                        <View
+                            android:id="@+id/colorChipGreen"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/rvCategories"
+                            android:nextFocusRight="@id/colorChipCyan"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipCyan"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip_cyan"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipGreen"
+                            android:nextFocusRight="@id/colorChipPurple"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipPurple"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip_purple"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipCyan"
+                            android:nextFocusRight="@id/colorChipOrange"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipOrange"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip_orange"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipPurple"
+                            android:nextFocusRight="@id/colorChipGold"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipGold"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip_gold"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipOrange"
+                            android:nextFocusRight="@id/colorChipPink"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipPink"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip_pink"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipGold"
+                            android:nextFocusRight="@id/colorChipBlue"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipBlue"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="@dimen/spacing_sm"
+                            android:background="@drawable/bg_color_chip_blue"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipPink"
+                            android:nextFocusRight="@id/colorChipWhite"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                        <View
+                            android:id="@+id/colorChipWhite"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_color_chip_white"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/colorChipBlue"
+                            android:nextFocusRight="@id/colorChipWhite"
+                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusDown="@id/etCustomImageUrl" />
+
+                    </LinearLayout>
+
+                    <!-- Custom Background Image Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="Custom Background Image"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:text="Set background from URL (leave empty for animated)"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/etCustomImageUrl"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_edittext_compact"
+                            android:hint="https://example.com/image.jpg"
+                            android:inputType="textUri"
+                            android:paddingHorizontal="@dimen/login_input_padding"
+                            android:textColor="@color/htc_text_primary"
+                            android:textColorHint="@color/htc_text_tertiary"
+                            android:textSize="13sp"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/rvCategories"
+                            android:nextFocusRight="@id/btnApplyImage"
+                            android:nextFocusUp="@id/colorChipGreen"
+                            android:nextFocusDown="@id/btnChooseLocalImage"
+                            tools:ignore="Autofill,LabelFor" />
+
+                        <Button
+                            android:id="@+id/btnApplyImage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:background="@drawable/bg_button_primary"
+                            android:paddingHorizontal="@dimen/spacing_lg"
+                            android:text="Apply"
+                            android:textAllCaps="false"
+                            android:textColor="@color/htc_pure_black"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/etCustomImageUrl"
+                            android:nextFocusDown="@id/btnChooseLocalImage" />
+
+                    </LinearLayout>
+
+                    <!-- Choose from Device Button -->
+                    <Button
+                        android:id="@+id/btnChooseLocalImage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/bg_button_primary"
+                        android:paddingHorizontal="@dimen/spacing_lg"
+                        android:text="@string/settings_choose_from_device"
+                        android:textAllCaps="false"
+                        android:textColor="@color/htc_pure_black"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:focusable="true" />
+
+                    <!-- Clear Custom Image Button -->
+                    <Button
+                        android:id="@+id/btnClearImage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/selector_glass_button"
+                        android:paddingHorizontal="@dimen/spacing_lg"
+                        android:text="@string/settings_clear_image"
+                        android:textAllCaps="false"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="13sp"
+                        android:focusable="true" />
+
+                    <LinearLayout
+                        android:id="@+id/optionAutoCityWallpaper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_auto_city_wallpaper_title"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/settings_auto_city_wallpaper_desc"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchAutoCityWallpaper"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvCityWallpaperStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="13sp"
+                        tools:text="Login wallpaper ready for Damascus from Wikimedia" />
+
+                    <!-- Language Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="@string/settings_language"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/optionLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_language"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvLanguageValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="English" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+
+                    </LinearLayout>
+
+                    <!-- Football Widget Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="@string/settings_football_widget_title"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_football_widget_desc"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/optionFootballWidget"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusDown="@id/switchWeatherEnabled">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_football_widget_enable"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchFootballWidgetEnabled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:focusable="true" />
+
+                    </LinearLayout>
+
+                    <!-- Weather Settings Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="@string/settings_weather_title"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Automatic weather with 3D effects based on your IP location"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="13sp" />
+
+                    <!-- Weather Enable/Disable Switch -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusUp="@id/optionFootballWidget">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Enable Weather Widget"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchWeatherEnabled"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:focusable="true" />
+
+                    </LinearLayout>
+
+                    <!-- Weather Effects Quality -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_weather_effects_quality"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/settings_weather_effects_quality_desc"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <Spinner
+                            android:id="@+id/spinnerWeatherEffectsQuality"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="120dp"
+                            android:focusable="true" />
+
+                    </LinearLayout>
+
+                    <!-- Reduce Motion -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_weather_reduce_motion"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/settings_weather_reduce_motion_desc"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchWeatherReduceMotion"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+
+                    <!-- Disable Lightning Flash -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_weather_disable_lightning"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/settings_weather_disable_lightning_desc"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchWeatherDisableLightning"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:focusable="false" />
+
+                    </LinearLayout>
+
+                    <!-- Current Location Display -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_weather_detected_location"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvDetectedLocation"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xs"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="13sp"
+                                tools:text="Damascus, Syria" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_location"
+                            app:tint="@color/htc_accent_green"
+                            tools:ignore="ContentDescription" />
+
+                    </LinearLayout>
+
+                    <!-- Refresh Location Button -->
+                    <Button
+                        android:id="@+id/btnRefreshWeatherLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/bg_button_primary"
+                        android:paddingHorizontal="@dimen/spacing_xl"
+                        android:text="@string/settings_weather_refresh_location"
+                        android:textAllCaps="false"
+                        android:textColor="@color/htc_pure_black"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:focusable="true" />
+
+                    <!-- Weather Status -->
+                    <TextView
+                        android:id="@+id/tvWeatherStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:textColor="@color/htc_accent_green"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="Weather updated successfully" />
+
+                </LinearLayout>
+
+            </ScrollView>
+
+            <!-- About Panel -->
+            <ScrollView
+                android:id="@+id/panelAbout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_about"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <!-- App Logo and Name -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="160dp"
+                            android:layout_height="100dp"
+                            android:src="@drawable/logo"
+                            tools:ignore="ContentDescription" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_md"
+                            android:text="@string/app_name"
+                            android:textColor="@color/htc_accent_green"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:text="@string/about_version"
+                            android:textColor="@color/htc_text_secondary"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <!-- Marketing Text -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:background="@drawable/bg_glass_panel"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_lg">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:lineSpacingExtra="4dp"
+                            android:text="@string/about_marketing_text"
+                            android:textColor="@color/htc_text_secondary"
+                            android:textSize="14sp" />
+
+                    </LinearLayout>
+
+                    <!-- Features List -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/about_features_title"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:lineSpacingExtra="6dp"
+                            android:text="@string/about_features_list"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="13sp" />
+
+                    </LinearLayout>
+
+                    <!-- Contact Section -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:text="@string/about_contact_title"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <!-- WhatsApp Button -->
+                        <LinearLayout
+                            android:id="@+id/btnWhatsApp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/selector_card_focus"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/spacing_xl"
+                            android:paddingVertical="@dimen/spacing_lg"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/rvCategories"
+                            android:nextFocusRight="@id/btnEmail">
+
+                            <ImageView
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_whatsapp"
+                                tools:ignore="ContentDescription" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_sm"
+                                android:text="@string/about_contact_whatsapp"
+                                android:textColor="@color/htc_text_secondary"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <!-- Email Button -->
+                        <LinearLayout
+                            android:id="@+id/btnEmail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_xl"
+                            android:background="@drawable/selector_card_focus"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/spacing_xl"
+                            android:paddingVertical="@dimen/spacing_lg"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/btnWhatsApp">
+
+                            <ImageView
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_email"
+                                tools:ignore="ContentDescription" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_sm"
+                                android:text="@string/about_contact_email"
+                                android:textColor="@color/htc_text_secondary"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Copyright -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xl"
+                        android:gravity="center"
+                        android:text="@string/about_copyright"
+                        android:textColor="@color/htc_text_tertiary"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </ScrollView>
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <!-- PIN Dialog Overlay -->
+    <FrameLayout
+        android:id="@+id/pinDialogOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/htc_overlay_dark"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="320dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_glass_panel_premium"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_xl">
+
+            <TextView
+                android:id="@+id/tvPinTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/settings_pin_enter_title"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etPin"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:background="@drawable/bg_edittext"
+                android:gravity="center"
+                android:hint="****"
+                android:inputType="numberPassword"
+                android:maxLength="4"
+                android:textColor="@color/htc_text_primary"
+                android:textColorHint="@color/htc_text_tertiary"
+                android:textSize="24sp"
+                tools:ignore="Autofill,LabelFor" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnPinCancel"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/selector_tv_button"
+                    android:text="@string/cancel"
+                    android:textColor="@color/htc_text_primary"
+                    android:focusable="true"
+                    android:nextFocusRight="@id/btnPinConfirm"
+                    android:nextFocusUp="@id/etPin" />
+
+                <Button
+                    android:id="@+id/btnPinConfirm"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="@dimen/spacing_md"
+                    android:layout_weight="1"
+                    android:background="@drawable/selector_tv_button"
+                    android:text="@string/ok"
+                    android:textColor="@color/htc_text_primary"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/btnPinCancel"
+                    android:nextFocusUp="@id/etPin" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</FrameLayout>

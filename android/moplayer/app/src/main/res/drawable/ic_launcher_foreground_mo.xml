@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    MoPlayer Adaptive Icon Foreground
+    Uses the M+play button symbol (ic_launcher_icon_512.png)
+    which looks great as a small launcher icon
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="center">
+        <bitmap
+            android:src="@drawable/ic_launcher_icon_512"
+            android:gravity="center" />
+    </item>
+</layer-list>

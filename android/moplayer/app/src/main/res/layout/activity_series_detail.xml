@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/htc_pure_black">
+
+    <!-- Backdrop Image -->
+    <ImageView
+        android:id="@+id/ivBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.3"
+        android:scaleType="centerCrop"
+        tools:ignore="ContentDescription" />
+
+    <!-- Gradient Overlay -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_movie_detail_gradient" />
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <!-- Left Panel - Series Info -->
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_series_info_panel"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Poster with Glow -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="120dp">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:alpha="0.5"
+                    android:background="@drawable/bg_poster_glow" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="8dp">
+
+                    <ImageView
+                        android:id="@+id/ivPoster"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_content_placeholder"
+                        tools:ignore="ContentDescription" />
+
+                </androidx.cardview.widget.CardView>
+
+            </FrameLayout>
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tvSeriesTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Breaking Bad" />
+
+            <!-- Meta Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Rating Badge -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rating_badge_premium"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp">
+
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_star"
+                        app:tint="@color/htc_accent_gold"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tvRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="9.5" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@color/htc_accent_green"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="2008 - 2013" />
+
+                <TextView
+                    android:id="@+id/tvGenre"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/htc_text_secondary"
+                    android:textSize="10sp"
+                    tools:text="Drama, Crime, Thriller" />
+
+            </LinearLayout>
+
+            <!-- Plot -->
+            <TextView
+                android:id="@+id/tvPlot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:ellipsize="end"
+                android:lineSpacingMultiplier="1.2"
+                android:maxLines="3"
+                android:textColor="@color/htc_text_secondary"
+                android:textSize="11sp"
+                tools:text="A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine." />
+
+            <!-- Cast (optional) -->
+            <TextView
+                android:id="@+id/tvCast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="9sp"
+                android:visibility="gone"
+                tools:text="Cast: Bryan Cranston, Aaron Paul, Anna Gunn"
+                tools:visibility="visible" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnPlay"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_play"
+                    android:drawablePadding="6dp"
+                    android:drawableStart="@drawable/ic_play"
+                    android:drawableTint="@color/htc_pure_black"
+                    android:focusable="true"
+                    android:nextFocusRight="@id/btnFavorite"
+                    android:text="@string/movie_play"
+                    android:textAllCaps="false"
+                    android:textColor="@color/htc_pure_black"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnFavorite"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_button_icon"
+                    android:contentDescription="@string/movie_add_favorite"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/btnPlay"
+                    android:nextFocusRight="@id/btnTrailer"
+                    android:src="@drawable/ic_favorite_border"
+                    app:tint="@color/htc_text_primary" />
+
+                <!-- Watch Trailer Button -->
+                <Button
+                    android:id="@+id/btnTrailer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:drawableStart="@drawable/ic_play"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="@color/htc_text_primary"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/btnFavorite"
+                    android:nextFocusRight="@id/rvSeasons"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/trailer"
+                    android:textAllCaps="false"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Center Panel - Vertical Seasons List -->
+        <LinearLayout
+            android:id="@+id/llSeasonsPanel"
+            android:layout_width="140dp"
+            android:layout_height="match_parent"
+            android:background="#15FFFFFF"
+            android:orientation="vertical"
+            android:paddingTop="24dp">
+
+            <!-- Seasons Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingBottom="16dp"
+                android:text="@string/series_seasons"
+                android:textColor="@color/htc_accent_green"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="16dp"
+                android:background="#20FFFFFF" />
+
+            <!-- Seasons RecyclerView (Vertical) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSeasons"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingVertical="8dp"
+                tools:listitem="@layout/item_season" />
+
+        </LinearLayout>
+
+        <!-- Right Panel - Episodes List -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="24dp">
+
+            <!-- Episodes Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingBottom="16dp">
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="@color/htc_accent_green" />
+
+                <TextView
+                    android:id="@+id/tvEpisodeHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="Season 1 - 7 Episodes" />
+
+                <TextView
+                    android:id="@+id/tvEpisodeCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_count_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/htc_text_secondary"
+                    android:textSize="11sp"
+                    tools:text="7 episodes" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#15FFFFFF" />
+
+            <!-- Episodes RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEpisodes"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingVertical="12dp"
+                tools:listitem="@layout/item_episode" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E6000000"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/moplayer_orange" />
+
+    </FrameLayout>
+
+</FrameLayout>

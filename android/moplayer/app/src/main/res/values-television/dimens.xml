@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Episode Card Dimensions - Optimized for better screen usage -->
+    <dimen name="tv_episode_card_height">100dp</dimen>
+    <dimen name="tv_episode_thumbnail_width">180dp</dimen>
+    <dimen name="tv_episode_thumbnail_height">100dp</dimen>
+    <dimen name="tv_episode_card_margin">3dp</dimen>
+    <dimen name="tv_episode_card_padding">8dp</dimen>
+    
+    <!-- Season Card Dimensions -->
+    <dimen name="tv_season_card_width">80dp</dimen>
+    <dimen name="tv_season_card_height">100dp</dimen>
+    <dimen name="tv_season_badge_size">36dp</dimen>
+    <dimen name="tv_season_sidebar_width">90dp</dimen>
+    
+    <!-- Preview Panel Dimensions -->
+    <dimen name="tv_preview_height">280dp</dimen>
+    <dimen name="tv_preview_panel_padding">16dp</dimen>
+    <dimen name="tv_series_poster_width">120dp</dimen>
+    <dimen name="tv_series_poster_height">180dp</dimen>
+    
+    <!-- Focus and Animation -->
+    <dimen name="tv_focus_scale">1.05</dimen>
+    <dimen name="tv_focus_elevation">8dp</dimen>
+    <dimen name="tv_focus_translation">4dp</dimen>
+    
+    <!-- Text Sizes for TV - Enhanced for better readability -->
+    <dimen name="tv_text_title">22sp</dimen>
+    <dimen name="tv_text_subtitle">18sp</dimen>
+    <dimen name="tv_text_body">15sp</dimen>
+    <dimen name="tv_text_caption">13sp</dimen>
+    <dimen name="tv_text_small">12sp</dimen>
+    <dimen name="tv_text_tiny">10sp</dimen>
+    
+    <!-- Episode Card Text Sizes -->
+    <dimen name="tv_episode_title">14sp</dimen>
+    <dimen name="tv_episode_number">11sp</dimen>
+    <dimen name="tv_episode_meta">10sp</dimen>
+    <dimen name="tv_episode_description">12sp</dimen>
+    
+    <!-- Spacing for TV (larger for better readability) -->
+    <dimen name="tv_spacing_xs">4dp</dimen>
+    <dimen name="tv_spacing_sm">8dp</dimen>
+    <dimen name="tv_spacing_md">12dp</dimen>
+    <dimen name="tv_spacing_lg">20dp</dimen>
+    <dimen name="tv_spacing_xl">24dp</dimen>
+    
+    <!-- Screen Margins for TV (respecting safe zones) -->
+    <dimen name="tv_screen_margin_horizontal">24dp</dimen>
+    <dimen name="tv_screen_margin_vertical">16dp</dimen>
+    
+    <!-- Button Dimensions for TV -->
+    <dimen name="tv_button_height">40dp</dimen>
+    <dimen name="tv_button_icon_size">36dp</dimen>
+    <dimen name="tv_button_padding_horizontal">12dp</dimen>
+    
+    <!-- Corner Radius -->
+    <dimen name="tv_corner_radius_small">6dp</dimen>
+    <dimen name="tv_corner_radius_medium">10dp</dimen>
+    <dimen name="tv_corner_radius_large">12dp</dimen>
+
+    <!-- Dock (TV-optimized) -->
+    <dimen name="dock_horizontal_margin">140dp</dimen>
+    <dimen name="dock_bottom_margin">8dp</dimen>
+    <dimen name="dock_corner_radius">22dp</dimen>
+    <dimen name="dock_height">68dp</dimen>
+    <dimen name="dock_icon_size">28dp</dimen>
+    <dimen name="dock_label_size">10sp</dimen>
+    <dimen name="preview_panel_width">380dp</dimen>
+    <dimen name="top_bar_height">84dp</dimen>
+</resources>

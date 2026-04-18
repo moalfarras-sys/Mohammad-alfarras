@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/liquid_bg_base">
+
+    <!-- Animated Background -->
+    <com.mo.moplayer.ui.widgets.AnimatedBackground
+        android:id="@+id/animatedBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/liquid_space_24">
+
+        <!-- Header with Channel Info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Back Button -->
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_liquid_glass_button"
+                android:focusable="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/htc_text_primary"
+                tools:ignore="ContentDescription" />
+
+            <!-- Channel Logo -->
+            <ImageView
+                android:id="@+id/ivChannelLogo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="16dp"
+                android:src="@drawable/ic_placeholder_channel"
+                tools:ignore="ContentDescription" />
+
+            <!-- Channel Name and Archive Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvChannelName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/liquid_text_primary"
+                    android:textSize="@dimen/liquid_text_heading"
+                    android:textStyle="bold"
+                    tools:text="Channel Name" />
+
+                <TextView
+                    android:id="@+id/tvArchiveInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/liquid_text_secondary"
+                    android:textSize="@dimen/liquid_text_caption"
+                    tools:text="7 days archive available" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Date Selection Tabs -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/liquid_space_24"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/datesContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- Date tabs will be added programmatically -->
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <com.mo.moplayer.ui.epg.EpgTimelineView
+            android:id="@+id/epgTimeline"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_marginTop="@dimen/liquid_space_16"
+            android:background="@drawable/bg_liquid_glass_surface" />
+
+        <!-- EPG Grid for Selected Date -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvArchivePrograms"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/liquid_space_16"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/liquid_space_24"
+            tools:listitem="@layout/item_archive_program" />
+
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/emptyState"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:alpha="0.5"
+                android:src="@drawable/ic_live_tv"
+                app:tint="@color/htc_text_tertiary"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/archive_no_programs"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/htc_overlay_dark"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+                android:indeterminateTint="@color/liquid_accent_primary" />
+
+    </FrameLayout>
+
+</FrameLayout>

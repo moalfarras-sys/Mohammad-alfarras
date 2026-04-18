@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Luxury Card Border with Gold Glow -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Outer Gold Glow -->
+    <item
+        android:left="-6dp"
+        android:top="-6dp"
+        android:right="-6dp"
+        android:bottom="-6dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:type="radial"
+                android:gradientRadius="80dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="@color/glow_gold_medium"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    
+    <!-- Gold Border -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/card_border_luxury" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    
+</layer-list>

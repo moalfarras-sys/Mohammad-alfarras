@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="2dp"
+    android:layout_marginHorizontal="8dp"
+    android:focusable="true"
+    android:clickable="true">
+
+    <LinearLayout
+        android:id="@+id/seasonContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_season_item"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="16dp"
+        android:paddingHorizontal="12dp">
+
+        <!-- Season Number Badge -->
+        <TextView
+            android:id="@+id/tvSeasonNumber"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_season_number"
+            android:gravity="center"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="1" />
+
+        <!-- Season Label -->
+        <TextView
+            android:id="@+id/tvSeasonLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="11sp"
+            tools:text="Season 1" />
+
+        <!-- Episode Count -->
+        <TextView
+            android:id="@+id/tvEpisodeCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/htc_text_tertiary"
+            android:textSize="9sp"
+            tools:text="7 eps" />
+
+    </LinearLayout>
+
+    <!-- Selection Indicator -->
+    <View
+        android:id="@+id/selectionIndicator"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/htc_accent_green"
+        android:visibility="gone" />
+
+</FrameLayout>

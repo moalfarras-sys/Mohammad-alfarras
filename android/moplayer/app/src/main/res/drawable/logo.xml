@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    MoPlayer Logo Drawable
+    Uses the full wordmark (M symbol + "MoPlayer" text)
+    with a blue glow halo matching the brand accent color
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:gravity="center"
+        android:width="180dp"
+        android:height="96dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:gradientRadius="92"
+                android:startColor="#224F8BFF"
+                android:centerColor="#0F4F8BFF"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+
+    <item android:gravity="center">
+        <bitmap
+            android:src="@drawable/ic_app_logo"
+            android:gravity="center" />
+    </item>
+
+</layer-list>

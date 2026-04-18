@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shimmer placeholder item for content cards during loading -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/card_poster_width"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/card_margin"
+    android:layout_marginEnd="@dimen/card_margin"
+    android:layout_marginTop="@dimen/card_margin"
+    android:layout_marginBottom="@dimen/card_margin">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Poster placeholder with shimmer -->
+        <com.mo.moplayer.ui.common.ShimmerView
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/card_poster_height" />
+
+        <!-- Title placeholder -->
+        <com.mo.moplayer.ui.common.ShimmerView
+            android:layout_width="match_parent"
+            android:layout_height="14dp"
+            android:layout_marginTop="@dimen/spacing_sm"
+            android:layout_marginStart="@dimen/spacing_xs"
+            android:layout_marginEnd="@dimen/spacing_xs" />
+
+        <!-- Second line placeholder -->
+        <com.mo.moplayer.ui.common.ShimmerView
+            android:layout_width="80dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="@dimen/spacing_xs"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+</FrameLayout>

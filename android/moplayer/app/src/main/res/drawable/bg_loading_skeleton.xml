@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skeleton/Shimmer Loading State for Cards -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base Card Background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/htc_medium_gray"/>
+            <corners android:radius="@dimen/card_corner_radius"/>
+        </shape>
+    </item>
+    
+    <!-- Shimmer Effect (animated via code) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#00FFFFFF"
+                android:centerColor="#20FFFFFF"
+                android:endColor="#00FFFFFF"/>
+            <corners android:radius="@dimen/card_corner_radius"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HTC Style Main Screen Gradient Background -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Base solid color -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/htc_black" />
+        </shape>
+    </item>
+    
+    <!-- Subtle radial gradient from center -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="600dp"
+                android:centerX="0.5"
+                android:centerY="0.3"
+                android:startColor="@color/htc_medium_gray"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    
+    <!-- Top ambient light - using top inset instead of bottom percentage -->
+    <item
+        android:left="0dp"
+        android:right="0dp"
+        android:top="0dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#1A2D2D2D"
+                android:endColor="#00000000"
+                android:type="linear" />
+            <size android:height="200dp" />
+        </shape>
+    </item>
+    
+    <!-- Vignette effect at corners -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="1000dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#00000000"
+                android:endColor="#40000000" />
+        </shape>
+    </item>
+</layer-list>

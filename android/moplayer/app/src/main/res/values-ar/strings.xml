@@ -1,0 +1,372 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    
+    <string name="app_name">MoPlayer</string>
+    <string name="app_tagline">بث احترافي من Moalfarras</string>
+    
+    
+    <string name="login_title">مرحباً بك في MoPlayer</string>
+    <string name="login_subtitle">أدخل بيانات السيرفر</string>
+    <string name="login_tagline">تجربة IPTV فاخرة</string>
+    <string name="login_panel_title">الاتصال بالسيرفر</string>
+    <string name="login_panel_subtitle">اختر طريقة الاتصال</string>
+    
+    
+    <string name="tab_xtream">Xtream</string>
+    <string name="tab_m3u">M3U</string>
+    
+    
+    <string name="hint_server_url">رابط السيرفر</string>
+    <string name="hint_username">اسم المستخدم</string>
+    <string name="hint_password">كلمة المرور</string>
+    
+    
+    <string name="hint_m3u_url">رابط M3U</string>
+    <string name="hint_playlist_name">اسم القائمة</string>
+    <string name="m3u_hint_formats">يدعم M3U و M3U8 وروابط Xtream API</string>
+    
+    
+    <string name="btn_login">اتصال</string>
+    <string name="btn_connect">اتصال</string>
+    <string name="btn_import_m3u">استيراد قائمة M3U</string>
+    
+    
+    <string name="login_connecting">جارٍ الاتصال بالسيرفر...</string>
+    <string name="login_please_wait">يرجى الانتظار</string>
+    <string name="login_loading">جارٍ الاتصال بالسيرفر...</string>
+    <string name="login_loading_categories">جارٍ تحميل التصنيفات...</string>
+    <string name="login_loading_channels">جارٍ تحميل القنوات...</string>
+    <string name="login_loading_movies">جارٍ تحميل الأفلام...</string>
+    <string name="login_loading_series">جارٍ تحميل المسلسلات...</string>
+    <string name="login_success">تم الاتصال بنجاح!</string>
+    <string name="login_error">فشل الاتصال. تأكد من البيانات.</string>
+    <string name="login_error_empty">يرجى تعبئة جميع الحقول</string>
+    <string name="login_error_invalid_url">صيغة رابط السيرفر غير صحيحة</string>
+    <string name="login_downloading_playlist">جارٍ تنزيل القائمة...</string>
+    <string name="login_parsing_playlist">جارٍ تحليل القائمة...</string>
+    <string name="loading_marketing_text">نجهّز لك التجربة</string>
+    <string name="loading_server_connecting">جاري الاتصال بالسيرفر</string>
+    
+    
+    <string name="feature_live_tv">قنوات البث المباشر</string>
+    <string name="feature_movies">أفلام ومحتوى</string>
+    <string name="feature_series">مسلسلات وبرامج</string>
+    
+    
+    <string name="home_title">الرئيسية</string>
+    <string name="section_recently_added">المضاف مؤخراً</string>
+    <string name="section_recently_added_movies">أفلام جديدة</string>
+    <string name="section_recently_added_series">مسلسلات جديدة</string>
+    <string name="section_continue_watching">متابعة المشاهدة</string>
+    <string name="section_favorites">المفضلة</string>
+    <string name="section_live_tv">البث المباشر</string>
+    <string name="section_movies">أفلام</string>
+    <string name="section_series">مسلسلات</string>
+    <string name="section_categories">الأقسام</string>
+    
+    
+    <string name="live_tv_title">البث المباشر</string>
+    <string name="live_tv_no_epg">لا توجد معلومات البرنامج</string>
+    <string name="live_tv_now_playing">يُعرض الآن</string>
+    <string name="live_tv_up_next">التالي</string>
+    <string name="live_tv_channel_list">قائمة القنوات</string>
+    <string name="live_tv_categories">الأقسام</string>
+    <string name="live_tv_press_ok">اضغط OK للقنوات</string>
+    
+    
+    <string name="football_widget_live">مباشر</string>
+    <string name="football_widget_no_match">لا توجد مباراة مباشرة</string>
+    <string name="football_widget_loading">جاري التحميل…</string>
+    <string name="football_widget_error">يُطلب مفتاح API</string>
+    <string name="settings_football_widget_title">ويجت المباريات</string>
+    <string name="settings_football_widget_desc">عرض مباراة مباشرة أو مباراة اليوم من الدوريات الكبرى في الشاشة الرئيسية</string>
+    <string name="settings_football_widget_enable">تفعيل ويجت المباريات</string>
+    <string name="match_details_title">تفاصيل المباراة</string>
+    <string name="match_details_close">إغلاق</string>
+    <string name="match_details_venue_format">الملعب: %1$s%2$s</string>
+    <string name="match_details_venue_city_sep">، %s</string>
+    <string name="match_details_referee_format">الحكم: %s</string>
+    <string name="match_details_halftime_format">نصف الوقت: %1$d - %2$d</string>
+    <string name="match_details_status">الحالة</string>
+    <string name="match_details_date_time">التاريخ والوقت</string>
+    
+    
+    <string name="movies_title">أفلام</string>
+    <string name="movie_play">تشغيل</string>
+    <string name="movie_add_favorite">إضافة للمفضلة</string>
+    <string name="movie_remove_favorite">إزالة من المفضلة</string>
+    <string name="movie_trailer">شاهد العرض</string>
+    <string name="movie_info_rating">التقييم</string>
+    <string name="movie_info_year">السنة</string>
+    <string name="movie_info_duration">المدة</string>
+    <string name="movie_info_genre">النوع</string>
+    
+    
+    <string name="series_title">مسلسلات</string>
+    <string name="series_seasons">المواسم</string>
+    <string name="series_episodes">الحلقات</string>
+    <string name="series_season_format">الموسم %d</string>
+    <string name="series_episode_format">الحلقة %d</string>
+    <string name="series_select_season">اختر الموسم</string>
+    
+    
+    <string name="favorites_title">المفضلة</string>
+    <string name="favorites_empty">لا توجد عناصر في المفضلة</string>
+    <string name="favorites_empty_subtitle">أضف الأفلام والمسلسلات للمفضلة لتظهر هنا</string>
+    
+    
+    <string name="player_loading">جاري التحميل…</string>
+    <string name="player_error">خطأ في التشغيل</string>
+    <string name="player_buffering">جاري التخزين المؤقت…</string>
+    <string name="player_audio_tracks">مسارات الصوت</string>
+    <string name="player_subtitles">الترجمات</string>
+    <string name="player_quality">الجودة</string>
+    <string name="player_aspect_ratio">نسبة العرض</string>
+    <string name="player_subtitle_off">إيقاف</string>
+    <string name="player_external">فتح في مشغل خارجي</string>
+    
+    
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_server">إدارة السيرفر</string>
+    <string name="settings_server_info">السيرفر الحالي</string>
+    <string name="settings_server_change">تغيير السيرفر</string>
+    <string name="settings_server_logout">تسجيل الخروج</string>
+    <string name="settings_server_refresh">تحديث</string>
+    <string name="settings_server_delete">حذف</string>
+    <string name="settings_server_saved">السيرفرات المحفوظة</string>
+    <string name="settings_server_add">إضافة سيرفر جديد</string>
+    <string name="settings_server_delete_confirm">حذف السيرفر؟</string>
+    <string name="settings_server_delete_message">ستحتاج لإعادة إدخال بياناتك لاستخدام هذا السيرفر مرة أخرى.</string>
+    <string name="settings_player">إعدادات المشغل</string>
+    <string name="settings_player_default_quality">الجودة الافتراضية</string>
+    <string name="settings_player_buffer_size">حجم التخزين المؤقت</string>
+    <string name="settings_player_hardware_accel">تسريع العتاد</string>
+    <string name="settings_player_external_player">مشغل خارجي</string>
+    <string name="settings_player_selection">مشغل الفيديو</string>
+    <string name="settings_player_buffer">حجم التخزين المؤقت</string>
+    <string name="settings_player_playback_profile">وضع التشغيل</string>
+    <string name="settings_player_live_preview">المعاينة المباشرة</string>
+    <string name="playback_profile_balanced">متوازن</string>
+    <string name="playback_profile_performance">أداء</string>
+    <string name="playback_profile_quality">جودة</string>
+    <string name="settings_ui">إعدادات الواجهة</string>
+    <string name="settings_ui_clock_format">صيغة الساعة</string>
+    <string name="settings_ui_weather">موقع الطقس</string>
+    <string name="settings_ui_background">خلفية التطبيق</string>
+    <string name="settings_parental">الرقابة الأبوية</string>
+    <string name="settings_parental_pin">تعيين الرمز السري</string>
+    <string name="settings_parental_lock">قفل المحتوى للبالغين</string>
+    <string name="settings_parental_enabled">الرقابة الأبوية مفعلة</string>
+    <string name="settings_about">حول التطبيق</string>
+    <string name="settings_about_version">الإصدار</string>
+    <string name="settings_about_developer">المطور</string>
+    
+    
+    <string name="loading">جاري التحميل…</string>
+    <string name="error_generic">حدث خطأ ما</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="save">حفظ</string>
+    <string name="search">بحث</string>
+    <string name="search_hint">ابحث عن قنوات، أفلام، مسلسلات…</string>
+    <string name="search_all">الكل</string>
+    <string name="search_channels">قنوات</string>
+    <string name="search_movies">أفلام</string>
+    <string name="search_series">مسلسلات</string>
+    <string name="search_empty_title">ابدأ البحث</string>
+    <string name="search_empty_subtitle">اكتب للبحث عن القنوات والأفلام والمسلسلات</string>
+    <string name="search_no_results_title">لا توجد نتائج</string>
+    <string name="search_no_results_subtitle">جرب كلمة بحث مختلفة</string>
+    <string name="search_results_count">%d نتيجة</string>
+    <string name="no_results">لا توجد نتائج</string>
+    <string name="all_categories">الكل</string>
+    
+    
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_live">مباشر</string>
+    <string name="nav_movies">أفلام</string>
+    <string name="nav_series">مسلسلات</string>
+    <string name="nav_favorites">المفضلة</string>
+    <string name="nav_settings">الإعدادات</string>
+    <string name="new_content_badge_format">+%1$d جديد</string>
+    
+    
+    <string name="time_format_12h">12 ساعة</string>
+    <string name="time_format_24h">24 ساعة</string>
+    
+    
+    <string name="exit_title">الخروج من التطبيق</string>
+    <string name="exit_message">هل تريد الخروج من MoPlayer؟</string>
+    <string name="exit_confirm">خروج</string>
+    <string name="exit_cancel">البقاء</string>
+    <string name="press_back_again_to_exit">اضغط رجوع مرة أخرى للخروج</string>
+    
+    
+    <string name="about_version">الإصدار 1.0.0</string>
+    <string name="about_marketing_text">MoPlayer هو تجربة البث المثالية. صُمم بدقة لأجهزة التلفزيون الذكية وأجهزة Android TV، يقدم جودة مذهلة وأداء فائق السرعة وواجهة أنيقة تنافس أفضل خدمات البث في العالم.\n\nترفيهك. بطريقتك. بلا حدود.</string>
+    <string name="about_features_title">المميزات</string>
+    <string name="about_features_list">• بث مباشر مع دليل البرامج\n• أفلام ومسلسلات VOD\n• جودة 4K Ultra HD\n• دعم متعدد اللغات\n• المفضلة ومتابعة المشاهدة\n• مشغل VLC احترافي\n• محسن لجهاز التحكم</string>
+    <string name="about_contact_title">تواصل معنا</string>
+    <string name="about_contact_whatsapp">تواصل عبر واتساب</string>
+    <string name="about_contact_email">تواصل عبر البريد</string>
+    <string name="about_copyright">© 2026 MoPlayer بواسطة Moalfarras. جميع الحقوق محفوظة.</string>
+    <string name="about_developer_name">محمد الفراص</string>
+    
+    
+    <string name="settings_language">اللغة</string>
+    <string name="language_english">English</string>
+    <string name="language_arabic">العربية</string>
+    
+    
+    <string name="cd_logo">شعار MoPlayer</string>
+    <string name="cd_poster">صورة المحتوى</string>
+    <string name="cd_channel_logo">شعار القناة</string>
+    <string name="cd_play_button">تشغيل</string>
+    <string name="cd_pause_button">إيقاف مؤقت</string>
+    <string name="cd_settings">الإعدادات</string>
+    <string name="cd_back">رجوع</string>
+    <string name="cd_menu">القائمة</string>
+    <string name="cd_toggle_password">إظهار/إخفاء كلمة المرور</string>
+
+    
+    <string name="weather_details_title">تفاصيل الطقس</string>
+    <string name="weather_details_close">إغلاق</string>
+    <string name="weather_details_feels_like_format">المحسوسة: %d°</string>
+    <string name="weather_details_humidity_format">الرطوبة: %d%%</string>
+    <string name="weather_details_wind_format">الرياح: %1$.0f كم/س (%2$d°)</string>
+    <string name="weather_details_gust_format">هبّات: %.0f كم/س</string>
+    <string name="weather_details_precip_format">الهطول: %.1f مم</string>
+    <string name="weather_details_cloud_format">الغيوم: %d%%</string>
+    <string name="weather_details_updated_format">آخر تحديث: %s</string>
+
+    
+    <string name="weather_debug_title">اختبار الطقس</string>
+    <string name="weather_debug_desc">فرض حالة طقس لأي تجربة الواجهة والتأثيرات. اضغط مطولاً على رقم الإصدار لفتحها.</string>
+    <string name="weather_debug_enable">تفعيل وضع الاختبار</string>
+    <string name="weather_debug_category">الحالة</string>
+    <string name="weather_debug_day">نهار</string>
+    <string name="weather_debug_temp">الحرارة</string>
+    <string name="weather_debug_wind">سرعة الرياح (كم/س)</string>
+    <string name="weather_debug_wind_dir">اتجاه الرياح (°)</string>
+    <string name="weather_debug_humidity">الرطوبة (%)</string>
+    <string name="weather_debug_cloud">الغيوم (%)</string>
+    <string name="weather_debug_precip">الهطول (مم)</string>
+    <string name="weather_debug_hint">ملاحظة: طبّق القيم ثم اذهب للرئيسية واضغط مطولاً على ويدجت الطقس لرؤية التفاصيل.</string>
+    <string name="weather_debug_apply">تطبيق</string>
+    <string name="weather_debug_reset">إلغاء</string>
+    
+    <string name="login_clean_title">تسجيل الدخول</string>
+    <string name="btn_import_m3u_local">اختيار ملف M3U محلي</string>
+    <string name="or_divider">أو</string>
+
+    <string name="channel_count_format">%1$d قناة</string>
+    <string name="preview">معاينة</string>
+    <string name="now_playing">يعرض الآن</string>
+    <string name="next_program">التالي</string>
+    <string name="groups">المجموعات</string>
+
+    <string name="menu_add_to_favorites">إضافة إلى المفضلة</string>
+    <string name="menu_remove_from_favorites">إزالة من المفضلة</string>
+    <string name="menu_play">تشغيل</string>
+    <string name="menu_resume">استئناف المشاهدة</string>
+    <string name="menu_info">معلومات</string>
+    <string name="menu_details">عرض التفاصيل</string>
+    <string name="menu_trailer">مشاهدة الإعلان</string>
+    <string name="menu_share">مشاركة</string>
+    <string name="long_press_hint">اضغط مطولاً على زر OK للمزيد</string>
+    <string name="menu_title">الخيارات</string>
+
+    <string name="login_welcome_back">مرحباً بعودتك</string>
+    <string name="login_start_experience">ابدأ تجربتك الآن</string>
+    <string name="tagline_creative">حيث تلتقي التكنولوجيا بالفن</string>
+    <string name="tagline_iptv_premium">تجربة IPTV لا مثيل لها</string>
+    <string name="developer_credit">صُنع بشغف بواسطة Moalfarras</string>
+    <string name="developer_credit_short">تطوير: Moalfarras</string>
+
+    <string name="marketing_connecting">جارٍ الاتصال بالسيرفر...</string>
+    <string name="marketing_4k">جودة 4K بريميوم</string>
+    <string name="marketing_thousands">آلاف القنوات والأفلام</string>
+    <string name="marketing_professional">واجهة احترافية للتلفزيون</string>
+    <string name="marketing_passion">حيث تلتقي الجودة بالترفيه</string>
+    <string name="marketing_unlimited">ترفيه بلا حدود بين يديك</string>
+    <string name="marketing_premium">جودة بريميوم وتجربة استثنائية</string>
+    <string name="marketing_smart">ذكي وسريع وبسيط</string>
+
+    <string name="cd_toggle_password_visibility">إظهار/إخفاء كلمة المرور</string>
+
+    <string name="error_player_init">فشل تهيئة المشغل</string>
+    <string name="error_stream_failed">فشل تشغيل البث. حاول مرة أخرى.</string>
+    <string name="error_connection">خطأ في الاتصال. تحقق من الشبكة.</string>
+    <string name="error_loading">فشل تحميل المحتوى</string>
+
+    <string name="settings_choose_from_device">اختيار من الجهاز</string>
+    <string name="settings_clear_image">إزالة الصورة المخصصة</string>
+    <string name="settings_image_loading">جارٍ تحميل الصورة…</string>
+    <string name="settings_image_success">تم تعيين صورة الخلفية بنجاح</string>
+    <string name="settings_image_failed">فشل تحميل الصورة</string>
+    <string name="settings_image_cleared">تمت إزالة الصورة المخصصة</string>
+
+    <string name="settings_weather_title">ودجت الطقس</string>
+    <string name="settings_weather_description">إعداد الطقس ليظهر على الشاشة الرئيسية</string>
+    <string name="settings_weather_api_key_hint">مفتاح API لـ OpenWeatherMap</string>
+    <string name="settings_weather_city_hint">اسم المدينة (مثال: London, Berlin)</string>
+    <string name="settings_weather_api_key_empty">يرجى إدخال مفتاح API</string>
+    <string name="settings_weather_city_empty">يرجى إدخال اسم المدينة</string>
+    <string name="settings_weather_saved">تم حفظ إعدادات الطقس</string>
+    <string name="settings_weather_configured">تم إعداد الطقس بنجاح</string>
+    <string name="settings_weather_effects_quality">تأثيرات الطقس</string>
+    <string name="settings_weather_effects_quality_desc">تأثيرات الجسيمات والتدرّج</string>
+    <string name="settings_weather_effects_off">إيقاف</string>
+    <string name="settings_weather_effects_low">منخفض</string>
+    <string name="settings_weather_effects_medium">متوسط</string>
+    <string name="settings_weather_effects_high">عالي</string>
+    <string name="settings_weather_reduce_motion">تقليل الحركة</string>
+    <string name="settings_weather_reduce_motion_desc">جسيمات أبطأ، بدون تموضع</string>
+    <string name="settings_weather_disable_lightning">إخفاء وميض البرق</string>
+    <string name="settings_weather_disable_lightning_desc">إخفاء وميض البرق أثناء العواصف</string>
+
+    <string name="settings_animation_enabled">حركة الخلفية</string>
+    <string name="theme_starfield">نجوم</string>
+    <string name="theme_galaxy">مجرة</string>
+    <string name="theme_nebula">سديم</string>
+    <string name="theme_snow">ثلج</string>
+    <string name="theme_rain">مطر</string>
+    <string name="theme_leaves">أوراق</string>
+    <string name="theme_network">شبكة</string>
+    <string name="theme_circuit">دوائر</string>
+    <string name="theme_gradient_wave">موجة تدرّج</string>
+    <string name="theme_minimal">بسيط</string>
+    <string name="theme_custom_image">صورة مخصصة</string>
+
+    <string name="archive_title">أرشيف القنوات</string>
+    <string name="archive_days_available">%1$d يوم أرشيف متاح</string>
+    <string name="archive_no_programs">لا توجد برامج لهذا اليوم</string>
+    <string name="today">اليوم</string>
+    <string name="duration_minutes">%1$d دقيقة</string>
+    <string name="error_no_server">لا يوجد سيرفر مُعدّ</string>
+    <string name="error_loading_archive">فشل تحميل برامج الأرشيف</string>
+
+    <string name="trailer">المقطع الدعائي</string>
+    <string name="error_trailer_not_available">المقطع الدعائي غير متوفر</string>
+
+    <string name="epg_now">الآن</string>
+    <string name="epg_next">التالي</string>
+    <string name="epg_no_info">لا توجد معلومات EPG</string>
+
+    <string name="preview_play">تشغيل</string>
+    <string name="preview_resume">استئناف المشاهدة</string>
+    <string name="preview_trailer">مشاهدة التريلر</string>
+    <string name="preview_no_description">لا يوجد وصف متاح</string>
+    <string name="preview_director">المخرج: %s</string>
+    <string name="preview_cast">الممثلون: %s</string>
+    <string name="preview_release_date">تاريخ الإصدار: %s</string>
+    <string name="preview_duration">المدة: %s</string>
+
+    <string name="settings_weather_detected_location">الموقع المكتشف</string>
+    <string name="settings_weather_refresh_location">تحديث الموقع والطقس</string>
+    <string name="settings_pin_enter_title">أدخل الرمز السري</string>
+
+</resources>

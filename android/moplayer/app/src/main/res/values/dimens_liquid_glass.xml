@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 8dp spacing scale -->
+    <dimen name="liquid_space_4">4dp</dimen>
+    <dimen name="liquid_space_8">8dp</dimen>
+    <dimen name="liquid_space_16">16dp</dimen>
+    <dimen name="liquid_space_24">24dp</dimen>
+    <dimen name="liquid_space_32">32dp</dimen>
+    <dimen name="liquid_space_40">40dp</dimen>
+    <dimen name="liquid_space_48">48dp</dimen>
+
+    <!-- Radii -->
+    <dimen name="liquid_radius_m">16dp</dimen>
+    <dimen name="liquid_radius_l">20dp</dimen>
+    <dimen name="liquid_radius_xl">24dp</dimen>
+
+    <!-- Focus -->
+    <dimen name="liquid_focus_stroke">2dp</dimen>
+    <dimen name="liquid_focus_glow_spread">6dp</dimen>
+
+    <!-- Elevation -->
+    <dimen name="liquid_elevation_rest">4dp</dimen>
+    <dimen name="liquid_elevation_focus">14dp</dimen>
+
+    <!-- 10-foot typography -->
+    <dimen name="liquid_text_display">34sp</dimen>
+    <dimen name="liquid_text_title">28sp</dimen>
+    <dimen name="liquid_text_heading">22sp</dimen>
+    <dimen name="liquid_text_body">18sp</dimen>
+    <dimen name="liquid_text_caption">14sp</dimen>
+</resources>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Dim background -->
+    <View
+        android:id="@+id/matchDetailsScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- Center card -->
+    <LinearLayout
+        android:id="@+id/matchDetailsCard"
+        android:layout_width="560dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_glass_panel_premium"
+        android:orientation="vertical"
+        android:paddingHorizontal="28dp"
+        android:paddingVertical="22dp"
+        tools:ignore="UselessParent">
+
+        <TextView
+            android:id="@+id/tvMatchDetailsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/match_details_title"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- League -->
+        <TextView
+            android:id="@+id/tvMatchDetailsLeague"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="Premier League" />
+
+        <!-- Teams row with logos and score -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/ivMatchHomeLogo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:visibility="gone"
+                tools:src="@drawable/ic_football"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tvMatchHomeTeam"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Manchester United" />
+
+            <TextView
+                android:id="@+id/tvMatchScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="72dp"
+                android:gravity="center"
+                android:textColor="@color/htc_accent_gold"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                tools:text="2 - 1" />
+
+            <TextView
+                android:id="@+id/tvMatchAwayTeam"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Chelsea" />
+
+            <ImageView
+                android:id="@+id/ivMatchAwayLogo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:visibility="gone"
+                tools:src="@drawable/ic_football"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Status / minute -->
+        <TextView
+            android:id="@+id/tvMatchStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="14sp"
+            tools:text="Live · 67'" />
+
+        <!-- Venue -->
+        <TextView
+            android:id="@+id/tvMatchVenue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="Old Trafford, Manchester"
+            tools:visibility="visible" />
+
+        <!-- Date & time -->
+        <TextView
+            android:id="@+id/tvMatchDateTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="Sun, 15 Jan 2024 · 15:00"
+            tools:visibility="visible" />
+
+        <!-- Referee -->
+        <TextView
+            android:id="@+id/tvMatchReferee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="Referee: Michael Oliver"
+            tools:visibility="visible" />
+
+        <!-- Halftime score -->
+        <TextView
+            android:id="@+id/tvMatchHalftime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/htc_text_tertiary"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="Halftime: 1 - 0"
+            tools:visibility="visible" />
+
+        <Button
+            android:id="@+id/btnMatchDetailsClose"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/selector_glass_button"
+            android:focusable="true"
+            android:text="@string/match_details_close"
+            android:textAllCaps="false"
+            android:textColor="@color/htc_text_primary"
+            android:textStyle="bold" />
+    </LinearLayout>
+</merge>

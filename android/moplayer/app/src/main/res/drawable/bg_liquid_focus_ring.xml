@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="@dimen/cinematic_radius_card" />
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="@dimen/liquid_focus_stroke"
+        android:color="@color/liquid_focus_ring" />
+</shape>

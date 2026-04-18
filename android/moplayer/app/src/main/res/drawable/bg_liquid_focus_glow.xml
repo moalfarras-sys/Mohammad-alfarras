@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Blue glow -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/cinematic_radius_card" />
+            <gradient
+                android:type="radial"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:gradientRadius="220dp"
+                android:startColor="@color/liquid_focus_glow"
+                android:centerColor="#304F8BFF"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+    <!-- Subtle violet accent glow -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/cinematic_radius_card" />
+            <gradient
+                android:type="radial"
+                android:centerX="50%"
+                android:centerY="70%"
+                android:gradientRadius="160dp"
+                android:startColor="#188B5CF6"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+</layer-list>

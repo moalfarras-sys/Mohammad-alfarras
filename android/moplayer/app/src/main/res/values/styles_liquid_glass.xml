@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.MoPlayer.Liquid" parent="Widget.MoPlayer" />
+    <style name="TextAppearance.MoPlayer.Liquid" parent="TextAppearance.MoPlayer" />
+
+    <style name="TextAppearance.MoPlayer.Liquid.Display" parent="TextAppearance.MoPlayer.Title">
+        <item name="android:textSize">@dimen/liquid_text_display</item>
+        <item name="android:textColor">@color/liquid_text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.MoPlayer.Liquid.Title" parent="TextAppearance.MoPlayer.Title">
+        <item name="android:textSize">@dimen/liquid_text_title</item>
+        <item name="android:textColor">@color/liquid_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.MoPlayer.Liquid.Body" parent="TextAppearance.MoPlayer.Body">
+        <item name="android:textSize">@dimen/liquid_text_body</item>
+        <item name="android:textColor">@color/liquid_text_secondary</item>
+    </style>
+
+    <style name="Widget.MoPlayer.Liquid.GlassSurface">
+        <item name="android:background">@drawable/bg_liquid_glass_surface</item>
+        <item name="android:padding">@dimen/liquid_space_16</item>
+    </style>
+
+    <style name="Widget.MoPlayer.Liquid.GlassCard">
+        <item name="android:background">@drawable/bg_liquid_glass_card</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="Widget.MoPlayer.Liquid.Button" parent="Widget.MoPlayer.Button">
+        <item name="android:background">@drawable/bg_liquid_glass_button</item>
+        <item name="android:textColor">@color/liquid_text_primary</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:paddingStart">@dimen/liquid_space_24</item>
+        <item name="android:paddingEnd">@dimen/liquid_space_24</item>
+    </style>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Vertical gradient from bottom -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="90"
+                android:startColor="#F0000000"
+                android:centerColor="#70000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    <!-- Horizontal gradient from left for text readability -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#90000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    <!-- Top subtle fade -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#50000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>

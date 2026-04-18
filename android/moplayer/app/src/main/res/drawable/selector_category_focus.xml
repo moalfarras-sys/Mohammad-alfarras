@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Focused state -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <gradient
+                android:angle="135"
+                android:startColor="@color/liquid_glass_surface_strong"
+                android:endColor="@color/liquid_glass_surface" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/liquid_focus_ring" />
+        </shape>
+    </item>
+
+    <!-- Selected state -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="@color/liquid_accent_primary"
+                android:endColor="@color/liquid_accent_primary_pressed" />
+        </shape>
+    </item>
+
+    <!-- Pressed state -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <solid android:color="@color/liquid_glass_surface_strong" />
+        </shape>
+    </item>
+
+    <!-- Default state -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="10dp" />
+            <solid android:color="#10FFFFFF" />
+        </shape>
+    </item>
+</selector>

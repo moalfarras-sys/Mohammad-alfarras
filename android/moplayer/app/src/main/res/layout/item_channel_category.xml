@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="3dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Focus Glow Background -->
+    <View
+        android:id="@+id/focusGlow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@drawable/bg_category_focus_glow"
+        android:layout_margin="-4dp" />
+
+    <LinearLayout
+        android:id="@+id/categoryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_category_focus"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingVertical="16dp"
+        android:paddingHorizontal="10dp"
+        android:focusable="true"
+        android:clickable="true">
+
+        <!-- Category Name -->
+        <TextView
+            android:id="@+id/tvCategoryName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            android:lineSpacingMultiplier="1.1"
+            tools:text="Sports" />
+
+        <!-- Channel Count -->
+        <TextView
+            android:id="@+id/tvChannelCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/htc_text_tertiary"
+            android:textSize="10sp"
+            android:visibility="gone"
+            tools:text="125 ch"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <!-- Selection indicator (left bar) -->
+    <View
+        android:id="@+id/selectionIndicator"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/htc_accent_green"
+        android:visibility="gone" />
+
+    <!-- Focus Border Overlay -->
+    <View
+        android:id="@+id/focusBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_category_focus_border"
+        android:alpha="0" />
+
+</FrameLayout>

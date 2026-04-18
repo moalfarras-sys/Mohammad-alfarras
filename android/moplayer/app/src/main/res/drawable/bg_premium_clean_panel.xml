@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Depth shadow -->
+    <item
+        android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="#10000000" />
+        </shape>
+    </item>
+    <!-- Main glass surface -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <gradient
+                android:angle="155"
+                android:startColor="#CC0D1220"
+                android:centerColor="#C00B1018"
+                android:endColor="#B80B0F1A" />
+            <stroke android:width="1dp" android:color="#18FFFFFF" />
+        </shape>
+    </item>
+    <!-- Top highlight shimmer -->
+    <item android:top="1dp" android:left="24dp" android:right="24dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="1dp" />
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#00FFFFFF"
+                android:centerColor="#14FFFFFF"
+                android:endColor="#00FFFFFF" />
+            <size android:height="1dp" />
+        </shape>
+    </item>
+    <!-- Inner reflection (very subtle) -->
+    <item android:top="2dp" android:left="16dp" android:right="16dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#04FFFFFF"
+                android:endColor="#00000000" />
+            <size android:height="28dp" />
+        </shape>
+    </item>
+</layer-list>

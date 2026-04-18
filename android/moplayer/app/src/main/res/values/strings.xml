@@ -1,0 +1,526 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    
+    <string name="app_name">MoPlayer</string>
+    <string name="app_tagline">Premium Streaming by Moalfarras</string>
+    
+    
+    <string name="login_title">Welcome to MoPlayer</string>
+    <string name="login_subtitle">Enter your server details</string>
+    <string name="login_tagline">Your Premium IPTV Experience</string>
+    <string name="login_panel_title">Connect to Server</string>
+    <string name="login_panel_subtitle">Choose your connection method</string>
+    <string name="login_clean_title">TV sign in</string>
+    <string name="login_hero_badge">MOPLAYER TV</string>
+    <string name="login_hero_title">MoPlayer</string>
+    <string name="login_hero_subtitle">Premium Android TV access</string>
+    <string name="login_hero_feature_label_one">Visual</string>
+    <string name="login_hero_feature_value_one">Glass UI</string>
+    <string name="login_hero_feature_label_two">Focus</string>
+    <string name="login_hero_feature_value_two">Remote ready</string>
+    <string name="login_form_subtitle">Pick your provider and connect in one focused step.</string>
+    <string name="login_brand_mo">Mo</string>
+    <string name="login_brand_player">Player</string>
+    <string name="login_brand_byline">by Moalfarras</string>
+    
+    
+    <string name="tab_xtream">Xtream Codes</string>
+    <string name="tab_m3u">M3U Playlist</string>
+    
+    
+    <string name="hint_server_url">Server URL</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    
+    
+    <string name="hint_m3u_url">M3U URL</string>
+    <string name="hint_playlist_name">Playlist Name</string>
+    <string name="m3u_hint_formats">Supports M3U, M3U8, and Xtream API URLs</string>
+    
+    
+    <string name="btn_login">Connect</string>
+    <string name="btn_connect">Connect server</string>
+    <string name="btn_import_m3u">Import M3U Playlist</string>
+    <string name="btn_import_m3u_local">Choose Local M3U File</string>
+    <string name="or_divider">Or</string>
+    
+    
+    <string name="login_connecting">Connecting to server…</string>
+    <string name="login_please_wait">Please wait</string>
+    <string name="login_loading">Connecting to server…</string>
+    <string name="login_loading_categories">Loading categories…</string>
+    <string name="login_loading_channels">Loading channels…</string>
+    <string name="login_loading_movies">Loading movies…</string>
+    <string name="login_loading_series">Loading series…</string>
+    <string name="login_success">Connected successfully!</string>
+    <string name="login_error">Connection failed. Please check your details.</string>
+    <string name="login_error_empty">Please fill in all fields</string>
+    <string name="login_error_invalid_url">Invalid server URL format</string>
+    <string name="login_downloading_playlist">Downloading playlist…</string>
+    <string name="login_parsing_playlist">Parsing playlist…</string>
+    <string name="loading_marketing_text">Now the Fun Begins</string>
+    <string name="loading_server_connecting">Connecting to Server</string>
+    
+    
+    <string name="feature_live_tv">Live TV Channels</string>
+    <string name="feature_movies">Movies &amp; VOD</string>
+    <string name="feature_series">TV Series &amp; Shows</string>
+    
+    
+    <string name="home_title">الرئيسية</string>
+    <string name="section_recently_added">تمت إضافته مؤخراً</string>
+    <string name="section_recently_added_movies">أحدث الأفلام</string>
+    <string name="section_recently_added_series">أحدث المسلسلات</string>
+    <string name="section_continue_watching">استمر بالمشاهدة</string>
+    <string name="section_favorites">Favorites</string>
+    <string name="section_live_tv">Live TV</string>
+    <string name="section_movies">Movies</string>
+    <string name="section_series">TV Series</string>
+    <string name="section_categories">Categories</string>
+    
+    
+    <string name="live_tv_title">Live TV</string>
+    <string name="live_tv_no_epg">No program information</string>
+    <string name="live_tv_now_playing">Now Playing</string>
+    <string name="live_tv_up_next">Up Next</string>
+    <string name="live_tv_channel_list">Channel List</string>
+    <string name="live_tv_categories">Categories</string>
+    <string name="live_tv_press_ok">Press OK for channels</string>
+    <string name="channel_count_format">%d قناة</string>
+    <string name="preview">Preview</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="next_program">Next</string>
+    <string name="groups">Groups</string>
+    
+    
+    <string name="football_widget_live">LIVE</string>
+    <string name="football_widget_no_match">لا توجد مباراة مباشرة</string>
+    <string name="football_widget_today_match">مباراة اليوم</string>
+    <string name="football_widget_next_match">التالي: %1$s ضد %2$s • %3$s</string>
+    <string name="football_widget_loading">Loading…</string>
+    <string name="football_widget_error">API key required</string>
+    <string name="settings_football_widget_title">Football Widget</string>
+    <string name="settings_football_widget_desc">Show live or today\'s match from major leagues on the home screen</string>
+    <string name="settings_football_widget_enable">Enable Football Widget</string>
+    <string name="match_details_title">Match Details</string>
+    <string name="match_details_close">Close</string>
+    <string name="match_details_venue_format">Venue: %1$s%2$s</string>
+    <string name="match_details_venue_city_sep">, %s</string>
+    <string name="match_details_referee_format">Referee: %s</string>
+    <string name="match_details_halftime_format">Halftime: %1$d - %2$d</string>
+    <string name="match_details_status">Status</string>
+    <string name="match_details_date_time">Date &amp; time</string>
+    
+    
+    <string name="movies_title">Movies</string>
+    <string name="movies_all">All Movies</string>
+    <string name="movie_play">Play</string>
+    <string name="movie_add_favorite">Add to Favorites</string>
+    <string name="movie_remove_favorite">Remove from Favorites</string>
+    <string name="movie_trailer">Watch Trailer</string>
+    <string name="movie_info_rating">Rating</string>
+    <string name="movie_info_year">Year</string>
+    <string name="movie_info_duration">Duration</string>
+    <string name="movie_info_genre">Genre</string>
+    
+    
+    <string name="series_title">TV Series</string>
+    <string name="series_all">All Series</string>
+    <string name="series_seasons">Seasons</string>
+    <string name="series_episodes">Episodes</string>
+    <string name="series_season_format">Season %d</string>
+    <string name="series_episode_format">Episode %d</string>
+    <string name="series_select_season">Select Season</string>
+    
+    
+    <string name="favorites_title">My Favorites</string>
+    <string name="favorites_empty">No favorites yet</string>
+    <string name="favorites_empty_subtitle">Add movies and series to your favorites to see them here</string>
+    
+    
+    <string name="menu_add_to_favorites">إضافة للمفضلة</string>
+    <string name="menu_remove_from_favorites">إزالة من المفضلة</string>
+    <string name="menu_play">تشغيل</string>
+    <string name="menu_resume">استئناف المشاهدة</string>
+    <string name="menu_info">معلومات</string>
+    <string name="menu_details">عرض التفاصيل</string>
+    <string name="menu_trailer">مشاهدة الإعلان</string>
+    <string name="menu_share">مشاركة</string>
+    <string name="menu_choose_player">فتح بمشغّل آخر</string>
+    <string name="long_press_hint">اضغط مطولاً على OK للمزيد</string>
+    <string name="menu_title">الخيارات</string>
+    
+    
+    <string name="player_loading">Loading…</string>
+    <string name="player_error">Playback error</string>
+    <string name="player_buffering">Buffering…</string>
+    <string name="player_audio_tracks">Audio Tracks</string>
+    <string name="player_subtitles">Subtitles</string>
+    <string name="player_quality">Quality</string>
+    <string name="player_aspect_ratio">Aspect Ratio</string>
+    <string name="player_subtitle_off">Off</string>
+    <string name="player_external">Open in External Player</string>
+    <string name="player_speed">Playback Speed</string>
+    <string name="player_install_external">Install %s from Play Store</string>
+    <string name="player_install_prompt">%s is not installed. Would you like to install it?</string>
+    
+    
+    <string name="pip_play">Play</string>
+    <string name="pip_pause">Pause</string>
+    <string name="pip_rewind">Rewind</string>
+    <string name="pip_forward">Forward</string>
+    
+    
+    <string name="quality_title">Video Quality</string>
+    <string name="quality_auto">Auto</string>
+    <string name="quality_auto_actual">Auto (%s)</string>
+    
+    
+    <string name="settings_title">Settings</string>
+    <string name="settings_server">Server Management</string>
+    <string name="settings_server_info">Current Server</string>
+    <string name="settings_server_change">Change Server</string>
+    <string name="settings_server_logout">Logout</string>
+    <string name="settings_server_refresh">Refresh</string>
+    <string name="settings_server_refreshing">Refreshing silently…</string>
+    <string name="settings_server_refreshed_silent">Server library refreshed</string>
+    <string name="settings_server_delete">Delete</string>
+    <string name="settings_server_saved">Saved Servers</string>
+    <string name="settings_server_add">Add New Server</string>
+    <string name="settings_server_delete_confirm">Delete this server?</string>
+    <string name="settings_server_delete_message">You will need to re-enter your credentials to use this server again.</string>
+    <string name="settings_player">Player Settings</string>
+    <string name="settings_player_default_quality">Default Quality</string>
+    <string name="settings_player_buffer_size">Buffer Size</string>
+    <string name="settings_player_hardware_accel">Hardware Acceleration</string>
+    <string name="settings_player_external_player">External Player</string>
+    <string name="settings_player_selection">Video Player</string>
+    <string name="settings_player_buffer">Buffer Size</string>
+    <string name="settings_player_playback_profile">Playback Profile</string>
+    <string name="settings_player_live_preview">Live Preview</string>
+    <string name="settings_player_pip_mode">Background Playback (PIP)</string>
+    <string name="playback_profile_balanced">Balanced</string>
+    <string name="playback_profile_performance">Performance</string>
+    <string name="playback_profile_quality">Quality</string>
+    <string name="settings_ui">Interface Settings</string>
+    <string name="settings_ui_clock_format">Clock Format</string>
+    <string name="settings_ui_weather">Weather Location</string>
+    <string name="settings_ui_background">Background Theme</string>
+    <string name="settings_parental">Parental Controls</string>
+    <string name="settings_parental_pin">Set PIN</string>
+    <string name="settings_parental_lock">Lock Adult Content</string>
+    <string name="settings_parental_enabled">Parental Lock Enabled</string>
+    
+    
+    <string name="settings_about">About</string>
+    <string name="settings_about_version">Version</string>
+    <string name="settings_about_developer">Developer</string>
+
+    
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="save">Save</string>
+    <string name="verify">Verify</string>
+
+    <string name="search">Search</string>
+    <string name="search_hint">Search channels, movies, series…</string>
+    <string name="search_all">All</string>
+    <string name="search_channels">Channels</string>
+    <string name="search_movies">Movies</string>
+    <string name="search_series">Series</string>
+    <string name="search_empty_title">Start searching</string>
+    <string name="search_empty_subtitle">Type to find channels, movies, and series</string>
+    <string name="search_no_results_title">No results found</string>
+    <string name="search_no_results_subtitle">Try a different search term</string>
+    <string name="search_results_count">%d results</string>
+    <string name="search_voice_prompt">Say what you want to search for</string>
+    <string name="search_voice_unavailable">Voice search is not available on this device</string>
+    <string name="no_results">No results found</string>
+    <string name="all_categories">All</string>
+    
+    
+    <string name="nav_home">Home</string>
+    <string name="nav_live">Live</string>
+    <string name="nav_movies">Movies</string>
+    <string name="nav_series">Series</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_settings">Settings</string>
+    <string name="surprise_me">Surprise Me</string>
+    <string name="new_content_badge_format">+%1$d new</string>
+    
+    
+    <string name="time_format_12h">12-hour</string>
+    <string name="time_format_24h">24-hour</string>
+    
+    
+    <string name="login_welcome_back">مرحباً بعودتك</string>
+    <string name="login_start_experience">ابدأ تجربتك الآن</string>
+    <string name="tagline_creative">حيث تلتقي التكنولوجيا بالفن</string>
+    <string name="tagline_iptv_premium">تجربة IPTV لا مثيل لها</string>
+    <string name="developer_credit">Crafted with passion by Moalfarras</string>
+    <string name="developer_credit_short">MoPlayer by Moalfarras</string>
+    
+    
+    <string name="marketing_connecting">Connecting to server...</string>
+    <string name="marketing_4k">Premium 4K quality</string>
+    <string name="marketing_thousands">Thousands of channels and movies</string>
+    <string name="marketing_professional">A professional TV-first interface</string>
+    <string name="marketing_passion">Where quality meets entertainment</string>
+    <string name="marketing_unlimited">Unlimited entertainment at your fingertips</string>
+    <string name="marketing_premium">Premium quality, exceptional experience</string>
+    <string name="marketing_smart">Smart, fast, and simple</string>
+    
+    
+    <string name="exit_title">Exit App</string>
+    <string name="exit_message">Are you sure you want to exit MoPlayer?</string>
+    <string name="exit_confirm">Exit</string>
+    <string name="exit_cancel">Stay</string>
+    <string name="press_back_again_to_exit">Press back again to exit</string>
+    
+    
+    <string name="about_version">Version 2.0</string>
+    <string name="about_marketing_text">MoPlayer is the ultimate streaming experience. Crafted with precision for Smart TVs and Android TV boxes, it delivers stunning quality, lightning-fast performance, and an interface so elegant it rivals the best streaming services in the world.\n\nYour entertainment. Your way. Unlimited.</string>
+    <string name="about_features_title">Features</string>
+    <string name="about_features_list">• Live TV with EPG support\n• Movies and Series VOD\n• 4K Ultra HD quality\n• Multi-language support\n• Favorites and Continue Watching\n• Weather-reactive backgrounds\n• Football live scores widget\n• Remote control optimized</string>
+    <string name="about_contact_title">Contact Us</string>
+    <string name="about_contact_whatsapp">Contact on WhatsApp</string>
+    <string name="about_contact_email">Contact via Email</string>
+    <string name="about_copyright">© 2026 MoPlayer by Moalfarras. All rights reserved.</string>
+    <string name="about_developer_name">Mohammad Alfarras</string>
+    
+    
+    <string name="settings_language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_arabic">العربية</string>
+    
+    
+    <string name="cd_logo">MoPlayer brand mark</string>
+    <string name="cd_toggle_password">Toggle password visibility</string>
+    <string name="cd_toggle_password_visibility">Toggle password visibility</string>
+    <string name="cd_poster">Content Poster</string>
+    <string name="cd_channel_logo">Channel Logo</string>
+    <string name="cd_play_button">Play</string>
+    <string name="cd_pause_button">Pause</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_menu">Menu</string>
+    
+    
+    <string name="badge_new">NEW</string>
+    <string name="badge_hd">HD</string>
+    <string name="badge_4k">4K</string>
+    <string name="badge_live">LIVE</string>
+    
+    
+    <string name="content_poster">Content Poster</string>
+    
+    
+    <string name="error_player_init">Failed to initialize player</string>
+    <string name="error_stream_failed">Stream playback failed. Please try again.</string>
+    <string name="error_connection">Connection error. Check your network.</string>
+    <string name="error_loading">Failed to load content</string>
+    
+    
+    <string name="settings_choose_from_device">Choose from Device</string>
+    <string name="settings_clear_image">Clear Custom Image</string>
+    <string name="settings_image_loading">Loading image…</string>
+    <string name="settings_image_success">Background image set successfully</string>
+    <string name="settings_image_failed">Failed to load image</string>
+    <string name="settings_image_cleared">Custom image cleared</string>
+    
+    
+    <string name="settings_weather_title">Weather Widget</string>
+    <string name="settings_weather_description">Configure weather to show on home screen</string>
+    <string name="settings_weather_api_key_hint">OpenWeatherMap API Key</string>
+    <string name="settings_weather_city_hint">City name (e.g., London, Berlin)</string>
+    <string name="settings_weather_api_key_empty">Please enter an API key</string>
+    <string name="settings_weather_city_empty">Please enter a city name</string>
+    <string name="settings_weather_saved">Weather settings saved</string>
+    <string name="settings_weather_configured">Weather configured successfully</string>
+    <string name="settings_weather_effects_quality">Weather Effects</string>
+    <string name="settings_weather_effects_quality_desc">Full-screen particle and gradient effects</string>
+    <string name="settings_weather_effects_off">Off</string>
+    <string name="settings_weather_effects_low">Low</string>
+    <string name="settings_weather_effects_medium">Medium</string>
+    <string name="settings_weather_effects_high">High</string>
+    <string name="settings_weather_reduce_motion">Reduce Motion</string>
+    <string name="settings_weather_reduce_motion_desc">Slower particles, no parallax</string>
+    <string name="settings_weather_disable_lightning">Disable Lightning Flash</string>
+    <string name="settings_weather_disable_lightning_desc">Hide lightning flashes during storms</string>
+    <string name="settings_weather_detected_location">Detected Location</string>
+    <string name="settings_weather_refresh_location">Refresh Location &amp; Weather</string>
+
+    
+    <string name="weather_details_title">Weather Details</string>
+    <string name="weather_details_close">Close</string>
+    <string name="weather_details_feels_like_format">Feels like: %d°</string>
+    <string name="weather_details_humidity_format">Humidity: %d%%</string>
+    <string name="weather_details_wind_format">Wind: %1$.0f km/h (%2$d°)</string>
+    <string name="weather_details_gust_format">Gust: %.0f km/h</string>
+    <string name="weather_details_precip_format">Precip: %.1f mm</string>
+    <string name="weather_details_cloud_format">Cloud: %d%%</string>
+    <string name="weather_details_updated_format">Updated: %s</string>
+
+    
+    <string name="weather_debug_title">Weather Debug</string>
+    <string name="weather_debug_desc">Force any weather state to test UI and effects. Long-press the version label to open.</string>
+    <string name="weather_debug_enable">Enable debug override</string>
+    <string name="weather_debug_category">Category</string>
+    <string name="weather_debug_day">Day mode</string>
+    <string name="weather_debug_temp">Temperature</string>
+    <string name="weather_debug_wind">Wind speed (km/h)</string>
+    <string name="weather_debug_wind_dir">Wind direction (°)</string>
+    <string name="weather_debug_humidity">Humidity (%)</string>
+    <string name="weather_debug_cloud">Cloud (%)</string>
+    <string name="weather_debug_precip">Precip (mm)</string>
+    <string name="weather_debug_hint">Tip: Apply values, go to Home, and long-press the weather widget to view details.</string>
+    <string name="weather_debug_apply">Apply</string>
+    <string name="weather_debug_reset">Reset</string>
+    
+    
+    <string name="settings_animation_enabled">Background Animation</string>
+    <string name="theme_starfield">Starfield</string>
+    <string name="theme_galaxy">Galaxy</string>
+    <string name="theme_nebula">Nebula</string>
+    <string name="theme_snow">Snow</string>
+    <string name="theme_rain">Rain</string>
+    <string name="theme_leaves">Leaves</string>
+    <string name="theme_network">Network</string>
+    <string name="theme_circuit">Circuit</string>
+    <string name="theme_gradient_wave">Gradient Wave</string>
+    <string name="theme_minimal">Minimal</string>
+    <string name="theme_custom_image">Custom Image</string>
+    <string name="settings_auto_city_wallpaper_title">Auto City Wallpaper</string>
+    <string name="settings_auto_city_wallpaper_desc">Uses your detected city to prepare a cinematic login wallpaper with online fallback.</string>
+    <string name="settings_city_wallpaper_status_idle">Login wallpaper will use the cinematic fallback until a city image is ready.</string>
+    <string name="settings_city_wallpaper_status_ready">Login wallpaper ready for %1$s via %2$s.</string>
+    <string name="settings_city_wallpaper_status_disabled">Automatic city wallpaper is disabled.</string>
+    <string name="settings_city_wallpaper_status_fallback">No city image available right now. Using cinematic fallback.</string>
+    <string name="settings_weather_status_updating">Updating location, weather, and login wallpaper…</string>
+    <string name="settings_weather_status_success">Location, weather, and login wallpaper updated successfully.</string>
+    <string name="settings_weather_status_failed">Weather update failed: %1$s</string>
+    <string name="settings_location_status_failed">Location detection failed: %1$s</string>
+    <string name="settings_update_failed">Update failed: %1$s</string>
+    
+    
+    <string name="archive_title">TV Archive</string>
+    <string name="archive_days_available">%d days archive available</string>
+    <string name="archive_no_programs">No programs available for this day</string>
+    <string name="today">Today</string>
+    <string name="duration_minutes">%d min</string>
+    <string name="error_no_server">No server configured</string>
+    <string name="error_loading_archive">Failed to load archive programs</string>
+    
+    
+    <string name="trailer">Trailer</string>
+    <string name="error_trailer_not_available">Trailer not available</string>
+    
+    
+    <string name="epg_now">Now</string>
+    <string name="epg_next">Next</string>
+    <string name="epg_no_info">No EPG information</string>
+    
+    
+    <string name="preview_play">تشغيل</string>
+    <string name="preview_resume">استئناف المشاهدة</string>
+    <string name="preview_trailer">مشاهدة التريلر</string>
+    <string name="preview_no_description">لا يوجد وصف متاح</string>
+    <string name="preview_director">المخرج: %s</string>
+    <string name="preview_cast">الممثلون: %s</string>
+    <string name="preview_release_date">تاريخ الإصدار: %s</string>
+    <string name="preview_duration">المدة: %s</string>
+    
+    
+    <string name="parental_controls">Parental Controls</string>
+    <string name="parental_pin_required">PIN Required</string>
+    <string name="parental_enter_pin">Enter your 4-digit PIN</string>
+    <string name="parental_set_pin">Set Parental PIN</string>
+    <string name="parental_set_new_pin">Set New PIN</string>
+    <string name="parental_enter_current_pin">Enter Current PIN</string>
+    <string name="parental_set_pin_message">Create a 4-digit PIN to protect content</string>
+    <string name="parental_pin_invalid">PIN must be 4 digits</string>
+    <string name="parental_pin_incorrect">Incorrect PIN</string>
+    <string name="parental_pin_set_success">PIN set successfully</string>
+    <string name="parental_adult_content">Adult Content</string>
+    <string name="parental_adult_content_message">Enter PIN to access adult content</string>
+    
+    
+
+    <string name="play_pause">Play/Pause</string>
+    <string name="rewind">Rewind 10s</string>
+    <string name="forward">Forward 10s</string>
+    <string name="options">Options</string>
+    <string name="subtitles">Subtitles</string>
+    <string name="audio_tracks">Audio Tracks</string>
+    <string name="playback_speed">Playback Speed</string>
+    <string name="quality">Quality</string>
+    
+    
+    <string name="playback_profile">Playback Profile</string>
+    <string name="buffer_size">Buffer Size</string>
+    <string name="cache_size">Cache Size</string>
+    <string name="clear_cache">Clear Cache</string>
+    <string name="clear_cache_subtitle">Free up storage space</string>
+    <string name="clear_cache_confirmation">This will clear all cached images and data. Continue?</string>
+    <string name="clear">Clear</string>
+    <string name="about">About</string>
+    <string name="about_message">MoPlayer v2.0\n\nPremium IPTV Player for Android TV\n\nDeveloped with ❤️ by Moalfarras</string>
+    <string name="app_version">App Version</string>
+    <string name="select_playback_profile">Select Playback Profile</string>
+    <string name="select_buffer_size">Select Buffer Size</string>
+
+    
+    <string name="theme_applied_format">%1$s applied</string>
+    <string name="settings_server_refreshed">Server refreshed</string>
+    <string name="settings_no_external_players">No external players installed</string>
+    <string name="settings_none_installed">None installed</string>
+    <string name="settings_weather_enabled">Weather enabled</string>
+    <string name="settings_weather_disabled">Weather disabled</string>
+    <string name="weather_debug_disabled">Weather debug disabled</string>
+    <string name="weather_debug_applied">Weather debug applied</string>
+    <string name="weather_debug_reset_done">Weather debug reset</string>
+    <string name="settings_failed_access_image">Failed to access image: %1$s</string>
+    <string name="settings_no_image_selected">No image selected</string>
+    <string name="settings_permission_denied">Permission denied: %1$s</string>
+    <string name="settings_image_file_not_found">Image file not found</string>
+    <string name="settings_error_loading_image">Error loading image: %1$s</string>
+    <string name="settings_enter_image_url">Please enter an image URL</string>
+    <string name="settings_enter_valid_url">Please enter a valid URL</string>
+    <string name="settings_no_image_picker_app">No app available to select images. Please install a file manager.</string>
+    <string name="settings_failed_open_image_picker">Failed to open image picker: %1$s</string>
+    <string name="about_whatsapp_not_installed">WhatsApp not installed</string>
+    <string name="about_no_email_app">No email app found</string>
+    <string name="parental_enter_new_pin">Enter New PIN</string>
+    <string name="parental_pin_set_failed">Failed to set PIN</string>
+    <string name="parental_lock_disabled">Parental lock disabled</string>
+    <string name="settings_pin_enter_title">Enter PIN</string>
+
+    <string name="login_failed_access_file">Failed to access file: %1$s</string>
+    <string name="login_playlist_imported">Playlist imported successfully!</string>
+    <string name="login_xtream_detected">Xtream Credentials Detected</string>
+    <string name="login_m3u_detected">M3U Playlist Detected</string>
+    <string name="login_select_m3u_file">Select M3U File</string>
+    <string name="login_no_file_picker_app">No app available to select files. Please install a file manager.</string>
+    <string name="login_failed_open_file_picker">Failed to open file picker: %1$s</string>
+    <string name="login_no_file_selected">No file selected</string>
+    <string name="login_error_reading_file">Error reading file: %1$s</string>
+
+    <string name="player_no_stream_url">No stream URL provided</string>
+    <string name="player_external_not_available">External player not available</string>
+    <string name="player_external_launch_failed">Failed to launch external player: %1$s</string>
+    <string name="player_unavailable_use_external">Video player unavailable. Please use external player from settings.</string>
+    <string name="player_not_available_restart">Video player not available. Please restart the app.</string>
+    <string name="player_no_network_retry">No network connection. Check your internet and retry.</string>
+    <string name="player_stream_error_after_retries">Stream error after %1$d attempts. Press Retry or use external player.</string>
+    <string name="player_audio_track_format">Audio: %1$s</string>
+    <string name="player_subtitles_off">Subtitles: Off</string>
+    <string name="player_subtitles_track_format">Subtitles: %1$s</string>
+    <string name="player_aspect_format">Aspect: %1$s</string>
+    <string name="player_speed_format">Speed: %1$s</string>
+    <string name="player_no_video_player_found">No video player found</string>
+</resources>

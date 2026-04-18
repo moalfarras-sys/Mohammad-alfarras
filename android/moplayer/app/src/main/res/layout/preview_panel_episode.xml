@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_preview_panel">
+
+    <!-- Video Preview Surface -->
+    <FrameLayout
+        android:id="@+id/videoPreviewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <SurfaceView
+            android:id="@+id/videoPreviewSurface"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!-- Preview Thumbnail (shown when no video) -->
+        <ImageView
+            android:id="@+id/ivPreviewThumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            tools:ignore="ContentDescription" />
+
+    </FrameLayout>
+
+    <!-- Gradient Overlay for Text Readability -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_video_preview_overlay" />
+
+    <!-- Episode Info Panel -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="24dp"
+        android:gravity="bottom">
+
+        <!-- Left Side - Series Poster -->
+        <FrameLayout
+            android:layout_width="160dp"
+            android:layout_height="240dp">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@android:color/transparent">
+
+                <ImageView
+                    android:id="@+id/ivSeriesPoster"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_content_placeholder"
+                    tools:ignore="ContentDescription" />
+
+            </androidx.cardview.widget.CardView>
+
+        </FrameLayout>
+
+        <!-- Right Side - Episode Details -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="24dp"
+            android:orientation="vertical">
+
+            <!-- Series Title -->
+            <TextView
+                android:id="@+id/tvSeriesTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:shadowColor="#CC000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                tools:text="Breaking Bad" />
+
+            <!-- Episode Title with Number -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvEpisodeNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_episode_number"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/htc_accent_green"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="S1 E1" />
+
+                <TextView
+                    android:id="@+id/tvEpisodeTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:shadowColor="#CC000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="3"
+                    tools:text="Pilot" />
+
+            </LinearLayout>
+
+            <!-- Meta Info Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Rating -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rating_badge_premium"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_star"
+                        app:tint="@color/htc_accent_gold"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tvRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="9.5" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="58 min" />
+
+                <TextView
+                    android:id="@+id/tvYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/htc_accent_green"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="2008" />
+
+            </LinearLayout>
+
+            <!-- Episode Plot -->
+            <TextView
+                android:id="@+id/tvEpisodePlot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="18sp"
+                android:lineSpacingMultiplier="1.5"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:shadowColor="#99000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                tools:text="Walter White, a high school chemistry teacher diagnosed with terminal lung cancer, turns to making meth with a former student to secure his family's financial future." />
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnPlayPreview"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_play"
+                    android:drawableStart="@drawable/ic_play"
+                    android:drawablePadding="8dp"
+                    android:drawableTint="@color/htc_pure_black"
+                    android:focusable="true"
+                    android:nextFocusRight="@id/btnAddToFavorites"
+                    android:nextFocusDown="@id/rvEpisodes"
+                    android:text="@string/movie_play"
+                    android:textAllCaps="false"
+                    android:textColor="@color/htc_pure_black"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnAddToFavorites"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/bg_button_icon"
+                    android:contentDescription="@string/movie_add_favorite"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/btnPlayPreview"
+                    android:nextFocusRight="@id/btnTrailerPreview"
+                    android:nextFocusDown="@id/rvEpisodes"
+                    android:src="@drawable/ic_favorite_border"
+                    app:tint="@color/htc_text_primary" />
+
+                <Button
+                    android:id="@+id/btnTrailerPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:drawableStart="@drawable/ic_play"
+                    android:drawablePadding="6dp"
+                    android:drawableTint="@color/htc_text_primary"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/btnAddToFavorites"
+                    android:nextFocusDown="@id/rvSeasons"
+                    android:paddingHorizontal="16dp"
+                    android:text="@string/trailer"
+                    android:textAllCaps="false"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Video Preview Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/previewLoadingIndicator"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/moplayer_orange"
+        android:visibility="gone" />
+
+</FrameLayout>

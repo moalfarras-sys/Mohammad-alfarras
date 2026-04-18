@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    android:focusable="true"
+    android:clickable="true">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardContainer"
+        android:layout_width="160dp"
+        android:layout_height="100dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="10dp"
+        app:cardElevation="4dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Poster/Thumbnail -->
+            <ImageView
+                android:id="@+id/ivPoster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#15FFFFFF"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_content_placeholder"
+                tools:ignore="ContentDescription" />
+
+            <!-- Play Icon Overlay -->
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_play_button_small">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_play"
+                    app:tint="@color/htc_pure_white"
+                    tools:ignore="ContentDescription" />
+
+            </FrameLayout>
+
+            <!-- Bottom Gradient -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/bg_gradient_bottom" />
+
+            <!-- Title and Progress -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/htc_pure_white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="The Dark Knight" />
+
+                <!-- Episode Info (for series) -->
+                <TextView
+                    android:id="@+id/tvEpisodeInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/htc_text_tertiary"
+                    android:textSize="9sp"
+                    android:visibility="gone"
+                    tools:text="S1 E5"
+                    tools:visibility="visible" />
+
+                <!-- Progress Bar -->
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="@android:style/Widget.ProgressBar.Horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:layout_marginTop="4dp"
+                    android:max="100"
+                    android:progress="45"
+                    android:progressDrawable="@drawable/bg_progress_bar" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Focus Overlay -->
+    <View
+        android:id="@+id/focusOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/selector_continue_watching_focus"
+        android:focusable="false" />
+
+</FrameLayout>

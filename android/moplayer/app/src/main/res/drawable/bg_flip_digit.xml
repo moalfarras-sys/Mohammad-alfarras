@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HTC Flip Clock Digit Background -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base card -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/flip_clock_corner_radius" />
+            <gradient
+                android:angle="270"
+                android:startColor="@color/htc_flip_card_top"
+                android:endColor="@color/htc_flip_card_bottom"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Center line (flip effect) -->
+    <item android:gravity="center_vertical">
+        <shape android:shape="rectangle">
+            <size android:height="1dp" />
+            <solid android:color="@color/htc_flip_card_line" />
+        </shape>
+    </item>
+
+    <!-- Top highlight -->
+    <item android:gravity="top">
+        <shape android:shape="rectangle">
+            <corners
+                android:topLeftRadius="@dimen/flip_clock_corner_radius"
+                android:topRightRadius="@dimen/flip_clock_corner_radius" />
+            <size android:height="2dp" />
+            <solid android:color="@color/htc_glass_border" />
+        </shape>
+    </item>
+
+    <!-- Border -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/flip_clock_corner_radius" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/htc_card_border" />
+        </shape>
+    </item>
+
+</layer-list>

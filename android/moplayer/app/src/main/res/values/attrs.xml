@@ -1,0 +1,22 @@
+<resources>
+    <!-- ShimmerView attributes -->
+    <declare-styleable name="ShimmerView">
+        <attr name="shimmerCornerRadius" format="dimension" />
+        <attr name="shimmerColor" format="color" />
+        <attr name="shimmerDuration" format="integer" />
+    </declare-styleable>
+    
+    <!-- Focus animation attributes -->
+    <declare-styleable name="FocusableCard">
+        <attr name="focusScale" format="float" />
+        <attr name="focusElevation" format="dimension" />
+        <attr name="focusGlowColor" format="color" />
+    </declare-styleable>
+    
+    <!-- LoadingStateView attributes -->
+    <declare-styleable name="LoadingStateView">
+        <attr name="loadingText" format="string" />
+        <attr name="emptyIcon" format="reference" />
+        <attr name="errorIcon" format="reference" />
+    </declare-styleable>
+</resources>

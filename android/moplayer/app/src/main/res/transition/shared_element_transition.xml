@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<transitionSet xmlns:android="http://schemas.android.com/apk/res/android"
+    android:transitionOrdering="together"
+    android:duration="350">
+    
+    <!-- Shared element transform -->
+    <changeBounds />
+    
+    <!-- Change image bounds -->
+    <changeImageTransform />
+    
+    <!-- Fade effect -->
+    <fade android:fadingMode="fade_in" />
+    
+</transitionSet>

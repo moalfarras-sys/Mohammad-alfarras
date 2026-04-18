@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.MoPlayer.PremiumPanel">
+        <item name="android:padding">@dimen/panel_padding_compact</item>
+        <item name="android:background">@drawable/bg_premium_clean_panel</item>
+    </style>
+
+    <style name="TextAppearance.MoPlayer.TV.Title" parent="TextAppearance.MoPlayer.Title">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/htc_text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.MoPlayer.TV.Body" parent="TextAppearance.MoPlayer.Body">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/htc_text_secondary</item>
+    </style>
+</resources>

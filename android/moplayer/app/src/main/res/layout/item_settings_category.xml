@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/selector_settings_category_premium"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/spacing_md"
+    android:paddingVertical="@dimen/spacing_12"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:clickable="true">
+
+    <!-- Selection Indicator -->
+    <View
+        android:id="@+id/selectionIndicator"
+        android:layout_width="4dp"
+        android:layout_height="24dp"
+        android:background="@color/color_accent_primary"
+        android:visibility="invisible" />
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/tvCategoryName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/spacing_md"
+        android:textColor="@color/htc_text_primary"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="15sp"
+        tools:text="Server Settings" />
+
+</LinearLayout>

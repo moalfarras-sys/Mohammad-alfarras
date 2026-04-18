@@ -1,0 +1,550 @@
+package com.mo.moplayer.ui.movies
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.KeyEvent
+import android.view.View
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.mo.moplayer.R
+import com.mo.moplayer.data.local.entity.CategoryEntity
+import com.mo.moplayer.data.local.entity.MovieEntity
+import com.mo.moplayer.databinding.ActivityMoviesBinding
+import com.mo.moplayer.databinding.PanelMoviePreviewBinding
+import com.mo.moplayer.ui.common.BaseTvActivity
+import com.mo.moplayer.ui.common.ContentMenuDetails
+import com.mo.moplayer.ui.common.ContentMenuHelper
+import com.mo.moplayer.data.repository.IptvRepository
+import com.mo.moplayer.ui.movies.adapters.CategoryAdapter
+import com.mo.moplayer.ui.movies.adapters.MovieAdapter
+import com.mo.moplayer.ui.player.PlayerActivity
+import com.mo.moplayer.ui.widgets.AnimatedBackground
+import com.mo.moplayer.ui.common.design.TvCinematicTokens
+import com.mo.moplayer.util.LayoutHelper
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class MoviesActivity : BaseTvActivity() {
+    
+    override val screenId: String = "movies"
+
+    private lateinit var binding: ActivityMoviesBinding
+    private val viewModel: MoviesViewModel by viewModels()
+    
+    @Inject
+    lateinit var repository: IptvRepository
+    
+    @Inject
+    lateinit var playerPreferences: com.mo.moplayer.util.PlayerPreferences
+
+    @Inject
+    lateinit var recyclerViewOptimizer: com.mo.moplayer.util.RecyclerViewOptimizer
+
+    @Inject
+    lateinit var networkErrorHandler: com.mo.moplayer.util.NetworkErrorHandler
+
+    private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var movieAdapter: MovieAdapter
+    
+    // Preview panel
+    private lateinit var previewBinding: PanelMoviePreviewBinding
+    private var currentPreviewMovie: MovieEntity? = null
+    private var isPreviewVisible = false
+    private var serverId: Long = 0
+    
+    // Debouncing for preview updates
+    private var previewUpdateJob: Job? = null
+    
+    override fun getAnimatedBackground(): AnimatedBackground? {
+        return try { binding.animatedBackground } catch (e: Exception) { null }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMoviesBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Get server ID
+        lifecycleScope.launch {
+            repository.getActiveServerSync()?.let { server ->
+                serverId = server.id
+            }
+        }
+
+        setupPreviewPanel()
+        setupCategoryList()
+        setupMovieGrid()
+        setupSearchButton()
+        observeViewModel()
+
+        previewBinding.previewPanel.visibility = View.GONE
+        binding.animatedBackground.pauseAnimation()
+        binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 320L)
+    }
+    
+    private fun setupPreviewPanel() {
+        previewBinding = PanelMoviePreviewBinding.bind(binding.root.findViewById(R.id.previewPanel))
+        
+        // Setup click listeners
+        previewBinding.btnPreviewPlay.setOnClickListener {
+            currentPreviewMovie?.let { playMovie(it) }
+        }
+        
+        previewBinding.btnPreviewResume.setOnClickListener {
+            currentPreviewMovie?.let { playMovie(it) }
+        }
+        
+        previewBinding.btnPreviewFavorite.setOnClickListener {
+            currentPreviewMovie?.let { 
+                viewModel.toggleFavorite(it)
+                updateFavoriteButton(it)
+            }
+        }
+        
+        previewBinding.btnPreviewTrailer.setOnClickListener {
+            currentPreviewMovie?.let { movie ->
+                if (!movie.youtubeTrailer.isNullOrEmpty()) {
+                    playTrailer(movie.youtubeTrailer)
+                } else {
+                    Toast.makeText(this, R.string.error_trailer_not_available, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    private fun showPreviewPanel() {
+        if (!isPreviewVisible) {
+            isPreviewVisible = true
+            previewBinding.previewPanel.visibility = View.VISIBLE
+            previewBinding.previewPanel.alpha = 0f
+            previewBinding.previewPanel.translationX = 32f
+            previewBinding.previewPanel.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(TvCinematicTokens.ENTER_EXIT_DURATION_MS)
+                .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
+                .start()
+        }
+    }
+    
+    private fun hidePreviewPanel() {
+        if (isPreviewVisible) {
+            isPreviewVisible = false
+            previewBinding.previewPanel.animate()
+                .alpha(0f)
+                .translationX(32f)
+                .setDuration(TvCinematicTokens.ENTER_EXIT_DURATION_MS)
+                .setInterpolator(TvCinematicTokens.EXIT_INTERPOLATOR)
+                .withEndAction {
+                    previewBinding.previewPanel.visibility = View.GONE
+                    previewBinding.previewPanel.translationX = 0f
+                    previewBinding.previewPanel.alpha = 1f
+                }
+                .start()
+        }
+    }
+    
+    private fun updateMoviePreview(movie: MovieEntity) {
+        currentPreviewMovie = movie
+        showPreviewPanel()
+        
+        // Load backdrop image with lazy loading and disk caching
+        lifecycleScope.launch {
+            delay(100) // Small delay for backdrop loading
+            if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(this@MoviesActivity)) {
+                if (!movie.backdrop.isNullOrEmpty()) {
+                    Glide.with(this@MoviesActivity)
+                        .load(movie.backdrop)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                        .centerCrop()
+                        .into(previewBinding.ivPreviewBackdrop)
+                } else if (!movie.streamIcon.isNullOrEmpty()) {
+                    Glide.with(this@MoviesActivity)
+                        .load(movie.streamIcon)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                        .centerCrop()
+                        .into(previewBinding.ivPreviewBackdrop)
+                }
+            }
+        }
+        
+        // Load large poster with disk caching
+        if (!movie.streamIcon.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(this@MoviesActivity)) {
+            Glide.with(this)
+                .load(movie.streamIcon)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.ic_content_placeholder)
+                .error(R.drawable.ic_content_placeholder)
+                .centerCrop()
+                .into(previewBinding.ivPreviewPoster)
+        } else {
+            previewBinding.ivPreviewPoster.setImageResource(R.drawable.ic_content_placeholder)
+        }
+        
+        // Set title
+        previewBinding.tvPreviewTitle.text = movie.name
+        
+        // Set rating
+        if (movie.rating != null && movie.rating > 0) {
+            previewBinding.ratingBadge.visibility = View.VISIBLE
+            previewBinding.tvPreviewRating.text = String.format("%.1f", movie.rating)
+        } else {
+            previewBinding.ratingBadge.visibility = View.GONE
+        }
+        
+        // Set year
+        if (!movie.year.isNullOrEmpty()) {
+            previewBinding.tvPreviewYear.visibility = View.VISIBLE
+            previewBinding.tvPreviewYear.text = movie.year
+        } else {
+            previewBinding.tvPreviewYear.visibility = View.GONE
+        }
+        
+        // Set duration
+        if (!movie.duration.isNullOrEmpty()) {
+            previewBinding.tvPreviewDuration.visibility = View.VISIBLE
+            previewBinding.tvPreviewDuration.text = getString(R.string.preview_duration, movie.duration)
+        } else {
+            previewBinding.tvPreviewDuration.visibility = View.GONE
+        }
+        
+        // Set genre
+        if (!movie.genre.isNullOrEmpty()) {
+            previewBinding.tvPreviewGenre.visibility = View.VISIBLE
+            previewBinding.tvPreviewGenre.text = movie.genre
+        } else {
+            previewBinding.tvPreviewGenre.visibility = View.GONE
+        }
+        
+        // Set plot/description
+        if (!movie.plot.isNullOrEmpty()) {
+            previewBinding.tvPreviewPlot.visibility = View.VISIBLE
+            previewBinding.tvPreviewPlot.text = movie.plot
+        } else {
+            previewBinding.tvPreviewPlot.visibility = View.VISIBLE
+            previewBinding.tvPreviewPlot.text = getString(R.string.preview_no_description)
+        }
+        
+        // Set director
+        if (!movie.director.isNullOrEmpty()) {
+            previewBinding.tvPreviewDirector.visibility = View.VISIBLE
+            previewBinding.tvPreviewDirector.text = getString(R.string.preview_director, movie.director)
+        } else {
+            previewBinding.tvPreviewDirector.visibility = View.GONE
+        }
+        
+        // Set cast
+        if (!movie.cast.isNullOrEmpty()) {
+            previewBinding.tvPreviewCast.visibility = View.VISIBLE
+            previewBinding.tvPreviewCast.text = getString(R.string.preview_cast, movie.cast)
+        } else {
+            previewBinding.tvPreviewCast.visibility = View.GONE
+        }
+        
+        // Set release date
+        if (!movie.releaseDate.isNullOrEmpty()) {
+            previewBinding.tvPreviewReleaseDate.visibility = View.VISIBLE
+            previewBinding.tvPreviewReleaseDate.text = getString(R.string.preview_release_date, movie.releaseDate)
+        } else {
+            previewBinding.tvPreviewReleaseDate.visibility = View.GONE
+        }
+        
+        // Show/hide resume button
+        if (movie.lastWatchedPosition > 0) {
+            previewBinding.btnPreviewResume.visibility = View.VISIBLE
+            previewBinding.progressOverlay.visibility = View.VISIBLE
+            val progress = if (movie.durationSeconds != null && movie.durationSeconds > 0) {
+                ((movie.lastWatchedPosition / 1000.0) / movie.durationSeconds * 100).toInt()
+            } else {
+                0
+            }
+            previewBinding.progressBar.progress = progress
+        } else {
+            previewBinding.btnPreviewResume.visibility = View.GONE
+            previewBinding.progressOverlay.visibility = View.GONE
+        }
+        
+        // Show/hide trailer button
+        if (!movie.youtubeTrailer.isNullOrEmpty()) {
+            previewBinding.btnPreviewTrailer.visibility = View.VISIBLE
+        } else {
+            previewBinding.btnPreviewTrailer.visibility = View.GONE
+        }
+        
+        // Update favorite button
+        updateFavoriteButton(movie)
+    }
+    
+    private fun updateFavoriteButton(movie: MovieEntity) {
+        lifecycleScope.launch {
+            val isFavorite = repository.isFavorite(serverId, movie.movieId).first()
+            previewBinding.btnPreviewFavorite.setImageResource(
+                if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border
+            )
+        }
+    }
+    
+    private fun playTrailer(youtubeTrailer: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(youtubeTrailer))
+            startActivity(Intent.createChooser(intent, getString(R.string.trailer)))
+        } catch (e: Exception) {
+            Toast.makeText(this, R.string.error_trailer_not_available, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupSearchButton() {
+        binding.btnSearch.setOnClickListener {
+            openSearch()
+        }
+    }
+
+    private fun openSearch() {
+        val intent = Intent(this, com.mo.moplayer.ui.search.SearchActivity::class.java).apply {
+            putExtra("content_type", "movie")
+        }
+        startActivity(intent)
+    }
+
+    private fun setupCategoryList() {
+        categoryAdapter = CategoryAdapter(
+            onCategoryClick = { category ->
+                viewModel.selectCategory(category)
+            },
+            onCategoryFocused = { category ->
+                // Preview category content
+            }
+        )
+
+        binding.rvCategories.apply {
+            layoutManager = LinearLayoutManager(this@MoviesActivity)
+            adapter = categoryAdapter
+            recyclerViewOptimizer.optimizeVerticalList(this)
+        }
+    }
+
+    private fun setupMovieGrid() {
+        movieAdapter = MovieAdapter(
+            onMovieClick = { movie ->
+                playMovie(movie)
+            },
+            onMovieFocused = { movie ->
+                // Debounce preview updates
+                previewUpdateJob?.cancel()
+                previewUpdateJob = lifecycleScope.launch {
+                    delay(200) // Wait 200ms before updating preview
+                    updateMoviePreview(movie)
+                }
+            },
+            onMovieLongClick = { movie ->
+                viewModel.toggleFavorite(movie)
+            },
+            onMovieLongPress = { movie ->
+                showMovieContextMenu(movie)
+            },
+            onFavoriteShortcut = { movie ->
+                viewModel.toggleFavorite(movie)
+            },
+            themeManager = themeManager
+        )
+
+        binding.rvMovies.apply {
+            // Use responsive grid layout that adapts to screen size
+            val cardWidthDp = LayoutHelper.getCardWidthDp(this@MoviesActivity)
+            val cardMarginDp = LayoutHelper.getCardMarginDp(this@MoviesActivity)
+            val screenMarginDp = LayoutHelper.getScreenMarginHorizontalDp(this@MoviesActivity)
+            
+            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
+                context = this@MoviesActivity,
+                cardWidthDp = cardWidthDp,
+                cardMarginDp = cardMarginDp,
+                screenMarginHorizontalDp = screenMarginDp,
+                minColumns = 2,
+                maxColumns = 6
+            )
+            adapter = movieAdapter
+            setHasFixedSize(true)
+            recyclerViewOptimizer.optimizeChannelList(this)
+            itemAnimator = null // Disable animations for smoother scrolling
+            
+            // Performance optimizations
+            isNestedScrollingEnabled = false
+            clipToPadding = false
+            clipChildren = false
+        }
+        
+        // Add load state listener for paging
+        movieAdapter.addLoadStateListener { loadState ->
+            binding.loadingOverlay.visibility = when (loadState.refresh) {
+                is LoadState.Loading -> View.VISIBLE
+                else -> View.GONE
+            }
+        }
+    }
+
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            viewModel.networkError.collect { error ->
+                binding.networkErrorView.let { errorView ->
+                    if (error != null) {
+                        errorView.setListener(object : com.mo.moplayer.ui.common.LoadingStateView.LoadingStateListener {
+                            override fun onRetryClicked() {
+                                viewModel.retry()
+                            }
+                        })
+                        errorView.showError(
+                            title = getString(R.string.error_connection),
+                            message = networkErrorHandler.getErrorMessage(error),
+                            showRetry = error.isRetryable
+                        )
+                    } else {
+                        errorView.hide()
+                    }
+                }
+            }
+        }
+
+        viewModel.categories.observe(this) { categories ->
+            // Add "All" category at the beginning
+            val allCategories = mutableListOf(
+                CategoryEntity(
+                    categoryId = "all",
+                    serverId = 0,
+                    originalId = "all",
+                    name = getString(R.string.movies_all),
+                    type = "movie",
+                    sortOrder = -1
+                )
+            )
+            allCategories.addAll(categories)
+            categoryAdapter.submitList(allCategories)
+            if (!binding.rvCategories.hasFocus() && !binding.rvMovies.hasFocus() && allCategories.isNotEmpty()) {
+                binding.rvCategories.post {
+                    binding.rvCategories.getChildAt(0)?.requestFocus()
+                }
+            }
+        }
+
+        // Collect paged movies
+        lifecycleScope.launch {
+            viewModel.moviesPaged.collectLatest { pagingData ->
+                movieAdapter.submitData(pagingData)
+            }
+        }
+
+        viewModel.selectedCategory.observe(this) { category ->
+            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.movies_all)
+            categoryAdapter.setSelectedCategory(category?.categoryId ?: "all")
+        }
+    }
+
+    private fun playMovie(movie: MovieEntity) {
+        lifecycleScope.launch {
+            val extraData = Bundle().apply {
+                putString(PlayerActivity.EXTRA_TYPE, "MOVIE")
+                putString(PlayerActivity.EXTRA_CONTENT_ID, movie.movieId)
+                putString(PlayerActivity.EXTRA_POSTER_URL, movie.streamIcon)
+            }
+            
+            com.mo.moplayer.util.PlayerLauncher.launchWithSelectedPlayer(
+                this@MoviesActivity,
+                playerPreferences,
+                movie.streamUrl ?: "",
+                movie.name,
+                extraData
+            )
+        }
+    }
+
+    private fun showMovieContextMenu(movie: MovieEntity) {
+        lifecycleScope.launch {
+            val server = repository.getActiveServerSync() ?: return@launch
+            val isFavorite = repository.isFavorite(server.id, movie.movieId).first()
+            
+            ContentMenuHelper(this@MoviesActivity).showContentMenu(
+                title = movie.name,
+                thumbnailUrl = movie.streamIcon,
+                isFavorite = isFavorite,
+                details = ContentMenuDetails(
+                    description = movie.plot,
+                    duration = movie.duration ?: ContentMenuDetails.formatDuration(movie.durationSeconds),
+                    rating = movie.rating,
+                    year = movie.year ?: movie.releaseDate,
+                    genre = movie.genre
+                ),
+                onPlay = { playMovie(movie) },
+                // Show resume option if there's watch progress
+                onResume = if (movie.lastWatchedPosition > 0) { { playMovie(movie) } } else null,
+                onToggleFavorite = {
+                    lifecycleScope.launch {
+                        repository.toggleFavorite(
+                            serverId = server.id,
+                            contentId = movie.movieId,
+                            contentType = "movie",
+                            name = movie.name,
+                            iconUrl = movie.streamIcon
+                        )
+                    }
+                },
+                onInfo = {
+                    // Open movie detail page
+                    val intent = Intent(this@MoviesActivity, MovieDetailActivity::class.java).apply {
+                        putExtra(MovieDetailActivity.EXTRA_MOVIE_ID, movie.movieId)
+                    }
+                    startActivity(intent)
+                },
+                // Show trailer option if available
+                onTrailer = if (!movie.youtubeTrailer.isNullOrEmpty()) { { playTrailer(movie.youtubeTrailer!!) } } else null
+            )
+        }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        when (keyCode) {
+            KeyEvent.KEYCODE_MENU -> {
+                startActivity(Intent(this, com.mo.moplayer.ui.settings.SettingsActivity::class.java))
+                return true
+            }
+            KeyEvent.KEYCODE_BACK -> {
+                if (maybeHandleExitOnBack()) return true
+                finish()
+                return true
+            }
+            KeyEvent.KEYCODE_SEARCH -> {
+                openSearch()
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.animatedBackground.resumeAnimation()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.animatedBackground.pauseAnimation()
+    }
+
+    override fun applyThemeToViews(color: Int) {
+        super.applyThemeToViews(color)
+        // Update adapter colors for focused items
+        if (::movieAdapter.isInitialized) {
+            movieAdapter.updateThemeColor(color)
+        }
+    }
+}

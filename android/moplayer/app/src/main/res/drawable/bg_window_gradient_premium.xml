@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/htc_black"
+        android:centerColor="#08080A"
+        android:endColor="#101015"
+        android:type="linear" />
+    
+    <!-- Subtle Noise/Texture Overlay could be added here if we had a drawable -->
+</shape>

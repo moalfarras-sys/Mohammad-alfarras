@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Skip Intro Button with gold theme -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Outer glow -->
+    <item
+        android:left="-2dp"
+        android:top="-2dp"
+        android:right="-2dp"
+        android:bottom="-2dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="26dp" />
+            <gradient
+                android:type="radial"
+                android:gradientRadius="80dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="@color/glow_gold_subtle"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+    
+    <!-- Main button background -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="@color/card_bg_luxury_elevated"
+                android:endColor="@color/card_bg_luxury" />
+            <stroke
+                android:width="1.5dp"
+                android:color="@color/gradient_gold_start" />
+        </shape>
+    </item>
+    
+</layer-list>

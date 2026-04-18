@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Focused state -->
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:drawable="@drawable/bg_widget_weather_premium" />
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <solid android:color="#00000000" />
+                    <stroke
+                        android:width="2dp"
+                        android:color="@color/moplayer_orange" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- Pressed state -->
+    <item android:state_pressed="true">
+        <layer-list>
+            <item android:drawable="@drawable/bg_widget_weather_premium" />
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <solid android:color="#00000000" />
+                    <stroke
+                        android:width="2dp"
+                        android:color="@color/moplayer_orange" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- Default -->
+    <item android:drawable="@drawable/bg_widget_weather_premium" />
+
+</selector>

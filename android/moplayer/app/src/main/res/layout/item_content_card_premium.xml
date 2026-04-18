@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium Content Card Item - Movies/Series Poster -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardRoot"
+    android:layout_width="@dimen/card_poster_width"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/spacing_sm"
+    android:foreground="@drawable/selector_cinematic_card"
+    android:focusable="true"
+    android:clickable="true"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="@dimen/card_elevation"
+    app:cardBackgroundColor="@android:color/transparent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Poster Image -->
+        <ImageView
+            android:id="@+id/ivPoster"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/card_poster_height"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/content_poster"
+            tools:src="@drawable/ic_launcher_foreground"/>
+
+        <!-- Loading Skeleton (initially visible) -->
+        <View
+            android:id="@+id/loadingSkeleton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/card_poster_height"
+            android:background="@drawable/bg_loading_skeleton"
+            android:visibility="visible"/>
+
+        <!-- Top Badges Container -->
+        <LinearLayout
+            android:id="@+id/badgesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:orientation="horizontal"
+            android:padding="@dimen/spacing_sm"
+            android:gravity="start">
+
+            <!-- NEW Badge -->
+            <TextView
+                android:id="@+id/tvBadgeNew"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_badge_premium"
+                android:text="@string/badge_new"
+                android:textColor="@color/htc_pure_black"
+                android:textSize="@dimen/badge_text_size"
+                android:textStyle="bold"
+                android:paddingStart="@dimen/badge_padding_horizontal"
+                android:paddingEnd="@dimen/badge_padding_horizontal"
+                android:paddingTop="@dimen/badge_padding_vertical"
+                android:paddingBottom="@dimen/badge_padding_vertical"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
+            <!-- HD/4K Badge -->
+            <TextView
+                android:id="@+id/tvBadgeQuality"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_xs"
+                android:background="@drawable/bg_badge_premium"
+                android:text="@string/badge_4k"
+                android:textColor="@color/htc_pure_black"
+                android:textSize="@dimen/badge_text_size"
+                android:textStyle="bold"
+                android:paddingStart="@dimen/badge_padding_horizontal"
+                android:paddingEnd="@dimen/badge_padding_horizontal"
+                android:paddingTop="@dimen/badge_padding_vertical"
+                android:paddingBottom="@dimen/badge_padding_vertical"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
+        </LinearLayout>
+
+        <!-- Watch Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressWatch"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/progress_height"
+            android:layout_gravity="bottom"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:progressDrawable="@drawable/progress_watch_status"
+            android:max="100"
+            android:progress="0"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:progress="45"/>
+
+        <!-- Gradient Overlay for Title -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/gradient_bottom_overlay"/>
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:padding="@dimen/spacing_sm"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="@dimen/card_title_size"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Movie Title Goes Here"/>
+
+    </FrameLayout>
+
+</androidx.cardview.widget.CardView>

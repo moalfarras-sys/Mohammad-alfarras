@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Player Info Overlay Background (Receiver Style) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Semi-transparent dark background -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="@color/htc_player_overlay"
+                android:endColor="@color/htc_overlay_medium"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Glass effect at top -->
+    <item android:gravity="top">
+        <shape android:shape="rectangle">
+            <size android:height="30dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="@color/htc_glass_inner_glow"
+                android:endColor="#00FFFFFF"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Bottom edge line -->
+    <item android:gravity="bottom">
+        <shape android:shape="rectangle">
+            <size android:height="2dp" />
+            <solid android:color="@color/htc_accent_green" />
+        </shape>
+    </item>
+
+</layer-list>

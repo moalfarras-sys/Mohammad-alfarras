@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Animated Background -->
+    <com.mo.moplayer.ui.widgets.AnimatedBackground
+        android:id="@+id/animatedBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_margin_horizontal">
+
+        <!-- Search Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:padding="@dimen/spacing_sm">
+
+            <!-- Back Button -->
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/selector_glass_button"
+                android:contentDescription="@string/cd_back"
+                android:focusable="true"
+                android:src="@drawable/ic_back"
+                app:tint="@color/htc_text_primary"
+                android:nextFocusRight="@id/etSearch" />
+
+            <!-- Search Input with Premium Styling -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/spacing_md"
+                android:background="@drawable/bg_search_bar">
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:drawableStart="@drawable/ic_search"
+                    android:drawablePadding="@dimen/spacing_sm"
+                    android:drawableTint="@color/htc_text_tertiary"
+                    android:hint="@string/search_hint"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:paddingHorizontal="@dimen/spacing_md"
+                    android:textColor="@color/htc_text_primary"
+                    android:textColorHint="@color/htc_text_tertiary"
+                    android:textSize="16sp"
+                    android:nextFocusLeft="@id/btnBack"
+                    android:nextFocusDown="@id/chipChannels"
+                    tools:ignore="Autofill,LabelFor" />
+
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/btnVoiceSearch"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="@dimen/spacing_sm"
+                android:background="@drawable/selector_glass_button"
+                android:contentDescription="@string/search_voice_prompt"
+                android:focusable="true"
+                android:nextFocusLeft="@id/etSearch"
+                android:nextFocusDown="@id/chipSeries"
+                android:src="@android:drawable/ic_btn_speak_now"
+                app:tint="@color/htc_text_primary" />
+
+        </LinearLayout>
+
+        <!-- Content Type Filter Chips -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/chipAll"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="@dimen/spacing_xs"
+                android:background="@drawable/selector_filter_chip"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:text="@string/search_all"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="13sp"
+                android:focusable="true"
+                android:nextFocusUp="@id/etSearch"
+                android:nextFocusRight="@id/chipChannels"
+                android:nextFocusDown="@id/rvSearchResults" />
+
+            <Button
+                android:id="@+id/chipChannels"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="@dimen/spacing_xs"
+                android:background="@drawable/selector_filter_chip"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:text="@string/search_channels"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="13sp"
+                android:focusable="true"
+                android:nextFocusUp="@id/etSearch"
+                android:nextFocusLeft="@id/chipAll"
+                android:nextFocusRight="@id/chipMovies"
+                android:nextFocusDown="@id/rvSearchResults" />
+
+            <Button
+                android:id="@+id/chipMovies"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="@dimen/spacing_xs"
+                android:background="@drawable/selector_filter_chip"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:text="@string/search_movies"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="13sp"
+                android:focusable="true"
+                android:nextFocusUp="@id/etSearch"
+                android:nextFocusLeft="@id/chipChannels"
+                android:nextFocusRight="@id/chipSeries"
+                android:nextFocusDown="@id/rvSearchResults" />
+
+            <Button
+                android:id="@+id/chipSeries"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:background="@drawable/selector_filter_chip"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:text="@string/search_series"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="13sp"
+                android:focusable="true"
+                android:nextFocusUp="@id/etSearch"
+                android:nextFocusLeft="@id/chipMovies"
+                android:nextFocusDown="@id/rvSearchResults" />
+
+        </LinearLayout>
+
+        <!-- Results Count -->
+        <TextView
+            android:id="@+id/tvResultsCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:textColor="@color/htc_text_tertiary"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="42 results"
+            tools:visibility="visible" />
+
+        <!-- Search Results Grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearchResults"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:clipToPadding="false"
+            android:nextFocusUp="@id/chipAll"
+            tools:listitem="@layout/item_search_result" />
+
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/emptyState"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:alpha="0.5"
+                android:src="@drawable/ic_search"
+                app:tint="@color/htc_text_tertiary"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/tvEmptyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:text="@string/search_empty_title"
+                android:textColor="@color/htc_text_secondary"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tvEmptySubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:text="@string/search_empty_subtitle"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/htc_overlay_light"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/moplayer_orange" />
+
+    </FrameLayout>
+
+</FrameLayout>

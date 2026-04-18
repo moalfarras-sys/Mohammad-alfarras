@@ -1,0 +1,36 @@
+# Gradle / Android build output
+.gradle/
+.kotlin/
+build/
+build-output/
+app/build/
+
+# Local SDK / secrets
+local.properties
+keystore.properties
+*.keystore
+*.jks
+
+# IDE / editor local state
+.idea/caches/
+.idea/workspace.xml
+.idea/deviceManager.xml
+.idea/deploymentTargetSelector.xml
+.idea/appInsightsSettings.xml
+.idea/copilot.data.migration.agent.xml
+.idea/copilot.data.migration.ask.xml
+.idea/copilot.data.migration.ask2agent.xml
+.idea/copilot.data.migration.edit.xml
+.vscode/
+
+# Tool-specific local folders
+.cursor/
+.superdesign/
+
+# Logs / temporary reports
+*.log
+build*.txt
+
+# Backend local files
+backend/node_modules/
+backend/.env

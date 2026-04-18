@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HTC Rosie Dock - Metallic/Glassy Arc Background -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Bottom shadow for depth -->
+    <item android:gravity="bottom">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#00000000"
+                android:centerColor="#40000000"
+                android:endColor="#80000000"
+                android:type="linear" />
+            <size android:height="120dp" />
+        </shape>
+    </item>
+
+    <!-- Main dock body with curved top effect -->
+    <item android:gravity="bottom">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#CC080808"
+                android:centerColor="#CC0D0D0D"
+                android:endColor="#CC151515"
+                android:type="linear" />
+            <size android:height="80dp" />
+        </shape>
+    </item>
+
+    <!-- Top border glow (simulates convex curve) -->
+    <item android:gravity="bottom" android:top="40dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="90"
+                android:startColor="#00FFFFFF"
+                android:endColor="#15FFFFFF"
+                android:type="linear" />
+            <size android:height="80dp" />
+        </shape>
+    </item>
+
+    <!-- Top edge gold highlight line -->
+    <item android:gravity="bottom" android:bottom="78dp">
+        <shape android:shape="rectangle">
+            <size android:height="2dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="#00FFFFFF"
+                android:centerColor="@color/glow_gold_subtle"
+                android:endColor="#00FFFFFF"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Inner glow at top -->
+    <item android:gravity="bottom" android:bottom="60dp">
+        <shape android:shape="rectangle">
+            <size android:height="20dp" />
+            <gradient
+                android:angle="90"
+                android:startColor="#00FFFFFF"
+                android:endColor="#08FFFFFF"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

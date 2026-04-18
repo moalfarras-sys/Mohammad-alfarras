@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="8dp"
+    android:background="@drawable/selector_cinematic_card">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/episodeCard"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:cardBackgroundColor="@color/cinematic_surface"
+        app:cardCornerRadius="@dimen/cinematic_radius_card"
+        app:cardElevation="6dp">
+
+        <LinearLayout
+            android:id="@+id/episodeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_episode_card_enhanced"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <!-- Thumbnail with Play Overlay -->
+            <FrameLayout
+                android:layout_width="240dp"
+                android:layout_height="match_parent">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/ivThumbnail"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#15FFFFFF"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_content_placeholder"
+                        tools:ignore="ContentDescription" />
+
+                    <!-- Progress Overlay -->
+                    <FrameLayout
+                        android:id="@+id/progressOverlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:background="#B3000000"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <ProgressBar
+                            android:id="@+id/progressBar"
+                            style="@android:style/Widget.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            android:max="100"
+                            android:progress="65"
+                            android:progressDrawable="@drawable/bg_progress_bar" />
+
+                    </FrameLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- Play Icon Overlay -->
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_play_button_small">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_play"
+                        app:tint="@color/htc_pure_white"
+                        tools:ignore="ContentDescription" />
+
+                </FrameLayout>
+
+            </FrameLayout>
+
+            <!-- Vertical Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="12dp"
+                android:background="@drawable/divider_vertical_gradient" />
+
+            <!-- Episode Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
+
+                <!-- Episode Number and Title Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvEpisodeNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_episode_number"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/moplayer_orange"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        tools:text="E1" />
+
+                    <TextView
+                        android:id="@+id/tvEpisodeTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="1"
+                        android:shadowDy="1"
+                        android:shadowRadius="2"
+                        tools:text="Pilot" />
+
+                </LinearLayout>
+
+                <!-- Meta Info Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_time"
+                        app:tint="@color/htc_text_tertiary"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tvDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="@color/htc_text_secondary"
+                        android:textSize="12sp"
+                        tools:text="58 min" />
+
+                    <!-- Watched Indicator -->
+                    <ImageView
+                        android:id="@+id/ivWatched"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/ic_check_circle"
+                        android:visibility="gone"
+                        app:tint="@color/htc_accent_green"
+                        tools:ignore="ContentDescription"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/tvWatchedLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Watched"
+                        android:textColor="@color/htc_accent_green"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                </LinearLayout>
+
+                <!-- Episode Description -->
+                <TextView
+                    android:id="@+id/tvEpisodePlot"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:lineSpacingMultiplier="1.3"
+                    android:maxLines="3"
+                    android:textColor="@color/htc_text_secondary"
+                    android:textSize="14sp"
+                    android:visibility="visible"
+                    tools:text="Walter White, a high school chemistry teacher diagnosed with terminal lung cancer, turns to making meth with a former student." />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Focus Glow Effect -->
+    <View
+        android:id="@+id/focusGlow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_cinematic_focus_glow"
+        android:visibility="invisible" />
+
+</FrameLayout>

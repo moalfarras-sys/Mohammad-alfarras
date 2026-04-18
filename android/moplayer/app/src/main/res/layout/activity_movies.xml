@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Animated Background -->
+    <com.mo.moplayer.ui.widgets.AnimatedBackground
+        android:id="@+id/animatedBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <!-- Left Sidebar - Categories -->
+        <LinearLayout
+            android:id="@+id/categorySidebar"
+            android:layout_width="248dp"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/spacing_12"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_md">
+
+            <!-- Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_md"
+                android:text="@string/movies_title"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+
+            <!-- Category List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCategories"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_category" />
+
+        </LinearLayout>
+
+        <!-- Right Side - Content Grid -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/spacing_md"
+            android:paddingTop="@dimen/spacing_12"
+            android:paddingEnd="@dimen/spacing_md"
+            android:paddingBottom="@dimen/spacing_md">
+
+            <!-- Selected Category Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvCategoryTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    tools:text="Action Movies" />
+
+                <TextView
+                    android:id="@+id/tvItemCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/spacing_lg"
+                    android:textColor="@color/htc_text_tertiary"
+                    android:textSize="14sp"
+                    tools:text="245 movies" />
+
+                <!-- Search Button -->
+                <ImageButton
+                    android:id="@+id/btnSearch"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@drawable/selector_cinematic_button"
+                    android:contentDescription="@string/search"
+                    android:focusable="true"
+                    android:nextFocusDown="@id/rvMovies"
+                    android:src="@drawable/ic_search"
+                    android:padding="10dp" />
+
+            </LinearLayout>
+
+            <!-- Movie Grid -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMovies"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_content_card" />
+
+        </LinearLayout>
+
+        <!-- Preview Panel (included from layout) -->
+        <include layout="@layout/panel_movie_preview" />
+
+    </LinearLayout>
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/htc_overlay_medium"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/moplayer_orange" />
+
+    </FrameLayout>
+
+    <!-- Network Error Overlay with Retry -->
+    <com.mo.moplayer.ui.common.LoadingStateView
+        android:id="@+id/networkErrorView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+</FrameLayout>

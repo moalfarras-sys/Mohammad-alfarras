@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Main dark glass background -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#F5000000"
+                android:endColor="#E8080808" />
+        </shape>
+    </item>
+    <!-- Left edge highlight -->
+    <item android:left="0dp" android:right="0dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#2000FF88"
+                android:endColor="#00000000"
+                android:centerX="0.02" />
+        </shape>
+    </item>
+    <!-- Left border -->
+    <item android:right="418dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#5000FF88" />
+            <size android:width="2dp" />
+        </shape>
+    </item>
+    <!-- Subtle inner glow -->
+    <item android:left="2dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#1000FF88"
+                android:endColor="#00000000"
+                android:centerX="0.1" />
+        </shape>
+    </item>
+</layer-list>

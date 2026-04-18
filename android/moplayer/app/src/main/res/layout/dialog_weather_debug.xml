@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/weather_debug_title"
+            android:textColor="@color/htc_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/weather_debug_desc"
+            android:textColor="@color/htc_text_tertiary"
+            android:textSize="13sp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchWeatherDebugEnabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/weather_debug_enable"
+            android:textColor="@color/htc_text_primary"
+            android:checked="false" />
+
+        <!-- Category -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/weather_debug_category"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerWeatherCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" />
+
+        <!-- Day/Night -->
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchWeatherDebugIsDay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/weather_debug_day"
+            android:textColor="@color/htc_text_primary"
+            android:checked="true" />
+
+        <!-- Temperature -->
+        <TextView
+            android:id="@+id/tvTempLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/weather_debug_temp" />
+
+        <SeekBar
+            android:id="@+id/seekTemp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="80" />
+
+        <!-- Wind speed -->
+        <TextView
+            android:id="@+id/tvWindLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/weather_debug_wind" />
+
+        <SeekBar
+            android:id="@+id/seekWind"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="120" />
+
+        <!-- Wind direction -->
+        <TextView
+            android:id="@+id/tvWindDirLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/weather_debug_wind_dir" />
+
+        <SeekBar
+            android:id="@+id/seekWindDir"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="360" />
+
+        <!-- Humidity -->
+        <TextView
+            android:id="@+id/tvHumidityLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/weather_debug_humidity" />
+
+        <SeekBar
+            android:id="@+id/seekHumidity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- Cloud -->
+        <TextView
+            android:id="@+id/tvCloudLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/weather_debug_cloud" />
+
+        <SeekBar
+            android:id="@+id/seekCloud"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100" />
+
+        <!-- Precip -->
+        <TextView
+            android:id="@+id/tvPrecipLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/htc_text_secondary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/weather_debug_precip" />
+
+        <SeekBar
+            android:id="@+id/seekPrecip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="50" />
+
+        <TextView
+            android:id="@+id/tvWeatherDebugNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/weather_debug_hint"
+            android:textColor="@color/htc_text_tertiary"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>
+

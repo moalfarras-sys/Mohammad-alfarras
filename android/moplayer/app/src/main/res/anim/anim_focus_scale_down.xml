@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:ordering="together">
+
+    <!-- Scale down animation -->
+    <objectAnimator
+        android:propertyName="scaleX"
+        android:valueFrom="1.08"
+        android:valueTo="1.0"
+        android:duration="150"
+        android:interpolator="@android:interpolator/decelerate_quad" />
+
+    <objectAnimator
+        android:propertyName="scaleY"
+        android:valueFrom="1.08"
+        android:valueTo="1.0"
+        android:duration="150"
+        android:interpolator="@android:interpolator/decelerate_quad" />
+
+    <!-- Reset elevation -->
+    <objectAnimator
+        android:propertyName="translationZ"
+        android:valueFrom="8dp"
+        android:valueTo="0dp"
+        android:duration="150" />
+
+</set>

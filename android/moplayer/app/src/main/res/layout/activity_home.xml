@@ -1,0 +1,699 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cinematic_bg_base">
+
+    <!-- Netflix-style Backdrop Preview (behind content) -->
+    <FrameLayout
+        android:id="@+id/previewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/ivPreviewBackdrop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0"
+            android:scaleType="centerCrop"
+            tools:ignore="ContentDescription" />
+
+        <!-- Gradient Overlay for readability -->
+        <View
+            android:id="@+id/previewGradient"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0"
+            android:background="@drawable/bg_preview_gradient" />
+
+    </FrameLayout>
+
+    <!-- Animated Background (shows when no preview) -->
+    <com.mo.moplayer.ui.widgets.AnimatedBackground
+        android:id="@+id/animatedBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Full-Screen Weather Overlay (particles and effects) -->
+    <com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
+        android:id="@+id/weatherOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <LinearLayout
+        android:id="@+id/mainContentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- ═══════════════════════════════════════════
+             TOP BAR — Clean minimal with logo + actions
+             ═══════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/screen_margin_horizontal"
+            android:paddingTop="@dimen/spacing_8">
+
+            <!-- Logo + Brand -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:contentDescription="@string/cd_logo"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_app_logo" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="MoPlayer"
+                        android:textColor="@color/cinematic_text_primary"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="-0.02" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.55"
+                        android:text="Premium TV"
+                        android:textColor="@color/moplayer_orange_light"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.15" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Surprise Me Button -->
+            <ImageButton
+                android:id="@+id/btnSurprise"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/selector_tv_button"
+                android:contentDescription="@string/surprise_me"
+                android:focusable="true"
+                android:tag="accent_icon"
+                android:src="@drawable/ic_shuffle"
+                android:nextFocusLeft="@id/btnSurprise"
+                android:nextFocusRight="@id/btnSearch"
+                android:nextFocusDown="@id/footballWidget"
+                app:tint="@color/moplayer_orange" />
+
+            <!-- Search Button -->
+            <ImageButton
+                android:id="@+id/btnSearch"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:background="@drawable/selector_tv_button"
+                android:contentDescription="@string/search"
+                android:focusable="true"
+                android:tag="accent_icon"
+                android:src="@drawable/ic_search"
+                android:nextFocusLeft="@id/btnSurprise"
+                android:nextFocusRight="@id/btnSearch"
+                android:nextFocusDown="@id/weatherWidget" />
+
+            <!-- New Content Badge -->
+            <TextView
+                android:id="@+id/newContentBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_12"
+                android:alpha="0"
+                android:background="@drawable/bg_new_content_badge"
+                android:drawablePadding="@dimen/spacing_4"
+                android:gravity="center"
+                android:paddingHorizontal="@dimen/spacing_12"
+                android:paddingVertical="@dimen/spacing_8"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:visibility="gone"
+                tools:alpha="1"
+                tools:text="+5 new"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+        <!-- ═══════════════════════════════════════════
+             WIDGET STRIP — Full-width premium widgets
+             ═══════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/widgetStrip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/screen_margin_horizontal"
+            android:paddingTop="4dp"
+            android:paddingBottom="6dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Weather Widget 3D — Larger and prominent -->
+            <com.mo.moplayer.ui.widgets.Weather3DWidget
+                android:id="@+id/weatherWidget"
+                android:layout_width="190dp"
+                android:layout_height="82dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusLeft="@id/weatherWidget"
+                android:nextFocusRight="@id/footballWidget"
+                android:nextFocusUp="@id/btnSurprise"
+                android:nextFocusDown="@id/rvContent" />
+
+            <!-- Football Match Widget — Larger and prominent -->
+            <com.mo.moplayer.ui.widgets.FootballMatchWidget
+                android:id="@+id/footballWidget"
+                android:layout_width="0dp"
+                android:layout_height="82dp"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:nextFocusLeft="@id/weatherWidget"
+                android:nextFocusRight="@id/flipClockContainer"
+                android:nextFocusUp="@id/btnSearch"
+                android:nextFocusDown="@id/rvContent" />
+
+            <!-- Flip Clock Widget — Modern glass clock -->
+            <FrameLayout
+                android:id="@+id/flipClockContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="62dp"
+                android:layout_marginStart="10dp"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusLeft="@id/footballWidget"
+                android:nextFocusRight="@id/flipClockContainer"
+                android:nextFocusUp="@id/btnSearch"
+                android:nextFocusDown="@id/rvContent"
+                android:foregroundGravity="center">
+
+                <include
+                    android:id="@+id/flipClock"
+                    layout="@layout/widget_flip_clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <!-- ═══════════════════════════════════════════
+             PREVIEW INFO PANEL — Shows on content focus
+             ═══════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/previewInfoPanel"
+            android:layout_width="@dimen/preview_panel_width"
+            android:layout_height="wrap_content"
+            android:alpha="0"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:layout_gravity="end"
+            android:layout_marginStart="@dimen/screen_margin_horizontal"
+            android:layout_marginEnd="@dimen/screen_margin_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="14dp"
+            android:visibility="gone"
+            tools:alpha="1"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/tvPreviewTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="-0.01"
+                android:lineSpacingMultiplier="1.05"
+                tools:text="The Dark Knight" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Rating -->
+                <LinearLayout
+                    android:id="@+id/previewRatingContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_star"
+                        app:tint="@color/accent_gold"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tvPreviewRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_4"
+                        android:textColor="@color/cinematic_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        tools:text="8.5" />
+
+                    <View
+                        android:layout_width="4dp"
+                        android:layout_height="4dp"
+                        android:layout_marginHorizontal="@dimen/spacing_12"
+                        android:background="@drawable/bg_dot" />
+
+                </LinearLayout>
+
+                <!-- Year -->
+                <TextView
+                    android:id="@+id/tvPreviewYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/moplayer_orange"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
+                    android:visibility="gone"
+                    tools:text="2008" />
+
+                <!-- Type Badge -->
+                <TextView
+                    android:id="@+id/tvPreviewType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_12"
+                    android:background="@drawable/bg_type_badge"
+                    android:paddingHorizontal="@dimen/spacing_8"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/cinematic_text_primary"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
+                    tools:text="MOVIE" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPreviewDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_8"
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:lineSpacingMultiplier="1.25"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="When the menace known as the Joker wreaks havoc and chaos on the people of Gotham..." />
+
+        </LinearLayout>
+
+        <!-- ═══════════════════════════════════════════
+             CONTENT ROWS — Netflix-style scrolling rows
+             ═══════════════════════════════════════════ -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvContent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:paddingTop="4dp"
+            android:paddingBottom="120dp"
+            android:nextFocusUp="@id/weatherWidget"
+            android:nextFocusDown="@id/dockHome"
+            android:descendantFocusability="afterDescendants"
+            tools:listitem="@layout/item_content_row" />
+
+    </LinearLayout>
+
+    <!-- ═══════════════════════════════════════════
+         BOTTOM DOCK — Premium Floating Glass Navigation
+         ═══════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/bottomDock"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dock_height"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="@dimen/dock_horizontal_margin"
+        android:layout_marginBottom="@dimen/dock_bottom_margin"
+        android:background="@drawable/bg_cinematic_dock"
+        android:elevation="@dimen/spacing_8"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/spacing_8"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- Home -->
+        <LinearLayout
+            android:id="@+id/dockHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockSettings"
+            android:nextFocusRight="@id/dockLive">
+
+            <ImageView
+                android:id="@+id/iconHome"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_home"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelHome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_home"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
+        <!-- Live TV -->
+        <LinearLayout
+            android:id="@+id/dockLive"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockHome"
+            android:nextFocusRight="@id/dockMovies">
+
+            <ImageView
+                android:id="@+id/iconLive"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_live_tv"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelLive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_live"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
+        <!-- Movies -->
+        <LinearLayout
+            android:id="@+id/dockMovies"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockLive"
+            android:nextFocusRight="@id/dockSeries">
+
+            <ImageView
+                android:id="@+id/iconMovies"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_movie"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelMovies"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_movies"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
+        <!-- Series -->
+        <LinearLayout
+            android:id="@+id/dockSeries"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockMovies"
+            android:nextFocusRight="@id/dockFavorites">
+
+            <ImageView
+                android:id="@+id/iconSeries"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_series"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelSeries"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_series"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
+        <!-- Favorites -->
+        <LinearLayout
+            android:id="@+id/dockFavorites"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockSeries"
+            android:nextFocusRight="@id/dockSettings">
+
+            <ImageView
+                android:id="@+id/iconFavorites"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_favorite"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelFavorites"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_favorites"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
+        <!-- Settings -->
+        <LinearLayout
+            android:id="@+id/dockSettings"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockFavorites"
+            android:nextFocusRight="@id/dockHome">
+
+            <ImageView
+                android:id="@+id/iconSettings"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_settings"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_settings"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Exit Confirmation Dialog Overlay -->
+    <FrameLayout
+        android:id="@+id/exitDialogOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@color/color_scrim_strong"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="400dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_glass_panel_premium"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/spacing_32"
+            android:paddingVertical="32dp">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="60dp"
+                android:src="@drawable/logo"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/exit_title"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_8"
+                android:gravity="center"
+                android:text="@string/exit_message"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnExitCancel"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/selector_glass_button"
+                    android:focusable="true"
+                    android:nextFocusRight="@id/btnExitConfirm"
+                    android:text="@string/exit_cancel"
+                    android:textAllCaps="false"
+                    android:textColor="@color/cinematic_text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnExitConfirm"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="@dimen/spacing_12"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_danger"
+                    android:focusable="true"
+                    android:text="@string/exit_confirm"
+                    android:textAllCaps="false"
+                    android:textColor="@color/cinematic_text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Weather Details Overlay -->
+    <com.mo.moplayer.ui.weather.WeatherDetailsOverlay
+        android:id="@+id/weatherDetailsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!-- Match Details Overlay -->
+    <com.mo.moplayer.ui.football.MatchDetailsOverlay
+        android:id="@+id/matchDetailsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+</FrameLayout>

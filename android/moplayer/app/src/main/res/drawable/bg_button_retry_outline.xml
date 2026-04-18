@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item
+                android:left="-2dp"
+                android:top="-2dp"
+                android:right="-2dp"
+                android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="14dp" />
+                    <gradient
+                        android:type="radial"
+                        android:gradientRadius="80dp"
+                        android:centerX="0.5"
+                        android:centerY="0.5"
+                        android:startColor="#204F8BFF"
+                        android:endColor="#00000000" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <gradient
+                        android:angle="135"
+                        android:startColor="@color/liquid_glass_surface_strong"
+                        android:endColor="@color/liquid_glass_surface" />
+                    <stroke android:width="2dp" android:color="@color/liquid_focus_ring" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="@color/liquid_glass_surface_strong" />
+            <stroke android:width="2dp" android:color="@color/liquid_accent_primary" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="1.5dp" android:color="@color/liquid_accent_primary" />
+        </shape>
+    </item>
+</selector>

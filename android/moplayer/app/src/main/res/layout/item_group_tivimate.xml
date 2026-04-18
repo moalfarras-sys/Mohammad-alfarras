@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="2dp"
+    android:layout_marginHorizontal="3dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Focus Glow Background -->
+    <View
+        android:id="@+id/focusGlow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="-4dp"
+        android:alpha="0"
+        android:background="@drawable/bg_liquid_focus_glow" />
+
+    <!-- Main Container -->
+    <LinearLayout
+        android:id="@+id/groupContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="54dp"
+        android:background="@drawable/bg_liquid_glass_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="8dp">
+
+        <!-- Group Icon Container -->
+        <FrameLayout
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp">
+
+            <View
+                android:id="@+id/iconBackground"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_group_icon" />
+
+            <ImageView
+                android:id="@+id/ivGroupIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_live_tv"
+                app:tint="@color/htc_text_primary"
+                tools:ignore="ContentDescription" />
+        </FrameLayout>
+
+        <!-- Group Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="36dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <!-- Group Name -->
+            <TextView
+                android:id="@+id/tvGroupName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/liquid_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:lineSpacingMultiplier="1.1"
+                tools:text="Sports" />
+
+            <!-- Channel Count -->
+            <TextView
+                android:id="@+id/tvChannelCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/liquid_text_tertiary"
+                android:textSize="11sp"
+                tools:text="125 قناة" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Selection Indicator (Left accent bar) -->
+    <View
+        android:id="@+id/selectionIndicator"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:layout_marginVertical="4dp"
+        android:background="@color/liquid_accent_primary"
+        android:visibility="gone" />
+
+    <!-- Focus Border -->
+    <View
+        android:id="@+id/focusBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@drawable/bg_liquid_focus_ring" />
+
+</FrameLayout>

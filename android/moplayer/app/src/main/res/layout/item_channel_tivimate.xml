@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="2dp"
+    android:layout_marginHorizontal="3dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Focus Glow Background -->
+    <View
+        android:id="@+id/focusGlow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="-2dp"
+        android:alpha="0"
+        android:background="@drawable/bg_liquid_focus_glow" />
+
+    <!-- Main Container -->
+    <LinearLayout
+        android:id="@+id/channelContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="54dp"
+        android:background="@drawable/bg_liquid_glass_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp">
+
+        <!-- Channel Number Badge -->
+        <FrameLayout
+            android:layout_width="36dp"
+            android:layout_height="30dp">
+
+            <View
+                android:id="@+id/numberBackground"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_channel_number_tivi" />
+
+            <TextView
+                android:id="@+id/tvChannelNumber"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:textColor="@color/liquid_accent_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="125" />
+        </FrameLayout>
+
+        <!-- Channel Logo -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="52dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="6dp"
+            app:cardBackgroundColor="#15FFFFFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/ivChannelLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_placeholder_channel"
+                tools:ignore="ContentDescription" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Channel Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:minHeight="40dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <!-- Channel Name -->
+            <TextView
+                android:id="@+id/tvChannelName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/liquid_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="Discovery Channel HD" />
+
+            <!-- EPG Info (Now Playing) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- EPG Dot -->
+                <View
+                    android:id="@+id/epgDot"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:background="@drawable/bg_now_playing_dot"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/tvEpgTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="@color/liquid_accent_primary"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="14:30"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/tvEpgTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/liquid_text_tertiary"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="Shark Week - Episode 5"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Quality Badge -->
+        <TextView
+            android:id="@+id/tvQuality"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_quality_badge_channel"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="3dp"
+            android:textColor="@color/liquid_text_primary"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="HD"
+            tools:visibility="visible" />
+
+        <!-- Favorite Button -->
+        <ImageView
+            android:id="@+id/ivFavorite"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="false"
+            android:padding="4dp"
+            android:src="@drawable/ic_favorite_border"
+            app:tint="@color/htc_text_tertiary"
+            android:visibility="gone"
+            tools:ignore="ContentDescription"
+            tools:visibility="visible" />
+
+        <!-- Now Playing Indicator -->
+        <View
+            android:id="@+id/nowPlayingIndicator"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_now_playing_animated"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <!-- Selection Highlight (Left accent bar) -->
+    <View
+        android:id="@+id/playingIndicator"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:layout_marginVertical="4dp"
+        android:background="@color/liquid_accent_primary"
+        android:visibility="gone" />
+
+    <!-- Focus Border -->
+    <View
+        android:id="@+id/focusBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@drawable/bg_liquid_focus_ring" />
+
+</FrameLayout>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cinematic_bg_base">
+
+    <!-- Backdrop Image with Blur Effect -->
+    <ImageView
+        android:id="@+id/ivBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.28"
+        android:scaleType="centerCrop"
+        tools:ignore="ContentDescription" />
+
+    <!-- Dark Gradient Overlay -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_movie_detail_gradient" />
+
+    <!-- Main Content Container -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp">
+
+        <!-- Top Preview Panel -->
+        <include
+            android:id="@+id/previewPanel"
+            layout="@layout/preview_panel_episode"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.40" />
+
+        <!-- Seasons Sidebar -->
+        <LinearLayout
+            android:id="@+id/llSeasonsPanel"
+            android:layout_width="130dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:orientation="vertical"
+            android:paddingTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/previewPanel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <!-- Seasons Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingBottom="12dp"
+                android:text="@string/series_seasons"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="12dp"
+                android:background="#20FFFFFF" />
+
+            <!-- Seasons RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSeasons"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingVertical="8dp"
+                android:focusable="true"
+                android:nextFocusRight="@id/rvEpisodes"
+                tools:listitem="@layout/item_season_tv" />
+
+        </LinearLayout>
+
+        <!-- Episodes Panel -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/previewPanel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/llSeasonsPanel"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- Episodes Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingBottom="12dp">
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="@color/cinematic_text_primary" />
+
+                <TextView
+                    android:id="@+id/tvEpisodeHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Season 1 - 10 Episodes" />
+
+                <TextView
+                    android:id="@+id/tvEpisodeCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_count_badge"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/htc_text_secondary"
+                    android:textSize="12sp"
+                    tools:text="10 episodes" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cinematic_divider" />
+
+            <!-- Episodes RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEpisodes"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingVertical="12dp"
+                android:focusable="true"
+                android:nextFocusLeft="@id/rvSeasons"
+                tools:listitem="@layout/item_episode_tv" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E00B0F1A"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/moplayer_orange" />
+
+    </FrameLayout>
+
+</FrameLayout>

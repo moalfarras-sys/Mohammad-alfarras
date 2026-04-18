@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/previewPanel"
+    android:layout_width="320dp"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_cinematic_surface"
+    android:visibility="gone"
+    tools:visibility="visible">
+
+    <!-- Backdrop Image with Blur Effect -->
+    <ImageView
+        android:id="@+id/ivPreviewBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.16"
+        android:scaleType="centerCrop"
+        tools:ignore="ContentDescription" />
+
+    <!-- Gradient Overlay -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_movie_detail_gradient" />
+
+    <!-- Content ScrollView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- Large Poster with Glow -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
+                <!-- Glow Effect -->
+                <View
+                    android:layout_width="200dp"
+                    android:layout_height="290dp"
+                    android:layout_gravity="center"
+                    android:alpha="0.6"
+                    android:background="@drawable/bg_poster_glow" />
+
+                <!-- Poster Card -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="180dp"
+                    android:layout_height="270dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="10dp">
+
+                    <ImageView
+                        android:id="@+id/ivPreviewPoster"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_content_placeholder"
+                        tools:ignore="ContentDescription" />
+
+                    <!-- Continue Watching Progress -->
+                    <FrameLayout
+                        android:id="@+id/progressOverlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:background="#CC000000"
+                        android:padding="8dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <ProgressBar
+                            android:id="@+id/progressBar"
+                            style="@android:style/Widget.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            android:max="100"
+                            android:progress="45"
+                            android:progressDrawable="@drawable/bg_progress_bar" />
+
+                    </FrameLayout>
+
+                </androidx.cardview.widget.CardView>
+
+            </FrameLayout>
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tvPreviewTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="The Dark Knight" />
+
+            <!-- Meta Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <!-- Rating Badge -->
+                <LinearLayout
+                    android:id="@+id/ratingBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_rating_badge_premium"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_star"
+                        app:tint="@color/htc_accent_gold"
+                        tools:ignore="ContentDescription" />
+
+                    <TextView
+                        android:id="@+id/tvPreviewRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        tools:text="8.5" />
+
+                </LinearLayout>
+
+                <!-- Year -->
+                <TextView
+                    android:id="@+id/tvPreviewYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@color/htc_accent_green"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="2008"
+                    tools:visibility="visible" />
+
+                <!-- Duration -->
+                <TextView
+                    android:id="@+id/tvPreviewDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@color/htc_text_secondary"
+                    android:textSize="9sp"
+                    android:visibility="gone"
+                    tools:text="2h 32min"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+            <!-- Genre -->
+            <TextView
+                android:id="@+id/tvPreviewGenre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="@color/htc_text_secondary"
+                android:textSize="9sp"
+                android:visibility="gone"
+                tools:text="Action, Crime, Drama"
+                tools:visibility="visible" />
+
+            <!-- Plot/Description -->
+            <TextView
+                android:id="@+id/tvPreviewPlot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:lineSpacingMultiplier="1.15"
+                android:maxLines="4"
+                android:textColor="@color/htc_text_secondary"
+                android:textSize="10sp"
+                android:visibility="gone"
+                tools:text="When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice."
+                tools:visibility="visible" />
+
+            <!-- Director -->
+            <TextView
+                android:id="@+id/tvPreviewDirector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="9sp"
+                android:visibility="gone"
+                tools:text="Director: Christopher Nolan"
+                tools:visibility="visible" />
+
+            <!-- Cast -->
+            <TextView
+                android:id="@+id/tvPreviewCast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="9sp"
+                android:visibility="gone"
+                tools:text="Cast: Christian Bale, Heath Ledger, Aaron Eckhart, Michael Caine"
+                tools:visibility="visible" />
+
+            <!-- Release Date -->
+            <TextView
+                android:id="@+id/tvPreviewReleaseDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="8sp"
+                android:visibility="gone"
+                tools:text="Release Date: July 18, 2008"
+                tools:visibility="visible" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="8dp" />
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Play Button -->
+                <Button
+                    android:id="@+id/btnPreviewPlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_button_play"
+                    android:drawablePadding="8dp"
+                    android:drawableStart="@drawable/ic_play"
+                    android:drawableTint="@color/htc_pure_black"
+                    android:focusable="true"
+                    android:text="@string/preview_play"
+                    android:textAllCaps="false"
+                    android:textColor="@color/htc_pure_black"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <!-- Resume Button -->
+                <Button
+                    android:id="@+id/btnPreviewResume"
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:drawablePadding="6dp"
+                    android:drawableStart="@drawable/ic_play"
+                    android:drawableTint="@color/htc_text_primary"
+                    android:focusable="true"
+                    android:text="@string/preview_resume"
+                    android:textAllCaps="false"
+                    android:textColor="@color/htc_text_primary"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <!-- Action Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <!-- Favorite Button -->
+                    <ImageButton
+                        android:id="@+id/btnPreviewFavorite"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_button_icon"
+                        android:contentDescription="@string/movie_add_favorite"
+                        android:focusable="true"
+                        android:src="@drawable/ic_favorite_border"
+                        app:tint="@color/htc_text_primary" />
+
+                    <!-- Trailer Button -->
+                    <Button
+                        android:id="@+id/btnPreviewTrailer"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_secondary"
+                        android:drawablePadding="5dp"
+                        android:drawableStart="@drawable/ic_play"
+                        android:drawableTint="@color/htc_text_primary"
+                        android:focusable="true"
+                        android:text="@string/preview_trailer"
+                        android:textAllCaps="false"
+                        android:textColor="@color/htc_text_primary"
+                        android:textSize="10sp"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>

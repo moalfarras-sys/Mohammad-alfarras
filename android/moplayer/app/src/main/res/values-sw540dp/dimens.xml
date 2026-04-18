@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dimensions for 720p TVs (sw540dp) -->
+<resources>
+    <!-- Login Screen -->
+    <dimen name="login_padding_horizontal">32dp</dimen>
+    <dimen name="login_padding_vertical">24dp</dimen>
+    <dimen name="login_card_width">300dp</dimen>
+    <dimen name="login_card_padding">20dp</dimen>
+    <dimen name="login_app_name_size">32sp</dimen>
+    <dimen name="login_tagline_size">14sp</dimen>
+    <dimen name="login_feature_icon_size">44dp</dimen>
+    
+    <!-- Home Screen -->
+    <dimen name="home_poster_width">110dp</dimen>
+    <dimen name="home_poster_height">165dp</dimen>
+    <dimen name="home_row_title_size">16sp</dimen>
+    
+    <!-- Live TV -->
+    <dimen name="live_category_width">160dp</dimen>
+    <dimen name="live_channel_item_height">56dp</dimen>
+    
+    <!-- Text Sizes -->
+    <dimen name="text_size_title">18sp</dimen>
+    <dimen name="text_size_subtitle">14sp</dimen>
+    <dimen name="text_size_body">12sp</dimen>
+    <dimen name="text_size_caption">10sp</dimen>
+    
+    <!-- Spacing -->
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_lg">16dp</dimen>
+    <dimen name="spacing_xl">24dp</dimen>
+    
+    <!-- Screen Margins -->
+    <dimen name="screen_margin_horizontal">24dp</dimen>
+    <dimen name="screen_margin_vertical">16dp</dimen>
+    
+    <!-- Logo -->
+    <dimen name="logo_width">100dp</dimen>
+    <dimen name="logo_height">40dp</dimen>
+    
+    <!-- Cards - Optimized for 720p -->
+    <dimen name="card_margin">6dp</dimen>
+    <dimen name="card_poster_width">108dp</dimen>
+    <dimen name="card_poster_height">162dp</dimen>
+    <dimen name="card_content_height">218dp</dimen>
+    <dimen name="content_row_items_height">248dp</dimen>
+    <dimen name="card_title_size">12sp</dimen>
+    
+    <!-- Flip Clock - Smaller for 720p -->
+    <dimen name="flip_clock_digit_width">28dp</dimen>
+    <dimen name="flip_clock_digit_height">38dp</dimen>
+    <dimen name="flip_clock_colon_width">12dp</dimen>
+    <dimen name="flip_clock_text_size">28sp</dimen>
+    
+    <!-- Dock -->
+    <dimen name="dock_height">70dp</dimen>
+    <dimen name="dock_icon_size">28dp</dimen>
+    <dimen name="dock_label_size">10sp</dimen>
+    <dimen name="dock_horizontal_margin">100dp</dimen>
+    <dimen name="dock_bottom_margin">8dp</dimen>
+    <dimen name="dock_corner_radius">22dp</dimen>
+    <dimen name="preview_panel_width">360dp</dimen>
+    <dimen name="top_bar_height">80dp</dimen>
+</resources>

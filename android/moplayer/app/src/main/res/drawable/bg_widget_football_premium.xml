@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer ambient glow — orange/warm tint -->
+    <item android:left="-3dp" android:top="-3dp" android:right="-3dp" android:bottom="-3dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="22dp" />
+            <gradient
+                android:type="radial"
+                android:gradientRadius="200dp"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#0CFF8C42"
+                android:centerColor="#06FF8C42"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+
+    <!-- Main glass surface -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <gradient
+                android:angle="155"
+                android:startColor="#D00D1220"
+                android:centerColor="#C00B1018"
+                android:endColor="#B80B0F1A" />
+            <stroke
+                android:width="1dp"
+                android:color="#1AFFFFFF" />
+        </shape>
+    </item>
+
+    <!-- Top highlight shimmer -->
+    <item android:top="1dp" android:left="20dp" android:right="20dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="1dp" />
+            <gradient
+                android:type="linear"
+                android:angle="0"
+                android:startColor="#00FFFFFF"
+                android:centerColor="#12FFFFFF"
+                android:endColor="#00FFFFFF" />
+            <size android:height="1dp" />
+        </shape>
+    </item>
+
+    <!-- Inner subtle reflection -->
+    <item android:top="2dp" android:left="10dp" android:right="10dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <gradient
+                android:angle="270"
+                android:startColor="#05FFFFFF"
+                android:endColor="#00000000" />
+            <size android:height="16dp" />
+        </shape>
+    </item>
+
+</layer-list>

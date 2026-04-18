@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_login_card_premium"
+    android:padding="@dimen/spacing_xxlarge">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/parental_pin_required"
+        android:textSize="@dimen/tv_text_title"
+        android:textColor="@color/htc_accent_gold"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/spacing_medium" />
+
+    <!-- Message -->
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/parental_enter_pin"
+        android:textSize="@dimen/tv_text_body"
+        android:textColor="@color/htc_text_secondary"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/spacing_xlarge" />
+
+    <!-- PIN Input Container -->
+    <LinearLayout
+        android:id="@+id/pinContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/spacing_large">
+
+        <!-- Digit 1 -->
+        <EditText
+            android:id="@+id/etDigit1"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:layout_margin="@dimen/spacing_small"
+            android:background="@drawable/bg_pin_digit"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textSize="32sp"
+            android:textColor="@color/htc_accent_gold"
+            android:textStyle="bold"
+            android:importantForAutofill="no"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+        <!-- Digit 2 -->
+        <EditText
+            android:id="@+id/etDigit2"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:layout_margin="@dimen/spacing_small"
+            android:background="@drawable/bg_pin_digit"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textSize="32sp"
+            android:textColor="@color/htc_accent_gold"
+            android:textStyle="bold"
+            android:importantForAutofill="no"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+        <!-- Digit 3 -->
+        <EditText
+            android:id="@+id/etDigit3"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:layout_margin="@dimen/spacing_small"
+            android:background="@drawable/bg_pin_digit"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textSize="32sp"
+            android:textColor="@color/htc_accent_gold"
+            android:textStyle="bold"
+            android:importantForAutofill="no"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+        <!-- Digit 4 -->
+        <EditText
+            android:id="@+id/etDigit4"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:layout_margin="@dimen/spacing_small"
+            android:background="@drawable/bg_pin_digit"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textSize="32sp"
+            android:textColor="@color/htc_accent_gold"
+            android:textStyle="bold"
+            android:importantForAutofill="no"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+    </LinearLayout>
+
+    <!-- Error Message -->
+    <TextView
+        android:id="@+id/tvError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@color/htc_error"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/spacing_medium"
+        android:visibility="gone" />
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Cancel Button -->
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/spacing_small"
+            android:text="@string/cancel"
+            android:textColor="@color/htc_text_secondary"
+            android:background="@drawable/bg_button_secondary"
+            android:padding="@dimen/spacing_medium"
+            android:focusable="true" />
+
+        <!-- Verify Button -->
+        <Button
+            android:id="@+id/btnVerify"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:text="@string/verify"
+            android:textColor="@color/htc_pure_black"
+            android:background="@drawable/bg_button_gold"
+            android:padding="@dimen/spacing_medium"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+</LinearLayout>

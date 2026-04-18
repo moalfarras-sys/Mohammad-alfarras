@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MoPlayer Design System - Electric Blue Brand Palette -->
+
+    <!-- ═══════════════════════════════════════════════════════
+         ZINC PALETTE (Shadcn)
+         ═══════════════════════════════════════════════════════ -->
+    <color name="zinc_50">#FAFAFA</color>
+    <color name="zinc_100">#F4F4F5</color>
+    <color name="zinc_200">#E4E4E7</color>
+    <color name="zinc_300">#D4D4D8</color>
+    <color name="zinc_400">#A1A1AA</color>
+    <color name="zinc_500">#71717A</color>
+    <color name="zinc_600">#52525B</color>
+    <color name="zinc_700">#3F3F46</color>
+    <color name="zinc_800">#27272A</color>
+    <color name="zinc_900">#18181B</color>
+    <color name="zinc_950">#09090B</color>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SEMANTIC MAPPINGS
+         ═══════════════════════════════════════════════════════ -->
+
+    <!-- Backgrounds -->
+    <color name="htc_black">@color/cinematic_bg_base</color>
+    <color name="htc_pure_black">@color/cinematic_bg_base</color>
+    <color name="htc_pure_white">@color/zinc_50</color>
+    <color name="htc_dark_gray">@color/zinc_900</color>
+    <color name="htc_medium_gray">@color/zinc_800</color>
+    <color name="htc_light_gray">@color/zinc_700</color>
+    <color name="htc_silver">@color/zinc_300</color>
+
+    <!-- Surfaces -->
+    <color name="htc_card_background">@color/cinematic_surface</color>
+    <color name="htc_card_border">@color/cinematic_divider</color>
+    <color name="htc_surface">@color/cinematic_surface</color>
+
+    <!-- Text -->
+    <color name="htc_text_primary">@color/cinematic_text_primary</color>
+    <color name="htc_text_secondary">@color/cinematic_text_secondary</color>
+    <color name="htc_text_tertiary">@color/cinematic_text_tertiary</color>
+    <color name="htc_text_disabled">@color/zinc_700</color>
+    <color name="htc_text_accent">@color/liquid_accent_primary</color>
+
+    <!-- MoPlayer Brand Colors — Electric Blue -->
+    <color name="moplayer_orange">#4F8BFF</color>
+    <color name="moplayer_orange_light">#79A6FF</color>
+    <color name="moplayer_orange_dark">#3B6ED6</color>
+    <color name="moplayer_orange_glow">#334F8BFF</color>
+    <color name="moplayer_orange_subtle">#184F8BFF</color>
+
+    <!-- MoPlayer Extended Palette -->
+    <color name="accent_blue">#4F8BFF</color>
+    <color name="accent_blue_dim">#554F8BFF</color>
+    <color name="accent_blue_glow">#334F8BFF</color>
+    <color name="accent_violet">#8B5CF6</color>
+    <color name="accent_violet_glow">#338B5CF6</color>
+    <color name="accent_gold">#F5C518</color>
+    <color name="accent_green">#22C55E</color>
+    <color name="accent_red">#EF4444</color>
+    <color name="deep_space">#0B0F1A</color>
+    <color name="deep_space_surface">#10142A</color>
+    <color name="deep_space_card">#161B30</color>
+    <color name="deep_space_elevated">#1E2440</color>
+    <!-- Kept for backward compat -->
+    <color name="accent_violet_dim">#558B5CF6</color>
+
+    <!-- Accents (semantic aliases) -->
+    <color name="htc_accent_gold">@color/moplayer_orange</color>
+    <color name="htc_accent_green">@color/moplayer_orange_light</color>
+    <color name="htc_accent_orange">@color/moplayer_orange</color>
+
+    <!-- Status -->
+    <color name="htc_success">#22C55E</color>
+    <color name="htc_error">#EF4444</color>
+    <color name="htc_warning">#F59E0B</color>
+    <color name="htc_info">#4F8BFF</color>
+
+    <!-- Overlays -->
+    <color name="htc_overlay_dark">#E60D0D1A</color>
+    <color name="htc_overlay_medium">#B30D0D1A</color>
+    <color name="htc_overlay_light">#800D0D1A</color>
+    <color name="htc_player_overlay">#CC000000</color>
+
+    <!-- Button States -->
+    <color name="htc_button_normal_start">@color/zinc_800</color>
+    <color name="htc_button_normal_end">@color/zinc_800</color>
+    <color name="htc_button_pressed_start">@color/moplayer_orange_dark</color>
+    <color name="htc_button_pressed_end">@color/moplayer_orange</color>
+    <color name="htc_button_focused_start">@color/moplayer_orange</color>
+    <color name="htc_button_focused_end">@color/moplayer_orange_light</color>
+
+    <!-- Focus Halo -->
+    <color name="htc_focus_glow">#504F8BFF</color>
+    <color name="focus_gold_bright">@color/moplayer_orange</color>
+    <color name="focus_gold_glow">#404F8BFF</color>
+
+    <!-- Glass -->
+    <color name="htc_glass_highlight">#1FFFFFFF</color>
+    <color name="htc_glass_highlight_strong">#40FFFFFF</color>
+    <color name="htc_glass_shadow">#30000000</color>
+    <color name="htc_glass_border">#40FFFFFF</color>
+    <color name="htc_glass_inner_glow">#15FFFFFF</color>
+
+    <color name="htc_accent_green_light">@color/moplayer_orange_light</color>
+    <color name="htc_accent_green_dark">@color/moplayer_orange_dark</color>
+    <color name="htc_focus_glow_transparent">#4DFFFFFF</color>
+
+    <color name="htc_progress_background">@color/zinc_700</color>
+    <color name="htc_progress_secondary">@color/zinc_500</color>
+    <color name="htc_progress_primary">@color/moplayer_orange</color>
+
+    <color name="htc_flip_card_top">@color/zinc_800</color>
+    <color name="htc_flip_card_bottom">@color/zinc_900</color>
+    <color name="htc_flip_card_line">@color/zinc_950</color>
+    <color name="htc_flip_text">@color/zinc_50</color>
+
+    <color name="htc_dock_background_start">#000D0D1A</color>
+    <color name="htc_dock_background_end">#F20D0D1A</color>
+    <color name="htc_dock_icon_normal">@color/zinc_500</color>
+    <color name="htc_dock_icon_selected">@color/moplayer_orange</color>
+
+    <color name="glass_premium_bg_start">#F50D0D1A</color>
+    <color name="glass_premium_bg_center">#F00D0D1A</color>
+    <color name="glass_premium_bg_end">#F50D0D1A</color>
+    <color name="glass_premium_border_start">#40FFFFFF</color>
+    <color name="glass_premium_border_end">#20FFFFFF</color>
+    <color name="glass_premium_highlight">#10FFFFFF</color>
+
+    <!-- Gradients -->
+    <color name="gradient_green_start">@color/moplayer_orange</color>
+    <color name="gradient_green_center">@color/moplayer_orange_light</color>
+    <color name="gradient_gold">@color/moplayer_orange</color>
+    <color name="gradient_gold_light">@color/moplayer_orange_light</color>
+    <color name="gradient_gold_start">@color/moplayer_orange</color>
+    <color name="gradient_gold_mid">@color/moplayer_orange_light</color>
+    <color name="gradient_gold_end">@color/moplayer_orange_dark</color>
+    <color name="gradient_gold_dark">#3B6ED6</color>
+
+    <color name="shimmer_gold">#FFF5F9FF</color>
+    <color name="shimmer_platinum">#FFF5F5F5</color>
+    <color name="shine_highlight">#80FFFFFF</color>
+    <color name="hover_overlay">#15FFFFFF</color>
+
+    <color name="glow_gold_strong">#504F8BFF</color>
+    <color name="glow_gold_medium">#304F8BFF</color>
+    <color name="glow_gold_subtle">#184F8BFF</color>
+    <color name="glow_gold_very_subtle">#0A4F8BFF</color>
+
+    <color name="card_bg_luxury">@color/zinc_900</color>
+    <color name="card_bg_luxury_elevated">@color/zinc_800</color>
+    <color name="card_border_luxury">@color/zinc_600</color>
+    <color name="card_border_luxury_subtle">@color/zinc_800</color>
+
+    <!-- Login -->
+    <color name="particle_core_white">@color/zinc_100</color>
+    <color name="particle_core_green">@color/moplayer_orange_light</color>
+    <color name="particle_glow">#404F8BFF</color>
+    <color name="orbital_ring_green">#204F8BFF</color>
+    <color name="orbital_ring_gold">#306079FF</color>
+    <color name="developer_credit_start">@color/moplayer_orange_light</color>
+    <color name="developer_credit_end">@color/moplayer_orange</color>
+    <color name="heart_pulse_color">@color/moplayer_orange</color>
+
+    <color name="login_white">@color/zinc_50</color>
+    <color name="login_white_transparent">#E0FAFAFA</color>
+    <color name="login_white_subtle">#30FAFAFA</color>
+    <color name="login_white_very_subtle">#15FAFAFA</color>
+    <color name="login_black">@color/zinc_950</color>
+    <color name="login_dark_bg">@color/zinc_950</color>
+    <color name="login_gray_light">@color/zinc_300</color>
+    <color name="login_gray_medium">@color/zinc_500</color>
+    <color name="login_gray_dark">@color/zinc_700</color>
+    <color name="login_hero_glass">#D0121220</color>
+    <color name="login_hero_glass_strong">#E21A1A35</color>
+    <color name="login_hero_border">#3AFFFFFF</color>
+    <color name="login_hero_glow">#305F9CFF</color>
+    <color name="login_hero_highlight">#26FFFFFF</color>
+
+    <!-- Space Theme -->
+    <color name="space_deep_black">#0B0F1A</color>
+    <color name="space_nebula_blue">#141830</color>
+    <color name="space_nebula_purple">#1A1040</color>
+    <color name="space_nebula_cyan">#0C2850</color>
+
+
+</resources>

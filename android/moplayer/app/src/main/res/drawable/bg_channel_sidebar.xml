@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Channel Sidebar Background -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#E6000000"
+                android:endColor="#CC1A1A1A"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!-- Right edge border -->
+    <item android:gravity="end">
+        <shape android:shape="rectangle">
+            <size android:width="1dp" />
+            <solid android:color="@color/htc_glass_border" />
+        </shape>
+    </item>
+
+</layer-list>

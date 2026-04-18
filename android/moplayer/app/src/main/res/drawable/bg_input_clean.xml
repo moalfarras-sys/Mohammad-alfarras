@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium Dark Input Field - High Contrast for TV -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Focused State - Blue Accent Border -->
+    <item android:state_focused="true">
+        <layer-list>
+            <!-- Subtle Blue Glow -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="14dp" />
+                    <gradient
+                        android:type="radial"
+                        android:gradientRadius="120dp"
+                        android:centerX="0.5"
+                        android:centerY="0.5"
+                        android:startColor="#200A84FF"
+                        android:endColor="#00000000" />
+                </shape>
+            </item>
+            
+            <!-- Dark Solid Background -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="#1C1C24" />
+                </shape>
+            </item>
+            
+            <!-- Blue Accent Border -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <stroke
+                        android:width="2dp"
+                        android:color="#0A84FF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+    <!-- Normal State - Dark Solid Background -->
+    <item>
+        <layer-list>
+            <!-- Dark Solid Background -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <solid android:color="#141418" />
+                </shape>
+            </item>
+            
+            <!-- Subtle Border -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="12dp" />
+                    <stroke
+                        android:width="1dp"
+                        android:color="#45455A" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+</selector>

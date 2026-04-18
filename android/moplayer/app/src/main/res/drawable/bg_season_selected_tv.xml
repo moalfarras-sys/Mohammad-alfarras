@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Outer Glow -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/htc_focus_glow_transparent" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+    
+    <!-- Border -->
+    <item
+        android:left="2dp"
+        android:top="2dp"
+        android:right="2dp"
+        android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="2dp"
+                android:color="@color/htc_accent_green" />
+            <corners android:radius="9dp" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    
+</layer-list>

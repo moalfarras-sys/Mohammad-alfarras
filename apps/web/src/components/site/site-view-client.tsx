@@ -390,7 +390,7 @@ function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
               className="flex h-14 w-14 items-center justify-center rounded-full"
               style={{
                 background: "linear-gradient(135deg, var(--secondary), #ff3d00)",
-                boxShadow: "0 0 40px rgba(255,107,0,0.5)",
+                boxShadow: "0 0 40px rgba(99,102,241,0.5)",
               }}
             >
               <PlayCircle className="h-7 w-7 text-foreground" />
@@ -552,7 +552,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-30"
           style={{
-            background: "radial-gradient(ellipse at 80% 50%, rgba(168,85,247,0.12), transparent 60%)",
+            background: "radial-gradient(ellipse at 80% 50%, rgba(217,70,239,0.12), transparent 60%)",
           }}
         />
         <div className="section-frame">
@@ -675,7 +675,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   whileHover={{ y: -6 }}
                   className="group relative h-full overflow-hidden rounded-[2rem] p-1 transition duration-500"
                   style={{
-                    background: "linear-gradient(135deg, rgba(0,229,255,0.15), rgba(168,85,247,0.1), rgba(255,107,0,0.08))"
+                    background: "linear-gradient(135deg, rgba(0,229,255,0.15), rgba(217,70,239,0.1), rgba(99,102,241,0.08))"
                   }}
                 >
                   <div
@@ -888,7 +888,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
-            style={{ background: "radial-gradient(ellipse at 80% 30%, rgba(255,107,0,0.08), transparent 55%)" }}
+            style={{ background: "radial-gradient(ellipse at 80% 30%, rgba(99,102,241,0.08), transparent 55%)" }}
           />
           <div className="section-frame space-y-10">
             <Reveal>
@@ -908,7 +908,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                     <div
                       className="rounded-2xl p-6 text-center"
                       style={{
-                        background: "linear-gradient(135deg, rgba(255,107,0,0.08), var(--surface-strong))",
+                        background: "linear-gradient(135deg, rgba(99,102,241,0.08), var(--surface-strong))",
                         border: "1px solid var(--secondary-border)",
                         backdropFilter: "blur(20px)",
                       }}
@@ -938,8 +938,8 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <div
                   className="flex h-full flex-col justify-between rounded-[2rem] p-7"
                   style={{
-                    background: "linear-gradient(135deg, rgba(255,107,0,0.06), var(--surface-strong))",
-                    border: "1px solid rgba(255,107,0,0.15)",
+                    background: "linear-gradient(135deg, rgba(99,102,241,0.06), var(--surface-strong))",
+                    border: "1px solid rgba(99,102,241,0.15)",
                     backdropFilter: "blur(20px)",
                   }}
                 >
@@ -954,7 +954,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         <span
                           key={tag}
                           className="rounded-full px-3 py-1.5 text-xs font-bold"
-                          style={{ background: "rgba(255,107,0,0.08)", border: "1px solid var(--secondary-glow)", color: "var(--secondary)" }}
+                          style={{ background: "rgba(99,102,241,0.08)", border: "1px solid var(--secondary-glow)", color: "var(--secondary)" }}
                         >
                           {tag}
                         </span>
@@ -1021,7 +1021,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.8), transparent 70%), radial-gradient(ellipse at 30% 50%, rgba(0,229,255,0.06), transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.06), transparent 60%)",
+              "radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.8), transparent 70%), radial-gradient(ellipse at 30% 50%, rgba(0,229,255,0.06), transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(217,70,239,0.06), transparent 60%)",
           }}
         />
         <div className="section-frame">
@@ -1144,7 +1144,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
           style={{
             background:
               "radial-gradient(ellipse 70% 60% at 10% 50%, rgba(0,229,255,0.10), transparent)," +
-              "radial-gradient(ellipse 60% 80% at 90% 50%, rgba(168,85,247,0.09), transparent)," +
+              "radial-gradient(ellipse 60% 80% at 90% 50%, rgba(217,70,239,0.09), transparent)," +
               "linear-gradient(to bottom right, #060810, #08080f)",
           }}
         />
@@ -1185,7 +1185,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               <Reveal delay={0.14}>
                 <div className="flex flex-wrap gap-2">
                   {t.cv.chips.map((chip, i) => {
-                    const colors = ["rgba(0,229,255,0.15)", "rgba(255,107,0,0.15)", "rgba(168,85,247,0.15)", "rgba(6,182,212,0.15)"];
+                    const colors = ["rgba(0,229,255,0.15)", "rgba(99,102,241,0.15)", "rgba(217,70,239,0.15)", "rgba(6,182,212,0.15)"];
                     const textColors = ["var(--primary)", "var(--secondary)", "var(--accent)", "#06b6d4"];
                     return (
                       <motion.span
@@ -1236,7 +1236,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                 <div
                   aria-hidden
                   className="absolute -inset-4 rounded-[2.5rem] blur-2xl"
-                  style={{ background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(168,85,247,0.1))" }}
+                  style={{ background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(217,70,239,0.1))" }}
                 />
                 <div
                   className="relative overflow-hidden rounded-[2.5rem]"
@@ -1774,8 +1774,8 @@ function Project3DShowcase({
   const story = projectStory(project, locale);
   const accentMap = {
     "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,229,255,0.06)", glow: "rgba(0,229,255,0.12)" },
-    "neon-orange": { border: "var(--secondary-border)", color: "var(--secondary)", bg: "rgba(255,107,0,0.06)", glow: "rgba(255,107,0,0.12)" },
-    "neon-purple": { border: "var(--accent-border)", color: "var(--accent)", bg: "rgba(168,85,247,0.06)", glow: "rgba(168,85,247,0.12)" },
+    "neon-orange": { border: "var(--secondary-border)", color: "var(--secondary)", bg: "rgba(99,102,241,0.06)", glow: "rgba(99,102,241,0.12)" },
+    "neon-purple": { border: "var(--accent-border)", color: "var(--accent)", bg: "rgba(217,70,239,0.06)", glow: "rgba(217,70,239,0.12)" },
   };
   const accent = accentMap[story.accent as keyof typeof accentMap] ?? accentMap["neon-green"];
 
@@ -1878,7 +1878,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
           style={{
             background:
               "radial-gradient(ellipse 80% 60% at 0% 50%, rgba(0,229,255,0.09), transparent)," +
-              "radial-gradient(ellipse 60% 80% at 100% 50%, rgba(168,85,247,0.08), transparent)," +
+              "radial-gradient(ellipse 60% 80% at 100% 50%, rgba(217,70,239,0.08), transparent)," +
               "var(--background)",
           }}
         />
@@ -2034,8 +2034,8 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 100% 80% at 50% 0%, rgba(255,107,0,0.15), transparent 60%)," +
-              "radial-gradient(ellipse 60% 60% at 80% 80%, rgba(168,85,247,0.10), transparent)," +
+              "radial-gradient(ellipse 100% 80% at 50% 0%, rgba(99,102,241,0.15), transparent 60%)," +
+              "radial-gradient(ellipse 60% 60% at 80% 80%, rgba(217,70,239,0.10), transparent)," +
               "linear-gradient(180deg, transparent, #06080f 80%)",
           }}
         />
@@ -2044,7 +2044,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest"
-                style={{ background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.3)", color: "var(--secondary)" }}>
+                style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)", color: "var(--secondary)" }}>
                 <PlayCircle className="h-3.5 w-3.5" />
                 @Moalfarras
               </div>
@@ -2058,7 +2058,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 <motion.a
                   href="https://www.youtube.com/@Moalfarras"
                   target="_blank" rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(255,107,0,0.5)" }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(99,102,241,0.5)" }}
                   whileTap={{ scale: 0.97 }}
                   className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-foreground"
                   style={{ background: "linear-gradient(135deg, var(--secondary), #e05500)" }}
@@ -2128,7 +2128,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
               <div
                 className="flex h-full flex-col justify-center rounded-[2rem] p-7 md:p-9"
                 style={{
-                  background: "linear-gradient(160deg, rgba(255,107,0,0.07) 0%, rgba(8,10,20,0.95) 60%)",
+                  background: "linear-gradient(160deg, rgba(99,102,241,0.07) 0%, rgba(8,10,20,0.95) 60%)",
                   border: "1px solid var(--secondary-border)",
                   backdropFilter: "blur(24px)",
                 }}
@@ -2143,7 +2143,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
                 <div className="mt-6 flex flex-wrap gap-2">
                   {t.youtube.values.map((v) => (
                     <span key={v} className="rounded-full px-3 py-1.5 text-xs font-bold"
-                      style={{ background: "rgba(255,107,0,0.1)", border: "1px solid rgba(255,107,0,0.25)", color: "var(--secondary)" }}>
+                      style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", color: "var(--secondary)" }}>
                       {v}
                     </span>
                   ))}
@@ -2253,7 +2253,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
           style={{
             background:
               "radial-gradient(ellipse 80% 70% at 50% 0%, rgba(0,229,255,0.10), transparent 55%)," +
-              "radial-gradient(ellipse 60% 50% at 0% 80%, rgba(168,85,247,0.08), transparent)," +
+              "radial-gradient(ellipse 60% 50% at 0% 80%, rgba(217,70,239,0.08), transparent)," +
               "linear-gradient(180deg, transparent, #06080f 80%)",
           }}
         />
@@ -2364,7 +2364,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                 })}
                 {/* 24h badge */}
                 <div className="mt-2 flex items-center gap-3 rounded-2xl p-4"
-                  style={{ background: "rgba(168,85,247,0.07)", border: "1px solid var(--accent-glow)" }}>
+                  style={{ background: "rgba(217,70,239,0.07)", border: "1px solid var(--accent-glow)" }}>
                   <Zap className="h-5 w-5 shrink-0" style={{ color: "var(--accent)" }} />
                   <p className="text-sm text-foreground-muted">
                     <span className="font-bold text-foreground">{t.contact.directTitle}</span>
@@ -2465,8 +2465,8 @@ function BlogPage({ model }: { model: SiteViewModel }) {
   const insightIcons = ["ðŸŽ¯", "âš¡", "ðŸ”"];
   const insightAccents = [
     { border: "var(--primary-border)", bg: "rgba(0,229,255,0.06)", color: "var(--primary)" },
-    { border: "var(--secondary-border)", bg: "rgba(255,107,0,0.06)", color: "var(--secondary)" },
-    { border: "var(--accent-border)", bg: "rgba(168,85,247,0.06)", color: "var(--accent)" },
+    { border: "var(--secondary-border)", bg: "rgba(99,102,241,0.06)", color: "var(--secondary)" },
+    { border: "var(--accent-border)", bg: "rgba(217,70,239,0.06)", color: "var(--accent)" },
   ];
 
   const principles = locale === "ar"
@@ -2488,7 +2488,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
-          style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(168,85,247,0.08), transparent 55%)" }}
+          style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(217,70,239,0.08), transparent 55%)" }}
         />
         <div className="section-frame">
           <Reveal>
@@ -2619,7 +2619,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
             <div
               className="flex flex-col items-center gap-6 rounded-[2.5rem] p-10 text-center md:p-14"
               style={{
-                background: "linear-gradient(135deg, rgba(168,85,247,0.08), rgba(8,10,20,0.95))",
+                background: "linear-gradient(135deg, rgba(217,70,239,0.08), rgba(8,10,20,0.95))",
                 border: "1px solid var(--accent-glow)",
                 backdropFilter: "blur(24px)",
               }}

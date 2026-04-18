@@ -39,14 +39,14 @@ export default function GlobalNotFound() {
         animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.2, 0.12] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         className="pointer-events-none absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full blur-[100px]"
-        style={{ background: "radial-gradient(circle, rgba(168,85,247,0.45), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(217,70,239,0.45), transparent 70%)" }}
       />
       <motion.div
         aria-hidden
         animate={{ x: [0, 30, 0], opacity: [0.08, 0.14, 0.08] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute bottom-1/3 left-1/3 h-[300px] w-[300px] rounded-full blur-[80px]"
-        style={{ background: "radial-gradient(circle, rgba(255,107,0,0.35), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%)" }}
       />
 
       {/* Floating particles */}
@@ -96,7 +96,7 @@ export default function GlobalNotFound() {
             animate={{ rotate: -360 }}
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
             style={{
-              border: "1px solid rgba(168,85,247,0.2)",
+              border: "1px solid rgba(217,70,239,0.2)",
             }}
           />
           {/* Inner glow card */}
@@ -105,9 +105,9 @@ export default function GlobalNotFound() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="relative flex h-16 w-16 items-center justify-center rounded-2xl"
             style={{
-              background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(168,85,247,0.1))",
+              background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(217,70,239,0.1))",
               border: "1px solid rgba(0,229,255,0.3)",
-              boxShadow: "0 0 40px rgba(0,229,255,0.2), 0 0 80px rgba(168,85,247,0.1)",
+              boxShadow: "0 0 40px rgba(0,229,255,0.2), 0 0 80px rgba(217,70,239,0.1)",
             }}
           >
             <Image
@@ -130,7 +130,7 @@ export default function GlobalNotFound() {
             animate={{
               textShadow: [
                 "0 0 30px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2)",
-                "0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(168,85,247,0.3)",
+                "0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(217,70,239,0.3)",
                 "0 0 30px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2)",
               ],
             }}

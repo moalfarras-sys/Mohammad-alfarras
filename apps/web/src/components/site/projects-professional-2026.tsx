@@ -102,7 +102,7 @@ function WeatherGlyph({ condition }: { condition?: string | null }) {
     case "Drizzle":
       return <CloudDrizzle className={cn(iconClass, "text-cyan-500 drop-shadow-[0_0_30px_rgba(34,211,238,0.35)]")} />;
     case "Thunderstorm":
-      return <CloudLightning className={cn(iconClass, "text-violet-500 drop-shadow-[0_0_30px_rgba(168,85,247,0.45)]")} />;
+      return <CloudLightning className={cn(iconClass, "text-violet-500 drop-shadow-[0_0_30px_rgba(217,70,239,0.45)]")} />;
     case "Snow":
       return <CloudSnow className={cn(iconClass, "text-blue-300 drop-shadow-[0_0_30px_rgba(147,197,253,0.55)]")} />;
     case "Mist":
@@ -127,7 +127,7 @@ function WeatherScene({ condition, isDay, isLight }: { condition: string; isDay:
             ? "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.08), transparent 40%), radial-gradient(circle at 100% 0%, rgba(0,229,255,0.06), transparent 40%), linear-gradient(180deg, rgba(241,245,249,0.4), rgba(226,232,240,0.2))"
             : isDay
               ? "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.16), transparent 30%), radial-gradient(circle at 100% 0%, rgba(0,229,255,0.16), transparent 32%), linear-gradient(180deg, rgba(16,24,40,0.3), rgba(4,7,18,0.66))"
-              : "radial-gradient(circle at 20% 20%, rgba(168,85,247,0.2), transparent 30%), radial-gradient(circle at 100% 0%, rgba(34,211,238,0.12), transparent 36%), linear-gradient(180deg, rgba(5,10,26,0.78), rgba(2,6,16,0.96))",
+              : "radial-gradient(circle at 20% 20%, rgba(217,70,239,0.2), transparent 30%), radial-gradient(circle at 100% 0%, rgba(34,211,238,0.12), transparent 36%), linear-gradient(180deg, rgba(5,10,26,0.78), rgba(2,6,16,0.96))",
         }}
       />
 
@@ -183,13 +183,13 @@ function WeatherScene({ condition, isDay, isLight }: { condition: string; isDay:
 ───────────────────────────────────────────────── */
 function accentStyles(accent: SiteViewModel["projects"][number]["accent"], isLight: boolean) {
   if (accent === "orange") {
-    return { tint: "#6366F1", glow: "rgba(255,107,0,0.25)", badge: isLight ? "rgba(255,107,0,0.08)" : "rgba(255,107,0,0.14)" };
+    return { tint: "#6366F1", glow: "rgba(99,102,241,0.25)", badge: isLight ? "rgba(99,102,241,0.08)" : "rgba(99,102,241,0.14)" };
   }
   if (accent === "cyan") {
     return { tint: "#22d3ee", glow: "rgba(34,211,238,0.25)", badge: isLight ? "rgba(34,211,238,0.08)" : "rgba(34,211,238,0.14)" };
   }
   if (accent === "purple") {
-    return { tint: "#D946EF", glow: "rgba(168,85,247,0.24)", badge: isLight ? "rgba(168,85,247,0.08)" : "rgba(168,85,247,0.14)" };
+    return { tint: "#D946EF", glow: "rgba(217,70,239,0.24)", badge: isLight ? "rgba(217,70,239,0.08)" : "rgba(217,70,239,0.14)" };
   }
   return { tint: "#00E5FF", glow: "rgba(0,229,255,0.25)", badge: isLight ? "rgba(0,184,90,0.08)" : "rgba(0,229,255,0.14)" };
 }
@@ -225,8 +225,8 @@ function CinematicHero({ locale, isLight, projects }: {
           className="absolute inset-0"
           style={{
             background: isLight
-              ? "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,229,255,0.12), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.1), transparent 50%)"
-              : "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,229,255,0.08), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.07), transparent 50%)",
+              ? "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,229,255,0.12), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(217,70,239,0.1), transparent 50%)"
+              : "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,229,255,0.08), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(217,70,239,0.07), transparent 50%)",
           }}
         />
         {/* Animated grid lines */}
@@ -249,7 +249,7 @@ function CinematicHero({ locale, isLight, projects }: {
           animate={{ y: [0, 25, 0], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute bottom-1/3 right-[10%] h-48 w-48 rounded-full blur-3xl"
-          style={{ background: "rgba(168,85,247,0.14)" }}
+          style={{ background: "rgba(217,70,239,0.14)" }}
         />
       </div>
 
@@ -358,9 +358,9 @@ function CinematicHero({ locale, isLight, projects }: {
                 key={name}
                 className="rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.15em] transition hover:scale-105"
                 style={{
-                  borderColor: i === 0 ? "rgba(0,229,255,0.25)" : i === 1 ? "rgba(255,107,0,0.25)" : "rgba(34,211,238,0.25)",
+                  borderColor: i === 0 ? "rgba(0,229,255,0.25)" : i === 1 ? "rgba(99,102,241,0.25)" : "rgba(34,211,238,0.25)",
                   color: i === 0 ? (isLight ? "#007a45" : "#00E5FF") : i === 1 ? "#6366F1" : "#22d3ee",
-                  background: i === 0 ? "rgba(0,229,255,0.06)" : i === 1 ? "rgba(255,107,0,0.06)" : "rgba(34,211,238,0.06)",
+                  background: i === 0 ? "rgba(0,229,255,0.06)" : i === 1 ? "rgba(99,102,241,0.06)" : "rgba(34,211,238,0.06)",
                 }}
               >
                 {name}
@@ -426,7 +426,7 @@ function LogoShowcase({ locale, isLight }: { locale: SiteViewModel["locale"]; is
             <div
               className="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black"
               style={{
-                background: i === 0 ? "rgba(0,229,255,0.15)" : i === 1 ? "rgba(255,107,0,0.15)" : i === 2 ? "rgba(168,85,247,0.15)" : i === 3 ? "rgba(255,0,0,0.15)" : "rgba(34,211,238,0.15)",
+                background: i === 0 ? "rgba(0,229,255,0.15)" : i === 1 ? "rgba(99,102,241,0.15)" : i === 2 ? "rgba(217,70,239,0.15)" : i === 3 ? "rgba(255,0,0,0.15)" : "rgba(34,211,238,0.15)",
                 color: i === 0 ? "#00E5FF" : i === 1 ? "#6366F1" : i === 2 ? "#D946EF" : i === 3 ? "#ff4444" : "#22d3ee",
               }}
             >
@@ -917,8 +917,8 @@ function MatchesWidget({
         className="absolute inset-0 opacity-80"
         style={{
           background: isLight
-            ? "radial-gradient(circle at top right, rgba(255,107,0,0.06), transparent 30%), radial-gradient(circle at bottom left, rgba(168,85,247,0.05), transparent 36%)"
-            : "radial-gradient(circle at top right, rgba(255,107,0,0.18), transparent 30%), radial-gradient(circle at bottom left, rgba(168,85,247,0.16), transparent 36%)",
+            ? "radial-gradient(circle at top right, rgba(99,102,241,0.06), transparent 30%), radial-gradient(circle at bottom left, rgba(217,70,239,0.05), transparent 36%)"
+            : "radial-gradient(circle at top right, rgba(99,102,241,0.18), transparent 30%), radial-gradient(circle at bottom left, rgba(217,70,239,0.16), transparent 36%)",
         }}
       />
       <div className="relative z-10 space-y-5">
@@ -944,8 +944,8 @@ function MatchesWidget({
           <div
             className="flex h-14 w-14 items-center justify-center rounded-2xl border"
             style={{
-              borderColor: isLight ? "rgba(255,107,0,0.2)" : "rgba(255,255,255,0.1)",
-              background: isLight ? "rgba(255,107,0,0.08)" : "rgba(255,255,255,0.1)",
+              borderColor: isLight ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.1)",
+              background: isLight ? "rgba(99,102,241,0.08)" : "rgba(255,255,255,0.1)",
               color: "#6366F1",
             }}
           >
@@ -961,8 +961,8 @@ function MatchesWidget({
               className="rounded-[1.65rem] border p-4"
               style={{
                 background: isLight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.03)",
-                borderColor: index === 0 ? "rgba(255,107,0,0.32)" : isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
-                boxShadow: index === 0 ? "0 22px 55px rgba(255,107,0,0.12)" : "none",
+                borderColor: index === 0 ? "rgba(99,102,241,0.32)" : isLight ? "rgba(148,163,184,0.16)" : "rgba(255,255,255,0.08)",
+                boxShadow: index === 0 ? "0 22px 55px rgba(99,102,241,0.12)" : "none",
               }}
             >
               <div className="flex items-center justify-between gap-3">
@@ -970,7 +970,7 @@ function MatchesWidget({
                 <div
                   className="rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]"
                   style={{
-                    background: match.status === "LIVE" || match.status === "HT" ? "rgba(255,107,0,0.14)" : isLight ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.14)",
+                    background: match.status === "LIVE" || match.status === "HT" ? "rgba(99,102,241,0.14)" : isLight ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.14)",
                     color: match.status === "LIVE" || match.status === "HT" ? "#6366F1" : "var(--foreground-muted)",
                   }}
                 >

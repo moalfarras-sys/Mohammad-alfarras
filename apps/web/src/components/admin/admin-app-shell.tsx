@@ -104,7 +104,7 @@ export function AdminAppShell({
   ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(0,229,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(255,107,0,0.08),transparent_28%),var(--bg-primary)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(0,229,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.08),transparent_28%),var(--bg-primary)]">
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-5 px-3 pb-28 pt-4 md:px-5 md:pb-6 md:pt-5">
         <aside className="hidden w-[320px] shrink-0 xl:block">
           <div className="sticky top-5 flex h-[calc(100vh-2.5rem)] flex-col rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(5,8,16,0.8)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl">

@@ -450,7 +450,7 @@ function SkillsSection({ cv }: { cv: CvPresentationModel }) {
 
           <div className="space-y-6">
             <motion.div variants={fadeUp}>
-              <span className="eyebrow" style={{ borderColor: "rgba(255,107,0,0.2)", color: "var(--secondary)", backgroundColor: "rgba(255,107,0,0.05)" }}>
+              <span className="eyebrow" style={{ borderColor: "rgba(99,102,241,0.2)", color: "var(--color-accent-warm)", backgroundColor: "rgba(99,102,241,0.05)" }}>
                 {t(locale, "الأدوات والتقنيات", "Tools & technologies")}
               </span>
               <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl" style={{ lineHeight: 1.15 }}>
@@ -550,7 +550,7 @@ function StatsSection({ locale, youtube }: { locale: CvPresentationModel["locale
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-30"
-            style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(0,229,255,0.12), transparent 50%), radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.08), transparent 50%)" }}
+            style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(0,229,255,0.12), transparent 50%), radial-gradient(ellipse at 70% 50%, rgba(217,70,239,0.08), transparent 50%)" }}
           />
 
           <div className="relative grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
@@ -692,7 +692,7 @@ function ClosingCta({ locale }: { locale: CvPresentationModel["locale"] }) {
               <MessageCircleMore className="h-5 w-5" />
               {t(locale, "تواصل معي", "Get in touch")}
             </Link>
-            <Link href={`/${locale}/projects`} className="button-secondary-shell">
+            <Link href={`/${locale}/work`} className="button-secondary-shell">
               <Briefcase className="h-4 w-4" />
               {t(locale, "شاهد أعمالي", "See my work")}
             </Link>

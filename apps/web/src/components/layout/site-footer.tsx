@@ -31,7 +31,7 @@ export function SiteFooter({
       <div className="section-frame space-y-5">
         <section className="contact-cta-frame relative" style={{ padding: "1.75rem", borderRadius: "2.5rem" }}>
           <div aria-hidden className="pointer-events-none absolute -left-20 bottom-0 top-0 w-72 opacity-20 blur-3xl" style={{ background: "radial-gradient(circle, rgba(0,229,255,0.5), transparent)" }} />
-          <div aria-hidden className="pointer-events-none absolute -right-20 bottom-0 top-0 w-72 opacity-15 blur-3xl" style={{ background: "radial-gradient(circle, rgba(168,85,247,0.5), transparent)" }} />
+          <div aria-hidden className="pointer-events-none absolute -right-20 bottom-0 top-0 w-72 opacity-15 blur-3xl" style={{ background: "radial-gradient(circle, rgba(217,70,239,0.5), transparent)" }} />
 
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">

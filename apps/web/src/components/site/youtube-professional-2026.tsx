@@ -211,7 +211,7 @@ function HeroSection({
       className="yt-hero-card relative overflow-hidden rounded-[3rem] border border-border/60 p-6 md:col-span-12 md:p-14 shadow-2xl backdrop-blur-2xl perspective-distant"
     >
       <div className="pointer-events-none absolute inset-y-0 right-0 w-[45%] bg-[radial-gradient(circle_at_center,rgba(255,0,50,0.16),transparent_58%)] opacity-70" />
-      <div className="pointer-events-none absolute -left-20 top-0 h-52 w-52 rounded-full bg-[rgba(168,85,247,0.16)] blur-[120px]" />
+      <div className="pointer-events-none absolute -left-20 top-0 h-52 w-52 rounded-full bg-[rgba(217,70,239,0.16)] blur-[120px]" />
 
       <div className="relative grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div>
@@ -694,7 +694,7 @@ function CollaborationSection({
       variants={item}
       className="yt-collab-section relative overflow-hidden rounded-[3rem] border border-border/60 p-8 md:col-span-12 md:p-14 shadow-2xl backdrop-blur-2xl"
     >
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-[40%] bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.12),transparent_58%)] opacity-70" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-[40%] bg-[radial-gradient(circle_at_center,rgba(217,70,239,0.12),transparent_58%)] opacity-70" />
 
       <div className="relative grid gap-12 lg:grid-cols-[1fr_1fr] lg:items-start">
         <div>

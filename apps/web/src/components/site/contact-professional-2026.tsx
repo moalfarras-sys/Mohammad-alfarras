@@ -752,7 +752,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
           transition={{ delay: 0.6 }}
           className="relative overflow-hidden rounded-[3rem] border border-white/10 p-10 text-center md:p-16"
           style={{
-            background: "linear-gradient(135deg, rgba(0,229,255,0.08), rgba(168,85,247,0.06), rgba(255,107,0,0.06))",
+            background: "linear-gradient(135deg, rgba(0,229,255,0.08), rgba(217,70,239,0.06), rgba(99,102,241,0.06))",
             backdropFilter: "blur(24px)",
           }}
         >

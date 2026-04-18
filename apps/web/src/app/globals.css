@@ -5,12 +5,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-muted: var(--foreground-muted);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
   --color-border: var(--border);
   --color-border-soft: var(--border-soft);
+  --color-border-glass: var(--border-glass);
   --color-brand-primary: var(--brand-primary);
   --color-brand-accent: var(--brand-accent);
+  --color-primary: var(--primary);
+  --color-bg-secondary: var(--bg-secondary);
   --font-sans: 'Inter', var(--font-arabic), system-ui, sans-serif;
   --font-arabic: var(--font-arabic), 'Noto Kufi Arabic', system-ui, sans-serif;
 }
@@ -23,13 +28,23 @@
   --surface-soft: rgba(2, 6, 23, 0.03);
   --border: rgba(2, 6, 23, 0.08);
   --border-soft: rgba(2, 6, 23, 0.04);
+  --border-glass: rgba(2, 6, 23, 0.06);
   --brand-primary: #020617;
   --brand-accent: #00E5FF; /* Electric Cyan */
+
+  --foreground-soft: rgba(2, 6, 23, 0.75);
+  --foreground-muted: rgba(2, 6, 23, 0.5);
+  --bg-secondary: rgba(2, 6, 23, 0.04);
   
   --color-primary: #00E5FF;
   --color-accent-warm: #6366F1; /* Indigo */
   --color-accent: #D946EF; /* Magenta/Fuchsia */
   --bg-primary: #FFFFFF;
+
+  /* Shorthand aliases used across components */
+  --primary: #00E5FF;
+  --secondary: #6366F1;
+  --accent: #D946EF;
 
   --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E");
 
@@ -45,13 +60,23 @@
   --surface-soft: rgba(255, 255, 255, 0.02);
   --border: rgba(255, 255, 255, 0.06);
   --border-soft: rgba(255, 255, 255, 0.03);
+  --border-glass: rgba(255, 255, 255, 0.08);
   --brand-primary: #F8FAFC;
   --brand-accent: #00E5FF;
+
+  --foreground-soft: rgba(248, 250, 252, 0.75);
+  --foreground-muted: rgba(248, 250, 252, 0.5);
+  --bg-secondary: rgba(255, 255, 255, 0.04);
 
   --color-primary: #00E5FF; /* Glowing Cyan / MoPlayer Vibe */
   --color-accent-warm: #6366F1; /* Royal Indigo */
   --color-accent: #D946EF; /* Bright Neon Magenta */
   --bg-primary: #020617;
+
+  /* Shorthand aliases used across components */
+  --primary: #00E5FF;
+  --secondary: #6366F1;
+  --accent: #D946EF;
   
   /* Intense Glows for bento cards (Cyberpunk / Modern Agency) */
   --primary-glow: rgba(0, 229, 255, 0.35);
@@ -132,3 +157,61 @@
   @apply relative overflow-hidden rounded-3xl border border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.02] backdrop-blur-3xl shadow-[0_4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-500 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_8px_32px_rgba(0,0,0,0.6)] !bg-surface;
 }
 .sectio-frame { @apply mx-auto w-full max-w-7xl px-6; }
+.section-frame { @apply mx-auto w-full max-w-7xl px-6; }
+
+/* Mobile Dock */
+.mobile-dock-shell {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3),
+              0 0 60px rgba(0, 229, 255, 0.06);
+}
+
+:root .mobile-dock-shell {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
+}
+
+.dock-link-inactive {
+  color: rgba(255, 255, 255, 0.45);
+}
+:root .dock-link-inactive {
+  color: rgba(2, 6, 23, 0.45);
+}
+
+/* Typography */
+.headline-arabic {
+  text-wrap: balance;
+  font-feature-settings: "kern", "liga";
+}
+
+/* CTA Frame */
+.contact-cta-frame {
+  @apply relative overflow-hidden rounded-[3rem] border border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.02] p-10 md:p-16 backdrop-blur-xl;
+}
+
+/* Safe Area */
+.top-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Hide scrollbar */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pulse slow animation */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.05); }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}

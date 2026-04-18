@@ -72,7 +72,7 @@ export default async function AdminPage({
       className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8 md:px-8"
       dir={locale === "ar" ? "rtl" : "ltr"}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,229,255,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(255,107,0,0.12),transparent_30%),linear-gradient(180deg,rgba(7,10,18,0.88),rgba(7,10,18,0.96))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,229,255,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.12),transparent_30%),linear-gradient(180deg,rgba(7,10,18,0.88),rgba(7,10,18,0.96))]" />
 
       <div className="relative grid w-full max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="hidden rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl lg:flex lg:flex-col lg:justify-between">

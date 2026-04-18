@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/cn";
+import { alternateLocalePath, localeMeta } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
 
 import { useThemeMode } from "./use-theme-mode";
@@ -39,6 +40,8 @@ export function SiteNavbar({
     () => false,
   );
   const [scrolled, setScrolled] = useState(false);
+  const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${locale === "ar" ? "en" : "ar"}`;
+  const alternateLabel = localeMeta[locale === "ar" ? "en" : "ar"].label;
 
   useEffect(() => {
     function onScroll() {
@@ -86,6 +89,13 @@ export function SiteNavbar({
 
           {/* Right controls - Mobile Only */}
           <div className="flex items-center gap-2 md:hidden">
+            <Link
+              href={alternatePath}
+              aria-label={locale === "ar" ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
+              className="inline-flex h-9 items-center justify-center rounded-full border border-border-glass bg-bg-secondary px-3 text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted transition hover:text-foreground"
+            >
+              {locale === "ar" ? "EN" : "AR"}
+            </Link>
             <motion.button
               type="button"
               aria-label={locale === "ar" ? "تبديل المظهر" : "Toggle theme"}
@@ -142,6 +152,12 @@ export function SiteNavbar({
 
         {/* Right controls - Desktop */}
         <div className="hidden md:flex items-center gap-2">
+          <Link
+            href={alternatePath}
+            className="inline-flex h-11 items-center justify-center rounded-full border border-border-glass bg-bg-secondary px-4 text-xs font-bold uppercase tracking-[0.24em] text-foreground-muted transition-all duration-300 hover:text-foreground"
+          >
+            {alternateLabel}
+          </Link>
           <motion.button
             type="button"
             data-testid="theme-toggle"

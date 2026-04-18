@@ -9,7 +9,6 @@ import { getLiveWeather } from "@/lib/weather-live";
 import { getLiveMatches } from "@/lib/matches-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
-import { PortfolioAboutPage, PortfolioHomePage, PortfolioWorkPage } from "./portfolio-pages";
 import { SiteViewClient, type SiteViewModel } from "./site-view-client";
 
 function safeImageSrc(path: string | null | undefined, fallback: string) {
@@ -389,7 +388,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     getLiveMatches(),
   ]);
 
-  const pageSlug = slug || "home";
+  const pageSlug = slug === "about" ? "cv" : slug === "work" ? "projects" : slug || "home";
   const profile = getProfile(snapshot, locale);
   const projects = getProjects(snapshot, locale);
   const experience = getExperience(snapshot, locale, copy.common.now);
@@ -441,15 +440,5 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
 
 export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
   const model = await buildSiteModel({ locale, slug });
-
-  switch (slug) {
-    case "home":
-      return <PortfolioHomePage model={model} />;
-    case "about":
-      return <PortfolioAboutPage model={model} />;
-    case "work":
-      return <PortfolioWorkPage model={model} />;
-    default:
-      return <SiteViewClient model={model} />;
-  }
+  return <SiteViewClient model={model} />;
 }

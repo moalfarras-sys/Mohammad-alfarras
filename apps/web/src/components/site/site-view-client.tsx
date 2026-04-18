@@ -30,7 +30,6 @@ import {
   Snowflake,
   Trophy,
   Timer,
-  Activity,
   Droplets,
   Wind,
   CheckCircle,
@@ -39,7 +38,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useMotionValue, useSpring, useTransform } from "framer-motion";
 
-import { useThemeMode } from "@/components/layout/use-theme-mode";
 import type { RebuildLocaleContent } from "@/data/rebuild-content";
 import type { Locale, YoutubeVideo } from "@/types/cms";
 import type { CvBuilderData, CvBuilderSection } from "@/lib/cv-builder";
@@ -429,7 +427,7 @@ function HeroStatAnimated({ target, suffix, prefix = "" }: { target: number, suf
 
 /* â”€â”€ HOME PAGE â”€â”€ */
 function HomePage({ model }: { model: SiteViewModel }) {
-  const { locale, t, projects, services, featuredVideo, youtube } = model;
+  const { locale, t, projects, services, featuredVideo, youtube, portraitImage, profile } = model;
 
   const heroStats = [
     { label: locale === "ar" ? "Ù…Ø´Ø§Ù‡Ø¯Ø©" : "Views", target: 1.5, suffix: "M", prefix: "+" },
@@ -446,221 +444,105 @@ function HomePage({ model }: { model: SiteViewModel }) {
       {/* ── CINEMATIC HERO ── */}
       <section
         data-testid="home-hero"
-        className="relative flex min-h-[90svh] flex-col items-center justify-center overflow-hidden px-6 pt-20 pb-16"
+        className="relative overflow-hidden px-6 pt-24 pb-16 md:pt-28"
       >
         <div className="absolute top-0 right-1/4 h-[800px] w-[800px] rounded-full bg-white/[0.02] blur-[150px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 h-[600px] w-[600px] rounded-full bg-white/[0.015] blur-[120px] pointer-events-none" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#04060C_100%)] pointer-events-none z-0" />
 
-        <div className="relative z-10 mx-auto max-w-6xl w-full flex flex-col items-center text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
-             <span className="eyebrow mb-8">
-               {locale === "ar" ? "متاح للمشاريع المختارة · ألمانيا" : "Available for selective projects · Based in Germany"}
-             </span>
-          </motion.div>
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="order-2 space-y-6 text-center lg:order-1 lg:text-start">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
+               <span className="eyebrow mb-4">
+                 {locale === "ar" ? "محمد الفراس · ألمانيا" : "Mohammad Alfarras · Germany"}
+               </span>
+            </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="headline-display text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] tracking-tighter text-white"
-          >
-            {locale === "ar" ? "مختصر." : "Clarity."} <br />
-            <span className="text-white/40">
-              {locale === "ar" ? "في واقع مزدحم." : "In a noisy world."}
-            </span>
-          </motion.h1>
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="headline-display text-5xl font-black tracking-tighter text-white sm:text-6xl md:text-7xl"
+            >
+              {profile.name}
+            </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-8 max-w-2xl text-lg md:text-xl font-medium leading-relaxed text-white/50 text-balance"
-          >
-            {locale === "ar"
-               ? "أنا محمد الفراس. أبني واجهات ومنتجات رقمية تخطف الانتباه، تبني الثقة، وتقود للقرار. "
-               : "I'm Mohammad Alfarras. I architect digital products and ecosystems that demand attention, build trust, and drive action. No excess, just impact."}
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+              className="max-w-2xl text-lg font-medium leading-relaxed text-white/70 md:text-xl"
+            >
+              {profile.subtitle}
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              className="max-w-2xl text-base leading-8 text-white/50"
+            >
+              {t.hero.body}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center gap-4 sm:flex-row lg:items-start"
+            >
+              <Link href={`/${locale}/contact`} className="button-primary-shell w-full sm:w-auto">
+                 <Sparkles className="h-5 w-5" />
+                 {locale === "ar" ? "ابدأ العمل" : "Start your project"}
+              </Link>
+              <Link href={`/${locale}/work`} className="button-secondary-shell w-full sm:w-auto">
+                 <BriefcaseBusiness className="h-5 w-5" />
+                 {locale === "ar" ? "شاهد الأعمال" : "View work"}
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.45 }}
+              className="grid grid-cols-2 gap-4 pt-4 md:grid-cols-4"
+            >
+              {heroStats.map((item) => (
+                <div key={item.label} className="rounded-[1.7rem] border border-white/5 bg-white/[0.02] p-5 backdrop-blur-xl">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#00E5FF]">{item.label}</p>
+                  <p className="text-2xl font-extrabold tracking-tighter text-white md:text-3xl">
+                    <HeroStatAnimated target={item.target} suffix={item.suffix} prefix={item.prefix} />
+                  </p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-12 flex flex-col sm:flex-row items-center gap-4"
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            className="order-1 lg:order-2"
           >
-            <Link href={`/${locale}#contact`} className="button-primary-shell w-full sm:w-auto">
-               <Sparkles className="h-5 w-5" />
-               {locale === "ar" ? "ابدأ العمل" : "Start your project"}
-            </Link>
-            <Link href="/app" className="button-secondary-shell w-full sm:w-auto">
-               <PlayCircle className="h-5 w-5" />
-               {locale === "ar" ? "استكشف MoPlayer" : "Explore MoPlayer"}
-            </Link>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-5xl"
-          >
-            {heroStats.map((item, i) => (
-              <div key={item.label} className="flex flex-col items-center justify-center rounded-[2rem] border border-white/5 bg-white/[0.02] p-8 backdrop-blur-xl">
-                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#00E5FF] mb-2">{item.label}</p>
-                 <p className="text-3xl lg:text-4xl font-extrabold text-white tracking-tighter">
-                   <HeroStatAnimated target={item.target} suffix={item.suffix} prefix={item.prefix} />
-                 </p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="relative px-5 py-12 md:px-8 md:py-16">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-60"
-          style={{
-            background:
-              "radial-gradient(circle at 18% 35%, rgba(0,229,255,0.12), transparent 28%), radial-gradient(circle at 82% 65%, rgba(139,92,246,0.16), transparent 30%)",
-          }}
-        />
-        <div className="section-frame">
-          <Reveal>
-            <div
-              className="relative overflow-hidden rounded-[2.5rem] border border-white/8 p-5 md:p-8 lg:p-10"
-              style={{
-                background:
-                  "linear-gradient(135deg, rgba(6,12,22,0.96), rgba(8,15,29,0.88) 55%, rgba(17,11,33,0.92))",
-                boxShadow: "0 30px 80px rgba(0,0,0,0.38)",
-              }}
-            >
-              <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-                <div className="space-y-6">
-                  <span className="eyebrow">
-                    {locale === "ar" ? "ضمن نفس المنظومة" : "Inside the same ecosystem"}
-                  </span>
-
-                  <div className="space-y-4">
-                    <h2 className="headline-display max-w-3xl text-3xl font-extrabold tracking-tight text-white md:text-5xl">
-                      {locale === "ar"
-                        ? "MoPlayer صار جزءاً واضحاً من moalfarras.space"
-                        : "MoPlayer now lives as a clear product surface inside moalfarras.space"}
-                    </h2>
-                    <p className="max-w-2xl text-sm leading-8 text-white/60 md:text-base">
-                      {locale === "ar"
-                        ? "صفحة منتج حقيقية، تنزيل مباشر، دعم، خصوصية، وإيقاع بصري أقوى من مجرد مشروع داخل البورتفوليو. الفكرة الآن أوضح: هذا منتج رقمي له هويته، لكنه ما زال جزءاً من نفس البراند."
-                        : "A real product page, direct download flow, support, privacy, and a stronger visual rhythm than a simple portfolio card. The message is clearer now: this is a digital product with its own identity inside the same brand."}
-                    </p>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-3">
+            <div className="relative mx-auto max-w-[26rem] overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-3 shadow-[0_30px_100px_rgba(0,0,0,0.42)]">
+              <div className="absolute inset-x-10 top-0 h-28 rounded-full bg-[rgba(0,255,135,0.12)] blur-3xl" />
+              <div className="relative overflow-hidden rounded-[2rem] border border-white/8">
+                <div className="relative aspect-[4/5]">
+                  <Image
+                    src={portraitImage || "/images/portrait.jpg"}
+                    alt={profile.name}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 32vw"
+                    className="object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#05070E]/75 via-transparent to-transparent" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 p-4">
+                  <div className="grid grid-cols-3 gap-2 rounded-[1.4rem] border border-white/10 bg-black/35 p-3 backdrop-blur-xl">
                     {[
-                      {
-                        label: locale === "ar" ? "تنزيل مباشر" : "Direct APK",
-                        body: locale === "ar" ? "من نفس الدومين" : "Served from the same domain",
-                      },
-                      {
-                        label: locale === "ar" ? "Android + TV" : "Android + TV",
-                        body: locale === "ar" ? "تجربة موجهة للشاشتين" : "Built for remote and touch flows",
-                      },
-                      {
-                        label: locale === "ar" ? "دعم واضح" : "Clear support",
-                        body: locale === "ar" ? "خصوصية ومركز مساعدة" : "Support and privacy linked cleanly",
-                      },
+                      { value: "+1.5M", label: locale === "ar" ? "المشاهدات" : "Views" },
+                      { value: "+6K", label: locale === "ar" ? "المشتركون" : "Subscribers" },
+                      { value: "DE", label: locale === "ar" ? "الموقع" : "Base" },
                     ].map((item) => (
-                      <div
-                        key={item.label}
-                        className="rounded-[1.6rem] border border-white/8 bg-white/[0.04] p-4 backdrop-blur-xl"
-                      >
-                        <p className="text-sm font-bold text-white">{item.label}</p>
-                        <p className="mt-1 text-xs leading-6 text-white/45">{item.body}</p>
+                      <div key={item.label} className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 text-center">
+                        <p className="text-lg font-black text-white">{item.value}</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/45">{item.label}</p>
                       </div>
                     ))}
-                  </div>
-
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <Link href="/app" className="button-primary-shell w-full sm:w-auto">
-                      <PlayCircle className="h-4 w-4" />
-                      {locale === "ar" ? "افتح صفحة التطبيق" : "Open the app page"}
-                    </Link>
-                    <Link href="/support" className="button-secondary-shell w-full sm:w-auto">
-                      <MessageCircleMore className="h-4 w-4" />
-                      {locale === "ar" ? "الدعم والمساعدة" : "Support and help"}
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-[0.9fr_1.1fr]">
-                  <div className="grid gap-4">
-                    <div className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-black/30 p-3">
-                      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem]">
-                        <Image
-                          src="/images/moplayer_ui_now_playing-final.png"
-                          alt="MoPlayer now playing preview"
-                          fill
-                          sizes="(max-width: 768px) 100vw, 20vw"
-                          className="object-cover object-center"
-                        />
-                      </div>
-                    </div>
-                    <div className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-black/30 p-3">
-                      <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem]">
-                        <Image
-                          src="/images/moplayer_ui_playlist-final.png"
-                          alt="MoPlayer playlist preview"
-                          fill
-                          sizes="(max-width: 768px) 100vw, 20vw"
-                          className="object-cover object-center"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="relative overflow-hidden rounded-[2.25rem] border border-white/8 bg-black/35 p-3">
-                    <div className="absolute inset-x-8 top-0 h-24 rounded-full bg-[#00E5FF]/10 blur-3xl" />
-                    <div className="relative flex h-full min-h-[24rem] flex-col overflow-hidden rounded-[1.7rem] border border-white/6 bg-[linear-gradient(180deg,rgba(12,18,33,0.94),rgba(8,11,21,0.94))]">
-                      <div className="flex items-center justify-between border-b border-white/6 px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <Image
-                            src="/images/moplayer-brand-logo-final.png"
-                            alt="MoPlayer logo"
-                            width={40}
-                            height={40}
-                            className="h-10 w-10 object-contain"
-                          />
-                          <div>
-                            <p className="text-sm font-bold text-white">MoPlayer</p>
-                            <p className="text-[11px] uppercase tracking-[0.24em] text-[#00E5FF]">
-                              {locale === "ar" ? "نفس الهوية" : "Same ecosystem"}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-bold text-emerald-300">
-                          2.0.0
-                        </span>
-                      </div>
-
-                      <div className="relative flex-1">
-                        <Image
-                          src="/images/moplayer-brand-glow-card.png"
-                          alt="MoPlayer brand hero"
-                          fill
-                          sizes="(max-width: 768px) 100vw, 28vw"
-                          className="object-cover object-center"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#05070E] via-[#05070E]/35 to-transparent" />
-                        <div className="absolute inset-x-0 bottom-0 p-5">
-                          <div className="rounded-[1.5rem] border border-white/8 bg-black/35 p-4 backdrop-blur-xl">
-                            <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/45">
-                              {locale === "ar" ? "صفحة تطبيق مستقلة" : "Dedicated product page"}
-                            </p>
-                            <p className="mt-2 text-sm leading-7 text-white/70">
-                              {locale === "ar"
-                                ? "شرح أوضح، صور أقوى، تنزيل مباشر، ومسار دعم مرتب."
-                                : "Clearer story, stronger imagery, direct download, and a cleaner support path."}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </Reveal>
+          </motion.div>
         </div>
       </section>
 
@@ -995,7 +877,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
           </div>
 
           <div className="mt-6 flex justify-center">
-            <ActionLink href={`/${locale}/projects`} label={t.common.allProjects} />
+            <ActionLink href={`/${locale}/work`} label={t.common.allProjects} />
           </div>
         </div>
       </section>
@@ -1124,7 +1006,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   ))}
                 </div>
                 <div className="ms-auto shrink-0">
-                  <ActionLink href={`/${locale}/cv`} label={locale === "ar" ? "Ø§Ù„Ø³ÙŠØ±Ø© Ø§Ù„ÙƒØ§Ù…Ù„Ø©" : "Full CV"} />
+              <ActionLink href={`/${locale}/about`} label={locale === "ar" ? "Ø§Ù„Ø³ÙŠØ±Ø© Ø§Ù„ÙƒØ§Ù…Ù„Ø©" : "Full CV"} />
                 </div>
               </div>
             </Reveal>

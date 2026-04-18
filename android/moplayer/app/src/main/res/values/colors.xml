@@ -42,19 +42,19 @@
     <color name="htc_text_disabled">@color/zinc_700</color>
     <color name="htc_text_accent">@color/liquid_accent_primary</color>
 
-    <!-- MoPlayer Brand Colors — Electric Blue -->
-    <color name="moplayer_orange">#4F8BFF</color>
-    <color name="moplayer_orange_light">#79A6FF</color>
-    <color name="moplayer_orange_dark">#3B6ED6</color>
-    <color name="moplayer_orange_glow">#334F8BFF</color>
-    <color name="moplayer_orange_subtle">#184F8BFF</color>
+    <!-- MoPlayer Brand Colors — Electric Cyan (Night-Sky Cyber Theme) -->
+    <color name="moplayer_orange">#00E5FF</color>
+    <color name="moplayer_orange_light">#67EFFF</color>
+    <color name="moplayer_orange_dark">#00B8D4</color>
+    <color name="moplayer_orange_glow">#3300E5FF</color>
+    <color name="moplayer_orange_subtle">#1800E5FF</color>
 
     <!-- MoPlayer Extended Palette -->
-    <color name="accent_blue">#4F8BFF</color>
-    <color name="accent_blue_dim">#554F8BFF</color>
-    <color name="accent_blue_glow">#334F8BFF</color>
-    <color name="accent_violet">#8B5CF6</color>
-    <color name="accent_violet_glow">#338B5CF6</color>
+    <color name="accent_blue">#00E5FF</color>
+    <color name="accent_blue_dim">#5500E5FF</color>
+    <color name="accent_blue_glow">#3300E5FF</color>
+    <color name="accent_violet">#6366F1</color>
+    <color name="accent_violet_glow">#336366F1</color>
     <color name="accent_gold">#F5C518</color>
     <color name="accent_green">#22C55E</color>
     <color name="accent_red">#EF4444</color>
@@ -63,7 +63,7 @@
     <color name="deep_space_card">#161B30</color>
     <color name="deep_space_elevated">#1E2440</color>
     <!-- Kept for backward compat -->
-    <color name="accent_violet_dim">#558B5CF6</color>
+    <color name="accent_violet_dim">#556366F1</color>
 
     <!-- Accents (semantic aliases) -->
     <color name="htc_accent_gold">@color/moplayer_orange</color>
@@ -74,7 +74,7 @@
     <color name="htc_success">#22C55E</color>
     <color name="htc_error">#EF4444</color>
     <color name="htc_warning">#F59E0B</color>
-    <color name="htc_info">#4F8BFF</color>
+    <color name="htc_info">#00E5FF</color>
 
     <!-- Overlays -->
     <color name="htc_overlay_dark">#E60D0D1A</color>
@@ -91,9 +91,9 @@
     <color name="htc_button_focused_end">@color/moplayer_orange_light</color>
 
     <!-- Focus Halo -->
-    <color name="htc_focus_glow">#504F8BFF</color>
+    <color name="htc_focus_glow">#5000E5FF</color>
     <color name="focus_gold_bright">@color/moplayer_orange</color>
-    <color name="focus_gold_glow">#404F8BFF</color>
+    <color name="focus_gold_glow">#4000E5FF</color>
 
     <!-- Glass -->
     <color name="htc_glass_highlight">#1FFFFFFF</color>
@@ -135,17 +135,17 @@
     <color name="gradient_gold_start">@color/moplayer_orange</color>
     <color name="gradient_gold_mid">@color/moplayer_orange_light</color>
     <color name="gradient_gold_end">@color/moplayer_orange_dark</color>
-    <color name="gradient_gold_dark">#3B6ED6</color>
+    <color name="gradient_gold_dark">#00B8D4</color>
 
     <color name="shimmer_gold">#FFF5F9FF</color>
     <color name="shimmer_platinum">#FFF5F5F5</color>
     <color name="shine_highlight">#80FFFFFF</color>
     <color name="hover_overlay">#15FFFFFF</color>
 
-    <color name="glow_gold_strong">#504F8BFF</color>
-    <color name="glow_gold_medium">#304F8BFF</color>
-    <color name="glow_gold_subtle">#184F8BFF</color>
-    <color name="glow_gold_very_subtle">#0A4F8BFF</color>
+    <color name="glow_gold_strong">#5000E5FF</color>
+    <color name="glow_gold_medium">#3000E5FF</color>
+    <color name="glow_gold_subtle">#1800E5FF</color>
+    <color name="glow_gold_very_subtle">#0A00E5FF</color>
 
     <color name="card_bg_luxury">@color/zinc_900</color>
     <color name="card_bg_luxury_elevated">@color/zinc_800</color>
@@ -155,9 +155,9 @@
     <!-- Login -->
     <color name="particle_core_white">@color/zinc_100</color>
     <color name="particle_core_green">@color/moplayer_orange_light</color>
-    <color name="particle_glow">#404F8BFF</color>
-    <color name="orbital_ring_green">#204F8BFF</color>
-    <color name="orbital_ring_gold">#306079FF</color>
+    <color name="particle_glow">#4000E5FF</color>
+    <color name="orbital_ring_green">#2000E5FF</color>
+    <color name="orbital_ring_gold">#306366F1</color>
     <color name="developer_credit_start">@color/moplayer_orange_light</color>
     <color name="developer_credit_end">@color/moplayer_orange</color>
     <color name="heart_pulse_color">@color/moplayer_orange</color>

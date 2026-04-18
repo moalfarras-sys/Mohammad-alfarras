@@ -89,6 +89,10 @@ function CountUp({ target, suffix = "" }: { target: number; suffix?: string }) {
 function HeroSection({ cv, metrics }: { cv: CvPresentationModel; metrics: CvMetric[] }) {
   const { builder, locale } = cv;
   const isArabic = locale === "ar";
+  
+  // Use user-specified images explicitly
+  const profileBg = "/images/hero-profile-bg.png";
+  const profileImg = "/images/protofeilnew.jpeg";
 
   return (
     <motion.section
@@ -97,28 +101,48 @@ function HeroSection({ cv, metrics }: { cv: CvPresentationModel; metrics: CvMetr
       variants={stagger}
       className="relative overflow-hidden px-5 py-16 md:px-8 md:py-24"
     >
+      {/* Deep Cinematic Background */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={profileBg}
+          alt="Cinematic Background"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-15 md:opacity-20 blur-[10px] saturate-150"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-background/40 via-background/80 to-background" />
+      </div>
+
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-1/3 left-1/4 h-[700px] w-[700px] -translate-x-1/2 rounded-full opacity-15 blur-[140px]"
+        className="pointer-events-none absolute -top-1/3 left-1/4 h-[700px] w-[700px] -translate-x-1/2 rounded-full opacity-30 blur-[150px] animate-pulse-slow"
         style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
       />
+      
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-1/3 right-1/4 h-[500px] w-[500px] translate-x-1/2 rounded-full opacity-20 blur-[120px]"
+        style={{ background: "radial-gradient(circle, var(--color-accent), transparent 70%)" }}
+      />
 
-      <div className="section-frame">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-6">
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
-              <Sparkles className="h-3.5 w-3.5" />
+      <div className="section-frame relative z-10">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="space-y-8">
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.25em] text-primary shadow-[0_0_20px_rgba(0,255,135,0.15)] backdrop-blur-md">
+              <Sparkles className="h-4 w-4 animate-pulse" />
               {t(locale, "سيرة تنفيذ وهوية رقمية", "Execution-driven digital identity")}
             </motion.div>
 
             <motion.h1
               variants={fadeUp}
-              className="headline-arabic text-4xl font-black leading-[1.05] text-foreground sm:text-5xl md:text-6xl"
+              className="headline-arabic text-5xl font-black leading-[1.1] text-foreground sm:text-6xl md:text-7xl lg:text-[5rem]"
+              style={{ textShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
             >
               {t(locale, builder.profile.name_ar, builder.profile.name_en)}
             </motion.h1>
 
-            <motion.p variants={fadeUp} className="max-w-2xl text-xl font-semibold leading-9 text-foreground-muted">
+            <motion.p variants={fadeUp} className="max-w-2xl text-xl font-bold leading-9 text-foreground-soft/90 md:text-2xl">
               {t(locale, builder.profile.headline_ar, builder.profile.headline_en)}
             </motion.p>
 
@@ -126,72 +150,91 @@ function HeroSection({ cv, metrics }: { cv: CvPresentationModel; metrics: CvMetr
               {t(locale, builder.summary.body_ar, builder.summary.body_en)}
             </motion.p>
 
-            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3 text-sm text-foreground-muted">
-              <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-primary" />{t(locale, builder.profile.location_ar, builder.profile.location_en)}</span>
-              <span className="text-foreground-soft">·</span>
-              <span>{builder.profile.email}</span>
-              <span className="text-foreground-soft">·</span>
-              <span dir="ltr">{builder.profile.phone}</span>
+            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3 text-sm font-semibold text-foreground-muted">
+              <span className="flex items-center gap-2 rounded-full bg-surface/50 px-4 py-2 backdrop-blur-md border border-border-glass"><MapPin className="h-4 w-4 text-primary" />{t(locale, builder.profile.location_ar, builder.profile.location_en)}</span>
+              <span className="flex items-center gap-2 rounded-full bg-surface/50 px-4 py-2 backdrop-blur-md border border-border-glass">{builder.profile.email}</span>
             </motion.div>
 
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3 pt-2">
-              <Link href={`/${locale}/contact`} className="button-primary-shell">
-                <MessageCircleMore className="h-4 w-4" />
+            <motion.div variants={fadeUp} className="flex flex-wrap gap-4 pt-4">
+              <Link href={`/${locale}/contact`} className="button-primary-shell group relative overflow-hidden text-base shadow-[0_0_30px_rgba(0,255,135,0.2)]">
+                <span className="absolute inset-0 w-full translate-x-[-100%] bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[100%]" />
+                <MessageCircleMore className="h-5 w-5" />
                 {t(locale, "تواصل معي", "Get in touch")}
               </Link>
-              <Link href={`/${locale}/projects`} className="button-secondary-shell">
-                <Briefcase className="h-4 w-4" />
+              <Link href={`/${locale}/work`} className="button-secondary-shell group relative text-base backdrop-blur-lg">
+                <Briefcase className="h-5 w-5 transition-transform group-hover:-translate-y-1" />
                 {t(locale, "شاهد أعمالي", "View my work")}
               </Link>
             </motion.div>
           </div>
 
-          <motion.div variants={fadeUp} className="relative mx-auto w-full max-w-sm">
+          <motion.div variants={fadeUp} className="relative mx-auto w-full max-w-md">
             <div
               aria-hidden
-              className="absolute -inset-6 rounded-full opacity-20 blur-3xl"
-              style={{ background: "radial-gradient(circle, var(--primary), var(--color-accent), transparent 70%)" }}
+              className="absolute -inset-10 rounded-full opacity-30 blur-3xl animate-pulse-slow"
+              style={{ background: "radial-gradient(circle, var(--primary), var(--secondary), transparent 70%)" }}
             />
 
-            <div className="hero-image-frame relative overflow-hidden rounded-[2.5rem]">
-              <div className="relative aspect-3/4 overflow-hidden rounded-[2.5rem]">
+            <motion.div 
+              whileHover={{ scale: 1.02, rotateY: 5 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="relative overflow-visible"
+              style={{ perspective: "1000px" }}
+            >
+              {/* Outer decorative ring */}
+              <div className="absolute -inset-2 rounded-[2.5rem] bg-linear-to-tr from-primary/30 to-color-accent/30 p-[2px] opacity-70 blur-xs"></div>
+              
+              <div className="relative aspect-[3/4] overflow-hidden rounded-[2.5rem] border border-white/10 bg-black shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                
+                {/* Secondary Background Layer inside the card */}
                 <Image
-                  src={builder.profile.portrait || "/images/portrait.jpg"}
+                  src={profileBg}
+                  alt="Backdrop"
+                  fill
+                  sizes="(max-width: 1024px) 80vw, 35vw"
+                  className="object-cover opacity-40 mix-blend-screen scale-110 blur-[2px]"
+                />
+                
+                {/* Main Profile Image */}
+                <Image
+                  src={profileImg}
                   alt={builder.profile.name_en}
                   fill
                   priority
                   sizes="(max-width: 1024px) 80vw, 35vw"
-                  className="object-cover"
-                  style={{ objectPosition: "center top" }}
+                  className="object-cover drop-shadow-2xl z-10"
+                  style={{ objectPosition: "center 15%" }}
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute inset-0 z-20 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
               </div>
 
-              <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center gap-3 rounded-3xl border border-primary/30 bg-black/70 px-4 py-3 backdrop-blur-xl">
-                <div className="relative flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" />
+              <div className="absolute -bottom-6 left-1/2 z-30 flex w-[90%] -translate-x-1/2 items-center justify-center gap-3 rounded-2xl border border-primary/30 bg-black/80 px-5 py-4 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
+                <div className="relative flex h-3 w-3 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-80" />
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary shadow-[0_0_15px_var(--primary)]" />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-white">
-                  {t(locale, builder.profile.availability_ar, builder.profile.availability_en).slice(0, 50)}
+                <span className="text-[11px] md:text-xs font-black uppercase tracking-[0.2em] text-white">
+                  {t(locale, builder.profile.availability_ar, builder.profile.availability_en)}
                 </span>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
 
         {metrics.length > 0 && (
-          <motion.div variants={fadeUp} className="mt-12 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <motion.div variants={fadeUp} className="mt-20 grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-6">
             {metrics.map((metric) => (
-              <div
+              <motion.div
                 key={metric.label}
-                className="rounded-2xl border border-border-glass bg-surface/60 p-5 text-center backdrop-blur-md"
+                whileHover={{ y: -5, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}
+                className="group relative overflow-hidden rounded-3xl border border-border-glass bg-surface/40 p-6 text-center backdrop-blur-xl transition-colors hover:border-primary/50 hover:bg-surface/60"
               >
-                <div className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: toneColor(metric.tone) }}>
+                <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                <div className="relative z-10 text-[11px] font-black uppercase tracking-[0.25em]" style={{ color: toneColor(metric.tone) }}>
                   {metric.label}
                 </div>
-                <div className="mt-2 text-3xl font-black text-foreground">{metric.value}</div>
-              </div>
+                <div className="relative z-10 mt-3 text-4xl font-black text-foreground drop-shadow-sm">{metric.value}</div>
+              </motion.div>
             ))}
           </motion.div>
         )}

@@ -1,123 +1,82 @@
-# moalfarras.space
+# Moalfarras Ecosystem
+**The Digital Visionary Studio & Product Landscape**
 
-Monorepo موحد للموقع العام، صفحة التطبيق، لوحة الإدارة، وتطبيق Android تحت نفس البراند.
+A comprehensive, production-grade monorepo acting as the central hub for the `Moalfarras` brand. This ecosystem manages the premium bilingual portfolio, the MoPlayer Android/Android TV product presence, a deep-integrated admin CMS, and secure backend operations via Supabase.
 
-## الهيكل النهائي
+---
 
-- `apps/web`
-  الموقع الرئيسي على `moalfarras.space`
-  ويشمل:
-  - `/`
-  - `/app`
-  - `/privacy`
-  - `/support`
-  - `public APIs` الخاصة بالتنزيل والدعم
-- `apps/admin`
-  لوحة الإدارة على `admin.moalfarras.space`
-- `android/moplayer`
-  مشروع Android / Android TV
-- `packages/shared`
-  الأنواع المشتركة بين `web` و`admin`
-- `supabase`
-  المهاجرات والسياسات والبنية المشتركة
+## 🏗 Architecture & Stack
+This project runs as a heavily optimized Next.js 16 (App Router) execution, coupled to a headless Supabase backend, styled with Tailwind CSS v4.
 
-## الدومينات
+- **Framework:** Next.js 16.2.3 (React 19)
+- **Styling:** Tailwind CSS v4, Framer Motion, fully custom Light/Dark premium theme system.
+- **Backend:** Supabase (PostgreSQL, Auth, Storage)
+- **Language:** TypeScript
+- **Deployment:** Vercel (Edge computing for fast i18n routing).
 
-- `https://moalfarras.space`
-  الموقع العام والبورتفوليو
-- `https://moalfarras.space/app`
-  صفحة MoPlayer والتنزيل والإصدارات وFAQ
-- `https://moalfarras.space/privacy`
-  سياسة الخصوصية
-- `https://moalfarras.space/support`
-  صفحة الدعم العامة
-- `https://admin.moalfarras.space`
-  لوحة الإدارة
-
-## التشغيل المحلي
-
-من جذر المشروع:
-
-```bash
-npm run build:web
-npm run build:admin
-npm run build:android
-npm run typecheck:web
-npm run typecheck:admin
+## 🗂 Folder Structure
+```text
+/
+├── apps/
+│   └── web/                # The main Next.js App Router application
+│       ├── src/app/        # Core Routing (App Admin, App Product, Site locales)
+│       ├── src/components/ # Reusable UI components & Layout wrappers
+│       ├── src/data/       # Static/CMS mock data layers
+│       └── src/lib/        # Utilities, API wrappers, internal core logic
+├── packages/
+│   └── shared/             # Shared typescript definitions and constants
+├── android/                # Mobile references / MoPlayer App hooks
+└── supabase/               # Backend definitions, migrations, schema backups
 ```
 
-للتشغيل التطويري:
+## 🚀 Setup Instructions
 
-```bash
-npm run dev:web
-npm run dev:admin
-```
+1. **Clone & Install**
+   ```bash
+   git clone https://github.com/moalfarras-sys/moalfarras-ecosystem.git
+   cd moalfarras-ecosystem
+   npm install
+   ```
 
-## البيئة
+2. **Environment Variables**
+   Create a `.env.local` file inside `apps/web/` containing:
+   ```env
+   # SUPABASE
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role
 
-### `apps/web` و `apps/admin`
+   # ADMIN CMS AUTHENTICATION
+   ADMIN_PASSWORD_HASH=your_bcrypt_hash
+   ADMIN_SESSION_SECRET=your_32_byte_secret
+   ADMIN_ALLOWLIST=admin@domain.com
+   ```
 
-المتغيرات العامة:
+3. **Development**
+   Launch the development server:
+   ```bash
+   cd apps/web
+   npm run dev
+   ```
+   *The main site will run at `http://localhost:3000`.*
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_WEB_APP_URL`
-- `NEXT_PUBLIC_ADMIN_APP_URL`
+## 🔒 Administrative Zones (Hidden & Protected)
 
-المتغيرات الحساسة على الخادم فقط:
+The project utilizes two distinct, highly secured dashboard areas:
+- **Control Center (`/[locale]/admin`):** The primary CMS for deploying portfolio updates, media management, and CV translations. Protected by AES session cookies and strict email allowlists.
+- **MoPlayer Admin (`/admin`):** Separate sub-system strictly managing the backend release processes, download metrics, and support requests for Android / Android TV applications. Controlled by Supabase Admin policies.
 
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `DATABASE_URL`
-- أي مفاتيح بريد أو تكاملات خادمية إضافية
+## 📱 Android Integration (MoPlayer)
+The web application seamlessly bridges the download, update, and API operations for the MoPlayer Android application. 
+- APKs and release notes are indexed dynamically.
+- Support interfaces route directly from mobile to the `/admin` backend interface.
 
-### Android
+## ☁️ Deployment
 
-يجب استخدام:
+This project is built and optimized for continuous deployment over Vercel. 
+- **Build Command:** `npm run build`
+- **Output:** Next.js deployment.
+- **Domain:** Production deployments are automatically pushed to `moalfarras.space`.
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-
-ولا يجب استخدام `service role key` داخل التطبيق إطلاقاً.
-
-## Vercel
-
-يوصى بمشروعين داخل Vercel من نفس الـ monorepo:
-
-1. مشروع `web`
-   - Root Directory: `apps/web`
-   - Domain: `moalfarras.space`
-
-2. مشروع `admin`
-   - Root Directory: `apps/admin`
-   - Domain: `admin.moalfarras.space`
-
-الموقع العام يحتوي redirects انتقالية من `/admin` و`/[locale]/admin*` إلى `admin.moalfarras.space`.
-
-## Supabase
-
-مشروع Supabase واحد مشترك يستخدم لـ:
-
-- Auth
-- Database
-- Storage
-- RLS Policies
-- بيانات التطبيق والإصدارات والدعم
-
-ملفات المهاجرات موجودة داخل:
-
-- `supabase/migrations`
-
-## نشر إصدار Android جديد
-
-1. ابنِ النسخة الجديدة من:
-   - `android/moplayer`
-2. حدّث ملف الـ APK المعتمد أو ارفعه إلى Storage حسب flow الإدارة
-3. حدّث release metadata من الإدارة
-4. أعد نشر `apps/web` إذا لزم
-
-## قواعد النظافة
-
-- لا تحفظ أي `.env*` أو مفاتيح حساسة داخل المستودع
-- لا تحفظ keystores أو `local.properties`
-- لا تحفظ build artifacts أو screenshots المؤقتة أو XML dumps
-- أي ملفات مؤقتة محلية يجب أن تبقى خارج Git
+---
+*Maintained with strict precision by Mohammad Alfarras.*

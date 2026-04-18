@@ -32,9 +32,8 @@ export default async function SiteLayout({
   const profileUrl = `${siteUrl}/${locale}`;
 
   const links = [
-    { id: "home", label: copy.nav.home, href: withLocale(locale, "") },
-    { id: "about", label: locale === "ar" ? "عنّي" : "About", href: withLocale(locale, "about") },
-    { id: "work", label: locale === "ar" ? "الأعمال" : "Work", href: withLocale(locale, "work") },
+    { id: "home", label: locale === "ar" ? "الرئيسية" : "Home", href: withLocale(locale, "") },
+    { id: "work", label: locale === "ar" ? "أعمالي" : "My Work", href: withLocale(locale, "work") },
     { id: "youtube", label: copy.nav.youtube, href: withLocale(locale, "youtube") },
     { id: "contact", label: copy.nav.contact, href: withLocale(locale, "contact") },
   ];

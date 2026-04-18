@@ -16,50 +16,51 @@
 }
 
 :root {
-  /* Cinematic Light Theme - Premium & Crisp */
+  /* Hyper-Modern Light Theme - Frosted Glass & Cyan */
   --background: #FFFFFF;
-  --foreground: #0A0A0A;
-  --surface: #F8F9FA;
-  --surface-soft: rgba(0, 0, 0, 0.03);
-  --border: rgba(0, 0, 0, 0.1);
-  --border-soft: rgba(0, 0, 0, 0.05);
-  --brand-primary: #0A0A0A;
-  --brand-accent: #2563EB; /* Premium Blue */
+  --foreground: #020617;
+  --surface: #F8FAFC;
+  --surface-soft: rgba(2, 6, 23, 0.03);
+  --border: rgba(2, 6, 23, 0.08);
+  --border-soft: rgba(2, 6, 23, 0.04);
+  --brand-primary: #020617;
+  --brand-accent: #00E5FF; /* Electric Cyan */
   
-  --color-primary: #00FF87;
-  --color-accent-warm: #FF6B00;
-  --color-accent: #A855F7;
+  --color-primary: #00E5FF;
+  --color-accent-warm: #6366F1; /* Indigo */
+  --color-accent: #D946EF; /* Magenta/Fuchsia */
   --bg-primary: #FFFFFF;
 
-  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E");
 
   --font-arabic: 'Noto Kufi Arabic', 'Cairo', sans-serif;
   color-scheme: light;
 }
 
 .dark {
-  /* Cinematic Dark Theme - Deep & High Contrast */
-  --background: #04060C;
-  --foreground: #FAFAFA;
-  --surface: #0A0F1A;
-  --surface-soft: rgba(255, 255, 255, 0.03);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-soft: rgba(255, 255, 255, 0.04);
-  --brand-primary: #FAFAFA;
-  --brand-accent: #3B82F6;
+  /* Night-Sky Cyber Theme - Deep Navy & Electric Accents */
+  --background: #020617; /* Very Deep Slate / Midnight Navy */
+  --foreground: #F8FAFC;
+  --surface: #0B1121;
+  --surface-soft: rgba(255, 255, 255, 0.02);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-soft: rgba(255, 255, 255, 0.03);
+  --brand-primary: #F8FAFC;
+  --brand-accent: #00E5FF;
 
-  --color-primary: #00FF87;
-  --color-accent-warm: #FF6B00;
-  --color-accent: #A855F7;
-  --bg-primary: #04060C;
+  --color-primary: #00E5FF; /* Glowing Cyan / MoPlayer Vibe */
+  --color-accent-warm: #6366F1; /* Royal Indigo */
+  --color-accent: #D946EF; /* Bright Neon Magenta */
+  --bg-primary: #020617;
   
-  /* Glows for bento cards */
-  --primary-glow: rgba(0, 255, 135, 0.4);
-  --secondary-glow: rgba(255, 107, 0, 0.4);
-  --accent-glow: rgba(168, 85, 247, 0.4);
-  --primary-border: rgba(0, 255, 135, 0.2);
-  --secondary-border: rgba(255, 107, 0, 0.2);
-  --accent-border: rgba(168, 85, 247, 0.2);
+  /* Intense Glows for bento cards (Cyberpunk / Modern Agency) */
+  --primary-glow: rgba(0, 229, 255, 0.35);
+  --secondary-glow: rgba(99, 102, 241, 0.35);
+  --accent-glow: rgba(217, 70, 239, 0.35);
+  
+  --primary-border: rgba(0, 229, 255, 0.25);
+  --secondary-border: rgba(99, 102, 241, 0.25);
+  --accent-border: rgba(217, 70, 239, 0.25);
   
   color-scheme: dark;
 }

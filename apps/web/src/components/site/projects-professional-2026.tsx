@@ -183,15 +183,15 @@ function WeatherScene({ condition, isDay, isLight }: { condition: string; isDay:
 ───────────────────────────────────────────────── */
 function accentStyles(accent: SiteViewModel["projects"][number]["accent"], isLight: boolean) {
   if (accent === "orange") {
-    return { tint: "#ff6b00", glow: "rgba(255,107,0,0.25)", badge: isLight ? "rgba(255,107,0,0.08)" : "rgba(255,107,0,0.14)" };
+    return { tint: "#6366F1", glow: "rgba(255,107,0,0.25)", badge: isLight ? "rgba(255,107,0,0.08)" : "rgba(255,107,0,0.14)" };
   }
   if (accent === "cyan") {
     return { tint: "#22d3ee", glow: "rgba(34,211,238,0.25)", badge: isLight ? "rgba(34,211,238,0.08)" : "rgba(34,211,238,0.14)" };
   }
   if (accent === "purple") {
-    return { tint: "#a855f7", glow: "rgba(168,85,247,0.24)", badge: isLight ? "rgba(168,85,247,0.08)" : "rgba(168,85,247,0.14)" };
+    return { tint: "#D946EF", glow: "rgba(168,85,247,0.24)", badge: isLight ? "rgba(168,85,247,0.08)" : "rgba(168,85,247,0.14)" };
   }
-  return { tint: "#00ff87", glow: "rgba(0,255,135,0.25)", badge: isLight ? "rgba(0,184,90,0.08)" : "rgba(0,255,135,0.14)" };
+  return { tint: "#00E5FF", glow: "rgba(0,229,255,0.25)", badge: isLight ? "rgba(0,184,90,0.08)" : "rgba(0,229,255,0.14)" };
 }
 
 function deviceBadge(project: SiteViewModel["projects"][number], locale: SiteViewModel["locale"]) {
@@ -225,8 +225,8 @@ function CinematicHero({ locale, isLight, projects }: {
           className="absolute inset-0"
           style={{
             background: isLight
-              ? "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,255,135,0.12), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.1), transparent 50%)"
-              : "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,255,135,0.08), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.07), transparent 50%)",
+              ? "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,229,255,0.12), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.1), transparent 50%)"
+              : "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(0,229,255,0.08), transparent 55%), radial-gradient(ellipse 60% 40% at 85% 70%, rgba(168,85,247,0.07), transparent 50%)",
           }}
         />
         {/* Animated grid lines */}
@@ -243,7 +243,7 @@ function CinematicHero({ locale, isLight, projects }: {
           animate={{ y: [0, -20, 0], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-1/4 left-[15%] h-32 w-32 rounded-full blur-3xl"
-          style={{ background: "rgba(0,255,135,0.15)" }}
+          style={{ background: "rgba(0,229,255,0.15)" }}
         />
         <motion.div
           animate={{ y: [0, 25, 0], opacity: [0.2, 0.4, 0.2] }}
@@ -265,9 +265,9 @@ function CinematicHero({ locale, isLight, projects }: {
             <span
               className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-black uppercase tracking-[0.28em]"
               style={{
-                borderColor: isLight ? "rgba(0,184,90,0.3)" : "rgba(0,255,135,0.2)",
-                background: isLight ? "rgba(0,184,90,0.06)" : "rgba(0,255,135,0.06)",
-                color: isLight ? "rgb(0,150,80)" : "#00ff87",
+                borderColor: isLight ? "rgba(0,184,90,0.3)" : "rgba(0,229,255,0.2)",
+                background: isLight ? "rgba(0,184,90,0.06)" : "rgba(0,229,255,0.06)",
+                color: isLight ? "rgb(0,150,80)" : "#00E5FF",
               }}
             >
               <Sparkles className="h-3 w-3" />
@@ -280,7 +280,7 @@ function CinematicHero({ locale, isLight, projects }: {
                 color: isLight ? "rgba(30,41,59,0.6)" : "rgba(255,255,255,0.4)",
               }}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#00ff87] animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00E5FF] animate-pulse" />
               {t(locale, "نظام حي ومتصل", "Live connected system")}
             </span>
           </motion.div>
@@ -358,9 +358,9 @@ function CinematicHero({ locale, isLight, projects }: {
                 key={name}
                 className="rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.15em] transition hover:scale-105"
                 style={{
-                  borderColor: i === 0 ? "rgba(0,255,135,0.25)" : i === 1 ? "rgba(255,107,0,0.25)" : "rgba(34,211,238,0.25)",
-                  color: i === 0 ? (isLight ? "#007a45" : "#00ff87") : i === 1 ? "#ff6b00" : "#22d3ee",
-                  background: i === 0 ? "rgba(0,255,135,0.06)" : i === 1 ? "rgba(255,107,0,0.06)" : "rgba(34,211,238,0.06)",
+                  borderColor: i === 0 ? "rgba(0,229,255,0.25)" : i === 1 ? "rgba(255,107,0,0.25)" : "rgba(34,211,238,0.25)",
+                  color: i === 0 ? (isLight ? "#007a45" : "#00E5FF") : i === 1 ? "#6366F1" : "#22d3ee",
+                  background: i === 0 ? "rgba(0,229,255,0.06)" : i === 1 ? "rgba(255,107,0,0.06)" : "rgba(34,211,238,0.06)",
                 }}
               >
                 {name}
@@ -426,8 +426,8 @@ function LogoShowcase({ locale, isLight }: { locale: SiteViewModel["locale"]; is
             <div
               className="flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black"
               style={{
-                background: i === 0 ? "rgba(0,255,135,0.15)" : i === 1 ? "rgba(255,107,0,0.15)" : i === 2 ? "rgba(168,85,247,0.15)" : i === 3 ? "rgba(255,0,0,0.15)" : "rgba(34,211,238,0.15)",
-                color: i === 0 ? "#00ff87" : i === 1 ? "#ff6b00" : i === 2 ? "#a855f7" : i === 3 ? "#ff4444" : "#22d3ee",
+                background: i === 0 ? "rgba(0,229,255,0.15)" : i === 1 ? "rgba(255,107,0,0.15)" : i === 2 ? "rgba(168,85,247,0.15)" : i === 3 ? "rgba(255,0,0,0.15)" : "rgba(34,211,238,0.15)",
+                color: i === 0 ? "#00E5FF" : i === 1 ? "#6366F1" : i === 2 ? "#D946EF" : i === 3 ? "#ff4444" : "#22d3ee",
               }}
             >
               {logo.abbr.slice(0, 2)}
@@ -451,7 +451,7 @@ function ImpactSection({ locale, isLight }: { locale: SiteViewModel["locale"]; i
       value: "+60%",
       label: t(locale, "تحسين قابلية القراءة البصرية", "Visual readability improvement"),
       icon: BarChart3,
-      color: "#00ff87",
+      color: "#00E5FF",
       desc: t(locale, "تقليل معدل التشتيت وزيادة وضوح الرسالة", "Reduced cognitive noise, sharper message clarity"),
     },
     {
@@ -465,14 +465,14 @@ function ImpactSection({ locale, isLight }: { locale: SiteViewModel["locale"]; i
       value: "100%",
       label: t(locale, "بناء مخصص", "Custom built"),
       icon: Check,
-      color: "#a855f7",
+      color: "#D946EF",
       desc: t(locale, "لا قوالب جاهزة — كل سطر كود مقصود", "Zero templates — every line of code intentional"),
     },
     {
       value: "2x",
       label: t(locale, "انطباع أول أقوى", "First impression impact"),
       icon: TrendingUp,
-      color: "#ff6b00",
+      color: "#6366F1",
       desc: t(locale, "من موقع عادي إلى تجربة تُقنع من النظرة الأولى", "From average site to experience that convinces instantly"),
     },
   ];
@@ -946,7 +946,7 @@ function MatchesWidget({
             style={{
               borderColor: isLight ? "rgba(255,107,0,0.2)" : "rgba(255,255,255,0.1)",
               background: isLight ? "rgba(255,107,0,0.08)" : "rgba(255,255,255,0.1)",
-              color: "#ff6b00",
+              color: "#6366F1",
             }}
           >
             <Trophy className="h-7 w-7" />
@@ -971,7 +971,7 @@ function MatchesWidget({
                   className="rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]"
                   style={{
                     background: match.status === "LIVE" || match.status === "HT" ? "rgba(255,107,0,0.14)" : isLight ? "rgba(148,163,184,0.12)" : "rgba(148,163,184,0.14)",
-                    color: match.status === "LIVE" || match.status === "HT" ? "#ff6b00" : "var(--foreground-muted)",
+                    color: match.status === "LIVE" || match.status === "HT" ? "#6366F1" : "var(--foreground-muted)",
                   }}
                 >
                   {match.status} · {match.time}
@@ -1120,18 +1120,18 @@ function ConversionCta({ locale, isLight }: { locale: SiteViewModel["locale"]; i
       className="relative overflow-hidden rounded-[2.8rem] border p-8 text-center md:p-16"
       style={{
         background: isLight ? "rgba(255,255,255,0.96)" : "linear-gradient(140deg, rgba(4,8,16,0.95), rgba(8,14,24,0.98))",
-        borderColor: "rgba(0,255,135,0.2)",
-        boxShadow: "0 0 80px rgba(0,255,135,0.06)",
+        borderColor: "rgba(0,229,255,0.2)",
+        boxShadow: "0 0 80px rgba(0,229,255,0.06)",
       }}
     >
       {/* Background glow */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-64 w-64 rounded-full blur-3xl opacity-10" style={{ background: "radial-gradient(circle, #00ff87, transparent 70%)" }} />
+        <div className="h-64 w-64 rounded-full blur-3xl opacity-10" style={{ background: "radial-gradient(circle, #00E5FF, transparent 70%)" }} />
       </div>
 
       <div className="relative z-10">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] border border-primary/20 bg-primary/10">
-          <Zap className="h-10 w-10" style={{ color: "#00ff87" }} />
+          <Zap className="h-10 w-10" style={{ color: "#00E5FF" }} />
         </div>
         <h2 className="headline-arabic mx-auto max-w-2xl text-3xl font-black text-foreground md:text-5xl">
           {t(locale, "فكرتك تستحق حضوراً يُقنع من أول ثانية.", "Your idea deserves a presence that converts from second one.")}

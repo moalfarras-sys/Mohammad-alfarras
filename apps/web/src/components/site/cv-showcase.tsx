@@ -129,7 +129,7 @@ function HeroSection({ cv, metrics }: { cv: CvPresentationModel; metrics: CvMetr
       <div className="section-frame relative z-10">
         <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-8">
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.25em] text-primary shadow-[0_0_20px_rgba(0,255,135,0.15)] backdrop-blur-md">
+            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.25em] text-primary shadow-[0_0_20px_rgba(0,229,255,0.15)] backdrop-blur-md">
               <Sparkles className="h-4 w-4 animate-pulse" />
               {t(locale, "سيرة تنفيذ وهوية رقمية", "Execution-driven digital identity")}
             </motion.div>
@@ -156,7 +156,7 @@ function HeroSection({ cv, metrics }: { cv: CvPresentationModel; metrics: CvMetr
             </motion.div>
 
             <motion.div variants={fadeUp} className="flex flex-wrap gap-4 pt-4">
-              <Link href={`/${locale}/contact`} className="button-primary-shell group relative overflow-hidden text-base shadow-[0_0_30px_rgba(0,255,135,0.2)]">
+              <Link href={`/${locale}/contact`} className="button-primary-shell group relative overflow-hidden text-base shadow-[0_0_30px_rgba(0,229,255,0.2)]">
                 <span className="absolute inset-0 w-full translate-x-[-100%] bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[100%]" />
                 <MessageCircleMore className="h-5 w-5" />
                 {t(locale, "تواصل معي", "Get in touch")}
@@ -349,7 +349,7 @@ function TimelineSection({ cv }: { cv: CvPresentationModel }) {
             >
               <div
                 className={cn(
-                  "absolute top-8 h-3 w-3 rounded-full bg-primary shadow-[0_0_20px_rgba(0,255,135,0.6)]",
+                  "absolute top-8 h-3 w-3 rounded-full bg-primary shadow-[0_0_20px_rgba(0,229,255,0.6)]",
                   isArabic ? "-right-[1.85rem] md:-right-[2.35rem]" : "-left-[1.85rem] md:-left-[2.35rem]",
                 )}
               />
@@ -550,7 +550,7 @@ function StatsSection({ locale, youtube }: { locale: CvPresentationModel["locale
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-30"
-            style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(0,255,135,0.12), transparent 50%), radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.08), transparent 50%)" }}
+            style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(0,229,255,0.12), transparent 50%), radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.08), transparent 50%)" }}
           />
 
           <div className="relative grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">

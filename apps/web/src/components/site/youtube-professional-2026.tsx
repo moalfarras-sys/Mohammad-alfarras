@@ -186,7 +186,7 @@ function HeroSection({
   const statCards = [
     {
       icon: Eye,
-      color: "#ff6b00",
+      color: "#6366F1",
       value: fmtViews,
       label: t(locale, "إجمالي المشاهدات", "Total Views"),
     },
@@ -198,7 +198,7 @@ function HeroSection({
     },
     {
       icon: Sparkles,
-      color: "#00ff87",
+      color: "#00E5FF",
       value: String(videoCount).padStart(2, "0"),
       label: t(locale, "أحدث الإصدارات", "Recent Releases"),
     },
@@ -222,7 +222,7 @@ function HeroSection({
 
           <h1 className="headline-arabic text-5xl font-black leading-[1.05] md:text-7xl lg:text-8xl text-foreground">
             {t(locale, "سينما", "Tech")}{" "}
-            <span className="bg-linear-to-r from-[#ff0033] to-[#ff6b00] bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-[#ff0033] to-[#6366F1] bg-clip-text text-transparent">
               {t(locale, "تقنية", "Cinema")}
             </span>
           </h1>
@@ -458,7 +458,7 @@ function ContentPillars({
         "شرح صادق لمنتجات تقنية حقيقية — بدون رعايات مخفية.",
         "Honest breakdowns of real tech products — no hidden sponsorships.",
       ),
-      color: "#ff6b00",
+      color: "#6366F1",
     },
     {
       icon: Camera,
@@ -468,7 +468,7 @@ function ContentPillars({
         "استخدام فعلي للمنتجات في الحياة اليومية قبل أي حكم.",
         "Real daily use before any judgment — not just spec sheets.",
       ),
-      color: "#a855f7",
+      color: "#D946EF",
     },
     {
       icon: Zap,
@@ -478,7 +478,7 @@ function ContentPillars({
         "تطبيقات، أدوات، وحلول تقنية تسهّل العمل والحياة.",
         "Apps, tools, and digital solutions that simplify work and life.",
       ),
-      color: "#00ff87",
+      color: "#00E5FF",
     },
     {
       icon: Mic2,
@@ -559,7 +559,7 @@ function CommunitySection({
       <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
         <div>
           <h3 className="flex items-center gap-3 text-3xl font-black text-foreground">
-            <MessageSquare className="h-8 w-8 text-[#a855f7]" />
+            <MessageSquare className="h-8 w-8 text-[#D946EF]" />
             {t(locale, "نبض المجتمع", "Community Pulse")}
           </h3>
           <p className="mt-2 font-semibold text-foreground-muted">
@@ -579,7 +579,7 @@ function CommunitySection({
                 style={{
                   background:
                     i === 1
-                      ? "linear-gradient(135deg, #a855f7, #6366f1)"
+                      ? "linear-gradient(135deg, #D946EF, #6366f1)"
                       : "linear-gradient(135deg, #0f172a, #334155)",
                 }}
               >
@@ -608,14 +608,14 @@ function CommunitySection({
             </div>
             <div className="relative">
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-tr from-[#a855f7] to-[#00ff87] font-black text-black">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-tr from-[#D946EF] to-[#00E5FF] font-black text-black">
                   {cm.author.substring(0, 1) || "U"}
                 </div>
                 <div>
                   <span className="block text-sm font-black text-foreground">
                     {cm.author.replace("@", "")}
                   </span>
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-[#a855f7]">
+                  <span className="block text-[10px] font-bold uppercase tracking-widest text-[#D946EF]">
                     {t(locale, "مشاهد موثوق", "Verified Viewer")}
                   </span>
                 </div>
@@ -729,7 +729,7 @@ function CollaborationSection({
                 whileHover={{ y: -6 }}
                 className="yt-reason-card group rounded-4xl border border-border/40 p-7 transition-all"
               >
-                <div className="yt-reason-icon mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-[#a855f7] transition-transform group-hover:rotate-12">
+                <div className="yt-reason-icon mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-[#D946EF] transition-transform group-hover:rotate-12">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h4 className="mb-2 text-base font-black text-foreground">
@@ -794,7 +794,7 @@ function ConversionCta({
 
           <Link
             href={`/${locale}/contact`}
-            className="flex items-center gap-3 rounded-4xl border border-border px-10 py-5 font-black text-foreground transition-all hover:border-[#a855f7]/50 hover:shadow-lg"
+            className="flex items-center gap-3 rounded-4xl border border-border px-10 py-5 font-black text-foreground transition-all hover:border-[#D946EF]/50 hover:shadow-lg"
           >
             {t(locale, "تواصل للتعاون", "Discuss Collaboration")}
           </Link>

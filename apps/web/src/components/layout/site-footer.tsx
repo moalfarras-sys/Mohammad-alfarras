@@ -30,12 +30,12 @@ export function SiteFooter({
     <footer className="safe-bottom-space relative px-3 pb-8 pt-12 md:px-6 md:pt-16 lg:pb-10">
       <div className="section-frame space-y-5">
         <section className="contact-cta-frame relative" style={{ padding: "1.75rem", borderRadius: "2.5rem" }}>
-          <div aria-hidden className="pointer-events-none absolute -left-20 bottom-0 top-0 w-72 opacity-20 blur-3xl" style={{ background: "radial-gradient(circle, rgba(0,255,135,0.5), transparent)" }} />
+          <div aria-hidden className="pointer-events-none absolute -left-20 bottom-0 top-0 w-72 opacity-20 blur-3xl" style={{ background: "radial-gradient(circle, rgba(0,229,255,0.5), transparent)" }} />
           <div aria-hidden className="pointer-events-none absolute -right-20 bottom-0 top-0 w-72 opacity-15 blur-3xl" style={{ background: "radial-gradient(circle, rgba(168,85,247,0.5), transparent)" }} />
 
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ background: "rgba(0,255,135,0.06)", border: "1px solid rgba(0,255,135,0.2)", color: "var(--primary)" }}>
+              <span className="mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.2)", color: "var(--primary)" }}>
                 {locale === "ar" ? "الخطوة التالية" : "Next step"}
               </span>
               <h2 className="max-w-xl text-3xl font-extrabold leading-[1.15] text-foreground md:text-4xl" style={{ fontFamily: "var(--font-arabic), system-ui" }}>

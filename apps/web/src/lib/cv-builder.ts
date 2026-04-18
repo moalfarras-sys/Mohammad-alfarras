@@ -326,8 +326,8 @@ export function createDefaultCvBuilder(snapshot: CmsSnapshot): CvBuilderData {
     selectedProjectIds: projectIds,
     theme: {
       template: "signal",
-      accent: "#00ff87",
-      secondary: "#ff6b00",
+      accent: "#00E5FF",
+      secondary: "#6366F1",
       layoutScale: "balanced",
       showPhoto: true,
       showMetrics: true,

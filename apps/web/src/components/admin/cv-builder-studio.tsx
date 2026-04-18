@@ -184,7 +184,7 @@ export function CvBuilderStudio({ locale, snapshot, initialData }: Props) {
           <div className="space-y-3">
             <div className="rounded-[1.4rem] border border-white/8 bg-white/[0.03] p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(0,255,135,0.10)] text-[var(--primary)]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(0,229,255,0.10)] text-[var(--primary)]">
                   <Layers3 className="h-5 w-5" />
                 </div>
                 <div>
@@ -202,7 +202,7 @@ export function CvBuilderStudio({ locale, snapshot, initialData }: Props) {
                   onClick={() => setActiveTab(tab.id)}
                   className={
                     tab.id === activeTab
-                      ? "rounded-[1.35rem] border border-[rgba(0,255,135,0.25)] bg-[rgba(0,255,135,0.08)] px-4 py-3 text-start text-foreground shadow-[0_18px_40px_rgba(0,255,135,0.07)]"
+                      ? "rounded-[1.35rem] border border-[rgba(0,229,255,0.25)] bg-[rgba(0,229,255,0.08)] px-4 py-3 text-start text-foreground shadow-[0_18px_40px_rgba(0,229,255,0.07)]"
                       : "rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-start text-foreground-muted transition hover:bg-white/[0.05] hover:text-foreground"
                   }
                 >

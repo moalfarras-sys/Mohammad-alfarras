@@ -57,8 +57,8 @@ export function MobileDock({ locale }: { locale: Locale }) {
                     layoutId="dock-pill"
                     className="absolute inset-x-0.5 inset-y-0 rounded-[1.2rem]"
                     style={{
-                      background: "linear-gradient(135deg, #00ff87, #00cc6a)",
-                      boxShadow: "0 0 20px rgba(0,255,135,0.4)",
+                      background: "linear-gradient(135deg, #00E5FF, #00B8D4)",
+                      boxShadow: "0 0 20px rgba(0,229,255,0.4)",
                     }}
                     transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                     aria-hidden="true"

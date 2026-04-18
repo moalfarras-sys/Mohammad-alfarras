@@ -64,7 +64,7 @@ export function AdminPwaInstallBar({ locale }: { locale: Locale }) {
 
   return (
     <div
-      className="mb-4 rounded-[1.25rem] border border-primary/25 bg-[linear-gradient(90deg,rgba(0,255,135,0.12),rgba(255,107,0,0.06))] px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.25)] backdrop-blur-xl"
+      className="mb-4 rounded-[1.25rem] border border-primary/25 bg-[linear-gradient(90deg,rgba(0,229,255,0.12),rgba(255,107,0,0.06))] px-4 py-3 shadow-[0_12px_40px_rgba(0,0,0,0.25)] backdrop-blur-xl"
       role="region"
       aria-label={locale === "ar" ? "تثبيت التطبيق" : "Install app"}
     >

@@ -32,7 +32,7 @@ export default function GlobalNotFound() {
         animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute left-1/4 top-1/4 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ background: "radial-gradient(circle, rgba(0,255,135,0.4), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.4), transparent 70%)" }}
       />
       <motion.div
         aria-hidden
@@ -87,7 +87,7 @@ export default function GlobalNotFound() {
             animate={{ rotate: 360 }}
             transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
             style={{
-              border: "2px dashed rgba(0,255,135,0.25)",
+              border: "2px dashed rgba(0,229,255,0.25)",
             }}
           />
           {/* Middle ring — opposite spin */}
@@ -105,9 +105,9 @@ export default function GlobalNotFound() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="relative flex h-16 w-16 items-center justify-center rounded-2xl"
             style={{
-              background: "linear-gradient(135deg, rgba(0,255,135,0.12), rgba(168,85,247,0.1))",
-              border: "1px solid rgba(0,255,135,0.3)",
-              boxShadow: "0 0 40px rgba(0,255,135,0.2), 0 0 80px rgba(168,85,247,0.1)",
+              background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(168,85,247,0.1))",
+              border: "1px solid rgba(0,229,255,0.3)",
+              boxShadow: "0 0 40px rgba(0,229,255,0.2), 0 0 80px rgba(168,85,247,0.1)",
             }}
           >
             <Image
@@ -129,15 +129,15 @@ export default function GlobalNotFound() {
           <motion.span
             animate={{
               textShadow: [
-                "0 0 30px rgba(0,255,135,0.5), 0 0 80px rgba(0,255,135,0.2)",
-                "0 0 60px rgba(0,255,135,0.8), 0 0 120px rgba(168,85,247,0.3)",
-                "0 0 30px rgba(0,255,135,0.5), 0 0 80px rgba(0,255,135,0.2)",
+                "0 0 30px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2)",
+                "0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(168,85,247,0.3)",
+                "0 0 30px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2)",
               ],
             }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="block text-[7rem] font-black leading-none md:text-[9rem]"
             style={{
-              background: "linear-gradient(135deg, #00ff87 0%, #a855f7 60%, #ff6b00 100%)",
+              background: "linear-gradient(135deg, #00E5FF 0%, #D946EF 60%, #6366F1 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               fontFamily: "var(--font-brand)",
@@ -176,7 +176,7 @@ export default function GlobalNotFound() {
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
           className="mx-auto my-10 h-px w-56"
-          style={{ background: "linear-gradient(90deg, transparent, #00ff87, #a855f7, transparent)" }}
+          style={{ background: "linear-gradient(90deg, transparent, #00E5FF, #D946EF, transparent)" }}
         />
 
         {/* CTAs */}
@@ -191,8 +191,8 @@ export default function GlobalNotFound() {
               href="/ar"
               className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-bold text-black transition duration-300"
               style={{
-                background: "linear-gradient(135deg, #00ff87, #00cc6a)",
-                boxShadow: "0 0 40px rgba(0,255,135,0.3), 0 8px 32px rgba(0,0,0,0.3)",
+                background: "linear-gradient(135deg, #00E5FF, #00B8D4)",
+                boxShadow: "0 0 40px rgba(0,229,255,0.3), 0 8px 32px rgba(0,0,0,0.3)",
               }}
             >
               <Home className="h-4 w-4" />
@@ -206,7 +206,7 @@ export default function GlobalNotFound() {
               className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold text-foreground transition duration-300"
               style={{
                 background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(0,255,135,0.25)",
+                border: "1px solid rgba(0,229,255,0.25)",
               }}
             >
               <ArrowLeft className="h-4 w-4" />

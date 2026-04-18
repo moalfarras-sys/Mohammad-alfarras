@@ -513,7 +513,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
             className="order-1 lg:order-2"
           >
             <div className="relative mx-auto max-w-[26rem] overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-3 shadow-[0_30px_100px_rgba(0,0,0,0.42)]">
-              <div className="absolute inset-x-10 top-0 h-28 rounded-full bg-[rgba(0,255,135,0.12)] blur-3xl" />
+              <div className="absolute inset-x-10 top-0 h-28 rounded-full bg-[rgba(0,229,255,0.12)] blur-3xl" />
               <div className="relative overflow-hidden rounded-[2rem] border border-white/8">
                 <div className="relative aspect-[4/5]">
                   <Image
@@ -638,7 +638,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 ).map((card, i) => (
                   <Reveal key={card.title} delay={i * 0.06}>
                     <motion.div
-                      whileHover={{ translateX: locale === "ar" ? -4 : 4, borderColor: "rgba(0,255,135,0.3)" }}
+                      whileHover={{ translateX: locale === "ar" ? -4 : 4, borderColor: "rgba(0,229,255,0.3)" }}
                       className="flex items-start gap-4 rounded-2xl p-5 transition duration-300 border border-border-glass"
                       style={{
                         background: "var(--surface)",
@@ -646,7 +646,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       }}
                     >
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                        style={{ background: "rgba(0,255,135,0.08)", border: "1px solid rgba(0,255,135,0.15)" }}>
+                        style={{ background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.15)" }}>
                         <card.icon className="h-5 w-5 text-primary" />
                       </span>
                       <div>
@@ -675,7 +675,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   whileHover={{ y: -6 }}
                   className="group relative h-full overflow-hidden rounded-[2rem] p-1 transition duration-500"
                   style={{
-                    background: "linear-gradient(135deg, rgba(0,255,135,0.15), rgba(168,85,247,0.1), rgba(255,107,0,0.08))"
+                    background: "linear-gradient(135deg, rgba(0,229,255,0.15), rgba(168,85,247,0.1), rgba(255,107,0,0.08))"
                   }}
                 >
                   <div
@@ -703,8 +703,8 @@ function HomePage({ model }: { model: SiteViewModel }) {
                             key={bullet}
                             className="rounded-full px-3 py-1 text-xs font-semibold"
                             style={{
-                              background: "rgba(0,255,135,0.06)",
-                              border: "1px solid rgba(0,255,135,0.15)",
+                              background: "rgba(0,229,255,0.06)",
+                              border: "1px solid rgba(0,229,255,0.15)",
                               color: "var(--primary)",
                             }}
                           >
@@ -726,7 +726,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
-          style={{ background: "radial-gradient(ellipse at 20% 50%, rgba(0,255,135,0.06), transparent 55%)" }}
+          style={{ background: "radial-gradient(ellipse at 20% 50%, rgba(0,229,255,0.06), transparent 55%)" }}
         />
         <div className="section-frame">
           <Reveal>
@@ -859,7 +859,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 hover:-translate-y-0.5"
                             style={{
-                              background: isFeatured ? "var(--primary)" : "rgba(0,255,135,0.07)",
+                              background: isFeatured ? "var(--primary)" : "rgba(0,229,255,0.07)",
                               border: `1px solid ${isFeatured ? "var(--primary)" : borderColor}`,
                               color: isFeatured ? "black" : "var(--primary)",
                             }}
@@ -1021,7 +1021,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.8), transparent 70%), radial-gradient(ellipse at 30% 50%, rgba(0,255,135,0.06), transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.06), transparent 60%)",
+              "radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.8), transparent 70%), radial-gradient(ellipse at 30% 50%, rgba(0,229,255,0.06), transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.06), transparent 60%)",
           }}
         />
         <div className="section-frame">
@@ -1143,7 +1143,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 70% 60% at 10% 50%, rgba(0,255,135,0.10), transparent)," +
+              "radial-gradient(ellipse 70% 60% at 10% 50%, rgba(0,229,255,0.10), transparent)," +
               "radial-gradient(ellipse 60% 80% at 90% 50%, rgba(168,85,247,0.09), transparent)," +
               "linear-gradient(to bottom right, #060810, #08080f)",
           }}
@@ -1152,7 +1152,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
         <div
           aria-hidden
           className="pointer-events-none absolute start-0 end-0 h-px"
-          style={{ top: "50%", background: "linear-gradient(to right, transparent, rgba(0,255,135,0.15), transparent)" }}
+          style={{ top: "50%", background: "linear-gradient(to right, transparent, rgba(0,229,255,0.15), transparent)" }}
         />
 
         <div className="section-frame relative z-10">
@@ -1163,7 +1163,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               {/* Availability badge */}
               <Reveal>
                 <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest"
-                  style={{ background: "rgba(0,255,135,0.08)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
+                  style={{ background: "rgba(0,229,255,0.08)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
                   <span className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
                   {locale === "ar" ? "Ù…ØªØ§Ø­ Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø¬Ø¯ÙŠØ¯Ø© Â· 2026" : "Available for projects Â· 2026"}
                 </div>
@@ -1185,7 +1185,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
               <Reveal delay={0.14}>
                 <div className="flex flex-wrap gap-2">
                   {t.cv.chips.map((chip, i) => {
-                    const colors = ["rgba(0,255,135,0.15)", "rgba(255,107,0,0.15)", "rgba(168,85,247,0.15)", "rgba(6,182,212,0.15)"];
+                    const colors = ["rgba(0,229,255,0.15)", "rgba(255,107,0,0.15)", "rgba(168,85,247,0.15)", "rgba(6,182,212,0.15)"];
                     const textColors = ["var(--primary)", "var(--secondary)", "var(--accent)", "#06b6d4"];
                     return (
                       <motion.span
@@ -1236,7 +1236,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                 <div
                   aria-hidden
                   className="absolute -inset-4 rounded-[2.5rem] blur-2xl"
-                  style={{ background: "linear-gradient(135deg, rgba(0,255,135,0.12), rgba(168,85,247,0.1))" }}
+                  style={{ background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(168,85,247,0.1))" }}
                 />
                 <div
                   className="relative overflow-hidden rounded-[2.5rem]"
@@ -1260,7 +1260,7 @@ className="object-cover object-top"
                           border: "1px solid var(--border)",
                           backdropFilter: "blur(32px) saturate(1.5)",
                           WebkitBackdropFilter: "blur(32px) saturate(1.5)",
-                          boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,135,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
+                          boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,229,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
                         }}>
                         {[
                           { num: "+5", sub: locale === "ar" ? "Ø³Ù†ÙˆØ§Øª" : "Years" },
@@ -1291,7 +1291,7 @@ className="object-cover object-top"
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
-          style={{ background: "radial-gradient(ellipse 50% 60% at 5% 50%, rgba(0,255,135,0.05), transparent)" }}
+          style={{ background: "radial-gradient(ellipse 50% 60% at 5% 50%, rgba(0,229,255,0.05), transparent)" }}
         />
         <div className="section-frame">
           <Reveal>
@@ -1316,10 +1316,10 @@ className="object-cover object-top"
                   <div className="relative z-10 mt-1.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full md:h-14 md:w-28 md:rounded-2xl"
                     style={{
                       background: i === 0
-                        ? "linear-gradient(135deg, var(--primary), rgba(0,255,135,0.08))"
+                        ? "linear-gradient(135deg, var(--primary), rgba(0,229,255,0.08))"
                         : "var(--surface-strong)",
                       border: i === 0 ? "2px solid var(--primary)88" : "2px solid rgba(255,255,255,0.08)",
-                      boxShadow: i === 0 ? "0 0 20px rgba(0,255,135,0.3)" : "none",
+                      boxShadow: i === 0 ? "0 0 20px rgba(0,229,255,0.3)" : "none",
                     }}
                   >
                     {/* Mobile: dot only */}
@@ -1349,7 +1349,7 @@ className="object-cover object-top"
                       <div className="text-end">
                         {entry.period && (
                           <span className="rounded-full px-3 py-1 font-mono text-[11px] font-bold"
-                            style={{ background: "rgba(0,255,135,0.07)", border: "1px solid var(--primary-glow)", color: "var(--primary)" }}>
+                            style={{ background: "rgba(0,229,255,0.07)", border: "1px solid var(--primary-glow)", color: "var(--primary)" }}>
                             {entry.period}
                           </span>
                         )}
@@ -1426,7 +1426,7 @@ className="object-cover object-top"
                     {["Next.js","React","TypeScript","Tailwind","Framer Motion","Figma","Node.js","Vercel","YouTube","Premiere","Git","Supabase"].map((t) => (
                       <motion.span
                         key={t}
-                        whileHover={{ scale: 1.1, borderColor: "rgba(0,255,135,0.45)" }}
+                        whileHover={{ scale: 1.1, borderColor: "rgba(0,229,255,0.45)" }}
                         className="cursor-default rounded-full px-3 py-1.5 text-[11px] font-bold text-foreground-soft"
                         style={{ background: "var(--surface-soft)", border: "1px solid var(--border)" }}
                       >{t}</motion.span>
@@ -1478,18 +1478,18 @@ className="object-cover object-top"
         <div className="section-frame">
           <Reveal>
             <motion.div
-              whileHover={{ borderColor: "rgba(0,255,135,0.30)" }}
+              whileHover={{ borderColor: "rgba(0,229,255,0.30)" }}
               className="relative overflow-hidden rounded-[2.5rem] p-10 md:p-16"
               style={{
                 background: "var(--surface)",
-                border: "1px solid rgba(0,255,135,0.14)",
+                border: "1px solid rgba(0,229,255,0.14)",
                 backdropFilter: "blur(24px)",
               }}
             >
               <div
                 aria-hidden
                 className="pointer-events-none absolute end-0 top-0 h-full w-1/2 opacity-30"
-                style={{ background: "radial-gradient(ellipse at right center, rgba(0,255,135,0.12), transparent 70%)" }}
+                style={{ background: "radial-gradient(ellipse at right center, rgba(0,229,255,0.12), transparent 70%)" }}
               />
               <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center">
                 <div className="flex-1">
@@ -1773,7 +1773,7 @@ function Project3DShowcase({
 }) {
   const story = projectStory(project, locale);
   const accentMap = {
-    "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,255,135,0.06)", glow: "rgba(0,255,135,0.12)" },
+    "neon-green": { border: "var(--primary-border)", color: "var(--primary)", bg: "rgba(0,229,255,0.06)", glow: "rgba(0,229,255,0.12)" },
     "neon-orange": { border: "var(--secondary-border)", color: "var(--secondary)", bg: "rgba(255,107,0,0.06)", glow: "rgba(255,107,0,0.12)" },
     "neon-purple": { border: "var(--accent-border)", color: "var(--accent)", bg: "rgba(168,85,247,0.06)", glow: "rgba(168,85,247,0.12)" },
   };
@@ -1877,7 +1877,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 0% 50%, rgba(0,255,135,0.09), transparent)," +
+              "radial-gradient(ellipse 80% 60% at 0% 50%, rgba(0,229,255,0.09), transparent)," +
               "radial-gradient(ellipse 60% 80% at 100% 50%, rgba(168,85,247,0.08), transparent)," +
               "var(--background)",
           }}
@@ -2252,7 +2252,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 80% 70% at 50% 0%, rgba(0,255,135,0.10), transparent 55%)," +
+              "radial-gradient(ellipse 80% 70% at 50% 0%, rgba(0,229,255,0.10), transparent 55%)," +
               "radial-gradient(ellipse 60% 50% at 0% 80%, rgba(168,85,247,0.08), transparent)," +
               "linear-gradient(180deg, transparent, #06080f 80%)",
           }}
@@ -2266,7 +2266,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
               {/* Availability indicator */}
               <Reveal>
                 <div className="inline-flex items-center gap-2.5 rounded-full px-4 py-2 text-xs font-bold"
-                  style={{ background: "rgba(0,255,135,0.07)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
+                  style={{ background: "rgba(0,229,255,0.07)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "var(--primary)" }} />
                     <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
@@ -2443,7 +2443,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                 className="rounded-[2rem] p-6 md:p-8"
                 style={{
                   background: "linear-gradient(135deg, rgba(8,10,20,0.95), rgba(5,7,15,0.98))",
-                  border: "1px solid rgba(0,255,135,0.14)",
+                  border: "1px solid rgba(0,229,255,0.14)",
                   backdropFilter: "blur(28px)",
                 }}
               >
@@ -2464,7 +2464,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
 
   const insightIcons = ["ðŸŽ¯", "âš¡", "ðŸ”"];
   const insightAccents = [
-    { border: "var(--primary-border)", bg: "rgba(0,255,135,0.06)", color: "var(--primary)" },
+    { border: "var(--primary-border)", bg: "rgba(0,229,255,0.06)", color: "var(--primary)" },
     { border: "var(--secondary-border)", bg: "rgba(255,107,0,0.06)", color: "var(--secondary)" },
     { border: "var(--accent-border)", bg: "rgba(168,85,247,0.06)", color: "var(--accent)" },
   ];
@@ -2504,7 +2504,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
             {t.insights.cards.map((card, i) => (
               <Reveal key={card.title} delay={i * 0.07}>
                 <motion.div
-                  whileHover={{ y: -6, borderColor: insightAccents[i]?.border.replace("0.18", "0.35") ?? "rgba(0,255,135,0.35)" }}
+                  whileHover={{ y: -6, borderColor: insightAccents[i]?.border.replace("0.18", "0.35") ?? "rgba(0,229,255,0.35)" }}
                   className="group h-full rounded-[2rem] p-7 transition duration-500"
                   style={{
                     background: "rgba(8,10,20,0.8)",
@@ -2516,7 +2516,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
                   <div className="mb-5 flex items-center gap-4">
                     <span
                       className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                      style={{ background: insightAccents[i]?.bg ?? "rgba(0,255,135,0.06)", border: `1px solid ${insightAccents[i]?.border ?? "var(--primary-border)"}` }}
+                      style={{ background: insightAccents[i]?.bg ?? "rgba(0,229,255,0.06)", border: `1px solid ${insightAccents[i]?.border ?? "var(--primary-border)"}` }}
                     >
                       {insightIcons[i]}
                     </span>
@@ -2599,7 +2599,7 @@ function BlogPage({ model }: { model: SiteViewModel }) {
                   <div className="mb-4 flex items-start justify-between">
                     <span className="text-2xl">{p.icon}</span>
                     <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em]"
-                      style={{ background: "rgba(0,255,135,0.06)", border: "1px solid rgba(0,255,135,0.15)", color: "var(--primary)" }}>
+                      style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.15)", color: "var(--primary)" }}>
                       {p.tag}
                     </span>
                   </div>
@@ -2653,11 +2653,11 @@ function PrivacyAccordionItem({ item, index }: { item: string; index: number }) 
 
   return (
     <motion.div
-      whileHover={{ borderColor: open ? "rgba(0,255,135,0.3)" : "var(--primary-border)" }}
+      whileHover={{ borderColor: open ? "rgba(0,229,255,0.3)" : "var(--primary-border)" }}
       className="overflow-hidden rounded-[1.75rem] transition duration-300"
       style={{
         background: "rgba(8,10,20,0.75)",
-        border: `1px solid ${open ? "rgba(0,255,135,0.22)" : "rgba(255,255,255,0.06)"}`,
+        border: `1px solid ${open ? "rgba(0,229,255,0.22)" : "rgba(255,255,255,0.06)"}`,
         backdropFilter: "blur(20px)",
       }}
     >
@@ -2670,7 +2670,7 @@ function PrivacyAccordionItem({ item, index }: { item: string; index: number }) 
         <div className="flex items-center gap-4">
           <span
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black"
-            style={{ background: "rgba(0,255,135,0.08)", border: "1px solid rgba(0,255,135,0.15)", color: "var(--primary)" }}
+            style={{ background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.15)", color: "var(--primary)" }}
           >
             {String(index + 1).padStart(2, "0")}
           </span>

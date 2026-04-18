@@ -166,7 +166,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] border border-primary/20 bg-[linear-gradient(135deg,rgba(0,255,135,0.1),rgba(255,107,0,0.06))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl md:p-6">
+      <section className="overflow-hidden rounded-[2rem] border border-primary/20 bg-[linear-gradient(135deg,rgba(0,229,255,0.1),rgba(255,107,0,0.06))] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-black text-foreground md:text-2xl">

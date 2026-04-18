@@ -25,7 +25,7 @@ export function GlassCard({
   ...props
 }: GlassCardProps) {
   const glowShadow = {
-    green: "shadow-[0_0_60px_rgba(0,255,135,0.12),0_24px_80px_rgba(0,0,0,0.5)]",
+    green: "shadow-[0_0_60px_rgba(0,229,255,0.12),0_24px_80px_rgba(0,0,0,0.5)]",
     orange: "shadow-[0_0_60px_rgba(255,107,0,0.12),0_24px_80px_rgba(0,0,0,0.5)]",
     purple: "shadow-[0_0_60px_rgba(168,85,247,0.12),0_24px_80px_rgba(0,0,0,0.5)]",
   };

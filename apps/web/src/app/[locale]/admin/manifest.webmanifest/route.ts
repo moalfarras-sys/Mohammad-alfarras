@@ -30,7 +30,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ loca
     display_override: ["standalone", "minimal-ui"] as const,
     orientation: "any" as const,
     background_color: "#070b14",
-    theme_color: "#00ff87",
+    theme_color: "#00E5FF",
     categories: ["business", "productivity"],
     icons: [icon],
     shortcuts: [

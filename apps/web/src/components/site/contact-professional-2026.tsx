@@ -221,9 +221,9 @@ const CHANNELS: ChannelDef[] = [
    Trust metrics strip
 ───────────────────────────────────────────── */
 const trustItems = [
-  { icon: Zap, ar: "رد خلال 24 ساعة", en: "< 24h Response", color: "#00ff87" },
+  { icon: Zap, ar: "رد خلال 24 ساعة", en: "< 24h Response", color: "#00E5FF" },
   { icon: Star, ar: "+40 مشروع حقيقي", en: "40+ Real Projects", color: "#ff8c00" },
-  { icon: Globe2, ar: "ألمانيا · متاح قولباً", en: "Germany · Available Now", color: "#a855f7" },
+  { icon: Globe2, ar: "ألمانيا · متاح قولباً", en: "Germany · Available Now", color: "#D946EF" },
   { icon: Shield, ar: "ضمان الجودة الكاملة", en: "Full Quality Guarantee", color: "#06b6d4" },
 ];
 
@@ -262,15 +262,15 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div
           className="absolute -top-40 left-1/4 h-[700px] w-[700px] rounded-full opacity-20 blur-[140px]"
-          style={{ background: "radial-gradient(circle, #00ff87, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #00E5FF, transparent 70%)" }}
         />
         <div
           className="absolute top-1/2 -right-20 h-[600px] w-[600px] rounded-full opacity-15 blur-[120px]"
-          style={{ background: "radial-gradient(circle, #ff6b00, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #6366F1, transparent 70%)" }}
         />
         <div
           className="absolute bottom-0 left-1/3 h-[500px] w-[500px] rounded-full opacity-12 blur-[100px]"
-          style={{ background: "radial-gradient(circle, #a855f7, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #D946EF, transparent 70%)" }}
         />
       </div>
 
@@ -301,14 +301,14 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
             <div
               className="mb-8 inline-flex items-center gap-3 rounded-full border px-5 py-2.5 backdrop-blur-xl"
               style={{
-                borderColor: "rgba(0,255,135,0.4)",
+                borderColor: "rgba(0,229,255,0.4)",
                 background: "rgba(0,0,0,0.45)",
-                boxShadow: "0 0 40px rgba(0,255,135,0.15)",
+                boxShadow: "0 0 40px rgba(0,229,255,0.15)",
               }}
             >
               <span className="relative flex h-3 w-3">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff87] opacity-70" />
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-[#00ff87]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00E5FF] opacity-70" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-[#00E5FF]" />
               </span>
               <span className="text-xs font-black uppercase tracking-[0.28em] text-white">
                 {locale === "ar" ? "متاح الآن للمشاريع الجديدة" : "Available now for new projects"}
@@ -322,7 +322,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
                   <br />
                   <span
                     style={{
-                      background: "linear-gradient(135deg, #00ff87, #06b6d4)",
+                      background: "linear-gradient(135deg, #00E5FF, #06b6d4)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                     }}
@@ -336,7 +336,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
                   <br />
                   <span
                     style={{
-                      background: "linear-gradient(135deg, #00ff87, #06b6d4)",
+                      background: "linear-gradient(135deg, #00E5FF, #06b6d4)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                     }}
@@ -595,7 +595,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
                   >
                     <span
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
-                      style={{ background: "rgba(0,255,135,0.1)", color: "#00ff87", border: "1px solid rgba(0,255,135,0.2)" }}
+                      style={{ background: "rgba(0,229,255,0.1)", color: "#00E5FF", border: "1px solid rgba(0,229,255,0.2)" }}
                     >
                       {step.n}
                     </span>
@@ -613,7 +613,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
               {[
                 {
                   Icon: BriefcaseBusiness,
-                  color: "#00ff87",
+                  color: "#00E5FF",
                   ar: { t: "عروض مواقع وخدمات", b: "مناسب لطلبات المواقع، صفحات الهبوط، أنظمة البيع الرقمية." },
                   en: { t: "Web & digital services", b: "Best for websites, landing pages, and digital sales systems." },
                 },
@@ -687,7 +687,7 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
           transition={{ delay: 0.5 }}
           className="relative overflow-hidden rounded-[2.5rem] border border-[#4285f4]/25 p-8 md:p-10"
           style={{
-            background: "linear-gradient(135deg, rgba(66,133,244,0.08), rgba(0,255,135,0.05))",
+            background: "linear-gradient(135deg, rgba(66,133,244,0.08), rgba(0,229,255,0.05))",
             backdropFilter: "blur(24px)",
           }}
         >
@@ -752,12 +752,12 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
           transition={{ delay: 0.6 }}
           className="relative overflow-hidden rounded-[3rem] border border-white/10 p-10 text-center md:p-16"
           style={{
-            background: "linear-gradient(135deg, rgba(0,255,135,0.08), rgba(168,85,247,0.06), rgba(255,107,0,0.06))",
+            background: "linear-gradient(135deg, rgba(0,229,255,0.08), rgba(168,85,247,0.06), rgba(255,107,0,0.06))",
             backdropFilter: "blur(24px)",
           }}
         >
           <div className="pointer-events-none absolute inset-0" style={{
-            background: "radial-gradient(circle at 50% 0%, rgba(0,255,135,0.12), transparent 60%)",
+            background: "radial-gradient(circle at 50% 0%, rgba(0,229,255,0.12), transparent 60%)",
           }} />
 
           <div className="relative">
@@ -782,8 +782,8 @@ export function ContactProfessional2026({ model }: { model: SiteViewModel }) {
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-3 rounded-full px-10 py-4 text-base font-black text-black"
                 style={{
-                  background: "linear-gradient(135deg, #00ff87, #00cc6a)",
-                  boxShadow: "0 0 60px rgba(0,255,135,0.4)",
+                  background: "linear-gradient(135deg, #00E5FF, #00B8D4)",
+                  boxShadow: "0 0 60px rgba(0,229,255,0.4)",
                 }}
               >
                 <WhatsAppSVG size={20} />

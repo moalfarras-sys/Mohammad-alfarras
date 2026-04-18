@@ -5,10 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/cn";
-import { alternateLocalePath, localeMeta } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
 
 import { useThemeMode } from "./use-theme-mode";
@@ -33,8 +32,6 @@ export function SiteNavbar({
   brandName: string;
 }) {
   const pathname = usePathname();
-  const localeHref = useMemo(() => alternateLocalePath(pathname || `/${locale}`, locale), [locale, pathname]);
-  const nextLocale = locale === "ar" ? "en" : "ar";
   const { theme, toggleTheme } = useThemeMode();
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -109,12 +106,6 @@ export function SiteNavbar({
                 ) : <span className="h-4 w-4" />}
               </AnimatePresence>
             </motion.button>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
-              <Link href={localeHref} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-bold transition-all duration-300 border border-border-glass bg-bg-secondary text-primary shadow-sm">
-                <span className="text-[10px]">{localeMeta[nextLocale].flag}</span>
-                <span className="tracking-widest">{nextLocale === "ar" ? "AR" : "EN"}</span>
-              </Link>
-            </motion.div>
           </div>
         </div>
 
@@ -172,16 +163,6 @@ export function SiteNavbar({
                 ) : <span className="h-4 w-4" />}
               </AnimatePresence>
           </motion.button>
-
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }}>
-            <Link
-              href={localeHref}
-              className="inline-flex h-11 items-center gap-2 rounded-full px-4 text-xs font-bold transition-all duration-300 border border-border-glass bg-bg-secondary text-primary"
-            >
-              <span className="text-sm">{localeMeta[nextLocale].flag}</span>
-              <span className="tracking-widest">{nextLocale === "ar" ? "AR" : "EN"}</span>
-            </Link>
-          </motion.div>
         </div>
       </motion.div>
     </header>

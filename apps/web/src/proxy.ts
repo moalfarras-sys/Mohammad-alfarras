@@ -43,6 +43,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/ar" || pathname.startsWith("/ar/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/ar(?=\/|$)/, "/en");
+    return NextResponse.redirect(url);
+  }
+
   const locale = localeFromPathname(pathname);
 
   if (!locale) {

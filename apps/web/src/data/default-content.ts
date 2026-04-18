@@ -840,13 +840,13 @@ export const defaultSnapshot: CmsSnapshot = {
     { id: "m28", path: "/images/service_web.png", alt_ar: "تصميم مواقع", alt_en: "Web design pillar", width: 1600, height: 900, type: "image/png" },
     { id: "m29", path: "/images/service_tech.png", alt_ar: "تقنية ومنتجات", alt_en: "Tech product storytelling", width: 1600, height: 900, type: "image/png" },
     { id: "m30", path: "/images/service_logistics.png", alt_ar: "لوجستيك وتشغيل", alt_en: "Logistics operations plate", width: 1600, height: 900, type: "image/png" },
-    { id: "m34", path: "/images/moplayer-app-cover.jpeg", alt_ar: "MoPlayer — دراسة منتج رقمي", alt_en: "MoPlayer — digital product study", width: 1200, height: 1600, type: "image/jpeg" },
+    { id: "m34", path: "/images/moplayer-hero-3d.png", alt_ar: "MoPlayer — دراسة منتج رقمي", alt_en: "MoPlayer — digital product study", width: 1920, height: 1080, type: "image/png" },
     { id: "m50", path: "/images/seel-contact-case.png", alt_ar: "قسم التواصل — SEEL Transport", alt_en: "SEEL Transport contact section", width: 1440, height: 1024, type: "image/png" },
     { id: "m51", path: "/images/schnell-contact-case.png", alt_ar: "قسم التواصل — Schnell Sicher Umzug", alt_en: "Schnell Sicher Umzug contact section", width: 1440, height: 1024, type: "image/png" },
     { id: "m52", path: "/images/hero-profile-bg.png", alt_ar: "إطار هيرو للبورتريه", alt_en: "Portrait hero frame", width: 1920, height: 1080, type: "image/png" },
     { id: "m53", path: "/images/logo.png", alt_ar: "شعار محمد الفراس", alt_en: "Mohammad Alfarras brand logo", width: 1200, height: 1200, type: "image/png" },
-    { id: "m55", path: "/images/moplayer_ui_now_playing.png", alt_ar: "MoPlayer — شاشة التشغيل", alt_en: "MoPlayer — Now Playing screen", width: 1024, height: 1024, type: "image/png" },
-    { id: "m56", path: "/images/moplayer_ui_playlist.png", alt_ar: "MoPlayer — شاشة قائمة التشغيل", alt_en: "MoPlayer — Playlist screen", width: 1024, height: 1024, type: "image/png" },
+    { id: "m55", path: "/images/moplayer-ui-mock.png", alt_ar: "MoPlayer — شاشة التشغيل", alt_en: "MoPlayer — Now Playing screen", width: 1920, height: 1080, type: "image/png" },
+    { id: "m56", path: "/images/moplayer-tv-banner.png", alt_ar: "MoPlayer — شاشة قائمة التشغيل", alt_en: "MoPlayer — Playlist screen", width: 1920, height: 1080, type: "image/png" },
   ],
   youtube_videos: [
     {

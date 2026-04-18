@@ -1,7 +1,7 @@
 ﻿import type { Locale } from "@/types/cms";
 
 export const locales: Locale[] = ["ar", "en"];
-export const defaultLocale: Locale = "ar";
+export const defaultLocale: Locale = "en";
 
 export const localeMeta: Record<Locale, { dir: "rtl" | "ltr"; label: string; flag: string }> = {
   ar: { dir: "rtl", label: "العربية", flag: "🇸🇾" },

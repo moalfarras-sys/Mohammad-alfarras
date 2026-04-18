@@ -74,7 +74,7 @@
                     android:layout_height="40dp"
                     android:contentDescription="@string/cd_logo"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/ic_app_logo" />
+                    android:src="@drawable/moplayer_brand_logo_new" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"

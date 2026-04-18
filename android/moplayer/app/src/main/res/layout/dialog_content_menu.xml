@@ -45,7 +45,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        tools:src="@drawable/moplayer_logo_placeholder"
+                        tools:src="@drawable/moplayer_brand_logo_new"
                         tools:ignore="ContentDescription" />
 
                 </androidx.cardview.widget.CardView>

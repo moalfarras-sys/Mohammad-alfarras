@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -53,7 +53,7 @@ import { YoutubeProfessional2026 } from "./youtube-professional-2026";
 import { ProjectsProfessional2026 } from "./projects-professional-2026";
 import { ContactProfessional2026 } from "./contact-professional-2026";
 
-/* ── Types ── */
+/* â”€â”€ Types â”€â”€ */
 type SiteProject = {
   id: string;
   slug: string;
@@ -186,7 +186,7 @@ export type SiteViewModel = {
   };
 };
 
-/* ── Helpers ── */
+/* â”€â”€ Helpers â”€â”€ */
 function fmt(locale: Locale, value: number | string | undefined, compact = true) {
   const num = typeof value === "string" ? parseInt(value, 10) : value;
   if (!num || isNaN(num)) return "0";
@@ -210,10 +210,10 @@ function projectStory(project: SiteProject, locale: Locale) {
   if (key.includes("seel")) {
     return locale === "ar"
       ? {
-          type: "خدمات نقل",
-          challenge: "الشركة كانت تعمل جيدًا، لكن الانطباع الأول لم يكن يقول ذلك بوضوح.",
-          solution: "أُعيد ترتيب العرض البصري والرسالة حتى يشعر الزائر بالثقة قبل قراءة التفاصيل.",
-          result: "صورة أكثر جدية، ورسالة أسرع، ومسار أوضح نحو التواصل.",
+          type: "Ø®Ø¯Ù…Ø§Øª Ù†Ù‚Ù„",
+          challenge: "Ø§Ù„Ø´Ø±ÙƒØ© ÙƒØ§Ù†Øª ØªØ¹Ù…Ù„ Ø¬ÙŠØ¯Ù‹Ø§ØŒ Ù„ÙƒÙ† Ø§Ù„Ø§Ù†Ø·Ø¨Ø§Ø¹ Ø§Ù„Ø£ÙˆÙ„ Ù„Ù… ÙŠÙƒÙ† ÙŠÙ‚ÙˆÙ„ Ø°Ù„Ùƒ Ø¨ÙˆØ¶ÙˆØ­.",
+          solution: "Ø£ÙØ¹ÙŠØ¯ ØªØ±ØªÙŠØ¨ Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¨ØµØ±ÙŠ ÙˆØ§Ù„Ø±Ø³Ø§Ù„Ø© Ø­ØªÙ‰ ÙŠØ´Ø¹Ø± Ø§Ù„Ø²Ø§Ø¦Ø± Ø¨Ø§Ù„Ø«Ù‚Ø© Ù‚Ø¨Ù„ Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„ØªÙØ§ØµÙŠÙ„.",
+          result: "ØµÙˆØ±Ø© Ø£ÙƒØ«Ø± Ø¬Ø¯ÙŠØ©ØŒ ÙˆØ±Ø³Ø§Ù„Ø© Ø£Ø³Ø±Ø¹ØŒ ÙˆÙ…Ø³Ø§Ø± Ø£ÙˆØ¶Ø­ Ù†Ø­Ùˆ Ø§Ù„ØªÙˆØ§ØµÙ„.",
           accent: "neon-green" as const,
         }
       : {
@@ -227,10 +227,10 @@ function projectStory(project: SiteProject, locale: Locale) {
   if (key.includes("schnell")) {
     return locale === "ar"
       ? {
-          type: "موقع حجز",
-          challenge: "في خدمات النقل، القرار يحدث بسرعة وتحت ضغط. التشتيت هنا يكلّف.",
-          solution: "بُنيت الواجهة حول خطوة واحدة واضحة مع عرض أكثر هدوءًا وسرعة.",
-          result: "واجهة تقود للحجز مباشرة وتخفض التردد في أول زيارة.",
+          type: "Ù…ÙˆÙ‚Ø¹ Ø­Ø¬Ø²",
+          challenge: "ÙÙŠ Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù†Ù‚Ù„ØŒ Ø§Ù„Ù‚Ø±Ø§Ø± ÙŠØ­Ø¯Ø« Ø¨Ø³Ø±Ø¹Ø© ÙˆØªØ­Øª Ø¶ØºØ·. Ø§Ù„ØªØ´ØªÙŠØª Ù‡Ù†Ø§ ÙŠÙƒÙ„Ù‘Ù.",
+          solution: "Ø¨ÙÙ†ÙŠØª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø­ÙˆÙ„ Ø®Ø·ÙˆØ© ÙˆØ§Ø­Ø¯Ø© ÙˆØ§Ø¶Ø­Ø© Ù…Ø¹ Ø¹Ø±Ø¶ Ø£ÙƒØ«Ø± Ù‡Ø¯ÙˆØ¡Ù‹Ø§ ÙˆØ³Ø±Ø¹Ø©.",
+          result: "ÙˆØ§Ø¬Ù‡Ø© ØªÙ‚ÙˆØ¯ Ù„Ù„Ø­Ø¬Ø² Ù…Ø¨Ø§Ø´Ø±Ø© ÙˆØªØ®ÙØ¶ Ø§Ù„ØªØ±Ø¯Ø¯ ÙÙŠ Ø£ÙˆÙ„ Ø²ÙŠØ§Ø±Ø©.",
           accent: "neon-orange" as const,
         }
       : {
@@ -243,10 +243,10 @@ function projectStory(project: SiteProject, locale: Locale) {
   }
   return locale === "ar"
     ? {
-        type: "منتج رقمي",
-        challenge: "كان المطلوب تقديم الفكرة بشكل واضح دون فقدان الشخصية أو الإيقاع البصري.",
+        type: "Ù…Ù†ØªØ¬ Ø±Ù‚Ù…ÙŠ",
+        challenge: "ÙƒØ§Ù† Ø§Ù„Ù…Ø·Ù„ÙˆØ¨ ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„ÙÙƒØ±Ø© Ø¨Ø´ÙƒÙ„ ÙˆØ§Ø¶Ø­ Ø¯ÙˆÙ† ÙÙ‚Ø¯Ø§Ù† Ø§Ù„Ø´Ø®ØµÙŠØ© Ø£Ùˆ Ø§Ù„Ø¥ÙŠÙ‚Ø§Ø¹ Ø§Ù„Ø¨ØµØ±ÙŠ.",
         solution: project.description,
-        result: "عرض أنظف، ثقة أعلى، وتجربة أسهل في الفهم من أول شاشة.",
+        result: "Ø¹Ø±Ø¶ Ø£Ù†Ø¸ÙØŒ Ø«Ù‚Ø© Ø£Ø¹Ù„Ù‰ØŒ ÙˆØªØ¬Ø±Ø¨Ø© Ø£Ø³Ù‡Ù„ ÙÙŠ Ø§Ù„ÙÙ‡Ù… Ù…Ù† Ø£ÙˆÙ„ Ø´Ø§Ø´Ø©.",
         accent: "neon-purple" as const,
       }
     : {
@@ -262,16 +262,16 @@ function experienceStory(entry: SiteExperience, locale: Locale) {
   const key = `${entry.company} ${entry.role}`.toLowerCase();
   if (key.includes("rhenus")) {
     return locale === "ar"
-      ? "في عالم التوصيل، التأخير يظهر مباشرة على وجه العميل. هناك تعلّمت أن النظام ليس رفاهية، بل ما يجعل كل شيء يعمل."
+      ? "ÙÙŠ Ø¹Ø§Ù„Ù… Ø§Ù„ØªÙˆØµÙŠÙ„ØŒ Ø§Ù„ØªØ£Ø®ÙŠØ± ÙŠØ¸Ù‡Ø± Ù…Ø¨Ø§Ø´Ø±Ø© Ø¹Ù„Ù‰ ÙˆØ¬Ù‡ Ø§Ù„Ø¹Ù…ÙŠÙ„. Ù‡Ù†Ø§Ùƒ ØªØ¹Ù„Ù‘Ù…Øª Ø£Ù† Ø§Ù„Ù†Ø¸Ø§Ù… Ù„ÙŠØ³ Ø±ÙØ§Ù‡ÙŠØ©ØŒ Ø¨Ù„ Ù…Ø§ ÙŠØ¬Ø¹Ù„ ÙƒÙ„ Ø´ÙŠØ¡ ÙŠØ¹Ù…Ù„."
       : "In delivery work, delays show up immediately on the customer side. That is where I learned that structure is not a luxury; it is what makes things work.";
   }
   if (key.includes("ikea")) {
     return locale === "ar"
-      ? "أكبر درس من IKEA كان بسيطًا: حتى البساطة تحتاج نظامًا قويًا خلفها."
+      ? "Ø£ÙƒØ¨Ø± Ø¯Ø±Ø³ Ù…Ù† IKEA ÙƒØ§Ù† Ø¨Ø³ÙŠØ·Ù‹Ø§: Ø­ØªÙ‰ Ø§Ù„Ø¨Ø³Ø§Ø·Ø© ØªØ­ØªØ§Ø¬ Ù†Ø¸Ø§Ù…Ù‹Ø§ Ù‚ÙˆÙŠÙ‹Ø§ Ø®Ù„ÙÙ‡Ø§."
       : "The biggest lesson from IKEA was simple: even simplicity needs a strong system behind it.";
   }
   return locale === "ar"
-    ? "هنا اجتمعت الخيوط: انضباط التشغيل، ذوق التصميم، ورسالة تقنع بسرعة."
+    ? "Ù‡Ù†Ø§ Ø§Ø¬ØªÙ…Ø¹Øª Ø§Ù„Ø®ÙŠÙˆØ·: Ø§Ù†Ø¶Ø¨Ø§Ø· Ø§Ù„ØªØ´ØºÙŠÙ„ØŒ Ø°ÙˆÙ‚ Ø§Ù„ØªØµÙ…ÙŠÙ…ØŒ ÙˆØ±Ø³Ø§Ù„Ø© ØªÙ‚Ù†Ø¹ Ø¨Ø³Ø±Ø¹Ø©."
     : "This is where the threads met: operational discipline, design taste, and messaging that persuades quickly.";
 }
 
@@ -284,7 +284,7 @@ type JourneyStepFallback = {
   highlights?: string[];
 };
 
-/* ── CountUp Hook ── */
+/* â”€â”€ CountUp Hook â”€â”€ */
 function useCountUp(target: number, duration = 1800) {
   const [value, setValue] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -309,7 +309,7 @@ function useCountUp(target: number, duration = 1800) {
   return { value, ref };
 }
 
-/* ── Shared UI ── */
+/* â”€â”€ Shared UI â”€â”€ */
 function SectionHeading({
   eyebrow,
   title,
@@ -361,7 +361,7 @@ function ActionLink({
   );
 }
 
-/* ── Video Card ── */
+/* â”€â”€ Video Card â”€â”€ */
 function VideoCard({ video, locale }: { video: YoutubeVideo; locale: Locale }) {
   return (
     <div
@@ -427,237 +427,88 @@ function HeroStatAnimated({ target, suffix, prefix = "" }: { target: number, suf
   );
 }
 
-/* ── HOME PAGE ── */
+/* â”€â”€ HOME PAGE â”€â”€ */
 function HomePage({ model }: { model: SiteViewModel }) {
   const { locale, t, projects, services, featuredVideo, youtube } = model;
 
   const heroStats = [
-    { label: locale === "ar" ? "مشاهدة" : "Views", target: 1.5, suffix: "M", prefix: "+" },
-    { label: locale === "ar" ? "مشترك" : "Subscribers", target: 6.1, suffix: "K", prefix: "+" },
-    { label: locale === "ar" ? "فيديو" : "Videos", target: Number(youtube.videos ?? 162), suffix: "", prefix: "" },
-    { label: locale === "ar" ? "الرد" : "Response", target: 24, suffix: "h", prefix: "" },
+    { label: locale === "ar" ? "Ù…Ø´Ø§Ù‡Ø¯Ø©" : "Views", target: 1.5, suffix: "M", prefix: "+" },
+    { label: locale === "ar" ? "Ù…Ø´ØªØ±Ùƒ" : "Subscribers", target: 6.1, suffix: "K", prefix: "+" },
+    { label: locale === "ar" ? "ÙÙŠØ¯ÙŠÙˆ" : "Videos", target: Number(youtube.videos ?? 162), suffix: "", prefix: "" },
+    { label: locale === "ar" ? "Ø§Ù„Ø±Ø¯" : "Response", target: 24, suffix: "h", prefix: "" },
   ];
 
   return (
     <div className="space-y-0">
 
-      {/* ── HERO ── */}
+      {/* â”€â”€ HERO â”€â”€ */}
+
+      {/* ── CINEMATIC HERO ── */}
       <section
         data-testid="home-hero"
-        className="relative overflow-hidden px-5 py-14 md:px-8 md:py-20"
+        className="relative flex min-h-[90svh] flex-col items-center justify-center overflow-hidden px-6 pt-20 pb-16"
       >
-        {/* Background orbs */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-1/4 left-1/4 h-[800px] w-[800px] -translate-x-1/2 rounded-full opacity-20 blur-[120px]"
-          style={{ background: "radial-gradient(circle, var(--primary), transparent 70%)" }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 right-0 h-[600px] w-[600px] rounded-full opacity-15 blur-[100px]"
-          style={{ background: "radial-gradient(circle, var(--accent), transparent 70%)" }}
-        />
+        <div className="absolute top-0 right-1/4 h-[800px] w-[800px] rounded-full bg-white/[0.02] blur-[150px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 h-[600px] w-[600px] rounded-full bg-white/[0.015] blur-[120px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#04060C_100%)] pointer-events-none z-0" />
 
-        <div className="section-frame">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="relative z-10 mx-auto max-w-6xl w-full flex flex-col items-center text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
+             <span className="eyebrow mb-8">
+               {locale === "ar" ? "متاح للمشاريع المختارة · ألمانيا" : "Available for selective projects · Based in Germany"}
+             </span>
+          </motion.div>
 
-            {/* LEFT — Copy */}
-            <Reveal className="space-y-8">
-              <div className="space-y-2">
-                <motion.span
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="eyebrow"
-                >
-                  {locale === "ar" ? "متاح للمشاريع المختارة · ألمانيا 🇩🇪" : "Available for selected projects · Germany 🇩🇪"}
-                </motion.span>
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="headline-display text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] tracking-tighter text-white"
+          >
+            {locale === "ar" ? "مختصر." : "Clarity."} <br />
+            <span className="text-white/40">
+              {locale === "ar" ? "في واقع مزدحم." : "In a noisy world."}
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-8 max-w-2xl text-lg md:text-xl font-medium leading-relaxed text-white/50 text-balance"
+          >
+            {locale === "ar"
+               ? "أنا محمد الفراس. أبني واجهات ومنتجات رقمية تخطف الانتباه، تبني الثقة، وتقود للقرار. "
+               : "I'm Mohammad Alfarras. I architect digital products and ecosystems that demand attention, build trust, and drive action. No excess, just impact."}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-12 flex flex-col sm:flex-row items-center gap-4"
+          >
+            <Link href={`/${locale}#contact`} className="button-primary-shell w-full sm:w-auto">
+               <Sparkles className="h-5 w-5" />
+               {locale === "ar" ? "ابدأ العمل" : "Start your project"}
+            </Link>
+            <Link href="/app" className="button-secondary-shell w-full sm:w-auto">
+               <PlayCircle className="h-5 w-5" />
+               {locale === "ar" ? "استكشف MoPlayer" : "Explore MoPlayer"}
+            </Link>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-5xl"
+          >
+            {heroStats.map((item, i) => (
+              <div key={item.label} className="flex flex-col items-center justify-center rounded-[2rem] border border-white/5 bg-white/[0.02] p-8 backdrop-blur-xl">
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#00E5FF] mb-2">{item.label}</p>
+                 <p className="text-3xl lg:text-4xl font-extrabold text-white tracking-tighter">
+                   <HeroStatAnimated target={item.target} suffix={item.suffix} prefix={item.prefix} />
+                 </p>
               </div>
-
-              <div className="space-y-5">
-                <motion.h1
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-                  className="headline-arabic max-w-2xl text-4xl font-extrabold leading-[1.08] text-foreground sm:text-5xl md:text-6.5xl tracking-tight"
-                >
-                  {locale === "ar" ? (
-                    <>
-                      الإنترنت مليء بالضجيج.{" "}
-                      <span
-                        className="text-glow-green"
-                        style={{ color: "var(--primary)" }}
-                      >
-                        أنا هنا لأصنع ما يستحق الصمت.
-                      </span>{" "}
-                      <span
-                        style={{
-                          background: "linear-gradient(135deg, var(--secondary), var(--accent))",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                        }}
-                      >
-                        خذ لحظتك.
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      The internet is loud.{" "}
-                      <span style={{ color: "var(--primary)" }} className="text-glow-green">
-                        I build what earns the silence.
-                      </span>{" "}
-                      <span
-                        style={{
-                          background: "linear-gradient(135deg, var(--secondary), var(--accent))",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                        }}
-                      >
-                        Take your moment.
-                      </span>
-                    </>
-                  )}
-                </motion.h1>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 1.0 }}
-                  className="max-w-2xl text-base leading-8 text-foreground-muted md:text-lg"
-                >
-                  {locale === "ar"
-                    ? "مطوّر وصانع محتوى من ألمانيا. ما بناه الناس في سنوات، أحاول أن أختصره في أول ثانية يراك فيها الزائر."
-                    : "Developer and content creator based in Germany. What brands spend years building, I try to compress into the first second a visitor sees you."}
-                </motion.p>
-              </div>
-
-              {/* CTAs */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45 }}
-                className="mt-10 flex w-full flex-col gap-4 sm:flex-row md:w-auto md:flex-wrap"
-              >
-                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.03 }} className="w-full sm:w-auto">
-                  <Link href={`/${locale}#contact`} className="button-primary-shell flex w-full justify-center text-base px-8 py-4 sm:w-auto">
-                    <Sparkles className="h-4 w-4" />
-                    {locale === "ar" ? "ابدأ مشروعك الاستثنائي" : "Start your standout project"}
-                  </Link>
-                </motion.div>
-                <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.03 }} className="w-full sm:w-auto">
-                  <Link href="/app" className="button-secondary-shell flex w-full justify-center text-base px-8 py-4 sm:w-auto">
-                    <PlayCircle className="h-4 w-4" />
-                    {locale === "ar" ? "شاهد كيف أعمل" : "See how I work"}
-                  </Link>
-                </motion.div>
-              </motion.div>
-
-              {/* Stats bar */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55 }}
-                className="grid grid-cols-2 gap-3 md:grid-cols-4"
-              >
-                {heroStats.map((item, i) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 + i * 0.08 }}
-                    className="rounded-2xl p-4"
-                    style={{
-                      background: "var(--surface)",
-                      border: "1px solid rgba(0,255,135,0.1)",
-                      backdropFilter: "blur(16px)",
-                    }}
-                  >
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-foreground-muted">{item.label}</p>
-                    <p className="mt-1 text-xl font-extrabold text-foreground md:text-2xl" style={{ color: "var(--primary)" }}>
-                      <HeroStatAnimated target={item.target} suffix={item.suffix} prefix={item.prefix} />
-                    </p>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </Reveal>
-
-            {/* RIGHT — Image */}
-            <Reveal delay={0.1}>
-              <div className="relative mx-auto w-full max-w-[28rem]">
-                {/* Floating glow orb */}
-                <div
-                  className="absolute -inset-8 rounded-full opacity-25 blur-3xl"
-                  style={{ background: "radial-gradient(circle, var(--primary), var(--accent), transparent 70%)" }}
-                  aria-hidden
-                />
-
-                {/* Main image card */}
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-                  className="hero-image-frame relative pb-24 md:pb-0"
-                >
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-[2.5rem]">
-                    <Image
-                      src="/images/protofeilnew.jpeg"
-                      alt={locale === "ar" ? "محمد الفراس — مطور ويب ومصمم" : "Mohammad Alfarras — Web Developer & Designer"}
-                      fill
-                      priority
-                      sizes="(max-width: 1024px) 90vw, 40vw"
-                      className="object-cover object-center-top"
-                      style={{ objectPosition: "center top" }}
-                    />
-                    {/* Subtle gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                  </div>
-
-                  {/* Floating info card: Location (Orange) */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: 0.8, type: "spring", stiffness: 90, damping: 15 }}
-                    className="hero-float-card-dark absolute bottom-4 right-4 z-20 flex min-w-[172px] max-w-[calc(100%-2rem)] items-center gap-3 rounded-[1.6rem] px-4 py-3 md:-bottom-10 md:-right-6 md:min-w-[200px] md:gap-4 md:rounded-[2.5rem] md:px-6 md:py-4"
-                    style={{
-                      border: "1px solid rgba(255,107,0,0.45)",
-                      boxShadow: "0 15px 45px rgba(255,107,0,0.22), inset 0 1px 1px rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-orange-500/15 md:h-11 md:w-11 md:rounded-[1.25rem]" style={{ border: "1px solid rgba(255,107,0,0.25)" }}>
-                      <MapPin className="h-5 w-5 md:h-6 md:w-6" style={{ color: "var(--secondary)" }} />
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-[9px] font-black uppercase tracking-[0.22em] text-foreground-soft md:text-[10px] md:tracking-[0.28em]">
-                        {locale === "ar" ? "مقيم في ألمانيا" : "Based in Germany"}
-                      </p>
-                      <p className="mt-1 text-xs font-bold text-foreground transition-colors hover:text-secondary whitespace-nowrap md:text-sm">
-                        <span dir="ltr">Frontend</span> · <span dir="ltr">Design</span> · <span dir="ltr">Content</span>
-                      </p>
-                    </div>
-                  </motion.div>
-
-                  {/* Floating info card: Available Now (Neon Green) */}
-                  <motion.div
-                    initial={{ opacity: 0, y: -30, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: 1.0, type: "spring", stiffness: 90, damping: 15 }}
-                    className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-4 py-2.5 backdrop-blur-2xl shadow-[0_12px_48px_rgba(0,255,135,0.22)] md:-left-10 md:top-12 md:gap-3 md:px-6 md:py-3.5"
-                  >
-                    <div className="relative flex h-3 w-3 md:h-3.5 md:w-3.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                      <span className="relative inline-flex h-3 w-3 rounded-full bg-primary shadow-[0_0_15px_var(--primary)] md:h-3.5 md:w-3.5" />
-                    </div>
-                    <span className="text-xs font-black uppercase tracking-[0.18em] text-primary md:text-sm md:tracking-[0.3em]">
-                      {locale === "ar" ? "متاح الآن" : "Available now"}
-                    </span>
-                  </motion.div>
-                </motion.div>
-              </div>
-            </Reveal>
-          </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â•â•â•â• ABOUT â•â•â•â•â•â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â ABOUT Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative overflow-hidden px-5 py-16 md:px-8 md:py-20">
         <div
           aria-hidden
@@ -669,29 +520,29 @@ function HomePage({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <Reveal className="space-y-12">
             
-            {/* ── TRUST STRIP ── */}
+            {/* â”€â”€ TRUST STRIP â”€â”€ */}
             <div className="mx-auto flex w-full flex-wrap items-center justify-center gap-6 rounded-[2rem] border border-border-glass bg-bg-secondary/30 px-6 py-6 sm:gap-12 md:justify-between text-sm font-bold text-foreground">
               <div className="flex items-center gap-3">
                 <PlayCircle className="h-5 w-5 text-[#FF0000]" />
-                <span>1.5M+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "مشاهدات يوتيوب" : "YouTube Views"}</span></span>
+                <span>1.5M+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "Ù…Ø´Ø§Ù‡Ø¯Ø§Øª ÙŠÙˆØªÙŠÙˆØ¨" : "YouTube Views"}</span></span>
               </div>
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-primary" />
-                <span>40+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "مشروع حقيقي" : "Real Projects"}</span></span>
+                <span>40+ <span className="font-medium text-foreground-muted">{locale === "ar" ? "Ù…Ø´Ø±ÙˆØ¹ Ø­Ù‚ÙŠÙ‚ÙŠ" : "Real Projects"}</span></span>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-secondary" />
-                <span>{'<'}24h <span className="font-medium text-foreground-muted">{locale === "ar" ? "سرعة الاستجابة" : "Response Time"}</span></span>
+                <span>{'<'}24h <span className="font-medium text-foreground-muted">{locale === "ar" ? "Ø³Ø±Ø¹Ø© Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©" : "Response Time"}</span></span>
               </div>
               <div className="flex items-center gap-3">
                  <MapPin className="h-5 w-5 text-orange-500" />
-                <span>{locale === "ar" ? "مقره في ألمانيا" : "Based in Germany"}</span>
+                <span>{locale === "ar" ? "Ù…Ù‚Ø±Ù‡ ÙÙŠ Ø£Ù„Ù…Ø§Ù†ÙŠØ§" : "Based in Germany"}</span>
               </div>
             </div>
 
             <SectionHeading
-              eyebrow={locale === "ar" ? "قصتي" : "My story"}
-              title={locale === "ar" ? "من اللوجستيات إلى صناعة الدهشة" : "From logistics to making impact"}
+              eyebrow={locale === "ar" ? "Ù‚ØµØªÙŠ" : "My story"}
+              title={locale === "ar" ? "Ù…Ù† Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠØ§Øª Ø¥Ù„Ù‰ ØµÙ†Ø§Ø¹Ø© Ø§Ù„Ø¯Ù‡Ø´Ø©" : "From logistics to making impact"}
               body=""
             />
 
@@ -707,15 +558,15 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <p className="text-lg leading-9 text-foreground-muted md:text-xl md:leading-10" dir={locale === "ar" ? "rtl" : "ltr"}>
                   {locale === "ar" ? (
                     <>
-                      <span className="font-bold text-foreground">محمد الفراس.</span>{" "}
-                      مطوّر، مصمّم، وصانع محتوى.
+                      <span className="font-bold text-foreground">Ù…Ø­Ù…Ø¯ Ø§Ù„ÙØ±Ø§Ø³.</span>{" "}
+                      Ù…Ø·ÙˆÙ‘Ø±ØŒ Ù…ØµÙ…Ù‘Ù…ØŒ ÙˆØµØ§Ù†Ø¹ Ù…Ø­ØªÙˆÙ‰.
                       <br /><br />
-                      قضيتُ سنواتٍ في قطاعي التشغيل واللوجستيك داخل{" "}
-                      <span style={{ color: "var(--primary)", fontWeight: 700 }}>ألمانيا</span>.
-                      {" "}تعلّمت هناك أن الناس لا يقرأون كل شيء —{" "}
-                      <span className="font-semibold text-foreground">{"ثانيتان والقرار اتُّخذ"}</span>.
+                      Ù‚Ø¶ÙŠØªÙ Ø³Ù†ÙˆØ§ØªÙ ÙÙŠ Ù‚Ø·Ø§Ø¹ÙŠ Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ù„ÙˆØ¬Ø³ØªÙŠÙƒ Ø¯Ø§Ø®Ù„{" "}
+                      <span style={{ color: "var(--primary)", fontWeight: 700 }}>Ø£Ù„Ù…Ø§Ù†ÙŠØ§</span>.
+                      {" "}ØªØ¹Ù„Ù‘Ù…Øª Ù‡Ù†Ø§Ùƒ Ø£Ù† Ø§Ù„Ù†Ø§Ø³ Ù„Ø§ ÙŠÙ‚Ø±Ø£ÙˆÙ† ÙƒÙ„ Ø´ÙŠØ¡ â€”{" "}
+                      <span className="font-semibold text-foreground">{"Ø«Ø§Ù†ÙŠØªØ§Ù† ÙˆØ§Ù„Ù‚Ø±Ø§Ø± Ø§ØªÙÙ‘Ø®Ø°"}</span>.
                       <br /><br />
-                      لهذا أبنيها صحيحًا من الأساس: واجهة تقول كل شيء في أول نظرة، لا تحتاج فقرة ثالثة لتُقنع، ولا صفحة كاملة لتشرح. الثقة تبدأ بصريًا.
+                      Ù„Ù‡Ø°Ø§ Ø£Ø¨Ù†ÙŠÙ‡Ø§ ØµØ­ÙŠØ­Ù‹Ø§ Ù…Ù† Ø§Ù„Ø£Ø³Ø§Ø³: ÙˆØ§Ø¬Ù‡Ø© ØªÙ‚ÙˆÙ„ ÙƒÙ„ Ø´ÙŠØ¡ ÙÙŠ Ø£ÙˆÙ„ Ù†Ø¸Ø±Ø©ØŒ Ù„Ø§ ØªØ­ØªØ§Ø¬ ÙÙ‚Ø±Ø© Ø«Ø§Ù„Ø«Ø© Ù„ØªÙÙ‚Ù†Ø¹ØŒ ÙˆÙ„Ø§ ØµÙØ­Ø© ÙƒØ§Ù…Ù„Ø© Ù„ØªØ´Ø±Ø­. Ø§Ù„Ø«Ù‚Ø© ØªØ¨Ø¯Ø£ Ø¨ØµØ±ÙŠÙ‹Ø§.
                     </>
                   ) : (
                     <>
@@ -727,7 +578,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       taught me one thing people rarely say out loud:{" "}
                       <span className="font-semibold text-foreground">&ldquo;2 seconds and the decision is made.&rdquo;</span>
                       <br /><br />
-                      So I build it right from the foundation: an interface that says everything at first glance — no third paragraph needed, no full page to explain. Trust starts visually.
+                      So I build it right from the foundation: an interface that says everything at first glance â€” no third paragraph needed, no full page to explain. Trust starts visually.
                     </>
                   )}
                 </p>
@@ -737,9 +588,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
               <div className="grid gap-4">
                 {(locale === "ar"
                     ? [
-                      { icon: Globe2, title: "من الحسكة إلى ألمانيا", body: "الهجرة غيّرت نظرتي للوقت، الالتزام، والنتيجة التي يجب أن تصل في موعدها." },
-                      { icon: Zap, title: "اللوجستيات علّمتني", body: "كل تأخير له ثمن. لهذا أبني واجهات تعتمد على الترتيب والوضوح، لا الاستعراض." },
-                      { icon: Eye, title: "+1.5M مشاهدة", body: "من شرح صادق يبني ثقة لا تستطيع الإعلانات شراءها." },
+                      { icon: Globe2, title: "Ù…Ù† Ø§Ù„Ø­Ø³ÙƒØ© Ø¥Ù„Ù‰ Ø£Ù„Ù…Ø§Ù†ÙŠØ§", body: "Ø§Ù„Ù‡Ø¬Ø±Ø© ØºÙŠÙ‘Ø±Øª Ù†Ø¸Ø±ØªÙŠ Ù„Ù„ÙˆÙ‚ØªØŒ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…ØŒ ÙˆØ§Ù„Ù†ØªÙŠØ¬Ø© Ø§Ù„ØªÙŠ ÙŠØ¬Ø¨ Ø£Ù† ØªØµÙ„ ÙÙŠ Ù…ÙˆØ¹Ø¯Ù‡Ø§." },
+                      { icon: Zap, title: "Ø§Ù„Ù„ÙˆØ¬Ø³ØªÙŠØ§Øª Ø¹Ù„Ù‘Ù…ØªÙ†ÙŠ", body: "ÙƒÙ„ ØªØ£Ø®ÙŠØ± Ù„Ù‡ Ø«Ù…Ù†. Ù„Ù‡Ø°Ø§ Ø£Ø¨Ù†ÙŠ ÙˆØ§Ø¬Ù‡Ø§Øª ØªØ¹ØªÙ…Ø¯ Ø¹Ù„Ù‰ Ø§Ù„ØªØ±ØªÙŠØ¨ ÙˆØ§Ù„ÙˆØ¶ÙˆØ­ØŒ Ù„Ø§ Ø§Ù„Ø§Ø³ØªØ¹Ø±Ø§Ø¶." },
+                      { icon: Eye, title: "+1.5M Ù…Ø´Ø§Ù‡Ø¯Ø©", body: "Ù…Ù† Ø´Ø±Ø­ ØµØ§Ø¯Ù‚ ÙŠØ¨Ù†ÙŠ Ø«Ù‚Ø© Ù„Ø§ ØªØ³ØªØ·ÙŠØ¹ Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª Ø´Ø±Ø§Ø¡Ù‡Ø§." },
                     ]
                   : [
                       { icon: Globe2, title: "From Syria to Germany", body: "Migration changed how I think about time, commitment, and delivery that actually arrives." },
@@ -773,7 +624,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â•â•â•â• SERVICES â•â•â•â•â•â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SERVICES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative px-5 py-16 md:px-8 md:py-20">
         <div className="section-frame">
           <Reveal>
@@ -832,7 +683,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â•â•â•â• PROJECTS BENTO â•â•â•â•â•â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â PROJECTS BENTO Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative px-5 py-16 md:px-8 md:py-20" data-testid="projects-preview">
         <div
           aria-hidden
@@ -904,11 +755,11 @@ function HomePage({ model }: { model: SiteViewModel }) {
                       {isMoPlayer && (
                         <div className="absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold"
                           style={{ background: "linear-gradient(135deg, var(--accent), #7c3aed)", color: "white" }}>
-                          ⭐ {locale === "ar" ? "منتج رقمي" : "Digital Product"}
+                          â­ {locale === "ar" ? "Ù…Ù†ØªØ¬ Ø±Ù‚Ù…ÙŠ" : "Digital Product"}
                         </div>
                       )}
 
-                      {/* Hover reveal — Challenge → Solution (Only for non-featured) */}
+                      {/* Hover reveal â€” Challenge â†’ Solution (Only for non-featured) */}
                       {!isFeatured && (
                         <motion.div
                           className="absolute inset-0 flex flex-col justify-end p-6 opacity-0 transition-all duration-500 group-hover:opacity-100"
@@ -916,12 +767,12 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         >
                           <div className="translate-y-4 space-y-3 transition-all duration-500 group-hover:translate-y-0">
                             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: glowColor.replace("0.2", "1") }}>
-                              {locale === "ar" ? "التحدي" : "Challenge"}
+                              {locale === "ar" ? "Ø§Ù„ØªØ­Ø¯ÙŠ" : "Challenge"}
                             </span>
                             <p className="line-clamp-2 text-sm text-foreground/80">{story.challenge}</p>
                             <div className="flex items-center gap-2 text-xs font-bold" style={{ color: "var(--primary)" }}>
                               <Zap className="h-3 w-3" />
-                              {locale === "ar" ? "الحل: " : "Solution: "}
+                              {locale === "ar" ? "Ø§Ù„Ø­Ù„: " : "Solution: "}
                               <span className="line-clamp-1 text-foreground/70">{story.solution}</span>
                             </div>
                           </div>
@@ -942,13 +793,13 @@ function HomePage({ model }: { model: SiteViewModel }) {
                         <div className="mt-4 space-y-5">
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
-                              {locale === "ar" ? "المشكلة" : "Problem"}
+                              {locale === "ar" ? "Ø§Ù„Ù…Ø´ÙƒÙ„Ø©" : "Problem"}
                             </span>
                             <p className="text-sm leading-relaxed text-foreground-muted">{story.challenge}</p>
                           </div>
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
-                              {locale === "ar" ? "الحل" : "Solution"}
+                              {locale === "ar" ? "Ø§Ù„Ø­Ù„" : "Solution"}
                             </span>
                             <p className="text-sm leading-relaxed text-foreground-muted">{story.solution}</p>
                           </div>
@@ -993,7 +844,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â•â•â•â• YOUTUBE SECTION â•â•â•â•â•â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â YOUTUBE SECTION Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       {featuredVideo ? (
         <section className="relative px-5 py-16 md:px-8 md:py-20">
           <div
@@ -1009,9 +860,9 @@ function HomePage({ model }: { model: SiteViewModel }) {
             {/* YouTube Stats Dashboard */}
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                { raw: 1500000, display: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total Views", icon: Eye },
-                { raw: 6100, display: "+6.1K", label: locale === "ar" ? "مشترك" : "Subscribers", icon: Heart },
-                { raw: Number(youtube.videos ?? 162), display: fmt(locale, Number(youtube.videos ?? 162), false), label: locale === "ar" ? "فيديو منشور" : "Videos", icon: Clapperboard },
+                { raw: 1500000, display: "+1.5M", label: locale === "ar" ? "Ù…Ø´Ø§Ù‡Ø¯Ø© Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©" : "Total Views", icon: Eye },
+                { raw: 6100, display: "+6.1K", label: locale === "ar" ? "Ù…Ø´ØªØ±Ùƒ" : "Subscribers", icon: Heart },
+                { raw: Number(youtube.videos ?? 162), display: fmt(locale, Number(youtube.videos ?? 162), false), label: locale === "ar" ? "ÙÙŠØ¯ÙŠÙˆ Ù…Ù†Ø´ÙˆØ±" : "Videos", icon: Clapperboard },
               ].map((stat, i) => {
                 const Icon = stat.icon;
                 return (
@@ -1055,13 +906,13 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   }}
                 >
                   <div>
-                    <span className="eyebrow">{locale === "ar" ? "لماذا تتابعني؟" : "Why follow me?"}</span>
+                    <span className="eyebrow">{locale === "ar" ? "Ù„Ù…Ø§Ø°Ø§ ØªØªØ§Ø¨Ø¹Ù†ÙŠØŸ" : "Why follow me?"}</span>
                     <h3 className="mt-4 text-2xl font-bold text-foreground">{t.youtube.collaborationTitle}</h3>
                     <p className="mt-4 text-sm leading-8 text-foreground-muted">{t.youtube.collaborationBody}</p>
                     <div className="mt-5 flex flex-wrap gap-2">
-                      {[locale === "ar" ? "🎯 مراجعات صادقة" : "🎯 Honest reviews",
-                        locale === "ar" ? "🇩🇪 عربي من ألمانيا" : "🇩🇪 Arab from Germany",
-                        locale === "ar" ? "💡 محتوى تقني" : "💡 Tech content"].map((tag) => (
+                      {[locale === "ar" ? "ðŸŽ¯ Ù…Ø±Ø§Ø¬Ø¹Ø§Øª ØµØ§Ø¯Ù‚Ø©" : "ðŸŽ¯ Honest reviews",
+                        locale === "ar" ? "ðŸ‡©ðŸ‡ª Ø¹Ø±Ø¨ÙŠ Ù…Ù† Ø£Ù„Ù…Ø§Ù†ÙŠØ§" : "ðŸ‡©ðŸ‡ª Arab from Germany",
+                        locale === "ar" ? "ðŸ’¡ Ù…Ø­ØªÙˆÙ‰ ØªÙ‚Ù†ÙŠ" : "ðŸ’¡ Tech content"].map((tag) => (
                         <span
                           key={tag}
                           className="rounded-full px-3 py-1.5 text-xs font-bold"
@@ -1082,7 +933,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
         </section>
       ) : null}
 
-      {/* â•â•â•â•â•â•â•â•â•â• EXPERIENCE STRIP â•â•â•â•â•â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â EXPERIENCE STRIP Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       {model.experience.length > 0 && (
         <section className="relative overflow-hidden px-5 py-12 md:px-8 md:py-16">
           <div
@@ -1104,7 +955,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   className="shrink-0 text-xs font-bold uppercase tracking-[0.28em]"
                   style={{ color: "var(--cyan)", whiteSpace: "nowrap" }}
                 >
-                  {locale === "ar" ? "الخبرة المهنية" : "Work experience"}
+                  {locale === "ar" ? "Ø§Ù„Ø®Ø¨Ø±Ø© Ø§Ù„Ù…Ù‡Ù†ÙŠØ©" : "Work experience"}
                 </span>
                 <div className="hidden h-6 w-px shrink-0 md:block" style={{ background: "rgba(255,255,255,0.1)" }} />
                 <div className="flex flex-wrap gap-4">
@@ -1117,7 +968,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                   ))}
                 </div>
                 <div className="ms-auto shrink-0">
-                  <ActionLink href={`/${locale}/cv`} label={locale === "ar" ? "السيرة الكاملة" : "Full CV"} />
+                  <ActionLink href={`/${locale}/cv`} label={locale === "ar" ? "Ø§Ù„Ø³ÙŠØ±Ø© Ø§Ù„ÙƒØ§Ù…Ù„Ø©" : "Full CV"} />
                 </div>
               </div>
             </Reveal>
@@ -1125,7 +976,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
         </section>
       )}
 
-      {/* â•â•â•â•â•â•â•â•â•â• CONTACT CTA â•â•â•â•â•â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â CONTACT CTA Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative px-5 py-16 md:px-8 md:py-24">
         <div
           aria-hidden
@@ -1141,21 +992,21 @@ function HomePage({ model }: { model: SiteViewModel }) {
               {/* Decorative top line */}
               <div className="mx-auto mb-8 h-px w-32 opacity-50" style={{ background: "linear-gradient(90deg, transparent, var(--primary), transparent)" }} />
 
-              <span className="eyebrow mx-auto">{locale === "ar" ? "الخطوة التالية" : "Next step"}</span>
+              <span className="eyebrow mx-auto">{locale === "ar" ? "Ø§Ù„Ø®Ø·ÙˆØ© Ø§Ù„ØªØ§Ù„ÙŠØ©" : "Next step"}</span>
 
               <h2
                 className="headline-arabic mx-auto mt-6 max-w-3xl text-3xl font-extrabold text-foreground md:text-5xl"
                 style={{ lineHeight: 1.2 }}
               >
                 {locale === "ar"
-                  ? "فكرتك تستحق حضوراً رقمياً لا يُنسى. لنبدأ الحوار."
+                  ? "ÙÙƒØ±ØªÙƒ ØªØ³ØªØ­Ù‚ Ø­Ø¶ÙˆØ±Ø§Ù‹ Ø±Ù‚Ù…ÙŠØ§Ù‹ Ù„Ø§ ÙŠÙÙ†Ø³Ù‰. Ù„Ù†Ø¨Ø¯Ø£ Ø§Ù„Ø­ÙˆØ§Ø±."
                   : "Your idea deserves an unforgettable digital presence. Let's start the conversation."}
               </h2>
 
               <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-foreground-muted">
                 {locale === "ar"
-                  ? "ارسل الفكرة كما هي، سأعيدها إليك بخطوة مباشرة خلال 24 ساعة."
-                  : "Send the idea as it is — I'll return with a clear next step within 24 hours."}
+                  ? "Ø§Ø±Ø³Ù„ Ø§Ù„ÙÙƒØ±Ø© ÙƒÙ…Ø§ Ù‡ÙŠØŒ Ø³Ø£Ø¹ÙŠØ¯Ù‡Ø§ Ø¥Ù„ÙŠÙƒ Ø¨Ø®Ø·ÙˆØ© Ù…Ø¨Ø§Ø´Ø±Ø© Ø®Ù„Ø§Ù„ 24 Ø³Ø§Ø¹Ø©."
+                  : "Send the idea as it is â€” I'll return with a clear next step within 24 hours."}
               </p>
 
               {/* CTA Buttons */}
@@ -1175,7 +1026,7 @@ function HomePage({ model }: { model: SiteViewModel }) {
                 <motion.div whileTap={{ scale: 0.96 }} whileHover={{ scale: 1.04 }}>
                   <Link href={`/${locale}/contact`} className="button-secondary-shell px-8 py-4 text-base">
                     <Mail className="h-4 w-4" />
-                    {locale === "ar" ? "أرسل رسالة" : "Send a message"}
+                    {locale === "ar" ? "Ø£Ø±Ø³Ù„ Ø±Ø³Ø§Ù„Ø©" : "Send a message"}
                   </Link>
                 </motion.div>
               </div>
@@ -1190,18 +1041,18 @@ function HomePage({ model }: { model: SiteViewModel }) {
   );
 }
 
-/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-   CV PAGE — Cinematic Redesign
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
+/* Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â
+   CV PAGE â€” Cinematic Redesign
+Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â */
 function CvPage({ model }: { model: SiteViewModel }) {
   const { locale, t, experience, gallery } = model;
 
   const skills = locale === "ar"
     ? [
         { label: "Next.js / React", pct: 92, color: "var(--primary)" },
-        { label: "UI/UX & واجهات", pct: 89, color: "var(--secondary)" },
-        { label: "سرد بصري ومحتوى", pct: 86, color: "var(--accent)" },
-        { label: "تنفيذ منضبط", pct: 94, color: "#06b6d4" },
+        { label: "UI/UX & ÙˆØ§Ø¬Ù‡Ø§Øª", pct: 89, color: "var(--secondary)" },
+        { label: "Ø³Ø±Ø¯ Ø¨ØµØ±ÙŠ ÙˆÙ…Ø­ØªÙˆÙ‰", pct: 86, color: "var(--accent)" },
+        { label: "ØªÙ†ÙÙŠØ° Ù…Ù†Ø¶Ø¨Ø·", pct: 94, color: "#06b6d4" },
       ]
     : [
         { label: "Next.js / React", pct: 92, color: "var(--primary)" },
@@ -1235,7 +1086,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
       company: s.title,
       role: step.role || s.title,
       period: step.period || "",
-      location: step.location || (locale === "ar" ? "ألمانيا" : "Germany"),
+      location: step.location || (locale === "ar" ? "Ø£Ù„Ù…Ø§Ù†ÙŠØ§" : "Germany"),
       story: s.body,
       highlights: step.highlights || [],
     };
@@ -1246,7 +1097,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
   return (
     <div className="space-y-0" data-testid="cv-page">
 
-      {/* â•â•â•â•â• SPLIT HERO â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SPLIT HERO Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative min-h-[90vh] overflow-hidden">
         {/* Background mesh */}
         <div
@@ -1276,13 +1127,13 @@ function CvPage({ model }: { model: SiteViewModel }) {
                 <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest"
                   style={{ background: "rgba(0,255,135,0.08)", border: "1px solid var(--primary)", color: "var(--primary)" }}>
                   <span className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
-                  {locale === "ar" ? "متاح لمشاريع جديدة · 2026" : "Available for projects · 2026"}
+                  {locale === "ar" ? "Ù…ØªØ§Ø­ Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø¬Ø¯ÙŠØ¯Ø© Â· 2026" : "Available for projects Â· 2026"}
                 </div>
               </Reveal>
 
               <Reveal delay={0.06}>
                 <h1 className="headline-arabic text-5xl font-black leading-[1.15] text-foreground md:text-6.5xl tracking-tight lg:text-7xl">
-                  {locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}
+                  {locale === "ar" ? "Ù…Ø­Ù…Ø¯ Ø§Ù„ÙØ±Ø§Ø³" : "Mohammad Alfarras"}
                 </h1>
               </Reveal>
 
@@ -1325,7 +1176,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                     style={{ background: "linear-gradient(135deg, var(--primary), var(--primary-dark))" }}
                   >
                     <ArrowUpRight className="h-4 w-4" />
-                    {locale === "ar" ? "تحميل السيرة PDF" : (locale === "en" ? "Download CV PDF" : "Lebenslauf PDF")}
+                    {locale === "ar" ? "ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙŠØ±Ø© PDF" : (locale === "en" ? "Download CV PDF" : "Lebenslauf PDF")}
                   </motion.a>
                   <motion.a
                     href={`/${locale}/contact`}
@@ -1334,7 +1185,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                     className="inline-flex items-center gap-2 rounded-full border border-white/10 px-8 py-4 text-sm font-bold text-foreground-muted transition"
                   >
                     <MessageCircleMore className="h-4 w-4" />
-                    {locale === "ar" ? "تواصل مباشر" : "Get in touch"}
+                    {locale === "ar" ? "ØªÙˆØ§ØµÙ„ Ù…Ø¨Ø§Ø´Ø±" : "Get in touch"}
                   </motion.a>
                 </div>
               </Reveal>
@@ -1356,7 +1207,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
                   <div className="relative aspect-[3/4] w-full overflow-hidden">
                     <Image
                       src={model.portraitImage || "/images/portrait.jpg"}
-                      alt={locale === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}
+                      alt={locale === "ar" ? "Ù…Ø­Ù…Ø¯ Ø§Ù„ÙØ±Ø§Ø³" : "Mohammad Alfarras"}
                       fill priority
                       sizes="420px"
 className="object-cover object-top"
@@ -1374,9 +1225,9 @@ className="object-cover object-top"
                           boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,255,135,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
                         }}>
                         {[
-                          { num: "+5", sub: locale === "ar" ? "سنوات" : "Years" },
-                          { num: "3", sub: locale === "ar" ? "مشاريع" : "Projects" },
-                          { num: "2", sub: locale === "ar" ? "دول" : "Countries" },
+                          { num: "+5", sub: locale === "ar" ? "Ø³Ù†ÙˆØ§Øª" : "Years" },
+                          { num: "3", sub: locale === "ar" ? "Ù…Ø´Ø§Ø±ÙŠØ¹" : "Projects" },
+                          { num: "2", sub: locale === "ar" ? "Ø¯ÙˆÙ„" : "Countries" },
                         ].map((s) => (
                           <div key={s.sub} className="rounded-xl p-3 text-center"
                             style={{ background: "var(--surface-strong)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -1397,7 +1248,7 @@ className="object-cover object-top"
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#060810] to-transparent" />
       </section>
 
-      {/* â•â•â•â•â• EXPERIENCE TIMELINE â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â EXPERIENCE TIMELINE Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative px-5 py-20 md:px-8 md:py-28">
         <div
           aria-hidden
@@ -1439,7 +1290,7 @@ className="object-cover object-top"
                     {/* Desktop: year */}
                     {entry.period && (
                       <span className="hidden font-mono text-[10px] font-bold leading-tight text-center text-foreground-muted md:block">
-                        {entry.period.split("–")[0]?.trim() ?? entry.period}
+                        {entry.period.split("â€“")[0]?.trim() ?? entry.period}
                       </span>
                     )}
                   </div>
@@ -1490,7 +1341,7 @@ className="object-cover object-top"
         </div>
       </section>
 
-      {/* â•â•â•â•â• SKILLS PANEL â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SKILLS PANEL Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="px-5 py-16 md:px-8 md:py-20">
         <div className="section-frame">
           <div className="grid gap-12 lg:grid-cols-2">
@@ -1500,7 +1351,7 @@ className="object-cover object-top"
               <Reveal>
                 <span className="eyebrow">{t.cv.pillarsTitle}</span>
                 <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
-                  {locale === "ar" ? "ما أُتقنه فعلاً" : "What I actually master"}
+                  {locale === "ar" ? "Ù…Ø§ Ø£ÙØªÙ‚Ù†Ù‡ ÙØ¹Ù„Ø§Ù‹" : "What I actually master"}
                 </h2>
                 <p className="mt-3 text-sm leading-7 text-foreground-muted">{t.cv.pillarsBody ?? t.cv.creatorBody}</p>
               </Reveal>
@@ -1531,7 +1382,7 @@ className="object-cover object-top"
               <Reveal delay={0.28}>
                 <div className="mt-8">
                   <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-foreground-soft">
-                    {locale === "ar" ? "الأدوات والتقنيات" : "Stack & tools"}
+                    {locale === "ar" ? "Ø§Ù„Ø£Ø¯ÙˆØ§Øª ÙˆØ§Ù„ØªÙ‚Ù†ÙŠØ§Øª" : "Stack & tools"}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {["Next.js","React","TypeScript","Tailwind","Framer Motion","Figma","Node.js","Vercel","YouTube","Premiere","Git","Supabase"].map((t) => (
@@ -1584,7 +1435,7 @@ className="object-cover object-top"
         </div>
       </section>
 
-      {/* â•â•â•â•â• BOTTOM CTA â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â BOTTOM CTA Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="px-5 pb-20 md:px-8">
         <div className="section-frame">
           <Reveal>
@@ -1604,13 +1455,13 @@ className="object-cover object-top"
               />
               <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-center">
                 <div className="flex-1">
-                  <span className="eyebrow">{locale === "ar" ? "جاهز للتعاون" : "Ready to collaborate"}</span>
+                  <span className="eyebrow">{locale === "ar" ? "Ø¬Ø§Ù‡Ø² Ù„Ù„ØªØ¹Ø§ÙˆÙ†" : "Ready to collaborate"}</span>
                   <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-4xl">
-                    {locale === "ar" ? "تحميل السيرة أو ابدأ الحوار مباشرة" : "Download the CV or open the conversation"}
+                    {locale === "ar" ? "ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙŠØ±Ø© Ø£Ùˆ Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø­ÙˆØ§Ø± Ù…Ø¨Ø§Ø´Ø±Ø©" : "Download the CV or open the conversation"}
                   </h2>
                   <p className="mt-3 text-base leading-7 text-foreground-muted">
                     {locale === "ar"
-                      ? "المشاريع الجادة تستحق تواصلاً مباشراً. سأرد خلال 24 ساعة."
+                      ? "Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„Ø¬Ø§Ø¯Ø© ØªØ³ØªØ­Ù‚ ØªÙˆØ§ØµÙ„Ø§Ù‹ Ù…Ø¨Ø§Ø´Ø±Ø§Ù‹. Ø³Ø£Ø±Ø¯ Ø®Ù„Ø§Ù„ 24 Ø³Ø§Ø¹Ø©."
                       : "Serious projects deserve direct conversation. Response within 24 hours."}
                   </p>
                 </div>
@@ -1620,21 +1471,21 @@ className="object-cover object-top"
                     whileTap={{ scale: 0.96 }}
                     className="button-primary-shell flex w-full justify-center text-sm px-6 py-3 sm:w-auto"
                   >
-                    {locale === "ar" ? "ابدأ مشروعاً جديداً" : "Start a project"}
+                    {locale === "ar" ? "Ø§Ø¨Ø¯Ø£ Ù…Ø´Ø±ÙˆØ¹Ø§Ù‹ Ø¬Ø¯ÙŠØ¯Ø§Ù‹" : "Start a project"}
                   </motion.a>
                   <motion.a
                     href={`/${locale}/contact?subject=redesign`}
                     whileTap={{ scale: 0.96 }}
                     className="button-secondary-shell flex w-full justify-center text-sm px-6 py-3 sm:w-auto"
                   >
-                    {locale === "ar" ? "إعادة تصميم موقعي" : "Redesign my website"}
+                    {locale === "ar" ? "Ø¥Ø¹Ø§Ø¯Ø© ØªØµÙ…ÙŠÙ… Ù…ÙˆÙ‚Ø¹ÙŠ" : "Redesign my website"}
                   </motion.a>
                   <motion.a
                     href={`/${locale}/contact?subject=personal_brand`}
                     whileTap={{ scale: 0.96 }}
                     className="button-ghost-shell flex w-full justify-center border border-border-glass bg-bg-secondary text-sm px-6 py-3 sm:w-auto hover:bg-bg-glass"
                   >
-                    {locale === "ar" ? "بناء موقعي الشخصي" : "Build personal brand site"}
+                    {locale === "ar" ? "Ø¨Ù†Ø§Ø¡ Ù…ÙˆÙ‚Ø¹ÙŠ Ø§Ù„Ø´Ø®ØµÙŠ" : "Build personal brand site"}
                   </motion.a>
                 </div>
               </div>
@@ -1646,9 +1497,9 @@ className="object-cover object-top"
   );
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   3D UI HELPERS — Advanced Motion Systems
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+   3D UI HELPERS â€” Advanced Motion Systems
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
 
 function TiltCard({ children, className, glowColor = "var(--primary)" }: { children: React.ReactNode, className?: string, glowColor?: string }) {
   const x = useMotionValue(0);
@@ -1712,13 +1563,13 @@ function GlareEffect() {
   );
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   PROJECTS PAGE — 2026 3D Cinematic
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+   PROJECTS PAGE â€” 2026 3D Cinematic
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
 
 function Weather3DWidget({ weather: liveWeather, locale }: { weather: LiveWeather | null, locale: Locale }) {
   const mockWeather: LiveWeather = {
-    city: locale === "ar" ? "برلين" : "Berlin",
+    city: locale === "ar" ? "Ø¨Ø±Ù„ÙŠÙ†" : "Berlin",
     country: "DE",
     temp: 22,
     feelsLike: 21,
@@ -1757,7 +1608,7 @@ function Weather3DWidget({ weather: liveWeather, locale }: { weather: LiveWeathe
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">
-              {locale === "ar" ? "الطقس المباشر" : "Live Weather"}
+              {locale === "ar" ? "Ø§Ù„Ø·Ù‚Ø³ Ø§Ù„Ù…Ø¨Ø§Ø´Ø±" : "Live Weather"}
             </span>
             <h3 className="text-xl font-bold text-foreground">{weather.city}</h3>
           </div>
@@ -1767,7 +1618,7 @@ function Weather3DWidget({ weather: liveWeather, locale }: { weather: LiveWeathe
         </div>
 
         <div className="mt-4">
-          <p className="text-5xl font-black text-foreground">{weather.temp}°</p>
+          <p className="text-5xl font-black text-foreground">{weather.temp}Â°</p>
           <p className="text-sm font-semibold text-foreground-soft capitalize mt-1">{weather.condition}</p>
         </div>
 
@@ -1863,7 +1714,7 @@ function Matches3DWidget({ matches: liveMatches, locale }: { matches: LiveMatch[
         <div className="mt-6 border-t border-white/5 pt-4">
            <div className="flex items-center justify-center gap-2 text-xs text-foreground-muted">
               <Timer className="h-3 w-3" />
-              <span>{isDemo ? (locale === "ar" ? "معاينة العرض" : "Preview Mode") : (locale === "ar" ? "محدث لحظياً" : "Updated instantly")}</span>
+              <span>{isDemo ? (locale === "ar" ? "Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ø¹Ø±Ø¶" : "Preview Mode") : (locale === "ar" ? "Ù…Ø­Ø¯Ø« Ù„Ø­Ø¸ÙŠØ§Ù‹" : "Updated instantly")}</span>
            </div>
         </div>
       </div>
@@ -1931,8 +1782,8 @@ function Project3DShowcase({
               {/* Problem/Solution Bento */}
               <div className="mt-10 grid gap-4" style={{ transform: "translateZ(10px)" }}>
                 {[
-                  { label: locale === "ar" ? "التحدي" : "Challenge", text: story.challenge, color: "rgba(255,255,255,0.04)" },
-                  { label: locale === "ar" ? "الحل الفني" : "Engineering", text: story.solution, color: accent.bg },
+                  { label: locale === "ar" ? "Ø§Ù„ØªØ­Ø¯ÙŠ" : "Challenge", text: story.challenge, color: "rgba(255,255,255,0.04)" },
+                  { label: locale === "ar" ? "Ø§Ù„Ø­Ù„ Ø§Ù„ÙÙ†ÙŠ" : "Engineering", text: story.solution, color: accent.bg },
                 ].map((item) => (
                   <div key={item.label} className="rounded-3xl p-6 transition hover:bg-white/5" style={{ background: item.color, border: "1px solid rgba(255,255,255,0.05)" }}>
                     <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: accent.color }}>{item.label}</p>
@@ -1981,7 +1832,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
   return (
     <div className="space-y-0" data-testid="projects-page">
 
-      {/* ═════ HERO ═════ */}
+      {/* â•â•â•â•â• HERO â•â•â•â•â• */}
       <section className="relative overflow-hidden px-5 py-20 md:px-8 md:py-28">
         <div
           aria-hidden
@@ -2015,9 +1866,9 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
                 <div className="flex h-full flex-col justify-between rounded-[2.5rem] border border-white/5 bg-white/[0.02] p-8 backdrop-blur-md">
                    <div className="space-y-6">
                       {[
-                        { num: String(projects.length), label: locale === "ar" ? "مشروع منشور" : "Projects live", color: "var(--primary)" },
-                        { num: "100%", label: locale === "ar" ? "بناء مخصص" : "Custom built", color: "var(--accent)" },
-                        { num: "Live", label: locale === "ar" ? "بيانات حية" : "Live data APIs", color: "var(--secondary)" },
+                        { num: String(projects.length), label: locale === "ar" ? "Ù…Ø´Ø±ÙˆØ¹ Ù…Ù†Ø´ÙˆØ±" : "Projects live", color: "var(--primary)" },
+                        { num: "100%", label: locale === "ar" ? "Ø¨Ù†Ø§Ø¡ Ù…Ø®ØµØµ" : "Custom built", color: "var(--accent)" },
+                        { num: "Live", label: locale === "ar" ? "Ø¨ÙŠØ§Ù†Ø§Øª Ø­ÙŠØ©" : "Live data APIs", color: "var(--secondary)" },
                       ].map((s) => (
                         <div key={s.label}>
                           <p className="text-3xl font-black" style={{ color: s.color }}>{s.num}</p>
@@ -2027,7 +1878,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
                    </div>
                    <div className="mt-6 flex items-center gap-2 text-[10px] font-bold text-foreground-muted">
                       <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                      {locale === "ar" ? "جاهز للتحديات الجديدة" : "Ready for new challenges"}
+                      {locale === "ar" ? "Ø¬Ø§Ù‡Ø² Ù„Ù„ØªØ­Ø¯ÙŠØ§Øª Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©" : "Ready for new challenges"}
                    </div>
                 </div>
              </Reveal>
@@ -2046,13 +1897,13 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* ═════ 3D PROJECT SHOWCASE ═════ */}
+      {/* â•â•â•â•â• 3D PROJECT SHOWCASE â•â•â•â•â• */}
       <section className="px-5 py-20 md:px-8">
         <div className="section-frame">
           <div className="mb-14">
              <Reveal>
                 <h2 className="text-2xl font-black text-foreground md:text-4xl">
-                   {locale === "ar" ? "أبرز الإنجازات" : "Selected Masterpieces"}
+                   {locale === "ar" ? "Ø£Ø¨Ø±Ø² Ø§Ù„Ø¥Ù†Ø¬Ø§Ø²Ø§Øª" : "Selected Masterpieces"}
                 </h2>
              </Reveal>
           </div>
@@ -2080,11 +1931,11 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
                     <Zap className="h-10 w-10 text-primary" />
                   </div>
                   <h2 className="headline-arabic text-3xl font-black text-foreground md:text-5xl">
-                    {locale === "ar" ? "لنصنع شيئاً مبهراً معاً" : "Let's build something epic together"}
+                    {locale === "ar" ? "Ù„Ù†ØµÙ†Ø¹ Ø´ÙŠØ¦Ø§Ù‹ Ù…Ø¨Ù‡Ø±Ø§Ù‹ Ù…Ø¹Ø§Ù‹" : "Let's build something epic together"}
                   </h2>
                   <p className="mt-6 max-w-xl text-lg leading-8 text-foreground-muted">
                     {locale === "ar" 
-                      ? "أحول الأفكار المعقدة إلى واجهات بسيطة، تفاعلية، ومربحة. هل أنت جاهز؟" 
+                      ? "Ø£Ø­ÙˆÙ„ Ø§Ù„Ø£ÙÙƒØ§Ø± Ø§Ù„Ù…Ø¹Ù‚Ø¯Ø© Ø¥Ù„Ù‰ ÙˆØ§Ø¬Ù‡Ø§Øª Ø¨Ø³ÙŠØ·Ø©ØŒ ØªÙØ§Ø¹Ù„ÙŠØ©ØŒ ÙˆÙ…Ø±Ø¨Ø­Ø©. Ù‡Ù„ Ø£Ù†Øª Ø¬Ø§Ù‡Ø²ØŸ" 
                       : "I transform complex ideas into simple, interactive, and profitable interfaces. Ready?"}
                   </p>
                   <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -2095,7 +1946,7 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
                       className="inline-flex items-center gap-3 rounded-full px-10 py-5 text-sm font-black text-black"
                       style={{ background: "var(--primary)" }}
                     >
-                      {locale === "ar" ? "ابدأ مشروعك الآن" : "Start your project"}
+                      {locale === "ar" ? "Ø§Ø¨Ø¯Ø£ Ù…Ø´Ø±ÙˆØ¹Ùƒ Ø§Ù„Ø¢Ù†" : "Start your project"}
                       <ArrowUpRight className="h-5 w-5" />
                     </motion.a>
                   </div>
@@ -2108,25 +1959,25 @@ function ProjectsPage({ model }: { model: SiteViewModel }) {
   );
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   YOUTUBE PAGE — Cinematic Redesign
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
+/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+   YOUTUBE PAGE â€” Cinematic Redesign
+Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â */
 function YoutubePage({ model }: { model: SiteViewModel }) {
   const { locale, t, featuredVideo } = model;
   const latest = model.latestVideos.filter((v) => v.id !== featuredVideo?.id).slice(0, 6);
   const videoCount = Number(model.youtube.videos ?? 162);
 
   const stats = [
-    { num: "+1.5M", label: locale === "ar" ? "مشاهدة إجمالية" : "Total views", color: "var(--secondary)", icon: Eye },
-    { num: "+6.1K", label: locale === "ar" ? "مشترك" : "Subscribers", color: "var(--primary)", icon: Heart },
-    { num: String(videoCount), label: locale === "ar" ? "فيديو منشور" : "Videos published", color: "var(--accent)", icon: Clapperboard },
-    { num: "DE", label: locale === "ar" ? "من ألمانيا" : "Based in Germany", color: "#06b6d4", icon: Globe2 },
+    { num: "+1.5M", label: locale === "ar" ? "Ù…Ø´Ø§Ù‡Ø¯Ø© Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©" : "Total views", color: "var(--secondary)", icon: Eye },
+    { num: "+6.1K", label: locale === "ar" ? "Ù…Ø´ØªØ±Ùƒ" : "Subscribers", color: "var(--primary)", icon: Heart },
+    { num: String(videoCount), label: locale === "ar" ? "ÙÙŠØ¯ÙŠÙˆ Ù…Ù†Ø´ÙˆØ±" : "Videos published", color: "var(--accent)", icon: Clapperboard },
+    { num: "DE", label: locale === "ar" ? "Ù…Ù† Ø£Ù„Ù…Ø§Ù†ÙŠØ§" : "Based in Germany", color: "#06b6d4", icon: Globe2 },
   ];
 
   return (
     <div className="space-y-0" data-testid="youtube-page">
 
-      {/* â•â•â•â•â• DRAMATIC HERO â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â DRAMATIC HERO Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative overflow-hidden">
         {/* Full-bleed background */}
         <div
@@ -2185,7 +2036,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#06080f] to-transparent" />
       </section>
 
-      {/* â•â•â•â•â• STAT CARDS â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â STAT CARDS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="px-5 py-12 md:px-8 md:py-16">
         <div className="section-frame">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -2220,7 +2071,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* â•â•â•â•â• FEATURED VIDEO + ABOUT â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FEATURED VIDEO + ABOUT Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="px-5 py-4 md:px-8">
         <div className="section-frame">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -2265,27 +2116,27 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* â•â•â•â•â• CONTENT CATEGORIES â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â CONTENT CATEGORIES Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="px-5 py-12 md:px-8 md:py-14">
         <div className="section-frame">
           <Reveal>
             <p className="mb-6 text-xs font-bold uppercase tracking-[0.26em] text-foreground-soft">
-              {locale === "ar" ? "أنواع المحتوى" : "Content types"}
+              {locale === "ar" ? "Ø£Ù†ÙˆØ§Ø¹ Ø§Ù„Ù…Ø­ØªÙˆÙ‰" : "Content types"}
             </p>
           </Reveal>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
             {(locale === "ar"
               ? [
-                  { icon: "📱", label: "مراجعات منتجات", count: "60+", color: "var(--secondary)" },
-                  { icon: "💻", label: "شرح تقني",        count: "40+", color: "var(--primary)" },
-                  { icon: "🇩🇪", label: "حياة في ألمانيا", count: "30+", color: "var(--accent)" },
-                  { icon: "🎯", label: "بناء مهارات",     count: "30+", color: "#06b6d4" },
+                  { icon: "ðŸ“±", label: "Ù…Ø±Ø§Ø¬Ø¹Ø§Øª Ù…Ù†ØªØ¬Ø§Øª", count: "60+", color: "var(--secondary)" },
+                  { icon: "ðŸ’»", label: "Ø´Ø±Ø­ ØªÙ‚Ù†ÙŠ",        count: "40+", color: "var(--primary)" },
+                  { icon: "ðŸ‡©ðŸ‡ª", label: "Ø­ÙŠØ§Ø© ÙÙŠ Ø£Ù„Ù…Ø§Ù†ÙŠØ§", count: "30+", color: "var(--accent)" },
+                  { icon: "ðŸŽ¯", label: "Ø¨Ù†Ø§Ø¡ Ù…Ù‡Ø§Ø±Ø§Øª",     count: "30+", color: "#06b6d4" },
                 ]
               : [
-                  { icon: "📱", label: "Product reviews",   count: "60+", color: "var(--secondary)" },
-                  { icon: "💻", label: "Tech explainers",   count: "40+", color: "var(--primary)" },
-                  { icon: "🇩🇪", label: "Life in Germany",  count: "30+", color: "var(--accent)" },
-                  { icon: "🎯", label: "Skill building",    count: "30+", color: "#06b6d4" },
+                  { icon: "ðŸ“±", label: "Product reviews",   count: "60+", color: "var(--secondary)" },
+                  { icon: "ðŸ’»", label: "Tech explainers",   count: "40+", color: "var(--primary)" },
+                  { icon: "ðŸ‡©ðŸ‡ª", label: "Life in Germany",  count: "30+", color: "var(--accent)" },
+                  { icon: "ðŸŽ¯", label: "Skill building",    count: "30+", color: "#06b6d4" },
                 ]
             ).map((cat, i) => (
               <Reveal key={cat.label} delay={i * 0.06}>
@@ -2308,7 +2159,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* â•â•â•â•â• LATEST VIDEOS â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â LATEST VIDEOS Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       {latest.length > 0 && (
         <section className="px-5 py-12 md:px-8 md:py-16">
           <div className="section-frame">
@@ -2316,7 +2167,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
               <div className="mb-8">
                 <span className="eyebrow">{t.youtube.latestLabel}</span>
                 <h2 className="headline-arabic mt-3 text-2xl font-black text-foreground md:text-3xl">
-                  {locale === "ar" ? "أحدث الفيديوهات" : "Latest uploads"}
+                  {locale === "ar" ? "Ø£Ø­Ø¯Ø« Ø§Ù„ÙÙŠØ¯ÙŠÙˆÙ‡Ø§Øª" : "Latest uploads"}
                 </h2>
               </div>
             </Reveal>
@@ -2334,16 +2185,16 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   );
 }
 
-/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
-   CONTACT PAGE — Cinematic Redesign
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
+/* Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â
+   CONTACT PAGE â€” Cinematic Redesign
+Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â */
 function ContactPage({ model }: { model: SiteViewModel }) {
   const { locale, t } = model;
 
   return (
     <div className="space-y-0" data-testid="contact-page">
 
-      {/* â•â•â•â•â• SPLIT HERO â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â SPLIT HERO Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="relative min-h-screen overflow-hidden">
         {/* Contact Hero Background Image */}
         <div 
@@ -2382,14 +2233,14 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "var(--primary)" }} />
                     <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "var(--primary)" }} />
                   </span>
-                  {locale === "ar" ? "متاح الآن · الرد خلال 24 ساعة" : "Available now · Response within 24h"}
+                  {locale === "ar" ? "Ù…ØªØ§Ø­ Ø§Ù„Ø¢Ù† Â· Ø§Ù„Ø±Ø¯ Ø®Ù„Ø§Ù„ 24 Ø³Ø§Ø¹Ø©" : "Available now Â· Response within 24h"}
                 </div>
               </Reveal>
 
               <Reveal delay={0.05}>
                 <h1 className="headline-arabic text-4xl font-black leading-tight text-foreground md:text-5xl lg:text-6.5xl tracking-tight">
                   {locale === "ar"
-                    ? "فكرتك تستحق\nحضوراً لا يُنسى."
+                    ? "ÙÙƒØ±ØªÙƒ ØªØ³ØªØ­Ù‚\nØ­Ø¶ÙˆØ±Ø§Ù‹ Ù„Ø§ ÙŠÙÙ†Ø³Ù‰."
                     : "Your idea deserves\nan unforgettable presence."}
                 </h1>
               </Reveal>
@@ -2448,7 +2299,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                 }}
               >
                 <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-foreground-soft">
-                  {locale === "ar" ? "لماذا يتواصل الناس معي؟" : "Why people get in touch"}
+                  {locale === "ar" ? "Ù„Ù…Ø§Ø°Ø§ ÙŠØªÙˆØ§ØµÙ„ Ø§Ù„Ù†Ø§Ø³ Ù…Ø¹ÙŠØŸ" : "Why people get in touch"}
                 </p>
                 {t.contact.reasons.map((reason, i) => {
                   const colors = ["var(--primary)", "var(--secondary)", "var(--accent)", "#06b6d4"];
@@ -2479,7 +2330,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                   <Zap className="h-5 w-5 shrink-0" style={{ color: "var(--accent)" }} />
                   <p className="text-sm text-foreground-muted">
                     <span className="font-bold text-foreground">{t.contact.directTitle}</span>
-                    {" — "}{t.contact.directBody}
+                    {" â€” "}{t.contact.directBody}
                   </p>
                 </div>
               </div>
@@ -2490,7 +2341,7 @@ function ContactPage({ model }: { model: SiteViewModel }) {
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#06080f] to-transparent" />
       </section>
 
-      {/* â•â•â•â•â• FORM SECTION â•â•â•â•â• */}
+      {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FORM SECTION Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
       <section className="px-5 py-16 md:px-8 md:py-20">
         <div className="section-frame">
           <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
@@ -2521,16 +2372,16 @@ function ContactPage({ model }: { model: SiteViewModel }) {
                 <div>
                   <span className="eyebrow">{t.contact.eyebrow}</span>
                   <h2 className="headline-arabic mt-4 text-2xl font-black text-foreground md:text-3xl">
-                    {locale === "ar" ? "ابدأ بفكرة، سنكمل الباقي" : "Start with an idea, we'll build the rest"}
+                    {locale === "ar" ? "Ø§Ø¨Ø¯Ø£ Ø¨ÙÙƒØ±Ø©ØŒ Ø³Ù†ÙƒÙ…Ù„ Ø§Ù„Ø¨Ø§Ù‚ÙŠ" : "Start with an idea, we'll build the rest"}
                   </h2>
                   <p className="mt-3 text-base leading-7 text-foreground-muted">{t.contact.body}</p>
                 </div>
 
                 {/* Process steps */}
                 {[
-                  { icon: "âœ️", step: locale === "ar" ? "أرسل الفكرة" : "Send the idea", body: locale === "ar" ? "وصف بسيط يكفي في البداية" : "A simple description is enough to start" },
-                  { icon: "⚡", step: locale === "ar" ? "رد خلال 24 ساعة" : "Reply within 24h", body: locale === "ar" ? "سأحلل الطلب وأعود بخطوة واضحة" : "I'll analyze and return with a clear next step" },
-                  { icon: "🚀", step: locale === "ar" ? "ابدأ التنفيذ" : "Start execution", body: locale === "ar" ? "مشروع حقيقي بنتائج قابلة للقياس" : "Real project with measurable outcomes" },
+                  { icon: "Ã¢Å“Âï¸", step: locale === "ar" ? "Ø£Ø±Ø³Ù„ Ø§Ù„ÙÙƒØ±Ø©" : "Send the idea", body: locale === "ar" ? "ÙˆØµÙ Ø¨Ø³ÙŠØ· ÙŠÙƒÙÙŠ ÙÙŠ Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©" : "A simple description is enough to start" },
+                  { icon: "âš¡", step: locale === "ar" ? "Ø±Ø¯ Ø®Ù„Ø§Ù„ 24 Ø³Ø§Ø¹Ø©" : "Reply within 24h", body: locale === "ar" ? "Ø³Ø£Ø­Ù„Ù„ Ø§Ù„Ø·Ù„Ø¨ ÙˆØ£Ø¹ÙˆØ¯ Ø¨Ø®Ø·ÙˆØ© ÙˆØ§Ø¶Ø­Ø©" : "I'll analyze and return with a clear next step" },
+                  { icon: "ðŸš€", step: locale === "ar" ? "Ø§Ø¨Ø¯Ø£ Ø§Ù„ØªÙ†ÙÙŠØ°" : "Start execution", body: locale === "ar" ? "Ù…Ø´Ø±ÙˆØ¹ Ø­Ù‚ÙŠÙ‚ÙŠ Ø¨Ù†ØªØ§Ø¦Ø¬ Ù‚Ø§Ø¨Ù„Ø© Ù„Ù„Ù‚ÙŠØ§Ø³" : "Real project with measurable outcomes" },
                 ].map((step, i) => (
                   <Reveal key={step.step} delay={i * 0.06}>
                     <div className="flex items-start gap-4">
@@ -2573,7 +2424,7 @@ void [CvPage, ProjectsPage, YoutubePage, ContactPage, useCountUp];
 function BlogPage({ model }: { model: SiteViewModel }) {
   const { locale, t } = model;
 
-  const insightIcons = ["🎯", "⚡", "🔍"];
+  const insightIcons = ["ðŸŽ¯", "âš¡", "ðŸ”"];
   const insightAccents = [
     { border: "var(--primary-border)", bg: "rgba(0,255,135,0.06)", color: "var(--primary)" },
     { border: "var(--secondary-border)", bg: "rgba(255,107,0,0.06)", color: "var(--secondary)" },
@@ -2582,14 +2433,14 @@ function BlogPage({ model }: { model: SiteViewModel }) {
 
   const principles = locale === "ar"
     ? [
-        { icon: "🎯", title: "اقرأ المشكلة قبل أن تبدأ الحل", body: "أكثر المشاريع التي تُعاد من الصفر كان يمكن حلها بقراءة أولية أعمق للجمهور والهدف.", tag: "منهج" },
-        { icon: "⏱", title: "السرعة في التسليم ليست اختياراً", body: "في كل مشروع، هناك لحظة يتحول فيها التردد إلى فرصة ضائعة. التسليم الحقيقي يعني أن تصل في الوقت المناسب.", tag: "تنفيذ" },
-        { icon: "🪞", title: "الواجهة مرآة للقرار التجاري", body: "ما تراه على الشاشة هو انعكاس مباشر لقرارات اتخذها شخص ما. الواجهة الجيدة لا تُصنع بالصدفة.", tag: "تصميم" },
+        { icon: "ðŸŽ¯", title: "Ø§Ù‚Ø±Ø£ Ø§Ù„Ù…Ø´ÙƒÙ„Ø© Ù‚Ø¨Ù„ Ø£Ù† ØªØ¨Ø¯Ø£ Ø§Ù„Ø­Ù„", body: "Ø£ÙƒØ«Ø± Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„ØªÙŠ ØªÙØ¹Ø§Ø¯ Ù…Ù† Ø§Ù„ØµÙØ± ÙƒØ§Ù† ÙŠÙ…ÙƒÙ† Ø­Ù„Ù‡Ø§ Ø¨Ù‚Ø±Ø§Ø¡Ø© Ø£ÙˆÙ„ÙŠØ© Ø£Ø¹Ù…Ù‚ Ù„Ù„Ø¬Ù…Ù‡ÙˆØ± ÙˆØ§Ù„Ù‡Ø¯Ù.", tag: "Ù…Ù†Ù‡Ø¬" },
+        { icon: "â±", title: "Ø§Ù„Ø³Ø±Ø¹Ø© ÙÙŠ Ø§Ù„ØªØ³Ù„ÙŠÙ… Ù„ÙŠØ³Øª Ø§Ø®ØªÙŠØ§Ø±Ø§Ù‹", body: "ÙÙŠ ÙƒÙ„ Ù…Ø´Ø±ÙˆØ¹ØŒ Ù‡Ù†Ø§Ùƒ Ù„Ø­Ø¸Ø© ÙŠØªØ­ÙˆÙ„ ÙÙŠÙ‡Ø§ Ø§Ù„ØªØ±Ø¯Ø¯ Ø¥Ù„Ù‰ ÙØ±ØµØ© Ø¶Ø§Ø¦Ø¹Ø©. Ø§Ù„ØªØ³Ù„ÙŠÙ… Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠ ÙŠØ¹Ù†ÙŠ Ø£Ù† ØªØµÙ„ ÙÙŠ Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…Ù†Ø§Ø³Ø¨.", tag: "ØªÙ†ÙÙŠØ°" },
+        { icon: "ðŸªž", title: "Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ù…Ø±Ø¢Ø© Ù„Ù„Ù‚Ø±Ø§Ø± Ø§Ù„ØªØ¬Ø§Ø±ÙŠ", body: "Ù…Ø§ ØªØ±Ø§Ù‡ Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø§Ø´Ø© Ù‡Ùˆ Ø§Ù†Ø¹ÙƒØ§Ø³ Ù…Ø¨Ø§Ø´Ø± Ù„Ù‚Ø±Ø§Ø±Ø§Øª Ø§ØªØ®Ø°Ù‡Ø§ Ø´Ø®Øµ Ù…Ø§. Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø¬ÙŠØ¯Ø© Ù„Ø§ ØªÙØµÙ†Ø¹ Ø¨Ø§Ù„ØµØ¯ÙØ©.", tag: "ØªØµÙ…ÙŠÙ…" },
       ]
     : [
-        { icon: "🎯", title: "Read the problem before solving it", body: "Most projects rebuilt from scratch could have been fixed with a deeper initial reading of the audience and objective.", tag: "Method" },
-        { icon: "⏱", title: "Speed in delivery is not optional", body: "In every project, there is a moment where hesitation becomes a missed opportunity. Real delivery means arriving at the right time.", tag: "Execution" },
-        { icon: "🪞", title: "The interface mirrors business decisions", body: "What you see on screen is a direct reflection of decisions someone made. A good interface is never accidental.", tag: "Design" },
+        { icon: "ðŸŽ¯", title: "Read the problem before solving it", body: "Most projects rebuilt from scratch could have been fixed with a deeper initial reading of the audience and objective.", tag: "Method" },
+        { icon: "â±", title: "Speed in delivery is not optional", body: "In every project, there is a moment where hesitation becomes a missed opportunity. Real delivery means arriving at the right time.", tag: "Execution" },
+        { icon: "ðŸªž", title: "The interface mirrors business decisions", body: "What you see on screen is a direct reflection of decisions someone made. A good interface is never accidental.", tag: "Design" },
       ];
 
   return (
@@ -2657,9 +2508,9 @@ function BlogPage({ model }: { model: SiteViewModel }) {
               {(
                 locale === "ar"
                   ? [
-                      { num: "+1.5M", label: "مشاهدة يوتيوب", sub: "محتوى بني على تكرار المشاهدة", color: "var(--secondary)" },
-                      { num: "3", label: "مشاريع منشورة", sub: "كل واحدة حلت مشكلة حقيقية", color: "var(--primary)" },
-                      { num: "100%", label: "مثنى عليها", sub: "لا أقبل مشاريع التجميل فقط", color: "var(--accent)" },
+                      { num: "+1.5M", label: "Ù…Ø´Ø§Ù‡Ø¯Ø© ÙŠÙˆØªÙŠÙˆØ¨", sub: "Ù…Ø­ØªÙˆÙ‰ Ø¨Ù†ÙŠ Ø¹Ù„Ù‰ ØªÙƒØ±Ø§Ø± Ø§Ù„Ù…Ø´Ø§Ù‡Ø¯Ø©", color: "var(--secondary)" },
+                      { num: "3", label: "Ù…Ø´Ø§Ø±ÙŠØ¹ Ù…Ù†Ø´ÙˆØ±Ø©", sub: "ÙƒÙ„ ÙˆØ§Ø­Ø¯Ø© Ø­Ù„Øª Ù…Ø´ÙƒÙ„Ø© Ø­Ù‚ÙŠÙ‚ÙŠØ©", color: "var(--primary)" },
+                      { num: "100%", label: "Ù…Ø«Ù†Ù‰ Ø¹Ù„ÙŠÙ‡Ø§", sub: "Ù„Ø§ Ø£Ù‚Ø¨Ù„ Ù…Ø´Ø§Ø±ÙŠØ¹ Ø§Ù„ØªØ¬Ù…ÙŠÙ„ ÙÙ‚Ø·", color: "var(--accent)" },
                     ]
                   : [
                       { num: "+1.5M", label: "YouTube views", sub: "Content built on repeat watching", color: "var(--secondary)" },
@@ -2690,8 +2541,8 @@ function BlogPage({ model }: { model: SiteViewModel }) {
         <div className="section-frame space-y-8">
           <Reveal>
             <SectionHeading
-              eyebrow={locale === "ar" ? "من مشاريع حقيقية" : "From real projects"}
-              title={locale === "ar" ? "مبادئ عملية أعود إليها دائمًا" : "Practical principles I keep returning to"}
+              eyebrow={locale === "ar" ? "Ù…Ù† Ù…Ø´Ø§Ø±ÙŠØ¹ Ø­Ù‚ÙŠÙ‚ÙŠØ©" : "From real projects"}
+              title={locale === "ar" ? "Ù…Ø¨Ø§Ø¯Ø¦ Ø¹Ù…Ù„ÙŠØ© Ø£Ø¹ÙˆØ¯ Ø¥Ù„ÙŠÙ‡Ø§ Ø¯Ø§Ø¦Ù…Ù‹Ø§" : "Practical principles I keep returning to"}
               body=""
             />
           </Reveal>
@@ -2738,10 +2589,10 @@ function BlogPage({ model }: { model: SiteViewModel }) {
               <Lightbulb className="h-10 w-10" style={{ color: "var(--accent)" }} />
               <p className="max-w-xl text-xl font-bold text-foreground">
                 {locale === "ar"
-                  ? "هل لديك مشروع يحتاج دراسة حالة؟ تحدّث معي."
+                  ? "Ù‡Ù„ Ù„Ø¯ÙŠÙƒ Ù…Ø´Ø±ÙˆØ¹ ÙŠØ­ØªØ§Ø¬ Ø¯Ø±Ø§Ø³Ø© Ø­Ø§Ù„Ø©ØŸ ØªØ­Ø¯Ù‘Ø« Ù…Ø¹ÙŠ."
                   : "Have a project worth turning into a case study? Let's talk."}
               </p>
-              <ActionLink href={`/${model.locale}/contact`} label={locale === "ar" ? "ابدأ التواصل" : "Start the conversation"} primary />
+              <ActionLink href={`/${model.locale}/contact`} label={locale === "ar" ? "Ø§Ø¨Ø¯Ø£ Ø§Ù„ØªÙˆØ§ØµÙ„" : "Start the conversation"} primary />
             </div>
           </Reveal>
         </div>
@@ -2750,16 +2601,16 @@ function BlogPage({ model }: { model: SiteViewModel }) {
   );
 }
 
-/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+/* Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â
    PRIVACY PAGE
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
+Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â */
 function PrivacyAccordionItem({ item, index }: { item: string; index: number }) {
   const [open, setOpen] = useState(false);
   // Split into title (before first period/colon) and body
   const colonIdx = item.indexOf(":");
   const periodIdx = item.indexOf(".");
   const splitAt = colonIdx > -1 && colonIdx < 60 ? colonIdx : periodIdx > -1 && periodIdx < 80 ? periodIdx : -1;
-  const title = splitAt > -1 ? item.slice(0, splitAt + 1) : item.slice(0, 60) + "…";
+  const title = splitAt > -1 ? item.slice(0, splitAt + 1) : item.slice(0, 60) + "â€¦";
   const body = splitAt > -1 ? item.slice(splitAt + 1).trim() : item;
 
   return (
@@ -2855,21 +2706,21 @@ function PrivacyPage({ model }: { model: SiteViewModel }) {
             >
               <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl"
                 style={{ background: "rgba(0,229,255,0.08)", border: "1px solid rgba(0,229,255,0.2)" }}>
-                🔒
+                ðŸ”’
               </span>
               <div className="flex-1">
                 <p className="text-lg font-bold text-foreground">
                   {locale === "ar"
-                    ? "بياناتك تبقى معك. لا مشاركة، لا بيع، لا تتبع تجاري."
+                    ? "Ø¨ÙŠØ§Ù†Ø§ØªÙƒ ØªØ¨Ù‚Ù‰ Ù…Ø¹Ùƒ. Ù„Ø§ Ù…Ø´Ø§Ø±ÙƒØ©ØŒ Ù„Ø§ Ø¨ÙŠØ¹ØŒ Ù„Ø§ ØªØªØ¨Ø¹ ØªØ¬Ø§Ø±ÙŠ."
                     : "Your data stays with you. No sharing, no selling, no commercial tracking."}
                 </p>
                 <p className="mt-2 text-sm leading-7 text-foreground-muted">
                   {locale === "ar"
-                    ? "إن كان لديك أي سؤال حول خصوصيتك، أنا هنا للإجابة مباشرة."
+                    ? "Ø¥Ù† ÙƒØ§Ù† Ù„Ø¯ÙŠÙƒ Ø£ÙŠ Ø³Ø¤Ø§Ù„ Ø­ÙˆÙ„ Ø®ØµÙˆØµÙŠØªÙƒØŒ Ø£Ù†Ø§ Ù‡Ù†Ø§ Ù„Ù„Ø¥Ø¬Ø§Ø¨Ø© Ù…Ø¨Ø§Ø´Ø±Ø©."
                     : "If you have any questions about how your data is handled, I'm here to answer directly."}
                 </p>
               </div>
-              <ActionLink href={`/${locale}/contact`} label={locale === "ar" ? "تواصل معي" : "Contact me"} />
+              <ActionLink href={`/${locale}/contact`} label={locale === "ar" ? "ØªÙˆØ§ØµÙ„ Ù…Ø¹ÙŠ" : "Contact me"} />
             </div>
           </Reveal>
         </div>
@@ -2878,9 +2729,9 @@ function PrivacyPage({ model }: { model: SiteViewModel }) {
   );
 }
 
-/* â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+/* Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â
    ROUTER
-â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â” */
+Ã¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€ÂÃ¢â€Â */
 export function SiteViewClient({ model }: { model: SiteViewModel }) {
   switch (model.pageSlug) {
     case "cv":
@@ -2899,3 +2750,4 @@ export function SiteViewClient({ model }: { model: SiteViewModel }) {
       return <HomePage model={model} />;
   }
 }
+

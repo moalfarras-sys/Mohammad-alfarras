@@ -120,7 +120,7 @@
                     android:layout_gravity="center"
                     android:contentDescription="@string/cd_logo"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/ic_app_logo" />
+                    android:src="@drawable/moplayer_brand_logo_new" />
 
             </FrameLayout>
 
@@ -553,7 +553,7 @@
                         android:layout_gravity="center"
                         android:contentDescription="@string/cd_logo"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_app_logo" />
+                        android:src="@drawable/moplayer_brand_logo_new" />
 
                 </FrameLayout>
 

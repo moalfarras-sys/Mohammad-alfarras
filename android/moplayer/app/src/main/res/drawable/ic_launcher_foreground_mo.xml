@@ -7,7 +7,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:gravity="center">
         <bitmap
-            android:src="@drawable/ic_launcher_icon_512"
+            android:src="@drawable/moplayer_brand_logo_new"
             android:gravity="center" />
     </item>
 </layer-list>

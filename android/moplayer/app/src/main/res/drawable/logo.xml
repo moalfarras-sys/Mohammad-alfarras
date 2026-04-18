@@ -24,7 +24,7 @@
 
     <item android:gravity="center">
         <bitmap
-            android:src="@drawable/ic_app_logo"
+            android:src="@drawable/moplayer_brand_logo_new"
             android:gravity="center" />
     </item>
 

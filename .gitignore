@@ -47,3 +47,5 @@ _backups/
 **/tmp_*.png
 **/moplayer_database_copy
 
+
+.vercel

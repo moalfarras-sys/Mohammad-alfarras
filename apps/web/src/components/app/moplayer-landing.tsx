@@ -67,7 +67,7 @@ export function MoPlayerLanding({ ecosystem }: { ecosystem: AppEcosystemData }) 
           <Link href="/" className="group flex items-center gap-3">
             <div className="relative flex h-10 w-10 items-center justify-center rounded-[12px] shadow-[0_0_20px_rgba(0,229,255,0.15)] transition-transform group-hover:scale-105 overflow-hidden">
               <Image 
-                src={product.logo_path ?? "/images/moplayer-brand-logo.png"} 
+                src={product.logo_path ? product.logo_path.replace('.png', '-final.png') : "/images/moplayer-brand-logo-final.png"} 
                 alt="Logo" 
                 width={40} height={40} 
                 className="h-full w-full object-cover" 
@@ -194,7 +194,7 @@ export function MoPlayerLanding({ ecosystem }: { ecosystem: AppEcosystemData }) 
           className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#0A0F1C] shadow-[0_40px_100px_rgba(0,0,0,0.8)] ring-1 ring-white/5 md:rounded-[3rem]"
         >
           <Image 
-            src={product.hero_image_path ?? screenshots[0]?.image_path ?? "/images/moplayer-hero-3d.png"}
+            src={product.hero_image_path ? product.hero_image_path.replace(/\.(png|jpe?g)$/i, '-final.$1') : screenshots[0]?.image_path ? screenshots[0]?.image_path.replace(/\.(png|jpe?g)$/i, '-final.$1') : "/images/moplayer-hero-3d-final.png"}
             alt="MoPlayer UI Interface"
             width={1920}
             height={1080}
@@ -246,7 +246,7 @@ export function MoPlayerLanding({ ecosystem }: { ecosystem: AppEcosystemData }) 
           <div className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-[#0A0F1C] md:col-span-2 md:row-span-2">
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
             <Image 
-              src={screenshots[1]?.image_path ?? "/images/moplayer-ui-mock.png"}
+              src={screenshots[1]?.image_path ? screenshots[1]?.image_path.replace('.png', '-final.png') : "/images/moplayer-ui-mock-final.png"}
               alt="Playlist feature"
               fill
               className="object-cover opacity-60 transition-transform duration-700 hover:scale-105"

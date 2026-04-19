@@ -9,8 +9,9 @@ import { getLiveWeather } from "@/lib/weather-live";
 import { getLiveYoutubeData } from "@/lib/youtube-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
-import { SiteViewClient, type SiteViewModel } from "./site-view-client";
+import type { SiteViewModel } from "./site-view-model";
 import {
+  PortfolioAppsPage,
   PortfolioContactPage,
   PortfolioCvPage,
   PortfolioHomePage,
@@ -466,9 +467,11 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
       return <PortfolioYoutubePage model={model} />;
     case "contact":
       return <PortfolioContactPage model={model} />;
+    case "apps":
+      return <PortfolioAppsPage model={model} />;
     case "privacy":
       return <PortfolioPrivacyPage model={model} />;
     default:
-      return <SiteViewClient model={model} />;
+      return <PortfolioHomePage model={model} />;
   }
 }

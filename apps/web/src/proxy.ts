@@ -1,3 +1,6 @@
+// Next.js 16 "proxy" convention (replaces deprecated middleware.ts).
+// Handles locale prefixing, legacy /{locale}/admin → /admin redirect, and
+// passes resolved locale to downstream server components via x-site-locale.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -23,6 +26,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Routes that intentionally live outside the [locale] segment.
   if (
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
@@ -36,6 +40,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Collapse legacy /{locale}/admin URLs onto the unified /admin entry.
   if (/^\/(ar|en)\/admin(?:\/|$)/.test(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = pathname.replace(/^\/(ar|en)\/admin(?=\/|$)/, "/admin");

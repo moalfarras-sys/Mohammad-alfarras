@@ -8,7 +8,7 @@ export const localeMeta: Record<Locale, { dir: "rtl" | "ltr"; label: string; fla
   en: { dir: "ltr", label: "English", flag: "🇬🇧" },
 };
 
-export const sitePages = ["", "cv", "work", "youtube", "contact"] as const;
+export const sitePages = ["", "cv", "work", "apps", "youtube", "contact"] as const;
 
 export function isLocale(value: string): value is Locale {
   return locales.includes(value as Locale);

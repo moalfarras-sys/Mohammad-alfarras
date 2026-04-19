@@ -36,7 +36,7 @@ local.properties
 **/build-output/
 **/.home-isolated/
 
-# Temporary local artifacts
+# Temporary local artifacts (UI dumps, focus snapshots, layout exports)
 _backups/
 **/*dump*.xml
 **/focus*.xml
@@ -46,6 +46,16 @@ _backups/
 **/login_*.png
 **/tmp_*.png
 **/moplayer_database_copy
+
+# Android root-level layout/focus dump artifacts
+android/moplayer/codex_*.xml
+android/moplayer/home_*.xml
+android/moplayer/login_dump*.xml
+android/moplayer/.superdesign/
+android/moplayer/.home-isolated/
+
+# Docker compose files at the Android root are temporary
+android/moplayer/docker-compose.yml
 
 
 .vercel

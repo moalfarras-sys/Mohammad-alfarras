@@ -36,6 +36,11 @@ const seoCopy = {
       description: "سياسة خصوصية واضحة ومباشرة لموقع moalfarras.space.",
       image: "/images/portrait.jpg",
     },
+    apps: {
+      title: "التطبيقات والمنتجات | محمد الفراس",
+      description: "منظومة تطبيقات ومنتجات رقمية مبنية بنفس مستوى الموقع. MoPlayer هو المنتج البطل حالياً.",
+      image: "/images/moplayer-app-cover-final.jpeg",
+    },
   },
   en: {
     home: {
@@ -68,6 +73,11 @@ const seoCopy = {
       description: "Clear privacy policy for moalfarras.space.",
       image: "/images/portrait.jpg",
     },
+    apps: {
+      title: "Apps & Products | Mohammad Alfarras",
+      description: "A small ecosystem of focused products built to the same standard as the site. MoPlayer is the headline product today.",
+      image: "/images/moplayer-app-cover-final.jpeg",
+    },
   },
 } as const;
 
@@ -79,6 +89,7 @@ const keywordMap: Record<string, string[]> = {
   youtube: ["Mohammad Alfarras YouTube", "Arabic tech content", "يوتيوب محمد الفراس", "محتوى تقني عربي"],
   contact: ["contact Mohammad Alfarras", "hire web developer", "تواصل محمد الفراس"],
   privacy: ["moalfarras privacy", "سياسة الخصوصية محمد الفراس"],
+  apps: ["MoPlayer", "Mohammad Alfarras apps", "تطبيقات محمد الفراس", "MoPlayer Android", "MoPlayer TV"],
 };
 
 export async function pageMetadata(locale: Locale, slug: string): Promise<Metadata> {

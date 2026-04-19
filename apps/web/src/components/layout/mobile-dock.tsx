@@ -1,6 +1,6 @@
 "use client";
 
-import { BriefcaseBusiness, House, Mail, PlayCircle, UserRound } from "lucide-react";
+import { AppWindow, BriefcaseBusiness, House, Mail, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,14 +28,14 @@ export function MobileDock({ locale }: { locale: Locale }) {
         { id: "home", label: "الرئيسية", href: `/${locale}`, icon: House },
         { id: "cv", label: "السيرة", href: `/${locale}/cv`, icon: UserRound },
         { id: "work", label: "الأعمال", href: `/${locale}/work`, icon: BriefcaseBusiness },
-        { id: "youtube", label: "يوتيوب", href: `/${locale}/youtube`, icon: PlayCircle },
+        { id: "apps", label: "التطبيقات", href: `/${locale}/apps`, icon: AppWindow },
         { id: "contact", label: "تواصل", href: `/${locale}/contact`, icon: Mail },
       ]
     : [
         { id: "home", label: "Home", href: `/${locale}`, icon: House },
         { id: "cv", label: "CV", href: `/${locale}/cv`, icon: UserRound },
         { id: "work", label: "Work", href: `/${locale}/work`, icon: BriefcaseBusiness },
-        { id: "youtube", label: "YouTube", href: `/${locale}/youtube`, icon: PlayCircle },
+        { id: "apps", label: "Apps", href: `/${locale}/apps`, icon: AppWindow },
         { id: "contact", label: "Contact", href: `/${locale}/contact`, icon: Mail },
       ];
 
@@ -64,17 +64,13 @@ export function MobileDock({ locale }: { locale: Locale }) {
                 {active ? (
                   <motion.span
                     layoutId="dock-pill"
-                    className="absolute inset-x-0.5 inset-y-0 rounded-[1.2rem]"
-                    style={{
-                      background: "linear-gradient(135deg, #00E5FF, #00B8D4)",
-                      boxShadow: "0 0 20px rgba(0,229,255,0.4)",
-                    }}
+                    className="dock-active-pill absolute inset-x-0.5 inset-y-0 rounded-[1.2rem]"
                     transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
                     aria-hidden="true"
                   />
                 ) : null}
-                <Icon className={cn("relative z-10 h-[1.15rem] w-[1.15rem] shrink-0 transition-all duration-300", active && "filter-[drop-shadow(0_0_6px_rgba(0,0,0,0.4))]")} />
-                <span className={cn("relative z-10 truncate font-bold", active && "text-[#0a0a0a]")}>{item.label}</span>
+                <Icon className={cn("relative z-10 h-[1.15rem] w-[1.15rem] shrink-0 transition-all duration-300", active && "dock-active-text")} />
+                <span className={cn("relative z-10 truncate font-bold", active && "dock-active-text")}>{item.label}</span>
               </Link>
             </motion.div>
           );

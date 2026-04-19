@@ -45,5 +45,8 @@
     "postcss": "^8.4.49",
     "prettier": "^3.6.2",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.32.0"
   }
 }

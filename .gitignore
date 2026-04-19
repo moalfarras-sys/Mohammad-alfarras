@@ -57,5 +57,4 @@ android/moplayer/.home-isolated/
 # Docker compose files at the Android root are temporary
 android/moplayer/docker-compose.yml
 
-
 .vercel

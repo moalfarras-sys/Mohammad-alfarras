@@ -6,7 +6,7 @@ import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { readAdminAppData } from "@/lib/app-ecosystem";
 
 export const metadata: Metadata = {
-  title: "Admin",
+  title: "Moalfarras Control Center",
   robots: {
     index: false,
     follow: false,

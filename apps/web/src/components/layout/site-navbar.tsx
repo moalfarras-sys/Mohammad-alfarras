@@ -1,7 +1,7 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { MoonStar, SunMedium } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -63,13 +63,12 @@ export function SiteNavbar({
           scrolled ? "glass-card" : "bg-transparent",
         )}
       >
-        <div className="flex w-full md:w-auto items-center justify-between">
-          {/* Logo */}
-          <Link href={`/${locale}`} className="flex min-w-0 items-center gap-3 group">
+        <div className="flex w-full items-center justify-between md:w-auto">
+          <Link href={`/${locale}`} className="group flex min-w-0 items-center gap-3">
             <motion.span
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="navbar-logo-shell relative flex h-10 w-10 md:h-12 md:w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-500"
+              className="navbar-logo-shell relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition duration-500 md:h-12 md:w-12"
               style={{
                 background: "var(--bg-secondary)",
                 border: "1px solid var(--border-glass)",
@@ -87,7 +86,6 @@ export function SiteNavbar({
             </span>
           </Link>
 
-          {/* Right controls - Mobile Only */}
           <div className="flex items-center gap-2 md:hidden">
             <Link
               href={alternatePath}
@@ -102,7 +100,7 @@ export function SiteNavbar({
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.05 }}
               onClick={toggleTheme}
-              className="relative inline-flex h-9 w-9 overflow-hidden items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground border border-border-glass bg-bg-secondary shadow-sm"
+              className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border-glass bg-bg-secondary text-foreground-muted shadow-sm transition-all duration-300 hover:text-foreground"
             >
               <AnimatePresence mode="wait">
                 {mounted && theme === "dark" ? (
@@ -119,41 +117,37 @@ export function SiteNavbar({
           </div>
         </div>
 
-        {/* Desktop nav elements - Hidden on mobile */}
-        <nav
-          className="hidden md:flex items-center gap-1.5 overflow-x-auto rounded-full py-1.5 lg:px-2 scrollbar-none justify-center w-auto"
-        >
+        <nav className="hidden w-auto items-center justify-center gap-1.5 overflow-x-auto rounded-full py-1.5 scrollbar-none md:flex lg:px-2">
           {links.map((item) => {
             const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
             return (
               <Link
                 key={item.id}
                 href={item.href}
                 className={cn(
-                  "navbar-link relative flex items-center gap-2 shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-all duration-300",
-                  active
-                    ? "text-primary"
-                    : "text-foreground-muted hover:text-foreground",
-                  !active && "bg-bg-secondary/40 border border-border-glass"
+                  "navbar-link relative flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all duration-300",
+                  active ? "text-primary" : "text-foreground-muted hover:text-foreground",
+                  !active && "border border-border-glass bg-bg-secondary/40",
                 )}
               >
                 <span className="relative z-10 whitespace-nowrap">{item.label}</span>
-                {active && (
+                {active ? (
                   <motion.div
                     layoutId="nav-underline"
                     className="absolute -bottom-1 left-3 right-3 h-[3px] rounded-full bg-primary"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
-                )}
+                ) : null}
               </Link>
             );
           })}
         </nav>
 
-        {/* Right controls - Desktop */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
           <Link
             href={alternatePath}
+            aria-label={locale === "ar" ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
             className="inline-flex h-11 items-center justify-center rounded-full border border-border-glass bg-bg-secondary px-4 text-xs font-bold uppercase tracking-[0.24em] text-foreground-muted transition-all duration-300 hover:text-foreground"
           >
             {alternateLabel}
@@ -165,19 +159,19 @@ export function SiteNavbar({
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.05 }}
             onClick={toggleTheme}
-            className="navbar-theme-btn relative inline-flex h-11 w-11 overflow-hidden items-center justify-center rounded-full text-foreground-muted transition-all duration-300 hover:text-foreground border border-border-glass bg-bg-secondary"
+            className="navbar-theme-btn relative inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-border-glass bg-bg-secondary text-foreground-muted transition-all duration-300 hover:text-foreground"
           >
-              <AnimatePresence mode="wait">
-                {mounted && theme === "dark" ? (
-                  <motion.div key="sun" initial={{ scale: 0.5, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5, rotate: 90 }} transition={{ duration: 0.2 }}>
-                    <SunMedium className="h-4 w-4" />
-                  </motion.div>
-                ) : mounted ? (
-                  <motion.div key="moon" initial={{ scale: 0.5, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5, rotate: 90 }} transition={{ duration: 0.2 }}>
-                    <MoonStar className="h-4 w-4" />
-                  </motion.div>
-                ) : <span className="h-4 w-4" />}
-              </AnimatePresence>
+            <AnimatePresence mode="wait">
+              {mounted && theme === "dark" ? (
+                <motion.div key="sun" initial={{ scale: 0.5, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5, rotate: 90 }} transition={{ duration: 0.2 }}>
+                  <SunMedium className="h-4 w-4" />
+                </motion.div>
+              ) : mounted ? (
+                <motion.div key="moon" initial={{ scale: 0.5, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5, rotate: 90 }} transition={{ duration: 0.2 }}>
+                  <MoonStar className="h-4 w-4" />
+                </motion.div>
+              ) : <span className="h-4 w-4" />}
+            </AnimatePresence>
           </motion.button>
         </div>
       </motion.div>

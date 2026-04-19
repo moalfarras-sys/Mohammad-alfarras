@@ -1,82 +1,168 @@
-# Moalfarras Ecosystem
-**The Digital Visionary Studio & Product Landscape**
+# Moalfarras Workspace
 
-A comprehensive, production-grade monorepo acting as the central hub for the `Moalfarras` brand. This ecosystem manages the premium bilingual portfolio, the MoPlayer Android/Android TV product presence, a deep-integrated admin CMS, and secure backend operations via Supabase.
+Monorepo for the personal website, the unified private admin surface, and the Android app project.
 
----
+## Projects
 
-## 🏗 Architecture & Stack
-This project runs as a heavily optimized Next.js 16 (App Router) execution, coupled to a headless Supabase backend, styled with Tailwind CSS v4.
-
-- **Framework:** Next.js 16.2.3 (React 19)
-- **Styling:** Tailwind CSS v4, Framer Motion, fully custom Light/Dark premium theme system.
-- **Backend:** Supabase (PostgreSQL, Auth, Storage)
-- **Language:** TypeScript
-- **Deployment:** Vercel (Edge computing for fast i18n routing).
-
-## 🗂 Folder Structure
 ```text
-/
-├── apps/
-│   └── web/                # The main Next.js App Router application
-│       ├── src/app/        # Core Routing (App Admin, App Product, Site locales)
-│       ├── src/components/ # Reusable UI components & Layout wrappers
-│       ├── src/data/       # Static/CMS mock data layers
-│       └── src/lib/        # Utilities, API wrappers, internal core logic
-├── packages/
-│   └── shared/             # Shared typescript definitions and constants
-├── android/                # Mobile references / MoPlayer App hooks
-└── supabase/               # Backend definitions, migrations, schema backups
+C:\Users\Moalfarras\Desktop\Moalfarrasappseit
+├── apps
+│   ├── web
+│   │   ├── public
+│   │   └── src
+│   │       ├── app
+│   │       ├── components
+│   │       ├── data
+│   │       └── lib
+│   └── admin
+├── android
+│   └── moplayer
+├── packages
+│   └── shared
+└── supabase
 ```
 
-## 🚀 Setup Instructions
+## Naming
 
-1. **Clone & Install**
-   ```bash
-   git clone https://github.com/moalfarras-sys/moalfarras-ecosystem.git
-   cd moalfarras-ecosystem
-   npm install
-   ```
+- Web workspace package: `moalfarrasweb`
+- Android Studio project name: `MoPlayerapp`
+- Android application id: `com.mo.moplayer` (unchanged)
+- Primary admin entry: `/admin`
 
-2. **Environment Variables**
-   Create a `.env.local` file inside `apps/web/` containing:
-   ```env
-   # SUPABASE
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role
+## Public Routes
 
-   # ADMIN CMS AUTHENTICATION
-   ADMIN_PASSWORD_HASH=your_bcrypt_hash
-   ADMIN_SESSION_SECRET=your_32_byte_secret
-   ADMIN_ALLOWLIST=admin@domain.com
-   ```
+- `/{locale}`: personal homepage
+- `/{locale}/cv`: CV page
+- `/{locale}/about`: alias to the same profile/CV surface
+- `/{locale}/work`: projects and portfolio
+- `/{locale}/work/moplayer`: MoPlayer case study
+- `/app`: MoPlayer product and download page
+- `/privacy`: privacy policy
+- `/support`: app support
 
-3. **Development**
-   Launch the development server:
-   ```bash
-   cd apps/web
-   npm run dev
-   ```
-   *The main site will run at `http://localhost:3000`.*
+## Admin
 
-## 🔒 Administrative Zones (Hidden & Protected)
+Primary admin access is unified through:
 
-The project utilizes two distinct, highly secured dashboard areas:
-- **Control Center (`/[locale]/admin`):** The primary CMS for deploying portfolio updates, media management, and CV translations. Protected by AES session cookies and strict email allowlists.
-- **MoPlayer Admin (`/admin`):** Separate sub-system strictly managing the backend release processes, download metrics, and support requests for Android / Android TV applications. Controlled by Supabase Admin policies.
+- `/admin`
 
-## 📱 Android Integration (MoPlayer)
-The web application seamlessly bridges the download, update, and API operations for the MoPlayer Android application. 
-- APKs and release notes are indexed dynamically.
-- Support interfaces route directly from mobile to the `/admin` backend interface.
+From there you can manage:
 
-## ☁️ Deployment
+- Website content
+- CV content
+- Projects
+- Media
+- PDFs
+- MoPlayer product content
+- Releases and APK downloads
+- Support requests
 
-This project is built and optimized for continuous deployment over Vercel. 
-- **Build Command:** `npm run build`
-- **Output:** Next.js deployment.
-- **Domain:** Production deployments are automatically pushed to `moalfarras.space`.
+Legacy content workspaces still exist under `/{locale}/admin/*`, but they are intended to be entered from `/admin`, not from public navigation.
 
----
-*Maintained with strict precision by Mohammad Alfarras.*
+## Environment
+
+Create `apps/web/.env.local` with the values your deployment uses.
+
+Minimum web/admin env:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+ADMIN_ALLOWLIST=
+ADMIN_PASSWORD_HASH=
+ADMIN_SESSION_SECRET=
+```
+
+## Local Development
+
+From the repo root:
+
+```bash
+npm install
+```
+
+### Run the website
+
+```bash
+npm --prefix apps/web run dev
+```
+
+Production build check:
+
+```bash
+npm --prefix apps/web run typecheck
+npm --prefix apps/web run build
+```
+
+### Run the standalone admin workspace
+
+```bash
+npm --prefix apps/admin run dev
+```
+
+Production build check:
+
+```bash
+npm --prefix apps/admin run typecheck
+npm --prefix apps/admin run build
+```
+
+### Android Studio
+
+Open this folder in Android Studio:
+
+```text
+C:\Users\Moalfarras\Desktop\Moalfarrasappseit\android\moplayer
+```
+
+The project name shown in Android Studio is now:
+
+```text
+MoPlayerapp
+```
+
+### Android builds
+
+From the repo root:
+
+```bash
+cd android/moplayer
+gradlew.bat assembleSideloadDebug
+gradlew.bat assembleSideloadRelease
+```
+
+Generated APKs are written to:
+
+```text
+C:\Users\Moalfarras\Desktop\Moalfarrasappseit\android\moplayer\build-output\app\outputs\apk\sideload\debug
+C:\Users\Moalfarras\Desktop\Moalfarrasappseit\android\moplayer\build-output\app\outputs\apk\sideload\release
+```
+
+## Branding Assets
+
+Android branding resources live under:
+
+```text
+android/moplayer/app/src/main/res/drawable
+```
+
+Key resources:
+
+- `moplayer_brand_logo_new.png`
+- `logo.xml`
+- `icon.xml`
+- `tv_banner_image.jpg`
+
+Web branding and app marketing assets live under:
+
+```text
+apps/web/public/images
+```
+
+## Notes
+
+- `adb` is not currently on the shell PATH in this environment, so CLI install/run was not part of verification.
+- Android verification was completed by successful `assembleSideloadDebug` and `assembleSideloadRelease` builds.
+- The website and admin were verified locally by running production servers and checking the key routes.

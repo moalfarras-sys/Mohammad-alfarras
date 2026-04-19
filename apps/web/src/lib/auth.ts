@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 import { defaultLocale, isLocale } from "@/lib/i18n";
+import { createSupabaseServer, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 const ADMIN_COOKIE = "mf_admin_session";
 const HASH_PREFIX = "scrypt$";
@@ -145,14 +146,39 @@ export async function destroyAdminSession() {
 export async function getAdminSessionEmail(): Promise<string | null> {
   const store = await cookies();
   const token = store.get(ADMIN_COOKIE)?.value || "";
-  if (!verifySignedSession(token)) return null;
-
-  try {
-    const [, encodedEmail = ""] = token.split(".");
-    return decodeSessionEmail(encodedEmail);
-  } catch {
-    return null;
+  if (verifySignedSession(token)) {
+    try {
+      const [, encodedEmail = ""] = token.split(".");
+      return decodeSessionEmail(encodedEmail);
+    } catch {
+      return null;
+    }
   }
+
+  if (hasSupabasePublicEnv()) {
+    try {
+      const supabase = await createSupabaseServer();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user?.id && user.email) {
+        const { data, error } = await supabase
+          .from("app_admin_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!error && data?.role && (data.role === "admin" || data.role === "editor")) {
+          return user.email;
+        }
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
 }
 
 export async function isAdminAuthenticated(): Promise<boolean> {

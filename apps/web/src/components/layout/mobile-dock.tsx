@@ -23,13 +23,21 @@ export function MobileDock({ locale }: { locale: Locale }) {
     return null;
   }
 
-  const items: DockItem[] = [
-    { id: "home", label: locale === "ar" ? "الرئيسية" : "Home", href: `/${locale}`, icon: House },
-    { id: "about", label: locale === "ar" ? "عنّي" : "About", href: `/${locale}/about`, icon: UserRound },
-    { id: "work", label: locale === "ar" ? "الأعمال" : "Work", href: `/${locale}/work`, icon: BriefcaseBusiness },
-    { id: "youtube", label: locale === "ar" ? "يوتيوب" : "YouTube", href: `/${locale}/youtube`, icon: PlayCircle },
-    { id: "contact", label: locale === "ar" ? "تواصل" : "Contact", href: `/${locale}/contact`, icon: Mail },
-  ];
+  const items: DockItem[] = locale === "ar"
+    ? [
+        { id: "home", label: "الرئيسية", href: `/${locale}`, icon: House },
+        { id: "cv", label: "السيرة", href: `/${locale}/cv`, icon: UserRound },
+        { id: "work", label: "الأعمال", href: `/${locale}/work`, icon: BriefcaseBusiness },
+        { id: "youtube", label: "يوتيوب", href: `/${locale}/youtube`, icon: PlayCircle },
+        { id: "contact", label: "تواصل", href: `/${locale}/contact`, icon: Mail },
+      ]
+    : [
+        { id: "home", label: "Home", href: `/${locale}`, icon: House },
+        { id: "cv", label: "CV", href: `/${locale}/cv`, icon: UserRound },
+        { id: "work", label: "Work", href: `/${locale}/work`, icon: BriefcaseBusiness },
+        { id: "youtube", label: "YouTube", href: `/${locale}/youtube`, icon: PlayCircle },
+        { id: "contact", label: "Contact", href: `/${locale}/contact`, icon: Mail },
+      ];
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:hidden">
@@ -43,6 +51,7 @@ export function MobileDock({ locale }: { locale: Locale }) {
         {items.map((item) => {
           const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
           const Icon = item.icon;
+
           return (
             <motion.div key={item.id} whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.05 }} className="flex-1">
               <Link
@@ -64,12 +73,7 @@ export function MobileDock({ locale }: { locale: Locale }) {
                     aria-hidden="true"
                   />
                 ) : null}
-                <Icon
-                  className={cn(
-                    "relative z-10 h-[1.15rem] w-[1.15rem] shrink-0 transition-all duration-300",
-                    active && "filter-[drop-shadow(0_0_6px_rgba(0,0,0,0.4))]",
-                  )}
-                />
+                <Icon className={cn("relative z-10 h-[1.15rem] w-[1.15rem] shrink-0 transition-all duration-300", active && "filter-[drop-shadow(0_0_6px_rgba(0,0,0,0.4))]")} />
                 <span className={cn("relative z-10 truncate font-bold", active && "text-[#0a0a0a]")}>{item.label}</span>
               </Link>
             </motion.div>

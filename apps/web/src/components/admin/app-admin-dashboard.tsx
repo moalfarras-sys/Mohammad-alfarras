@@ -103,18 +103,37 @@ export function AppAdminDashboard({
     { label: "Support Tickets", value: supportRequests.length, icon: Activity },
   ];
 
+  const websiteLinks = [
+    { label: "Homepage & sections", href: "/en/admin/pages" },
+    { label: "CV content", href: "/en/admin/cv" },
+    { label: "Projects studio", href: "/en/admin/projects" },
+    { label: "Media library", href: "/en/admin/media" },
+    { label: "PDF control", href: "/en/admin/pdfs" },
+    { label: "Brand settings", href: "/en/admin/settings" },
+  ];
+
+  const publicLinks = [
+    { label: "View website", href: "/en" },
+    { label: "View CV", href: "/en/cv" },
+    { label: "View app page", href: "/app" },
+    { label: "Support page", href: "/support" },
+  ];
+
   return (
     <div className="font-sans antialiased text-white selection:bg-[#00E5FF]/30 space-y-8">
       
       {/* --- HEADER --- */}
       <header className="flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">MoPlayer Admin</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Moalfarras Control Center</h1>
           <div className="flex items-center gap-3 text-sm text-white/50">
             <span className="flex items-center gap-1.5"><Settings className="h-4 w-4 shrink-0" /> {adminEmail}</span>
             <span className="h-4 w-[1px] bg-white/10" />
             <span className="uppercase tracking-widest text-xs font-bold text-[#00E5FF]">{role}</span>
           </div>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-white/50">
+            Unified access for website content, CV, project publishing, and MoPlayer release operations without exposing admin tools to visitors.
+          </p>
         </div>
         
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -149,6 +168,45 @@ export function AppAdminDashboard({
           </div>
         ))}
       </div>
+
+      <AdminSection title="Website Control" description="Open the private site workspaces from the same authenticated admin surface.">
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="mb-4 flex items-center gap-3">
+              <Settings className="h-5 w-5 text-[#00E5FF]" />
+              <h3 className="text-base font-bold text-white">Content workspaces</h3>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {websiteLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-lg border border-white/10 bg-[#0A0F1A] px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-[#00E5FF]/40 hover:bg-white/10"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="mb-4 flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-[#00E5FF]" />
+              <h3 className="text-base font-bold text-white">Live surfaces</h3>
+            </div>
+            <div className="grid gap-3">
+              {publicLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-lg border border-white/10 bg-[#0A0F1A] px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-[#00E5FF]/40 hover:bg-white/10"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AdminSection>
 
       {/* --- SUPPORT TICKETS TRAY --- */}
       {supportRequests.length > 0 && (

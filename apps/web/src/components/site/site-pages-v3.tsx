@@ -4,17 +4,35 @@ import { getSiteSetting, readSnapshot, readVideos } from "@/lib/content/store";
 import { buildCvPresentationModel } from "@/lib/cv-presenter";
 import { formatMonthYear } from "@/lib/locale-format";
 import { getProjectStudioItem, resolveMediaPath, translateMetric } from "@/lib/projects-studio";
-import { getLiveYoutubeData } from "@/lib/youtube-live";
-import { getLiveWeather } from "@/lib/weather-live";
 import { getLiveMatches } from "@/lib/matches-live";
+import { getLiveWeather } from "@/lib/weather-live";
+import { getLiveYoutubeData } from "@/lib/youtube-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
 import { SiteViewClient, type SiteViewModel } from "./site-view-client";
+import {
+  PortfolioContactPage,
+  PortfolioCvPage,
+  PortfolioHomePage,
+  PortfolioPrivacyPage,
+  PortfolioWorkPage,
+  PortfolioYoutubePage,
+} from "./portfolio-pages";
 
 function safeImageSrc(path: string | null | undefined, fallback: string) {
   if (!path?.trim()) return fallback;
   const value = path.trim();
   return value.startsWith("/") || value.startsWith("http://") || value.startsWith("https://") ? value : fallback;
+}
+
+function safePortraitSrc(path: string | null | undefined) {
+  if (!path) return "/images/portrait.jpg";
+  const value = path.trim().toLowerCase();
+  if (!value) return "/images/portrait.jpg";
+  if (value.includes("service_") || value.includes("moplayer") || value.includes("logo")) {
+    return "/images/portrait.jpg";
+  }
+  return path;
 }
 
 function formatDate(locale: Locale, value: string) {
@@ -25,8 +43,8 @@ function getProfile(snapshot: CmsSnapshot, locale: Locale) {
   const brand = getSiteSetting(snapshot, "brand_profile", {
     title_ar: "محمد الفراس",
     title_en: "Mohammad Alfarras",
-    subtitle_ar: "تنسيق لوجستي، تصميم وتطوير، وصناعة محتوى تقني",
-    subtitle_en: "Logistics dispatching, digital design and development, and tech content creation",
+    subtitle_ar: "تطوير ويب، تصميم واجهات، وصناعة محتوى تقني",
+    subtitle_en: "Web development, interface design, and Arabic tech content creation",
     location_ar: "ألمانيا",
     location_en: "Germany",
   });
@@ -45,30 +63,30 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
       title: locale === "ar" ? "واجهات ومواقع تشرح القيمة بسرعة" : "Web experiences that explain value fast",
       body:
         locale === "ar"
-          ? "نبني صفحات هبوط ومواقع شخصية وتجارية بحضور بصري راقٍ، ورسالة واضحة، وتجربة تشعر المستخدم أن كل شيء هنا مقصود بعناية."
+          ? "أبني صفحات إطلاق ومواقع شخصية وتجارية بحضور بصري واضح ورسالة مفهومة وتجربة مرتبة من أول شاشة."
           : "Launch pages and digital surfaces with stronger visual control, sharper hierarchy, and a clearer commercial message from the first screen.",
-      bullets: locale === "ar" ? ["صفحات إطلاق", "حضور رقمي", "تركيز على التحويل"] : ["Launch pages", "Brand presence", "Conversion focus"],
+      bullets: locale === "ar" ? ["صفحات إطلاق", "حضور رقمي", "تحويل أوضح"] : ["Launch pages", "Brand presence", "Conversion focus"],
       image: "/images/service_web.png",
     },
     {
       id: "service-ops",
-      title: locale === "ar" ? "تنفيذ منضبط بعقلية لوجستية" : "Execution shaped by logistics discipline",
+      title: locale === "ar" ? "تنفيذ منضبط بعقلية تشغيلية" : "Execution shaped by logistics discipline",
       body:
         locale === "ar"
-          ? "الخبرة في التشغيل والضغط اليومي تنعكس هنا على شكل سرعة أعلى، تنظيم أوضح، وتجربة مستقرة لا تنهار عند أول تعديل."
+          ? "الخبرة في التشغيل اليومي تنعكس هنا على شكل سرعة أعلى، تنظيم أوضح، وتجربة أكثر ثباتاً."
           : "Operational pressure from logistics becomes faster turnaround, cleaner systems, and frontend execution that stays reliable under change.",
-      bullets: locale === "ar" ? ["Speed", "Reliability", "Structured delivery"] : ["Speed", "Reliability", "Structured delivery"],
-      image: "/images/service-logistics-ops.png",
+      bullets: locale === "ar" ? ["سرعة", "اعتمادية", "تنفيذ منظم"] : ["Speed", "Reliability", "Structured delivery"],
+      image: "/images/service_logistics.png",
     },
     {
       id: "service-creator",
       title: locale === "ar" ? "محتوى تقني يصنع الثقة" : "Creator-grade content that builds trust",
       body:
         locale === "ar"
-          ? "من اليوتيوب إلى عرض المنتجات، نحول المحتوى من مجرد شرح إلى طبقة ثقة حقيقية ترفع صورة المشروع وتدعمه بصريًا."
+          ? "من يوتيوب إلى عرض المنتجات، أتعامل مع المحتوى كطبقة ثقة ترفع صورة المشروع وتدعمه بصرياً."
           : "From YouTube to product storytelling, content becomes a trust layer that strengthens brand perception instead of just filling space.",
-      bullets: locale === "ar" ? ["YouTube", "Product storytelling", "Audience trust"] : ["YouTube", "Product storytelling", "Audience trust"],
-      image: "/images/service-content-creator.png",
+      bullets: locale === "ar" ? ["يوتيوب", "عرض المنتج", "ثقة الجمهور"] : ["YouTube", "Product storytelling", "Audience trust"],
+      image: "/images/yt-hero-2026.png",
     },
   ];
 
@@ -92,8 +110,53 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
   return active.length ? active : fallback;
 }
 
+function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
+  return {
+    id: "moplayer-fallback",
+    slug: "moplayer",
+    title: locale === "ar" ? localProjects[0].nameAR : localProjects[0].nameEN,
+    ctaLabel: locale === "ar" ? "استكشف التطبيق" : "Explore app",
+    summary: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
+    description: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
+    image: localProjects[0].coverImage,
+    href: "/app",
+    repoUrl: localProjects[0].downloadLinks.github,
+    featured: true,
+    featuredRank: 3,
+    accent: "cyan",
+    highlightStyle: "app",
+    deviceFrame: "phone",
+    eyebrow: locale === "ar" ? "تجربة تطبيق ومنتج" : "App and product experience",
+    challenge:
+      locale === "ar"
+        ? "الهدف كان بناء تجربة تشغيل وسائط أسرع، أوضح، وأكثر اتساقاً كمنتج حقيقي."
+        : "The target was a cleaner, faster media flow that feels like a real product.",
+    solution:
+      locale === "ar"
+        ? "تم التركيز على واجهة أوضح، إيقاع تنقل أفضل، وهوية بصرية أكثر تماسكاً بين الهاتف وAndroid TV."
+        : "The build focuses on a clearer interface, smoother navigation, and a stronger visual identity across phone and Android TV.",
+    result:
+      locale === "ar"
+        ? "هوية تطبيق أوضح وقصة منتج أنظف داخل الموقع وصفحة تنزيل مستقلة على /app."
+        : "A clearer app identity and a cleaner product story across the site and the dedicated /app surface.",
+    tags: locale === "ar" ? ["تطبيق", "واجهة هاتف", "منتج رقمي"] : ["App", "Mobile UI", "Digital product"],
+    gallery: [...new Set(localProjects[0].screenshots)],
+    metrics: locale === "ar"
+      ? [
+          { value: "API 24+", label: "الحد الأدنى" },
+          { value: "TV", label: "جاهزية Android TV" },
+          { value: "UI", label: "واجهة مركزة" },
+        ]
+      : [
+          { value: "API 24+", label: "Minimum SDK" },
+          { value: "TV", label: "Android TV ready" },
+          { value: "UI", label: "Focused interface" },
+        ],
+  };
+}
+
 function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["projects"] {
-  const active = snapshot.work_projects
+  const active: SiteViewModel["projects"] = snapshot.work_projects
     .filter((entry) => entry.is_active)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((entry) => {
@@ -133,46 +196,19 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         result: translation?.result || (locale === "ar" ? studio.result_ar : studio.result_en),
         tags: translation?.tags_json?.length ? translation.tags_json : locale === "ar" ? studio.tags_ar : studio.tags_en,
         gallery: projectMedia.length
-          ? projectMedia.map((item) => resolveMediaPath(snapshot.media_assets, item.media_id, "")).filter(Boolean)
-          : studio.gallery_media_ids.map((mediaId) => resolveMediaPath(snapshot.media_assets, mediaId, "")).filter(Boolean),
+          ? [...new Set(projectMedia.map((item) => resolveMediaPath(snapshot.media_assets, item.media_id, "")).filter(Boolean))]
+          : [...new Set(studio.gallery_media_ids.map((mediaId) => resolveMediaPath(snapshot.media_assets, mediaId, "")).filter(Boolean))],
         metrics: projectMetrics.length
-          ? projectMetrics.map((metric) => ({
-              value: metric.value,
-              label: locale === "ar" ? metric.label_ar : metric.label_en,
-            }))
+          ? projectMetrics.map((metric) => ({ value: metric.value, label: locale === "ar" ? metric.label_ar : metric.label_en }))
           : studio.metrics.map((metric) => translateMetric(locale, metric)),
       };
     });
 
+  if (!active.some((project) => project.slug === "moplayer")) {
+    active.push(moplayerFallback(locale));
+  }
+
   if (active.length) {
-    const hasMoplayer = active.some((project) => project.slug.includes("moplayer"));
-    if (!hasMoplayer) {
-      active.push({
-        id: "moplayer-fallback",
-        slug: "moplayer",
-        title: locale === "ar" ? localProjects[0].nameAR : localProjects[0].nameEN,
-        ctaLabel: locale === "ar" ? "استكشف التطبيق" : "Explore app",
-        summary: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-        description: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-        image: localProjects[0].coverImage,
-        href: "/app",
-        repoUrl: localProjects[0].downloadLinks.github,
-        featured: true,
-        featuredRank: 3,
-        accent: "cyan",
-        highlightStyle: "app",
-        deviceFrame: "phone",
-        eyebrow: locale === "ar" ? "تجربة تطبيق ومنتج" : "App and product experience",
-        challenge: locale === "ar" ? "الهدف كان تقديم تجربة ترفيهية واضحة وسريعة تشعر أنها منتج حقيقي." : "The target was a cleaner, faster entertainment flow that feels like a real product.",
-        solution: locale === "ar" ? "تم التركيز على framing للهاتف، rhythm ناعم، وهوية واجهة أكثر تماسكاً." : "The build focuses on phone framing, a smoother rhythm, and a more cohesive interface identity.",
-        result: locale === "ar" ? "هوية تطبيق أوضح وتجربة أقرب إلى منتج جاهز للتسويق والتطوير." : "A clearer app identity and a product story that feels ready for launch and growth.",
-        tags: locale === "ar" ? ["تطبيق", "واجهة هاتف", "منتج رقمي"] : ["App", "Mobile UI", "Digital product"],
-        gallery: localProjects[0].screenshots,
-        metrics: locale === "ar"
-          ? [{ value: "Mobile", label: "أولوية الهاتف" }, { value: "Flow", label: "إيقاع ناعم" }, { value: "UI", label: "واجهة مركزة" }]
-          : [{ value: "Mobile", label: "Mobile first" }, { value: "Flow", label: "Smooth flow" }, { value: "UI", label: "Focused interface" }],
-      });
-    }
     return active;
   }
 
@@ -182,28 +218,43 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       slug: "seel",
       title: "SEEL Transport",
       ctaLabel: locale === "ar" ? "عرض المشروع" : "Open project",
-      summary: locale === "ar" ? "دراسة حالة لخدمة لوجستية تحتاج صورة أهدأ وأقوى." : "A logistics service case study built around clarity and trust.",
+      summary: locale === "ar" ? "دراسة حالة لخدمة لوجستية احتاجت ترتيباً أوضح وصورة أكثر ثقة." : "A logistics service case study built around clarity and trust.",
       description:
         locale === "ar"
-          ? "إعادة ترتيب العرض البصري والرسالة لتبدو الخدمة أكثر ثقة ووضوحاً من أول شاشة."
+          ? "إعادة ترتيب العرض البصري والرسالة لتبدو الخدمة أوضح وأكثر مهنية من أول شاشة."
           : "A visual and messaging reset that makes the service feel more credible from the first screen.",
       image: "/images/seel-home-case.png",
-      href: undefined,
-      repoUrl: undefined,
       featured: true,
       featuredRank: 1,
       accent: "green",
       highlightStyle: "operations",
       deviceFrame: "browser",
       eyebrow: locale === "ar" ? "منصة خدمات وتشغيل" : "Operations-led service platform",
-      challenge: locale === "ar" ? "الموقع كان يحتاج ثقة أسرع وترتيباً أوضح لما تعنيه الخدمة فعلاً." : "The site needed faster trust and a clearer explanation of what the service actually delivers.",
-      solution: locale === "ar" ? "تم بناء التسلسل حول الوضوح التشغيلي، القراءة السريعة، وإحساس أقوى بالاعتماد." : "The hierarchy was rebuilt around operational clarity, faster reading, and stronger dependability.",
-      result: locale === "ar" ? "النتيجة واجهة أهدأ وأقرب لطبيعة شركة تعمل يومياً تحت ضغط حقيقي." : "The result is calmer, clearer, and much closer to a business that operates under real daily pressure.",
+      challenge:
+        locale === "ar"
+          ? "الموقع كان يحتاج ثقة أسرع وترتيباً أوضح لما تعنيه الخدمة فعلاً."
+          : "The site needed faster trust and a clearer explanation of what the service actually delivers.",
+      solution:
+        locale === "ar"
+          ? "تم بناء التسلسل حول الوضوح التشغيلي والقراءة الأسرع وإحساس أقوى بالاعتمادية."
+          : "The hierarchy was rebuilt around operational clarity, faster reading, and stronger dependability.",
+      result:
+        locale === "ar"
+          ? "واجهة أهدأ وأوضح وأقرب لطبيعة شركة تعمل يومياً تحت ضغط حقيقي."
+          : "The result is calmer, clearer, and much closer to a business that operates under real daily pressure.",
       tags: locale === "ar" ? ["لوجستيات", "واجهة تشغيل", "ثقة الخدمة"] : ["Logistics", "Operations UI", "Service trust"],
-      gallery: ["/images/seel-service-case.png", "/images/seel-gallery-case.png", "/images/seel-contact-case.png"],
+      gallery: ["/images/seel-home-case.png"],
       metrics: locale === "ar"
-        ? [{ value: "24/7", label: "إيقاع تشغيلي" }, { value: "TMS", label: "تنسيق المسارات" }, { value: "B2B", label: "ثقة الخدمة" }]
-        : [{ value: "24/7", label: "Operations rhythm" }, { value: "TMS", label: "Route management" }, { value: "B2B", label: "Service trust" }],
+        ? [
+            { value: "24/7", label: "إيقاع تشغيلي" },
+            { value: "TMS", label: "تنسيق المسارات" },
+            { value: "B2B", label: "ثقة الخدمة" },
+          ]
+        : [
+            { value: "24/7", label: "Operations rhythm" },
+            { value: "TMS", label: "Route management" },
+            { value: "B2B", label: "Service trust" },
+          ],
     },
     {
       id: "wp-schnell",
@@ -213,51 +264,42 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       summary: locale === "ar" ? "واجهة حجز أوضح وأقوى في دفع الزائر نحو القرار." : "A booking-first redesign that pushes visitors toward action faster.",
       description:
         locale === "ar"
-          ? "تقديم رقمي أكثر حدة ووضوحاً لمشروع يحتاج الثقة والتحويل من أول زيارة."
+          ? "تقديم رقمي أكثر وضوحاً وحدّة لمشروع يعتمد على الثقة والتحويل من أول زيارة."
           : "A sharper digital presentation for a business that depends on fast trust and conversion.",
       image: "/images/schnell-home-case.png",
-      href: undefined,
-      repoUrl: undefined,
       featured: true,
       featuredRank: 2,
       accent: "orange",
       highlightStyle: "trust",
       deviceFrame: "browser",
       eyebrow: locale === "ar" ? "موقع حجز وتحويل" : "Lead-generation service site",
-      challenge: locale === "ar" ? "أي تشويش في الرسالة أو الترتيب يضيع الطلب سريعاً." : "Any noise in the message or structure costs the lead quickly.",
-      solution: locale === "ar" ? "تم بناء الصفحة حول عرض مباشر وCTA واضح ومسار يقود الزائر للحجز." : "The page was rebuilt around a direct offer, clear CTA, and a stronger route toward booking.",
-      result: locale === "ar" ? "واجهة أقوى في الانطباع والثقة والحجز الفعلي من أول زيارة." : "A more persuasive interface with stronger trust and booking intent on first visit.",
+      challenge:
+        locale === "ar"
+          ? "أي تشويش في الرسالة أو الترتيب يضيع الطلب بسرعة."
+          : "Any noise in the message or structure costs the lead quickly.",
+      solution:
+        locale === "ar"
+          ? "تم بناء الصفحة حول عرض مباشر ودعوة واضحة ومسار يقود الزائر نحو الحجز."
+          : "The page was rebuilt around a direct offer, clear CTA, and a stronger route toward booking.",
+      result:
+        locale === "ar"
+          ? "واجهة أقوى في الانطباع والثقة والحجز الفعلي من أول زيارة."
+          : "A more persuasive interface with stronger trust and booking intent on first visit.",
       tags: locale === "ar" ? ["حجز", "واجهة مبيعات", "تحويل"] : ["Booking", "Sales UI", "Conversion"],
-      gallery: ["/images/schnell-service-case.png", "/images/schnell-contact-case.png"],
+      gallery: ["/images/schnell-home-case.png"],
       metrics: locale === "ar"
-        ? [{ value: "< 60s", label: "وضوح العرض" }, { value: "Lead", label: "تركيز على الطلب" }, { value: "Trust", label: "بناء الثقة" }]
-        : [{ value: "< 60s", label: "First-screen clarity" }, { value: "Lead", label: "Lead-first structure" }, { value: "Trust", label: "Trust layer" }],
+        ? [
+            { value: "< 60s", label: "وضوح العرض" },
+            { value: "Lead", label: "تركيز على الطلب" },
+            { value: "Trust", label: "بناء الثقة" },
+          ]
+        : [
+            { value: "< 60s", label: "First-screen clarity" },
+            { value: "Lead", label: "Lead-first structure" },
+            { value: "Trust", label: "Trust layer" },
+          ],
     },
-    {
-      id: "moplayer",
-      slug: "moplayer",
-      title: locale === "ar" ? localProjects[0].nameAR : localProjects[0].nameEN,
-      ctaLabel: locale === "ar" ? "استكشف التطبيق" : "Explore app",
-      summary: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-      description: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-      image: localProjects[0].coverImage,
-      href: "/app",
-      repoUrl: localProjects[0].downloadLinks.github,
-      featured: true,
-      featuredRank: 3,
-      accent: "cyan",
-      highlightStyle: "app",
-      deviceFrame: "phone",
-      eyebrow: locale === "ar" ? "تجربة تطبيق ومنتج" : "App and product experience",
-      challenge: locale === "ar" ? "الهدف كان تقديم تجربة ترفيهية واضحة وسريعة تشعر أنها منتج حقيقي." : "The target was a cleaner, faster entertainment flow that feels like a real product.",
-      solution: locale === "ar" ? "تم التركيز على framing للهاتف، rhythm ناعم، وهوية واجهة أكثر تماسكاً." : "The build focuses on phone framing, a smoother rhythm, and a more cohesive interface identity.",
-      result: locale === "ar" ? "هوية تطبيق أوضح وتجربة أقرب إلى منتج جاهز للتسويق والتطوير." : "A clearer app identity and a product story that feels ready for launch and growth.",
-      tags: locale === "ar" ? ["تطبيق", "واجهة هاتف", "منتج رقمي"] : ["App", "Mobile UI", "Digital product"],
-      gallery: localProjects[0].screenshots,
-      metrics: locale === "ar"
-        ? [{ value: "Mobile", label: "أولوية الهاتف" }, { value: "Flow", label: "إيقاع ناعم" }, { value: "UI", label: "واجهة مركزة" }]
-        : [{ value: "Mobile", label: "Mobile first" }, { value: "Flow", label: "Smooth flow" }, { value: "UI", label: "Focused interface" }],
-    },
+    moplayerFallback(locale),
   ];
 }
 
@@ -311,10 +353,7 @@ function getCertifications(snapshot: CmsSnapshot, locale: Locale): SiteViewModel
     .filter((entry) => entry.is_active)
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((entry) => {
-      const translation = snapshot.certification_translations.find(
-        (item) => item.certification_id === entry.id && item.locale === locale,
-      );
-
+      const translation = snapshot.certification_translations.find((item) => item.certification_id === entry.id && item.locale === locale);
       return {
         id: entry.id,
         name: translation?.name ?? entry.issuer,
@@ -326,14 +365,7 @@ function getCertifications(snapshot: CmsSnapshot, locale: Locale): SiteViewModel
     });
 }
 
-function getYoutube(snapshot: CmsSnapshot): {
-  channel_id?: string;
-  views?: number;
-  subscribers?: number;
-  videos?: number;
-  handle?: string;
-  title?: string;
-} {
+function getYoutube(snapshot: CmsSnapshot) {
   return getSiteSetting(snapshot, "youtube_channel", {
     channel_id: "UCfQKyFnNaW026LVb5TGx87g",
     views: 1494029,
@@ -347,30 +379,10 @@ function getYoutube(snapshot: CmsSnapshot): {
 function getGallery(snapshot: CmsSnapshot): SiteViewModel["gallery"] {
   const brandMedia = resolveBrandAssetPaths(snapshot);
   return [
-    {
-      id: "gallery-portrait",
-      title: "Digital Ecosystem",
-      image: brandMedia.gallery.tech,
-      ratio: "portrait",
-    },
-    {
-      id: "gallery-brand",
-      title: "Brand Story",
-      image: brandMedia.gallery.brand,
-      ratio: "wide",
-    },
-    {
-      id: "gallery-operations",
-      title: "Logistics Ops",
-      image: brandMedia.gallery.logistics,
-      ratio: "wide",
-    },
-    {
-      id: "gallery-youtube",
-      title: "Media Layer",
-      image: brandMedia.gallery.media,
-      ratio: "square",
-    },
+    { id: "gallery-portrait", title: "Portrait", image: brandMedia.profilePortrait, ratio: "portrait" },
+    { id: "gallery-brand", title: "Brand", image: brandMedia.gallery.brand, ratio: "wide" },
+    { id: "gallery-operations", title: "Operations", image: brandMedia.gallery.logistics, ratio: "wide" },
+    { id: "gallery-media", title: "Media", image: brandMedia.gallery.media, ratio: "square" },
   ];
 }
 
@@ -378,6 +390,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const snapshot = await readSnapshot();
   const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
+  const portraitImage = safePortraitSrc(brandMedia.profilePortrait);
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
 
@@ -388,10 +401,10 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     getLiveMatches(),
   ]);
 
-  const pageSlug = slug === "about" ? "cv" : slug === "work" ? "projects" : slug || "home";
+  const pageSlug = slug || "home";
   const profile = getProfile(snapshot, locale);
   const projects = getProjects(snapshot, locale);
-  const experience = getExperience(snapshot, locale, copy.common.now);
+  const experience = getExperience(snapshot, locale, locale === "ar" ? "الآن" : "Now");
   const contact = getContact(snapshot, locale);
   const certifications = getCertifications(snapshot, locale);
   const services = getServices(snapshot, locale);
@@ -430,7 +443,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     cvSections: cvPresentation.sections,
     cvProjects: cvPresentation.projects,
     cvExperience: cvPresentation.experience,
-    portraitImage: brandMedia.profilePortrait,
+    portraitImage,
     downloads: {
       branded: brandedDownload,
       ats: atsDownload,
@@ -440,5 +453,22 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
 
 export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
   const model = await buildSiteModel({ locale, slug });
-  return <SiteViewClient model={model} />;
+  switch (model.pageSlug) {
+    case "home":
+      return <PortfolioHomePage model={model} />;
+    case "about":
+    case "cv":
+      return <PortfolioCvPage model={model} />;
+    case "projects":
+    case "work":
+      return <PortfolioWorkPage model={model} />;
+    case "youtube":
+      return <PortfolioYoutubePage model={model} />;
+    case "contact":
+      return <PortfolioContactPage model={model} />;
+    case "privacy":
+      return <PortfolioPrivacyPage model={model} />;
+    default:
+      return <SiteViewClient model={model} />;
+  }
 }

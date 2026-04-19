@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Noto_Kufi_Arabic, Inter } from "next/font/google";
+import { Inter, Noto_Kufi_Arabic } from "next/font/google";
+
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
@@ -20,11 +21,11 @@ const latin = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "محمد الفراس | مطور ويب ومصمم وصانع محتوى تقني من ألمانيا",
+    default: "Mohammad Alfarras | Web developer, designer, and Arabic tech creator",
     template: "%s | Mohammad Alfarras",
   },
   description:
-    "الحضور الرقمي الشخصي لمحمد الفراس: تطوير واجهات، تصميم جريء، ومحتوى تقني عربي من ألمانيا مبني على انضباط التشغيل ودقة التنفيذ.",
+    "Personal website for Mohammad Alfarras covering web development, digital products, interface design, and Arabic tech content.",
   metadataBase: new URL("https://moalfarras.space"),
   applicationName: "Moalfarras",
   icons: {
@@ -37,8 +38,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="ar"
-      dir="rtl"
+      lang="en"
+      dir="ltr"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${arabic.variable} ${latin.variable}`}
@@ -47,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta charSet="UTF-8" />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>

@@ -11,9 +11,9 @@ export function AppAdminLogin({ message }: { message?: string }) {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#00E5FF]/10 text-[#00E5FF] mb-4">
             <Lock className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Admin Sign In</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white mb-1">Moalfarras Control Center</h1>
           <p className="text-sm text-white/50 leading-relaxed">
-            Secure access to manage MoPlayer releases, content, and support infrastructure.
+            Secure access to manage the website, CV, projects, and MoPlayer releases from one protected workspace.
           </p>
         </div>
 

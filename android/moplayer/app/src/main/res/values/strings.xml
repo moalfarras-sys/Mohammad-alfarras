@@ -1,18 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     
-    <string name="app_name">MoPlayer</string>
+    <string name="app_name">MoPlayerapp</string>
     <string name="app_tagline">Premium Streaming by Moalfarras</string>
     
     
-    <string name="login_title">Welcome to MoPlayer</string>
+    <string name="login_title">Welcome to MoPlayerapp</string>
     <string name="login_subtitle">Enter your server details</string>
     <string name="login_tagline">Your Premium IPTV Experience</string>
     <string name="login_panel_title">Connect to Server</string>
     <string name="login_panel_subtitle">Choose your connection method</string>
     <string name="login_clean_title">TV sign in</string>
-    <string name="login_hero_badge">MOPLAYER TV</string>
-    <string name="login_hero_title">MoPlayer</string>
+    <string name="login_hero_badge">MOPLAYERAPP TV</string>
+    <string name="login_hero_title">MoPlayerapp</string>
     <string name="login_hero_subtitle">Premium Android TV access</string>
     <string name="login_hero_feature_label_one">Visual</string>
     <string name="login_hero_feature_value_one">Glass UI</string>
@@ -263,7 +263,7 @@
     <string name="tagline_creative">حيث تلتقي التكنولوجيا بالفن</string>
     <string name="tagline_iptv_premium">تجربة IPTV لا مثيل لها</string>
     <string name="developer_credit">Crafted with passion by Moalfarras</string>
-    <string name="developer_credit_short">MoPlayer by Moalfarras</string>
+    <string name="developer_credit_short">MoPlayerapp by Moalfarras</string>
     
     
     <string name="marketing_connecting">Connecting to server...</string>
@@ -277,20 +277,20 @@
     
     
     <string name="exit_title">Exit App</string>
-    <string name="exit_message">Are you sure you want to exit MoPlayer?</string>
+    <string name="exit_message">Are you sure you want to exit MoPlayerapp?</string>
     <string name="exit_confirm">Exit</string>
     <string name="exit_cancel">Stay</string>
     <string name="press_back_again_to_exit">Press back again to exit</string>
     
     
     <string name="about_version">Version 2.0</string>
-    <string name="about_marketing_text">MoPlayer is the ultimate streaming experience. Crafted with precision for Smart TVs and Android TV boxes, it delivers stunning quality, lightning-fast performance, and an interface so elegant it rivals the best streaming services in the world.\n\nYour entertainment. Your way. Unlimited.</string>
+    <string name="about_marketing_text">MoPlayerapp is the ultimate streaming experience. Crafted with precision for Smart TVs and Android TV boxes, it delivers stunning quality, lightning-fast performance, and an interface so elegant it rivals the best streaming services in the world.\n\nYour entertainment. Your way. Unlimited.</string>
     <string name="about_features_title">Features</string>
     <string name="about_features_list">• Live TV with EPG support\n• Movies and Series VOD\n• 4K Ultra HD quality\n• Multi-language support\n• Favorites and Continue Watching\n• Weather-reactive backgrounds\n• Football live scores widget\n• Remote control optimized</string>
     <string name="about_contact_title">Contact Us</string>
     <string name="about_contact_whatsapp">Contact on WhatsApp</string>
     <string name="about_contact_email">Contact via Email</string>
-    <string name="about_copyright">© 2026 MoPlayer by Moalfarras. All rights reserved.</string>
+    <string name="about_copyright">© 2026 MoPlayerapp by Moalfarras. All rights reserved.</string>
     <string name="about_developer_name">Mohammad Alfarras</string>
     
     
@@ -299,7 +299,7 @@
     <string name="language_arabic">العربية</string>
     
     
-    <string name="cd_logo">MoPlayer brand mark</string>
+    <string name="cd_logo">MoPlayerapp brand mark</string>
     <string name="cd_toggle_password">Toggle password visibility</string>
     <string name="cd_toggle_password_visibility">Toggle password visibility</string>
     <string name="cd_poster">Content Poster</string>
@@ -469,7 +469,7 @@
     <string name="clear_cache_confirmation">This will clear all cached images and data. Continue?</string>
     <string name="clear">Clear</string>
     <string name="about">About</string>
-    <string name="about_message">MoPlayer v2.0\n\nPremium IPTV Player for Android TV\n\nDeveloped with ❤️ by Moalfarras</string>
+    <string name="about_message">MoPlayerapp v2.0\n\nPremium IPTV Player for Android TV\n\nDeveloped with ❤️ by Moalfarras</string>
     <string name="app_version">App Version</string>
     <string name="select_playback_profile">Select Playback Profile</string>
     <string name="select_buffer_size">Select Buffer Size</string>

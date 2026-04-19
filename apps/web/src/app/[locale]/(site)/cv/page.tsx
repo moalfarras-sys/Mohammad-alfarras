@@ -8,11 +8,11 @@ import { pageMetadata } from "@/lib/seo";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return pageMetadata(locale, "home");
+  return pageMetadata(locale, "cv");
 }
 
-export default async function LocaleHome({ params }: { params: Promise<{ locale: string }> }) {
+export default async function LocaleCvPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <SitePage locale={locale} slug="home" />;
+  return <SitePage locale={locale} slug="cv" />;
 }

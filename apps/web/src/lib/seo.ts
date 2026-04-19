@@ -1,81 +1,99 @@
 import type { Metadata } from "next";
 
-import { getBrandAssets, getSiteSeoDocument } from "@/lib/cms-documents";
-import { readSnapshot } from "@/lib/content/store";
 import type { Locale } from "@/types/cms";
 
 const BASE_URL = "https://moalfarras.space";
 
+const seoCopy = {
+  ar: {
+    home: {
+      title: "محمد الفراس | موقع شخصي ومهني",
+      description: "الموقع الشخصي والمهني لمحمد الفراس: تطوير ويب، تصميم، منتجات رقمية، ومحتوى تقني عربي من ألمانيا.",
+      image: "/images/portrait.jpg",
+    },
+    cv: {
+      title: "السيرة الذاتية | محمد الفراس",
+      description: "الخبرة، طريقة العمل، وروابط تحميل السيرة الذاتية لمحمد الفراس في صفحة واحدة واضحة.",
+      image: "/images/portrait.jpg",
+    },
+    work: {
+      title: "الأعمال | محمد الفراس",
+      description: "أعمال ودراسات حالة مختارة توضّح كيف تتحول المشاريع إلى واجهات أوضح وحضور رقمي أقوى.",
+      image: "/images/seel-home-case.png",
+    },
+    youtube: {
+      title: "يوتيوب | محمد الفراس",
+      description: "المحتوى التقني العربي كجزء من البراند الشخصي لمحمد الفراس.",
+      image: "/images/yt-hero-2026.png",
+    },
+    contact: {
+      title: "تواصل | محمد الفراس",
+      description: "تواصل مباشر لمشاريع الويب، إعادة الترتيب البصري، ودراسات الحالة والمنتجات الرقمية.",
+      image: "/images/contact-hero-2026.png",
+    },
+    privacy: {
+      title: "الخصوصية | محمد الفراس",
+      description: "سياسة خصوصية واضحة ومباشرة لموقع moalfarras.space.",
+      image: "/images/portrait.jpg",
+    },
+  },
+  en: {
+    home: {
+      title: "Mohammad Alfarras | Personal and professional website",
+      description: "Personal website for Mohammad Alfarras covering web development, digital products, interface design, and Arabic tech content.",
+      image: "/images/portrait.jpg",
+    },
+    cv: {
+      title: "CV | Mohammad Alfarras",
+      description: "Professional experience, working principles, and downloadable CV versions for Mohammad Alfarras.",
+      image: "/images/portrait.jpg",
+    },
+    work: {
+      title: "Work | Mohammad Alfarras",
+      description: "Selected case studies and product work showing clearer structure, stronger trust, and sharper digital presentation.",
+      image: "/images/seel-home-case.png",
+    },
+    youtube: {
+      title: "YouTube | Mohammad Alfarras",
+      description: "Arabic tech content as part of Mohammad Alfarras' personal brand and product communication.",
+      image: "/images/yt-hero-2026.png",
+    },
+    contact: {
+      title: "Contact | Mohammad Alfarras",
+      description: "Direct contact for web projects, redesigns, product presentation, and digital work.",
+      image: "/images/contact-hero-2026.png",
+    },
+    privacy: {
+      title: "Privacy | Mohammad Alfarras",
+      description: "Clear privacy policy for moalfarras.space.",
+      image: "/images/portrait.jpg",
+    },
+  },
+} as const;
+
 const keywordMap: Record<string, string[]> = {
-  home: [
-    "Mohammad Alfarras", "Arabic tech creator", "frontend developer Germany",
-    "digital designer Germany", "محمد الفراس", "مطور مواقع ألمانيا", "تصميم مواقع احترافي",
-    "موقع شخصي محمد الفراس", "portfolio developer Germany",
-  ],
-  about: [
-    "Mohammad Alfarras about", "personal website Germany", "creative developer Germany",
-    "من هو محمد الفراس", "نبذة محمد الفراس", "مطور ومصمم في ألمانيا",
-  ],
-  cv: [
-    "Mohammad Alfarras CV", "professional journey", "frontend and logistics Germany",
-    "سيرة محمد الفراس", "سيرة ذاتية مطور مواقع", "Mohammad Alfarras background",
-  ],
-  work: [
-    "Mohammad Alfarras work", "project case studies", "product portfolio Germany",
-    "أعمال محمد الفراس", "دراسات حالة محمد الفراس", "مشاريع رقمية احترافية",
-  ],
-  blog: [
-    "digital presentation case studies", "branding insights Germany",
-    "personal brand web design", "رؤية رقمية", "أعمال تصميم مواقع",
-  ],
-  projects: [
-    "Mohammad Alfarras projects", "case studies portfolio", "SEEL Transport website",
-    "Schnell Sicher Umzug website", "MoPlayer app", "أعمال محمد الفراس",
-    "مشاريع ويب احترافية", "frontend portfolio Germany",
-  ],
-  youtube: [
-    "Arabic YouTube creator Germany", "Arabic tech reviews electronics",
-    "YouTube Mohammad Alfarras", "يوتيوب محمد الفراس", "مراجعات تقنية عربية",
-    "قناة يوتيوب تقنية",
-  ],
-  contact: [
-    "contact Mohammad Alfarras", "hire frontend designer Germany",
-    "content collaboration Arabic", "تواصل محمد الفراس", "التواصل مع مطور مواقع",
-  ],
-  privacy: ["privacy policy moalfarras.space", "data handling", "سياسة الخصوصية محمد الفراس"],
+  home: ["Mohammad Alfarras", "personal website", "frontend developer Germany", "محمد الفراس", "مطور ويب", "موقع شخصي"],
+  about: ["Mohammad Alfarras CV", "professional profile", "محمد الفراس سيرة ذاتية", "السيرة الذاتية"],
+  cv: ["Mohammad Alfarras CV", "professional profile", "محمد الفراس سيرة ذاتية", "السيرة الذاتية"],
+  work: ["Mohammad Alfarras work", "case studies", "MoPlayer", "أعمال محمد الفراس", "دراسات حالة"],
+  youtube: ["Mohammad Alfarras YouTube", "Arabic tech content", "يوتيوب محمد الفراس", "محتوى تقني عربي"],
+  contact: ["contact Mohammad Alfarras", "hire web developer", "تواصل محمد الفراس"],
+  privacy: ["moalfarras privacy", "سياسة الخصوصية محمد الفراس"],
 };
 
 export async function pageMetadata(locale: Locale, slug: string): Promise<Metadata> {
-  const snapshot = await readSnapshot();
-  const seoDoc = getSiteSeoDocument(snapshot);
-  const brand = getBrandAssets(snapshot);
-  const entries = seoDoc[locale];
-  const normalizedSlug = slug === "about" ? "cv" : slug === "work" ? "projects" : slug || "home";
-  const key = normalizedSlug as keyof typeof entries;
-  const seo = entries[key] ?? entries.home;
-  const ogImage = seo.image ?? "/images/brand-spotlight-2026.jpeg";
-  const localizedPath = slug === "home" ? `/${locale}` : `/${locale}/${slug}`;
-  const altAr = slug === "home" ? "/ar" : `/ar/${slug}`;
-  const altEn = slug === "home" ? "/en" : `/en/${slug}`;
+  const normalized = slug === "about" ? "cv" : slug === "projects" ? "work" : (slug || "home");
+  const localizedPath = normalized === "home" ? `/${locale}` : `/${locale}/${normalized}`;
+  const altAr = normalized === "home" ? "/ar" : `/ar/${normalized}`;
+  const altEn = normalized === "home" ? "/en" : `/en/${normalized}`;
+  const copy = seoCopy[locale][normalized as keyof typeof seoCopy.en] ?? seoCopy[locale].home;
   const localeTag = locale === "ar" ? "ar_SA" : "en_US";
   const altLocaleTag = locale === "ar" ? "en_US" : "ar_SA";
-  const altLocalePath = locale === "ar" ? altEn : altAr;
-  const siteNameOg = `${brand.siteName.en} | ${brand.siteName.ar}`;
 
   return {
-    title: seo.title,
-    description: seo.description,
+    title: copy.title,
+    description: copy.description,
     metadataBase: new URL(BASE_URL),
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
     alternates: {
       canonical: `${BASE_URL}${localizedPath}`,
       languages: {
@@ -89,15 +107,15 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       locale: localeTag,
       alternateLocale: [altLocaleTag],
       url: `${BASE_URL}${localizedPath}`,
-      title: seo.ogTitle,
-      description: seo.ogDescription,
-      siteName: siteNameOg,
+      title: copy.title,
+      description: copy.description,
+      siteName: "Mohammad Alfarras | محمد الفراس",
       images: [
         {
-          url: `${BASE_URL}${ogImage}`,
+          url: `${BASE_URL}${copy.image}`,
           width: 1200,
           height: 630,
-          alt: seo.ogTitle,
+          alt: copy.title,
           type: "image/jpeg",
         },
       ],
@@ -106,20 +124,10 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       card: "summary_large_image",
       site: "@Moalfarras",
       creator: "@Moalfarras",
-      title: seo.ogTitle,
-      description: seo.ogDescription,
-      images: [
-        {
-          url: `${BASE_URL}${ogImage}`,
-          alt: seo.ogTitle,
-        },
-      ],
+      title: copy.title,
+      description: copy.description,
+      images: [{ url: `${BASE_URL}${copy.image}`, alt: copy.title }],
     },
-    keywords: keywordMap[slug] ?? keywordMap[normalizedSlug] ?? keywordMap.home,
-    other: {
-      "og:locale:alternate": altLocaleTag,
-      "canonical": `${BASE_URL}${localizedPath}`,
-      "alternate": `${BASE_URL}${altLocalePath}`,
-    },
+    keywords: keywordMap[normalized] ?? keywordMap.home,
   };
 }

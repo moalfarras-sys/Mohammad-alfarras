@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
     android:gravity="center"
-    android:src="@drawable/iptv_universe_logo" />
+    android:src="@drawable/moplayer_brand_logo_new" />

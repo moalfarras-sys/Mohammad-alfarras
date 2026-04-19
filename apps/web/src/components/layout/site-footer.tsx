@@ -2,29 +2,32 @@ import { MessageCircleMore } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import type { RebuildLocaleContent } from "@/data/rebuild-content";
 import type { Locale } from "@/types/cms";
 
 const WHATSAPP_URL = "https://wa.me/4917623419358";
 
+type FooterLink = {
+  id: string;
+  label: string;
+  href: string;
+};
+
 export function SiteFooter({
   locale,
-  content,
+  brandName,
+  tagline,
+  footer,
+  links,
   logoSrc,
 }: {
   locale: Locale;
-  content: Pick<RebuildLocaleContent, "nav" | "navTagline" | "footer" | "contact"> & { brandName: string };
+  brandName: string;
+  tagline: string;
+  footer: { title: string; body: string; cta: string };
+  links: FooterLink[];
   logoSrc: string;
 }) {
   const year = new Date().getFullYear();
-
-  const links = [
-    { href: `/${locale}`, label: content.nav.home },
-    { href: `/${locale}/about`, label: locale === "ar" ? "عنّي" : "About" },
-    { href: `/${locale}/work`, label: locale === "ar" ? "الأعمال" : "Work" },
-    { href: `/${locale}/youtube`, label: content.nav.youtube },
-    { href: `/${locale}/contact`, label: content.nav.contact },
-  ];
 
   return (
     <footer className="safe-bottom-space relative px-3 pb-8 pt-12 md:px-6 md:pt-16 lg:pb-10">
@@ -38,15 +41,15 @@ export function SiteFooter({
               <span className="mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ background: "rgba(0,229,255,0.06)", border: "1px solid rgba(0,229,255,0.2)", color: "var(--primary)" }}>
                 {locale === "ar" ? "الخطوة التالية" : "Next step"}
               </span>
-              <h2 className="max-w-xl text-3xl font-extrabold leading-[1.15] text-foreground md:text-4xl" style={{ fontFamily: "var(--font-arabic), system-ui" }}>
-                {content.footer.title}
+              <h2 className="max-w-xl text-3xl font-extrabold leading-[1.15] text-foreground" style={{ fontFamily: "var(--font-arabic), system-ui" }}>
+                {footer.title}
               </h2>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-foreground-muted">{content.footer.body}</p>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-foreground-muted">{footer.body}</p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Link href={`/${locale}/contact`} className="button-primary-shell">
-                {content.contact.primaryCta}
+                {footer.cta}
               </Link>
               <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="button-whatsapp">
                 <MessageCircleMore className="h-4 w-4" />
@@ -61,16 +64,16 @@ export function SiteFooter({
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <span className="navbar-logo-shell relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl" style={{ background: "var(--surface)", border: "1px solid var(--border-glass)" }}>
-                  <Image src={logoSrc} alt={`${content.brandName} logo`} width={59} height={48} className="object-contain" />
+                  <Image src={logoSrc} alt={`${brandName} logo`} width={59} height={48} className="object-contain" />
                 </span>
                 <div>
-                  <strong className="headline-display text-xl font-extrabold text-foreground">{content.brandName}</strong>
+                  <strong className="headline-display text-xl font-extrabold text-foreground">{brandName}</strong>
                   <p className="text-xs font-semibold" style={{ color: "var(--primary)", opacity: 0.8 }}>
-                    {content.navTagline}
+                    {tagline}
                   </p>
                 </div>
               </div>
-              <p className="max-w-xl text-sm leading-7 text-foreground-muted">{content.footer.body}</p>
+              <p className="max-w-xl text-sm leading-7 text-foreground-muted">{footer.body}</p>
             </div>
 
             <div className="space-y-3">
@@ -87,10 +90,10 @@ export function SiteFooter({
             <div className="space-y-3">
               <span className="text-xs font-bold uppercase tracking-[0.22em] text-foreground-soft">{locale === "ar" ? "معلومة سريعة" : "Quick facts"}</span>
               <div className="grid gap-2 text-sm text-foreground-muted">
-                <span>{locale === "ar" ? "📍 الموقع: ألمانيا" : "📍 Based in Germany"}</span>
-                <span>{locale === "ar" ? "🌍 الأصل: الحسكة" : "🌍 From Al-Hasakah"}</span>
+                <span>{locale === "ar" ? "الموقع: ألمانيا" : "Based in Germany"}</span>
+                <span>{locale === "ar" ? "الأصل: الحسكة" : "From Al-Hasakah"}</span>
                 <span style={{ color: "var(--primary)", fontWeight: 700 }}>{locale === "ar" ? "+1.5M مشاهدة يوتيوب" : "+1.5M YouTube views"}</span>
-                <span className="text-foreground-soft">© {year} {content.brandName}</span>
+                <span className="text-foreground-soft">© {year} {brandName}</span>
               </div>
             </div>
           </div>

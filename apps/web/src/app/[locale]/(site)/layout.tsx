@@ -6,13 +6,60 @@ import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
 import { MobileDock } from "@/components/layout/mobile-dock";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
-import { resolveBrandAssetPaths, resolveRebuildLocaleContent } from "@/lib/cms-documents";
+import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
 
-function absoluteSiteUrl(siteUrl: string, value: string) {
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  return `${siteUrl}${value.startsWith("/") ? value : `/${value}`}`;
+function siteCopy(locale: "ar" | "en") {
+  if (locale === "ar") {
+    return {
+      brandName: "محمد الفراس",
+      tagline: "موقع شخصي · أعمال رقمية · محتوى تقني",
+      links: [
+        { id: "home", label: "الرئيسية", href: withLocale(locale, "") },
+        { id: "cv", label: "السيرة", href: withLocale(locale, "cv") },
+        { id: "work", label: "الأعمال", href: withLocale(locale, "work") },
+        { id: "youtube", label: "يوتيوب", href: withLocale(locale, "youtube") },
+        { id: "contact", label: "تواصل", href: withLocale(locale, "contact") },
+      ],
+      footer: {
+        title: "إذا كان لديك مشروع يحتاج وضوحاً أفضل أو حضوراً أقوى، فلنرتبه بشكل صحيح.",
+        body: "الموقع الآن يعرض الهوية الشخصية أولاً، ثم الأعمال والمشاريع والمنتجات داخل منظومة واحدة وواضحة.",
+        cta: "ابدأ التواصل",
+      },
+      portfolioDescription:
+        "أعمال محمد الفراس: مشاريع، دراسات حالة، ومنتجات رقمية داخل موقع شخصي ومهني واضح البنية.",
+    };
+  }
+
+  return {
+    brandName: "Mohammad Alfarras",
+    tagline: "Personal site · digital work · tech content",
+    links: [
+      { id: "home", label: "Home", href: withLocale(locale, "") },
+      { id: "cv", label: "CV", href: withLocale(locale, "cv") },
+      { id: "work", label: "Work", href: withLocale(locale, "work") },
+      { id: "youtube", label: "YouTube", href: withLocale(locale, "youtube") },
+      { id: "contact", label: "Contact", href: withLocale(locale, "contact") },
+    ],
+    footer: {
+      title: "If your project needs a clearer story or a stronger digital presence, let’s structure it properly.",
+      body: "The site now keeps the personal brand first, then the work, projects, and products in one clean ecosystem.",
+      cta: "Get in touch",
+    },
+    portfolioDescription:
+      "Selected work by Mohammad Alfarras: websites, case studies, and product surfaces inside a personal professional website.",
+  };
+}
+
+function safePortraitSrc(path: string | null | undefined) {
+  if (!path) return "/images/portrait.jpg";
+  const value = path.trim().toLowerCase();
+  if (!value) return "/images/portrait.jpg";
+  if (value.includes("service_") || value.includes("moplayer") || value.includes("logo")) {
+    return "/images/portrait.jpg";
+  }
+  return path;
 }
 
 export default async function SiteLayout({
@@ -26,38 +73,27 @@ export default async function SiteLayout({
   if (!isLocale(locale)) notFound();
 
   const snapshot = await readSnapshot();
-  const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
+  const portraitSrc = safePortraitSrc(brandMedia.profilePortrait);
+  const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
-  const profileUrl = `${siteUrl}/${locale}`;
-
-  const links = [
-    { id: "home", label: locale === "ar" ? "الرئيسية" : "Home", href: withLocale(locale, "") },
-    { id: "work", label: locale === "ar" ? "أعمالي" : "My Work", href: withLocale(locale, "work") },
-    { id: "youtube", label: copy.nav.youtube, href: withLocale(locale, "youtube") },
-    { id: "contact", label: copy.nav.contact, href: withLocale(locale, "contact") },
-  ];
 
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": `${siteUrl}/#person`,
     name: copy.brandName,
-    url: profileUrl,
-    image: absoluteSiteUrl(siteUrl, brandMedia.profilePortrait),
+    url: `${siteUrl}/${locale}`,
+    image: portraitSrc.startsWith("http") ? portraitSrc : `${siteUrl}${portraitSrc}`,
     sameAs: [
       "https://www.youtube.com/@Moalfarras",
       "https://github.com/moalfarras-sys",
       "https://de.linkedin.com/in/mohammad-alfarras-525531262",
       "https://www.instagram.com/moalfarras",
     ],
-    jobTitle: locale === "ar" ? "مطور ومصمم وصانع محتوى تقني" : "Web developer, designer, and Arabic tech content creator",
+    jobTitle: locale === "ar" ? "مطور ويب ومصمم وصانع محتوى تقني" : "Web developer, designer, and Arabic tech creator",
     worksFor: { "@type": "Organization", name: "Freelance" },
     knowsLanguage: ["ar", "en", "de"],
-    hasOccupation: {
-      "@type": "Occupation",
-      name: locale === "ar" ? "مطور ومصمم مواقع" : "Frontend Developer and Web Designer",
-    },
     address: { "@type": "PostalAddress", addressCountry: "DE" },
   };
 
@@ -69,17 +105,16 @@ export default async function SiteLayout({
     name: copy.brandName,
     author: { "@id": `${siteUrl}/#person` },
     inLanguage: [locale === "ar" ? "ar-SA" : "en-US", locale === "ar" ? "en-US" : "ar-SA"],
-    potentialAction: { "@type": "ReadAction", target: `${siteUrl}/${locale}` },
   };
 
   const portfolioJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "@id": `${siteUrl}/${locale}/work#collection`,
-    name: locale === "ar" ? `أعمال ${copy.brandName}` : `${copy.brandName} Portfolio`,
+    name: locale === "ar" ? `أعمال ${copy.brandName}` : `${copy.brandName} Work`,
     url: `${siteUrl}/${locale}/work`,
     author: { "@id": `${siteUrl}/#person` },
-    description: copy.projects.body,
+    description: copy.portfolioDescription,
   };
 
   return (
@@ -91,11 +126,11 @@ export default async function SiteLayout({
       <div className="relative min-h-screen">
         <LocaleDocumentSync locale={locale} />
         <AtmosphericBackground />
-        <SiteNavbar locale={locale} links={links} tagline={copy.navTagline} logoSrc={brandMedia.logo} brandName={copy.brandName} />
+        <SiteNavbar locale={locale} links={copy.links} tagline={copy.tagline} logoSrc={portraitSrc} brandName={copy.brandName} />
         <main className="pb-[7.25rem] lg:pb-0">{children}</main>
         <CookieBanner locale={locale} />
         <MobileDock locale={locale} />
-        <SiteFooter locale={locale} logoSrc={brandMedia.logo} content={{ brandName: copy.brandName, nav: copy.nav, navTagline: copy.navTagline, footer: copy.footer, contact: copy.contact }} />
+        <SiteFooter locale={locale} logoSrc={portraitSrc} brandName={copy.brandName} tagline={copy.tagline} links={copy.links} footer={copy.footer} />
       </div>
     </>
   );

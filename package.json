@@ -5,6 +5,9 @@
     "apps/*",
     "packages/*"
   ],
+  "devDependencies": {
+    "next": "^16.2.3"
+  },
   "scripts": {
     "build:web": "npm --prefix apps/web run build",
     "build:admin": "npm --prefix apps/admin run build",

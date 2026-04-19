@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   transpilePackages: ["@moalfarras/shared"],
   turbopack: {
-    root: path.resolve(__dirname),
+    root: path.join(process.cwd(), "../.."),
   },
   images: {
     formats: ["image/avif", "image/webp"],
@@ -40,6 +40,7 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],
+  outputFileTracingRoot: path.join(process.cwd(), "../.."),
   outputFileTracingIncludes: {
     "/api/cv-pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
   },

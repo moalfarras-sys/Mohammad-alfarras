@@ -12,7 +12,7 @@
     "build:web": "npm --prefix apps/web run build",
     "build:admin": "npm --prefix apps/admin run build",
     "build:android": "powershell -NoProfile -Command \"Set-Location android/moplayer; .\\gradlew.bat assembleSideloadRelease\"",
-    "build": "npm run build:web && npm run build:admin",
+    "build": "npm run build:web && npm run build:admin && node scripts/vercel-sync-web-output.mjs",
     "typecheck:web": "npm --prefix apps/web run typecheck",
     "typecheck:admin": "npm --prefix apps/admin run typecheck",
     "lint:web": "npm --prefix apps/web run lint",

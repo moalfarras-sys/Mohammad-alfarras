@@ -121,17 +121,27 @@ export function SiteFooter({
         <section className="rounded-[var(--radius-lg)] border p-5 md:p-8" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
           {/* Brand block — always visible */}
           <div className="grid gap-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl" style={{ background: "var(--surface-soft)", border: "1px solid var(--border)" }}>
-                  <Image src={logoSrc} alt={`${brandName} logo`} width={48} height={48} className="h-full w-full object-cover" />
-                </span>
+            <div className="space-y-5">
+              {/* Logo — prominent and clear */}
+              <div className="flex items-center gap-4">
+                <div
+                  className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl transition-all duration-300 hover:scale-105"
+                  style={{ background: "var(--surface-soft)", border: "1.5px solid var(--primary-border)" }}
+                >
+                  <Image
+                    src="/images/logo.png"
+                    alt={`${brandName} — الشعار الرسمي`}
+                    width={64}
+                    height={64}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
                 <div>
-                  <strong className="headline-display text-lg text-foreground">{brandName}</strong>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-foreground-muted">{tagline}</p>
+                  <strong className="headline-display block text-xl text-foreground">{brandName}</strong>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-foreground-muted" style={{ color: "var(--accent)" }}>{tagline}</p>
                 </div>
               </div>
-              <p className="max-w-md text-sm leading-7 text-foreground-muted">
+              <p className="max-w-sm text-sm leading-7 text-foreground-muted">
                 {isAr
                   ? "موقع شخصي ومهني واحد يجمع تطوير الويب، التفكير المنتجي، تصميم الواجهات، وصناعة المحتوى التقني العربي، ضمن منظومة واضحة وقابلة للتطوير."
                   : "One personal and professional home for web development, product thinking, interface design, and Arabic tech content — built as a single, scalable ecosystem."}
@@ -146,7 +156,7 @@ export function SiteFooter({
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={s.label}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border text-foreground-muted transition hover:text-foreground"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full border text-foreground-muted transition-all duration-300 hover:scale-110 hover:border-[var(--accent)] hover:text-[var(--accent)]"
                       style={{ borderColor: "var(--border)", background: "var(--surface-soft)" }}
                     >
                       <Icon className="h-4 w-4" />

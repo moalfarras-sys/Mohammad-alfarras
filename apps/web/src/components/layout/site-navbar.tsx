@@ -67,13 +67,20 @@ export function SiteNavbar({
             scrolled ? "navbar-scrolled" : "bg-transparent",
           )}
         >
-          {/* Brand */}
+          {/* Brand — Logo first (logo.png displayed prominently) */}
           <Link href={`/${locale}`} className="group flex min-w-0 items-center gap-3">
             <span
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl transition-transform group-hover:scale-[1.04] md:h-11 md:w-11 md:rounded-2xl"
-              style={{ background: "var(--surface-soft)", border: "1px solid var(--border)" }}
+              className="logo-container relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-90 md:h-12 md:w-12 md:rounded-2xl"
+              style={{ background: "transparent", border: "1.5px solid var(--border)" }}
             >
-              <Image src={logoSrc} alt={`${brandName} logo`} width={44} height={44} priority className="object-cover" />
+              <Image
+                src="/images/logo.png"
+                alt={`${brandName} — شعار / Logo`}
+                width={48}
+                height={48}
+                priority
+                className="h-full w-full object-contain"
+              />
             </span>
             <span className="hidden min-w-0 sm:grid">
               <strong className="headline-display truncate text-[15px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">

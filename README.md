@@ -1,293 +1,366 @@
-# Moalfarras Workspace
+# Moalfarras — monorepo
 
-Monorepo for the personal website of **Mohammad Alfarras** ([moalfarras.space](https://moalfarras.space)),
-the unified private admin (`admin.moalfarras.space`), and the **MoPlayer** Android / Android TV app.
+Personal & professional ecosystem for **Mohammad Alfarras**
+([moalfarras.space](https://moalfarras.space)), the unified admin
+([admin.moalfarras.space](https://admin.moalfarras.space)), and the **MoPlayer**
+Android / Android TV app.
 
-The site is, by design, **about me first** — projects, CV, work, content. **MoPlayer**
-is one major product inside that ecosystem (with its own dedicated product page and Android build),
-not the identity of the whole site.
+The site is, by design, **about me first** — CV, work, content, products.
+**MoPlayer** is a flagship product inside the ecosystem, with its own dedicated
+page at `/{locale}/apps/moplayer` (and a canonical `/app` shortcut that 308s to
+it). The product page lives inside the same `SiteNavbar` + `SiteFooter` shell so
+the brand stays coherent; only the *content* switches to the "Apple-cinematic"
+dark-forever section via a scoped `.cinematic-section` class.
 
 ---
 
-## 1. Repository layout
+## Layout
 
 ```text
 Moalfarrasappseit/
 ├── apps/
-│   ├── web/           # moalfarras.space (Next.js 16, public site + /admin entry)
-│   └── admin/         # admin.moalfarras.space (Next.js 16, dedicated admin UI)
+│   ├── web/             # moalfarras.space (Next.js 16, public + /admin redirect)
+│   └── admin/           # admin.moalfarras.space (Next.js 16 — unified admin)
 ├── android/
-│   └── moplayer/      # MoPlayer Android Studio project (project name: MoPlayerapp)
+│   └── moplayer/        # Android Studio project (com.mo.moplayer, v2.0.0)
 ├── packages/
-│   └── shared/        # Cross-app shared TypeScript helpers
+│   └── shared/          # Shared TS helpers consumed by both Next apps
 ├── supabase/
-│   └── migrations/    # Versioned SQL for the Supabase project
+│   └── migrations/      # Versioned SQL for the Supabase schema
 └── scripts/
-    └── hash-admin-password.mjs   # scrypt hash generator for ADMIN_PASSWORD_HASH
+    ├── hash-admin-password.mjs        # scrypt hash generator
+    └── publish-android-release.mjs    # APK → Supabase storage + app_releases
 ```
 
-| Workspace package           | Purpose                                          |
-| --------------------------- | ------------------------------------------------ |
-| `moalfarrasweb`             | Public website (apps/web)                        |
-| `moalfarras-control-center` | Standalone admin shell (apps/admin)              |
-| `@moalfarras/shared`        | Shared TS modules used by both Next apps         |
-| `MoPlayerapp` (Android)     | Native Android client (`com.mo.moplayer`)        |
+## Workspaces
+
+| Package                    | Path               | Purpose                              |
+| -------------------------- | ------------------ | ------------------------------------ |
+| `moalfarrasweb`            | `apps/web`         | Public website + `/admin` redirect   |
+| `moalfarras-control-center`| `apps/admin`       | Unified admin (MoPlayer + links to Website CMS) |
+| `@moalfarras/shared`       | `packages/shared`  | Cross-app TypeScript helpers         |
+| `MoPlayerapp` (Android)    | `android/moplayer` | Native Android client                |
 
 ---
 
-## 2. Public routes (apps/web)
+## Public routes (`apps/web`)
 
 ```text
-GET /                           → 308 redirect to /{defaultLocale} (en)
-GET /{ar|en}                    Home (about me, work, MoPlayer featured, content, contact)
-GET /{ar|en}/cv                 CV / résumé (downloadable PDF: branded + ATS variants)
-GET /{ar|en}/about              → 308 redirect to /{locale}/cv
-GET /{ar|en}/work               Selected work / case studies
-GET /{ar|en}/work/[slug]        Per-project case study
-GET /{ar|en}/apps               Apps & products listing (MoPlayer headline)
-GET /{ar|en}/apps/moplayer      MoPlayer product page (localized, full landing)
-GET /{ar|en}/youtube            YouTube content surface
-GET /{ar|en}/contact            Contact (email, WhatsApp, optional form)
+GET /                           → 308 /{defaultLocale}
+GET /{ar|en}                    Home (Creator-Minimal)
+GET /{ar|en}/cv                 CV + timeline + principles + stack
+GET /{ar|en}/about              → 308 /{locale}/cv
+GET /{ar|en}/work               Work list
+GET /{ar|en}/work/[slug]        Case study detail
+GET /{ar|en}/apps               Apps listing (MoPlayer as lead)
+GET /{ar|en}/apps/moplayer      MoPlayer (Apple-cinematic, inside site shell)
+GET /{ar|en}/youtube            YouTube / editorial
+GET /{ar|en}/contact            Contact (form + availability + channels)
 GET /{ar|en}/privacy            Localized privacy summary
-GET /app                        Canonical English MoPlayer product page (kept for backlinks)
-GET /privacy                    Canonical privacy policy
+GET /{ar|en}/admin              Legacy Website CMS (locale-prefixed)
+GET /app                        308 → /{defaultLocale}/apps/moplayer
+GET /privacy                    Canonical privacy
 GET /support                    MoPlayer support entry
-GET /admin                      Unified admin entry (auth-gated, no public nav)
-GET /api/cv-pdf?locale=…        On-demand CV PDF rendering
+GET /admin                      308 → https://admin.moalfarras.space
+GET /opengraph-image            1200×630 PNG (ImageResponse, edge)
+GET /sitemap.xml                Smart sitemap with hreflang
+GET /robots.txt                 Allow public, disallow /admin + /api/*
+GET /api/cv-pdf?locale=…        On-demand CV PDF
 GET /api/app/releases/latest    Latest MoPlayer release JSON
 GET /api/app/releases/[slug]/download  APK download proxy
 GET /api/app/support            MoPlayer support webhook
-GET /api/contact                Site contact form intake
+GET /api/contact                Contact form intake
 ```
 
-The proxy (`apps/web/src/proxy.ts`, Next.js 16 convention) handles:
-- `/`-style URLs → automatic locale prefix.
-- Legacy `/{locale}/admin*` → unified `/admin` entry.
-- Adds `x-site-locale` header so server components know the active locale.
+`apps/web/src/proxy.ts` (Next.js 16 proxy convention) handles:
 
-> Note: the legacy `/{locale}/admin/*` content workspaces still exist for editing,
-> but they are entered from `/admin`, never from public navigation.
+- locale prefixing (`/cv` → `/en/cv`)
+- passing the resolved locale via `x-site-locale` header
+- letting `/admin`, `/app`, `/privacy`, `/support` bypass locale logic
 
 ---
 
-## 3. Admin
+## Visual system — Creator-Hybrid
 
-There are two valid admin entry points, both backed by the same auth + Supabase data:
+- **Creator-Minimal** (personal pages) — warm ivory/ink in light,
+  cinematic midnight in dark. Single electric-cyan accent. Thin 1px borders.
+  Serif display (`Fraunces`) for Latin, `Tajawal` for Arabic headlines.
+  Body: `Inter` (Latin) / `Noto Kufi Arabic` (Arabic). No aurora, no glass.
+- **Apple-Cinematic** (`.cinematic-section` on `/{locale}/apps/moplayer`) —
+  black canvas, huge typography, full-bleed product hero, scroll-driven bento.
+  The section wrapper forces product-dark regardless of user theme, but the
+  surrounding `SiteNavbar` + `SiteFooter` keep tokenized colors.
 
-| URL                              | What it is                                       |
-| -------------------------------- | ------------------------------------------------ |
-| `https://moalfarras.space/admin` | Lightweight admin embedded inside the main app   |
-| `https://admin.moalfarras.space` | Standalone admin (apps/admin), separate Vercel project |
+Tokens live in [`apps/web/src/app/globals.css`](apps/web/src/app/globals.css):
 
-Both implement the same modules:
-- **Website control** — pages, projects, CV content, services, navigation
-- **MoPlayer control** — product hero, screenshots, releases, FAQ, install steps, support
-- **Messages** — contact + MoPlayer support submissions
-- **Media** — upload, library, picker, brand asset assignments
-- **PDFs** — CV branded + ATS variants
-- **Settings** — admin allowlist, credential rotation
+| Token              | Light              | Dark                |
+| ------------------ | ------------------ | ------------------- |
+| `--background`     | `#fafaf7` ivory    | `#0a0a0b` ink       |
+| `--foreground`     | `#0a0a0a`          | `#fafafa`           |
+| `--surface`        | `#ffffff`          | `#111114`           |
+| `--surface-soft`   | `#f4f4ef`          | `#15151a`           |
+| `--accent`         | `#0099b3` cyan     | `#00e5ff` cyan      |
+| `--border`         | `rgba(10,10,10,.09)` | `rgba(255,255,255,.09)` |
 
-Auth is locked behind:
-- `ADMIN_ALLOWLIST` (comma-separated emails)
-- `ADMIN_PASSWORD_HASH` (scrypt) — see security note below
-- `ADMIN_SESSION_SECRET` (HMAC signing for the session cookie)
+Plus radii (`--radius-xs/sm/md/lg/pill`), motion (`--motion-fast/base/slow`),
+shadows (`--shadow-card/elevated/hero`). A single `.glass-card` class unifies
+all legacy aliases (`bento-card`, `mesh-card`, `stats-glass-card`, `yt-video-card`).
+
+## Mobile-first
+
+- Breakpoints tested: 320 · 375 · 414 · 768 · 1024 · 1280+.
+- Real **drawer** via
+  [`components/layout/mobile-menu-drawer.tsx`](apps/web/src/components/layout/mobile-menu-drawer.tsx)
+  — slides from the `-start` side (RTL-aware), locks scroll, closes on ESC or
+  backdrop tap, holds all nav + language + theme toggles.
+- Touch targets ≥ 44×44 via `.button-*` classes and explicit `min-h-11`.
+- Safe-area respected: `.top-safe`, `.pb-dock`, `.safe-bottom-space`.
+- Mobile dock (`lg:hidden`) sits above `env(safe-area-inset-bottom)`.
+- Footer uses a mobile accordion; expanded on desktop.
+- No hover-only interactions — all "reveal on hover" have a visible baseline.
 
 ---
 
-## 4. Environment variables
+## SEO & Google Search Console
 
-Both apps read `.env.local` (gitignored). Templates are committed as `.env.example`.
+- Per-page `generateMetadata` via
+  [`apps/web/src/lib/seo.ts`](apps/web/src/lib/seo.ts): `title`, `description`,
+  `canonical`, `alternates.languages` (AR/EN/x-default), OpenGraph, Twitter card.
+- JSON-LD suite via [`apps/web/src/lib/seo-jsonld.ts`](apps/web/src/lib/seo-jsonld.ts):
+  - Root layout → `Person` + `Organization` + `WebSite`.
+  - Home → `ProfilePage` + expanded `Person` + `BreadcrumbList`.
+  - CV → expanded `Person` + `WebPage` + `BreadcrumbList`.
+  - Work index → `CollectionPage` + `BreadcrumbList`.
+  - Work detail → `CreativeWork` + `BreadcrumbList`.
+  - Apps index → `CollectionPage` + `BreadcrumbList`.
+  - Apps/MoPlayer (and `/app`) → `SoftwareApplication` (with `Offer`, version,
+    file size, download URL) + `FAQPage` + `BreadcrumbList`.
+  - YouTube → `WebPage` + `VideoObject` (featured) + `BreadcrumbList`.
+  - Contact → `ContactPage` + `BreadcrumbList`.
+- Sitemap [`apps/web/src/app/sitemap.ts`](apps/web/src/app/sitemap.ts) emits
+  each public route × locale with `hreflang` alternates and priority/changefreq.
+- OpenGraph default: [`apps/web/src/app/opengraph-image.tsx`](apps/web/src/app/opengraph-image.tsx)
+  (edge-rendered 1200×630 PNG via `next/og`).
+- `robots.ts` disallows `/admin` and `/api/` completely.
 
-### apps/web (full)
+### Connecting Google Search Console
+
+1. Go to [search.google.com/search-console](https://search.google.com/search-console).
+2. Add property: `https://moalfarras.space`.
+3. Choose **HTML meta tag** verification. Copy the `content="..."` token.
+4. In Vercel, set the env var on the `mohammad-alfarras` project:
+   ```env
+   GOOGLE_SITE_VERIFICATION="<token>"
+   ```
+5. Redeploy. The token is injected in `<head>` via
+   [`apps/web/src/app/layout.tsx`](apps/web/src/app/layout.tsx) `metadata.verification.google`.
+6. After verification, submit `https://moalfarras.space/sitemap.xml` in Search Console.
+
+---
+
+## Admin
+
+The public `/admin` is a **permanent redirect** to
+[`admin.moalfarras.space`](https://admin.moalfarras.space). The admin subdomain
+runs `apps/admin` (separate Vercel project) and currently manages MoPlayer
+content (product, releases, screenshots, FAQs, support).
+
+The **Website CMS** (pages, projects, CV content, PDFs, media, settings)
+still lives under `/{locale}/admin/*` on the main site, gated by the same
+Supabase auth. The admin subdomain shell exposes a top-level **"Website CMS"**
+button that deep-links to `/{locale}/admin` so it feels like one hub.
+
+### Admin auth
+
+- `ADMIN_ALLOWLIST` — comma-separated allowed emails
+- `ADMIN_PASSWORD_HASH` — scrypt hash (generate via
+  `node scripts/hash-admin-password.mjs "<password>"`)
+- `ADMIN_SESSION_SECRET` — HMAC signing key (48+ random hex bytes)
+
+---
+
+## Environment variables
+
+Templates live at:
+
+- [`apps/web/.env.example`](apps/web/.env.example)
+- [`apps/admin/.env.example`](apps/admin/.env.example)
+
+### Required on both web + admin Vercel projects
 
 ```env
-# Admin
 ADMIN_ALLOWLIST="you@example.com"
 ADMIN_EMAIL="you@example.com"
 ADMIN_PASSWORD_HASH="scrypt$<salt>$<derived>"
 ADMIN_SESSION_SECRET="<48+ random hex bytes>"
 
-# Supabase (public)
 NEXT_PUBLIC_SUPABASE_URL="https://<ref>.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="<anon>"
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY="sb_publishable_..."
 
-# Supabase (server-only)
+NEXT_PUBLIC_WEB_APP_URL="https://moalfarras.space"
+NEXT_PUBLIC_ADMIN_APP_URL="https://admin.moalfarras.space"
+```
+
+### Additional on `mohammad-alfarras` (web only)
+
+```env
+# Server-only — DO NOT prefix with NEXT_PUBLIC
 DATABASE_URL="postgresql://postgres:<pwd>@db.<ref>.supabase.co:5432/postgres?sslmode=require"
 DIRECT_URL="postgresql://postgres:<pwd>@db.<ref>.supabase.co:5432/postgres?sslmode=require"
 SUPABASE_SERVICE_ROLE_KEY="<service-role>"
 
-# Public URLs
-NEXT_PUBLIC_WEB_APP_URL="https://moalfarras.space"
-NEXT_PUBLIC_ADMIN_APP_URL="https://admin.moalfarras.space"
-
-# Optional integrations
-YOUTUBE_API_KEY=""
-YOUTUBE_CHANNEL_ID=""
-WEATHER_API_KEY=""
-API_FOOTBALL_KEY=""
-RAPIDAPI_FOOTBALL_KEY=""
-EDGE_CONFIG=""
+# Google Search Console verification (paste token after GSC verification)
 GOOGLE_SITE_VERIFICATION=""
+
+# Live data integrations (optional)
+YOUTUBE_API_KEY=""
+YOUTUBE_CHANNEL_ID="UCfQKyFnNaW026LVb5TGx87g"
+WEATHER_API_KEY=""
 ```
 
-### apps/admin
+### Additional on `moalfarras-admin`
 
-Same `ADMIN_*` and Supabase keys; can be a strict subset.
-
-> **Security**: `ADMIN_PASSWORD` (plain text) is supported as a fallback only.
-> Always use `ADMIN_PASSWORD_HASH` in production. Generate it with:
->
-> ```bash
-> node scripts/hash-admin-password.mjs "your-password"
-> ```
+```env
+SUPABASE_SERVICE_ROLE_KEY="<service-role>"   # needed for write paths
+```
 
 ---
 
-## 5. Local development
+## Local development
 
 ```bash
-# From repo root, once
+# One-time, from the repo root
 npm install
 
-# Web (port 3000 by default)
+# Web dev server (port 3000 by default)
 npm run dev:web
 
-# Admin (different port — set PORT or rely on Next default)
+# Admin dev server
 npm run dev:admin
 ```
 
-Production build checks:
+Checks:
 
 ```bash
 npm run typecheck:web
 npm run typecheck:admin
-npm run build               # builds both web + admin
+npm run lint:web
+npm run lint:admin
+npm run build        # builds both web + admin
 ```
 
 ---
 
-## 6. Deployment
+## Deployment
 
-Two Vercel projects, both pointing at this repo. Each has its own `.vercel/project.json`:
+Two Vercel projects, both pointing at this repo:
 
-| Vercel project name      | Workspace      | Domain                        |
-| ------------------------ | -------------- | ----------------------------- |
-| `mohammad-alfarras`      | `apps/web`     | `moalfarras.space`            |
-| `moalfarras-admin`       | `apps/admin`   | `admin.moalfarras.space`      |
+| Project name          | Root         | Domain                       |
+| --------------------- | ------------ | ---------------------------- |
+| `mohammad-alfarras`   | `apps/web`   | `moalfarras.space`           |
+| `moalfarras-admin`    | `apps/admin` | `admin.moalfarras.space`     |
 
-For each project:
-- **Root directory**: the corresponding `apps/*` folder.
-- **Install command**: `npm install` (npm workspaces resolve `@moalfarras/shared`).
-- **Build command**: `npm run build`.
-- **Node**: 24.x.
-- **Framework**: Next.js (auto-detected).
+Per project:
 
-`.vercelignore` (root) excludes `node_modules`, build output, Android build cache,
-backup screenshots, and `.env*` (except `.env.example`).
+- **Install command**: `npm install`
+- **Build command**: `npm run build`
+- **Framework**: Next.js (auto-detected, v16.2)
+- **Node**: 24.x
+
+After pushing new env vars you must **Redeploy** from the Vercel dashboard for
+them to take effect.
 
 ---
 
-## 7. Supabase
+## Supabase
 
 Project ref `ckefrnalgnbuaxsuufyx`. Migrations live in `supabase/migrations/`.
 
-Important schemas:
-- `app_admin_roles` — admin/editor role table consulted by the auth fallback path.
-- `app_*` tables (`006_app_ecosystem.sql`) — products, releases, screenshots, FAQs, support requests.
-- `*_translations` tables — bilingual content (ar/en) for all editable surfaces.
-- `media_assets` — asset library exposed to the admin media picker.
+Important tables:
 
-Always edit through migrations, not Studio one-offs, so production stays reproducible.
+- `app_admin_roles` — admin/editor gate (Supabase-auth path).
+- `app_products`, `app_releases`, `app_release_assets`, `app_screenshots`,
+  `app_faqs`, `app_support_requests` — MoPlayer ecosystem (slug: `moplayer`).
+- `work_projects` + `work_project_translations` + `work_project_media` +
+  `work_project_metrics` — Work/Projects surface.
+- `experiences`, `certifications` — CV data.
+- `service_offerings` + `service_offering_translations` — Home services block
+  (read by `PortfolioHomePage` when present, otherwise falls back to hardcoded
+  copy in `portfolio-pages.tsx`).
+- `navigation_items` + `navigation_translations` — nav editor-driven labels,
+  consumed by `(site)/layout.tsx` via `readNav(locale)`.
+- `contact_messages` — contact form submissions.
+- `media_assets` — asset library.
+- `site_settings` — key/value JSON bag (brand portrait, YouTube summary, etc.).
 
 ---
 
-## 8. Android (MoPlayer)
+## Android — MoPlayer release flow
 
 ```text
-android/moplayer/        # Android Studio project (open this folder)
-└── app/                 # com.mo.moplayer
+android/moplayer/        # open this folder in Android Studio
+└── app/                 # com.mo.moplayer, v2.0.0, minSdk 24, targetSdk 35
 ```
 
-Build APKs from the repo root:
+Build APKs:
 
 ```bash
 cd android/moplayer
-./gradlew.bat assembleSideloadDebug
-./gradlew.bat assembleSideloadRelease
+./gradlew.bat assembleSideloadDebug      # or assembleSideloadRelease
 ```
 
-Outputs:
+Output:
 
 ```text
 android/moplayer/build-output/app/outputs/apk/sideload/debug/
 android/moplayer/build-output/app/outputs/apk/sideload/release/
 ```
 
-Branding lives in `android/moplayer/app/src/main/res/drawable`
-(`moplayer_brand_logo_new.png`, `logo.xml`, `icon.xml`, `tv_banner_image.jpg`).
-
-The Android client talks to the same Supabase project and reads release metadata
-through `/api/app/releases/latest`.
-
----
-
-## 9. Design system (apps/web)
-
-Tokens live in `apps/web/src/app/globals.css` and are exposed to Tailwind 4 via `@theme inline`.
-
-| Token             | Light                  | Dark                   |
-| ----------------- | ---------------------- | ---------------------- |
-| `--background`    | `#fbfbfd` ivory        | `#050811` midnight     |
-| `--foreground`    | `#060912` deep ink     | `#f4f7fb` cool white   |
-| `--surface`       | `#ffffff`              | `#0a0f1c`              |
-| `--brand-accent`  | `#00b8d4` deeper cyan  | `#00e5ff` electric cyan|
-| `--secondary`     | `#4f46e5` indigo       | `#6366f1` indigo       |
-| `--accent`        | `#c026d3` magenta      | `#d946ef` magenta      |
-
-Plus radii (`--radius-sm/md/lg/xl/pill`), motion (`--motion-fast/base/slow`),
-shadows (`--shadow-card/elevated/hero`), and a single `glass-card` component class
-that all legacy aliases (`bento-card`, `mesh-card`, `stats-glass-card`, `yt-video-card`)
-inherit from. Theme switches via `next-themes` with the `class` attribute.
-
----
-
-## 10. Content & admin workflow
-
-1. Edit locally with `npm run dev:admin` or via `/admin` on production.
-2. Changes write to Supabase tables — both web + admin read from the same snapshot.
-3. The CV PDF is regenerated on demand at `/api/cv-pdf` (Chromium via `@sparticuz/chromium`).
-4. MoPlayer releases are uploaded through the admin "Releases" module
-   and surfaced via `/api/app/releases/latest`.
-5. Public messages from `/contact` and MoPlayer support land in the Messages module.
-
----
-
-## 11. Conventions to keep the project clean
-
-- **Never commit** `.env.local`, `.next/`, `.vercel/`, build output, or screenshot dumps.
-- **Never** put admin or product images at the repo root — everything goes under
-  `apps/web/public/images` (web) or `android/moplayer/app/src/main/res` (Android).
-- **Locale-prefixed pages live under `apps/web/src/app/[locale]/(site)/…`**.
-- **Public routes outside `[locale]`** (`/admin`, `/app`, `/privacy`, `/support`)
-  are explicitly opted out by `apps/web/src/proxy.ts`.
-- **Component naming**: any future “v3 / 2026” throwaway naming should be re-named
-  before merging — keep one canonical component per surface.
-
----
-
-## 12. Useful scripts
+Publish a new version (upload APK → Supabase storage → `app_releases` row):
 
 ```bash
-# Generate a new scrypt admin password hash
+node scripts/publish-android-release.mjs \
+  --version 2.0.1 \
+  --versionCode 3 \
+  --apk android/moplayer/build-output/app/outputs/apk/sideload/release/moplayer-release.apk \
+  --notes "Bug fixes + faster startup"
+```
+
+After the script finishes:
+
+- `/api/app/releases/latest` serves the new JSON.
+- `/{locale}/apps/moplayer` and `/app` show the new version.
+- Android clients using the API pick it up automatically.
+
+The script needs `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+exported in the shell.
+
+---
+
+## Security notes
+
+- **Never commit** `.env.local`, `.next/`, `.vercel/`, `local.properties`,
+  `keystore.properties`, `*.keystore`, or build output.
+- `ADMIN_PASSWORD` (plain text) is supported only as a legacy fallback. Always
+  prefer `ADMIN_PASSWORD_HASH` in production.
+- The Supabase **service role key** must only be set on the admin project and
+  on server-only API routes — never in a `NEXT_PUBLIC_*` variable.
+- `robots.ts` disallows `/admin` and `/api/` for all crawlers.
+
+---
+
+## Useful scripts
+
+```bash
+# Generate a fresh scrypt admin password hash
 node scripts/hash-admin-password.mjs "newPassword!2026"
 
-# Bootstrap a Supabase admin role (uses service role key)
+# Publish an Android release
+node scripts/publish-android-release.mjs --version <v> --versionCode <n> --apk <path>
+
+# Bootstrap an admin role in Supabase
 npm --prefix apps/web run bootstrap:admin
 
-# Publish a MoPlayer release row from a JSON manifest
-npm --prefix apps/web run publish:moplayer-release
-
-# Initial Supabase setup (re-runnable, idempotent)
+# Re-runnable initial Supabase setup
 npm --prefix apps/web run setup:supabase
 ```

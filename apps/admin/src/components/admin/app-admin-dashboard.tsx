@@ -210,7 +210,10 @@ export function AppAdminDashboard({
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href={`${webBaseUrl}/app`} className="rounded-full border border-primary/25 px-4 py-3 text-sm font-bold text-primary">
+            <Link href={`${webBaseUrl}/en/admin`} className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-bold text-foreground">
+              Website CMS
+            </Link>
+            <Link href={`${webBaseUrl}/en/apps/moplayer`} className="rounded-full border border-primary/25 px-4 py-3 text-sm font-bold text-primary">
               Open app page
             </Link>
             <form action={logoutAdminAction}>

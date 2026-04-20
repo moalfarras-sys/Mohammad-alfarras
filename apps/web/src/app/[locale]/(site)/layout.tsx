@@ -7,7 +7,7 @@ import { MobileDock } from "@/components/layout/mobile-dock";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
-import { readSnapshot } from "@/lib/content/store";
+import { readNav, readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
 
 function siteCopy(locale: "ar" | "en") {
@@ -80,6 +80,16 @@ export default async function SiteLayout({
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
 
+  // Prefer DB-driven nav labels/order when present; fallback to hardcoded copy.
+  const dbNav = await readNav(locale);
+  const navLinks = dbNav.length
+    ? dbNav.map((item) => ({
+        id: item.id,
+        label: item.label,
+        href: item.slug === "" || item.slug === "home" ? `/${locale}` : `/${locale}/${item.slug.replace(/^\//, "")}`,
+      }))
+    : copy.links;
+
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -99,40 +109,18 @@ export default async function SiteLayout({
     address: { "@type": "PostalAddress", addressCountry: "DE" },
   };
 
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "@id": `${siteUrl}/#website`,
-    url: siteUrl,
-    name: copy.brandName,
-    author: { "@id": `${siteUrl}/#person` },
-    inLanguage: [locale === "ar" ? "ar-SA" : "en-US", locale === "ar" ? "en-US" : "ar-SA"],
-  };
-
-  const portfolioJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "@id": `${siteUrl}/${locale}/work#collection`,
-    name: locale === "ar" ? `أعمال ${copy.brandName}` : `${copy.brandName} Work`,
-    url: `${siteUrl}/${locale}/work`,
-    author: { "@id": `${siteUrl}/#person` },
-    description: copy.portfolioDescription,
-  };
-
   return (
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(portfolioJsonLd) }} />
 
       <div className="relative min-h-screen">
         <LocaleDocumentSync locale={locale} />
         <AtmosphericBackground />
-        <SiteNavbar locale={locale} links={copy.links} tagline={copy.tagline} logoSrc={portraitSrc} brandName={copy.brandName} />
-        <main className="pb-[7.25rem] lg:pb-0">{children}</main>
+        <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={portraitSrc} brandName={copy.brandName} />
+        <main className="pb-dock lg:pb-0">{children}</main>
         <CookieBanner locale={locale} />
         <MobileDock locale={locale} />
-        <SiteFooter locale={locale} logoSrc={portraitSrc} brandName={copy.brandName} tagline={copy.tagline} links={copy.links} footer={copy.footer} />
+        <SiteFooter locale={locale} logoSrc={portraitSrc} brandName={copy.brandName} tagline={copy.tagline} links={navLinks} footer={copy.footer} />
       </div>
     </>
   );

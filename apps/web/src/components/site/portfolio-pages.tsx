@@ -1,20 +1,14 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
-  BriefcaseBusiness,
   Calendar,
-  ChevronRight,
-  Compass,
+  CheckCircle2,
   Download,
   ExternalLink,
-  Eye,
-  Gauge,
-  Globe2,
-  Layers,
   Mail,
   MapPin,
   MessageCircle,
@@ -22,22 +16,17 @@ import {
   Quote,
   ShieldCheck,
   Smartphone,
-  Sparkles,
-  Star,
-  Users,
-  Workflow,
-  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
 
 import { ContactForm } from "@/components/site/contact-form";
 import type { SiteViewModel } from "@/components/site/site-view-model";
 import type { Locale } from "@/types/cms";
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  Helpers
+ *  Helpers (creator-minimal direction)
+ *  Typography-first. Thin borders. No glass, no aurora orbs, no big shadows.
  * ─────────────────────────────────────────────────────────────────────────── */
 
 function caseStudyHref(locale: Locale, slug: string) {
@@ -56,20 +45,13 @@ function sortedProjects(model: SiteViewModel) {
   });
 }
 
-const fadeUp = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-80px" },
-  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const },
-};
-
-function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as const }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -78,128 +60,102 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  Bilingual copy
+ *  Bilingual copy (unchanged in spirit; editorial tone preserved)
  * ─────────────────────────────────────────────────────────────────────────── */
 
 function localeCopy(locale: Locale) {
   if (locale === "ar") {
     return {
       home: {
-        eyebrow: "موقع شخصي · مهني · بصري",
-        title: "محمد الفراس. أبني تجارب رقمية أوضح، منتجات أقوى، وحضوراً يشرح القيمة من أول شاشة.",
+        eyebrow: "شخصي · مهني · بصري",
+        titleLead: "أبني تجارب رقمية",
+        titleAccent: "أوضح",
+        titleTail: "، ومنتجات تشرح نفسها من أول شاشة.",
         body:
-          "هذا الموقع عن عملي أنا: تطوير الويب الحديث، التفكير المنتجي، تصميم الواجهات، وصناعة المحتوى التقني العربي. كل ما تراه هنا تم بناؤه بنفس مستوى الجودة الذي أقدمه لعملائي.",
+          "هذا موقعي أنا. تطوير الويب الحديث، التفكير المنتجي، تصميم الواجهات، وصناعة المحتوى التقني العربي. كل ما تراه هنا بُنِي بنفس المستوى الذي أقدّمه لعملائي.",
         primary: "استكشف الأعمال",
         secondary: "السيرة الذاتية",
-        quickEyebrow: "البطاقة التعريفية",
-        quickTitle: "هوية شخصية أولاً، ثم منتجات وأعمال داخل سياق واحد ومنسّق.",
-        quickBody:
-          "أعمل على مفترق ثلاث طبقات: تطوير الويب، التفكير في المنتج، وصناعة المحتوى. هذا الجمع يخلق نتائج أكثر واقعية وأكثر إقناعاً.",
-        strengthsEyebrow: "نقاط قوة فعلية",
+        quickEyebrow: "باختصار",
+        quickTitle: "هوية شخصية أولاً، ثم منتجات وأعمال داخل سياق واحد.",
+        strengthsEyebrow: "نقاط قوة حقيقية",
         strengths: [
-          { title: "تطوير ويب حديث", body: "Next.js 16، Tailwind 4، Supabase، Vercel — أبني واجهات سريعة، قابلة للتوسع، ومرتبة." },
+          { title: "تطوير ويب حديث", body: "Next.js 16، React 19، Tailwind 4، Supabase. واجهات سريعة، مرتبة، وقابلة للتطوير." },
           { title: "تفكير منتجي", body: "كل صفحة يجب أن تدعم قراراً أو تحوّل زائراً. التصميم أداة، ليس زينة." },
-          { title: "محتوى يبني الثقة", body: "خبرة فعلية في يوتيوب التقني العربي تعني عرض منتج لا يبدو إعلاناً." },
+          { title: "محتوى يبني الثقة", body: "+1.5 مليون مشاهدة على يوتيوب التقني العربي. المحتوى يسبق المنتج دائماً." },
         ],
-        statsEyebrow: "الأرقام التي تختصر القصة",
+        statsEyebrow: "أرقام تلخّص المسار",
         stats: [
           { value: "1.5M+", label: "مشاهدة على يوتيوب" },
-          { value: "+6 سنوات", label: "خبرة في التشغيل والتنفيذ" },
-          { value: "3", label: "لغات: عربي، إنجليزي، ألماني" },
-          { value: "DE/SY", label: "ألمانيا · من الحسكة" },
+          { value: "6+", label: "سنوات خبرة" },
+          { value: "3", label: "لغات (AR · EN · DE)" },
+          { value: "DE / SY", label: "ألمانيا · من الحسكة" },
         ],
         philosophyEyebrow: "الفلسفة",
-        philosophyTitle: "الوضوح أولاً. الجمال يخدم الوضوح. السرعة تحمي الاثنين.",
-        philosophyBody:
-          "أرفض المواقع المزخرفة التي لا تشرح شيئاً. أرفض المنتجات المنمقة التي تتعب المستخدم. كل قرار تصميمي عندي يجب أن يبرر سبب وجوده — وإلا يُحذف.",
+        philosophyQuote:
+          "الوضوح أولاً. الجمال يخدم الوضوح. السرعة تحمي الاثنين.",
         philosophyPoints: [
-          "الزائر يستحق فهم القيمة في أقل من 10 ثوانٍ.",
+          "الزائر يستحق فهم القيمة في أقل من عشر ثوانٍ.",
           "الواجهة الجميلة بدون أداء = خسارة موزونة.",
-          "اللغة العربية والإنجليزية تستحقان نفس الجودة، ليس ترجمة سريعة.",
-          "المنتج الواحد الناضج أفضل من خمسة تجارب نصف جاهزة.",
+          "العربية والإنجليزية تستحقان نفس المستوى من الصقل.",
+          "منتج واحد ناضج أفضل من خمس تجارب نصف جاهزة.",
         ],
         workEyebrow: "أعمال مختارة",
-        workTitle: "كل مشروع هنا حلّ مشكلة فعلية.",
-        workBody:
-          "هذه ليست معرض صور — هذه دراسات حالة قصيرة تشرح: ماذا كان التحدي، كيف تغيّرت البنية، وما النتيجة.",
+        workTitle: "كل مشروع هنا حلَّ مشكلة فعلية.",
+        workBody: "ليس معرض صور — دراسات حالة قصيرة تشرح التحدي، التغيير البنيوي، والنتيجة.",
         productEyebrow: "المنتج البطل",
-        productTitle: "MoPlayer ليس مشروعاً جانبياً. إنه منتج كامل بهوية، إصدارات، ودعم.",
+        productTitle: "MoPlayer ليس مشروعاً جانبياً.",
         productBody:
-          "تطبيق Android + Android TV لتجربة وسائط نظيفة وسريعة. متاح للتنزيل المباشر، مع مركز دعم وصفحة منتج كاملة.",
+          "منتج كامل بهوية وإصدارات ودعم. تطبيق Android و Android TV لتجربة وسائط نظيفة وسريعة. تنزيل مباشر من الموقع.",
         productPrimary: "صفحة المنتج",
         productSecondary: "دراسة الحالة",
         servicesEyebrow: "ماذا أقدّم",
-        servicesTitle: "خدمات قليلة، لكنها مكتملة الجودة.",
+        servicesTitle: "خدمات قليلة، لكن كاملة الجودة.",
         services: [
-          {
-            icon: "globe",
-            title: "موقع شخصي / تجاري كامل",
-            body: "موقع متعدد اللغات، سريع، بهوية مرتبة وقابل للتطوير. مثل هذا الموقع تماماً.",
-            tags: ["Next.js", "Supabase", "Vercel"],
-          },
-          {
-            icon: "layout",
-            title: "صفحة هبوط لإطلاق منتج",
-            body: "صفحة واحدة قوية تشرح القيمة، تبني الثقة، وتحوّل الزائر خلال أول دقيقة.",
-            tags: ["Conversion", "SEO", "Motion"],
-          },
-          {
-            icon: "phone",
-            title: "تطبيق Android كمنتج",
-            body: "تطبيق ناتج بكود حقيقي وهوية موحدة مع الموقع، كما هو حال MoPlayer.",
-            tags: ["Kotlin", "Android TV", "Material 3"],
-          },
-          {
-            icon: "video",
-            title: "تعاون محتوى تقني",
-            body: "محتوى يوتيوب يعرض المنتج بشكل صادق ويبني ثقة الجمهور بدلاً من الدعاية.",
-            tags: ["YouTube", "Voiceover", "Storytelling"],
-          },
+          { title: "موقع شخصي أو تجاري كامل", body: "متعدد اللغات، سريع، بهوية مرتبة، قابل للتطوير. مثل هذا الموقع تماماً." },
+          { title: "صفحة هبوط لإطلاق منتج", body: "صفحة واحدة قوية تشرح القيمة، تبني الثقة، وتحوّل الزائر خلال دقيقة." },
+          { title: "تطبيق Android كمنتج", body: "تطبيق ناتج بكود حقيقي وهوية موحّدة مع الموقع، كما هو حال MoPlayer." },
+          { title: "تعاون محتوى تقني", body: "محتوى يوتيوب يعرض المنتج بصدق ويبني ثقة الجمهور بدل الدعاية." },
         ],
         mediaEyebrow: "المحتوى التقني العربي",
         mediaTitle: "اليوتيوب جزء من البراند، لأنه يثبت طريقة التفكير قبل أي معرض أعمال.",
-        mediaBody:
-          "قناتي التقنية العربية لها نفس مبادئ الموقع: شرح واضح، حضور صادق، ومحتوى يحترم وقت المشاهد.",
         mediaPrimary: "اذهب إلى يوتيوب",
         contactEyebrow: "ابدأ الحديث",
-        contactTitle: "إذا كان لديك مشروع يحتاج ترتيباً أوضح وحضوراً أقوى، أرسل الفكرة.",
+        contactTitle: "عندك مشروع يحتاج ترتيباً أوضح؟ أرسل الفكرة.",
         contactBody:
           "أعمل مع أصحاب المشاريع، الفرق الصغيرة، وصُنّاع المحتوى الذين يحتاجون قفزة في مستوى التقديم الرقمي.",
         contactPrimary: "تواصل معي",
       },
       cv: {
         eyebrow: "السيرة الذاتية",
-        title: "الخبرة، طريقة العمل، والمسار المهني — في صفحة واحدة منظمة.",
+        title: "الخبرة، طريقة العمل، والمسار — في صفحة واحدة منظمة.",
         body:
-          "هذه الصفحة مخصصة للمراجعة المهنية: الخبرة، المبادئ، الشهادات، والملف القابل للتنزيل بنسختين (مصممة + مختصرة للـ ATS).",
+          "هذه الصفحة مخصصة للمراجعة المهنية: الخبرة، المبادئ، الشهادات، وملف قابل للتنزيل بنسختين (مصممة + مختصرة للـ ATS).",
         principlesTitle: "مبادئ العمل",
         principles: [
           "الوضوح قبل الزخرفة، دائماً.",
-          "بنية تتحمل التعديل ولا تنهار بسرعة.",
+          "بنية تتحمّل التعديل ولا تنهار بسرعة.",
           "ربط الواجهة بقرار تجاري واضح.",
           "أداء فعلي لا يقل عن الجمال البصري.",
-          "اللغة العربية والإنجليزية بنفس مستوى الجودة.",
+          "العربية والإنجليزية بنفس مستوى الصقل.",
+        ],
+        approachTitle: "كيف أعمل عملياً",
+        approach: [
+          { title: "01. استماع", body: "مكالمة 30 دقيقة. أفهم النشاط، الجمهور، والمشكلة الفعلية، ليس فقط ما يُطلب." },
+          { title: "02. اقتراح", body: "ملخص قصير: ما المُخرَج، ما الذي يُحذف، وما الذي يُضاف، وكم يستغرق." },
+          { title: "03. بناء", body: "تنفيذ منظَّم بمراحل واضحة وتسليم مرحلي. لا اختفاء ولا «سأرسل قريباً»." },
+          { title: "04. تسليم وضمان", body: "تسليم نهائي مع توثيق، ووقت دعم لما بعد الإطلاق." },
         ],
         downloadsTitle: "تحميل السيرة الذاتية",
-        downloadsBody: "نسختان متاحتان: نسخة مصممة بصرياً، ونسخة مختصرة جاهزة لأنظمة ATS.",
         branded: "تحميل النسخة المصممة",
         ats: "تحميل النسخة المختصرة (ATS)",
         experience: "الخبرة العملية",
         certifications: "الشهادات والاعتمادات",
-        approachTitle: "كيف أعمل عملياً",
-        approach: [
-          { title: "1 — استماع", body: "نتحدث 30 دقيقة. أفهم النشاط، الجمهور، والمشكلة الفعلية، ليس فقط ما يُطلب." },
-          { title: "2 — اقتراح", body: "ملخص قصير: ما المخرج، ما الذي يُحذف، وما الذي يُضاف، وكم يستغرق." },
-          { title: "3 — بناء", body: "تنفيذ منظم بمراحل واضحة وتسليم مرحلي. لا اختفاء ولا 'سأرسل قريباً'." },
-          { title: "4 — تسليم وضمان", body: "تسليم نهائي مع توثيق، ووقت دعم لما بعد الإطلاق." },
-        ],
         stackTitle: "التقنيات التي أستخدمها يومياً",
       },
       work: {
-        eyebrow: "أعمال ودراسات حالة",
-        title: "ست خطوات تربط بين العمل والقرار التجاري — لكل مشروع.",
-        body:
-          "كل مشروع هنا يُعرض كدراسة حالة: التحدي، الحل، النتيجة، والميزات الأهم. هذا ليس معرض صور.",
+        eyebrow: "الأعمال ودراسات الحالة",
+        title: "ستّ خطوات تربط بين العمل والقرار التجاري — لكل مشروع.",
+        body: "كل مشروع يُعرض كدراسة حالة: التحدي، الحل، النتيجة، والميزات الأهم.",
         caseStudy: "دراسة الحالة",
         productPage: "صفحة المنتج",
         repo: "المصدر",
@@ -214,14 +170,12 @@ function localeCopy(locale: Locale) {
         visit: "زيارة الرابط",
         contact: "ابدأ مشروعاً مشابهاً",
         nextEyebrow: "هل ترى نفسك هنا؟",
-        nextTitle: "إذا كانت قصتك قريبة من هذه الحالة، أرسل الفكرة وسنبدأ بشكل صحيح.",
+        nextTitle: "إذا كانت قصتك قريبة من هذه الحالة، أرسل الفكرة.",
       },
       youtube: {
-        eyebrow: "يوتيوب · المحتوى التقني العربي",
+        eyebrow: "يوتيوب · محتوى تقني عربي",
         title: "+1.5 مليون مشاهدة، +6 آلاف مشترك، و162 فيديو حقيقياً.",
-        body:
-          "القناة ليست ملفاً ترفيهياً — هي طبقة الثقة في البراند. تشرح المنتجات، تشرح الأدوات، وتربط الجمهور العربي بمحتوى تقني محترم.",
-        statsTitle: "أرقام القناة",
+        body: "القناة طبقة الثقة في البراند. تشرح المنتجات، الأدوات، وتربط الجمهور العربي بمحتوى تقني محترم.",
         featured: "الفيديو المميز",
         latest: "أحدث الفيديوهات",
         channel: "افتح القناة على يوتيوب",
@@ -242,36 +196,34 @@ function localeCopy(locale: Locale) {
         responseSteps: [
           "أرد خلال 24 ساعة بسؤال أو موعد لمكالمة قصيرة.",
           "ملخص مكتوب لما فهمته من فكرتك.",
-          "عرض واضح بالنطاق والسعر الزمن.",
+          "عرض واضح بالنطاق والسعر والزمن.",
           "بدء التنفيذ فقط عند موافقتك.",
         ],
       },
       privacy: {
         eyebrow: "الخصوصية",
-        title: "سياسة خصوصية مباشرة وبدون لغة قانونية معقدة.",
-        body:
-          "هذه نسخة موجزة. للنسخة الكاملة المعتمدة، استخدم صفحة /privacy العامة.",
+        title: "سياسة خصوصية مباشرة وبدون لغة قانونية معقّدة.",
+        body: "هذه نسخة موجزة. للنسخة الكاملة المعتمدة، استخدم صفحة /privacy العامة.",
         cta: "افتح سياسة الخصوصية الكاملة",
         bullets: [
-          "لا نستخدم تتبعاً تطفلياً ولا نبيع بيانات.",
-          "النماذج (التواصل، الدعم) تُحفظ بقاعدة بيانات Supabase آمنة.",
-          "الكوكيز محصورة في تذكر اللغة والوضع البصري.",
+          "لا نستخدم تتبعاً تطفّلياً ولا نبيع بيانات.",
+          "النماذج (التواصل، الدعم) تُحفظ بقاعدة Supabase آمنة.",
+          "الكوكيز محصورة في تذكّر اللغة والوضع البصري.",
         ],
       },
       apps: {
         eyebrow: "المنتجات والتطبيقات",
-        title: "منظومة منتجات صغيرة، مبنية بنفس مستوى الموقع: أوضح، أسرع، وأكثر تماسكاً.",
+        title: "منظومة منتجات صغيرة، مبنية بنفس مستوى الموقع.",
         body:
-          "كل تطبيق هنا يُعامل كمنتج كامل: هوية، واجهة، إصدارات، ودعم. MoPlayer هو المنتج البطل الآن. باقي الفكرة قيد البناء.",
+          "كل تطبيق هنا يُعامل كمنتج كامل: هوية، واجهة، إصدارات، دعم. MoPlayer هو المنتج البطل الآن.",
         featuredLabel: "المنتج البطل",
         openProduct: "صفحة المنتج",
         viewCase: "دراسة الحالة",
-        comingSoon: "قريباً",
         roadmapTitle: "ما يأتي لاحقاً",
         roadmap: [
           "تحسينات MoPlayer للهاتف وAndroid TV (الإصدار 2.x).",
-          "أدوات صغيرة من الموقع كـ tools مستقلة (PDF، CV، حاسبات).",
-          "منتج مفاجأة قيد التحضير الصامت — لا أُعلن قبل الجاهزية.",
+          "أدوات صغيرة من الموقع كـ utilities مستقلة (PDF، CV، حاسبات).",
+          "منتج مفاجأة قيد التحضير الصامت — لا إعلان قبل الجاهزية.",
         ],
       },
     } as const;
@@ -280,83 +232,58 @@ function localeCopy(locale: Locale) {
   return {
     home: {
       eyebrow: "Personal · professional · visual",
-      title: "Mohammad Alfarras. Building clearer digital experiences, stronger products, and brand presence that explains value on the first screen.",
+      titleLead: "Building clearer",
+      titleAccent: "digital experiences",
+      titleTail: ", and products that explain themselves on the first screen.",
       body:
         "This site is about my work: modern web development, product thinking, interface design, and Arabic tech content. Everything you see here was built with the same standard I deliver to clients.",
       primary: "Explore work",
       secondary: "View CV",
       quickEyebrow: "The short version",
       quickTitle: "Personal identity first, then products and work inside one curated context.",
-      quickBody:
-        "I sit at the intersection of three layers: web development, product thinking, and content. The combination produces results that feel grounded and persuasive.",
       strengthsEyebrow: "Real strengths",
       strengths: [
-        { title: "Modern web development", body: "Next.js 16, Tailwind 4, Supabase, Vercel — fast, scalable, well-structured interfaces." },
+        { title: "Modern web development", body: "Next.js 16, React 19, Tailwind 4, Supabase. Fast, structured, scalable interfaces." },
         { title: "Product thinking", body: "Every page should support a decision or convert a visitor. Design is a tool, not decoration." },
-        { title: "Content that builds trust", body: "Real Arabic tech YouTube experience means product presentation that doesn't feel like an ad." },
+        { title: "Content that builds trust", body: "1.5M+ Arabic tech YouTube views. The content leads the product, always." },
       ],
       statsEyebrow: "Numbers that compress the story",
       stats: [
         { value: "1.5M+", label: "YouTube views" },
-        { value: "6+ years", label: "operations & execution" },
-        { value: "3", label: "languages: AR · EN · DE" },
-        { value: "DE/SY", label: "Germany · from Al-Hasakah" },
+        { value: "6+", label: "years of experience" },
+        { value: "3", label: "languages (AR · EN · DE)" },
+        { value: "DE / SY", label: "Germany · from Al-Hasakah" },
       ],
       philosophyEyebrow: "Philosophy",
-      philosophyTitle: "Clarity first. Beauty serves clarity. Speed protects both.",
-      philosophyBody:
-        "I refuse decorated sites that explain nothing. I refuse polished products that exhaust their users. Every design decision must justify its existence — otherwise it's removed.",
+      philosophyQuote: "Clarity first. Beauty serves clarity. Speed protects both.",
       philosophyPoints: [
-        "A visitor deserves to understand the value in under 10 seconds.",
+        "A visitor deserves to understand the value in under ten seconds.",
         "A beautiful interface without performance is a measured loss.",
-        "Arabic and English deserve the same level of polish, not a quick translation.",
+        "Arabic and English deserve the same level of polish.",
         "One mature product beats five half-finished experiments.",
       ],
       workEyebrow: "Selected work",
       workTitle: "Each project here solved a real problem.",
-      workBody:
-        "This isn't a screenshot gallery — it's a set of short case studies that explain the challenge, the structural shift, and the outcome.",
+      workBody: "Not a screenshot gallery — short case studies that explain the challenge, the structural shift, and the outcome.",
       productEyebrow: "Headline product",
-      productTitle: "MoPlayer is not a side project. It's a complete product with identity, releases, and support.",
+      productTitle: "MoPlayer is not a side project.",
       productBody:
-        "An Android + Android TV app for a clean, fast media experience. Direct download, dedicated support, and a full product page.",
+        "A complete product with identity, releases, and support. An Android + Android TV app for a clean, fast media experience. Direct download from the site.",
       productPrimary: "Product page",
       productSecondary: "Case study",
       servicesEyebrow: "What I offer",
       servicesTitle: "Few services, but each one fully owned.",
       services: [
-        {
-          icon: "globe",
-          title: "Personal / business website",
-          body: "A multilingual, fast website with a clear identity, ready to scale. Exactly like this one.",
-          tags: ["Next.js", "Supabase", "Vercel"],
-        },
-        {
-          icon: "layout",
-          title: "Product launch landing page",
-          body: "One strong page that explains the value, builds trust, and converts within the first minute.",
-          tags: ["Conversion", "SEO", "Motion"],
-        },
-        {
-          icon: "phone",
-          title: "Android app as a real product",
-          body: "A native Android app shipped with the same identity as the site, the way MoPlayer is built.",
-          tags: ["Kotlin", "Android TV", "Material 3"],
-        },
-        {
-          icon: "video",
-          title: "Tech content collaboration",
-          body: "YouTube content that presents the product honestly and earns trust instead of pushing ads.",
-          tags: ["YouTube", "Voiceover", "Storytelling"],
-        },
+        { title: "Personal / business website", body: "Multilingual, fast, well-structured identity, ready to scale. Exactly like this one." },
+        { title: "Product launch landing page", body: "One strong page that explains the value, builds trust, and converts within the first minute." },
+        { title: "Android app as a real product", body: "A native Android app shipped with the same identity as the site, the way MoPlayer is built." },
+        { title: "Tech content collaboration", body: "YouTube content that presents the product honestly and earns trust instead of pushing ads." },
       ],
       mediaEyebrow: "Arabic tech content",
       mediaTitle: "YouTube is part of the brand because it proves the thinking before any portfolio could.",
-      mediaBody:
-        "The channel follows the same principles as the site: clear explanation, honest presence, and content that respects the viewer's time.",
       mediaPrimary: "Open YouTube",
       contactEyebrow: "Start the conversation",
-      contactTitle: "If your project needs cleaner structure and stronger presence, send the idea.",
+      contactTitle: "Have a project that needs cleaner structure? Send the idea.",
       contactBody:
         "I work with founders, small teams, and creators who need a real lift in their digital presentation.",
       contactPrimary: "Get in touch",
@@ -365,7 +292,7 @@ function localeCopy(locale: Locale) {
       eyebrow: "Curriculum vitæ",
       title: "Experience, working principles, and career path — in one structured page.",
       body:
-        "This page is built for professional review: experience, principles, certifications, and a downloadable CV in two variants (designed + ATS-friendly).",
+        "This page is built for professional review: experience, principles, certifications, and a downloadable CV in two variants (designed + ATS).",
       principlesTitle: "Working principles",
       principles: [
         "Clarity before decoration, always.",
@@ -374,26 +301,24 @@ function localeCopy(locale: Locale) {
         "Real performance is non-negotiable next to visual quality.",
         "Arabic and English at the same level of polish.",
       ],
+      approachTitle: "How I actually work",
+      approach: [
+        { title: "01. Listen", body: "30-minute call. I learn the business, audience, and the real problem — not just what's being asked." },
+        { title: "02. Propose", body: "A short brief: what's delivered, what's removed, what's added, and how long it takes." },
+        { title: "03. Build", body: "Phased execution with milestone deliveries. No disappearing, no 'I'll send it soon'." },
+        { title: "04. Ship & support", body: "Final delivery with documentation, plus a post-launch support window." },
+      ],
       downloadsTitle: "Download the CV",
-      downloadsBody: "Two versions: a fully designed PDF and a concise ATS-ready version.",
       branded: "Download designed CV",
       ats: "Download concise CV (ATS)",
       experience: "Professional experience",
       certifications: "Certifications & credentials",
-      approachTitle: "How I actually work",
-      approach: [
-        { title: "1 — Listen", body: "30-minute call. I learn the business, the audience, and the real problem — not just what's being asked." },
-        { title: "2 — Propose", body: "A short brief: what's delivered, what's removed, what's added, and how long it takes." },
-        { title: "3 — Build", body: "Phased execution with milestone deliveries. No disappearing, no 'I'll send it soon'." },
-        { title: "4 — Ship & support", body: "Final delivery with documentation, plus a post-launch support window." },
-      ],
       stackTitle: "Stack I use daily",
     },
     work: {
       eyebrow: "Work & case studies",
       title: "Six steps that connect the work to a business decision — for every project.",
-      body:
-        "Each project here is presented as a case study: challenge, solution, outcome, and the most important features. This isn't a gallery.",
+      body: "Each project is presented as a case study: challenge, solution, outcome, and the most important features.",
       caseStudy: "Case study",
       productPage: "Product page",
       repo: "Source",
@@ -408,14 +333,12 @@ function localeCopy(locale: Locale) {
       visit: "Open link",
       contact: "Start a similar project",
       nextEyebrow: "See yourself in this?",
-      nextTitle: "If your story is close to this case, send the idea and let's start it properly.",
+      nextTitle: "If your story is close to this case, send the idea.",
     },
     youtube: {
-      eyebrow: "YouTube · Arabic tech content",
-      title: "+1.5M views, +6K subscribers, and 162 real videos.",
-      body:
-        "The channel isn't an entertainment file — it's the trust layer of the brand. It explains products, explains tools, and connects the Arabic audience to tech content that respects them.",
-      statsTitle: "Channel numbers",
+      eyebrow: "YouTube · Arabic tech",
+      title: "1.5M+ views, 6K+ subscribers, 162 real videos.",
+      body: "The channel isn't entertainment — it's the brand's trust layer. It explains products, tools, and connects the Arabic audience to tech content that respects them.",
       featured: "Featured video",
       latest: "Latest videos",
       channel: "Open the YouTube channel",
@@ -423,8 +346,7 @@ function localeCopy(locale: Locale) {
     contact: {
       eyebrow: "Direct contact",
       title: "Send the idea. I'll come back within 24 hours with a clear next step.",
-      body:
-        "No need to prepare a formal brief. Write what you need in your own words, and I'll come back with a clearer version and a concrete step.",
+      body: "No need to prepare a formal brief. Write what you need in your own words, and I'll come back with a clearer version and a concrete step.",
       availabilityTitle: "Availability",
       availability: [
         { label: "Sat – Thu", value: "10:00 – 19:00 (CET)" },
@@ -442,9 +364,8 @@ function localeCopy(locale: Locale) {
     },
     privacy: {
       eyebrow: "Privacy",
-      title: "A direct privacy summary — without legal jargon.",
-      body:
-        "This is the short version. For the full canonical document, use the public /privacy page.",
+      title: "A direct privacy summary — no legal jargon.",
+      body: "This is the short version. For the full canonical document, use the public /privacy page.",
       cta: "Open full privacy policy",
       bullets: [
         "No invasive tracking. No data selling.",
@@ -454,13 +375,12 @@ function localeCopy(locale: Locale) {
     },
     apps: {
       eyebrow: "Products & apps",
-      title: "A small ecosystem of focused products, built to the same standard as this site: clearer, faster, more cohesive.",
+      title: "A small ecosystem of focused products, built to the same standard as the site.",
       body:
-        "Each app here is treated as a real product — identity, UI, releases, support. MoPlayer is the headline today. The rest is in deliberate, quiet construction.",
+        "Each app here is treated as a real product — identity, UI, releases, support. MoPlayer is the headline today.",
       featuredLabel: "Headline product",
       openProduct: "Product page",
       viewCase: "Case study",
-      comingSoon: "Coming soon",
       roadmapTitle: "What's next",
       roadmap: [
         "MoPlayer phone + Android TV improvements (2.x line).",
@@ -472,390 +392,345 @@ function localeCopy(locale: Locale) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  HOME
+ *  HOME — creator-minimal, text-first
  * ─────────────────────────────────────────────────────────────────────────── */
 
 export function PortfolioHomePage({ model }: { model: SiteViewModel }) {
   const copy = localeCopy(model.locale).home;
   const featuredProjects = sortedProjects(model).slice(0, 3);
-  const moPlayer = model.projects.find((project) => project.slug === "moplayer");
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroParallax = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
+  const moPlayer = model.projects.find((p) => p.slug === "moplayer");
 
-  const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    globe: Globe2,
-    layout: Layers,
-    phone: Smartphone,
-    video: PlayCircle,
-  };
+  // Prefer DB-driven services from Supabase (service_offerings).
+  // Fallback to hardcoded editorial copy only if DB is empty.
+  const liveServices = model.services?.length
+    ? model.services.map((svc) => ({ title: svc.title, body: svc.body }))
+    : copy.services;
 
   return (
-    <div className="relative space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-16 md:pb-24 md:pt-6">
+    <div className="space-y-20 pb-20 pt-6 sm:pt-10 md:space-y-28 md:pb-28 md:pt-16 lg:space-y-36">
       {/* HERO */}
-      <section ref={heroRef} className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <motion.div style={{ y: heroParallax }} aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-70">
-          <div className="absolute left-[8%] top-[-15%] h-[460px] w-[460px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--primary-glow), transparent 60%)" }} />
-          <div className="absolute right-[5%] bottom-[-20%] h-[520px] w-[520px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--secondary-glow), transparent 65%)" }} />
-        </motion.div>
-
-        <div className="relative grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div className="space-y-6">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <Eyebrow>{copy.eyebrow}</Eyebrow>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="headline-display max-w-[28ch] text-[2.4rem] leading-[1.08] text-foreground sm:text-5xl md:text-[3.6rem] lg:text-[4.2rem]"
-            >
-              {copy.title}
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-[58ch] text-base leading-8 text-foreground-soft md:text-lg"
-            >
-              {copy.body}
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex flex-wrap items-center gap-3 pt-2"
-            >
-              <Link href={`/${model.locale}/work`} className="button-primary-shell">
-                {copy.primary}
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-              <Link href={`/${model.locale}/cv`} className="button-secondary-shell">{copy.secondary}</Link>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-3 text-xs font-bold text-foreground-muted"
-            >
-              <span className="inline-flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> {model.profile.location}</span>
-              <span className="hidden h-1 w-1 rounded-full bg-foreground-muted/60 md:inline-block" />
-              <span>AR · EN · DE</span>
-              <span className="hidden h-1 w-1 rounded-full bg-foreground-muted/60 md:inline-block" />
-              <span>Next.js · Product · Content</span>
-            </motion.div>
+      <section className="section-frame">
+        <FadeIn>
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-foreground-muted">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span>{model.locale === "ar" ? "متاح للمشاريع" : "Available for new work"}</span>
           </div>
+        </FadeIn>
 
-          {/* Portrait */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="relative isolate"
-          >
-            <div aria-hidden className="absolute -inset-8 -z-10 rounded-[2.5rem] opacity-50 blur-3xl" style={{ background: "linear-gradient(135deg, var(--primary-glow), var(--secondary-glow))" }} />
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2rem] border border-border-glass" style={{ background: "var(--surface)", boxShadow: "var(--shadow-hero)" }}>
-              <Image src={model.portraitImage} alt={model.profile.name} fill priority sizes="(max-width: 1024px) 80vw, 32vw" className="object-cover" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute inset-x-5 bottom-5 flex flex-col gap-1.5 text-white">
-                <span className="text-[10px] font-bold tracking-[0.3em] text-white/75">{model.profile.location}</span>
-                <span className="text-xl font-black leading-tight">{model.profile.name}</span>
-                <span className="text-xs font-medium leading-snug text-white/80 line-clamp-2">{model.profile.subtitle}</span>
-              </div>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2.25rem,6vw,5rem)] leading-[1.05] text-foreground">
+            {copy.titleLead}{" "}
+            <span className="italic" style={{ color: "var(--accent)" }}>
+              {copy.titleAccent}
+            </span>
+            {copy.titleTail}
+          </h1>
+        </FadeIn>
 
-              <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                </span>
-                {model.locale === "ar" ? "متاح للمشاريع" : "Available for projects"}
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-8 text-foreground-soft md:text-lg">
+            {copy.body}
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link href={`/${model.locale}/work`} className="button-primary-shell">
+              {copy.primary}
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+            <Link href={`/${model.locale}/cv`} className="button-secondary-shell">
+              {copy.secondary}
+            </Link>
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={0.2}>
+          <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-foreground-muted">
+            <span className="inline-flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5" />
+              {model.profile.location}
+            </span>
+            <span>·</span>
+            <span>AR · EN · DE</span>
+            <span>·</span>
+            <span>Next.js · Product · Content</span>
+          </div>
+        </FadeIn>
       </section>
 
-      {/* STATS RIBBON */}
-      <Reveal>
+      {/* STATS INLINE */}
+      <FadeIn>
         <section className="section-frame">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {copy.stats.map((stat, idx) => (
-              <motion.article
-                key={stat.label}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
-                className="glass-card p-5"
-              >
-                <div className="text-3xl font-black text-foreground md:text-4xl" style={{ background: "linear-gradient(135deg, var(--foreground), var(--primary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stat.value}</div>
-                <p className="mt-2 text-xs font-bold uppercase tracking-[0.22em] text-foreground-muted">{stat.label}</p>
-              </motion.article>
+          <div className="grid gap-x-8 gap-y-10 border-y py-10 md:grid-cols-4" style={{ borderColor: "var(--border)" }}>
+            {copy.stats.map((s) => (
+              <div key={s.label}>
+                <div className="headline-display text-[clamp(1.75rem,3vw,2.5rem)] leading-none text-foreground">{s.value}</div>
+                <div className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted">{s.label}</div>
+              </div>
             ))}
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
-      {/* QUICK POSITIONING */}
-      <Reveal>
+      {/* STRENGTHS */}
+      <FadeIn>
         <section className="section-frame">
-          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-            <div className="space-y-3">
-              <Eyebrow>{copy.quickEyebrow}</Eyebrow>
-              <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.quickTitle}</h2>
-              <p className="text-sm leading-7 text-foreground-soft md:text-base">{copy.quickBody}</p>
+          <div className="grid gap-10 md:grid-cols-[0.45fr_0.55fr] md:items-start">
+            <div>
+              <Eyebrow>{copy.strengthsEyebrow}</Eyebrow>
+              <h2 className="headline-display mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] leading-[1.15] text-foreground">
+                {copy.quickTitle}
+              </h2>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
               {copy.strengths.map((item, idx) => (
-                <Reveal key={item.title} delay={idx * 0.08}>
-                  <article className="glass-card flex h-full flex-col gap-2 p-5">
-                    <span className="text-[10px] font-bold tracking-[0.32em] text-primary">0{idx + 1}</span>
-                    <h3 className="text-base font-black text-foreground">{item.title}</h3>
-                    <p className="text-sm leading-7 text-foreground-muted">{item.body}</p>
+                <FadeIn key={item.title} delay={idx * 0.06}>
+                  <article className="flex flex-col gap-2 py-6 md:flex-row md:items-baseline md:gap-8" style={{ borderBottom: "1px solid var(--border)" }}>
+                    <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted md:w-24">
+                      0{idx + 1}
+                    </span>
+                    <div className="flex-1">
+                      <h3 className="headline-display text-xl text-foreground md:text-[1.6rem]">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-7 text-foreground-soft md:text-base">{item.body}</p>
+                    </div>
                   </article>
-                </Reveal>
+                </FadeIn>
               ))}
             </div>
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
       {/* PHILOSOPHY */}
-      <Reveal>
+      <FadeIn>
         <section className="section-frame">
-          <div className="glass-card relative overflow-hidden p-6 md:p-10">
-            <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-40 blur-3xl" style={{ background: "var(--primary-glow)" }} />
-            <div className="relative grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-              <div className="space-y-4">
-                <Eyebrow>{copy.philosophyEyebrow}</Eyebrow>
-                <Quote className="h-10 w-10 text-primary opacity-60" />
-                <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.philosophyTitle}</h2>
-                <p className="text-sm leading-7 text-foreground-soft md:text-base">{copy.philosophyBody}</p>
-              </div>
-              <ul className="grid gap-3">
-                {copy.philosophyPoints.map((point, idx) => (
-                  <Reveal key={point} delay={idx * 0.06}>
-                    <li className="flex items-start gap-3 rounded-2xl border border-border-glass bg-surface-soft p-4">
-                      <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white" style={{ background: "linear-gradient(135deg, var(--primary), var(--secondary))" }}>{idx + 1}</span>
-                      <span className="text-sm leading-7 text-foreground-soft">{point}</span>
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
+          <div className="mx-auto max-w-3xl">
+            <Eyebrow>{copy.philosophyEyebrow}</Eyebrow>
+            <Quote className="mx-auto mt-8 h-10 w-10 text-foreground-muted/50" />
+            <blockquote className="headline-display mt-4 text-balance text-center text-[clamp(1.75rem,4vw,3rem)] leading-[1.2] text-foreground">
+              “{copy.philosophyQuote}”
+            </blockquote>
+            <ul className="mt-12 grid gap-3 sm:grid-cols-2">
+              {copy.philosophyPoints.map((point, idx) => (
+                <li key={point} className="flex items-start gap-3 text-sm leading-7 text-foreground-soft">
+                  <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--accent)" }} />
+                  <span>
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-foreground-muted">
+                      0{idx + 1}
+                    </span>{" "}
+                    {point}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
       {/* SELECTED WORK */}
-      <Reveal>
-        <section className="section-frame space-y-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-3xl space-y-3">
+      <FadeIn>
+        <section className="section-frame">
+          <div className="flex items-baseline justify-between gap-4">
+            <div className="max-w-2xl">
               <Eyebrow>{copy.workEyebrow}</Eyebrow>
-              <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.workTitle}</h2>
-              <p className="text-sm leading-7 text-foreground-soft md:text-base">{copy.workBody}</p>
+              <h2 className="headline-display mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] leading-[1.15] text-foreground">
+                {copy.workTitle}
+              </h2>
+              <p className="prose-frame mt-4 text-sm leading-7 text-foreground-soft md:text-base">
+                {copy.workBody}
+              </p>
             </div>
-            <Link href={`/${model.locale}/work`} className="button-secondary-shell self-start md:self-auto">
+            <Link href={`/${model.locale}/work`} className="hidden shrink-0 items-center gap-2 text-sm font-semibold text-foreground-muted transition hover:text-foreground md:inline-flex">
               {copy.primary}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-3">
+          {/* List-first layout */}
+          <ul className="mt-10 grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
             {featuredProjects.map((project, idx) => (
-              <Reveal key={project.id} delay={idx * 0.08}>
-                <article className="glass-card group flex h-full flex-col overflow-hidden">
-                  <div className="relative aspect-[16/11] overflow-hidden">
-                    <Image src={project.image} alt={project.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 1024px) 100vw, 33vw" />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
-                    {project.slug === "moplayer" ? (
-                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-black tracking-[0.22em] text-primary backdrop-blur-md" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)" }}>
-                        <Smartphone className="h-3 w-3" />
-                        PRODUCT
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-1 flex-col gap-3 p-5">
-                    <span className="text-[10px] font-bold tracking-[0.28em] text-primary">{project.eyebrow || (model.locale === "ar" ? "مشروع" : "Project")}</span>
-                    <h3 className="text-xl font-black text-foreground">{project.title}</h3>
-                    <p className="text-sm leading-7 text-foreground-muted line-clamp-3">{project.summary}</p>
-                    <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                      <Link href={caseStudyHref(model.locale, project.slug)} className="button-secondary-shell !px-4 !py-2 text-sm">
-                        {project.slug === "moplayer" ? copy.productSecondary : project.ctaLabel}
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                      {project.slug === "moplayer" ? (
-                        <Link href="/app" className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold text-primary transition" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)" }}>
-                          <Smartphone className="h-4 w-4" />
-                          {copy.productPrimary}
-                        </Link>
-                      ) : null}
+              <FadeIn key={project.id} delay={idx * 0.05}>
+                <li style={{ borderBottom: "1px solid var(--border)" }}>
+                  <Link
+                    href={caseStudyHref(model.locale, project.slug)}
+                    className="group grid grid-cols-[1fr_auto] items-center gap-4 py-6 md:grid-cols-[6rem_1fr_12rem_auto] md:gap-8"
+                  >
+                    <span className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted md:inline-block">
+                      {project.slug === "moplayer" ? "Product" : "Case study"}
+                    </span>
+                    <div>
+                      <h3 className="headline-display text-xl text-foreground transition-colors group-hover:text-accent md:text-[1.7rem]">
+                        {project.title}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-sm leading-6 text-foreground-soft md:line-clamp-1">
+                        {project.summary}
+                      </p>
                     </div>
-                  </div>
-                </article>
-              </Reveal>
+                    <div className="hidden flex-wrap items-center gap-1.5 md:flex">
+                      {(project.tags ?? []).slice(0, 3).map((tag) => (
+                        <span key={tag} className="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground-muted" style={{ borderColor: "var(--border)" }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-foreground-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  </Link>
+                </li>
+              </FadeIn>
             ))}
-          </div>
+          </ul>
         </section>
-      </Reveal>
+      </FadeIn>
 
-      {/* MOPLAYER FEATURED */}
+      {/* MOPLAYER FEATURE */}
       {moPlayer ? (
-        <Reveal>
+        <FadeIn>
           <section className="section-frame">
-            <div
-              className="relative overflow-hidden rounded-[2.25rem] border p-6 md:rounded-[2.75rem] md:p-10"
-              style={{ background: "linear-gradient(135deg, var(--primary-soft), var(--surface))", borderColor: "var(--primary-border)", boxShadow: "var(--shadow-elevated)" }}
-            >
-              <div aria-hidden className="absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-50 blur-3xl" style={{ background: "var(--primary-glow)" }} />
-              <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-                <div className="space-y-4">
-                  <Eyebrow>{copy.productEyebrow}</Eyebrow>
-                  <h2 className="headline-display text-3xl text-foreground md:text-5xl">{copy.productTitle}</h2>
-                  <p className="max-w-xl text-sm leading-7 text-foreground-soft md:text-base">{copy.productBody}</p>
-
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    <Link href={`/${model.locale}/apps/moplayer`} className="button-primary-shell">
-                      <Smartphone className="h-4 w-4" />
-                      {copy.productPrimary}
-                    </Link>
-                    <Link href={caseStudyHref(model.locale, "moplayer")} className="button-secondary-shell">{copy.productSecondary}</Link>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 pt-3 text-xs font-bold text-foreground-muted">
-                    <span className="inline-flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-primary" /> {model.locale === "ar" ? "إصدار 2.0.0" : "Version 2.0.0"}</span>
-                    <span className="inline-flex items-center gap-2"><Smartphone className="h-4 w-4 text-primary" /> {model.locale === "ar" ? "Android 7+ · Android TV" : "Android 7+ · Android TV"}</span>
-                    <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> {model.locale === "ar" ? "بدون تتبع" : "No tracking"}</span>
-                  </div>
+            <div className="grid gap-10 md:grid-cols-[1fr_0.9fr] md:items-center md:gap-16">
+              <div>
+                <Eyebrow>{copy.productEyebrow}</Eyebrow>
+                <h2 className="headline-display mt-4 text-[clamp(1.75rem,4vw,3.2rem)] leading-[1.1] text-foreground">
+                  {copy.productTitle}
+                </h2>
+                <p className="prose-frame mt-4 text-base leading-7 text-foreground-soft md:text-lg">{copy.productBody}</p>
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <Link href={`/${model.locale}/apps/moplayer`} className="button-primary-shell">
+                    <Smartphone className="h-4 w-4" />
+                    {copy.productPrimary}
+                  </Link>
+                  <Link href={caseStudyHref(model.locale, "moplayer")} className="button-secondary-shell">
+                    {copy.productSecondary}
+                  </Link>
                 </div>
-                <div className="relative aspect-[16/10] overflow-hidden rounded-[1.75rem] border border-border-glass" style={{ background: "var(--surface)", boxShadow: "var(--shadow-elevated)" }}>
-                  <Image src={moPlayer.image} alt={moPlayer.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 45vw" />
+                <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-foreground-muted">
+                  <span className="inline-flex items-center gap-1.5">
+                    <BadgeCheck className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                    v2.0.0
+                  </span>
+                  <span>·</span>
+                  <span>Android 7+ · Android TV</span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                    {model.locale === "ar" ? "بدون تتبع" : "No tracking"}
+                  </span>
                 </div>
+              </div>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)] md:aspect-[5/6]" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
+                <Image src={moPlayer.image} alt={moPlayer.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 45vw" />
               </div>
             </div>
           </section>
-        </Reveal>
+        </FadeIn>
       ) : null}
 
       {/* SERVICES */}
-      <Reveal>
-        <section className="section-frame space-y-6">
-          <div className="max-w-3xl space-y-3">
-            <Eyebrow>{copy.servicesEyebrow}</Eyebrow>
-            <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.servicesTitle}</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {copy.services.map((service, idx) => {
-              const Icon = serviceIconMap[service.icon] ?? Sparkles;
-              return (
-                <Reveal key={service.title} delay={idx * 0.08}>
-                  <article className="glass-card group flex h-full flex-col gap-4 p-6 md:p-7">
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)", color: "var(--primary)" }}>
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <span className="text-[10px] font-bold tracking-[0.3em] text-foreground-muted">0{idx + 1}</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-black text-foreground">{service.title}</h3>
-                      <p className="mt-2 text-sm leading-7 text-foreground-muted">{service.body}</p>
-                    </div>
-                    <div className="mt-auto flex flex-wrap gap-2">
-                      {service.tags.map((tag) => (
-                        <span key={tag} className="rounded-full border border-border-glass bg-surface-soft px-3 py-1 text-[11px] font-bold text-foreground-soft">{tag}</span>
-                      ))}
-                    </div>
-                  </article>
-                </Reveal>
-              );
-            })}
-          </div>
-        </section>
-      </Reveal>
-
-      {/* MEDIA / YOUTUBE */}
-      <Reveal>
+      <FadeIn>
         <section className="section-frame">
-          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <div className="space-y-4">
+          <div className="max-w-2xl">
+            <Eyebrow>{copy.servicesEyebrow}</Eyebrow>
+            <h2 className="headline-display mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] leading-[1.15] text-foreground">
+              {copy.servicesTitle}
+            </h2>
+          </div>
+          <ul className="mt-10 grid gap-0 md:grid-cols-2 md:gap-8" style={{ borderTop: "1px solid var(--border)" }}>
+            {liveServices.map((s, idx) => (
+              <FadeIn key={s.title} delay={idx * 0.05}>
+                <li className="flex items-start gap-5 py-6" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted">
+                    0{idx + 1}
+                  </span>
+                  <div>
+                    <h3 className="headline-display text-xl text-foreground md:text-2xl">{s.title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-foreground-soft">{s.body}</p>
+                  </div>
+                </li>
+              </FadeIn>
+            ))}
+          </ul>
+        </section>
+      </FadeIn>
+
+      {/* YOUTUBE PREVIEW */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="grid gap-10 md:grid-cols-[0.5fr_0.5fr] md:items-start md:gap-16">
+            <div>
               <Eyebrow>{copy.mediaEyebrow}</Eyebrow>
-              <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.mediaTitle}</h2>
-              <p className="max-w-xl text-sm leading-7 text-foreground-soft md:text-base">{copy.mediaBody}</p>
-              <div className="flex flex-wrap gap-3 pt-1">
+              <h2 className="headline-display mt-4 text-[clamp(1.5rem,3vw,2.3rem)] leading-[1.2] text-foreground">
+                {copy.mediaTitle}
+              </h2>
+              <div className="mt-6">
                 <Link href={`/${model.locale}/youtube`} className="button-secondary-shell">
                   <PlayCircle className="h-4 w-4" />
                   {copy.mediaPrimary}
-                </Link>
-                <Link href={`/${model.locale}/contact`} className="button-secondary-shell">
-                  <Mail className="h-4 w-4" />
-                  {copy.contactPrimary}
                 </Link>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {model.latestVideos.slice(0, 2).map((video, idx) => (
-                <Reveal key={video.id} delay={idx * 0.1}>
-                  <a href={`https://www.youtube.com/watch?v=${video.youtube_id}`} target="_blank" rel="noopener noreferrer" className="glass-card group block overflow-hidden">
+                <FadeIn key={video.id} delay={idx * 0.08}>
+                  <a
+                    href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group block overflow-hidden rounded-[var(--radius-md)]"
+                    style={{ border: "1px solid var(--border)", background: "var(--surface)" }}
+                  >
                     <div className="relative aspect-video overflow-hidden">
-                      <Image src={video.thumbnail} alt={video.title_en || video.youtube_id} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 1024px) 100vw, 25vw" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-2xl">
-                          <PlayCircle className="h-6 w-6" />
-                        </div>
-                      </div>
-                      <span className="absolute right-2 top-2 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">{video.duration}</span>
+                      <Image src={video.thumbnail} alt={video.title_en || video.youtube_id} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.04]" sizes="(max-width: 768px) 100vw, 25vw" />
+                      <span className="absolute bottom-2 right-2 rounded-md bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-white">{video.duration}</span>
                     </div>
-                    <div className="space-y-1.5 p-4">
-                      <h3 className="line-clamp-2 text-sm font-black text-foreground">
+                    <div className="p-4">
+                      <h3 className="line-clamp-2 text-sm font-semibold text-foreground">
                         {model.locale === "ar" ? video.title_ar || video.title_en : video.title_en || video.title_ar}
                       </h3>
                     </div>
                   </a>
-                </Reveal>
+                </FadeIn>
               ))}
             </div>
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
       {/* CONTACT CTA */}
-      <Reveal>
+      <FadeIn>
         <section className="section-frame">
-          <div className="contact-cta-frame">
-            <div aria-hidden className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full opacity-40 blur-3xl" style={{ background: "var(--primary-glow)" }} />
-            <div aria-hidden className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full opacity-30 blur-3xl" style={{ background: "var(--accent-glow)" }} />
-            <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl space-y-3">
-                <Eyebrow>{copy.contactEyebrow}</Eyebrow>
-                <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.contactTitle}</h2>
-                <p className="text-sm leading-7 text-foreground-soft md:text-base">{copy.contactBody}</p>
+          <div className="rounded-[var(--radius-lg)] px-6 py-12 md:p-14" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+            <div className="mx-auto max-w-2xl text-center">
+              <Eyebrow>{copy.contactEyebrow}</Eyebrow>
+              <h2 className="headline-display mt-4 text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] text-foreground">
+                {copy.contactTitle}
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-foreground-soft md:text-base">{copy.contactBody}</p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Link href={`/${model.locale}/contact`} className="button-primary-shell">
+                  {copy.contactPrimary}
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
               </div>
-              <Link href={`/${model.locale}/contact`} className="button-primary-shell self-start lg:self-auto">
-                {copy.contactPrimary}
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
             </div>
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  CV
+ *  CV — typography-driven, vertical timeline
  * ─────────────────────────────────────────────────────────────────────────── */
 
 const STACK_GROUPS = [
   { title: "Frontend", items: ["Next.js 16", "React 19", "TypeScript", "Tailwind 4", "Framer Motion"] },
   { title: "Backend / Data", items: ["Supabase", "Postgres", "Edge Functions", "Vercel KV", "Zod"] },
-  { title: "Mobile", items: ["Kotlin", "Android TV", "Material 3", "Hilt", "Compose"] },
-  { title: "Tooling", items: ["Vercel", "GitHub Actions", "Playwright", "Vitest", "PNPM/NPM workspaces"] },
+  { title: "Mobile", items: ["Kotlin", "Android TV", "Material 3", "Hilt", "Jetpack Compose"] },
+  { title: "Tooling", items: ["Vercel", "GitHub Actions", "Playwright", "Vitest", "NPM workspaces"] },
 ];
 
 export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
@@ -863,177 +738,187 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
   const isAr = model.locale === "ar";
 
   return (
-    <div className="space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-16 md:pb-24 md:pt-6">
+    <div className="space-y-20 pb-20 pt-6 sm:pt-10 md:space-y-28 md:pb-28 md:pt-16">
       {/* HERO */}
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-60">
-          <div className="absolute left-[12%] top-[-15%] h-[420px] w-[420px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--primary-glow), transparent 60%)" }} />
-        </div>
-
-        <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div className="space-y-5">
-            <Eyebrow>{copy.eyebrow}</Eyebrow>
-            <h1 className="headline-display max-w-4xl text-4xl text-foreground md:text-5xl lg:text-[3.5rem]">{copy.title}</h1>
-            <p className="max-w-3xl text-base leading-8 text-foreground-soft">{copy.body}</p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Link href={model.downloads.branded} className="button-primary-shell">
-                <Download className="h-4 w-4" />
-                {copy.branded}
-              </Link>
-              <Link href={model.downloads.ats} className="button-secondary-shell">
-                <Download className="h-4 w-4" />
-                {copy.ats}
-              </Link>
-            </div>
+      <section className="section-frame">
+        <FadeIn>
+          <Eyebrow>{copy.eyebrow}</Eyebrow>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2rem,5vw,4rem)] leading-[1.08] text-foreground">
+            {copy.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-7 text-foreground-soft md:text-lg">{copy.body}</p>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link href={model.downloads.branded} className="button-primary-shell">
+              <Download className="h-4 w-4" />
+              {copy.branded}
+            </Link>
+            <Link href={model.downloads.ats} className="button-secondary-shell">
+              <Download className="h-4 w-4" />
+              {copy.ats}
+            </Link>
           </div>
+        </FadeIn>
+      </section>
 
-          <div className="grid gap-3">
-            <article className="glass-card p-5">
+      {/* PRINCIPLES + IDENTITY */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="grid gap-10 md:grid-cols-[0.4fr_0.6fr] md:items-start md:gap-16">
+            <div>
               <div className="flex items-center gap-4">
-                <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-2xl border border-border-glass" style={{ background: "var(--surface-soft)" }}>
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
                   <Image src={model.portraitImage} alt={model.profile.name} fill className="object-cover" sizes="64px" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-foreground">{model.profile.name}</h3>
+                  <h2 className="headline-display text-xl text-foreground">{model.profile.name}</h2>
                   <p className="text-sm text-foreground-soft">{model.profile.subtitle}</p>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-primary"><MapPin className="h-3.5 w-3.5" /> {model.profile.location}</p>
+                  <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--accent)" }}>
+                    <MapPin className="h-3.5 w-3.5" />
+                    {model.profile.location}
+                  </p>
                 </div>
               </div>
-            </article>
-            <article className="glass-card p-5">
-              <h2 className="text-base font-black text-foreground">{copy.principlesTitle}</h2>
-              <ul className="mt-4 grid gap-2.5">
+            </div>
+            <div>
+              <Eyebrow>{isAr ? "المبادئ" : "Principles"}</Eyebrow>
+              <ul className="mt-6 grid gap-3">
                 {copy.principles.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm leading-7 text-foreground-soft">
-                    <Sparkles className="mt-1 h-4 w-4 shrink-0 text-primary" />
+                  <li key={item} className="flex items-start gap-3 text-sm leading-7 text-foreground-soft md:text-base">
+                    <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--accent)" }} />
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      {/* APPROACH (HOW I WORK) */}
-      <Reveal>
-        <section className="section-frame space-y-6">
-          <div className="max-w-3xl space-y-3">
-            <Eyebrow>{isAr ? "كيف أعمل" : "How I work"}</Eyebrow>
-            <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.approachTitle}</h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {copy.approach.map((step, idx) => (
-              <Reveal key={step.title} delay={idx * 0.06}>
-                <article className="glass-card flex h-full flex-col gap-3 p-5">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black text-white" style={{ background: "linear-gradient(135deg, var(--primary), var(--secondary))" }}>{idx + 1}</span>
-                  <h3 className="text-base font-black text-foreground">{step.title}</h3>
-                  <p className="text-sm leading-7 text-foreground-muted">{step.body}</p>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      </Reveal>
-
-      {/* EXPERIENCE TIMELINE */}
-      <Reveal>
-        <section className="section-frame space-y-6">
-          <div className="max-w-3xl space-y-3">
-            <Eyebrow>{isAr ? "الخبرة" : "Experience"}</Eyebrow>
-            <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.experience}</h2>
-          </div>
-
-          <div className="relative">
-            {/* timeline rail */}
-            <div className="absolute bottom-0 left-4 top-0 hidden w-px md:block" style={{ background: "var(--border-glass)" }} />
-            <div className="grid gap-4">
-              {model.cvExperience.map((item, idx) => (
-                <Reveal key={item.id} delay={idx * 0.05}>
-                  <div className="relative md:pl-12">
-                    <span className="absolute left-2.5 top-6 hidden h-3 w-3 rounded-full md:block" style={{ background: "var(--primary)", boxShadow: "0 0 0 4px var(--primary-soft)" }} />
-                    <article className="glass-card p-5 md:p-6">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-black text-foreground">{item.role}</h3>
-                          <p className="text-sm font-bold text-primary">{item.company}</p>
-                        </div>
-                        <div className="flex flex-col gap-1 text-xs font-bold text-foreground-muted md:items-end">
-                          <span className="inline-flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {item.period}</span>
-                          <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {item.location}</span>
-                        </div>
-                      </div>
-                      {item.description ? <p className="mt-4 text-sm leading-7 text-foreground-soft">{item.description}</p> : null}
-                      {item.highlights.length ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {item.highlights.map((h) => (
-                            <span key={h} className="rounded-full border border-border-glass bg-surface-soft px-3 py-1 text-[11px] font-bold text-foreground-soft">{h}</span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </article>
-                  </div>
-                </Reveal>
-              ))}
             </div>
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
-      {/* STACK */}
-      <Reveal>
-        <section className="section-frame space-y-6">
-          <div className="max-w-3xl space-y-3">
-            <Eyebrow>{isAr ? "التقنيات" : "Tech stack"}</Eyebrow>
-            <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.stackTitle}</h2>
+      {/* APPROACH */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="max-w-2xl">
+            <Eyebrow>{isAr ? "كيف أعمل" : "How I work"}</Eyebrow>
+            <h2 className="headline-display mt-4 text-[clamp(1.5rem,3vw,2.5rem)] leading-[1.15] text-foreground">
+              {copy.approachTitle}
+            </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {STACK_GROUPS.map((group, idx) => (
-              <Reveal key={group.title} delay={idx * 0.06}>
-                <article className="glass-card flex h-full flex-col gap-3 p-5">
-                  <h3 className="text-sm font-black text-primary">{group.title}</h3>
-                  <ul className="grid gap-2">
-                    {group.items.map((item) => (
-                      <li key={item} className="text-sm font-medium text-foreground-soft">{item}</li>
-                    ))}
-                  </ul>
+          <div className="mt-10 grid gap-0 md:grid-cols-2 md:gap-x-10" style={{ borderTop: "1px solid var(--border)" }}>
+            {copy.approach.map((step, idx) => (
+              <FadeIn key={step.title} delay={idx * 0.05}>
+                <article className="py-6" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <h3 className="headline-display text-xl text-foreground md:text-2xl">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-foreground-soft md:text-base">{step.body}</p>
                 </article>
-              </Reveal>
+              </FadeIn>
             ))}
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
+
+      {/* EXPERIENCE */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="max-w-2xl">
+            <Eyebrow>{isAr ? "الخبرة" : "Experience"}</Eyebrow>
+            <h2 className="headline-display mt-4 text-[clamp(1.5rem,3vw,2.5rem)] leading-[1.15] text-foreground">
+              {copy.experience}
+            </h2>
+          </div>
+          <ul className="mt-10 grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
+            {model.cvExperience.map((item, idx) => (
+              <FadeIn key={item.id} delay={idx * 0.04}>
+                <li className="grid gap-4 py-7 md:grid-cols-[10rem_1fr] md:gap-10" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div className="space-y-1 text-xs font-semibold text-foreground-muted">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {item.period}
+                    </span>
+                    <span className="block">{item.location}</span>
+                  </div>
+                  <div>
+                    <h3 className="headline-display text-xl text-foreground md:text-2xl">{item.role}</h3>
+                    <p className="text-sm font-semibold" style={{ color: "var(--accent)" }}>{item.company}</p>
+                    {item.description ? <p className="mt-3 text-sm leading-7 text-foreground-soft md:text-base">{item.description}</p> : null}
+                    {item.highlights.length ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {item.highlights.map((h) => (
+                          <span key={h} className="rounded-full border px-2.5 py-0.5 text-[11px] font-semibold text-foreground-muted" style={{ borderColor: "var(--border)" }}>
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </li>
+              </FadeIn>
+            ))}
+          </ul>
+        </section>
+      </FadeIn>
+
+      {/* STACK */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="max-w-2xl">
+            <Eyebrow>{isAr ? "الأدوات" : "Stack"}</Eyebrow>
+            <h2 className="headline-display mt-4 text-[clamp(1.5rem,3vw,2.5rem)] leading-[1.15] text-foreground">
+              {copy.stackTitle}
+            </h2>
+          </div>
+          <div className="mt-10 grid gap-0 sm:grid-cols-2 lg:grid-cols-4" style={{ borderTop: "1px solid var(--border)" }}>
+            {STACK_GROUPS.map((group) => (
+              <article key={group.title} className="py-6 pr-6" style={{ borderBottom: "1px solid var(--border)" }}>
+                <h3 className="text-xs font-bold uppercase tracking-[0.22em]" style={{ color: "var(--accent)" }}>{group.title}</h3>
+                <ul className="mt-4 grid gap-1.5">
+                  {group.items.map((item) => (
+                    <li key={item} className="text-sm text-foreground-soft">{item}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </section>
+      </FadeIn>
 
       {/* CERTIFICATIONS */}
       {model.certifications.length ? (
-        <Reveal>
-          <section className="section-frame space-y-6">
-            <div className="max-w-3xl space-y-3">
+        <FadeIn>
+          <section className="section-frame">
+            <div className="max-w-2xl">
               <Eyebrow>{isAr ? "الشهادات" : "Credentials"}</Eyebrow>
-              <h2 className="headline-display text-3xl text-foreground md:text-4xl">{copy.certifications}</h2>
+              <h2 className="headline-display mt-4 text-[clamp(1.5rem,3vw,2.5rem)] leading-[1.15] text-foreground">
+                {copy.certifications}
+              </h2>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid gap-0 md:grid-cols-2 md:gap-x-10" style={{ borderTop: "1px solid var(--border)" }}>
               {model.certifications.map((item, idx) => (
-                <Reveal key={item.id} delay={idx * 0.06}>
-                  <article className="glass-card flex h-full flex-col gap-2 p-5">
-                    <BadgeCheck className="h-6 w-6 text-primary" />
-                    <h3 className="text-base font-black text-foreground">{item.name}</h3>
-                    <p className="text-sm font-bold text-primary">{item.issuer}</p>
-                    {item.description ? <p className="text-sm leading-7 text-foreground-muted">{item.description}</p> : null}
-                    {item.issueDate ? <p className="mt-auto text-xs font-bold text-foreground-soft">{item.issueDate}</p> : null}
-                  </article>
-                </Reveal>
+                <FadeIn key={item.id} delay={idx * 0.05}>
+                  <li className="py-6" style={{ borderBottom: "1px solid var(--border)" }}>
+                    <BadgeCheck className="h-5 w-5" style={{ color: "var(--accent)" }} />
+                    <h3 className="headline-display mt-3 text-lg text-foreground md:text-xl">{item.name}</h3>
+                    <p className="text-sm font-semibold text-foreground-muted">{item.issuer}</p>
+                    {item.description ? <p className="mt-2 text-sm leading-7 text-foreground-soft">{item.description}</p> : null}
+                    {item.issueDate ? <p className="mt-2 text-xs font-semibold text-foreground-muted">{item.issueDate}</p> : null}
+                  </li>
+                </FadeIn>
               ))}
-            </div>
+            </ul>
           </section>
-        </Reveal>
+        </FadeIn>
       ) : null}
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  WORK list + project detail
+ *  WORK + Project detail (list-first)
  * ─────────────────────────────────────────────────────────────────────────── */
 
 export function PortfolioWorkPage({ model }: { model: SiteViewModel }) {
@@ -1041,64 +926,60 @@ export function PortfolioWorkPage({ model }: { model: SiteViewModel }) {
   const projects = sortedProjects(model);
 
   return (
-    <div className="space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-16 md:pb-24 md:pt-6">
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-60">
-          <div className="absolute right-[5%] top-[-15%] h-[420px] w-[420px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--secondary-glow), transparent 60%)" }} />
-        </div>
-        <div className="relative max-w-3xl space-y-4">
+    <div className="space-y-16 pb-20 pt-6 sm:pt-10 md:space-y-24 md:pb-28 md:pt-16">
+      <section className="section-frame">
+        <FadeIn>
           <Eyebrow>{copy.eyebrow}</Eyebrow>
-          <h1 className="headline-display text-4xl text-foreground md:text-5xl lg:text-[3.5rem]">{copy.title}</h1>
-          <p className="text-base leading-8 text-foreground-soft">{copy.body}</p>
-        </div>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2rem,5vw,4rem)] leading-[1.08] text-foreground">
+            {copy.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-7 text-foreground-soft md:text-lg">{copy.body}</p>
+        </FadeIn>
       </section>
 
-      <Reveal>
-        <section className="section-frame grid gap-5 lg:grid-cols-2">
-          {projects.map((project, idx) => (
-            <Reveal key={project.id} delay={idx * 0.06}>
-              <article className="glass-card group flex h-full flex-col overflow-hidden">
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image src={project.image} alt={project.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 1024px) 100vw, 50vw" />
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
-                </div>
-                <div className="flex flex-1 flex-col gap-4 p-5 md:p-6">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border px-3 py-1 text-[11px] font-black tracking-[0.2em] text-primary" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)" }}>
-                      {project.slug === "moplayer" ? "PRODUCT" : "CASE STUDY"}
-                    </span>
-                    {(project.tags ?? []).slice(0, 3).map((tag) => (
-                      <span key={tag} className="rounded-full border border-border-glass bg-surface-soft px-3 py-1 text-[10px] font-bold text-foreground-soft">{tag}</span>
-                    ))}
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-foreground">{project.title}</h2>
-                    <p className="mt-3 text-sm leading-7 text-foreground-muted">{project.description || project.summary}</p>
-                  </div>
-                  <div className="mt-auto flex flex-wrap gap-3">
-                    <Link href={caseStudyHref(model.locale, project.slug)} className="button-secondary-shell !px-4 !py-2 text-sm">
-                      <BriefcaseBusiness className="h-4 w-4" />
-                      {copy.caseStudy}
-                    </Link>
-                    {project.slug === "moplayer" ? (
-                      <Link href="/app" className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold text-primary" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)" }}>
-                        <Smartphone className="h-4 w-4" />
-                        {copy.productPage}
-                      </Link>
-                    ) : null}
-                    {project.repoUrl ? (
-                      <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-border-glass bg-surface-soft px-4 py-2 text-sm font-bold text-foreground transition hover:bg-bg-secondary">
-                        <ExternalLink className="h-4 w-4" />
-                        {copy.repo}
-                      </Link>
-                    ) : null}
-                  </div>
-                </div>
-              </article>
-            </Reveal>
-          ))}
+      <FadeIn>
+        <section className="section-frame">
+          <ul className="grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
+            {projects.map((project, idx) => (
+              <FadeIn key={project.id} delay={idx * 0.04}>
+                <li style={{ borderBottom: "1px solid var(--border)" }}>
+                  <Link
+                    href={caseStudyHref(model.locale, project.slug)}
+                    className="group grid gap-6 py-8 md:grid-cols-[14rem_1fr_auto] md:items-center md:gap-10"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius-md)]" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
+                      <Image src={project.image} alt={project.title} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.03]" sizes="(max-width: 768px) 100vw, 220px" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted">
+                        {project.slug === "moplayer" ? "Product · Android" : "Case study"}
+                      </span>
+                      <h2 className="headline-display mt-1 text-2xl text-foreground transition-colors group-hover:text-accent md:text-[1.75rem]">
+                        {project.title}
+                      </h2>
+                      <p className="mt-2 text-sm leading-7 text-foreground-soft md:text-base">{project.description || project.summary}</p>
+                      {project.tags?.length ? (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {project.tags.slice(0, 4).map((tag) => (
+                            <span key={tag} className="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground-muted" style={{ borderColor: "var(--border)" }}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                    <ArrowUpRight className="hidden h-5 w-5 shrink-0 text-foreground-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground md:inline-block" />
+                  </Link>
+                </li>
+              </FadeIn>
+            ))}
+          </ul>
         </section>
-      </Reveal>
+      </FadeIn>
     </div>
   );
 }
@@ -1112,226 +993,228 @@ export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; sl
   const gallery = project.gallery?.length ? [...new Set(project.gallery)] : [project.image];
 
   return (
-    <div className="space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-16 md:pb-24 md:pt-6">
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-60">
-          <div className="absolute left-[10%] top-[-20%] h-[420px] w-[420px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--primary-glow), transparent 60%)" }} />
-        </div>
-
-        <div className="relative grid gap-8 lg:grid-cols-[1fr_0.95fr] lg:items-center">
-          <div className="space-y-4">
-            <Eyebrow>{project.eyebrow || (isMoPlayer ? (model.locale === "ar" ? "منتج · Android" : "Product · Android") : (model.locale === "ar" ? "دراسة حالة" : "Case study"))}</Eyebrow>
-            <h1 className="headline-display text-4xl text-foreground md:text-5xl lg:text-[3.5rem]">{project.title}</h1>
-            <p className="max-w-2xl text-base leading-8 text-foreground-soft">{project.description || project.summary}</p>
-            <div className="flex flex-wrap gap-3">
-              {isMoPlayer ? (
-                <Link href="/app" className="button-primary-shell"><Smartphone className="h-4 w-4" />{copy.product}</Link>
-              ) : project.href ? (
-                <Link href={project.href} className="button-primary-shell" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" />{copy.visit}</Link>
-              ) : null}
-              <Link href={`/${model.locale}/contact`} className="button-secondary-shell">{copy.contact}</Link>
-            </div>
-            {project.tags?.length ? (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {project.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-border-glass bg-surface-soft px-3 py-1 text-[10px] font-bold text-foreground-soft">{tag}</span>
-                ))}
-              </div>
+    <div className="space-y-16 pb-20 pt-6 sm:pt-10 md:space-y-24 md:pb-28 md:pt-16">
+      <section className="section-frame">
+        <FadeIn>
+          <Eyebrow>{project.eyebrow || (isMoPlayer ? (model.locale === "ar" ? "منتج · Android" : "Product · Android") : model.locale === "ar" ? "دراسة حالة" : "Case study")}</Eyebrow>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2rem,5vw,4rem)] leading-[1.06] text-foreground">
+            {project.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-7 text-foreground-soft md:text-lg">{project.description || project.summary}</p>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            {isMoPlayer ? (
+              <Link href={`/${model.locale}/apps/moplayer`} className="button-primary-shell">
+                <Smartphone className="h-4 w-4" />
+                {copy.product}
+              </Link>
+            ) : project.href ? (
+              <Link href={project.href} className="button-primary-shell" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                {copy.visit}
+              </Link>
             ) : null}
+            <Link href={`/${model.locale}/contact`} className="button-secondary-shell">
+              {copy.contact}
+            </Link>
           </div>
-
-          <div className="relative aspect-[16/11] overflow-hidden rounded-[1.8rem] border border-border-glass" style={{ background: "var(--surface)", boxShadow: "var(--shadow-elevated)" }}>
-            <Image src={project.image} alt={project.title} fill priority className="object-cover" sizes="(max-width: 1024px) 100vw, 45vw" />
-          </div>
-        </div>
+        </FadeIn>
       </section>
 
-      <Reveal>
-        <section className="section-frame grid gap-4 lg:grid-cols-3">
-          {[
-            { icon: Compass, title: copy.challenge, body: project.challenge, accent: "var(--primary)" },
-            { icon: Workflow, title: copy.solution, body: project.solution, accent: "var(--secondary)" },
-            { icon: Star, title: copy.result, body: project.result, accent: "var(--accent)" },
-          ].map((card) => (
-            <article key={card.title} className="glass-card flex h-full flex-col gap-3 p-5 md:p-6">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border" style={{ borderColor: "var(--border-glass)", background: "var(--surface-soft)", color: card.accent }}>
-                <card.icon className="h-5 w-5" />
-              </span>
-              <h2 className="text-lg font-black text-foreground">{card.title}</h2>
-              <p className="text-sm leading-7 text-foreground-soft">{card.body}</p>
-            </article>
-          ))}
-        </section>
-      </Reveal>
-
-      {project.metrics?.length ? (
-        <Reveal>
-          <section className="section-frame">
-            <div className="grid gap-4 sm:grid-cols-3">
-              {project.metrics.map((metric, idx) => (
-                <Reveal key={`${metric.label}-${metric.value}`} delay={idx * 0.06}>
-                  <article className="glass-card p-5">
-                    <div className="text-3xl font-black" style={{ background: "linear-gradient(135deg, var(--foreground), var(--primary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{metric.value}</div>
-                    <p className="mt-2 text-xs font-bold text-foreground-muted">{metric.label}</p>
-                  </article>
-                </Reveal>
-              ))}
-            </div>
-          </section>
-        </Reveal>
-      ) : null}
-
-      <Reveal>
+      <FadeIn>
         <section className="section-frame">
-          <div className="mb-4 flex items-center gap-2">
-            <Eye className="h-4 w-4 text-primary" />
-            <h2 className="text-2xl font-black text-foreground">{copy.gallery}</h2>
+          <div className="relative aspect-[16/9] overflow-hidden rounded-[var(--radius-lg)]" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
+            <Image src={project.image} alt={project.title} fill priority className="object-cover" sizes="100vw" />
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {gallery.slice(0, 4).map((image, index) => (
-              <Reveal key={`${image}-${index}`} delay={index * 0.05}>
-                <div className="relative aspect-[16/10] overflow-hidden rounded-[1.5rem] border border-border-glass" style={{ background: "var(--surface)" }}>
-                  <Image src={image} alt={`${project.title} ${index + 1}`} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
-                </div>
-              </Reveal>
+        </section>
+      </FadeIn>
+
+      {/* Challenge / Solution / Result */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="grid gap-0 md:grid-cols-3 md:gap-10" style={{ borderTop: "1px solid var(--border)" }}>
+            {[
+              { title: copy.challenge, body: project.challenge },
+              { title: copy.solution, body: project.solution },
+              { title: copy.result, body: project.result },
+            ].map((card, idx) => (
+              <article key={card.title} className="py-6" style={{ borderBottom: "1px solid var(--border)" }}>
+                <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted">0{idx + 1}</span>
+                <h2 className="headline-display mt-2 text-xl text-foreground md:text-2xl">{card.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-foreground-soft">{card.body}</p>
+              </article>
             ))}
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
-      {/* Next CTA */}
-      <Reveal>
+      {project.metrics?.length ? (
+        <FadeIn>
+          <section className="section-frame">
+            <div className="grid gap-x-8 gap-y-10 border-y py-10 sm:grid-cols-3" style={{ borderColor: "var(--border)" }}>
+              {project.metrics.map((metric) => (
+                <div key={`${metric.label}-${metric.value}`}>
+                  <div className="headline-display text-[clamp(1.75rem,3vw,2.25rem)] leading-none text-foreground">{metric.value}</div>
+                  <div className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted">{metric.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </FadeIn>
+      ) : null}
+
+      <FadeIn>
         <section className="section-frame">
-          <div className="contact-cta-frame">
-            <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl space-y-3">
+          <h2 className="headline-display text-xl text-foreground md:text-2xl">{copy.gallery}</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {gallery.slice(0, 4).map((image, index) => (
+              <FadeIn key={`${image}-${index}`} delay={index * 0.04}>
+                <div className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius-md)]" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
+                  <Image src={image} alt={`${project.title} ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </section>
+      </FadeIn>
+
+      <FadeIn>
+        <section className="section-frame">
+          <div className="rounded-[var(--radius-lg)] px-6 py-10 md:p-12" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-xl">
                 <Eyebrow>{copy.nextEyebrow}</Eyebrow>
-                <h2 className="headline-display text-2xl text-foreground md:text-3xl">{copy.nextTitle}</h2>
+                <h3 className="headline-display mt-3 text-xl text-foreground md:text-2xl">{copy.nextTitle}</h3>
               </div>
-              <Link href={`/${model.locale}/contact`} className="button-primary-shell self-start lg:self-auto">
+              <Link href={`/${model.locale}/contact`} className="button-primary-shell self-start md:self-auto">
                 {copy.contact}
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  YOUTUBE
+ *  YOUTUBE — editorial grid
  * ─────────────────────────────────────────────────────────────────────────── */
 
 export function PortfolioYoutubePage({ model }: { model: SiteViewModel }) {
   const copy = localeCopy(model.locale).youtube;
   const featured = model.featuredVideo ?? model.latestVideos[0] ?? null;
   const yt = model.youtube;
+  const isAr = model.locale === "ar";
 
   return (
-    <div className="space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-16 md:pb-24 md:pt-6">
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-60">
-          <div className="absolute left-[5%] top-[-15%] h-[420px] w-[420px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--accent-glow), transparent 60%)" }} />
-        </div>
-        <div className="relative max-w-3xl space-y-4">
+    <div className="space-y-16 pb-20 pt-6 sm:pt-10 md:space-y-24 md:pb-28 md:pt-16">
+      <section className="section-frame">
+        <FadeIn>
           <Eyebrow>{copy.eyebrow}</Eyebrow>
-          <h1 className="headline-display text-4xl text-foreground md:text-5xl lg:text-[3.5rem]">{copy.title}</h1>
-          <p className="text-base leading-8 text-foreground-soft">{copy.body}</p>
-          <div className="pt-2">
-            <a href={`https://www.youtube.com/${yt.handle ?? "@Moalfarras"}`} target="_blank" rel="noopener noreferrer" className="button-primary-shell">
-              <PlayCircle className="h-4 w-4" />
-              {copy.channel}
-            </a>
-          </div>
-        </div>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2rem,5vw,4rem)] leading-[1.08] text-foreground">
+            {copy.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-7 text-foreground-soft md:text-lg">{copy.body}</p>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <a href={`https://www.youtube.com/${yt.handle ?? "@Moalfarras"}`} target="_blank" rel="noopener noreferrer" className="button-primary-shell mt-8">
+            <PlayCircle className="h-4 w-4" />
+            {copy.channel}
+          </a>
+        </FadeIn>
       </section>
 
-      <Reveal>
-        <section className="section-frame grid gap-3 sm:grid-cols-3">
-          {[
-            { value: yt.views ? `${(Number(yt.views) / 1_000_000).toFixed(1)}M+` : "1.5M+", label: model.locale === "ar" ? "إجمالي المشاهدات" : "Total views", icon: Eye },
-            { value: yt.subscribers ? `${(Number(yt.subscribers) / 1000).toFixed(1)}K` : "6K", label: model.locale === "ar" ? "مشتركون" : "Subscribers", icon: Users },
-            { value: yt.videos ?? 162, label: model.locale === "ar" ? "فيديوهات منشورة" : "Published videos", icon: PlayCircle },
-          ].map((stat, idx) => (
-            <Reveal key={stat.label} delay={idx * 0.06}>
-              <article className="glass-card flex items-center gap-4 p-5">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl border" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)", color: "var(--primary)" }}>
-                  <stat.icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="text-2xl font-black text-foreground">{String(stat.value)}</div>
-                  <p className="text-xs font-bold text-foreground-muted">{stat.label}</p>
-                </div>
-              </article>
-            </Reveal>
-          ))}
+      {/* Inline stats */}
+      <FadeIn>
+        <section className="section-frame">
+          <div className="grid gap-x-8 gap-y-10 border-y py-10 sm:grid-cols-3" style={{ borderColor: "var(--border)" }}>
+            {[
+              { value: yt.views ? `${(Number(yt.views) / 1_000_000).toFixed(1)}M+` : "1.5M+", label: isAr ? "إجمالي المشاهدات" : "Total views" },
+              { value: yt.subscribers ? `${(Number(yt.subscribers) / 1000).toFixed(1)}K` : "6K", label: isAr ? "مشتركون" : "Subscribers" },
+              { value: yt.videos ?? 162, label: isAr ? "فيديوهات منشورة" : "Published videos" },
+            ].map((s) => (
+              <div key={s.label}>
+                <div className="headline-display text-[clamp(1.75rem,3vw,2.5rem)] leading-none text-foreground">{String(s.value)}</div>
+                <div className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </section>
-      </Reveal>
+      </FadeIn>
 
       {featured ? (
-        <Reveal>
+        <FadeIn>
           <section className="section-frame">
-            <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-              <a href={`https://www.youtube.com/watch?v=${featured.youtube_id}`} target="_blank" rel="noopener noreferrer" className="group relative aspect-video overflow-hidden rounded-[1.75rem] border border-border-glass" style={{ background: "var(--surface)", boxShadow: "var(--shadow-elevated)" }}>
-                <Image src={featured.thumbnail} alt={featured.title_en || featured.youtube_id} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 1024px) 100vw, 45vw" />
+            <div className="grid gap-8 md:grid-cols-[0.6fr_0.4fr] md:items-center md:gap-12">
+              <a href={`https://www.youtube.com/watch?v=${featured.youtube_id}`} target="_blank" rel="noopener noreferrer" className="group relative aspect-video overflow-hidden rounded-[var(--radius-lg)]" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
+                <Image src={featured.thumbnail} alt={featured.title_en || featured.youtube_id} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.03]" sizes="(max-width: 768px) 100vw, 60vw" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-black shadow-2xl transition-transform group-hover:scale-110">
-                    <PlayCircle className="h-7 w-7" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-2xl transition-transform group-hover:scale-110">
+                    <PlayCircle className="h-6 w-6" />
                   </div>
                 </div>
               </a>
-              <div className="space-y-4">
+              <div>
                 <Eyebrow>{copy.featured}</Eyebrow>
-                <h2 className="headline-display text-3xl text-foreground md:text-4xl">
-                  {model.locale === "ar" ? featured.title_ar || featured.title_en : featured.title_en || featured.title_ar}
+                <h2 className="headline-display mt-4 text-[clamp(1.5rem,3vw,2.25rem)] leading-[1.2] text-foreground">
+                  {isAr ? featured.title_ar || featured.title_en : featured.title_en || featured.title_ar}
                 </h2>
-                <p className="text-sm leading-7 text-foreground-soft">
-                  {model.locale === "ar" ? featured.description_ar || featured.description_en : featured.description_en || featured.description_ar}
+                <p className="mt-3 text-sm leading-7 text-foreground-soft md:text-base">
+                  {isAr ? featured.description_ar || featured.description_en : featured.description_en || featured.description_ar}
                 </p>
               </div>
             </div>
           </section>
-        </Reveal>
+        </FadeIn>
       ) : null}
 
-      <Reveal>
-        <section className="section-frame space-y-4">
-          <h2 className="text-2xl font-black text-foreground">{copy.latest}</h2>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <FadeIn>
+        <section className="section-frame">
+          <h2 className="headline-display text-xl text-foreground md:text-2xl">{copy.latest}</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             {model.latestVideos.slice(0, 6).map((video, idx) => (
-              <Reveal key={video.id} delay={idx * 0.05}>
-                <a href={`https://www.youtube.com/watch?v=${video.youtube_id}`} target="_blank" rel="noopener noreferrer" className="glass-card group block overflow-hidden">
+              <FadeIn key={video.id} delay={idx * 0.04}>
+                <a
+                  href={`https://www.youtube.com/watch?v=${video.youtube_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block overflow-hidden rounded-[var(--radius-md)]"
+                  style={{ border: "1px solid var(--border)", background: "var(--surface)" }}
+                >
                   <div className="relative aspect-video overflow-hidden">
-                    <Image src={video.thumbnail} alt={video.title_en || video.youtube_id} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="(max-width: 1024px) 100vw, 33vw" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-2xl">
-                        <PlayCircle className="h-5 w-5" />
-                      </div>
-                    </div>
-                    {video.duration ? <span className="absolute right-2 bottom-2 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">{video.duration}</span> : null}
+                    <Image src={video.thumbnail} alt={video.title_en || video.youtube_id} fill className="object-cover transition-transform duration-700 group-hover:scale-[1.04]" sizes="(max-width: 768px) 100vw, 33vw" />
+                    {video.duration ? (
+                      <span className="absolute bottom-2 right-2 rounded-md bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-white">{video.duration}</span>
+                    ) : null}
                   </div>
-                  <div className="space-y-2 p-4">
-                    <h3 className="line-clamp-2 text-base font-black text-foreground">
-                      {model.locale === "ar" ? video.title_ar || video.title_en : video.title_en || video.title_ar}
+                  <div className="p-4">
+                    <h3 className="line-clamp-2 text-sm font-semibold text-foreground">
+                      {isAr ? video.title_ar || video.title_en : video.title_en || video.title_ar}
                     </h3>
-                    <p className="line-clamp-2 text-sm leading-6 text-foreground-muted">
-                      {model.locale === "ar" ? video.description_ar || video.description_en : video.description_en || video.description_ar}
-                    </p>
                   </div>
                 </a>
-              </Reveal>
+              </FadeIn>
             ))}
           </div>
         </section>
-      </Reveal>
+      </FadeIn>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  CONTACT
+ *  CONTACT — typography-first, form + side rails
  * ─────────────────────────────────────────────────────────────────────────── */
 
 export function PortfolioContactPage({ model }: { model: SiteViewModel }) {
@@ -1341,121 +1224,91 @@ export function PortfolioContactPage({ model }: { model: SiteViewModel }) {
   const isAr = model.locale === "ar";
 
   return (
-    <div className="space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-12 md:pb-24 md:pt-6">
-      {/* HERO */}
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-60">
-          <div className="absolute left-[10%] top-[-20%] h-[420px] w-[420px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--primary-glow), transparent 60%)" }} />
-          <div className="absolute right-[5%] bottom-[-25%] h-[480px] w-[480px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--accent-glow), transparent 65%)" }} />
-        </div>
-
-        <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="space-y-5">
-            <Eyebrow>{copy.eyebrow}</Eyebrow>
-            <h1 className="headline-display text-4xl text-foreground md:text-5xl lg:text-[3.5rem]">{copy.title}</h1>
-            <p className="max-w-xl text-base leading-8 text-foreground-soft">{copy.body}</p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <a href={`mailto:${email}`} className="button-primary-shell">
-                <Mail className="h-4 w-4" />
-                {email}
-              </a>
-              <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-whatsapp">
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </a>
-            </div>
+    <div className="space-y-16 pb-20 pt-6 sm:pt-10 md:space-y-20 md:pb-28 md:pt-16">
+      <section className="section-frame">
+        <FadeIn>
+          <Eyebrow>{copy.eyebrow}</Eyebrow>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2rem,5vw,4rem)] leading-[1.08] text-foreground">
+            {copy.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-7 text-foreground-soft md:text-lg">{copy.body}</p>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <a href={`mailto:${email}`} className="button-primary-shell">
+              <Mail className="h-4 w-4" />
+              {email}
+            </a>
+            <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-whatsapp">
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </a>
           </div>
-
-          {/* Availability card */}
-          <article className="glass-card relative overflow-hidden p-6 md:p-7">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-black text-foreground">{copy.availabilityTitle}</h2>
-              <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold text-emerald-500" style={{ borderColor: "rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.10)" }}>
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                {isAr ? "متاح" : "Available"}
-              </span>
-            </div>
-            <ul className="mt-5 grid gap-2.5">
-              {copy.availability.map((row) => (
-                <li key={row.label} className="flex items-start justify-between gap-3 rounded-xl border border-border-glass bg-surface-soft px-4 py-3 text-sm">
-                  <span className="font-bold text-foreground">{row.label}</span>
-                  <span className="font-medium text-foreground-soft">{row.value}</span>
-                </li>
-              ))}
-            </ul>
-          </article>
-        </div>
+        </FadeIn>
       </section>
 
-      {/* MAIN GRID — form + side (channels + response steps) */}
-      <section className="section-frame grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-        <Reveal>
-          <article className="glass-card p-5 md:p-7">
+      <FadeIn>
+        <section className="section-frame grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-start lg:gap-16">
+          <div>
             <ContactForm locale={model.locale} whatsappUrl={whatsapp} />
-          </article>
-        </Reveal>
-
-        <div className="space-y-5">
-          <Reveal delay={0.05}>
-            <article className="glass-card p-5 md:p-7">
-              <h2 className="text-base font-black text-foreground">{copy.channelsTitle}</h2>
-              <div className="mt-5 grid gap-3">
-                <a href={`mailto:${email}`} className="group flex items-center gap-4 rounded-2xl border border-border-glass bg-surface-soft p-4 transition hover:border-primary/40">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl border" style={{ borderColor: "var(--primary-border)", background: "var(--primary-soft)", color: "var(--primary)" }}>
-                    <Mail className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-black text-foreground">Email</div>
-                    <div className="truncate text-xs text-foreground-soft">{email}</div>
+          </div>
+          <aside className="space-y-10">
+            <div>
+              <Eyebrow>{copy.availabilityTitle}</Eyebrow>
+              <dl className="mt-6 grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
+                {copy.availability.map((row) => (
+                  <div key={row.label} className="flex items-center justify-between gap-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                    <dt className="text-sm font-semibold text-foreground">{row.label}</dt>
+                    <dd className="text-sm text-foreground-soft">{row.value}</dd>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-foreground-muted transition-transform group-hover:translate-x-1" />
-                </a>
-
-                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 rounded-2xl border border-border-glass bg-surface-soft p-4 transition hover:border-primary/40">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl text-white" style={{ background: "#128C7E" }}>
-                    <MessageCircle className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-black text-foreground">WhatsApp</div>
-                    <div className="truncate text-xs text-foreground-soft">{isAr ? "للرد السريع" : "Fastest reply"}</div>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-foreground-muted transition-transform group-hover:translate-x-1" />
-                </a>
-
-                {model.contact.channels.filter((c) => c.type !== "email" && c.type !== "whatsapp").slice(0, 3).map((channel) => (
-                  <a key={channel.id} href={channel.value} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 rounded-2xl border border-border-glass bg-surface-soft p-4 transition hover:border-primary/40">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border" style={{ borderColor: "var(--border-glass)", background: "var(--surface)", color: "var(--foreground)" }}>
-                      <Globe2 className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-black text-foreground">{channel.label}</div>
-                      <div className="truncate text-xs text-foreground-soft">{channel.description || channel.value}</div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-foreground-muted transition-transform group-hover:translate-x-1" />
-                  </a>
                 ))}
-              </div>
-            </article>
-          </Reveal>
+              </dl>
+            </div>
 
-          <Reveal delay={0.1}>
-            <article className="glass-card p-5 md:p-7">
-              <h2 className="text-base font-black text-foreground">{copy.responseTitle}</h2>
-              <ol className="mt-5 grid gap-3">
+            <div>
+              <Eyebrow>{copy.channelsTitle}</Eyebrow>
+              <ul className="mt-6 grid gap-3">
+                <li>
+                  <a href={`mailto:${email}`} className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] px-4 py-3 transition-colors hover:bg-surface-soft" style={{ border: "1px solid var(--border)" }}>
+                    <span className="flex items-center gap-3">
+                      <Mail className="h-4 w-4" style={{ color: "var(--accent)" }} />
+                      <span className="text-sm font-semibold text-foreground">Email</span>
+                    </span>
+                    <span className="truncate text-xs text-foreground-muted">{email}</span>
+                  </a>
+                </li>
+                <li>
+                  <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] px-4 py-3 transition-colors hover:bg-surface-soft" style={{ border: "1px solid var(--border)" }}>
+                    <span className="flex items-center gap-3">
+                      <MessageCircle className="h-4 w-4" style={{ color: "var(--accent)" }} />
+                      <span className="text-sm font-semibold text-foreground">WhatsApp</span>
+                    </span>
+                    <span className="text-xs text-foreground-muted">{isAr ? "للرد السريع" : "Fastest reply"}</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <Eyebrow>{copy.responseTitle}</Eyebrow>
+              <ol className="mt-6 grid gap-4">
                 {copy.responseSteps.map((step, idx) => (
                   <li key={step} className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black text-white" style={{ background: "linear-gradient(135deg, var(--primary), var(--secondary))" }}>{idx + 1}</span>
+                    <span className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold" style={{ background: "var(--foreground)", color: "var(--background)" }}>
+                      {idx + 1}
+                    </span>
                     <span className="text-sm leading-7 text-foreground-soft">{step}</span>
                   </li>
                 ))}
               </ol>
-            </article>
-          </Reveal>
-        </div>
-      </section>
+            </div>
+          </aside>
+        </section>
+      </FadeIn>
     </div>
   );
 }
@@ -1468,33 +1321,40 @@ export function PortfolioPrivacyPage({ model }: { model: SiteViewModel }) {
   const copy = localeCopy(model.locale).privacy;
 
   return (
-    <div className="space-y-8 px-3 pb-16 pt-3 md:px-6 md:pb-24 md:pt-6">
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div className="relative max-w-3xl space-y-4">
+    <div className="space-y-10 pb-20 pt-6 sm:pt-10 md:pb-28 md:pt-16">
+      <section className="section-frame max-w-3xl">
+        <FadeIn>
           <Eyebrow>{copy.eyebrow}</Eyebrow>
-          <h1 className="headline-display text-3xl text-foreground md:text-5xl">{copy.title}</h1>
-          <p className="text-base leading-8 text-foreground-soft">{copy.body}</p>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 text-[clamp(1.75rem,4vw,3rem)] leading-[1.1] text-foreground">
+            {copy.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="mt-6 text-base leading-7 text-foreground-soft md:text-lg">{copy.body}</p>
+        </FadeIn>
 
-          <ul className="mt-6 grid gap-3">
-            {copy.bullets.map((bullet) => (
-              <li key={bullet} className="flex items-start gap-3 rounded-2xl border border-border-glass bg-surface-soft p-4 text-sm leading-7 text-foreground-soft">
-                <ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-primary" />
-                <span>{bullet}</span>
-              </li>
-            ))}
-          </ul>
+        <ul className="mt-10 grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
+          {copy.bullets.map((b) => (
+            <li key={b} className="flex items-start gap-3 py-4 text-sm leading-7 text-foreground-soft md:text-base" style={{ borderBottom: "1px solid var(--border)" }}>
+              <CheckCircle2 className="mt-1 h-4 w-4 shrink-0" style={{ color: "var(--accent)" }} />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
 
-          <div className="pt-4">
-            <Link href="/privacy" className="button-primary-shell">{copy.cta}<ChevronRight className="h-4 w-4" /></Link>
-          </div>
-        </div>
+        <Link href="/privacy" className="button-primary-shell mt-10">
+          {copy.cta}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </section>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- *  APPS LIST
+ *  APPS (listing)
  * ─────────────────────────────────────────────────────────────────────────── */
 
 export function PortfolioAppsPage({ model }: { model: SiteViewModel }) {
@@ -1504,90 +1364,102 @@ export function PortfolioAppsPage({ model }: { model: SiteViewModel }) {
   const otherApps = projects.filter((p) => p.slug !== "moplayer" && p.highlightStyle === "app");
 
   return (
-    <div className="space-y-10 px-3 pb-16 pt-3 md:px-6 md:space-y-16 md:pb-24 md:pt-6">
-      <section className="section-frame relative overflow-hidden rounded-[2.25rem] border border-border-glass bg-surface p-6 md:rounded-[2.75rem] md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <div aria-hidden className="aurora-layer pointer-events-none absolute -inset-32 opacity-60">
-          <div className="absolute right-[10%] top-[-20%] h-[420px] w-[420px] rounded-full blur-3xl" style={{ background: "radial-gradient(circle, var(--primary-glow), transparent 60%)" }} />
-        </div>
-        <div className="relative max-w-3xl space-y-4">
+    <div className="space-y-16 pb-20 pt-6 sm:pt-10 md:space-y-24 md:pb-28 md:pt-16">
+      <section className="section-frame">
+        <FadeIn>
           <Eyebrow>{copy.eyebrow}</Eyebrow>
-          <h1 className="headline-display text-4xl text-foreground md:text-5xl lg:text-[3.5rem]">{copy.title}</h1>
-          <p className="text-base leading-8 text-foreground-soft">{copy.body}</p>
-        </div>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h1 className="headline-display mt-6 max-w-[22ch] text-[clamp(2rem,5vw,4rem)] leading-[1.08] text-foreground">
+            {copy.title}
+          </h1>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="prose-frame mt-6 text-base leading-7 text-foreground-soft md:text-lg">{copy.body}</p>
+        </FadeIn>
       </section>
 
       {moPlayer ? (
-        <Reveal>
+        <FadeIn>
           <section className="section-frame">
-            <div
-              className="relative overflow-hidden rounded-[2.25rem] border p-6 md:rounded-[2.75rem] md:p-10"
-              style={{ background: "linear-gradient(135deg, var(--primary-soft), var(--surface))", borderColor: "var(--primary-border)", boxShadow: "var(--shadow-elevated)" }}
-            >
-              <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-                <div className="space-y-4">
-                  <Eyebrow>{copy.featuredLabel}</Eyebrow>
-                  <h2 className="headline-display text-3xl text-foreground md:text-5xl">{moPlayer.title}</h2>
-                  <p className="max-w-xl text-sm leading-7 text-foreground-soft md:text-base">{moPlayer.description || moPlayer.summary}</p>
-
-                  <div className="flex flex-wrap items-center gap-4 pt-1 text-xs font-bold text-foreground-muted">
-                    <span className="inline-flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-primary" /> v2.0.0</span>
-                    <span className="inline-flex items-center gap-2"><Smartphone className="h-4 w-4 text-primary" /> Android 7+</span>
-                    <span className="inline-flex items-center gap-2"><Gauge className="h-4 w-4 text-primary" /> Android TV</span>
-                    <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> {model.locale === "ar" ? "بدون تتبع" : "No tracking"}</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    <Link href="/app" className="button-primary-shell"><Smartphone className="h-4 w-4" />{copy.openProduct}</Link>
-                    <Link href={caseStudyHref(model.locale, "moplayer")} className="button-secondary-shell">{copy.viewCase}</Link>
-                  </div>
+            <div className="grid gap-10 md:grid-cols-[0.55fr_0.45fr] md:items-center md:gap-16">
+              <div>
+                <Eyebrow>{copy.featuredLabel}</Eyebrow>
+                <h2 className="headline-display mt-4 text-[clamp(1.75rem,4vw,3rem)] leading-[1.1] text-foreground">
+                  {moPlayer.title}
+                </h2>
+                <p className="prose-frame mt-4 text-base leading-7 text-foreground-soft md:text-lg">
+                  {moPlayer.description || moPlayer.summary}
+                </p>
+                <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-foreground-muted">
+                  <span className="inline-flex items-center gap-1.5">
+                    <BadgeCheck className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                    v2.0.0
+                  </span>
+                  <span>·</span>
+                  <span>Android 7+ · Android TV</span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                    {model.locale === "ar" ? "بدون تتبع" : "No tracking"}
+                  </span>
                 </div>
-                <div className="relative aspect-[16/10] overflow-hidden rounded-[1.75rem] border border-border-glass" style={{ background: "var(--surface)", boxShadow: "var(--shadow-elevated)" }}>
-                  <Image src={moPlayer.image} alt={moPlayer.title} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 45vw" />
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <Link href={`/${model.locale}/apps/moplayer`} className="button-primary-shell">
+                    <Smartphone className="h-4 w-4" />
+                    {copy.openProduct}
+                  </Link>
+                  <Link href={caseStudyHref(model.locale, "moplayer")} className="button-secondary-shell">
+                    {copy.viewCase}
+                  </Link>
                 </div>
+              </div>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-lg)]" style={{ border: "1px solid var(--border)", background: "var(--surface-soft)" }}>
+                <Image src={moPlayer.image} alt={moPlayer.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 45vw" />
               </div>
             </div>
           </section>
-        </Reveal>
+        </FadeIn>
       ) : null}
 
       {otherApps.length ? (
-        <Reveal>
-          <section className="section-frame grid gap-5 md:grid-cols-2">
-            {otherApps.map((project) => (
-              <article key={project.id} className="glass-card overflow-hidden">
-                <div className="relative aspect-[16/10]">
-                  <Image src={project.image} alt={project.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-                </div>
-                <div className="space-y-3 p-5">
-                  <h3 className="text-xl font-black text-foreground">{project.title}</h3>
-                  <p className="text-sm leading-7 text-foreground-muted line-clamp-3">{project.summary}</p>
-                  <Link href={caseStudyHref(model.locale, project.slug)} className="button-secondary-shell !px-4 !py-2 text-sm">{copy.viewCase}<ArrowRight className="h-4 w-4" /></Link>
-                </div>
-              </article>
-            ))}
-          </section>
-        </Reveal>
-      ) : null}
-
-      {/* ROADMAP */}
-      <Reveal>
-        <section className="section-frame">
-          <div className="glass-card p-6 md:p-8">
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-black text-foreground md:text-2xl">{copy.roadmapTitle}</h2>
-            </div>
-            <ul className="mt-5 grid gap-3">
-              {copy.roadmap.map((line, idx) => (
-                <li key={line} className="flex items-start gap-3 rounded-2xl border border-border-glass bg-surface-soft p-4 text-sm leading-7 text-foreground-soft">
-                  <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white" style={{ background: "linear-gradient(135deg, var(--primary), var(--secondary))" }}>{idx + 1}</span>
-                  <span>{line}</span>
-                </li>
+        <FadeIn>
+          <section className="section-frame">
+            <ul className="grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
+              {otherApps.map((project, idx) => (
+                <FadeIn key={project.id} delay={idx * 0.04}>
+                  <li style={{ borderBottom: "1px solid var(--border)" }}>
+                    <Link href={caseStudyHref(model.locale, project.slug)} className="group flex items-center justify-between gap-4 py-6">
+                      <div>
+                        <h3 className="headline-display text-xl text-foreground transition-colors group-hover:text-accent md:text-2xl">{project.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-foreground-soft">{project.summary}</p>
+                      </div>
+                      <ArrowUpRight className="h-4 w-4 text-foreground-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+                    </Link>
+                  </li>
+                </FadeIn>
               ))}
             </ul>
-          </div>
+          </section>
+        </FadeIn>
+      ) : null}
+
+      {/* Roadmap */}
+      <FadeIn>
+        <section className="section-frame max-w-3xl">
+          <Eyebrow>{copy.roadmapTitle}</Eyebrow>
+          <ul className="mt-6 grid gap-0" style={{ borderTop: "1px solid var(--border)" }}>
+            {copy.roadmap.map((line, idx) => (
+              <li key={line} className="flex items-start gap-4 py-4 text-sm leading-7 text-foreground-soft md:text-base" style={{ borderBottom: "1px solid var(--border)" }}>
+                <span className="shrink-0 text-[11px] font-bold uppercase tracking-[0.22em] text-foreground-muted">
+                  0{idx + 1}
+                </span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
         </section>
-      </Reveal>
+      </FadeIn>
     </div>
   );
 }

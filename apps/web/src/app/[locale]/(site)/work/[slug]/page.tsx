@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { PortfolioProjectPage } from "@/components/site/portfolio-pages";
 import { buildSiteModel } from "@/components/site/site-pages-v3";
 import { isLocale } from "@/lib/i18n";
+import { breadcrumbJsonLd, creativeWorkJsonLd, jsonLdString } from "@/lib/seo-jsonld";
+import type { Locale } from "@/types/cms";
 
 export async function generateMetadata({
   params,
@@ -68,5 +70,25 @@ export default async function ProjectDetailRoute({
   const project = model.projects.find((entry) => entry.slug === slug);
   if (!project) notFound();
 
-  return <PortfolioProjectPage model={model} slug={slug} />;
+  const loc = locale as Locale;
+  const breadcrumb = breadcrumbJsonLd(loc, [
+    { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
+    { name: loc === "ar" ? "الأعمال" : "Work", path: `/${loc}/work` },
+    { name: project.title, path: `/${loc}/work/${slug}` },
+  ]);
+  const work = creativeWorkJsonLd({
+    locale: loc,
+    title: project.title,
+    slug,
+    summary: project.description || project.summary,
+    image: project.image,
+  });
+
+  return (
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(work) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
+      <PortfolioProjectPage model={model} slug={slug} />
+    </>
+  );
 }

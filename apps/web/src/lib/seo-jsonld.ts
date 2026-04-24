@@ -124,12 +124,6 @@ export function softwareApplicationJsonLd(params: {
     fileSize: params.fileSize,
     downloadUrl: params.downloadUrl,
     publisher: { "@id": `${BASE_URL}/#person` },
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "EUR",
-      availability: "https://schema.org/InStock",
-    },
   };
 }
 

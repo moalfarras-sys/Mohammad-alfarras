@@ -11,6 +11,8 @@ import { cn } from "@/lib/cn";
 import { alternateLocalePath, localeMeta } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
 
+import { LocalePreferenceLink } from "@/components/layout/locale-preference-link";
+
 import { MobileMenuDrawer } from "./mobile-menu-drawer";
 import { useThemeMode } from "./use-theme-mode";
 
@@ -48,7 +50,7 @@ export function SiteNavbar({
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 24);
+      setScrolled(window.scrollY > 50);
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -63,15 +65,14 @@ export function SiteNavbar({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            "section-frame mt-3 flex flex-row items-center justify-between gap-3 rounded-full px-3 py-2 transition-all duration-500 md:px-4 md:py-2.5",
-            scrolled ? "navbar-scrolled" : "bg-transparent",
+            "section-frame mt-3 flex flex-row items-center justify-between gap-3 rounded-full px-3 py-2 transition-all duration-300 md:px-4 md:py-2.5",
+            scrolled ? "navbar-liquid-scrolled" : "bg-transparent",
           )}
         >
           {/* Brand — Logo first (logo.png displayed prominently) */}
           <Link href={`/${locale}`} className="group flex min-w-0 items-center gap-3">
             <span
-              className="logo-container relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-90 md:h-12 md:w-12 md:rounded-2xl"
-              style={{ background: "transparent", border: "1.5px solid var(--border)" }}
+              className="logo-container relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--glass-border)] bg-transparent transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-90 md:h-12 md:w-12 md:rounded-2xl"
             >
               <Image
                 src="/images/logo.png"
@@ -83,10 +84,10 @@ export function SiteNavbar({
               />
             </span>
             <span className="hidden min-w-0 sm:grid">
-              <strong className="headline-display truncate text-[15px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
+              <strong className="font-display truncate text-[15px] font-semibold leading-tight text-[var(--text-1)] transition-colors group-hover:text-[var(--accent-glow)]">
                 {brandName}
               </strong>
-              <small className="truncate text-[9px] font-bold uppercase tracking-[0.26em] text-foreground-muted">
+              <small className="truncate text-[9px] font-bold uppercase tracking-[0.26em] text-[var(--text-3)]">
                 {tagline}
               </small>
             </span>
@@ -105,18 +106,10 @@ export function SiteNavbar({
                   key={item.id}
                   href={item.href}
                   className={cn(
-                    "relative flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors duration-300",
-                    active ? "text-foreground" : "text-foreground-muted hover:text-foreground",
+                    "relative flex min-h-12 shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors duration-300",
+                    active ? "nav-link-active text-[var(--text-1)]" : "text-[var(--text-3)] hover:text-[var(--text-1)]",
                   )}
                 >
-                  {active ? (
-                    <motion.span
-                      layoutId="nav-pill"
-                      className="absolute inset-0 z-0 rounded-full"
-                      style={{ background: "var(--surface-soft)", border: "1px solid var(--border)" }}
-                      transition={{ type: "spring", bounce: 0.18, duration: 0.55 }}
-                    />
-                  ) : null}
                   <span className="relative z-10 whitespace-nowrap">{item.label}</span>
                 </Link>
               );
@@ -126,13 +119,18 @@ export function SiteNavbar({
           {/* Right cluster */}
           <div className="flex items-center gap-2">
             {/* Desktop-only inline toggles */}
-            <Link
+            <LocalePreferenceLink
               href={alternatePath}
               aria-label={isAr ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
-              className="hidden h-11 items-center justify-center rounded-full border px-4 text-xs font-bold uppercase tracking-[0.24em] text-foreground-muted transition hover:text-foreground lg:inline-flex"
-              style={{ borderColor: "var(--border)", background: "var(--surface-soft)" }}
+              className="hidden h-12 min-w-[4.5rem] items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 text-xs font-bold uppercase tracking-[0.24em] text-[var(--text-3)] transition hover:text-[var(--text-1)] lg:inline-flex"
             >
               {alternateLabel}
+            </LocalePreferenceLink>
+            <Link
+              href={`/${locale}/contact`}
+              className="button-liquid-primary hidden text-sm lg:inline-flex"
+            >
+              {isAr ? "تواصل" : "Contact"}
             </Link>
             <motion.button
               type="button"
@@ -140,8 +138,7 @@ export function SiteNavbar({
               aria-label={isAr ? "تبديل المظهر" : "Toggle theme"}
               whileTap={{ scale: 0.9 }}
               onClick={toggleTheme}
-              className="hidden h-11 w-11 items-center justify-center overflow-hidden rounded-full border text-foreground-muted transition hover:text-foreground lg:inline-flex"
-              style={{ borderColor: "var(--border)", background: "var(--surface-soft)" }}
+              className="hidden h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[var(--text-3)] transition hover:text-[var(--text-1)] lg:inline-flex"
             >
               <AnimatePresence mode="wait">
                 {mounted && theme === "dark" ? (
@@ -164,8 +161,7 @@ export function SiteNavbar({
               onClick={() => setDrawerOpen(true)}
               aria-label={isAr ? "فتح القائمة" : "Open menu"}
               aria-expanded={drawerOpen}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border text-foreground-muted transition hover:text-foreground lg:hidden"
-              style={{ borderColor: "var(--border)", background: "var(--surface-soft)" }}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[var(--text-3)] transition hover:text-[var(--text-1)] lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>

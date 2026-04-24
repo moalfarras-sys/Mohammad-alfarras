@@ -2,30 +2,32 @@ import { notFound } from "next/navigation";
 
 import { AtmosphericBackground } from "@/components/layout/atmospheric-background";
 import { CookieBanner } from "@/components/layout/cookie-banner";
+import { HireMeFab } from "@/components/layout/hire-me-fab";
 import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
 import { MobileDock } from "@/components/layout/mobile-dock";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
+import { getNavigation } from "@/content/navigation";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
-import { readNav, readSnapshot } from "@/lib/content/store";
+import { readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
 
 function siteCopy(locale: "ar" | "en") {
   if (locale === "ar") {
     return {
       brandName: "محمد الفراس",
-      tagline: "موقع شخصي · أعمال رقمية · محتوى تقني",
+      tagline: "حضور رقمي · منتجات · محتوى تقني",
       links: [
         { id: "home", label: "الرئيسية", href: withLocale(locale, "") },
-        { id: "cv", label: "السيرة", href: withLocale(locale, "cv") },
         { id: "work", label: "الأعمال", href: withLocale(locale, "work") },
         { id: "apps", label: "التطبيقات", href: withLocale(locale, "apps") },
         { id: "youtube", label: "يوتيوب", href: withLocale(locale, "youtube") },
+        { id: "cv", label: "السيرة", href: withLocale(locale, "cv") },
         { id: "contact", label: "تواصل", href: withLocale(locale, "contact") },
       ],
       footer: {
-        title: "إذا كان لديك مشروع يحتاج وضوحاً أفضل أو حضوراً أقوى، فلنرتبه بشكل صحيح.",
-        body: "الموقع الآن يعرض الهوية الشخصية أولاً، ثم الأعمال والمشاريع والمنتجات داخل منظومة واحدة وواضحة.",
+        title: "إذا كان لديك مشروع يحتاج وضوحاً تقنياً وحضوراً أقوى، فلنرتبه بشكل صحيح.",
+        body: "الهوية الشخصية، الأعمال، MoPlayer، الدعم، الخصوصية، والسيرة تعمل هنا كمنظومة واحدة.",
         cta: "ابدأ التواصل",
       },
       portfolioDescription:
@@ -38,15 +40,15 @@ function siteCopy(locale: "ar" | "en") {
     tagline: "Personal site · digital work · tech content",
     links: [
       { id: "home", label: "Home", href: withLocale(locale, "") },
-      { id: "cv", label: "CV", href: withLocale(locale, "cv") },
       { id: "work", label: "Work", href: withLocale(locale, "work") },
       { id: "apps", label: "Apps", href: withLocale(locale, "apps") },
       { id: "youtube", label: "YouTube", href: withLocale(locale, "youtube") },
+      { id: "cv", label: "CV", href: withLocale(locale, "cv") },
       { id: "contact", label: "Contact", href: withLocale(locale, "contact") },
     ],
     footer: {
-      title: "If your project needs a clearer story or a stronger digital presence, let’s structure it properly.",
-      body: "The site now keeps the personal brand first, then the work, projects, and products in one clean ecosystem.",
+      title: "If your project needs clearer technical presence, let’s structure it properly.",
+      body: "Personal identity, work, MoPlayer, support, privacy, and CV now operate as one ecosystem.",
       cta: "Get in touch",
     },
     portfolioDescription:
@@ -80,15 +82,7 @@ export default async function SiteLayout({
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
 
-  // Prefer DB-driven nav labels/order when present; fallback to hardcoded copy.
-  const dbNav = await readNav(locale);
-  const navLinks = dbNav.length
-    ? dbNav.map((item) => ({
-        id: item.id,
-        label: item.label,
-        href: item.slug === "" || item.slug === "home" ? `/${locale}` : `/${locale}/${item.slug.replace(/^\//, "")}`,
-      }))
-    : copy.links;
+  const navLinks = getNavigation(locale);
 
   const personJsonLd = {
     "@context": "https://schema.org",
@@ -113,13 +107,14 @@ export default async function SiteLayout({
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
 
-      <div className="relative min-h-screen">
+      <div className="liquid-site relative min-h-screen">
         <LocaleDocumentSync locale={locale} />
         <AtmosphericBackground />
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={portraitSrc} brandName={copy.brandName} />
         <main className="pb-dock lg:pb-0">{children}</main>
         <CookieBanner locale={locale} />
         <MobileDock locale={locale} />
+        <HireMeFab locale={locale} />
         <SiteFooter locale={locale} logoSrc={portraitSrc} brandName={copy.brandName} tagline={copy.tagline} links={navLinks} footer={copy.footer} />
       </div>
     </>

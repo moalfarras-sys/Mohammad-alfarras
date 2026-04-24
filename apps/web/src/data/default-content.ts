@@ -819,7 +819,7 @@ export const defaultSnapshot: CmsSnapshot = {
     { nav_item_id: "n-contact", locale: "en", label: "Contact" },
   ],
   media_assets: [
-    { id: "m1", path: "/images/protofeilnew.jpeg", alt_ar: "الصورة الشخصية لمحمد الفراس", alt_en: "Portrait of Mohammad Alfarras", width: 1200, height: 1500, type: "image/jpeg" },
+{ id: "m1", path: "/images/portrait.jpg", alt_ar: "الصورة الشخصية لمحمد الفراس", alt_en: "Portrait of Mohammad Alfarras", width: 1200, height: 1500, type: "image/jpeg" },
     { id: "m3", path: "/images/hero-profile-bg.png", alt_ar: "لقطة بطابع بصري جديد", alt_en: "Brand spotlight visual", width: 1200, height: 630, type: "image/png" },
     { id: "m4", path: "/images/service_logistics.png", alt_ar: "إيقونة بصرية للوجستيك", alt_en: "Logistics operations visual", width: 1200, height: 800, type: "image/png" },
     { id: "m5", path: "/images/service_logistics.png", alt_ar: "تنفيذ وتشغيل ولوجستيك", alt_en: "Logistics and execution", width: 1600, height: 900, type: "image/png" },
@@ -836,7 +836,7 @@ export const defaultSnapshot: CmsSnapshot = {
     { id: "m21", path: "/images/seel-service-case.png", alt_ar: "قسم الخدمات — SEEL Transport", alt_en: "SEEL Transport services section", width: 1440, height: 1024, type: "image/png" },
     { id: "m22", path: "/images/schnell-home-case.png", alt_ar: "الصفحة الرئيسية — Schnell Sicher Umzug", alt_en: "Schnell Sicher Umzug homepage", width: 1440, height: 1200, type: "image/png" },
     { id: "m23", path: "/images/schnell-service-case.png", alt_ar: "قسم الخدمات — Schnell Sicher Umzug", alt_en: "Schnell Sicher Umzug services section", width: 1440, height: 1024, type: "image/png" },
-    { id: "m25", path: "/images/yt-channel-hero.png", alt_ar: "بانر قناة يوتيوب محمد الفراس", alt_en: "Mohammad Alfarras YouTube banner", width: 2560, height: 1440, type: "image/png" },
+{ id: "m25", path: "/images/hero-profile-bg.png", alt_ar: "بانر قناة يوتيوب محمد الفراس", alt_en: "Mohammad Alfarras YouTube banner", width: 2560, height: 1440, type: "image/png" },
     { id: "m28", path: "/images/service_web.png", alt_ar: "تصميم مواقع", alt_en: "Web design pillar", width: 1600, height: 900, type: "image/png" },
     { id: "m29", path: "/images/service_tech.png", alt_ar: "تقنية ومنتجات", alt_en: "Tech product storytelling", width: 1600, height: 900, type: "image/png" },
     { id: "m30", path: "/images/service_logistics.png", alt_ar: "لوجستيك وتشغيل", alt_en: "Logistics operations plate", width: 1600, height: 900, type: "image/png" },

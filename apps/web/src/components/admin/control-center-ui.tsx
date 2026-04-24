@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
@@ -333,7 +334,14 @@ export function PreviewImage({
   className?: string;
 }) {
   return src ? (
-    <img src={src} alt={alt} className={cn("h-full w-full rounded-[1.2rem] object-cover", className)} />
+    <Image
+      src={src}
+      alt={alt}
+      width={640}
+      height={420}
+      unoptimized
+      className={cn("h-full w-full rounded-[1.2rem] object-cover", className)}
+    />
   ) : (
     <div className={cn("flex h-full min-h-28 w-full items-center justify-center rounded-[1.2rem] border border-dashed border-white/10 bg-black/10 text-xs text-foreground-soft", className)}>
       No preview

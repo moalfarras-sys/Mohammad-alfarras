@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "Googlebot",
-        allow: ["/", "/ar/", "/en/", "/app", "/privacy", "/support"],
+        allow: ["/", "/ar/", "/en/", "/ar/privacy", "/en/privacy", "/ar/support", "/en/support", "/app", "/privacy", "/support"],
         disallow: ["/admin", "/admin/", "/api/"],
       },
     ],

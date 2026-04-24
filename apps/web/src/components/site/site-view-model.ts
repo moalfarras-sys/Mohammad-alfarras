@@ -131,6 +131,17 @@ export type SiteViewModel = {
     highlights: string[];
   }[];
   portraitImage: string;
+  brandMedia: {
+    profilePortrait: string;
+    youtubeHero: string;
+    contactHero: string;
+    gallery: {
+      tech: string;
+      brand: string;
+      logistics: string;
+      media: string;
+    };
+  };
   downloads: {
     branded: string;
     ats: string;

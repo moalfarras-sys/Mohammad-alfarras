@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MoPlayerLanding } from "@/components/app/moplayer-landing";
+import { getMoPlayerFaqs, moPlayerCopy } from "@/content/apps";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { isLocale } from "@/lib/i18n";
 import {
@@ -16,14 +17,14 @@ const SITE_URL = "https://moalfarras.space";
 
 const localizedMeta = {
   ar: {
-    title: "MoPlayer — تطبيق وسائط أنظف لـ Android و Android TV",
+    title: "MoPlayer — منتج وسائط لـ Android و Android TV",
     description:
-      "MoPlayer: تجربة وسائط واحدة ونظيفة على Android و Android TV — بدون إعلانات، بدون تتبع. من إنتاج محمد الفراس.",
+      "MoPlayer منتج وسائط ضمن موقع محمد الفراس الموحّد، مع تنزيلات APK، إرشادات تثبيت، دعم، خصوصية، وتنبيه قانوني واضح.",
   },
   en: {
-    title: "MoPlayer — Cinematic media for Android & Android TV",
+    title: "MoPlayer — Android and Android TV media product",
     description:
-      "MoPlayer: one focused, ad-free media experience for Android and Android TV. No tracking, no paywalls. Built by Mohammad Alfarras.",
+      "MoPlayer is an Android and Android TV media product inside Mohammad Alfarras's unified site, with APK releases, installation guidance, support, privacy, and clear legal notes.",
   },
 } as const;
 
@@ -49,13 +50,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: "/images/moplayer-app-cover-final.jpeg", width: 1600, height: 900, alt: "MoPlayer" }],
+      images: [{ url: "/images/moplayer-hero-3d-final.png", width: 1600, height: 900, alt: meta.title }],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.title,
       description: meta.description,
-      images: ["/images/moplayer-app-cover-final.jpeg"],
+      images: ["/images/moplayer-hero-3d-final.png"],
     },
   };
 }
@@ -85,15 +86,34 @@ export default async function MoPlayerLocaleRoute({ params }: { params: Promise<
     targetSdk: ecosystem.product.android_target_sdk,
     downloadUrl: latest ? `${SITE_URL}/api/app/releases/${latest.slug}/download` : undefined,
   });
-  const faq = ecosystem.faqs.length
-    ? faqPageJsonLd(ecosystem.faqs.slice(0, 6).map((f) => ({ question: f.question, answer: f.answer })))
-    : null;
+  const faq = faqPageJsonLd(getMoPlayerFaqs(loc));
+  const pageCopy = moPlayerCopy[loc];
 
   return (
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(software) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       {faq ? <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }} /> : null}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: jsonLdString({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "@id": `${SITE_URL}/${loc}/apps/moplayer#webpage`,
+            url: `${SITE_URL}/${loc}/apps/moplayer`,
+            name: meta.title,
+            description: meta.description,
+            inLanguage: loc === "ar" ? "ar-SA" : "en-US",
+            about: {
+              "@type": "SoftwareApplication",
+              name: "MoPlayer",
+              description: pageCopy.heroBody,
+            },
+          }),
+        }}
+      />
       <MoPlayerLanding ecosystem={ecosystem} locale={loc} />
     </>
   );

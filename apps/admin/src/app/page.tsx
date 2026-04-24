@@ -16,13 +16,13 @@ export const metadata: Metadata = {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; unauthorized?: string; forbidden?: string; updated?: string }>;
+  searchParams: Promise<{ error?: string; unauthorized?: string; forbidden?: string; updated?: string; email?: string }>;
 }) {
   const [query, admin] = await Promise.all([searchParams, getAuthenticatedAdmin()]);
 
   if (!admin) {
     const message = query.error
-      ? "Invalid credentials or this user does not have an admin role yet."
+      ? decodeURIComponent(query.error)
       : query.forbidden
         ? "This account is authenticated but does not have the required admin role."
         : query.unauthorized
@@ -31,7 +31,7 @@ export default async function AdminPage({
 
     return (
       <main className="mx-auto min-h-screen max-w-6xl px-5 py-10 md:px-8 md:py-16">
-        <AppAdminLogin message={message} />
+        <AppAdminLogin message={message} initialEmail={query.email ? decodeURIComponent(query.email) : undefined} />
       </main>
     );
   }

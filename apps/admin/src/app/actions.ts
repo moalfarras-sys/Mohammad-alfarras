@@ -53,10 +53,17 @@ function normalizeSlug(value: string) {
 }
 
 export async function loginAdminAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "");
+
   try {
-    await signInAdmin(String(formData.get("email") ?? ""), String(formData.get("password") ?? ""));
-  } catch {
-    redirect("/?error=invalid_credentials");
+    await signInAdmin(email, password);
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : "Sign-in failed. Check the password and confirm this account has an admin role.";
+    redirect(`/?error=${encodeURIComponent(message)}&email=${encodeURIComponent(email)}`);
   }
 
   redirect("/");

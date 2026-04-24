@@ -15,13 +15,19 @@ type RouteDef = {
 
 const localizedRoutes: RouteDef[] = [
   { path: "", priority: 1.0, changeFrequency: "weekly" },
+  { path: "/about", priority: 0.85, changeFrequency: "monthly" },
+  { path: "/services", priority: 0.85, changeFrequency: "monthly" },
   { path: "/cv", priority: 0.9, changeFrequency: "monthly" },
   { path: "/work", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/work/seeltransport", priority: 0.82, changeFrequency: "monthly" },
+  { path: "/work/schnellsicherumzug", priority: 0.82, changeFrequency: "monthly" },
   { path: "/work/moplayer", priority: 0.8, changeFrequency: "monthly" },
   { path: "/apps", priority: 0.9, changeFrequency: "weekly" },
   { path: "/apps/moplayer", priority: 0.95, changeFrequency: "weekly" },
   { path: "/youtube", priority: 0.75, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/support", priority: 0.55, changeFrequency: "monthly" },
+  { path: "/privacy", priority: 0.45, changeFrequency: "yearly" },
 ];
 
 const BASE = "https://moalfarras.space";
@@ -48,7 +54,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const canonical: MetadataRoute.Sitemap = [
     { url: `${BASE}/app`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE}/support`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/support`, lastModified: now, changeFrequency: "monthly", priority: 0.35 },
   ];
 
   return [...localized, ...canonical];

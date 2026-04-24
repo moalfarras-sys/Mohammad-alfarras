@@ -31,7 +31,7 @@ export const projects: ProjectEntry[] = [
     nameEN: "MoPlayer",
     descriptionAR: "تطبيق شخصي قيد التطوير لتجربة تشغيل وسائط بواجهة مرتبة، سريعة، وواضحة بصرياً.",
     descriptionEN: "A personal app in development for a clean, focused media experience.",
-    coverImage: "/images/moplayer-app-cover-final.jpeg",
+    coverImage: "/images/moplayer-ui-mock-final.png",
     screenshots: [
       "/images/moplayer_ui_now_playing-final.png",
       "/images/moplayer_ui_playlist-final.png",

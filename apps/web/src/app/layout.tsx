@@ -1,48 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter, Noto_Kufi_Arabic, Tajawal } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteFontClassName } from "@/lib/fonts";
 
 import "./globals.css";
-
-const arabic = Noto_Kufi_Arabic({
-  subsets: ["arabic"],
-  variable: "--font-arabic",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const arabicDisplay = Tajawal({
-  subsets: ["arabic"],
-  variable: "--font-arabic-display",
-  weight: ["500", "700", "800"],
-  display: "swap",
-});
-
-const latin = Inter({
-  subsets: ["latin"],
-  variable: "--font-latin",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const latinDisplay = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  axes: ["opsz"],
-  display: "swap",
-});
 
 const siteUrl = "https://moalfarras.space";
 const siteName = "Mohammad Alfarras";
 const defaultDescription =
-  "Personal website of Mohammad Alfarras — web development, digital products, interface design, and Arabic tech content, from Germany.";
+  "Germany-based builder of production-grade digital presence, interface systems, Android media product surfaces, and Arabic technical storytelling.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${siteName} — Web developer, designer, Arabic tech creator`,
-    template: `%s · ${siteName}`,
+    default: "Mohammad Alfarras — Interfaces, products, and Arabic tech storytelling",
+    template: "%s | Mohammad Alfarras",
   },
   description: defaultDescription,
   applicationName: "Moalfarras",
@@ -50,16 +22,16 @@ export const metadata: Metadata = {
   creator: siteName,
   publisher: siteName,
   keywords: [
+    "frontend developer germany",
+    "arabic web developer",
+    "bilingual website",
+    "Next.js developer germany",
+    "UI designer germany",
+    "مطور ويب",
+    "مصمم مواقع",
+    "تطوير مواقع عربية",
     "Mohammad Alfarras",
     "محمد الفراس",
-    "web developer",
-    "frontend engineer",
-    "Arabic tech",
-    "Next.js",
-    "product design",
-    "MoPlayer",
-    "Germany",
-    "Al-Hasakah",
   ],
   alternates: {
     canonical: "/",
@@ -73,14 +45,14 @@ export const metadata: Metadata = {
     type: "website",
     url: siteUrl,
     siteName,
-    title: `${siteName} — Web developer, designer, Arabic tech creator`,
+    title: "Mohammad Alfarras — Interfaces, products, and Arabic tech storytelling",
     description: defaultDescription,
     locale: "en_US",
     alternateLocale: ["ar_SA"],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteName} — Web developer, designer, Arabic tech creator`,
+    title: "Mohammad Alfarras — Interfaces, products, and Arabic tech storytelling",
     description: defaultDescription,
     creator: "@Moalfarras",
   },
@@ -168,7 +140,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       dir="ltr"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${arabic.variable} ${arabicDisplay.variable} ${latin.variable} ${latinDisplay.variable}`}
+      className={`${siteFontClassName}`}
     >
       <head>
         <meta charSet="UTF-8" />

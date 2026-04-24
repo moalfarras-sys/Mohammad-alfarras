@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -110,7 +111,7 @@ export function AdminAppShell({
           <div className="sticky top-5 flex h-[calc(100vh-2.5rem)] flex-col rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(5,8,16,0.8)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl">
             <Link href={base} className="flex items-center gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-4 transition hover:border-primary/25 hover:bg-white/[0.07]">
               <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/20">
-                <img src={logoSrc} alt={`${siteName} logo`} className="h-10 w-10 object-contain" />
+                <Image src={logoSrc} alt={`${siteName} logo`} width={40} height={40} className="h-10 w-10 object-contain" />
               </div>
               <div className="min-w-0">
                 <p className="truncate text-[11px] font-black uppercase tracking-[0.28em] text-primary">{siteName}</p>
@@ -184,7 +185,7 @@ export function AdminAppShell({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] xl:hidden">
-                  <img src={logoSrc} alt={`${siteName} logo`} className="h-8 w-8 object-contain" />
+                  <Image src={logoSrc} alt={`${siteName} logo`} width={32} height={32} className="h-8 w-8 object-contain" />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-[11px] font-black uppercase tracking-[0.22em] text-primary">{siteName}</p>

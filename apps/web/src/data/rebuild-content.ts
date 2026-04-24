@@ -153,14 +153,14 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "محتوى تقني عربي صادق من ألمانيا. شرح واضح، مراجعات حقيقية، وثقة لا تُشترى بالإعلان.",
         ogTitle: "يوتيوب | محتوى عربي حقيقي من ألمانيا",
         ogDescription: "أكثر من 1.5 مليون مشاهدة بنت سلطة مبنية على الصدق لا على الضجيج.",
-        image: "/images/yt-hero-2026.png",
+        image: "/images/hero_tech.png",
       },
       contact: {
         title: "تواصل | محمد الفراس",
         description: "إذا كانت لديك فكرة جادة وتحتاج تنفيذًا لا يخذلها، ابدأ برسالة واضحة وسأعود إليك بخطوة عملية.",
         ogTitle: "تواصل | ابدأ من فكرة واحدة واضحة",
         ogDescription: "تواصل مباشر للمشاريع الجادة في الويب، إعادة التصميم، والتعاونات التقنية.",
-        image: "/images/logo-unboxing.png",
+        image: "/images/hero_tech.png",
       },
       privacy: {
         title: "الخصوصية | محمد الفراس",
@@ -414,14 +414,14 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "Arabic tech content from Germany built on honesty, clarity, and product storytelling that earns trust.",
         ogTitle: "YouTube | Arabic tech content without the filler",
         ogDescription: "More than 1.5M views built on clear explanation, not paid hype.",
-        image: "/images/yt-hero-2026.png",
+        image: "/images/hero-profile-bg.png",
       },
       contact: {
         title: "Contact | Mohammad Alfarras",
         description: "For serious web builds, redesigns, and tech content collaborations. Send the idea as it is and get a clear next step back.",
         ogTitle: "Contact | Direct conversation, no middle layer",
         ogDescription: "A serious project deserves a serious response. Start here.",
-        image: "/images/logo-unboxing.png",
+        image: "/images/hero-profile-bg.png",
       },
       privacy: {
         title: "Privacy | Mohammad Alfarras",

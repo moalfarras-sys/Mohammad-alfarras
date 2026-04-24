@@ -11,29 +11,21 @@ import type { CmsSnapshot, Locale } from "@/types/cms";
 
 import type { SiteViewModel } from "./site-view-model";
 import {
-  PortfolioAppsPage,
-  PortfolioContactPage,
   PortfolioCvPage,
   PortfolioHomePage,
   PortfolioPrivacyPage,
-  PortfolioWorkPage,
-  PortfolioYoutubePage,
 } from "./portfolio-pages";
+import { AboutPageBody } from "@/components/sections/about-page-body";
+import { AppsPageBody } from "@/components/sections/apps-page-body";
+import { ContactPageBody } from "@/components/sections/contact-page-body";
+import { ServicesPageBody } from "@/components/sections/services-page-body";
+import { WorkPageBody } from "@/components/sections/work-page-body";
+import { YoutubePageBody } from "@/components/sections/youtube-page-body";
 
 function safeImageSrc(path: string | null | undefined, fallback: string) {
   if (!path?.trim()) return fallback;
   const value = path.trim();
   return value.startsWith("/") || value.startsWith("http://") || value.startsWith("https://") ? value : fallback;
-}
-
-function safePortraitSrc(path: string | null | undefined) {
-  if (!path) return "/images/portrait.jpg";
-  const value = path.trim().toLowerCase();
-  if (!value) return "/images/portrait.jpg";
-  if (value.includes("service_") || value.includes("moplayer") || value.includes("logo")) {
-    return "/images/portrait.jpg";
-  }
-  return path;
 }
 
 function formatDate(locale: Locale, value: string) {
@@ -87,7 +79,7 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
           ? "من يوتيوب إلى عرض المنتجات، أتعامل مع المحتوى كطبقة ثقة ترفع صورة المشروع وتدعمه بصرياً."
           : "From YouTube to product storytelling, content becomes a trust layer that strengthens brand perception instead of just filling space.",
       bullets: locale === "ar" ? ["يوتيوب", "عرض المنتج", "ثقة الجمهور"] : ["YouTube", "Product storytelling", "Audience trust"],
-      image: "/images/yt-hero-2026.png",
+      image: "/images/hero-profile-bg.png",
     },
   ];
 
@@ -130,8 +122,8 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
     eyebrow: locale === "ar" ? "تجربة تطبيق ومنتج" : "App and product experience",
     challenge:
       locale === "ar"
-        ? "الهدف كان بناء تجربة تشغيل وسائط أسرع، أوضح، وأكثر اتساقاً كمنتج حقيقي."
-        : "The target was a cleaner, faster media flow that feels like a real product.",
+        ? "الهدف كان تقديم تجربة وسائط أوضح وأكثر اتساقاً كمنتج حقيقي داخل الموقع."
+        : "The target was a clearer, more coherent media product surface inside the site.",
     solution:
       locale === "ar"
         ? "تم التركيز على واجهة أوضح، إيقاع تنقل أفضل، وهوية بصرية أكثر تماسكاً بين الهاتف وAndroid TV."
@@ -145,12 +137,12 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
     metrics: locale === "ar"
       ? [
           { value: "API 24+", label: "الحد الأدنى" },
-          { value: "TV", label: "جاهزية Android TV" },
+            { value: "TV", label: "سياق Android TV" },
           { value: "UI", label: "واجهة مركزة" },
         ]
       : [
           { value: "API 24+", label: "Minimum SDK" },
-          { value: "TV", label: "Android TV ready" },
+            { value: "TV", label: "Android TV context" },
           { value: "UI", label: "Focused interface" },
         ],
   };
@@ -171,7 +163,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         .sort((a, b) => a.sort_order - b.sort_order);
       const coverAsset = snapshot.work_project_media.find((item) => item.project_id === entry.id && item.role === "cover");
       const fallbackImage = entry.slug.includes("moplayer")
-        ? "/images/moplayer-app-cover-final.jpeg"
+        ? "/images/moplayer-ui-mock-final.png"
         : entry.slug.includes("schnell")
           ? "/images/schnell-home-case.png"
           : "/images/seel-home-case.png";
@@ -247,14 +239,14 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       gallery: ["/images/seel-home-case.png"],
       metrics: locale === "ar"
         ? [
-            { value: "24/7", label: "إيقاع تشغيلي" },
-            { value: "TMS", label: "تنسيق المسارات" },
-            { value: "B2B", label: "ثقة الخدمة" },
+            { value: "Ops", label: "إيقاع تشغيلي" },
+            { value: "Routes", label: "تنسيق المسارات" },
+            { value: "Trust", label: "ثقة الخدمة" },
           ]
         : [
-            { value: "24/7", label: "Operations rhythm" },
-            { value: "TMS", label: "Route management" },
-            { value: "B2B", label: "Service trust" },
+            { value: "Ops", label: "Operations rhythm" },
+            { value: "Routes", label: "Route coordination" },
+            { value: "Trust", label: "Service trust" },
           ],
     },
     {
@@ -290,12 +282,12 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       gallery: ["/images/schnell-home-case.png"],
       metrics: locale === "ar"
         ? [
-            { value: "< 60s", label: "وضوح العرض" },
+            { value: "Offer", label: "وضوح العرض" },
             { value: "Lead", label: "تركيز على الطلب" },
             { value: "Trust", label: "بناء الثقة" },
           ]
         : [
-            { value: "< 60s", label: "First-screen clarity" },
+            { value: "Offer", label: "First-screen clarity" },
             { value: "Lead", label: "Lead-first structure" },
             { value: "Trust", label: "Trust layer" },
           ],
@@ -391,7 +383,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const snapshot = await readSnapshot();
   const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
-  const portraitImage = safePortraitSrc(brandMedia.profilePortrait);
+  const portraitImage = safeImageSrc("/images/protofeilnew.jpeg", "/images/protofeilnew.jpeg");
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
 
@@ -445,6 +437,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     cvProjects: cvPresentation.projects,
     cvExperience: cvPresentation.experience,
     portraitImage,
+    brandMedia,
     downloads: {
       branded: brandedDownload,
       ats: atsDownload,
@@ -458,17 +451,20 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
     case "home":
       return <PortfolioHomePage model={model} />;
     case "about":
+      return <AboutPageBody model={model} />;
     case "cv":
       return <PortfolioCvPage model={model} />;
+    case "services":
+      return <ServicesPageBody model={model} />;
     case "projects":
     case "work":
-      return <PortfolioWorkPage model={model} />;
+      return <WorkPageBody model={model} />;
     case "youtube":
-      return <PortfolioYoutubePage model={model} />;
+      return <YoutubePageBody model={model} />;
     case "contact":
-      return <PortfolioContactPage model={model} />;
+      return <ContactPageBody model={model} />;
     case "apps":
-      return <PortfolioAppsPage model={model} />;
+      return <AppsPageBody model={model} />;
     case "privacy":
       return <PortfolioPrivacyPage model={model} />;
     default:

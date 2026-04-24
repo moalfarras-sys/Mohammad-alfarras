@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@moalfarras/shared"],
+  async redirects() {
+    return [
+      { source: "/:locale(en|ar)/projects", destination: "/:locale/work", permanent: true },
+      { source: "/:locale(en|ar)/projects/:slug*", destination: "/:locale/work/:slug*", permanent: true },
+    ];
+  },
   turbopack: {
     root: path.join(process.cwd(), "../.."),
   },
@@ -37,6 +43,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "media.api-sports.io",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.weatherapi.com",
+      },
+      {
+        protocol: "https",
+        hostname: "moalfarras.space",
+      },
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],
@@ -58,7 +72,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              `default-src 'self'; img-src 'self' https://i.ytimg.com https://img.youtube.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://ckefrnalgnbuaxsuufyx.supabase.co https://media.api-sports.io data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src ${devScriptDirective}; connect-src 'self' https://ckefrnalgnbuaxsuufyx.supabase.co; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`,
+              `default-src 'self'; img-src 'self' https://i.ytimg.com https://img.youtube.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://ckefrnalgnbuaxsuufyx.supabase.co https://media.api-sports.io https://cdn.weatherapi.com data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src ${devScriptDirective}; connect-src 'self' https://ckefrnalgnbuaxsuufyx.supabase.co; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`,
           },
         ],
       },

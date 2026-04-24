@@ -7,85 +7,113 @@ const BASE_URL = "https://moalfarras.space";
 const seoCopy = {
   ar: {
     home: {
-      title: "محمد الفراس | موقع شخصي ومهني",
-      description: "الموقع الشخصي والمهني لمحمد الفراس: تطوير ويب، تصميم، منتجات رقمية، ومحتوى تقني عربي من ألمانيا.",
+      title: "محمد الفراس | واجهات ومنتجات ومحتوى تقني عربي",
+      description:
+        "موقع محمد الفراس من ألمانيا: واجهات ويب أهدأ، صفحات تسويقية أوضح، ومنتجات رقمية ومحتوى تقني عربي يبني الثقة من أول شاشة.",
       image: "/images/portrait.jpg",
     },
     cv: {
       title: "السيرة الذاتية | محمد الفراس",
-      description: "الخبرة، طريقة العمل، وروابط تحميل السيرة الذاتية لمحمد الفراس في صفحة واحدة واضحة.",
+      description: "خبرة عملية تجمع اللوجستيات، تطوير الويب، وبناء المنتجات مع سرد بصري واضح بالعربية والإنجليزية.",
       image: "/images/portrait.jpg",
     },
     work: {
       title: "الأعمال | محمد الفراس",
-      description: "أعمال ودراسات حالة مختارة توضّح كيف تتحول المشاريع إلى واجهات أوضح وحضور رقمي أقوى.",
-      image: "/images/seel-home-case.png",
+      description: "دراسات حالة وصفحات عمل أعيد ترتيبها لتصبح أوضح، أهدأ، وأكثر إقناعًا من أول انطباع.",
+      image: "/images/service_logistics.png",
     },
     youtube: {
       title: "يوتيوب | محمد الفراس",
-      description: "المحتوى التقني العربي كجزء من البراند الشخصي لمحمد الفراس.",
-      image: "/images/yt-hero-2026.png",
+      description: "قناة تقنية عربية تبني جمهورًا بالوضوح والشرح الهادئ، وتكمل نفس الهوية التي يقدمها الموقع والمنتج.",
+      image: "/images/hero-profile-bg.png",
     },
     contact: {
       title: "تواصل | محمد الفراس",
-      description: "تواصل مباشر لمشاريع الويب، إعادة الترتيب البصري، ودراسات الحالة والمنتجات الرقمية.",
-      image: "/images/contact-hero-2026.png",
+      description: "تواصل مباشر لمواقع الويب، صفحات التعريف، المنتجات الرقمية، وإعادة صياغة الحضور البصري بشكل أوضح وأكثر ثقة.",
+      image: "/images/hero_tech.png",
     },
     privacy: {
       title: "الخصوصية | محمد الفراس",
-      description: "سياسة خصوصية واضحة ومباشرة لموقع moalfarras.space.",
+      description: "سياسة خصوصية واضحة ومباشرة لموقع moalfarras.space بلغة مفهومة وبأقل تعقيد ممكن.",
       image: "/images/portrait.jpg",
     },
     apps: {
       title: "التطبيقات والمنتجات | محمد الفراس",
-      description: "منظومة تطبيقات ومنتجات رقمية مبنية بنفس مستوى الموقع. MoPlayer هو المنتج البطل حالياً.",
-      image: "/images/moplayer-app-cover-final.jpeg",
+      description: "صفحات ومنتجات رقمية مصممة بنفس مستوى الموقع، مع MoPlayer كأوضح مثال على منتج شخصي مكتمل الهوية.",
+      image: "/images/moplayer-hero-3d-final.png",
+    },
+    about: {
+      title: "عني | محمد الفراس — واجهات ومنتجات ومحتوى تقني من ألمانيا",
+      description:
+        "تعرّف على محمد الفراس: يبني واجهات ويب ومنتجات رقمية وتجارب ثنائية اللغة، ويقدّم محتوى تقني عربي من ألمانيا.",
+      image: "/images/portrait.jpg",
+    },
+    services: {
+      title: "الخدمات | تصميم وتطوير ويب، واجهات، ومواقع عربية/إنجليزية",
+      description:
+        "خدمات تصميم وتطوير الويب، الواجهات الأمامية، المواقع ثنائية اللغة وRTL، تصميم UI/UX، ودعم تطوير مدعوم بالذكاء الاصطناعي.",
+      image: "/images/hero_tech.png",
     },
   },
   en: {
     home: {
-      title: "Mohammad Alfarras | Personal and professional website",
-      description: "Personal website for Mohammad Alfarras covering web development, digital products, interface design, and Arabic tech content.",
+      title: "Mohammad Alfarras | Interfaces, products, and Arabic tech storytelling",
+      description:
+        "Germany-based personal brand site for Mohammad Alfarras covering production-grade digital presence, product interfaces, Android media work, and Arabic tech storytelling.",
       image: "/images/portrait.jpg",
     },
     cv: {
       title: "CV | Mohammad Alfarras",
-      description: "Professional experience, working principles, and downloadable CV versions for Mohammad Alfarras.",
+      description: "A practical profile spanning logistics discipline, frontend execution, product thinking, and bilingual communication.",
       image: "/images/portrait.jpg",
     },
     work: {
       title: "Work | Mohammad Alfarras",
-      description: "Selected case studies and product work showing clearer structure, stronger trust, and sharper digital presentation.",
-      image: "/images/seel-home-case.png",
+      description:
+        "Selected case studies showing how structure, image direction, and product clarity can make a digital presence feel stronger and calmer.",
+      image: "/images/service_logistics.png",
     },
     youtube: {
       title: "YouTube | Mohammad Alfarras",
-      description: "Arabic tech content as part of Mohammad Alfarras' personal brand and product communication.",
-      image: "/images/yt-hero-2026.png",
+      description: "Arabic tech content that extends the same brand language: clearer explanation, stronger presence, and long-term audience trust.",
+      image: "/images/hero-profile-bg.png",
     },
     contact: {
       title: "Contact | Mohammad Alfarras",
-      description: "Direct contact for web projects, redesigns, product presentation, and digital work.",
-      image: "/images/contact-hero-2026.png",
+      description: "Direct contact for web projects, product pages, redesigns, and digital presentation work.",
+      image: "/images/hero_tech.png",
     },
     privacy: {
       title: "Privacy | Mohammad Alfarras",
-      description: "Clear privacy policy for moalfarras.space.",
+      description: "A clear privacy policy for moalfarras.space, written to stay readable and practical.",
       image: "/images/portrait.jpg",
     },
     apps: {
       title: "Apps & Products | Mohammad Alfarras",
-      description: "A small ecosystem of focused products built to the same standard as the site. MoPlayer is the headline product today.",
-      image: "/images/moplayer-app-cover-final.jpeg",
+      description: "A focused ecosystem of product surfaces built to the same standard as the site. MoPlayer is the flagship product today.",
+      image: "/images/moplayer-hero-3d-final.png",
+    },
+    about: {
+      title: "About | Mohammad Alfarras — Interfaces, products, and Arabic tech content from Germany",
+      description:
+        "Meet Mohammad Alfarras: a Germany-based builder working across web interfaces, digital products, Android media surfaces, and Arabic tech content.",
+      image: "/images/portrait.jpg",
+    },
+    services: {
+      title: "Services | Web design, frontend, bilingual & RTL, UI/UX, AI-assisted delivery",
+      description:
+        "Web design and development, React/Next.js/TypeScript frontends, bilingual and RTL websites, UI/UX, and AI-assisted development workflows.",
+      image: "/images/hero_tech.png",
     },
   },
 } as const;
 
 const keywordMap: Record<string, string[]> = {
-  home: ["Mohammad Alfarras", "personal website", "frontend developer Germany", "محمد الفراس", "مطور ويب", "موقع شخصي"],
-  about: ["Mohammad Alfarras CV", "professional profile", "محمد الفراس سيرة ذاتية", "السيرة الذاتية"],
+  home: ["Mohammad Alfarras", "personal brand website", "frontend developer Germany", "محمد الفراس", "مطور ويب", "موقع شخصي"],
+  about: ["Mohammad Alfarras about", "frontend developer Germany", "محمد الفراس عني", "مطور ويب ألمانيا"],
   cv: ["Mohammad Alfarras CV", "professional profile", "محمد الفراس سيرة ذاتية", "السيرة الذاتية"],
   work: ["Mohammad Alfarras work", "case studies", "MoPlayer", "أعمال محمد الفراس", "دراسات حالة"],
+  services: ["web design services", "bilingual website", "RTL development", "خدمات تصميم مواقع"],
   youtube: ["Mohammad Alfarras YouTube", "Arabic tech content", "يوتيوب محمد الفراس", "محتوى تقني عربي"],
   contact: ["contact Mohammad Alfarras", "hire web developer", "تواصل محمد الفراس"],
   privacy: ["moalfarras privacy", "سياسة الخصوصية محمد الفراس"],
@@ -93,7 +121,7 @@ const keywordMap: Record<string, string[]> = {
 };
 
 export async function pageMetadata(locale: Locale, slug: string): Promise<Metadata> {
-  const normalized = slug === "about" ? "cv" : slug === "projects" ? "work" : (slug || "home");
+  const normalized = slug === "projects" ? "work" : (slug || "home");
   const localizedPath = normalized === "home" ? `/${locale}` : `/${locale}/${normalized}`;
   const altAr = normalized === "home" ? "/ar" : `/ar/${normalized}`;
   const altEn = normalized === "home" ? "/en" : `/en/${normalized}`;

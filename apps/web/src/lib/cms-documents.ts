@@ -142,16 +142,16 @@ function defaultBrandAssets(): BrandAssetsDocument {
       path: "/images/moplayer-brand-logo-final.png",
     },
     profilePortrait: {
-      mediaId: "m7",
-      path: "/images/protofeilnew.jpeg",
+      mediaId: null,
+      path: "/images/portrait.jpg",
     },
     youtubeHero: {
       mediaId: null,
-      path: "/images/yt-hero-2026.png",
+      path: "/images/hero-profile-bg.png",
     },
     contactHero: {
-      mediaId: null,
-      path: "/images/contact-hero-2026.png",
+      mediaId: "m8",
+      path: "/images/hero_tech.png",
     },
     gallery: {
       techMediaId: "m6",
@@ -161,7 +161,7 @@ function defaultBrandAssets(): BrandAssetsDocument {
       logisticsMediaId: "m4",
       logisticsPath: "/images/service_logistics.png",
       mediaMediaId: null,
-      mediaPath: "/images/yt-hero-2026.png",
+      mediaPath: "/images/yt-channel-hero.png",
     },
   };
 }
@@ -375,4 +375,3 @@ export function resolveRebuildLocaleContent(snapshot: CmsSnapshot, locale: Local
     contact: contact[locale],
   };
 }
-

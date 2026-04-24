@@ -1,15 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("home renders in dark mode and switches to light mode", async ({ page }) => {
+test("home renders and theme toggle changes the root class", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/en");
 
   await expect(page.getByTestId("home-hero")).toBeVisible();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const before = (await page.locator("html").getAttribute("class")) ?? "";
 
   await page.getByTestId("theme-toggle").click();
 
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.getByRole("link", { name: /start your standout project/i })).toBeVisible();
+  await expect.poll(async () => (await page.locator("html").getAttribute("class")) ?? "").not.toBe(before);
+  await expect(page.getByRole("link", { name: /start a focused conversation/i })).toBeVisible();
 });
 
 test("mobile dock is visible and routes stay reachable", async ({ page }) => {
@@ -36,9 +37,10 @@ test("key inner pages render redesigned surfaces", async ({ page }) => {
   await expect(page.getByRole("button", { name: /send message/i })).toBeVisible();
 });
 
-test("contact chips update the subject preview", async ({ page }) => {
+test("contact form validates required fields", async ({ page }) => {
   await page.goto("/en/contact");
 
-  await page.getByTestId("preset-redesign").click();
-  await expect(page.getByTestId("contact-subject-preview")).toContainText("Redesign");
+  await page.getByRole("button", { name: /send message/i }).click();
+  await expect(page.getByText(/The message could not be sent/i).first()).toBeVisible();
+  await expect(page.getByText(/Write at least 20 characters/i).first()).toBeVisible();
 });

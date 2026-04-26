@@ -49,6 +49,10 @@ export default async function AdminPage({
         screenshots={data.screenshots}
         releases={data.releases}
         supportRequests={data.supportRequests}
+        devices={data.devices}
+        activationRequests={data.activationRequests}
+        licenses={data.licenses}
+        runtimeConfig={data.runtimeConfig}
       />
     </main>
   );

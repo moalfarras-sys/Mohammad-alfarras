@@ -6,10 +6,14 @@ import type {
   AppEcosystemData,
   AppFaq,
   AppFeatureItem,
+  AppLicense,
   AppProduct,
   AppRelease,
   AppReleaseAsset,
+  ActivationRequest,
+  AppDevice,
   AppScreenshot,
+  AppRuntimeConfig,
   AppStepItem,
   AppSupportRequest,
 } from "@/types/app-ecosystem";
@@ -171,6 +175,21 @@ const fallbackFaqs: AppFaq[] = [
 ];
 
 const fallbackSupportRequests: AppSupportRequest[] = [];
+
+export const fallbackRuntimeConfig: AppRuntimeConfig = {
+  enabled: true,
+  maintenanceMode: false,
+  forceUpdate: false,
+  minimumVersionCode: 2,
+  latestVersionName: "2.0.0",
+  message: "",
+  accentColor: "#00e5ff",
+  logoUrl: "/images/moplayer-icon-512.png",
+  backgroundUrl: "/images/moplayer-tv-banner.png",
+  widgets: { weather: true, football: true },
+  supportUrl: "https://moalfarras.space/en/contact",
+  privacyUrl: "https://moalfarras.space/privacy",
+};
 
 const fallbackReleases: AppRelease[] = [
   {
@@ -384,16 +403,30 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
 export async function readAdminAppData(productSlug = "moplayer") {
   const ecosystem = await readAppEcosystem(productSlug);
   let supportRequests: AppSupportRequest[] = [];
+  let devices: AppDevice[] = [];
+  let activationRequests: ActivationRequest[] = [];
+  let licenses: AppLicense[] = [];
+  let runtimeConfig: AppRuntimeConfig = fallbackRuntimeConfig;
 
   try {
     const supabase = createSupabaseAdminClient();
-    const { data } = await supabase
+    const [{ data }, { data: deviceRows }, { data: activationRows }, { data: licenseRows }, { data: settingsRow }] = await Promise.all([
+      supabase
       .from("app_support_requests")
       .select("*")
       .eq("product_slug", productSlug)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(50),
+      supabase.from("devices").select("*").order("last_seen_at", { ascending: false }).limit(100),
+      supabase.from("activation_requests").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("licenses").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("app_settings").select("value").eq("key", "moplayer_public_config").maybeSingle(),
+    ]);
     supportRequests = (data as AppSupportRequest[] | null) ?? [];
+    devices = (deviceRows as AppDevice[] | null) ?? [];
+    activationRequests = (activationRows as ActivationRequest[] | null) ?? [];
+    licenses = (licenseRows as AppLicense[] | null) ?? [];
+    runtimeConfig = { ...fallbackRuntimeConfig, ...((settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {}) };
   } catch {
     if (hasDatabaseUrl()) {
       const result = await queryRows<{
@@ -435,7 +468,34 @@ export async function readAdminAppData(productSlug = "moplayer") {
   return {
     ...ecosystem,
     supportRequests,
+    devices,
+    activationRequests,
+    licenses,
+    runtimeConfig,
   };
+}
+
+export async function saveRuntimeConfig(input: AppRuntimeConfig) {
+  const payload: AppRuntimeConfig = {
+    ...fallbackRuntimeConfig,
+    ...input,
+    widgets: {
+      ...fallbackRuntimeConfig.widgets,
+      ...(input.widgets ?? {}),
+    },
+  };
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("app_settings").upsert(
+    {
+      key: "moplayer_public_config",
+      value: payload,
+      description: "Public MoPlayer runtime configuration consumed by Android and admin.",
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+  if (error) throw error;
 }
 
 export async function saveAppProduct(input: Partial<AppProduct> & { slug: string }) {

@@ -11,6 +11,7 @@ import {
   saveAppFaq,
   saveAppProduct,
   saveAppRelease,
+  saveRuntimeConfig,
   saveAppScreenshot,
   updateSupportRequestStatus,
   uploadAppScreenshot,
@@ -223,4 +224,27 @@ export async function updateSupportRequestAction(formData: FormData) {
   );
   revalidateAppSurface();
   redirect("/?updated=support");
+}
+
+export async function saveRuntimeConfigAction(formData: FormData) {
+  await requireAdminRole("admin");
+  await saveRuntimeConfig({
+    enabled: formData.get("enabled") === "on",
+    maintenanceMode: formData.get("maintenanceMode") === "on",
+    forceUpdate: formData.get("forceUpdate") === "on",
+    minimumVersionCode: Number(formData.get("minimumVersionCode") ?? 2),
+    latestVersionName: String(formData.get("latestVersionName") ?? "2.0.0"),
+    message: String(formData.get("message") ?? ""),
+    accentColor: String(formData.get("accentColor") ?? "#00e5ff"),
+    logoUrl: String(formData.get("logoUrl") ?? "/images/moplayer-icon-512.png"),
+    backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner.png"),
+    widgets: {
+      weather: formData.get("weather") === "on",
+      football: formData.get("football") === "on",
+    },
+    supportUrl: String(formData.get("supportUrl") ?? "https://moalfarras.space/en/contact"),
+    privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),
+  });
+  revalidateAppSurface();
+  redirect("/?updated=runtime_config");
 }

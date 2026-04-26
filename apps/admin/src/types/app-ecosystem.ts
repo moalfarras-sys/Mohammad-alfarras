@@ -106,6 +106,58 @@ export type AppSupportRequest = {
   created_at: string;
 };
 
+export type AppDevice = {
+  id: string;
+  public_device_id: string;
+  name: string | null;
+  platform: string;
+  device_type: string;
+  app_version: string | null;
+  status: "pending" | "active" | "blocked" | "revoked";
+  last_seen_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ActivationRequest = {
+  id: string;
+  public_device_id: string;
+  device_code: string;
+  status: "waiting" | "activated" | "expired" | "failed";
+  expires_at: string;
+  activated_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppLicense = {
+  id: string;
+  device_id: string;
+  plan: string;
+  status: "active" | "expired" | "revoked";
+  valid_until: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppRuntimeConfig = {
+  enabled: boolean;
+  maintenanceMode: boolean;
+  forceUpdate: boolean;
+  minimumVersionCode: number;
+  latestVersionName: string;
+  message: string;
+  accentColor: string;
+  logoUrl: string;
+  backgroundUrl: string;
+  widgets: {
+    weather: boolean;
+    football: boolean;
+  };
+  supportUrl: string;
+  privacyUrl: string;
+};
+
 export type AppEcosystemData = {
   product: AppProduct;
   screenshots: AppScreenshot[];

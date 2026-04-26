@@ -273,6 +273,27 @@ export function CvControlCenter({
     <div className="space-y-5">
       <StudioShell eyebrow={t(locale, "السيرة", "CV")} title={t(locale, "إدارة السيرة الذاتية", "CV management")} body={t(locale, "محتوى الصفحة، بيانات الملف، والخبرات والشهادات في نظام واحد.", "Page copy, profile data, experience, and certifications in one workflow.")}>
         <div className="grid gap-5">
+          <Card className="space-y-4">
+            <SectionTitle
+              title={t(locale, "المعاينة والتصدير", "Preview and exports")}
+              aside={<StatusPill tone="success" message={t(locale, "PDF و DOCX من نفس بيانات السيرة", "PDF and DOCX from the same CV data")} />}
+            />
+            <div className="grid gap-3 md:grid-cols-4">
+              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/${locale}/cv`} target="_blank" rel="noopener noreferrer">
+                {t(locale, "معاينة صفحة CV", "Preview CV page")}
+              </a>
+              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/api/cv-pdf?locale=${locale}&variant=branded`} target="_blank" rel="noopener noreferrer">
+                {t(locale, "تنزيل PDF مصمم", "Download designed PDF")}
+              </a>
+              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/api/cv-pdf?locale=${locale}&variant=ats`} target="_blank" rel="noopener noreferrer">
+                {t(locale, "تنزيل PDF ATS", "Download ATS PDF")}
+              </a>
+              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/api/cv-docx?locale=${locale}`} target="_blank" rel="noopener noreferrer">
+                {t(locale, "تنزيل Word DOCX", "Download Word DOCX")}
+              </a>
+            </div>
+          </Card>
+
           <Card className="space-y-5">
             <SectionTitle title={t(locale, "صفحة السيرة", "CV page copy")} aside={<StatusPill tone={pageAction.tone} message={pageAction.message} />} />
             <LocaleGrid

@@ -8,10 +8,21 @@ import {
   saveFaqAction,
   saveProductAction,
   saveReleaseAction,
+  saveRuntimeConfigAction,
   saveScreenshotAction,
   updateSupportRequestAction,
 } from "@/app/actions";
-import type { AppFaq, AppProduct, AppRelease, AppScreenshot, AppSupportRequest } from "@/types/app-ecosystem";
+import type {
+  ActivationRequest,
+  AppDevice,
+  AppFaq,
+  AppLicense,
+  AppProduct,
+  AppRelease,
+  AppRuntimeConfig,
+  AppScreenshot,
+  AppSupportRequest,
+} from "@/types/app-ecosystem";
 
 const webBaseUrl = process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space";
 
@@ -176,6 +187,51 @@ function SupportCard({ item }: { item: AppSupportRequest }) {
   );
 }
 
+function DeviceCard({ item }: { item: AppDevice }) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
+      <h3 className="mt-2 font-mono text-sm font-black text-foreground">{item.public_device_id}</h3>
+      <p className="mt-2 text-sm text-foreground-muted">
+        {item.device_type} · {item.platform} · {item.app_version || "unknown version"}
+      </p>
+      <p className="mt-1 text-xs text-foreground-soft">Last seen: {new Date(item.last_seen_at).toLocaleString("en-GB")}</p>
+    </div>
+  );
+}
+
+function ActivationCard({ item }: { item: ActivationRequest }) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
+      <h3 className="mt-2 font-mono text-xl font-black text-foreground">{item.device_code}</h3>
+      <p className="mt-2 font-mono text-xs text-foreground-muted">{item.public_device_id}</p>
+      <p className="mt-1 text-xs text-foreground-soft">
+        Expires: {new Date(item.expires_at).toLocaleString("en-GB")}
+        {item.activated_at ? ` · Activated: ${new Date(item.activated_at).toLocaleString("en-GB")}` : ""}
+      </p>
+    </div>
+  );
+}
+
+function LicenseCard({ item, device }: { item: AppLicense; device?: AppDevice }) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
+      <h3 className="mt-2 text-sm font-black text-foreground">
+        {item.plan} plan
+        {device?.public_device_id ? <span className="block pt-1 font-mono text-xs text-foreground-soft">{device.public_device_id}</span> : null}
+      </h3>
+      <p className="mt-2 text-xs text-foreground-muted">
+        Device: {device?.name || item.device_id}
+      </p>
+      <p className="mt-1 text-xs text-foreground-soft">
+        Valid until: {item.valid_until ? new Date(item.valid_until).toLocaleString("en-GB") : "No expiry"}
+      </p>
+    </div>
+  );
+}
+
 export function AppAdminDashboard({
   adminEmail,
   role,
@@ -185,6 +241,10 @@ export function AppAdminDashboard({
   screenshots,
   releases,
   supportRequests,
+  devices,
+  activationRequests,
+  licenses,
+  runtimeConfig,
 }: {
   adminEmail: string;
   role: string;
@@ -194,7 +254,12 @@ export function AppAdminDashboard({
   screenshots: AppScreenshot[];
   releases: AppRelease[];
   supportRequests: AppSupportRequest[];
+  devices: AppDevice[];
+  activationRequests: ActivationRequest[];
+  licenses: AppLicense[];
+  runtimeConfig: AppRuntimeConfig;
 }) {
+  const devicesById = new Map(devices.map((device) => [device.id, device]));
   return (
     <div className="space-y-8">
       <section className="rounded-[2.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(0,255,135,0.08),rgba(8,10,20,0.95))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:p-8">
@@ -235,7 +300,9 @@ export function AppAdminDashboard({
           { label: "Screenshots", value: screenshots.length },
           { label: "FAQs", value: faqs.length },
           { label: "Releases", value: releases.length },
-          { label: "Support", value: supportRequests.length },
+          { label: "Devices", value: devices.length },
+          { label: "Activations", value: activationRequests.length },
+          { label: "Licenses", value: licenses.length },
         ].map((item) => (
           <div key={item.label} className="rounded-[1.6rem] border border-white/8 bg-black/15 p-5">
             <p className="text-xs font-black uppercase tracking-[0.22em] text-foreground-soft">{item.label}</p>
@@ -243,6 +310,83 @@ export function AppAdminDashboard({
           </div>
         ))}
       </section>
+
+      <PrimaryShell
+        title="Runtime App Control"
+        description="Server-controlled MoPlayer flags. The Android app reads these values without exposing provider secrets in the APK."
+      >
+        <form action={saveRuntimeConfigAction} className="grid gap-4 lg:grid-cols-2">
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
+            <input type="checkbox" name="enabled" defaultChecked={runtimeConfig.enabled} />
+            App enabled
+          </label>
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
+            <input type="checkbox" name="maintenanceMode" defaultChecked={runtimeConfig.maintenanceMode} />
+            Maintenance mode
+          </label>
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
+            <input type="checkbox" name="forceUpdate" defaultChecked={runtimeConfig.forceUpdate} />
+            Force update
+          </label>
+          <TextInput label="Minimum version code" name="minimumVersionCode" type="number" defaultValue={String(runtimeConfig.minimumVersionCode)} />
+          <TextInput label="Latest version name" name="latestVersionName" defaultValue={runtimeConfig.latestVersionName} />
+          <TextInput label="Accent color" name="accentColor" defaultValue={runtimeConfig.accentColor} />
+          <TextInput label="Logo URL" name="logoUrl" defaultValue={runtimeConfig.logoUrl} />
+          <TextInput label="Background URL" name="backgroundUrl" defaultValue={runtimeConfig.backgroundUrl} />
+          <TextInput label="Support URL" name="supportUrl" defaultValue={runtimeConfig.supportUrl} />
+          <TextInput label="Privacy URL" name="privacyUrl" defaultValue={runtimeConfig.privacyUrl} />
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
+            <input type="checkbox" name="weather" defaultChecked={runtimeConfig.widgets.weather} />
+            Weather widget
+          </label>
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
+            <input type="checkbox" name="football" defaultChecked={runtimeConfig.widgets.football} />
+            Football widget
+          </label>
+          <div className="lg:col-span-2">
+            <TextArea label="App message / banner" name="message" defaultValue={runtimeConfig.message} />
+          </div>
+          <div className="lg:col-span-2">
+            <button type="submit" className="rounded-full bg-primary px-5 py-3 text-sm font-black text-black">
+              Save runtime config
+            </button>
+          </div>
+        </form>
+      </PrimaryShell>
+
+      <PrimaryShell
+        title="Devices, Activation & Licenses"
+        description="Live device records, short-lived MO-XXXX activation requests, and the current device-only license records created by MoPlayer."
+      >
+        <div className="grid gap-6 xl:grid-cols-3">
+          <div>
+            <h3 className="mb-3 text-lg font-black text-foreground">Devices</h3>
+            <div className="grid gap-3">
+              {devices.length ? devices.map((item) => <DeviceCard key={item.id} item={item} />) : <p className="text-sm text-foreground-muted">No devices yet.</p>}
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-3 text-lg font-black text-foreground">Activation requests</h3>
+            <div className="grid gap-3">
+              {activationRequests.length ? (
+                activationRequests.map((item) => <ActivationCard key={item.id} item={item} />)
+              ) : (
+                <p className="text-sm text-foreground-muted">No activation requests yet.</p>
+              )}
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-3 text-lg font-black text-foreground">Licenses</h3>
+            <div className="grid gap-3">
+              {licenses.length ? (
+                licenses.map((item) => <LicenseCard key={item.id} item={item} device={devicesById.get(item.device_id)} />)
+              ) : (
+                <p className="text-sm text-foreground-muted">No licenses yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </PrimaryShell>
 
       <PrimaryShell
         title="Product Content"

@@ -7,19 +7,19 @@ const BASE_URL = "https://moalfarras.space";
 const seoCopy = {
   ar: {
     home: {
-      title: "محمد الفراس | واجهات ومنتجات ومحتوى تقني عربي",
+      title: "محمد الفراس | مطور ويب ومصمم واجهات وصانع MoPlayer في ألمانيا",
       description:
-        "موقع محمد الفراس من ألمانيا: واجهات ويب أهدأ، صفحات تسويقية أوضح، ومنتجات رقمية ومحتوى تقني عربي يبني الثقة من أول شاشة.",
-      image: "/images/portrait.jpg",
+        "محمد الفراس: مطور ويب ومصمم UI/UX وباني MoPlayer وصانع محتوى تقني عربي في ألمانيا، يحوّل الخبرة اللوجستية إلى مواقع وتطبيقات واضحة وسريعة الثقة.",
+      image: "/images/protofeilnew.jpeg",
     },
     cv: {
       title: "السيرة الذاتية | محمد الفراس",
       description: "خبرة عملية تجمع اللوجستيات، تطوير الويب، وبناء المنتجات مع سرد بصري واضح بالعربية والإنجليزية.",
-      image: "/images/portrait.jpg",
+      image: "/images/protofeilnew.jpeg",
     },
     work: {
       title: "الأعمال | محمد الفراس",
-      description: "دراسات حالة وصفحات عمل أعيد ترتيبها لتصبح أوضح، أهدأ، وأكثر إقناعًا من أول انطباع.",
+      description: "دراسات حالة لمواقع خدمات ومنتجات رقمية مثل MoPlayer وA&D Fahrzeugtransporte وIntelligent Umzüge، مبنية على وضوح الخدمة ومسار التواصل.",
       image: "/images/service_logistics.png",
     },
     youtube: {
@@ -35,18 +35,18 @@ const seoCopy = {
     privacy: {
       title: "الخصوصية | محمد الفراس",
       description: "سياسة خصوصية واضحة ومباشرة لموقع moalfarras.space بلغة مفهومة وبأقل تعقيد ممكن.",
-      image: "/images/portrait.jpg",
+      image: "/images/protofeilnew.jpeg",
     },
     apps: {
       title: "التطبيقات والمنتجات | محمد الفراس",
-      description: "صفحات ومنتجات رقمية مصممة بنفس مستوى الموقع، مع MoPlayer كأوضح مثال على منتج شخصي مكتمل الهوية.",
+      description: "MoPlayer كمنتج Android TV رئيسي مع APK رسمي، تفعيل عبر الموقع، بيانات إصدار، checksum، دعم، وخصوصية واضحة.",
       image: "/images/moplayer-hero-3d-final.png",
     },
     about: {
       title: "عني | محمد الفراس — واجهات ومنتجات ومحتوى تقني من ألمانيا",
       description:
         "تعرّف على محمد الفراس: يبني واجهات ويب ومنتجات رقمية وتجارب ثنائية اللغة، ويقدّم محتوى تقني عربي من ألمانيا.",
-      image: "/images/portrait.jpg",
+      image: "/images/protofeilnew.jpeg",
     },
     services: {
       title: "الخدمات | تصميم وتطوير ويب، واجهات، ومواقع عربية/إنجليزية",
@@ -57,20 +57,20 @@ const seoCopy = {
   },
   en: {
     home: {
-      title: "Mohammad Alfarras | Interfaces, products, and Arabic tech storytelling",
+      title: "Mohammad Alfarras | Web developer, UI/UX designer, and MoPlayer builder in Germany",
       description:
-        "Germany-based personal brand site for Mohammad Alfarras covering production-grade digital presence, product interfaces, Android media work, and Arabic tech storytelling.",
-      image: "/images/portrait.jpg",
+        "Syrian-German web developer, UI/UX designer, Android/MoPlayer builder, Arabic tech creator, and logistics professional turning real operations into clear digital experiences.",
+      image: "/images/protofeilnew.jpeg",
     },
     cv: {
       title: "CV | Mohammad Alfarras",
       description: "A practical profile spanning logistics discipline, frontend execution, product thinking, and bilingual communication.",
-      image: "/images/portrait.jpg",
+      image: "/images/protofeilnew.jpeg",
     },
     work: {
       title: "Work | Mohammad Alfarras",
       description:
-        "Selected case studies showing how structure, image direction, and product clarity can make a digital presence feel stronger and calmer.",
+        "Case studies for MoPlayer, A&D Fahrzeugtransporte, Intelligent Umzüge, and service websites shaped around clarity, trust, and practical conversion paths.",
       image: "/images/service_logistics.png",
     },
     youtube: {
@@ -86,18 +86,18 @@ const seoCopy = {
     privacy: {
       title: "Privacy | Mohammad Alfarras",
       description: "A clear privacy policy for moalfarras.space, written to stay readable and practical.",
-      image: "/images/portrait.jpg",
+      image: "/images/protofeilnew.jpeg",
     },
     apps: {
       title: "Apps & Products | Mohammad Alfarras",
-      description: "A focused ecosystem of product surfaces built to the same standard as the site. MoPlayer is the flagship product today.",
+      description: "MoPlayer as the flagship Android TV product with official APK download, activation, release metadata, checksum, support, and privacy.",
       image: "/images/moplayer-hero-3d-final.png",
     },
     about: {
       title: "About | Mohammad Alfarras — Interfaces, products, and Arabic tech content from Germany",
       description:
         "Meet Mohammad Alfarras: a Germany-based builder working across web interfaces, digital products, Android media surfaces, and Arabic tech content.",
-      image: "/images/portrait.jpg",
+      image: "/images/protofeilnew.jpeg",
     },
     services: {
       title: "Services | Web design, frontend, bilingual & RTL, UI/UX, AI-assisted delivery",

@@ -167,7 +167,7 @@ export function AboutPageBody({ model }: { model: SiteViewModel }) {
   const t = copy[model.locale];
   const reduced = useReducedMotion();
   const isAr = model.locale === "ar";
-  const portrait = model.portraitImage || model.brandMedia.profilePortrait || "/images/portrait.jpg";
+  const portrait = model.portraitImage || model.brandMedia.profilePortrait || "/images/protofeilnew.jpeg";
 
   return (
     <>

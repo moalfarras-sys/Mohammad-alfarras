@@ -139,7 +139,7 @@ function defaultBrandAssets(): BrandAssetsDocument {
     },
     logo: {
       mediaId: "logo",
-      path: "/images/moplayer-brand-logo-final.png",
+      path: "/images/logo.png",
     },
     profilePortrait: {
       mediaId: null,
@@ -157,7 +157,7 @@ function defaultBrandAssets(): BrandAssetsDocument {
       techMediaId: "m6",
       techPath: "/images/service_tech.png",
       brandMediaId: "logo",
-      brandPath: "/images/moplayer-brand-logo-final.png",
+      brandPath: "/images/logo.png",
       logisticsMediaId: "m4",
       logisticsPath: "/images/service_logistics.png",
       mediaMediaId: null,

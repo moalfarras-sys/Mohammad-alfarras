@@ -5,9 +5,9 @@ import type { Localized } from "./site";
 export const appsPageCopy = {
   en: {
     eyebrow: "Apps and products",
-    title: "MoPlayer is the flagship product inside the same engineering ecosystem.",
+    title: "MoPlayer is the flagship Android TV product inside this ecosystem.",
     body:
-      "Products are not detached microsites here. They share the same trust model: product page, case study, releases, support, privacy, and bilingual documentation.",
+      "The Apps section is built around a real product surface: activation, release metadata, APK download, Android TV positioning, support, privacy, and bilingual documentation.",
     openProduct: "Open MoPlayer",
     viewCase: "Read case study",
     download: "Download APK",
@@ -18,9 +18,9 @@ export const appsPageCopy = {
   },
   ar: {
     eyebrow: "التطبيقات والمنتجات",
-    title: "MoPlayer هو المنتج الرئيسي داخل المنظومة الهندسية نفسها.",
+    title: "MoPlayer هو منتج Android TV الرئيسي داخل هذه المنظومة.",
     body:
-      "المنتجات هنا ليست مواقع صغيرة منفصلة. كلها تعمل ضمن نموذج ثقة واحد: صفحة منتج، دراسة حالة، إصدارات، دعم، خصوصية، وتوثيق عربي/إنجليزي.",
+      "قسم التطبيقات مبني حول سطح منتج حقيقي: تفعيل، بيانات إصدار، تنزيل APK، تموضع Android TV، دعم، خصوصية، وتوثيق عربي/إنجليزي.",
     openProduct: "افتح MoPlayer",
     viewCase: "اقرأ دراسة الحالة",
     download: "تنزيل APK",
@@ -34,35 +34,37 @@ export const appsPageCopy = {
 export const moPlayerCopy = {
   en: {
     badge: "Android and Android TV media product",
-    heroTitle: "MoPlayer is a focused media player surface for Android and Android TV.",
+    heroTitle: "MoPlayer is a cinematic Android TV-first media player shell.",
     heroBody:
-      "A flagship product inside Mohammad Alfarras's unified site: product positioning, release downloads, installation guidance, support, privacy, and case-study context in one place.",
+      "Built as a serious product surface: remote-friendly TV UI, source setup, website activation, release downloads, installation guidance, support, privacy, and case-study context in one trusted place.",
     download: "Download APK",
     support: "Get support",
     caseStudy: "Read case study",
     releasePending: "Release pending",
     specsLabels: {
       version: "Version",
+      versionCode: "Version code",
       size: "Primary APK",
       minSdk: "Minimum SDK",
       targetSdk: "Target SDK",
       abi: "Architecture",
+      checksum: "SHA-256",
       tv: "Android TV",
     },
     featuresEyebrow: "Product decisions",
-    featuresTitle: "Built around clarity, compatibility, and ownership.",
+    featuresTitle: "Built around TV clarity, safe setup, and product ownership.",
     features: [
       {
-        title: "Android and Android TV context",
-        body: "The product story covers both touch and remote-control surfaces without pretending the TV experience is a separate brand.",
+        title: "TV-first product direction",
+        body: "The experience is designed around remote control, focus visibility, readable TV spacing, and adaptive phone layouts.",
       },
       {
-        title: "Download flow under one site",
-        body: "Release downloads, support, privacy, and disclaimers stay in the same trusted web property.",
+        title: "Official release path",
+        body: "APK download, version data, checksum, support, privacy, and disclaimers stay inside moalfarras.space.",
       },
       {
-        title: "No inflated comparison claims",
-        body: "The page explains what is available and what is intentionally not provided, without unverifiable speed or competitor claims.",
+        title: "Legal source clarity",
+        body: "MoPlayer is a player shell. Users connect only media sources they are allowed to use; the app does not provide channels.",
       },
       {
         title: "Bilingual product documentation",
@@ -123,35 +125,37 @@ export const moPlayerCopy = {
   },
   ar: {
     badge: "منتج وسائط لـ Android و Android TV",
-    heroTitle: "MoPlayer واجهة تشغيل وسائط مركّزة على Android و Android TV.",
+    heroTitle: "MoPlayer واجهة وسائط سينمائية موجهة أولاً لـ Android TV.",
     heroBody:
-      "منتج رئيسي داخل موقع محمد الفراس الموحّد: تموضع المنتج، التنزيلات، إرشادات التثبيت، الدعم، الخصوصية، وسياق دراسة الحالة في مكان واحد.",
+      "منتج جدي بواجهة تلفزيون مناسبة للريموت، إعداد مصادر، تفعيل عبر الموقع، تنزيل APK، إرشادات تثبيت، دعم، خصوصية، وسياق دراسة حالة داخل مكان موثوق واحد.",
     download: "تنزيل APK",
     support: "الحصول على الدعم",
     caseStudy: "اقرأ دراسة الحالة",
     releasePending: "الإصدار غير متاح حالياً",
     specsLabels: {
       version: "الإصدار",
+      versionCode: "رقم الإصدار",
       size: "ملف APK الأساسي",
       minSdk: "الحد الأدنى SDK",
       targetSdk: "الهدف SDK",
       abi: "المعمارية",
+      checksum: "SHA-256",
       tv: "Android TV",
     },
     featuresEyebrow: "قرارات المنتج",
-    featuresTitle: "مبني حول الوضوح، التوافق، وملكية المنتج.",
+    featuresTitle: "مبني حول وضوح التلفزيون، الإعداد الآمن، وملكية المنتج.",
     features: [
       {
-        title: "سياق Android و Android TV",
-        body: "قصة المنتج تشمل الهاتف وتجربة الريموت من دون تحويل التلفاز إلى علامة منفصلة عن الموقع.",
+        title: "توجه تلفزيون أولاً",
+        body: "التجربة مصممة حول الريموت، وضوح التركيز، مسافات قابلة للقراءة من بعيد، وتخطيط مناسب للهاتف أيضاً.",
       },
       {
-        title: "مسار تنزيل داخل الموقع نفسه",
-        body: "التنزيلات، الدعم، الخصوصية، والتنبيهات القانونية تبقى ضمن نفس الموقع الموثوق.",
+        title: "مسار إصدار رسمي",
+        body: "تنزيل APK، بيانات النسخة، checksum، الدعم، الخصوصية، والتنبيه القانوني تبقى داخل moalfarras.space.",
       },
       {
-        title: "بدون مقارنات مبالغ فيها",
-        body: "الصفحة تشرح ما هو متاح وما لا يقدمه التطبيق، من دون وعود سرعة أو مقارنات غير قابلة للتحقق.",
+        title: "وضوح قانوني للمصادر",
+        body: "MoPlayer واجهة تشغيل فقط. المستخدم يربط فقط المصادر التي يملك حق استخدامها، والتطبيق لا يوفّر قنوات.",
       },
       {
         title: "توثيق منتج ثنائي اللغة",
@@ -218,7 +222,7 @@ export const moPlayerCopy = {
   support: string;
   caseStudy: string;
   releasePending: string;
-  specsLabels: Record<"version" | "size" | "minSdk" | "targetSdk" | "abi" | "tv", string>;
+  specsLabels: Record<"version" | "versionCode" | "size" | "minSdk" | "targetSdk" | "abi" | "checksum" | "tv", string>;
   featuresEyebrow: string;
   featuresTitle: string;
   features: Array<{ title: string; body: string }>;

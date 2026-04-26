@@ -125,7 +125,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "من الحسكة إلى ألمانيا: محمد الفراس يبني حضورًا رقميًا يربح الثقة من أول شاشة عبر تطوير الواجهات، التصميم الجريء، والمحتوى التقني العربي.",
         ogTitle: "محمد الفراس | حضور رقمي لا يُنسى",
         ogDescription: "تطوير ويب، تصميم جريء، ومحتوى تقني عربي بصوت واضح وانضباط تنفيذي حقيقي.",
-        image: "/images/brand-spotlight-2026.jpeg",
+        image: "/images/hero-dark-bg.png",
       },
       cv: {
         title: "السيرة | محمد الفراس",
@@ -139,7 +139,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "مبادئ عملية حول الوضوح، الثقة، والانطباع الأول كما تُبنى في المشاريع الحقيقية.",
         ogTitle: "الرؤية | ما الذي يجعل العرض يعمل؟",
         ogDescription: "أفكار مختصرة من العمل الفعلي: كيف يُبنى الانطباع، وكيف تتحول الواجهة إلى قرار.",
-        image: "/images/dev_abstract_bg_1775984833791.png",
+        image: "/images/hero_tech.png",
       },
       projects: {
         title: "الأعمال | محمد الفراس",
@@ -386,7 +386,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "From Al-Hasakah to Germany, Mohammad Alfarras combines logistics discipline, visual sharpness, and honest tech content into a personal brand that earns trust fast.",
         ogTitle: "Mohammad Alfarras | A digital presence that gets remembered",
         ogDescription: "Bold web execution, confident design, and Arabic tech content shaped by real operational discipline.",
-        image: "/images/brand-spotlight-2026.jpeg",
+        image: "/images/hero-dark-bg.png",
       },
       cv: {
         title: "About | Mohammad Alfarras",
@@ -400,7 +400,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "Short principles on clarity, trust, first impressions, and why some digital experiences convert while others disappear.",
         ogTitle: "Insights | Why some experiences work",
         ogDescription: "Practical thinking from real projects, not decorative design commentary.",
-        image: "/images/dev_abstract_bg_1775984833791.png",
+        image: "/images/hero_tech.png",
       },
       projects: {
         title: "Work | Mohammad Alfarras",

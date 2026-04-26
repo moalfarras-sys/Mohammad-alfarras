@@ -4,7 +4,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { ArrowUpRight, Mail, MapPin, MessageCircle, Send, Clock, Sparkles } from "lucide-react";
 
-import { PageHero } from "@/components/sections/page-hero";
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import type { SiteViewModel } from "@/components/site/site-view-model";
 
@@ -63,119 +62,141 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
 
   return (
     <div data-testid="contact-page">
-      <PageHero
-        locale={model.locale}
-        eyebrow={t.eyebrow}
-        title={t.title}
-        body={t.body}
-        actions={
-          <>
-            <a href={`mailto:${email}`} className="button-liquid-primary">
-              <Mail className="h-4 w-4" />
-              {t.email}
-            </a>
-            <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary">
-              <MessageCircle className="h-4 w-4" />
-              {t.whatsapp}
-            </a>
-          </>
-        }
-        side={
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: reduced ? 0.2 : 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="relative mx-auto aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[28px]"
-          >
-            <div className="pointer-events-none absolute inset-0 -z-10 rounded-[28px] bg-gradient-to-br from-[#6366f1]/30 via-transparent to-[#8b5cf6]/30 blur-3xl" aria-hidden />
-            <div className="glass relative h-full w-full overflow-hidden rounded-[28px]">
-              <Image
-                src={heroImage}
-                alt=""
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 560px"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#030712]/70 via-transparent to-transparent" aria-hidden />
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 backdrop-blur">
-                  <Sparkles className="h-3 w-3" />
-                  {isAr ? "من الرسالة إلى التنفيذ" : "From message to execution"}
+      {/* ── HERO ── */}
+      <section className="relative overflow-hidden pt-32 md:pt-40">
+        <div className="pointer-events-none absolute inset-0 bg-[var(--bg-base)]" />
+        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 10%, rgba(99,102,241,0.08) 0%, transparent 60%)" }} />
+        
+        <div className="section-frame relative z-10">
+          <div className="grid gap-12 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.eyebrow}</p>
+              <h1 className="mt-4 overflow-visible pb-2 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4.5vw,3.8rem)" }}>
+                {t.title}
+              </h1>
+              <p className="mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-lg">{t.body}</p>
+              
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a href={`mailto:${email}`} className="button-liquid-primary inline-flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {t.email}
+                </a>
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary inline-flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  {t.whatsapp}
+                </a>
+              </div>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduced ? 0.2 : 0.8 }}
+              className="relative aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[var(--radius-xl)]"
+            >
+              <div className="glass relative h-full w-full overflow-hidden" style={{ boxShadow: "var(--shadow-hero)" }}>
+                <Image
+                  src={heroImage}
+                  alt="Contact"
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 560px"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--bg-base)]/80 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-md">
+                    <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                    {isAr ? "من الرسالة إلى التنفيذ" : "From message to execution"}
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        }
-      />
-
-      <section className="py-[var(--section-py)]">
-        <div className="section-frame grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="glass rounded-[var(--radius-xl)] p-6 md:p-8">
-            <LiquidContactForm locale={model.locale} />
+            </motion.div>
           </div>
+        </div>
+      </section>
 
-          <aside className="space-y-6">
-            <div className="glass rounded-[var(--radius-xl)] p-6">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--accent-glow)]">
-                <Clock className="h-3.5 w-3.5" />
-                {t.availabilityTitle}
-              </div>
-              <dl className="mt-5 space-y-4">
-                {t.availability.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between gap-4">
-                    <dt className="text-sm font-medium text-[var(--text-1)]">{row.label}</dt>
-                    <dd className="text-sm text-[var(--text-2)]">{row.value}</dd>
+      {/* ── CONTACT FORM & DETAILS ── */}
+      <section className="py-16 md:py-24">
+        <div className="section-frame">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            
+            {/* Form */}
+            <div className="glass rounded-[var(--radius-xl)] p-8 md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
+              <LiquidContactForm locale={model.locale} />
+            </div>
+
+            {/* Sidebar */}
+            <aside className="space-y-6">
+              
+              <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] border border-[var(--glass-border)]">
+                    <Clock className="h-4 w-4" style={{ color: "var(--accent)" }} />
                   </div>
-                ))}
-              </dl>
-            </div>
-
-            <div className="glass rounded-[var(--radius-xl)] p-6">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--accent-glow)]">
-                <MapPin className="h-3.5 w-3.5" />
-                {isAr ? "قنوات التواصل" : "Direct channels"}
+                  <h3 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-1)" }}>{t.availabilityTitle}</h3>
+                </div>
+                <dl className="mt-6 space-y-4">
+                  {t.availability.map((row) => (
+                    <div key={row.label} className="flex items-center justify-between gap-4 border-b border-[var(--glass-border)] pb-4 last:border-0 last:pb-0">
+                      <dt className="text-sm font-medium" style={{ color: "var(--text-2)" }}>{row.label}</dt>
+                      <dd className="text-sm font-bold" style={{ color: "var(--text-1)" }}>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
-              <ul className="mt-5 space-y-2">
-                {model.contact.channels.slice(0, 5).map((channel) => {
-                  const external = channel.value.startsWith("http");
-                  return (
-                    <li key={channel.id}>
-                      <a
-                        href={channel.value}
-                        target={external ? "_blank" : undefined}
-                        rel={external ? "noopener noreferrer" : undefined}
-                        className="flex min-h-[48px] items-center justify-between gap-4 rounded-[var(--radius-md)] border border-white/10 bg-white/5 px-4 py-3 transition hover:border-[var(--accent-glow)] hover:bg-white/10"
-                      >
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-semibold text-[var(--text-1)]">{channel.label}</div>
-                          <div className="truncate text-xs text-[var(--text-3)]">{channel.description}</div>
-                        </div>
-                        <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--text-3)]" />
-                      </a>
+
+              <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] border border-[var(--glass-border)]">
+                    <MapPin className="h-4 w-4" style={{ color: "var(--accent)" }} />
+                  </div>
+                  <h3 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-1)" }}>{isAr ? "قنوات التواصل" : "Direct channels"}</h3>
+                </div>
+                <ul className="mt-6 space-y-3">
+                  {model.contact.channels.slice(0, 5).map((channel) => {
+                    const external = channel.value.startsWith("http");
+                    return (
+                      <li key={channel.id}>
+                        <a
+                          href={channel.value}
+                          target={external ? "_blank" : undefined}
+                          rel={external ? "noopener noreferrer" : undefined}
+                          className="group flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4 transition-colors hover:border-[var(--accent)]"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-bold" style={{ color: "var(--text-1)" }}>{channel.label}</div>
+                            <div className="truncate text-xs mt-1" style={{ color: "var(--text-3)" }}>{channel.description}</div>
+                          </div>
+                          <ArrowUpRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" style={{ color: "var(--text-3)" }} />
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] border border-[var(--glass-border)]">
+                    <Send className="h-4 w-4" style={{ color: "var(--accent)" }} />
+                  </div>
+                  <h3 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-1)" }}>{t.stepsTitle}</h3>
+                </div>
+                <ol className="mt-6 space-y-5">
+                  {t.steps.map((step, idx) => (
+                    <li key={step} className="flex items-start gap-4">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[11px] font-bold" style={{ color: "var(--accent)" }}>
+                        {idx + 1}
+                      </div>
+                      <span className="text-[14px] leading-relaxed pt-0.5" style={{ color: "var(--text-2)" }}>{step}</span>
                     </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            <div className="glass rounded-[var(--radius-xl)] p-6">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--accent-glow)]">
-                <Send className="h-3.5 w-3.5" />
-                {t.stepsTitle}
+                  ))}
+                </ol>
               </div>
-              <ol className="mt-5 space-y-4">
-                {t.steps.map((step, idx) => (
-                  <li key={step} className="flex items-start gap-3">
-                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] text-[12px] font-bold text-white">
-                      {idx + 1}
-                    </span>
-                    <span className="text-sm leading-relaxed text-[var(--text-2)]">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </aside>
+
+            </aside>
+          </div>
         </div>
       </section>
     </div>

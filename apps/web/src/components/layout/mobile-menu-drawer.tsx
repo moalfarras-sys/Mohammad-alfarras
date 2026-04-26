@@ -41,7 +41,6 @@ export function MobileMenuDrawer({
   const altLabel = localeMeta[locale === "ar" ? "en" : "ar"].label;
   const isAr = locale === "ar";
 
-  // lock body scroll while drawer is open
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -51,11 +50,10 @@ export function MobileMenuDrawer({
     };
   }, [open]);
 
-  // close on ESC
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -79,7 +77,7 @@ export function MobileMenuDrawer({
           <motion.aside
             key="drawer"
             className={cn(
-              "fixed z-[61] top-0 bottom-0 flex w-[min(22rem,92vw)] flex-col overflow-hidden shadow-2xl lg:hidden",
+              "fixed bottom-0 top-0 z-[61] flex w-[min(22rem,92vw)] flex-col overflow-hidden shadow-2xl lg:hidden",
               isAr ? "right-0" : "left-0",
             )}
             style={{
@@ -93,15 +91,14 @@ export function MobileMenuDrawer({
             transition={{ type: "spring", damping: 28, stiffness: 260 }}
             aria-label={isAr ? "القائمة الجانبية" : "Main menu"}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-5 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 border-b border-[var(--glass-border)]">
-              <Link href={`/${locale}`} onClick={onClose} className="flex items-center gap-3 min-w-0">
-                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)]">
-                  <Image src={logoSrc} alt={`${brandName} logo`} width={44} height={44} className="h-full w-full object-cover" />
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--glass-border)] px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
+              <Link href={`/${locale}`} onClick={onClose} className="flex min-w-0 items-center gap-3">
+                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-1">
+                  <Image src={logoSrc} alt={`${brandName} logo`} width={44} height={44} className="h-full w-full object-contain" />
                 </span>
                 <span className="min-w-0">
-                  <strong className="truncate block text-[15px] font-semibold text-[var(--text-1)]">{brandName}</strong>
-                  <span className="truncate block text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--text-3)]">{tagline}</span>
+                  <strong className="block truncate text-[15px] font-semibold text-[var(--text-1)]">{brandName}</strong>
+                  <span className="block truncate text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--text-3)]">{tagline}</span>
                 </span>
               </Link>
               <button
@@ -114,7 +111,6 @@ export function MobileMenuDrawer({
               </button>
             </div>
 
-            {/* Nav links */}
             <nav className="flex-1 overflow-y-auto px-3 py-3">
               <ul className="grid gap-1">
                 {links.map((item) => {
@@ -143,17 +139,12 @@ export function MobileMenuDrawer({
             </nav>
 
             <div className="px-4 pb-2">
-              <Link
-                href={`/${locale}/contact`}
-                onClick={onClose}
-                className="button-liquid-primary flex w-full min-h-12 justify-center text-sm"
-              >
-                {isAr ? "وظّفني ←" : "Hire Me →"}
+              <Link href={`/${locale}/contact`} onClick={onClose} className="button-liquid-primary flex min-h-12 w-full justify-center text-sm">
+                {isAr ? "تواصل معي" : "Hire Me"}
               </Link>
             </div>
 
-            {/* Footer toggles */}
-            <div className="grid grid-cols-2 gap-2 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 border-t border-[var(--glass-border)]">
+            <div className="grid grid-cols-2 gap-2 border-t border-[var(--glass-border)] px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2">
               <LocalePreferenceLink
                 href={alternate}
                 onClick={onClose}

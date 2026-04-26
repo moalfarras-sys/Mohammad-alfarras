@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteFontClassName } from "@/lib/fonts";
@@ -13,7 +14,7 @@ const defaultDescription =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Mohammad Alfarras — Interfaces, products, and Arabic tech storytelling",
+    default: "Mohammad Alfarras - Interfaces, products, and Arabic tech storytelling",
     template: "%s | Mohammad Alfarras",
   },
   description: defaultDescription,
@@ -45,14 +46,14 @@ export const metadata: Metadata = {
     type: "website",
     url: siteUrl,
     siteName,
-    title: "Mohammad Alfarras — Interfaces, products, and Arabic tech storytelling",
+    title: "Mohammad Alfarras - Interfaces, products, and Arabic tech storytelling",
     description: defaultDescription,
     locale: "en_US",
     alternateLocale: ["ar_SA"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mohammad Alfarras — Interfaces, products, and Arabic tech storytelling",
+    title: "Mohammad Alfarras - Interfaces, products, and Arabic tech storytelling",
     description: defaultDescription,
     creator: "@Moalfarras",
   },
@@ -89,7 +90,11 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const requestHeaders = await headers();
+  const resolvedLocale = requestHeaders.get("x-site-locale") === "ar" ? "ar" : "en";
+  const resolvedDir = resolvedLocale === "ar" ? "rtl" : "ltr";
+
   const rootPersonJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -98,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     alternateName: "محمد الفراس",
     url: siteUrl,
     jobTitle: "Web developer, designer, and Arabic tech creator",
-    image: `${siteUrl}/images/portrait.jpg`,
+    image: `${siteUrl}/images/protofeilnew.jpeg`,
     sameAs: [
       "https://www.youtube.com/@Moalfarras",
       "https://github.com/moalfarras-sys",
@@ -117,7 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     name: "Moalfarras",
     url: siteUrl,
     founder: { "@id": `${siteUrl}/#person` },
-    logo: `${siteUrl}/images/portrait.jpg`,
+    logo: `${siteUrl}/images/logo.png`,
     sameAs: [
       "https://www.youtube.com/@Moalfarras",
       "https://github.com/moalfarras-sys",
@@ -136,11 +141,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html
-      lang="en"
-      dir="ltr"
+      lang={resolvedLocale}
+      dir={resolvedDir}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${siteFontClassName}`}
+      className={`dark ${siteFontClassName}`}
     >
       <head>
         <meta charSet="UTF-8" />
@@ -161,7 +166,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>

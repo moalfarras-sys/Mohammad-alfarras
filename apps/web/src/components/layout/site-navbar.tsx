@@ -7,11 +7,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
+import { LocalePreferenceLink } from "@/components/layout/locale-preference-link";
 import { cn } from "@/lib/cn";
 import { alternateLocalePath, localeMeta } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
-
-import { LocalePreferenceLink } from "@/components/layout/locale-preference-link";
 
 import { MobileMenuDrawer } from "./mobile-menu-drawer";
 import { useThemeMode } from "./use-theme-mode";
@@ -59,7 +58,7 @@ export function SiteNavbar({
 
   return (
     <>
-      <header className="top-safe sticky top-0 z-40 px-3 md:px-6">
+      <header className="top-safe fixed inset-x-0 top-0 z-50 px-3 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,14 +68,11 @@ export function SiteNavbar({
             scrolled ? "navbar-liquid-scrolled" : "bg-transparent",
           )}
         >
-          {/* Brand — Logo first (logo.png displayed prominently) */}
           <Link href={`/${locale}`} className="group flex min-w-0 items-center gap-3">
-            <span
-              className="logo-container relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--glass-border)] bg-transparent transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-90 md:h-12 md:w-12 md:rounded-2xl"
-            >
+            <span className="logo-container relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--glass-border)] bg-transparent transition-all duration-300 group-hover:scale-[1.05] group-hover:opacity-90 md:h-12 md:w-12 md:rounded-2xl">
               <Image
-                src="/images/logo.png"
-                alt={`${brandName} — شعار / Logo`}
+                src={logoSrc || "/images/logo.png"}
+                alt={isAr ? `${brandName} - \u0627\u0644\u0634\u0639\u0627\u0631` : `${brandName} - logo`}
                 width={48}
                 height={48}
                 priority
@@ -93,7 +89,6 @@ export function SiteNavbar({
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <nav className="hidden items-center justify-center gap-1 rounded-full py-1 scrollbar-none lg:flex">
             {links.map((item) => {
               const active =
@@ -116,26 +111,21 @@ export function SiteNavbar({
             })}
           </nav>
 
-          {/* Right cluster */}
           <div className="flex items-center gap-2">
-            {/* Desktop-only inline toggles */}
             <LocalePreferenceLink
               href={alternatePath}
-              aria-label={isAr ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
+              aria-label={isAr ? "\u0627\u0644\u062a\u0628\u062f\u064a\u0644 \u0625\u0644\u0649 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629" : "Switch to Arabic"}
               className="hidden h-12 min-w-[4.5rem] items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 text-xs font-bold uppercase tracking-[0.24em] text-[var(--text-3)] transition hover:text-[var(--text-1)] lg:inline-flex"
             >
               {alternateLabel}
             </LocalePreferenceLink>
-            <Link
-              href={`/${locale}/contact`}
-              className="button-liquid-primary hidden text-sm lg:inline-flex"
-            >
-              {isAr ? "تواصل" : "Contact"}
+            <Link href={`/${locale}/contact`} className="button-liquid-primary hidden text-sm lg:inline-flex">
+              {isAr ? "\u062a\u0648\u0627\u0635\u0644" : "Contact"}
             </Link>
             <motion.button
               type="button"
               data-testid="theme-toggle"
-              aria-label={isAr ? "تبديل المظهر" : "Toggle theme"}
+              aria-label={isAr ? "\u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u0645\u0638\u0647\u0631" : "Toggle theme"}
               whileTap={{ scale: 0.9 }}
               onClick={toggleTheme}
               className="hidden h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[var(--text-3)] transition hover:text-[var(--text-1)] lg:inline-flex"
@@ -155,11 +145,10 @@ export function SiteNavbar({
               </AnimatePresence>
             </motion.button>
 
-            {/* Mobile/Tablet hamburger */}
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              aria-label={isAr ? "فتح القائمة" : "Open menu"}
+              aria-label={isAr ? "\u0641\u062a\u062d \u0627\u0644\u0642\u0627\u0626\u0645\u0629" : "Open menu"}
               aria-expanded={drawerOpen}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[var(--text-3)] transition hover:text-[var(--text-1)] lg:hidden"
             >

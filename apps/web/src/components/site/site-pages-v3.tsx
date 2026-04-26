@@ -12,9 +12,9 @@ import type { CmsSnapshot, Locale } from "@/types/cms";
 import type { SiteViewModel } from "./site-view-model";
 import {
   PortfolioCvPage,
-  PortfolioHomePage,
   PortfolioPrivacyPage,
 } from "./portfolio-pages";
+import { PortfolioHomePageNew } from "./home-page-new";
 import { AboutPageBody } from "@/components/sections/about-page-body";
 import { AppsPageBody } from "@/components/sections/apps-page-body";
 import { ContactPageBody } from "@/components/sections/contact-page-body";
@@ -69,7 +69,7 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
           ? "الخبرة في التشغيل اليومي تنعكس هنا على شكل سرعة أعلى، تنظيم أوضح، وتجربة أكثر ثباتاً."
           : "Operational pressure from logistics becomes faster turnaround, cleaner systems, and frontend execution that stays reliable under change.",
       bullets: locale === "ar" ? ["سرعة", "اعتمادية", "تنفيذ منظم"] : ["Speed", "Reliability", "Structured delivery"],
-      image: "/images/service_logistics.png",
+      image: "/images/projects/adtransporte-home.png",
     },
     {
       id: "service-creator",
@@ -148,6 +148,98 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
   };
 }
 
+function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
+  const isAr = locale === "ar";
+  return [
+    {
+      id: "wp-ad-fahrzeugtransporte",
+      slug: "ad-fahrzeugtransporte",
+      title: "A&D Fahrzeugtransporte",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "حضور رقمي ألماني لخدمات Abschleppdienst ونقل المركبات في Berlin وBrandenburg، مبني حول سرعة الفهم والتواصل."
+        : "A German service website for towing, vehicle transport, and transfer work in Berlin and Brandenburg, structured for fast trust and contact.",
+      description: isAr
+        ? "موقع خدمات نقل مركبات يحتاج أن يشرح العرض بسرعة: Abschleppdienst، Fahrzeugtransport، Überführungen، Baumaschinen-Transport، ودعوات اتصال واضحة عبر الهاتف وWhatsApp."
+        : "A transport and towing service site shaped around clear service categories: Abschleppdienst, Fahrzeugtransport, Überführungen, Baumaschinen transport, and direct call/WhatsApp action.",
+      image: "/images/service_logistics.png",
+      href: "https://www.adtransporte.de/",
+      featured: true,
+      featuredRank: 1,
+      accent: "cyan",
+      highlightStyle: "operations",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "موقع خدمات نقل وجر سيارات" : "Transport and towing service website",
+      challenge: isAr
+        ? "الزائر في هذا النوع من الخدمات يريد معرفة ما إذا كانت الشركة مناسبة الآن، وأي غموض يقلل فرصة التواصل."
+        : "Visitors in this service category need to know quickly whether the company can help now; vague structure weakens contact intent.",
+      solution: isAr
+        ? "تم تقديم الخدمات بلغة مباشرة، بنية أقسام واضحة، وتركيز قوي على الاتصال السريع وWhatsApp."
+        : "The service offer is framed with direct language, clear sections, and a strong call/WhatsApp conversion route.",
+      result: isAr
+        ? "حضور خدمة ألماني أوضح، مناسب للموبايل، ومبني على الثقة العملية بدل الزخرفة."
+        : "A clearer German service presence, mobile-first, and built around practical trust rather than decoration.",
+      tags: isAr
+        ? ["Abschleppdienst", "Fahrzeugtransport", "Berlin & Brandenburg"]
+        : ["Towing", "Vehicle transport", "Berlin & Brandenburg"],
+      gallery: ["/images/projects/adtransporte-home.png", "/images/projects/adtransporte-mobile.png"],
+      metrics: isAr
+        ? [
+            { value: "24/7", label: "تموضع خدمة" },
+            { value: "DE", label: "سوق ألماني" },
+            { value: "CTA", label: "اتصال مباشر" },
+          ]
+        : [
+            { value: "24/7", label: "Service positioning" },
+            { value: "DE", label: "German market" },
+            { value: "CTA", label: "Direct contact flow" },
+          ],
+    },
+    {
+      id: "wp-intelligent-umzuege",
+      slug: "intelligent-umzuege",
+      title: "Intelligent Umzüge",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "موقع شركة نقل وانتقال في Berlin يعرض Umzüge وTransporte وEntsorgung ضمن مسار طلب واضح."
+        : "A moving and transport company presence for Berlin, covering Umzüge, Transporte, and Entsorgung through a clear request path.",
+      description: isAr
+        ? "المشروع يركّز على جعل خدمات الانتقال والنقل والتخلص مفهومة بسرعة، مع بنية مناسبة للزائر الذي يريد طلب عرض أو التواصل مباشرة."
+        : "The project focuses on making moving, transport, and disposal services easy to understand, with a structure for quote requests and direct contact.",
+      image: "/images/projects/intelligent-umzuege-home.png",
+      href: "https://intelligent-umzuege.vercel.app/",
+      featured: true,
+      featuredRank: 2,
+      accent: "purple",
+      highlightStyle: "trust",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "موقع شركة انتقال ونقل" : "Moving and transport company website",
+      challenge: isAr
+        ? "خدمات الانتقال تحتاج ثقة فورية، خصوصاً على الموبايل، لأن الزائر غالباً يقارن بسرعة بين عدة شركات."
+        : "Moving services need instant trust, especially on mobile, because visitors compare providers quickly.",
+      solution: isAr
+        ? "تم ترتيب الخدمات، CTA، ونبرة الموقع حتى تقود الزائر من فهم الخدمة إلى طلب التواصل بدون ضياع."
+        : "Services, CTAs, and copy are organized to move visitors from service understanding to contact without friction.",
+      result: isAr
+        ? "موقع خدمة أوضح وأكثر قابلية للمسح السريع، مناسب لشركة محلية تريد طلبات أكثر انتظاماً."
+        : "A clearer, easier-to-scan service site for a local company that needs structured inbound requests.",
+      tags: isAr ? ["Umzüge", "Transporte", "Entsorgung", "Berlin"] : ["Moving", "Transport", "Disposal", "Berlin"],
+      gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png", "/images/schnell-service-case.png"],
+      metrics: isAr
+        ? [
+            { value: "Mobile", label: "طلب سريع" },
+            { value: "Berlin", label: "سوق محلي" },
+            { value: "Form", label: "مسار عرض" },
+          ]
+        : [
+            { value: "Mobile", label: "Fast request path" },
+            { value: "Berlin", label: "Local market" },
+            { value: "Form", label: "Quote structure" },
+          ],
+    },
+  ];
+}
+
 function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["projects"] {
   const active: SiteViewModel["projects"] = snapshot.work_projects
     .filter((entry) => entry.is_active)
@@ -199,6 +291,35 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
 
   if (!active.some((project) => project.slug === "moplayer")) {
     active.push(moplayerFallback(locale));
+  }
+
+  for (const showcase of businessShowcaseProjects(locale)) {
+    if (!active.some((project) => project.slug === showcase.slug)) {
+      active.push(showcase);
+    }
+  }
+
+  const visualOverrides: Record<string, { image: string; gallery: string[] }> = {
+    "ad-fahrzeugtransporte": {
+      image: "/images/projects/adtransporte-home.png",
+      gallery: ["/images/projects/adtransporte-home.png", "/images/projects/adtransporte-mobile.png"],
+    },
+    "intelligent-umzuege": {
+      image: "/images/projects/intelligent-umzuege-home.png",
+      gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png"],
+    },
+    moplayer: {
+      image: "/images/moplayer-hero-3d-final.png",
+      gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer-ui-mock-final.png", "/images/moplayer-tv-banner-final.png"],
+    },
+  };
+
+  for (const project of active) {
+    const override = visualOverrides[project.slug];
+    if (override) {
+      project.image = override.image;
+      project.gallery = override.gallery;
+    }
   }
 
   if (active.length) {
@@ -411,6 +532,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     pdfRegistry.active.ats === "uploaded" && pdfRegistry.uploads.ats?.url
       ? pdfRegistry.uploads.ats.url
       : `/api/cv-pdf?locale=${locale}&variant=ats`;
+  const docxDownload = `/api/cv-docx?locale=${locale}`;
 
   return {
     locale,
@@ -441,6 +563,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     downloads: {
       branded: brandedDownload,
       ats: atsDownload,
+      docx: docxDownload,
     },
   };
 }
@@ -449,7 +572,7 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
   const model = await buildSiteModel({ locale, slug });
   switch (model.pageSlug) {
     case "home":
-      return <PortfolioHomePage model={model} />;
+      return <PortfolioHomePageNew model={model} />;
     case "about":
       return <AboutPageBody model={model} />;
     case "cv":
@@ -468,6 +591,6 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
     case "privacy":
       return <PortfolioPrivacyPage model={model} />;
     default:
-      return <PortfolioHomePage model={model} />;
+      return <PortfolioHomePageNew model={model} />;
   }
 }

@@ -13,9 +13,8 @@ import type { Locale } from "@/types/cms";
 const copy = {
   en: {
     eyebrow: "Frontend Developer · UI Designer · YouTube Creator",
-    lines: ["I Build", "Product Surfaces,", "Not Detached Pages."],
-    sub:
-      "Germany-based builder working across web interfaces, product surfaces, Android media work, and Arabic technical storytelling.",
+    lines: ["I Build Product Surfaces,", "Not Detached Pages."],
+    sub: "Germany-based builder working across web interfaces, Android media, and Arabic technical storytelling.",
     primary: "View My Work",
     secondary: "Let's Talk",
     stats: [
@@ -24,18 +23,13 @@ const copy = {
       { n: "1.5M+", label: "Views" },
       { n: "Germany", label: "Base" },
     ],
-    badges: [
-      { t: "Germany", delay: 0 },
-      { t: "YouTube creator", delay: 0.3 },
-      { t: "Product-minded delivery", delay: 0.6 },
-    ],
+    badge: "Germany · YouTube creator · Product-minded delivery",
     scroll: "Scroll to explore",
   },
   ar: {
     eyebrow: "مطوّر Frontend · مصمم واجهات · يوتيوبر تقني",
-    lines: ["أصمّم تجارب", "رقمية مميزة،", "لا مجرد مواقع."],
-    sub:
-      "مقيم في ألمانيا، أعمل على واجهات ويب، أسطح منتجات، Android media، ومحتوى تقني عربي.",
+    lines: ["أصمّم تجارب رقمية مميزة،", "لا مجرد مواقع."],
+    sub: "مقيم في ألمانيا، أعمل على واجهات ويب، وسائط Android، ومحتوى تقني عربي.",
     primary: "اكتشف أعمالي",
     secondary: "تواصل معي",
     stats: [
@@ -44,19 +38,10 @@ const copy = {
       { n: "+1.5M", label: "مشاهدة" },
       { n: "ألمانيا", label: "الموقع" },
     ],
-    badges: [
-      { t: "ألمانيا", delay: 0 },
-      { t: "صانع محتوى تقني", delay: 0.3 },
-      { t: "تنفيذ بعقلية منتج", delay: 0.6 },
-    ],
+    badge: "ألمانيا · صانع محتوى تقني · تنفيذ بعقلية منتج",
     scroll: "مرّر للاستكشاف",
   },
 } as const;
-
-function GradientOrbs({ reduced }: { reduced: boolean }) {
-  void reduced;
-  return null;
-}
 
 export function HeroSection({
   locale,
@@ -74,77 +59,35 @@ export function HeroSection({
   const { scrollY } = useScroll();
   const scrollHintOpacity = useTransform(scrollY, [0, 120], [1, 0]);
 
+  /* Safe line-heights — no more clipping */
   const headClass = cn(
-    "font-bold tracking-tight text-[var(--text-1)]",
-    isAr ? "text-[clamp(2.5rem,8vw,4.5rem)] leading-[1.12]" : "text-[clamp(2.75rem,8vw,5rem)] leading-[0.98]",
+    "font-bold tracking-tight text-[var(--text-1)] pb-1 overflow-visible",
+    isAr
+      ? "text-[clamp(1.85rem,5vw,3.6rem)] leading-[1.3]"
+      : "text-[clamp(1.95rem,4.5vw,3.8rem)] leading-[1.12]",
   );
 
   return (
-    <section ref={containerRef} className="relative overflow-hidden pb-12 pt-6 md:pb-20 md:pt-10">
+    <section ref={containerRef} className="relative overflow-hidden pb-10 pt-8 md:pb-20 md:pt-14">
       <div className="liquid-grad-hero pointer-events-none absolute inset-0" />
-      <GradientOrbs reduced={!!reduced} />
 
       <div className="section-frame relative z-[1]">
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">
-          {/* Profile column */}
-          <div className={cn("relative mx-auto flex max-w-[320px] justify-center lg:mx-0 lg:max-w-none", isAr && "lg:order-2")}>
-            <div className="relative h-[200px] w-[200px] md:h-[240px] md:w-[240px] lg:h-[280px] lg:w-[280px]">
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  padding: 3,
-                  background: "conic-gradient(from 0deg, #6366f1, #8b5cf6, #a78bfa, #6366f1)",
-                }}
-                animate={reduced ? undefined : { rotate: 360 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              />
-              <div className="absolute inset-[3px] overflow-hidden rounded-full bg-[var(--bg-base)]">
-                <Image
-                  src={portraitSrc}
-                  alt={portraitAlt}
-                  fill
-                  priority
-                  className="object-cover object-center"
-                  sizes="(max-width: 1024px) 240px, 280px"
-                />
-              </div>
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
 
-              {t.badges.map((b, i) => (
-                <motion.span
-                  key={b.t}
-                  className={cn(
-                    "glass absolute z-[2] max-w-[200px] whitespace-normal rounded-[var(--radius-md)] px-3 py-2 text-[11px] font-semibold leading-snug text-[var(--text-1)] shadow-lg md:text-xs",
-                    i === 0 && (isAr ? "bottom-2 left-0" : "bottom-2 left-0"),
-                    i === 1 && (isAr ? "right-0 top-2" : "right-0 top-2"),
-                    i === 2 && (isAr ? "bottom-2 right-0" : "bottom-2 right-0"),
-                  )}
-                  initial={false}
-                  animate={reduced ? undefined : { y: [0, -6, 0] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: b.delay }}
-                >
-                  {b.t}
-                </motion.span>
-              ))}
-            </div>
-          </div>
-
-          {/* Copy column */}
-          <div className={cn("min-w-0", isAr && "lg:order-1")}>
-            <p
-              className="text-[11px] font-bold uppercase tracking-[0.15em] md:text-xs"
-              style={{ color: "var(--accent-glow)" }}
-            >
+          {/* Copy column — first on mobile, left on desktop (LTR) / right on desktop (RTL) */}
+          <div className={cn("min-w-0 order-2 lg:order-1", isAr && "lg:order-2")}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.15em] md:text-xs" style={{ color: "var(--accent-glow)" }}>
               {t.eyebrow}
             </p>
 
             <motion.div
-              className="mt-6 space-y-1"
+              className="mt-4 overflow-visible"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, margin: "-40px" }}
               variants={{
                 hidden: {},
-                visible: { transition: { staggerChildren: 0.11, delayChildren: 0.05 } },
+                visible: { transition: { staggerChildren: 0.1, delayChildren: 0.04 } },
               }}
             >
               {t.lines.map((line) => (
@@ -154,43 +97,57 @@ export function HeroSection({
               ))}
             </motion.div>
 
-            <p className="prose-frame mt-6 min-h-[1em] text-base leading-relaxed text-[var(--text-2)] md:text-lg">
+            <p className="prose-frame mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-base">
               {t.sub}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href={`/${locale}/work`}
-                className={cn("button-liquid-primary", isAr && "flex-row-reverse")}
-              >
-                {isAr ? (
-                  <>
-                    ← {t.primary}
-                  </>
-                ) : (
-                  <>
-                    {t.primary} →
-                  </>
-                )}
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href={`/${locale}/work`} className="button-liquid-primary">
+                {t.primary}
               </Link>
               <Link href={`/${locale}/contact`} className="button-liquid-secondary">
                 {t.secondary}
               </Link>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {t.stats.map((s) => (
-                <div key={s.label} className="glass rounded-[var(--radius-md)] px-3 py-3 text-center md:px-4">
-                  <div className="text-lg font-bold text-[var(--accent-glow)] md:text-xl">{s.n}</div>
-                  <div className="text-[11px] font-medium text-[var(--text-2)] md:text-xs">{s.label}</div>
+                <div key={s.label} className="glass rounded-[var(--radius-md)] px-3 py-3 text-center">
+                  <div className="text-base font-bold text-[var(--accent-glow)] md:text-lg">{s.n}</div>
+                  <div className="mt-0.5 text-[11px] font-medium text-[var(--text-2)]">{s.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Portrait column — clean frame, no spinning ring */}
+          <div className={cn("order-1 lg:order-2 flex justify-center", isAr && "lg:order-1")}>
+            <div className="relative w-full max-w-[220px] md:max-w-[280px] lg:max-w-none">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-xl)] border border-[var(--glass-border)] shadow-[var(--shadow-elevated)]">
+                <Image
+                  src={portraitSrc}
+                  alt={portraitAlt}
+                  fill
+                  priority
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 220px, (max-width: 1280px) 280px, 340px"
+                />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--bg-base)] to-transparent opacity-50" />
+              </div>
+              <motion.span
+                className="glass absolute -bottom-3 left-3 right-3 rounded-[var(--radius-md)] px-3 py-2 text-center text-[11px] font-semibold leading-snug text-[var(--text-1)] shadow-lg"
+                initial={false}
+                animate={reduced ? undefined : { y: [0, -4, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {t.badge}
+              </motion.span>
             </div>
           </div>
         </div>
 
         <motion.div
-          className="mt-14 flex flex-col items-center justify-center gap-2 text-[var(--text-3)]"
+          className="mt-12 flex flex-col items-center justify-center gap-2 text-[var(--text-3)]"
           style={{ opacity: scrollHintOpacity }}
         >
           <ChevronDown className={cn("h-4 w-4", !reduced && "animate-bounce")} aria-hidden />

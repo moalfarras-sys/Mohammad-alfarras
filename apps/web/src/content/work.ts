@@ -23,9 +23,9 @@ export type CaseStudyContent = {
 export const workPageCopy = {
   en: {
     eyebrow: "Selected work",
-    title: "Case studies inside one product-minded portfolio system.",
+    title: "Real service websites, product surfaces, and business systems shaped for clarity.",
     body:
-      "The work is presented as practical ownership: problem, role, constraints, technical decisions, UX/content decisions, and what changed. No invented business metrics.",
+      "Each project is shown through the actual job: the business problem, the interface decision, the copy, the conversion path, and what became clearer. No invented business metrics.",
     caseStudy: "Case study",
     role: "Role",
     problem: "Problem",
@@ -37,9 +37,9 @@ export const workPageCopy = {
   },
   ar: {
     eyebrow: "الأعمال المختارة",
-    title: "دراسات حالة داخل منظومة واحدة بعقلية منتج.",
+    title: "مواقع خدمات ومنتجات وأنظمة أعمال حقيقية مصممة للوضوح.",
     body:
-      "الأعمال هنا تُعرض كملكية عملية: المشكلة، الدور، القيود، القرارات التقنية، قرارات UX والمحتوى، وما تغيّر. بدون أرقام تجارية غير موثقة.",
+      "كل مشروع يُعرض من خلال وظيفته الحقيقية: مشكلة العمل، قرار الواجهة، النص، مسار التحويل، وما أصبح أوضح. بدون أرقام تجارية غير موثقة.",
     caseStudy: "دراسة حالة",
     role: "الدور",
     problem: "المشكلة",
@@ -327,6 +327,166 @@ export const caseStudies = {
       ],
       proofChips: ["Android", "Android TV", "مسار إصدار", "دعم وخصوصية"],
       cta: "اقرأ دراسة MoPlayer",
+    },
+  },
+  adtransporte: {
+    en: {
+      slugAliases: ["ad-fahrzeugtransporte", "adtransporte", "a-d-fahrzeugtransporte"],
+      category: "German transport service website",
+      role: "Service structure, conversion hierarchy, bilingual business positioning, and mobile-first contact flow.",
+      problem:
+        "A towing and vehicle-transport visitor needs fast certainty: what services are covered, whether the area fits, and how to call or send a WhatsApp request without searching.",
+      constraints: [
+        "No unsupported conversion or revenue claims.",
+        "German service terminology needed to remain practical and familiar.",
+        "The site needed to support urgent mobile visitors without feeling chaotic.",
+      ],
+      strategy:
+        "Structure the page around service clarity: Abschleppdienst, Fahrzeugtransport, Überführungen, Baumaschinen-Transport, Berlin/Brandenburg, and direct action.",
+      technicalDecisions: [
+        "Keep service blocks short and scannable.",
+        "Use stable image ratios and contact-first CTAs for mobile.",
+        "Treat WhatsApp and phone actions as primary conversion routes.",
+      ],
+      uxDecisions: [
+        "Lead with emergency/service context instead of abstract branding.",
+        "Make every service card answer one visitor question.",
+        "Keep German wording direct and operational.",
+      ],
+      changed: [
+        "The business is presented as a credible local service instead of a generic transport page.",
+        "Visitors can identify the relevant service faster.",
+        "The contact route is visible without aggressive sales language.",
+      ],
+      stack: ["Service website", "Mobile-first UX", "German copy", "WhatsApp CTA", "Transport positioning"],
+      outcome:
+        "A cleaner service presence for vehicle transport and towing in Berlin/Brandenburg, built for clarity and fast contact.",
+      lessons: [
+        "Urgent services need fewer words and stronger order.",
+        "Trust starts with service specificity before visual decoration.",
+      ],
+      proofChips: ["Abschleppdienst", "Fahrzeugtransport", "Berlin & Brandenburg"],
+      cta: "Read A&D case study",
+      liveLabel: "Open A&D Fahrzeugtransporte",
+    },
+    ar: {
+      slugAliases: ["ad-fahrzeugtransporte", "adtransporte", "a-d-fahrzeugtransporte"],
+      category: "موقع خدمات نقل وجر سيارات في ألمانيا",
+      role: "تنظيم الخدمات، هرمية التحويل، تموضع تجاري ألماني، ومسار تواصل مناسب للموبايل.",
+      problem:
+        "زائر خدمات الجر ونقل المركبات يحتاج تأكيداً سريعاً: ما الخدمات المتاحة، هل تغطي المنطقة، وكيف يتصل أو يرسل WhatsApp بدون بحث طويل.",
+      constraints: [
+        "لا توجد أرقام تحويل أو مبيعات غير موثقة.",
+        "مصطلحات الخدمة الألمانية يجب أن تبقى عملية ومألوفة.",
+        "الموقع يجب أن يخدم الزائر المستعجل على الموبايل بدون فوضى.",
+      ],
+      strategy:
+        "ترتيب الصفحة حول وضوح الخدمة: Abschleppdienst، Fahrzeugtransport، Überführungen، Baumaschinen-Transport، Berlin/Brandenburg، ثم فعل مباشر.",
+      technicalDecisions: [
+        "إبقاء كتل الخدمات قصيرة وسهلة المسح.",
+        "استخدام نسب صور ثابتة ودعوات اتصال واضحة على الموبايل.",
+        "اعتبار الهاتف وWhatsApp مسارات تحويل أساسية.",
+      ],
+      uxDecisions: [
+        "البدء بسياق الخدمة والحاجة بدلاً من شعارات عامة.",
+        "كل بطاقة خدمة تجيب على سؤال واحد للزائر.",
+        "الحفاظ على لغة ألمانية مباشرة وتشغيلية.",
+      ],
+      changed: [
+        "أصبحت الشركة تُعرض كخدمة محلية موثوقة لا كموقع نقل عام.",
+        "يمكن للزائر تحديد الخدمة المناسبة بسرعة أكبر.",
+        "مسار التواصل واضح بدون لغة بيع مبالغ فيها.",
+      ],
+      stack: ["موقع خدمات", "UX موبايل أولاً", "نص ألماني", "WhatsApp CTA", "تموضع نقل"],
+      outcome:
+        "حضور خدمة أنظف لنقل وجر المركبات في Berlin/Brandenburg، مبني على الوضوح والتواصل السريع.",
+      lessons: [
+        "الخدمات العاجلة تحتاج كلمات أقل وترتيباً أقوى.",
+        "الثقة تبدأ من تحديد الخدمة قبل الزخرفة البصرية.",
+      ],
+      proofChips: ["Abschleppdienst", "Fahrzeugtransport", "Berlin & Brandenburg"],
+      cta: "اقرأ دراسة A&D",
+      liveLabel: "افتح A&D Fahrzeugtransporte",
+    },
+  },
+  intelligent: {
+    en: {
+      slugAliases: ["intelligent-umzuege", "intelligent-umzüge"],
+      category: "Moving-company digital presence",
+      role: "Service architecture, quote/request flow, German service copy, and trust-first visual hierarchy.",
+      problem:
+        "Moving-company visitors compare quickly. They need to understand services, location, and the next step before hesitation sends them to another provider.",
+      constraints: [
+        "No invented booking numbers or customer claims.",
+        "The service range needed to stay clear: Umzüge, Transporte, Entsorgung, Berlin.",
+        "The flow needed to work well on phones.",
+      ],
+      strategy:
+        "Make the company easier to evaluate: clear services, local context, direct request path, and a calm trust layer.",
+      technicalDecisions: [
+        "Use service-first sections instead of decorative filler.",
+        "Keep request CTAs repeated but not noisy.",
+        "Size imagery and cards to prevent mobile overflow.",
+      ],
+      uxDecisions: [
+        "Show the service range before asking for contact.",
+        "Keep copy concrete for normal customers.",
+        "Make the request path visible on every major section.",
+      ],
+      changed: [
+        "The business reads as a structured local service.",
+        "Visitors can scan the offer and contact path quickly.",
+        "The page supports trust without fake metrics.",
+      ],
+      stack: ["Business website", "German service copy", "Mobile layout", "Quote flow", "Local SEO structure"],
+      outcome:
+        "A clearer moving-company presence for Berlin with service explanation, contact flow, and mobile-first structure.",
+      lessons: [
+        "Local-service pages win by reducing doubt.",
+        "A request form is stronger when the service story has already done its job.",
+      ],
+      proofChips: ["Umzüge", "Transporte", "Entsorgung", "Berlin"],
+      cta: "Read Intelligent Umzüge case study",
+      liveLabel: "Open Intelligent Umzüge",
+    },
+    ar: {
+      slugAliases: ["intelligent-umzuege", "intelligent-umzüge"],
+      category: "حضور رقمي لشركة انتقال ونقل",
+      role: "بنية خدمات، مسار طلب عرض، نص خدمات ألماني، وهرمية بصرية مبنية على الثقة.",
+      problem:
+        "زوار شركات الانتقال يقارنون بسرعة. يحتاجون فهم الخدمات والمنطقة والخطوة التالية قبل أن يدفعهم التردد إلى مزود آخر.",
+      constraints: [
+        "لا توجد أرقام حجز أو ادعاءات عملاء غير موثقة.",
+        "نطاق الخدمة يجب أن يبقى واضحاً: Umzüge، Transporte، Entsorgung، Berlin.",
+        "المسار يجب أن يعمل جيداً على الهاتف.",
+      ],
+      strategy:
+        "جعل الشركة أسهل للتقييم: خدمات واضحة، سياق محلي، مسار طلب مباشر، وطبقة ثقة هادئة.",
+      technicalDecisions: [
+        "استخدام أقسام خدمات فعلية بدل حشو زخرفي.",
+        "تكرار CTA عند الحاجة بدون ضجيج.",
+        "ضبط الصور والبطاقات لمنع أي overflow على الموبايل.",
+      ],
+      uxDecisions: [
+        "عرض نطاق الخدمة قبل طلب التواصل.",
+        "إبقاء النص عملياً لعميل عادي.",
+        "إظهار مسار الطلب في كل قسم مهم.",
+      ],
+      changed: [
+        "أصبح العمل يُقرأ كخدمة محلية منظمة.",
+        "يمكن للزائر مسح العرض ومسار التواصل بسرعة.",
+        "الصفحة تبني الثقة بدون أرقام وهمية.",
+      ],
+      stack: ["موقع أعمال", "نص خدمات ألماني", "موبايل", "مسار طلب عرض", "بنية Local SEO"],
+      outcome:
+        "حضور أوضح لشركة انتقال في Berlin مع شرح خدمات ومسار تواصل وبنية موبايل أولاً.",
+      lessons: [
+        "صفحات الخدمات المحلية تربح عندما تقلل التردد.",
+        "نموذج الطلب أقوى عندما تكون قصة الخدمة قامت بعملها مسبقاً.",
+      ],
+      proofChips: ["Umzüge", "Transporte", "Entsorgung", "Berlin"],
+      cta: "اقرأ دراسة Intelligent Umzüge",
+      liveLabel: "افتح Intelligent Umzüge",
     },
   },
 } satisfies Record<string, Localized<CaseStudyContent>>;

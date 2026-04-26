@@ -141,73 +141,134 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Base
+ * Base — DARK CINEMATIC by default
+ * Mohammad Alfarras Digital OS — Deep Navy/Obsidian + Electric Teal + Violet
+ * Dark is the primary brand mode. Light is optional.
  * ───────────────────────────────────────────────────────────────────────────── */
-/* Cinematic Calm overrides */
 :root {
-  --background: #f3f1ec;
-  --foreground: #111317;
-  --surface-soft: #ebe7de;
-  --surface-raised: #f7f4ee;
-  --border: rgba(17, 19, 23, 0.10);
-  --border-soft: rgba(17, 19, 23, 0.05);
-  --border-strong: rgba(17, 19, 23, 0.18);
-  --foreground-soft: rgba(17, 19, 23, 0.74);
-  --foreground-muted: rgba(17, 19, 23, 0.52);
-  --accent: #2a7f92;
-  --accent-soft: rgba(42, 127, 146, 0.10);
-  --accent-strong: #185f71;
-  --gold: #9e7a2f;
-  --gold-soft: rgba(158, 122, 47, 0.12);
-  --primary-soft: rgba(42, 127, 146, 0.08);
-  --primary-border: rgba(42, 127, 146, 0.26);
-  --primary-glow: rgba(42, 127, 146, 0.16);
-  --secondary-glow: rgba(158, 122, 47, 0.10);
-  --accent-glow: rgba(42, 127, 146, 0.10);
-  --hero-home-gradient: linear-gradient(130deg, rgba(42,127,146,0.08) 0%, rgba(243,241,236,0.08) 52%, rgba(158,122,47,0.06) 100%);
-  --hero-cv-gradient: linear-gradient(130deg, rgba(17,19,23,0.04) 0%, rgba(243,241,236,0) 52%, rgba(42,127,146,0.05) 100%);
-  --hero-youtube-gradient: linear-gradient(130deg, rgba(162,39,52,0.07) 0%, rgba(243,241,236,0) 50%, rgba(42,127,146,0.05) 100%);
-  --hero-contact-gradient: linear-gradient(130deg, rgba(42,127,146,0.07) 0%, rgba(243,241,236,0.03) 55%, rgba(158,122,47,0.05) 100%);
-  --hero-work-gradient: linear-gradient(130deg, rgba(17,19,23,0.03) 0%, rgba(42,127,146,0.06) 100%);
-  --shadow-card: 0 1px 3px rgba(17, 19, 23, 0.06), 0 6px 18px rgba(17, 19, 23, 0.05);
-  --shadow-elevated: 0 6px 22px rgba(17, 19, 23, 0.08), 0 24px 60px rgba(17, 19, 23, 0.08);
-  --shadow-hero: 0 36px 84px rgba(17, 19, 23, 0.12);
-  --shadow-glow-accent: 0 0 36px rgba(42, 127, 146, 0.18), 0 0 80px rgba(42, 127, 146, 0.08);
-  --shadow-glow-gold: 0 0 28px rgba(158, 122, 47, 0.14);
+  /* === DARK CINEMATIC DEFAULTS === */
+  --background: #06080f;
+  --foreground: #eceaf4;
+  --surface: #0c0f1a;
+  --surface-soft: #111525;
+  --surface-raised: #171c2e;
+  --border: rgba(236, 234, 244, 0.08);
+  --border-soft: rgba(236, 234, 244, 0.04);
+  --border-strong: rgba(236, 234, 244, 0.16);
+  --foreground-soft: rgba(236, 234, 244, 0.72);
+  --foreground-muted: rgba(236, 234, 244, 0.45);
+
+  /* Electric teal — primary accent */
+  --accent: #00c8d4;
+  --accent-soft: rgba(0, 200, 212, 0.10);
+  --accent-strong: #00f0ff;
+
+  /* Violet — secondary accent */
+  --violet: #7c3aed;
+  --violet-soft: rgba(124, 58, 237, 0.12);
+
+  /* Warm gold — human touch accent */
+  --gold: #d4a843;
+  --gold-soft: rgba(212, 168, 67, 0.10);
+
+  --primary-soft: rgba(0, 200, 212, 0.08);
+  --primary-border: rgba(0, 200, 212, 0.22);
+  --primary-glow: rgba(0, 200, 212, 0.18);
+  --secondary-glow: rgba(124, 58, 237, 0.12);
+  --accent-glow: #00c8d4;
+  --bg-secondary: rgba(236, 234, 244, 0.04);
+
+  /* Page-specific gradients — cinematic mood */
+  --hero-home-gradient:
+    radial-gradient(ellipse 70% 50% at 15% 50%, rgba(0,200,212,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 20%, rgba(124,58,237,0.07) 0%, transparent 60%);
+  --hero-cv-gradient:
+    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(0,200,212,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(124,58,237,0.06) 0%, transparent 50%);
+  --hero-youtube-gradient:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(200,30,30,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0,200,212,0.06) 0%, transparent 50%);
+  --hero-contact-gradient:
+    radial-gradient(ellipse 50% 60% at 20% 50%, rgba(0,200,212,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 80% 30%, rgba(212,168,67,0.05) 0%, transparent 50%);
+  --hero-work-gradient:
+    radial-gradient(ellipse 55% 50% at 50% 0%, rgba(0,200,212,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 90% 80%, rgba(124,58,237,0.06) 0%, transparent 55%);
+
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.5), 0 6px 22px rgba(0,0,0,0.4);
+  --shadow-elevated: 0 8px 30px rgba(0,0,0,0.55), 0 36px 80px rgba(0,0,0,0.5);
+  --shadow-hero: 0 40px 120px rgba(0,0,0,0.75);
+  --shadow-glow-accent: 0 0 40px rgba(0, 200, 212, 0.22), 0 0 80px rgba(0, 200, 212, 0.10);
+  --shadow-glow-gold: 0 0 30px rgba(212, 168, 67, 0.18);
+
+  color-scheme: dark;
 }
 
+/* .dark class reinforces — same values (next-themes adds this class) */
 .dark {
-  --background: #070b11;
-  --foreground: #efe8dc;
-  --surface: #0d1219;
-  --surface-soft: #121923;
-  --surface-raised: #18212c;
-  --border: rgba(239, 232, 220, 0.09);
-  --border-soft: rgba(239, 232, 220, 0.05);
-  --border-strong: rgba(239, 232, 220, 0.18);
-  --foreground-soft: rgba(239, 232, 220, 0.74);
-  --foreground-muted: rgba(239, 232, 220, 0.52);
-  --accent: #77d0db;
-  --accent-soft: rgba(119, 208, 219, 0.10);
-  --accent-strong: #b2edf2;
-  --gold: #d8b365;
-  --gold-soft: rgba(216, 179, 101, 0.10);
-  --primary-soft: rgba(119, 208, 219, 0.08);
-  --primary-border: rgba(119, 208, 219, 0.28);
-  --primary-glow: rgba(119, 208, 219, 0.18);
-  --secondary-glow: rgba(216, 179, 101, 0.10);
-  --accent-glow: rgba(119, 208, 219, 0.14);
-  --bg-secondary: rgba(239, 232, 220, 0.04);
-  --hero-home-gradient: linear-gradient(130deg, rgba(119,208,219,0.09) 0%, rgba(7,11,17,0.02) 55%, rgba(216,179,101,0.05) 100%);
-  --hero-cv-gradient: linear-gradient(130deg, rgba(7,11,17,0.02) 0%, rgba(119,208,219,0.06) 100%);
-  --hero-youtube-gradient: linear-gradient(130deg, rgba(173,44,58,0.10) 0%, rgba(7,11,17,0) 55%, rgba(119,208,219,0.05) 100%);
-  --hero-contact-gradient: linear-gradient(130deg, rgba(119,208,219,0.08) 0%, rgba(216,179,101,0.05) 100%);
-  --hero-work-gradient: linear-gradient(130deg, rgba(119,208,219,0.06) 0%, rgba(7,11,17,0) 58%, rgba(216,179,101,0.05) 100%);
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.56), 0 6px 22px rgba(0,0,0,0.42);
-  --shadow-elevated: 0 8px 28px rgba(0,0,0,0.58), 0 36px 84px rgba(0,0,0,0.56);
-  --shadow-hero: 0 40px 110px rgba(0,0,0,0.72);
-  --shadow-glow-accent: 0 0 44px rgba(119, 208, 219, 0.22), 0 0 90px rgba(119, 208, 219, 0.10);
-  --shadow-glow-gold: 0 0 34px rgba(216, 179, 101, 0.16), 0 0 68px rgba(216, 179, 101, 0.07);
+  --background: #06080f;
+  --foreground: #eceaf4;
+  --surface: #0c0f1a;
+  --surface-soft: #111525;
+  --surface-raised: #171c2e;
+  --border: rgba(236, 234, 244, 0.08);
+  --border-soft: rgba(236, 234, 244, 0.04);
+  --border-strong: rgba(236, 234, 244, 0.16);
+  --foreground-soft: rgba(236, 234, 244, 0.72);
+  --foreground-muted: rgba(236, 234, 244, 0.45);
+  --accent: #00c8d4;
+  --accent-soft: rgba(0, 200, 212, 0.10);
+  --accent-strong: #00f0ff;
+  --violet: #7c3aed;
+  --violet-soft: rgba(124, 58, 237, 0.12);
+  --gold: #d4a843;
+  --gold-soft: rgba(212, 168, 67, 0.10);
+  --primary-soft: rgba(0, 200, 212, 0.08);
+  --primary-border: rgba(0, 200, 212, 0.22);
+  --primary-glow: rgba(0, 200, 212, 0.18);
+  --secondary-glow: rgba(124, 58, 237, 0.12);
+  --accent-glow: #00c8d4;
+  --bg-secondary: rgba(236, 234, 244, 0.04);
+  color-scheme: dark;
+}
+
+/* Optional light mode — only when user explicitly requests it */
+.light {
+  --background: #f4f2ef;
+  --foreground: #0d0f18;
+  --surface: #ffffff;
+  --surface-soft: #eceae6;
+  --surface-raised: #f9f8f6;
+  --border: rgba(13, 15, 24, 0.09);
+  --border-soft: rgba(13, 15, 24, 0.04);
+  --border-strong: rgba(13, 15, 24, 0.18);
+  --foreground-soft: rgba(13, 15, 24, 0.72);
+  --foreground-muted: rgba(13, 15, 24, 0.46);
+  --accent: #006e78;
+  --accent-soft: rgba(0, 110, 120, 0.10);
+  --accent-strong: #004f57;
+  --violet: #5b21b6;
+  --violet-soft: rgba(91, 33, 182, 0.10);
+  --gold: #92640d;
+  --gold-soft: rgba(146, 100, 13, 0.10);
+  --primary-soft: rgba(0, 110, 120, 0.08);
+  --primary-border: rgba(0, 110, 120, 0.24);
+  --primary-glow: rgba(0, 110, 120, 0.14);
+  --secondary-glow: rgba(91, 33, 182, 0.10);
+  --accent-glow: #006e78;
+  --hero-home-gradient:
+    radial-gradient(ellipse 70% 50% at 15% 50%, rgba(0,110,120,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 20%, rgba(91,33,182,0.05) 0%, transparent 60%);
+  --hero-cv-gradient: linear-gradient(130deg, rgba(0,110,120,0.05) 0%, transparent 70%);
+  --hero-youtube-gradient: linear-gradient(130deg, rgba(180,30,30,0.06) 0%, transparent 60%);
+  --hero-contact-gradient: linear-gradient(130deg, rgba(0,110,120,0.05) 0%, transparent 70%);
+  --hero-work-gradient: linear-gradient(130deg, rgba(0,110,120,0.05) 0%, transparent 70%);
+  --shadow-card: 0 1px 3px rgba(13, 15, 24, 0.06), 0 5px 18px rgba(13, 15, 24, 0.05);
+  --shadow-elevated: 0 6px 22px rgba(13, 15, 24, 0.08), 0 24px 60px rgba(13, 15, 24, 0.07);
+  --shadow-hero: 0 36px 84px rgba(13, 15, 24, 0.11);
+  --shadow-glow-accent: 0 0 30px rgba(0, 110, 120, 0.15);
+  --shadow-glow-gold: 0 0 24px rgba(146, 100, 13, 0.12);
+  color-scheme: light;
 }
 
 @layer base {
@@ -781,46 +842,49 @@
  * Liquid Glass 2026 — portfolio shell (`.liquid-site`)
  * ───────────────────────────────────────────────────────────────────────────── */
 .liquid-site {
-  --glass-bg: rgba(255, 255, 255, 0.055);
-  --glass-border: rgba(255, 255, 255, 0.11);
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-border: rgba(255, 255, 255, 0.08);
   --glass-blur: blur(24px);
-  --glass-sat: saturate(180%);
+  --glass-sat: saturate(160%);
   --glass-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
-  --accent-1: #6366f1;
-  --accent-2: #8b5cf6;
-  --accent-glow: #a78bfa;
-  --accent-cyan: #22d3ee;
-  --accent-red: #f43f5e;
-  --accent-green: #10b981;
+  /* === TEAL + VIOLET ACCENT SYSTEM === */
+  --accent-1: #00c8d4;   /* Electric teal */
+  --accent-2: #7c3aed;   /* Violet */
+  --accent-glow: #00c8d4;
+  --accent-cyan: #00f0ff;
+  --accent-violet: #7c3aed;
+  --accent-gold: #d4a843;
 
-  --bg-base: #030712;
-  --bg-surface: #0f0f1a;
-  --bg-elevated: #13131f;
+  --bg-base: #06080f;
+  --bg-surface: #0c0f1a;
+  --bg-elevated: #111525;
 
-  --text-1: #f8fafc;
-  --text-2: rgba(248, 250, 252, 0.6);
-  --text-3: rgba(248, 250, 252, 0.35);
+  --text-1: #eceaf4;
+  --text-2: rgba(236, 234, 244, 0.68);
+  --text-3: rgba(236, 234, 244, 0.38);
 
-  --grad-hero: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.28) 0%, transparent 70%);
-  --grad-card: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%);
+  --grad-hero:
+    radial-gradient(ellipse 70% 50% at 10% 50%, rgba(0,200,212,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 55% at 88% 20%, rgba(124,58,237,0.08) 0%, transparent 60%);
+  --grad-card: linear-gradient(135deg, rgba(0,200,212,0.06) 0%, rgba(124,58,237,0.04) 100%);
 
   --section-py: clamp(64px, 10vw, 120px);
   --liquid-container: min(1280px, 100% - 2 * clamp(16px, 4vw, 48px));
 
-  --radius-sm: 10px;
-  --radius-md: 18px;
-  --radius-lg: 28px;
-  --radius-xl: 40px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  /* Map legacy tokens used across components */
+  /* Map global tokens */
   --background: var(--bg-base);
   --foreground: var(--text-1);
   --foreground-soft: var(--text-2);
@@ -828,25 +892,24 @@
   --surface: var(--bg-surface);
   --surface-soft: var(--bg-elevated);
   --surface-raised: var(--bg-elevated);
-  --border: rgba(255, 255, 255, 0.1);
-  --border-soft: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.18);
+  --border: rgba(236, 234, 244, 0.08);
+  --border-soft: rgba(236, 234, 244, 0.05);
+  --border-strong: rgba(236, 234, 244, 0.15);
   --accent: var(--accent-1);
-  --accent-soft: rgba(99, 102, 241, 0.12);
-  --accent-strong: #818cf8;
-  --gold: var(--accent-glow);
-  --gold-soft: rgba(167, 139, 250, 0.12);
-  --primary-border: rgba(99, 102, 241, 0.35);
-  --primary-soft: rgba(99, 102, 241, 0.1);
-  --primary-glow: rgba(99, 102, 241, 0.25);
-  --secondary-glow: rgba(139, 92, 246, 0.15);
-  --accent-glow: rgba(167, 139, 250, 0.2);
+  --accent-soft: rgba(0, 200, 212, 0.10);
+  --accent-strong: #00f0ff;
+  --gold: var(--accent-gold);
+  --gold-soft: rgba(212, 168, 67, 0.10);
+  --primary-border: rgba(0, 200, 212, 0.25);
+  --primary-soft: rgba(0, 200, 212, 0.08);
+  --primary-glow: rgba(0, 200, 212, 0.18);
+  --secondary-glow: rgba(124, 58, 237, 0.12);
   --bg-secondary: var(--bg-elevated);
   --shadow-card: var(--glass-shadow);
-  --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.45);
-  --shadow-hero: 0 40px 100px rgba(0, 0, 0, 0.55);
-  --shadow-glow-accent: 0 0 40px rgba(99, 102, 241, 0.35);
-  --shadow-glow-gold: 0 0 36px rgba(139, 92, 246, 0.25);
+  --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.50);
+  --shadow-hero: 0 40px 100px rgba(0, 0, 0, 0.65);
+  --shadow-glow-accent: 0 0 40px rgba(0, 200, 212, 0.28), 0 0 80px rgba(0, 200, 212, 0.12);
+  --shadow-glow-gold: 0 0 36px rgba(212, 168, 67, 0.20);
 
   color-scheme: dark;
   background-color: var(--bg-base);
@@ -957,9 +1020,10 @@
   color: var(--text-1);
 }
 
-/* ── Liquid Glass — LIGHT MODE ── */
-html:not(.dark) .liquid-site:not(.dark),
-.liquid-site:not(.dark) {
+/* Light mode for liquid-site is disabled — dark cinematic is the brand mode.
+   The .light class (optional) can be added later if needed. */
+.light .liquid-site,
+.liquid-site.light {
   --glass-bg: rgba(255, 255, 255, 0.55);
   --glass-border: rgba(0, 0, 0, 0.08);
   --glass-shadow:
@@ -1053,61 +1117,64 @@ html:not(.dark) .liquid-site:not(.dark),
 }
 
 /* Unified authority system: restrained, high-contrast, bilingual-safe. */
-.liquid-site {
-  --glass-bg: rgba(255, 255, 255, 0.055);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-blur: blur(14px);
-  --glass-sat: saturate(140%);
-  --glass-shadow: 0 18px 54px rgba(0, 0, 0, 0.22);
-  --accent-1: #2a7f92;
-  --accent-2: #d95f1a;
-  --accent-glow: #77d0db;
-  --accent: #77d0db;
-  --accent-soft: rgba(119, 208, 219, 0.11);
-  --accent-strong: #d95f1a;
-  --gold: #d95f1a;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 8px;
-  --radius-xl: 8px;
-}
-
-html:not(.dark) .liquid-site:not(.dark),
-.liquid-site:not(.dark) {
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(12, 18, 28, 0.11);
-  --glass-shadow: 0 18px 48px rgba(12, 18, 28, 0.1);
-  --accent-1: #185f71;
-  --accent-2: #b84800;
-  --accent-glow: #185f71;
-  --accent: #185f71;
-  --accent-soft: rgba(24, 95, 113, 0.09);
-  --accent-strong: #b84800;
-  --gold: #b84800;
-}
-
-.liquid-site .glass,
-.liquid-site:not(.dark) .glass {
+/* Liquid-site unified button/glass radius — dark cinematic */
+.liquid-site .glass {
   border-radius: var(--radius-lg);
 }
 
-.liquid-site .button-liquid-primary,
-.liquid-site:not(.dark) .button-liquid-primary {
+.liquid-site .button-liquid-primary {
   border-radius: var(--radius-md);
-  background: var(--accent);
-  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  color: #fff;
 }
-
-.liquid-site .button-liquid-primary:hover,
-.liquid-site:not(.dark) .button-liquid-primary:hover {
-  background: var(--accent-strong);
+.liquid-site .button-liquid-primary:hover {
+  opacity: 0.88;
+  box-shadow: var(--shadow-glow-accent);
 }
-
-.liquid-site .button-liquid-secondary,
-.liquid-site:not(.dark) .button-liquid-secondary {
+.liquid-site .button-liquid-secondary {
   border-radius: var(--radius-md);
 }
 
 .headline-display {
   letter-spacing: 0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * SAFE TYPOGRAPHY — Anti-Clip System
+ * Prevents any heading from being visually cut off.
+ * These rules are intentionally global and high-specificity.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* All headings: never clip, always show descenders */
+h1, h2, h3, h4, h5, h6 {
+  overflow: visible;
+  line-height: max(var(--lh, 1.15), 1.1);
+}
+
+/* The headline-display class was used without a safe min line-height */
+.headline-display {
+  line-height: 1.12;
+  padding-bottom: 0.1em;
+  overflow: visible;
+}
+
+/* Force safe line-heights when leading-tight is the only control */
+h1.leading-tight, h2.leading-tight { line-height: 1.2; }
+
+/* Dark mode accent — ensure it's legible and not washed out */
+.dark .liquid-site,
+.liquid-site.dark {
+  --accent-glow: #5eead4; /* Brighter teal for dark mode visibility */
+}
+
+/* Navbar: ensure it never looks disconnected from the page on scroll */
+header { isolation: isolate; }
+
+/* Remove cheap glowing hero border that appeared around sections */
+.site-image-shell {
+  border-color: var(--border);
+}
+.dark .site-image-shell {
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-elevated);
 }

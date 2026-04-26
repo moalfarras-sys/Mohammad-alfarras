@@ -94,7 +94,7 @@ export function PortfolioHomePage({ model }: { model: SiteViewModel }) {
           <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
               <Eyebrow>{t.eyebrow}</Eyebrow>
-              <h1 className="headline-display mt-4 max-w-5xl text-[clamp(2.3rem,7vw,5.6rem)] font-black leading-[1.02] text-[var(--text-1)]">
+              <h1 className="headline-display mt-4 max-w-[22ch] overflow-visible text-[clamp(1.9rem,4.5vw,3.8rem)] font-black leading-[1.15] text-[var(--text-1)] pb-1">
                 {t.title}
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--text-2)] md:text-lg">
@@ -296,135 +296,144 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
 
   return (
     <>
-      <Section className="pt-10 md:pt-16" testId="cv-page">
-        <Frame>
-          <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-start">
-            <div>
-              <Eyebrow>{t.eyebrow}</Eyebrow>
-              <h1 className="headline-display mt-4 max-w-4xl text-[clamp(2.1rem,6vw,4.6rem)] font-black leading-tight text-[var(--text-1)]">
+      <section className="relative overflow-hidden pt-32 md:pt-40" data-testid="cv-page">
+        <div className="pointer-events-none absolute inset-0 bg-[var(--bg-base)]" />
+        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 50% at 90% 0%, rgba(124,58,237,0.08) 0%, transparent 60%)" }} />
+        
+        <div className="section-frame relative z-10">
+          <div className="grid gap-12 lg:grid-cols-[1fr_0.8fr] lg:items-start">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.eyebrow}</p>
+              <h1 className="mt-4 overflow-visible pb-2 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4.5vw,3.8rem)" }}>
                 {t.title}
               </h1>
-              <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--text-2)]">{t.body}</p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <a href={model.downloads.branded} className="button-liquid-primary">
+              <p className="mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-lg">{t.body}</p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a href={model.downloads.branded} className="button-liquid-primary inline-flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   {t.downloadDesigned}
                 </a>
-                <a href={model.downloads.ats} className="button-liquid-secondary">
+                <a href={model.downloads.ats} className="button-liquid-secondary inline-flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   {t.downloadAts}
                 </a>
               </div>
             </div>
-            <Card>
-              <h2 className="text-lg font-bold text-[var(--text-1)]">{t.summaryTitle}</h2>
-              <ul className="mt-4 grid gap-3">
+
+            {/* Profile summary card */}
+            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
+              <h2 className="text-lg font-bold" style={{ color: "var(--text-1)" }}>{t.summaryTitle}</h2>
+              <ul className="mt-6 grid gap-4">
                 {t.principles.map((item) => (
-                  <li key={item} className="flex gap-3 text-sm leading-7 text-[var(--text-2)]">
-                    <ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-[var(--accent)]" />
-                    <span>{item}</span>
+                  <li key={item} className="flex gap-4">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)]">
+                      <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                    </div>
+                    <span className="text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{item}</span>
                   </li>
                 ))}
               </ul>
-            </Card>
+            </div>
           </div>
-        </Frame>
-      </Section>
+        </div>
+      </section>
 
-      <Section>
-        <Frame>
-          <Eyebrow>{t.skillsTitle}</Eyebrow>
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      {/* ── SKILLS ── */}
+      <section className="py-16 md:py-20">
+        <div className="section-frame">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.skillsTitle}</p>
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
             {t.skillGroups.map((group) => (
-              <Card key={group.title}>
-                <h2 className="text-xl font-bold text-[var(--text-1)]">{group.title}</h2>
-                <div className="mt-4 flex flex-wrap gap-2">
+              <div key={group.title} className="glass rounded-[var(--radius-lg)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+                <h3 className="text-base font-bold" style={{ color: "var(--text-1)" }}>{group.title}</h3>
+                <div className="mt-5 flex flex-wrap gap-2">
                   {group.items.map((item) => (
-                    <Chip key={item}>{item}</Chip>
+                    <span key={item} className="rounded-full border px-3 py-1 text-xs font-medium" style={{ borderColor: "var(--glass-border)", color: "var(--text-2)", background: "var(--bg-elevated)" }}>
+                      {item}
+                    </span>
                   ))}
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
-        </Frame>
-      </Section>
+        </div>
+      </section>
 
-      <Section>
-        <Frame>
-          <Eyebrow>{t.experienceTitle}</Eyebrow>
-          <div className="mt-6 grid gap-4">
-            {model.cvExperience.map((entry) => (
-              <Card key={entry.id}>
-                <div className="grid gap-3 md:grid-cols-[0.32fr_0.68fr]">
-                  <div className="text-sm font-semibold text-[var(--text-3)]">{entry.period}</div>
-                  <div>
-                    <h2 className="text-xl font-bold text-[var(--text-1)]">{entry.role}</h2>
-                    <p className="mt-1 text-sm font-medium text-[var(--accent)]">
+      {/* ── TIMELINE ── */}
+      <section className="py-16 md:py-20">
+        <div className="section-frame">
+          <div className="max-w-4xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.experienceTitle}</p>
+            <div className="mt-8 grid gap-8 relative before:absolute before:inset-y-0 before:left-4 before:w-[2px] before:bg-gradient-to-b before:from-[var(--accent)] before:to-[var(--glass-border)] md:before:left-[160px]">
+              {model.cvExperience.map((entry) => (
+                <div key={entry.id} className="relative grid gap-4 pl-12 md:grid-cols-[140px_1fr] md:gap-10 md:pl-0">
+                  <div className="absolute left-[11px] top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-[var(--bg-base)] md:left-[157px]" style={{ borderColor: "var(--accent)" }} />
+                  
+                  <div className="hidden pt-1 text-right text-xs font-bold md:block" style={{ color: "var(--text-3)" }}>
+                    {entry.period}
+                  </div>
+                  
+                  <div className="glass rounded-[var(--radius-lg)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+                    <div className="md:hidden mb-2 text-xs font-bold" style={{ color: "var(--text-3)" }}>{entry.period}</div>
+                    <h3 className="text-lg font-bold" style={{ color: "var(--text-1)" }}>{entry.role}</h3>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--accent)" }}>
                       {entry.company} · {entry.location}
                     </p>
-                    <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{entry.description}</p>
+                    <p className="mt-4 text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{entry.description}</p>
+                    
                     {entry.highlights.length ? (
-                      <ul className="mt-4 grid gap-2">
+                      <ul className="mt-5 grid gap-2.5">
                         {entry.highlights.slice(0, 4).map((highlight) => (
-                          <li key={highlight} className="text-sm leading-7 text-[var(--text-2)]">
-                            {highlight}
+                          <li key={highlight} className="flex gap-2.5 text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--text-3)]" />
+                            <span>{highlight}</span>
                           </li>
                         ))}
                       </ul>
                     ) : null}
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        </Frame>
-      </Section>
-
-      <Section>
-        <Frame>
-          <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <div>
-              <Eyebrow>{t.ownershipTitle}</Eyebrow>
-              <h2 className="mt-3 text-3xl font-black text-[var(--text-1)]">{t.ownershipTitle}</h2>
-            </div>
-            <div className="grid gap-3">
-              {t.ownership.map((item) => (
-                <Card key={item} className="rounded-[var(--radius-md)]">
-                  <p className="text-sm leading-7 text-[var(--text-2)]">{item}</p>
-                </Card>
               ))}
             </div>
           </div>
-        </Frame>
-      </Section>
+        </div>
+      </section>
 
-      <Section>
-        <Frame>
-          <Eyebrow>{t.projectsTitle}</Eyebrow>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {model.cvProjects.slice(0, 3).map((project) => (
-              <Card key={project.id}>
-                <h2 className="text-xl font-bold text-[var(--text-1)]">{project.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{project.summary}</p>
-              </Card>
-            ))}
-          </div>
-        </Frame>
-      </Section>
-
-      <Section className="pb-20">
-        <Frame>
-          <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      {/* ── OWNERSHIP ── */}
+      <section className="py-16 md:py-20">
+        <div className="section-frame">
+          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-1)]">{t.contactTitle}</h2>
-              <p className="mt-2 text-sm leading-7 text-[var(--text-2)]">{t.contactBody}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.ownershipTitle}</p>
+              <h2 className="mt-3 overflow-visible pb-1 font-black leading-[1.2] text-[var(--text-1)]" style={{ fontSize: "clamp(1.6rem,3vw,2.4rem)" }}>
+                {t.ownershipTitle}
+              </h2>
             </div>
-            <Link href={`/${model.locale}/contact`} className="button-liquid-primary">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {t.ownership.map((item) => (
+                <div key={item} className="glass rounded-[var(--radius-md)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <p className="text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section className="pb-24 pt-10">
+        <div className="section-frame">
+          <div className="glass flex flex-col items-start gap-6 rounded-[var(--radius-xl)] p-8 md:flex-row md:items-center md:justify-between md:p-12" style={{ background: "linear-gradient(135deg, rgba(0,200,212,0.05) 0%, rgba(124,58,237,0.04) 100%)", boxShadow: "var(--shadow-elevated)" }}>
+            <div className="max-w-xl">
+              <h2 className="text-2xl font-black" style={{ color: "var(--text-1)" }}>{t.contactTitle}</h2>
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>{t.contactBody}</p>
+            </div>
+            <Link href={`/${model.locale}/contact`} className="button-liquid-primary shrink-0">
               {t.contactCta}
             </Link>
-          </Card>
-        </Frame>
-      </Section>
+          </div>
+        </div>
+      </section>
     </>
   );
 }

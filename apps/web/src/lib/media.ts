@@ -1,11 +1,11 @@
 /** Stable public asset paths — all commits must reference files that exist under /public. */
 
 export const MEDIA_PATHS = {
-  fallbackWide: "/images/cine-fallback-wide.svg",
-  fallbackPortrait: "/images/cine-fallback-portrait.svg",
+  fallbackWide: "/images/hero_tech.png",
+  fallbackPortrait: "/images/protofeilnew.jpeg",
   brandMark: "/images/logo.png",
   heroBrandCinematic: "/images/hero_tech.png",
-  brandSpotlight: "/images/brand-spotlight-2026.jpeg",
+  brandSpotlight: "/images/hero-dark-bg.png",
   portraitHeroFrame: "/images/hero-profile-bg.png",
 } as const;
 

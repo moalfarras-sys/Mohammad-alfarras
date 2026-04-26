@@ -111,7 +111,7 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
         id: item.id,
         title: item.snippet.title,
         publishedAt: item.snippet.publishedAt,
-        thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "/images/placeholder.jpg",
+        thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || "/images/yt-channel-hero.png",
         views: parseInt(item.statistics?.viewCount || "0", 10),
       }));
     }

@@ -145,5 +145,6 @@ export type SiteViewModel = {
   downloads: {
     branded: string;
     ats: string;
+    docx: string;
   };
 };

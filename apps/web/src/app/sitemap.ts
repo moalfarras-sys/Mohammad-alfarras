@@ -24,6 +24,7 @@ const localizedRoutes: RouteDef[] = [
   { path: "/work/moplayer", priority: 0.8, changeFrequency: "monthly" },
   { path: "/apps", priority: 0.9, changeFrequency: "weekly" },
   { path: "/apps/moplayer", priority: 0.95, changeFrequency: "weekly" },
+  { path: "/activate", priority: 0.7, changeFrequency: "monthly" },
   { path: "/youtube", priority: 0.75, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.7, changeFrequency: "monthly" },
   { path: "/support", priority: 0.55, changeFrequency: "monthly" },

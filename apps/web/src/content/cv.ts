@@ -3,12 +3,12 @@ import type { Localized } from "./site";
 export const cvPageCopy = {
   en: {
     eyebrow: "CV",
-    title: "Practical product engineer profile for web, product surfaces, and bilingual execution.",
+    title: "A profile built between logistics pressure, web execution, design, and Arabic tech storytelling.",
     body:
-      "A recruiter-friendly view of what Mohammad can own: structured frontend delivery, product presentation, Android media product surfaces, and Arabic/English technical communication.",
+      "This is not only a resume. It is the practical story behind the work: Rhenus Home Delivery, disposition, TMS, driver coordination, customer service, Next.js, React, TypeScript, UI/UX, MoPlayer, and a YouTube channel built on clear Arabic product explanation.",
     downloadDesigned: "Download designed CV",
     downloadAts: "Download ATS CV",
-    summaryTitle: "Above-the-fold summary",
+    summaryTitle: "Professional summary",
     skillsTitle: "Core skills",
     experienceTitle: "Experience timeline",
     projectsTitle: "Selected projects",
@@ -32,25 +32,25 @@ export const cvPageCopy = {
         items: ["Case studies", "Product pages", "Bilingual copy", "RTL/LTR structure", "SEO metadata", "JSON-LD"],
       },
       {
-        title: "Operational delivery",
-        items: ["Release surfaces", "Support flows", "Privacy notes", "Supabase-backed forms", "Accessibility", "Build verification"],
+        title: "Operations and delivery",
+        items: ["Disposition", "TMS", "Driver coordination", "Customer service", "Release surfaces", "Build verification"],
       },
     ],
     ownership: [
       "A personal or company website from positioning to launch-ready implementation.",
       "A product landing page with support, privacy, release, and case-study context.",
       "A bilingual Arabic/English content system with RTL-safe components.",
-      "A recruiter-readable CV/profile surface with clear ownership and selected outcomes.",
+      "A recruiter-readable profile that connects logistics discipline with digital product execution.",
     ],
   },
   ar: {
     eyebrow: "السيرة الذاتية",
-    title: "ملف مهني عملي لواجهات الويب، أسطح المنتجات، والتنفيذ العربي/الإنجليزي.",
+    title: "ملف مهني بين ضغط اللوجستيات، تنفيذ الويب، التصميم، والسرد التقني العربي.",
     body:
-      "عرض مناسب للتوظيف يوضح ما الذي يستطيع محمد امتلاكه: تنفيذ واجهات منظم، تقديم منتجات، أسطح Android media، وتواصل تقني عربي/إنجليزي.",
+      "هذه ليست سيرة تقليدية فقط. هي القصة العملية خلف العمل: Rhenus Home Delivery، الديسبوزيشن، TMS، تنسيق السائقين، خدمة العملاء، Next.js، React، TypeScript، UI/UX، MoPlayer، وقناة يوتيوب مبنية على شرح عربي واضح للمنتجات.",
     downloadDesigned: "تنزيل السيرة المصممة",
     downloadAts: "تنزيل نسخة ATS",
-    summaryTitle: "ملخص سريع",
+    summaryTitle: "ملخص مهني",
     skillsTitle: "المهارات الأساسية",
     experienceTitle: "الخبرة العملية",
     projectsTitle: "مشاريع مختارة",
@@ -74,15 +74,15 @@ export const cvPageCopy = {
         items: ["دراسات حالة", "صفحات منتجات", "نص ثنائي اللغة", "بنية RTL/LTR", "SEO metadata", "JSON-LD"],
       },
       {
-        title: "التنفيذ التشغيلي",
-        items: ["أسطح إصدارات", "مسارات دعم", "ملاحظات خصوصية", "نماذج Supabase", "إتاحة", "تحقق Build"],
+        title: "التشغيل والتسليم",
+        items: ["Disposition", "TMS", "تنسيق السائقين", "خدمة العملاء", "أسطح إصدارات", "تحقق Build"],
       },
     ],
     ownership: [
       "موقع شخصي أو موقع شركة من التموضع حتى تنفيذ جاهز للإطلاق.",
       "صفحة منتج تجمع الدعم والخصوصية والإصدار ودراسة الحالة.",
       "نظام محتوى عربي/إنجليزي مع مكونات آمنة لاتجاه RTL.",
-      "صفحة CV أو ملف مهني قابل للقراءة من مسؤول توظيف مع ملكية واضحة ونتائج مختارة.",
+      "ملف مهني يربط الانضباط اللوجستي بتنفيذ المنتجات الرقمية بشكل واضح.",
     ],
   },
 } satisfies Localized<{

@@ -1,0 +1,2 @@
+-- Local seed entrypoint.
+-- Core baseline rows are inserted idempotently inside the versioned migrations.

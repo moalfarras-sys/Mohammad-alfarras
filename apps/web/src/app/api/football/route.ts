@@ -4,11 +4,16 @@ const RAPIDAPI_KEY = process.env.RAPIDAPI_FOOTBALL_KEY;
 const API_HOST = "api-football-v1.p.rapidapi.com";
 
 export async function GET() {
-  if (!RAPIDAPI_KEY) {
-    return NextResponse.json({ error: "not_configured" }, { status: 200 });
-  }
-
   const today = new Date().toISOString().split("T")[0];
+
+  if (!RAPIDAPI_KEY) {
+    return NextResponse.json({
+      date: today,
+      matches: [],
+      source: "not_configured",
+      error: "not_configured",
+    });
+  }
 
   try {
     const res = await fetch(
@@ -23,7 +28,12 @@ export async function GET() {
     );
 
     if (!res.ok) {
-      return NextResponse.json({ error: "football_api_error" }, { status: 502 });
+      return NextResponse.json({
+        date: today,
+        matches: [],
+        source: "provider_error",
+        error: "football_api_error",
+      });
     }
 
     const data = await res.json();
@@ -52,8 +62,13 @@ export async function GET() {
       }),
     );
 
-    return NextResponse.json({ date: today, matches: fixtures });
+    return NextResponse.json({ date: today, matches: fixtures, source: "api-football" });
   } catch {
-    return NextResponse.json({ error: true }, { status: 500 });
+    return NextResponse.json({
+      date: today,
+      matches: [],
+      source: "network_error",
+      error: "football_api_unavailable",
+    });
   }
 }

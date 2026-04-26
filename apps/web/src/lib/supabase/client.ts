@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 function resolveAnonKey() {
   return (
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
     process.env.EXPO_PUBLIC_SUPABASE_KEY
   );

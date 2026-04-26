@@ -44,7 +44,7 @@ create table if not exists experiences (
   location text not null,
   start_date date not null,
   end_date date,
-  current_role boolean not null default false,
+  "current_role" boolean not null default false,
   logo_media_id text references media_assets(id) on delete set null
 );
 

@@ -196,6 +196,7 @@ ADMIN_SESSION_SECRET="<48+ random hex bytes>"
 
 NEXT_PUBLIC_SUPABASE_URL="https://<ref>.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="<anon>"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
 
 NEXT_PUBLIC_WEB_APP_URL="https://moalfarras.space"
 NEXT_PUBLIC_ADMIN_APP_URL="https://admin.moalfarras.space"
@@ -276,6 +277,19 @@ them to take effect.
 
 Project ref `ckefrnalgnbuaxsuufyx`. Migrations live in `supabase/migrations/`.
 
+Local Supabase CLI is initialized in `supabase/config.toml` with the same
+project ref. To apply migrations to the hosted project, use one of:
+
+```bash
+supabase login
+supabase link --project-ref ckefrnalgnbuaxsuufyx
+supabase db push
+```
+
+or run migrations with a valid `DIRECT_URL`. API keys alone can read/write
+existing tables, but they cannot create missing tables; schema changes require
+CLI access or the database password.
+
 Important tables:
 
 - `app_admin_roles` — admin/editor gate (Supabase-auth path).
@@ -306,7 +320,28 @@ Build APKs:
 
 ```bash
 cd android/moplayer
-./gradlew.bat assembleSideloadDebug      # or assembleSideloadRelease
+./gradlew.bat --version
+./gradlew.bat clean
+./gradlew.bat test
+./gradlew.bat lint
+./gradlew.bat testSideloadDebugUnitTest
+./gradlew.bat assembleSideloadDebug
+./gradlew.bat assembleSideloadRelease
+```
+
+Windows note: `JAVA_HOME` may point at a valid JDK path, but the local
+`gradlew.bat` still needs to validate `%JAVA_HOME%\bin\java.exe` directly.
+This repo's wrapper is patched for that Windows batch behavior. The verified
+local JDK during repair was Temurin/OpenJDK 21.0.10.
+
+Required Android SDK components:
+
+```text
+platforms;android-35       # must include platforms/android-35/android.jar
+build-tools;35.0.0
+platform-tools
+emulator
+cmdline-tools;latest
 ```
 
 Output:
@@ -316,6 +351,18 @@ android/moplayer/build-output/app/outputs/apk/sideload/debug/
 android/moplayer/build-output/app/outputs/apk/sideload/release/
 ```
 
+Refresh the website download artifacts locally (build APKs, copy into
+`apps/web/public/downloads/moplayer`, print file sizes and SHA-256):
+
+```bash
+npm run release:moplayer
+```
+
+The current public fallback release also mirrors the APKs to the Supabase
+Storage bucket `app-releases` under `moplayer/2.0.0/`. The local `/downloads`
+files stay available as a static fallback, while the release API can point at
+the Supabase public object URLs.
+
 Publish a new version (upload APK → Supabase storage → `app_releases` row):
 
 ```bash
@@ -324,6 +371,17 @@ node scripts/publish-android-release.mjs \
   --versionCode 3 \
   --apk android/moplayer/build-output/app/outputs/apk/sideload/release/moplayer-release.apk \
   --notes "Bug fixes + faster startup"
+```
+
+If the hosted Supabase schema has not been migrated yet, you can still upload
+the APK to Storage only:
+
+```bash
+node scripts/publish-android-release.mjs \
+  --version 2.0.1 \
+  --versionCode 3 \
+  --apk android/moplayer/build-output/app/outputs/apk/sideload/release/app-sideload-arm64-v8a-release.apk \
+  --uploadOnly
 ```
 
 After the script finishes:

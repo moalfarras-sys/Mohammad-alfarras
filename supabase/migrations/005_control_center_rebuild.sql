@@ -46,7 +46,6 @@ drop policy if exists "public_write_navigation_translations" on navigation_trans
 drop policy if exists "public_write_media_assets" on media_assets;
 drop policy if exists "public_write_site_settings" on site_settings;
 drop policy if exists "public_write_audit_logs" on audit_logs;
-drop policy if exists "public_write_theme_tokens" on theme_tokens;
 drop policy if exists "public_write_youtube_videos" on youtube_videos;
 drop policy if exists "public_write_page_blocks" on page_blocks;
 drop policy if exists "public_write_page_block_translations" on page_block_translations;

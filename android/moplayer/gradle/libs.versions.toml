@@ -32,6 +32,7 @@ mediarouter = "1.7.0"
 castFramework = "21.5.0"
 securityCrypto = "1.1.0-alpha06"
 splashscreen = "1.0.1"
+zxing = "3.5.3"
 
 [libraries]
 # Core Android
@@ -103,6 +104,7 @@ google-cast-framework = { group = "com.google.android.gms", name = "play-service
 androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "mediarouter" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -23,11 +23,11 @@
             <corners android:radius="28dp" />
             <gradient
                 android:angle="315"
-                android:endColor="#D01A2334"
-                android:startColor="#C8131B29" />
+                android:endColor="#DC111C3C"
+                android:startColor="#D6081024" />
             <stroke
-                android:width="1dp"
-                android:color="#42FFFFFF" />
+                android:width="1.5dp"
+                android:color="@color/cinematic_glass_highlight" />
         </shape>
     </item>
 
@@ -42,7 +42,7 @@
             <gradient
                 android:angle="270"
                 android:endColor="#00FFFFFF"
-                android:startColor="#20FFFFFF" />
+                android:startColor="#30FFFFFF" />
             <size android:height="42dp" />
         </shape>
     </item>

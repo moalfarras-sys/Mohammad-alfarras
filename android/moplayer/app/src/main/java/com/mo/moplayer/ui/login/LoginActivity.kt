@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Base64
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
@@ -28,9 +29,13 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.mo.moplayer.R
+import com.mo.moplayer.BuildConfig
+import com.mo.moplayer.data.config.AppRemoteConfig
+import com.mo.moplayer.data.config.AppRemoteConfigService
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.weather.WeatherService
 import com.mo.moplayer.databinding.ActivityLoginBinding
+import com.mo.moplayer.ui.activation.DeviceActivationActivity
 import com.mo.moplayer.ui.common.background.BackgroundVisualMode
 import com.mo.moplayer.ui.common.background.CinematicBackgroundController
 import com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
@@ -38,11 +43,17 @@ import com.mo.moplayer.ui.home.HomeActivity
 import com.mo.moplayer.ui.common.ExitHelper
 import com.mo.moplayer.ui.common.design.TvCinematicTokens
 import com.mo.moplayer.util.BackgroundManager
+import com.mo.moplayer.util.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
+import java.security.SecureRandom
 import javax.inject.Inject
 import kotlin.math.sin
 
@@ -51,6 +62,7 @@ class LoginActivity : AppCompatActivity() {
     
     companion object {
         private const val REQUEST_CODE_M3U_PICKER = 2001
+        const val EXTRA_ACTIVATION_COMPLETED = "com.mo.moplayer.extra.ACTIVATION_COMPLETED"
     }
 
     private lateinit var binding: ActivityLoginBinding
@@ -70,10 +82,16 @@ class LoginActivity : AppCompatActivity() {
     lateinit var backgroundManager: BackgroundManager
 
     @Inject
+    lateinit var themeManager: ThemeManager
+
+    @Inject
     lateinit var weatherService: com.mo.moplayer.data.weather.WeatherService
 
     @Inject
     lateinit var repository: IptvRepository
+
+    @Inject
+    lateinit var appRemoteConfigService: AppRemoteConfigService
     
     // M3U File Picker - Using OpenDocument for better file access
     private val m3uFilePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -113,6 +131,15 @@ class LoginActivity : AppCompatActivity() {
     private var animationTime = 0f
     @Volatile
     private var startupResolved = false
+    private var remoteWeatherEnabled = true
+    private val websiteSourceHandler = Handler(Looper.getMainLooper())
+    private var websiteSourcePollAttempts = 0
+    private var pendingWebsiteSourceId: String? = null
+    private val websiteSourceRunnable = object : Runnable {
+        override fun run() {
+            checkWebsiteDeliveredSource(scheduleNext = true)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -139,10 +166,73 @@ class LoginActivity : AppCompatActivity() {
             setupTabs()
             setupFormNavigation()
             setupPasswordToggle()
+            applyRemoteConfig()
+            applySavedActivationState()
             observeViewModel()
             startEntranceAnimations()
+            handleActivationCompletedIntent(intent)
+            startWebsiteSourcePollingIfActivated()
             startupResolved = true
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (::binding.isInitialized) {
+            applySavedActivationState()
+            handleActivationCompletedIntent(intent)
+        }
+    }
+
+    private fun applyRemoteConfig() {
+        applyRemoteConfigState(appRemoteConfigService.cachedConfig())
+        lifecycleScope.launch {
+            val config = appRemoteConfigService.fetchConfig()
+            applyRemoteConfigState(config)
+        }
+    }
+
+    private fun applyRemoteConfigState(config: AppRemoteConfig) {
+        remoteWeatherEnabled = config.weatherEnabled
+        binding.weatherWidget.visibility = if (remoteWeatherEnabled) View.VISIBLE else View.GONE
+        parseRemoteAccentColor(config.accentColor)?.let { accentColor ->
+            binding.htcAnimatedBackground.setParticleColor(accentColor)
+            lifecycleScope.launch {
+                themeManager.overrideRuntimeAccentColor(accentColor)
+            }
+        }
+
+        val blockedMessage = when {
+            !config.enabled -> config.message.ifBlank { "MoPlayer is temporarily unavailable. Please try again later." }
+            config.maintenanceMode -> config.message.ifBlank { "MoPlayer is in maintenance mode. Please check back soon." }
+            config.forceUpdate && BuildConfig.VERSION_CODE < config.minimumVersionCode ->
+                config.message.ifBlank { "A newer MoPlayer version is required. Download the latest APK from moalfarras.space." }
+            else -> null
+        }
+
+        val setupEnabled = blockedMessage == null
+        binding.btnConnectClean.isEnabled = setupEnabled
+        binding.btnImportM3uClean.isEnabled = setupEnabled
+        binding.btnImportM3uLocalClean.isEnabled = setupEnabled
+        binding.btnOpenActivationClean.isEnabled = setupEnabled
+        binding.activationEntryCard.isEnabled = setupEnabled
+
+        if (!setupEnabled) {
+            binding.tvErrorClean.text = blockedMessage
+            binding.tvErrorClean.isVisible = true
+            binding.tvErrorClean.requestFocus()
+        } else if (config.message.isNotBlank()) {
+            binding.tvErrorClean.text = config.message
+            binding.tvErrorClean.isVisible = true
+        }
+    }
+
+    private fun parseRemoteAccentColor(value: String): Int? {
+        return runCatching {
+            val trimmed = value.trim()
+            if (trimmed.matches(Regex("^#[0-9A-Fa-f]{6}$"))) Color.parseColor(trimmed) else null
+        }.getOrNull()
     }
 
     private fun setupHtcBackground() {
@@ -229,9 +319,10 @@ class LoginActivity : AppCompatActivity() {
             ) { enabled, quality, reduceMotion, disableLightning, weatherData ->
                 WeatherOverlayState(enabled, quality, reduceMotion, disableLightning, weatherData)
             }.collect { (enabled, quality, reduceMotion, disableLightning, weatherData) ->
-                binding.weatherWidget.visibility = if (enabled) android.view.View.VISIBLE else android.view.View.GONE
+                val weatherVisible = enabled && remoteWeatherEnabled
+                binding.weatherWidget.visibility = if (weatherVisible) android.view.View.VISIBLE else android.view.View.GONE
                 binding.weatherOverlay.visibility = when {
-                    !enabled -> android.view.View.GONE
+                    !weatherVisible -> android.view.View.GONE
                     quality == WeatherService.EFFECT_QUALITY_OFF -> android.view.View.GONE
                     else -> android.view.View.VISIBLE
                 }
@@ -268,7 +359,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun setupUI() {
         // Set initial focus
-        binding.btnTabXtreamClean.requestFocus()
+        ensureInitialTvFocus()
 
         setupInputTextVisibilityFix()
 
@@ -285,14 +376,29 @@ class LoginActivity : AppCompatActivity() {
             animateButtonPress(it)
             openM3uFilePicker()
         }
+        binding.btnOpenActivationClean.setOnClickListener {
+            animateButtonPress(it)
+            startActivity(Intent(this, DeviceActivationActivity::class.java))
+        }
 
         // Handle D-Pad selection
         binding.btnConnectClean.setOnKeyListener { v, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.action == KeyEvent.ACTION_UP) {
-                animateButtonPress(v)
-                attemptXtreamConnect()
-                true
-            } else false
+            when {
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.btnOpenActivationClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.etPasswordClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.action == KeyEvent.ACTION_UP -> {
+                    animateButtonPress(v)
+                    attemptXtreamConnect()
+                    true
+                }
+                else -> false
+            }
         }
 
         binding.btnImportM3uClean.setOnKeyListener { v, keyCode, event ->
@@ -304,19 +410,83 @@ class LoginActivity : AppCompatActivity() {
         }
         
         binding.btnImportM3uLocalClean.setOnKeyListener { v, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.action == KeyEvent.ACTION_UP) {
-                animateButtonPress(v)
-                openM3uFilePicker()
-                true
-            } else false
+            when {
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.btnOpenActivationClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.btnImportM3uClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.action == KeyEvent.ACTION_UP -> {
+                    animateButtonPress(v)
+                    openM3uFilePicker()
+                    true
+                }
+                else -> false
+            }
         }
+        binding.activationEntryCard.setOnClickListener {
+            binding.btnOpenActivationClean.requestFocus()
+        }
+        binding.activationEntryCard.setOnKeyListener { _, keyCode, event ->
+            when {
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER && event.action == KeyEvent.ACTION_UP -> {
+                    binding.btnOpenActivationClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
+                    if (binding.viewFlipperLoginClean.displayedChild == 0) {
+                        binding.btnConnectClean.requestFocus()
+                    } else {
+                        binding.btnImportM3uLocalClean.requestFocus()
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+        binding.btnOpenActivationClean.setOnKeyListener { v, keyCode, event ->
+            when {
+                keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
+                    if (binding.viewFlipperLoginClean.displayedChild == 0) {
+                        binding.btnConnectClean.requestFocus()
+                    } else {
+                        binding.btnImportM3uLocalClean.requestFocus()
+                    }
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.btnTabXtreamClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_LEFT && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.btnTabXtreamClean.requestFocus()
+                    true
+                }
+                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && event.action == KeyEvent.ACTION_DOWN -> {
+                    binding.btnTabM3uClean.requestFocus()
+                    true
+                }
+                (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.action == KeyEvent.ACTION_UP -> {
+                    animateButtonPress(v)
+                    startActivity(Intent(this, DeviceActivationActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+        setupDpadFocusOverrides()
 
         // Focus change listeners
         listOf(
             binding.etServerUrlClean, 
             binding.etUsernameClean, 
             binding.etPasswordClean,
-            binding.etM3uUrlClean
+            binding.etM3uUrlClean,
+            binding.activationEntryCard,
+            binding.btnOpenActivationClean
         ).forEach { editText ->
             editText.setOnFocusChangeListener { view, hasFocus ->
                 if (hasFocus) {
@@ -347,6 +517,195 @@ class LoginActivity : AppCompatActivity() {
                 s?.toString()?.let { viewModel.detectLoginType(it) }
             }
         })
+    }
+
+    private fun ensureInitialTvFocus() {
+        binding.btnTabXtreamClean.post {
+            if (currentFocus == null || currentFocus === binding.loginCardClean) {
+                binding.btnTabXtreamClean.requestFocus()
+            }
+        }
+    }
+
+    private fun applySavedActivationState() {
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        val isActivated = activationPrefs.getString("activation_status", null) == "activated"
+        if (isActivated) {
+            binding.btnOpenActivationClean.text = getString(R.string.activation_entry_button_done)
+        } else {
+            binding.btnOpenActivationClean.text = getString(R.string.activation_entry_button)
+        }
+    }
+
+    private fun handleActivationCompletedIntent(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_ACTIVATION_COMPLETED, false) != true) return
+
+        selectTab(LoginViewModel.LoginTab.XTREAM)
+        binding.tvErrorClean.text = getString(R.string.activation_completed_login_hint)
+        binding.tvErrorClean.isVisible = true
+        binding.btnTabXtreamClean.postDelayed({
+            binding.btnTabXtreamClean.requestFocus()
+        }, 180)
+        startWebsiteSourcePolling()
+        intent.removeExtra(EXTRA_ACTIVATION_COMPLETED)
+    }
+
+    private fun startWebsiteSourcePollingIfActivated() {
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        val isActivated = activationPrefs.getString("activation_status", null) == "activated"
+        if (isActivated) {
+            startWebsiteSourcePolling()
+        }
+    }
+
+    private fun startWebsiteSourcePolling() {
+        websiteSourcePollAttempts = 0
+        websiteSourceHandler.removeCallbacks(websiteSourceRunnable)
+        websiteSourceHandler.postDelayed(websiteSourceRunnable, 1_000)
+    }
+
+    private fun scheduleNextWebsiteSourcePoll() {
+        if (websiteSourcePollAttempts < 45 && pendingWebsiteSourceId == null) {
+            websiteSourceHandler.postDelayed(websiteSourceRunnable, 4_000)
+        }
+    }
+
+    private fun checkWebsiteDeliveredSource(scheduleNext: Boolean) {
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        val publicDeviceId = activationPrefs.getString("public_device_id", null).orEmpty()
+        val sourcePullToken = getOrCreateSourcePullToken()
+        if (publicDeviceId.isBlank() || sourcePullToken.isBlank() || pendingWebsiteSourceId != null) return
+
+        websiteSourcePollAttempts += 1
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val queryDevice = URLEncoder.encode(publicDeviceId, "UTF-8")
+                    val queryToken = URLEncoder.encode(sourcePullToken, "UTF-8")
+                    val connection = (URL("${BuildConfig.WEB_API_BASE_URL.trimEnd('/')}/api/app/activation/source?publicDeviceId=$queryDevice&token=$queryToken").openConnection() as HttpURLConnection).apply {
+                        requestMethod = "GET"
+                        connectTimeout = 8_000
+                        readTimeout = 8_000
+                    }
+                    val responseText = if (connection.responseCode < 400) {
+                        connection.inputStream.bufferedReader().use { it.readText() }
+                    } else {
+                        connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+                    }
+                    JSONObject(responseText)
+                }.getOrNull()
+            }
+
+            if (result?.optString("status") == "source_available") {
+                pendingWebsiteSourceId = result.optString("sourceId")
+                importWebsiteDeliveredSource(result.optJSONObject("source"))
+            } else if (scheduleNext) {
+                scheduleNextWebsiteSourcePoll()
+            }
+        }
+    }
+
+    private fun importWebsiteDeliveredSource(source: JSONObject?) {
+        if (source == null) {
+            ackWebsiteSource("failed", "Missing source payload")
+            return
+        }
+
+        val type = source.optString("type")
+        val name = source.optString("name")
+        binding.tvErrorClean.text = getString(R.string.website_source_received)
+        binding.tvErrorClean.isVisible = true
+
+        when (type) {
+            "xtream" -> {
+                selectTab(LoginViewModel.LoginTab.XTREAM)
+                viewModel.login(
+                    source.optString("serverUrl"),
+                    source.optString("username"),
+                    source.optString("password")
+                )
+            }
+            "m3u" -> {
+                selectTab(LoginViewModel.LoginTab.M3U)
+                viewModel.importM3uFromUrl(source.optString("playlistUrl"), name)
+            }
+            else -> ackWebsiteSource("failed", "Unsupported source type")
+        }
+    }
+
+    private fun ackWebsiteSource(status: String, message: String? = null, onDone: (() -> Unit)? = null) {
+        val sourceId = pendingWebsiteSourceId ?: run {
+            onDone?.invoke()
+            return
+        }
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        val publicDeviceId = activationPrefs.getString("public_device_id", null).orEmpty()
+        val token = getOrCreateSourcePullToken()
+
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val body = JSONObject().apply {
+                        put("publicDeviceId", publicDeviceId)
+                        put("token", token)
+                        put("sourceId", sourceId)
+                        put("status", status)
+                        if (!message.isNullOrBlank()) put("message", message.take(240))
+                    }.toString()
+                    val connection = (URL("${BuildConfig.WEB_API_BASE_URL.trimEnd('/')}/api/app/activation/source/ack").openConnection() as HttpURLConnection).apply {
+                        requestMethod = "POST"
+                        connectTimeout = 8_000
+                        readTimeout = 8_000
+                        doOutput = true
+                        setRequestProperty("content-type", "application/json")
+                    }
+                    connection.outputStream.use { it.write(body.toByteArray()) }
+                    if (connection.responseCode < 400) {
+                        connection.inputStream.close()
+                    } else {
+                        connection.errorStream?.close()
+                    }
+                }
+            }
+            pendingWebsiteSourceId = null
+            onDone?.invoke()
+        }
+    }
+
+    private fun getOrCreateSourcePullToken(): String {
+        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        activationPrefs.getString("source_pull_token", null)?.let { existing ->
+            if (existing.length >= 32) return existing
+        }
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        val token = Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        activationPrefs.edit().putString("source_pull_token", token).apply()
+        return token
+    }
+
+    private fun setupDpadFocusOverrides() {
+        fun moveOnDpad(view: View, up: View?, down: View?) {
+            view.setOnKeyListener { _, keyCode, event ->
+                if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        up?.requestFocus()
+                        up != null
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        down?.requestFocus()
+                        down != null
+                    }
+                    else -> false
+                }
+            }
+        }
+
+        moveOnDpad(binding.etServerUrlClean, binding.btnTabXtreamClean, binding.etUsernameClean)
+        moveOnDpad(binding.etUsernameClean, binding.etServerUrlClean, binding.etPasswordClean)
+        moveOnDpad(binding.etPasswordClean, binding.etUsernameClean, binding.btnConnectClean)
+        moveOnDpad(binding.etM3uUrlClean, binding.btnTabM3uClean, binding.btnImportM3uClean)
     }
 
     private fun setupPasswordToggle() {
@@ -571,13 +930,24 @@ class LoginActivity : AppCompatActivity() {
                 }
                 is LoginViewModel.LoginState.Success -> {
                     Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show()
-                    navigateToHome()
+                    if (pendingWebsiteSourceId != null) {
+                        ackWebsiteSource("imported") { navigateToHome() }
+                    } else {
+                        navigateToHome()
+                    }
                 }
                 is LoginViewModel.LoginState.M3uImported -> {
                     Toast.makeText(this, getString(R.string.login_playlist_imported), Toast.LENGTH_SHORT).show()
-                    navigateToHome()
+                    if (pendingWebsiteSourceId != null) {
+                        ackWebsiteSource("imported") { navigateToHome() }
+                    } else {
+                        navigateToHome()
+                    }
                 }
                 is LoginViewModel.LoginState.Error -> {
+                    if (pendingWebsiteSourceId != null) {
+                        ackWebsiteSource("failed", state.message)
+                    }
                     binding.tvErrorClean.text = state.message
                     binding.tvErrorClean.isVisible = true
                     animateErrorShake()
@@ -847,6 +1217,9 @@ class LoginActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (!::binding.isInitialized) return
+        applySavedActivationState()
+        ensureInitialTvFocus()
+        startWebsiteSourcePollingIfActivated()
         binding.htcAnimatedBackground.resumeAnimation()
         binding.weatherOverlay.startAnimation()
         
@@ -883,6 +1256,7 @@ class LoginActivity : AppCompatActivity() {
         if (!::binding.isInitialized) return
         passwordRevealHandler.removeCallbacksAndMessages(null)
         marketingHandler.removeCallbacksAndMessages(null)
+        websiteSourceHandler.removeCallbacksAndMessages(null)
         logoAnimatorSet?.cancel()
         loadingAnimatorSet?.cancel()
         exitHelper.dismissDialog()

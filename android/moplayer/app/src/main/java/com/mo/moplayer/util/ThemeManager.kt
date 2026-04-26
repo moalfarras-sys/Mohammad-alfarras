@@ -151,6 +151,11 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
         _themeUpdateEvent.emit(color)
     }
 
+    suspend fun overrideRuntimeAccentColor(color: Int) {
+        _currentAccentColor.value = color
+        _themeUpdateEvent.emit(color)
+    }
+
     suspend fun setThemeFromPreset(preset: ThemeColor) {
         setThemeAndAccent(themeForAccent(preset.accentId), preset.accentId)
     }

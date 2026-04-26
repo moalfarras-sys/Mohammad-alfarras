@@ -28,10 +28,9 @@ val localProperties = Properties()
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
-val footballApiKey = localProperties.getProperty("football.api.key", "")
-val weatherApiKey = localProperties.getProperty("weather.api.key", "")
 val tmdbApiKey = localProperties.getProperty("tmdb.api.key", "")
 val tvdbApiKey = localProperties.getProperty("tvdb.api.key", "")
+val webApiBaseUrl = localProperties.getProperty("web.api.base.url", "https://moalfarras.space")
 val isPlayBundleBuild = gradle.startParameter.taskNames.any { it.contains("bundleplay", ignoreCase = true) }
 val includeX86Abis = providers.gradleProperty("includeX86Abis").orNull?.toBoolean() ?: false
 val sideloadAbis = mutableListOf("armeabi-v7a", "arm64-v8a").apply {
@@ -58,9 +57,8 @@ android {
         // Vector drawable support for older APIs
         vectorDrawables.useSupportLibrary = true
         
-        // API-Football key from local.properties
-        buildConfigField("String", "FOOTBALL_API_KEY", "\"$footballApiKey\"")
-        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
+        // Public website API proxy. Weather and sports provider keys stay server-side.
+        buildConfigField("String", "WEB_API_BASE_URL", "\"${webApiBaseUrl.trimEnd('/')}\"")
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
         buildConfigField("String", "TVDB_API_KEY", "\"$tvdbApiKey\"")
     }
@@ -221,6 +219,9 @@ dependencies {
     // Splash Screen API
     implementation(libs.androidx.splashscreen)
 
+    // Website activation QR code
+    implementation(libs.zxing.core)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation("io.mockk:mockk:1.13.13")
@@ -319,17 +320,12 @@ tasks.register("checkArtifactSizeLimits") {
     }
 }
 
-tasks.matching { it.name.startsWith("process") && it.name.endsWith("Resources") && it.name.contains("Debug") }.configureEach {
-    doFirst {
-        val rJarDir = file("${rootProject.projectDir}/build-output/app/intermediates/compile_and_runtime_not_namespaced_r_class_jar")
-        if (rJarDir.exists()) {
-            rJarDir.walkTopDown()
-                .filter {
-                    it.isFile &&
-                    it.name.equals("R.jar", ignoreCase = true) &&
-                    it.absolutePath.contains("debug", ignoreCase = true)
-                }
-                .forEach { it.delete() }
-        }
+// KSP inspects the generated R.jar. With the custom Windows-friendly build
+// output directory, Gradle can otherwise start KSP before the matching
+// process<Variant>Resources task has materialized that jar.
+tasks.matching { it.name.startsWith("ksp") && it.name.endsWith("Kotlin") }.configureEach {
+    val variant = name.removePrefix("ksp").removeSuffix("Kotlin")
+    if (!variant.endsWith("UnitTest") && !variant.endsWith("AndroidTest")) {
+        dependsOn("process${variant}Resources")
     }
 }

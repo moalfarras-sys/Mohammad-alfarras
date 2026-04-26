@@ -21,10 +21,10 @@
                     <corners android:radius="14dp" />
                     <gradient
                         android:type="radial"
-                        android:gradientRadius="80dp"
+                    android:gradientRadius="96dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="#304F8BFF"
+                        android:startColor="@color/cinematic_focus_glow"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -36,7 +36,7 @@
                         android:endColor="@color/liquid_glass_surface" />
                     <corners android:radius="12dp" />
                     <stroke
-                        android:width="2dp"
+                        android:width="@dimen/focus_ring_width"
                         android:color="@color/liquid_focus_ring" />
                 </shape>
             </item>

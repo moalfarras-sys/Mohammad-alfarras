@@ -3,40 +3,40 @@
     <!-- MoPlayer Cinematic Palette — Night-Sky Cyber Theme (SYNC WITH WEB) -->
 
     <!-- Base backgrounds — Midnight Navy -->
-    <color name="cinematic_bg_base">#020617</color>
-    <color name="cinematic_bg_elevated">#0B1121</color>
-    <color name="cinematic_surface">#111827</color>
-    <color name="cinematic_surface_alt">#1E293B</color>
+    <color name="cinematic_bg_base">#030712</color>
+    <color name="cinematic_bg_elevated">#071126</color>
+    <color name="cinematic_surface">#0B1630</color>
+    <color name="cinematic_surface_alt">#121F3F</color>
 
     <!-- Text -->
     <color name="cinematic_text_primary">#F8FAFC</color>
-    <color name="cinematic_text_secondary">#94A3B8</color>
-    <color name="cinematic_text_tertiary">#64748B</color>
+    <color name="cinematic_text_secondary">#B7C6DA</color>
+    <color name="cinematic_text_tertiary">#7E8FA8</color>
 
     <!-- Primary: Electric Cyan -->
-    <color name="cinematic_focus_soft">#6600E5FF</color>
-    <color name="cinematic_focus_glow">#4D00E5FF</color>
-    <color name="cinematic_divider">#18FFFFFF</color>
+    <color name="cinematic_focus_soft">#7322D3EE</color>
+    <color name="cinematic_focus_glow">#5522D3EE</color>
+    <color name="cinematic_divider">#26FFFFFF</color>
 
     <!-- Cyan glow layers (Primary) -->
-    <color name="cinematic_blue_glow_strong">#5000E5FF</color>
-    <color name="cinematic_blue_glow_medium">#3000E5FF</color>
-    <color name="cinematic_blue_glow_subtle">#1800E5FF</color>
+    <color name="cinematic_blue_glow_strong">#6622D3EE</color>
+    <color name="cinematic_blue_glow_medium">#3D22D3EE</color>
+    <color name="cinematic_blue_glow_subtle">#1F22D3EE</color>
 
     <!-- Indigo accent (Secondary) -->
-    <color name="cinematic_violet">#6366F1</color>
-    <color name="cinematic_violet_light">#818CF8</color>
-    <color name="cinematic_violet_glow">#336366F1</color>
-    <color name="cinematic_violet_subtle">#186366F1</color>
+    <color name="cinematic_violet">#8B5CF6</color>
+    <color name="cinematic_violet_light">#A78BFA</color>
+    <color name="cinematic_violet_glow">#408B5CF6</color>
+    <color name="cinematic_violet_subtle">#228B5CF6</color>
 
     <!-- Magenta accent (Tertiary) -->
-    <color name="cinematic_cyan">#D946EF</color>
-    <color name="cinematic_cyan_glow">#33D946EF</color>
+    <color name="cinematic_cyan">#F6C177</color>
+    <color name="cinematic_cyan_glow">#33F6C177</color>
 
     <!-- Glass layers — ultra-premium -->
-    <color name="cinematic_glass_bg">#0CFFFFFF</color>
-    <color name="cinematic_glass_surface">#14FFFFFF</color>
-    <color name="cinematic_glass_border">#1AFFFFFF</color>
-    <color name="cinematic_glass_highlight">#22FFFFFF</color>
+    <color name="cinematic_glass_bg">#12FFFFFF</color>
+    <color name="cinematic_glass_surface">#1AFFFFFF</color>
+    <color name="cinematic_glass_border">#2EFFFFFF</color>
+    <color name="cinematic_glass_highlight">#3AFFFFFF</color>
     <color name="cinematic_glass_reflection">#08FFFFFF</color>
 </resources>

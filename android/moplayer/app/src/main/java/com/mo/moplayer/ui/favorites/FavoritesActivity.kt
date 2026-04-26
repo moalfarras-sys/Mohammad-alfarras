@@ -99,11 +99,7 @@ class FavoritesActivity : BaseTvActivity() {
             } else {
                 binding.emptyState.visibility = View.GONE
                 binding.rvFavorites.visibility = View.VISIBLE
-                if (!binding.rvFavorites.hasFocus()) {
-                    binding.rvFavorites.post {
-                        binding.rvFavorites.getChildAt(0)?.requestFocus()
-                    }
-                }
+                focusFirstFavorite()
             }
         }
 
@@ -112,8 +108,19 @@ class FavoritesActivity : BaseTvActivity() {
         }
     }
 
+    private fun focusFirstFavorite() {
+        if (binding.rvFavorites.hasFocus()) return
+
+        binding.rvFavorites.post {
+            binding.rvFavorites.scrollToPosition(0)
+            binding.rvFavorites.postDelayed({
+                binding.rvFavorites.getChildAt(0)?.requestFocus()
+            }, 120L)
+        }
+    }
+
     private fun handleFavoriteClick(favorite: FavoriteEntity) {
-        when (favorite.contentType) {
+        when (favorite.contentType.lowercase()) {
             "movie", "channel" -> {
                 lifecycleScope.launch {
                     val playable = repository.resolvePlayableByFavorite(favorite.id)
@@ -146,7 +153,7 @@ class FavoritesActivity : BaseTvActivity() {
 
     private fun showFavoriteContextMenu(favorite: FavoriteEntity) {
         lifecycleScope.launch {
-            val details = when (favorite.contentType) {
+            val details = when (favorite.contentType.lowercase()) {
                 "movie" -> repository.getMovieById(favorite.contentId)?.let {
                     ContentMenuDetails(
                         description = it.plot,

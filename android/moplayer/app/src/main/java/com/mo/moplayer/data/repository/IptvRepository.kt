@@ -876,6 +876,11 @@ class IptvRepository @Inject constructor(
     ): Resource<Long> = withContext(Dispatchers.IO) {
         try {
             val parseResult = m3uParser.parse(content)
+            if (parseResult.items.isEmpty()) {
+                return@withContext Resource.Error(
+                    "Playlist did not contain playable items. Check that the M3U URL is valid and contains stream URLs."
+                )
+            }
             
             // Create server entry
             val serverId = saveServer(
@@ -934,6 +939,27 @@ class IptvRepository @Inject constructor(
             if (searchItems.isNotEmpty()) {
                 contentSearchDao.upsertAll(searchItems)
             }
+
+            serverSyncStateDao.upsert(
+                ServerSyncStateEntity(
+                    serverId = serverId,
+                    lastSyncAt = System.currentTimeMillis(),
+                    lastStatus = "SUCCESS",
+                    lastError = buildString {
+                        append("Imported ${channels.size} live and ${movies.size} movies")
+                        if (parseResult.categories.isNotEmpty()) {
+                            append(" across ${parseResult.categories.size} categories")
+                        }
+                        if (parseResult.skippedEntries > 0 || parseResult.duplicateEntries > 0) {
+                            append(". Skipped ${parseResult.skippedEntries} malformed and ${parseResult.duplicateEntries} duplicate entries")
+                        }
+                    },
+                    totalChannels = channels.size,
+                    totalMovies = movies.size,
+                    totalSeries = 0,
+                    totalCategories = liveCategories.size
+                )
+            )
             
             Resource.Success(serverId)
         } catch (e: Exception) {
@@ -1116,7 +1142,7 @@ class IptvRepository @Inject constructor(
         }
     }
     
-    private fun buildStreamUrl(
+    fun buildStreamUrl(
         server: ServerEntity,
         streamId: Int,
         type: String,

@@ -1,6 +1,7 @@
 package com.mo.moplayer.ui.home
 
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
@@ -21,6 +22,8 @@ import com.mo.moplayer.ui.common.BaseTvActivity
 import com.mo.moplayer.ui.common.ContentMenuDetails
 import com.mo.moplayer.ui.common.ContentMenuHelper
 import com.mo.moplayer.ui.common.SmoothItemAnimator
+import com.mo.moplayer.data.config.AppRemoteConfig
+import com.mo.moplayer.data.config.AppRemoteConfigService
 import com.mo.moplayer.data.football.FootballService
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.ui.common.utils.FocusMapRegistry
@@ -75,6 +78,9 @@ class HomeActivity : BaseTvActivity() {
 
     @Inject
     lateinit var recyclerViewOptimizer: com.mo.moplayer.util.RecyclerViewOptimizer
+
+    @Inject
+    lateinit var appRemoteConfigService: AppRemoteConfigService
     
     private lateinit var contentAdapter: ContentRowAdapter
     private val clockHandler = Handler(Looper.getMainLooper())
@@ -93,6 +99,7 @@ class HomeActivity : BaseTvActivity() {
     private var deferHeavyVisuals = true
     private var pendingPreviewItem: ContentItem? = null
     private var silentRefreshStarted = false
+    private var appRemoteConfig = AppRemoteConfig()
     
     private var currentDockIndex = 0
     private val dockItems by lazy {
@@ -118,6 +125,7 @@ class HomeActivity : BaseTvActivity() {
         setupSurpriseMe()
         setupFocusMap()
         prepareDeferredStartupState()
+        applyRemoteConfig()
         observeViewModel()
         
         // Set Home as selected
@@ -210,7 +218,12 @@ class HomeActivity : BaseTvActivity() {
         setupWeather()
         setupFootballWidget()
 
-        listOf(binding.weatherWidget, binding.footballWidget, binding.flipClockContainer).forEach { view ->
+        val visibleChrome = listOfNotNull(
+            binding.weatherWidget.takeIf { appRemoteConfig.weatherEnabled },
+            binding.footballWidget.takeIf { appRemoteConfig.footballEnabled },
+            binding.flipClockContainer
+        )
+        visibleChrome.forEach { view ->
             view.visibility = View.VISIBLE
             view.alpha = 0f
             view.translationY = -8f
@@ -227,7 +240,50 @@ class HomeActivity : BaseTvActivity() {
             .setDuration(260L)
             .start()
 
-        binding.footballWidget.onActivityResumed()
+        if (appRemoteConfig.footballEnabled) {
+            binding.footballWidget.onActivityResumed()
+        }
+    }
+
+    private fun applyRemoteConfig() {
+        appRemoteConfig = appRemoteConfigService.cachedConfig()
+        applyRemoteConfigState()
+        lifecycleScope.launch {
+            appRemoteConfig = appRemoteConfigService.fetchConfig()
+            applyRemoteConfigState()
+        }
+    }
+
+    private fun applyRemoteConfigState() {
+        parseRemoteAccentColor(appRemoteConfig.accentColor)?.let { accentColor ->
+            lifecycleScope.launch {
+                themeManager.overrideRuntimeAccentColor(accentColor)
+                applyThemeToViews(accentColor)
+            }
+        }
+        binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled) View.VISIBLE else View.GONE
+        binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
+
+        val message = when {
+            !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { "MoPlayer is temporarily unavailable." }
+            appRemoteConfig.maintenanceMode -> appRemoteConfig.message.ifBlank { "MoPlayer is in maintenance mode." }
+            appRemoteConfig.message.isNotBlank() -> appRemoteConfig.message
+            else -> null
+        }
+
+        if (!message.isNullOrBlank()) {
+            binding.tvPreviewTitle.text = message
+            binding.tvPreviewDescription.text = "Managed from the Moalfarras control center."
+            binding.tvPreviewDescription.isVisible = true
+        }
+        binding.root.post { setupFocusMap() }
+    }
+
+    private fun parseRemoteAccentColor(value: String): Int? {
+        return runCatching {
+            val trimmed = value.trim()
+            if (trimmed.matches(Regex("^#[0-9A-Fa-f]{6}$"))) Color.parseColor(trimmed) else null
+        }.getOrNull()
     }
 
     private fun startVisualEffectsIfNeeded() {
@@ -287,9 +343,10 @@ class HomeActivity : BaseTvActivity() {
         lifecycleScope.launch {
             var wasVisible: Boolean? = null
             footballService.footballWidgetEnabled.collect { enabled ->
-                binding.footballWidget.visibility = if (enabled) View.VISIBLE else View.GONE
-                if (wasVisible != enabled) {
-                    wasVisible = enabled
+                val visible = enabled && appRemoteConfig.footballEnabled
+                binding.footballWidget.visibility = if (visible) View.VISIBLE else View.GONE
+                if (wasVisible != visible) {
+                    wasVisible = visible
                     binding.root.post { setupFocusMap() }
                 }
             }
@@ -331,13 +388,14 @@ class HomeActivity : BaseTvActivity() {
                 WeatherState(enabled, quality, reduceMotion, disableLightning, weatherData)
             }.collect { (enabled, quality, reduceMotion, disableLightning, weatherData) ->
                 // Visibility: hide both when disabled; hide overlay only when quality OFF
-                binding.weatherWidget.visibility = if (enabled) View.VISIBLE else View.GONE
-                if (weatherWidgetWasVisible != enabled) {
-                    weatherWidgetWasVisible = enabled
+                val weatherVisible = enabled && appRemoteConfig.weatherEnabled
+                binding.weatherWidget.visibility = if (weatherVisible) View.VISIBLE else View.GONE
+                if (weatherWidgetWasVisible != weatherVisible) {
+                    weatherWidgetWasVisible = weatherVisible
                     binding.root.post { setupFocusMap() }
                 }
                 binding.weatherOverlay.visibility = when {
-                    !enabled -> View.GONE
+                    !weatherVisible -> View.GONE
                     quality == WeatherService.EFFECT_QUALITY_OFF -> View.GONE
                     else -> View.VISIBLE
                 }

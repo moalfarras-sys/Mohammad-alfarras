@@ -37,14 +37,14 @@
     <dimen name="radius_xlarge">@dimen/spacing_24</dimen>
 
     <!-- Component Specific -->
-    <dimen name="card_corner_radius">@dimen/radius_medium</dimen>
-    <dimen name="card_elevation">8dp</dimen>
-    <dimen name="focus_border_width">3dp</dimen>
-    <dimen name="focus_scale">1.06</dimen>
-    <dimen name="focus_scale_subtle">1.03</dimen>
-    <dimen name="focus_ring_width">2dp</dimen>
-    <dimen name="panel_corner_radius">18dp</dimen>
-    <dimen name="panel_padding_compact">20dp</dimen>
+    <dimen name="card_corner_radius">18dp</dimen>
+    <dimen name="card_elevation">12dp</dimen>
+    <dimen name="focus_border_width">4dp</dimen>
+    <dimen name="focus_scale">1.08</dimen>
+    <dimen name="focus_scale_subtle">1.04</dimen>
+    <dimen name="focus_ring_width">3dp</dimen>
+    <dimen name="panel_corner_radius">24dp</dimen>
+    <dimen name="panel_padding_compact">22dp</dimen>
 
     <!-- =================================================================================================
          APP SPECIFIC
@@ -68,8 +68,8 @@
     <dimen name="top_bar_height">104dp</dimen>
 
     <!-- Text Sizes -->
-    <dimen name="text_display">32sp</dimen>
-    <dimen name="text_h1">24sp</dimen>
+    <dimen name="text_display">36sp</dimen>
+    <dimen name="text_h1">26sp</dimen>
     <dimen name="text_h2">20sp</dimen>
     <dimen name="text_h3">18sp</dimen>
     <dimen name="text_body">15sp</dimen>
@@ -146,8 +146,8 @@
     <dimen name="glass_corner_radius">16dp</dimen>
     
     <!-- Clean Login Dimensions -->
-    <dimen name="login_card_width_clean">400dp</dimen>
-    <dimen name="login_card_height_clean">480dp</dimen>
+    <dimen name="login_card_width_clean">384dp</dimen>
+    <dimen name="login_card_height_clean">460dp</dimen>
     <dimen name="login_logo_width_clean">340dp</dimen>
     <dimen name="login_logo_height_clean">145dp</dimen>
     <dimen name="login_spacing_between">32dp</dimen>
@@ -178,8 +178,8 @@
     <dimen name="tv_preview_panel_padding">24dp</dimen>
     <dimen name="tv_series_poster_width">160dp</dimen>
     <dimen name="tv_series_poster_height">240dp</dimen>
-    <dimen name="tv_focus_scale">1.08</dimen>
-    <dimen name="tv_focus_elevation">12dp</dimen>
+    <dimen name="tv_focus_scale">1.1</dimen>
+    <dimen name="tv_focus_elevation">16dp</dimen>
     <dimen name="tv_focus_translation">8dp</dimen>
     <dimen name="tv_text_title">28sp</dimen>
     <dimen name="tv_text_subtitle">24sp</dimen>

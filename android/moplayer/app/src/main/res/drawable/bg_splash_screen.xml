@@ -8,7 +8,7 @@
                 android:type="linear"
                 android:angle="135"
                 android:startColor="@color/cinematic_bg_base"
-                android:centerColor="#0C0E14"
+                android:centerColor="@color/cinematic_bg_elevated"
                 android:endColor="@color/cinematic_bg_base" />
         </shape>
     </item>
@@ -20,8 +20,20 @@
                 android:centerX="0.5"
                 android:centerY="0.5"
                 android:gradientRadius="400"
-                android:startColor="@color/moplayer_orange_subtle"
+                android:startColor="@color/cinematic_violet_subtle"
                 android:endColor="#00080A0D" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerX="0.35"
+                android:centerY="0.35"
+                android:gradientRadius="320"
+                android:startColor="@color/cinematic_blue_glow_subtle"
+                android:endColor="#00000000" />
         </shape>
     </item>
 

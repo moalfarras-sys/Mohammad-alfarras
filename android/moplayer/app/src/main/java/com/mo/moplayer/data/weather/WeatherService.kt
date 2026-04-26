@@ -81,7 +81,7 @@ class WeatherService @Inject constructor(
         private val DEBUG_CONDITION_CODE_PREF = intPreferencesKey("weather_debug_condition_code")
         private val DEBUG_LAST_UPDATED_PREF = stringPreferencesKey("weather_debug_last_update")
 
-        private const val BASE_URL = "https://api.weatherapi.com/v1/current.json"
+        private val WEATHER_PROXY_URL = "${BuildConfig.WEB_API_BASE_URL}/api/weather"
         
         // Cache expiration: 30 minutes
         private const val CACHE_EXPIRATION_MS = 30 * 60 * 1000L
@@ -284,14 +284,9 @@ class WeatherService @Inject constructor(
                 return@withContext Result.failure(Exception("Location not available"))
             }
             
-            // Fetch weather from API (Forecast days=3)
-            val apiKey = BuildConfig.WEATHER_API_KEY
-            if (apiKey.isBlank()) {
-                return@withContext Result.failure(Exception("Weather API key is missing"))
-            }
-
-            // Request 3 days of forecast
-            val url = "https://api.weatherapi.com/v1/forecast.json?key=$apiKey&q=${location.latitude},${location.longitude}&days=3&aqi=no&alerts=no"
+            // Fetch weather through the public website proxy so provider keys stay server-side.
+            val query = "${location.latitude},${location.longitude}"
+            val url = "$WEATHER_PROXY_URL?city=${java.net.URLEncoder.encode(query, "UTF-8")}"
             val response = URL(url).readText()
             val json = JSONObject(response)
             
@@ -302,46 +297,21 @@ class WeatherService @Inject constructor(
                 return@withContext Result.failure(Exception("Weather API error: $message"))
             }
             
-            val current = json.getJSONObject("current")
-            val condition = current.getJSONObject("condition")
-            val locationJson = json.getJSONObject("location")
-            val forecast = json.getJSONObject("forecast")
-            val forecastday = forecast.getJSONArray("forecastday")
-
-            val dailyForecasts = mutableListOf<DailyForecast>()
-            for (i in 0 until forecastday.length()) {
-                val dayObj = forecastday.getJSONObject(i)
-                val dayData = dayObj.getJSONObject("day")
-                val dayCondition = dayData.getJSONObject("condition")
-                
-                dailyForecasts.add(
-                    DailyForecast(
-                        dateEpoch = dayObj.getLong("date_epoch"),
-                        maxTemp = dayData.getDouble("maxtemp_c").toInt(),
-                        minTemp = dayData.getDouble("mintemp_c").toInt(),
-                        conditionText = dayCondition.getString("text"),
-                        conditionCode = dayCondition.getInt("code"),
-                        icon = dayCondition.getString("icon")
-                    )
-                )
-            }
-            
             val weatherData = WeatherData(
-                temperature = current.getDouble("temp_c").toInt(),
-                feelsLike = current.getDouble("feelslike_c").toInt(),
-                condition = condition.getString("text"),
-                conditionCode = condition.getInt("code"),
-                icon = condition.getString("icon"),
-                cityName = locationJson.getString("name"),
-                humidity = current.getInt("humidity"),
-                windSpeed = current.getDouble("wind_kph"),
-                windDegree = current.optInt("wind_degree", 0),
-                gustSpeed = current.optDouble("gust_kph", 0.0),
-                precipMm = current.optDouble("precip_mm", 0.0),
-                cloud = current.optInt("cloud", 0),
-                isDay = current.getInt("is_day") == 1,
-                lastUpdatedEpochMs = System.currentTimeMillis(),
-                forecast = dailyForecasts
+                temperature = json.optDouble("temp_c", 0.0).toInt(),
+                feelsLike = json.optDouble("feelslike_c", 0.0).toInt(),
+                condition = json.optString("condition", "Weather unavailable"),
+                conditionCode = json.optInt("condition_code", getConditionCode(json.optString("icon", ""))),
+                icon = json.optString("icon", ""),
+                cityName = json.optString("city", ""),
+                humidity = json.optInt("humidity", 0),
+                windSpeed = json.optDouble("wind_kph", 0.0),
+                windDegree = json.optInt("wind_degree", 0),
+                gustSpeed = json.optDouble("gust_kph", 0.0),
+                precipMm = json.optDouble("precip_mm", 0.0),
+                cloud = json.optInt("cloud", 0),
+                isDay = json.optInt("is_day", 1) == 1,
+                lastUpdatedEpochMs = System.currentTimeMillis()
             )
             
             // Cache the result (basic fields only for now, full object serialization recommended for complex lists)

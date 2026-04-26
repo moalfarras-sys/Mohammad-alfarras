@@ -17,6 +17,7 @@ import com.mo.moplayer.ui.common.BaseTvActivity
 import com.mo.moplayer.databinding.ActivitySettingsBinding
 import com.mo.moplayer.util.TvNavigationManager
 import com.mo.moplayer.ui.login.LoginActivity
+import com.mo.moplayer.ui.settings.adapters.SourceStatusAdapter
 import com.mo.moplayer.ui.settings.adapters.SettingsCategoryAdapter
 import com.mo.moplayer.util.BackgroundManager
 import com.mo.moplayer.util.ParentalLockManager
@@ -71,6 +72,7 @@ class SettingsActivity : BaseTvActivity() {
     lateinit var locationService: com.mo.moplayer.data.location.IpLocationService
 
     private lateinit var categoryAdapter: SettingsCategoryAdapter
+    private lateinit var sourceStatusAdapter: SourceStatusAdapter
     private var currentPanel = SettingsPanel.SERVER
     private var lastPanelFocusId = mutableMapOf<SettingsPanel, Int>()
     private val panelRoots: MutableMap<SettingsPanel, View> = mutableMapOf()
@@ -167,6 +169,23 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun setupServerPanel() {
+        sourceStatusAdapter = SourceStatusAdapter(
+            onSwitchSource = { item ->
+                viewModel.switchSource(item.id)
+                Toast.makeText(this, getString(R.string.source_switching, item.name), Toast.LENGTH_SHORT).show()
+            },
+            onRemoveSource = { item ->
+                showDeleteSourceDialog(item)
+            }
+        )
+
+        binding.rvServers.apply {
+            layoutManager = LinearLayoutManager(this@SettingsActivity)
+            adapter = sourceStatusAdapter
+            isNestedScrollingEnabled = false
+            descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        }
+
         // Logout button
         binding.btnLogout.setOnClickListener {
             viewModel.logout()
@@ -195,6 +214,21 @@ class SettingsActivity : BaseTvActivity() {
         }
         
         // Load current server info from ViewModel observer
+    }
+
+    private fun showDeleteSourceDialog(item: SourceStatusItem) {
+        AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle(getString(R.string.source_remove_title, item.name))
+            .setMessage(R.string.source_remove_message)
+            .setPositiveButton(R.string.source_remove) { dialog, _ ->
+                dialog.dismiss()
+                viewModel.removeSource(item.id)
+                Toast.makeText(this, getString(R.string.source_removed), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
     
     private fun showDeleteServerDialog() {
@@ -1348,11 +1382,57 @@ class SettingsActivity : BaseTvActivity() {
 
     private fun observeViewModel() {
         viewModel.activeServer.observe(this) { server ->
-            server?.let {
-                binding.tvServerName.text = it.name
-                binding.tvServerUrl.text = it.serverUrl
+            if (server == null) {
+                binding.tvServerName.text = getString(R.string.source_no_active)
+                binding.tvServerUrl.text = getString(R.string.source_add_to_start)
+                binding.tvServerExpiry.visibility = View.GONE
+            } else {
+                binding.tvServerName.text = server.name
+                binding.tvServerUrl.text = maskEndpointForDisplay(server)
+                binding.tvServerExpiry.text = buildActiveSourceMeta(server)
+                binding.tvServerExpiry.visibility = if (binding.tvServerExpiry.text.isNullOrBlank()) View.GONE else View.VISIBLE
             }
         }
+        viewModel.sourceStatusItems.observe(this) { items ->
+            sourceStatusAdapter.submitList(items)
+            binding.rvServers.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+        }
+    }
+
+    private fun maskEndpointForDisplay(server: com.mo.moplayer.data.local.entity.ServerEntity): String {
+        if (server.serverUrl.isBlank()) {
+            return if (server.serverType.equals("m3u", ignoreCase = true)) {
+                getString(R.string.source_local_playlist)
+            } else {
+                getString(R.string.source_no_endpoint)
+            }
+        }
+
+        return runCatching {
+            val uri = java.net.URI(server.serverUrl)
+            val port = if (uri.port != -1) ":${uri.port}" else ""
+            val base = "${uri.scheme}://${uri.host.orEmpty()}$port"
+            if (server.serverUrl.contains("?")) "$base/...?...=masked" else base
+        }.getOrDefault(
+            server.serverUrl.replace(
+                Regex("(username|password|token)=([^&]+)", RegexOption.IGNORE_CASE),
+                "\$1=masked"
+            )
+        )
+    }
+
+    private fun buildActiveSourceMeta(server: com.mo.moplayer.data.local.entity.ServerEntity): String {
+        val expiryText = server.expirationDate?.takeIf { it.isNotBlank() }?.let {
+            getString(R.string.source_expiry_format, it)
+        }
+        val connectionText = when {
+            server.activeConnections != null && server.maxConnections != null ->
+                getString(R.string.source_connections_format, server.activeConnections, server.maxConnections)
+            server.maxConnections != null ->
+                getString(R.string.source_max_connections_format, server.maxConnections)
+            else -> null
+        }
+        return listOfNotNull(expiryText, connectionText).joinToString("  -  ")
     }
 
     private fun refreshServerSilently() {

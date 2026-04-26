@@ -76,6 +76,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Website Activation Activity -->
+        <activity
+            android:name=".ui.activation.DeviceActivationActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.MoPlayer" />
+
         <!-- Home Activity -->
         <activity
             android:name=".ui.home.HomeActivity"

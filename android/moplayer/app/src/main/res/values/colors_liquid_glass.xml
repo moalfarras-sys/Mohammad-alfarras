@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- MoPlayer: Liquid Glass — Night-Sky Cyber with Electric Cyan -->
-    <color name="liquid_bg_base">#020617</color>
-    <color name="liquid_bg_layer_1">#0B1121</color>
-    <color name="liquid_bg_layer_2">#111827</color>
+    <color name="liquid_bg_base">#030712</color>
+    <color name="liquid_bg_layer_1">#071126</color>
+    <color name="liquid_bg_layer_2">#0B1630</color>
 
-    <color name="liquid_glass_surface">#0CFFFFFF</color>
-    <color name="liquid_glass_surface_strong">#16FFFFFF</color>
-    <color name="liquid_glass_border">#1CFFFFFF</color>
-    <color name="liquid_glass_highlight">#24FFFFFF</color>
+    <color name="liquid_glass_surface">#12FFFFFF</color>
+    <color name="liquid_glass_surface_strong">#24FFFFFF</color>
+    <color name="liquid_glass_border">#30FFFFFF</color>
+    <color name="liquid_glass_highlight">#44FFFFFF</color>
     <color name="liquid_glass_shadow">#55000000</color>
     <color name="liquid_glass_reflection">#08FFFFFF</color>
 
     <color name="liquid_text_primary">#F8FAFC</color>
-    <color name="liquid_text_secondary">#94A3B8</color>
-    <color name="liquid_text_tertiary">#64748B</color>
+    <color name="liquid_text_secondary">#B7C6DA</color>
+    <color name="liquid_text_tertiary">#7E8FA8</color>
     <color name="liquid_text_disabled">#334155</color>
 
     <!-- Electric Cyan — primary accent -->
-    <color name="liquid_accent_primary">#00E5FF</color>
-    <color name="liquid_accent_primary_pressed">#00B8D4</color>
-    <color name="liquid_accent_primary_soft">#6000E5FF</color>
-    <color name="liquid_accent_secondary">#6366F1</color>
-    <color name="liquid_focus_glow">#8800E5FF</color>
-    <color name="liquid_focus_ring">#CC00E5FF</color>
+    <color name="liquid_accent_primary">#22D3EE</color>
+    <color name="liquid_accent_primary_pressed">#0891B2</color>
+    <color name="liquid_accent_primary_soft">#6622D3EE</color>
+    <color name="liquid_accent_secondary">#8B5CF6</color>
+    <color name="liquid_focus_glow">#AA22D3EE</color>
+    <color name="liquid_focus_ring">#F022D3EE</color>
 
-    <color name="liquid_divider">#14FFFFFF</color>
+    <color name="liquid_divider">#26FFFFFF</color>
     <color name="liquid_overlay_scrim">#C0000000</color>
 </resources>

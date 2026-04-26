@@ -75,7 +75,7 @@ class MovieDetailViewModel @Inject constructor(
             val nowFavorite = iptvRepository.toggleFavorite(
                 serverId = movie.serverId,
                 contentId = movie.movieId,
-                contentType = "MOVIE",
+                contentType = "movie",
                 name = movie.name,
                 iconUrl = movie.streamIcon
             )

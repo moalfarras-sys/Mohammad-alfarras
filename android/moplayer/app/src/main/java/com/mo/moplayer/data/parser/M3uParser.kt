@@ -32,7 +32,10 @@ class M3uParser {
     
     data class ParseResult(
         val items: List<M3uItem>,
-        val categories: Set<String>
+        val categories: Set<String>,
+        val totalLines: Int = 0,
+        val skippedEntries: Int = 0,
+        val duplicateEntries: Int = 0
     )
     
     companion object {
@@ -59,6 +62,9 @@ class M3uParser {
     private fun parseLines(lines: List<String>): ParseResult {
         val items = mutableListOf<M3uItem>()
         val categories = mutableSetOf<String>()
+        val seenStreamUrls = hashSetOf<String>()
+        var skippedEntries = 0
+        var duplicateEntries = 0
         
         var currentInfo: String? = null
         
@@ -76,16 +82,50 @@ class M3uParser {
                     // Skip other comments/tags
                 }
                 trimmedLine.isNotEmpty() && currentInfo != null -> {
-                    // This is a URL line
-                    val item = parseExtInf(currentInfo, trimmedLine)
+                    if (!isPotentialStreamUrl(trimmedLine)) {
+                        skippedEntries += 1
+                        currentInfo = null
+                        continue
+                    }
+                    val normalizedUrl = trimmedLine.trim()
+                    if (!seenStreamUrls.add(normalizedUrl)) {
+                        duplicateEntries += 1
+                        currentInfo = null
+                        continue
+                    }
+                    val item = parseExtInf(currentInfo, normalizedUrl)
                     items.add(item)
                     item.group?.let { categories.add(it) }
                     currentInfo = null
                 }
+                trimmedLine.isNotEmpty() && currentInfo == null && isPotentialStreamUrl(trimmedLine) -> {
+                    val normalizedUrl = trimmedLine.trim()
+                    if (!seenStreamUrls.add(normalizedUrl)) {
+                        duplicateEntries += 1
+                        continue
+                    }
+                    val item = M3uItem(
+                        name = extractFallbackName(normalizedUrl),
+                        url = normalizedUrl,
+                        group = "Uncategorized",
+                        isLive = true
+                    )
+                    items.add(item)
+                    categories.add("Uncategorized")
+                }
+                trimmedLine.isNotEmpty() -> {
+                    skippedEntries += 1
+                }
             }
         }
         
-        return ParseResult(items, categories)
+        return ParseResult(
+            items = items,
+            categories = categories,
+            totalLines = lines.size,
+            skippedEntries = skippedEntries,
+            duplicateEntries = duplicateEntries
+        )
     }
     
     private fun parseExtInf(extinfLine: String, url: String): M3uItem {
@@ -147,6 +187,35 @@ class M3uParser {
             val withoutAttributes = line.replace(ATTRIBUTE_PATTERN, "").trim()
             withoutAttributes.trimStart(',').trim()
         }
+    }
+
+    private fun isPotentialStreamUrl(value: String): Boolean {
+        val lower = value.lowercase()
+        return lower.startsWith("http://") ||
+            lower.startsWith("https://") ||
+            lower.startsWith("rtmp://") ||
+            lower.startsWith("rtsp://") ||
+            lower.startsWith("udp://") ||
+            lower.startsWith("rtp://") ||
+            lower.startsWith("file://") ||
+            lower.startsWith("/")
+    }
+
+    private fun extractFallbackName(url: String): String {
+        val cleaned = url.substringBefore('?').trimEnd('/')
+        val segment = cleaned.substringAfterLast('/')
+        val extension = segment.substringAfterLast('.', missingDelimiterValue = "")
+        val withoutExtension =
+            if (extension.length in 2..5 && !segment.contains(":")) {
+                segment.substringBeforeLast('.')
+            } else {
+                segment
+            }
+        val candidate = withoutExtension
+            .replace('-', ' ')
+            .replace('_', ' ')
+            .trim()
+        return candidate.ifBlank { "Untitled stream" }
     }
     
     /**

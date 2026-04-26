@@ -22,6 +22,34 @@
     <string name="login_brand_mo">Mo</string>
     <string name="login_brand_player">Player</string>
     <string name="login_brand_byline">by Moalfarras</string>
+    <string name="activation_tab">Activate</string>
+    <string name="activation_entry_title">Activate via website</string>
+    <string name="activation_entry_subtitle">Pair this TV with moalfarras.space using a secure device code.</string>
+    <string name="activation_entry_button">Open activation screen</string>
+    <string name="activation_entry_button_done">Activated - add a source</string>
+    <string name="activation_title">Activate MoPlayer</string>
+    <string name="activation_subtitle">Use your phone or computer to link this screen. The short code expires after 15 minutes and no MAC address is used.</string>
+    <string name="activation_code_label">Device code</string>
+    <string name="activation_url">moalfarras.space/activate</string>
+    <string name="activation_creating">Creating activation code</string>
+    <string name="activation_creating_body">Connecting securely to moalfarras.space...</string>
+    <string name="activation_waiting">Waiting for website activation</string>
+    <string name="activation_waiting_body">Open moalfarras.space/activate or scan the QR code. This code expires after 15 minutes.</string>
+    <string name="activation_waiting_body_runtime">Enter %1$s at moalfarras.space/activate. The TV will continue automatically.</string>
+    <string name="activation_pending">Activation pending</string>
+    <string name="activation_activated">Activated</string>
+    <string name="activation_activated_body">This screen is linked. MoPlayer will now open Add Source so you can choose Xtream or M3U.</string>
+    <string name="activation_expired">Code expired</string>
+    <string name="activation_expired_body">Generate a fresh 15-minute code by reopening this screen.</string>
+    <string name="activation_backend_waiting">Waiting for activation service</string>
+    <string name="activation_backend_waiting_body">The activation service did not answer yet. Check your connection or try again.</string>
+    <string name="activation_service_unavailable">Activation service unavailable</string>
+    <string name="activation_service_unavailable_body">A local code is shown for the screen, but backend activation could not create a session. Try Check status again.</string>
+    <string name="activation_completed_login_hint">Activated. Choose Xtream or M3U to add your content source.</string>
+    <string name="website_source_received">Website source received. MoPlayer is testing and importing it now…</string>
+    <string name="activation_refresh">Check status</string>
+    <string name="activation_add_source">Add source</string>
+    <string name="activation_privacy">Private app device ID. Hardware identifiers are not used.</string>
     
     
     <string name="tab_xtream">Xtream Codes</string>
@@ -67,11 +95,11 @@
     <string name="feature_series">TV Series &amp; Shows</string>
     
     
-    <string name="home_title">الرئيسية</string>
-    <string name="section_recently_added">تمت إضافته مؤخراً</string>
-    <string name="section_recently_added_movies">أحدث الأفلام</string>
-    <string name="section_recently_added_series">أحدث المسلسلات</string>
-    <string name="section_continue_watching">استمر بالمشاهدة</string>
+    <string name="home_title">Home</string>
+    <string name="section_recently_added">Recently added</string>
+    <string name="section_recently_added_movies">Latest movies</string>
+    <string name="section_recently_added_series">Latest series</string>
+    <string name="section_continue_watching">Continue watching</string>
     <string name="section_favorites">Favorites</string>
     <string name="section_live_tv">Live TV</string>
     <string name="section_movies">Movies</string>
@@ -86,7 +114,7 @@
     <string name="live_tv_channel_list">Channel List</string>
     <string name="live_tv_categories">Categories</string>
     <string name="live_tv_press_ok">Press OK for channels</string>
-    <string name="channel_count_format">%d قناة</string>
+    <string name="channel_count_format">%d channels</string>
     <string name="preview">Preview</string>
     <string name="now_playing">Now Playing</string>
     <string name="next_program">Next</string>
@@ -94,9 +122,9 @@
     
     
     <string name="football_widget_live">LIVE</string>
-    <string name="football_widget_no_match">لا توجد مباراة مباشرة</string>
-    <string name="football_widget_today_match">مباراة اليوم</string>
-    <string name="football_widget_next_match">التالي: %1$s ضد %2$s • %3$s</string>
+    <string name="football_widget_no_match">No live match</string>
+    <string name="football_widget_today_match">Match today</string>
+    <string name="football_widget_next_match">Next: %1$s vs %2$s - %3$s</string>
     <string name="football_widget_loading">Loading…</string>
     <string name="football_widget_error">API key required</string>
     <string name="settings_football_widget_title">Football Widget</string>
@@ -138,17 +166,17 @@
     <string name="favorites_empty_subtitle">Add movies and series to your favorites to see them here</string>
     
     
-    <string name="menu_add_to_favorites">إضافة للمفضلة</string>
-    <string name="menu_remove_from_favorites">إزالة من المفضلة</string>
-    <string name="menu_play">تشغيل</string>
-    <string name="menu_resume">استئناف المشاهدة</string>
-    <string name="menu_info">معلومات</string>
-    <string name="menu_details">عرض التفاصيل</string>
-    <string name="menu_trailer">مشاهدة الإعلان</string>
-    <string name="menu_share">مشاركة</string>
-    <string name="menu_choose_player">فتح بمشغّل آخر</string>
-    <string name="long_press_hint">اضغط مطولاً على OK للمزيد</string>
-    <string name="menu_title">الخيارات</string>
+    <string name="menu_add_to_favorites">Add to favorites</string>
+    <string name="menu_remove_from_favorites">Remove from favorites</string>
+    <string name="menu_play">Play</string>
+    <string name="menu_resume">Resume watching</string>
+    <string name="menu_info">Info</string>
+    <string name="menu_details">View details</string>
+    <string name="menu_trailer">Watch trailer</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_choose_player">Open with another player</string>
+    <string name="long_press_hint">Long press OK for more</string>
+    <string name="menu_title">Options</string>
     
     
     <string name="player_loading">Loading…</string>
@@ -189,6 +217,28 @@
     <string name="settings_server_add">Add New Server</string>
     <string name="settings_server_delete_confirm">Delete this server?</string>
     <string name="settings_server_delete_message">You will need to re-enter your credentials to use this server again.</string>
+    <string name="source_unnamed">Unnamed source</string>
+    <string name="source_switch">Switch</string>
+    <string name="source_switching">Switching to %1$s</string>
+    <string name="source_active">Active</string>
+    <string name="source_remove">Remove</string>
+    <string name="source_remove_title">Remove %1$s?</string>
+    <string name="source_remove_message">This removes the source, cached catalog, sync status, and encrypted credentials from this device.</string>
+    <string name="source_removed">Source removed</string>
+    <string name="source_local_playlist">Imported playlist stored locally</string>
+    <string name="source_no_endpoint">No endpoint stored</string>
+    <string name="source_no_active">No active source</string>
+    <string name="source_add_to_start">Add Xtream or M3U to start watching.</string>
+    <string name="source_status_idle">Not synced yet</string>
+    <string name="source_status_success">Synced</string>
+    <string name="source_status_running">Refreshing</string>
+    <string name="source_status_error">Needs attention</string>
+    <string name="source_counts_format">Live %1$d  Movies %2$d  Series %3$d  Categories %4$d</string>
+    <string name="source_never_refreshed">Last refresh: never</string>
+    <string name="source_last_refresh_format">Last refresh: %1$s</string>
+    <string name="source_expiry_format">Expires: %1$s</string>
+    <string name="source_connections_format">Connections: %1$d/%2$d</string>
+    <string name="source_max_connections_format">Max connections: %1$d</string>
     <string name="settings_player">Player Settings</string>
     <string name="settings_player_default_quality">Default Quality</string>
     <string name="settings_player_buffer_size">Buffer Size</string>
@@ -258,10 +308,10 @@
     <string name="time_format_24h">24-hour</string>
     
     
-    <string name="login_welcome_back">مرحباً بعودتك</string>
-    <string name="login_start_experience">ابدأ تجربتك الآن</string>
-    <string name="tagline_creative">حيث تلتقي التكنولوجيا بالفن</string>
-    <string name="tagline_iptv_premium">تجربة IPTV لا مثيل لها</string>
+    <string name="login_welcome_back">Welcome back</string>
+    <string name="login_start_experience">Start your experience now</string>
+    <string name="tagline_creative">Where technology meets craft</string>
+    <string name="tagline_iptv_premium">A premium IPTV experience</string>
     <string name="developer_credit">Crafted with passion by Moalfarras</string>
     <string name="developer_credit_short">MoPlayerapp by Moalfarras</string>
     
@@ -426,14 +476,14 @@
     <string name="epg_no_info">No EPG information</string>
     
     
-    <string name="preview_play">تشغيل</string>
-    <string name="preview_resume">استئناف المشاهدة</string>
-    <string name="preview_trailer">مشاهدة التريلر</string>
-    <string name="preview_no_description">لا يوجد وصف متاح</string>
-    <string name="preview_director">المخرج: %s</string>
-    <string name="preview_cast">الممثلون: %s</string>
-    <string name="preview_release_date">تاريخ الإصدار: %s</string>
-    <string name="preview_duration">المدة: %s</string>
+    <string name="preview_play">Play</string>
+    <string name="preview_resume">Resume watching</string>
+    <string name="preview_trailer">Watch trailer</string>
+    <string name="preview_no_description">No description available</string>
+    <string name="preview_director">Director: %s</string>
+    <string name="preview_cast">Cast: %s</string>
+    <string name="preview_release_date">Release date: %s</string>
+    <string name="preview_duration">Duration: %s</string>
     
     
     <string name="parental_controls">Parental Controls</string>

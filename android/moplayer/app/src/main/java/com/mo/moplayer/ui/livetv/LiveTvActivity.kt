@@ -1501,33 +1501,7 @@ class LiveTvActivity : BaseTvActivity() {
         when (keyCode) {
             KeyEvent.KEYCODE_MENU -> {
                 if (overlayVisible && currentChannel != null) {
-                    // Show player selection for current channel
-                    currentChannel?.let { channel ->
-                        val extraData =
-                                Bundle().apply {
-                                    putString(
-                                            com.mo.moplayer.ui.player.PlayerActivity.EXTRA_TYPE,
-                                            "CHANNEL"
-                                    )
-                                    putString(
-                                            com.mo.moplayer.ui.player.PlayerActivity
-                                                    .EXTRA_CONTENT_ID,
-                                            channel.channelId
-                                    )
-                                    putString(
-                                            com.mo.moplayer.ui.player.PlayerActivity
-                                                    .EXTRA_POSTER_URL,
-                                            channel.streamIcon
-                                    )
-                                }
-                        com.mo.moplayer.util.PlayerLauncher.showPlayerSelectionDialog(
-                                this,
-                                playerPreferences,
-                                channel.streamUrl,
-                                channel.name,
-                                extraData
-                        )
-                    }
+                    currentChannel?.let { channel -> showContextMenu(channel) }
                     return true
                 } else {
                     startActivity(

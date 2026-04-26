@@ -17,7 +17,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import com.mo.moplayer.data.football.FootballApi
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -71,27 +70,6 @@ object AppModule {
         return retrofit.create(XtreamApi::class.java)
     }
 
-    @Provides
-    @Singleton
-    fun provideFootballApi(okHttpClient: OkHttpClient, gson: Gson): FootballApi {
-        val apiKey = BuildConfig.FOOTBALL_API_KEY ?: ""
-        val client = okHttpClient.newBuilder()
-            .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .addHeader("x-apisports-key", apiKey)
-                    .addHeader("x-rapidapi-host", "v3.football.api-sports.io")
-                    .build()
-                chain.proceed(request)
-            }
-            .build()
-        return Retrofit.Builder()
-            .baseUrl("https://v3.football.api-sports.io/")
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-            .create(FootballApi::class.java)
-    }
-    
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): MoPlayerDatabase {

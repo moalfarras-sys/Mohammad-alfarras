@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sourceCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_md"
+    android:background="@drawable/selector_card_focus"
+    android:clickable="true"
+    android:clipChildren="false"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:minHeight="132dp"
+    android:orientation="vertical"
+    android:padding="@dimen/spacing_lg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSourceType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_badge_premium"
+                android:paddingHorizontal="@dimen/spacing_md"
+                android:paddingVertical="@dimen/spacing_xs"
+                android:textColor="@color/liquid_accent_primary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="XTREAM" />
+
+            <TextView
+                android:id="@+id/tvSourceName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_sm"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/htc_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Main provider" />
+
+            <TextView
+                android:id="@+id/tvSourceEndpoint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="middle"
+                android:maxLines="1"
+                android:textColor="@color/htc_text_tertiary"
+                android:textSize="13sp"
+                tools:text="https://example.com" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnSourceSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:background="@drawable/selector_cinematic_button"
+                android:minWidth="112dp"
+                android:paddingHorizontal="@dimen/spacing_lg"
+                android:text="@string/source_switch"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_pure_black"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnSourceRemove"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginStart="@dimen/spacing_sm"
+                android:background="@drawable/selector_tv_button"
+                android:minWidth="104dp"
+                android:paddingHorizontal="@dimen/spacing_lg"
+                android:text="@string/source_remove"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_error"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSourceStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:textColor="@color/htc_accent_green"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="Synced" />
+
+    <TextView
+        android:id="@+id/tvSourceCounts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:textColor="@color/htc_text_secondary"
+        android:textSize="13sp"
+        tools:text="Live 1200  Movies 300  Series 40  Categories 70" />
+
+    <TextView
+        android:id="@+id/tvSourceLastRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/htc_text_tertiary"
+        android:textSize="12sp"
+        tools:text="Last refresh: 4 min ago" />
+
+    <TextView
+        android:id="@+id/tvSourceExpiry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/htc_text_tertiary"
+        android:textSize="12sp"
+        tools:text="Expires: 2026-12-31" />
+
+</LinearLayout>

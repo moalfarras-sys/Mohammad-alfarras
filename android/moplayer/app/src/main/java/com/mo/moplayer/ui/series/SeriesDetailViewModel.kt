@@ -69,7 +69,7 @@ class SeriesDetailViewModel @Inject constructor(
 
                 // Fetch series info with seasons/episodes from API
                 foundSeries?.let {
-                    fetchSeriesInfo(server.serverUrl, server.username, server.password, it.originalSeriesId)
+                    fetchSeriesInfo(it.originalSeriesId)
                 }
             }
 
@@ -77,12 +77,7 @@ class SeriesDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchSeriesInfo(
-        serverUrl: String,
-        username: String,
-        password: String,
-        originalSeriesId: Int
-    ) {
+    private suspend fun fetchSeriesInfo(originalSeriesId: Int) {
         try {
             this.originalSeriesId = originalSeriesId
             val server = repository.getActiveServerSync()
@@ -166,10 +161,9 @@ class SeriesDetailViewModel @Inject constructor(
         val server = repository.getActiveServerSync()
         if (server == null) return ""
         
-        val baseUrl = server.serverUrl.trimEnd('/')
         val ext = extension ?: "mp4"
-        
-        return "$baseUrl/series/${server.username}/${server.password}/$episodeId.$ext"
+        val streamId = episodeId.toIntOrNull() ?: return ""
+        return repository.buildStreamUrl(server, streamId, "series", ext)
     }
 
     fun toggleFavorite() {

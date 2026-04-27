@@ -122,7 +122,7 @@ export default async function SiteLayout({
 
       <div className="liquid-site relative min-h-screen" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
         <LocaleDocumentSync locale={locale} />
-        <AtmosphericBackground />
+
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
         <main className="pb-dock lg:pb-0">{children}</main>
         <CookieBanner locale={locale} />

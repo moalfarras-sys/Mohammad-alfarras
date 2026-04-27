@@ -185,23 +185,42 @@ export function SiteFooter({
             </div>
 
             <CollapsibleSection title={isAr ? "حقائق سريعة" : "Quick facts"}>
-              <div className="flex flex-col gap-2.5 pt-1 md:pt-0">
-                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-sm">
-                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
-                  {isAr ? "مقيم في ألمانيا" : "Based in Germany"}
-                </span>
-                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-sm">
-                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-indigo-400"></span>
-                  {isAr ? "الجذور: الحسكة، سوريا" : "Roots: Al-Hasakah, Syria"}
-                </span>
-                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-sm">
-                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                  {isAr ? "العربية / الألمانية / الإنجليزية" : "Languages: AR / DE / EN"}
-                </span>
-                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-bold text-[var(--accent-glow)] shadow-sm">
-                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent-glow)] animate-pulse"></span>
-                  {isAr ? "+1.5M مشاهدة على يوتيوب" : "1.5M+ YouTube views"}
-                </span>
+              <div className="grid grid-cols-1 gap-2.5 pt-1 md:pt-0">
+                {[
+                  {
+                    id: "loc",
+                    labelEn: "Based in Germany",
+                    labelAr: "مقيم في ألمانيا",
+                    color: "bg-cyan-500",
+                  },
+                  {
+                    id: "roots",
+                    labelEn: "Roots: Al-Hasakah, Syria",
+                    labelAr: "الجذور: الحسكة، سوريا",
+                    color: "bg-indigo-500",
+                  },
+                  {
+                    id: "langs",
+                    labelEn: "Languages: AR / DE / EN",
+                    labelAr: "العربية / الألمانية / الإنجليزية",
+                    color: "bg-emerald-500",
+                  },
+                  {
+                    id: "yt",
+                    labelEn: "1.5M+ YouTube views",
+                    labelAr: "+1.5M مشاهدة على يوتيوب",
+                    color: "bg-[var(--accent)]",
+                    pulse: true,
+                  },
+                ].map((fact) => (
+                  <div
+                    key={fact.id}
+                    className="flex w-full items-center rounded-xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 py-2.5 text-xs font-semibold text-[var(--text-2)] shadow-sm transition-all duration-300 hover:border-[var(--accent-glow)] hover:bg-[var(--surface-raised)]"
+                  >
+                    <span className={cn("mr-3 h-2 w-2 shrink-0 rounded-full", fact.color, fact.pulse && "animate-pulse shadow-[0_0_8px_var(--accent)]")}></span>
+                    <span className="flex-1">{isAr ? fact.labelAr : fact.labelEn}</span>
+                  </div>
+                ))}
               </div>
             </CollapsibleSection>
 

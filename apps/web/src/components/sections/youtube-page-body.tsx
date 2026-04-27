@@ -6,6 +6,7 @@ import { PlayCircle, Sparkles, MonitorSmartphone, Wand2, PenTool, Bot, Box, Ligh
 
 import { ContactCtaSection } from "@/components/sections/contact-cta-section";
 import type { SiteViewModel } from "@/components/site/site-view-model";
+import { cn } from "@/lib/cn";
 
 const copy = {
   en: {
@@ -54,98 +55,121 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
   ];
 
   return (
-    <div data-testid="youtube-page">
+    <div className="relative pb-32" data-testid="youtube-page">
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden pt-32 md:pt-40">
-        <div className="pointer-events-none absolute inset-0 bg-[var(--bg-base)]" />
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 10%, rgba(255,0,0,0.06) 0%, transparent 60%)" }} />
+      <section className="relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-32">
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[var(--bg-base)]" />
+          <div className="absolute -right-1/4 top-0 h-[600px] w-[600px] rounded-full bg-red-600/10 blur-[140px]" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, var(--text-3) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+        </div>
         
         <div className="section-frame relative z-10">
-          <div className="grid gap-12 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.eyebrow}</p>
-              <h1 className="mt-4 overflow-visible pb-2 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4.5vw,3.8rem)" }}>
+          <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={cn("flex items-center gap-3 mb-8", isAr ? "flex-row-reverse" : "")}>
+                <span className="h-[1px] w-8 bg-red-500" />
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-red-500">{t.eyebrow}</p>
+              </div>
+              <h1 className="headline-display text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[1.05] tracking-tight text-[var(--text-1)]">
                 {t.title}
               </h1>
-              <p className="mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-lg">{t.body}</p>
+              <p className="mt-8 text-lg leading-relaxed text-[var(--text-2)] md:text-xl max-w-2xl">
+                {t.body}
+              </p>
               
-              <div className="mt-8 flex flex-wrap gap-4">
-                <a href={channelUrl} target="_blank" rel="noopener noreferrer" className="button-liquid-primary inline-flex items-center gap-2" style={{ background: "linear-gradient(135deg, #ff0000, #cc0000)" }}>
-                  <PlayCircle className="h-4 w-4" />
+              <div className={cn("mt-12 flex flex-wrap gap-4", isAr ? "flex-row-reverse" : "")}>
+                <a href={channelUrl} target="_blank" rel="noopener noreferrer" className="button-liquid-primary px-10 h-16 text-lg" style={{ background: "linear-gradient(135deg, #ff0000, #cc0000)", border: "none" }}>
+                  <PlayCircle className="h-5 w-5" />
                   {t.openChannel}
                 </a>
-                <a href={subscribeUrl} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary inline-flex items-center gap-2">
+                <a href={subscribeUrl} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary px-8 h-16">
                   {t.subscribe}
                 </a>
               </div>
-            </div>
+            </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduced ? 0.2 : 0.8 }}
-              className="relative aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[var(--radius-xl)]"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="relative"
             >
-              <div className="glass relative h-full w-full overflow-hidden" style={{ boxShadow: "var(--shadow-hero)" }}>
-                <Image
-                  src={model.brandMedia.youtubeHero || "/images/yt-channel-hero.png"}
-                  alt="YouTube Channel"
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--bg-base)]/90 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-md">
-                    <Sparkles className="h-3.5 w-3.5 text-red-500" />
-                    {isAr ? "شروحات موثوقة" : "Trusted Reviews"}
+               <div className="absolute -inset-4 bg-gradient-to-br from-red-600/20 to-transparent blur-3xl opacity-30" />
+               <div className="relative glass rounded-[3rem] border border-[var(--glass-border)] p-4 overflow-hidden shadow-2xl">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-[2.2rem]">
+                    <Image
+                      src={model.brandMedia.youtubeHero || "/images/yt-channel-hero.png"}
+                      alt="YouTube Channel Preview"
+                      fill
+                      priority
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-6 left-6 flex items-center gap-3">
+                       <div className="h-10 w-10 rounded-full border-2 border-white/20 bg-red-600 flex items-center justify-center">
+                          <PlayCircle className="h-5 w-5 text-white" />
+                       </div>
+                       <span className="text-sm font-black uppercase tracking-widest text-white">{isAr ? "شروحات تقنية" : "Tech Reviews"}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
+               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section className="py-16 md:py-24">
+      {/* ── STATS DASHBOARD ── */}
+      <section className="py-12 md:py-20">
         <div className="section-frame">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.statsTitle}</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             {[
-              { label: isAr ? "إجمالي المشاهدات" : "Total Views", value: views },
-              { label: isAr ? "مشترك" : "Subscribers", value: subs },
-              { label: isAr ? "فيديو" : "Videos", value: vids },
-            ].map((stat) => (
-              <div key={stat.label} className="glass rounded-[var(--radius-xl)] p-8 text-center" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="text-[clamp(2rem,5vw,3.5rem)] font-black text-[var(--text-1)]">{stat.value}</div>
-                <div className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--text-3)]">{stat.label}</div>
-              </div>
+              { label: isAr ? "إجمالي المشاهدات" : "Total Reach", value: views, sub: "Organic Views" },
+              { label: isAr ? "مشترك" : "Community", value: subs, sub: "Loyal Subscribers" },
+              { label: isAr ? "فيديو" : "Content Assets", value: vids, sub: "Production Count" },
+            ].map((stat, idx) => (
+              <motion.div 
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass rounded-3xl p-10 text-center border-white/5"
+              >
+                <div className="text-5xl font-black text-[var(--text-1)] mb-2 tracking-tighter">{stat.value}</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500 mb-1">{stat.label}</div>
+                <div className="text-[11px] font-bold text-[var(--text-3)] opacity-60">{stat.sub}</div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CATEGORIES ── */}
-      <section className="py-16 md:py-24">
+      {/* ── CONTENT PILLARS ── */}
+      <section className="py-24 md:py-32 bg-white/[0.01]">
         <div className="section-frame">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.categoriesTitle}</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-16 text-center">
+            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-red-500 mb-4">{t.categoriesTitle}</p>
+            <h2 className="headline-display text-4xl md:text-6xl font-black text-[var(--text-1)]">Content Pillars</h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((cat, idx) => (
               <motion.div
                 key={cat.id}
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="glass rounded-[var(--radius-lg)] p-6 transition-transform hover:-translate-y-1"
-                style={{ boxShadow: "var(--shadow-card)" }}
+                transition={{ delay: idx * 0.05 }}
+                className="glass group rounded-[2.5rem] p-8 border-white/5 hover:border-red-500/20 transition-all"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 mb-6 group-hover:scale-110 transition-transform">
                   {cat.icon}
                 </div>
-                <h3 className="mt-5 text-lg font-bold text-[var(--text-1)]">
+                <h3 className="text-xl font-black text-[var(--text-1)]">
                   {isAr ? cat.titleAr : cat.titleEn}
                 </h3>
               </motion.div>
@@ -154,40 +178,101 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      {/* ── REAL VIDEOS (IF ANY) ── */}
+      {/* ── AUDIENCE DEMOGRAPHICS ── */}
+      <section className="py-24 md:py-32">
+        <div className="section-frame">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+            {/* Value Prop */}
+            <div className="glass rounded-[3rem] p-12 border-white/5">
+              <h2 className="text-3xl font-black text-[var(--text-1)] mb-10">{isAr ? "لماذا ترعى القناة؟" : "Partnership Value"}</h2>
+              <div className="grid gap-8 sm:grid-cols-2">
+                 <div className="space-y-4">
+                    <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500"><Sparkles className="h-5 w-5" /></div>
+                    <h3 className="font-black text-[var(--text-1)] text-lg">{isAr ? "إنتاج سينمائي" : "Cinematic Quality"}</h3>
+                    <p className="text-sm text-[var(--text-2)] leading-relaxed">{isAr ? "محتوى عالي الجودة يرفع من قيمة علامتك التجارية." : "High-fidelity production that elevates your brand perception."}</p>
+                 </div>
+                 <div className="space-y-4">
+                    <div className="h-10 w-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500"><Bot className="h-5 w-5" /></div>
+                    <h3 className="font-black text-[var(--text-1)] text-lg">{isAr ? "جمهور نوعي" : "Niche Tech Audience"}</h3>
+                    <p className="text-sm text-[var(--text-2)] leading-relaxed">{isAr ? "الوصول المباشر للمهتمين بالتقنية والإنتاجية." : "Direct access to decision-makers in tech and productivity."}</p>
+                 </div>
+              </div>
+              <div className="mt-12">
+                 <a href={`/${model.locale}/contact?subject=Collaboration`} className="button-liquid-primary px-10 h-14 bg-white text-black border-none hover:bg-white/90">
+                    {isAr ? "تواصل للتعاون" : "Let's Collaborate"}
+                 </a>
+              </div>
+            </div>
+            
+            {/* Stats */}
+            <div className="glass rounded-[3rem] p-12 border-red-500/20 bg-red-500/[0.02]">
+              <h2 className="text-2xl font-black text-[var(--text-1)] mb-10">{isAr ? "ديموغرافيا الجمهور" : "Audience Profile"}</h2>
+              <div className="space-y-8">
+                 {[
+                   { label: "MENA Region", val: "80%", color: "bg-red-500" },
+                   { label: "Male Audience", val: "90%", color: "bg-red-500" },
+                   { label: "Age Group (18-34)", val: "75%", color: "bg-red-500" },
+                   { label: "Tech Enthusiasts", val: "100%", color: "bg-red-500" },
+                 ].map(stat => (
+                   <div key={stat.label}>
+                      <div className="flex justify-between items-end mb-2">
+                         <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-3)]">{stat.label}</span>
+                         <span className="text-sm font-black text-[var(--text-1)]">{stat.val}</span>
+                      </div>
+                      <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                         <motion.div 
+                           initial={{ width: 0 }}
+                           whileInView={{ width: stat.val }}
+                           viewport={{ once: true }}
+                           className={cn("h-full", stat.color)} 
+                         />
+                      </div>
+                   </div>
+                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── LATEST CONTENT GRID ── */}
       {model.latestVideos && model.latestVideos.length > 0 && (
-        <section className="py-16 md:py-24">
+        <section className="py-24 bg-white/[0.01]">
           <div className="section-frame">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>
-              {isAr ? "أحدث الفيديوهات" : "Latest Videos"}
-            </p>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+               <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.3em] text-red-500 mb-2">{isAr ? "أحدث الفيديوهات" : "Latest Assets"}</p>
+                  <h2 className="headline-display text-4xl font-black text-[var(--text-1)]">Visual Proof</h2>
+               </div>
+               <a href={channelUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-black uppercase tracking-widest text-[var(--text-3)] hover:text-red-500 transition-colors">
+                  View Full Channel
+               </a>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {model.latestVideos.slice(0, 3).map((video) => (
                 <a
                   key={video.id}
                   href={`https://youtube.com/watch?v=${video.youtube_id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group glass block overflow-hidden rounded-[var(--radius-xl)]"
-                  style={{ boxShadow: "var(--shadow-card)" }}
+                  className="group relative glass block overflow-hidden rounded-[2.5rem] border-white/5"
                 >
                   <div className="relative aspect-video w-full overflow-hidden">
                     <Image
                       src={video.thumbnail}
                       alt={video.title_en || video.youtube_id}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, 33vw"
                     />
-                    <div className="pointer-events-none absolute inset-0 bg-black/20 transition-colors group-hover:bg-transparent" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 text-white shadow-lg">
-                        <PlayCircle className="h-6 w-6" />
-                      </div>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <div className="h-14 w-14 rounded-full bg-red-600 flex items-center justify-center shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                          <PlayCircle className="h-6 w-6 text-white" />
+                       </div>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <h3 className="line-clamp-2 text-sm font-semibold text-[var(--text-1)] leading-relaxed">
+                  <div className="p-8">
+                    <h3 className="line-clamp-2 text-base font-black text-[var(--text-1)] leading-tight group-hover:text-red-500 transition-colors">
                       {isAr ? video.title_ar || video.title_en : video.title_en || video.title_ar}
                     </h3>
                   </div>
@@ -197,50 +282,6 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
           </div>
         </section>
       )}
-
-      
-      {/* ── DEMOGRAPHICS & SPONSORSHIP ── */}
-      <section className="py-16 md:py-24">
-        <div className="section-frame">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-              <h2 className="text-2xl font-black text-[var(--text-1)]">{isAr ? "لماذا ترعى القناة؟" : "Why Sponsor Me?"}</h2>
-              <ul className="mt-6 grid gap-4">
-                <li className="flex gap-3"><Sparkles className="h-5 w-5 text-[var(--accent)]" /><span className="text-[var(--text-2)]">{isAr ? "محتوى عالي الجودة مع إنتاج سينمائي" : "High-quality content with cinematic production"}</span></li>
-                <li className="flex gap-3"><MonitorSmartphone className="h-5 w-5 text-[var(--accent)]" /><span className="text-[var(--text-2)]">{isAr ? "جمهور مستهدف مهتم بالتقنية والتصميم" : "Targeted audience interested in Tech & Design"}</span></li>
-                <li className="flex gap-3"><Bot className="h-5 w-5 text-[var(--accent)]" /><span className="text-[var(--text-2)]">{isAr ? "مصداقية وثقة عالية بين المتابعين" : "High credibility and trust among followers"}</span></li>
-              </ul>
-              <div className="mt-8">
-                <a href={`/${model.locale}/contact?subject=Sponsorship`} className="button-liquid-primary inline-flex items-center gap-2">
-                  {isAr ? "تواصل للرعاية" : "Contact for Sponsorship"}
-                </a>
-              </div>
-            </div>
-            
-            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-              <h2 className="text-2xl font-black text-[var(--text-1)]">{isAr ? "ديموغرافيا الجمهور" : "Audience Demographics"}</h2>
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
-                  <div className="text-2xl font-black text-[var(--accent)]">80%</div>
-                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">MENA Region</div>
-                </div>
-                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
-                  <div className="text-2xl font-black text-[var(--accent)]">20%</div>
-                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">Europe & Global</div>
-                </div>
-                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
-                  <div className="text-2xl font-black text-[var(--accent)]">90%</div>
-                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">Male</div>
-                </div>
-                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
-                  <div className="text-2xl font-black text-[var(--accent)]">18-34</div>
-                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">Age Group</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <ContactCtaSection locale={model.locale} />
     </div>

@@ -1,7 +1,10 @@
 "use client";
 
-import { CheckCircle2, Clock3, KeyRound, QrCode, ShieldCheck, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle2, Clock3, KeyRound, QrCode, ShieldCheck, XCircle, ArrowRight, ArrowLeft, RefreshCcw } from "lucide-react";
 import { useMemo, useState } from "react";
+
+import { cn } from "@/lib/cn";
 
 import { activationVisualCopy } from "@/content/visual-redesign";
 import type { Locale } from "@/types/cms";
@@ -104,11 +107,11 @@ export function MoPlayerActivationPage({
   const fullCode = `MO-${code}`;
   const activationLink = code.length === 4 ? `moalfarras.space/activate?code=${fullCode}` : "moalfarras.space/activate";
   const statusCopy = useMemo(() => {
-    if (status === "invalid") return { title: t.invalid, body: t.invalidBody, icon: XCircle };
-    if (status === "activated") return { title: t.activated, body: t.activatedBody, icon: CheckCircle2 };
-    if (status === "expired") return { title: t.expired, body: t.expiredBody, icon: Clock3 };
-    if (status === "backendError") return { title: t.backendError, body: t.backendErrorBody, icon: XCircle };
-    return { title: t.waiting, body: t.waitingBody, icon: Clock3 };
+    if (status === "invalid") return { title: t.invalid, body: t.invalidBody, icon: XCircle, color: "text-red-400" };
+    if (status === "activated") return { title: t.activated, body: t.activatedBody, icon: CheckCircle2, color: "text-emerald-400" };
+    if (status === "expired") return { title: t.expired, body: t.expiredBody, icon: Clock3, color: "text-amber-400" };
+    if (status === "backendError") return { title: t.backendError, body: t.backendErrorBody, icon: XCircle, color: "text-red-400" };
+    return { title: t.waiting, body: t.waitingBody, icon: Clock3, color: "text-cyan-400" };
   }, [status, t]);
 
   async function checkCode() {
@@ -127,7 +130,7 @@ export function MoPlayerActivationPage({
       const payload = (await response.json().catch(() => null)) as { status?: Status } | null;
       if (response.ok && payload?.status === "activated") {
         setStatus("activated");
-        setTimeout(() => setActiveStep("setup"), 1500);
+        setTimeout(() => setActiveStep("setup"), 1200);
       } else if (payload?.status === "expired") {
         setStatus("expired");
       } else if (payload?.status === "invalid") {
@@ -144,20 +147,9 @@ export function MoPlayerActivationPage({
 
   function sourcePayload() {
     if (sourceType === "xtream") {
-      return {
-        type: "xtream",
-        name: sourceName,
-        serverUrl,
-        username,
-        password,
-      };
+      return { type: "xtream", name: sourceName, serverUrl, username, password };
     }
-    return {
-      type: "m3u",
-      name: sourceName,
-      playlistUrl,
-      epgUrl,
-    };
+    return { type: "m3u", name: sourceName, playlistUrl, epgUrl };
   }
 
   async function testSource() {
@@ -171,7 +163,7 @@ export function MoPlayerActivationPage({
         body: JSON.stringify({ code: fullCode, source: sourcePayload() }),
       });
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
-      setSourceMessage(payload?.message || (response.ok ? "Connection works." : "Connection test failed."));
+      setSourceMessage(payload?.message || (response.ok ? (isAr ? "الاتصال يعمل بشكل صحيح." : "Connection works.") : (isAr ? "فشل اختبار الاتصال." : "Connection test failed.")));
       setSourceStatus(response.ok && payload?.ok ? "testOk" : "error");
     } catch {
       setSourceMessage(isAr ? "تعذر فحص الاتصال." : "Could not test connection.");
@@ -192,11 +184,7 @@ export function MoPlayerActivationPage({
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
       if (response.ok && payload?.ok) {
         setSourceStatus("sent");
-        setSourceMessage(
-          isAr
-            ? "تم إرسال المصدر إلى التلفزيون. سيبدأ MoPlayer الاستيراد تلقائيًا."
-            : "Source sent to the TV. MoPlayer will start importing automatically.",
-        );
+        setSourceMessage(isAr ? "تم إرسال المصدر. سيبدأ MoPlayer الاستيراد تلقائيًا." : "Source sent. MoPlayer will start importing automatically.");
         setPassword("");
       } else {
         setSourceStatus("error");
@@ -211,240 +199,217 @@ export function MoPlayerActivationPage({
   const StatusIcon = statusCopy.icon;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#020617] text-white">
-      <section className="relative px-5 py-20 sm:px-8 lg:px-12">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(0,229,255,.22),transparent_34%),radial-gradient(circle_at_80%_20%,rgba(99,102,241,.28),transparent_34%),linear-gradient(180deg,#020617,#050816_48%,#020617)]" />
-        <div className="relative mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.08fr_.92fr] lg:items-center">
-          <div className={isAr ? "text-right" : "text-left"}>
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-cyan-200">{t.eyebrow}</p>
-            <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-[-0.02em] sm:text-6xl">
-              {t.title}
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">{t.body}</p>
+    <main className="min-h-screen overflow-hidden bg-[var(--bg-base)] text-[var(--text-1)]">
+      {/* Background Gradients */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[var(--bg-base)]" />
+        <div className="absolute inset-0 opacity-40" style={{ background: "var(--hero-home-gradient)" }} />
+        <div className="absolute -left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[120px]" />
+        <div className="absolute -right-1/4 bottom-0 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[120px]" />
+      </div>
 
-            <div className="mt-9 grid gap-3 sm:grid-cols-2">
-              {t.steps.map((step, index) => (
-                <div
-                  key={step}
-                  className="rounded-2xl border border-white/10 bg-white/[.06] p-4 shadow-[0_24px_80px_rgba(0,0,0,.35)] backdrop-blur-xl"
-                >
-                  <span className="text-xs font-bold text-cyan-200">0{index + 1}</span>
-                  <p className="mt-2 text-sm font-semibold text-white">{step}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+      <section className="relative z-10 px-6 py-20 md:py-32">
+        <div className="section-frame max-w-6xl">
+          <div className="grid items-start gap-16 lg:grid-cols-[1.1fr_0.9fr]">
+            
+            {/* ── LEFT SIDE: CONTENT & STEPS ── */}
+            <div className={isAr ? "text-right" : "text-left"}>
+              <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[var(--accent)]">
+                {t.eyebrow}
+              </p>
+              <h1 className="mt-6 text-[clamp(2.5rem,5vw,4.2rem)] font-black leading-[1.1] tracking-tight">
+                {t.title}
+              </h1>
+              <p className="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--text-2)]">
+                {t.body}
+              </p>
 
-          <div className="rounded-[2rem] border border-white/15 bg-white/[.08] p-5 shadow-[0_34px_120px_rgba(0,0,0,.45)] backdrop-blur-2xl sm:p-7">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950">
-                <KeyRound className="h-5 w-5" />
+              <div className="mt-12 grid gap-4 sm:grid-cols-2">
+                {t.steps.map((step, idx) => (
+                  <div key={step} className="glass group flex items-start gap-4 rounded-2xl p-5 border border-[var(--glass-border)] transition-all hover:border-[var(--accent-glow)]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[11px] font-black text-[var(--accent)]">
+                      0{idx + 1}
+                    </span>
+                    <p className="text-sm font-bold leading-relaxed">{step}</p>
+                  </div>
+                ))}
               </div>
-              <div>
-                <p className="text-sm font-bold text-white">{t.codeLabel}</p>
-                <p className="text-xs text-slate-400">{activationLink}</p>
+              
+              <div className="mt-12 flex items-center gap-4 text-[11px] font-black uppercase tracking-widest text-[var(--text-2)] opacity-40">
+                <ShieldCheck className="h-4 w-4" />
+                {t.privacy}
               </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-center rounded-3xl border border-cyan-200/30 bg-slate-950 p-8">
-              <QrCode className="h-28 w-28 text-cyan-200" />
-            </div>
-
-            {activeStep === "activate" ? (
-              <>
-                <label className="mt-6 block text-sm font-semibold text-slate-300" htmlFor="device-code">
-                  {t.codeLabel}
-                </label>
-                <div className="mt-2 flex h-14 overflow-hidden rounded-2xl border border-white/15 bg-slate-950 focus-within:border-cyan-300 focus-within:ring-4 focus-within:ring-cyan-300/15">
-                  <span className="inline-flex items-center border-e border-white/10 px-4 font-mono text-lg font-black tracking-[0.12em] text-cyan-200">
-                    {t.prefix}
-                  </span>
-                  <input
-                    id="device-code"
-                    value={code}
-                    maxLength={4}
-                    onChange={(event) => setCode(normalizeActivationInput(event.target.value))}
-                    placeholder={t.placeholder}
-                    dir="ltr"
-                    inputMode="text"
-                    autoComplete="one-time-code"
-                    className="h-full min-w-0 flex-1 bg-transparent px-4 font-mono text-lg font-bold uppercase tracking-[0.18em] text-white outline-none"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={checkCode}
-                  disabled={isChecking}
-                  className="mt-4 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-300 px-5 text-sm font-black text-slate-950 transition hover:bg-cyan-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30"
-                >
-                  {isChecking ? "..." : t.check}
-                </button>
-
-                <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-                  <div className="flex items-center gap-3">
-                    <StatusIcon className="h-5 w-5 text-cyan-200" />
-                    <strong>{statusCopy.title}</strong>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{statusCopy.body}</p>
-                </div>
-              </>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mt-6 space-y-6"
-              >
-                <div className="rounded-3xl border border-cyan-200/20 bg-slate-950/65 p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-black text-white">
-                        {isAr ? "الخطوة 2: أضف المصدر" : "Step 2: Add IPTV Source"}
-                      </h2>
-                      <p className="mt-1 text-sm text-slate-400">
-                        {isAr
-                          ? "أدخل بيانات Xtream أو M3U لإرسالها مباشرة إلى جهازك."
-                          : "Enter Xtream or M3U details to send directly to your TV."}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
-                      {(["xtream", "m3u"] as const).map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => {
-                            setSourceType(type);
-                            setSourceStatus("idle");
-                            setSourceMessage("");
-                          }}
-                          className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-[0.12em] transition ${
-                            sourceType === type ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10"
-                          }`}
-                        >
-                          {type === "xtream" ? "Xtream" : "M3U"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-6 grid gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                        {isAr ? "اسم المصدر" : "Source Name"}
-                      </label>
-                      <input
-                        value={sourceName}
-                        onChange={(event) => setSourceName(event.target.value)}
-                        placeholder={isAr ? "مثال: اشتراكي الخاص" : "e.g. My Private Source"}
-                        className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
-                      />
-                    </div>
-
-                    {sourceType === "xtream" ? (
-                      <div className="space-y-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Server URL</label>
-                          <input
-                            value={serverUrl}
-                            onChange={(event) => setServerUrl(event.target.value)}
-                            placeholder="http://server.com:8080"
-                            inputMode="url"
-                            dir="ltr"
-                            className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
-                          />
-                        </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Username</label>
-                            <input
-                              value={username}
-                              onChange={(event) => setUsername(event.target.value)}
-                              placeholder="user123"
-                              className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Password</label>
-                            <input
-                              value={password}
-                              onChange={(event) => setPassword(event.target.value)}
-                              placeholder="••••••••"
-                              type="password"
-                              className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">M3U URL</label>
-                          <input
-                            value={playlistUrl}
-                            onChange={(event) => setPlaylistUrl(event.target.value)}
-                            placeholder="http://server.com/list.m3u"
-                            inputMode="url"
-                            dir="ltr"
-                            className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">EPG URL (Optional)</label>
-                          <input
-                            value={epgUrl}
-                            onChange={(event) => setEpgUrl(event.target.value)}
-                            placeholder="http://server.com/epg.xml"
-                            inputMode="url"
-                            dir="ltr"
-                            className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                    <button
-                      type="button"
-                      onClick={testSource}
-                      disabled={sourceStatus === "testing" || sourceStatus === "saving"}
-                      className="h-14 rounded-2xl border border-white/15 bg-white/[.07] px-6 text-sm font-black text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
-                    >
-                      {sourceStatus === "testing" ? "..." : isAr ? "فحص الاتصال" : "Test Connection"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={saveSource}
-                      disabled={sourceStatus === "testing" || sourceStatus === "saving"}
-                      className="h-14 rounded-2xl bg-cyan-300 px-6 text-sm font-black text-slate-950 transition hover:bg-cyan-200 shadow-[0_10px_30px_rgba(0,229,255,0.2)] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
-                    >
-                      {sourceStatus === "saving" ? "..." : isAr ? "إرسال للتلفزيون" : "Sync to Device"}
-                    </button>
-                  </div>
-
-                  {sourceMessage ? (
-                    <motion.p
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`mt-4 rounded-2xl border px-5 py-4 text-sm leading-7 ${
-                        sourceStatus === "error"
-                          ? "border-red-500/30 bg-red-500/10 text-red-200"
-                          : "border-cyan-300/20 bg-cyan-300/10 text-cyan-50"
-                      }`}
-                    >
-                      {sourceMessage}
-                    </motion.p>
-                  ) : null}
-                </div>
+            {/* ── RIGHT SIDE: CARD ── */}
+            <div className="relative">
+              {/* Outer Glow */}
+              <div className="absolute -inset-4 bg-[var(--accent)] opacity-5 blur-[60px]" />
+              
+              <div className="glass relative overflow-hidden rounded-[2.5rem] border border-[var(--glass-border)] p-8 md:p-10" style={{ boxShadow: "var(--shadow-elevated)" }}>
                 
-                <button 
-                  onClick={() => setActiveStep("activate")}
-                  className="w-full text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-cyan-200 transition-colors"
-                >
-                  {isAr ? "← العودة لرمز التفعيل" : "← Back to Activation"}
-                </button>
-              </motion.div>
-            )}
+                {/* Header within card */}
+                <div className="mb-10 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                      <QrCode className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">Gateway</p>
+                      <p className="text-sm font-bold text-[var(--text-1)]">{activationLink}</p>
+                    </div>
+                  </div>
+                  {activeStep === "setup" && (
+                     <button onClick={() => setActiveStep("activate")} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-[var(--text-2)] hover:bg-white/10 transition-colors">
+                        <RefreshCcw className="h-4 w-4" />
+                     </button>
+                  )}
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {activeStep === "activate" ? (
+                    <motion.div
+                      key="activate"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]" htmlFor="device-code">
+                            {t.codeLabel}
+                          </label>
+                          <div className="flex h-16 overflow-hidden rounded-2xl border-2 border-[var(--glass-border)] bg-black/40 focus-within:border-[var(--accent)] transition-colors">
+                            <div className="flex items-center border-r border-[var(--glass-border)] bg-white/5 px-5 font-mono text-xl font-black text-[var(--accent)]">
+                              {t.prefix}
+                            </div>
+                            <input
+                              id="device-code"
+                              value={code}
+                              maxLength={4}
+                              onChange={(e) => setCode(normalizeActivationInput(e.target.value))}
+                              placeholder={t.placeholder}
+                              className="w-full bg-transparent px-5 font-mono text-xl font-bold uppercase tracking-[0.2em] outline-none placeholder:opacity-20"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={checkCode}
+                          disabled={isChecking || code.length < 4}
+                          className="button-liquid-primary w-full py-5 text-lg"
+                        >
+                          {isChecking ? "Checking..." : t.check}
+                        </button>
+
+                        <div className={cn("rounded-2xl border p-5 transition-colors", 
+                          status === 'activated' ? 'border-emerald-500/20 bg-emerald-500/5' : 
+                          status === 'invalid' || status === 'backendError' ? 'border-red-500/20 bg-red-500/5' : 
+                          'border-[var(--glass-border)] bg-white/5'
+                        )}>
+                          <div className="flex items-center gap-3 font-bold">
+                            <StatusIcon className={cn("h-5 w-5", statusCopy.color)} />
+                            <span className={statusCopy.color}>{statusCopy.title}</span>
+                          </div>
+                          <p className="mt-3 text-sm leading-relaxed text-[var(--text-2)]">
+                            {statusCopy.body}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="setup"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-8"
+                    >
+                      <div className="flex flex-col gap-6">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-xl font-black">{isAr ? "تجهيز المصدر" : "Source Setup"}</h2>
+                          <div className="flex gap-2 rounded-xl bg-white/5 p-1">
+                            {(["xtream", "m3u"] as const).map((type) => (
+                              <button
+                                key={type}
+                                onClick={() => setSourceType(type)}
+                                className={cn("rounded-lg px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all", 
+                                  sourceType === type ? "bg-[var(--accent)] text-black" : "text-[var(--text-2)] hover:bg-white/10"
+                                )}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]">{isAr ? "اسم المصدر" : "Source Name"}</label>
+                            <input
+                              value={sourceName}
+                              onChange={(e) => setSourceName(e.target.value)}
+                              placeholder={isAr ? "اشتراكي الخاص" : "My Subscription"}
+                              className="h-12 w-full rounded-xl border border-[var(--glass-border)] bg-black/40 px-4 text-sm outline-none focus:border-[var(--accent)] transition-colors"
+                            />
+                          </div>
+
+                          {sourceType === "xtream" ? (
+                            <div className="space-y-4">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]">Server URL</label>
+                                <input value={serverUrl} onChange={(e) => setServerUrl(e.target.value)} placeholder="http://host:port" className="h-12 w-full rounded-xl border border-[var(--glass-border)] bg-black/40 px-4 text-sm outline-none focus:border-[var(--accent)] transition-colors" />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]">User</label>
+                                  <input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="user" className="h-12 w-full rounded-xl border border-[var(--glass-border)] bg-black/40 px-4 text-sm outline-none focus:border-[var(--accent)] transition-colors" />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]">Pass</label>
+                                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••" className="h-12 w-full rounded-xl border border-[var(--glass-border)] bg-black/40 px-4 text-sm outline-none focus:border-[var(--accent)] transition-colors" />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]">M3U URL</label>
+                                <input value={playlistUrl} onChange={(e) => setPlaylistUrl(e.target.value)} placeholder="http://server.com/list.m3u" className="h-12 w-full rounded-xl border border-[var(--glass-border)] bg-black/40 px-4 text-sm outline-none focus:border-[var(--accent)] transition-colors" />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-2)]">EPG URL (Optional)</label>
+                                <input value={epgUrl} onChange={(e) => setEpgUrl(e.target.value)} placeholder="http://server.com/epg.xml" className="h-12 w-full rounded-xl border border-[var(--glass-border)] bg-black/40 px-4 text-sm outline-none focus:border-[var(--accent)] transition-colors" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <button onClick={testSource} disabled={sourceStatus === 'testing' || sourceStatus === 'saving'} className="button-liquid-secondary py-4 text-sm">
+                            {sourceStatus === 'testing' ? "..." : (isAr ? "فحص" : "Test")}
+                          </button>
+                          <button onClick={saveSource} disabled={sourceStatus === 'testing' || sourceStatus === 'saving'} className="button-liquid-primary py-4 text-sm">
+                            {sourceStatus === 'saving' ? "..." : (isAr ? "حفظ وإرسال" : "Save & Sync")}
+                          </button>
+                        </div>
+
+                        {sourceMessage && (
+                          <div className={cn("rounded-xl border px-4 py-3 text-xs font-bold leading-relaxed", 
+                            sourceStatus === 'error' ? 'border-red-500/20 bg-red-500/5 text-red-300' : 'border-emerald-500/20 bg-emerald-500/5 text-emerald-300'
+                          )}>
+                            {sourceMessage}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

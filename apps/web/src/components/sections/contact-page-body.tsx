@@ -2,52 +2,53 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import { ArrowUpRight, Mail, MapPin, MessageCircle, Send, Clock, Sparkles } from "lucide-react";
+import { ArrowUpRight, Mail, MapPin, MessageCircle, Send, Clock, Sparkles, Zap, Phone } from "lucide-react";
 
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import type { SiteViewModel } from "@/components/site/site-view-model";
+import { cn } from "@/lib/cn";
 
 const copy = {
   en: {
-    eyebrow: "Contact",
-    title: "Start with the real scope, constraints, and proof.",
+    eyebrow: "Direct Inquiry",
+    title: "Defining Scope, Constraints, and Outcome.",
     body:
-      "Use this form for web presence, product surfaces, MoPlayer support, case studies, and bilingual Arabic/English execution. Based in Germany, working with a practical discovery-first rhythm.",
-    email: "Email",
-    whatsapp: "WhatsApp",
-    availabilityTitle: "Current availability",
+      "Strategic consultation for web presence, product architecture, MoPlayer ecosystem, and bilingual execution. Based in Germany, operating with a discovery-first rhythm.",
+    email: "Send Email",
+    whatsapp: "WhatsApp Direct",
+    availabilityTitle: "System Availability",
     availability: [
-      { label: "Working days", value: "Saturday to Thursday" },
+      { label: "Operating Days", value: "Sat — Thu" },
       { label: "Timezone", value: "Germany · CET/CEST" },
-      { label: "Typical response", value: "Practical next step" },
-      { label: "Location", value: "Germany" },
+      { label: "Discovery Call", value: "Via Inquiry" },
+      { label: "Local presence", value: "Germany" },
     ],
-    stepsTitle: "What happens next",
+    stepsTitle: "The Protocol",
     steps: [
-      "I review your message and map the real goal behind the request.",
-      "You get a short reply with what I understood and what I recommend first.",
-      "If we're aligned, we move to a defined scope and a clear execution path.",
+      "Diagnostic review of your message to map the underlying business goal.",
+      "Brief strategic response with immediate recommendations and initial clarity.",
+      "Scope definition and migration to a clear, high-fidelity execution path.",
     ],
   },
   ar: {
-    eyebrow: "تواصل",
-    title: "ابدأ من النطاق الحقيقي، القيود، وما يجب إثباته.",
+    eyebrow: "طلب استشارة",
+    title: "تحديد النطاق، القيود، والنتائج المتوقعة.",
     body:
-      "استخدم هذا النموذج لمواقع الويب، أسطح المنتجات، دعم MoPlayer، دراسات الحالة، والتنفيذ العربي/الإنجليزي. مقيم في ألمانيا وأتعامل مع الطلب بإيقاع عملي يبدأ من التشخيص.",
-    email: "البريد",
-    whatsapp: "واتساب",
-    availabilityTitle: "التوفر الحالي",
+      "استشارة استراتيجية لمواقع الويب، هندسة المنتجات، بيئة MoPlayer، والتنفيذ باللغتين. مقيم في ألمانيا وأعمل وفق إيقاع يبدأ من التشخيص والتحليل.",
+    email: "إرسال بريد",
+    whatsapp: "واتساب مباشر",
+    availabilityTitle: "حالة النظام",
     availability: [
-      { label: "أيام العمل", value: "السبت إلى الخميس" },
+      { label: "أيام العمل", value: "السبت — الخميس" },
       { label: "التوقيت", value: "ألمانيا · CET/CEST" },
-      { label: "شكل الرد", value: "خطوة عملية واضحة" },
-      { label: "الموقع", value: "ألمانيا" },
+      { label: "جلسة اكتشاف", value: "عبر الطلب" },
+      { label: "التواجد", value: "ألمانيا" },
     ],
-    stepsTitle: "بعد أن ترسل",
+    stepsTitle: "البروتوكول",
     steps: [
-      "أراجع رسالتك وأحدد الهدف الحقيقي وراءها.",
-      "أرسل لك رداً قصيراً يلخّص ما فهمته وما أقترحه أولاً.",
-      "إذا كان هناك توافق، ننتقل إلى نطاق واضح ومسار تنفيذ محدد.",
+      "مراجعة تشخيصية لرسالتك لتحديد الهدف التجاري الحقيقي وراء الطلب.",
+      "رد استراتيجي موجز مع توصيات فورية ووضوح مبدئي للمسار.",
+      "تحديد نطاق العمل والانتقال إلى مسار تنفيذ عالي الجودة والدقة.",
     ],
   },
 } as const;
@@ -61,140 +62,180 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
   const heroImage = model.brandMedia.contactHero || model.brandMedia.gallery.tech || "/images/hero_tech.png";
 
   return (
-    <div data-testid="contact-page">
+    <div className="relative pb-32" data-testid="contact-page">
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden pt-32 md:pt-40">
-        <div className="pointer-events-none absolute inset-0 bg-[var(--bg-base)]" />
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 10%, rgba(99,102,241,0.08) 0%, transparent 60%)" }} />
+      <section className="relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-32">
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[var(--bg-base)]" />
+          <div className="absolute -right-1/4 top-0 h-[600px] w-[600px] rounded-full bg-indigo-600/10 blur-[140px]" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, var(--text-3) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+        </div>
         
         <div className="section-frame relative z-10">
-          <div className="grid gap-12 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.eyebrow}</p>
-              <h1 className="mt-4 overflow-visible pb-2 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4.5vw,3.8rem)" }}>
+          <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={cn("flex items-center gap-3 mb-8", isAr ? "flex-row-reverse" : "")}>
+                <span className="h-[1px] w-8 bg-indigo-500" />
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-500">{t.eyebrow}</p>
+              </div>
+              <h1 className="headline-display text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[1.05] tracking-tight text-[var(--text-1)]">
                 {t.title}
               </h1>
-              <p className="mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-lg">{t.body}</p>
+              <p className="mt-8 text-lg leading-relaxed text-[var(--text-2)] md:text-xl max-w-2xl">
+                {t.body}
+              </p>
               
-              <div className="mt-8 flex flex-wrap gap-4">
-                <a href={`mailto:${email}`} className="button-liquid-primary inline-flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+              <div className={cn("mt-12 flex flex-wrap gap-4", isAr ? "flex-row-reverse" : "")}>
+                <a href={`mailto:${email}`} className="button-liquid-primary px-10 h-16 text-lg border-none bg-white text-black hover:bg-slate-200 shadow-xl">
+                  <Mail className="h-5 w-5" />
                   {t.email}
                 </a>
-                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary inline-flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
+                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary px-8 h-16 group">
+                  <MessageCircle className="h-5 w-5 text-emerald-500" />
                   {t.whatsapp}
                 </a>
               </div>
-            </div>
+            </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: reduced ? 0.2 : 0.8 }}
-              className="relative aspect-[4/3] w-full max-w-[560px] overflow-hidden rounded-[var(--radius-xl)]"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="relative"
             >
-              <div className="glass relative h-full w-full overflow-hidden" style={{ boxShadow: "var(--shadow-hero)" }}>
-                <Image
-                  src={heroImage}
-                  alt="Contact"
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--bg-base)]/80 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-md">
-                    <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
-                    {isAr ? "من الرسالة إلى التنفيذ" : "From message to execution"}
+               <div className="absolute -inset-4 bg-gradient-to-br from-indigo-600/20 to-transparent blur-3xl opacity-30" />
+               <div className="relative glass rounded-[3rem] border border-[var(--glass-border)] p-4 overflow-hidden shadow-2xl">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-[2.2rem]">
+                    <Image
+                      src={heroImage}
+                      alt="Contact Visual"
+                      fill
+                      priority
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-6 left-6 flex items-center gap-3">
+                       <div className="h-10 w-10 rounded-full border-2 border-white/20 bg-indigo-600 flex items-center justify-center">
+                          <Zap className="h-5 w-5 text-white" />
+                       </div>
+                       <span className="text-sm font-black uppercase tracking-widest text-white">{isAr ? "دقة في التنفيذ" : "Precision Protocol"}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
+               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ── CONTACT FORM & DETAILS ── */}
-      <section className="py-16 md:py-24">
+      {/* ── FORM & SIDEBAR ── */}
+      <section className="py-24">
         <div className="section-frame">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
             
-            {/* Form */}
-            <div className="glass rounded-[var(--radius-xl)] p-8 md:p-12" style={{ boxShadow: "var(--shadow-elevated)" }}>
+            {/* Form Container */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="glass rounded-[3.5rem] p-8 md:p-14 border-white/5 bg-white/[0.01] shadow-2xl"
+            >
+              <div className="mb-12">
+                 <h2 className="text-3xl font-black text-[var(--text-1)]">{isAr ? "تفاصيل الطلب" : "Inquiry Parameters"}</h2>
+                 <p className="text-[var(--text-3)] mt-3">{isAr ? "يرجى تقديم أكبر قدر ممكن من الوضوح للمساعدة في التشخيص." : "Please provide maximum clarity to assist the diagnostic phase."}</p>
+              </div>
               <LiquidContactForm locale={model.locale} />
-            </div>
+            </motion.div>
 
             {/* Sidebar */}
-            <aside className="space-y-6">
-              
-              <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] border border-[var(--glass-border)]">
-                    <Clock className="h-4 w-4" style={{ color: "var(--accent)" }} />
-                  </div>
-                  <h3 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-1)" }}>{t.availabilityTitle}</h3>
+            <aside className="space-y-8">
+              {/* Availability */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="glass rounded-[3rem] p-10 border-white/5"
+              >
+                <div className="flex items-center gap-4 mb-10">
+                   <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
+                      <Clock className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-1)]">{t.availabilityTitle}</h3>
                 </div>
-                <dl className="mt-6 space-y-4">
+                <div className="space-y-6">
                   {t.availability.map((row) => (
-                    <div key={row.label} className="flex items-center justify-between gap-4 border-b border-[var(--glass-border)] pb-4 last:border-0 last:pb-0">
-                      <dt className="text-sm font-medium" style={{ color: "var(--text-2)" }}>{row.label}</dt>
-                      <dd className="text-sm font-bold" style={{ color: "var(--text-1)" }}>{row.value}</dd>
+                    <div key={row.label} className="flex items-center justify-between gap-4 border-b border-white/5 pb-5 last:border-0 last:pb-0">
+                      <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-3)]">{row.label}</span>
+                      <span className="text-sm font-black text-[var(--text-1)]">{row.value}</span>
                     </div>
                   ))}
-                </dl>
-              </div>
-
-              <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] border border-[var(--glass-border)]">
-                    <MapPin className="h-4 w-4" style={{ color: "var(--accent)" }} />
-                  </div>
-                  <h3 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-1)" }}>{isAr ? "قنوات التواصل" : "Direct channels"}</h3>
                 </div>
-                <ul className="mt-6 space-y-3">
-                  {model.contact.channels.slice(0, 5).map((channel) => {
-                    const external = channel.value.startsWith("http");
+              </motion.div>
+
+              {/* Protocol Steps */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="glass rounded-[3rem] p-10 border-white/5 bg-indigo-500/[0.01]"
+              >
+                <div className="flex items-center gap-4 mb-10">
+                   <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
+                      <Send className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-1)]">{t.stepsTitle}</h3>
+                </div>
+                <div className="space-y-8 relative">
+                   <div className="absolute left-5 top-0 bottom-0 w-px bg-white/5" />
+                   {t.steps.map((step, idx) => (
+                     <div key={idx} className="relative pl-12">
+                        <div className="absolute left-2.5 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-black text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                          {idx + 1}
+                        </div>
+                        <p className="text-sm leading-relaxed text-[var(--text-2)] pt-0.5">{step}</p>
+                     </div>
+                   ))}
+                </div>
+              </motion.div>
+
+              {/* Channels */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="glass rounded-[3rem] p-10 border-white/5"
+              >
+                <div className="flex items-center gap-4 mb-10">
+                   <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                      <Phone className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-1)]">{isAr ? "قنوات التواصل" : "Direct Access"}</h3>
+                </div>
+                <div className="grid gap-4">
+                  {model.contact.channels.slice(0, 3).map((channel) => {
+                    const isEx = channel.value.startsWith("http");
                     return (
-                      <li key={channel.id}>
-                        <a
-                          href={channel.value}
-                          target={external ? "_blank" : undefined}
-                          rel={external ? "noopener noreferrer" : undefined}
-                          className="group flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4 transition-colors hover:border-[var(--accent)]"
-                        >
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-bold" style={{ color: "var(--text-1)" }}>{channel.label}</div>
-                            <div className="truncate text-xs mt-1" style={{ color: "var(--text-3)" }}>{channel.description}</div>
-                          </div>
-                          <ArrowUpRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" style={{ color: "var(--text-3)" }} />
-                        </a>
-                      </li>
+                      <a
+                        key={channel.id}
+                        href={channel.value}
+                        target={isEx ? "_blank" : undefined}
+                        className="group flex items-center justify-between p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/30 transition-all"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-xs font-black uppercase tracking-widest text-[var(--text-1)]">{channel.label}</p>
+                          <p className="text-[10px] text-[var(--text-3)] mt-1 truncate">{channel.description}</p>
+                        </div>
+                        <ArrowUpRight className="h-4 w-4 text-[var(--text-3)] group-hover:text-indigo-500 transition-colors" />
+                      </a>
                     );
                   })}
-                </ul>
-              </div>
-
-              <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-elevated)] border border-[var(--glass-border)]">
-                    <Send className="h-4 w-4" style={{ color: "var(--accent)" }} />
-                  </div>
-                  <h3 className="text-sm font-bold uppercase tracking-[0.12em]" style={{ color: "var(--text-1)" }}>{t.stepsTitle}</h3>
                 </div>
-                <ol className="mt-6 space-y-5">
-                  {t.steps.map((step, idx) => (
-                    <li key={step} className="flex items-start gap-4">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[11px] font-bold" style={{ color: "var(--accent)" }}>
-                        {idx + 1}
-                      </div>
-                      <span className="text-[14px] leading-relaxed pt-0.5" style={{ color: "var(--text-2)" }}>{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
+              </motion.div>
             </aside>
           </div>
         </div>

@@ -51,63 +51,167 @@ export function AdminOS({
   const [view, setView] = useState<View>("home");
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[var(--bg-primary)] font-sans">
+    <div className="relative min-h-screen overflow-hidden bg-[#020617] font-sans selection:bg-cyan-500/30">
       {/* Animated Mesh Background */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(108,99,255,0.12),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,255,135,0.08),transparent_50%)]" />
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "var(--noise)" }} />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(14,165,233,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(124,58,237,0.12),transparent_50%)]" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")" }} />
       </div>
 
       {/* OS Top Bar */}
-      <header className="relative z-50 flex h-14 w-full items-center justify-between border-b border-white/5 bg-black/20 px-6 backdrop-blur-xl">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-black">
-              <Terminal className="h-4 w-4" />
+      <header className="relative z-50 flex h-16 w-full items-center justify-between border-b border-white/5 bg-slate-950/40 px-8 backdrop-blur-2xl">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-600 text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+              <Terminal className="h-5 w-5" />
             </div>
-            <span className="text-xs font-black uppercase tracking-widest text-foreground">Digital OS</span>
+            <div className="flex flex-col">
+               <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Digital OS</span>
+               <span className="text-[9px] font-bold uppercase tracking-widest text-cyan-500/80">Command Center</span>
+            </div>
           </div>
-          <nav className="hidden h-full items-center gap-1 md:flex">
-             <button 
-              onClick={() => setView("home")}
-              className={`h-8 rounded-lg px-3 text-[11px] font-bold transition ${view === "home" ? "bg-white/10 text-white" : "text-foreground-soft hover:bg-white/5"}`}
-             >
-               Desktop
-             </button>
-             <button 
-              onClick={() => setView("website")}
-              className={`h-8 rounded-lg px-3 text-[11px] font-bold transition ${view === "website" ? "bg-white/10 text-white" : "text-foreground-soft hover:bg-white/5"}`}
-             >
-               Website CMS
-             </button>
-             <button 
-              onClick={() => setView("app")}
-              className={`h-8 rounded-lg px-3 text-[11px] font-bold transition ${view === "app" ? "bg-white/10 text-white" : "text-foreground-soft hover:bg-white/5"}`}
-             >
-               App Ecosystem
-             </button>
+          <nav className="hidden h-full items-center gap-2 md:flex">
+             {[
+               { id: "home", label: "Dashboard", icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
+               { id: "website", label: "Website CMS", icon: <Globe className="h-3.5 w-3.5" /> },
+               { id: "app", label: "App Ecosystem", icon: <Smartphone className="h-3.5 w-3.5" /> },
+             ].map((item) => (
+               <button 
+                key={item.id}
+                onClick={() => setView(item.id as View)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
+                  view === item.id ? "bg-white/10 text-white shadow-inner" : "text-slate-400 hover:bg-white/5 hover:text-white"
+                )}
+               >
+                 {item.icon}
+                 {item.label}
+               </button>
+             ))}
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-           <div className="hidden items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-[10px] font-medium text-foreground-soft md:flex">
-             <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
-             {adminEmail}
+        <div className="flex items-center gap-6">
+           <div className="hidden items-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-4 py-2 md:flex">
+             <div className="relative flex h-2 w-2">
+               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+               <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500"></span>
+             </div>
+             <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">{adminEmail}</span>
            </div>
            <form action={logoutAdminAction}>
-              <button type="submit" className="text-[10px] font-black uppercase tracking-widest text-red-400/80 hover:text-red-400 transition-colors">
-                Shutdown
+              <button type="submit" className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-400/70 hover:text-red-400 transition-colors">
+                <span>Shutdown</span>
+                <ArrowLeft className="h-3 w-3 rotate-180 transition-transform group-hover:translate-x-1" />
               </button>
            </form>
         </div>
       </header>
 
-      <main className="relative z-10 p-6 md:p-10 lg:p-12">
-        <div className="mx-auto max-w-7xl">
+      <main className="relative z-10 p-8 md:p-12">
+        <div className="mx-auto max-w-[1400px]">
           <AnimatePresence mode="wait">
+            {view === "home" && (
+              <motion.div 
+                key="home" 
+                initial={{ opacity: 0, scale: 0.98 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="space-y-12"
+              >
+                {/* Hero */}
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                       <span className="h-px w-6 bg-cyan-500" />
+                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500">System v4.0.0</p>
+                    </div>
+                    <h1 className="headline-display text-5xl font-black text-white md:text-7xl tracking-tight">Main Command</h1>
+                    <p className="max-w-2xl text-lg text-slate-400 leading-relaxed">
+                      Programmatic control over the Mohammad Alfarras digital identity, product architecture, and user fleet.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                     <div className="glass rounded-[2rem] p-6 border-white/5 flex flex-col items-center justify-center min-w-[140px]">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Status</span>
+                        <span className="text-sm font-black text-emerald-400 uppercase tracking-widest">Active</span>
+                     </div>
+                     <div className="glass rounded-[2rem] p-6 border-white/5 flex flex-col items-center justify-center min-w-[140px]">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Uptime</span>
+                        <span className="text-sm font-black text-white uppercase tracking-widest">99.9%</span>
+                     </div>
+                  </div>
+                </div>
+
+                {/* Grid Modules */}
+                <div className="grid gap-8 md:grid-cols-2">
+                  <motion.button
+                    whileHover={{ y: -8, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => setView("website")}
+                    className="relative group overflow-hidden glass rounded-[3.5rem] p-12 text-center border-white/5 hover:border-cyan-500/30 transition-all duration-500"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-white/5 text-white border border-white/10 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:bg-cyan-500 group-hover:text-black group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)]">
+                        <Globe className="h-10 w-10" />
+                      </div>
+                      <h2 className="text-3xl font-black text-white tracking-tight">Website CMS</h2>
+                      <p className="mt-4 mx-auto max-w-sm text-[15px] leading-relaxed text-slate-400">
+                        Manage portfolio case studies, career timeline, and SEO metadata.
+                      </p>
+                    </div>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{ y: -8, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => setView("app")}
+                    className="relative group overflow-hidden glass rounded-[3.5rem] p-12 text-center border-white/5 hover:border-violet-500/30 transition-all duration-500"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-white/5 text-white border border-white/10 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:bg-violet-500 group-hover:text-white group-hover:shadow-[0_0_40px_rgba(139,92,246,0.4)]">
+                        <Smartphone className="h-10 w-10" />
+                      </div>
+                      <h2 className="text-3xl font-black text-white tracking-tight">App Control</h2>
+                      <p className="mt-4 mx-auto max-w-sm text-[15px] leading-relaxed text-slate-400">
+                        MoPlayer releases, licenses, remote config, and fleet monitoring.
+                      </p>
+                    </div>
+                  </motion.button>
+                </div>
+                
+                {/* Stats Widgets */}
+                <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+                  {[
+                    { label: "Active SDK", value: `API ${product.android_target_sdk}`, icon: <Activity className="text-cyan-400" /> },
+                    { label: "Fleet Count", value: `${devices.length} Devices`, icon: <Terminal className="text-violet-400" /> },
+                    { label: "Pending Activation", value: `${activationRequests.filter(r => r.status === 'pending').length} Req`, icon: <MessageSquare className="text-amber-400" /> },
+                    { label: "Support Queue", value: `${supportRequests.filter(s => s.status === 'new').length} Open`, icon: <Activity className="text-red-400" /> },
+                  ].map((stat, i) => (
+                    <motion.div 
+                      key={stat.label} 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="glass rounded-[2rem] p-8 border-white/5 flex flex-col items-center justify-center text-center"
+                    >
+                       <div className="mb-4 h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                         {stat.icon}
+                       </div>
+                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{stat.label}</p>
+                       <p className="text-xl font-black text-white">{stat.value}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {view === "app" && (
-              <motion.div key="app" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
+              <motion.div key="app" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <AppAdminDashboard
                   adminEmail={adminEmail}
                   role={role}
@@ -126,76 +230,8 @@ export function AdminOS({
             )}
 
             {view === "website" && (
-              <motion.div key="website" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
+              <motion.div key="website" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <WebsiteAdminDashboard />
-              </motion.div>
-            )}
-
-            {view === "home" && (
-              <motion.div key="home" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-10">
-                {/* Hero */}
-                <div className="space-y-3">
-                  <p className="eyebrow">Control Center v3.0</p>
-                  <h1 className="headline-display text-5xl font-black text-foreground md:text-6xl">Command Surface</h1>
-                  <p className="max-w-2xl text-lg text-foreground-muted">
-                    Unified intelligence and management for the Mohammad Alfarras digital ecosystem.
-                  </p>
-                </div>
-
-                {/* Grid Modules */}
-                <div className="grid gap-6 md:grid-cols-2">
-                  <motion.button
-                    whileHover={{ y: -5 }}
-                    onClick={() => setView("website")}
-                    className="glass-card group flex flex-col items-center justify-center p-16 text-center border-accent-warm/10 hover:border-accent-warm/30 bg-accent-warm/5"
-                  >
-                    <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-accent-warm/10 text-accent-warm ring-1 ring-accent-warm/20 transition-all duration-500 group-hover:scale-110 group-hover:bg-accent-warm/20">
-                      <Globe className="h-10 w-10" />
-                    </div>
-                    <h2 className="text-3xl font-black text-foreground">Website CMS</h2>
-                    <p className="mt-4 max-w-sm text-sm leading-relaxed text-foreground-muted">
-                      Personal brand, career timeline, portfolio projects, and inbound inquiries.
-                    </p>
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ y: -5 }}
-                    onClick={() => setView("app")}
-                    className="glass-card group flex flex-col items-center justify-center p-16 text-center border-primary/10 hover:border-primary/30 bg-primary/5"
-                  >
-                    <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-primary/10 text-primary ring-1 ring-primary/20 transition-all duration-500 group-hover:scale-110 group-hover:bg-primary/20">
-                      <Smartphone className="h-10 w-10" />
-                    </div>
-                    <h2 className="text-3xl font-black text-foreground">App Control</h2>
-                    <p className="mt-4 max-w-sm text-sm leading-relaxed text-foreground-muted">
-                      MoPlayer releases, license keys, remote configuration, and device fleet.
-                    </p>
-                  </motion.button>
-                </div>
-                
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                  {[
-                    { label: "Active Version", value: runtimeConfig.latestVersionName, icon: <Activity className="text-primary" /> },
-                    { label: "Fleet Size", value: `${devices.length} Devices`, icon: <Terminal className="text-accent-gold" /> },
-                    { label: "Ecosystem Status", value: "Operational", icon: <LayoutDashboard className="text-emerald-400" /> },
-                    { label: "Inbox Leads", value: `${supportRequests.filter(s => s.status === 'new').length} New`, icon: <MessageSquare className="text-accent-warm" /> },
-                  ].map((stat, i) => (
-                    <motion.div 
-                      key={stat.label} 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="glass-panel p-6 rounded-[2rem] text-center flex flex-col items-center justify-center border-white/5"
-                    >
-                       <div className="mb-4 h-10 w-10 rounded-2xl bg-white/5 flex items-center justify-center">
-                         {stat.icon}
-                       </div>
-                       <p className="stats-label text-[10px] font-black uppercase tracking-widest opacity-60">{stat.label}</p>
-                       <p className="mt-2 text-xl font-black text-foreground">{stat.value}</p>
-                    </motion.div>
-                  ))}
-                </div>
               </motion.div>
             )}
           </AnimatePresence>

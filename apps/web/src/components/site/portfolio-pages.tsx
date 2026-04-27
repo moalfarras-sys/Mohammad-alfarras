@@ -1,7 +1,9 @@
-import { ArrowUpRight, Download, Mail, PlayCircle, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Download, Mail, PlayCircle, ShieldCheck, Clock, Briefcase, Code2, Globe, Cpu } from "lucide-react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+
+import { cn } from "@/lib/cn";
 
 import { cvPageCopy } from "@/content/cv";
 import { privacyCopy } from "@/content/legal";
@@ -37,17 +39,17 @@ function Frame({ children, className = "" }: { children: React.ReactNode; classN
   return <div className={`section-frame ${className}`}>{children}</div>;
 }
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
+function Eyebrow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent)]">
+    <p className={cn("text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent)]", className)}>
       {children}
     </p>
   );
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
+function Chip({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className="inline-flex min-h-8 items-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs font-medium text-[var(--text-2)]">
+    <span className={cn("inline-flex min-h-8 items-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs font-medium text-[var(--text-2)]", className)}>
       {children}
     </span>
   );
@@ -307,379 +309,260 @@ export function PortfolioHomePage({ model }: { model: SiteViewModel }) {
 
 export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
   const t = cvPageCopy[model.locale];
+  const isAr = model.locale === "ar";
 
   return (
-    <>
-      <section className="relative overflow-hidden pt-32 md:pt-40" data-testid="cv-page">
-        <div className="pointer-events-none absolute inset-0 bg-[var(--bg-base)]" />
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 50% at 90% 0%, rgba(124,58,237,0.08) 0%, transparent 60%)" }} />
-        
-        <div className="section-frame relative z-10">
-          <div className="grid gap-12 lg:grid-cols-[1fr_0.8fr] lg:items-start">
-            <div className="max-w-3xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.eyebrow}</p>
-              <h1 className="mt-4 overflow-visible pb-2 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4.5vw,3.8rem)" }}>
+    <div className="relative pb-24">
+      {/* ── HERO SECTION ── */}
+      <section className="relative overflow-hidden pt-32 pb-16 md:pt-48 md:pb-24">
+        {/* Background Accents */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[var(--bg-base)]" />
+          <div className="absolute -right-1/4 top-0 h-[600px] w-[600px] rounded-full bg-violet-600/10 blur-[140px]" />
+          <div className="absolute -left-1/4 bottom-0 h-[600px] w-[600px] rounded-full bg-cyan-600/10 blur-[140px]" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, var(--text-3) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+        </div>
+
+        <Frame className="relative z-10">
+          <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="h-[1px] w-8 bg-[var(--accent)]" />
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">{t.eyebrow}</p>
+              </div>
+              <h1 className="mt-8 headline-display text-[clamp(2.2rem,5vw,4.5rem)] font-black leading-[1.05] tracking-tight text-[var(--text-1)]">
                 {t.title}
               </h1>
-              <p className="mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-lg">{t.body}</p>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <a href={model.downloads.branded} className="button-liquid-primary inline-flex items-center gap-2">
+              <p className="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--text-2)] md:text-xl">
+                {t.body}
+              </p>
+              
+              <div className="mt-10 flex flex-wrap gap-4">
+                <a href={model.downloads.branded} className="button-liquid-primary px-8">
                   <Download className="h-4 w-4" />
                   {t.downloadDesigned}
                 </a>
-                <a href={model.downloads.ats} className="button-liquid-secondary inline-flex items-center gap-2">
+                <a href={model.downloads.ats} className="button-liquid-secondary px-8">
                   <Download className="h-4 w-4" />
                   {t.downloadAts}
                 </a>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Profile summary card */}
-            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
-              <h2 className="text-lg font-bold" style={{ color: "var(--text-1)" }}>{t.summaryTitle}</h2>
-              <ul className="mt-6 grid gap-4">
-                {t.principles.map((item) => (
-                  <li key={item} className="flex gap-4">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)]">
-                      <ShieldCheck className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
-                    </div>
-                    <span className="text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="glass relative rounded-[2.5rem] border border-[var(--glass-border)] p-8 md:p-12"
+              style={{ boxShadow: "var(--shadow-elevated)" }}
+            >
+               <div className="absolute -inset-2 bg-gradient-to-br from-violet-500/10 to-cyan-500/10 opacity-20 blur-2xl" />
+               <div className="relative">
+                  <h2 className="text-xl font-black text-[var(--text-1)] mb-8">{t.summaryTitle}</h2>
+                  <div className="space-y-6">
+                    {t.principles.map((item, idx) => (
+                      <div key={idx} className="flex gap-5">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                          <ShieldCheck className="h-5 w-5" />
+                        </div>
+                        <p className="text-sm font-bold leading-relaxed text-[var(--text-2)]">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+               </div>
+            </motion.div>
           </div>
-        </div>
+        </Frame>
       </section>
 
-      {/* ── SKILLS ── */}
-      <section className="py-16 md:py-20">
-        <div className="section-frame">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.skillsTitle}</p>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            {t.skillGroups.map((group) => (
-              <div key={group.title} className="glass rounded-[var(--radius-lg)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
-                <h3 className="text-base font-bold" style={{ color: "var(--text-1)" }}>{group.title}</h3>
-                <div className="mt-5 flex flex-wrap gap-2">
+      {/* ── SKILLS DASHBOARD ── */}
+      <Section className="bg-white/[0.01]">
+        <Frame>
+          <div className="mb-12">
+            <Eyebrow>{t.skillsTitle}</Eyebrow>
+            <h2 className="headline-display mt-4 text-4xl font-black">Architecture & Execution</h2>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-3">
+            {t.skillGroups.map((group, idx) => (
+              <motion.div
+                key={group.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass group relative overflow-hidden rounded-[2rem] border border-[var(--glass-border)] p-8 transition-all hover:border-[var(--accent-glow)]"
+              >
+                <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                   {idx === 0 ? <Code2 className="h-24 w-24" /> : idx === 1 ? <Briefcase className="h-24 w-24" /> : <ShieldCheck className="h-24 w-24" />}
+                </div>
+                <h3 className="text-lg font-black text-[var(--text-1)] mb-6">{group.title}</h3>
+                <div className="flex flex-wrap gap-2">
                   {group.items.map((item) => (
-                    <span key={item} className="rounded-full border px-3 py-1 text-xs font-medium" style={{ borderColor: "var(--glass-border)", color: "var(--text-2)", background: "var(--bg-elevated)" }}>
+                    <span key={item} className="rounded-full bg-white/5 border border-white/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-wider text-[var(--text-2)] hover:text-[var(--accent)] hover:border-[var(--accent-soft)] transition-colors">
                       {item}
                     </span>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
-      </section>
+        </Frame>
+      </Section>
 
-      
-      {/* ── LANGUAGES & TOOLS ── */}
-      <section className="py-16 md:py-20">
-        <div className="section-frame">
-          <div className="grid gap-10 lg:grid-cols-2">
-            
-            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{model.locale === "ar" ? "اللغات" : "Language Bars"}</p>
-              <div className="mt-8 grid gap-6">
-                <div>
-                  <div className="mb-2 flex justify-between text-sm font-bold text-[var(--text-1)]">
-                    <span>{model.locale === "ar" ? "العربية" : "Arabic"}</span>
-                    <span className="text-[var(--text-3)]">{model.locale === "ar" ? "لغة أم" : "Native"}</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-elevated)]">
-                    <div className="h-full bg-[var(--accent)]" style={{ width: "100%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-2 flex justify-between text-sm font-bold text-[var(--text-1)]">
-                    <span>{model.locale === "ar" ? "الإنجليزية" : "English"}</span>
-                    <span className="text-[var(--text-3)]">{model.locale === "ar" ? "طلاقة مهنية" : "Fluent / Professional"}</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-elevated)]">
-                    <div className="h-full bg-[var(--accent)]" style={{ width: "95%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="mb-2 flex justify-between text-sm font-bold text-[var(--text-1)]">
-                    <span>{model.locale === "ar" ? "الألمانية" : "German"}</span>
-                    <span className="text-[var(--text-3)]">{model.locale === "ar" ? "مستوى متقدم - B2/C1" : "Advanced - B2/C1"}</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-elevated)]">
-                    <div className="h-full bg-[var(--accent)]" style={{ width: "85%" }} />
-                  </div>
-                </div>
-              </div>
+      {/* ── EXPERIENCE TIMELINE (CINEMATIC) ── */}
+      <Section className="py-24">
+        <Frame>
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-20 text-center">
+              <Eyebrow>{t.experienceTitle}</Eyebrow>
+              <h2 className="headline-display mt-6 text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-tighter">Career Evolution</h2>
+              <p className="mt-6 text-[var(--text-3)] font-bold uppercase tracking-[0.2em] text-xs">A narrative of growth across logistics and digital products</p>
             </div>
 
-            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{model.locale === "ar" ? "سحابة الأدوات" : "Tools Cloud"}</p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                {["Figma", "VS Code", "Android Studio", "Premiere Pro", "After Effects", "Notion", "GitHub", "Vercel", "Supabase", "Cursor", "Linear"].map((tool) => (
-                  <span key={tool} className="rounded-xl border border-[var(--glass-border)] bg-[var(--bg-base)] px-4 py-2 text-sm font-semibold text-[var(--text-1)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
-                    {tool}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-          </div>
-          
-          <div className="mt-10 glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{model.locale === "ar" ? "مشاريع مميزة" : "Project Badges"}</p>
-            <div className="mt-6 flex flex-wrap gap-4">
-               {model.projects.slice(0, 4).map(p => (
-                 <Link key={p.id} href={`/${model.locale}/work/${p.slug}`} className="flex items-center gap-3 rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 py-2 hover:bg-[var(--glass-border)] transition">
-                   <div className="h-2 w-2 rounded-full bg-[var(--accent)]" />
-                   <span className="text-sm font-bold text-[var(--text-1)]">{p.title}</span>
-                 </Link>
-               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TIMELINE ── */}
-      <section className="py-16 md:py-20">
-        <div className="section-frame">
-          <div className="max-w-4xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>Career Map · {t.experienceTitle}</p>
-            <div className="mt-8 grid gap-8 relative before:absolute before:inset-y-0 before:left-4 before:w-[2px] before:bg-gradient-to-b before:from-[var(--accent)] before:to-[var(--glass-border)] md:before:left-[160px]">
-              {model.cvExperience.map((entry) => (
-                <div key={entry.id} className="relative grid gap-4 pl-12 md:grid-cols-[140px_1fr] md:gap-10 md:pl-0">
-                  <div className="absolute left-[8px] top-1.5 h-4 w-4 rounded-full border-4 bg-[var(--bg-base)] shadow-[0_0_15px_rgba(0,229,255,0.5)] md:left-[153px]" style={{ borderColor: "var(--accent)" }} />
+            <div className="relative space-y-24 before:absolute before:inset-y-0 before:left-4 before:w-[2px] before:bg-gradient-to-b before:from-[var(--accent)] before:via-[var(--accent)] before:to-transparent md:before:left-1/2 md:before:-translate-x-1/2">
+              {model.cvExperience.map((entry, idx) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  className={cn("relative flex flex-col gap-8 md:flex-row md:items-center", idx % 2 !== 0 ? "md:flex-row-reverse" : "")}
+                >
+                  {/* Timeline Dot */}
+                  <div className="absolute left-[8px] top-0 z-20 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full border-4 border-[var(--bg-base)] bg-[var(--accent)] shadow-[0_0_20px_rgba(0,229,255,0.6)] md:left-1/2" />
                   
-                  <div className="hidden pt-1 text-right text-xs font-bold md:block" style={{ color: "var(--text-3)" }}>
-                    {entry.period}
+                  {/* Period Indicator */}
+                  <div className={cn("pl-10 md:w-1/2 md:pl-0", idx % 2 === 0 ? "md:text-right md:pr-16" : "md:text-left md:pl-16")}>
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--accent)] mb-2">{entry.period}</p>
+                    <h3 className="text-2xl font-black text-[var(--text-1)]">{entry.role}</h3>
+                    <p className="text-sm font-bold text-[var(--text-3)]">{entry.company} · {entry.location}</p>
                   </div>
-                  
-                  <div className="glass rounded-[var(--radius-lg)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
-                    <div className="md:hidden mb-2 text-xs font-bold" style={{ color: "var(--text-3)" }}>{entry.period}</div>
-                    <h3 className="text-lg font-bold" style={{ color: "var(--text-1)" }}>{entry.role}</h3>
-                    <p className="mt-1 text-sm font-semibold" style={{ color: "var(--accent)" }}>
-                      {entry.company} · {entry.location}
-                    </p>
-                    <p className="mt-4 text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{entry.description}</p>
-                    
-                    {entry.highlights.length ? (
-                      <ul className="mt-5 grid gap-2.5">
-                        {entry.highlights.slice(0, 4).map((highlight) => (
-                          <li key={highlight} className="flex gap-2.5 text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--text-3)]" />
-                            <span>{highlight}</span>
-                          </li>
+
+                  {/* Content Card */}
+                  <div className="pl-10 md:w-1/2 md:pl-0">
+                    <div className={cn("glass relative rounded-[2rem] border border-[var(--glass-border)] p-8 md:p-10", idx % 2 === 0 ? "md:mr-auto" : "md:ml-auto")}>
+                      <p className="text-sm leading-relaxed text-[var(--text-2)]">{entry.description}</p>
+                      
+                      <div className="mt-8 space-y-3">
+                        {entry.highlights.map((h, i) => (
+                          <div key={i} className="flex gap-3 text-[13px] font-medium leading-relaxed text-[var(--text-3)]">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)] shadow-[0_0_8px_rgba(0,229,255,0.4)]" />
+                            <span>{h}</span>
+                          </div>
                         ))}
-                      </ul>
-                    ) : null}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── OWNERSHIP ── */}
-      <section className="py-16 md:py-20">
-        <div className="section-frame">
-          <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.ownershipTitle}</p>
-              <h2 className="mt-3 overflow-visible pb-1 font-black leading-[1.2] text-[var(--text-1)]" style={{ fontSize: "clamp(1.6rem,3vw,2.4rem)" }}>
-                {t.ownershipTitle}
-              </h2>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {t.ownership.map((item) => (
-                <div key={item} className="glass rounded-[var(--radius-md)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
-                  <p className="text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{item}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── CONTACT ── */}
-      </Section>
-    </>
-  );
-}
-
-export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; slug: string }) {
-  const project = model.projects.find((entry) => entry.slug === slug);
-  if (!project) return null;
-
-  const t = caseStudyCopy[model.locale];
-  const content = getCaseStudyBySlug(project.slug, model.locale);
-  const gallery = project.gallery.length ? project.gallery : [project.image];
-  const isMoPlayer = project.slug === "moplayer";
-
-  return (
-    <div className="relative">
-      {/* Cinematic Wide Hero */}
-      <section className="relative h-[85vh] w-full overflow-hidden">
-        <Image
-          src={project.image}
-          alt={project.title}
-          fill
-          priority
-          className="object-cover opacity-40 scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/60 to-[var(--bg-primary)]" />
-        
-        <Frame className="relative h-full">
-          <div className="flex h-full flex-col justify-end pb-24 md:pb-32">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <Eyebrow>{content?.category ?? project.eyebrow}</Eyebrow>
-              <h1 className="headline-display mt-6 text-[clamp(2.5rem,8vw,6rem)] font-black leading-[0.95] text-[var(--text-1)] tracking-tighter">
-                {project.title}
-              </h1>
-              <p className="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--text-2)] md:text-xl">
-                {content?.problem ?? project.description}
-              </p>
-              
-              <div className="mt-10 flex flex-wrap gap-4">
-                {isMoPlayer ? (
-                  <Link href={`/${model.locale}/apps/moplayer`} className="button-liquid-primary px-10 h-16 text-lg">
-                    {t.productCta}
-                  </Link>
-                ) : null}
-                {project.href ? (
-                  <a href={project.href} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary h-16 px-10 text-lg">
-                    {content?.liveLabel ?? t.liveCta}
-                    <ArrowUpRight className="h-5 w-5" />
-                  </a>
-                ) : null}
-              </div>
-            </motion.div>
           </div>
         </Frame>
-      </section>
+      </Section>
 
-      {/* Proof Wall & Tech Stack */}
-      <Section className="relative z-10 -mt-16">
+      {/* ── LANGUAGES & TOOLS ── */}
+      <Section className="bg-slate-950/40">
         <Frame>
-          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
-            <div className="glass rounded-[2rem] p-8 border-cyan-400/20 shadow-2xl">
-              <Eyebrow className="mb-2">{t.role}</Eyebrow>
-              <p className="text-lg font-bold text-[var(--text-1)]">{content?.role ?? project.eyebrow}</p>
-            </div>
-            <div className="glass rounded-[2rem] p-8 md:col-span-2 lg:col-span-2">
-              <Eyebrow className="mb-2">{t.stack}</Eyebrow>
-              <div className="flex flex-wrap gap-2 pt-2">
-                {(content?.stack ?? project.tags).map((tag) => (
-                  <Chip key={tag} className="bg-white/5 border-white/10">{tag}</Chip>
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Language Proficiency */}
+            <div className="glass rounded-[2.5rem] border border-[var(--glass-border)] p-10">
+              <h3 className="text-lg font-black text-[var(--text-1)] mb-10 flex items-center gap-3">
+                <Globe className="h-5 w-5 text-[var(--accent)]" />
+                {isAr ? "اللغات" : "Language Proficiency"}
+              </h3>
+              <div className="space-y-8">
+                {[
+                  { label: isAr ? "العربية" : "Arabic", val: "100%", level: isAr ? "لغة أم" : "Native" },
+                  { label: isAr ? "الإنجليزية" : "English", val: "95%", level: isAr ? "طلاقة مهنية" : "C1 - Professional" },
+                  { label: isAr ? "الألمانية" : "German", val: "85%", level: isAr ? "مستوى متقدم - B2/C1" : "B2/C1 - Advanced" },
+                ].map(lang => (
+                  <div key={lang.label}>
+                    <div className="mb-3 flex justify-between items-end">
+                      <p className="font-black text-[var(--text-1)]">{lang.label}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">{lang.level}</p>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        whileInView={{ width: lang.val }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="h-full bg-[var(--accent)]" 
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-            <div className="glass rounded-[2rem] p-8">
-              <Eyebrow className="mb-2">{t.outcome}</Eyebrow>
-              <p className="text-lg font-black text-emerald-400">{content?.outcome?.split('.')[0] ?? "Delivered"}</p>
-            </div>
-          </div>
-        </Frame>
-      </Section>
 
-      {/* Problem & Strategy (Cinematic Grid) */}
-      <Section>
-        <Frame>
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-8"
-            >
-              <div className="space-y-4">
-                <h2 className="headline-display text-4xl font-black text-[var(--text-1)]">{t.problem}</h2>
-                <p className="text-lg leading-relaxed text-[var(--text-2)]">
-                  {content?.problem ?? project.challenge}
-                </p>
+            {/* Tools Ecosystem */}
+            <div className="glass rounded-[2.5rem] border border-[var(--glass-border)] p-10">
+              <h3 className="text-lg font-black text-[var(--text-1)] mb-10 flex items-center gap-3">
+                <Cpu className="h-5 w-5 text-[var(--accent)]" />
+                {isAr ? "سحابة الأدوات" : "Tools Ecosystem"}
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {["Figma", "VS Code", "Android Studio", "Premiere Pro", "After Effects", "Notion", "GitHub", "Vercel", "Supabase", "Linear"].map((tool) => (
+                  <motion.span 
+                    key={tool} 
+                    whileHover={{ scale: 1.05, borderColor: "var(--accent-glow)" }}
+                    className="rounded-xl border border-[var(--glass-border)] bg-white/5 px-5 py-3 text-sm font-bold text-[var(--text-1)] transition-colors"
+                  >
+                    {tool}
+                  </motion.span>
+                ))}
               </div>
-              <div className="space-y-4">
-                <h2 className="headline-display text-4xl font-black text-[var(--text-1)]">{t.strategy}</h2>
-                <p className="text-lg leading-relaxed text-[var(--text-2)] whitespace-pre-line">
-                  {content?.strategy ?? project.solution}
-                </p>
-              </div>
-            </motion.div>
-            
-            <div className="grid gap-4 md:grid-cols-2">
-               <CaseBlock title={t.technical} items={content?.technicalDecisions ?? project.tags} />
-               <CaseBlock title={t.ux} items={content?.uxDecisions ?? [project.solution]} />
             </div>
-          </div>
-        </Frame>
-      </Section>
-
-      {/* High-Fidelity Gallery */}
-      <Section className="bg-slate-900/40 py-24 md:py-32">
-        <Frame>
-          <div className="mb-12 text-center">
-            <Eyebrow>{t.gallery}</Eyebrow>
-            <h2 className="headline-display mt-4 text-5xl font-black">{project.title} Interface</h2>
           </div>
           
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {gallery.map((image, index) => (
-              <motion.figure 
-                key={`${image}-${index}`} 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="glass group overflow-hidden rounded-[2.5rem] border-white/5"
-              >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image
-                    src={image}
-                    alt={`${project.title} ${index + 1}`}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                     <span className="text-xs font-black uppercase tracking-widest text-white">Full View</span>
-                  </div>
+          {/* Project Quick Access */}
+          <div className="mt-8 glass rounded-[2.5rem] border border-[var(--glass-border)] p-10">
+             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-[var(--text-1)]">{isAr ? "إثباتات العمل" : "Proof of Work"}</h3>
+                  <p className="text-sm text-[var(--text-3)] mt-1">{isAr ? "مشاريع مختارة تعكس المهارات المذكورة" : "Selected projects reflecting the core skills"}</p>
                 </div>
-              </motion.figure>
-            ))}
+                <div className="flex flex-wrap gap-3">
+                  {model.projects.slice(0, 4).map(p => (
+                    <Link key={p.id} href={`/${model.locale}/work/${p.slug}`} className="group flex items-center gap-3 rounded-full border border-[var(--glass-border)] bg-white/5 px-6 py-2.5 transition-all hover:bg-[var(--accent-soft)] hover:border-[var(--accent-glow)]">
+                      <div className="h-2 w-2 rounded-full bg-[var(--accent)] group-hover:scale-125 transition-transform" />
+                      <span className="text-xs font-black uppercase tracking-widest text-[var(--text-1)]">{p.title}</span>
+                    </Link>
+                  ))}
+                </div>
+             </div>
           </div>
         </Frame>
       </Section>
 
-      {/* Outcome & Next */}
-      <Section>
+      {/* ── FINAL CTA ── */}
+      <Section className="pb-32">
         <Frame>
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <Card className="p-10 border-cyan-400/10">
-              <h2 className="headline-display text-4xl font-black mb-6">{t.outcome}</h2>
-              <p className="text-lg leading-relaxed text-[var(--text-2)] whitespace-pre-line">
-                {content?.outcome ?? project.result}
-              </p>
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
-                 <CaseBlock title={t.changed} items={content?.changed ?? ["UX Stability", "Performance", "Clean Code"]} />
-                 <CaseBlock title={t.lessons} items={content?.lessons ?? ["Scalability", "Clean Architecture"]} />
-              </div>
-            </Card>
-            
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="glass rounded-[3rem] p-10 flex flex-col justify-center text-center bg-gradient-to-br from-cyan-400/10 to-indigo-400/10 border-white/10"
-            >
-              <Eyebrow className="mx-auto">{t.nextEyebrow}</Eyebrow>
-              <h2 className="mt-4 text-4xl font-black text-[var(--text-1)]">{t.nextTitle}</h2>
-              <p className="mt-4 text-base leading-relaxed text-[var(--text-2)]">{t.nextBody}</p>
-              <Link href={`/${model.locale}/contact`} className="button-liquid-primary mt-8 h-14 w-full">
-                {t.nextCta}
-              </Link>
-            </motion.div>
+          <div className="glass relative overflow-hidden rounded-[3rem] border border-[var(--glass-border)] p-12 md:p-20 text-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-cyan-600/5" />
+            <div className="relative z-10 max-w-3xl mx-auto">
+               <Eyebrow>{isAr ? "ماذا بعد؟" : "What is next?"}</Eyebrow>
+               <h2 className="headline-display mt-8 text-4xl font-black text-[var(--text-1)]">{t.ownershipTitle}</h2>
+               <div className="mt-12 grid gap-4 sm:grid-cols-2">
+                 {t.ownership.map((item, idx) => (
+                   <div key={idx} className="glass rounded-2xl p-6 border-white/5 text-left flex gap-4 items-start">
+                      <div className="h-2 w-2 mt-2 rounded-full bg-[var(--accent)] shrink-0" />
+                      <p className="text-sm font-bold leading-relaxed text-[var(--text-2)]">{item}</p>
+                   </div>
+                 ))}
+               </div>
+               <div className="mt-16 flex flex-col items-center gap-6">
+                  <Link href={`/${model.locale}/contact`} className="button-liquid-primary px-12 py-5 text-lg">
+                    {isAr ? "تواصل معي" : "Start a conversation"}
+                  </Link>
+                  <p className="text-xs font-bold text-[var(--text-3)] uppercase tracking-widest">{isAr ? "ألمانيا · متاح للمشاريع الجديدة" : "Germany · Available for new projects"}</p>
+               </div>
+            </div>
           </div>
         </Frame>
       </Section>
@@ -687,35 +570,209 @@ export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; sl
   );
 }
 
-function CaseText({ title, body }: { title: string; body: string }) {
+export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; slug: string }) {
+  const project = model.projects.find((entry) => entry.slug === slug);
+  if (!project) return null;
+
+  const isAr = model.locale === "ar";
+  const t = caseStudyCopy[model.locale];
+  const gallery = project.gallery.length ? project.gallery : [project.image];
+  const isMoPlayer = project.slug === "moplayer";
+
   return (
-    <Card>
-      <Eyebrow>{title}</Eyebrow>
-      <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{body}</p>
-    </Card>
+    <div className="relative pb-32" data-testid="project-page">
+      {/* ── CINEMATIC HERO ── */}
+      <section className="relative h-[90vh] min-h-[700px] w-full overflow-hidden">
+        <motion.div 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.4 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={project.image}
+            alt={project.title}
+            fill
+            priority
+            className="object-cover"
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/60 to-[var(--bg-base)]" />
+        
+        <Frame className="relative h-full">
+          <div className="flex h-full flex-col justify-end pb-20 md:pb-32">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className={cn("flex items-center gap-3 mb-8", isAr ? "flex-row-reverse" : "")}>
+                <span className="h-[1px] w-8 bg-[var(--accent)]" />
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">{project.eyebrow}</p>
+              </div>
+              <h1 className="headline-display text-[clamp(3rem,8vw,6rem)] font-black leading-[1] tracking-tighter text-[var(--text-1)]">
+                {project.title}
+              </h1>
+              
+              <div className={cn("mt-12 grid gap-10 md:grid-cols-4 border-t border-white/10 pt-10", isAr ? "flex-row-reverse" : "")}>
+                 <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] mb-2">Role</p>
+                    <p className="text-sm font-black text-white">{isMoPlayer ? "Lead Architect" : "Frontend & Strategy"}</p>
+                 </div>
+                 <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] mb-2">Target</p>
+                    <p className="text-sm font-black text-white">{isAr ? "السوق الألماني" : "German Market"}</p>
+                 </div>
+                 <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] mb-2">Status</p>
+                    <p className="text-sm font-black text-emerald-400">Deployed & Operational</p>
+                 </div>
+                 <div className={cn("md:text-right", isAr ? "md:text-left" : "")}>
+                    {project.href && (
+                      <a href={project.href} target="_blank" className="button-liquid-primary px-8 h-14 bg-white text-black border-none hover:bg-slate-200">
+                        {project.ctaLabel}
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    )}
+                 </div>
+              </div>
+            </motion.div>
+          </div>
+        </Frame>
+      </section>
+
+      {/* ── CASE STUDY GRID ── */}
+      <section className="py-24">
+        <Frame>
+          <div className="grid gap-8 md:grid-cols-3">
+             {[
+               { title: t.challenge, body: project.challenge, icon: <Layout className="h-5 w-5" /> },
+               { title: t.solution, body: project.solution, icon: <Cpu className="h-5 w-5" /> },
+               { title: t.result, body: project.result, icon: <TrendingUp className="h-5 w-5" /> },
+             ].map((card, idx) => (
+               <motion.div
+                 key={card.title}
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true }}
+                 transition={{ delay: idx * 0.1 }}
+                 className="glass rounded-[2.5rem] p-10 border-white/5 bg-white/[0.01]"
+               >
+                 <div className="mb-6 h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-[var(--accent)] border border-white/10">
+                    {card.icon}
+                 </div>
+                 <h3 className="text-xl font-black text-white mb-4">{card.title}</h3>
+                 <p className="text-sm leading-relaxed text-slate-400">{card.body}</p>
+               </motion.div>
+             ))}
+          </div>
+        </Frame>
+      </section>
+
+      {/* ── TECHNICAL SPECS ── */}
+      <section className="py-24 bg-white/[0.01]">
+         <Frame>
+            <div className="grid gap-16 lg:grid-cols-2">
+               <div>
+                  <Eyebrow>{isAr ? "مواصفات التكنولوجيا" : "Technical Specs"}</Eyebrow>
+                  <h2 className="headline-display mt-6 text-4xl md:text-6xl font-black text-white tracking-tight">System Architecture</h2>
+                  <p className="mt-8 text-lg text-slate-400 leading-relaxed max-w-xl">
+                    High-performance execution using modern stacks tailored for operational stability and visual control.
+                  </p>
+                  
+                  <div className="mt-12 grid grid-cols-2 gap-4">
+                     {project.metrics.map((m, idx) => (
+                        <div key={idx} className="glass rounded-2xl p-6 border-white/5">
+                           <p className="text-2xl font-black text-white">{m.value}</p>
+                           <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{m.label}</p>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+               
+               <div className="glass rounded-[3rem] p-10 border-white/5 flex flex-col justify-center">
+                  <h3 className="text-xl font-black text-white mb-8">{isAr ? "المهارات المستخدمة" : "Core Competencies"}</h3>
+                  <div className="flex flex-wrap gap-3">
+                     {project.tags.map(tag => (
+                        <span key={tag} className="px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-slate-300">
+                           {tag}
+                        </span>
+                     ))}
+                  </div>
+                  {project.repoUrl && (
+                    <div className="mt-10 pt-10 border-t border-white/10">
+                       <a href={project.repoUrl} target="_blank" className="text-sm font-black uppercase tracking-[0.2em] text-cyan-500 flex items-center gap-2 hover:text-cyan-400 transition-colors">
+                          <Code2 className="h-4 w-4" />
+                          View Source Code
+                       </a>
+                    </div>
+                  )}
+               </div>
+            </div>
+         </Frame>
+      </section>
+
+      {/* ── CINEMATIC GALLERY ── */}
+      <section className="py-24">
+        <Frame>
+          <div className="space-y-24">
+            {gallery.map((img, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                className="relative glass rounded-[3.5rem] p-4 border-white/5 overflow-hidden shadow-2xl bg-white/[0.01]"
+              >
+                <div className="relative aspect-video w-full overflow-hidden rounded-[2.5rem]">
+                  <Image
+                    src={img}
+                    alt={`${project.title} Gallery ${idx + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                </div>
+                <div className="p-8 md:p-12">
+                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)] mb-2">Phase 0{idx + 1}</p>
+                   <h3 className="text-2xl font-black text-white tracking-tight">
+                     {idx === 0 ? "Production Interface" : idx === 1 ? "Strategic Implementation" : "Final Delivery"}
+                   </h3>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </Frame>
+      </section>
+
+      <ContactCtaSection locale={model.locale} />
+    </div>
   );
 }
 
 function CaseBlock({ title, items, chip = false }: { title: string; items: string[]; chip?: boolean }) {
   return (
-    <Card>
-      <Eyebrow>{title}</Eyebrow>
+    <div className="glass rounded-[2rem] p-8 border-white/5">
+      <Eyebrow className="mb-4">{title}</Eyebrow>
       {chip ? (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           {items.map((item) => (
-            <Chip key={item}>{item}</Chip>
+            <span key={item} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300">
+              {item}
+            </span>
           ))}
         </div>
       ) : (
-        <ul className="mt-4 grid gap-3">
+        <ul className="space-y-3">
           {items.map((item) => (
-            <li key={item} className="text-sm leading-7 text-[var(--text-2)]">
-              {item}
+            <li key={item} className="text-sm font-medium text-slate-400 flex items-start gap-2">
+               <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] mt-1.5 shrink-0" />
+               {item}
             </li>
           ))}
         </ul>
       )}
-    </Card>
+    </div>
   );
 }
 

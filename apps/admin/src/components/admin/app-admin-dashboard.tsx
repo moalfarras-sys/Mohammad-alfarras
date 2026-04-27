@@ -1,4 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { 
+  Activity, 
+  Smartphone, 
+  Key, 
+  Box, 
+  UploadCloud, 
+  HelpCircle, 
+  Mail, 
+  Settings2, 
+  ChevronRight, 
+  Trash2, 
+  Download, 
+  Plus, 
+  ExternalLink,
+  Shield,
+  Zap,
+  Layout,
+  CheckCircle2
+} from "lucide-react";
 
 import {
   deleteFaqAction,
@@ -23,6 +45,7 @@ import type {
   AppScreenshot,
   AppSupportRequest,
 } from "@/types/app-ecosystem";
+import { cn } from "@/lib/cn";
 
 const webBaseUrl = process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space";
 
@@ -40,65 +63,90 @@ function formatBytes(size?: number | null) {
   return `${mb.toFixed(1)} MB`;
 }
 
-function PrimaryShell({
+// ── REUSABLE COMPONENTS ──
+
+function Panel({
   title,
   description,
+  icon,
   children,
+  className
 }: {
   title: string;
   description: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[rgba(8,10,20,0.82)] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.3)] backdrop-blur-2xl">
-      <div className="mb-5 space-y-2">
-        <h2 className="text-2xl font-black text-foreground">{title}</h2>
-        <p className="max-w-3xl text-sm leading-7 text-foreground-muted">{description}</p>
+    <section className={cn("relative overflow-hidden glass rounded-[3rem] p-8 md:p-10 border-white/5", className)}>
+      <div className="mb-10 flex items-start gap-5">
+        {icon && (
+          <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-slate-300 border border-white/10 shadow-xl">
+            {icon}
+          </div>
+        )}
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-white tracking-tight">{title}</h2>
+          <p className="max-w-3xl text-sm leading-relaxed text-slate-400">{description}</p>
+        </div>
       </div>
       {children}
     </section>
   );
 }
 
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  const { label, ...rest } = props;
+function InputField({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-[11px] font-black uppercase tracking-[0.22em] text-foreground-soft">{label}</span>
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">{label}</label>
       <input
-        {...rest}
-        className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/40"
+        {...props}
+        className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 px-5 text-sm text-white outline-none focus:border-cyan-500/50 focus:bg-cyan-500/[0.02] transition-all placeholder:text-slate-600"
       />
-    </label>
+    </div>
   );
 }
 
-function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
-  const { label, ...rest } = props;
+function TextAreaField({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-[11px] font-black uppercase tracking-[0.22em] text-foreground-soft">{label}</span>
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">{label}</label>
       <textarea
-        {...rest}
-        className="min-h-28 rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/40"
+        {...props}
+        className="w-full min-h-[120px] rounded-[2rem] bg-white/5 border border-white/10 p-6 text-sm text-white outline-none focus:border-cyan-500/50 focus:bg-cyan-500/[0.02] transition-all placeholder:text-slate-600 leading-relaxed"
       />
-    </label>
+    </div>
   );
 }
+
+function StatusBadge({ status }: { status: string }) {
+  const isOk = status === "resolved" || status === "active" || status === "published";
+  return (
+    <span className={cn(
+      "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+      isOk ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+    )}>
+      {status}
+    </span>
+  );
+}
+
+// ── DATA CARDS ──
 
 function FaqCard({ item }: { item: AppFaq }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
+    <div className="group glass rounded-3xl p-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">FAQ #{item.sort_order}</p>
-          <h3 className="text-base font-black text-foreground">{item.question}</h3>
-          <p className="text-sm leading-7 text-foreground-muted">{item.answer}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500">FAQ #{item.sort_order}</p>
+          <h3 className="text-base font-black text-white">{item.question}</h3>
+          <p className="text-sm leading-relaxed text-slate-400">{item.answer}</p>
         </div>
         <form action={deleteFaqAction}>
           <input type="hidden" name="id" value={item.id} />
-          <button type="submit" className="rounded-full border border-red-400/25 px-3 py-2 text-xs font-bold text-red-300">
-            Delete
+          <button type="submit" className="p-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100">
+            <Trash2 className="h-4 w-4" />
           </button>
         </form>
       </div>
@@ -108,17 +156,22 @@ function FaqCard({ item }: { item: AppFaq }) {
 
 function ScreenshotCard({ item }: { item: AppScreenshot }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.device_frame}</p>
-          <h3 className="text-base font-black text-foreground">{item.title}</h3>
-          <p className="text-sm text-foreground-muted">{item.image_path}</p>
+    <div className="group relative glass rounded-[2.5rem] p-4 border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all">
+      <div className="relative aspect-video rounded-2xl overflow-hidden mb-5">
+         <img src={item.image_path} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+         <div className="absolute top-3 left-3">
+            <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-black uppercase tracking-widest text-white">{item.device_frame}</span>
+         </div>
+      </div>
+      <div className="flex items-center justify-between px-2">
+        <div>
+          <h3 className="text-sm font-black text-white tracking-tight">{item.title}</h3>
+          <p className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[200px]">{item.image_path}</p>
         </div>
         <form action={deleteScreenshotAction}>
           <input type="hidden" name="id" value={item.id} />
-          <button type="submit" className="rounded-full border border-red-400/25 px-3 py-2 text-xs font-bold text-red-300">
-            Delete
+          <button type="submit" className="text-red-400/50 hover:text-red-400 transition-colors">
+            <Trash2 className="h-4 w-4" />
           </button>
         </form>
       </div>
@@ -129,27 +182,38 @@ function ScreenshotCard({ item }: { item: AppScreenshot }) {
 function ReleaseCard({ item }: { item: AppRelease }) {
   const primary = item.assets.find((asset) => asset.is_primary) ?? item.assets[0];
   return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.version_name}</p>
-          <h3 className="text-base font-black text-foreground">{item.slug}</h3>
-          <p className="text-sm leading-7 text-foreground-muted whitespace-pre-line">{item.release_notes}</p>
-          <p className="text-xs text-foreground-soft">
-            {new Date(item.published_at).toLocaleDateString("en-GB")} · {formatBytes(primary?.file_size_bytes)}
-          </p>
+    <div className="glass rounded-[2.5rem] p-8 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <StatusBadge status={item.is_published ? "published" : "draft"} />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{new Date(item.published_at).toLocaleDateString("en-GB")}</span>
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-white tracking-tight">{item.version_name} <span className="text-slate-600 font-mono text-sm ml-2">({item.slug})</span></h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400 whitespace-pre-line max-w-2xl">{item.release_notes}</p>
+          </div>
+          <div className="flex flex-wrap gap-4 pt-2">
+             <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300">
+                {primary?.abi || "Universal"}
+             </div>
+             <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300">
+                {formatBytes(primary?.file_size_bytes)}
+             </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-row md:flex-col gap-3">
           <Link
             href={`${webBaseUrl}/api/app/releases/${item.slug}/download`}
-            className="rounded-full border border-primary/25 px-3 py-2 text-xs font-bold text-primary"
+            className="flex items-center justify-center h-12 px-6 rounded-2xl bg-cyan-500 text-black font-black text-[11px] uppercase tracking-widest hover:bg-cyan-400 transition-colors"
           >
+            <Download className="h-4 w-4 mr-2" />
             Download
           </Link>
           <form action={deleteReleaseAction}>
             <input type="hidden" name="id" value={item.id} />
-            <button type="submit" className="rounded-full border border-red-400/25 px-3 py-2 text-xs font-bold text-red-300">
-              Delete
+            <button type="submit" className="flex items-center justify-center h-12 w-12 rounded-2xl border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all">
+              <Trash2 className="h-4 w-4" />
             </button>
           </form>
         </div>
@@ -160,26 +224,31 @@ function ReleaseCard({ item }: { item: AppRelease }) {
 
 function SupportCard({ item }: { item: AppSupportRequest }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-2">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
-          <h3 className="text-base font-black text-foreground">{item.name}</h3>
-          <p className="text-sm text-foreground-soft">{item.email}</p>
-          <p className="text-sm leading-7 text-foreground-muted">{item.message}</p>
+    <div className="glass rounded-[2rem] p-8 border-white/5 bg-white/[0.01]">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+             <StatusBadge status={item.status} />
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{new Date(item.created_at).toLocaleString("en-GB")}</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-white">{item.name}</h3>
+            <p className="text-xs font-bold text-cyan-500 uppercase tracking-widest mt-1">{item.email}</p>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-400 max-w-3xl italic">"{item.message}"</p>
         </div>
-        <form action={updateSupportRequestAction} className="flex items-center gap-2">
+        <form action={updateSupportRequestAction} className="flex items-center gap-3">
           <input type="hidden" name="id" value={item.id} />
           <select
             name="status"
             defaultValue={item.status}
-            className="rounded-full border border-white/10 bg-black/20 px-3 py-2 text-xs font-bold text-foreground"
+            className="h-12 rounded-2xl border border-white/10 bg-black/40 px-4 text-[11px] font-black uppercase tracking-widest text-white outline-none focus:border-cyan-500/50"
           >
             <option value="new">new</option>
             <option value="resolved">resolved</option>
           </select>
-          <button type="submit" className="rounded-full border border-primary/25 px-3 py-2 text-xs font-bold text-primary">
-            Save
+          <button type="submit" className="h-12 px-6 rounded-2xl bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors">
+            Update
           </button>
         </form>
       </div>
@@ -189,48 +258,31 @@ function SupportCard({ item }: { item: AppSupportRequest }) {
 
 function DeviceCard({ item }: { item: AppDevice }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
-      <h3 className="mt-2 font-mono text-sm font-black text-foreground">{item.public_device_id}</h3>
-      <p className="mt-2 text-sm text-foreground-muted">
-        {item.device_type} · {item.platform} · {item.app_version || "unknown version"}
-      </p>
-      <p className="mt-1 text-xs text-foreground-soft">Last seen: {new Date(item.last_seen_at).toLocaleString("en-GB")}</p>
+    <div className="glass rounded-3xl p-6 border-white/5 bg-white/[0.02]">
+      <div className="flex items-center justify-between mb-4">
+         <StatusBadge status={item.status} />
+         <span className="text-[9px] font-bold text-slate-500">{new Date(item.last_seen_at).toLocaleDateString()}</span>
+      </div>
+      <h3 className="font-mono text-sm font-black text-white truncate mb-4">{item.public_device_id}</h3>
+      <div className="space-y-2 border-t border-white/5 pt-4">
+         <div className="flex justify-between text-[10px]">
+            <span className="text-slate-500">Hardware</span>
+            <span className="text-slate-300 font-bold">{item.platform}</span>
+         </div>
+         <div className="flex justify-between text-[10px]">
+            <span className="text-slate-500">OS Version</span>
+            <span className="text-slate-300 font-bold">Android {item.device_type}</span>
+         </div>
+         <div className="flex justify-between text-[10px]">
+            <span className="text-slate-500">App Core</span>
+            <span className="text-slate-300 font-bold">v{item.app_version || "2.0.0"}</span>
+         </div>
+      </div>
     </div>
   );
 }
 
-function ActivationCard({ item }: { item: ActivationRequest }) {
-  return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
-      <h3 className="mt-2 font-mono text-xl font-black text-foreground">{item.device_code}</h3>
-      <p className="mt-2 font-mono text-xs text-foreground-muted">{item.public_device_id}</p>
-      <p className="mt-1 text-xs text-foreground-soft">
-        Expires: {new Date(item.expires_at).toLocaleString("en-GB")}
-        {item.activated_at ? ` · Activated: ${new Date(item.activated_at).toLocaleString("en-GB")}` : ""}
-      </p>
-    </div>
-  );
-}
-
-function LicenseCard({ item, device }: { item: AppLicense; device?: AppDevice }) {
-  return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/15 p-4">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-primary">{item.status}</p>
-      <h3 className="mt-2 text-sm font-black text-foreground">
-        {item.plan} plan
-        {device?.public_device_id ? <span className="block pt-1 font-mono text-xs text-foreground-soft">{device.public_device_id}</span> : null}
-      </h3>
-      <p className="mt-2 text-xs text-foreground-muted">
-        Device: {device?.name || item.device_id}
-      </p>
-      <p className="mt-1 text-xs text-foreground-soft">
-        Valid until: {item.valid_until ? new Date(item.valid_until).toLocaleString("en-GB") : "No expiry"}
-      </p>
-    </div>
-  );
-}
+// ── MAIN DASHBOARD ──
 
 export function AppAdminDashboard({
   adminEmail,
@@ -260,286 +312,261 @@ export function AppAdminDashboard({
   runtimeConfig: AppRuntimeConfig;
 }) {
   const devicesById = new Map(devices.map((device) => [device.id, device]));
+  
   return (
-    <div className="space-y-8">
-      <section className="rounded-[2.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(0,255,135,0.08),rgba(8,10,20,0.95))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:p-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-primary">Unified admin surface</p>
-            <h1 className="text-3xl font-black text-foreground md:text-4xl">MoPlayer Control Center</h1>
-            <p className="max-w-2xl text-sm leading-7 text-foreground-muted">
-              Product content, release packaging, screenshots, FAQs, and support requests now run from one protected admin surface.
-            </p>
-            <p className="text-xs text-foreground-soft">
-              Signed in as {adminEmail} · role: {role}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href={`${webBaseUrl}/en/admin`} className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-bold text-foreground">
-              Website CMS
-            </Link>
-            <Link href={`${webBaseUrl}/en/apps/moplayer`} className="rounded-full border border-primary/25 px-4 py-3 text-sm font-bold text-primary">
-              Open app page
-            </Link>
-            <form action={logoutAdminAction}>
-              <button type="submit" className="rounded-full border border-white/10 px-4 py-3 text-sm font-bold text-foreground">
-                Sign out
-              </button>
-            </form>
-          </div>
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header Panel */}
+      <section className="relative overflow-hidden glass rounded-[3.5rem] p-10 md:p-14 border-white/5 bg-cyan-500/[0.01]">
+        <div className="absolute top-0 right-0 p-14 opacity-5">
+           <Smartphone className="h-40 w-40 text-cyan-400" />
         </div>
-        {updated ? (
-          <div className="mt-5 rounded-[1.25rem] border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-foreground-muted">
-            Update completed: {updated}
-          </div>
-        ) : null}
+        <div className="relative z-10 space-y-8">
+           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">App Ecosystem Control</p>
+                </div>
+                <h1 className="headline-display text-4xl font-black text-white md:text-6xl tracking-tight">MoPlayer OS</h1>
+                <p className="max-w-2xl text-lg text-slate-400 leading-relaxed">
+                  Unified management for product content, remote configuration, and device fleet operations.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                 <Link href={`${webBaseUrl}/en/apps/moplayer`} target="_blank" className="flex items-center h-14 px-8 rounded-full border border-white/10 bg-white/5 text-white text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Public View
+                 </Link>
+              </div>
+           </div>
+           
+           {updated && (
+             <motion.div 
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-black uppercase tracking-widest"
+             >
+                <CheckCircle2 className="h-4 w-4" />
+                Update Sequence Completed: {updated}
+             </motion.div>
+           )}
+        </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      {/* Quick Stats */}
+      <section className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {[
-          { label: "Screenshots", value: screenshots.length },
-          { label: "FAQs", value: faqs.length },
-          { label: "Releases", value: releases.length },
-          { label: "Devices", value: devices.length },
-          { label: "Activations", value: activationRequests.length },
-          { label: "Licenses", value: licenses.length },
-        ].map((item) => (
-          <div key={item.label} className="rounded-[1.6rem] border border-white/8 bg-black/15 p-5">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-foreground-soft">{item.label}</p>
-            <p className="mt-2 text-3xl font-black text-foreground">{item.value}</p>
-          </div>
+          { label: "Fleet", value: devices.length, icon: <Activity className="text-cyan-400" /> },
+          { label: "Licenses", value: licenses.length, icon: <Shield className="text-emerald-400" /> },
+          { label: "Pending", value: activationRequests.filter(r => r.status === 'pending').length, icon: <Key className="text-amber-400" /> },
+          { label: "Releases", value: releases.length, icon: <Box className="text-violet-400" /> },
+          { label: "Visual Assets", value: screenshots.length, icon: <Layout className="text-pink-400" /> },
+          { label: "Inquiries", value: supportRequests.filter(s => s.status === 'new').length, icon: <Mail className="text-red-400" /> },
+        ].map((item, idx) => (
+          <motion.div 
+            key={item.label}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: idx * 0.05 }}
+            className="glass rounded-[2rem] p-6 border-white/5 text-center flex flex-col items-center justify-center hover:bg-white/[0.02] transition-colors"
+          >
+            <div className="mb-3 h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+               {item.icon}
+            </div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">{item.label}</p>
+            <p className="text-2xl font-black text-white">{item.value}</p>
+          </motion.div>
         ))}
       </section>
 
-      <PrimaryShell
-        title="Runtime App Control"
-        description="Server-controlled MoPlayer flags. The Android app reads these values without exposing provider secrets in the APK."
+      {/* Runtime Control Panel */}
+      <Panel 
+        title="Runtime Configuration" 
+        description="Remote feature flags and global system message. The Android app synchronizes these parameters on every cold start."
+        icon={<Settings2 className="h-6 w-6" />}
+        className="bg-cyan-500/[0.01] border-cyan-500/10"
       >
-        <form action={saveRuntimeConfigAction} className="grid gap-4 lg:grid-cols-2">
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="enabled" defaultChecked={runtimeConfig.enabled} />
-            App enabled
-          </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="maintenanceMode" defaultChecked={runtimeConfig.maintenanceMode} />
-            Maintenance mode
-          </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="forceUpdate" defaultChecked={runtimeConfig.forceUpdate} />
-            Force update
-          </label>
-          <TextInput label="Minimum version code" name="minimumVersionCode" type="number" defaultValue={String(runtimeConfig.minimumVersionCode)} />
-          <TextInput label="Latest version name" name="latestVersionName" defaultValue={runtimeConfig.latestVersionName} />
-          <TextInput label="Accent color" name="accentColor" defaultValue={runtimeConfig.accentColor} />
-          <TextInput label="Logo URL" name="logoUrl" defaultValue={runtimeConfig.logoUrl} />
-          <TextInput label="Background URL" name="backgroundUrl" defaultValue={runtimeConfig.backgroundUrl} />
-          <TextInput label="Support URL" name="supportUrl" defaultValue={runtimeConfig.supportUrl} />
-          <TextInput label="Privacy URL" name="privacyUrl" defaultValue={runtimeConfig.privacyUrl} />
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="weather" defaultChecked={runtimeConfig.widgets.weather} />
-            Weather widget
-          </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="football" defaultChecked={runtimeConfig.widgets.football} />
-            Football widget
-          </label>
-          <div className="lg:col-span-2">
-            <TextArea label="App message / banner" name="message" defaultValue={runtimeConfig.message} />
+        <form action={saveRuntimeConfigAction} className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              { name: "enabled", label: "Application Active", checked: runtimeConfig.enabled },
+              { name: "maintenanceMode", label: "Maintenance Mode", checked: runtimeConfig.maintenanceMode },
+              { name: "forceUpdate", label: "Mandatory Update", checked: runtimeConfig.forceUpdate },
+              { name: "weather", label: "Weather Services", checked: runtimeConfig.widgets.weather },
+              { name: "football", label: "Sports Engine", checked: runtimeConfig.widgets.football },
+            ].map(flag => (
+              <label key={flag.name} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer transition-all">
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">{flag.label}</span>
+                <input type="checkbox" name={flag.name} defaultChecked={flag.checked} className="h-5 w-5 accent-cyan-500" />
+              </label>
+            ))}
           </div>
-          <div className="lg:col-span-2">
-            <button type="submit" className="rounded-full bg-primary px-5 py-3 text-sm font-black text-black">
-              Save runtime config
-            </button>
-          </div>
-        </form>
-      </PrimaryShell>
-
-      <PrimaryShell
-        title="Devices, Activation & Licenses"
-        description="Live device records, short-lived MO-XXXX activation requests, and the current device-only license records created by MoPlayer."
-      >
-        <div className="grid gap-6 xl:grid-cols-3">
-          <div>
-            <h3 className="mb-3 text-lg font-black text-foreground">Devices</h3>
-            <div className="grid gap-3">
-              {devices.length ? devices.map((item) => <DeviceCard key={item.id} item={item} />) : <p className="text-sm text-foreground-muted">No devices yet.</p>}
+          
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InputField label="Min Version Code" name="minimumVersionCode" type="number" defaultValue={String(runtimeConfig.minimumVersionCode)} />
+              <InputField label="Latest Build Name" name="latestVersionName" defaultValue={runtimeConfig.latestVersionName} />
             </div>
+            <InputField label="System Accent Color" name="accentColor" defaultValue={runtimeConfig.accentColor} />
           </div>
-          <div>
-            <h3 className="mb-3 text-lg font-black text-foreground">Activation requests</h3>
-            <div className="grid gap-3">
-              {activationRequests.length ? (
-                activationRequests.map((item) => <ActivationCard key={item.id} item={item} />)
-              ) : (
-                <p className="text-sm text-foreground-muted">No activation requests yet.</p>
-              )}
-            </div>
-          </div>
-          <div>
-            <h3 className="mb-3 text-lg font-black text-foreground">Licenses</h3>
-            <div className="grid gap-3">
-              {licenses.length ? (
-                licenses.map((item) => <LicenseCard key={item.id} item={item} device={devicesById.get(item.device_id)} />)
-              ) : (
-                <p className="text-sm text-foreground-muted">No licenses yet.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </PrimaryShell>
 
-      <PrimaryShell
-        title="Product Content"
-        description="This controls the hero copy, support details, install flow, compatibility notes, and the content model used by /app."
-      >
-        <form action={saveProductAction} className="grid gap-4 lg:grid-cols-2">
-          <TextInput label="Product name" name="product_name" defaultValue={product.product_name} required />
-          <TextInput label="Hero badge" name="hero_badge" defaultValue={product.hero_badge} required />
-          <TextInput label="Tagline" name="tagline" defaultValue={product.tagline} required />
-          <TextInput label="Package name" name="package_name" defaultValue={product.package_name} required />
-          <TextInput label="Support email" name="support_email" type="email" defaultValue={product.support_email} required />
-          <TextInput label="Support WhatsApp" name="support_whatsapp" defaultValue={product.support_whatsapp} required />
-          <TextInput label="Privacy path" name="privacy_path" defaultValue={product.privacy_path} required />
-          <TextInput label="Play Store URL" name="play_store_url" defaultValue={product.play_store_url ?? ""} />
-          <TextInput label="Support URL" name="support_url" defaultValue={product.support_url ?? ""} />
-          <TextInput label="Download button label" name="default_download_label" defaultValue={product.default_download_label} required />
-          <TextInput label="Logo path" name="logo_path" defaultValue={product.logo_path ?? ""} />
-          <TextInput label="Hero image path" name="hero_image_path" defaultValue={product.hero_image_path ?? ""} />
-          <TextInput label="TV banner path" name="tv_banner_path" defaultValue={product.tv_banner_path ?? ""} />
-          <TextInput label="Min SDK" name="android_min_sdk" type="number" defaultValue={String(product.android_min_sdk)} required />
-          <TextInput label="Target SDK" name="android_target_sdk" type="number" defaultValue={String(product.android_target_sdk)} required />
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground lg:col-span-2">
-            <input type="checkbox" name="android_tv_ready" defaultChecked={product.android_tv_ready} />
-            Android TV ready
-          </label>
-          <div className="lg:col-span-2">
-            <TextArea label="Short description" name="short_description" defaultValue={product.short_description} required />
+          <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
+            <InputField label="Cloud Support Link" name="supportUrl" defaultValue={runtimeConfig.supportUrl} />
+            <InputField label="Privacy Policy URI" name="privacyUrl" defaultValue={runtimeConfig.privacyUrl} />
           </div>
+
           <div className="lg:col-span-2">
-            <TextArea label="Long description" name="long_description" defaultValue={product.long_description} required />
+            <TextAreaField label="Global System Message (Banner)" name="message" defaultValue={runtimeConfig.message} placeholder="Enter message for all users..." />
           </div>
-          <TextArea
-            label="Feature highlights"
-            name="feature_highlights"
-            defaultValue={structuredLines(product.feature_highlights)}
-            placeholder="Title :: Body"
-          />
-          <TextArea label="How it works" name="how_it_works" defaultValue={structuredLines(product.how_it_works)} placeholder="Title :: Body" />
-          <TextArea label="Install steps" name="install_steps" defaultValue={structuredLines(product.install_steps)} placeholder="Title :: Body" />
-          <TextArea label="Compatibility notes" name="compatibility_notes" defaultValue={simpleLines(product.compatibility_notes)} />
-          <TextArea label="Legal notes" name="legal_notes" defaultValue={simpleLines(product.legal_notes)} />
-          <TextArea label="Changelog intro" name="changelog_intro" defaultValue={product.changelog_intro} />
-          <div className="lg:col-span-2">
-            <button type="submit" className="rounded-full bg-primary px-5 py-3 text-sm font-black text-black">
-              Save product content
+          
+          <div className="lg:col-span-2 pt-4">
+            <button type="submit" className="w-full md:w-auto px-10 h-14 rounded-full bg-cyan-500 text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all">
+              Save Runtime Parameters
             </button>
           </div>
         </form>
-      </PrimaryShell>
+      </Panel>
 
-      <PrimaryShell
-        title="Release Management"
-        description="Upload the production APK here to keep the download flow on the same domain through /api/app/releases/[slug]/download."
+      {/* Release Management */}
+      <Panel
+        title="Release Architecture"
+        description="Binary distribution and version control. Upload APK builds to the cloud infrastructure."
+        icon={<UploadCloud className="h-6 w-6" />}
       >
-        <form action={saveReleaseAction} className="grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
-          <TextInput label="Release slug" name="slug" placeholder="moplayer-v2-0-0" required />
-          <TextInput label="Version name" name="version_name" placeholder="2.0.0" required />
-          <TextInput label="Version code" name="version_code" type="number" defaultValue="2" required />
-          <TextInput label="ABI" name="abi" defaultValue="arm64-v8a" required />
-          <TextInput label="Published at" name="published_at" type="datetime-local" />
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="is_published" defaultChecked />
-            Published
-          </label>
-          <div className="lg:col-span-2">
-            <TextArea label="Release notes" name="release_notes" placeholder={"Line 1\nLine 2"} required />
-          </div>
-          <div className="lg:col-span-2">
-            <TextArea label="Compatibility notes" name="compatibility_notes" placeholder="arm64 recommended, Android 7.0+" required />
-          </div>
-          <label className="grid gap-2 lg:col-span-2">
-            <span className="text-[11px] font-black uppercase tracking-[0.22em] text-foreground-soft">APK file</span>
-            <input type="file" name="file" accept=".apk,application/vnd.android.package-archive" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground" />
-          </label>
-          <div className="lg:col-span-2">
-            <button type="submit" className="rounded-full bg-primary px-5 py-3 text-sm font-black text-black">
-              Save release
-            </button>
-          </div>
+        <form action={saveReleaseAction} className="grid gap-6 lg:grid-cols-2" encType="multipart/form-data">
+           <div className="space-y-6">
+              <InputField label="Release Slug" name="slug" placeholder="moplayer-v2-1-0" required />
+              <div className="grid gap-4 sm:grid-cols-2">
+                 <InputField label="Version Name" name="version_name" placeholder="2.1.0" required />
+                 <InputField label="Version Code" name="version_code" type="number" defaultValue="3" required />
+              </div>
+              <InputField label="Hardware ABI" name="abi" defaultValue="arm64-v8a" required />
+           </div>
+           <div className="space-y-6">
+              <InputField label="Publish Timestamp" name="published_at" type="datetime-local" />
+              <label className="flex items-center justify-between p-4 h-14 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer">
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">Instant Publish</span>
+                <input type="checkbox" name="is_published" defaultChecked className="h-5 w-5 accent-cyan-500" />
+              </label>
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Binary Payload (APK)</label>
+                 <div className="relative h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center px-4 overflow-hidden">
+                    <input type="file" name="file" accept=".apk" className="absolute inset-0 opacity-0 cursor-pointer" />
+                    <span className="text-sm text-slate-500">Select file for upload...</span>
+                 </div>
+              </div>
+           </div>
+           <div className="lg:col-span-2">
+              <TextAreaField label="Release Intelligence (Notes)" name="release_notes" placeholder="Whats new in this build..." required />
+           </div>
+           <div className="lg:col-span-2">
+              <button type="submit" className="px-10 h-14 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-200 transition-all">
+                Finalize Release Distribution
+              </button>
+           </div>
         </form>
 
-        <div className="mt-6 grid gap-4">
-          {releases.length ? releases.map((item) => <ReleaseCard key={item.id} item={item} />) : <p className="text-sm text-foreground-muted">No releases published yet.</p>}
+        <div className="mt-12 space-y-4">
+          {releases.map((item) => <ReleaseCard key={item.id} item={item} />)}
         </div>
-      </PrimaryShell>
+      </Panel>
 
-      <PrimaryShell
-        title="Screenshots"
-        description="Upload real product captures and TV banners. These are rendered directly on /app."
+      {/* Device Fleet */}
+      <Panel
+        title="Device Fleet & Activations"
+        description="Monitor active hardware nodes and resolve MO-XXXX license requests."
+        icon={<Activity className="h-6 w-6" />}
       >
-        <form action={saveScreenshotAction} className="grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
-          <TextInput label="Title" name="title" required />
-          <TextInput label="Alt text" name="alt_text" required />
-          <TextInput label="Image path" name="image_path" placeholder="/images/..." />
-          <TextInput label="Sort order" name="sort_order" type="number" defaultValue="1" required />
-          <label className="grid gap-2">
-            <span className="text-[11px] font-black uppercase tracking-[0.22em] text-foreground-soft">Device frame</span>
-            <select name="device_frame" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground">
-              <option value="phone">phone</option>
-              <option value="tv">tv</option>
-              <option value="landscape">landscape</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-sm font-bold text-foreground">
-            <input type="checkbox" name="is_featured" />
-            Featured screenshot
-          </label>
-          <label className="grid gap-2 lg:col-span-2">
-            <span className="text-[11px] font-black uppercase tracking-[0.22em] text-foreground-soft">Upload image</span>
-            <input type="file" name="file" accept="image/*" className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground" />
-          </label>
-          <div className="lg:col-span-2">
-            <button type="submit" className="rounded-full bg-primary px-5 py-3 text-sm font-black text-black">
-              Save screenshot
-            </button>
-          </div>
+        <div className="grid gap-10 lg:grid-cols-2">
+           <div className="space-y-6">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                 <Smartphone className="h-4 w-4" /> Live Nodes
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                 {devices.slice(0, 8).map(item => <DeviceCard key={item.id} item={item} />)}
+              </div>
+           </div>
+           <div className="space-y-6">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                 <Key className="h-4 w-4" /> Activation Queue
+              </h3>
+              <div className="space-y-4">
+                 {activationRequests.filter(r => r.status === 'pending').map(req => (
+                    <div key={req.id} className="glass rounded-[1.5rem] p-6 border-amber-500/10 bg-amber-500/[0.02] flex items-center justify-between">
+                       <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">Code Required</p>
+                          <p className="text-2xl font-black text-white font-mono tracking-tighter">{req.device_code}</p>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-[9px] text-slate-500">Expires</p>
+                          <p className="text-xs font-bold text-slate-300">{new Date(req.expires_at).toLocaleTimeString()}</p>
+                       </div>
+                    </div>
+                 ))}
+                 {!activationRequests.filter(r => r.status === 'pending').length && (
+                    <p className="text-sm text-slate-600 text-center py-10 italic">No pending activations.</p>
+                 )}
+              </div>
+           </div>
+        </div>
+      </Panel>
+
+      {/* Support Inbox */}
+      <Panel
+        title="Intelligence Inbox"
+        description="Encrypted user feedback and support inquiries from the global fleet."
+        icon={<Mail className="h-6 w-6" />}
+      >
+        <div className="space-y-4">
+          {supportRequests.map((item) => <SupportCard key={item.id} item={item} />)}
+          {!supportRequests.length && (
+             <div className="glass rounded-[2rem] p-20 flex flex-col items-center justify-center text-center opacity-30">
+                <Mail className="h-12 w-12 mb-4" />
+                <p className="text-sm font-black uppercase tracking-widest">Inbox Zero</p>
+             </div>
+          )}
+        </div>
+      </Panel>
+
+      {/* Visual Content */}
+      <Panel
+        title="Visual Brand Assets"
+        description="Product mockups, TV banners, and gallery previews for the public landing surface."
+        icon={<Layout className="h-6 w-6" />}
+      >
+        <form action={saveScreenshotAction} className="grid gap-6 lg:grid-cols-2" encType="multipart/form-data">
+           <div className="space-y-6">
+              <InputField label="Asset Title" name="title" required />
+              <InputField label="Index Order" name="sort_order" type="number" defaultValue="1" required />
+           </div>
+           <div className="space-y-6">
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Device Frame</label>
+                 <select name="device_frame" className="w-full h-14 rounded-2xl bg-white/5 border border-white/10 px-5 text-[11px] font-black uppercase tracking-widest text-white outline-none">
+                    <option value="phone">phone</option>
+                    <option value="tv">tv</option>
+                    <option value="landscape">landscape</option>
+                 </select>
+              </div>
+              <label className="flex items-center justify-between p-4 h-14 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer">
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">Featured Asset</span>
+                <input type="checkbox" name="is_featured" className="h-5 w-5 accent-cyan-500" />
+              </label>
+           </div>
+           <div className="lg:col-span-2">
+              <InputField label="Public Path Override" name="image_path" placeholder="/images/..." />
+           </div>
+           <div className="lg:col-span-2">
+              <button type="submit" className="px-10 h-14 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-200 transition-all">
+                Upload & Sync Asset
+              </button>
+           </div>
         </form>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {screenshots.map((item) => (
-            <ScreenshotCard key={item.id} item={item} />
-          ))}
+        
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+           {screenshots.map(item => <ScreenshotCard key={item.id} item={item} />)}
         </div>
-      </PrimaryShell>
-
-      <PrimaryShell
-        title="FAQ"
-        description="Maintain the launch-facing answers shown near the lower conversion area on /app."
-      >
-        <form action={saveFaqAction} className="grid gap-4">
-          <TextInput label="Question" name="question" required />
-          <TextArea label="Answer" name="answer" required />
-          <TextInput label="Sort order" name="sort_order" type="number" defaultValue="1" required />
-          <div>
-            <button type="submit" className="rounded-full bg-primary px-5 py-3 text-sm font-black text-black">
-              Save FAQ
-            </button>
-          </div>
-        </form>
-        <div className="mt-6 grid gap-4">
-          {faqs.map((item) => (
-            <FaqCard key={item.id} item={item} />
-          ))}
-        </div>
-      </PrimaryShell>
-
-      <PrimaryShell
-        title="Support Inbox"
-        description="Requests sent from the support form on /app appear here. Admins can mark them resolved without exposing private logic to the client."
-      >
-        <div className="grid gap-4">
-          {supportRequests.length ? supportRequests.map((item) => <SupportCard key={item.id} item={item} />) : <p className="text-sm text-foreground-muted">No support requests yet.</p>}
-        </div>
-      </PrimaryShell>
+      </Panel>
     </div>
   );
 }

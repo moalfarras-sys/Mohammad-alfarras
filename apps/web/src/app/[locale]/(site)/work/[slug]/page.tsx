@@ -88,7 +88,7 @@ export default async function ProjectDetailRoute({
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(work) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <PortfolioProjectPage model={model} slug={slug} />
+      <PortfolioProjectPage model={model} projectId={slug} />
     </>
   );
 }

@@ -181,11 +181,11 @@ export function PortfolioPrivacyPage({ locale }: { locale: string }) {
     <div className="relative pb-32 pt-32" dir={isAr ? "rtl" : "ltr"} data-testid="privacy-page">
       <div className="section-frame max-w-3xl">
         <motion.h1 {...inView(0)} className="headline-display text-[2.5rem] font-bold text-white mb-4">{t.title}</motion.h1>
-        <motion.p {...inView(0.05)} className="text-[13px] text-[var(--os-text-3)] mb-10">{t.lastUpdated}</motion.p>
+        <motion.p {...inView(0.05)} className="text-[13px] text-[var(--os-text-3)] mb-10">{(t as any).updated ?? (t as any).lastUpdated ?? ""}</motion.p>
         <div className="space-y-8">
-          {t.sections.map((s, i) => (
+          {t.sections.map((s: any, i: number) => (
             <motion.div key={i} {...inView(i * 0.05)} className="glass-card p-8">
-              <h2 className="text-[16px] font-bold text-white mb-4">{s.heading}</h2>
+              <h2 className="text-[16px] font-bold text-white mb-4">{s.title ?? s.heading}</h2>
               <p className="text-[14px] leading-relaxed text-[var(--os-text-2)]">{s.body}</p>
             </motion.div>
           ))}

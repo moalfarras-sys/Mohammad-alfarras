@@ -6,7 +6,6 @@ export const jakartaFont = Plus_Jakarta_Sans({
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-jakarta",
   display: "swap",
-  axes: ["opsz"],
 });
 
 /** Arabic — IBM Plex Sans Arabic: high-fidelity, bilingual-safe, readable at all sizes */

@@ -1,149 +1,178 @@
-import { ArrowUpRight, Download, ShieldCheck } from "lucide-react";
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowUpRight, Download, Play, MonitorSmartphone, ShieldCheck, Zap } from "lucide-react";
 
 import type { SiteViewModel } from "@/components/site/site-view-model";
 import { appsPageCopy, moPlayerCopy } from "@/content/apps";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
-function sortedProjects(model: SiteViewModel) {
-  return [...model.projects].sort((a, b) => a.featuredRank - b.featuredRank);
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex min-h-8 items-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs font-medium text-[var(--text-2)]">
-      {children}
-    </span>
-  );
-}
+const inView = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] as const },
+});
 
 export function AppsPageBody({ model }: { model: SiteViewModel }) {
   const t = repairMojibakeDeep(appsPageCopy[model.locale]);
   const product = repairMojibakeDeep(moPlayerCopy[model.locale]);
-  const projects = sortedProjects(model);
-  const moPlayer = projects.find((p) => p.slug === "moplayer");
   const isAr = model.locale === "ar";
+  const locale = model.locale;
+
+  const moPlayer = [...model.projects].sort((a, b) => a.featuredRank - b.featuredRank)
+    .find((p) => p.slug === "moplayer");
+
+  const gallery = [
+    { src: "/images/moplayer_ui_now_playing-final.png", label: isAr ? "شاشة التشغيل" : "Now Playing" },
+    { src: "/images/moplayer_ui_playlist-final.png", label: isAr ? "قائمة التشغيل" : "Playlist View" },
+    { src: "/images/moplayer-tv-banner-final.png", label: "Android TV" },
+  ];
 
   return (
-    <div data-testid="apps-page">
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden pt-32 md:pt-40">
-        <div className="pointer-events-none absolute inset-0 bg-[var(--bg-base)]" />
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 10%, rgba(99,102,241,0.08) 0%, transparent 60%)" }} />
-        
-        <div className="section-frame relative z-10">
-          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.eyebrow}</p>
-              <h1 className="mt-4 overflow-visible pb-2 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4.5vw,3.8rem)" }}>
-                {t.title}
-              </h1>
-              <p className="mt-5 text-[15px] leading-relaxed text-[var(--text-2)] md:text-lg">{t.body}</p>
-              
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link href={`/${model.locale}/apps/moplayer`} className="button-liquid-primary inline-flex items-center gap-2">
-                  {t.openProduct}
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-                {moPlayer ? (
-                  <Link href={`/${model.locale}/work/${moPlayer.slug}`} className="button-liquid-secondary">
-                    {t.viewCase}
-                  </Link>
-                ) : null}
-              </div>
-            </div>
+    <div dir={isAr ? "rtl" : "ltr"} data-testid="apps-page" className="relative pb-32 pt-28">
+      {/* Bg orbs */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-[var(--os-violet)] opacity-[0.05] blur-[120px]" />
+        <div className="absolute left-0 bottom-0 h-[400px] w-[400px] rounded-full bg-[var(--os-teal)] opacity-[0.04] blur-[100px]" />
+      </div>
 
-            <div className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius-xl)] glass" style={{ boxShadow: "var(--shadow-hero)" }}>
+      {/* ── HERO ── */}
+      <section className="section-frame mb-20 relative z-10">
+        <div className="grid gap-14 lg:grid-cols-[1fr_480px] lg:items-center">
+          <div>
+            <motion.span {...inView(0)} className="eyebrow mb-5 inline-flex">{t.eyebrow}</motion.span>
+            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5.5vw,4.5rem)] font-bold text-white">
+              {t.title}
+            </motion.h1>
+            <motion.p {...inView(0.12)} className="mt-5 max-w-lg text-[16px] leading-relaxed text-[var(--os-text-2)]">
+              {t.body}
+            </motion.p>
+            <motion.div {...inView(0.18)} className="mt-8 flex flex-wrap gap-4">
+              <Link href={`/${locale}/apps/moplayer`} className="btn-primary">
+                <Play className="h-4 w-4" /> {t.openProduct}
+              </Link>
+              {moPlayer && (
+                <Link href={`/${locale}/work/${moPlayer.slug}`} className="btn-secondary">
+                  {t.viewCase}
+                </Link>
+              )}
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
+          >
+            <div className="absolute -inset-8 rounded-full bg-[var(--os-teal)] opacity-[0.06] blur-[80px]" />
+            <motion.div animate={{ y: [0, -14, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
               <Image
                 src="/images/moplayer-hero-3d-final.png"
                 alt="MoPlayer"
-                fill
+                width={640}
+                height={400}
                 priority
-                className="object-contain p-4"
-                sizes="(max-width: 1024px) 100vw, 620px"
+                className="w-full h-auto drop-shadow-[0_24px_60px_rgba(0,212,224,0.18)]"
               />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ── FLAGSHIP ── */}
-      <section className="py-16 md:py-24">
+      {/* ── FLAGSHIP CARD ── */}
+      <section className="py-20 bg-[var(--os-surface)]/30 relative z-10">
         <div className="section-frame">
-          <article className="glass overflow-hidden rounded-[var(--radius-xl)]" style={{ boxShadow: "var(--shadow-elevated)" }}>
-            <div className="grid gap-0 lg:grid-cols-[0.45fr_0.55fr]">
-              <div className="p-8 md:p-12">
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.flagship}</p>
-                <h2 className="mt-4 overflow-visible pb-1 font-black leading-[1.1] text-[var(--text-1)]" style={{ fontSize: "clamp(2rem,4vw,3.2rem)" }}>
-                  MoPlayer
-                </h2>
-                <p className="mt-5 text-[15px] leading-relaxed" style={{ color: "var(--text-2)" }}>{product.heroBody}</p>
-                
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {["Android", "Android TV", "API 24+", "APK", "Support"].map((tag) => (
-                    <Chip key={tag}>{tag}</Chip>
+          <motion.div {...inView(0)} className="glass-card overflow-hidden rounded-[2.5rem]">
+            <div className="grid lg:grid-cols-2">
+              {/* Text side */}
+              <div className="p-10 md:p-14">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] px-3 py-1.5">
+                  <Zap className="h-3.5 w-3.5 text-[var(--os-teal)]" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--os-teal)]">{t.flagship}</span>
+                </div>
+                <h2 className="headline-display mt-4 text-[clamp(2rem,4vw,3.5rem)] font-bold text-white">MoPlayer</h2>
+                <p className="mt-5 text-[15px] leading-relaxed text-[var(--os-text-2)]">{product.heroBody}</p>
+
+                <div className="mt-7 flex flex-wrap gap-2">
+                  {["Android TV", "Android 7+", "VLC Engine", "APK Direct", "Xtream · M3U"].map((tag) => (
+                    <span key={tag} className="os-badge text-[11px]">{tag}</span>
                   ))}
                 </div>
-                
+
                 <div className="mt-10 flex flex-wrap gap-4">
-                  <Link href={`/${model.locale}/apps/moplayer`} className="button-liquid-primary inline-flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    {t.download}
+                  <Link href={`/${locale}/apps/moplayer`} className="btn-primary">
+                    <Download className="h-4 w-4" /> {t.download}
                   </Link>
-                  {moPlayer ? (
-                    <Link href={`/${model.locale}/work/${moPlayer.slug}`} className="button-liquid-secondary">
-                      {t.viewCase}
-                    </Link>
-                  ) : null}
+                  {moPlayer && (
+                    <Link href={`/${locale}/work/${moPlayer.slug}`} className="btn-secondary">{t.viewCase}</Link>
+                  )}
                 </div>
               </div>
-              <div className="relative min-h-[360px] bg-[var(--bg-elevated)] border-l border-[var(--glass-border)]">
+
+              {/* Image side */}
+              <div className="relative min-h-[320px] border-t border-[var(--os-border)] lg:border-t-0 lg:border-l bg-[var(--os-elevated)]">
                 <Image
                   src="/images/moplayer-ui-mock-final.png"
                   alt="MoPlayer interface"
                   fill
                   className="object-contain p-8"
-                  sizes="(max-width: 1024px) 100vw, 56vw"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>
             </div>
-          </article>
+          </motion.div>
         </div>
       </section>
 
       {/* ── FEATURES ── */}
-      <section className="py-16 md:py-20">
+      <section className="py-20 relative z-10">
         <div className="section-frame">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{product.featuresEyebrow}</p>
-          <h2 className="mt-3 overflow-visible pb-1 font-black leading-[1.2] text-[var(--text-1)] max-w-3xl" style={{ fontSize: "clamp(1.6rem,3vw,2.4rem)" }}>
-            {product.featuresTitle}
-          </h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {product.features.map((feature) => (
-              <div key={feature.title} className="glass rounded-[var(--radius-lg)] p-8 transition-transform hover:-translate-y-1" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-soft)]">
-                  <ShieldCheck className="h-5 w-5" style={{ color: "var(--accent)" }} />
+          <motion.div {...inView(0)} className="mb-12">
+            <span className="eyebrow mb-4 inline-flex">{product.featuresEyebrow}</span>
+            <h2 className="headline-display mt-4 text-[2rem] font-bold text-white">{product.featuresTitle}</h2>
+          </motion.div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {product.features.map((f, i) => (
+              <motion.div key={f.title} {...inView(i * 0.06)} className="glass-card p-8">
+                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
+                  <MonitorSmartphone className="h-5 w-5" />
                 </div>
-                <h3 className="mt-6 text-xl font-bold" style={{ color: "var(--text-1)" }}>{feature.title}</h3>
-                <p className="mt-3 text-[14px] leading-relaxed" style={{ color: "var(--text-2)" }}>{feature.body}</p>
-              </div>
+                <h3 className="text-[16px] font-bold text-white mb-3">{f.title}</h3>
+                <p className="text-[13px] leading-relaxed text-[var(--os-text-3)]">{f.body}</p>
+              </motion.div>
             ))}
+
+            {/* Privacy feature */}
+            <motion.div {...inView()} className="glass-card p-8 border-emerald-500/20 bg-emerald-500/[0.02]">
+              <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <h3 className="text-[16px] font-bold text-white mb-3">{isAr ? "لا مراقبة، لا بيانات" : "Zero data. Full privacy."}</h3>
+              <p className="text-[13px] leading-relaxed text-[var(--os-text-3)]">
+                {isAr ? "MoPlayer لا يجمع أي بيانات شخصية. خصوصيتك محمية بالكامل." : "MoPlayer collects zero personal data. Your privacy is fully protected."}
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ── GALLERY ── */}
-      <section className="py-16 md:py-20">
+      <section className="py-20 bg-[var(--os-surface)]/30 relative z-10">
         <div className="section-frame">
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              { src: "/images/moplayer_ui_now_playing-final.png", label: isAr ? "شاشة التشغيل" : "Now playing" },
-              { src: "/images/moplayer_ui_playlist-final.png", label: isAr ? "قائمة التشغيل" : "Playlist" },
-              { src: "/images/moplayer-tv-banner-final.png", label: "Android TV" },
-            ].map((item) => (
-              <figure key={item.src} className="glass overflow-hidden rounded-[var(--radius-lg)]" style={{ boxShadow: "var(--shadow-card)" }}>
-                <div className="relative aspect-[4/5] bg-[var(--bg-elevated)]">
+          <motion.div {...inView(0)} className="mb-10">
+            <span className="eyebrow mb-3 inline-flex">{isAr ? "واجهة المستخدم" : "UI Preview"}</span>
+            <h2 className="headline-display mt-3 text-[1.8rem] font-bold text-white">
+              {isAr ? "تصميم سينمائي · تجربة سلسة" : "Cinematic design · Seamless experience"}
+            </h2>
+          </motion.div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {gallery.map((item, i) => (
+              <motion.figure key={item.src} {...inView(i * 0.07)} className="glass-card overflow-hidden">
+                <div className="relative aspect-[4/5] bg-[var(--os-elevated)]">
                   <Image
                     src={item.src}
                     alt={item.label}
@@ -152,10 +181,37 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
-                <figcaption className="px-5 py-4 text-sm font-bold" style={{ color: "var(--text-1)" }}>{item.label}</figcaption>
-              </figure>
+                <figcaption className="px-6 py-4 text-[13px] font-semibold text-white border-t border-[var(--os-border)]">
+                  {item.label}
+                </figcaption>
+              </motion.figure>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="py-20 relative z-10">
+        <div className="section-frame">
+          <motion.div {...inView(0)} className="glass-card overflow-hidden rounded-[2rem] border-[var(--os-teal-border)] p-12 text-center relative">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--os-teal)]/[0.04] to-[var(--os-violet)]/[0.04]" />
+            <h2 className="headline-display relative z-10 text-[2rem] font-bold text-white">
+              {isAr ? "جرّب MoPlayer مجاناً" : "Try MoPlayer for free"}
+            </h2>
+            <p className="relative z-10 mt-3 text-[15px] text-[var(--os-text-2)]">
+              {isAr ? "حمّل التطبيق مباشرة — بدون App Store، بدون قيود." : "Download the APK directly — no App Store, no restrictions."}
+            </p>
+            <div className="relative z-10 mt-8 flex flex-wrap justify-center gap-4">
+              <Link href={`/${locale}/apps/moplayer`} className="btn-primary px-10">
+                <Download className="h-4 w-4" />
+                {isAr ? "تحميل الآن" : "Download now"}
+              </Link>
+              <Link href={`/${locale}/support`} className="btn-secondary px-8">
+                {isAr ? "دعم تقني" : "Get support"}
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>

@@ -598,7 +598,7 @@ export async function SitePage({ locale, slug }: { locale: Locale; slug: string 
     case "apps":
       return <AppsPageBody model={model} />;
     case "privacy":
-      return <PortfolioPrivacyPage model={model} />;
+      return <PortfolioPrivacyPage locale={model.locale} />;
     default:
       return <PortfolioHomePageNew model={model} />;
   }

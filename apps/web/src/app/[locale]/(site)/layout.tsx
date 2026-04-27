@@ -128,7 +128,7 @@ export default async function SiteLayout({
         <CookieBanner locale={locale} />
         <MobileDock locale={locale} />
         <HireMeFab locale={locale} />
-        <SiteFooter locale={locale} logoSrc={logoSrc} brandName={copy.brandName} tagline={copy.tagline} links={navLinks} footer={copy.footer} />
+        <SiteFooter locale={locale} logoSrc={logoSrc} brandName={copy.brandName} links={navLinks} />
       </div>
     </>
   );

@@ -36,8 +36,8 @@ function siteCopy(locale: "ar" | "en") {
   }
 
   return {
-    brandName: "Mohammad Alfarras",
-    tagline: "Web | Apps | Content | Logistics",
+    brandName: "Mohammad Alfarras v4.2",
+    tagline: "FORGE OS v4.2 | Apps | Content | Logistics",
     links: [
       { id: "home", label: "Home", href: withLocale(locale, "") },
       { id: "work", label: "Work", href: withLocale(locale, "work") },

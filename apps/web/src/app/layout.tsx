@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteFontClassName } from "@/lib/fonts";
+import { CinematicOverlay } from "@/components/site/cinematic-overlay";
 
 import "./globals.css";
 
@@ -167,6 +168,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+          <CinematicOverlay />
           {children}
         </ThemeProvider>
       </body>

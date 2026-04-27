@@ -218,19 +218,6 @@ export function SiteFooter({
               <Link href={`/${locale}/support`} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
                 {isAr ? "\u0627\u0644\u062f\u0639\u0645" : "Support"}
               </Link>
-              <Link href={`/${locale}/privacy`} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
-                {isAr ? "\u0627\u0644\u062e\u0635\u0648\u0635\u064a\u0629" : "Privacy"}
-              </Link>
-            </CollapsibleSection>
-
-            <CollapsibleSection title={isAr ? "\u062d\u0642\u0627\u0626\u0642 \u0633\u0631\u064a\u0639\u0629" : "Quick facts"}>
-              <div className="flex flex-col items-start gap-2 pt-1 md:pt-0"><span className="glass inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold text-[var(--text-2)] border border-[var(--glass-border)] bg-[var(--bg-elevated)]">{isAr ? "\u0645\u0642\u064a\u0645 \u0641\u064a \u0623\u0644\u0645\u0627\u0646\u064a\u0627" : "Germany based"}</span><span className="glass inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold text-[var(--text-2)] border border-[var(--glass-border)] bg-[var(--bg-elevated)]">{isAr ? "\u0627\u0644\u062c\u0630\u0648\u0631 \u0645\u0646 \u0627\u0644\u062d\u0633\u0643\u0629\u060c \u0633\u0648\u0631\u064a\u0627" : "Al-Hasakah roots"}</span><span className="glass inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-semibold text-[var(--text-2)] border border-[var(--glass-border)] bg-[var(--bg-elevated)]">{isAr ? "\u0627\u0644\u0639\u0631\u0628\u064a\u0629 / \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 / \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629" : "AR / EN / DE"}</span><span className="glass inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-bold text-[var(--accent-glow)] border border-[var(--glass-border)] bg-[var(--bg-elevated)]">{isAr ? "+1.5M \u0645\u0634\u0627\u0647\u062f\u0629 \u0639\u0644\u0649 \u064a\u0648\u062a\u064a\u0648\u0628" : "1.5M+ YouTube views"}</span></div>
-            </CollapsibleSection>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-6 text-xs text-[var(--text-3)] md:flex-row md:items-center md:justify-between">
-            <span>
-              © {year} {brandName}. {isAr ? "\u062c\u0645\u064a\u0639 \u0627\u0644\u062d\u0642\u0648\u0642 \u0645\u062d\u0641\u0648\u0638\u0629." : "All rights reserved."}
             </span>
             <span>{isAr ? "\u0628\u064f\u0646\u064a \u0628\u0640 Next.js \u0648 Supabase \u0648\u0645\u0639\u0627\u064a\u064a\u0631 \u0648\u064a\u0628 \u062d\u062f\u064a\u062b\u0629." : "Built with Next.js, Supabase, and modern web standards."}</span>
           </div>

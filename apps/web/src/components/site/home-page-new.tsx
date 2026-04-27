@@ -219,7 +219,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
             </div>
             <div className="glass rounded-[var(--radius-lg)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
               <h3 className="font-bold text-[var(--text-1)] uppercase tracking-wider text-sm">{isAr ? "تطوير التطبيقات" : "App Development"}</h3>
-              <p className="mt-3 text-[14px] leading-relaxed text-[var(--text-2)]">Kotlin, Android SDK, Android TV, Room, Retrofit, ExoPlayer (Media3), Google Play releases.</p>
+              <p className="mt-3 text-[14px] leading-relaxed text-[var(--text-2)]">Kotlin, Android SDK, Android TV, Room, Retrofit, VLC/libVLC, APK release pipeline.</p>
             </div>
             <div className="glass rounded-[var(--radius-lg)] p-6" style={{ boxShadow: "var(--shadow-card)" }}>
               <h3 className="font-bold text-[var(--text-1)] uppercase tracking-wider text-sm">{isAr ? "عمليات ولوجستيات" : "Operations & Logistics"}</h3>

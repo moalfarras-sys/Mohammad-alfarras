@@ -46,8 +46,8 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
 
   const categories = [
     { id: "ai", icon: <Bot className="h-6 w-6" />, titleEn: "AI & SaaS Tools", titleAr: "أدوات الذكاء الاصطناعي و SaaS" },
-    { id: "tech", icon: <MonitorSmartphone className="h-6 w-6" />, titleEn: "Electronics", titleAr: "إلكترونيات" },
     { id: "apps", icon: <Box className="h-6 w-6" />, titleEn: "Apps", titleAr: "تطبيقات" },
+    { id: "tech", icon: <MonitorSmartphone className="h-6 w-6" />, titleEn: "Electronics", titleAr: "إلكترونيات" },
     { id: "design", icon: <PenTool className="h-6 w-6" />, titleEn: "Design Tools", titleAr: "أدوات التصميم" },
     { id: "marketing", icon: <Wand2 className="h-6 w-6" />, titleEn: "Marketing Tools", titleAr: "أدوات التسويق" },
     { id: "tutorials", icon: <Lightbulb className="h-6 w-6" />, titleEn: "Tutorials", titleAr: "شروحات" },

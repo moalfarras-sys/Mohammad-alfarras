@@ -89,6 +89,7 @@ export function MoPlayerActivationPage({
   const t = activationVisualCopy[locale];
   const [code, setCode] = useState(() => normalizeActivationInput(initialCode));
   const [status, setStatus] = useState<Status>("waiting");
+  const [activeStep, setActiveStep] = useState<"activate" | "setup">("activate");
   const [isChecking, setIsChecking] = useState(false);
   const [sourceType, setSourceType] = useState<SourceType>("xtream");
   const [sourceStatus, setSourceStatus] = useState<SourceStatus>("idle");
@@ -126,6 +127,7 @@ export function MoPlayerActivationPage({
       const payload = (await response.json().catch(() => null)) as { status?: Status } | null;
       if (response.ok && payload?.status === "activated") {
         setStatus("activated");
+        setTimeout(() => setActiveStep("setup"), 1500);
       } else if (payload?.status === "expired") {
         setStatus("expired");
       } else if (payload?.status === "invalid") {

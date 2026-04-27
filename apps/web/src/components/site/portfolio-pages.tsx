@@ -443,11 +443,11 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
       <section className="py-16 md:py-20">
         <div className="section-frame">
           <div className="max-w-4xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{t.experienceTitle}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>Career Map · {t.experienceTitle}</p>
             <div className="mt-8 grid gap-8 relative before:absolute before:inset-y-0 before:left-4 before:w-[2px] before:bg-gradient-to-b before:from-[var(--accent)] before:to-[var(--glass-border)] md:before:left-[160px]">
               {model.cvExperience.map((entry) => (
                 <div key={entry.id} className="relative grid gap-4 pl-12 md:grid-cols-[140px_1fr] md:gap-10 md:pl-0">
-                  <div className="absolute left-[11px] top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-[var(--bg-base)] md:left-[157px]" style={{ borderColor: "var(--accent)" }} />
+                  <div className="absolute left-[8px] top-1.5 h-4 w-4 rounded-full border-4 bg-[var(--bg-base)] shadow-[0_0_15px_rgba(0,229,255,0.5)] md:left-[153px]" style={{ borderColor: "var(--accent)" }} />
                   
                   <div className="hidden pt-1 text-right text-xs font-bold md:block" style={{ color: "var(--text-3)" }}>
                     {entry.period}

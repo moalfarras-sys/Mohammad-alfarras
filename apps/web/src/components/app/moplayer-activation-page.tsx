@@ -250,170 +250,201 @@ export function MoPlayerActivationPage({
               <QrCode className="h-28 w-28 text-cyan-200" />
             </div>
 
-            <label className="mt-6 block text-sm font-semibold text-slate-300" htmlFor="device-code">
-              {t.codeLabel}
-            </label>
-            <div className="mt-2 flex h-14 overflow-hidden rounded-2xl border border-white/15 bg-slate-950 focus-within:border-cyan-300 focus-within:ring-4 focus-within:ring-cyan-300/15">
-              <span className="inline-flex items-center border-e border-white/10 px-4 font-mono text-lg font-black tracking-[0.12em] text-cyan-200">
-                {t.prefix}
-              </span>
-              <input
-                id="device-code"
-                value={code}
-                maxLength={4}
-                onChange={(event) => setCode(normalizeActivationInput(event.target.value))}
-                placeholder={t.placeholder}
-                dir="ltr"
-                inputMode="text"
-                autoComplete="one-time-code"
-                className="h-full min-w-0 flex-1 bg-transparent px-4 font-mono text-lg font-bold uppercase tracking-[0.18em] text-white outline-none"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={checkCode}
-              disabled={isChecking}
-              className="mt-4 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-300 px-5 text-sm font-black text-slate-950 transition hover:bg-cyan-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30"
-            >
-              {isChecking ? "..." : t.check}
-            </button>
-
-            <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-              <div className="flex items-center gap-3">
-                <StatusIcon className="h-5 w-5 text-cyan-200" />
-                <strong>{statusCopy.title}</strong>
-              </div>
-              <p className="mt-2 text-sm leading-6 text-slate-300">{statusCopy.body}</p>
-            </div>
-
-            <div className="mt-5 flex items-center gap-2 text-xs text-slate-400">
-              <ShieldCheck className="h-4 w-4 text-cyan-200" />
-              <span>{t.privacy}</span>
-            </div>
-
-            {status === "activated" ? (
-              <div className="mt-6 rounded-3xl border border-cyan-200/20 bg-slate-950/65 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-black text-white">
-                      {isAr ? "أضف المصدر من الموقع" : "Add source from the web"}
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-slate-400">
-                      {isAr
-                        ? "اختبر Xtream أو M3U ثم أرسله للتلفزيون. كلمة المرور لا تظهر بعد الحفظ."
-                        : "Test Xtream or M3U and send it to the TV. Passwords are not shown after saving."}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
-                    {(["xtream", "m3u"] as const).map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => {
-                          setSourceType(type);
-                          setSourceStatus("idle");
-                          setSourceMessage("");
-                        }}
-                        className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.12em] transition ${
-                          sourceType === type ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10"
-                        }`}
-                      >
-                        {type === "xtream" ? "Xtream" : "M3U"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-4 grid gap-3">
+            {activeStep === "activate" ? (
+              <>
+                <label className="mt-6 block text-sm font-semibold text-slate-300" htmlFor="device-code">
+                  {t.codeLabel}
+                </label>
+                <div className="mt-2 flex h-14 overflow-hidden rounded-2xl border border-white/15 bg-slate-950 focus-within:border-cyan-300 focus-within:ring-4 focus-within:ring-cyan-300/15">
+                  <span className="inline-flex items-center border-e border-white/10 px-4 font-mono text-lg font-black tracking-[0.12em] text-cyan-200">
+                    {t.prefix}
+                  </span>
                   <input
-                    value={sourceName}
-                    onChange={(event) => setSourceName(event.target.value)}
-                    placeholder={isAr ? "اسم اختياري للمصدر" : "Optional source name"}
-                    className="h-12 rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300"
+                    id="device-code"
+                    value={code}
+                    maxLength={4}
+                    onChange={(event) => setCode(normalizeActivationInput(event.target.value))}
+                    placeholder={t.placeholder}
+                    dir="ltr"
+                    inputMode="text"
+                    autoComplete="one-time-code"
+                    className="h-full min-w-0 flex-1 bg-transparent px-4 font-mono text-lg font-bold uppercase tracking-[0.18em] text-white outline-none"
                   />
-                  {sourceType === "xtream" ? (
-                    <>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={checkCode}
+                  disabled={isChecking}
+                  className="mt-4 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-cyan-300 px-5 text-sm font-black text-slate-950 transition hover:bg-cyan-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/30"
+                >
+                  {isChecking ? "..." : t.check}
+                </button>
+
+                <div className="mt-5 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+                  <div className="flex items-center gap-3">
+                    <StatusIcon className="h-5 w-5 text-cyan-200" />
+                    <strong>{statusCopy.title}</strong>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{statusCopy.body}</p>
+                </div>
+              </>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-6 space-y-6"
+              >
+                <div className="rounded-3xl border border-cyan-200/20 bg-slate-950/65 p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-black text-white">
+                        {isAr ? "الخطوة 2: أضف المصدر" : "Step 2: Add IPTV Source"}
+                      </h2>
+                      <p className="mt-1 text-sm text-slate-400">
+                        {isAr
+                          ? "أدخل بيانات Xtream أو M3U لإرسالها مباشرة إلى جهازك."
+                          : "Enter Xtream or M3U details to send directly to your TV."}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white/5 p-1">
+                      {(["xtream", "m3u"] as const).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => {
+                            setSourceType(type);
+                            setSourceStatus("idle");
+                            setSourceMessage("");
+                          }}
+                          className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-[0.12em] transition ${
+                            sourceType === type ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10"
+                          }`}
+                        >
+                          {type === "xtream" ? "Xtream" : "M3U"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                        {isAr ? "اسم المصدر" : "Source Name"}
+                      </label>
                       <input
-                        value={serverUrl}
-                        onChange={(event) => setServerUrl(event.target.value)}
-                        placeholder="https://server.example.com:8080"
-                        inputMode="url"
-                        dir="ltr"
-                        className="h-12 rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300"
+                        value={sourceName}
+                        onChange={(event) => setSourceName(event.target.value)}
+                        placeholder={isAr ? "مثال: اشتراكي الخاص" : "e.g. My Private Source"}
+                        className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
                       />
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <input
-                          value={username}
-                          onChange={(event) => setUsername(event.target.value)}
-                          placeholder={isAr ? "اسم المستخدم" : "Username"}
-                          autoComplete="username"
-                          className="h-12 rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300"
-                        />
-                        <input
-                          value={password}
-                          onChange={(event) => setPassword(event.target.value)}
-                          placeholder={isAr ? "كلمة المرور" : "Password"}
-                          type="password"
-                          autoComplete="new-password"
-                          className="h-12 rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300"
-                        />
+                    </div>
+
+                    {sourceType === "xtream" ? (
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Server URL</label>
+                          <input
+                            value={serverUrl}
+                            onChange={(event) => setServerUrl(event.target.value)}
+                            placeholder="http://server.com:8080"
+                            inputMode="url"
+                            dir="ltr"
+                            className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
+                          />
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Username</label>
+                            <input
+                              value={username}
+                              onChange={(event) => setUsername(event.target.value)}
+                              placeholder="user123"
+                              className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Password</label>
+                            <input
+                              value={password}
+                              onChange={(event) => setPassword(event.target.value)}
+                              placeholder="••••••••"
+                              type="password"
+                              className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <input
-                        value={playlistUrl}
-                        onChange={(event) => setPlaylistUrl(event.target.value)}
-                        placeholder="https://example.com/playlist.m3u"
-                        inputMode="url"
-                        dir="ltr"
-                        className="h-12 rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300"
-                      />
-                      <input
-                        value={epgUrl}
-                        onChange={(event) => setEpgUrl(event.target.value)}
-                        placeholder={isAr ? "رابط EPG اختياري" : "Optional EPG URL"}
-                        inputMode="url"
-                        dir="ltr"
-                        className="h-12 rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300"
-                      />
-                    </>
-                  )}
-                </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">M3U URL</label>
+                          <input
+                            value={playlistUrl}
+                            onChange={(event) => setPlaylistUrl(event.target.value)}
+                            placeholder="http://server.com/list.m3u"
+                            inputMode="url"
+                            dir="ltr"
+                            className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold uppercase tracking-widest text-slate-500">EPG URL (Optional)</label>
+                          <input
+                            value={epgUrl}
+                            onChange={(event) => setEpgUrl(event.target.value)}
+                            placeholder="http://server.com/epg.xml"
+                            inputMode="url"
+                            dir="ltr"
+                            className="h-12 w-full rounded-2xl border border-white/10 bg-white/[.06] px-4 text-sm text-white outline-none focus:border-cyan-300 transition-colors"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={testSource}
-                    disabled={sourceStatus === "testing" || sourceStatus === "saving"}
-                    className="h-12 rounded-2xl border border-white/15 bg-white/[.07] px-4 text-sm font-black text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
-                  >
-                    {sourceStatus === "testing" ? "..." : isAr ? "فحص الاتصال" : "Test connection"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={saveSource}
-                    disabled={sourceStatus === "testing" || sourceStatus === "saving"}
-                    className="h-12 rounded-2xl bg-cyan-300 px-4 text-sm font-black text-slate-950 transition hover:bg-cyan-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
-                  >
-                    {sourceStatus === "saving" ? "..." : isAr ? "إرسال للتلفزيون" : "Send to TV"}
-                  </button>
-                </div>
+                  <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={testSource}
+                      disabled={sourceStatus === "testing" || sourceStatus === "saving"}
+                      className="h-14 rounded-2xl border border-white/15 bg-white/[.07] px-6 text-sm font-black text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+                    >
+                      {sourceStatus === "testing" ? "..." : isAr ? "فحص الاتصال" : "Test Connection"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveSource}
+                      disabled={sourceStatus === "testing" || sourceStatus === "saving"}
+                      className="h-14 rounded-2xl bg-cyan-300 px-6 text-sm font-black text-slate-950 transition hover:bg-cyan-200 shadow-[0_10px_30px_rgba(0,229,255,0.2)] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+                    >
+                      {sourceStatus === "saving" ? "..." : isAr ? "إرسال للتلفزيون" : "Sync to Device"}
+                    </button>
+                  </div>
 
-                {sourceMessage ? (
-                  <p
-                    className={`mt-3 rounded-2xl border px-4 py-3 text-sm leading-6 ${
-                      sourceStatus === "error"
-                        ? "border-red-300/25 bg-red-500/10 text-red-100"
-                        : "border-cyan-300/20 bg-cyan-300/10 text-cyan-50"
-                    }`}
-                  >
-                    {sourceMessage}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+                  {sourceMessage ? (
+                    <motion.p
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`mt-4 rounded-2xl border px-5 py-4 text-sm leading-7 ${
+                        sourceStatus === "error"
+                          ? "border-red-500/30 bg-red-500/10 text-red-200"
+                          : "border-cyan-300/20 bg-cyan-300/10 text-cyan-50"
+                      }`}
+                    >
+                      {sourceMessage}
+                    </motion.p>
+                  ) : null}
+                </div>
+                
+                <button 
+                  onClick={() => setActiveStep("activate")}
+                  className="w-full text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-cyan-200 transition-colors"
+                >
+                  {isAr ? "← العودة لرمز التفعيل" : "← Back to Activation"}
+                </button>
+              </motion.div>
+            )}
           </div>
         </div>
       </section>

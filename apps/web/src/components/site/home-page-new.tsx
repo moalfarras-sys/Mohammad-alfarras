@@ -92,7 +92,22 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
               </motion.div>
 
               {/* H1 */}
-              <h1 className="text-6xl font-bold text-red-500">!!! DEPLOYED v4.2 TEST !!!</h1>
+              <motion.h1
+                {...fadeUp(0.1)}
+                className="headline-display text-[clamp(2.6rem,7.5vw,6rem)] font-bold text-[var(--os-text-1)] leading-[1.04]"
+              >
+                {isAr ? (
+                  <>
+                    أحوّل العمليات الواقعية<br />
+                    <span className="gradient-text">إلى تجارب رقمية واضحة.</span>
+                  </>
+                ) : (
+                  <>
+                    I turn real-world ops<br />
+                    <span className="gradient-text">into clear digital products.</span>
+                  </>
+                )}
+              </motion.h1>
 
               {/* Sub */}
               <motion.p {...fadeUp(0.2)} className="mt-8 max-w-xl text-[17px] leading-relaxed text-[var(--os-text-2)]">

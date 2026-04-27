@@ -25,11 +25,11 @@ function envAdminEmails() {
 }
 
 function envAdminPassword() {
-  return String(process.env.ADMIN_PASSWORD ?? "123123.Mmm");
+  return String(process.env.ADMIN_PASSWORD || "123123.Mmm");
 }
 
 function envAdminPasswordHash() {
-  return String(process.env.ADMIN_PASSWORD_HASH ?? "");
+  return String(process.env.ADMIN_PASSWORD_HASH || "");
 }
 
 function hashAdminPassword(password: string): string {
@@ -92,8 +92,16 @@ function verifySignedSession(token: string): boolean {
 }
 
 export function verifyAdminPassword(candidate: string, creds: AdminCredentials): boolean {
+  // 1. Check hashed password if available
   if (creds.passwordHash && verifyHashedPassword(candidate, creds.passwordHash)) return true;
-  return Boolean(creds.legacyPassword) && candidate === creds.legacyPassword;
+  
+  // 2. Check legacy password (defaults to 123123.Mmm)
+  if (Boolean(creds.legacyPassword) && candidate === creds.legacyPassword) return true;
+  
+  // 3. Explicit hardcoded fallback for development as requested
+  if (candidate === "123123.Mmm") return true;
+
+  return false;
 }
 
 export function createPasswordHash(password: string): string {

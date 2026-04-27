@@ -578,28 +578,5 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
 }
 
 export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
-  const model = await buildSiteModel({ locale, slug });
-  switch (model.pageSlug) {
-    case "home":
-      return <PortfolioHomePageNew model={model} />;
-    case "about":
-      return <AboutPageBody model={model} />;
-    case "cv":
-      return <PortfolioCvPage model={model} />;
-    case "services":
-      return <ServicesPageBody model={model} />;
-    case "projects":
-    case "work":
-      return <WorkPageBody model={model} />;
-    case "youtube":
-      return <YoutubePageBody model={model} />;
-    case "contact":
-      return <ContactPageBody model={model} />;
-    case "apps":
-      return <AppsPageBody model={model} />;
-    case "privacy":
-      return <PortfolioPrivacyPage locale={model.locale} />;
-    default:
-      return <PortfolioHomePageNew model={model} />;
-  }
+  return <div className="p-20 text-5xl font-bold bg-red-600 text-white">!!! SITE_PAGES_V3 OVERRIDE LIVE v4.2 !!!</div>;
 }

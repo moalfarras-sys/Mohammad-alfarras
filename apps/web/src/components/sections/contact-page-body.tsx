@@ -1,241 +1,174 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { ArrowUpRight, Mail, MessageCircle, Send, Clock, Zap, Phone } from "lucide-react";
+import { Mail, MessageCircle, Clock, Send, ArrowUpRight } from "lucide-react";
 
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import type { SiteViewModel } from "@/components/site/site-view-model";
-import { cn } from "@/lib/cn";
+
+const inView = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] as const },
+});
 
 const copy = {
   en: {
-    eyebrow: "Direct Inquiry",
-    title: "Defining Scope, Constraints, and Outcome.",
-    body:
-      "Strategic consultation for web presence, product architecture, MoPlayer ecosystem, and bilingual execution. Based in Germany, operating with a discovery-first rhythm.",
-    email: "Send Email",
-    whatsapp: "WhatsApp Direct",
-    availabilityTitle: "System Availability",
-    availability: [
-      { label: "Operating Days", value: "Sat - Thu" },
-      { label: "Timezone", value: "Germany - CET/CEST" },
-      { label: "Discovery Call", value: "Via Inquiry" },
-      { label: "Local presence", value: "Germany" },
+    eyebrow: "Start a conversation",
+    title: "Tell me what you need to build.",
+    body: "Send the project as it is — I'll map the goal, constraints, and the clearest path forward.",
+    email: "Send email",
+    whatsapp: "WhatsApp direct",
+    availTitle: "Availability",
+    avail: [
+      { l: "Days", v: "Sat – Thu" },
+      { l: "Timezone", v: "Germany · CET/CEST" },
+      { l: "Response", v: "Within 24 h" },
+      { l: "Location", v: "Germany 🇩🇪" },
     ],
-    stepsTitle: "The Protocol",
-    steps: [
-      "Diagnostic review of your message to map the underlying business goal.",
-      "Brief strategic response with immediate recommendations and initial clarity.",
-      "Scope definition and migration to a clear, high-fidelity execution path.",
+    flowTitle: "How it works",
+    flow: [
+      "Send your message — project, idea, or question.",
+      "I review and reply with honest strategic direction.",
+      "We align on scope, timeline, and what actually matters.",
     ],
+    channelsTitle: "Direct channels",
   },
   ar: {
-    eyebrow: "طلب استشارة",
-    title: "تحديد النطاق، القيود، والنتيجة المطلوبة.",
-    body:
-      "استشارة استراتيجية لمواقع الويب، هندسة المنتجات، بيئة MoPlayer، والتنفيذ باللغتين. مقيم في ألمانيا وأعمل وفق إيقاع يبدأ من التشخيص والتحليل.",
+    eyebrow: "ابدأ محادثة",
+    title: "أخبرني بما تريد بناءه.",
+    body: "أرسل المشروع كما هو — سأرتّب الهدف والقيود وأوضح مسار التنفيذ.",
     email: "إرسال بريد",
     whatsapp: "واتساب مباشر",
-    availabilityTitle: "حالة النظام",
-    availability: [
-      { label: "أيام العمل", value: "السبت - الخميس" },
-      { label: "التوقيت", value: "ألمانيا - CET/CEST" },
-      { label: "جلسة اكتشاف", value: "عبر الطلب" },
-      { label: "التواجد", value: "ألمانيا" },
+    availTitle: "التوفر",
+    avail: [
+      { l: "أيام العمل", v: "السبت – الخميس" },
+      { l: "التوقيت", v: "ألمانيا · CET/CEST" },
+      { l: "وقت الرد", v: "خلال 24 ساعة" },
+      { l: "الموقع", v: "ألمانيا 🇩🇪" },
     ],
-    stepsTitle: "البروتوكول",
-    steps: [
-      "مراجعة تشخيصية لرسالتك لتحديد الهدف التجاري الحقيقي وراء الطلب.",
-      "رد استراتيجي موجز مع توصيات فورية ووضوح مبدئي للمسار.",
-      "تحديد نطاق العمل والانتقال إلى مسار تنفيذ عالي الجودة والدقة.",
+    flowTitle: "كيف يعمل",
+    flow: [
+      "أرسل رسالتك — المشروع أو الفكرة أو السؤال.",
+      "أراجع وأردّ بتوجيه استراتيجي صادق.",
+      "نتفق على النطاق والجدول الزمني وما يهم فعلاً.",
     ],
+    channelsTitle: "قنوات مباشرة",
   },
 } as const;
 
 export function ContactPageBody({ model }: { model: SiteViewModel }) {
   const t = copy[model.locale];
+  const isAr = model.locale === "ar";
   const email = model.contact.emailAddress;
   const whatsapp = model.contact.whatsappUrl;
-  const isAr = model.locale === "ar";
-  const heroImage = model.brandMedia.contactHero || model.brandMedia.gallery.tech || "/images/hero_tech.png";
 
   return (
-    <div className="relative overflow-hidden pb-32" data-testid="contact-page">
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-32">
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[var(--bg-base)]" />
-          <div className="absolute -right-1/4 top-0 h-[600px] w-[600px] rounded-full bg-indigo-600/10 blur-[140px]" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, var(--text-3) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
-        </div>
-        
-        <div className="section-frame relative z-10">
-          <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className={cn("flex items-center gap-3 mb-8", isAr ? "flex-row-reverse" : "")}>
-                <span className="h-[1px] w-8 bg-indigo-500" />
-                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-500">{t.eyebrow}</p>
-              </div>
-              <h1 className="headline-display text-[clamp(2.5rem,6vw,4.5rem)] font-black leading-[1.05] tracking-tight text-[var(--text-1)]">
-                {t.title}
-              </h1>
-              <p className="mt-8 text-lg leading-relaxed text-[var(--text-2)] md:text-xl max-w-2xl">
-                {t.body}
-              </p>
-              
-              <div className={cn("mt-12 flex flex-wrap gap-4", isAr ? "flex-row-reverse" : "")}>
-                <a href={`mailto:${email}`} className="button-liquid-primary px-10 h-16 text-lg border-none bg-white text-black hover:bg-slate-200 shadow-xl">
-                  <Mail className="h-5 w-5" />
-                  {t.email}
-                </a>
-                <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary px-8 h-16 group">
-                  <MessageCircle className="h-5 w-5 text-emerald-500" />
-                  {t.whatsapp}
-                </a>
-              </div>
-            </motion.div>
+    <div className="relative pb-32 pt-28" dir={isAr ? "rtl" : "ltr"} data-testid="contact-page">
+      {/* Bg */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-0 top-0 h-[500px] w-[500px] rounded-full bg-[var(--os-teal)] opacity-[0.05] blur-[120px]" />
+        <div className="absolute right-0 bottom-0 h-[400px] w-[400px] rounded-full bg-[var(--os-violet)] opacity-[0.04] blur-[100px]" />
+      </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="relative"
-            >
-               <div className="absolute -inset-4 bg-gradient-to-br from-indigo-600/20 to-transparent blur-3xl opacity-30" />
-               <div className="relative glass rounded-[3rem] border border-[var(--glass-border)] p-4 overflow-hidden shadow-2xl">
-                  <div className="relative aspect-video w-full overflow-hidden rounded-[2.2rem]">
-                    <Image
-                      src={heroImage}
-                      alt="Contact Visual"
-                      fill
-                      priority
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-6 left-6 flex items-center gap-3">
-                       <div className="h-10 w-10 rounded-full border-2 border-white/20 bg-indigo-600 flex items-center justify-center">
-                          <Zap className="h-5 w-5 text-white" />
-                       </div>
-                       <span className="text-sm font-black uppercase tracking-widest text-white">{isAr ? "دقة في التنفيذ" : "Precision Protocol"}</span>
-                    </div>
-                  </div>
-               </div>
-            </motion.div>
-          </div>
-        </div>
+      {/* Hero */}
+      <section className="section-frame mb-16 relative z-10">
+        <motion.span {...inView(0)} className="eyebrow mb-5 inline-flex">{t.eyebrow}</motion.span>
+        <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5vw,4.5rem)] font-bold text-white max-w-2xl">
+          {t.title}
+        </motion.h1>
+        <motion.p {...inView(0.12)} className="mt-5 max-w-xl text-[16px] leading-relaxed text-[var(--os-text-2)]">
+          {t.body}
+        </motion.p>
+        <motion.div {...inView(0.18)} className="mt-8 flex flex-wrap gap-4">
+          <a href={`mailto:${email}`} className="btn-primary">
+            <Mail className="h-4 w-4" /> {t.email}
+          </a>
+          <a href={whatsapp} target="_blank" rel="noopener noreferrer"
+            className="btn-secondary gap-2"
+          >
+            <MessageCircle className="h-4 w-4 text-emerald-400" /> {t.whatsapp}
+          </a>
+        </motion.div>
       </section>
 
-      {/* ── FORM & SIDEBAR ── */}
-      <section className="py-24">
-        <div className="section-frame">
-          <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-            
-            {/* Form Container */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="glass min-w-0 rounded-[2rem] border-white/5 bg-white/[0.01] p-5 shadow-2xl sm:rounded-[3rem] sm:p-8 md:rounded-[3.5rem] md:p-14"
-            >
-              <div className="mb-12">
-                 <h2 className="text-3xl font-black text-[var(--text-1)]">{isAr ? "تفاصيل الطلب" : "Inquiry Parameters"}</h2>
-                 <p className="text-[var(--text-3)] mt-3">{isAr ? "يرجى تقديم أكبر قدر ممكن من الوضوح للمساعدة في التشخيص." : "Please provide maximum clarity to assist the diagnostic phase."}</p>
+      {/* Main grid: Form + Sidebar */}
+      <section className="section-frame relative z-10">
+        <div className="grid gap-10 lg:grid-cols-[1.3fr_0.7fr]">
+
+          {/* Form */}
+          <motion.div {...inView(0)} className="glass-card p-8 md:p-12">
+            <h2 className="text-[1.3rem] font-bold text-white mb-2">
+              {isAr ? "تفاصيل الطلب" : "Inquiry details"}
+            </h2>
+            <p className="text-[13px] text-[var(--os-text-3)] mb-8">
+              {isAr ? "كن واضحاً قدر الإمكان — هذا يساعد في التشخيص." : "The more clarity you provide, the better the response."}
+            </p>
+            <LiquidContactForm locale={model.locale} />
+          </motion.div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Availability */}
+            <motion.div {...inView(0.06)} className="glass-card p-7">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <h3 className="text-[13px] font-bold text-white uppercase tracking-widest">{t.availTitle}</h3>
               </div>
-              <LiquidContactForm locale={model.locale} />
+              <div className="space-y-4">
+                {t.avail.map((row) => (
+                  <div key={row.l} className="flex items-center justify-between border-b border-[var(--os-border)] pb-3 last:border-0 last:pb-0">
+                    <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--os-text-3)]">{row.l}</span>
+                    <span className="text-[13px] font-bold text-white">{row.v}</span>
+                  </div>
+                ))}
+              </div>
             </motion.div>
 
-            {/* Sidebar */}
-            <aside className="space-y-8">
-              {/* Availability */}
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="glass min-w-0 rounded-[2rem] border-white/5 p-6 sm:rounded-[3rem] md:p-10"
-              >
-                <div className="flex items-center gap-4 mb-10">
-                   <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
-                      <Clock className="h-5 w-5" />
-                   </div>
-                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-1)]">{t.availabilityTitle}</h3>
+            {/* Flow */}
+            <motion.div {...inView(0.1)} className="glass-card p-7">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--os-violet)]/30 bg-[var(--os-violet)]/10 text-[var(--os-violet)]">
+                  <Send className="h-4 w-4" />
                 </div>
-                <div className="space-y-6">
-                  {t.availability.map((row) => (
-                    <div key={row.label} className="flex items-center justify-between gap-4 border-b border-white/5 pb-5 last:border-0 last:pb-0">
-                      <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-3)]">{row.label}</span>
-                      <span className="text-sm font-black text-[var(--text-1)]">{row.value}</span>
+                <h3 className="text-[13px] font-bold text-white uppercase tracking-widest">{t.flowTitle}</h3>
+              </div>
+              <div className="relative space-y-6 pl-8">
+                <div className="absolute left-3.5 top-1 bottom-1 w-px bg-[var(--os-border)]" />
+                {t.flow.map((step, i) => (
+                  <div key={i} className="relative">
+                    <div className="absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--os-violet)] text-[9px] font-bold text-white shadow-[0_0_12px_rgba(124,58,237,0.4)]">
+                      {i + 1}
                     </div>
-                  ))}
-                </div>
-              </motion.div>
+                    <p className="text-[13px] leading-relaxed text-[var(--os-text-2)]">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
 
-              {/* Protocol Steps */}
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="glass min-w-0 rounded-[2rem] border-white/5 bg-indigo-500/[0.01] p-6 sm:rounded-[3rem] md:p-10"
-              >
-                <div className="flex items-center gap-4 mb-10">
-                   <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
-                      <Send className="h-5 w-5" />
-                   </div>
-                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-1)]">{t.stepsTitle}</h3>
-                </div>
-                <div className="space-y-8 relative">
-                   <div className="absolute left-5 top-0 bottom-0 w-px bg-white/5" />
-                   {t.steps.map((step, idx) => (
-                     <div key={idx} className="relative pl-12">
-                        <div className="absolute left-2.5 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-black text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]">
-                          {idx + 1}
-                        </div>
-                        <p className="text-sm leading-relaxed text-[var(--text-2)] pt-0.5">{step}</p>
-                     </div>
-                   ))}
-                </div>
-              </motion.div>
-
-              {/* Channels */}
-              <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="glass min-w-0 rounded-[2rem] border-white/5 p-6 sm:rounded-[3rem] md:p-10"
-              >
-                <div className="flex items-center gap-4 mb-10">
-                   <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                      <Phone className="h-5 w-5" />
-                   </div>
-                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--text-1)]">{isAr ? "قنوات التواصل" : "Direct Access"}</h3>
-                </div>
-                <div className="grid gap-4">
-                  {model.contact.channels.slice(0, 3).map((channel) => {
-                    const isEx = channel.value.startsWith("http");
-                    return (
-                      <a
-                        key={channel.id}
-                        href={channel.value}
-                        target={isEx ? "_blank" : undefined}
-                        className="group flex items-center justify-between p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-indigo-500/30 transition-all"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-xs font-black uppercase tracking-widest text-[var(--text-1)]">{channel.label}</p>
-                          <p className="text-[10px] text-[var(--text-3)] mt-1 truncate">{channel.description}</p>
-                        </div>
-                        <ArrowUpRight className="h-4 w-4 text-[var(--text-3)] group-hover:text-indigo-500 transition-colors" />
-                      </a>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </aside>
+            {/* Channels */}
+            <motion.div {...inView(0.14)} className="glass-card p-7">
+              <h3 className="text-[13px] font-bold uppercase tracking-widest text-[var(--os-text-3)] mb-5">{t.channelsTitle}</h3>
+              <div className="space-y-3">
+                {model.contact.channels.slice(0, 3).map((ch) => (
+                  <a
+                    key={ch.id}
+                    href={ch.value}
+                    target={ch.value.startsWith("http") ? "_blank" : undefined}
+                    className="flex items-center justify-between rounded-xl border border-[var(--os-border)] bg-white/[0.02] p-4 transition hover:border-[var(--os-teal-border)] hover:bg-[var(--os-teal-soft)]"
+                  >
+                    <div>
+                      <p className="text-[12px] font-bold text-white">{ch.label}</p>
+                      <p className="mt-0.5 text-[10px] text-[var(--os-text-3)] truncate max-w-[180px]">{ch.description}</p>
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-[var(--os-text-3)]" />
+                  </a>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>

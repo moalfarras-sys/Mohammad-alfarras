@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteFontClassName } from "@/lib/fonts";
-import { CinematicOverlay } from "@/components/site/cinematic-overlay";
+// CinematicOverlay removed — replaced by CSS mesh gradients in globals.css
 
 import "./globals.css";
 
@@ -145,30 +145,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={resolvedLocale}
       dir={resolvedDir}
       suppressHydrationWarning
-      data-scroll-behavior="smooth"
-      className={`dark ${siteFontClassName}`}
+      className={`dark liquid-site ${siteFontClassName}`}
     >
       <head>
         <meta charSet="UTF-8" />
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootPersonJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootOrgJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootWebsiteJsonLd) }}
-        />
+        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootPersonJsonLd) }} />
+        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootOrgJsonLd) }} />
+        <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootWebsiteJsonLd) }} />
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <CinematicOverlay />
           {children}
         </ThemeProvider>
       </body>

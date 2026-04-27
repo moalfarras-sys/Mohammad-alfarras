@@ -2,440 +2,374 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
-import { 
-  ArrowRight, 
-  ArrowUpRight, 
-  Code2, 
-  Cpu, 
-  Globe, 
-  Layout, 
-  MessageCircle, 
-  Zap, 
-  Sparkles,
-  Play,
-  ChevronDown
-} from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, ArrowUpRight, Code2, Play, Globe, Cpu, Zap, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { SiteViewModel } from "./site-view-model";
 
-// ── CUSTOM COMPONENTS ──
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 32 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] as const },
+});
 
-function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseXSpring = useSpring(x);
-  const mouseYSpring = useSpring(y);
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
-  return (
-    <motion.div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-      className={cn("relative group transition-all duration-200", className)}
-    >
-      <div style={{ transform: "translateZ(50px)" }} className="relative z-10 h-full w-full">
-        {children}
-      </div>
-      {/* Glow Effect */}
-      <motion.div 
-        className="absolute -inset-2 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
-      />
-    </motion.div>
-  );
-}
-
-// ── MAIN PAGE ──
+const inView = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
+});
 
 export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
   const isAr = model.locale === "ar";
-  const { scrollY } = useScroll();
-  const yHero = useTransform(scrollY, [0, 500], [0, 200]);
-  const opacityHero = useTransform(scrollY, [0, 300], [1, 0]);
+  const locale = model.locale;
+
   const proofBadges = isAr
-    ? ["مقيم في ألمانيا", "جذور سورية", "+1.5M مشاهدة", "+6K مشترك", "162 فيديو", "Android TV", "Web/UI/UX", "TMS"]
-    : ["Germany based", "Syrian roots", "1.5M+ views", "6K+ subscribers", "162 videos", "Android TV", "Web/UI/UX", "TMS"];
+    ? ["🇩🇪 مقيم في ألمانيا", "🇸🇾 جذور سورية", "📱 Android TV", "🎬 +1.5M مشاهدة", "💻 Web · UI/UX", "🚚 لوجستيات"]
+    : ["🇩🇪 Germany based", "🇸🇾 Syrian roots", "📱 Android TV builder", "🎬 1.5M+ YT views", "💻 Web · UI/UX", "🚚 Logistics pro"];
+
   const modes = isAr
     ? [
-        ["Developer Mode", "مواقع ولوحات تحكم وواجهات React/Next.js وربط Supabase وVercel."],
-        ["Creator Mode", "مراجعات تقنية عربية توضّح قيمة المنتج قبل الضجيج التسويقي."],
-        ["Operations Mode", "خبرة لوجستية حقيقية في TMS والتنسيق وخدمة العملاء وضغط التشغيل."],
-        ["MoPlayer Mode", "منتج Android TV بتفعيل، إصدارات APK، وتجربة IPTV منظمة."],
+        { icon: <Code2 className="h-5 w-5" />, title: "Developer Mode", body: "مواقع، لوحات تحكم، Next.js/React/TypeScript، Supabase وVercel." },
+        { icon: <Play className="h-5 w-5" />,   title: "Creator Mode",    body: "مراجعات تقنية عربية صادقة لأدوات SaaS والذكاء الاصطناعي والإلكترونيات." },
+        { icon: <Globe className="h-5 w-5" />,  title: "Operations Mode", body: "خبرة لوجستية حقيقية: TMS، التنسيق، خدمة العملاء، وضغط التشغيل." },
+        { icon: <Cpu className="h-5 w-5" />,    title: "MoPlayer Mode",   body: "منتج Android TV بتفعيل وإصدارات APK وتجربة IPTV منظمة." },
       ]
     : [
-        ["Developer Mode", "Websites, dashboards, React/Next.js interfaces, Supabase, and Vercel systems."],
-        ["Creator Mode", "Arabic tech reviews that explain product value before marketing noise."],
-        ["Operations Mode", "Real logistics work with TMS, dispatch, customer service, and operational pressure."],
-        ["MoPlayer Mode", "An Android TV product with activation, APK releases, and structured IPTV experience."],
+        { icon: <Code2 className="h-5 w-5" />, title: "Developer Mode", body: "Websites, dashboards, Next.js/React/TypeScript, Supabase and Vercel systems." },
+        { icon: <Play className="h-5 w-5" />,   title: "Creator Mode",    body: "Honest Arabic tech reviews for SaaS, AI tools, and electronics — built on clarity." },
+        { icon: <Globe className="h-5 w-5" />,  title: "Operations Mode", body: "Real logistics discipline from TMS, dispatch coordination and operational pressure." },
+        { icon: <Cpu className="h-5 w-5" />,    title: "MoPlayer Mode",   body: "An Android TV product with activation, APK releases and structured IPTV experience." },
       ];
-  const storyArc = isAr
-    ? ["سوريا", "ألمانيا", "اللوجستيات", "الويب", "يوتيوب", "MoPlayer"]
-    : ["Syria", "Germany", "Logistics", "Web", "YouTube", "MoPlayer"];
 
-  const socialLinks = [
-    { icon: <Code2 className="h-5 w-5" />, href: "https://github.com/moalfarras-sys", color: "hover:text-white" },
-    { icon: <Play className="h-5 w-5" />, href: "https://www.youtube.com/@Moalfarras", color: "hover:text-red-500" },
-    { icon: <Globe className="h-5 w-5" />, href: "https://linkedin.com/in/mohammad-alfarras", color: "hover:text-blue-500" },
-    { icon: <MessageCircle className="h-5 w-5" />, href: model.contact.whatsappUrl, color: "hover:text-emerald-500" },
-  ];
+  const storyArc = isAr
+    ? [
+        { num: "01", label: "السوريا", sub: "جذور الحسكة" },
+        { num: "02", label: "ألمانيا", sub: "الانتقال والانضباط" },
+        { num: "03", label: "اللوجستيات", sub: "Rhenus · TMS" },
+        { num: "04", label: "الويب", sub: "Next.js · React" },
+        { num: "05", label: "يوتيوب", sub: "+1.5M مشاهدة" },
+        { num: "06", label: "MoPlayer", sub: "Android TV" },
+      ]
+    : [
+        { num: "01", label: "Syria", sub: "Al-Hasakah roots" },
+        { num: "02", label: "Germany", sub: "Discipline & growth" },
+        { num: "03", label: "Logistics", sub: "Rhenus · TMS" },
+        { num: "04", label: "Web", sub: "Next.js · React" },
+        { num: "05", label: "YouTube", sub: "1.5M+ views" },
+        { num: "06", label: "MoPlayer", sub: "Android TV" },
+      ];
+
+  const services = model.services.slice(0, 3);
+
+  const stack = ["NEXT.JS", "TYPESCRIPT", "REACT", "TAILWIND", "SUPABASE", "ANDROID", "VLC ENGINE", "FRAMER MOTION"];
 
   return (
-    <div className="relative">
-      {/* ── HERO SECTION ── */}
-      <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden pt-20">
-        <motion.div 
-          style={{ y: yHero, opacity: opacityHero }}
-          className="container relative z-10 px-6"
-        >
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-8 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/5 bg-white/[0.03] backdrop-blur-md"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
-              </span>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
-                {isAr ? "متاح لمشاريع استثنائية" : "Available for premium projects"}
-              </p>
-            </motion.div>
+    <div className="relative" dir={isAr ? "rtl" : "ltr"}>
 
-            <motion.h1 
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="headline-display text-[clamp(2.5rem,8vw,6.5rem)] font-black leading-[0.9] tracking-tighter text-white"
-            >
-              {isAr ? (
-                 <>
-                   أبني تجارب رقمية <br/>
-                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-violet-500">
-                     تترك أثراً بصرياً.
-                   </span>
-                 </>
-              ) : (
-                <>
-                  Crafting Digital <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-violet-500">
-                    Experiences that WOW.
-                  </span>
-                </>
-              )}
-            </motion.h1>
+      {/* ══════════ HERO ══════════ */}
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden pt-16">
+        {/* Orbs */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute left-[-10%] top-[-5%] h-[600px] w-[600px] rounded-full bg-[var(--os-teal)] opacity-[0.06] blur-[120px]" />
+          <div className="absolute right-[-5%] top-[10%] h-[500px] w-[500px] rounded-full bg-[var(--os-violet)] opacity-[0.06] blur-[100px]" />
+          <div className="absolute bottom-0 left-[20%] h-[400px] w-[400px] rounded-full bg-[var(--os-violet)] opacity-[0.04] blur-[100px]" />
+        </div>
 
-            {/* Motion Graphic Asset */}
-            <motion.div
-              animate={{ 
-                y: [0, -20, 0],
-                rotate: [0, 2, 0]
-              }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-20 top-0 w-[600px] h-[600px] opacity-20 pointer-events-none hidden lg:block"
-            >
-               <Image 
-                 src="/images/digital-os-motion.png" 
-                 alt="Motion Graphic" 
-                 width={600} 
-                 height={600} 
-                 className="w-full h-full object-contain blur-sm"
-               />
-            </motion.div>
-
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="mt-10 max-w-2xl text-lg md:text-2xl text-slate-400 leading-relaxed font-medium"
-            >
-              {model.profile.subtitle}
-            </motion.p>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.6 }}
-              className="mt-12 flex flex-wrap gap-6 items-center"
-            >
-              <Link 
-                href={`/${model.locale}/work`} 
-                className="group relative h-16 px-10 rounded-full bg-white text-black font-black text-sm uppercase tracking-widest overflow-hidden transition-all hover:scale-105 active:scale-95"
-              >
-                <span className="relative z-10 flex items-center gap-3">
-                   {isAr ? "استكشف الأعمال" : "Explore Projects"} 
-                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+        <div className="section-frame relative z-10 py-24 lg:py-32">
+          <div className="grid gap-16 lg:grid-cols-[1fr_420px] lg:items-center">
+            {/* Left */}
+            <div>
+              {/* Status pill */}
+              <motion.div {...fadeUp(0)} className="mb-8 inline-flex items-center gap-3 rounded-full border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] px-4 py-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--os-teal)] opacity-70" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--os-teal)]" />
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-indigo-500 opacity-0 group-hover:opacity-10 transition-opacity" />
-              </Link>
-              <Link 
-                href={`/${model.locale}/contact`} 
-                className="h-16 px-8 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white font-black text-sm uppercase tracking-widest transition-all hover:bg-white/10"
-              >
-                {isAr ? "تواصل معي" : "Direct Inquiry"}
-              </Link>
-              
-              <div className="flex gap-4 ml-4">
-                 {socialLinks.map((link, idx) => (
-                   <motion.a 
-                     key={idx}
-                     href={link.href}
-                     target="_blank"
-                     whileHover={{ y: -4, scale: 1.1 }}
-                     className={cn("text-slate-500 transition-colors", link.color)}
-                   >
-                     {link.icon}
-                   </motion.a>
-                 ))}
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.75 }}
-              className="mt-10 flex max-w-4xl flex-wrap gap-2"
-            >
-              {proofBadges.map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-300 backdrop-blur"
-                >
-                  {badge}
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--os-teal)]">
+                  {isAr ? "متاح لمشاريع استثنائية" : "Available for premium projects"}
                 </span>
-              ))}
-            </motion.div>
-          </div>
-        </motion.div>
+              </motion.div>
 
-        {/* Decorative elements */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[1000px] w-[1000px] rounded-full bg-cyan-500/5 blur-[160px]" />
-           <div className="absolute top-0 right-0 h-[600px] w-[600px] rounded-full bg-indigo-500/5 blur-[140px]" />
-        </div>
-        
-        <motion.div 
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-500"
-        >
-           <ChevronDown className="h-6 w-6" />
-        </motion.div>
-      </section>
-
-      <section className="relative z-10 py-24">
-        <div className="container px-6">
-          <div className="mb-12 max-w-3xl">
-            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
-              {isAr ? "اختر وضع العمل" : "Choose your mode"}
-            </p>
-            <h2 className="headline-display text-4xl font-black leading-tight text-white md:text-6xl">
-              {isAr ? "مساحة واحدة تجمع الشخص، المنتج، المحتوى، والخبرة التشغيلية." : "One digital OS for the person, product, media, and operations."}
-            </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-4">
-            {modes.map(([title, body], index) => (
-              <motion.article
-                key={title}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.06 }}
-                className="glass rounded-[2rem] border-white/5 bg-white/[0.02] p-6"
+              {/* H1 */}
+              <motion.h1
+                {...fadeUp(0.1)}
+                className="headline-display text-[clamp(2.6rem,7.5vw,6rem)] font-bold text-white leading-[1.04]"
               >
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-cyan-300">
-                  {index === 0 ? <Code2 className="h-5 w-5" /> : index === 1 ? <Play className="h-5 w-5" /> : index === 2 ? <Globe className="h-5 w-5" /> : <Cpu className="h-5 w-5" />}
-                </div>
-                <h3 className="text-lg font-black text-white">{title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{body}</p>
-              </motion.article>
-            ))}
-          </div>
-        </div>
-      </section>
+                {isAr ? (
+                  <>
+                    أحوّل العمليات الواقعية<br />
+                    <span className="gradient-text">إلى تجارب رقمية واضحة.</span>
+                  </>
+                ) : (
+                  <>
+                    I turn real-world ops<br />
+                    <span className="gradient-text">into clear digital products.</span>
+                  </>
+                )}
+              </motion.h1>
 
-      <section className="relative py-16">
-        <div className="container px-6">
-          <div className="glass rounded-[3rem] border-white/5 p-6 md:p-10">
-            <div className="mb-8 flex items-center justify-between gap-4">
-              <h2 className="headline-display text-3xl font-black text-white md:text-5xl">
-                {isAr ? "قوس القصة" : "Story arc"}
-              </h2>
-              <span className="hidden text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 md:block">
-                {isAr ? "من الواقع إلى النظام الرقمي" : "From reality to digital systems"}
-              </span>
-            </div>
-            <div className="grid gap-3 md:grid-cols-6">
-              {storyArc.map((step, index) => (
-                <div key={step} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400">0{index + 1}</p>
-                  <p className="mt-3 text-sm font-black text-white">{step}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+              {/* Sub */}
+              <motion.p {...fadeUp(0.2)} className="mt-8 max-w-xl text-[17px] leading-relaxed text-[var(--os-text-2)]">
+                {isAr
+                  ? "محمد الفراس — مطوّر ويب ومصمم واجهات وباني Android TV وصانع محتوى تقني عربي مقيم في ألمانيا."
+                  : "Mohammad Alfarras — web developer, UI designer, Android TV app builder, and Arabic tech creator based in Germany."}
+              </motion.p>
 
-      {/* ── MARQUEE / STACK ── */}
-      <section className="py-20 border-y border-white/5 bg-white/[0.01]">
-         <div className="flex overflow-hidden gap-12 select-none">
-            {[1, 2].map((i) => (
-              <div key={i} className="flex flex-none gap-20 items-center animate-marquee whitespace-nowrap px-10">
-                {["NEXT.JS", "TYPESCRIPT", "REACT", "FRAMER MOTION", "TAILWIND CSS", "SUPABASE", "ANDROID", "VLC ENGINE"].map((tech) => (
-                  <span key={tech} className="text-4xl md:text-7xl font-black text-white/5 tracking-tighter">
-                    {tech}
-                  </span>
+              {/* CTAs */}
+              <motion.div {...fadeUp(0.3)} className="mt-10 flex flex-wrap gap-4">
+                <Link href={`/${locale}/work`} className="btn-primary px-8 h-13 text-[14px]">
+                  {isAr ? "استكشف الأعمال" : "View the work"}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href={`/${locale}/apps/moplayer`} className="btn-secondary px-7 h-13 text-[14px]">
+                  {isAr ? "استكشف MoPlayer" : "Explore MoPlayer"}
+                </Link>
+                <Link href={`/${locale}/contact`} className="btn-secondary px-7 h-13 text-[14px]">
+                  {isAr ? "تواصل معي" : "Contact me"}
+                </Link>
+              </motion.div>
+
+              {/* Proof badges */}
+              <motion.div {...fadeUp(0.4)} className="mt-8 flex flex-wrap gap-2">
+                {proofBadges.map((b) => (
+                  <span key={b} className="os-badge text-[11px]">{b}</span>
                 ))}
-              </div>
-            ))}
-         </div>
-      </section>
+              </motion.div>
+            </div>
 
-      {/* ── SERVICES / SOLUTIONS ── */}
-      <section className="py-32 relative">
-        <div className="container px-6 relative z-10">
-          <div className="max-w-4xl mb-24">
-             <motion.div 
-               initial={{ opacity: 0, x: -20 }}
-               whileInView={{ opacity: 1, x: 0 }}
-               className="flex items-center gap-3 mb-6"
-             >
-                <span className="h-[1px] w-8 bg-cyan-500" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500">{isAr ? "القدرات" : "Capabilities"}</p>
-             </motion.div>
-             <h2 className="headline-display text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight">
-               {isAr ? "حلول رقمية مصممة للنمو والتميز." : "Digital solutions engineered for scale and impact."}
-             </h2>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {model.services.map((service, idx) => (
-              <TiltCard key={service.id} className="h-full">
-                <div className="relative h-full glass rounded-[2.5rem] p-10 border-white/5 bg-white/[0.01] hover:bg-white/[0.03] overflow-hidden group">
-                   <div className="mb-10 h-14 w-14 rounded-2xl bg-white/5 flex items-center justify-center text-cyan-400 border border-white/10 group-hover:scale-110 transition-transform">
-                      {idx === 0 ? <Layout className="h-6 w-6" /> : idx === 1 ? <Cpu className="h-6 w-6" /> : <Sparkles className="h-6 w-6" />}
-                   </div>
-                   <h3 className="text-2xl font-black text-white tracking-tight mb-4">{service.title}</h3>
-                   <p className="text-slate-400 text-sm leading-relaxed mb-10">{service.body}</p>
-                   
-                   <ul className="space-y-3">
-                      {service.bullets.map((bullet, i) => (
-                        <li key={i} className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-slate-500">
-                           <div className="h-1 w-1 rounded-full bg-cyan-500" />
-                           {bullet}
-                        </li>
-                      ))}
-                   </ul>
-                   
-                   <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
-                      {idx === 0 ? <Code2 className="h-20 w-20" /> : idx === 1 ? <Globe className="h-20 w-20" /> : <Zap className="h-20 w-20" />}
-                   </div>
-                </div>
-              </TiltCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURED PROJECT (MOPLAYER) ── */}
-      <section className="py-32">
-        <div className="container px-6">
-           <motion.div 
-             initial={{ opacity: 0, y: 30 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             className="glass relative rounded-[4rem] border-white/5 bg-gradient-to-br from-cyan-500/[0.02] to-violet-500/[0.02] p-10 md:p-20 overflow-hidden"
-           >
-              <div className="absolute top-0 right-0 p-20 opacity-[0.03] rotate-12">
-                 <Cpu className="h-96 w-96 text-white" />
-              </div>
-              
-              <div className="grid gap-16 lg:grid-cols-2 items-center relative z-10">
-                 <div className="order-2 lg:order-1">
-                    <div className="mb-8 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-400">
-                       <Zap className="h-4 w-4" />
-                       <span className="text-[10px] font-black uppercase tracking-[0.2em]">Featured Product</span>
-                    </div>
-                    <h2 className="headline-display text-5xl md:text-7xl font-black text-white tracking-tighter mb-8">MoPlayer</h2>
-                    <p className="text-xl text-slate-400 leading-relaxed mb-12">
-                      {isAr ? "مشغل وسائط متطور يعتمد على محرك VLC، مصمم لتجربة مشاهدة سينمائية على Android TV والهواتف." : "A high-performance media engine powered by VLC, designed for a cinematic viewing experience across Android TV and mobile."}
-                    </p>
-                    <Link 
-                      href={`/${model.locale}/apps/moplayer`} 
-                      className="group flex items-center gap-4 text-white font-black text-sm uppercase tracking-widest"
-                    >
-                       {isAr ? "استكشف المنتج" : "Explore Product Surface"}
-                       <div className="h-12 w-12 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
-                          <ArrowUpRight className="h-5 w-5" />
-                       </div>
-                    </Link>
-                 </div>
-                 
-                 <div className="order-1 lg:order-2 relative">
-                    <div className="absolute -inset-10 bg-cyan-500/10 blur-[80px] rounded-full animate-pulse" />
-                    <motion.div 
-                      animate={{ y: [0, -15, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      className="relative z-10"
-                    >
-                       <Image 
-                         src="/images/moplayer-hero-3d-final.png" 
-                         alt="MoPlayer Mockup" 
-                         width={800} 
-                         height={600} 
-                         className="w-full h-auto drop-shadow-[0_20px_50px_rgba(34,211,238,0.2)]"
-                       />
-                    </motion.div>
-                 </div>
-              </div>
-           </motion.div>
-        </div>
-      </section>
-
-      {/* ── FINAL CTA ── */}
-      <section className="py-40 text-center relative overflow-hidden">
-         <div className="absolute inset-0 z-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-violet-600/5 blur-[120px]" />
-         </div>
-         <div className="container relative z-10 px-6">
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="headline-display text-4xl md:text-8xl font-black text-white tracking-tighter mb-12"
-            >
-               {isAr ? "لنحول فكرتك إلى واقع بصري." : "Let's turn your vision into a visual reality."}
-            </motion.h2>
+            {/* Right — portrait */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="relative hidden lg:block"
             >
-               <Link 
-                 href={`/${model.locale}/contact`} 
-                 className="button-liquid-primary px-16 h-20 text-xl font-black"
-               >
-                  {isAr ? "ابدأ الآن" : "Let's Connect"}
-               </Link>
+              <div className="absolute -inset-6 rounded-full bg-[var(--os-teal)] opacity-[0.07] blur-[60px]" />
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-[var(--os-border)] bg-[var(--os-surface)] shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
+                <Image
+                  src={model.portraitImage || "/images/portrait.jpg"}
+                  alt="Mohammad Alfarras"
+                  fill
+                  priority
+                  className="object-cover object-top"
+                  sizes="420px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-surface)] via-transparent to-transparent opacity-60" />
+                {/* Name card */}
+                <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-black/50 p-4 backdrop-blur-xl">
+                  <p className="text-[12px] font-bold text-white">Mohammad Alfarras</p>
+                  <p className="mt-1 text-[10px] text-[var(--os-text-3)]">
+                    {isAr ? "مطوّر ويب · مصمم · مبدع محتوى" : "Web Developer · Designer · Creator"}
+                  </p>
+                </div>
+              </div>
             </motion.div>
-         </div>
+          </div>
+        </div>
+
+        {/* Scroll hint */}
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[var(--os-text-3)]"
+        >
+          <ChevronDown className="h-5 w-5" />
+        </motion.div>
+      </section>
+
+      {/* ══════════ STACK MARQUEE ══════════ */}
+      <section className="overflow-hidden border-y border-[var(--os-border)] bg-[var(--os-surface)]/50 py-5 select-none">
+        <div className="flex gap-16" style={{ width: "max-content" }}>
+          {[...stack, ...stack].map((t, i) => (
+            <span key={i} className="animate-marquee whitespace-nowrap text-[42px] font-bold tracking-tight text-white/[0.04]">
+              {t}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* ══════════ WHO AM I — MODE CARDS ══════════ */}
+      <section className="py-28">
+        <div className="section-frame">
+          <motion.div {...inView(0)} className="mb-14">
+            <span className="eyebrow">{isAr ? "اختر وضعك" : "Choose your angle"}</span>
+            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.4rem)] font-bold text-white">
+              {isAr
+                ? "شخص واحد · منظومة رقمية واحدة"
+                : "One person. One digital OS."}
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {modes.map((m, i) => (
+              <motion.div key={m.title} {...inView(i * 0.07)} className="glass-card p-8">
+                <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
+                  {m.icon}
+                </div>
+                <h3 className="text-[15px] font-bold text-white">{m.title}</h3>
+                <p className="mt-3 text-[13px] leading-relaxed text-[var(--os-text-3)]">{m.body}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ SERVICES ══════════ */}
+      <section className="py-28 bg-[var(--os-surface)]/30">
+        <div className="section-frame">
+          <motion.div {...inView(0)} className="mb-14 flex items-end justify-between gap-6 flex-wrap">
+            <div>
+              <span className="eyebrow">{isAr ? "القدرات" : "Capabilities"}</span>
+              <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.2rem)] font-bold text-white">
+                {isAr ? "ما الذي أبنيه" : "What I build"}
+              </h2>
+            </div>
+            <Link href={`/${locale}/work`} className="group flex items-center gap-2 text-[13px] font-semibold text-[var(--os-text-3)] hover:text-[var(--os-teal)] transition-colors">
+              {isAr ? "جميع الأعمال" : "All work"} <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {services.map((s, i) => (
+              <motion.div key={s.id} {...inView(i * 0.09)} className="glass-card overflow-hidden">
+                {/* Image */}
+                <div className="relative h-48 overflow-hidden">
+                  <Image
+                    src={s.image || "/images/service_web.png"}
+                    alt={s.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-surface)] via-transparent to-transparent" />
+                </div>
+                <div className="p-8">
+                  <h3 className="text-[16px] font-bold text-white leading-tight">{s.title}</h3>
+                  <p className="mt-3 text-[13px] leading-relaxed text-[var(--os-text-3)]">{s.body}</p>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {s.bullets.map((b) => (
+                      <span key={b} className="os-badge text-[10px]">{b}</span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ MOPLAYER FEATURE ══════════ */}
+      <section className="py-28">
+        <div className="section-frame">
+          <motion.div
+            {...inView(0)}
+            className="relative overflow-hidden rounded-[2.5rem] border border-[var(--os-teal-border)] bg-gradient-to-br from-[var(--os-teal)]/[0.04] to-[var(--os-violet)]/[0.04] p-10 md:p-16"
+          >
+            {/* Bg glow */}
+            <div className="pointer-events-none absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-[var(--os-teal)] opacity-[0.05] blur-[100px]" />
+
+            <div className="relative z-10 grid gap-14 lg:grid-cols-[1fr_1fr] lg:items-center">
+              {/* Text */}
+              <div>
+                <span className="eyebrow mb-6 inline-flex">
+                  <Zap className="h-3.5 w-3.5" />
+                  {isAr ? "المنتج الرئيسي" : "Flagship product"}
+                </span>
+                <h2 className="headline-display text-[clamp(2.4rem,5vw,4.5rem)] font-bold text-white">
+                  MoPlayer
+                </h2>
+                <p className="mt-5 text-[16px] leading-relaxed text-[var(--os-text-2)] max-w-md">
+                  {isAr
+                    ? "مشغّل وسائط متطوّر يعمل على محرّك VLC، مصمّم لتجربة مشاهدة سينمائية على Android TV والهواتف."
+                    : "A high-performance media engine powered by VLC, designed for a cinematic viewing experience on Android TV and mobile."}
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <Link href={`/${locale}/apps/moplayer`} className="btn-primary">
+                    {isAr ? "استكشف المنتج" : "Explore product"}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                  <Link href={`/${locale}/activate`} className="btn-secondary">
+                    {isAr ? "تفعيل الجهاز" : "Activate device"}
+                  </Link>
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  {["VLC Engine", "Android TV", "Xtream · M3U", isAr ? "APK مباشر" : "Direct APK"].map((t) => (
+                    <span key={t} className="os-badge">{t}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mockup */}
+              <div className="relative">
+                <div className="absolute -inset-8 rounded-full bg-[var(--os-teal)] opacity-[0.06] blur-[80px]" />
+                <motion.div animate={{ y: [0, -14, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }} className="relative">
+                  <Image
+                    src="/images/moplayer-hero-3d-final.png"
+                    alt="MoPlayer App"
+                    width={640}
+                    height={480}
+                    className="w-full h-auto drop-shadow-[0_24px_60px_rgba(0,212,224,0.18)]"
+                  />
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════ STORY ARC ══════════ */}
+      <section className="py-28 bg-[var(--os-surface)]/30">
+        <div className="section-frame">
+          <motion.div {...inView(0)} className="mb-12">
+            <span className="eyebrow">{isAr ? "قوس القصة" : "Story arc"}</span>
+            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3rem)] font-bold text-white">
+              {isAr ? "من الواقع إلى النظام الرقمي" : "From reality to digital systems"}
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {storyArc.map((s, i) => (
+              <motion.div
+                key={s.num}
+                {...inView(i * 0.06)}
+                className="glass-card px-6 py-7"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--os-teal)]">{s.num}</p>
+                <p className="mt-3 text-[15px] font-bold text-white">{s.label}</p>
+                <p className="mt-1 text-[11px] text-[var(--os-text-3)]">{s.sub}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ FINAL CTA ══════════ */}
+      <section className="py-36 text-center relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[var(--os-violet)] opacity-[0.06] blur-[120px]" />
+        </div>
+        <div className="section-frame relative z-10">
+          <motion.h2 {...inView(0)} className="headline-display text-[clamp(2rem,5vw,4.5rem)] font-bold text-white">
+            {isAr ? "لنحوّل فكرتك إلى واقع رقمي." : "Let's build something real."}
+          </motion.h2>
+          <motion.p {...inView(0.1)} className="mt-5 text-[17px] text-[var(--os-text-2)] max-w-lg mx-auto">
+            {isAr
+              ? "أرسل لي المشروع كما هو — سأرتّب الأولويات ونبدأ."
+              : "Send the project as it is. I'll map the goal and we start."}
+          </motion.p>
+          <motion.div {...inView(0.2)} className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link href={`/${locale}/contact`} className="btn-primary px-10 h-14 text-[15px]">
+              {isAr ? "ابدأ الآن" : "Start a conversation"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href={`/${locale}/work`} className="btn-secondary px-8 h-14 text-[15px]">
+              {isAr ? "استكشف الأعمال" : "View my work"}
+            </Link>
+          </motion.div>
+        </div>
       </section>
     </div>
   );

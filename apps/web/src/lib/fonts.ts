@@ -1,25 +1,21 @@
-import { Cairo, DM_Sans, Syne } from "next/font/google";
+import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic } from "next/font/google";
 
-export const displayFont = Syne({
+/** EN display + body — Plus Jakarta Sans: clean, modern, premium geometric */
+export const jakartaFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["700", "800"],
-  variable: "--font-display-syne",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
   display: "swap",
+  axes: ["opsz"],
 });
 
-export const bodyFont = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-body",
-  display: "swap",
-});
-
-export const arabicFont = Cairo({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "600", "700", "800"],
+/** Arabic — IBM Plex Sans Arabic: high-fidelity, bilingual-safe, readable at all sizes */
+export const arabicFont = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-arabic",
   display: "swap",
 });
 
-/** Apply on `<html>`: Syne (display), DM Sans (body), Cairo (Arabic). */
-export const siteFontClassName = `${displayFont.variable} ${bodyFont.variable} ${arabicFont.variable}`;
+/** Apply on `<html>` */
+export const siteFontClassName = `${jakartaFont.variable} ${arabicFont.variable}`;

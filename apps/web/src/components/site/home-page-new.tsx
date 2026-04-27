@@ -77,7 +77,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
         </div>
 
         <div className="section-frame relative z-10 py-24 lg:py-32">
-          <div className="flex flex-col-reverse lg:grid gap-12 lg:gap-16 lg:grid-cols-[1fr_420px] lg:items-center">
+          <div className="grid gap-16 lg:grid-cols-[1fr_420px] lg:items-center">
             {/* Left */}
             <div>
               {/* Status pill */}
@@ -94,7 +94,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
               {/* H1 */}
               <motion.h1
                 {...fadeUp(0.1)}
-                className="headline-display text-[clamp(2.6rem,7.5vw,6rem)] font-bold text-[var(--os-text-1)] leading-[1.04]"
+                className="headline-display text-[clamp(2.6rem,7.5vw,6rem)] font-bold text-white leading-[1.04]"
               >
                 {isAr ? (
                   <>
@@ -143,7 +143,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1.1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative mx-auto w-full max-w-[320px] lg:max-w-none"
+              className="relative hidden lg:block"
             >
               <div className="absolute -inset-6 rounded-full bg-[var(--os-teal)] opacity-[0.07] blur-[60px]" />
               <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-[var(--os-border)] bg-[var(--os-surface)] shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
@@ -157,8 +157,8 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-surface)] via-transparent to-transparent opacity-60" />
                 {/* Name card */}
-                <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-[var(--os-border)] bg-black/50 p-4 backdrop-blur-xl">
-                  <p className="text-[12px] font-bold text-[var(--os-text-1)]">Mohammad Alfarras</p>
+                <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-black/50 p-4 backdrop-blur-xl">
+                  <p className="text-[12px] font-bold text-white">Mohammad Alfarras</p>
                   <p className="mt-1 text-[10px] text-[var(--os-text-3)]">
                     {isAr ? "مطوّر ويب · مصمم · مبدع محتوى" : "Web Developer · Designer · Creator"}
                   </p>
@@ -182,7 +182,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
       <section className="overflow-hidden border-y border-[var(--os-border)] bg-[var(--os-surface)]/50 py-5 select-none">
         <div className="flex gap-16" style={{ width: "max-content" }}>
           {[...stack, ...stack].map((t, i) => (
-            <span key={i} className="animate-marquee whitespace-nowrap text-[42px] font-bold tracking-tight text-[var(--os-text-1)]/[0.04]">
+            <span key={i} className="animate-marquee whitespace-nowrap text-[42px] font-bold tracking-tight text-white/[0.04]">
               {t}
             </span>
           ))}
@@ -194,7 +194,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="mb-14">
             <span className="eyebrow">{isAr ? "اختر وضعك" : "Choose your angle"}</span>
-            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.4rem)] font-bold text-[var(--os-text-1)]">
+            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.4rem)] font-bold text-white">
               {isAr
                 ? "شخص واحد · منظومة رقمية واحدة"
                 : "One person. One digital OS."}
@@ -207,7 +207,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
                 <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
                   {m.icon}
                 </div>
-                <h3 className="text-[15px] font-bold text-[var(--os-text-1)]">{m.title}</h3>
+                <h3 className="text-[15px] font-bold text-white">{m.title}</h3>
                 <p className="mt-3 text-[13px] leading-relaxed text-[var(--os-text-3)]">{m.body}</p>
               </motion.div>
             ))}
@@ -221,7 +221,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
           <motion.div {...inView(0)} className="mb-14 flex items-end justify-between gap-6 flex-wrap">
             <div>
               <span className="eyebrow">{isAr ? "القدرات" : "Capabilities"}</span>
-              <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.2rem)] font-bold text-[var(--os-text-1)]">
+              <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.2rem)] font-bold text-white">
                 {isAr ? "ما الذي أبنيه" : "What I build"}
               </h2>
             </div>
@@ -245,7 +245,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-surface)] via-transparent to-transparent" />
                 </div>
                 <div className="p-8">
-                  <h3 className="text-[16px] font-bold text-[var(--os-text-1)] leading-tight">{s.title}</h3>
+                  <h3 className="text-[16px] font-bold text-white leading-tight">{s.title}</h3>
                   <p className="mt-3 text-[13px] leading-relaxed text-[var(--os-text-3)]">{s.body}</p>
                   <div className="mt-6 flex flex-wrap gap-2">
                     {s.bullets.map((b) => (
@@ -276,7 +276,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
                   <Zap className="h-3.5 w-3.5" />
                   {isAr ? "المنتج الرئيسي" : "Flagship product"}
                 </span>
-                <h2 className="headline-display text-[clamp(2.4rem,5vw,4.5rem)] font-bold text-[var(--os-text-1)]">
+                <h2 className="headline-display text-[clamp(2.4rem,5vw,4.5rem)] font-bold text-white">
                   MoPlayer
                 </h2>
                 <p className="mt-5 text-[16px] leading-relaxed text-[var(--os-text-2)] max-w-md">
@@ -325,7 +325,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="mb-12">
             <span className="eyebrow">{isAr ? "قوس القصة" : "Story arc"}</span>
-            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3rem)] font-bold text-[var(--os-text-1)]">
+            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3rem)] font-bold text-white">
               {isAr ? "من الواقع إلى النظام الرقمي" : "From reality to digital systems"}
             </h2>
           </motion.div>
@@ -338,7 +338,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
                 className="glass-card px-6 py-7"
               >
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--os-teal)]">{s.num}</p>
-                <p className="mt-3 text-[15px] font-bold text-[var(--os-text-1)]">{s.label}</p>
+                <p className="mt-3 text-[15px] font-bold text-white">{s.label}</p>
                 <p className="mt-1 text-[11px] text-[var(--os-text-3)]">{s.sub}</p>
               </motion.div>
             ))}
@@ -352,7 +352,7 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[var(--os-violet)] opacity-[0.06] blur-[120px]" />
         </div>
         <div className="section-frame relative z-10">
-          <motion.h2 {...inView(0)} className="headline-display text-[clamp(2rem,5vw,4.5rem)] font-bold text-[var(--os-text-1)]">
+          <motion.h2 {...inView(0)} className="headline-display text-[clamp(2rem,5vw,4.5rem)] font-bold text-white">
             {isAr ? "لنحوّل فكرتك إلى واقع رقمي." : "Let's build something real."}
           </motion.h2>
           <motion.p {...inView(0.1)} className="mt-5 text-[17px] text-[var(--os-text-2)] max-w-lg mx-auto">

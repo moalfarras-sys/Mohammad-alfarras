@@ -1,8 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowUpRight, Mail, MapPin, MessageCircle, Send, Clock, Sparkles, Zap, Phone } from "lucide-react";
+import { ArrowUpRight, Mail, MessageCircle, Send, Clock, Zap, Phone } from "lucide-react";
 
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import type { SiteViewModel } from "@/components/site/site-view-model";
@@ -18,8 +18,8 @@ const copy = {
     whatsapp: "WhatsApp Direct",
     availabilityTitle: "System Availability",
     availability: [
-      { label: "Operating Days", value: "Sat — Thu" },
-      { label: "Timezone", value: "Germany · CET/CEST" },
+      { label: "Operating Days", value: "Sat - Thu" },
+      { label: "Timezone", value: "Germany - CET/CEST" },
       { label: "Discovery Call", value: "Via Inquiry" },
       { label: "Local presence", value: "Germany" },
     ],
@@ -32,15 +32,15 @@ const copy = {
   },
   ar: {
     eyebrow: "طلب استشارة",
-    title: "تحديد النطاق، القيود، والنتائج المتوقعة.",
+    title: "تحديد النطاق، القيود، والنتيجة المطلوبة.",
     body:
       "استشارة استراتيجية لمواقع الويب، هندسة المنتجات، بيئة MoPlayer، والتنفيذ باللغتين. مقيم في ألمانيا وأعمل وفق إيقاع يبدأ من التشخيص والتحليل.",
     email: "إرسال بريد",
     whatsapp: "واتساب مباشر",
     availabilityTitle: "حالة النظام",
     availability: [
-      { label: "أيام العمل", value: "السبت — الخميس" },
-      { label: "التوقيت", value: "ألمانيا · CET/CEST" },
+      { label: "أيام العمل", value: "السبت - الخميس" },
+      { label: "التوقيت", value: "ألمانيا - CET/CEST" },
       { label: "جلسة اكتشاف", value: "عبر الطلب" },
       { label: "التواجد", value: "ألمانيا" },
     ],
@@ -58,11 +58,10 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
   const email = model.contact.emailAddress;
   const whatsapp = model.contact.whatsappUrl;
   const isAr = model.locale === "ar";
-  const reduced = useReducedMotion();
   const heroImage = model.brandMedia.contactHero || model.brandMedia.gallery.tech || "/images/hero_tech.png";
 
   return (
-    <div className="relative pb-32" data-testid="contact-page">
+    <div className="relative overflow-hidden pb-32" data-testid="contact-page">
       {/* ── HERO ── */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-32">
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -141,7 +140,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="glass rounded-[3.5rem] p-8 md:p-14 border-white/5 bg-white/[0.01] shadow-2xl"
+              className="glass min-w-0 rounded-[2rem] border-white/5 bg-white/[0.01] p-5 shadow-2xl sm:rounded-[3rem] sm:p-8 md:rounded-[3.5rem] md:p-14"
             >
               <div className="mb-12">
                  <h2 className="text-3xl font-black text-[var(--text-1)]">{isAr ? "تفاصيل الطلب" : "Inquiry Parameters"}</h2>
@@ -157,7 +156,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="glass rounded-[3rem] p-10 border-white/5"
+                className="glass min-w-0 rounded-[2rem] border-white/5 p-6 sm:rounded-[3rem] md:p-10"
               >
                 <div className="flex items-center gap-4 mb-10">
                    <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
@@ -181,7 +180,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="glass rounded-[3rem] p-10 border-white/5 bg-indigo-500/[0.01]"
+                className="glass min-w-0 rounded-[2rem] border-white/5 bg-indigo-500/[0.01] p-6 sm:rounded-[3rem] md:p-10"
               >
                 <div className="flex items-center gap-4 mb-10">
                    <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 border border-indigo-500/20">
@@ -208,7 +207,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="glass rounded-[3rem] p-10 border-white/5"
+                className="glass min-w-0 rounded-[2rem] border-white/5 p-6 sm:rounded-[3rem] md:p-10"
               >
                 <div className="flex items-center gap-4 mb-10">
                    <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">

@@ -1,18 +1,19 @@
 "use client";
 
-import { ArrowUpRight, Download, Mail, PlayCircle, ShieldCheck, Clock, Briefcase, Code2, Globe, Cpu, TrendingUp, Layout } from "lucide-react";
+import { ArrowUpRight, Download, Mail, ShieldCheck, Briefcase, Code2, Globe, Cpu, TrendingUp, Layout, Zap } from "lucide-react";
 import Image from "next/image";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Link from "next/link";
 
 import { cn } from "@/lib/cn";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 import { cvPageCopy } from "@/content/cv";
 import { privacyCopy } from "@/content/legal";
-import { homeContent, socialLinks } from "@/content/site";
-import { caseStudyCopy, getCaseStudyBySlug } from "@/content/work";
+import { socialLinks } from "@/content/site";
+import { caseStudyCopy } from "@/content/work";
 
-import type { SiteProject, SiteViewModel } from "./site-view-model";
+import type { SiteViewModel } from "./site-view-model";
 
 // ── SHARED ANIMATIONS ──
 
@@ -130,7 +131,7 @@ function ContactCtaSection({ locale }: { locale: string }) {
 // ── CV PAGE ──
 
 export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
-  const t = cvPageCopy[model.locale];
+  const t = repairMojibakeDeep(cvPageCopy[model.locale]);
   const isAr = model.locale === "ar";
 
   return (
@@ -345,7 +346,7 @@ export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; sl
   if (!project) return null;
 
   const isAr = model.locale === "ar";
-  const t = caseStudyCopy[model.locale];
+  const t = repairMojibakeDeep(caseStudyCopy[model.locale]);
   const gallery = project.gallery.length ? project.gallery : [project.image];
   const isMoPlayer = project.slug === "moplayer";
 
@@ -506,34 +507,8 @@ export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; sl
   );
 }
 
-function CaseBlock({ title, items, chip = false }: { title: string; items: string[]; chip?: boolean }) {
-  return (
-    <div className="glass rounded-[2rem] p-8 border-white/5">
-      <Eyebrow className="mb-4">{title}</Eyebrow>
-      {chip ? (
-        <div className="flex flex-wrap gap-2">
-          {items.map((item) => (
-            <span key={item} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300">
-              {item}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {items.map((item) => (
-            <li key={item} className="text-sm font-medium text-slate-400 flex items-start gap-2">
-               <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 mt-1.5 shrink-0" />
-               {item}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 export function PortfolioPrivacyPage({ model }: { model: SiteViewModel }) {
-  const t = privacyCopy[model.locale];
+  const t = repairMojibakeDeep(privacyCopy[model.locale]);
 
   return (
     <div className="pt-32 pb-32">

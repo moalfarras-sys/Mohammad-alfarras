@@ -5,6 +5,7 @@ import { buildCvPresentationModel } from "@/lib/cv-presenter";
 import { formatMonthYear } from "@/lib/locale-format";
 import { getProjectStudioItem, resolveMediaPath, translateMetric } from "@/lib/projects-studio";
 import { getLiveMatches } from "@/lib/matches-live";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import { getLiveWeather } from "@/lib/weather-live";
 import { getLiveYoutubeData } from "@/lib/youtube-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
@@ -42,11 +43,13 @@ function getProfile(snapshot: CmsSnapshot, locale: Locale) {
     location_en: "Germany",
   });
 
-  return {
+  const profile: SiteViewModel["profile"] = {
     name: locale === "ar" ? String(brand.title_ar) : String(brand.title_en),
     subtitle: locale === "ar" ? String(brand.subtitle_ar ?? "") : String(brand.subtitle_en ?? ""),
     location: locale === "ar" ? String(brand.location_ar ?? "ألمانيا") : String(brand.location_en ?? "Germany"),
   };
+
+  return repairMojibakeDeep(profile);
 }
 
 function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["services"] {
@@ -104,7 +107,7 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
 }
 
 function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
-  return {
+  const project: SiteViewModel["projects"][number] = {
     id: "moplayer-fallback",
     slug: "moplayer",
     title: locale === "ar" ? localProjects[0].nameAR : localProjects[0].nameEN,
@@ -146,6 +149,8 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
           { value: "UI", label: "Focused interface" },
         ],
   };
+
+  return repairMojibakeDeep(project);
 }
 
 function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
@@ -455,11 +460,13 @@ function getContact(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["conta
   const email = channels.find((entry) => entry.type === "email");
   const whatsapp = channels.find((entry) => entry.type === "whatsapp");
 
-  return {
+  const contact: SiteViewModel["contact"] = {
     channels,
     emailAddress: String(email?.value ?? "mohammad.alfarras@gmail.com").replace(/^mailto:/, ""),
     whatsappUrl: whatsapp?.value ?? "https://wa.me/4917623419358",
   };
+
+  return repairMojibakeDeep(contact);
 }
 
 function getCertifications(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["certifications"] {
@@ -534,7 +541,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
       : `/api/cv-pdf?locale=${locale}&variant=ats`;
   const docxDownload = `/api/cv-docx?locale=${locale}`;
 
-  return {
+  const model: SiteViewModel = {
     locale,
     pageSlug,
     t: copy,
@@ -566,6 +573,8 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
       docx: docxDownload,
     },
   };
+
+  return repairMojibakeDeep(model);
 }
 
 export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {

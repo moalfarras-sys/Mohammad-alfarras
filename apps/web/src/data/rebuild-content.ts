@@ -568,7 +568,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       eyebrow: "YouTube",
       title: "Real Arabic tech content. From Germany. Without the padding.",
       body: "The channel started with one small product and one honest explanation. The response proved something simple: trust compounds when the explanation stays clean.",
-      featuredLabel: "Featured video",
+      featuredLabel: "Channel highlight",
       latestLabel: "Latest videos",
       values: ["1.5M+ views", "6.1K+ subscribers", "162 videos", "Honest reviews"],
       collaborationTitle: "Why follow an Arab creator from Germany?",

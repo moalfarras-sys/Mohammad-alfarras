@@ -278,6 +278,8 @@
     background-color: var(--background);
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
@@ -287,11 +289,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    max-width: 100%;
     overflow-x: hidden;
     font-feature-settings: "ss01", "cv02", "cv11";
     transition:
       background-color var(--motion-slow) var(--ease-out),
       color var(--motion-slow) var(--ease-out);
+  }
+
+  @supports (overflow: clip) {
+    html,
+    body {
+      overflow-x: clip;
+    }
   }
 
   /* Arabic typography */
@@ -336,7 +346,7 @@
  * Components
  * ───────────────────────────────────────────────────────────────────────────── */
 @layer components {
-  .section-frame { @apply mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8; }
+  .section-frame { @apply mx-auto w-full max-w-6xl overflow-x-clip px-4 sm:px-6 md:px-8; }
   .prose-frame { max-width: 65ch; }
   .font-display { font-family: var(--font-display); font-optical-sizing: auto; }
 
@@ -1177,4 +1187,93 @@ header { isolation: isolate; }
 .dark .site-image-shell {
   border-color: rgba(255,255,255,0.08);
   box-shadow: var(--shadow-elevated);
+}
+
+/* Digital OS final pass: one premium visual language across public pages. */
+.liquid-site,
+.dark .liquid-site,
+.liquid-site.dark {
+  --accent-1: #22d3ee;
+  --accent-2: #8b5cf6;
+  --accent-glow: #67e8f9;
+  --accent-cyan: #22d3ee;
+  --accent-gold: #f8d477;
+  --bg-base: #030711;
+  --bg-surface: #08111f;
+  --bg-elevated: #0d1728;
+  --text-1: #f8fbff;
+  --text-2: rgba(226, 232, 240, 0.78);
+  --text-3: rgba(203, 213, 225, 0.55);
+  --glass-bg: rgba(8, 17, 31, 0.64);
+  --glass-border: rgba(148, 163, 184, 0.16);
+  --glass-shadow: 0 30px 90px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --border: rgba(148, 163, 184, 0.14);
+  --border-soft: rgba(148, 163, 184, 0.09);
+  --border-strong: rgba(103, 232, 249, 0.28);
+  --surface: var(--bg-surface);
+  --surface-soft: var(--bg-elevated);
+  --foreground: var(--text-1);
+  --foreground-soft: var(--text-2);
+  --foreground-muted: var(--text-3);
+  --shadow-card: 0 18px 54px rgba(0, 0, 0, 0.26);
+  --shadow-elevated: 0 28px 86px rgba(0, 0, 0, 0.34);
+  --shadow-hero: 0 40px 120px rgba(0, 0, 0, 0.44);
+  --shadow-glow-accent: 0 0 44px rgba(34, 211, 238, 0.22);
+  background:
+    radial-gradient(circle at 15% -10%, rgba(34, 211, 238, 0.16), transparent 34rem),
+    radial-gradient(circle at 82% 8%, rgba(139, 92, 246, 0.14), transparent 36rem),
+    linear-gradient(180deg, #02040b 0%, var(--bg-base) 42%, #050816 100%);
+}
+
+.light .liquid-site,
+.liquid-site.light {
+  --accent-1: #0891b2;
+  --accent-2: #6d28d9;
+  --accent-glow: #0e7490;
+  --accent-cyan: #0891b2;
+  --accent-gold: #a16207;
+  --bg-base: #eef5fb;
+  --bg-surface: rgba(255, 255, 255, 0.78);
+  --bg-elevated: rgba(241, 245, 249, 0.86);
+  --text-1: #07111f;
+  --text-2: rgba(15, 23, 42, 0.72);
+  --text-3: rgba(51, 65, 85, 0.56);
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-border: rgba(15, 23, 42, 0.12);
+  --glass-shadow: 0 24px 70px rgba(15, 23, 42, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background:
+    radial-gradient(circle at 16% -10%, rgba(8, 145, 178, 0.18), transparent 34rem),
+    radial-gradient(circle at 84% 4%, rgba(109, 40, 217, 0.14), transparent 36rem),
+    linear-gradient(180deg, #f8fbff 0%, var(--bg-base) 48%, #e9f1f8 100%);
+}
+
+.liquid-site .section-frame {
+  width: min(100% - 2rem, 1180px);
+}
+
+.liquid-site .glass,
+.liquid-site .video-card-shell,
+.liquid-site .mobile-dock-shell {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025)), var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.liquid-site .button-liquid-primary {
+  min-height: 3rem;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-2));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 18px 42px rgba(34, 211, 238, 0.18);
+}
+
+.liquid-site .button-liquid-secondary {
+  min-height: 3rem;
+  color: var(--text-1);
+  background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025));
+  border-color: var(--glass-border);
+}
+
+.liquid-site .headline-display {
+  font-family: var(--font-display), var(--font-arabic), sans-serif;
+  text-wrap: balance;
 }

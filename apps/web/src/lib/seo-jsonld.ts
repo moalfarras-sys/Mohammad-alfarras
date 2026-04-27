@@ -1,4 +1,5 @@
 import type { Locale } from "@/types/cms";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 const BASE_URL = "https://moalfarras.space";
 const SITE_NAME = "Mohammad Alfarras";
@@ -199,5 +200,5 @@ export function webPageJsonLd(params: {
  * <script type="application/ld+json"> tag. Use with dangerouslySetInnerHTML.
  */
 export function jsonLdString(data: Record<string, unknown> | Record<string, unknown>[]) {
-  return JSON.stringify(data);
+  return JSON.stringify(repairMojibakeDeep(data));
 }

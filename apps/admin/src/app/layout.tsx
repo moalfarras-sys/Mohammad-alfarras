@@ -1,20 +1,27 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Kufi_Arabic } from "next/font/google";
+import { Cairo, DM_Sans, Syne } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
 
-const arabic = Noto_Kufi_Arabic({
+const arabic = Cairo({
   subsets: ["arabic"],
   variable: "--font-arabic",
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const latin = Inter({
+const latin = DM_Sans({
   subsets: ["latin"],
   variable: "--font-latin",
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const display = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -34,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning className={`${arabic.variable} ${latin.variable}`}>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={`${arabic.variable} ${latin.variable} ${display.variable}`}>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
           {children}

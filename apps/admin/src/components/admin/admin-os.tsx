@@ -5,6 +5,7 @@ import { AppAdminDashboard } from "./app-admin-dashboard";
 import { WebsiteAdminDashboard } from "./website-admin-dashboard";
 import { Globe, Smartphone, ArrowLeft, Activity, LayoutDashboard, MessageSquare, Terminal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/cn";
 
 import type {
   ActivationRequest,
@@ -74,8 +75,8 @@ export function AdminOS({
           <nav className="hidden h-full items-center gap-2 md:flex">
              {[
                { id: "home", label: "Dashboard", icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
-               { id: "website", label: "Website CMS", icon: <Globe className="h-3.5 w-3.5" /> },
-               { id: "app", label: "App Ecosystem", icon: <Smartphone className="h-3.5 w-3.5" /> },
+               { id: "website", label: "Website Control", icon: <Globe className="h-3.5 w-3.5" /> },
+               { id: "app", label: "MoPlayer Control", icon: <Smartphone className="h-3.5 w-3.5" /> },
              ].map((item) => (
                <button 
                 key={item.id}
@@ -127,9 +128,9 @@ export function AdminOS({
                        <span className="h-px w-6 bg-cyan-500" />
                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-500">System v4.0.0</p>
                     </div>
-                    <h1 className="headline-display text-5xl font-black text-white md:text-7xl tracking-tight">Main Command</h1>
+                    <h1 className="headline-display text-5xl font-black text-white md:text-7xl tracking-tight">Digital OS Control</h1>
                     <p className="max-w-2xl text-lg text-slate-400 leading-relaxed">
-                      Programmatic control over the Mohammad Alfarras digital identity, product architecture, and user fleet.
+                      A focused command center for the public brand, CV system, media studio, and MoPlayer ecosystem.
                     </p>
                   </div>
                   
@@ -139,8 +140,8 @@ export function AdminOS({
                         <span className="text-sm font-black text-emerald-400 uppercase tracking-widest">Active</span>
                      </div>
                      <div className="glass rounded-[2rem] p-6 border-white/5 flex flex-col items-center justify-center min-w-[140px]">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Uptime</span>
-                        <span className="text-sm font-black text-white uppercase tracking-widest">99.9%</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Mode</span>
+                        <span className="text-sm font-black text-white uppercase tracking-widest">Manual</span>
                      </div>
                   </div>
                 </div>
@@ -158,9 +159,9 @@ export function AdminOS({
                       <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-white/5 text-white border border-white/10 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:bg-cyan-500 group-hover:text-black group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)]">
                         <Globe className="h-10 w-10" />
                       </div>
-                      <h2 className="text-3xl font-black text-white tracking-tight">Website CMS</h2>
+                      <h2 className="text-3xl font-black text-white tracking-tight">Website Control</h2>
                       <p className="mt-4 mx-auto max-w-sm text-[15px] leading-relaxed text-slate-400">
-                        Manage portfolio case studies, career timeline, and SEO metadata.
+                        Edit homepage story, case studies, CV, media kit, contact surface, and SEO metadata.
                       </p>
                     </div>
                   </motion.button>
@@ -176,9 +177,9 @@ export function AdminOS({
                       <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-white/5 text-white border border-white/10 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:bg-violet-500 group-hover:text-white group-hover:shadow-[0_0_40px_rgba(139,92,246,0.4)]">
                         <Smartphone className="h-10 w-10" />
                       </div>
-                      <h2 className="text-3xl font-black text-white tracking-tight">App Control</h2>
+                      <h2 className="text-3xl font-black text-white tracking-tight">MoPlayer Control</h2>
                       <p className="mt-4 mx-auto max-w-sm text-[15px] leading-relaxed text-slate-400">
-                        MoPlayer releases, licenses, remote config, and fleet monitoring.
+                        Manage releases, activations, devices, runtime config, support, and app messaging.
                       </p>
                     </div>
                   </motion.button>
@@ -189,7 +190,7 @@ export function AdminOS({
                   {[
                     { label: "Active SDK", value: `API ${product.android_target_sdk}`, icon: <Activity className="text-cyan-400" /> },
                     { label: "Fleet Count", value: `${devices.length} Devices`, icon: <Terminal className="text-violet-400" /> },
-                    { label: "Pending Activation", value: `${activationRequests.filter(r => r.status === 'pending').length} Req`, icon: <MessageSquare className="text-amber-400" /> },
+                    { label: "Pending Activation", value: `${activationRequests.filter(r => r.status === 'waiting').length} Req`, icon: <MessageSquare className="text-amber-400" /> },
                     { label: "Support Queue", value: `${supportRequests.filter(s => s.status === 'new').length} Open`, icon: <Activity className="text-red-400" /> },
                   ].map((stat, i) => (
                     <motion.div 

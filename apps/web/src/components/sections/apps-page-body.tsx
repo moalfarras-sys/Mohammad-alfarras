@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import type { SiteViewModel } from "@/components/site/site-view-model";
 import { appsPageCopy, moPlayerCopy } from "@/content/apps";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 function sortedProjects(model: SiteViewModel) {
   return [...model.projects].sort((a, b) => a.featuredRank - b.featuredRank);
@@ -18,8 +19,8 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 
 export function AppsPageBody({ model }: { model: SiteViewModel }) {
-  const t = appsPageCopy[model.locale];
-  const product = moPlayerCopy[model.locale];
+  const t = repairMojibakeDeep(appsPageCopy[model.locale]);
+  const product = repairMojibakeDeep(moPlayerCopy[model.locale]);
   const projects = sortedProjects(model);
   const moPlayer = projects.find((p) => p.slug === "moplayer");
   const isAr = model.locale === "ar";

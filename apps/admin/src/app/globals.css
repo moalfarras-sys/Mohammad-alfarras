@@ -1481,11 +1481,63 @@
     @apply grid gap-3 sm:grid-cols-2;
   }
 
-  .admin-export-grid a {
+.admin-export-grid a {
     @apply rounded-[1.2rem] border px-4 py-3 text-sm font-semibold transition hover:-translate-y-0.5;
     border-color: rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.03);
   }
+}
+
+/* Digital OS admin skin: aligned with the public site, less purple-heavy, more control-center. */
+:root {
+  --admin-obsidian: #030711;
+  --admin-surface: rgba(8, 17, 31, 0.72);
+  --admin-surface-strong: rgba(13, 23, 40, 0.86);
+  --admin-border: rgba(148, 163, 184, 0.16);
+  --admin-cyan: #22d3ee;
+  --admin-violet: #8b5cf6;
+  --admin-gold: #f8d477;
+}
+
+html,
+body {
+  font-family: var(--font-latin), var(--font-arabic), system-ui, sans-serif;
+}
+
+.headline-display,
+h1,
+h2 {
+  font-family: var(--font-display), var(--font-arabic), sans-serif;
+  letter-spacing: 0;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% -8%, rgba(34, 211, 238, 0.16), transparent 34rem),
+    radial-gradient(circle at 88% 2%, rgba(139, 92, 246, 0.14), transparent 38rem),
+    linear-gradient(180deg, #02040b 0%, var(--admin-obsidian) 54%, #050816 100%);
+}
+
+.glass {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025)), var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+}
+
+.text-cyan-500,
+.text-cyan-400 {
+  color: var(--admin-cyan);
+}
+
+.bg-cyan-500 {
+  background-color: var(--admin-cyan);
+}
+
+.border-cyan-500\/20,
+.border-cyan-500\/30 {
+  border-color: rgba(34, 211, 238, 0.28);
 }
 
 @layer utilities {

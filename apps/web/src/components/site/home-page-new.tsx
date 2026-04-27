@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useScroll, useTransform, useReducedMotion, useSpring, useMotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { 
   ArrowRight, 
   ArrowUpRight, 
@@ -13,9 +13,7 @@ import {
   MessageCircle, 
   Zap, 
   Sparkles,
-  Github,
-  Youtube,
-  Linkedin,
+  Play,
   ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -73,12 +71,30 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
   const { scrollY } = useScroll();
   const yHero = useTransform(scrollY, [0, 500], [0, 200]);
   const opacityHero = useTransform(scrollY, [0, 300], [1, 0]);
-  const reduced = useReducedMotion();
+  const proofBadges = isAr
+    ? ["مقيم في ألمانيا", "جذور سورية", "+1.5M مشاهدة", "+6K مشترك", "162 فيديو", "Android TV", "Web/UI/UX", "TMS"]
+    : ["Germany based", "Syrian roots", "1.5M+ views", "6K+ subscribers", "162 videos", "Android TV", "Web/UI/UX", "TMS"];
+  const modes = isAr
+    ? [
+        ["Developer Mode", "مواقع ولوحات تحكم وواجهات React/Next.js وربط Supabase وVercel."],
+        ["Creator Mode", "مراجعات تقنية عربية توضّح قيمة المنتج قبل الضجيج التسويقي."],
+        ["Operations Mode", "خبرة لوجستية حقيقية في TMS والتنسيق وخدمة العملاء وضغط التشغيل."],
+        ["MoPlayer Mode", "منتج Android TV بتفعيل، إصدارات APK، وتجربة IPTV منظمة."],
+      ]
+    : [
+        ["Developer Mode", "Websites, dashboards, React/Next.js interfaces, Supabase, and Vercel systems."],
+        ["Creator Mode", "Arabic tech reviews that explain product value before marketing noise."],
+        ["Operations Mode", "Real logistics work with TMS, dispatch, customer service, and operational pressure."],
+        ["MoPlayer Mode", "An Android TV product with activation, APK releases, and structured IPTV experience."],
+      ];
+  const storyArc = isAr
+    ? ["سوريا", "ألمانيا", "اللوجستيات", "الويب", "يوتيوب", "MoPlayer"]
+    : ["Syria", "Germany", "Logistics", "Web", "YouTube", "MoPlayer"];
 
   const socialLinks = [
-    { icon: <Github className="h-5 w-5" />, href: "https://github.com/moalfarras-sys", color: "hover:text-white" },
-    { icon: <Youtube className="h-5 w-5" />, href: "https://www.youtube.com/@Moalfarras", color: "hover:text-red-500" },
-    { icon: <Linkedin className="h-5 w-5" />, href: "https://linkedin.com/in/mohammad-alfarras", color: "hover:text-blue-500" },
+    { icon: <Code2 className="h-5 w-5" />, href: "https://github.com/moalfarras-sys", color: "hover:text-white" },
+    { icon: <Play className="h-5 w-5" />, href: "https://www.youtube.com/@Moalfarras", color: "hover:text-red-500" },
+    { icon: <Globe className="h-5 w-5" />, href: "https://linkedin.com/in/mohammad-alfarras", color: "hover:text-blue-500" },
     { icon: <MessageCircle className="h-5 w-5" />, href: model.contact.whatsappUrl, color: "hover:text-emerald-500" },
   ];
 
@@ -193,6 +209,21 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
                  ))}
               </div>
             </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.75 }}
+              className="mt-10 flex max-w-4xl flex-wrap gap-2"
+            >
+              {proofBadges.map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-300 backdrop-blur"
+                >
+                  {badge}
+                </span>
+              ))}
+            </motion.div>
           </div>
         </motion.div>
 
@@ -209,6 +240,60 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
         >
            <ChevronDown className="h-6 w-6" />
         </motion.div>
+      </section>
+
+      <section className="relative z-10 py-24">
+        <div className="container px-6">
+          <div className="mb-12 max-w-3xl">
+            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">
+              {isAr ? "اختر وضع العمل" : "Choose your mode"}
+            </p>
+            <h2 className="headline-display text-4xl font-black leading-tight text-white md:text-6xl">
+              {isAr ? "مساحة واحدة تجمع الشخص، المنتج، المحتوى، والخبرة التشغيلية." : "One digital OS for the person, product, media, and operations."}
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            {modes.map(([title, body], index) => (
+              <motion.article
+                key={title}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.06 }}
+                className="glass rounded-[2rem] border-white/5 bg-white/[0.02] p-6"
+              >
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-cyan-300">
+                  {index === 0 ? <Code2 className="h-5 w-5" /> : index === 1 ? <Play className="h-5 w-5" /> : index === 2 ? <Globe className="h-5 w-5" /> : <Cpu className="h-5 w-5" />}
+                </div>
+                <h3 className="text-lg font-black text-white">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-400">{body}</p>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative py-16">
+        <div className="container px-6">
+          <div className="glass rounded-[3rem] border-white/5 p-6 md:p-10">
+            <div className="mb-8 flex items-center justify-between gap-4">
+              <h2 className="headline-display text-3xl font-black text-white md:text-5xl">
+                {isAr ? "قوس القصة" : "Story arc"}
+              </h2>
+              <span className="hidden text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 md:block">
+                {isAr ? "من الواقع إلى النظام الرقمي" : "From reality to digital systems"}
+              </span>
+            </div>
+            <div className="grid gap-3 md:grid-cols-6">
+              {storyArc.map((step, index) => (
+                <div key={step} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400">0{index + 1}</p>
+                  <p className="mt-3 text-sm font-black text-white">{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ── MARQUEE / STACK ── */}

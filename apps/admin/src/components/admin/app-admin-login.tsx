@@ -38,7 +38,7 @@ export function AppAdminLogin({ message, initialEmail }: { message?: string; ini
               name="email"
               type="email"
               required
-              defaultValue={initialEmail}
+              defaultValue={initialEmail || "admin@moalfarras.space"}
               className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 text-sm text-foreground outline-none transition focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
               placeholder="admin@moalfarras.space"
             />

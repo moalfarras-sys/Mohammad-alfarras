@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowUpRight, ExternalLink, Layout, Cpu, Zap, Code2, Globe, TrendingUp } from "lucide-react";
+import { ArrowUpRight, Globe } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
+import { motion, useSpring, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 
 import type { SiteViewModel } from "@/components/site/site-view-model";
 import { caseStudyCopy, getCaseStudyBySlug, workPageCopy } from "@/content/work";
 import type { Locale } from "@/types/cms";
 import { cn } from "@/lib/cn";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 function sortedProjects(model: SiteViewModel) {
   return [...model.projects].sort((a, b) => a.featuredRank - b.featuredRank);
@@ -19,6 +20,7 @@ function href(locale: Locale, slug: string) {
 }
 
 function TiltProject({ children, className }: { children: React.ReactNode; className?: string }) {
+  const reduced = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const mouseXSpring = useSpring(x);
@@ -43,10 +45,10 @@ function TiltProject({ children, className }: { children: React.ReactNode; class
     <motion.div
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-      className={cn("relative group", className)}
+      style={reduced ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className={cn("relative group max-w-full", className)}
     >
-      <div style={{ transform: "translateZ(30px)" }} className="relative z-10">
+      <div className="relative z-10 max-w-full">
         {children}
       </div>
     </motion.div>
@@ -54,13 +56,13 @@ function TiltProject({ children, className }: { children: React.ReactNode; class
 }
 
 export function WorkPageBody({ model }: { model: SiteViewModel }) {
-  const t = workPageCopy[model.locale];
-  const caseCopy = caseStudyCopy[model.locale];
+  const t = repairMojibakeDeep(workPageCopy[model.locale]);
+  const caseCopy = repairMojibakeDeep(caseStudyCopy[model.locale]);
   const projects = sortedProjects(model);
   const isAr = model.locale === "ar";
 
   return (
-    <div className="relative pb-32">
+    <div className="relative overflow-hidden pb-32">
       {/* ── WORK HERO ── */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-32" data-testid="projects-page">
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -104,14 +106,14 @@ export function WorkPageBody({ model }: { model: SiteViewModel }) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-150px" }}
                   transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="group relative"
+                  className="group relative max-w-full"
                 >
-                  <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+                  <div className="grid max-w-full gap-12 md:gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
                     
                     {/* Visual Side */}
-                    <div className={cn("relative", isEven ? "lg:order-1" : "lg:order-2")}>
+                    <div className={cn("relative min-w-0 max-w-full", isEven ? "lg:order-1" : "lg:order-2")}>
                       <TiltProject>
-                        <Link href={href(model.locale, project.slug)} className="block relative aspect-[16/10] overflow-hidden rounded-[3.5rem] border border-white/5 bg-slate-900 shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
+                        <Link href={href(model.locale, project.slug)} className="block relative aspect-[16/10] w-full max-w-full overflow-hidden rounded-[2rem] border border-white/5 bg-slate-900 shadow-[0_30px_100px_rgba(0,0,0,0.5)] sm:rounded-[3rem] lg:rounded-[3.5rem]">
                           <Image
                             src={project.image}
                             alt={project.title}
@@ -131,8 +133,8 @@ export function WorkPageBody({ model }: { model: SiteViewModel }) {
                       </TiltProject>
                       
                       {/* Decorative Label */}
-                      <div className={cn("absolute top-8 p-4 z-20 pointer-events-none", isEven ? "-left-4" : "-right-4")}>
-                         <div className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl">
+                      <div className={cn("pointer-events-none absolute top-4 z-20 p-2 sm:top-8 sm:p-4", isEven ? "left-3 sm:-left-4" : "right-3 sm:-right-4")}>
+                         <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 shadow-2xl backdrop-blur-xl sm:px-6">
                             <span className="text-[10px] font-black uppercase tracking-widest text-white">0{index + 1} / Project</span>
                          </div>
                       </div>
@@ -204,13 +206,13 @@ export function WorkPageBody({ model }: { model: SiteViewModel }) {
             <div className="relative z-10 max-w-4xl mx-auto">
                <Eyebrow className="mx-auto">{isAr ? "رؤية منتج" : "Product Vision"}</Eyebrow>
                <h2 className="headline-display mt-8 text-4xl md:text-8xl font-black text-white tracking-tighter leading-[0.9]">
-                 {isAr ? "لنحول هذا التعقيد إلى واجهة واضحة." : "Let's turn complexity into a clear interface."}
+                 {isAr ? "لنحوّل التعقيد إلى واجهة واضحة." : "Let's turn complexity into a clear interface."}
                </h2>
                <div className="mt-20 flex flex-col items-center gap-8">
                   <Link href={`/${model.locale}/contact`} className="button-liquid-primary px-16 h-20 text-xl font-black">
                     {isAr ? "ابدأ مشروعك" : "Start your project"}
                   </Link>
-                  <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-500">Available Q3 2026</p>
+                  <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-500">{isAr ? "متاح لمشاريع مختارة" : "Open for selected projects"}</p>
                </div>
             </div>
           </motion.div>

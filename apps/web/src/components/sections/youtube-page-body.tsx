@@ -1,12 +1,13 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { PlayCircle, Sparkles, MonitorSmartphone, Wand2, PenTool, Bot, Box, Lightbulb } from "lucide-react";
 
 import { ContactCtaSection } from "@/components/sections/contact-cta-section";
 import type { SiteViewModel } from "@/components/site/site-view-model";
 import { cn } from "@/lib/cn";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 const copy = {
   en: {
@@ -30,9 +31,8 @@ const copy = {
 } as const;
 
 export function YoutubePageBody({ model }: { model: SiteViewModel }) {
-  const t = copy[model.locale];
+  const t = repairMojibakeDeep(copy[model.locale]);
   const isAr = model.locale === "ar";
-  const reduced = useReducedMotion();
 
   const channelUrl = `https://www.youtube.com/${model.youtube.handle ?? "@Moalfarras"}`;
   const subscribeUrl = `${channelUrl}?sub_confirmation=1`;

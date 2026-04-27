@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 const BASE_URL = "https://moalfarras.space";
@@ -125,7 +126,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   const localizedPath = normalized === "home" ? `/${locale}` : `/${locale}/${normalized}`;
   const altAr = normalized === "home" ? "/ar" : `/ar/${normalized}`;
   const altEn = normalized === "home" ? "/en" : `/en/${normalized}`;
-  const copy = seoCopy[locale][normalized as keyof typeof seoCopy.en] ?? seoCopy[locale].home;
+  const copy = repairMojibakeDeep(seoCopy[locale][normalized as keyof typeof seoCopy.en] ?? seoCopy[locale].home);
   const localeTag = locale === "ar" ? "ar_SA" : "en_US";
   const altLocaleTag = locale === "ar" ? "en_US" : "ar_SA";
 
@@ -167,6 +168,6 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       description: copy.description,
       images: [{ url: `${BASE_URL}${copy.image}`, alt: copy.title }],
     },
-    keywords: keywordMap[normalized] ?? keywordMap.home,
+    keywords: repairMojibakeDeep(keywordMap[normalized] ?? keywordMap.home),
   };
 }

@@ -95,7 +95,7 @@ export async function getAuthenticatedAdmin(): Promise<AuthenticatedAdmin | null
 export async function requireAuthenticatedAdmin(): Promise<AuthenticatedAdmin> {
   const admin = await getAuthenticatedAdmin();
   if (!admin) {
-    redirect("/admin?unauthorized=1");
+    redirect("/?unauthorized=1");
   }
   return admin;
 }
@@ -103,7 +103,7 @@ export async function requireAuthenticatedAdmin(): Promise<AuthenticatedAdmin> {
 export async function requireAdminRole(required: AppAdminRole = "editor"): Promise<AuthenticatedAdmin> {
   const admin = await requireAuthenticatedAdmin();
   if (required === "admin" && admin.role !== "admin") {
-    redirect("/admin?forbidden=1");
+    redirect("/?forbidden=1");
   }
   return admin;
 }

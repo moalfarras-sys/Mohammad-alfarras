@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { 
@@ -8,27 +9,19 @@ import {
   Key, 
   Box, 
   UploadCloud, 
-  HelpCircle, 
   Mail, 
   Settings2, 
-  ChevronRight, 
   Trash2, 
   Download, 
-  Plus, 
   ExternalLink,
   Shield,
-  Zap,
   Layout,
   CheckCircle2
 } from "lucide-react";
 
 import {
-  deleteFaqAction,
   deleteReleaseAction,
   deleteScreenshotAction,
-  logoutAdminAction,
-  saveFaqAction,
-  saveProductAction,
   saveReleaseAction,
   saveRuntimeConfigAction,
   saveScreenshotAction,
@@ -48,14 +41,6 @@ import type {
 import { cn } from "@/lib/cn";
 
 const webBaseUrl = process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space";
-
-function structuredLines(items: Array<{ title: string; body: string }>) {
-  return items.map((item) => `${item.title} :: ${item.body}`).join("\n");
-}
-
-function simpleLines(items: string[]) {
-  return items.join("\n");
-}
 
 function formatBytes(size?: number | null) {
   if (!size) return "Not uploaded";
@@ -133,26 +118,6 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ── DATA CARDS ──
-
-function FaqCard({ item }: { item: AppFaq }) {
-  return (
-    <div className="group glass rounded-3xl p-6 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500">FAQ #{item.sort_order}</p>
-          <h3 className="text-base font-black text-white">{item.question}</h3>
-          <p className="text-sm leading-relaxed text-slate-400">{item.answer}</p>
-        </div>
-        <form action={deleteFaqAction}>
-          <input type="hidden" name="id" value={item.id} />
-          <button type="submit" className="p-3 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100">
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 function ScreenshotCard({ item }: { item: AppScreenshot }) {
   return (
@@ -235,7 +200,7 @@ function SupportCard({ item }: { item: AppSupportRequest }) {
             <h3 className="text-lg font-black text-white">{item.name}</h3>
             <p className="text-xs font-bold text-cyan-500 uppercase tracking-widest mt-1">{item.email}</p>
           </div>
-          <p className="text-sm leading-relaxed text-slate-400 max-w-3xl italic">"{item.message}"</p>
+          <p className="text-sm leading-relaxed text-slate-400 max-w-3xl italic">&ldquo;{item.message}&rdquo;</p>
         </div>
         <form action={updateSupportRequestAction} className="flex items-center gap-3">
           <input type="hidden" name="id" value={item.id} />
@@ -285,11 +250,7 @@ function DeviceCard({ item }: { item: AppDevice }) {
 // ── MAIN DASHBOARD ──
 
 export function AppAdminDashboard({
-  adminEmail,
-  role,
   updated,
-  product,
-  faqs,
   screenshots,
   releases,
   supportRequests,
@@ -311,8 +272,6 @@ export function AppAdminDashboard({
   licenses: AppLicense[];
   runtimeConfig: AppRuntimeConfig;
 }) {
-  const devicesById = new Map(devices.map((device) => [device.id, device]));
-  
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Panel */}
@@ -358,7 +317,7 @@ export function AppAdminDashboard({
         {[
           { label: "Fleet", value: devices.length, icon: <Activity className="text-cyan-400" /> },
           { label: "Licenses", value: licenses.length, icon: <Shield className="text-emerald-400" /> },
-          { label: "Pending", value: activationRequests.filter(r => r.status === 'pending').length, icon: <Key className="text-amber-400" /> },
+          { label: "Waiting", value: activationRequests.filter(r => r.status === 'waiting').length, icon: <Key className="text-amber-400" /> },
           { label: "Releases", value: releases.length, icon: <Box className="text-violet-400" /> },
           { label: "Visual Assets", value: screenshots.length, icon: <Layout className="text-pink-400" /> },
           { label: "Inquiries", value: supportRequests.filter(s => s.status === 'new').length, icon: <Mail className="text-red-400" /> },
@@ -491,7 +450,7 @@ export function AppAdminDashboard({
                  <Key className="h-4 w-4" /> Activation Queue
               </h3>
               <div className="space-y-4">
-                 {activationRequests.filter(r => r.status === 'pending').map(req => (
+                 {activationRequests.filter(r => r.status === 'waiting').map(req => (
                     <div key={req.id} className="glass rounded-[1.5rem] p-6 border-amber-500/10 bg-amber-500/[0.02] flex items-center justify-between">
                        <div>
                           <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">Code Required</p>
@@ -503,7 +462,7 @@ export function AppAdminDashboard({
                        </div>
                     </div>
                  ))}
-                 {!activationRequests.filter(r => r.status === 'pending').length && (
+                 {!activationRequests.filter(r => r.status === 'waiting').length && (
                     <p className="text-sm text-slate-600 text-center py-10 italic">No pending activations.</p>
                  )}
               </div>

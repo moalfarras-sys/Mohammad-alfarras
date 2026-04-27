@@ -1,10 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Clock3, KeyRound, QrCode, ShieldCheck, XCircle, ArrowRight, ArrowLeft, RefreshCcw } from "lucide-react";
+import { CheckCircle2, Clock3, QrCode, ShieldCheck, XCircle, RefreshCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 import { activationVisualCopy } from "@/content/visual-redesign";
 import type { Locale } from "@/types/cms";
@@ -89,7 +90,7 @@ export function MoPlayerActivationPage({
   initialCode?: string;
 }) {
   const isAr = locale === "ar";
-  const t = activationVisualCopy[locale];
+  const t = repairMojibakeDeep(activationVisualCopy[locale]);
   const [code, setCode] = useState(() => normalizeActivationInput(initialCode));
   const [status, setStatus] = useState<Status>("waiting");
   const [activeStep, setActiveStep] = useState<"activate" | "setup">("activate");

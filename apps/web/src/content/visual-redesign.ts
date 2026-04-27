@@ -229,7 +229,7 @@ export const youtubeVisualCopy = {
       "The channel is a media layer for honest Arabic technology content: SaaS, AI tools, electronics, apps, design tools, marketing tools, and practical tutorials.",
     openChannel: "Open channel",
     subscribe: "Subscribe",
-    playerTitle: "Featured video",
+    playerTitle: "Channel highlight",
     selected: "Selected videos",
     latest: "Latest videos",
     categories: "Content categories",

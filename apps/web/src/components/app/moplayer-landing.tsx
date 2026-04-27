@@ -1,14 +1,15 @@
 "use client";
 
-import { ArrowDownToLine, HelpCircle, MonitorSmartphone, ShieldCheck, Code2, Download, Cpu, Zap, ArrowUpRight, Play, Layout } from "lucide-react";
+import { ArrowDownToLine, MonitorSmartphone, ShieldCheck, Code2, Download, Cpu, Zap, Play, Layout } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
+import { motion, useTransform, useSpring, useMotionValue } from "framer-motion";
 
 import { moPlayerCopy } from "@/content/apps";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 import { cn } from "@/lib/cn";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 function formatBytes(size?: number | null) {
   if (!size) return null;
@@ -17,15 +18,10 @@ function formatBytes(size?: number | null) {
 
 function formatDate(locale: Locale, value?: string | null) {
   if (!value) return null;
-  try {
-    return new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(new Date(value));
-  } catch {
-    return null;
-  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const date = parsed.toISOString().slice(0, 10);
+  return locale === "ar" ? date.replaceAll("-", "/") : date;
 }
 
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -64,9 +60,18 @@ function TiltCard({ children, className }: { children: React.ReactNode; classNam
   );
 }
 
+function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      <span className="h-px w-8 bg-violet-400" />
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-violet-300">{children}</p>
+    </div>
+  );
+}
+
 export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
-  const { product, screenshots, releases } = ecosystem;
-  const t = moPlayerCopy[locale];
+  const { product, releases } = ecosystem;
+  const t = repairMojibakeDeep(moPlayerCopy[locale]);
   const latestRelease = releases[0] ?? null;
   const primaryAsset = latestRelease?.assets.find((asset) => asset.is_primary) ?? latestRelease?.assets[0] ?? null;
   const releaseDate = formatDate(locale, latestRelease?.published_at ?? product.last_updated_at);
@@ -83,7 +88,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   ];
 
   return (
-    <div className="relative pb-32" dir={isAr ? "rtl" : "ltr"} data-testid="moplayer-landing">
+    <div className="relative overflow-hidden pb-32" dir={isAr ? "rtl" : "ltr"} data-testid="moplayer-landing">
       {/* ── MOPLAYER HERO ── */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-48 md:pb-32">
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -149,7 +154,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
               transition={{ duration: 1.2, delay: 0.2 }}
               className="relative"
             >
-               <div className="absolute -inset-20 bg-violet-600/10 blur-[120px] rounded-full" />
+               <div className="absolute -inset-6 rounded-full bg-violet-600/10 blur-[80px] md:-inset-20 md:blur-[120px]" />
                <motion.div 
                  animate={{ y: [0, -20, 0] }}
                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -177,15 +182,15 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-40 -left-40 w-[600px] h-[600px] opacity-10 pointer-events-none"
+            className="pointer-events-none absolute -top-40 -left-40 hidden h-[600px] w-[600px] opacity-10 md:block"
           >
              <Image src="/images/moplayer-motion.png" alt="Motion" width={600} height={600} className="w-full h-full object-contain" />
           </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 relative z-10">
-            {specs.map((spec, idx) => (
+            {specs.map((spec) => (
               <TiltCard key={spec.label}>
-                <div className="glass rounded-[2.5rem] p-10 border-white/5 bg-white/[0.01] h-full flex flex-col justify-between">
+                <div className="glass flex h-full flex-col justify-between rounded-[2rem] border-white/5 bg-white/[0.01] p-6 sm:rounded-[2.5rem] md:p-10">
                   <div className="flex items-center gap-4 text-violet-400 mb-8">
                      <div className="h-10 w-10 rounded-xl bg-violet-400/10 flex items-center justify-center border border-violet-400/20">
                         {spec.icon}
@@ -216,7 +221,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="glass group rounded-[3.5rem] p-12 border-white/5 hover:border-violet-500/30 transition-all hover:bg-white/[0.03]"
+                className="glass group rounded-[2rem] border-white/5 p-6 transition-all hover:border-violet-500/30 hover:bg-white/[0.03] sm:rounded-[3rem] md:p-12 lg:rounded-[3.5rem]"
               >
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/10 text-violet-400 mb-10 border border-violet-500/20 group-hover:scale-110 group-hover:bg-violet-500 group-hover:text-black transition-all">
                   <MonitorSmartphone className="h-8 w-8" />
@@ -231,11 +236,11 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="glass rounded-[3.5rem] p-12 border-orange-500/20 bg-orange-500/[0.02] flex flex-col justify-center text-center relative overflow-hidden group"
+              className="glass group relative flex flex-col justify-center overflow-hidden rounded-[2rem] border-orange-500/20 bg-orange-500/[0.02] p-6 text-center sm:rounded-[3rem] md:p-12 lg:rounded-[3.5rem]"
             >
                <div className="absolute -inset-10 bg-orange-500/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-               <div className="mx-auto h-20 w-20 mb-8 p-4 rounded-3xl bg-white/5 border border-white/10">
-                  <Image src="/images/vlc-logo.png" alt="VLC" width={80} height={80} className="grayscale brightness-200" />
+               <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-orange-400/20 bg-orange-400/10 text-orange-300">
+                  <Play className="h-9 w-9 fill-current" />
                </div>
                <h3 className="text-2xl font-black text-white tracking-tight">Engineered by VLC</h3>
                <p className="mt-4 text-sm text-slate-500 leading-relaxed font-bold uppercase tracking-widest">Industry Standard Playback</p>
@@ -247,7 +252,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
       {/* ── PROTOCOL & PRIVACY ── */}
       <section className="py-32">
         <div className="section-frame grid gap-12 lg:grid-cols-2">
-           <div className="glass rounded-[4rem] p-16 border-white/5 relative overflow-hidden">
+           <div className="glass relative overflow-hidden rounded-[2.5rem] border-white/5 p-6 sm:rounded-[4rem] md:p-16">
               <div className="absolute top-0 right-0 p-16 opacity-[0.03]">
                  <Layout className="h-64 w-64 text-white" />
               </div>
@@ -255,7 +260,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
               <p className="text-2xl leading-relaxed font-black text-white tracking-tight">{t.philosophy}</p>
            </div>
            
-           <div className="glass rounded-[4rem] p-16 border-emerald-500/20 bg-emerald-500/[0.01]">
+           <div className="glass rounded-[2.5rem] border-emerald-500/20 bg-emerald-500/[0.01] p-6 sm:rounded-[4rem] md:p-16">
               <div className="flex items-center gap-5 mb-10">
                  <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
                     <ShieldCheck className="h-6 w-6" />
@@ -280,15 +285,15 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           <div className="max-w-4xl mx-auto">
             <h2 className="headline-display text-4xl md:text-7xl font-black text-white mb-20 text-center tracking-tighter">{t.faqTitle}</h2>
             <div className="space-y-6">
-              {t.faqs.map((faq, idx) => (
+              {t.faqs.map((faq) => (
                 <details key={faq.question} className="glass group rounded-[2rem] border-white/5 overflow-hidden transition-all hover:bg-white/[0.02]">
-                   <summary className="flex items-center justify-between p-10 cursor-pointer list-none">
+                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-6 md:p-10">
                       <h3 className="text-xl font-black text-white tracking-tight">{faq.question}</h3>
                       <div className="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center group-open:rotate-180 transition-transform">
                          <ChevronDown className="h-5 w-5 text-slate-500" />
                       </div>
                    </summary>
-                   <div className="px-10 pb-10 text-lg text-slate-400 leading-relaxed font-medium">
+                   <div className="px-6 pb-6 text-base font-medium leading-relaxed text-slate-400 md:px-10 md:pb-10 md:text-lg">
                       {faq.answer}
                    </div>
                 </details>
@@ -303,7 +308,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="section-frame">
           <motion.div 
             whileHover={{ scale: 1.01 }}
-            className="glass relative overflow-hidden rounded-[5rem] border-white/5 p-20 md:p-32 text-center shadow-[0_50px_150px_rgba(0,0,0,0.8)]"
+            className="glass relative overflow-hidden rounded-[2.5rem] border-white/5 p-8 text-center shadow-[0_50px_150px_rgba(0,0,0,0.8)] sm:rounded-[4rem] md:p-32 lg:rounded-[5rem]"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-transparent to-cyan-600/10" />
             <div className="relative z-10 max-w-4xl mx-auto">
@@ -312,7 +317,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
                
                <div className="flex flex-col items-center gap-12">
                   {downloadHref ? (
-                    <Link href={downloadHref} className="button-liquid-primary px-20 h-24 text-2xl font-black shadow-2xl">
+                    <Link href={downloadHref} className="button-liquid-primary h-20 px-10 text-lg font-black shadow-2xl md:h-24 md:px-20 md:text-2xl">
                       <ArrowDownToLine className="h-8 w-8" />
                       {t.download}
                     </Link>

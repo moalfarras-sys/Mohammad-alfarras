@@ -89,7 +89,6 @@ export function SiteFooter({
   brandName,
   tagline,
   footer,
-  links,
   logoSrc,
 }: {
   locale: Locale;

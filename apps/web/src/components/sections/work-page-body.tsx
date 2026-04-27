@@ -31,7 +31,7 @@ export function WorkPageBody({ model }: { model: SiteViewModel }) {
       <section className="section-frame mb-20">
         <div className="pointer-events-none absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-[var(--os-violet)] opacity-[0.05] blur-[100px]" />
         <motion.span {...inView(0)} className="eyebrow mb-5 inline-flex">{isAr ? "الأعمال المختارة" : "Selected work"}</motion.span>
-        <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5vw,4.5rem)] font-bold text-white max-w-3xl">
+        <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5vw,4.5rem)] font-bold text-[var(--os-text-1)] max-w-3xl">
           {isAr
             ? "أعمال تربط التصميم، التشغيل، والتنفيذ."
             : "Work that connects design, operations, and delivery."}
@@ -90,7 +90,7 @@ export function WorkPageBody({ model }: { model: SiteViewModel }) {
 
               {/* Body */}
               <div className="flex flex-1 flex-col p-7">
-                <h2 className="text-[17px] font-bold text-white leading-snug">{project.title}</h2>
+                <h2 className="text-[17px] font-bold text-[var(--os-text-1)] leading-snug">{project.title}</h2>
                 <p className="mt-3 flex-1 text-[13px] leading-relaxed text-[var(--os-text-3)] line-clamp-3">{project.summary}</p>
 
                 {/* Tags */}

@@ -51,7 +51,7 @@ export function SiteFooter({
 
   const socials = [
     { href: socialLinks.youtube,   icon: <SvgYoutube />,   label: "YouTube",   color: "hover:text-red-500" },
-    { href: socialLinks.github,    icon: <SvgGithub />,    label: "GitHub",    color: "hover:text-white" },
+    { href: socialLinks.github,    icon: <SvgGithub />,    label: "GitHub",    color: "hover:text-[var(--os-text-1)]" },
     { href: socialLinks.linkedin,  icon: <SvgLinkedin />,  label: "LinkedIn",  color: "hover:text-blue-400" },
     { href: socialLinks.instagram, icon: <SvgInstagram />, label: "Instagram", color: "hover:text-pink-400" },
     { href: socialLinks.whatsapp,  icon: <SvgWhatsapp />,  label: "WhatsApp",  color: "hover:text-emerald-400" },
@@ -107,10 +107,10 @@ export function SiteFooter({
           {/* Brand column */}
           <div>
             <Link href={`/${locale}`} className="mb-6 flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]">
+              <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-[var(--os-border)] bg-black/5 dark:bg-white/5">
                 <Image src={logoSrc || "/images/logo.png"} alt={brandName} width={40} height={40} className="h-full w-full object-contain" />
               </span>
-              <span className="text-[15px] font-bold text-white" style={{ fontFamily: "var(--os-font-en)" }}>
+              <span className="text-[15px] font-bold text-[var(--os-text-1)]" style={{ fontFamily: "var(--os-font-en)" }}>
                 {brandName}
               </span>
             </Link>
@@ -130,7 +130,7 @@ export function SiteFooter({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[var(--os-text-3)] transition ${s.color} hover:border-white/20`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-[var(--os-text-3)] transition ${s.color} hover:border-white/20`}
                 >
                   {s.icon}
                 </a>
@@ -163,7 +163,7 @@ export function SiteFooter({
         {/* ── Quick facts badges ── */}
         <div className="mt-12 flex flex-wrap gap-2">
           {facts.map((f) => (
-            <span key={f.label} className="inline-flex items-center gap-2 rounded-full border border-[var(--os-border)] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-[var(--os-text-3)]">
+            <span key={f.label} className="inline-flex items-center gap-2 rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-3 py-1.5 text-[11px] font-medium text-[var(--os-text-3)]">
               <span className="font-semibold uppercase tracking-widest text-[var(--os-text-3)] opacity-60 text-[9px]">{f.label}</span>
               <span className="text-[var(--os-text-2)]">{f.value}</span>
             </span>

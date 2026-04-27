@@ -247,7 +247,7 @@ export function ProjectsControlCenter({
                   type="button"
                   onClick={() => setSelectedId(project.id)}
                   className={`rounded-[1.3rem] border p-4 text-start transition ${
-                    project.id === selectedId ? "border-primary/25 bg-primary/10" : "border-white/8 bg-black/10 hover:bg-white/[0.04]"
+                    project.id === selectedId ? "border-primary/25 bg-primary/10" : "border-white/8 bg-black/10 hover:bg-black/5 dark:bg-white/5"
                   }`}
                 >
                   <p className="truncate text-sm font-black text-foreground">{project.translations[locale].title || project.slug || t(locale, "مشروع بدون عنوان", "Untitled project")}</p>

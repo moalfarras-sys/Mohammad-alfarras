@@ -92,7 +92,7 @@ function MediaAssetCard({
       <Field label={t(locale, "الوصف العربي", "Arabic alt")}><TextInput value={altAr} onChange={(e) => setAltAr(e.target.value)} dir="rtl" /></Field>
       <Field label={t(locale, "الوصف الإنجليزي", "English alt")}><TextInput value={altEn} onChange={(e) => setAltEn(e.target.value)} /></Field>
       <Field label={t(locale, "استبدال الملف", "Replace file")}><input type="file" accept="image/*,.pdf" onChange={(e) => setReplacement(e.target.files?.[0] ?? null)} /></Field>
-      <div className="flex flex-wrap gap-2">{usedBy.map((item) => <span key={item} className="rounded-full border border-white/10 bg-black/10 px-3 py-1 text-[11px] font-bold text-foreground-soft">{item}</span>)}</div>
+      <div className="flex flex-wrap gap-2">{usedBy.map((item) => <span key={item} className="rounded-full border border-[var(--os-border)] bg-black/10 px-3 py-1 text-[11px] font-bold text-foreground-soft">{item}</span>)}</div>
       <div className="flex flex-wrap justify-between gap-2">
         <DangerButton onClick={() => { if (window.confirm(t(locale, "سيتم حذف هذا الملف. متابعة؟", "Delete this asset?"))) deleteAction.run(); }}>{t(locale, "حذف", "Delete")}</DangerButton>
         <PrimaryButton onClick={() => saveAction.run()}>{t(locale, "حفظ", "Save")}</PrimaryButton>

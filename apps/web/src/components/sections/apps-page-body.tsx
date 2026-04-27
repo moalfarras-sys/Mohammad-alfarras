@@ -44,7 +44,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
         <div className="grid gap-14 lg:grid-cols-[1fr_480px] lg:items-center">
           <div>
             <motion.span {...inView(0)} className="eyebrow mb-5 inline-flex">{t.eyebrow}</motion.span>
-            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5.5vw,4.5rem)] font-bold text-white">
+            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5.5vw,4.5rem)] font-bold text-[var(--os-text-1)]">
               {t.title}
             </motion.h1>
             <motion.p {...inView(0.12)} className="mt-5 max-w-lg text-[16px] leading-relaxed text-[var(--os-text-2)]">
@@ -94,7 +94,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
                   <Zap className="h-3.5 w-3.5 text-[var(--os-teal)]" />
                   <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--os-teal)]">{t.flagship}</span>
                 </div>
-                <h2 className="headline-display mt-4 text-[clamp(2rem,4vw,3.5rem)] font-bold text-white">MoPlayer</h2>
+                <h2 className="headline-display mt-4 text-[clamp(2rem,4vw,3.5rem)] font-bold text-[var(--os-text-1)]">MoPlayer</h2>
                 <p className="mt-5 text-[15px] leading-relaxed text-[var(--os-text-2)]">{product.heroBody}</p>
 
                 <div className="mt-7 flex flex-wrap gap-2">
@@ -133,7 +133,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="mb-12">
             <span className="eyebrow mb-4 inline-flex">{product.featuresEyebrow}</span>
-            <h2 className="headline-display mt-4 text-[2rem] font-bold text-white">{product.featuresTitle}</h2>
+            <h2 className="headline-display mt-4 text-[2rem] font-bold text-[var(--os-text-1)]">{product.featuresTitle}</h2>
           </motion.div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {product.features.map((f, i) => (
@@ -141,7 +141,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
                 <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
                   <MonitorSmartphone className="h-5 w-5" />
                 </div>
-                <h3 className="text-[16px] font-bold text-white mb-3">{f.title}</h3>
+                <h3 className="text-[16px] font-bold text-[var(--os-text-1)] mb-3">{f.title}</h3>
                 <p className="text-[13px] leading-relaxed text-[var(--os-text-3)]">{f.body}</p>
               </motion.div>
             ))}
@@ -151,7 +151,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
               <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h3 className="text-[16px] font-bold text-white mb-3">{isAr ? "لا مراقبة، لا بيانات" : "Zero data. Full privacy."}</h3>
+              <h3 className="text-[16px] font-bold text-[var(--os-text-1)] mb-3">{isAr ? "لا مراقبة، لا بيانات" : "Zero data. Full privacy."}</h3>
               <p className="text-[13px] leading-relaxed text-[var(--os-text-3)]">
                 {isAr ? "MoPlayer لا يجمع أي بيانات شخصية. خصوصيتك محمية بالكامل." : "MoPlayer collects zero personal data. Your privacy is fully protected."}
               </p>
@@ -165,7 +165,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="mb-10">
             <span className="eyebrow mb-3 inline-flex">{isAr ? "واجهة المستخدم" : "UI Preview"}</span>
-            <h2 className="headline-display mt-3 text-[1.8rem] font-bold text-white">
+            <h2 className="headline-display mt-3 text-[1.8rem] font-bold text-[var(--os-text-1)]">
               {isAr ? "تصميم سينمائي · تجربة سلسة" : "Cinematic design · Seamless experience"}
             </h2>
           </motion.div>
@@ -181,7 +181,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
-                <figcaption className="px-6 py-4 text-[13px] font-semibold text-white border-t border-[var(--os-border)]">
+                <figcaption className="px-6 py-4 text-[13px] font-semibold text-[var(--os-text-1)] border-t border-[var(--os-border)]">
                   {item.label}
                 </figcaption>
               </motion.figure>
@@ -195,7 +195,7 @@ export function AppsPageBody({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="glass-card overflow-hidden rounded-[2rem] border-[var(--os-teal-border)] p-12 text-center relative">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--os-teal)]/[0.04] to-[var(--os-violet)]/[0.04]" />
-            <h2 className="headline-display relative z-10 text-[2rem] font-bold text-white">
+            <h2 className="headline-display relative z-10 text-[2rem] font-bold text-[var(--os-text-1)]">
               {isAr ? "جرّب MoPlayer مجاناً" : "Try MoPlayer for free"}
             </h2>
             <p className="relative z-10 mt-3 text-[15px] text-[var(--os-text-2)]">

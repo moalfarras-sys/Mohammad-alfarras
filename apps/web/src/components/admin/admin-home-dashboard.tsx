@@ -116,7 +116,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
 
   return (
     <div className="space-y-5">
-      <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(7,10,18,0.8)] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:p-7">
+      <section className="overflow-hidden rounded-[2rem] border border-[var(--os-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(7,10,18,0.8)] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl md:p-7">
         <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
             <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-primary">
@@ -134,7 +134,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-white/8 bg-white/[0.04] p-5">
+          <div className="rounded-[1.75rem] border border-white/8 bg-black/5 dark:bg-white/5 p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                 <ShieldCheck className="h-5 w-5" />
@@ -231,7 +231,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
         ))}
       </section>
 
-      <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl md:p-6">
+      <section className="rounded-[2rem] border border-[var(--os-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl md:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-2xl font-black text-foreground">{t(locale, "الأقسام", "Workspaces")}</h2>
@@ -252,10 +252,10 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group rounded-[1.6rem] border border-white/8 bg-white/[0.04] p-5 transition hover:border-primary/20 hover:bg-primary/10"
+                className="group rounded-[1.6rem] border border-white/8 bg-black/5 dark:bg-white/5 p-5 transition hover:border-primary/20 hover:bg-primary/10"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/10 text-primary">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--os-border)] bg-black/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -272,7 +272,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl md:p-6">
+      <section className="rounded-[2rem] border border-[var(--os-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02)),rgba(7,10,18,0.78)] p-5 backdrop-blur-2xl md:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-2xl font-black text-foreground">{t(locale, "آخر النشاط", "Recent activity")}</h2>
@@ -288,7 +288,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
 
         <div className="mt-5 grid gap-3">
           {snapshot.audit_logs.slice(0, 6).map((entry) => (
-            <div key={entry.id} className="flex flex-col gap-2 rounded-[1.4rem] border border-white/8 bg-white/[0.04] px-4 py-3 md:flex-row md:items-center md:justify-between">
+            <div key={entry.id} className="flex flex-col gap-2 rounded-[1.4rem] border border-white/8 bg-black/5 dark:bg-white/5 px-4 py-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-foreground">
                   {entry.action} · {entry.entity}
@@ -300,7 +300,7 @@ export function AdminHomeDashboard({ locale, snapshot }: Props) {
           ))}
 
           {snapshot.audit_logs.length === 0 && (
-            <div className="rounded-[1.4rem] border border-dashed border-white/10 bg-white/[0.03] px-4 py-5 text-sm text-foreground-muted">
+            <div className="rounded-[1.4rem] border border-dashed border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-4 py-5 text-sm text-foreground-muted">
               {t(locale, "لا توجد سجلات بعد. أول عملية حفظ ستظهر هنا.", "No audit entries yet. The first saved change will appear here.")}
             </div>
           )}

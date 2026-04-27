@@ -61,7 +61,7 @@ export function StudioShell({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(7,10,18,0.82)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.3)] backdrop-blur-2xl md:p-6">
+    <section className="rounded-[2rem] border border-[var(--os-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(7,10,18,0.82)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.3)] backdrop-blur-2xl md:p-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-3xl">
           <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-primary">
@@ -85,7 +85,7 @@ export function Card({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <article className={cn("rounded-[1.6rem] border border-white/8 bg-white/[0.04] p-5", className)}>{children}</article>;
+  return <article className={cn("rounded-[1.6rem] border border-white/8 bg-black/5 dark:bg-white/5 p-5", className)}>{children}</article>;
 }
 
 export function SectionTitle({
@@ -131,7 +131,7 @@ export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={cn(
-        "min-h-12 w-full rounded-[1.1rem] border border-white/10 bg-black/10 px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-foreground-soft focus:border-primary/25 focus:bg-white/[0.06]",
+        "min-h-12 w-full rounded-[1.1rem] border border-[var(--os-border)] bg-black/10 px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-foreground-soft focus:border-primary/25 focus:bg-white/[0.06]",
         props.className,
       )}
     />
@@ -143,7 +143,7 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
     <textarea
       {...props}
       className={cn(
-        "min-h-28 w-full rounded-[1.1rem] border border-white/10 bg-black/10 px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-foreground-soft focus:border-primary/25 focus:bg-white/[0.06]",
+        "min-h-28 w-full rounded-[1.1rem] border border-[var(--os-border)] bg-black/10 px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-foreground-soft focus:border-primary/25 focus:bg-white/[0.06]",
         props.className,
       )}
     />
@@ -155,7 +155,7 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
     <select
       {...props}
       className={cn(
-        "min-h-12 w-full rounded-[1.1rem] border border-white/10 bg-black/10 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/25 focus:bg-white/[0.06]",
+        "min-h-12 w-full rounded-[1.1rem] border border-[var(--os-border)] bg-black/10 px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/25 focus:bg-white/[0.06]",
         props.className,
       )}
     />
@@ -179,7 +179,7 @@ export function Checkbox({
       onClick={() => onChange(!checked)}
       className={cn(
         "flex w-full items-start gap-3 rounded-[1.2rem] border px-4 py-3 text-start transition",
-        checked ? "border-primary/25 bg-primary/10" : "border-white/10 bg-black/10 hover:bg-white/[0.04]",
+        checked ? "border-primary/25 bg-primary/10" : "border-[var(--os-border)] bg-black/10 hover:bg-black/5 dark:bg-white/5",
       )}
     >
       <span
@@ -236,7 +236,7 @@ export function StatusPill({
     if (tone === "success") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-200";
     if (tone === "error") return "border-red-400/20 bg-red-500/10 text-red-200";
     if (tone === "saving") return "border-primary/20 bg-primary/10 text-primary";
-    return "border-white/10 bg-white/[0.04] text-foreground-soft";
+    return "border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-foreground-soft";
   }, [tone]);
 
   return (
@@ -294,7 +294,7 @@ export function SecondaryButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-5 text-sm font-bold text-foreground transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-5 text-sm font-bold text-foreground transition hover:bg-white/[0.07] disabled:cursor-not-allowed disabled:opacity-60",
         className,
       )}
     >
@@ -343,7 +343,7 @@ export function PreviewImage({
       className={cn("h-full w-full rounded-[1.2rem] object-cover", className)}
     />
   ) : (
-    <div className={cn("flex h-full min-h-28 w-full items-center justify-center rounded-[1.2rem] border border-dashed border-white/10 bg-black/10 text-xs text-foreground-soft", className)}>
+    <div className={cn("flex h-full min-h-28 w-full items-center justify-center rounded-[1.2rem] border border-dashed border-[var(--os-border)] bg-black/10 text-xs text-foreground-soft", className)}>
       No preview
     </div>
   );

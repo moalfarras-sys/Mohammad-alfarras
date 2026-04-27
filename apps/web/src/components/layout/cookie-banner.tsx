@@ -55,7 +55,7 @@ export function CookieBanner({ locale }: { locale: Locale }) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-full px-5 py-2 text-xs font-bold text-white transition hover:opacity-90"
+                  className="inline-flex items-center justify-center rounded-full px-5 py-2 text-xs font-bold text-[var(--os-text-1)] transition hover:opacity-90"
                   style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-warm))" }}
                   onClick={() => {
                     window.localStorage.setItem(KEY, "1");

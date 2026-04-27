@@ -25,7 +25,7 @@ export function ContactCtaSection({ locale }: { locale: Locale }) {
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
               <p className="eyebrow mb-4 inline-flex">{isAr ? "تواصل" : "Contact"}</p>
-              <h2 className="headline-display text-[clamp(1.6rem,3.5vw,2.6rem)] font-bold text-white">
+              <h2 className="headline-display text-[clamp(1.6rem,3.5vw,2.6rem)] font-bold text-[var(--os-text-1)]">
                 {isAr
                   ? "لنبنِ المسار الصحيح من أول رسالة."
                   : "Let's map the right path from the first message."}

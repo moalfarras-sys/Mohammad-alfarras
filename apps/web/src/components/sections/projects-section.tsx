@@ -21,7 +21,7 @@ function sortedProjects(model: SiteViewModel) {
 
 function TechBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[var(--text-2)] backdrop-blur-sm">
+    <span className="inline-flex rounded-full border border-[var(--os-border)] bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[var(--text-2)] backdrop-blur-sm">
       {children}
     </span>
   );
@@ -72,7 +72,7 @@ export function ProjectsSection({ model }: { model: SiteViewModel }) {
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
                 <div className="absolute inset-0 flex items-end bg-gradient-to-t from-[#030712]/90 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  <span className="p-6 text-sm font-semibold text-white">
+                  <span className="p-6 text-sm font-semibold text-[var(--os-text-1)]">
                     {isAr ? "عرض المشروع →" : "View Project →"}
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export function ProjectsSection({ model }: { model: SiteViewModel }) {
                     loading="lazy"
                   />
                   <div className="absolute inset-0 flex items-end bg-gradient-to-t from-[#030712]/90 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <span className="p-5 text-sm font-semibold text-white">
+                    <span className="p-5 text-sm font-semibold text-[var(--os-text-1)]">
                       {isAr ? "عرض المشروع →" : "View Project →"}
                     </span>
                   </div>

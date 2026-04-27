@@ -144,7 +144,7 @@ function ProcessStep({ i, Icon, title, body, reduced }: { i: number; Icon: typeo
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#6366f1]/25 to-[#8b5cf6]/25 text-[var(--accent-glow)]">
           <Icon className="h-5 w-5" />
         </span>
-        <span className="font-display text-3xl font-extrabold text-white/10">{String(i + 1).padStart(2, "0")}</span>
+        <span className="font-display text-3xl font-extrabold text-[var(--os-text-1)]/10">{String(i + 1).padStart(2, "0")}</span>
       </div>
       <h3 className="font-display mt-4 text-lg font-bold text-[var(--text-1)]">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-[var(--text-2)]">{body}</p>
@@ -236,7 +236,7 @@ export function ServicesPageBody({ model }: { model: SiteViewModel }) {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: reduced ? 0.15 : 0.35, delay: reduced ? 0 : idx * 0.04 }}
-                      className="flex items-start gap-3 rounded-[var(--radius-md)] border border-white/10 bg-white/5 px-4 py-3"
+                      className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--os-border)] bg-white/5 px-4 py-3"
                     >
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent-glow)]" />
                       <span className="text-sm leading-relaxed text-[var(--text-2)] md:text-base">{item}</span>
@@ -244,7 +244,7 @@ export function ServicesPageBody({ model }: { model: SiteViewModel }) {
                   ))}
                 </ul>
               </div>
-              <div className="relative min-h-[240px] border-t border-white/10 lg:border-t-0 lg:border-l">
+              <div className="relative min-h-[240px] border-t border-[var(--os-border)] lg:border-t-0 lg:border-l">
                 <Image
                   src={model.brandMedia.gallery.brand || "/images/logo.png"}
                   alt=""

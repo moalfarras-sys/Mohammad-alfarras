@@ -108,9 +108,9 @@ export function AdminAppShell({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(0,229,255,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.08),transparent_28%),var(--bg-primary)]">
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-5 px-3 pb-28 pt-4 md:px-5 md:pb-6 md:pt-5">
         <aside className="hidden w-[320px] shrink-0 xl:block">
-          <div className="sticky top-5 flex h-[calc(100vh-2.5rem)] flex-col rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(5,8,16,0.8)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl">
-            <Link href={base} className="flex items-center gap-4 rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-4 transition hover:border-primary/25 hover:bg-white/[0.07]">
-              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/20">
+          <div className="sticky top-5 flex h-[calc(100vh-2.5rem)] flex-col rounded-[2rem] border border-[var(--os-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)),rgba(5,8,16,0.8)] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl">
+            <Link href={base} className="flex items-center gap-4 rounded-[1.5rem] border border-white/8 bg-black/5 dark:bg-white/5 p-4 transition hover:border-primary/25 hover:bg-white/[0.07]">
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border border-[var(--os-border)] bg-black/20">
                 <Image src={logoSrc} alt={`${siteName} logo`} width={40} height={40} className="h-10 w-10 object-contain" />
               </div>
               <div className="min-w-0">
@@ -132,7 +132,7 @@ export function AdminAppShell({
                       "flex items-center gap-3 rounded-[1.35rem] border px-4 py-3 text-sm font-bold transition",
                       active
                         ? "border-primary/25 bg-primary/12 text-primary shadow-[0_0_0_1px_rgba(0,229,255,0.08)]"
-                        : "border-transparent bg-transparent text-foreground-muted hover:border-white/10 hover:bg-white/[0.04] hover:text-foreground",
+                        : "border-transparent bg-transparent text-foreground-muted hover:border-[var(--os-border)] hover:bg-black/5 dark:bg-white/5 hover:text-foreground",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -143,7 +143,7 @@ export function AdminAppShell({
             </div>
 
             <div className="mt-auto space-y-4">
-              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.04] p-4">
+              <div className="rounded-[1.5rem] border border-white/8 bg-black/5 dark:bg-white/5 p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
                     <ShieldCheck className="h-5 w-5" />
@@ -161,7 +161,7 @@ export function AdminAppShell({
                 <Link
                   href={`/${locale}`}
                   target="_blank"
-                  className="inline-flex items-center justify-center rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-foreground transition hover:border-primary/20 hover:bg-primary/10 hover:text-primary"
+                  className="inline-flex items-center justify-center rounded-[1.2rem] border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-4 py-3 text-sm font-bold text-foreground transition hover:border-primary/20 hover:bg-primary/10 hover:text-primary"
                 >
                   {t.openSite}
                 </Link>
@@ -181,10 +181,10 @@ export function AdminAppShell({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="sticky top-3 z-40 mb-4 rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03)),rgba(7,10,18,0.82)] p-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
+          <header className="sticky top-3 z-40 mb-4 rounded-[1.75rem] border border-[var(--os-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03)),rgba(7,10,18,0.82)] p-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] xl:hidden">
+                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[var(--os-border)] bg-black/5 dark:bg-white/5 xl:hidden">
                   <Image src={logoSrc} alt={`${siteName} logo`} width={32} height={32} className="h-8 w-8 object-contain" />
                 </div>
                 <div className="min-w-0">
@@ -197,11 +197,11 @@ export function AdminAppShell({
                 <Link
                   href={`/${locale}`}
                   target="_blank"
-                  className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-bold text-foreground-muted transition hover:border-primary/20 hover:bg-primary/10 hover:text-primary md:inline-flex"
+                  className="hidden rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-4 py-2 text-xs font-bold text-foreground-muted transition hover:border-primary/20 hover:bg-primary/10 hover:text-primary md:inline-flex"
                 >
                   {t.openSite}
                 </Link>
-                <div className="hidden min-w-0 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-right md:block">
+                <div className="hidden min-w-0 rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-4 py-2 text-right md:block">
                   <p className="truncate text-xs font-bold text-foreground">{adminName}</p>
                   <p className="truncate text-[11px] text-foreground-soft">{adminRole}</p>
                 </div>
@@ -216,7 +216,7 @@ export function AdminAppShell({
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(7,10,18,0.92)] px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-16px_50px_rgba(0,0,0,0.3)] backdrop-blur-2xl xl:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--os-border)] bg-[rgba(7,10,18,0.92)] px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-16px_50px_rgba(0,0,0,0.3)] backdrop-blur-2xl xl:hidden"
         aria-label={locale === "ar" ? "تنقل لوحة التحكم" : "Control Center navigation"}
       >
         <div className="mx-auto flex max-w-3xl items-stretch justify-between gap-1">
@@ -229,7 +229,7 @@ export function AdminAppShell({
                 href={item.href}
                 className={cn(
                   "flex min-h-[3.55rem] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1 text-[10px] font-black transition",
-                  active ? "bg-primary/12 text-primary" : "text-foreground-soft hover:bg-white/[0.04] hover:text-foreground",
+                  active ? "bg-primary/12 text-primary" : "text-foreground-soft hover:bg-black/5 dark:bg-white/5 hover:text-foreground",
                 )}
               >
                 <Icon className="h-4.5 w-4.5" />

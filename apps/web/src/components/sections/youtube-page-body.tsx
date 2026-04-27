@@ -85,7 +85,7 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
         <div className="grid gap-14 lg:grid-cols-[1fr_420px] lg:items-center">
           <div>
             <motion.span {...inView(0)} className="eyebrow mb-5 inline-flex">{t.eyebrow}</motion.span>
-            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2rem,5vw,4rem)] font-bold text-white">
+            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2rem,5vw,4rem)] font-bold text-[var(--os-text-1)]">
               {t.title}
             </motion.h1>
             <motion.p {...inView(0.12)} className="mt-5 max-w-xl text-[16px] leading-relaxed text-[var(--os-text-2)]">
@@ -119,9 +119,9 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-600">
-                    <PlayCircle className="h-4 w-4 text-white" />
+                    <PlayCircle className="h-4 w-4 text-[var(--os-text-1)]" />
                   </div>
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-white">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--os-text-1)]">
                     {isAr ? "شروحات تقنية عربية" : "Arabic Tech Reviews"}
                   </span>
                 </div>
@@ -148,7 +148,7 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="mb-12 text-center">
             <span className="eyebrow mx-auto mb-4">{t.categoriesTitle}</span>
-            <h2 className="headline-display text-[2rem] font-bold text-white mt-4">Content Pillars</h2>
+            <h2 className="headline-display text-[2rem] font-bold text-[var(--os-text-1)] mt-4">Content Pillars</h2>
           </motion.div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((c, i) => (
@@ -156,7 +156,7 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400">
                   {c.icon}
                 </div>
-                <h3 className="text-[15px] font-bold text-white">{isAr ? c.ar : c.en}</h3>
+                <h3 className="text-[15px] font-bold text-[var(--os-text-1)]">{isAr ? c.ar : c.en}</h3>
               </motion.div>
             ))}
           </div>
@@ -167,7 +167,7 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
       <section className="py-20">
         <div className="section-frame grid gap-8 lg:grid-cols-2">
           <motion.div {...inView(0)} className="glass-card p-10">
-            <h2 className="text-[1.4rem] font-bold text-white mb-4">{t.collabTitle}</h2>
+            <h2 className="text-[1.4rem] font-bold text-[var(--os-text-1)] mb-4">{t.collabTitle}</h2>
             <p className="text-[14px] leading-relaxed text-[var(--os-text-2)] mb-8">{t.collabBody}</p>
             <a href={`/${model.locale}/contact?subject=Collaboration`} className="btn-primary">
               {t.collabCta} <ArrowUpRight className="h-4 w-4" />
@@ -175,13 +175,13 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
           </motion.div>
 
           <motion.div {...inView(0.08)} className="glass-card p-10">
-            <h2 className="text-[1.4rem] font-bold text-white mb-8">{t.audienceTitle}</h2>
+            <h2 className="text-[1.4rem] font-bold text-[var(--os-text-1)] mb-8">{t.audienceTitle}</h2>
             <div className="space-y-6">
               {audience.map((a) => (
                 <div key={a.label}>
                   <div className="mb-2 flex items-end justify-between">
                     <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--os-text-3)]">{a.label}</span>
-                    <span className="text-[13px] font-bold text-white">{a.val}%</span>
+                    <span className="text-[13px] font-bold text-[var(--os-text-1)]">{a.val}%</span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
                     <motion.div
@@ -206,7 +206,7 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
             <div className="mb-10 flex items-end justify-between gap-4">
               <div>
                 <span className="eyebrow mb-3 inline-flex">{isAr ? "أحدث الفيديوهات" : "Latest videos"}</span>
-                <h2 className="headline-display text-[1.8rem] font-bold text-white mt-3">Visual Proof</h2>
+                <h2 className="headline-display text-[1.8rem] font-bold text-[var(--os-text-1)] mt-3">Visual Proof</h2>
               </div>
               <a href={channelUrl} target="_blank" rel="noopener noreferrer"
                 className="text-[12px] font-semibold text-[var(--os-text-3)] hover:text-[var(--os-teal)] transition-colors flex items-center gap-1"
@@ -234,12 +234,12 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 shadow-2xl">
-                        <PlayCircle className="h-7 w-7 text-white" />
+                        <PlayCircle className="h-7 w-7 text-[var(--os-text-1)]" />
                       </div>
                     </div>
                   </div>
                   <div className="p-5">
-                    <h3 className="line-clamp-2 text-[14px] font-semibold text-white leading-snug group-hover:text-[var(--os-teal)] transition-colors">
+                    <h3 className="line-clamp-2 text-[14px] font-semibold text-[var(--os-text-1)] leading-snug group-hover:text-[var(--os-teal)] transition-colors">
                       {isAr ? (video.title_ar || video.title_en) : (video.title_en || video.title_ar)}
                     </h3>
                   </div>

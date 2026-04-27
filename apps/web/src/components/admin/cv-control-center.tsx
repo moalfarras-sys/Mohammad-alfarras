@@ -279,16 +279,16 @@ export function CvControlCenter({
               aside={<StatusPill tone="success" message={t(locale, "PDF و DOCX من نفس بيانات السيرة", "PDF and DOCX from the same CV data")} />}
             />
             <div className="grid gap-3 md:grid-cols-4">
-              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/${locale}/cv`} target="_blank" rel="noopener noreferrer">
+              <a className="rounded-[1.2rem] border border-[var(--os-border)] bg-white/[0.06] p-4 text-sm font-semibold text-[var(--os-text-1)] transition hover:border-cyan-300/50" href={`/${locale}/cv`} target="_blank" rel="noopener noreferrer">
                 {t(locale, "معاينة صفحة CV", "Preview CV page")}
               </a>
-              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/api/cv-pdf?locale=${locale}&variant=branded`} target="_blank" rel="noopener noreferrer">
+              <a className="rounded-[1.2rem] border border-[var(--os-border)] bg-white/[0.06] p-4 text-sm font-semibold text-[var(--os-text-1)] transition hover:border-cyan-300/50" href={`/api/cv-pdf?locale=${locale}&variant=branded`} target="_blank" rel="noopener noreferrer">
                 {t(locale, "تنزيل PDF مصمم", "Download designed PDF")}
               </a>
-              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/api/cv-pdf?locale=${locale}&variant=ats`} target="_blank" rel="noopener noreferrer">
+              <a className="rounded-[1.2rem] border border-[var(--os-border)] bg-white/[0.06] p-4 text-sm font-semibold text-[var(--os-text-1)] transition hover:border-cyan-300/50" href={`/api/cv-pdf?locale=${locale}&variant=ats`} target="_blank" rel="noopener noreferrer">
                 {t(locale, "تنزيل PDF ATS", "Download ATS PDF")}
               </a>
-              <a className="rounded-[1.2rem] border border-white/10 bg-white/[0.06] p-4 text-sm font-semibold text-white transition hover:border-cyan-300/50" href={`/api/cv-docx?locale=${locale}`} target="_blank" rel="noopener noreferrer">
+              <a className="rounded-[1.2rem] border border-[var(--os-border)] bg-white/[0.06] p-4 text-sm font-semibold text-[var(--os-text-1)] transition hover:border-cyan-300/50" href={`/api/cv-docx?locale=${locale}`} target="_blank" rel="noopener noreferrer">
                 {t(locale, "تنزيل Word DOCX", "Download Word DOCX")}
               </a>
             </div>

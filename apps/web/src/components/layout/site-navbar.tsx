@@ -62,7 +62,7 @@ export function SiteNavbar({
         >
           {/* Brand */}
           <Link href={`/${locale}`} className="group flex items-center gap-3 shrink-0">
-            <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] transition-transform duration-300 group-hover:scale-105">
+            <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-[var(--os-border)] bg-black/5 dark:bg-white/5 transition-transform duration-300 group-hover:scale-105">
               <Image
                 src={logoSrc || "/images/logo.png"}
                 alt={brandName}
@@ -74,7 +74,7 @@ export function SiteNavbar({
             </span>
             <span className="hidden sm:flex flex-col">
               <strong
-                className="text-[15px] font-bold leading-tight tracking-[-0.01em] text-white transition-colors group-hover:text-[var(--os-teal)]"
+                className="text-[15px] font-bold leading-tight tracking-[-0.01em] text-[var(--os-text-1)] transition-colors group-hover:text-[var(--os-teal)]"
                 style={{ fontFamily: "var(--os-font-en)" }}
               >
                 {brandName}
@@ -122,7 +122,7 @@ export function SiteNavbar({
             <LocalePreferenceLink
               href={alternatePath}
               aria-label={isAr ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
-              className="hidden h-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--os-text-3)] transition hover:text-[var(--os-text-1)] hover:border-[var(--os-teal-border)] lg:inline-flex"
+              className="hidden h-9 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--os-text-3)] transition hover:text-[var(--os-text-1)] hover:border-[var(--os-teal-border)] lg:inline-flex"
             >
               {alternateLabel}
             </LocalePreferenceLink>
@@ -141,7 +141,7 @@ export function SiteNavbar({
               whileTap={{ scale: 0.88 }}
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[var(--os-text-3)] transition hover:text-[var(--os-text-1)] lg:inline-flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-[var(--os-text-3)] transition hover:text-[var(--os-text-1)] lg:inline-flex"
             >
               <AnimatePresence mode="wait">
                 {mounted && theme === "dark" ? (
@@ -164,7 +164,7 @@ export function SiteNavbar({
               onClick={() => setDrawerOpen(true)}
               aria-label={isAr ? "فتح القائمة" : "Open menu"}
               aria-expanded={drawerOpen}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[var(--os-text-2)] transition hover:text-white lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-[var(--os-text-2)] transition hover:text-[var(--os-text-1)] lg:hidden"
             >
               <Menu className="h-4.5 w-4.5" />
             </button>

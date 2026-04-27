@@ -75,7 +75,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
       {/* Hero */}
       <section className="section-frame mb-16 relative z-10">
         <motion.span {...inView(0)} className="eyebrow mb-5 inline-flex">{t.eyebrow}</motion.span>
-        <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5vw,4.5rem)] font-bold text-white max-w-2xl">
+        <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.2rem,5vw,4.5rem)] font-bold text-[var(--os-text-1)] max-w-2xl">
           {t.title}
         </motion.h1>
         <motion.p {...inView(0.12)} className="mt-5 max-w-xl text-[16px] leading-relaxed text-[var(--os-text-2)]">
@@ -99,7 +99,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
 
           {/* Form */}
           <motion.div {...inView(0)} className="glass-card p-8 md:p-12">
-            <h2 className="text-[1.3rem] font-bold text-white mb-2">
+            <h2 className="text-[1.3rem] font-bold text-[var(--os-text-1)] mb-2">
               {isAr ? "تفاصيل الطلب" : "Inquiry details"}
             </h2>
             <p className="text-[13px] text-[var(--os-text-3)] mb-8">
@@ -116,13 +116,13 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
                   <Clock className="h-4 w-4" />
                 </div>
-                <h3 className="text-[13px] font-bold text-white uppercase tracking-widest">{t.availTitle}</h3>
+                <h3 className="text-[13px] font-bold text-[var(--os-text-1)] uppercase tracking-widest">{t.availTitle}</h3>
               </div>
               <div className="space-y-4">
                 {t.avail.map((row) => (
                   <div key={row.l} className="flex items-center justify-between border-b border-[var(--os-border)] pb-3 last:border-0 last:pb-0">
                     <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--os-text-3)]">{row.l}</span>
-                    <span className="text-[13px] font-bold text-white">{row.v}</span>
+                    <span className="text-[13px] font-bold text-[var(--os-text-1)]">{row.v}</span>
                   </div>
                 ))}
               </div>
@@ -134,13 +134,13 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--os-violet)]/30 bg-[var(--os-violet)]/10 text-[var(--os-violet)]">
                   <Send className="h-4 w-4" />
                 </div>
-                <h3 className="text-[13px] font-bold text-white uppercase tracking-widest">{t.flowTitle}</h3>
+                <h3 className="text-[13px] font-bold text-[var(--os-text-1)] uppercase tracking-widest">{t.flowTitle}</h3>
               </div>
               <div className="relative space-y-6 pl-8">
                 <div className="absolute left-3.5 top-1 bottom-1 w-px bg-[var(--os-border)]" />
                 {t.flow.map((step, i) => (
                   <div key={i} className="relative">
-                    <div className="absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--os-violet)] text-[9px] font-bold text-white shadow-[0_0_12px_rgba(124,58,237,0.4)]">
+                    <div className="absolute -left-8 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--os-violet)] text-[9px] font-bold text-[var(--os-text-1)] shadow-[0_0_12px_rgba(124,58,237,0.4)]">
                       {i + 1}
                     </div>
                     <p className="text-[13px] leading-relaxed text-[var(--os-text-2)]">{step}</p>
@@ -161,7 +161,7 @@ export function ContactPageBody({ model }: { model: SiteViewModel }) {
                     className="flex items-center justify-between rounded-xl border border-[var(--os-border)] bg-white/[0.02] p-4 transition hover:border-[var(--os-teal-border)] hover:bg-[var(--os-teal-soft)]"
                   >
                     <div>
-                      <p className="text-[12px] font-bold text-white">{ch.label}</p>
+                      <p className="text-[12px] font-bold text-[var(--os-text-1)]">{ch.label}</p>
                       <p className="mt-0.5 text-[10px] text-[var(--os-text-3)] truncate max-w-[180px]">{ch.description}</p>
                     </div>
                     <ArrowUpRight className="h-4 w-4 text-[var(--os-text-3)]" />

@@ -145,7 +145,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={resolvedLocale}
       dir={resolvedDir}
       suppressHydrationWarning
-      className={`dark liquid-site ${siteFontClassName}`}
+      className={`liquid-site ${siteFontClassName}`}
     >
       <head>
         <meta charSet="UTF-8" />
@@ -154,7 +154,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootWebsiteJsonLd) }} />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>

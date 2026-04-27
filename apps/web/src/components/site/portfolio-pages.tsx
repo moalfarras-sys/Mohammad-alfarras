@@ -39,7 +39,7 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
         <div className="section-frame relative z-10 grid gap-14 lg:grid-cols-[1fr_380px] lg:items-center">
           <div>
             <motion.span {...inView(0)} className="eyebrow mb-6 inline-flex">{t.eyebrow}</motion.span>
-            <motion.h1 {...inView(0.08)} className="headline-display text-[clamp(2rem,5vw,4rem)] font-bold text-white">
+            <motion.h1 {...inView(0.08)} className="headline-display text-[clamp(2rem,5vw,4rem)] font-bold text-[var(--os-text-1)]">
               {t.title}
             </motion.h1>
             <motion.p {...inView(0.15)} className="mt-6 max-w-xl text-[16px] leading-relaxed text-[var(--os-text-2)]">
@@ -83,7 +83,7 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
               <motion.div key={exp.id} {...inView(i * 0.08)} className="glass-card p-8">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h3 className="text-[16px] font-bold text-white">{exp.role}</h3>
+                    <h3 className="text-[16px] font-bold text-[var(--os-text-1)]">{exp.role}</h3>
                     <p className="mt-1 flex items-center gap-2 text-[13px] font-semibold text-[var(--os-teal)]">
                       <Briefcase className="h-3.5 w-3.5" /> {exp.company}
                     </p>
@@ -122,7 +122,7 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
                 <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
                   {skillIcons[i] ?? <Code2 className="h-4 w-4" />}
                 </div>
-                <h3 className="text-[14px] font-bold text-white mb-4">{g.title}</h3>
+                <h3 className="text-[14px] font-bold text-[var(--os-text-1)] mb-4">{g.title}</h3>
                 <div className="flex flex-wrap gap-2">
                   {g.items.map((item) => (
                     <span key={item} className="os-badge text-[11px]">{item}</span>
@@ -156,7 +156,7 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
         <div className="section-frame">
           <motion.div {...inView(0)} className="glass-card relative overflow-hidden rounded-[2rem] p-12 text-center border-[var(--os-teal-border)]">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--os-teal)]/[0.04] to-[var(--os-violet)]/[0.04]" />
-            <h2 className="headline-display text-[2rem] font-bold text-white">{t.contactTitle}</h2>
+            <h2 className="headline-display text-[2rem] font-bold text-[var(--os-text-1)]">{t.contactTitle}</h2>
             <p className="mt-4 text-[14px] text-[var(--os-text-2)]">{t.contactBody}</p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link href={`/${model.locale}/contact`} className="btn-primary">{t.contactCta}</Link>
@@ -180,12 +180,12 @@ export function PortfolioPrivacyPage({ locale }: { locale: string }) {
   return (
     <div className="relative pb-32 pt-32" dir={isAr ? "rtl" : "ltr"} data-testid="privacy-page">
       <div className="section-frame max-w-3xl">
-        <motion.h1 {...inView(0)} className="headline-display text-[2.5rem] font-bold text-white mb-4">{t.title}</motion.h1>
+        <motion.h1 {...inView(0)} className="headline-display text-[2.5rem] font-bold text-[var(--os-text-1)] mb-4">{t.title}</motion.h1>
         <motion.p {...inView(0.05)} className="text-[13px] text-[var(--os-text-3)] mb-10">{(t as any).updated ?? (t as any).lastUpdated ?? ""}</motion.p>
         <div className="space-y-8">
           {t.sections.map((s: any, i: number) => (
             <motion.div key={i} {...inView(i * 0.05)} className="glass-card p-8">
-              <h2 className="text-[16px] font-bold text-white mb-4">{s.title ?? s.heading}</h2>
+              <h2 className="text-[16px] font-bold text-[var(--os-text-1)] mb-4">{s.title ?? s.heading}</h2>
               <p className="text-[14px] leading-relaxed text-[var(--os-text-2)]">{s.body}</p>
             </motion.div>
           ))}
@@ -219,7 +219,7 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
         </Link>
         <motion.div {...inView(0)}>
           <span className="eyebrow mb-4 inline-flex">{project.eyebrow}</span>
-          <h1 className="headline-display text-[clamp(2rem,5vw,4.5rem)] font-bold text-white mt-4">{project.title}</h1>
+          <h1 className="headline-display text-[clamp(2rem,5vw,4.5rem)] font-bold text-[var(--os-text-1)] mt-4">{project.title}</h1>
           <p className="mt-5 max-w-2xl text-[16px] leading-relaxed text-[var(--os-text-2)]">{project.description}</p>
         </motion.div>
 

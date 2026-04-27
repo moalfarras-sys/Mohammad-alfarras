@@ -60,7 +60,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--os-violet)]">{t.badge}</span>
             </motion.div>
 
-            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.4rem,6vw,5rem)] font-bold text-white">
+            <motion.h1 {...inView(0.06)} className="headline-display text-[clamp(2.4rem,6vw,5rem)] font-bold text-[var(--os-text-1)]">
               {t.heroTitle}
             </motion.h1>
 
@@ -132,7 +132,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--os-text-3)]">{s.label}</span>
               </div>
-              <p className="text-[2rem] font-bold text-white tracking-tight">{s.value}</p>
+              <p className="text-[2rem] font-bold text-[var(--os-text-1)] tracking-tight">{s.value}</p>
             </motion.div>
           ))}
         </div>
@@ -143,7 +143,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="section-frame">
           <motion.div {...inView(0)} className="mb-14 text-center">
             <span className="eyebrow mx-auto mb-4 inline-flex">{t.featuresEyebrow}</span>
-            <h2 className="headline-display text-[2.4rem] font-bold text-white mt-4">{t.featuresTitle}</h2>
+            <h2 className="headline-display text-[2.4rem] font-bold text-[var(--os-text-1)] mt-4">{t.featuresTitle}</h2>
           </motion.div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {t.features.map((f, i) => (
@@ -151,17 +151,17 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
                 <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
                   <MonitorSmartphone className="h-6 w-6" />
                 </div>
-                <h3 className="text-[16px] font-bold text-white mb-3">{f.title}</h3>
+                <h3 className="text-[16px] font-bold text-[var(--os-text-1)] mb-3">{f.title}</h3>
                 <p className="text-[13px] leading-relaxed text-[var(--os-text-3)]">{f.body}</p>
               </motion.div>
             ))}
 
             {/* VLC card */}
             <motion.div {...inView()} className="glass-card p-8 border-orange-500/20 bg-orange-500/[0.02] flex flex-col items-center justify-center text-center">
-              <div className="mb-4 h-16 w-16 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <div className="mb-4 h-16 w-16 overflow-hidden rounded-2xl border border-[var(--os-border)] bg-black/5 dark:bg-white/5 p-3">
                 <Image src="/images/vlc-logo.png" alt="VLC" width={64} height={64} className="grayscale brightness-200" />
               </div>
-              <h3 className="text-[16px] font-bold text-white">Powered by VLC</h3>
+              <h3 className="text-[16px] font-bold text-[var(--os-text-1)]">Powered by VLC</h3>
               <p className="mt-2 text-[12px] text-[var(--os-text-3)]">World-class LibVLC engine for superior format support.</p>
             </motion.div>
           </div>
@@ -173,14 +173,14 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="section-frame grid gap-8 lg:grid-cols-2">
           <motion.div {...inView(0)} className="glass-card p-10">
             <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] text-[var(--os-teal)] mb-6">{t.philosophyTitle}</h3>
-            <p className="text-[16px] font-semibold leading-relaxed text-white">{t.philosophy}</p>
+            <p className="text-[16px] font-semibold leading-relaxed text-[var(--os-text-1)]">{t.philosophy}</p>
           </motion.div>
           <motion.div {...inView(0.07)} className="glass-card p-10 border-emerald-500/20 bg-emerald-500/[0.01]">
             <div className="flex items-center gap-4 mb-8">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h3 className="text-[16px] font-bold text-white">{t.privacyTitle}</h3>
+              <h3 className="text-[16px] font-bold text-[var(--os-text-1)]">{t.privacyTitle}</h3>
             </div>
             <ul className="space-y-4">
               {t.privacyBullets.map((b) => (
@@ -198,13 +198,13 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
       <section className="py-20 bg-[var(--os-surface)]/30 relative z-10">
         <div className="section-frame max-w-3xl mx-auto">
           <motion.div {...inView(0)} className="mb-12 text-center">
-            <h2 className="headline-display text-[2rem] font-bold text-white">{t.faqTitle}</h2>
+            <h2 className="headline-display text-[2rem] font-bold text-[var(--os-text-1)]">{t.faqTitle}</h2>
           </motion.div>
           <div className="space-y-4">
             {t.faqs.map((faq, i) => (
               <motion.details key={faq.question} {...inView(i * 0.05)} className="glass-card group overflow-hidden">
                 <summary className="flex cursor-pointer list-none items-center justify-between p-6">
-                  <h3 className="text-[15px] font-semibold text-white">{faq.question}</h3>
+                  <h3 className="text-[15px] font-semibold text-[var(--os-text-1)]">{faq.question}</h3>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--os-border)] group-open:rotate-180 transition-transform">
                     <ChevronDown className="h-4 w-4 text-[var(--os-text-3)]" />
                   </div>
@@ -221,7 +221,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="section-frame">
           <motion.div {...inView(0)} className="glass-card relative overflow-hidden rounded-[2.5rem] border-[var(--os-teal-border)] p-16 text-center">
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--os-teal)]/[0.04] to-[var(--os-violet)]/[0.04]" />
-            <h2 className="headline-display relative z-10 text-[2.6rem] font-bold text-white">{t.finalTitle}</h2>
+            <h2 className="headline-display relative z-10 text-[2.6rem] font-bold text-[var(--os-text-1)]">{t.finalTitle}</h2>
             <p className="relative z-10 mt-4 text-[16px] text-[var(--os-text-2)]">{t.finalBody}</p>
             <div className="relative z-10 mt-10 flex flex-wrap justify-center gap-4">
               {dlHref && (

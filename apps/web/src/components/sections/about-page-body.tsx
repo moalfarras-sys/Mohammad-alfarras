@@ -206,11 +206,11 @@ export function AboutPageBody({ model }: { model: SiteViewModel }) {
                 sizes="(max-width: 1024px) 100vw, 420px"
               />
               <div className="absolute bottom-4 left-4 right-4 rounded-[var(--radius-md)] bg-black/45 px-3 py-2 text-xs backdrop-blur">
-                <div className="flex items-center gap-2 text-white/95">
+                <div className="flex items-center gap-2 text-[var(--os-text-1)]/95">
                   <MapPin className="h-3.5 w-3.5" />
                   <span className="font-medium">{model.profile.location}</span>
                 </div>
-                <div className="mt-1 text-[11px] text-white/70">{model.profile.subtitle}</div>
+                <div className="mt-1 text-[11px] text-[var(--os-text-1)]/70">{model.profile.subtitle}</div>
               </div>
             </div>
           </motion.div>
@@ -284,13 +284,13 @@ export function AboutPageBody({ model }: { model: SiteViewModel }) {
                     transition={{ duration: reduced ? 0.15 : 0.45, delay: reduced ? 0 : idx * 0.05 }}
                     className="relative pl-14 rtl:pr-14 rtl:pl-0"
                   >
-                    <span className="absolute top-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] text-white shadow-lg shadow-indigo-600/20 ltr:left-0 rtl:right-0">
+                    <span className="absolute top-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] text-[var(--os-text-1)] shadow-lg shadow-indigo-600/20 ltr:left-0 rtl:right-0">
                       <BadgeCheck className="h-5 w-5" />
                     </span>
                     <div className="glass rounded-[var(--radius-lg)] p-5">
                       <div className="flex flex-wrap items-center gap-3">
                         <h3 className="font-display text-lg font-bold text-[var(--text-1)]">{entry.role}</h3>
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[var(--text-2)]">
+                        <span className="rounded-full border border-[var(--os-border)] bg-white/5 px-2.5 py-1 text-[11px] font-medium text-[var(--text-2)]">
                           {entry.company}
                         </span>
                         <span className="text-[11px] text-[var(--text-3)]">{entry.period}</span>

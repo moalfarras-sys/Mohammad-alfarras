@@ -344,7 +344,7 @@ export function PagesControlCenter({
                       <SectionControlRow key={section.id} locale={locale} section={section} />
                     ))}
                     {sections.length === 0 && (
-                      <div className="rounded-[1.3rem] border border-dashed border-white/10 bg-black/10 px-4 py-5 text-sm text-foreground-muted">
+                      <div className="rounded-[1.3rem] border border-dashed border-[var(--os-border)] bg-black/10 px-4 py-5 text-sm text-foreground-muted">
                         {t(locale, "لا توجد أقسام مرتبطة بهذه الصفحة.", "No sections are linked to this page.")}
                       </div>
                     )}

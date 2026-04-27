@@ -34,6 +34,9 @@ class HomeViewModel @Inject constructor(
     
     private val _activeServer = MutableStateFlow<ServerEntity?>(null)
     val activeServer: StateFlow<ServerEntity?> = _activeServer.asStateFlow()
+
+    private val _dashboardState = MutableStateFlow(HomeDashboardState())
+    val dashboardState: StateFlow<HomeDashboardState> = _dashboardState.asStateFlow()
     
     // Keep LiveData version for backward compatibility
     private val _activeServerLiveData = MutableLiveData<ServerEntity?>()
@@ -51,6 +54,13 @@ class HomeViewModel @Inject constructor(
     val newContentAvailable: SharedFlow<ContentChangeSummary> = _newContentAvailable.asSharedFlow()
     private var contentObserverJob: Job? = null
     private val rowCache = linkedMapOf<String, ContentRow>()
+    private val rowOrder = listOf(
+        "continue_watching",
+        "recent_movies",
+        "recent_series",
+        "favorites",
+        "recent_history"
+    )
     
     init {
         observeContent()
@@ -67,11 +77,13 @@ class HomeViewModel @Inject constructor(
                     rowCache.clear()
                     _contentRows.value = emptyList()
                     _contentRowsLiveData.value = emptyList()
+                    _dashboardState.value = HomeDashboardState()
                     _isLoading.value = false
                     _isLoadingLiveData.value = false
                     return@collectLatest
                 }
 
+                loadDashboardState(server)
                 _contentRows.value = emptyList()
                 _contentRowsLiveData.value = emptyList()
                 _isLoading.value = true
@@ -80,6 +92,8 @@ class HomeViewModel @Inject constructor(
                 contentObserverJob = launch {
                     val pendingSections = mutableSetOf(
                         "continue_watching",
+                        "recent_history",
+                        "favorites",
                         "recent_movies",
                         "recent_series"
                     )
@@ -105,7 +119,48 @@ class HomeViewModel @Inject constructor(
                     }
 
                     launch {
-                        repository.getRecentlyAddedMovies(server.id, 30)
+                        watchHistoryRepository.getRecentHistoryFlow(20)
+                            .distinctUntilChangedBy { rows -> rows.map { it.id } }
+                            .collect { recentHistory ->
+                                val recentOnly = recentHistory.filterNot { it.isContinueWatchingCandidate() }
+                                updateRow(
+                                    key = "recent_history",
+                                    row = if (recentOnly.isNotEmpty()) {
+                                        ContentRow(
+                                            id = "recent_history",
+                                            title = context.getString(R.string.section_recently_watched),
+                                            items = recentOnly.map { it.toContentItem() },
+                                            type = ContentRowType.CONTINUE_WATCHING
+                                        )
+                                    } else null
+                                )
+                                pendingSections.remove("recent_history")
+                                if (pendingSections.isEmpty()) setLoading(false)
+                            }
+                    }
+
+                    launch {
+                        repository.getAllFavorites(server.id)
+                            .distinctUntilChangedBy { rows -> rows.map { it.id } }
+                            .collect { favorites ->
+                                updateRow(
+                                    key = "favorites",
+                                    row = if (favorites.isNotEmpty()) {
+                                        ContentRow(
+                                            id = "favorites",
+                                            title = context.getString(R.string.section_favorites),
+                                            items = favorites.take(20).map { it.toContentItem() },
+                                            type = ContentRowType.FAVORITES
+                                        )
+                                    } else null
+                                )
+                                pendingSections.remove("favorites")
+                                if (pendingSections.isEmpty()) setLoading(false)
+                            }
+                    }
+
+                    launch {
+                        repository.getRecentlyAddedMovies(server.id, 20)
                             .distinctUntilChangedBy { rows -> rows.map { it.movieId } }
                             .collect { recentMovies ->
                                 updateRow(
@@ -125,7 +180,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     launch {
-                        repository.getRecentlyAddedSeries(server.id, 30)
+                        repository.getRecentlyAddedSeries(server.id, 20)
                             .distinctUntilChangedBy { rows -> rows.map { it.seriesId } }
                             .collect { recentSeries ->
                                 updateRow(
@@ -154,7 +209,7 @@ class HomeViewModel @Inject constructor(
         } else {
             rowCache[key] = row
         }
-        val rows = rowCache.values.toList()
+        val rows = rowOrder.mapNotNull { rowCache[it] }
         _contentRows.value = rows
         _contentRowsLiveData.value = rows
         if (rows.isNotEmpty()) {
@@ -165,6 +220,24 @@ class HomeViewModel @Inject constructor(
     private fun setLoading(isLoading: Boolean) {
         _isLoading.value = isLoading
         _isLoadingLiveData.value = isLoading
+    }
+
+    private fun loadDashboardState(server: ServerEntity) {
+        viewModelScope.launch {
+            val snapshot = repository.getContentSnapshot(server.id)
+            val syncState = repository.getServerSyncState(server.id)
+            _dashboardState.value = HomeDashboardState(
+                sourceName = server.name,
+                sourceType = server.serverType,
+                isActive = server.isActive,
+                liveCount = syncState?.totalChannels?.takeIf { it > 0 } ?: snapshot.channelsCount,
+                movieCount = syncState?.totalMovies?.takeIf { it > 0 } ?: snapshot.moviesCount,
+                seriesCount = syncState?.totalSeries?.takeIf { it > 0 } ?: snapshot.seriesCount,
+                categoryCount = syncState?.totalCategories?.takeIf { it > 0 } ?: snapshot.categoriesCount,
+                lastRefreshAt = syncState?.lastSyncAt,
+                syncStatus = syncState?.lastStatus ?: "IDLE"
+            )
+        }
     }
     
     fun refreshContent() {
@@ -237,6 +310,27 @@ class HomeViewModel @Inject constructor(
         seasonNumber = seasonNumber,
         episodeNumber = episodeNumber
     )
+
+    private fun FavoriteEntity.toContentItem(): ContentItem {
+        val normalizedType = contentType.lowercase()
+        return ContentItem(
+            id = contentId,
+            title = name,
+            posterUrl = iconUrl,
+            type = when (normalizedType) {
+                "channel", "live" -> ContentType.CHANNEL
+                "series" -> ContentType.SERIES
+                else -> ContentType.MOVIE
+            },
+            favoriteId = id
+        )
+    }
+
+    private fun WatchHistoryEntity.isContinueWatchingCandidate(): Boolean {
+        if (durationMs <= 0L || completed) return false
+        val ratio = positionMs.toFloat() / durationMs.toFloat()
+        return ratio > 0.05f && ratio < 0.95f
+    }
 }
 
 // Data classes for UI
@@ -258,7 +352,20 @@ data class ContentItem(
     val savedPosition: Long? = null, // Resume position in ms
     val seriesId: String? = null, // For episodes
     val seasonNumber: Int? = null,
-    val episodeNumber: Int? = null
+    val episodeNumber: Int? = null,
+    val favoriteId: Long? = null
+)
+
+data class HomeDashboardState(
+    val sourceName: String? = null,
+    val sourceType: String? = null,
+    val isActive: Boolean = false,
+    val liveCount: Int = 0,
+    val movieCount: Int = 0,
+    val seriesCount: Int = 0,
+    val categoryCount: Int = 0,
+    val lastRefreshAt: Long? = null,
+    val syncStatus: String = "IDLE"
 )
 
 enum class ContentRowType {

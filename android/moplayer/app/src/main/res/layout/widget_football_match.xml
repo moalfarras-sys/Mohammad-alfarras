@@ -162,6 +162,17 @@
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-medium"
                     tools:text="No Live Matches" />
+
+                <TextView
+                    android:id="@+id/tvStateSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/cinematic_text_tertiary"
+                    android:textSize="11sp"
+                    tools:text="Upcoming match appears here" />
             </LinearLayout>
 
         </FrameLayout>

@@ -61,4 +61,5 @@
     <dimen name="dock_corner_radius">28dp</dimen>
     <dimen name="preview_panel_width">560dp</dimen>
     <dimen name="top_bar_height">112dp</dimen>
+    <dimen name="home_empty_width">720dp</dimen>
 </resources>

@@ -9,10 +9,10 @@
             <corners android:radius="16dp" />
             <gradient
                 android:type="radial"
-                android:gradientRadius="100dp"
+                android:gradientRadius="132dp"
                 android:centerX="0.5"
                 android:centerY="0.5"
-                android:startColor="#204F8BFF"
+                android:startColor="#305DEBFF"
                 android:endColor="#00000000" />
         </shape>
     </item>
@@ -21,9 +21,9 @@
             <corners android:radius="14dp" />
             <gradient
                 android:angle="135"
-                android:startColor="@color/liquid_glass_surface_strong"
-                android:endColor="@color/liquid_glass_surface" />
-            <stroke android:width="2dp" android:color="@color/liquid_focus_ring" />
+                android:startColor="#2533D5FF"
+                android:endColor="#1B7257FF" />
+            <stroke android:width="2dp" android:color="#A05DEBFF" />
         </shape>
     </item>
 </layer-list>

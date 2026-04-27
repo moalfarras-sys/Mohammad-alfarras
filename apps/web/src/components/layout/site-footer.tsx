@@ -184,12 +184,25 @@ export function SiteFooter({
               </div>
             </div>
 
-            <CollapsibleSection title={isAr ? "\u062a\u0646\u0642\u0644" : "Navigate"}>
-              {links.map((item) => (
-                <Link key={item.href} href={item.href} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
-                  {item.label}
-                </Link>
-              ))}
+            <CollapsibleSection title={isAr ? "حقائق سريعة" : "Quick facts"}>
+              <div className="flex flex-col gap-2.5 pt-1 md:pt-0">
+                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-sm">
+                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-cyan-400"></span>
+                  {isAr ? "مقيم في ألمانيا" : "Based in Germany"}
+                </span>
+                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-sm">
+                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-indigo-400"></span>
+                  {isAr ? "الجذور: الحسكة، سوريا" : "Roots: Al-Hasakah, Syria"}
+                </span>
+                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-2)] shadow-sm">
+                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                  {isAr ? "العربية / الألمانية / الإنجليزية" : "Languages: AR / DE / EN"}
+                </span>
+                <span className="flex w-fit items-center rounded-lg border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-bold text-[var(--accent-glow)] shadow-sm">
+                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent-glow)] animate-pulse"></span>
+                  {isAr ? "+1.5M مشاهدة على يوتيوب" : "1.5M+ YouTube views"}
+                </span>
+              </div>
             </CollapsibleSection>
 
             <CollapsibleSection title={isAr ? "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a" : "Products"}>

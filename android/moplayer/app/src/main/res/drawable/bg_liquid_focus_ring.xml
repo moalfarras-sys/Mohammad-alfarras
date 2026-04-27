@@ -3,6 +3,6 @@
     <corners android:radius="@dimen/cinematic_radius_card" />
     <solid android:color="@android:color/transparent" />
     <stroke
-        android:width="@dimen/liquid_focus_stroke"
-        android:color="@color/liquid_focus_ring" />
+        android:width="3dp"
+        android:color="#FFFFFFFF" />
 </shape>

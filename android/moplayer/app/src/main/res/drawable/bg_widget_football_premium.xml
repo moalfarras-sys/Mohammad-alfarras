@@ -10,8 +10,8 @@
                 android:gradientRadius="200dp"
                 android:centerX="0.5"
                 android:centerY="0.5"
-                android:startColor="#0CFF8C42"
-                android:centerColor="#06FF8C42"
+                android:startColor="#0F5DEBFF"
+                android:centerColor="#068B5CF6"
                 android:endColor="#00000000" />
         </shape>
     </item>
@@ -22,12 +22,12 @@
             <corners android:radius="20dp" />
             <gradient
                 android:angle="155"
-                android:startColor="#D00D1220"
-                android:centerColor="#C00B1018"
-                android:endColor="#B80B0F1A" />
+                android:startColor="#D8061220"
+                android:centerColor="#C8050B14"
+                android:endColor="#BE050812" />
             <stroke
                 android:width="1dp"
-                android:color="#1AFFFFFF" />
+                android:color="#18FFFFFF" />
         </shape>
     </item>
 

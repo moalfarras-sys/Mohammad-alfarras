@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AppAdminDashboard } from "@/components/admin/app-admin-dashboard";
+import { AdminOS } from "@/components/admin/admin-os";
 import { AppAdminLogin } from "@/components/admin/app-admin-login";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { readAdminAppData } from "@/lib/app-ecosystem";
@@ -40,7 +40,7 @@ export default async function AdminPage({
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-5 py-10 md:px-8 md:py-12">
-      <AppAdminDashboard
+      <AdminOS
         adminEmail={admin.email}
         role={admin.role}
         updated={query.updated}

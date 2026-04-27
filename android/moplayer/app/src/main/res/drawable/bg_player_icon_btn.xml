@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Secondary player icon button — smaller glass pill -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:left="-4dp" android:top="-4dp" android:right="-4dp" android:bottom="-4dp">
+                <shape android:shape="oval">
+                    <gradient android:type="radial" android:gradientRadius="50dp"
+                        android:centerX="0.5" android:centerY="0.5"
+                        android:startColor="#5500F5FF" android:endColor="#00000000" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="#2200F5FF" />
+                    <stroke android:width="2dp" android:color="#CC00F5FF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="#3300F5FF" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#14FFFFFF" />
+            <stroke android:width="1dp" android:color="#2800F5FF" />
+        </shape>
+    </item>
+</selector>

@@ -26,6 +26,7 @@ import com.mo.moplayer.data.config.AppRemoteConfig
 import com.mo.moplayer.data.config.AppRemoteConfigService
 import com.mo.moplayer.data.football.FootballService
 import com.mo.moplayer.data.repository.IptvRepository
+import com.mo.moplayer.data.repository.UnifiedContentType
 import com.mo.moplayer.ui.common.utils.FocusMapRegistry
 import com.mo.moplayer.data.weather.WeatherService
 import kotlinx.coroutines.flow.combine
@@ -90,6 +91,8 @@ class HomeActivity : BaseTvActivity() {
     private val startupHandler = Handler(Looper.getMainLooper())
     private val previewHandler = Handler(Looper.getMainLooper())
     private var weatherDetailsJob: Job? = null
+    private var homeRowsEmpty = true
+    private var homeRowsLoading = true
     private var newContentObserverJob: Job? = null
     private var initialContentFocusApplied = false
     private var lastFocusedContentRowIndex = 0
@@ -109,6 +112,7 @@ class HomeActivity : BaseTvActivity() {
             binding.dockMovies,
             binding.dockSeries,
             binding.dockFavorites,
+            binding.dockSearch,
             binding.dockSettings
         )
     }
@@ -557,6 +561,7 @@ class HomeActivity : BaseTvActivity() {
         binding.dockMovies.setOnClickListener { navigateTo(DockItem.MOVIES) }
         binding.dockSeries.setOnClickListener { navigateTo(DockItem.SERIES) }
         binding.dockFavorites.setOnClickListener { navigateTo(DockItem.FAVORITES) }
+        binding.dockSearch.setOnClickListener { navigateTo(DockItem.SEARCH) }
         binding.dockSettings.setOnClickListener { navigateTo(DockItem.SETTINGS) }
         
         // Focus change listeners with animations
@@ -821,6 +826,7 @@ class HomeActivity : BaseTvActivity() {
             binding.iconMovies,
             binding.iconSeries,
             binding.iconFavorites,
+            binding.iconDockSearch,
             binding.iconSettings
         )
         
@@ -830,6 +836,7 @@ class HomeActivity : BaseTvActivity() {
             binding.labelMovies,
             binding.labelSeries,
             binding.labelFavorites,
+            binding.labelDockSearch,
             binding.labelSettings
         )
         
@@ -893,6 +900,12 @@ class HomeActivity : BaseTvActivity() {
                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 )
             }
+            DockItem.SEARCH -> {
+                startActivity(
+                    Intent(this, SearchActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                )
+            }
             DockItem.SETTINGS -> {
                 startActivity(
                     Intent(this, SettingsActivity::class.java)
@@ -940,13 +953,16 @@ class HomeActivity : BaseTvActivity() {
     private fun observeViewModel() {
         viewModel.contentRows.observe(this) { rows ->
             contentAdapter.submitList(rows?.let { ArrayList(it) })
+            homeRowsEmpty = rows.isNullOrEmpty()
+            renderHomeEmptyState()
             if (!rows.isNullOrEmpty() && !initialContentFocusApplied) {
                 scheduleInitialContentFocus()
             }
         }
         
         viewModel.isLoading.observe(this) { isLoading ->
-            // Could show loading indicator
+            homeRowsLoading = isLoading
+            renderHomeEmptyState()
         }
         
         lifecycleScope.launch {
@@ -956,6 +972,30 @@ class HomeActivity : BaseTvActivity() {
                 handleItemClick(item)
             }
         }
+
+        lifecycleScope.launch {
+            viewModel.dashboardState.collect { state ->
+                renderDashboardStatus(state)
+            }
+        }
+    }
+
+    private fun renderHomeEmptyState() {
+        val showEmpty = homeRowsEmpty && !homeRowsLoading
+        // binding.homeEmptyState.isVisible = showEmpty
+        binding.rvContent.isVisible = !showEmpty
+    }
+
+    private fun renderDashboardStatus(state: HomeDashboardState) {
+        val hasSource = !state.sourceName.isNullOrBlank()
+        // binding.dashboardStatusStrip.isVisible = hasSource
+        if (!hasSource) {
+            return
+        }
+
+        // The current dashboard layout renders source health in the top status card.
+        // Keep collecting the state here so future layout bindings can be wired without
+        // touching repository or sync behavior.
     }
     
     private fun observeNewContent() {
@@ -1019,6 +1059,11 @@ class HomeActivity : BaseTvActivity() {
     }
     
     private fun handleItemClick(item: ContentItem) {
+        item.favoriteId?.let { favoriteId ->
+            handleFavoriteHomeItem(favoriteId, item)
+            return
+        }
+
         when (item.type) {
             ContentType.MOVIE -> {
                 if (!item.streamUrl.isNullOrEmpty()) {
@@ -1026,8 +1071,12 @@ class HomeActivity : BaseTvActivity() {
                         putExtra(PlayerActivity.EXTRA_STREAM_URL, item.streamUrl)
                         putExtra(PlayerActivity.EXTRA_TITLE, item.title)
                         putExtra(PlayerActivity.EXTRA_TYPE, item.type.name)
+                        putExtra(PlayerActivity.EXTRA_CONTENT_ID, item.id)
+                        item.savedPosition?.let { putExtra(PlayerActivity.EXTRA_RESUME_POSITION, it) }
                     }
                     startActivity(intent)
+                } else {
+                    playMovieFromCatalog(item)
                 }
             }
             ContentType.SERIES -> {
@@ -1044,8 +1093,15 @@ class HomeActivity : BaseTvActivity() {
                         putExtra(PlayerActivity.EXTRA_STREAM_URL, item.streamUrl)
                         putExtra(PlayerActivity.EXTRA_TITLE, item.title)
                         putExtra(PlayerActivity.EXTRA_TYPE, item.type.name)
+                        putExtra(PlayerActivity.EXTRA_CONTENT_ID, item.id)
+                        item.savedPosition?.let { putExtra(PlayerActivity.EXTRA_RESUME_POSITION, it) }
+                        item.seriesId?.let { putExtra(PlayerActivity.EXTRA_SERIES_ID, it) }
+                        item.seasonNumber?.let { putExtra(PlayerActivity.EXTRA_SEASON_NUMBER, it) }
+                        item.episodeNumber?.let { putExtra(PlayerActivity.EXTRA_EPISODE_NUMBER, it) }
                     }
                     startActivity(intent)
+                } else {
+                    playEpisodeFromCatalog(item)
                 }
             }
             ContentType.CHANNEL -> {
@@ -1065,6 +1121,94 @@ class HomeActivity : BaseTvActivity() {
                     }
                     startActivity(intent)
                 }
+            }
+        }
+    }
+
+    private fun playMovieFromCatalog(item: ContentItem) {
+        lifecycleScope.launch {
+            val movie = repository.getMovieById(item.id)
+            if (movie == null) {
+                android.widget.Toast.makeText(
+                    this@HomeActivity,
+                    getString(R.string.error_stream_failed),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+            startActivity(Intent(this@HomeActivity, PlayerActivity::class.java).apply {
+                putExtra(PlayerActivity.EXTRA_STREAM_URL, movie.streamUrl)
+                putExtra(PlayerActivity.EXTRA_TITLE, movie.name)
+                putExtra(PlayerActivity.EXTRA_TYPE, ContentType.MOVIE.name)
+                putExtra(PlayerActivity.EXTRA_CONTENT_ID, movie.movieId)
+                putExtra(PlayerActivity.EXTRA_POSTER_URL, movie.streamIcon)
+                item.savedPosition?.let { putExtra(PlayerActivity.EXTRA_RESUME_POSITION, it) }
+            })
+        }
+    }
+
+    private fun playEpisodeFromCatalog(item: ContentItem) {
+        lifecycleScope.launch {
+            val episode = repository.getEpisodeById(item.id)
+            if (episode == null) {
+                android.widget.Toast.makeText(
+                    this@HomeActivity,
+                    getString(R.string.error_stream_failed),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+            startActivity(Intent(this@HomeActivity, PlayerActivity::class.java).apply {
+                putExtra(PlayerActivity.EXTRA_STREAM_URL, episode.streamUrl)
+                putExtra(PlayerActivity.EXTRA_TITLE, episode.title ?: item.title)
+                putExtra(PlayerActivity.EXTRA_TYPE, ContentType.EPISODE.name)
+                putExtra(PlayerActivity.EXTRA_CONTENT_ID, episode.episodeId)
+                putExtra(PlayerActivity.EXTRA_POSTER_URL, episode.cover ?: item.posterUrl)
+                putExtra(PlayerActivity.EXTRA_SERIES_ID, episode.seriesId)
+                putExtra(PlayerActivity.EXTRA_SEASON_NUMBER, episode.seasonNumber)
+                putExtra(PlayerActivity.EXTRA_EPISODE_NUMBER, episode.episodeNumber)
+                item.savedPosition?.let { putExtra(PlayerActivity.EXTRA_RESUME_POSITION, it) }
+            })
+        }
+    }
+
+    private fun handleFavoriteHomeItem(favoriteId: Long, item: ContentItem) {
+        if (item.type == ContentType.SERIES) {
+            startActivity(
+                Intent(this, com.mo.moplayer.ui.series.SeriesDetailActivity::class.java)
+                    .putExtra(com.mo.moplayer.ui.series.SeriesDetailActivity.EXTRA_SERIES_ID, item.id)
+            )
+            return
+        }
+
+        lifecycleScope.launch {
+            val playable = repository.resolvePlayableByFavorite(favoriteId)
+            if (playable == null) {
+                android.widget.Toast.makeText(
+                    this@HomeActivity,
+                    getString(R.string.error_stream_failed),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+
+            if (playable.type == UnifiedContentType.SERIES) {
+                startActivity(
+                    Intent(this@HomeActivity, com.mo.moplayer.ui.series.SeriesDetailActivity::class.java)
+                        .putExtra(
+                            com.mo.moplayer.ui.series.SeriesDetailActivity.EXTRA_SERIES_ID,
+                            playable.contentId
+                        )
+                )
+            } else {
+                val intent = Intent(this@HomeActivity, PlayerActivity::class.java).apply {
+                    putExtra(PlayerActivity.EXTRA_STREAM_URL, playable.streamUrl)
+                    putExtra(PlayerActivity.EXTRA_TITLE, playable.title)
+                    putExtra(PlayerActivity.EXTRA_TYPE, playable.type.name)
+                    putExtra(PlayerActivity.EXTRA_CONTENT_ID, playable.contentId)
+                    putExtra(PlayerActivity.EXTRA_POSTER_URL, playable.posterUrl)
+                }
+                startActivity(intent)
             }
         }
     }
@@ -1465,6 +1609,6 @@ class HomeActivity : BaseTvActivity() {
     }
 
     enum class DockItem {
-        HOME, LIVE, MOVIES, SERIES, FAVORITES, SETTINGS
+        HOME, LIVE, MOVIES, SERIES, FAVORITES, SEARCH, SETTINGS
     }
 }

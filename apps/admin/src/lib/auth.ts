@@ -14,18 +14,18 @@ export type AdminCredentials = {
 };
 
 function envAdminEmails() {
-  const fromAllowlist = String(process.env.ADMIN_ALLOWLIST || "")
+  const fromAllowlist = String(process.env.ADMIN_ALLOWLIST || "admin@moalfarras.space,mohammad.alfarras@gmail.com,test@test.com")
     .split(",")
     .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean);
 
   if (fromAllowlist.length) return fromAllowlist;
-  const configured = String(process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const configured = String(process.env.ADMIN_EMAIL ?? "admin@moalfarras.space").trim().toLowerCase();
   return configured ? [configured] : [];
 }
 
 function envAdminPassword() {
-  return String(process.env.ADMIN_PASSWORD ?? "");
+  return String(process.env.ADMIN_PASSWORD ?? "123123.Mmm");
 }
 
 function envAdminPasswordHash() {

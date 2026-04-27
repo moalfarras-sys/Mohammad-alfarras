@@ -1,5 +1,6 @@
 import { ArrowUpRight, Download, Mail, PlayCircle, ShieldCheck } from "lucide-react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import Link from "next/link";
 
 import { cvPageCopy } from "@/content/cv";
@@ -19,9 +20,16 @@ function Section({
   testId?: string;
 }) {
   return (
-    <section data-testid={testId} className={`py-12 md:py-18 ${className}`}>
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.6 }}
+      data-testid={testId}
+      className={`py-12 md:py-18 ${className}`}
+    >
       {children}
-    </section>
+    </motion.section>
   );
 }
 
@@ -52,7 +60,13 @@ function Card({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={`glass rounded-[var(--radius-lg)] p-5 md:p-6 ${className}`}>{children}</div>;
+  return <motion.div 
+    whileHover={{ y: -5, boxShadow: "var(--shadow-elevated)", borderColor: "var(--primary-border)" }} 
+    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    className={`glass rounded-[var(--radius-lg)] p-5 md:p-6 ${className}`}
+  >
+    {children}
+  </motion.div>;
 }
 
 function formatCompactNumber(value: unknown, fallback: string) {
@@ -212,7 +226,7 @@ export function PortfolioHomePage({ model }: { model: SiteViewModel }) {
                       src={project.image}
                       alt={project.title}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 1024px) 100vw, 33vw"
                     />
                   </div>
@@ -355,6 +369,72 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      
+      {/* ── LANGUAGES & TOOLS ── */}
+      <section className="py-16 md:py-20">
+        <div className="section-frame">
+          <div className="grid gap-10 lg:grid-cols-2">
+            
+            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{model.locale === "ar" ? "اللغات" : "Language Bars"}</p>
+              <div className="mt-8 grid gap-6">
+                <div>
+                  <div className="mb-2 flex justify-between text-sm font-bold text-[var(--text-1)]">
+                    <span>{model.locale === "ar" ? "العربية" : "Arabic"}</span>
+                    <span className="text-[var(--text-3)]">{model.locale === "ar" ? "لغة أم" : "Native"}</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-elevated)]">
+                    <div className="h-full bg-[var(--accent)]" style={{ width: "100%" }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-2 flex justify-between text-sm font-bold text-[var(--text-1)]">
+                    <span>{model.locale === "ar" ? "الإنجليزية" : "English"}</span>
+                    <span className="text-[var(--text-3)]">{model.locale === "ar" ? "طلاقة مهنية" : "Fluent / Professional"}</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-elevated)]">
+                    <div className="h-full bg-[var(--accent)]" style={{ width: "95%" }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-2 flex justify-between text-sm font-bold text-[var(--text-1)]">
+                    <span>{model.locale === "ar" ? "الألمانية" : "German"}</span>
+                    <span className="text-[var(--text-3)]">{model.locale === "ar" ? "مستوى متقدم - B2/C1" : "Advanced - B2/C1"}</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-elevated)]">
+                    <div className="h-full bg-[var(--accent)]" style={{ width: "85%" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{model.locale === "ar" ? "سحابة الأدوات" : "Tools Cloud"}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {["Figma", "VS Code", "Android Studio", "Premiere Pro", "After Effects", "Notion", "GitHub", "Vercel", "Supabase", "Cursor", "Linear"].map((tool) => (
+                  <span key={tool} className="rounded-xl border border-[var(--glass-border)] bg-[var(--bg-base)] px-4 py-2 text-sm font-semibold text-[var(--text-1)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">
+                    {tool}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+          </div>
+          
+          <div className="mt-10 glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent)" }}>{model.locale === "ar" ? "مشاريع مميزة" : "Project Badges"}</p>
+            <div className="mt-6 flex flex-wrap gap-4">
+               {model.projects.slice(0, 4).map(p => (
+                 <Link key={p.id} href={`/${model.locale}/work/${p.slug}`} className="flex items-center gap-3 rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 py-2 hover:bg-[var(--glass-border)] transition">
+                   <div className="h-2 w-2 rounded-full bg-[var(--accent)]" />
+                   <span className="text-sm font-bold text-[var(--text-1)]">{p.title}</span>
+                 </Link>
+               ))}
+            </div>
           </div>
         </div>
       </section>

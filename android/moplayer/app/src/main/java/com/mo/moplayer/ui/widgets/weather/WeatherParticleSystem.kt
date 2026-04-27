@@ -23,6 +23,9 @@ class WeatherParticleSystem(
     private val particles = mutableListOf<Particle>()
     private val particlePool = mutableListOf<Particle>() // Particle pooling for performance
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val softSnowMask = BlurMaskFilter(2f, BlurMaskFilter.Blur.NORMAL)
+    private val cloudMask = BlurMaskFilter(44f, BlurMaskFilter.Blur.NORMAL)
+    private val fogMask = BlurMaskFilter(72f, BlurMaskFilter.Blur.NORMAL)
     private var currentCategory = WeatherService.WeatherCategory.CLEAR
     private var isDay = true
 
@@ -338,7 +341,7 @@ class WeatherParticleSystem(
             
             // Soft blur for depth
             if (size > 8f && !reduceMotion) {
-                paint.maskFilter = BlurMaskFilter(2f, BlurMaskFilter.Blur.NORMAL)
+                paint.maskFilter = softSnowMask
             } else {
                 paint.maskFilter = null
             }
@@ -388,7 +391,7 @@ class WeatherParticleSystem(
             paint.style = Paint.Style.FILL
             
             // Critical for HTC Sense feel: Soft, blurred clouds
-            paint.maskFilter = BlurMaskFilter(size * 0.4f, BlurMaskFilter.Blur.NORMAL)
+            paint.maskFilter = cloudMask
             
             canvas.drawCircle(x, y, size, paint)
             // Add some "puff" variations
@@ -428,7 +431,7 @@ class WeatherParticleSystem(
             paint.style = Paint.Style.FILL
             
             // Heavy blur for fog
-            paint.maskFilter = BlurMaskFilter(size * 0.5f, BlurMaskFilter.Blur.NORMAL)
+            paint.maskFilter = fogMask
             
             canvas.drawCircle(x, y, size, paint)
             paint.maskFilter = null

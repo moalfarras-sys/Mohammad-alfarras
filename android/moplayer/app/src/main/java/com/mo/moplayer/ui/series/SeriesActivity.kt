@@ -12,7 +12,6 @@ import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.mo.moplayer.R
-import com.mo.moplayer.data.local.entity.CategoryEntity
 import com.mo.moplayer.data.local.entity.SeriesEntity
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.databinding.ActivityMoviesBinding
@@ -73,6 +72,7 @@ class SeriesActivity : BaseTvActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMoviesBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.tvScreenTitle.setText(R.string.series_title)
 
         // Check if we should go directly to series detail
         val seriesId = intent.getStringExtra("series_id")
@@ -371,11 +371,20 @@ class SeriesActivity : BaseTvActivity() {
 
         // Add load state listener for paging
         seriesAdapter.addLoadStateListener { loadState ->
-            binding.loadingOverlay.visibility =
-                    when (loadState.refresh) {
-                        is LoadState.Loading -> View.VISIBLE
-                        else -> View.GONE
-                    }
+            val isRefreshing = loadState.refresh is LoadState.Loading
+            binding.loadingOverlay.visibility = if (isRefreshing) View.VISIBLE else View.GONE
+
+            if (loadState.refresh is LoadState.NotLoading) {
+                if (seriesAdapter.itemCount == 0) {
+                    binding.networkErrorView.showEmpty(
+                            title = getString(R.string.series_empty_title),
+                            message = getString(R.string.series_empty_subtitle),
+                            iconRes = R.drawable.ic_series
+                    )
+                } else if (binding.networkErrorView.getCurrentState() == com.mo.moplayer.ui.common.LoadingStateView.State.EMPTY) {
+                    binding.networkErrorView.hide()
+                }
+            }
         }
     }
 
@@ -405,20 +414,20 @@ class SeriesActivity : BaseTvActivity() {
         }
 
         viewModel.categories.observe(this) { categories ->
-            val allCategories =
-                    mutableListOf(
-                            CategoryEntity(
-                                    categoryId = "all",
-                                    serverId = 0,
-                                    originalId = "all",
-                                    name = getString(R.string.series_all),
-                                    type = "series",
-                                    sortOrder = -1
-                            )
-                    )
-            allCategories.addAll(categories)
-            categoryAdapter.submitList(allCategories)
-            if (!binding.rvCategories.hasFocus() && !binding.rvMovies.hasFocus() && allCategories.isNotEmpty()) {
+            val realCategories = categories.filter { it.categoryId != "all" && it.name.isNotBlank() }
+            categoryAdapter.submitList(realCategories)
+
+            val selected = viewModel.selectedCategory.value
+            val needsSelection = selected == null || realCategories.none { it.categoryId == selected.categoryId }
+            if (realCategories.isNotEmpty() && needsSelection) {
+                viewModel.selectCategory(realCategories.first())
+            } else if (realCategories.isEmpty()) {
+                binding.tvCategoryTitle.text = getString(R.string.series_catalog)
+                categoryAdapter.setSelectedCategory("")
+                binding.rvMovies.post { binding.rvMovies.requestFocus() }
+            }
+
+            if (!binding.rvCategories.hasFocus() && !binding.rvMovies.hasFocus() && realCategories.isNotEmpty()) {
                 binding.rvCategories.post {
                     binding.rvCategories.getChildAt(0)?.requestFocus()
                 }
@@ -433,8 +442,8 @@ class SeriesActivity : BaseTvActivity() {
         }
 
         viewModel.selectedCategory.observe(this) { category ->
-            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.series_all)
-            categoryAdapter.setSelectedCategory(category?.categoryId ?: "all")
+            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.series_catalog)
+            categoryAdapter.setSelectedCategory(category?.categoryId ?: "")
         }
     }
 

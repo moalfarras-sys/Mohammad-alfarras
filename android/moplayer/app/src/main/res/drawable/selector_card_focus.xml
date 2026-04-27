@@ -15,8 +15,8 @@
                         android:gradientRadius="150dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="@color/liquid_focus_glow"
-                        android:centerColor="@color/liquid_accent_primary_soft"
+                        android:startColor="#665DEBFF"
+                        android:centerColor="#245DEBFF"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -26,9 +26,9 @@
                     <corners android:radius="@dimen/card_corner_radius" />
                     <gradient
                         android:angle="315"
-                        android:startColor="#2CFFFFFF"
-                        android:centerColor="@color/cinematic_violet_subtle"
-                        android:endColor="#1822D3EE" />
+                        android:startColor="#20FFFFFF"
+                        android:centerColor="#1F8B5CF6"
+                        android:endColor="#145DEBFF" />
                 </shape>
             </item>
             
@@ -37,7 +37,7 @@
                     <corners android:radius="@dimen/card_corner_radius" />
                     <stroke
                         android:width="@dimen/focus_border_width"
-                        android:color="@color/liquid_focus_ring" />
+                        android:color="@color/cinematic_focus_soft" />
                 </shape>
             </item>
             

@@ -19,7 +19,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.widget.SeekBar
 import android.widget.Toast
-import android.content.pm.ApplicationInfo
 import com.mo.moplayer.R
 import com.mo.moplayer.databinding.ActivityPlayerBinding
 import com.mo.moplayer.data.repository.WatchHistoryRepository
@@ -282,7 +281,6 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun initVLC() {
         // Multi-strategy initialization for x86 emulator compatibility
-        val enableVerboseLogging = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         val cachingMs = vlcBufferMs.coerceAtLeast(500)
         
         // Dynamic thread count based on device CPU cores for optimal 4K/8K performance
@@ -319,8 +317,10 @@ class PlayerActivity : BaseTvActivity() {
 
         fun optionsOf(vararg opts: String): ArrayList<String> {
             return arrayListOf<String>().apply {
+                add("--quiet")
+                add("--no-stats")
+                add("--no-video-title-show")
                 addAll(opts)
-                if (enableVerboseLogging) add("-vvv")
             }
         }
 
@@ -755,7 +755,7 @@ class PlayerActivity : BaseTvActivity() {
      * Show a dialog offering to install the missing external player from the Play Store.
      */
     private fun showInstallPlayerDialog(playerName: String, packageName: String) {
-        android.app.AlertDialog.Builder(this)
+        android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
             .setTitle(getString(R.string.player_install_external, playerName))
             .setMessage(getString(R.string.player_install_prompt, playerName))
             .setPositiveButton(getString(R.string.ok)) { _, _ -> openPlayStore(packageName) }

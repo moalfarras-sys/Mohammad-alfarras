@@ -538,7 +538,7 @@
             android:background="@drawable/selector_home_dock_item_premium"
             android:nextFocusUp="@id/rvContent"
             android:nextFocusLeft="@id/dockSeries"
-            android:nextFocusRight="@id/dockSettings">
+            android:nextFocusRight="@id/dockSearch">
 
             <ImageView
                 android:id="@+id/iconFavorites"
@@ -559,6 +559,41 @@
                 android:letterSpacing="0.06" />
         </LinearLayout>
 
+        <!-- Search -->
+        <LinearLayout
+            android:id="@+id/dockSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_home_dock_item_premium"
+            android:nextFocusUp="@id/rvContent"
+            android:nextFocusLeft="@id/dockFavorites"
+            android:nextFocusRight="@id/dockSettings">
+
+            <ImageView
+                android:id="@+id/iconDockSearch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/labelDockSearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="@string/nav_search"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="9sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.06" />
+        </LinearLayout>
+
         <!-- Settings -->
         <LinearLayout
             android:id="@+id/dockSettings"
@@ -572,7 +607,7 @@
             android:clickable="true"
             android:background="@drawable/selector_home_dock_item_premium"
             android:nextFocusUp="@id/rvContent"
-            android:nextFocusLeft="@id/dockFavorites"
+            android:nextFocusLeft="@id/dockSearch"
             android:nextFocusRight="@id/dockHome">
 
             <ImageView

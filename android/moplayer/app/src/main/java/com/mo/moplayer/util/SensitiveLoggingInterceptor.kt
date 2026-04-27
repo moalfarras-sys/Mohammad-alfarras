@@ -24,7 +24,15 @@ class SensitiveLoggingInterceptor : Interceptor {
 
     private fun sanitizeUrl(url: HttpUrl): String {
         if (url.querySize == 0) return url.toString()
+        val hasSensitiveQuery = url.queryParameterNames.any { name ->
+            name.equals("username", true) ||
+                name.equals("password", true) ||
+                name.equals("token", true)
+        }
         val builder = url.newBuilder().query(null)
+        if (hasSensitiveQuery) {
+            builder.host("masked.local")
+        }
         url.queryParameterNames.forEach { name ->
             val masked =
                 if (name.equals("username", true) ||

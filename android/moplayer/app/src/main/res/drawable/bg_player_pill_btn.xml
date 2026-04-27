@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Player pill toolbar button — glass rounded pill -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:left="-3dp" android:top="-3dp" android:right="-3dp" android:bottom="-3dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="999dp" />
+                    <gradient android:type="radial" android:gradientRadius="60dp"
+                        android:centerX="0.5" android:centerY="0.5"
+                        android:startColor="#5500F5FF" android:endColor="#00000000" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="999dp" />
+                    <solid android:color="#2200F5FF" />
+                    <stroke android:width="1.5dp" android:color="#CC00F5FF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="#2800F5FF" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="#1AFFFFFF" />
+            <stroke android:width="1dp" android:color="#2500F5FF" />
+        </shape>
+    </item>
+</selector>

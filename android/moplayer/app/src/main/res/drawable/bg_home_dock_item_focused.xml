@@ -1,43 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Outer glow (blue-violet) -->
-    <item
-        android:left="-4dp"
-        android:top="-4dp"
-        android:right="-4dp"
-        android:bottom="-4dp">
+    <!-- Inner cyan glow ring for dock item -->
+    <item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp">
         <shape android:shape="rectangle">
-            <corners android:radius="18dp" />
-            <gradient
-                android:type="radial"
-                android:gradientRadius="120dp"
-                android:centerX="0.5"
-                android:centerY="0.5"
-                android:startColor="#304F8BFF"
-                android:centerColor="#188B5CF6"
-                android:endColor="#00000000" />
+            <corners android:radius="14dp" />
+            <gradient android:type="radial" android:gradientRadius="80dp"
+                android:centerX="0.5" android:centerY="0.5"
+                android:startColor="#6600F5FF" android:endColor="#00000000" />
         </shape>
     </item>
-    <!-- Glass surface -->
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="16dp" />
-            <gradient
-                android:angle="155"
-                android:startColor="#1AFFFFFF"
-                android:endColor="#0CFFFFFF" />
-            <stroke android:width="1.5dp" android:color="@color/liquid_focus_ring" />
-        </shape>
-    </item>
-    <!-- Inner reflection -->
-    <item android:top="1dp" android:left="6dp" android:right="6dp">
-        <shape android:shape="rectangle">
-            <corners android:radius="16dp" />
-            <gradient
-                android:angle="270"
-                android:startColor="#08FFFFFF"
-                android:endColor="#00FFFFFF" />
-            <size android:height="16dp" />
+            <corners android:radius="18dp" />
+            <solid android:color="#2800F5FF" />
+            <stroke android:width="2dp" android:color="@color/cinematic_cyan" />
         </shape>
     </item>
 </layer-list>

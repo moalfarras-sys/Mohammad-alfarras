@@ -11,10 +11,10 @@
                     <corners android:radius="16dp" />
                     <gradient
                         android:type="radial"
-                        android:gradientRadius="100dp"
+                    android:gradientRadius="140dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="@color/cinematic_focus_glow"
+                        android:startColor="#AA00E5FF"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -23,9 +23,10 @@
                     <corners android:radius="14dp" />
                     <gradient
                         android:angle="135"
-                        android:startColor="@color/liquid_glass_surface_strong"
-                        android:endColor="@color/liquid_glass_surface" />
-                    <stroke android:width="@dimen/focus_ring_width" android:color="@color/liquid_focus_ring" />
+                        android:startColor="#AA00E5FF"
+                        android:centerColor="#66286DFF"
+                        android:endColor="#997C3AED" />
+                    <stroke android:width="2.5dp" android:color="#FFFFFFFF" />
                 </shape>
             </item>
         </layer-list>
@@ -41,9 +42,10 @@
             <corners android:radius="14dp" />
             <gradient
                 android:angle="135"
-                android:startColor="@color/cinematic_surface"
-                android:endColor="@color/cinematic_bg_elevated" />
-            <stroke android:width="1dp" android:color="@color/cinematic_divider" />
+                android:startColor="#55204878"
+                android:centerColor="#3313244F"
+                android:endColor="#441B1038" />
+            <stroke android:width="1.2dp" android:color="#55B9F7FF" />
         </shape>
     </item>
 </selector>

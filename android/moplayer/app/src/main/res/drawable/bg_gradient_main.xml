@@ -1,52 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- HTC Style Main Screen Gradient Background -->
+<!-- MoPlayer: Premium Cinematic Background — Deep Space with Cyber Nebula -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    
-    <!-- Base solid color -->
+
+    <!-- Layer 1: Deep space base — ultra-dark navy -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/htc_black" />
+            <gradient
+                android:angle="315"
+                android:startColor="#000308"
+                android:centerColor="#04102A"
+                android:endColor="#100520" />
         </shape>
     </item>
-    
-    <!-- Subtle radial gradient from center -->
+
+    <!-- Layer 2: Cyan nebula glow — top-left -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="700dp"
+                android:centerX="0.08"
+                android:centerY="0.05"
+                android:startColor="#4400F5FF"
+                android:centerColor="#1A00F5FF"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+
+    <!-- Layer 3: Violet nebula — top-right -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:type="radial"
                 android:gradientRadius="600dp"
-                android:centerX="0.5"
-                android:centerY="0.3"
-                android:startColor="@color/htc_medium_gray"
+                android:centerX="0.92"
+                android:centerY="0.12"
+                android:startColor="#447C3AED"
+                android:centerColor="#1A7C3AED"
                 android:endColor="#00000000" />
         </shape>
     </item>
-    
-    <!-- Top ambient light - using top inset instead of bottom percentage -->
-    <item
-        android:left="0dp"
-        android:right="0dp"
-        android:top="0dp">
-        <shape android:shape="rectangle">
-            <gradient
-                android:angle="270"
-                android:startColor="#1A2D2D2D"
-                android:endColor="#00000000"
-                android:type="linear" />
-            <size android:height="200dp" />
-        </shape>
-    </item>
-    
-    <!-- Vignette effect at corners -->
+
+    <!-- Layer 4: Deep blue mid-center glow -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:type="radial"
-                android:gradientRadius="1000dp"
+                android:gradientRadius="400dp"
+                android:centerX="0.5"
+                android:centerY="0.6"
+                android:startColor="#100A1F3A"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+
+    <!-- Layer 5: Bottom vignette for depth -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="1400dp"
                 android:centerX="0.5"
                 android:centerY="0.5"
                 android:startColor="#00000000"
-                android:endColor="#40000000" />
+                android:centerColor="#18000000"
+                android:endColor="#E0000000" />
         </shape>
     </item>
+
 </layer-list>

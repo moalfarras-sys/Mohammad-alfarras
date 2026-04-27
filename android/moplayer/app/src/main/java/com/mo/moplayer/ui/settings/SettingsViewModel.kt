@@ -121,13 +121,25 @@ class SettingsViewModel @Inject constructor(
         return runCatching {
             val uri = java.net.URI(server.serverUrl)
             val port = if (uri.port != -1) ":${uri.port}" else ""
-            val base = "${uri.scheme}://${uri.host.orEmpty()}$port"
-            if (server.serverUrl.contains("?")) {
-                "$base/...?...=masked"
-            } else {
-                base
+            val host = uri.host.orEmpty().ifBlank {
+                uri.authority.orEmpty()
+                    .substringAfter("@")
+                    .substringBefore("/")
+                    .substringBefore("?")
             }
-        }.getOrDefault(server.serverUrl.replace(Regex("(username|password|token)=([^&]+)", RegexOption.IGNORE_CASE), "\$1=masked"))
+            if (host.isNotBlank()) {
+                "$host$port"
+            } else {
+                "Endpoint saved"
+            }
+        }.getOrDefault(
+            server.serverUrl
+                .substringBefore("?")
+                .removePrefix("https://")
+                .removePrefix("http://")
+                .substringBefore("/")
+                .replace(Regex("(username|password|token)=([^&]+)", RegexOption.IGNORE_CASE), "\$1=masked")
+        )
     }
 
     fun setHardwareAcceleration(enabled: Boolean) {

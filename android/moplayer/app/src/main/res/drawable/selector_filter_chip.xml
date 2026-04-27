@@ -5,7 +5,10 @@
             <item>
                 <shape android:shape="rectangle">
                     <corners android:radius="20dp" />
-                    <solid android:color="@color/liquid_accent_primary" />
+                    <gradient
+                        android:angle="0"
+                        android:startColor="#00E5FF"
+                        android:endColor="#7C3AED" />
                     <stroke android:width="2dp" android:color="#60FFFFFF" />
                 </shape>
             </item>
@@ -14,7 +17,10 @@
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <corners android:radius="20dp" />
-            <solid android:color="@color/liquid_accent_primary" />
+            <gradient
+                android:angle="0"
+                android:startColor="#00E5FF"
+                android:endColor="#7C3AED" />
         </shape>
     </item>
     <item android:state_focused="true">
@@ -24,11 +30,11 @@
                     <corners android:radius="20dp" />
                     <gradient
                         android:angle="135"
-                        android:startColor="@color/liquid_glass_surface_strong"
-                        android:endColor="@color/liquid_glass_surface" />
+                    android:startColor="#5546F6FF"
+                    android:endColor="#553B1D74" />
                     <stroke
                         android:width="2dp"
-                        android:color="@color/liquid_focus_ring" />
+                        android:color="#FFFFFFFF" />
                 </shape>
             </item>
         </layer-list>
@@ -36,8 +42,8 @@
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="20dp" />
-            <solid android:color="#12FFFFFF" />
-            <stroke android:width="1dp" android:color="#18FFFFFF" />
+            <solid android:color="#22173568" />
+            <stroke android:width="1dp" android:color="#44B9F7FF" />
         </shape>
     </item>
 </selector>

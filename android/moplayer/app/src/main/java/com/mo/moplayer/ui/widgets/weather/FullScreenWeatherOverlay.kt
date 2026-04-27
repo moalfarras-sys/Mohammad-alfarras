@@ -196,6 +196,7 @@ class FullScreenWeatherOverlay @JvmOverloads constructor(
         // Reinitialize particles when size changes
         if (w > 0 && h > 0) {
             particleSystem.setWeatherState(currentCategory, isDay, currentParams)
+            effectsRenderer.onSizeChanged(w, h)
         }
     }
     

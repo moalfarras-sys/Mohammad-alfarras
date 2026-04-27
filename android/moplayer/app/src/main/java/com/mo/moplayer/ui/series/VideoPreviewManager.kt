@@ -51,8 +51,10 @@ class VideoPreviewManager(private val context: Context) {
         if (libVLC == null) {
             try {
                 val options = arrayListOf(
+                    "--quiet",
                     "--no-audio", // No audio for preview
                     "--no-stats",
+                    "--no-video-title-show",
                     "--network-caching=1000",
                     "--live-caching=1000"
                 )

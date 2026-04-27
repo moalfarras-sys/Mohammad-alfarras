@@ -54,10 +54,10 @@
     <dimen name="flip_clock_text_size">24sp</dimen>
     
     <!-- Dock -->
-    <dimen name="dock_height">60dp</dimen>
-    <dimen name="dock_icon_size">24dp</dimen>
-    <dimen name="dock_label_size">9sp</dimen>
-    <dimen name="dock_horizontal_margin">48dp</dimen>
+    <dimen name="dock_height">54dp</dimen>
+    <dimen name="dock_icon_size">20dp</dimen>
+    <dimen name="dock_label_size">8sp</dimen>
+    <dimen name="dock_horizontal_margin">16dp</dimen>
     <dimen name="dock_bottom_margin">6dp</dimen>
     <dimen name="dock_corner_radius">20dp</dimen>
     <dimen name="preview_panel_width">280dp</dimen>
@@ -79,4 +79,5 @@
     <dimen name="login_tab_container_height">42dp</dimen>
     <dimen name="login_marketing_text_size">18sp</dimen>
     <dimen name="developer_credit_size">10sp</dimen>
+    <dimen name="home_empty_width">320dp</dimen>
 </resources>

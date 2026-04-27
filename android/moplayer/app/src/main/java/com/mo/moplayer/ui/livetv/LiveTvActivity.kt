@@ -2,7 +2,6 @@ package com.mo.moplayer.ui.livetv
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -233,8 +232,6 @@ class LiveTvActivity : BaseTvActivity() {
 
     private fun initVLC() {
         try {
-            val enableVerboseLogging =
-                    (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
             val isEmulator = isRunningOnEmulator()
             // Keep startup fast enough while still stable.
             val cachingMs =
@@ -282,8 +279,10 @@ class LiveTvActivity : BaseTvActivity() {
 
             fun optionsOf(vararg opts: String): ArrayList<String> {
                 return arrayListOf<String>().apply {
+                    add("--quiet")
+                    add("--no-stats")
+                    add("--no-video-title-show")
                     addAll(opts)
-                    if (enableVerboseLogging) add("-vvv")
                 }
             }
 
@@ -509,8 +508,10 @@ class LiveTvActivity : BaseTvActivity() {
             val previewCachingMs = minOf(vlcBufferMs, 1000).coerceAtLeast(300)
             val options =
                     arrayListOf(
+                            "--quiet",
                             "--no-audio",
                             "--no-stats",
+                            "--no-video-title-show",
                             "--network-caching=$previewCachingMs",
                             "--live-caching=$previewCachingMs",
                             "--no-spu",
@@ -1066,6 +1067,16 @@ class LiveTvActivity : BaseTvActivity() {
 
             // Update channel count badge
             binding.tvChannelCount.text = getString(R.string.channel_count_format, channels.size)
+
+            if (viewModel.isLoading.value != true && channels.isEmpty()) {
+                binding.networkErrorView.showEmpty(
+                        title = getString(R.string.live_tv_empty_title),
+                        message = getString(R.string.live_tv_empty_subtitle),
+                        iconRes = R.drawable.ic_live_tv
+                )
+            } else if (binding.networkErrorView.getCurrentState() == com.mo.moplayer.ui.common.LoadingStateView.State.EMPTY) {
+                binding.networkErrorView.hide()
+            }
 
             if (overlayVisible && channels.isNotEmpty() && binding.rvChannels.hasFocus()) {
                 val safeIdx = (viewModel.filteredChannelIndex.value ?: 0).coerceIn(0, channels.lastIndex)

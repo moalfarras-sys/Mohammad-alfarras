@@ -7,7 +7,7 @@
             <!-- Focus Glow -->
             <item>
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/cinematic_focus_glow"/>
+                    <solid android:color="#7700E5FF"/>
                     <corners android:radius="@dimen/card_corner_radius"/>
                 </shape>
             </item>
@@ -18,10 +18,14 @@
                 android:right="2dp"
                 android:bottom="2dp">
                 <shape android:shape="rectangle">
-                    <solid android:color="@color/cinematic_surface_alt"/>
+                    <gradient
+                        android:angle="145"
+                        android:startColor="#E8173470"
+                        android:centerColor="#D6221B61"
+                        android:endColor="#DA092C58" />
                     <stroke
-                        android:width="@dimen/focus_ring_width"
-                        android:color="@color/liquid_focus_ring"/>
+                        android:width="3dp"
+                        android:color="#FFFFFFFF"/>
                     <corners android:radius="@dimen/card_corner_radius"/>
                 </shape>
             </item>
@@ -31,7 +35,7 @@
     <!-- Pressed State -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/cinematic_surface"/>
+            <solid android:color="#DD102A5C"/>
             <stroke
                 android:width="1dp"
                 android:color="@color/cinematic_divider"/>
@@ -42,10 +46,14 @@
     <!-- Normal State -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/htc_card_background"/>
+            <gradient
+                android:angle="145"
+                android:startColor="#BB0B1D3D"
+                android:centerColor="#AA111A3F"
+                android:endColor="#AA190B30" />
             <stroke
-                android:width="1dp"
-                android:color="@color/htc_card_border"/>
+                android:width="1.2dp"
+                android:color="#42B9F7FF"/>
             <corners android:radius="@dimen/card_corner_radius"/>
         </shape>
     </item>

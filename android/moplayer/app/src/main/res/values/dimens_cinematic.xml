@@ -3,8 +3,8 @@
     <dimen name="cinematic_radius_card">20dp</dimen>
     <dimen name="cinematic_radius_surface">20dp</dimen>
     <dimen name="cinematic_stroke_focus">2dp</dimen>
-    <dimen name="cinematic_poster_width">168dp</dimen>
-    <dimen name="cinematic_poster_height">252dp</dimen>
-    <dimen name="cinematic_row_height">328dp</dimen>
-    <dimen name="cinematic_dock_height">64dp</dimen>
+    <dimen name="cinematic_poster_width">148dp</dimen>
+    <dimen name="cinematic_poster_height">222dp</dimen>
+    <dimen name="cinematic_row_height">292dp</dimen>
+    <dimen name="cinematic_dock_height">58dp</dimen>
 </resources>

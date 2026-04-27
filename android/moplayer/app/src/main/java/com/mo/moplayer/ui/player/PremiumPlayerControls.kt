@@ -152,7 +152,7 @@ class PremiumPlayerControls @JvmOverloads constructor(
     private fun showSpeedSelector() {
         val speedLabels = availableSpeeds.map { String.format("%.2fx", it) }.toTypedArray()
         val currentIndex = availableSpeeds.indexOf(currentSpeed).coerceAtLeast(0)
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(context, com.mo.moplayer.R.style.AlertDialogTheme)
             .setTitle(com.mo.moplayer.R.string.playback_speed)
             .setSingleChoiceItems(speedLabels, currentIndex) { dialog, which ->
                 val speed = availableSpeeds[which]
@@ -169,7 +169,7 @@ class PremiumPlayerControls @JvmOverloads constructor(
     private fun showQualitySelector() {
         val labels = qualityOptions.map { it.label }.toTypedArray()
         val currentIndex = qualityOptions.indexOfFirst { it.id == selectedQualityId }.coerceAtLeast(0)
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(context, com.mo.moplayer.R.style.AlertDialogTheme)
             .setTitle(com.mo.moplayer.R.string.player_quality)
             .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
                 val selected = qualityOptions[which]
@@ -306,7 +306,7 @@ class PremiumPlayerControls @JvmOverloads constructor(
             return
         }
         val labels = tracks.map { it.name }.toTypedArray()
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(context, com.mo.moplayer.R.style.AlertDialogTheme)
             .setTitle(title)
             .setItems(labels) { dialog, which ->
                 onTrackSelected(tracks[which])

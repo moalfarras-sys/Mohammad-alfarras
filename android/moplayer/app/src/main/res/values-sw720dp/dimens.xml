@@ -20,10 +20,10 @@
     <dimen name="live_channel_item_height">72dp</dimen>
     
     <!-- Text Sizes -->
-    <dimen name="text_size_title">22sp</dimen>
-    <dimen name="text_size_subtitle">16sp</dimen>
-    <dimen name="text_size_body">14sp</dimen>
-    <dimen name="text_size_caption">12sp</dimen>
+    <dimen name="text_size_title">24sp</dimen>
+    <dimen name="text_size_subtitle">18sp</dimen>
+    <dimen name="text_size_body">15sp</dimen>
+    <dimen name="text_size_caption">13sp</dimen>
     
     <!-- Spacing -->
     <dimen name="spacing_md">16dp</dimen>
@@ -40,10 +40,10 @@
     
     <!-- Cards - Standard for 1080p -->
     <dimen name="card_margin">8dp</dimen>
-    <dimen name="card_poster_width">128dp</dimen>
-    <dimen name="card_poster_height">192dp</dimen>
-    <dimen name="card_content_height">248dp</dimen>
-    <dimen name="content_row_items_height">278dp</dimen>
+    <dimen name="card_poster_width">136dp</dimen>
+    <dimen name="card_poster_height">204dp</dimen>
+    <dimen name="card_content_height">254dp</dimen>
+    <dimen name="content_row_items_height">282dp</dimen>
     <dimen name="card_title_size">14sp</dimen>
     
     <!-- Flip Clock - Standard -->
@@ -53,12 +53,41 @@
     <dimen name="flip_clock_text_size">36sp</dimen>
     
     <!-- Dock -->
-    <dimen name="dock_height">80dp</dimen>
-    <dimen name="dock_icon_size">32dp</dimen>
-    <dimen name="dock_label_size">11sp</dimen>
-    <dimen name="dock_horizontal_margin">160dp</dimen>
-    <dimen name="dock_bottom_margin">10dp</dimen>
-    <dimen name="dock_corner_radius">24dp</dimen>
-    <dimen name="preview_panel_width">440dp</dimen>
-    <dimen name="top_bar_height">96dp</dimen>
+    <dimen name="dock_height">66dp</dimen>
+    <dimen name="dock_icon_size">24dp</dimen>
+    <dimen name="dock_label_size">10sp</dimen>
+    <dimen name="dock_horizontal_margin">200dp</dimen>
+    <dimen name="dock_bottom_margin">12dp</dimen>
+    <dimen name="dock_corner_radius">26dp</dimen>
+    <dimen name="preview_panel_width">480dp</dimen>
+    <dimen name="top_bar_height">100dp</dimen>
+    <dimen name="home_empty_width">620dp</dimen>
+
+    <!-- Login portal compact sizing for 720p landscape review devices -->
+    <dimen name="login_weather_margin_top">8dp</dimen>
+    <dimen name="login_weather_margin_end">8dp</dimen>
+    <dimen name="login_portal_width_max">720dp</dimen>
+    <dimen name="login_portal_min_height">234dp</dimen>
+    <dimen name="login_portal_margin_horizontal">18dp</dimen>
+    <dimen name="login_portal_margin_bottom">18dp</dimen>
+    <dimen name="login_portal_padding_horizontal">15dp</dimen>
+    <dimen name="login_portal_padding_vertical">13dp</dimen>
+    <dimen name="login_brand_min_height">192dp</dimen>
+    <dimen name="login_brand_padding_end">16dp</dimen>
+    <dimen name="login_brand_logo_width">108dp</dimen>
+    <dimen name="login_brand_logo_height">48dp</dimen>
+    <dimen name="login_brand_title_size">23sp</dimen>
+    <dimen name="login_brand_byline_size">11sp</dimen>
+    <dimen name="login_explainer_size">11sp</dimen>
+    <dimen name="login_method_padding_start">16dp</dimen>
+    <dimen name="login_method_title_size">18sp</dimen>
+    <dimen name="login_method_subtitle_size">10sp</dimen>
+    <dimen name="login_choice_panel_margin_top">8dp</dimen>
+    <dimen name="login_choice_card_height_primary">50dp</dimen>
+    <dimen name="login_choice_card_height">48dp</dimen>
+    <dimen name="login_choice_gap">6dp</dimen>
+    <dimen name="login_choice_card_padding_horizontal">11dp</dimen>
+    <dimen name="login_choice_title_size">13sp</dimen>
+    <dimen name="login_choice_title_size_secondary">12sp</dimen>
+    <dimen name="login_choice_subtitle_size">8sp</dimen>
 </resources>

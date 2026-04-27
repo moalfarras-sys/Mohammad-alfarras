@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- MoPlayer Design System - Electric Blue Brand Palette -->
+    <!-- MoPlayer Design System — MASTER Color Palette (TV 720p Optimized) -->
 
-    <!-- ═══════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════════
          ZINC PALETTE (Shadcn)
-         ═══════════════════════════════════════════════════════ -->
+         ═══════════════════════════════════════════════════════════ -->
     <color name="zinc_50">#FAFAFA</color>
     <color name="zinc_100">#F4F4F5</color>
     <color name="zinc_200">#E4E4E7</color>
@@ -17,16 +17,14 @@
     <color name="zinc_900">#18181B</color>
     <color name="zinc_950">#09090B</color>
 
-    <!-- ═══════════════════════════════════════════════════════
-         SEMANTIC MAPPINGS
-         ═══════════════════════════════════════════════════════ -->
-
-    <!-- Backgrounds -->
+    <!-- ═══════════════════════════════════════════════════════════
+         SEMANTIC MAPPINGS — Background
+         ═══════════════════════════════════════════════════════════ -->
     <color name="htc_black">@color/cinematic_bg_base</color>
     <color name="htc_pure_black">@color/cinematic_bg_base</color>
-    <color name="htc_pure_white">@color/zinc_50</color>
-    <color name="htc_dark_gray">@color/zinc_900</color>
-    <color name="htc_medium_gray">@color/zinc_800</color>
+    <color name="htc_pure_white">#FFFFFF</color>
+    <color name="htc_dark_gray">@color/cinematic_surface</color>
+    <color name="htc_medium_gray">@color/cinematic_surface_alt</color>
     <color name="htc_light_gray">@color/zinc_700</color>
     <color name="htc_silver">@color/zinc_300</color>
 
@@ -35,99 +33,131 @@
     <color name="htc_card_border">@color/cinematic_divider</color>
     <color name="htc_surface">@color/cinematic_surface</color>
 
-    <!-- Text -->
+    <!-- ═══════════════════════════════════════════════════════════
+         TEXT — Tuned for TV clarity
+         ═══════════════════════════════════════════════════════════ -->
     <color name="htc_text_primary">@color/cinematic_text_primary</color>
     <color name="htc_text_secondary">@color/cinematic_text_secondary</color>
     <color name="htc_text_tertiary">@color/cinematic_text_tertiary</color>
-    <color name="htc_text_disabled">@color/zinc_700</color>
+    <color name="htc_text_disabled">@color/zinc_600</color>
     <color name="htc_text_accent">@color/liquid_accent_primary</color>
 
-    <!-- MoPlayer Brand Colors — Electric Cyan (Night-Sky Cyber Theme) -->
-    <color name="moplayer_orange">#00E5FF</color>
-    <color name="moplayer_orange_light">#67EFFF</color>
-    <color name="moplayer_orange_dark">#00B8D4</color>
-    <color name="moplayer_orange_glow">#3300E5FF</color>
-    <color name="moplayer_orange_subtle">#1800E5FF</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         MoPlayer BRAND — Electric Cyan (Night-Sky Cyber)
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="moplayer_orange">#00F5FF</color>
+    <color name="moplayer_orange_light">#80FFFF</color>
+    <color name="moplayer_orange_dark">#00C8D4</color>
+    <color name="moplayer_orange_glow">#4400F5FF</color>
+    <color name="moplayer_orange_subtle">#2000F5FF</color>
 
-    <!-- MoPlayer Extended Palette -->
-    <color name="accent_blue">#00E5FF</color>
-    <color name="accent_blue_dim">#5500E5FF</color>
-    <color name="accent_blue_glow">#3300E5FF</color>
-    <color name="accent_violet">#6366F1</color>
-    <color name="accent_violet_glow">#336366F1</color>
-    <color name="accent_gold">#F5C518</color>
-    <color name="accent_green">#22C55E</color>
-    <color name="accent_red">#EF4444</color>
-    <color name="deep_space">#0B0F1A</color>
-    <color name="deep_space_surface">#10142A</color>
-    <color name="deep_space_card">#161B30</color>
-    <color name="deep_space_elevated">#1E2440</color>
-    <!-- Kept for backward compat -->
-    <color name="accent_violet_dim">#556366F1</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         EXTENDED PALETTE
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="accent_blue">#00F5FF</color>
+    <color name="accent_blue_dim">#5500F5FF</color>
+    <color name="accent_blue_glow">#4400F5FF</color>
+    <color name="accent_violet">#7C3AED</color>
+    <color name="accent_violet_glow">#447C3AED</color>
+    <color name="accent_violet_dim">#667C3AED</color>
+    <color name="accent_gold">#FFD700</color>
+    <color name="accent_green">#00E676</color>
+    <color name="accent_red">#FF4444</color>
 
-    <!-- Accents (semantic aliases) -->
-    <color name="htc_accent_gold">@color/moplayer_orange</color>
-    <color name="htc_accent_green">@color/moplayer_orange_light</color>
+    <!-- Deep Space -->
+    <color name="deep_space">#020510</color>
+    <color name="deep_space_surface">#09172E</color>
+    <color name="deep_space_card">#102240</color>
+    <color name="deep_space_elevated">#182E52</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ACCENT ALIASES
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_accent_gold">#FFD700</color>
+    <color name="htc_accent_green">@color/moplayer_orange</color>
     <color name="htc_accent_orange">@color/moplayer_orange</color>
-
-    <!-- Status -->
-    <color name="htc_success">#22C55E</color>
-    <color name="htc_error">#EF4444</color>
-    <color name="htc_warning">#F59E0B</color>
-    <color name="htc_info">#00E5FF</color>
-
-    <!-- Overlays -->
-    <color name="htc_overlay_dark">#E60D0D1A</color>
-    <color name="htc_overlay_medium">#B30D0D1A</color>
-    <color name="htc_overlay_light">#800D0D1A</color>
-    <color name="htc_player_overlay">#CC000000</color>
-
-    <!-- Button States -->
-    <color name="htc_button_normal_start">@color/zinc_800</color>
-    <color name="htc_button_normal_end">@color/zinc_800</color>
-    <color name="htc_button_pressed_start">@color/moplayer_orange_dark</color>
-    <color name="htc_button_pressed_end">@color/moplayer_orange</color>
-    <color name="htc_button_focused_start">@color/moplayer_orange</color>
-    <color name="htc_button_focused_end">@color/moplayer_orange_light</color>
-
-    <!-- Focus Halo -->
-    <color name="htc_focus_glow">#5000E5FF</color>
-    <color name="focus_gold_bright">@color/moplayer_orange</color>
-    <color name="focus_gold_glow">#4000E5FF</color>
-
-    <!-- Glass -->
-    <color name="htc_glass_highlight">#1FFFFFFF</color>
-    <color name="htc_glass_highlight_strong">#40FFFFFF</color>
-    <color name="htc_glass_shadow">#30000000</color>
-    <color name="htc_glass_border">#40FFFFFF</color>
-    <color name="htc_glass_inner_glow">#15FFFFFF</color>
-
     <color name="htc_accent_green_light">@color/moplayer_orange_light</color>
     <color name="htc_accent_green_dark">@color/moplayer_orange_dark</color>
-    <color name="htc_focus_glow_transparent">#4DFFFFFF</color>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         STATUS
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_success">#00E676</color>
+    <color name="htc_error">#FF4444</color>
+    <color name="htc_warning">#FFB300</color>
+    <color name="htc_info">#00F5FF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         OVERLAYS
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_overlay_dark">#F0020510</color>
+    <color name="htc_overlay_medium">#C0020510</color>
+    <color name="htc_overlay_light">#80020510</color>
+    <color name="htc_player_overlay">#D0000000</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         BUTTON STATES — Premium
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_button_normal_start">#0D1E38</color>
+    <color name="htc_button_normal_end">#09172E</color>
+    <color name="htc_button_pressed_start">#00C8D4</color>
+    <color name="htc_button_pressed_end">#00F5FF</color>
+    <color name="htc_button_focused_start">#00F5FF</color>
+    <color name="htc_button_focused_end">#80FFFF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FOCUS HALO — TV navigable
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_focus_glow">#CC00F5FF</color>
+    <color name="htc_focus_glow_transparent">#6000F5FF</color>
+    <color name="focus_gold_bright">@color/moplayer_orange</color>
+    <color name="focus_gold_glow">#5500F5FF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         GLASS SYSTEM
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_glass_highlight">#20FFFFFF</color>
+    <color name="htc_glass_highlight_strong">#50FFFFFF</color>
+    <color name="htc_glass_shadow">#40000000</color>
+    <color name="htc_glass_border">#5000F5FF</color>
+    <color name="htc_glass_inner_glow">#1800F5FF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         PROGRESS / SEEK BARS
+         ═══════════════════════════════════════════════════════════ -->
     <color name="htc_progress_background">@color/zinc_700</color>
     <color name="htc_progress_secondary">@color/zinc_500</color>
     <color name="htc_progress_primary">@color/moplayer_orange</color>
 
-    <color name="htc_flip_card_top">@color/zinc_800</color>
-    <color name="htc_flip_card_bottom">@color/zinc_900</color>
-    <color name="htc_flip_card_line">@color/zinc_950</color>
-    <color name="htc_flip_text">@color/zinc_50</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         FLIP CLOCK
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_flip_card_top">@color/cinematic_surface_alt</color>
+    <color name="htc_flip_card_bottom">@color/cinematic_surface</color>
+    <color name="htc_flip_card_line">@color/cinematic_bg_base</color>
+    <color name="htc_flip_text">#FFFFFF</color>
 
-    <color name="htc_dock_background_start">#000D0D1A</color>
-    <color name="htc_dock_background_end">#F20D0D1A</color>
-    <color name="htc_dock_icon_normal">@color/zinc_500</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         DOCK NAVIGATION
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="htc_dock_background_start">#04020510</color>
+    <color name="htc_dock_background_end">#F0020510</color>
+    <color name="htc_dock_icon_normal">@color/zinc_400</color>
     <color name="htc_dock_icon_selected">@color/moplayer_orange</color>
 
-    <color name="glass_premium_bg_start">#F50D0D1A</color>
-    <color name="glass_premium_bg_center">#F00D0D1A</color>
-    <color name="glass_premium_bg_end">#F50D0D1A</color>
-    <color name="glass_premium_border_start">#40FFFFFF</color>
-    <color name="glass_premium_border_end">#20FFFFFF</color>
-    <color name="glass_premium_highlight">#10FFFFFF</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         PREMIUM GLASS PANEL
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="glass_premium_bg_start">#F0020510</color>
+    <color name="glass_premium_bg_center">#EC06112A</color>
+    <color name="glass_premium_bg_end">#F0020510</color>
+    <color name="glass_premium_border_start">#5500F5FF</color>
+    <color name="glass_premium_border_end">#2200F5FF</color>
+    <color name="glass_premium_highlight">#1800F5FF</color>
 
-    <!-- Gradients -->
+    <!-- ═══════════════════════════════════════════════════════════
+         GRADIENTS
+         ═══════════════════════════════════════════════════════════ -->
     <color name="gradient_green_start">@color/moplayer_orange</color>
     <color name="gradient_green_center">@color/moplayer_orange_light</color>
     <color name="gradient_gold">@color/moplayer_orange</color>
@@ -135,53 +165,65 @@
     <color name="gradient_gold_start">@color/moplayer_orange</color>
     <color name="gradient_gold_mid">@color/moplayer_orange_light</color>
     <color name="gradient_gold_end">@color/moplayer_orange_dark</color>
-    <color name="gradient_gold_dark">#00B8D4</color>
+    <color name="gradient_gold_dark">#00C8D4</color>
 
-    <color name="shimmer_gold">#FFF5F9FF</color>
-    <color name="shimmer_platinum">#FFF5F5F5</color>
-    <color name="shine_highlight">#80FFFFFF</color>
-    <color name="hover_overlay">#15FFFFFF</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         SHIMMER / SHINE
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="shimmer_gold">#FF80FFFF</color>
+    <color name="shimmer_platinum">#FFF0F8FF</color>
+    <color name="shine_highlight">#90FFFFFF</color>
+    <color name="hover_overlay">#1800F5FF</color>
 
-    <color name="glow_gold_strong">#5000E5FF</color>
-    <color name="glow_gold_medium">#3000E5FF</color>
-    <color name="glow_gold_subtle">#1800E5FF</color>
-    <color name="glow_gold_very_subtle">#0A00E5FF</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         GLOW LAYERS
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="glow_gold_strong">#6600F5FF</color>
+    <color name="glow_gold_medium">#4400F5FF</color>
+    <color name="glow_gold_subtle">#2200F5FF</color>
+    <color name="glow_gold_very_subtle">#1100F5FF</color>
 
-    <color name="card_bg_luxury">@color/zinc_900</color>
-    <color name="card_bg_luxury_elevated">@color/zinc_800</color>
-    <color name="card_border_luxury">@color/zinc_600</color>
-    <color name="card_border_luxury_subtle">@color/zinc_800</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         CARD LUXURY SYSTEM
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="card_bg_luxury">@color/cinematic_surface</color>
+    <color name="card_bg_luxury_elevated">@color/cinematic_surface_alt</color>
+    <color name="card_border_luxury">#3000F5FF</color>
+    <color name="card_border_luxury_subtle">#1800F5FF</color>
 
-    <!-- Login -->
+    <!-- ═══════════════════════════════════════════════════════════
+         LOGIN SCREEN
+         ═══════════════════════════════════════════════════════════ -->
     <color name="particle_core_white">@color/zinc_100</color>
     <color name="particle_core_green">@color/moplayer_orange_light</color>
-    <color name="particle_glow">#4000E5FF</color>
-    <color name="orbital_ring_green">#2000E5FF</color>
-    <color name="orbital_ring_gold">#306366F1</color>
+    <color name="particle_glow">#5500F5FF</color>
+    <color name="orbital_ring_green">#2800F5FF</color>
+    <color name="orbital_ring_gold">#407C3AED</color>
     <color name="developer_credit_start">@color/moplayer_orange_light</color>
     <color name="developer_credit_end">@color/moplayer_orange</color>
     <color name="heart_pulse_color">@color/moplayer_orange</color>
 
-    <color name="login_white">@color/zinc_50</color>
-    <color name="login_white_transparent">#E0FAFAFA</color>
-    <color name="login_white_subtle">#30FAFAFA</color>
-    <color name="login_white_very_subtle">#15FAFAFA</color>
-    <color name="login_black">@color/zinc_950</color>
-    <color name="login_dark_bg">@color/zinc_950</color>
+    <color name="login_white">#FFFFFF</color>
+    <color name="login_white_transparent">#E0FFFFFF</color>
+    <color name="login_white_subtle">#30FFFFFF</color>
+    <color name="login_white_very_subtle">#15FFFFFF</color>
+    <color name="login_black">@color/cinematic_bg_base</color>
+    <color name="login_dark_bg">@color/cinematic_bg_base</color>
     <color name="login_gray_light">@color/zinc_300</color>
     <color name="login_gray_medium">@color/zinc_500</color>
     <color name="login_gray_dark">@color/zinc_700</color>
-    <color name="login_hero_glass">#D0121220</color>
-    <color name="login_hero_glass_strong">#E21A1A35</color>
-    <color name="login_hero_border">#3AFFFFFF</color>
-    <color name="login_hero_glow">#305F9CFF</color>
-    <color name="login_hero_highlight">#26FFFFFF</color>
+    <color name="login_hero_glass">#CC09172E</color>
+    <color name="login_hero_glass_strong">#E0102240</color>
+    <color name="login_hero_border">#5000F5FF</color>
+    <color name="login_hero_glow">#4000F5FF</color>
+    <color name="login_hero_highlight">#30FFFFFF</color>
 
-    <!-- Space Theme -->
-    <color name="space_deep_black">#0B0F1A</color>
-    <color name="space_nebula_blue">#141830</color>
-    <color name="space_nebula_purple">#1A1040</color>
-    <color name="space_nebula_cyan">#0C2850</color>
-
+    <!-- ═══════════════════════════════════════════════════════════
+         SPACE THEME
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="space_deep_black">#020510</color>
+    <color name="space_nebula_blue">#09172E</color>
+    <color name="space_nebula_purple">#180A40</color>
+    <color name="space_nebula_cyan">#081E3A</color>
 
 </resources>

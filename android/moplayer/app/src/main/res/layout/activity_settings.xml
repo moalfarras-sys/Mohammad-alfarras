@@ -148,6 +148,57 @@
                             android:textSize="14sp"
                             tools:text="http://example.com:8080" />
 
+                        <LinearLayout
+                            android:id="@+id/serverStatusChips"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_md"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <TextView
+                                android:id="@+id/tvServerType"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_settings_stat_tile"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:paddingVertical="@dimen/spacing_sm"
+                                android:textColor="@color/moplayer_orange"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                tools:text="M3U" />
+
+                            <TextView
+                                android:id="@+id/tvServerStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/spacing_sm"
+                                android:background="@drawable/bg_settings_stat_tile"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:paddingVertical="@dimen/spacing_sm"
+                                android:textColor="@color/htc_accent_green"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                tools:text="Synced" />
+
+                            <TextView
+                                android:id="@+id/tvServerCounts"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/spacing_sm"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_settings_stat_tile"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:paddingVertical="@dimen/spacing_sm"
+                                android:textColor="@color/htc_text_secondary"
+                                android:textSize="12sp"
+                                tools:text="Live 1 - Movies 0 - Series 0 - Categories 1" />
+                        </LinearLayout>
+
                         <TextView
                             android:id="@+id/tvServerExpiry"
                             android:layout_width="wrap_content"
@@ -156,6 +207,17 @@
                             android:textColor="@color/htc_accent_green"
                             android:textSize="13sp"
                             tools:text="Expires: 2026-12-31" />
+
+                        <TextView
+                            android:id="@+id/tvServerLastRefresh"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            tools:text="Last refresh: 1 min. ago"
+                            tools:visibility="visible" />
 
                     </LinearLayout>
 

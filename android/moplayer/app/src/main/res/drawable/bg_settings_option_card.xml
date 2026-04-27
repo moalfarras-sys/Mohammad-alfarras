@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Settings Option Card — cleaner, more legible, premium glass card -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- FOCUSED STATE — vivid cyan glow ring with bright border -->
+    <item android:state_focused="true">
+        <layer-list>
+            <!-- Outer glow aura -->
+            <item android:left="-4dp" android:top="-4dp" android:right="-4dp" android:bottom="-4dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="22dp" />
+                    <gradient
+                        android:type="radial"
+                        android:centerX="0.5"
+                        android:centerY="0.5"
+                        android:gradientRadius="250dp"
+                        android:startColor="#4400F5FF"
+                        android:endColor="#00000000" />
+                </shape>
+            </item>
+            <!-- Card body -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="18dp" />
+                    <gradient
+                        android:angle="315"
+                        android:startColor="#3A0E2A50"
+                        android:centerColor="#301828"
+                        android:endColor="#281016" />
+                    <stroke android:width="2dp" android:color="#CC00F5FF" />
+                </shape>
+            </item>
+            <!-- Top inner highlight -->
+            <item android:top="1dp" android:left="12dp" android:right="12dp">
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:angle="0"
+                        android:startColor="#0000F5FF"
+                        android:centerColor="#2800F5FF"
+                        android:endColor="#0000F5FF" />
+                    <size android:height="1dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <!-- PRESSED STATE -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="18dp" />
+            <gradient
+                android:angle="315"
+                android:startColor="#3000D0F0"
+                android:endColor="#20008090" />
+            <stroke android:width="2dp" android:color="#9900F5FF" />
+        </shape>
+    </item>
+
+    <!-- DEFAULT STATE — subtle glass card -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="18dp" />
+            <gradient
+                android:angle="315"
+                android:startColor="#200C1E36"
+                android:centerColor="#180A1628"
+                android:endColor="#14060C18" />
+            <stroke android:width="1dp" android:color="#3000F5FF" />
+        </shape>
+    </item>
+
+</selector>

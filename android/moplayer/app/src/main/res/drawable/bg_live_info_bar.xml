@@ -6,9 +6,9 @@
             <gradient
                 android:type="linear"
                 android:angle="270"
-                android:startColor="#E5000000"
-                android:centerColor="#CC000000"
-                android:endColor="#00000000" />
+                android:startColor="#F0020510"
+                android:centerColor="#D0020510"
+                android:endColor="#00020510" />
         </shape>
     </item>
     <!-- Glass shine at top -->

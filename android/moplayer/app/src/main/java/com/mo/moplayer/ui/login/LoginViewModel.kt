@@ -339,7 +339,7 @@ class LoginViewModel @Inject constructor(
             }
         } catch (e: Exception) {
             _isLoading.value = false
-            _loginState.value = LoginState.Error("Failed to parse Xtream URL: ${e.message}")
+            _loginState.value = LoginState.Error("Could not read this source link. Check the URL and try again.")
         }
     }
     

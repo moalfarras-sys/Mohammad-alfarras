@@ -15,6 +15,8 @@ type AuthenticatedAdmin = {
 };
 
 export async function signInAdmin(email: string, password: string) {
+  let supabaseSuccess = false;
+
   if (hasSupabasePublicEnv()) {
     try {
       const supabase = await createSupabaseServer();
@@ -22,14 +24,17 @@ export async function signInAdmin(email: string, password: string) {
         email: email.trim().toLowerCase(),
         password,
       });
-      if (!error) return;
+      if (!error) {
+        supabaseSuccess = true;
+      }
     } catch {
       // fall back to legacy auth
     }
   }
 
-  const ok = await createLegacyAdminSession(email, password);
-  if (!ok) {
+  const legacyOk = await createLegacyAdminSession(email, password);
+
+  if (!supabaseSuccess && !legacyOk) {
     throw new Error("Invalid admin credentials.");
   }
 }

@@ -1,56 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- MoPlayer — Primary Action Button (Electric Cyan, Premium) -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Pressed state -->
+    <!-- PRESSED state -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <corners android:radius="12dp" />
-            <solid android:color="@color/moplayer_orange_dark" />
+            <corners android:radius="14dp" />
+            <solid android:color="@color/cinematic_cyan_dark" />
         </shape>
     </item>
 
-    <!-- Focused state -->
+    <!-- FOCUSED state — bright glow + vivid gradient -->
     <item android:state_focused="true">
         <layer-list>
-            <item
-                android:left="-2dp"
-                android:top="-2dp"
-                android:right="-2dp"
-                android:bottom="-2dp">
+            <item android:left="-4dp" android:top="-4dp" android:right="-4dp" android:bottom="-4dp">
                 <shape android:shape="rectangle">
-                    <corners android:radius="14dp" />
+                    <corners android:radius="18dp" />
                     <gradient
                         android:type="radial"
-                        android:gradientRadius="100dp"
+                        android:gradientRadius="120dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="#304F8BFF"
+                        android:startColor="#6000F5FF"
                         android:endColor="#00000000" />
                 </shape>
             </item>
             <item>
                 <shape android:shape="rectangle">
-                    <corners android:radius="12dp" />
+                    <corners android:radius="14dp" />
                     <gradient
                         android:type="linear"
                         android:angle="270"
-                        android:startColor="@color/moplayer_orange_light"
-                        android:endColor="@color/moplayer_orange" />
-                    <stroke android:width="1dp" android:color="#40FFFFFF" />
+                        android:startColor="@color/cinematic_cyan_light"
+                        android:endColor="@color/cinematic_cyan" />
+                    <stroke android:width="2dp" android:color="#80FFFFFF" />
                 </shape>
             </item>
         </layer-list>
     </item>
 
-    <!-- Default state -->
+    <!-- DEFAULT state -->
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="12dp" />
+            <corners android:radius="14dp" />
             <gradient
                 android:type="linear"
                 android:angle="270"
-                android:startColor="@color/moplayer_orange"
-                android:endColor="@color/moplayer_orange_dark" />
+                android:startColor="@color/cinematic_cyan"
+                android:endColor="@color/cinematic_cyan_dark" />
         </shape>
     </item>
 

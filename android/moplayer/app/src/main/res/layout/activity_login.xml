@@ -213,6 +213,63 @@
                 android:textSize="8sp" />
 
             <LinearLayout
+                android:id="@+id/setupChoicePanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/btnChooseActivation"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/login_choice_card_height_primary"
+                    android:layout_marginBottom="@dimen/login_choice_gap"
+                    android:background="@drawable/bg_login_button_primary_hero"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="@dimen/login_choice_card_padding_horizontal"
+                    android:text="@string/setup_choice_activation_title"
+                    android:textColor="@color/login_white"
+                    android:textSize="@dimen/login_choice_title_size"
+                    android:textStyle="bold"
+                    android:nextFocusDown="@id/btnChooseXtream" />
+
+                <TextView
+                    android:id="@+id/btnChooseXtream"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/login_choice_card_height"
+                    android:layout_marginBottom="@dimen/login_choice_gap"
+                    android:background="@drawable/bg_login_button_secondary_hero"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="@dimen/login_choice_card_padding_horizontal"
+                    android:text="@string/setup_choice_xtream_title"
+                    android:textColor="@color/login_white"
+                    android:textSize="@dimen/login_choice_title_size"
+                    android:textStyle="bold"
+                    android:nextFocusUp="@id/btnChooseActivation"
+                    android:nextFocusDown="@id/btnChooseM3u" />
+
+                <TextView
+                    android:id="@+id/btnChooseM3u"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/login_choice_card_height"
+                    android:background="@drawable/bg_login_button_secondary_hero"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="@dimen/login_choice_card_padding_horizontal"
+                    android:text="@string/setup_choice_m3u_title"
+                    android:textColor="@color/login_white"
+                    android:textSize="@dimen/login_choice_title_size"
+                    android:textStyle="bold"
+                    android:nextFocusUp="@id/btnChooseXtream" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/sourceModeTabs"
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
                 android:layout_marginTop="8dp"
@@ -509,6 +566,22 @@
                 </LinearLayout>
 
             </ViewFlipper>
+
+            <Button
+                android:id="@+id/btnBackToMethodsClean"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_login_button_secondary_hero"
+                android:focusable="true"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:text="@string/setup_back_to_methods"
+                android:textAllCaps="false"
+                android:textColor="@color/login_white"
+                android:textSize="9sp" />
 
             <LinearLayout
                 android:id="@+id/activationEntryCard"

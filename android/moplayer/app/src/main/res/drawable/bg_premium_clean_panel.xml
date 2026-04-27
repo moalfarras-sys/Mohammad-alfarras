@@ -1,29 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Depth shadow -->
     <item
-        android:left="1dp"
-        android:top="1dp"
-        android:right="1dp"
-        android:bottom="1dp">
+        android:left="-4dp"
+        android:top="-4dp"
+        android:right="-4dp"
+        android:bottom="-4dp">
         <shape android:shape="rectangle">
-            <corners android:radius="20dp" />
-            <solid android:color="#10000000" />
+            <corners android:radius="24dp" />
+            <gradient
+                android:type="radial"
+                android:gradientRadius="460dp"
+                android:centerX="0.5"
+                android:centerY="0.2"
+                android:startColor="#185DEBFF"
+                android:centerColor="#0D8B5CF6"
+                android:endColor="#00000000" />
         </shape>
     </item>
-    <!-- Main glass surface -->
+
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="20dp" />
             <gradient
-                android:angle="155"
-                android:startColor="#CC0D1220"
-                android:centerColor="#C00B1018"
-                android:endColor="#B80B0F1A" />
-            <stroke android:width="1dp" android:color="#18FFFFFF" />
+                android:angle="315"
+                android:startColor="#D908142A"
+                android:endColor="#C4050916" />
+            <stroke android:width="1dp" android:color="#339DEBFF" />
         </shape>
     </item>
-    <!-- Top highlight shimmer -->
+
     <item android:top="1dp" android:left="24dp" android:right="24dp">
         <shape android:shape="rectangle">
             <corners android:radius="1dp" />
@@ -31,20 +36,20 @@
                 android:type="linear"
                 android:angle="0"
                 android:startColor="#00FFFFFF"
-                android:centerColor="#14FFFFFF"
+                android:centerColor="#1CFFFFFF"
                 android:endColor="#00FFFFFF" />
             <size android:height="1dp" />
         </shape>
     </item>
-    <!-- Inner reflection (very subtle) -->
+
     <item android:top="2dp" android:left="16dp" android:right="16dp">
         <shape android:shape="rectangle">
             <corners android:radius="20dp" />
             <gradient
                 android:angle="270"
-                android:startColor="#04FFFFFF"
+                android:startColor="#08FFFFFF"
                 android:endColor="#00000000" />
-            <size android:height="28dp" />
+            <size android:height="44dp" />
         </shape>
     </item>
 </layer-list>

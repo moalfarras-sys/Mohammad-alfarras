@@ -15,6 +15,10 @@ class WatchHistoryRepository @Inject constructor(
         return watchHistoryDao.getContinueWatching(20)
     }
 
+    fun getRecentHistoryFlow(limit: Int = 20): Flow<List<WatchHistoryEntity>> {
+        return watchHistoryDao.getRecentHistory(limit)
+    }
+
     suspend fun getWatchHistory(contentId: String): WatchHistoryEntity? {
         return watchHistoryDao.getHistoryForContent(contentId)
     }

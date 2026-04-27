@@ -6,6 +6,7 @@ import android.graphics.Path
 import android.graphics.PorterDuffXfermode
 import android.view.View
 import com.mo.moplayer.data.weather.WeatherService
+import java.util.Calendar
 import kotlin.math.sin
 import kotlin.math.cos
 
@@ -33,6 +34,10 @@ class WeatherEffectsRenderer(
     )
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val beamPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD)
+    }
     private var fromCategory = WeatherService.WeatherCategory.CLEAR
     private var toCategory = WeatherService.WeatherCategory.CLEAR
     private var fromIsDay = true
@@ -44,6 +49,7 @@ class WeatherEffectsRenderer(
     private var effectsQuality = WeatherService.EFFECT_QUALITY_HIGH
     private var reduceMotion = false
     private var disableLightning = false
+    private var timeBand = TimeBand.DAY
 
     // Sun/Moon properties
     private var celestialX = 0f
@@ -55,6 +61,13 @@ class WeatherEffectsRenderer(
     private val moonColor = Color.rgb(240, 240, 255) // Silver
     private var accentPrimaryColor = Color.parseColor("#111FA2")
     private var accentHorizonColor = Color.parseColor("#FFDE42")
+
+    private enum class TimeBand {
+        MORNING,
+        DAY,
+        EVENING,
+        NIGHT
+    }
     
     fun setWeatherCategory(category: WeatherService.WeatherCategory, isDay: Boolean) {
         val changed = (toCategory != category) || (toIsDay != isDay)
@@ -74,6 +87,7 @@ class WeatherEffectsRenderer(
         params: com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay.WeatherFxParams
     ) {
         fxParams = params
+        timeBand = resolveTimeBand(isDay)
         setWeatherCategory(category, isDay)
     }
 
@@ -139,11 +153,6 @@ class WeatherEffectsRenderer(
         canvas.save()
         canvas.translate(celestialX, celestialY)
         
-        // Use a large radial gradient for soft beams - intensified for premium look
-        val beamPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        beamPaint.style = Paint.Style.FILL
-        beamPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.ADD) // Additive blending for light
-        
         // Draw rotating rays
         for (i in 0 until rayCount) {
             canvas.save()
@@ -182,7 +191,6 @@ class WeatherEffectsRenderer(
         }
         
         canvas.restore()
-        beamPaint.xfermode = null
     }
 
     private fun drawFrostVignette(canvas: Canvas, alphaMul: Float) {
@@ -293,12 +301,19 @@ class WeatherEffectsRenderer(
         return when (category) {
             WeatherService.WeatherCategory.CLEAR -> {
                 if (isDay) {
+                    val morningOrEvening = timeBand == TimeBand.MORNING || timeBand == TimeBand.EVENING
+                    val horizon = if (morningOrEvening) Color.parseColor("#F0A45E") else accentHorizonColor
+                    val mid = if (morningOrEvening) {
+                        blendColor(accentPrimaryColor, Color.parseColor("#7A4DD8"), 0.36f)
+                    } else {
+                        blendColor(accentPrimaryColor, Color.parseColor("#4571E6"), 0.4f)
+                    }
                     WeatherVisualPalette(
                         topColor = accentPrimaryColor,
-                        midColor = blendColor(accentPrimaryColor, Color.parseColor("#4571E6"), 0.4f),
-                        horizonColor = accentHorizonColor,
-                        glowColor = blendColor(accentHorizonColor, Color.WHITE, 0.16f),
-                        overlayAlpha = 18,
+                        midColor = mid,
+                        horizonColor = horizon,
+                        glowColor = blendColor(horizon, Color.WHITE, 0.16f),
+                        overlayAlpha = if (morningOrEvening) 20 else 18,
                         particleTint = Color.parseColor("#DAE8FF")
                     )
                 } else {
@@ -566,5 +581,15 @@ class WeatherEffectsRenderer(
             lerpInt(Color.green(from), Color.green(to), t),
             lerpInt(Color.blue(from), Color.blue(to), t)
         )
+    }
+
+    private fun resolveTimeBand(isDay: Boolean): TimeBand {
+        if (!isDay) return TimeBand.NIGHT
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when (hour) {
+            in 5..8 -> TimeBand.MORNING
+            in 17..20 -> TimeBand.EVENING
+            else -> TimeBand.DAY
+        }
     }
 }

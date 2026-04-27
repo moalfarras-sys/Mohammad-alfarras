@@ -11,12 +11,15 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.mo.moplayer.BuildConfig
 import com.mo.moplayer.data.location.IpLocationService
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URLEncoder
 import org.json.JSONObject
 import java.net.URL
 import javax.inject.Inject
@@ -39,6 +42,7 @@ class WeatherService @Inject constructor(
     private val locationService: IpLocationService
 ) {
     companion object {
+        private const val TAG = "WeatherService"
         private val CACHED_TEMP_PREF = stringPreferencesKey("cached_temperature")
         private val CACHED_CONDITION_PREF = stringPreferencesKey("cached_condition")
         private val CACHED_CONDITION_CODE_PREF = intPreferencesKey("cached_condition_code")
@@ -85,6 +89,8 @@ class WeatherService @Inject constructor(
         
         // Cache expiration: 30 minutes
         private const val CACHE_EXPIRATION_MS = 30 * 60 * 1000L
+        private const val CONNECT_TIMEOUT_MS = 8_000
+        private const val READ_TIMEOUT_MS = 8_000
     }
 
     val weatherEnabled: Flow<Boolean> = context.weatherDataStore.data.map { prefs ->
@@ -275,25 +281,51 @@ class WeatherService @Inject constructor(
             // Get location
             val locationResult = locationService.fetchLocation(forceRefresh)
             if (locationResult.isFailure) {
+                val cached = cachedWeather.first()
+                if (cached != null) return@withContext Result.success(cached)
                 return@withContext Result.failure(locationResult.exceptionOrNull() ?: Exception("Failed to get location"))
             }
             
             val location = locationResult.getOrNull()
             
             if (location == null) {
+                val cached = cachedWeather.first()
+                if (cached != null) return@withContext Result.success(cached)
                 return@withContext Result.failure(Exception("Location not available"))
             }
             
             // Fetch weather through the public website proxy so provider keys stay server-side.
             val query = "${location.latitude},${location.longitude}"
-            val url = "$WEATHER_PROXY_URL?city=${java.net.URLEncoder.encode(query, "UTF-8")}"
-            val response = URL(url).readText()
+            val url = "$WEATHER_PROXY_URL?city=${URLEncoder.encode(query, "UTF-8")}"
+            val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = CONNECT_TIMEOUT_MS
+                readTimeout = READ_TIMEOUT_MS
+                setRequestProperty("Accept", "application/json")
+            }
+            val response = try {
+                val stream = if (connection.responseCode in 200..299) {
+                    connection.inputStream
+                } else {
+                    connection.errorStream ?: connection.inputStream
+                }
+                stream.bufferedReader().use { it.readText() }
+            } finally {
+                connection.disconnect()
+            }
             val json = JSONObject(response)
             
             // Check for API error
             if (json.has("error")) {
-                val error = json.getJSONObject("error")
-                val message = error.getString("message")
+                val errorValue = json.opt("error")
+                val message = when (errorValue) {
+                    is JSONObject -> errorValue.optString("message", "Weather provider unavailable")
+                    is String -> errorValue
+                    is Boolean -> "Weather provider unavailable"
+                    else -> "Weather provider unavailable"
+                }
+                val cached = cachedWeather.first()
+                if (cached != null) return@withContext Result.success(cached)
                 return@withContext Result.failure(Exception("Weather API error: $message"))
             }
             
@@ -322,14 +354,21 @@ class WeatherService @Inject constructor(
                 prefs[CACHED_CONDITION_CODE_PREF] = weatherData.conditionCode
                 prefs[CACHED_ICON_PREF] = weatherData.icon
                 prefs[CACHED_CITY_PREF] = weatherData.cityName
+                prefs[CACHED_HUMIDITY_PREF] = weatherData.humidity.toString()
+                prefs[CACHED_WIND_SPEED_PREF] = weatherData.windSpeed.toString()
+                prefs[CACHED_WIND_DEGREE_PREF] = weatherData.windDegree
+                prefs[CACHED_GUST_SPEED_PREF] = weatherData.gustSpeed.toString()
+                prefs[CACHED_PRECIP_MM_PREF] = weatherData.precipMm.toString()
+                prefs[CACHED_CLOUD_PREF] = weatherData.cloud
+                prefs[CACHED_IS_DAY_PREF] = weatherData.isDay
                 prefs[LAST_UPDATE_PREF] = weatherData.lastUpdatedEpochMs.toString()
-                // Storing list in prefs is hard, skipping detailed cache for now or using JSON string
-                // Ideally use Room or Proto DataStore, but for this task, basic cache is fine.
             }
             
             Result.success(weatherData)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Weather refresh failed, using cached data when available")
+            val cached = cachedWeather.first()
+            if (cached != null) return@withContext Result.success(cached)
             Result.failure(e)
         }
     }

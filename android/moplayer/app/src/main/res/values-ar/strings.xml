@@ -58,6 +58,7 @@
     <string name="section_recently_added_movies">أفلام جديدة</string>
     <string name="section_recently_added_series">مسلسلات جديدة</string>
     <string name="section_continue_watching">متابعة المشاهدة</string>
+    <string name="section_recently_watched">شوهد مؤخرًا</string>
     <string name="section_favorites">المفضلة</string>
     <string name="section_live_tv">البث المباشر</string>
     <string name="section_movies">أفلام</string>
@@ -75,8 +76,14 @@
     
     
     <string name="football_widget_live">مباشر</string>
-    <string name="football_widget_no_match">لا توجد مباراة مباشرة</string>
+    <string name="football_widget_no_match">لا توجد مباريات مباشرة الآن</string>
+    <string name="football_widget_today_match">مباراة اليوم</string>
+    <string name="football_widget_next_match">التالي: %1$s ضد %2$s - %3$s</string>
     <string name="football_widget_loading">جاري التحميل…</string>
+    <string name="football_widget_loading_subtitle">يتم فحص أهم مباريات اليوم</string>
+    <string name="football_widget_no_match_subtitle">ستظهر المباراة القادمة هنا عند توفرها</string>
+    <string name="football_widget_error_state">ويجت المباريات غير متاح</string>
+    <string name="football_widget_error_subtitle">اضغط للمحاولة مجددًا بدون إيقاف التطبيق</string>
     <string name="football_widget_error">يُطلب مفتاح API</string>
     <string name="settings_football_widget_title">ويجت المباريات</string>
     <string name="settings_football_widget_desc">عرض مباراة مباشرة أو مباراة اليوم من الدوريات الكبرى في الشاشة الرئيسية</string>
@@ -128,6 +135,8 @@
     
     <string name="settings_title">الإعدادات</string>
     <string name="settings_server">إدارة السيرفر</string>
+    <string name="settings_control_center_badge">مركز التحكم</string>
+    <string name="settings_server_control_desc">إدارة المصادر وحالة التحديث ومكتبة الجهاز</string>
     <string name="settings_server_info">السيرفر الحالي</string>
     <string name="settings_server_change">تغيير السيرفر</string>
     <string name="settings_server_logout">تسجيل الخروج</string>
@@ -154,6 +163,7 @@
     <string name="source_status_running">يتم التحديث</string>
     <string name="source_status_error">تحتاج مراجعة</string>
     <string name="source_counts_format">مباشر %1$d  أفلام %2$d  مسلسلات %3$d  تصنيفات %4$d</string>
+    <string name="dashboard_counts_format">مباشر %1$d - أفلام %2$d - مسلسلات %3$d - تصنيفات %4$d</string>
     <string name="source_never_refreshed">آخر تحديث: لم يحدث بعد</string>
     <string name="source_last_refresh_format">آخر تحديث: %1$s</string>
     <string name="source_expiry_format">ينتهي: %1$s</string>
@@ -212,6 +222,7 @@
     <string name="nav_movies">أفلام</string>
     <string name="nav_series">مسلسلات</string>
     <string name="nav_favorites">المفضلة</string>
+    <string name="nav_search">بحث</string>
     <string name="nav_settings">الإعدادات</string>
     <string name="new_content_badge_format">+%1$d جديد</string>
     
@@ -263,6 +274,14 @@
     <string name="weather_details_precip_format">الهطول: %.1f مم</string>
     <string name="weather_details_cloud_format">الغيوم: %d%%</string>
     <string name="weather_details_updated_format">آخر تحديث: %s</string>
+    <string name="weather_city_unavailable">طقس محلي</string>
+    <string name="weather_widget_feels_like_short">محسوس %d°</string>
+    <string name="weather_widget_humidity_short">%d%%</string>
+    <string name="weather_widget_wind_short">%1$.0f كم/س</string>
+    <string name="weather_widget_waiting">تحديث</string>
+    <string name="weather_widget_offline_hint">سيبقى آخر طقس محفوظ ظاهرًا عند توفره</string>
+    <string name="weather_widget_cached_empty">بدون اتصال</string>
+    <string name="weather_widget_content_description">طقس %1$s، %2$d درجة، %3$s، المحسوس %4$d درجة، الرطوبة %5$d بالمئة، الرياح %6$.0f كيلومتر في الساعة</string>
 
     
     <string name="weather_debug_title">اختبار الطقس</string>
@@ -303,6 +322,10 @@
 
     <string name="login_welcome_back">مرحباً بعودتك</string>
     <string name="login_start_experience">ابدأ تجربتك الآن</string>
+    <string name="setup_choice_activation_title">تفعيل عبر الموقع</string>
+    <string name="setup_choice_xtream_title">إضافة مصدر Xtream</string>
+    <string name="setup_choice_m3u_title">إضافة قائمة M3U</string>
+    <string name="setup_back_to_methods">العودة للخيارات</string>
     <string name="tagline_creative">حيث تلتقي التكنولوجيا بالفن</string>
     <string name="tagline_iptv_premium">تجربة IPTV لا مثيل لها</string>
     <string name="developer_credit">صُنع بشغف بواسطة Moalfarras</string>
@@ -340,7 +363,7 @@
     <string name="settings_weather_saved">تم حفظ إعدادات الطقس</string>
     <string name="settings_weather_configured">تم إعداد الطقس بنجاح</string>
     <string name="settings_weather_effects_quality">تأثيرات الطقس</string>
-    <string name="settings_weather_effects_quality_desc">تأثيرات الجسيمات والتدرّج</string>
+    <string name="settings_weather_effects_quality_desc">خلفية الطقس والجسيمات والعمق وألوان الوقت الديناميكية</string>
     <string name="settings_weather_effects_off">إيقاف</string>
     <string name="settings_weather_effects_low">منخفض</string>
     <string name="settings_weather_effects_medium">متوسط</string>
@@ -396,6 +419,15 @@
     <string name="activation_entry_subtitle">اربط شاشة التلفزيون مع moalfarras.space باستخدام كود جهاز آمن.</string>
     <string name="activation_entry_button">فتح شاشة التفعيل</string>
     <string name="activation_entry_button_done">تم التفعيل - أضف مصدرًا</string>
+    <string name="login_choice_activation">التفعيل عبر الموقع</string>
+    <string name="login_choice_activation_subtitle">امسح QR من الهاتف ثم ارجع للتطبيق.</string>
+    <string name="login_choice_xtream">إضافة Xtream</string>
+    <string name="login_choice_xtream_subtitle">رابط السيرفر واسم المستخدم وكلمة المرور.</string>
+    <string name="login_choice_m3u">إضافة M3U</string>
+    <string name="home_empty_title">نظام التلفزيون جاهز</string>
+    <string name="home_empty_subtitle">أضف محتوى أو حدّث المصدر النشط لملء لوحة التحكم.</string>
+    <string name="source_status_label_format">%1$s - %2$s</string>
+    <string name="login_choice_m3u_subtitle">رابط playlist أو ملف M3U من الجهاز.</string>
     <string name="activation_title">تفعيل MoPlayer</string>
     <string name="activation_subtitle">استخدم الهاتف أو الكمبيوتر لربط هذه الشاشة. الكود صالح لمدة 15 دقيقة ولا نستخدم عنوان MAC الحقيقي.</string>
     <string name="activation_code_label">كود الجهاز</string>
@@ -419,4 +451,10 @@
     <string name="activation_refresh">فحص الحالة</string>
     <string name="activation_add_source">إضافة مصدر</string>
     <string name="activation_privacy">معرّف جهاز خاص بالتطبيق. لا يتم استخدام معرّفات الجهاز الحقيقية.</string>
+    <string name="movies_catalog">كتالوج الأفلام</string>
+    <string name="series_catalog">كتالوج المسلسلات</string>
+    <string name="player_skip_intro">تخطي المقدمة</string>
+    <string name="player_next_episode">الحلقة التالية</string>
+    <string name="player_next_episode_countdown">يبدأ خلال 10 ثواني...</string>
+    <string name="player_play_now">تشغيل الآن</string>
 </resources>

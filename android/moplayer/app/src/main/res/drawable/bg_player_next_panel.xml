@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Next Episode Panel surface — dark frosted glass card -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <gradient android:angle="315"
+                android:startColor="#E8040B1C"
+                android:centerColor="#E4060F26"
+                android:endColor="#E0030710" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <stroke android:width="1dp" android:color="#4000F5FF" />
+        </shape>
+    </item>
+    <item android:top="1dp" android:left="20dp" android:right="20dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="1dp" />
+            <gradient android:angle="0"
+                android:startColor="#0000F5FF"
+                android:centerColor="#2200F5FF"
+                android:endColor="#0000F5FF" />
+            <size android:height="1dp" />
+        </shape>
+    </item>
+</layer-list>

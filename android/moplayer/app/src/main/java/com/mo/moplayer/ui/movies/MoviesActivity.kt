@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.mo.moplayer.R
-import com.mo.moplayer.data.local.entity.CategoryEntity
 import com.mo.moplayer.data.local.entity.MovieEntity
 import com.mo.moplayer.databinding.ActivityMoviesBinding
 import com.mo.moplayer.databinding.PanelMoviePreviewBinding
@@ -387,9 +386,19 @@ class MoviesActivity : BaseTvActivity() {
         
         // Add load state listener for paging
         movieAdapter.addLoadStateListener { loadState ->
-            binding.loadingOverlay.visibility = when (loadState.refresh) {
-                is LoadState.Loading -> View.VISIBLE
-                else -> View.GONE
+            val isRefreshing = loadState.refresh is LoadState.Loading
+            binding.loadingOverlay.visibility = if (isRefreshing) View.VISIBLE else View.GONE
+
+            if (loadState.refresh is LoadState.NotLoading) {
+                if (movieAdapter.itemCount == 0) {
+                    binding.networkErrorView.showEmpty(
+                        title = getString(R.string.movies_empty_title),
+                        message = getString(R.string.movies_empty_subtitle),
+                        iconRes = R.drawable.ic_movie
+                    )
+                } else if (binding.networkErrorView.getCurrentState() == com.mo.moplayer.ui.common.LoadingStateView.State.EMPTY) {
+                    binding.networkErrorView.hide()
+                }
             }
         }
     }
@@ -417,20 +426,20 @@ class MoviesActivity : BaseTvActivity() {
         }
 
         viewModel.categories.observe(this) { categories ->
-            // Add "All" category at the beginning
-            val allCategories = mutableListOf(
-                CategoryEntity(
-                    categoryId = "all",
-                    serverId = 0,
-                    originalId = "all",
-                    name = getString(R.string.movies_all),
-                    type = "movie",
-                    sortOrder = -1
-                )
-            )
-            allCategories.addAll(categories)
-            categoryAdapter.submitList(allCategories)
-            if (!binding.rvCategories.hasFocus() && !binding.rvMovies.hasFocus() && allCategories.isNotEmpty()) {
+            val realCategories = categories.filter { it.categoryId != "all" && it.name.isNotBlank() }
+            categoryAdapter.submitList(realCategories)
+
+            val selected = viewModel.selectedCategory.value
+            val needsSelection = selected == null || realCategories.none { it.categoryId == selected.categoryId }
+            if (realCategories.isNotEmpty() && needsSelection) {
+                viewModel.selectCategory(realCategories.first())
+            } else if (realCategories.isEmpty()) {
+                binding.tvCategoryTitle.text = getString(R.string.movies_catalog)
+                categoryAdapter.setSelectedCategory("")
+                binding.rvMovies.post { binding.rvMovies.requestFocus() }
+            }
+
+            if (!binding.rvCategories.hasFocus() && !binding.rvMovies.hasFocus() && realCategories.isNotEmpty()) {
                 binding.rvCategories.post {
                     binding.rvCategories.getChildAt(0)?.requestFocus()
                 }
@@ -445,8 +454,8 @@ class MoviesActivity : BaseTvActivity() {
         }
 
         viewModel.selectedCategory.observe(this) { category ->
-            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.movies_all)
-            categoryAdapter.setSelectedCategory(category?.categoryId ?: "all")
+            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.movies_catalog)
+            categoryAdapter.setSelectedCategory(category?.categoryId ?: "")
         }
     }
 

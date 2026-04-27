@@ -1,42 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- MoPlayer Cinematic Palette — Night-Sky Cyber Theme (SYNC WITH WEB) -->
+    <!-- MoPlayer Cinematic Palette — Premium Night-Sky Cyber Theme (TV 720p Optimized) -->
 
-    <!-- Base backgrounds — Midnight Navy -->
-    <color name="cinematic_bg_base">#030712</color>
-    <color name="cinematic_bg_elevated">#071126</color>
-    <color name="cinematic_surface">#0B1630</color>
-    <color name="cinematic_surface_alt">#121F3F</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         BASE BACKGROUNDS — Ultra-deep Midnight Navy
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_bg_base">#020510</color>
+    <color name="cinematic_bg_elevated">#06112A</color>
+    <color name="cinematic_surface">#09172E</color>
+    <color name="cinematic_surface_alt">#102240</color>
 
-    <!-- Text -->
-    <color name="cinematic_text_primary">#F8FAFC</color>
-    <color name="cinematic_text_secondary">#B7C6DA</color>
-    <color name="cinematic_text_tertiary">#7E8FA8</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         TEXT — High contrast for TV readability
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_text_primary">#FFFFFF</color>
+    <color name="cinematic_text_secondary">#C8D8F0</color>
+    <color name="cinematic_text_tertiary">#8EA8CC</color>
 
-    <!-- Primary: Electric Cyan -->
-    <color name="cinematic_focus_soft">#7322D3EE</color>
-    <color name="cinematic_focus_glow">#5522D3EE</color>
-    <color name="cinematic_divider">#26FFFFFF</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         PRIMARY: Electric Cyan — Signature Accent
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_cyan">#00F5FF</color>
+    <color name="cinematic_cyan_light">#80FFFF</color>
+    <color name="cinematic_cyan_dark">#00C8D4</color>
+    <color name="cinematic_focus_soft">#BB00F5FF</color>
+    <color name="cinematic_focus_glow">#7700F5FF</color>
+    <color name="cinematic_divider">#2A9DB8D8</color>
 
-    <!-- Cyan glow layers (Primary) -->
-    <color name="cinematic_blue_glow_strong">#6622D3EE</color>
-    <color name="cinematic_blue_glow_medium">#3D22D3EE</color>
-    <color name="cinematic_blue_glow_subtle">#1F22D3EE</color>
+    <!-- Cyan glow layers -->
+    <color name="cinematic_blue_glow_strong">#9900F5FF</color>
+    <color name="cinematic_blue_glow_medium">#5500F5FF</color>
+    <color name="cinematic_blue_glow_subtle">#2200F5FF</color>
 
-    <!-- Indigo accent (Secondary) -->
-    <color name="cinematic_violet">#8B5CF6</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         SECONDARY: Vivid Indigo/Violet
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_violet">#7C3AED</color>
     <color name="cinematic_violet_light">#A78BFA</color>
-    <color name="cinematic_violet_glow">#408B5CF6</color>
-    <color name="cinematic_violet_subtle">#228B5CF6</color>
+    <color name="cinematic_violet_glow">#607C3AED</color>
+    <color name="cinematic_violet_subtle">#307C3AED</color>
 
-    <!-- Magenta accent (Tertiary) -->
-    <color name="cinematic_cyan">#F6C177</color>
-    <color name="cinematic_cyan_glow">#33F6C177</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         GLASS LAYERS — Ultra-premium frosted glass
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_glass_bg">#1AFFFFFF</color>
+    <color name="cinematic_glass_surface">#28FFFFFF</color>
+    <color name="cinematic_glass_border">#5000F5FF</color>
+    <color name="cinematic_glass_highlight">#70FFFFFF</color>
+    <color name="cinematic_glass_reflection">#0CFFFFFF</color>
 
-    <!-- Glass layers — ultra-premium -->
-    <color name="cinematic_glass_bg">#12FFFFFF</color>
-    <color name="cinematic_glass_surface">#1AFFFFFF</color>
-    <color name="cinematic_glass_border">#2EFFFFFF</color>
-    <color name="cinematic_glass_highlight">#3AFFFFFF</color>
-    <color name="cinematic_glass_reflection">#08FFFFFF</color>
+    <!-- ═══════════════════════════════════════════════════════════
+         CARD SURFACES — Layered depth
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_card_primary">#0D1E38</color>
+    <color name="cinematic_card_elevated">#142845</color>
+    <color name="cinematic_card_border">#2000F5FF</color>
+    <color name="cinematic_card_border_focused">#CC00F5FF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         STATUS COLORS
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="cinematic_success">#00E676</color>
+    <color name="cinematic_warning">#FFB300</color>
+    <color name="cinematic_error">#FF4444</color>
+    <color name="cinematic_info">#00F5FF</color>
+
+    <!-- Episode Number Badge accent -->
+    <color name="cinematic_episode_badge_bg">#1A00F5FF</color>
+    <color name="cinematic_episode_badge_text">#00F5FF</color>
+
+    <!-- Accent Gold for ratings/stars -->
+    <color name="cinematic_gold">#FFD700</color>
+    <color name="cinematic_gold_glow">#55FFD700</color>
 </resources>

@@ -52,6 +52,9 @@ class Weather3DWidget @JvmOverloads constructor(
     private var tvCity: TextView
     private var tvCondition: TextView
     private var tvUpdated: TextView
+    private var tvFeelsLike: TextView
+    private var tvHumidity: TextView
+    private var tvWind: TextView
     private var ivWeatherIcon: ImageView
     private var weatherIconLottie: LottieAnimationView
     private var iconGlow: View
@@ -80,6 +83,9 @@ class Weather3DWidget @JvmOverloads constructor(
         tvCity = findViewById(R.id.tvCity)
         tvCondition = findViewById(R.id.tvCondition)
         tvUpdated = findViewById(R.id.tvUpdated)
+        tvFeelsLike = findViewById(R.id.tvFeelsLike)
+        tvHumidity = findViewById(R.id.tvHumidity)
+        tvWind = findViewById(R.id.tvWind)
         ivWeatherIcon = findViewById(R.id.ivWeatherIcon)
         weatherIconLottie = findViewById(R.id.weatherIconLottie)
         iconGlow = findViewById(R.id.iconGlow)
@@ -197,6 +203,23 @@ class Weather3DWidget @JvmOverloads constructor(
         tvCity.text = data.cityName
         tvCondition.text = data.condition
         tvUpdated.text = formatRelativeUpdateTime(data.lastUpdatedEpochMs)
+        val normalizedTempText = "${data.temperature}\u00B0"
+        val city = data.cityName.ifBlank { context.getString(R.string.weather_city_unavailable) }
+        tvTemperature.text = normalizedTempText
+        tvTemperatureShadow.text = normalizedTempText
+        tvCity.text = city
+        tvFeelsLike.text = context.getString(R.string.weather_widget_feels_like_short, data.feelsLike)
+        tvHumidity.text = context.getString(R.string.weather_widget_humidity_short, data.humidity)
+        tvWind.text = context.getString(R.string.weather_widget_wind_short, data.windSpeed)
+        contentDescription = context.getString(
+            R.string.weather_widget_content_description,
+            city,
+            data.temperature,
+            data.condition,
+            data.feelsLike,
+            data.humidity,
+            data.windSpeed
+        )
         
         // Update icon
         val category = weatherService?.getWeatherCategory(data.conditionCode) 
@@ -219,6 +242,11 @@ class Weather3DWidget @JvmOverloads constructor(
         tvCity.text = context.getString(R.string.loading)
         tvCondition.text = ""
         tvUpdated.text = ""
+        tvTemperature.text = "--\u00B0"
+        tvTemperatureShadow.text = "--\u00B0"
+        tvFeelsLike.text = context.getString(R.string.weather_widget_waiting)
+        tvHumidity.text = ""
+        tvWind.text = ""
         ivWeatherIcon.setImageResource(R.drawable.ic_weather_sunny)
     }
     
@@ -241,14 +269,20 @@ class Weather3DWidget @JvmOverloads constructor(
             is WidgetUiState.Error -> {
                 showLoading(false)
                 tvCity.text = state.message
-                tvCondition.text = ""
+                tvCondition.text = context.getString(R.string.weather_widget_offline_hint)
                 tvUpdated.text = ""
+                tvFeelsLike.text = context.getString(R.string.weather_widget_cached_empty)
+                tvHumidity.text = ""
+                tvWind.text = ""
             }
             is WidgetUiState.Empty -> {
                 showLoading(false)
                 tvCity.text = state.message
                 tvCondition.text = ""
                 tvUpdated.text = ""
+                tvFeelsLike.text = context.getString(R.string.weather_widget_cached_empty)
+                tvHumidity.text = ""
+                tvWind.text = ""
             }
         }
     }

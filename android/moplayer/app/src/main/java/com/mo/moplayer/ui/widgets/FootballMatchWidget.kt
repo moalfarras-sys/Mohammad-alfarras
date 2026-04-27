@@ -23,15 +23,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Compact football match widget for Top Bar. Displays one live match from API-Football. Always
- * visible - shows "no match" when none; updates every 30-60s when match is live.
+ * Premium football widget for Home. Uses the website proxy/service only; no API key is kept here.
  */
 class FootballMatchWidget
 @JvmOverloads
 constructor(
-        context: android.content.Context,
-        attrs: android.util.AttributeSet? = null,
-        defStyleAttr: Int = 0
+    context: android.content.Context,
+    attrs: android.util.AttributeSet? = null,
+    defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
     private val ivHomeLogo: android.widget.ImageView
     private val ivAwayLogo: android.widget.ImageView
@@ -42,8 +41,8 @@ constructor(
     private val tvLeagueMinute: TextView
     private val matchContent: LinearLayout
     private val tvStateMessage: TextView
+    private val tvStateSubtitle: TextView
     private val progressBar: ProgressBar
-
     private val layoutEmptyState: LinearLayout
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -56,7 +55,7 @@ constructor(
     var onMatchClick: ((LiveMatchData) -> Unit)? = null
 
     companion object {
-        private const val REFRESH_INTERVAL_MS = 45_000L // 45 seconds when match is live
+        private const val REFRESH_INTERVAL_MS = 45_000L
     }
 
     init {
@@ -78,6 +77,7 @@ constructor(
         tvLeagueMinute = findViewById(R.id.tvLeagueMinute)
         matchContent = findViewById(R.id.matchContent)
         tvStateMessage = findViewById(R.id.tvStateMessage)
+        tvStateSubtitle = findViewById(R.id.tvStateSubtitle)
         layoutEmptyState = findViewById(R.id.layoutEmptyState)
         progressBar = findViewById(R.id.progressBar)
 
@@ -113,63 +113,59 @@ constructor(
     fun refresh(forceRefresh: Boolean = false) {
         scope.launch {
             if (footballService == null) {
-                showStateMessage(context.getString(R.string.football_widget_error))
+                renderState(WidgetUiState.Error(context.getString(R.string.football_widget_error)))
                 return@launch
             }
-            // API key check moved to service failure handling or assume service manages it
 
             renderState(WidgetUiState.Loading)
-            val result =
-                    withContext(Dispatchers.IO) { footballService?.fetchLiveMatch(forceRefresh) }
-                            ?: Result.failure(Exception("Service unavailable"))
+            val result = withContext(Dispatchers.IO) {
+                footballService?.fetchLiveMatch(forceRefresh)
+            } ?: Result.failure(Exception("Service unavailable"))
 
             result.fold(
-                    onSuccess = { data ->
-                        if (data != null) {
-                            renderState(WidgetUiState.Ready(data))
-                            startPeriodicRefresh()
+                onSuccess = { data ->
+                    if (data != null) {
+                        renderState(WidgetUiState.Ready(data))
+                        startPeriodicRefresh()
+                    } else {
+                        val msg = if (footballService?.hasApiKey() == false) {
+                            context.getString(R.string.football_widget_error)
                         } else {
-                            val msg =
-                                    if (footballService?.hasApiKey() == false)
-                                            context.getString(R.string.football_widget_error)
-                                    else context.getString(R.string.football_widget_no_match)
-                            renderState(WidgetUiState.Empty(msg))
-                            stopPeriodicRefresh()
+                            context.getString(R.string.football_widget_no_match)
                         }
-                    },
-                    onFailure = {
-                        val msg =
-                                if (footballService?.hasApiKey() == false)
-                                        context.getString(R.string.football_widget_error)
-                                else (it.message ?: context.getString(R.string.error_connection))
-                        renderState(WidgetUiState.Error(msg))
+                        renderState(WidgetUiState.Empty(msg))
                         stopPeriodicRefresh()
                     }
+                },
+                onFailure = {
+                    val msg = if (footballService?.hasApiKey() == false) {
+                        context.getString(R.string.football_widget_error)
+                    } else {
+                        it.message ?: context.getString(R.string.error_connection)
+                    }
+                    renderState(WidgetUiState.Error(msg))
+                    stopPeriodicRefresh()
+                }
             )
         }
     }
 
-    /** Call from HomeActivity.onResume - start periodic refresh when match is live */
     fun onActivityResumed() {
-        // Trigger one refresh to get current state, which will start periodic refresh if match
-        // exists
         refresh(forceRefresh = false)
     }
 
-    /** Call from HomeActivity.onPause - stop periodic refresh */
     fun onActivityPaused() {
         stopPeriodicRefresh()
     }
 
     private fun startPeriodicRefresh() {
         stopPeriodicRefresh()
-        refreshRunnable =
-                object : Runnable {
-                    override fun run() {
-                        refresh(forceRefresh = true)
-                        handler.postDelayed(this, REFRESH_INTERVAL_MS)
-                    }
-                }
+        refreshRunnable = object : Runnable {
+            override fun run() {
+                refresh(forceRefresh = true)
+                handler.postDelayed(this, REFRESH_INTERVAL_MS)
+            }
+        }
         refreshRunnable?.let { handler.postDelayed(it, REFRESH_INTERVAL_MS) }
     }
 
@@ -186,65 +182,68 @@ constructor(
         tvHomeTeam.text = shortenTeamName(data.homeTeam)
         tvAwayTeam.text = shortenTeamName(data.awayTeam)
 
+        tvScore.visibility = View.VISIBLE
         if (data.isLive) {
-            tvScore.visibility = View.VISIBLE
             tvScore.text = "${data.homeScore} - ${data.awayScore}"
             tvLiveBadge.visibility = View.VISIBLE
         } else {
-            tvScore.visibility = View.VISIBLE
             tvScore.text = "vs"
             tvLiveBadge.visibility = View.GONE
         }
 
-        // Load logos
         if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(context)) {
             com.bumptech.glide.Glide.with(context)
-                    .load(data.homeLogo)
-                    .placeholder(R.drawable.ic_football)
-                    .error(R.drawable.ic_football)
-                    .into(ivHomeLogo)
+                .load(data.homeLogo)
+                .placeholder(R.drawable.ic_football)
+                .error(R.drawable.ic_football)
+                .into(ivHomeLogo)
 
             com.bumptech.glide.Glide.with(context)
-                    .load(data.awayLogo)
-                    .placeholder(R.drawable.ic_football)
-                    .error(R.drawable.ic_football)
-                    .into(ivAwayLogo)
+                .load(data.awayLogo)
+                .placeholder(R.drawable.ic_football)
+                .error(R.drawable.ic_football)
+                .into(ivAwayLogo)
         }
 
-        val leagueMinute =
-                if (data.isLive) {
-                    buildString {
-                        data.leagueName?.let { append(it) }
-                        data.minute?.let { min ->
-                            if (isNotEmpty()) append(" · ")
-                            append("$min'")
-                        }
-                        if (isEmpty()) data.statusLong?.let { append(it) }
-                    }
-                            .ifEmpty { data.statusShort ?: "" }
-                } else {
-                    buildString {
-                        data.displayTime?.let { append(it) }
-                        data.leagueName?.let { name ->
-                            if (isNotEmpty()) append(" · ")
-                            append(name)
-                        }
-                    }
-                            .ifEmpty { context.getString(R.string.football_widget_today_match) }
+        tvLeagueMinute.text = if (data.isLive) {
+            buildString {
+                data.leagueName?.let { append(it) }
+                data.minute?.let { min ->
+                    if (isNotEmpty()) append(" - ")
+                    append("$min'")
                 }
-        tvLeagueMinute.text = leagueMinute
+                if (isEmpty()) data.statusLong?.let { append(it) }
+            }.ifEmpty { data.statusShort ?: "" }
+        } else {
+            buildString {
+                data.displayTime?.let { append(it) }
+                data.leagueName?.let { name ->
+                    if (isNotEmpty()) append(" - ")
+                    append(name)
+                }
+            }.ifEmpty { context.getString(R.string.football_widget_today_match) }
+        }
     }
 
-    private fun shortenTeamName(name: String): String {
-        if (name.length <= 10) return name
-        return name.take(8) + "…"
-    }
+    private fun shortenTeamName(name: String): String =
+        if (name.length <= 10) name else name.take(8) + "..."
 
-    private fun showStateMessage(message: String) {
+    private fun showStateMessage(message: String, state: WidgetUiState<LiveMatchData>) {
         currentMatchData = null
         matchContent.visibility = View.GONE
         layoutEmptyState.visibility = View.VISIBLE
-        tvStateMessage.text = message
+        tvStateMessage.text = when (state) {
+            is WidgetUiState.Empty -> context.getString(R.string.football_widget_no_match)
+            is WidgetUiState.Error -> context.getString(R.string.football_widget_error_state)
+            else -> message
+        }
+        tvStateSubtitle.text = when (state) {
+            WidgetUiState.Loading -> context.getString(R.string.football_widget_loading_subtitle)
+            is WidgetUiState.Empty -> context.getString(R.string.football_widget_no_match_subtitle)
+            is WidgetUiState.Error -> message.ifBlank { context.getString(R.string.football_widget_error_subtitle) }
+            is WidgetUiState.Ready -> ""
+        }
+        tvStateSubtitle.visibility = if (tvStateSubtitle.text.isNullOrBlank()) View.GONE else View.VISIBLE
     }
 
     private fun showLoading(loading: Boolean) {
@@ -256,7 +255,7 @@ constructor(
         when (state) {
             WidgetUiState.Loading -> {
                 showLoading(true)
-                showStateMessage(context.getString(R.string.football_widget_loading))
+                showStateMessage(context.getString(R.string.football_widget_loading), state)
             }
             is WidgetUiState.Ready -> {
                 showLoading(false)
@@ -264,11 +263,11 @@ constructor(
             }
             is WidgetUiState.Empty -> {
                 showLoading(false)
-                showStateMessage(state.message)
+                showStateMessage(state.message, state)
             }
             is WidgetUiState.Error -> {
                 showLoading(false)
-                showStateMessage(state.message)
+                showStateMessage(state.message, state)
             }
         }
     }
@@ -277,12 +276,12 @@ constructor(
         val targetScale = if (hasFocus) 1.05f else 1.0f
         val targetElevation = if (hasFocus) 14f else 4f
         animate()
-                .scaleX(targetScale)
-                .scaleY(targetScale)
-                .translationY(if (hasFocus) -3f else 0f)
-                .setDuration(200)
-                .setInterpolator(OvershootInterpolator(1.4f))
-                .start()
+            .scaleX(targetScale)
+            .scaleY(targetScale)
+            .translationY(if (hasFocus) -3f else 0f)
+            .setDuration(200)
+            .setInterpolator(OvershootInterpolator(1.4f))
+            .start()
         elevation = targetElevation
     }
 

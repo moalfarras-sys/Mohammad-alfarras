@@ -3,6 +3,7 @@ package com.mo.moplayer.ui.settings
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -39,6 +40,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -900,7 +904,7 @@ class SettingsActivity : BaseTvActivity() {
         val currentLocale = java.util.Locale.getDefault().language
         val currentIndex = if (currentLocale == "ar") 1 else 0
         
-        android.app.AlertDialog.Builder(this)
+        android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
             .setTitle(R.string.settings_language)
             .setSingleChoiceItems(languages, currentIndex) { dialog, which ->
                 val selectedCode = languageCodes[which]
@@ -1385,18 +1389,79 @@ class SettingsActivity : BaseTvActivity() {
             if (server == null) {
                 binding.tvServerName.text = getString(R.string.source_no_active)
                 binding.tvServerUrl.text = getString(R.string.source_add_to_start)
+                binding.serverStatusChips.visibility = View.GONE
+                binding.tvServerLastRefresh.visibility = View.GONE
                 binding.tvServerExpiry.visibility = View.GONE
+                binding.btnRefreshServer.visibility = View.GONE
+                binding.btnDeleteServer.visibility = View.GONE
             } else {
                 binding.tvServerName.text = server.name
                 binding.tvServerUrl.text = maskEndpointForDisplay(server)
                 binding.tvServerExpiry.text = buildActiveSourceMeta(server)
                 binding.tvServerExpiry.visibility = if (binding.tvServerExpiry.text.isNullOrBlank()) View.GONE else View.VISIBLE
+                binding.btnRefreshServer.visibility = View.VISIBLE
+                binding.btnDeleteServer.visibility = View.VISIBLE
             }
         }
         viewModel.sourceStatusItems.observe(this) { items ->
             sourceStatusAdapter.submitList(items)
             binding.rvServers.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+            renderActiveSourceStatus(items.firstOrNull { it.isActive })
         }
+    }
+
+    private fun renderActiveSourceStatus(item: SourceStatusItem?) {
+        if (item == null) {
+            binding.serverStatusChips.visibility = View.GONE
+            binding.tvServerLastRefresh.visibility = View.GONE
+            return
+        }
+
+        binding.serverStatusChips.visibility = View.VISIBLE
+        binding.tvServerType.text = item.type.uppercase(Locale.US)
+        binding.tvServerStatus.text = buildSourceStatusLabel(item)
+        binding.tvServerStatus.setTextColor(sourceStatusColor(item))
+        binding.tvServerCounts.text = getString(
+            R.string.dashboard_counts_format,
+            item.channels,
+            item.movies,
+            item.series,
+            item.categories
+        )
+        binding.tvServerLastRefresh.text = buildSourceLastRefresh(item)
+        binding.tvServerLastRefresh.visibility = View.VISIBLE
+    }
+
+    private fun buildSourceStatusLabel(item: SourceStatusItem): String {
+        val state = item.syncState?.lastStatus?.uppercase(Locale.US)
+        return when (state) {
+            "SUCCESS" -> getString(R.string.source_status_success)
+            "RUNNING" -> getString(R.string.source_status_running)
+            "ERROR" -> getString(R.string.source_status_error)
+            else -> if (item.isActive) getString(R.string.source_active) else getString(R.string.source_status_idle)
+        }
+    }
+
+    private fun sourceStatusColor(item: SourceStatusItem): Int {
+        val status = item.syncState?.lastStatus?.uppercase(Locale.US)
+        val color = when (status) {
+            "SUCCESS" -> R.color.htc_accent_green
+            "RUNNING" -> R.color.moplayer_orange
+            "ERROR" -> R.color.htc_error
+            else -> R.color.htc_text_secondary
+        }
+        return ContextCompat.getColor(this, color)
+    }
+
+    private fun buildSourceLastRefresh(item: SourceStatusItem): String {
+        val lastSyncAt = item.syncState?.lastSyncAt ?: return getString(R.string.source_never_refreshed)
+        val relative = DateUtils.getRelativeTimeSpanString(
+            lastSyncAt,
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE
+        )
+        return getString(R.string.source_last_refresh_format, relative)
     }
 
     private fun maskEndpointForDisplay(server: com.mo.moplayer.data.local.entity.ServerEntity): String {
@@ -1411,19 +1476,26 @@ class SettingsActivity : BaseTvActivity() {
         return runCatching {
             val uri = java.net.URI(server.serverUrl)
             val port = if (uri.port != -1) ":${uri.port}" else ""
-            val base = "${uri.scheme}://${uri.host.orEmpty()}$port"
-            if (server.serverUrl.contains("?")) "$base/...?...=masked" else base
+            val host = uri.host.orEmpty().ifBlank {
+                uri.authority.orEmpty()
+                    .substringAfter("@")
+                    .substringBefore("/")
+                    .substringBefore("?")
+            }
+            if (host.isNotBlank()) "$host$port" else getString(R.string.source_no_endpoint)
         }.getOrDefault(
-            server.serverUrl.replace(
-                Regex("(username|password|token)=([^&]+)", RegexOption.IGNORE_CASE),
-                "\$1=masked"
-            )
+            server.serverUrl
+                .substringBefore("?")
+                .removePrefix("https://")
+                .removePrefix("http://")
+                .substringBefore("/")
+                .replace(Regex("(username|password|token)=([^&]+)", RegexOption.IGNORE_CASE), "\$1=masked")
         )
     }
 
     private fun buildActiveSourceMeta(server: com.mo.moplayer.data.local.entity.ServerEntity): String {
         val expiryText = server.expirationDate?.takeIf { it.isNotBlank() }?.let {
-            getString(R.string.source_expiry_format, it)
+            getString(R.string.source_expiry_format, formatProviderDate(it))
         }
         val connectionText = when {
             server.activeConnections != null && server.maxConnections != null ->
@@ -1433,6 +1505,16 @@ class SettingsActivity : BaseTvActivity() {
             else -> null
         }
         return listOfNotNull(expiryText, connectionText).joinToString("  -  ")
+    }
+
+    private fun formatProviderDate(raw: String): String {
+        val trimmed = raw.trim()
+        val epoch = trimmed.toLongOrNull()
+        if (epoch != null && epoch > 1_000_000_000L) {
+            val millis = if (epoch < 10_000_000_000L) epoch * 1000L else epoch
+            return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(millis))
+        }
+        return trimmed
     }
 
     private fun refreshServerSilently() {

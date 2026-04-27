@@ -990,6 +990,10 @@ class IptvRepository @Inject constructor(
         seriesDao.getSeriesById(seriesId)
     }
 
+    suspend fun getEpisodeById(episodeId: String): EpisodeEntity? = withContext(Dispatchers.IO) {
+        seriesDao.getEpisodeById(episodeId)
+    }
+
     suspend fun getChannelById(channelId: String): ChannelEntity? = withContext(Dispatchers.IO) {
         channelDao.getChannelById(channelId)
     }

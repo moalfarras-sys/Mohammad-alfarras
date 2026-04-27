@@ -6,9 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.mo.moplayer.R
 import com.mo.moplayer.ui.settings.SourceStatusItem
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class SourceStatusAdapter(
@@ -52,6 +55,7 @@ class SourceStatusAdapter(
             type.text = item.type.uppercase(Locale.US)
             endpoint.text = item.endpoint
             status.text = buildStatusText(item)
+            status.setTextColor(statusColor(item))
             counts.text = context.getString(
                 R.string.source_counts_format,
                 item.channels,
@@ -99,6 +103,17 @@ class SourceStatusAdapter(
             }
         }
 
+        private fun statusColor(item: SourceStatusItem): Int {
+            val context = itemView.context
+            val status = item.syncState?.lastStatus?.uppercase(Locale.US)
+            return when (status) {
+                "SUCCESS" -> ContextCompat.getColor(context, R.color.htc_accent_green)
+                "RUNNING" -> ContextCompat.getColor(context, R.color.moplayer_orange)
+                "ERROR" -> ContextCompat.getColor(context, R.color.htc_error)
+                else -> ContextCompat.getColor(context, R.color.htc_text_secondary)
+            }
+        }
+
         private fun buildLastRefreshText(item: SourceStatusItem): String {
             val context = itemView.context
             val lastSyncAt = item.syncState?.lastSyncAt ?: return context.getString(R.string.source_never_refreshed)
@@ -114,7 +129,7 @@ class SourceStatusAdapter(
         private fun buildExpiryText(item: SourceStatusItem): String {
             val context = itemView.context
             val expiryText = item.expirationDate?.takeIf { it.isNotBlank() }?.let {
-                context.getString(R.string.source_expiry_format, it)
+                context.getString(R.string.source_expiry_format, formatProviderDate(it))
             }
             val connectionText = when {
                 item.activeConnections != null && item.maxConnections != null ->
@@ -124,6 +139,16 @@ class SourceStatusAdapter(
                 else -> null
             }
             return listOfNotNull(expiryText, connectionText).joinToString("  -  ")
+        }
+
+        private fun formatProviderDate(raw: String): String {
+            val trimmed = raw.trim()
+            val epoch = trimmed.toLongOrNull()
+            if (epoch != null && epoch > 1_000_000_000L) {
+                val millis = if (epoch < 10_000_000_000L) epoch * 1000L else epoch
+                return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(millis))
+            }
+            return trimmed
         }
     }
 }

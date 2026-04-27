@@ -10,8 +10,8 @@ import type { SiteViewModel } from "@/components/site/site-view-model";
 const copy = {
   en: {
     eyebrow: "YouTube Channel",
-    title: "Arabic tech content that earns trust, not just attention.",
-    body: "The channel is part of the professional identity. It proves that product explanation, consistency, and presentation quality can grow a real audience over time.",
+    title: "Creator Media Kit & Channel Stats",
+    body: "A business card for sponsors and partners. Engaging Arabic tech content with 1.5M+ Views focused on Tech & Design.",
     openChannel: "Open channel",
     subscribe: "Subscribe",
     statsTitle: "Channel reach",
@@ -19,8 +19,8 @@ const copy = {
   },
   ar: {
     eyebrow: "قناة يوتيوب",
-    title: "محتوى تقني عربي يصنع الثقة لا مجرد استهلاك الانتباه.",
-    body: "القناة جزء من الهوية المهنية. تُثبت أن جودة الشرح والتقديم والثبات يمكن أن تبني جمهورًا حقيقيًا يتراكم مع الوقت.",
+    title: "الملف الإعلامي وإحصائيات القناة",
+    body: "واجهة للشركاء والرعاة. محتوى تقني عربي يركز على التكنولوجيا والتصميم مع أكثر من مليون ونصف مشاهدة.",
     openChannel: "افتح القناة",
     subscribe: "اشترك",
     statsTitle: "تأثير القناة",
@@ -162,7 +162,7 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
               {isAr ? "أحدث الفيديوهات" : "Latest Videos"}
             </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {model.latestVideos.slice(0, 6).map((video) => (
+              {model.latestVideos.slice(0, 3).map((video) => (
                 <a
                   key={video.id}
                   href={`https://youtube.com/watch?v=${video.youtube_id}`}
@@ -197,6 +197,50 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
           </div>
         </section>
       )}
+
+      
+      {/* ── DEMOGRAPHICS & SPONSORSHIP ── */}
+      <section className="py-16 md:py-24">
+        <div className="section-frame">
+          <div className="grid gap-10 lg:grid-cols-2">
+            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+              <h2 className="text-2xl font-black text-[var(--text-1)]">{isAr ? "لماذا ترعى القناة؟" : "Why Sponsor Me?"}</h2>
+              <ul className="mt-6 grid gap-4">
+                <li className="flex gap-3"><Sparkles className="h-5 w-5 text-[var(--accent)]" /><span className="text-[var(--text-2)]">{isAr ? "محتوى عالي الجودة مع إنتاج سينمائي" : "High-quality content with cinematic production"}</span></li>
+                <li className="flex gap-3"><MonitorSmartphone className="h-5 w-5 text-[var(--accent)]" /><span className="text-[var(--text-2)]">{isAr ? "جمهور مستهدف مهتم بالتقنية والتصميم" : "Targeted audience interested in Tech & Design"}</span></li>
+                <li className="flex gap-3"><Bot className="h-5 w-5 text-[var(--accent)]" /><span className="text-[var(--text-2)]">{isAr ? "مصداقية وثقة عالية بين المتابعين" : "High credibility and trust among followers"}</span></li>
+              </ul>
+              <div className="mt-8">
+                <a href={`/${model.locale}/contact?subject=Sponsorship`} className="button-liquid-primary inline-flex items-center gap-2">
+                  {isAr ? "تواصل للرعاية" : "Contact for Sponsorship"}
+                </a>
+              </div>
+            </div>
+            
+            <div className="glass rounded-[var(--radius-xl)] p-8" style={{ boxShadow: "var(--shadow-card)" }}>
+              <h2 className="text-2xl font-black text-[var(--text-1)]">{isAr ? "ديموغرافيا الجمهور" : "Audience Demographics"}</h2>
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
+                  <div className="text-2xl font-black text-[var(--accent)]">80%</div>
+                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">MENA Region</div>
+                </div>
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
+                  <div className="text-2xl font-black text-[var(--accent)]">20%</div>
+                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">Europe & Global</div>
+                </div>
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
+                  <div className="text-2xl font-black text-[var(--accent)]">90%</div>
+                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">Male</div>
+                </div>
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4">
+                  <div className="text-2xl font-black text-[var(--accent)]">18-34</div>
+                  <div className="mt-1 text-sm font-bold text-[var(--text-2)]">Age Group</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <ContactCtaSection locale={model.locale} />
     </div>

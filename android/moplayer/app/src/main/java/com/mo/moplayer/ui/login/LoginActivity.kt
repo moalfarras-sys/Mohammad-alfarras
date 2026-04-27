@@ -20,6 +20,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -163,6 +164,7 @@ class LoginActivity : AppCompatActivity() {
 
             setupHtcBackground()
             setupUI()
+            setupBackNavigation()
             setupTabs()
             setupFormNavigation()
             setupPasswordToggle()
@@ -276,6 +278,9 @@ class LoginActivity : AppCompatActivity() {
         
         // Initialize Weather Widget
         binding.weatherWidget.initialize(weatherService)
+        binding.weatherWidget.isFocusable = false
+        binding.weatherWidget.isFocusableInTouchMode = false
+        binding.weatherWidget.isClickable = false
         
         // Setup Full Screen Weather Effects
         setupWeatherOverlay()
@@ -362,8 +367,42 @@ class LoginActivity : AppCompatActivity() {
         ensureInitialTvFocus()
 
         setupInputTextVisibilityFix()
+        showInitialSetupChoices()
 
         // Setup button click listeners
+        binding.btnChooseActivation.setOnClickListener {
+            animateButtonPress(it)
+            startActivity(Intent(this, DeviceActivationActivity::class.java))
+        }
+        binding.btnChooseXtream.setOnClickListener {
+            animateButtonPress(it)
+            showSourceForm(LoginViewModel.LoginTab.XTREAM)
+        }
+        binding.btnChooseM3u.setOnClickListener {
+            animateButtonPress(it)
+            showSourceForm(LoginViewModel.LoginTab.M3U)
+        }
+        binding.btnChooseActivation.setOnKeyListener { v, keyCode, event ->
+            if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.action == KeyEvent.ACTION_UP) {
+                animateButtonPress(v)
+                startActivity(Intent(this, DeviceActivationActivity::class.java))
+                true
+            } else false
+        }
+        binding.btnChooseXtream.setOnKeyListener { v, keyCode, event ->
+            if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.action == KeyEvent.ACTION_UP) {
+                animateButtonPress(v)
+                showSourceForm(LoginViewModel.LoginTab.XTREAM)
+                true
+            } else false
+        }
+        binding.btnChooseM3u.setOnKeyListener { v, keyCode, event ->
+            if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.action == KeyEvent.ACTION_UP) {
+                animateButtonPress(v)
+                showSourceForm(LoginViewModel.LoginTab.M3U)
+                true
+            } else false
+        }
         binding.btnConnectClean.setOnClickListener {
             animateButtonPress(it)
             attemptXtreamConnect()
@@ -380,12 +419,16 @@ class LoginActivity : AppCompatActivity() {
             animateButtonPress(it)
             startActivity(Intent(this, DeviceActivationActivity::class.java))
         }
+        binding.btnBackToMethodsClean.setOnClickListener {
+            animateButtonPress(it)
+            showInitialSetupChoices()
+        }
 
         // Handle D-Pad selection
         binding.btnConnectClean.setOnKeyListener { v, keyCode, event ->
             when {
                 keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.action == KeyEvent.ACTION_DOWN -> {
-                    binding.btnOpenActivationClean.requestFocus()
+                    binding.btnBackToMethodsClean.requestFocus()
                     true
                 }
                 keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
@@ -412,7 +455,7 @@ class LoginActivity : AppCompatActivity() {
         binding.btnImportM3uLocalClean.setOnKeyListener { v, keyCode, event ->
             when {
                 keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.action == KeyEvent.ACTION_DOWN -> {
-                    binding.btnOpenActivationClean.requestFocus()
+                    binding.btnBackToMethodsClean.requestFocus()
                     true
                 }
                 keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
@@ -477,16 +520,43 @@ class LoginActivity : AppCompatActivity() {
                 else -> false
             }
         }
+        binding.btnBackToMethodsClean.setOnKeyListener { v, keyCode, event ->
+            when {
+                keyCode == KeyEvent.KEYCODE_DPAD_UP && event.action == KeyEvent.ACTION_DOWN -> {
+                    if (binding.viewFlipperLoginClean.displayedChild == 0) {
+                        binding.btnConnectClean.requestFocus()
+                    } else {
+                        binding.btnImportM3uLocalClean.requestFocus()
+                    }
+                    true
+                }
+                (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.action == KeyEvent.ACTION_UP -> {
+                    animateButtonPress(v)
+                    showInitialSetupChoices()
+                    true
+                }
+                else -> false
+            }
+        }
         setupDpadFocusOverrides()
 
         // Focus change listeners
         listOf(
+            binding.btnChooseActivation,
+            binding.btnChooseXtream,
+            binding.btnChooseM3u,
+            binding.btnTabXtreamClean,
+            binding.btnTabM3uClean,
+            binding.btnConnectClean,
+            binding.btnImportM3uClean,
+            binding.btnImportM3uLocalClean,
             binding.etServerUrlClean, 
             binding.etUsernameClean, 
             binding.etPasswordClean,
             binding.etM3uUrlClean,
             binding.activationEntryCard,
-            binding.btnOpenActivationClean
+            binding.btnOpenActivationClean,
+            binding.btnBackToMethodsClean
         ).forEach { editText ->
             editText.setOnFocusChangeListener { view, hasFocus ->
                 if (hasFocus) {
@@ -519,12 +589,61 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
+    private fun setupBackNavigation() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (::binding.isInitialized && !binding.setupChoicePanel.isVisible) {
+                    showInitialSetupChoices()
+                    return
+                }
+                if (isTaskRoot) {
+                    exitHelper.onBackPressed()
+                } else {
+                    finish()
+                }
+            }
+        })
+    }
+
     private fun ensureInitialTvFocus() {
-        binding.btnTabXtreamClean.post {
+        binding.btnChooseActivation.post {
             if (currentFocus == null || currentFocus === binding.loginCardClean) {
-                binding.btnTabXtreamClean.requestFocus()
+                if (binding.setupChoicePanel.isVisible) {
+                    binding.btnChooseActivation.requestFocus()
+                } else {
+                    binding.btnTabXtreamClean.requestFocus()
+                }
             }
         }
+    }
+
+    private fun showInitialSetupChoices() {
+        binding.setupChoicePanel.visibility = View.VISIBLE
+        binding.sourceModeTabs.visibility = View.GONE
+        binding.viewFlipperLoginClean.visibility = View.GONE
+        binding.activationEntryCard.visibility = View.GONE
+        binding.btnBackToMethodsClean.visibility = View.GONE
+        binding.btnChooseM3u.nextFocusDownId = binding.btnChooseM3u.id
+        binding.btnChooseActivation.post { binding.btnChooseActivation.requestFocus() }
+    }
+
+    private fun showSourceForm(tab: LoginViewModel.LoginTab) {
+        binding.setupChoicePanel.visibility = View.GONE
+        binding.sourceModeTabs.visibility = View.GONE
+        binding.viewFlipperLoginClean.visibility = View.VISIBLE
+        binding.activationEntryCard.visibility = View.GONE
+        binding.btnBackToMethodsClean.visibility = View.VISIBLE
+        binding.btnChooseM3u.nextFocusDownId = binding.btnChooseM3u.id
+        selectTab(tab)
+        val target = when (tab) {
+            LoginViewModel.LoginTab.XTREAM -> binding.etServerUrlClean
+            LoginViewModel.LoginTab.M3U -> binding.etM3uUrlClean
+        }
+        binding.btnBackToMethodsClean.nextFocusUpId = when (tab) {
+            LoginViewModel.LoginTab.XTREAM -> binding.btnConnectClean.id
+            LoginViewModel.LoginTab.M3U -> binding.btnImportM3uLocalClean.id
+        }
+        target.post { target.requestFocus() }
     }
 
     private fun applySavedActivationState() {
@@ -540,11 +659,11 @@ class LoginActivity : AppCompatActivity() {
     private fun handleActivationCompletedIntent(intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_ACTIVATION_COMPLETED, false) != true) return
 
-        selectTab(LoginViewModel.LoginTab.XTREAM)
+        showSourceForm(LoginViewModel.LoginTab.XTREAM)
         binding.tvErrorClean.text = getString(R.string.activation_completed_login_hint)
         binding.tvErrorClean.isVisible = true
-        binding.btnTabXtreamClean.postDelayed({
-            binding.btnTabXtreamClean.requestFocus()
+        binding.etServerUrlClean.postDelayed({
+            binding.etServerUrlClean.requestFocus()
         }, 180)
         startWebsiteSourcePolling()
         intent.removeExtra(EXTRA_ACTIVATION_COMPLETED)
@@ -618,7 +737,7 @@ class LoginActivity : AppCompatActivity() {
 
         when (type) {
             "xtream" -> {
-                selectTab(LoginViewModel.LoginTab.XTREAM)
+                showSourceForm(LoginViewModel.LoginTab.XTREAM)
                 viewModel.login(
                     source.optString("serverUrl"),
                     source.optString("username"),
@@ -626,7 +745,7 @@ class LoginActivity : AppCompatActivity() {
                 )
             }
             "m3u" -> {
-                selectTab(LoginViewModel.LoginTab.M3U)
+                showSourceForm(LoginViewModel.LoginTab.M3U)
                 viewModel.importM3uFromUrl(source.optString("playlistUrl"), name)
             }
             else -> ackWebsiteSource("failed", "Unsupported source type")
@@ -702,10 +821,10 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        moveOnDpad(binding.etServerUrlClean, binding.btnTabXtreamClean, binding.etUsernameClean)
+        moveOnDpad(binding.etServerUrlClean, binding.btnBackToMethodsClean, binding.etUsernameClean)
         moveOnDpad(binding.etUsernameClean, binding.etServerUrlClean, binding.etPasswordClean)
         moveOnDpad(binding.etPasswordClean, binding.etUsernameClean, binding.btnConnectClean)
-        moveOnDpad(binding.etM3uUrlClean, binding.btnTabM3uClean, binding.btnImportM3uClean)
+        moveOnDpad(binding.etM3uUrlClean, binding.btnBackToMethodsClean, binding.btnImportM3uClean)
     }
 
     private fun setupPasswordToggle() {
@@ -946,9 +1065,9 @@ class LoginActivity : AppCompatActivity() {
                 }
                 is LoginViewModel.LoginState.Error -> {
                     if (pendingWebsiteSourceId != null) {
-                        ackWebsiteSource("failed", state.message)
+                        ackWebsiteSource("failed", safeLoginError(state.message))
                     }
-                    binding.tvErrorClean.text = state.message
+                    binding.tvErrorClean.text = safeLoginError(state.message)
                     binding.tvErrorClean.isVisible = true
                     animateErrorShake()
                 }
@@ -973,6 +1092,23 @@ class LoginActivity : AppCompatActivity() {
                     binding.btnImportM3uClean.requestFocus()
                 }
             }
+        }
+    }
+
+    private fun safeLoginError(message: String): String {
+        val lower = message.lowercase()
+        val mayContainSourceSecret =
+            lower.contains("http://") ||
+            lower.contains("https://") ||
+            lower.contains("username=") ||
+            lower.contains("password=") ||
+            lower.contains("token=") ||
+            lower.contains("illegal character")
+
+        return if (mayContainSourceSecret) {
+            "Could not import this source. Check the URL or credentials and try again."
+        } else {
+            message
         }
     }
 
@@ -1264,6 +1400,10 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (::binding.isInitialized && !binding.setupChoicePanel.isVisible) {
+                showInitialSetupChoices()
+                return true
+            }
             if (isTaskRoot) {
                 // Double-back within 2s => show confirmation dialog
                 return exitHelper.onBackPressed()

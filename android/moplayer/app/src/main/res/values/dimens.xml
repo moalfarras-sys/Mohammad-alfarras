@@ -38,9 +38,9 @@
 
     <!-- Component Specific -->
     <dimen name="card_corner_radius">18dp</dimen>
-    <dimen name="card_elevation">12dp</dimen>
-    <dimen name="focus_border_width">4dp</dimen>
-    <dimen name="focus_scale">1.08</dimen>
+    <dimen name="card_elevation">8dp</dimen>
+    <dimen name="focus_border_width">3dp</dimen>
+    <dimen name="focus_scale">1.05</dimen>
     <dimen name="focus_scale_subtle">1.04</dimen>
     <dimen name="focus_ring_width">3dp</dimen>
     <dimen name="panel_corner_radius">24dp</dimen>
@@ -56,14 +56,14 @@
     <dimen name="login_card_width">360dp</dimen>
     
     <!-- Home -->
-    <dimen name="home_poster_width">204dp</dimen>
-    <dimen name="home_poster_height">306dp</dimen>
+    <dimen name="home_poster_width">156dp</dimen>
+    <dimen name="home_poster_height">234dp</dimen>
     <dimen name="dock_height">@dimen/cinematic_dock_height</dimen>
-    <dimen name="dock_icon_size">@dimen/spacing_32</dimen>
-    <dimen name="dock_label_size">10sp</dimen>
+    <dimen name="dock_icon_size">20dp</dimen>
+    <dimen name="dock_label_size">8sp</dimen>
     <dimen name="dock_horizontal_margin">236dp</dimen>
     <dimen name="dock_bottom_margin">10dp</dimen>
-    <dimen name="dock_corner_radius">24dp</dimen>
+    <dimen name="dock_corner_radius">22dp</dimen>
     <dimen name="preview_panel_width">500dp</dimen>
     <dimen name="top_bar_height">104dp</dimen>
 
@@ -90,7 +90,7 @@
     <!-- Card Sizes -->
     <dimen name="card_poster_width">@dimen/cinematic_poster_width</dimen>
     <dimen name="card_poster_height">@dimen/cinematic_poster_height</dimen>
-    <dimen name="card_content_height">312dp</dimen>
+    <dimen name="card_content_height">276dp</dimen>
     <dimen name="content_row_items_height">@dimen/cinematic_row_height</dimen>
     <dimen name="card_title_size">@dimen/text_caption</dimen>
     <dimen name="card_focus_scale">@dimen/focus_scale</dimen>
@@ -163,6 +163,34 @@
     <dimen name="login_input_text_size">15sp</dimen>
     <dimen name="login_marketing_text_size">22sp</dimen>
     <dimen name="developer_credit_size">12sp</dimen>
+
+    <!-- Login portal: compact, TV-readable setup cards -->
+    <dimen name="login_weather_margin_top">10dp</dimen>
+    <dimen name="login_weather_margin_end">10dp</dimen>
+    <dimen name="login_portal_width_max">940dp</dimen>
+    <dimen name="login_portal_min_height">338dp</dimen>
+    <dimen name="login_portal_margin_horizontal">24dp</dimen>
+    <dimen name="login_portal_margin_bottom">24dp</dimen>
+    <dimen name="login_portal_padding_horizontal">22dp</dimen>
+    <dimen name="login_portal_padding_vertical">20dp</dimen>
+    <dimen name="login_brand_min_height">244dp</dimen>
+    <dimen name="login_brand_padding_end">24dp</dimen>
+    <dimen name="login_brand_logo_width">192dp</dimen>
+    <dimen name="login_brand_logo_height">84dp</dimen>
+    <dimen name="login_brand_title_size">32sp</dimen>
+    <dimen name="login_brand_byline_size">13sp</dimen>
+    <dimen name="login_explainer_size">14sp</dimen>
+    <dimen name="login_method_padding_start">22dp</dimen>
+    <dimen name="login_method_title_size">22sp</dimen>
+    <dimen name="login_method_subtitle_size">12sp</dimen>
+    <dimen name="login_choice_panel_margin_top">10dp</dimen>
+    <dimen name="login_choice_card_height_primary">72dp</dimen>
+    <dimen name="login_choice_card_height">68dp</dimen>
+    <dimen name="login_choice_gap">7dp</dimen>
+    <dimen name="login_choice_card_padding_horizontal">13dp</dimen>
+    <dimen name="login_choice_title_size">16sp</dimen>
+    <dimen name="login_choice_title_size_secondary">15sp</dimen>
+    <dimen name="login_choice_subtitle_size">11sp</dimen>
     
     <!-- TV-specific defaults -->
     <dimen name="tv_episode_card_height">140dp</dimen>
@@ -212,4 +240,5 @@
     <dimen name="badge_padding_vertical">2dp</dimen>
     <dimen name="progress_corner_radius">2dp</dimen>
     <dimen name="progress_height">4dp</dimen>
+    <dimen name="home_empty_width">320dp</dimen>
 </resources>

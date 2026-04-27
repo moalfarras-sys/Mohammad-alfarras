@@ -26,6 +26,7 @@
   --color-foreground-muted: var(--text-secondary);
   --color-foreground-soft: var(--text-muted);
   --color-primary: var(--color-accent);
+  --color-secondary: var(--color-accent-warm);
 }
 
 :root {
@@ -468,6 +469,19 @@
       radial-gradient(circle at top left, rgba(0, 255, 135, 0.1), transparent 38%),
       radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.08), transparent 32%),
       linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  }
+
+  /* ── ADMIN OS SPECIFIC ── */
+  .admin-glass-container {
+    @apply rounded-[3rem] border border-white/5 bg-black/20 shadow-[0_40px_100px_rgba(0,0,0,0.5)] backdrop-blur-3xl;
+  }
+
+  .os-status-dot {
+    @apply h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)];
+  }
+
+  .desktop-icon-glow {
+    @apply shadow-[0_0_30px_rgba(108,99,255,0.15)] ring-1 ring-white/10;
   }
 
   /* ── BUTTONS ── */

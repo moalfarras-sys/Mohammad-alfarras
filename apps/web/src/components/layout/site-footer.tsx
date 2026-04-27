@@ -120,7 +120,7 @@ export function SiteFooter({
         <section className="glass overflow-hidden rounded-[var(--radius-xl)] p-6 md:p-12">
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--accent-glow)]">{isAr ? "\u0627\u0644\u062e\u0637\u0648\u0629 \u0627\u0644\u062a\u0627\u0644\u064a\u0629" : "Next step"}</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--accent-glow)]">{isAr ? "الخطوة التالية" : "Next step"}</p>
               <h2 className="font-display text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold leading-[1.15] text-[var(--text-1)]">
                 {footer.title}
               </h2>
@@ -141,13 +141,13 @@ export function SiteFooter({
 
         {/* Main footer grid */}
         <section className="glass rounded-[var(--radius-lg)] p-5 md:p-8">
-          <div className="grid gap-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-            <div className="space-y-5">
+          <div className="grid gap-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+            <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] transition-all duration-300 hover:scale-105">
                   <Image
                     src={logoSrc || "/images/logo.png"}
-                    alt={isAr ? `${brandName} - \u0627\u0644\u0634\u0639\u0627\u0631 \u0627\u0644\u0631\u0633\u0645\u064a` : `${brandName} - official logo`}
+                    alt={isAr ? `${brandName} - الشعار الرسمي` : `${brandName} - official logo`}
                     width={64}
                     height={64}
                     className="h-full w-full object-contain"
@@ -162,7 +162,7 @@ export function SiteFooter({
               </div>
               <p className="max-w-sm text-sm leading-7 text-[var(--text-3)]">
                 {isAr
-                  ? "\u0645\u0633\u0627\u062d\u0629 \u0634\u062e\u0635\u064a\u0629 \u0648\u0645\u0647\u0646\u064a\u0629 \u0648\u0627\u062d\u062f\u0629 \u062a\u062c\u0645\u0639 \u062a\u0637\u0648\u064a\u0631 \u0627\u0644\u0648\u064a\u0628\u060c \u0627\u0644\u062a\u0641\u0643\u064a\u0631 \u0627\u0644\u0645\u0646\u062a\u062c\u064a\u060c \u062a\u0635\u0645\u064a\u0645 \u0627\u0644\u0648\u0627\u062c\u0647\u0627\u062a\u060c \u0648\u0635\u0646\u0627\u0639\u0629 \u0645\u062d\u062a\u0648\u0649 \u062a\u0642\u0646\u064a \u0639\u0631\u0628\u064a \u0636\u0645\u0646 \u0645\u0646\u0638\u0648\u0645\u0629 \u0648\u0627\u0636\u062d\u0629 \u0648\u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u062a\u0637\u0648\u064a\u0631."
+                  ? "مساحة شخصية ومهنية واحدة تجمع تطوير الويب، التفكير المنتجي، تصميم الواجهات، وصناعة محتوى تقني عربي ضمن منظومة واضحة وقابلة للتطوير."
                   : "One personal and professional home for web development, product thinking, interface design, and Arabic tech content - built as a single, scalable ecosystem."}
               </p>
               <div className="flex flex-wrap items-center gap-2">
@@ -205,21 +205,43 @@ export function SiteFooter({
               </div>
             </CollapsibleSection>
 
-            <CollapsibleSection title={isAr ? "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a" : "Products"}>
-              <Link href={`/${locale}/apps`} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
-                {isAr ? "\u0643\u0644 \u0627\u0644\u062a\u0637\u0628\u064a\u0642\u0627\u062a" : "All apps"}
-              </Link>
-              <Link href={`/${locale}/apps/moplayer`} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
-                MoPlayer
-              </Link>
-              <Link href={`/${locale}/youtube`} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
-                YouTube
-              </Link>
-              <Link href={`/${locale}/support`} className="block min-h-11 py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)] md:py-1">
-                {isAr ? "\u0627\u0644\u062f\u0639\u0645" : "Support"}
-              </Link>
-            </span>
-            <span>{isAr ? "\u0628\u064f\u0646\u064a \u0628\u0640 Next.js \u0648 Supabase \u0648\u0645\u0639\u0627\u064a\u064a\u0631 \u0648\u064a\u0628 \u062d\u062f\u064a\u062b\u0629." : "Built with Next.js, Supabase, and modern web standards."}</span>
+            <CollapsibleSection title={isAr ? "المنتجات" : "Products"}>
+              <div className="flex flex-col gap-1">
+                <Link href={`/${locale}/apps`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  {isAr ? "كل التطبيقات" : "All apps"}
+                </Link>
+                <Link href={`/${locale}/apps/moplayer`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  MoPlayer
+                </Link>
+                <Link href={`/${locale}/youtube`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  YouTube
+                </Link>
+                <Link href={`/${locale}/support`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  {isAr ? "الدعم" : "Support"}
+                </Link>
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection title={isAr ? "روابط مفيدة" : "Useful links"}>
+              <div className="flex flex-col gap-1">
+                <Link href={`/${locale}/work`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  {isAr ? "الأعمال" : "Work"}
+                </Link>
+                <Link href={`/${locale}/cv`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  {isAr ? "السيرة الذاتية" : "CV"}
+                </Link>
+                <Link href={`/${locale}/privacy`} className="block py-1.5 text-sm text-[var(--text-3)] transition hover:text-[var(--text-1)]">
+                  {isAr ? "الخصوصية" : "Privacy"}
+                </Link>
+              </div>
+            </CollapsibleSection>
+          </div>
+
+          <div className="mt-12 flex flex-col gap-4 border-t border-[var(--glass-border)] pt-8 text-xs text-[var(--text-3)] md:flex-row md:items-center md:justify-between">
+            <p>
+              © {year} {brandName}. {isAr ? "جميع الحقوق محفوظة." : "All rights reserved."}
+            </p>
+            <p>{isAr ? "بُني بـ Next.js و Supabase ومعايير ويب حديثة." : "Built with Next.js, Supabase, and modern web standards."}</p>
           </div>
         </section>
       </div>

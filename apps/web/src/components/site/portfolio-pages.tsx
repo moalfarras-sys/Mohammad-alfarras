@@ -501,19 +501,7 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
       </section>
 
       {/* ── CONTACT ── */}
-      <section className="pb-24 pt-10">
-        <div className="section-frame">
-          <div className="glass flex flex-col items-start gap-6 rounded-[var(--radius-xl)] p-8 md:flex-row md:items-center md:justify-between md:p-12" style={{ background: "linear-gradient(135deg, rgba(0,200,212,0.05) 0%, rgba(124,58,237,0.04) 100%)", boxShadow: "var(--shadow-elevated)" }}>
-            <div className="max-w-xl">
-              <h2 className="text-2xl font-black" style={{ color: "var(--text-1)" }}>{t.contactTitle}</h2>
-              <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>{t.contactBody}</p>
-            </div>
-            <Link href={`/${model.locale}/contact`} className="button-liquid-primary shrink-0">
-              {t.contactCta}
-            </Link>
-          </div>
-        </div>
-      </section>
+      </Section>
     </>
   );
 }
@@ -528,120 +516,174 @@ export function PortfolioProjectPage({ model, slug }: { model: SiteViewModel; sl
   const isMoPlayer = project.slug === "moplayer";
 
   return (
-    <>
-      <Section className="pt-10 md:pt-16">
-        <Frame>
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <div>
+    <div className="relative">
+      {/* Cinematic Wide Hero */}
+      <section className="relative h-[85vh] w-full overflow-hidden">
+        <Image
+          src={project.image}
+          alt={project.title}
+          fill
+          priority
+          className="object-cover opacity-40 scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/60 to-[var(--bg-primary)]" />
+        
+        <Frame className="relative h-full">
+          <div className="flex h-full flex-col justify-end pb-24 md:pb-32">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
               <Eyebrow>{content?.category ?? project.eyebrow}</Eyebrow>
-              <h1 className="headline-display mt-4 text-[clamp(2.2rem,6vw,4.7rem)] font-black leading-tight text-[var(--text-1)]">
+              <h1 className="headline-display mt-6 text-[clamp(2.5rem,8vw,6rem)] font-black leading-[0.95] text-[var(--text-1)] tracking-tighter">
                 {project.title}
               </h1>
-              <p className="mt-5 text-base leading-8 text-[var(--text-2)]">
+              <p className="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--text-2)] md:text-xl">
                 {content?.problem ?? project.description}
               </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {(content?.proofChips ?? project.tags).slice(0, 6).map((tag) => (
-                  <Chip key={tag}>{tag}</Chip>
-                ))}
-              </div>
-              <div className="mt-7 flex flex-wrap gap-3">
+              
+              <div className="mt-10 flex flex-wrap gap-4">
                 {isMoPlayer ? (
-                  <Link href={`/${model.locale}/apps/moplayer`} className="button-liquid-primary">
+                  <Link href={`/${model.locale}/apps/moplayer`} className="button-liquid-primary px-10 h-16 text-lg">
                     {t.productCta}
                   </Link>
                 ) : null}
                 {project.href ? (
-                  <a href={project.href} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary">
+                  <a href={project.href} target="_blank" rel="noopener noreferrer" className="button-liquid-secondary h-16 px-10 text-lg">
                     {content?.liveLabel ?? t.liveCta}
-                    <ArrowUpRight className="h-4 w-4" />
+                    <ArrowUpRight className="h-5 w-5" />
                   </a>
                 ) : null}
               </div>
+            </motion.div>
+          </div>
+        </Frame>
+      </section>
+
+      {/* Proof Wall & Tech Stack */}
+      <Section className="relative z-10 -mt-16">
+        <Frame>
+          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
+            <div className="glass rounded-[2rem] p-8 border-cyan-400/20 shadow-2xl">
+              <Eyebrow className="mb-2">{t.role}</Eyebrow>
+              <p className="text-lg font-bold text-[var(--text-1)]">{content?.role ?? project.eyebrow}</p>
             </div>
-            <div className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--bg-elevated)]">
-              <Image
-                src={project.image}
-                alt={project.title}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 620px"
-              />
+            <div className="glass rounded-[2rem] p-8 md:col-span-2 lg:col-span-2">
+              <Eyebrow className="mb-2">{t.stack}</Eyebrow>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {(content?.stack ?? project.tags).map((tag) => (
+                  <Chip key={tag} className="bg-white/5 border-white/10">{tag}</Chip>
+                ))}
+              </div>
+            </div>
+            <div className="glass rounded-[2rem] p-8">
+              <Eyebrow className="mb-2">{t.outcome}</Eyebrow>
+              <p className="text-lg font-black text-emerald-400">{content?.outcome?.split('.')[0] ?? "Delivered"}</p>
             </div>
           </div>
         </Frame>
       </Section>
 
+      {/* Problem & Strategy (Cinematic Grid) */}
       <Section>
         <Frame>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <Eyebrow>{t.role}</Eyebrow>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{content?.role ?? project.eyebrow}</p>
-            </Card>
-            <Card>
-              <Eyebrow>{t.problem}</Eyebrow>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{content?.problem ?? project.challenge}</p>
-            </Card>
-            <Card>
-              <Eyebrow>{t.outcome}</Eyebrow>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{content?.outcome ?? project.result}</p>
-            </Card>
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div className="space-y-4">
+                <h2 className="headline-display text-4xl font-black text-[var(--text-1)]">{t.problem}</h2>
+                <p className="text-lg leading-relaxed text-[var(--text-2)]">
+                  {content?.problem ?? project.challenge}
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h2 className="headline-display text-4xl font-black text-[var(--text-1)]">{t.strategy}</h2>
+                <p className="text-lg leading-relaxed text-[var(--text-2)] whitespace-pre-line">
+                  {content?.strategy ?? project.solution}
+                </p>
+              </div>
+            </motion.div>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+               <CaseBlock title={t.technical} items={content?.technicalDecisions ?? project.tags} />
+               <CaseBlock title={t.ux} items={content?.uxDecisions ?? [project.solution]} />
+            </div>
           </div>
         </Frame>
       </Section>
 
-      <Section>
+      {/* High-Fidelity Gallery */}
+      <Section className="bg-slate-900/40 py-24 md:py-32">
         <Frame>
-          <div className="grid gap-5 lg:grid-cols-2">
-            <CaseBlock title={t.constraints} items={content?.constraints ?? [project.challenge]} />
-            <CaseText title={t.strategy} body={content?.strategy ?? project.solution} />
-            <CaseBlock title={t.technical} items={content?.technicalDecisions ?? project.tags} />
-            <CaseBlock title={t.ux} items={content?.uxDecisions ?? [project.solution]} />
-            <CaseBlock title={t.changed} items={content?.changed ?? [project.result]} />
-            <CaseBlock title={t.stack} items={content?.stack ?? project.tags} chip />
+          <div className="mb-12 text-center">
+            <Eyebrow>{t.gallery}</Eyebrow>
+            <h2 className="headline-display mt-4 text-5xl font-black">{project.title} Interface</h2>
           </div>
-        </Frame>
-      </Section>
-
-      <Section>
-        <Frame>
-          <Eyebrow>{t.gallery}</Eyebrow>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {gallery.slice(0, 6).map((image, index) => (
-              <figure key={`${image}-${index}`} className="glass overflow-hidden rounded-[var(--radius-lg)]">
-                <div className="relative aspect-[16/11]">
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {gallery.map((image, index) => (
+              <motion.figure 
+                key={`${image}-${index}`} 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass group overflow-hidden rounded-[2.5rem] border-white/5"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden">
                   <Image
                     src={image}
                     alt={`${project.title} ${index + 1}`}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                     <span className="text-xs font-black uppercase tracking-widest text-white">Full View</span>
+                  </div>
                 </div>
-              </figure>
+              </motion.figure>
             ))}
           </div>
         </Frame>
       </Section>
 
+      {/* Outcome & Next */}
       <Section>
         <Frame>
-          <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
-            <CaseBlock title={t.lessons} items={content?.lessons ?? [project.result]} />
-            <Card>
-              <Eyebrow>{t.nextEyebrow}</Eyebrow>
-              <h2 className="mt-3 text-3xl font-black text-[var(--text-1)]">{t.nextTitle}</h2>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{t.nextBody}</p>
-              <Link href={`/${model.locale}/contact`} className="button-liquid-primary mt-6">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+            <Card className="p-10 border-cyan-400/10">
+              <h2 className="headline-display text-4xl font-black mb-6">{t.outcome}</h2>
+              <p className="text-lg leading-relaxed text-[var(--text-2)] whitespace-pre-line">
+                {content?.outcome ?? project.result}
+              </p>
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                 <CaseBlock title={t.changed} items={content?.changed ?? ["UX Stability", "Performance", "Clean Code"]} />
+                 <CaseBlock title={t.lessons} items={content?.lessons ?? ["Scalability", "Clean Architecture"]} />
+              </div>
+            </Card>
+            
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="glass rounded-[3rem] p-10 flex flex-col justify-center text-center bg-gradient-to-br from-cyan-400/10 to-indigo-400/10 border-white/10"
+            >
+              <Eyebrow className="mx-auto">{t.nextEyebrow}</Eyebrow>
+              <h2 className="mt-4 text-4xl font-black text-[var(--text-1)]">{t.nextTitle}</h2>
+              <p className="mt-4 text-base leading-relaxed text-[var(--text-2)]">{t.nextBody}</p>
+              <Link href={`/${model.locale}/contact`} className="button-liquid-primary mt-8 h-14 w-full">
                 {t.nextCta}
               </Link>
-            </Card>
+            </motion.div>
           </div>
         </Frame>
       </Section>
-    </>
+    </div>
   );
 }
 

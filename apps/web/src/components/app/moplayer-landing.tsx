@@ -172,8 +172,17 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
 
       {/* ── SPECS DASHBOARD ── */}
       <section className="py-20 relative z-20">
-        <div className="section-frame">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="section-frame relative">
+          {/* Motion Asset Background */}
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-40 -left-40 w-[600px] h-[600px] opacity-10 pointer-events-none"
+          >
+             <Image src="/images/moplayer-motion.png" alt="Motion" width={600} height={600} className="w-full h-full object-contain" />
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 relative z-10">
             {specs.map((spec, idx) => (
               <TiltCard key={spec.label}>
                 <div className="glass rounded-[2.5rem] p-10 border-white/5 bg-white/[0.01] h-full flex flex-col justify-between">

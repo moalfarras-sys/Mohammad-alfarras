@@ -129,6 +129,24 @@ export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
               )}
             </motion.h1>
 
+            {/* Motion Graphic Asset */}
+            <motion.div
+              animate={{ 
+                y: [0, -20, 0],
+                rotate: [0, 2, 0]
+              }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -right-20 top-0 w-[600px] h-[600px] opacity-20 pointer-events-none hidden lg:block"
+            >
+               <Image 
+                 src="/images/digital-os-motion.png" 
+                 alt="Motion Graphic" 
+                 width={600} 
+                 height={600} 
+                 className="w-full h-full object-contain blur-sm"
+               />
+            </motion.div>
+
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

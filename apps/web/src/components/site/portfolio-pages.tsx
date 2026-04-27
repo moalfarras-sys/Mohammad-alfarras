@@ -143,6 +143,18 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
         </div>
 
         <Frame className="relative z-10">
+          {/* Motion Asset Background */}
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.05, 0.1, 0.05]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-40 -right-20 w-[800px] h-[800px] pointer-events-none z-[-1]"
+          >
+             <Image src="/images/career-motion.png" alt="Motion" width={800} height={800} className="w-full h-full object-contain" />
+          </motion.div>
+
           <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}

@@ -36,6 +36,13 @@ local.properties
 **/build-output/
 **/.home-isolated/
 
+# Local QA screenshots / automation artifacts (not versioned)
+artifacts/
+
+# One-off local scripts (password tests / ad-hoc edits) — do not commit
+/check_hash.js
+/fix_footer.js
+
 # Temporary local artifacts (UI dumps, focus snapshots, layout exports)
 _backups/
 **/*dump*.xml

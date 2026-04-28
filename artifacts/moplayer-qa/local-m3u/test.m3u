@@ -1,7 +1,0 @@
-﻿#EXTM3U
-#EXTINF:-1 tvg-id="demo.news" tvg-name="MoPlayer News" tvg-logo="" group-title="News",MoPlayer News
-https://example.com/demo-news.m3u8
-#EXTINF:-1 tvg-id="demo.sport" tvg-name="MoPlayer Sports" tvg-logo="" group-title="Sports",MoPlayer Sports
-https://example.com/demo-sports.m3u8
-#EXTINF:-1 tvg-id="demo.movie" tvg-name="MoPlayer Cinema" tvg-logo="" group-title="Cinema",MoPlayer Cinema
-https://example.com/demo-cinema.m3u8

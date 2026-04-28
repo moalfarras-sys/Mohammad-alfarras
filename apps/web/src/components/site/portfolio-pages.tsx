@@ -5,11 +5,9 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-import { cn } from "@/lib/cn";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import { cvPageCopy } from "@/content/cv";
 import { privacyCopy } from "@/content/legal";
-import { socialLinks } from "@/content/site";
 import { caseStudyCopy } from "@/content/work";
 import type { SiteViewModel } from "./site-view-model";
 
@@ -58,6 +56,11 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
                   <Download className="h-4 w-4" /> {t.downloadAts}
                 </a>
               )}
+              {model.downloads.docx ? (
+                <a href={model.downloads.docx} download className="btn-secondary">
+                  <Download className="h-4 w-4" /> {isAr ? "تنزيل DOCX" : "Download DOCX"}
+                </a>
+              ) : null}
             </motion.div>
           </div>
 
@@ -109,6 +112,52 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
           </div>
         </div>
       </section>
+
+      {/* Languages */}
+      <section className="py-16">
+        <div className="section-frame">
+          <motion.div {...inView(0)} className="glass-card p-8 md:flex md:items-center md:justify-between md:gap-8">
+            <div>
+              <span className="eyebrow mb-3 inline-flex">{isAr ? "اللغات" : "Languages"}</span>
+              <p className="text-[15px] font-bold text-[var(--os-text-1)]">Arabic · German · English</p>
+              <p className="mt-2 text-[13px] text-[var(--os-text-3)]">
+                {isAr ? "محتوى وواجهات ثنائية وثلاثية اللغة حسب المشروع." : "Bilingual and trilingual content and UI work as the project requires."}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CV-linked projects */}
+      {model.cvProjects.length > 0 ? (
+        <section className="py-20 bg-[var(--os-surface)]/30">
+          <div className="section-frame">
+            <motion.div {...inView(0)} className="mb-12">
+              <span className="eyebrow">{t.projectsTitle}</span>
+            </motion.div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {model.cvProjects.map((proj, i) => (
+                <motion.div key={proj.id} {...inView(i * 0.06)} className="glass-card p-6">
+                  <h3 className="text-[15px] font-bold text-[var(--os-text-1)]">{proj.title}</h3>
+                  <p className="mt-2 text-[13px] text-[var(--os-text-2)] line-clamp-3">{proj.summary}</p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {proj.href ? (
+                      <a href={proj.href} target="_blank" rel="noopener noreferrer" className="text-[12px] font-bold text-[var(--os-teal)] hover:underline">
+                        {isAr ? "الموقع" : "Live site"} ↗
+                      </a>
+                    ) : null}
+                    {proj.repoUrl ? (
+                      <a href={proj.repoUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-bold text-[var(--os-text-3)] hover:text-[var(--os-teal)]">
+                        {isAr ? "المستودع" : "Repository"} ↗
+                      </a>
+                    ) : null}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Skills */}
       <section className="py-20">
@@ -181,11 +230,11 @@ export function PortfolioPrivacyPage({ locale }: { locale: string }) {
     <div className="relative pb-32 pt-32" dir={isAr ? "rtl" : "ltr"} data-testid="privacy-page">
       <div className="section-frame max-w-3xl">
         <motion.h1 {...inView(0)} className="headline-display text-[2.5rem] font-bold text-[var(--os-text-1)] mb-4">{t.title}</motion.h1>
-        <motion.p {...inView(0.05)} className="text-[13px] text-[var(--os-text-3)] mb-10">{(t as any).updated ?? (t as any).lastUpdated ?? ""}</motion.p>
+        <motion.p {...inView(0.05)} className="text-[13px] text-[var(--os-text-3)] mb-10">{t.updated}</motion.p>
         <div className="space-y-8">
-          {t.sections.map((s: any, i: number) => (
+          {t.sections.map((s, i) => (
             <motion.div key={i} {...inView(i * 0.05)} className="glass-card p-8">
-              <h2 className="text-[16px] font-bold text-[var(--os-text-1)] mb-4">{s.title ?? s.heading}</h2>
+              <h2 className="text-[16px] font-bold text-[var(--os-text-1)] mb-4">{s.title}</h2>
               <p className="text-[14px] leading-relaxed text-[var(--os-text-2)]">{s.body}</p>
             </motion.div>
           ))}
@@ -265,6 +314,19 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
 
         {/* Sidebar */}
         <aside className="space-y-6">
+          {project.metrics.length > 0 && (
+            <motion.div {...inView(0.08)} className="glass-card p-6">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--os-text-3)]">{isAr ? "مؤشرات" : "Signals"}</p>
+              <dl className="space-y-3">
+                {project.metrics.map((m) => (
+                  <div key={m.label}>
+                    <dt className="text-[20px] font-black text-[var(--os-text-1)] tabular-nums">{m.value}</dt>
+                    <dd className="text-[11px] text-[var(--os-text-3)]">{m.label}</dd>
+                  </div>
+                ))}
+              </dl>
+            </motion.div>
+          )}
           {project.tags.length > 0 && (
             <motion.div {...inView(0)} className="glass-card p-6">
               <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--os-text-3)]">{isAr ? "المجال" : "Stack & Tags"}</p>

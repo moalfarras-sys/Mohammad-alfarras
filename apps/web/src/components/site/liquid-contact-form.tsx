@@ -2,7 +2,7 @@
 
 import { Send } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import {
   budgetRanges,
@@ -42,6 +42,10 @@ const copy = {
     error: "The message could not be sent. Please review the fields or try again.",
     privacy: "Privacy note: only send information needed to evaluate the request.",
     newMessage: "Send another message",
+    step1Title: "What kind of request is this?",
+    step1Hint: "Choose a category so the right details show next.",
+    continue: "Continue",
+    back: "Back",
     projectTypes: {
       website: "Website / digital presence",
       product: "Product or app surface",
@@ -93,6 +97,10 @@ const copy = {
     error: "تعذر إرسال الرسالة. راجع الحقول أو حاول مرة أخرى.",
     privacy: "ملاحظة خصوصية: أرسل فقط المعلومات اللازمة لتقييم الطلب.",
     newMessage: "إرسال رسالة جديدة",
+    step1Title: "ما نوع الطلب؟",
+    step1Hint: "اختر الفئة لنعرض الحقول المناسبة في الخطوة التالية.",
+    continue: "متابعة",
+    back: "رجوع",
     projectTypes: {
       website: "موقع / حضور رقمي",
       product: "صفحة منتج أو تطبيق",
@@ -132,13 +140,16 @@ const inputClass =
 export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
   const t = copy[locale];
   const [state, setState] = useState<SubmitState>({ status: "idle" });
+  const [step, setStep] = useState<1 | 2>(1);
   const {
     register,
+    control,
     handleSubmit,
     setError,
     reset,
     formState: { errors },
   } = useForm<FormValues>({
+    shouldUnregister: false,
     defaultValues: {
       name: "",
       email: "",
@@ -153,6 +164,8 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
       subject: "",
     },
   });
+
+  const selectedProjectType = useWatch({ control, name: "projectType" }) ?? "website";
 
   async function onSubmit(values: FormValues) {
     setState({ status: "idle" });
@@ -191,6 +204,7 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
       }
 
       reset();
+      setStep(1);
       setState({ status: "success", message: t.success });
     } catch (error) {
       setState({ status: "error", message: error instanceof Error ? error.message : t.error });
@@ -225,87 +239,124 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
         ) : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label={t.name} error={errors.name?.message}>
-          <input className={inputClass} placeholder={t.namePh} autoComplete="name" aria-invalid={Boolean(errors.name)} {...register("name")} />
-        </Field>
-        <Field label={t.email} error={errors.email?.message}>
-          <input
-            className={inputClass}
-            type="email"
-            placeholder={t.emailPh}
-            autoComplete="email"
-            aria-invalid={Boolean(errors.email)}
-            {...register("email")}
-          />
-        </Field>
-      </div>
-
-      <Field label={t.whatsapp} error={errors.whatsapp?.message}>
-        <input className={inputClass} placeholder={t.whatsappPh} autoComplete="tel" aria-invalid={Boolean(errors.whatsapp)} {...register("whatsapp")} />
-      </Field>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Field label={t.projectType} error={errors.projectType?.message}>
-          <select className={inputClass} aria-invalid={Boolean(errors.projectType)} {...register("projectType")}>
-            {projectTypes.map((value) => (
-              <option key={value} value={value}>
-                {t.projectTypes[value]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t.budgetRange} error={errors.budgetRange?.message}>
-          <select className={inputClass} aria-invalid={Boolean(errors.budgetRange)} {...register("budgetRange")}>
-            {budgetRanges.map((value) => (
-              <option key={value} value={value}>
-                {t.budgetRanges[value]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t.timeline} error={errors.timeline?.message}>
-          <select className={inputClass} aria-invalid={Boolean(errors.timeline)} {...register("timeline")}>
-            {timelines.map((value) => (
-              <option key={value} value={value}>
-                {t.timelines[value]}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
-
-      <Field label={t.message} error={errors.message?.message}>
-        <textarea
-          className={cn(inputClass, "min-h-40 resize-y")}
-          rows={6}
-          placeholder={t.messagePh}
-          aria-invalid={Boolean(errors.message)}
-          {...register("message")}
-        />
-      </Field>
-
-      <label className="flex gap-3 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4 text-sm leading-7 text-[var(--text-2)]">
-        <input type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]" {...register("consent")} />
-        <span>
-          {t.consent}
-          {errors.consent ? <span className="mt-1 block text-xs text-red-300">{errors.consent.message}</span> : null}
-        </span>
-      </label>
-
-      <p className="text-xs leading-6 text-[var(--text-3)]">{t.privacy}</p>
-
-      <div className="flex flex-wrap gap-3">
-        <button type="submit" className="button-liquid-primary min-w-[180px] justify-center" disabled={disabled}>
-          <Send className="h-4 w-4" />
-          {disabled ? t.sending : t.submit}
-        </button>
-        {state.status === "success" ? (
-          <button type="button" className="button-liquid-secondary" onClick={() => setState({ status: "idle" })}>
-            {t.newMessage}
+      {step === 1 ? (
+        <div className="space-y-5">
+          <div>
+            <h2 className="text-base font-semibold text-[var(--text-1)]">{t.step1Title}</h2>
+            <p className="mt-1 text-sm text-[var(--text-3)]">{t.step1Hint}</p>
+          </div>
+          <Field label={t.projectType} error={errors.projectType?.message}>
+            <select className={inputClass} aria-invalid={Boolean(errors.projectType)} {...register("projectType")}>
+              {projectTypes.map((value) => (
+                <option key={value} value={value}>
+                  {t.projectTypes[value]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <button
+            type="button"
+            className="button-liquid-primary min-w-[180px] justify-center"
+            onClick={() => setStep(2)}
+          >
+            {t.continue}
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button type="button" className="text-sm font-medium text-[var(--accent)] hover:underline" onClick={() => setStep(1)}>
+              ← {t.back}
+            </button>
+            <p className="text-xs text-[var(--text-3)]">
+              {t.projectType}:{" "}
+              <span className="font-medium text-[var(--text-2)]">
+                {t.projectTypes[selectedProjectType as keyof typeof t.projectTypes]}
+              </span>
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t.name} error={errors.name?.message}>
+              <input className={inputClass} placeholder={t.namePh} autoComplete="name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+            </Field>
+            <Field label={t.email} error={errors.email?.message}>
+              <input
+                className={inputClass}
+                type="email"
+                placeholder={t.emailPh}
+                autoComplete="email"
+                aria-invalid={Boolean(errors.email)}
+                {...register("email")}
+              />
+            </Field>
+          </div>
+
+          <Field label={t.whatsapp} error={errors.whatsapp?.message}>
+            <input className={inputClass} placeholder={t.whatsappPh} autoComplete="tel" aria-invalid={Boolean(errors.whatsapp)} {...register("whatsapp")} />
+          </Field>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label={t.budgetRange} error={errors.budgetRange?.message}>
+              <select className={inputClass} aria-invalid={Boolean(errors.budgetRange)} {...register("budgetRange")}>
+                {budgetRanges.map((value) => (
+                  <option key={value} value={value}>
+                    {t.budgetRanges[value]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t.timeline} error={errors.timeline?.message}>
+              <select className={inputClass} aria-invalid={Boolean(errors.timeline)} {...register("timeline")}>
+                {timelines.map((value) => (
+                  <option key={value} value={value}>
+                    {t.timelines[value]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <Field label={t.message} error={errors.message?.message}>
+            <textarea
+              className={cn(inputClass, "min-h-40 resize-y")}
+              rows={6}
+              placeholder={t.messagePh}
+              aria-invalid={Boolean(errors.message)}
+              {...register("message")}
+            />
+          </Field>
+
+          <label className="flex gap-3 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-4 text-sm leading-7 text-[var(--text-2)]">
+            <input type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]" {...register("consent")} />
+            <span>
+              {t.consent}
+              {errors.consent ? <span className="mt-1 block text-xs text-red-300">{errors.consent.message}</span> : null}
+            </span>
+          </label>
+
+          <p className="text-xs leading-6 text-[var(--text-3)]">{t.privacy}</p>
+
+          <div className="flex flex-wrap gap-3">
+            <button type="submit" className="button-liquid-primary min-w-[180px] justify-center" disabled={disabled}>
+              <Send className="h-4 w-4" />
+              {disabled ? t.sending : t.submit}
+            </button>
+            {state.status === "success" ? (
+              <button
+                type="button"
+                className="button-liquid-secondary"
+                onClick={() => {
+                  setState({ status: "idle" });
+                  setStep(1);
+                }}
+              >
+                {t.newMessage}
+              </button>
+            ) : null}
+          </div>
+        </>
+      )}
     </form>
   );
 }

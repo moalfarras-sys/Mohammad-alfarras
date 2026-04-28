@@ -3,374 +3,411 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, Code2, Play, Globe, Cpu, Zap, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/cn";
+import { ArrowRight, ArrowUpRight, Code2, Play, Globe, Cpu, Truck, Clapperboard } from "lucide-react";
 import type { SiteViewModel } from "./site-view-model";
 
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 32 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] as const },
-});
-
 const inView = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
-  transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
+  transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] as const },
 });
 
 export function PortfolioHomePageNew({ model }: { model: SiteViewModel }) {
   const isAr = model.locale === "ar";
   const locale = model.locale;
 
-  const proofBadges = isAr
-    ? ["🇩🇪 مقيم في ألمانيا", "🇸🇾 جذور سورية", "📱 Android TV", "🎬 +1.5M مشاهدة", "💻 Web · UI/UX", "🚚 لوجستيات"]
-    : ["🇩🇪 Germany based", "🇸🇾 Syrian roots", "📱 Android TV builder", "🎬 1.5M+ YT views", "💻 Web · UI/UX", "🚚 Logistics pro"];
+  const rankedProjects = [...model.projects].sort(
+    (a, b) => (a.featuredRank ?? 99) - (b.featuredRank ?? 99),
+  );
+  const featuredOnly = rankedProjects.filter((p) => p.featured);
+  const homeProjects = (featuredOnly.length ? featuredOnly : rankedProjects).slice(0, 4);
 
-  const modes = isAr
+  const proof = isAr
     ? [
-        { icon: <Code2 className="h-5 w-5" />, title: "Developer Mode", body: "مواقع، لوحات تحكم، Next.js/React/TypeScript، Supabase وVercel." },
-        { icon: <Play className="h-5 w-5" />,   title: "Creator Mode",    body: "مراجعات تقنية عربية صادقة لأدوات SaaS والذكاء الاصطناعي والإلكترونيات." },
-        { icon: <Globe className="h-5 w-5" />,  title: "Operations Mode", body: "خبرة لوجستية حقيقية: TMS، التنسيق، خدمة العملاء، وضغط التشغيل." },
-        { icon: <Cpu className="h-5 w-5" />,    title: "MoPlayer Mode",   body: "منتج Android TV بتفعيل وإصدارات APK وتجربة IPTV منظمة." },
+        { label: "المقر", val: "ألمانيا 🇩🇪" },
+        { label: "الجذور", val: "سوريا 🇸🇾" },
+        { label: "المشاهدات", val: "1.5M+" },
+        { label: "المشتركين", val: "6.1K+" },
       ]
     : [
-        { icon: <Code2 className="h-5 w-5" />, title: "Developer Mode", body: "Websites, dashboards, Next.js/React/TypeScript, Supabase and Vercel systems." },
-        { icon: <Play className="h-5 w-5" />,   title: "Creator Mode",    body: "Honest Arabic tech reviews for SaaS, AI tools, and electronics — built on clarity." },
-        { icon: <Globe className="h-5 w-5" />,  title: "Operations Mode", body: "Real logistics discipline from TMS, dispatch coordination and operational pressure." },
-        { icon: <Cpu className="h-5 w-5" />,    title: "MoPlayer Mode",   body: "An Android TV product with activation, APK releases and structured IPTV experience." },
+        { label: "Base", val: "Germany 🇩🇪" },
+        { label: "Roots", val: "Syria 🇸🇾" },
+        { label: "Views", val: "1.5M+" },
+        { label: "Subscribers", val: "6.1K+" },
       ];
 
-  const storyArc = isAr
+  const knowMeCards = isAr
     ? [
-        { num: "01", label: "السوريا", sub: "جذور الحسكة" },
-        { num: "02", label: "ألمانيا", sub: "الانتقال والانضباط" },
-        { num: "03", label: "اللوجستيات", sub: "Rhenus · TMS" },
-        { num: "04", label: "الويب", sub: "Next.js · React" },
-        { num: "05", label: "يوتيوب", sub: "+1.5M مشاهدة" },
-        { num: "06", label: "MoPlayer", sub: "Android TV" },
+        { icon: <Code2 className="h-6 w-6" />, title: "وضع المطوّر", body: "واجهات ويب، Next.js، أنظمة واضحة للشركات والأفراد." },
+        { icon: <Clapperboard className="h-6 w-6" />, title: "وضع صانع المحتوى", body: "مراجعات تقنية وقصص منتجات بلغة عربية من ألمانيا." },
+        { icon: <Truck className="h-6 w-6" />, title: "وضع اللوجستيات", body: "خبرة ميدانية في التنسيق، التواصل، والضغط التشغيلي." },
+        { icon: <Cpu className="h-6 w-6" />, title: "وضع منتج MoPlayer", body: "منتج وسائط لـ Android TV — واجهة نظيفة وأداء حقيقي." },
       ]
     : [
-        { num: "01", label: "Syria", sub: "Al-Hasakah roots" },
-        { num: "02", label: "Germany", sub: "Discipline & growth" },
-        { num: "03", label: "Logistics", sub: "Rhenus · TMS" },
-        { num: "04", label: "Web", sub: "Next.js · React" },
-        { num: "05", label: "YouTube", sub: "1.5M+ views" },
-        { num: "06", label: "MoPlayer", sub: "Android TV" },
+        { icon: <Code2 className="h-6 w-6" />, title: "Developer mode", body: "Web surfaces, Next.js systems, and crisp product UX." },
+        { icon: <Clapperboard className="h-6 w-6" />, title: "YouTube creator mode", body: "Arabic tech reviews and honest hardware storytelling." },
+        { icon: <Truck className="h-6 w-6" />, title: "Logistics mode", body: "Real dispatch discipline — speed, clarity, reliability." },
+        { icon: <Cpu className="h-6 w-6" />, title: "MoPlayer product mode", body: "Android TV media product — focused UI on libVLC." },
       ];
 
-  const services = model.services.slice(0, 3);
+  const whatIBuild = isAr
+    ? [
+        { title: "واجهات ويب وNext.js", body: "مواقع وخدمات مبنية على أداء وجاهزية إنتاج.", href: `/${locale}/work` },
+        { title: "تجارب Android TV", body: "MoPlayer والبنية حول libVLC لتجربة شاشة كبيرة.", href: `/${locale}/apps/moplayer` },
+        { title: "محتوى تقني عربي", body: "مراجعات وشرح منتجات بصوت واضح من ألمانيا.", href: `/${locale}/youtube` },
+        { title: "تشغيل وتنسيق", body: "ربط احتياجات العملاء بالتنفيذ الرقمي دون ضوضاء.", href: `/${locale}/contact` },
+      ]
+    : [
+        { title: "Web & Next.js systems", body: "Production-ready sites and services with performance in mind.", href: `/${locale}/work` },
+        { title: "Android TV experiences", body: "MoPlayer and libVLC-based flows for the living room.", href: `/${locale}/apps/moplayer` },
+        { title: "Arabic tech media", body: "Reviews and product clarity for an Arabic-speaking audience.", href: `/${locale}/youtube` },
+        { title: "Ops-aware delivery", body: "Translating real customer pressure into calm digital systems.", href: `/${locale}/contact` },
+      ];
 
-  const stack = ["NEXT.JS", "TYPESCRIPT", "REACT", "TAILWIND", "SUPABASE", "ANDROID", "VLC ENGINE", "FRAMER MOTION"];
+  const services = isAr
+    ? [
+        { icon: <Code2 />, title: "تطوير الويب", desc: "بناء أنظمة Next.js متطورة مع واجهات برمجية قوية وأداء فائق." },
+        { icon: <Play />, title: "صناعة المحتوى", desc: "مراجعات تقنية احترافية وقصص منتجات تجذب الملايين على يوتيوب." },
+        { icon: <Globe />, title: "الحلول التشغيلية", desc: "تحويل العمليات اللوجستية المعقدة إلى أدوات رقمية سهلة الاستخدام." },
+        { icon: <Cpu />, title: "تطبيقات TV", desc: "تصميم وتطوير تطبيقات Android TV مخصصة لتجربة شاشة كبيرة." },
+      ]
+    : [
+        { icon: <Code2 />, title: "Web Engineering", desc: "Building advanced Next.js systems with robust APIs and peak performance." },
+        { icon: <Play />, title: "Content Creation", desc: "Professional tech reviews and product stories that reach millions." },
+        { icon: <Globe />, title: "Operational Logic", desc: "Converting complex logistics workflows into usable digital tools." },
+        { icon: <Cpu />, title: "TV Applications", desc: "Custom Android TV experiences engineered for the big screen." },
+      ];
 
   return (
-    <div className="relative" dir={isAr ? "rtl" : "ltr"}>
+    <div className="relative pt-20" dir={isAr ? "rtl" : "ltr"}>
+      <div className="noise-overlay" />
 
-      {/* ══════════ HERO ══════════ */}
-      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden pt-16">
-        {/* Orbs */}
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute left-[-10%] top-[-5%] h-[600px] w-[600px] rounded-full bg-[var(--os-teal)] opacity-[0.06] blur-[120px]" />
-          <div className="absolute right-[-5%] top-[10%] h-[500px] w-[500px] rounded-full bg-[var(--os-violet)] opacity-[0.06] blur-[100px]" />
-          <div className="absolute bottom-0 left-[20%] h-[400px] w-[400px] rounded-full bg-[var(--os-violet)] opacity-[0.04] blur-[100px]" />
-        </div>
-
-        <div className="section-frame relative z-10 py-24 lg:py-32">
-          <div className="grid gap-16 lg:grid-cols-[1fr_420px] lg:items-center">
-            {/* Left */}
-            <div>
-              {/* Status pill */}
-              <motion.div {...fadeUp(0)} className="mb-8 inline-flex items-center gap-3 rounded-full border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] px-4 py-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--os-teal)] opacity-70" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--os-teal)]" />
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--os-teal)]">
-                  {isAr ? "متاح لمشاريع استثنائية" : "Available for premium projects"}
+      {/* ══════════ HERO (MOBILE OPTIMIZED) ══════════ */}
+      <section className="relative min-h-[80vh] lg:min-h-[90vh] flex items-center overflow-hidden border-b border-[var(--os-border)] py-12 lg:py-0">
+        <div className="section-frame w-full">
+          <div className="grid lg:grid-cols-[1.5fr_1fr] gap-12 lg:gap-20 items-center">
+            
+            <div className="order-2 lg:order-1">
+              <motion.div {...inView(0)} className="mb-6 lg:mb-10">
+                <span className="os-badge os-badge-active">
+                  {isAr ? "نظام محمد الفراس الرقمي" : "Mohammad Alfarras Digital OS"}
                 </span>
               </motion.div>
 
-              {/* H1 */}
-              <motion.h1
-                {...fadeUp(0.1)}
-                className="headline-display text-[clamp(2.6rem,7.5vw,6rem)] font-bold text-white leading-[1.04]"
-              >
+              <motion.h1 {...inView(0.1)} className="headline-display text-[clamp(2rem,9vw,5.5rem)] leading-[1.02] text-[var(--os-text-1)] lg:leading-[1.05]">
                 {isAr ? (
                   <>
-                    أحوّل العمليات الواقعية<br />
-                    <span className="gradient-text">إلى تجارب رقمية واضحة.</span>
+                    أحوّل <span className="gradient-text">الخبرة الواقعية</span>
+                    <br />
+                    إلى تجارب رقمية <span className="gradient-text">واضحة</span>.
                   </>
                 ) : (
                   <>
-                    I turn real-world ops<br />
-                    <span className="gradient-text">into clear digital products.</span>
+                    I turn <span className="gradient-text">real-world operations</span>
+                    <br />
+                    into <span className="gradient-text">clear digital experiences</span>.
                   </>
                 )}
               </motion.h1>
 
-              {/* Sub */}
-              <motion.p {...fadeUp(0.2)} className="mt-8 max-w-xl text-[17px] leading-relaxed text-[var(--os-text-2)]">
+              <motion.p
+                {...inView(0.2)}
+                className="mt-8 max-w-2xl text-[17px] font-bold leading-snug text-[var(--os-text-2)] lg:mt-10 lg:text-[20px] lg:leading-tight"
+              >
                 {isAr
-                  ? "محمد الفراس — مطوّر ويب ومصمم واجهات وباني Android TV وصانع محتوى تقني عربي مقيم في ألمانيا."
-                  : "Mohammad Alfarras — web developer, UI designer, Android TV app builder, and Arabic tech creator based in Germany."}
+                  ? "أنا محمد الفراس — بين اللوجستيات، تطوير الويب، واجهات المستخدم، تطبيقات أندرويد، ومحتوى تقني عربي. أبني أنظمة رقمية تفهم العمل الحقيقي."
+                  : "Mohammad Alfarras — web, UI/UX, Android TV (MoPlayer), and Arabic tech content — building systems shaped by real logistics and customer communication."}
               </motion.p>
 
-              {/* CTAs */}
-              <motion.div {...fadeUp(0.3)} className="mt-10 flex flex-wrap gap-4">
-                <Link href={`/${locale}/work`} className="btn-primary px-8 h-13 text-[14px]">
-                  {isAr ? "استكشف الأعمال" : "View the work"}
-                  <ArrowRight className="h-4 w-4" />
+              <motion.div {...inView(0.3)} className="mt-10 flex flex-col flex-wrap gap-3 sm:flex-row lg:mt-14 lg:gap-4">
+                <Link href={`/${locale}/work`} className="btn-primary w-full sm:w-auto">
+                  {isAr ? "الأعمال" : "View work"}
                 </Link>
-                <Link href={`/${locale}/apps/moplayer`} className="btn-secondary px-7 h-13 text-[14px]">
-                  {isAr ? "استكشف MoPlayer" : "Explore MoPlayer"}
+                <Link href={`/${locale}/apps/moplayer`} className="btn-secondary w-full sm:w-auto">
+                  MoPlayer
                 </Link>
-                <Link href={`/${locale}/contact`} className="btn-secondary px-7 h-13 text-[14px]">
-                  {isAr ? "تواصل معي" : "Contact me"}
+                <Link href={`/${locale}/youtube`} className="btn-secondary w-full sm:w-auto">
+                  YouTube
+                </Link>
+                <Link href={`/${locale}/contact`} className="btn-secondary w-full sm:w-auto">
+                  {isAr ? "تواصل" : "Contact"}
                 </Link>
               </motion.div>
 
-              {/* Proof badges */}
-              <motion.div {...fadeUp(0.4)} className="mt-8 flex flex-wrap gap-2">
-                {proofBadges.map((b) => (
-                  <span key={b} className="os-badge text-[11px]">{b}</span>
+              <motion.div {...inView(0.4)} className="mt-16 lg:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 lg:gap-8 border-t lg:border-none border-[var(--os-border)] pt-8 lg:pt-0">
+                {proof.map((p) => (
+                  <div key={p.label}>
+                    <p className="text-[9px] uppercase tracking-[0.3em] text-[var(--os-text-3)] font-black mb-1">{p.label}</p>
+                    <p className="text-[16px] lg:text-[20px] text-[var(--os-text-1)] font-black">{p.val}</p>
+                  </div>
                 ))}
               </motion.div>
             </div>
 
-            {/* Right — portrait */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="relative hidden lg:block"
+            <motion.div 
+              {...inView(0.2)}
+              className="order-1 lg:order-2 relative aspect-[4/3] sm:aspect-square lg:h-[600px] bg-[var(--os-bg-secondary)] rounded-[2.5rem] lg:rounded-[4rem] overflow-hidden border border-[var(--os-border)] group"
             >
-              <div className="absolute -inset-6 rounded-full bg-[var(--os-teal)] opacity-[0.07] blur-[60px]" />
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-[var(--os-border)] bg-[var(--os-surface)] shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
-                <Image
-                  src={model.portraitImage || "/images/portrait.jpg"}
-                  alt="Mohammad Alfarras"
-                  fill
-                  priority
-                  className="object-cover object-top"
-                  sizes="420px"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-surface)] via-transparent to-transparent opacity-60" />
-                {/* Name card */}
-                <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-black/50 p-4 backdrop-blur-xl">
-                  <p className="text-[12px] font-bold text-white">Mohammad Alfarras</p>
-                  <p className="mt-1 text-[10px] text-[var(--os-text-3)]">
-                    {isAr ? "مطوّر ويب · مصمم · مبدع محتوى" : "Web Developer · Designer · Creator"}
-                  </p>
-                </div>
-              </div>
+              <Image 
+                src="/images/protofeilnew.jpeg"
+                alt="Mohammad Alfarras"
+                fill
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-bg)] to-transparent opacity-40" />
             </motion.div>
+
           </div>
         </div>
-
-        {/* Scroll hint */}
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[var(--os-text-3)]"
-        >
-          <ChevronDown className="h-5 w-5" />
-        </motion.div>
       </section>
 
-      {/* ══════════ STACK MARQUEE ══════════ */}
-      <section className="overflow-hidden border-y border-[var(--os-border)] bg-[var(--os-surface)]/50 py-5 select-none">
-        <div className="flex gap-16" style={{ width: "max-content" }}>
-          {[...stack, ...stack].map((t, i) => (
-            <span key={i} className="animate-marquee whitespace-nowrap text-[42px] font-bold tracking-tight text-white/[0.04]">
-              {t}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* ══════════ WHO AM I — MODE CARDS ══════════ */}
-      <section className="py-28">
+      {/* ══════════ CHOOSE HOW YOU KNOW ME ══════════ */}
+      <section className="border-b border-[var(--os-border)] py-20 lg:py-28">
         <div className="section-frame">
-          <motion.div {...inView(0)} className="mb-14">
-            <span className="eyebrow">{isAr ? "اختر وضعك" : "Choose your angle"}</span>
-            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.4rem)] font-bold text-white">
-              {isAr
-                ? "شخص واحد · منظومة رقمية واحدة"
-                : "One person. One digital OS."}
+          <motion.div {...inView(0)} className="mb-12 lg:mb-16">
+            <span className="os-badge os-badge-active mb-4 inline-flex">
+              {isAr ? "من أنا لك؟" : "Choose how you know me"}
+            </span>
+            <h2 className="headline-display max-w-3xl text-[clamp(1.8rem,5vw,3rem)] text-[var(--os-text-1)]">
+              {isAr ? "أربعة مداخل للعمل معي" : "Four lenses into what I do"}
             </h2>
           </motion.div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {modes.map((m, i) => (
-              <motion.div key={m.title} {...inView(i * 0.07)} className="glass-card p-8">
-                <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] text-[var(--os-teal)]">
-                  {m.icon}
-                </div>
-                <h3 className="text-[15px] font-bold text-white">{m.title}</h3>
-                <p className="mt-3 text-[13px] leading-relaxed text-[var(--os-text-3)]">{m.body}</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {knowMeCards.map((card, i) => (
+              <motion.div
+                key={card.title}
+                {...inView(0.05 * i)}
+                className="glass-card flex flex-col p-8 lg:p-9"
+              >
+                <div className="mb-5 text-[var(--os-accent)]">{card.icon}</div>
+                <h3 className="text-lg font-black uppercase tracking-tight text-[var(--os-text-1)]">{card.title}</h3>
+                <p className="mt-3 text-[13px] font-semibold leading-relaxed text-[var(--os-text-3)]">{card.body}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════ SERVICES ══════════ */}
-      <section className="py-28 bg-[var(--os-surface)]/30">
+      {/* ══════════ WHAT I BUILD ══════════ */}
+      <section className="border-b border-[var(--os-border)] py-20 lg:py-28 bg-[var(--os-bg-secondary)]/40">
         <div className="section-frame">
-          <motion.div {...inView(0)} className="mb-14 flex items-end justify-between gap-6 flex-wrap">
-            <div>
-              <span className="eyebrow">{isAr ? "القدرات" : "Capabilities"}</span>
-              <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3.2rem)] font-bold text-white">
-                {isAr ? "ما الذي أبنيه" : "What I build"}
-              </h2>
-            </div>
-            <Link href={`/${locale}/work`} className="group flex items-center gap-2 text-[13px] font-semibold text-[var(--os-text-3)] hover:text-[var(--os-teal)] transition-colors">
-              {isAr ? "جميع الأعمال" : "All work"} <ArrowUpRight className="h-4 w-4" />
-            </Link>
+          <motion.div {...inView(0)} className="mb-12 lg:mb-16">
+            <span className="os-badge os-badge-active mb-4 inline-flex">
+              {isAr ? "ماذا أبني" : "What I build"}
+            </span>
+            <h2 className="headline-display max-w-3xl text-[clamp(1.8rem,5vw,3rem)] text-[var(--os-text-1)]">
+              {isAr ? "شبكة مخرجات مترابطة" : "A grid of shipped outcomes"}
+            </h2>
           </motion.div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {services.map((s, i) => (
-              <motion.div key={s.id} {...inView(i * 0.09)} className="glass-card overflow-hidden">
-                {/* Image */}
-                <div className="relative h-48 overflow-hidden">
-                  <Image
-                    src={s.image || "/images/service_web.png"}
-                    alt={s.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-surface)] via-transparent to-transparent" />
-                </div>
-                <div className="p-8">
-                  <h3 className="text-[16px] font-bold text-white leading-tight">{s.title}</h3>
-                  <p className="mt-3 text-[13px] leading-relaxed text-[var(--os-text-3)]">{s.body}</p>
-                  <div className="mt-6 flex flex-wrap gap-2">
-                    {s.bullets.map((b) => (
-                      <span key={b} className="os-badge text-[10px]">{b}</span>
-                    ))}
-                  </div>
-                </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {whatIBuild.map((item, i) => (
+              <motion.div key={item.title} {...inView(0.05 * i)}>
+                <Link
+                  href={item.href}
+                  className="glass-card flex h-full flex-col p-8 lg:p-9 transition-colors hover:border-[var(--os-teal-border)]"
+                >
+                  <h3 className="text-lg font-black uppercase tracking-tight text-[var(--os-text-1)]">{item.title}</h3>
+                  <p className="mt-3 flex-1 text-[13px] font-semibold leading-relaxed text-[var(--os-text-3)]">{item.body}</p>
+                  <span className="mt-6 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--os-accent)]">
+                    {isAr ? "انتقل" : "Open"} <ArrowRight size={14} />
+                  </span>
+                </Link>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ══════════ MOPLAYER FEATURE ══════════ */}
-      <section className="py-28">
-        <div className="section-frame">
-          <motion.div
-            {...inView(0)}
-            className="relative overflow-hidden rounded-[2.5rem] border border-[var(--os-teal-border)] bg-gradient-to-br from-[var(--os-teal)]/[0.04] to-[var(--os-violet)]/[0.04] p-10 md:p-16"
-          >
-            {/* Bg glow */}
-            <div className="pointer-events-none absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-[var(--os-teal)] opacity-[0.05] blur-[100px]" />
-
-            <div className="relative z-10 grid gap-14 lg:grid-cols-[1fr_1fr] lg:items-center">
-              {/* Text */}
-              <div>
-                <span className="eyebrow mb-6 inline-flex">
-                  <Zap className="h-3.5 w-3.5" />
-                  {isAr ? "المنتج الرئيسي" : "Flagship product"}
-                </span>
-                <h2 className="headline-display text-[clamp(2.4rem,5vw,4.5rem)] font-bold text-white">
-                  MoPlayer
-                </h2>
-                <p className="mt-5 text-[16px] leading-relaxed text-[var(--os-text-2)] max-w-md">
-                  {isAr
-                    ? "مشغّل وسائط متطوّر يعمل على محرّك VLC، مصمّم لتجربة مشاهدة سينمائية على Android TV والهواتف."
-                    : "A high-performance media engine powered by VLC, designed for a cinematic viewing experience on Android TV and mobile."}
-                </p>
-
-                <div className="mt-8 flex flex-wrap gap-4">
-                  <Link href={`/${locale}/apps/moplayer`} className="btn-primary">
-                    {isAr ? "استكشف المنتج" : "Explore product"}
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Link>
-                  <Link href={`/${locale}/activate`} className="btn-secondary">
-                    {isAr ? "تفعيل الجهاز" : "Activate device"}
-                  </Link>
-                </div>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  {["VLC Engine", "Android TV", "Xtream · M3U", isAr ? "APK مباشر" : "Direct APK"].map((t) => (
-                    <span key={t} className="os-badge">{t}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Mockup */}
-              <div className="relative">
-                <div className="absolute -inset-8 rounded-full bg-[var(--os-teal)] opacity-[0.06] blur-[80px]" />
-                <motion.div animate={{ y: [0, -14, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }} className="relative">
-                  <Image
-                    src="/images/moplayer-hero-3d-final.png"
-                    alt="MoPlayer App"
-                    width={640}
-                    height={480}
-                    className="w-full h-auto drop-shadow-[0_24px_60px_rgba(0,212,224,0.18)]"
-                  />
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 
       {/* ══════════ STORY ARC ══════════ */}
-      <section className="py-28 bg-[var(--os-surface)]/30">
+      <section className="border-b border-[var(--os-border)] bg-[var(--os-bg-secondary)] py-16 lg:py-24">
         <div className="section-frame">
-          <motion.div {...inView(0)} className="mb-12">
-            <span className="eyebrow">{isAr ? "قوس القصة" : "Story arc"}</span>
-            <h2 className="headline-display mt-5 text-[clamp(1.8rem,4vw,3rem)] font-bold text-white">
-              {isAr ? "من الواقع إلى النظام الرقمي" : "From reality to digital systems"}
-            </h2>
-          </motion.div>
+          <motion.p {...inView(0)} className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-[var(--os-text-3)]">
+            {isAr ? "القوس المهني" : "Story arc"}
+          </motion.p>
+          <motion.h2 {...inView(0.05)} className="headline-display mb-8 max-w-4xl text-[clamp(1.5rem,4vw,2.25rem)] text-[var(--os-text-1)]">
+            {isAr
+              ? "سوريا → ألمانيا → لوجستيات وتشغيل → ويب وتطبيقات → يوتيوب → MoPlayer"
+              : "Syria → Germany → logistics & coordination → web & apps → YouTube → MoPlayer"}
+          </motion.h2>
+          <motion.p {...inView(0.1)} className="max-w-3xl text-[15px] font-bold leading-relaxed text-[var(--os-text-2)]">
+            {isAr
+              ? "هذا الخليط هو ما يميّز المخرجات: واجهات وأنظمة مرتبطة بواقع العملاء والضغط التشغيلي، لا مجرد شاشات جميلة."
+              : "That mix is the point: shipping interfaces and systems that respect real operations and real customers — not decoration-only pixels."}
+          </motion.p>
+        </div>
+      </section>
 
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {storyArc.map((s, i) => (
-              <motion.div
-                key={s.num}
-                {...inView(i * 0.06)}
-                className="glass-card px-6 py-7"
-              >
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--os-teal)]">{s.num}</p>
-                <p className="mt-3 text-[15px] font-bold text-white">{s.label}</p>
-                <p className="mt-1 text-[11px] text-[var(--os-text-3)]">{s.sub}</p>
+      {/* ══════════ SERVICES ══════════ */}
+      <section className="py-24 lg:py-40 border-b border-[var(--os-border)]">
+        <div className="section-frame">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-1 bg-[var(--os-border)] border border-[var(--os-border)]">
+            {services.map((s, i) => (
+              <motion.div key={s.title} {...inView(i * 0.1)} className="bg-[var(--os-bg)] p-8 lg:p-10 hover:bg-[var(--os-bg-secondary)] transition-colors">
+                <div className="text-[var(--os-accent)] mb-6 lg:mb-8">{s.icon}</div>
+                <h3 className="text-[18px] lg:text-[20px] text-[var(--os-text-1)] font-black mb-4 uppercase tracking-tighter">{s.title}</h3>
+                <p className="text-[13px] lg:text-[14px] text-[var(--os-text-3)] leading-relaxed font-bold">{s.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════ FINAL CTA ══════════ */}
-      <section className="py-36 text-center relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[var(--os-violet)] opacity-[0.06] blur-[120px]" />
-        </div>
-        <div className="section-frame relative z-10">
-          <motion.h2 {...inView(0)} className="headline-display text-[clamp(2rem,5vw,4.5rem)] font-bold text-white">
-            {isAr ? "لنحوّل فكرتك إلى واقع رقمي." : "Let's build something real."}
-          </motion.h2>
-          <motion.p {...inView(0.1)} className="mt-5 text-[17px] text-[var(--os-text-2)] max-w-lg mx-auto">
-            {isAr
-              ? "أرسل لي المشروع كما هو — سأرتّب الأولويات ونبدأ."
-              : "Send the project as it is. I'll map the goal and we start."}
-          </motion.p>
-          <motion.div {...inView(0.2)} className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link href={`/${locale}/contact`} className="btn-primary px-10 h-14 text-[15px]">
-              {isAr ? "ابدأ الآن" : "Start a conversation"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href={`/${locale}/work`} className="btn-secondary px-8 h-14 text-[15px]">
-              {isAr ? "استكشف الأعمال" : "View my work"}
-            </Link>
-          </motion.div>
+      {/* ══════════ THE STACK ══════════ */}
+      <section className="py-24 lg:py-40 bg-[var(--os-bg)]">
+        <div className="section-frame">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
+             <motion.div {...inView(0)} className="lg:w-1/3 lg:sticky lg:top-40">
+                <span className="os-badge mb-6 lg:mb-8">{isAr ? "الترسانة التقنية" : "The Digital Stack"}</span>
+                <h2 className="headline-display text-[3.5rem] lg:text-[4rem] text-[var(--os-text-1)] mb-6 lg:mb-10">
+                   {isAr ? "أدوات التميز." : "Tools of Ops."}
+                </h2>
+                <p className="text-[var(--os-text-3)] text-[16px] lg:text-[18px] font-bold leading-tight">
+                   {isAr 
+                     ? "نستخدم أحدث التقنيات لبناء أنظمة لا تتعطل، وواجهات تترك أثراً."
+                     : "Engineering systems that don't break, and interfaces that leave a mark."}
+                </p>
+             </motion.div>
+
+             <div className="lg:w-2/3 grid grid-cols-2 sm:grid-cols-3 gap-1 bg-[var(--os-border)] border border-[var(--os-border)]">
+                {[
+                  "Next.js 15", "React", "TypeScript", 
+                  "Node.js", "PostgreSQL", "Supabase",
+                  "Kotlin", "Android SDK", "libVLC",
+                  "Figma", "Tailwind CSS", "Framer Motion"
+                ].map((tech, i) => (
+                  <motion.div key={tech} {...inView(i * 0.05)} className="bg-[var(--os-bg)] p-6 lg:p-8 hover:bg-[var(--os-bg-secondary)] transition-colors text-center sm:text-left">
+                     <p className="text-[11px] lg:text-[12px] font-black uppercase tracking-[0.2em] text-[var(--os-text-1)]">{tech}</p>
+                  </motion.div>
+                ))}
+             </div>
+          </div>
         </div>
       </section>
+
+      {/* ══════════ MOPLAYER ECOSYSTEM ══════════ */}
+      <section className="py-24 lg:py-40 bg-[var(--os-bg-secondary)] border-y border-[var(--os-border)] overflow-hidden">
+        <div className="section-frame">
+           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+              <motion.div {...inView(0)}>
+                 <span className="os-badge mb-6 lg:mb-8">{isAr ? "المنتج الرائد" : "Flagship Product"}</span>
+                 <h2 className="headline-display text-[clamp(2.5rem,8vw,6rem)] text-[var(--os-text-1)] mb-8 lg:mb-10">
+                    MoPlayer OS
+                 </h2>
+                 <p className="text-[var(--os-text-2)] text-[18px] lg:text-[22px] font-bold leading-tight mb-10 lg:mb-12">
+                    {isAr 
+                      ? "إعادة تعريف تجربة المشاهدة على Android TV. نظام متكامل مبني على libVLC بأداء فائق وواجهة ذكية."
+                      : "Redefining the Android TV experience. A full ecosystem built on libVLC with peak performance and smart UI."}
+                 </p>
+                 <Link href={`/${locale}/apps/moplayer`} className="btn-primary w-full sm:w-auto">
+                    {isAr ? "استكشف النظام" : "Explore OS"}
+                 </Link>
+              </motion.div>
+              <motion.div {...inView(0.2)} className="relative aspect-video rounded-[2rem] lg:rounded-[3rem] overflow-hidden border border-[var(--os-border)] shadow-[0_0_100px_rgba(0,245,255,0.1)]">
+                 <Image src="/images/moplayer-hero.png" alt="MoPlayer" fill className="object-cover" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--os-bg)]/80 to-transparent" />
+              </motion.div>
+           </div>
+        </div>
+      </section>
+
+      {/* ══════════ PORTFOLIO ══════════ */}
+      <section className="py-24 lg:py-40">
+        <div className="section-frame">
+          <motion.div {...inView(0)} className="mb-16 lg:mb-24 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+            <h2 className="headline-display text-[clamp(2.2rem,6vw,5rem)] text-[var(--os-text-1)]">
+               {isAr ? "مشاريع مميّزة" : "Featured work"}
+            </h2>
+            <Link href={`/${locale}/work`} className="text-[var(--os-text-1)] font-black uppercase tracking-[0.2em] text-[11px] lg:text-[12px] flex items-center gap-2 hover:gap-4 transition-all">
+               {isAr ? "شاهد الكل" : "Full View"} <ArrowRight size={16} />
+            </Link>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+            {homeProjects.map((p, i) => (
+              <motion.div key={p.id} {...inView(i * 0.1)} className="group">
+                <div className="relative aspect-video rounded-[2rem] lg:rounded-[3rem] overflow-hidden border border-[var(--os-border)] mb-8 lg:mb-10 shadow-2xl">
+                   <Image src={p.image} alt={p.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
+                   <div className="absolute inset-0 bg-black/40 opacity-0 lg:group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Link href={`/${locale}/work/${p.slug}`} className="btn-primary hidden lg:inline-flex">
+                         {isAr ? "عرض التفاصيل" : "View Case"}
+                      </Link>
+                   </div>
+                   {/* Mobile Tap Target */}
+                   <Link href={`/${locale}/work/${p.slug}`} className="absolute inset-0 lg:hidden" />
+                </div>
+                <div className="flex justify-between items-start gap-4">
+                   <div>
+                      <span className="os-badge mb-3 lg:mb-4">{p.eyebrow}</span>
+                      <h3 className="text-[24px] lg:text-[32px] text-[var(--os-text-1)] font-black uppercase tracking-tighter leading-tight">{p.title}</h3>
+                   </div>
+                   <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-full border border-[var(--os-border)] flex items-center justify-center text-[var(--os-text-1)] group-hover:bg-[var(--os-text-1)] group-hover:text-[var(--os-bg)] transition-colors shrink-0">
+                      <ArrowUpRight size={20} className="lg:w-6 lg:h-6" />
+                   </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════ STATS / PROOF ══════════ */}
+      <section className="py-24 lg:py-40 bg-[var(--os-bg)] border-y border-[var(--os-border)]">
+         <div className="section-frame">
+            <div className="grid lg:grid-cols-[1fr_2fr] gap-12 lg:gap-20 items-center">
+               <motion.div {...inView(0)} className="text-center lg:text-left">
+                  <h2 className="headline-display text-[3.5rem] lg:text-[4rem] text-[var(--os-text-1)] mb-4">
+                     1.5M+
+                  </h2>
+                  <p className="text-[var(--os-text-3)] font-black uppercase tracking-[0.3em] text-[11px] lg:text-[12px]">
+                     {isAr ? "مشاهدة على يوتيوب" : "Organic Views"}
+                  </p>
+               </motion.div>
+               <motion.div {...inView(0.1)} className="glass-card p-10 lg:p-16">
+                  <p className="text-[20px] lg:text-[32px] text-[var(--os-text-1)] font-bold leading-tight">
+                     {isAr 
+                       ? "أبني أدوات رقمية للشركات التي تدرك أن الانطباع الأول ليس مجرد صورة، بل هو محرك للثقة والعمل."
+                       : "Building digital tools for businesses that understand first impressions aren't just visuals—they are engines for trust and action."}
+                  </p>
+                  <div className="mt-8 lg:mt-12 flex gap-4">
+                     <Link href="https://youtube.com/@Moalfarras" target="_blank" className="btn-primary w-full sm:w-auto">
+                        {isAr ? "قناتي" : "YouTube Channel"}
+                     </Link>
+                  </div>
+               </motion.div>
+            </div>
+         </div>
+      </section>
+
+      {/* ══════════ FINAL CTA ══════════ */}
+      <section className="py-32 lg:py-60 text-center">
+         <div className="section-frame">
+            <motion.div {...inView(0)}>
+               <h2 className="headline-display text-[clamp(2.5rem,12vw,10rem)] text-[var(--os-text-1)] mb-12 lg:mb-16">
+                  {isAr ? "لنبني معاً." : "Let's Build."}
+               </h2>
+               <p className="mb-10 text-[15px] font-bold text-[var(--os-text-2)]">
+                  {isAr ? "ماذا نبني معاً؟" : "What can we build together?"}
+               </p>
+               <div className="flex max-w-4xl flex-col flex-wrap justify-center gap-3 sm:flex-row sm:justify-center">
+                  <Link href={`/${locale}/contact`} className="btn-primary w-full sm:w-auto">
+                     {isAr ? "أحتاج موقعاً" : "I need a website"}
+                  </Link>
+                  <Link href={`/${locale}/contact`} className="btn-secondary w-full sm:w-auto">
+                     {isAr ? "شركة نقل / منقولات" : "Transport / moving site"}
+                  </Link>
+                  <Link href={`/${locale}/contact`} className="btn-secondary w-full sm:w-auto">
+                     {isAr ? "تطبيق أو TV" : "App / TV product"}
+                  </Link>
+                  <Link href={`/${locale}/contact`} className="btn-secondary w-full sm:w-auto">
+                     {isAr ? "مراجعة أو تعاون" : "Review or collaboration"}
+                  </Link>
+               </div>
+            </motion.div>
+         </div>
+      </section>
+
     </div>
   );
 }

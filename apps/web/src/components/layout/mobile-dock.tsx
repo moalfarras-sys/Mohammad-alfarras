@@ -41,13 +41,12 @@ export function MobileDock({ locale }: { locale: Locale }) {
         ];
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:hidden">
       <motion.nav
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-        data-testid="mobile-dock"
-        className="mobile-dock-shell pointer-events-auto mx-auto flex max-w-md items-center justify-between rounded-full px-2 py-2"
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="pointer-events-auto mx-auto flex max-w-sm items-center justify-between rounded-xl bg-[var(--os-bg)]/90 backdrop-blur-2xl border border-[var(--os-border)] p-1.5 shadow-2xl"
       >
         {items.map((item) => {
           const active =
@@ -57,27 +56,17 @@ export function MobileDock({ locale }: { locale: Locale }) {
           const Icon = item.icon;
 
           return (
-            <motion.div key={item.id} whileTap={{ scale: 0.9 }} className="flex-1">
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "relative flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-full px-2 py-2 text-[10px] font-bold transition-colors duration-300",
-                  active ? "dock-active-text" : "dock-link-inactive",
-                )}
-              >
-                {active ? (
-                  <motion.span
-                    layoutId="dock-pill"
-                    className="dock-active-pill absolute inset-0 rounded-full"
-                    transition={{ type: "spring", bounce: 0.22, duration: 0.5 }}
-                    aria-hidden
-                  />
-                ) : null}
-                <Icon className={cn("relative z-10 h-[1.15rem] w-[1.15rem] shrink-0", active && "dock-active-text")} />
-                <span className={cn("relative z-10 truncate", active && "dock-active-text")}>{item.label}</span>
-              </Link>
-            </motion.div>
+            <Link
+              key={item.id}
+              href={item.href}
+              className={cn(
+                "relative flex h-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg transition-all duration-300",
+                active ? "bg-[var(--os-text-1)] text-[var(--os-bg)]" : "text-[var(--os-text-3)] hover:text-[var(--os-text-1)]",
+              )}
+            >
+              <Icon className="relative z-10 h-4.5 w-4.5" />
+              <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.1em]">{item.label}</span>
+            </Link>
           );
         })}
       </motion.nav>

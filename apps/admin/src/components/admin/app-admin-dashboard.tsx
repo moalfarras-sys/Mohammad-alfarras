@@ -346,7 +346,10 @@ export function AppAdminDashboard({
         className="bg-cyan-500/[0.01] border-cyan-500/10"
       >
         <form action={saveRuntimeConfigAction} className="grid gap-6 lg:grid-cols-2">
-          <div className="grid gap-4 md:grid-cols-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 lg:col-span-2">
+            App state · maintenance · widgets
+          </p>
+          <div className="grid gap-4 md:grid-cols-2 lg:col-span-2">
             {[
               { name: "enabled", label: "Application Active", checked: runtimeConfig.enabled },
               { name: "maintenanceMode", label: "Maintenance Mode", checked: runtimeConfig.maintenanceMode },
@@ -360,8 +363,11 @@ export function AppAdminDashboard({
               </label>
             ))}
           </div>
-          
-          <div className="space-y-6">
+
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 lg:col-span-2">
+            Version gates · accent
+          </p>
+          <div className="space-y-6 lg:col-span-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <InputField label="Min Version Code" name="minimumVersionCode" type="number" defaultValue={String(runtimeConfig.minimumVersionCode)} />
               <InputField label="Latest Build Name" name="latestVersionName" defaultValue={runtimeConfig.latestVersionName} />
@@ -369,6 +375,9 @@ export function AppAdminDashboard({
             <InputField label="System Accent Color" name="accentColor" defaultValue={runtimeConfig.accentColor} />
           </div>
 
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 lg:col-span-2">
+            Public links · in-app banner
+          </p>
           <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
             <InputField label="Cloud Support Link" name="supportUrl" defaultValue={runtimeConfig.supportUrl} />
             <InputField label="Privacy Policy URI" name="privacyUrl" defaultValue={runtimeConfig.privacyUrl} />

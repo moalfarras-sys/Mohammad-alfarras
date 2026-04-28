@@ -6,6 +6,7 @@ import { socialLinks } from "@/content/site";
 import type { Locale } from "@/types/cms";
 
 type FooterLink = { id: string; label: string; href: string };
+type QuickFact = { label: string; value: string };
 
 const SvgYoutube = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
@@ -40,11 +41,13 @@ export function SiteFooter({
   links,
   logoSrc,
   brandName,
+  quickFacts,
 }: {
   locale: Locale;
   links: FooterLink[];
   logoSrc: string;
   brandName: string;
+  quickFacts?: QuickFact[];
 }) {
   const isAr = locale === "ar";
   const year = new Date().getFullYear();
@@ -57,23 +60,27 @@ export function SiteFooter({
     { href: socialLinks.whatsapp,  icon: <SvgWhatsapp />,  label: "WhatsApp",  color: "hover:text-emerald-400" },
   ];
 
-  const facts = isAr
-    ? [
-        { label: "المقيم", value: "ألمانيا 🇩🇪" },
-        { label: "الجذور", value: "سوريا 🇸🇾" },
-        { label: "المشاهدات", value: "+1.5M" },
-        { label: "المشتركون", value: "+6K" },
-        { label: "المنتج", value: "MoPlayer" },
-        { label: "التقنية", value: "Web · Android" },
-      ]
-    : [
-        { label: "Based in", value: "Germany 🇩🇪" },
-        { label: "Roots", value: "Syria 🇸🇾" },
-        { label: "YT Views", value: "1.5M+" },
-        { label: "Subscribers", value: "6K+" },
-        { label: "Product", value: "MoPlayer" },
-        { label: "Stack", value: "Web · Android" },
-      ];
+  const facts =
+    quickFacts ??
+    (isAr
+      ? [
+          { label: "مقيم في", value: "ألمانيا" },
+          { label: "الجذور", value: "الحسكة، سوريا" },
+          { label: "اللغات", value: "العربية / الألمانية / الإنجليزية" },
+          { label: "يوتيوب", value: "+1.5M مشاهدة على يوتيوب" },
+          { label: "المشتركون", value: "6.1K+" },
+          { label: "الفيديوهات", value: "162" },
+          { label: "المنتج", value: "MoPlayer" },
+        ]
+      : [
+          { label: "Based in", value: "Germany" },
+          { label: "Roots", value: "Al-Hasakah, Syria" },
+          { label: "Languages", value: "Arabic / German / English" },
+          { label: "YouTube", value: "1.5M+ YouTube views" },
+          { label: "Subscribers", value: "6.1K+" },
+          { label: "Videos", value: "162" },
+          { label: "Product", value: "MoPlayer" },
+        ]);
 
   const navGroups = [
     {
@@ -160,23 +167,36 @@ export function SiteFooter({
           ))}
         </div>
 
-        {/* ── Quick facts badges ── */}
-        <div className="mt-12 flex flex-wrap gap-2">
+        {/* ── Quick facts (separate cards — avoids “glued” text) ── */}
+        <div className="mt-16 flex flex-wrap gap-3 sm:mt-20 sm:gap-4">
           {facts.map((f) => (
-            <span key={f.label} className="inline-flex items-center gap-2 rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-3 py-1.5 text-[11px] font-medium text-[var(--os-text-3)]">
-              <span className="font-semibold uppercase tracking-widest text-[var(--os-text-3)] opacity-60 text-[9px]">{f.label}</span>
-              <span className="text-[var(--os-text-2)]">{f.value}</span>
-            </span>
+            <div
+              key={`${f.label}-${f.value}`}
+              className="min-w-[calc(50%-0.375rem)] flex-1 basis-[140px] rounded-xl border border-[var(--os-border)] bg-[var(--os-bg-secondary)]/50 px-4 py-3 sm:min-w-[160px] sm:px-5 sm:py-4"
+            >
+              <span className="mb-1 block text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--os-text-3)]">
+                {f.label}
+              </span>
+              <span className="block text-[15px] font-bold leading-snug tracking-normal text-[var(--os-text-1)] [overflow-wrap:anywhere]">
+                {f.value}
+              </span>
+            </div>
           ))}
         </div>
 
         {/* ── Bottom bar ── */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-[var(--os-border)] pt-6 text-[11px] text-[var(--os-text-3)] sm:flex-row">
+        <div className="mt-20 flex flex-col items-center justify-between gap-10 border-t border-[var(--os-border)] pt-12 text-[11px] text-[var(--os-text-3)] sm:flex-row font-black uppercase tracking-[0.2em]">
           <p>© {year} {brandName}. {isAr ? "جميع الحقوق محفوظة." : "All rights reserved."}</p>
-          <p className="flex items-center gap-1.5">
-            {isAr ? "صُنع في" : "Made in"}
-            <span className="font-semibold text-[var(--os-text-2)]">Germany 🇩🇪</span>
-          </p>
+          
+          <div className="flex flex-col items-center gap-8 sm:flex-row">
+            <Link href={`/${locale}/privacy`} className="hover:text-[var(--os-text-1)] transition-colors">
+              {isAr ? "سياسة الخصوصية" : "Privacy Policy"}
+            </Link>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--os-accent)]" />
+              <p className="text-[var(--os-text-1)]">{isAr ? "ألمانيا 🇩🇪" : "Germany 🇩🇪"}</p>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

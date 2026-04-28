@@ -316,6 +316,15 @@ export function MoPlayerActivationPage({
                           <p className="mt-3 text-sm leading-relaxed text-[var(--text-2)]">
                             {statusCopy.body}
                           </p>
+                          {status === "activated" && activeStep === "activate" && (
+                            <button
+                              type="button"
+                              onClick={() => setActiveStep("setup")}
+                              className="button-liquid-primary mt-6 w-full py-4 text-sm"
+                            >
+                              {isAr ? "المتابعة: إضافة مصدر Xtream أو M3U" : "Next: add Xtream or M3U source"}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </motion.div>

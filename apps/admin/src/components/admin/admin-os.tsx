@@ -208,6 +208,21 @@ export function AdminOS({
                     </motion.div>
                   ))}
                 </div>
+
+                {(() => {
+                  const published = releases.filter((r) => r.is_published);
+                  const top = [...published].sort((a, b) => b.version_code - a.version_code)[0]
+                    ?? [...releases].sort((a, b) => b.version_code - a.version_code)[0];
+                  if (!top) return null;
+                  return (
+                    <p className="text-center text-[13px] text-slate-500">
+                      Latest tracked release:{" "}
+                      <span className="font-black text-cyan-400/90">{top.version_name}</span>
+                      <span className="text-slate-600"> · </span>
+                      <span className="text-slate-400">{published.length} published</span>
+                    </p>
+                  );
+                })()}
               </motion.div>
             )}
 

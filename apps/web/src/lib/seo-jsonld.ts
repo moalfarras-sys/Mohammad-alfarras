@@ -41,7 +41,7 @@ export function personExpandedJsonLd(locale: Locale) {
     name: SITE_NAME,
     alternateName: "محمد الفراس",
     url: `${BASE_URL}/${locale}`,
-    image: `${BASE_URL}/images/portrait.jpg`,
+    image: `${BASE_URL}/images/protofeilnew.jpeg`,
     jobTitle: locale === "ar" ? "مطور ويب، مصمم، صانع محتوى تقني" : "Web developer, designer, Arabic tech creator",
     knowsAbout: [
       "Next.js",
@@ -112,7 +112,9 @@ export function softwareApplicationJsonLd(params: {
   fileSize?: string;
   targetSdk?: string | number;
   downloadUrl?: string;
+  featureList?: string[];
 }) {
+  const defaults = ["Kotlin", "Android TV", "Room", "Retrofit", "libVLC"];
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -124,6 +126,7 @@ export function softwareApplicationJsonLd(params: {
     softwareVersion: params.version,
     fileSize: params.fileSize,
     downloadUrl: params.downloadUrl,
+    featureList: params.featureList?.length ? params.featureList : defaults,
     publisher: { "@id": `${BASE_URL}/#person` },
   };
 }

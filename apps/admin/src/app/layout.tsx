@@ -27,10 +27,11 @@ const display = Syne({
 
 export const metadata: Metadata = {
   title: {
-    default: "Moalfarras Admin",
+    default: "Moalfarras Digital OS — Control Center",
     template: "%s | Moalfarras Admin",
   },
-  description: "Admin control center for MoPlayer product content, releases, screenshots, FAQ, and support.",
+  description:
+    "Unified admin: MoPlayer releases, activations, devices — plus quick access to the public site CMS on moalfarras.space.",
   metadataBase: new URL("https://admin.moalfarras.space"),
   applicationName: "Moalfarras Admin",
   robots: {

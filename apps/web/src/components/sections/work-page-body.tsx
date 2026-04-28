@@ -90,8 +90,17 @@ export function WorkPageBody({ model }: { model: SiteViewModel }) {
 
               {/* Body */}
               <div className="flex flex-1 flex-col p-7">
-                <h2 className="text-[17px] font-bold text-[var(--os-text-1)] leading-snug">{project.title}</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--os-teal)]">
+                  {project.eyebrow}
+                  {project.tags[0] ? ` · ${project.tags[0]}` : ""}
+                </p>
+                <h2 className="mt-2 text-[17px] font-bold text-[var(--os-text-1)] leading-snug">{project.title}</h2>
                 <p className="mt-3 flex-1 text-[13px] leading-relaxed text-[var(--os-text-3)] line-clamp-3">{project.summary}</p>
+                {project.challenge ? (
+                  <p className="mt-3 border-l-2 border-[var(--os-teal-border)] pl-3 text-[12px] leading-relaxed text-[var(--os-text-2)] line-clamp-2">
+                    {project.challenge}
+                  </p>
+                ) : null}
 
                 {/* Tags */}
                 <div className="mt-5 flex flex-wrap gap-1.5">

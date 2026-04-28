@@ -4,39 +4,56 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "app-next/**"
+      - "apps/web/**"
+      - "apps/admin/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/next-app-ci.yml"
   pull_request:
     paths:
-      - "app-next/**"
+      - "apps/web/**"
+      - "apps/admin/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/next-app-ci.yml"
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app-next
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: web
+            prefix: apps/web
+            run-tests: true
+          - app: admin
+            prefix: apps/admin
+            run-tests: false
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: app-next/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install
+      - name: Install (workspaces)
         run: npm ci
 
       - name: Lint
-        run: npm run lint
+        run: npm --prefix ${{ matrix.prefix }} run lint
 
       - name: Typecheck
-        run: npm run typecheck
+        run: npm --prefix ${{ matrix.prefix }} run typecheck
 
       - name: Unit tests
-        run: npm run test
+        if: matrix.run-tests
+        run: npm --prefix ${{ matrix.prefix }} run test
 
       - name: Build
-        run: npm run build
+        run: npm --prefix ${{ matrix.prefix }} run build

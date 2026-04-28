@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Menu, Sun, Moon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,43 +50,40 @@ export function SiteNavbar({
     <>
       <header
         className={cn(
-          "top-safe fixed inset-x-0 top-0 z-50 transition-all duration-300",
-          scrolled ? "navbar-scrolled" : "bg-transparent"
+          "top-safe fixed inset-x-0 top-0 z-50 transition-all duration-500",
+          scrolled ? "bg-[var(--os-bg)]/80 backdrop-blur-xl border-b border-[var(--os-border)] py-2" : "bg-transparent py-4"
         )}
       >
         <motion.div
-          initial={{ opacity: 0, y: -16 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="section-frame flex h-16 items-center justify-between gap-4 md:h-18"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="section-frame flex items-center justify-between gap-8"
         >
           {/* Brand */}
-          <Link href={`/${locale}`} className="group flex items-center gap-3 shrink-0">
-            <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-[var(--os-border)] bg-black/5 dark:bg-white/5 transition-transform duration-300 group-hover:scale-105">
+          <Link href={`/${locale}`} className="group flex items-center gap-4 shrink-0">
+            <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-[var(--os-border)] bg-[var(--os-bg-secondary)] transition-all duration-500 group-hover:border-[var(--os-accent)]">
               <Image
                 src={logoSrc || "/images/logo.png"}
                 alt={brandName}
-                width={36}
-                height={36}
+                width={40}
+                height={40}
                 priority
-                className="h-full w-full object-contain"
+                className="h-full w-full object-contain p-1"
               />
             </span>
             <span className="hidden sm:flex flex-col">
-              <strong
-                className="text-[15px] font-bold leading-tight tracking-[-0.01em] text-[var(--os-text-1)] transition-colors group-hover:text-[var(--os-teal)]"
-                style={{ fontFamily: "var(--os-font-en)" }}
-              >
+              <strong className="text-[14px] font-black uppercase tracking-[-0.02em] text-[var(--os-text-1)]">
                 {brandName}
               </strong>
-              <small className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--os-text-3)]">
+              <small className="text-[8px] font-black uppercase tracking-[0.3em] text-[var(--os-text-3)]">
                 {tagline}
               </small>
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 lg:flex">
+          {/* Desktop Nav - Ultra Sharp */}
+          <nav className="hidden items-center gap-2 lg:flex">
             {links.map((item) => {
               const active =
                 item.href === `/${locale}`
@@ -97,76 +94,50 @@ export function SiteNavbar({
                   key={item.id}
                   href={item.href}
                   className={cn(
-                    "relative flex h-10 items-center rounded-full px-4 text-[13px] font-semibold transition-all duration-200",
+                    "relative h-9 px-4 flex items-center text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-md",
                     active
-                      ? "text-[var(--os-teal)] bg-[var(--os-teal-soft)]"
-                      : "text-[var(--os-text-3)] hover:text-[var(--os-text-1)] hover:bg-white/[0.05]"
+                      ? "text-[var(--os-text-1)] bg-[var(--os-border)]"
+                      : "text-[var(--os-text-3)] hover:text-[var(--os-text-1)] hover:bg-[var(--os-bg-secondary)]"
                   )}
                 >
                   {item.label}
-                  {active && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      className="absolute inset-0 rounded-full bg-[var(--os-teal-soft)] border border-[var(--os-teal-border)]"
-                      style={{ zIndex: -1 }}
-                    />
-                  )}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
-            {/* Language switcher */}
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
+            {/* Language Switcher */}
             <LocalePreferenceLink
               href={alternatePath}
-              aria-label={isAr ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
-              className="hidden h-9 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 px-4 text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--os-text-3)] transition hover:text-[var(--os-text-1)] hover:border-[var(--os-teal-border)] lg:inline-flex"
+              className="hidden h-9 items-center px-4 text-[10px] font-black uppercase tracking-[0.3em] text-[var(--os-text-3)] border border-[var(--os-border)] rounded-md hover:text-[var(--os-text-1)] hover:border-[var(--os-text-1)] transition-all lg:flex"
             >
               {alternateLabel}
             </LocalePreferenceLink>
 
-            {/* Contact CTA */}
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="hidden h-9 w-9 items-center justify-center border border-[var(--os-border)] rounded-md text-[var(--os-text-3)] hover:text-[var(--os-text-1)] transition-all lg:flex"
+            >
+               {mounted && theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+
+            {/* Contact CTA - SHARP */}
             <Link
               href={`/${locale}/contact`}
-              className="hidden h-9 items-center gap-2 rounded-full border border-[var(--os-teal-border)] bg-[var(--os-teal-soft)] px-5 text-[12px] font-bold text-[var(--os-teal)] transition hover:bg-[var(--os-teal)] hover:text-[var(--os-bg)] lg:inline-flex"
+              className="h-9 px-6 flex items-center text-[11px] font-black uppercase tracking-[0.2em] bg-[var(--os-text-1)] text-[var(--os-bg)] rounded-md hover:scale-105 transition-all"
             >
-              {isAr ? "تواصل" : "Contact"}
+              {isAr ? "تواصل" : "Connect"}
             </Link>
 
-            {/* Theme toggle */}
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.88 }}
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-              className="hidden h-9 w-9 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-[var(--os-text-3)] transition hover:text-[var(--os-text-1)] lg:inline-flex"
-            >
-              <AnimatePresence mode="wait">
-                {mounted && theme === "dark" ? (
-                  <motion.div key="sun" initial={{ scale: 0.5, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5, rotate: 90 }} transition={{ duration: 0.18 }}>
-                    <Sun className="h-4 w-4" />
-                  </motion.div>
-                ) : mounted ? (
-                  <motion.div key="moon" initial={{ scale: 0.5, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.5, rotate: 90 }} transition={{ duration: 0.18 }}>
-                    <Moon className="h-4 w-4" />
-                  </motion.div>
-                ) : (
-                  <span className="h-4 w-4" />
-                )}
-              </AnimatePresence>
-            </motion.button>
-
-            {/* Mobile menu */}
+            {/* Mobile Menu */}
             <button
-              type="button"
               onClick={() => setDrawerOpen(true)}
-              aria-label={isAr ? "فتح القائمة" : "Open menu"}
-              aria-expanded={drawerOpen}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-[var(--os-text-2)] transition hover:text-[var(--os-text-1)] lg:hidden"
+              className="flex lg:hidden h-9 w-9 items-center justify-center border border-[var(--os-border)] rounded-md text-[var(--os-text-1)]"
             >
-              <Menu className="h-4.5 w-4.5" />
+              <Menu size={18} />
             </button>
           </div>
         </motion.div>

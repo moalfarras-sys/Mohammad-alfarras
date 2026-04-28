@@ -81,9 +81,9 @@ export function MobileMenuDrawer({
               isAr ? "right-0" : "left-0",
             )}
             style={{
-              background: "var(--bg-surface, var(--surface))",
-              borderInlineEnd: isAr ? "none" : "1px solid var(--glass-border, var(--border))",
-              borderInlineStart: isAr ? "1px solid var(--glass-border, var(--border))" : "none",
+              background: "var(--os-bg)",
+              borderInlineEnd: isAr ? "none" : "1px solid var(--os-border)",
+              borderInlineStart: isAr ? "1px solid var(--os-border)" : "none",
             }}
             initial={slideFrom}
             animate={{ x: 0 }}
@@ -91,28 +91,27 @@ export function MobileMenuDrawer({
             transition={{ type: "spring", damping: 28, stiffness: 260 }}
             aria-label={isAr ? "القائمة الجانبية" : "Main menu"}
           >
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--glass-border)] px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)]">
-              <Link href={`/${locale}`} onClick={onClose} className="flex min-w-0 items-center gap-3">
-                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--bg-elevated)] p-1">
-                  <Image src={logoSrc} alt={`${brandName} logo`} width={44} height={44} className="h-full w-full object-contain" />
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--os-border)] px-5 pb-6 pt-[calc(env(safe-area-inset-top)+1.5rem)]">
+              <Link href={`/${locale}`} onClick={onClose} className="flex min-w-0 items-center gap-4">
+                <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--os-border)] bg-[var(--os-bg-secondary)] p-1.5">
+                  <Image src={logoSrc} alt={`${brandName} logo`} width={48} height={48} className="h-full w-full object-contain" />
                 </span>
                 <span className="min-w-0">
-                  <strong className="block truncate text-[15px] font-semibold text-[var(--text-1)]">{brandName}</strong>
-                  <span className="block truncate text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--text-3)]">{tagline}</span>
+                  <strong className="block truncate text-[14px] font-black uppercase tracking-[-0.02em] text-[var(--os-text-1)]">{brandName}</strong>
+                  <span className="block truncate text-[8px] font-black uppercase tracking-[0.3em] text-[var(--os-text-3)]">{tagline}</span>
                 </span>
               </Link>
               <button
                 type="button"
                 onClick={onClose}
-                aria-label={isAr ? "إغلاق القائمة" : "Close menu"}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-[var(--text-3)] transition hover:text-[var(--text-1)]"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--os-border)] text-[var(--os-text-3)]"
               >
-                <X className="h-5 w-5" />
+                <X size={20} />
               </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto px-3 py-3">
-              <ul className="grid gap-1">
+            <nav className="flex-1 overflow-y-auto px-4 py-8">
+              <ul className="grid gap-2">
                 {links.map((item) => {
                   const active =
                     item.href === `/${locale}`
@@ -124,13 +123,12 @@ export function MobileMenuDrawer({
                         href={item.href}
                         onClick={onClose}
                         className={cn(
-                          "flex min-h-12 items-center justify-between rounded-xl px-4 py-3.5 text-base font-semibold transition-colors",
-                          active ? "nav-link-active text-[var(--text-1)]" : "text-[var(--text-2)] hover:text-[var(--text-1)]",
+                          "flex h-14 items-center justify-between rounded-lg px-5 text-[14px] font-black uppercase tracking-[0.15em] transition-all",
+                          active ? "bg-[var(--os-text-1)] text-[var(--os-bg)]" : "text-[var(--os-text-3)] hover:text-[var(--os-text-1)] hover:bg-[var(--os-bg-secondary)]",
                         )}
-                        style={active ? { background: "var(--bg-elevated)", border: "1px solid var(--glass-border)" } : undefined}
                       >
                         <span>{item.label}</span>
-                        <ArrowUpRight className={cn("h-4 w-4 transition", isAr && "-scale-x-100")} />
+                        <ArrowUpRight size={18} className={cn("transition", isAr && "-scale-x-100", active ? "opacity-100" : "opacity-30")} />
                       </Link>
                     </li>
                   );
@@ -138,29 +136,21 @@ export function MobileMenuDrawer({
               </ul>
             </nav>
 
-            <div className="px-4 pb-2">
-              <Link href={`/${locale}/contact`} onClick={onClose} className="button-liquid-primary flex min-h-12 w-full justify-center text-sm">
-                {isAr ? "تواصل معي" : "Hire Me"}
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 border-t border-[var(--glass-border)] px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2">
+            <div className="grid grid-cols-2 gap-3 border-t border-[var(--os-border)] px-4 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-4">
               <LocalePreferenceLink
                 href={alternate}
                 onClick={onClose}
-                aria-label={isAr ? "التبديل إلى الإنجليزية" : "Switch to Arabic"}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-sm font-bold uppercase tracking-[0.18em] text-[var(--text-3)] transition hover:text-[var(--text-1)]"
+                className="inline-flex h-12 items-center justify-center rounded-lg border border-[var(--os-border)] text-[10px] font-black uppercase tracking-[0.3em] text-[var(--os-text-3)]"
               >
                 {altLabel}
               </LocalePreferenceLink>
               <button
                 type="button"
                 onClick={toggleTheme}
-                aria-label={isAr ? "تبديل المظهر" : "Toggle theme"}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-3)] transition hover:text-[var(--text-1)]"
+                className="inline-flex h-12 items-center justify-center gap-3 rounded-lg border border-[var(--os-border)] text-[10px] font-black uppercase tracking-[0.1em] text-[var(--os-text-3)]"
               >
-                {theme === "dark" ? <SunMedium className="h-4 w-4" /> : <MoonStar className="h-4 w-4" />}
-                <span>{theme === "dark" ? (isAr ? "فاتح" : "Light") : isAr ? "داكن" : "Dark"}</span>
+                {theme === "dark" ? <SunMedium size={16} /> : <MoonStar size={16} />}
+                <span>{theme === "dark" ? (isAr ? "LIGHT" : "LIGHT") : isAr ? "DARK" : "DARK"}</span>
               </button>
             </div>
           </motion.aside>

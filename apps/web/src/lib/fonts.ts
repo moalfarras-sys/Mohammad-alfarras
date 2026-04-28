@@ -1,10 +1,10 @@
-import { Plus_Jakarta_Sans, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Inter, IBM_Plex_Sans_Arabic } from "next/font/google";
 
-/** EN display + body — Plus Jakarta Sans: clean, modern, premium geometric */
-export const jakartaFont = Plus_Jakarta_Sans({
+/** Latin body + UI — Inter: readable, neutral, pairs cleanly with IBM Plex Arabic */
+export const interFont = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -17,4 +17,4 @@ export const arabicFont = IBM_Plex_Sans_Arabic({
 });
 
 /** Apply on `<html>` */
-export const siteFontClassName = `${jakartaFont.variable} ${arabicFont.variable}`;
+export const siteFontClassName = `${interFont.variable} ${arabicFont.variable}`;

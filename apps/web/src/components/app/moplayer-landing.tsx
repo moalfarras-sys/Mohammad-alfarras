@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDownToLine, ShieldCheck, Cpu, Code2, HelpCircle, MonitorSmartphone, ChevronDown, Zap, Play } from "lucide-react";
+import { ArrowDownToLine, ShieldCheck, Cpu, Code2, MonitorSmartphone, ChevronDown, Zap, Play } from "lucide-react";
 
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -91,7 +91,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
                 <MonitorSmartphone className="h-3.5 w-3.5" /> Android TV Native
               </div>
               <div className="flex items-center gap-2 os-badge">
-                <Play className="h-3.5 w-3.5" /> VLC Engine
+                <Play className="h-3.5 w-3.5" /> libVLC playback
               </div>
             </motion.div>
           </div>

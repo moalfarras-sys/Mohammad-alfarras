@@ -8,12 +8,10 @@
   "scripts": {
     "build:web": "npm --prefix apps/web run build",
     "build:admin": "npm --prefix apps/admin run build",
-    "build:android": "cmd /d /s /c \"cd android\\moplayer && gradlew.bat assembleSideloadRelease\"",
     "build": "npm run build:web && npm run build:admin",
     "verify:web": "npm --prefix apps/web run typecheck && npm --prefix apps/web run lint && npm --prefix apps/web run build && npm --prefix apps/web test",
     "verify:admin": "npm --prefix apps/admin run typecheck && npm --prefix apps/admin run lint && npm --prefix apps/admin run build",
-    "verify:android": "cmd /d /s /c \"cd android\\moplayer && gradlew.bat --version && gradlew.bat clean && gradlew.bat test && gradlew.bat lint && gradlew.bat testSideloadDebugUnitTest && gradlew.bat assembleSideloadDebug && gradlew.bat assembleSideloadRelease\"",
-    "verify": "npm run verify:web && npm run verify:admin && npm run verify:android",
+    "verify": "npm run verify:web && npm run verify:admin",
     "release:moplayer": "node scripts/release/moplayer-local.mjs",
     "typecheck:web": "npm --prefix apps/web run typecheck",
     "typecheck:admin": "npm --prefix apps/admin run typecheck",

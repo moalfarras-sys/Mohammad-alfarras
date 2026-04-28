@@ -16,7 +16,7 @@ const inView = (delay = 0) => ({
 
 const copy = {
   en: {
-    eyebrow: "YouTube Channel",
+    eyebrow: "Media kit · YouTube Channel",
     title: "Arabic Tech Media · Built on Honesty",
     body: "Explaining SaaS tools, AI, apps, and electronics in clear Arabic — no hype, just real product clarity.",
     openChannel: "Open channel",
@@ -24,12 +24,18 @@ const copy = {
     statsTitle: "Channel reach",
     categoriesTitle: "Content pillars",
     collabTitle: "Partner with the channel",
-    collabBody: "Niche Arabic tech audience. 80%+ MENA. Decision-makers in tech and productivity.",
+    collabBody: "Arabic-speaking viewers who research before they buy. Strong fit for brands that want sober product explanation, not hype.",
     collabCta: "Get in touch",
     audienceTitle: "Audience profile",
+    audienceIntro: "Arabic-first tech viewers evaluating tools before they buy — clarity beats hype.",
+    audienceBullets: [
+      "Heavy interest in SaaS, gadgets, and productivity systems.",
+      "Many viewers ship or manage work in Arabic/English/German contexts.",
+      "Long-form explainers outperform noisy shorts for trust on this channel.",
+    ],
   },
   ar: {
-    eyebrow: "قناة يوتيوب",
+    eyebrow: "Media kit · قناة يوتيوب",
     title: "محتوى تقني عربي · يبني على الصدق",
     body: "شرح أدوات SaaS والذكاء الاصطناعي والتطبيقات والإلكترونيات بعربية واضحة — بلا مبالغة، فقط وضوح حقيقي للمنتج.",
     openChannel: "افتح القناة",
@@ -37,9 +43,15 @@ const copy = {
     statsTitle: "وصول القناة",
     categoriesTitle: "محاور المحتوى",
     collabTitle: "تعاون مع القناة",
-    collabBody: "جمهور تقني عربي متخصص. أكثر من 80% من منطقة الشرق الأوسط وشمال أفريقيا.",
+    collabBody: "جمهور يبحث قبل الشراء ويفضّل الشفافية. مناسب للعلامات التي تريد شرحاً واضحاً للمنتج دون مبالغة.",
     collabCta: "تواصل معي",
     audienceTitle: "ملف الجمهور",
+    audienceIntro: "مشاهدون عرب يقدّرون وضوح المنتج قبل الشراء — الصدق أقوى من الضجيج.",
+    audienceBullets: [
+      "اهتمام قوي بأدوات SaaS والأجهزة وأنظمة الإنتاجية.",
+      "كثير من المتابعين يعملون في سياقات عربية/إنجليزية/ألمانية.",
+      "الشروحات الطويلة تبني ثقة أكبر من المحتوى الصاخب قصير الأمد.",
+    ],
   },
 } as const;
 
@@ -69,13 +81,6 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
     { icon: <PenTool className="h-5 w-5" />, en: "Design Tools", ar: "أدوات التصميم" },
     { icon: <Wand2 className="h-5 w-5" />, en: "Marketing Tools", ar: "أدوات التسويق" },
     { icon: <Lightbulb className="h-5 w-5" />, en: "Tutorials", ar: "شروحات" },
-  ];
-
-  const audience = [
-    { label: "MENA Region", val: 80 },
-    { label: "Age 18–34", val: 75 },
-    { label: "Male Audience", val: 90 },
-    { label: "Tech Interest", val: 100 },
   ];
 
   return (
@@ -175,26 +180,16 @@ export function YoutubePageBody({ model }: { model: SiteViewModel }) {
           </motion.div>
 
           <motion.div {...inView(0.08)} className="glass-card p-10">
-            <h2 className="text-[1.4rem] font-bold text-[var(--os-text-1)] mb-8">{t.audienceTitle}</h2>
-            <div className="space-y-6">
-              {audience.map((a) => (
-                <div key={a.label}>
-                  <div className="mb-2 flex items-end justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--os-text-3)]">{a.label}</span>
-                    <span className="text-[13px] font-bold text-[var(--os-text-1)]">{a.val}%</span>
-                  </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${a.val}%` }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                      className="h-full rounded-full bg-gradient-to-r from-[var(--os-teal)] to-[var(--os-violet)]"
-                    />
-                  </div>
-                </div>
+            <h2 className="text-[1.4rem] font-bold text-[var(--os-text-1)] mb-4">{t.audienceTitle}</h2>
+            <p className="text-[14px] leading-relaxed text-[var(--os-text-2)] mb-6">{t.audienceIntro}</p>
+            <ul className="space-y-4">
+              {t.audienceBullets.map((line) => (
+                <li key={line} className="flex gap-3 text-[13px] leading-relaxed text-[var(--os-text-2)]">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--os-teal)]" aria-hidden />
+                  {line}
+                </li>
               ))}
-            </div>
+            </ul>
           </motion.div>
         </div>
       </section>

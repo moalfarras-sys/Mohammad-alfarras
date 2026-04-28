@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 
-import { AtmosphericBackground } from "@/components/layout/atmospheric-background";
 import { CookieBanner } from "@/components/layout/cookie-banner";
 import { HireMeFab } from "@/components/layout/hire-me-fab";
 import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
@@ -9,7 +8,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { getNavigation } from "@/content/navigation";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
-import { readSnapshot } from "@/lib/content/store";
+import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
 
 function siteCopy(locale: "ar" | "en") {
@@ -76,6 +75,54 @@ function safeLogoSrc(path: string | null | undefined) {
   return path;
 }
 
+type YoutubeMetricsSetting = { views?: number; subscribers?: number; videos?: number };
+
+const youtubeMetricsFallback: YoutubeMetricsSetting = {
+  views: 1494029,
+  subscribers: 6130,
+  videos: 162,
+};
+
+function formatYoutubeViewsLabel(n: number | undefined): string {
+  const v = typeof n === "number" && n > 0 ? n : youtubeMetricsFallback.views!;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M+`;
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}K+`;
+  return String(v);
+}
+
+function formatYoutubeSubsLabel(n: number | undefined): string {
+  const v = typeof n === "number" && n > 0 ? n : youtubeMetricsFallback.subscribers!;
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}K+`;
+  return String(v);
+}
+
+function buildFooterQuickFacts(locale: "ar" | "en", yt: YoutubeMetricsSetting) {
+  const videoCount =
+    typeof yt.videos === "number" && yt.videos > 0 ? yt.videos : youtubeMetricsFallback.videos!;
+  const viewsLabel = formatYoutubeViewsLabel(yt.views);
+  const arViewsCore = viewsLabel.replace(/\+$/, "").trim();
+  if (locale === "ar") {
+    return [
+      { label: "مقيم في", value: "ألمانيا" },
+      { label: "الجذور", value: "الحسكة، سوريا" },
+      { label: "اللغات", value: "العربية / الألمانية / الإنجليزية" },
+      { label: "يوتيوب", value: `+${arViewsCore} مشاهدة على يوتيوب` },
+      { label: "المشتركون", value: formatYoutubeSubsLabel(yt.subscribers) },
+      { label: "الفيديوهات", value: String(videoCount) },
+      { label: "المنتج", value: "MoPlayer" },
+    ];
+  }
+  return [
+    { label: "Based in", value: "Germany" },
+    { label: "Roots", value: "Al-Hasakah, Syria" },
+    { label: "Languages", value: "Arabic / German / English" },
+    { label: "YouTube", value: `${viewsLabel} YouTube views` },
+    { label: "Subscribers", value: formatYoutubeSubsLabel(yt.subscribers) },
+    { label: "Videos", value: String(videoCount) },
+    { label: "Product", value: "MoPlayer" },
+  ];
+}
+
 export default async function SiteLayout({
   children,
   params,
@@ -90,6 +137,8 @@ export default async function SiteLayout({
   const brandMedia = resolveBrandAssetPaths(snapshot);
   const portraitSrc = safePortraitSrc(brandMedia.profilePortrait);
   const logoSrc = safeLogoSrc(brandMedia.logo);
+  const ytMetrics = getSiteSetting(snapshot, "youtube_channel", youtubeMetricsFallback);
+  const footerQuickFacts = buildFooterQuickFacts(locale, ytMetrics);
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
   const navLinks = getNavigation(locale);
@@ -122,13 +171,20 @@ export default async function SiteLayout({
 
       <div className="liquid-site relative min-h-screen" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
         <LocaleDocumentSync locale={locale} />
+        <div className="noise-overlay" />
 
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
         <main className="pb-dock lg:pb-0">{children}</main>
         <CookieBanner locale={locale} />
         <MobileDock locale={locale} />
         <HireMeFab locale={locale} />
-        <SiteFooter locale={locale} logoSrc={logoSrc} brandName={copy.brandName} links={navLinks} />
+        <SiteFooter
+          locale={locale}
+          logoSrc={logoSrc}
+          brandName={copy.brandName}
+          links={navLinks}
+          quickFacts={footerQuickFacts}
+        />
       </div>
     </>
   );

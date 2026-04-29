@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, Box, Download, KeyRound, MonitorPlay, Play, Sparkles, Tv } from "lucide-react";
-import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { PageShell } from "@/components/ui/os-primitives";
 import { withLocale } from "@/lib/i18n";
@@ -33,7 +33,7 @@ const copy = {
         href: "apps/moplayer",
         image: "/images/moplayer-hero-3d-final.png",
         icon: "/images/moplayer-icon-512.png",
-        accent: "red",
+        accent: "metal",
       },
       {
         title: "Guided Activation",
@@ -44,7 +44,7 @@ const copy = {
         href: "activate",
         image: "/images/moplayer-tv-banner-final.png",
         icon: "/images/moplayer-brand-logo-final.png",
-        accent: "violet",
+        accent: "metal",
       },
       {
         title: "Release Center",
@@ -55,7 +55,7 @@ const copy = {
         href: "api/app/download/latest",
         image: "/images/moplayer-ui-mock-final.png",
         icon: "/images/moplayer-icon-512.png",
-        accent: "cyan",
+        accent: "metal",
       },
     ],
     flowTitle: "From interest to activation in seconds.",
@@ -91,7 +91,7 @@ const copy = {
         href: "apps/moplayer",
         image: "/images/moplayer-hero-3d-final.png",
         icon: "/images/moplayer-icon-512.png",
-        accent: "red",
+        accent: "metal",
       },
       {
         title: "التفعيل الموجّه",
@@ -102,7 +102,7 @@ const copy = {
         href: "activate",
         image: "/images/moplayer-tv-banner-final.png",
         icon: "/images/moplayer-brand-logo-final.png",
-        accent: "violet",
+        accent: "metal",
       },
       {
         title: "مركز الإصدارات",
@@ -113,7 +113,7 @@ const copy = {
         href: "api/app/download/latest",
         image: "/images/moplayer-ui-mock-final.png",
         icon: "/images/moplayer-icon-512.png",
-        accent: "cyan",
+        accent: "metal",
       },
     ],
     flowTitle: "من الاهتمام إلى التفعيل خلال ثوانٍ.",
@@ -131,23 +131,10 @@ const copy = {
 export function AppsShowcasePage({ locale }: { locale: Locale }) {
   const c = copy[locale];
   const isAr = locale === "ar";
-  const mouseX = useMotionValue(50);
-  const mouseY = useMotionValue(50);
-  const aura = useMotionTemplate`radial-gradient(circle at ${mouseX}% ${mouseY}%, rgba(255, 0, 64, .24), transparent 34%), radial-gradient(circle at 82% 18%, rgba(105, 76, 255, .18), transparent 36%)`;
 
   return (
     <PageShell className="apps-lux-page">
-      <main
-        className="apps-showcase"
-        dir={isAr ? "rtl" : "ltr"}
-        onPointerMove={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect();
-          mouseX.set(Math.round(((event.clientX - rect.left) / rect.width) * 100));
-          mouseY.set(Math.round(((event.clientY - rect.top) / rect.height) * 100));
-        }}
-      >
-        <motion.div className="apps-aura" style={{ background: aura }} aria-hidden />
-
+      <main className="apps-showcase" dir={isAr ? "rtl" : "ltr"}>
         <section className="apps-hero">
           <motion.div
             initial={{ opacity: 0, y: 24 }}

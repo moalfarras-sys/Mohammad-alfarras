@@ -2,7 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDownToLine, CheckCircle2, MonitorPlay, ShieldCheck, Tv2, Workflow } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpRight,
+  CheckCircle2,
+  Cpu,
+  Download,
+  KeyRound,
+  MonitorPlay,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Tv2,
+  Workflow,
+} from "lucide-react";
 
 import { moPlayerCopy } from "@/content/apps";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
@@ -36,53 +49,76 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   const size = formatBytes(primaryAsset?.file_size_bytes);
   const releaseDate = formatDate(locale, latest?.published_at ?? ecosystem.product.last_updated_at);
   const downloadHref = latest ? `/api/app/releases/${latest.slug}/download` : null;
-  const screenshots = ["/images/moplayer-hero-3d-final.png", "/images/moplayer-ui-mock-final.png", "/images/moplayer-tv-banner-final.png"];
+  const updateHref = "/api/app/releases/latest";
+  const screenshots = ecosystem.screenshots.length
+    ? ecosystem.screenshots
+    : [
+        { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-hero-3d-final.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
+      ];
 
   const specs = [
-    { label: t.specsLabels.version, value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
-    { label: t.specsLabels.size, value: size ?? "APK" },
-    { label: t.specsLabels.minSdk, value: `API ${ecosystem.product.android_min_sdk}` },
-    { label: t.specsLabels.targetSdk, value: `API ${ecosystem.product.android_target_sdk}` },
-    { label: t.specsLabels.abi, value: primaryAsset?.abi ?? "arm64-v8a" },
-    { label: t.specsLabels.tv, value: ecosystem.product.android_tv_ready ? "Ready" : "Android" },
+    { icon: Download, label: t.specsLabels.version, value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
+    { icon: Cpu, label: t.specsLabels.size, value: size ?? "APK" },
+    { icon: Smartphone, label: t.specsLabels.minSdk, value: `API ${ecosystem.product.android_min_sdk}` },
+    { icon: MonitorPlay, label: t.specsLabels.targetSdk, value: `API ${ecosystem.product.android_target_sdk}` },
+    { icon: Workflow, label: t.specsLabels.abi, value: primaryAsset?.abi ?? "arm64-v8a" },
+    { icon: Tv2, label: t.specsLabels.tv, value: ecosystem.product.android_tv_ready ? "Ready" : "Android" },
+  ];
+
+  const stats = [
+    { label: isAr ? "أحدث إصدار" : "Latest release", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
+    { label: isAr ? "آخر تحديث" : "Updated", value: releaseDate ?? (isAr ? "حديثًا" : "Recently") },
+    { label: isAr ? "التشغيل" : "Playback", value: "VLC / libVLC" },
+    { label: isAr ? "التلفزيون" : "TV", value: ecosystem.product.android_tv_ready ? "Ready" : "Android" },
   ];
 
   return (
-    <main className="fresh-page" dir={isAr ? "rtl" : "ltr"}>
-      <section className="fresh-hero">
-        <div className="fresh-hero-copy">
-          <p className="fresh-eyebrow">{t.badge}</p>
+    <main className="moplayer-page" dir={isAr ? "rtl" : "ltr"}>
+      <section className="moplayer-hero">
+        <div className="moplayer-hero-copy">
+          <span className="moplayer-kicker">
+            <Sparkles className="h-4 w-4" />
+            {t.badge}
+          </span>
           <h1>{t.heroTitle}</h1>
           <p>{t.heroBody}</p>
-          <div className="fresh-actions">
+          <div className="moplayer-actions">
             {downloadHref ? (
-              <Link href={downloadHref} className="fresh-button fresh-button-primary">
+              <Link href={downloadHref} className="moplayer-button moplayer-button-primary">
                 <ArrowDownToLine className="h-4 w-4" />
                 {t.download}
               </Link>
             ) : (
-              <span className="fresh-button">{t.releasePending}</span>
+              <span className="moplayer-button">{t.releasePending}</span>
             )}
-            <Link href={`/${locale}/activate`} className="fresh-button">
+            <Link href={`/${locale}/activate`} className="moplayer-button">
+              <KeyRound className="h-4 w-4" />
               {isAr ? "التفعيل" : "Activate"}
             </Link>
-            <Link href={`/${locale}/support`} className="fresh-button">
-              {t.support}
+            <Link href={updateHref} className="moplayer-button">
+              <ArrowUpRight className="h-4 w-4" />
+              {isAr ? "بيانات التحديث" : "Update info"}
             </Link>
           </div>
         </div>
-        <div className="fresh-product-visual">
-          <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer" fill sizes="(max-width: 1024px) 92vw, 520px" className="fresh-image" priority />
+
+        <div className="moplayer-device-stage">
+          <div className="moplayer-device-glow" />
+          <div className="moplayer-tv-frame">
+            <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 620px" className="moplayer-image" priority />
+          </div>
+          <div className="moplayer-floating-card">
+            <Image src="/images/moplayer-icon-512.png" alt="" width={44} height={44} />
+            <div>
+              <strong>MoPlayer</strong>
+              <span>{isAr ? "جاهز للتلفزيون والتفعيل" : "TV and activation ready"}</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="fresh-stats">
-        {[
-          { label: isAr ? "أحدث إصدار" : "Latest release", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
-          { label: isAr ? "آخر تحديث" : "Updated", value: releaseDate ?? (isAr ? "حديثا" : "Recently") },
-          { label: isAr ? "المحرك" : "Playback", value: "VLC / libVLC" },
-          { label: isAr ? "التلفزيون" : "TV", value: ecosystem.product.android_tv_ready ? "Ready" : "Android" },
-        ].map((item) => (
+      <section className="moplayer-stats">
+        {stats.map((item) => (
           <div key={item.label}>
             <span>{item.label}</span>
             <strong>{item.value}</strong>
@@ -90,112 +126,124 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         ))}
       </section>
 
-      <section className="fresh-section">
-        <div className="fresh-grid fresh-grid-4">
-          {specs.map((item) => (
-            <article key={item.label} className="fresh-card">
-              <p className="fresh-eyebrow">{item.label}</p>
-              <h3>{item.value}</h3>
-            </article>
+      <section className="moplayer-section">
+        <div className="moplayer-section-head">
+          <span className="moplayer-kicker">
+            <Cpu className="h-4 w-4" />
+            {isAr ? "معلومات الإصدار" : "Release system"}
+          </span>
+          <h2>{isAr ? "كل ما يحتاجه المستخدم قبل التحميل واضح في مكان واحد." : "Everything a user needs before downloading, clear in one place."}</h2>
+        </div>
+        <div className="moplayer-spec-grid">
+          {specs.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article key={item.label} className="moplayer-spec">
+                <Icon className="h-5 w-5" />
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="moplayer-section moplayer-showcase">
+        <div className="moplayer-section-head">
+          <span className="moplayer-kicker">
+            <MonitorPlay className="h-4 w-4" />
+            {t.featuresEyebrow}
+          </span>
+          <h2>{t.featuresTitle}</h2>
+        </div>
+        <div className="moplayer-feature-grid">
+          {t.features.map((feature, index) => {
+            const icons = [Tv2, MonitorPlay, ShieldCheck, CheckCircle2];
+            const Icon = icons[index] ?? CheckCircle2;
+            return (
+              <article key={feature.title} className="moplayer-feature-card">
+                <Icon className="h-5 w-5" />
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+              </article>
+            );
+          })}
+        </div>
+        <div className="moplayer-gallery">
+          {screenshots.slice(0, 4).map((shot, index) => (
+            <figure key={shot.id} className={index === 0 ? "is-wide" : ""}>
+              <Image src={shot.image_path} alt={shot.alt_text || shot.title || "MoPlayer screenshot"} fill sizes={index === 0 ? "(max-width: 900px) 92vw, 58vw" : "(max-width: 900px) 92vw, 28vw"} className="moplayer-image" />
+              <figcaption>{shot.title || "MoPlayer"}</figcaption>
+            </figure>
           ))}
         </div>
       </section>
 
-      <section className="fresh-section">
-        <div className="fresh-section-head">
-          <p className="fresh-eyebrow">{t.featuresEyebrow}</p>
-          <h1>{t.featuresTitle}</h1>
-        </div>
-        <div className="fresh-feature">
-          <div className="fresh-grid">
-            {t.features.map((feature, index) => {
-              const icons = [Tv2, MonitorPlay, ShieldCheck, CheckCircle2];
-              const Icon = icons[index] ?? CheckCircle2;
-              return (
-                <article key={feature.title} className="fresh-card fresh-card-quiet">
-                  <Icon className="fresh-card-icon" />
-                  <h3>{feature.title}</h3>
-                  <p>{feature.body}</p>
-                </article>
-              );
-            })}
+      <section className="moplayer-section moplayer-two-col">
+        <article className="moplayer-info-card">
+          <Workflow className="h-6 w-6" />
+          <h2>{t.philosophyTitle}</h2>
+          <p>{t.philosophy}</p>
+        </article>
+        <article className="moplayer-info-card">
+          <ShieldCheck className="h-6 w-6" />
+          <h2>{t.privacyTitle}</h2>
+          <div className="moplayer-check-list">
+            {t.privacyBullets.map((item) => (
+              <span key={item}>
+                <CheckCircle2 className="h-4 w-4" />
+                {item}
+              </span>
+            ))}
           </div>
-          <div className="fresh-grid">
-            {screenshots.map((src) => (
-              <div key={src} className="fresh-project-media fresh-gallery-tile">
-                <Image src={src} alt="MoPlayer preview" fill sizes="(max-width: 1024px) 92vw, 420px" className="fresh-image" />
-              </div>
+        </article>
+      </section>
+
+      <section className="moplayer-section moplayer-install">
+        <div>
+          <span className="moplayer-kicker">{isAr ? "خطوات التثبيت" : "Install steps"}</span>
+          <h2>{t.installTitle}</h2>
+          <div className="moplayer-step-list">
+            {t.installSteps.map((step, index) => (
+              <article key={step.title}>
+                <span>{`0${index + 1}`}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span className="moplayer-kicker">{t.faqTitle}</span>
+          <div className="moplayer-faq-list">
+            {t.faqs.map((faq) => (
+              <details key={faq.question}>
+                <summary>{faq.question}</summary>
+                <p>{faq.answer}</p>
+              </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="fresh-section">
-        <div className="fresh-grid fresh-grid-2">
-          <article className="fresh-card">
-            <Workflow className="fresh-card-icon" />
-            <h3>{t.philosophyTitle}</h3>
-            <p>{t.philosophy}</p>
-          </article>
-          <article className="fresh-card">
-            <ShieldCheck className="fresh-card-icon" />
-            <h3>{t.privacyTitle}</h3>
-            <div className="fresh-list fresh-list-compact">
-              {t.privacyBullets.map((item) => (
-                <article key={item}>
-                  <span>{item}</span>
-                </article>
-              ))}
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="fresh-section">
-        <div className="fresh-feature">
-          <div>
-            <p className="fresh-eyebrow">{isAr ? "خطوات التثبيت" : "Install steps"}</p>
-            <h2>{t.installTitle}</h2>
-            <div className="fresh-list">
-              {t.installSteps.map((step, index) => (
-                <article key={step.title}>
-                  <span>{`0${index + 1}`}</span>
-                  <h3>{step.title}</h3>
-                  <p>{step.body}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="fresh-eyebrow">{t.faqTitle}</p>
-            <div className="fresh-list">
-              {t.faqs.map((faq) => (
-                <details key={faq.question} className="fresh-disclosure">
-                  <summary>{faq.question}</summary>
-                  <p>{faq.answer}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="fresh-section">
-        <div className="fresh-card fresh-final">
-          <p className="fresh-eyebrow">{t.disclaimerTitle}</p>
-          <h3>{t.finalTitle}</h3>
-          <p>{t.finalBody}</p>
-          <div className="fresh-actions">
-            {downloadHref ? (
-              <Link href={downloadHref} className="fresh-button fresh-button-primary">
-                <ArrowDownToLine className="h-4 w-4" />
-                {t.download}
-              </Link>
-            ) : null}
-            <Link href={`/${locale}/support`} className="fresh-button">
-              {t.support}
+      <section className="moplayer-final">
+        <span className="moplayer-kicker">{t.disclaimerTitle}</span>
+        <h2>{t.finalTitle}</h2>
+        <p>{t.finalBody}</p>
+        <div className="moplayer-actions">
+          {downloadHref ? (
+            <Link href={downloadHref} className="moplayer-button moplayer-button-primary">
+              <ArrowDownToLine className="h-4 w-4" />
+              {t.download}
             </Link>
-          </div>
+          ) : null}
+          <Link href={`/${locale}/activate`} className="moplayer-button">
+            <KeyRound className="h-4 w-4" />
+            {isAr ? "فعّل التطبيق" : "Activate the app"}
+          </Link>
+          <Link href={`/${locale}/support`} className="moplayer-button">
+            {t.support}
+          </Link>
         </div>
       </section>
     </main>

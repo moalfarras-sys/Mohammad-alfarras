@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Menu, Moon, Sparkles, Sun } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, Send, Sparkles, Sun, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,6 +14,15 @@ import { MobileMenuDrawer } from "./mobile-menu-drawer";
 import { useThemeMode } from "./use-theme-mode";
 
 type NavLink = { id: string; label: string; href: string };
+
+const dockIcons = {
+  home: Home,
+  work: BriefcaseBusiness,
+  apps: MonitorPlay,
+  youtube: Sparkles,
+  cv: UserRound,
+  contact: Send,
+} as const;
 
 export function SiteNavbar({
   locale,
@@ -104,6 +113,22 @@ export function SiteNavbar({
         links={links}
         pathname={pathname}
       />
+
+      <nav className="mobile-bottom-dock" aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
+        {links.slice(0, 6).map((item) => {
+          const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Sparkles;
+          const active =
+            item.href === `/${locale}`
+              ? pathname === `/${locale}` || pathname === `/${locale}/`
+              : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+          return (
+            <Link key={item.id} href={item.href} className={active ? "mobile-dock-link mobile-dock-link-active" : "mobile-dock-link"} aria-label={item.label}>
+              <Icon size={18} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </>
   );
 }

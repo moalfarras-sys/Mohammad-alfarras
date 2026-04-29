@@ -68,7 +68,7 @@ function copy(locale: Locale) {
         description: ar
           ? "منظومة منتج تجمع تطبيق Android TV، التفعيل، مصادر IPTV، الإصدارات، والدعم ضمن تجربة واضحة."
           : "A product ecosystem connecting Android TV, activation, IPTV sources, release flow, and support into one clear experience.",
-        image: "/images/moplayer-hero-3d-final.png",
+        image: "/images/moplayer-tv-banner-final.png",
         href: withLocale(locale, "apps/moplayer"),
         categories: ["all", "apps"],
         tags: ["Android TV", "IPTV", "Activation", "Product UI"],

@@ -1397,7 +1397,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
     <InteractiveCvPage
       locale={model.locale}
       profileName={model.profile.name}
-      portrait={model.portraitImage || "/images/protofeilnew.jpeg"}
+      portrait="/images/portrait.jpg"
       downloads={{ branded: model.downloads.branded, docx: model.downloads.docx }}
       stats={{ views, subscribers, videos }}
       experience={model.cvExperience}

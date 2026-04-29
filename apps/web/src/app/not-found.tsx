@@ -1,230 +1,94 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowUpRight, Compass, Home, Languages, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Home } from "lucide-react";
 
-const particles = [
-  { id: 0, x: 8, y: 18, size: 3, delay: 0.1, duration: 7 },
-  { id: 1, x: 22, y: 30, size: 4, delay: 1.2, duration: 8 },
-  { id: 2, x: 37, y: 14, size: 2, delay: 0.5, duration: 6 },
-  { id: 3, x: 48, y: 42, size: 5, delay: 2.2, duration: 9 },
-  { id: 4, x: 61, y: 24, size: 3, delay: 1.7, duration: 7.5 },
-  { id: 5, x: 72, y: 52, size: 4, delay: 0.9, duration: 8.5 },
-  { id: 6, x: 83, y: 20, size: 2, delay: 2.8, duration: 6.5 },
-  { id: 7, x: 15, y: 68, size: 4, delay: 0.3, duration: 7.2 },
-  { id: 8, x: 31, y: 78, size: 3, delay: 1.6, duration: 8.1 },
-  { id: 9, x: 55, y: 72, size: 2, delay: 2.4, duration: 6.8 },
-  { id: 10, x: 69, y: 84, size: 5, delay: 1.1, duration: 9.3 },
-  { id: 11, x: 88, y: 64, size: 3, delay: 0.7, duration: 7.7 },
+const nodes = [
+  ["Home", "/en"],
+  ["Work", "/en/work"],
+  ["MoPlayer", "/en/apps/moplayer"],
+  ["YouTube", "/en/youtube"],
+  ["CV", "/en/cv"],
+  ["Contact", "/en/contact"],
 ] as const;
 
 export default function GlobalNotFound() {
   return (
-    <section
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20"
-      style={{ background: "var(--background)" }}
-    >
-      {/* Animated background orbs */}
+    <main className="not-found-os">
+      <div className="not-found-grid" aria-hidden="true" />
       <motion.div
-        aria-hidden
-        animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute left-1/4 top-1/4 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ background: "radial-gradient(circle, rgba(91,124,255,0.34), transparent 70%)" }}
+        className="not-found-orb not-found-orb-a"
+        animate={{ scale: [1, 1.18, 1], opacity: [0.28, 0.46, 0.28] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        aria-hidden
-        animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.2, 0.12] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="pointer-events-none absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full blur-[100px]"
-        style={{ background: "radial-gradient(circle, rgba(244,184,96,0.32), transparent 70%)" }}
-      />
-      <motion.div
-        aria-hidden
-        animate={{ x: [0, 30, 0], opacity: [0.08, 0.14, 0.08] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-1/3 left-1/3 h-[300px] w-[300px] rounded-full blur-[80px]"
-        style={{ background: "radial-gradient(circle, rgba(255,122,144,0.24), transparent 70%)" }}
+        className="not-found-orb not-found-orb-b"
+        animate={{ x: [0, 28, 0], y: [0, -18, 0], opacity: [0.18, 0.34, 0.18] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Floating particles */}
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          aria-hidden
-          className="pointer-events-none absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
-            background: p.id % 3 === 0 ? "var(--primary)" : p.id % 3 === 1 ? "var(--secondary)" : "var(--accent)",
-            boxShadow: `0 0 ${p.size * 3}px currentColor`,
-            opacity: 0.4,
-          }}
-          animate={{
-            y: [0, -40, 0],
-            opacity: [0.2, 0.6, 0.2],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-
-      <div className="relative z-10 mx-auto max-w-2xl text-center">
-
-        {/* Logo with rings */}
-        <div className="relative mx-auto mb-12 flex h-28 w-28 items-center justify-center">
-          {/* Outer ring — slow spin */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-            style={{
-              border: "2px dashed rgba(91,124,255,0.28)",
-            }}
-          />
-          {/* Middle ring — opposite spin */}
-          <motion.div
-            className="absolute inset-3 rounded-full"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            style={{
-              border: "1px solid rgba(244,184,96,0.24)",
-            }}
-          />
-          {/* Inner glow card */}
-          <motion.div
-            animate={{ y: [0, -6, 0], scale: [1, 1.04, 1] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="relative flex h-16 w-16 items-center justify-center rounded-2xl"
-            style={{
-              background: "linear-gradient(135deg, rgba(91,124,255,0.14), rgba(244,184,96,0.11))",
-              border: "1px solid rgba(91,124,255,0.3)",
-              boxShadow: "0 0 40px rgba(91,124,255,0.2), 0 0 80px rgba(244,184,96,0.12)",
-            }}
-          >
-            <Image
-              src="/images/logo.png"
-              alt="Moalfarras"
-              width={54}
-              height={44}
-              className="object-contain"
-            />
-          </motion.div>
+      <section className="not-found-card">
+        <div className="not-found-logo">
+          <motion.span animate={{ rotate: 360 }} transition={{ duration: 18, repeat: Infinity, ease: "linear" }} />
+          <Image src="/images/logo.png" alt="Mohammad Alfarras logo" width={74} height={74} priority />
         </div>
 
-        {/* Neon 404 */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.7, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <motion.span
-            animate={{
-              textShadow: [
-                "0 0 30px rgba(91,124,255,0.5), 0 0 80px rgba(91,124,255,0.2)",
-                "0 0 60px rgba(91,124,255,0.72), 0 0 120px rgba(244,184,96,0.28)",
-                "0 0 30px rgba(91,124,255,0.5), 0 0 80px rgba(91,124,255,0.2)",
-              ],
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="block text-[7rem] font-black leading-none md:text-[9rem]"
-            style={{
-              background: "linear-gradient(135deg, #5B7CFF 0%, #F4B860 62%, #FF7A90 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              fontFamily: "var(--font-brand)",
-            }}
-          >
-            404
-          </motion.span>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.7 }}
-          className="mt-6 space-y-4"
-        >
-          <h1
-            className="mx-auto max-w-lg text-2xl font-bold leading-relaxed text-foreground md:text-3xl"
-            dir="rtl"
-          >
-            الصفحة التي تبحث عنها{" "}
-            <motion.span
-              animate={{ color: ["var(--secondary)", "var(--accent)", "var(--secondary)"] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              غادرت بدون إشعار مسبق
-            </motion.span>
-          </h1>
-          <p className="mx-auto max-w-md text-base leading-8 text-foreground-muted" dir="rtl">
-            ربما حُذفت، أو ربما الرابط كُتب خطأ. في كلتا الحالتين، الطريق للأمام موجود تحت هذا السطر.
-          </p>
-        </motion.div>
-
-        {/* Glowing divider */}
-        <motion.div
-          initial={{ scaleX: 0, opacity: 0 }}
-          animate={{ scaleX: 1, opacity: 1 }}
-          transition={{ delay: 0.5, duration: 1 }}
-          className="mx-auto my-10 h-px w-56"
-          style={{ background: "linear-gradient(90deg, transparent, #5B7CFF, #F4B860, transparent)" }}
-        />
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-wrap items-center justify-center gap-4"
-        >
-          <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.04, y: -2 }}>
-            <Link
-              href="/ar"
-              className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-bold text-black transition duration-300"
-              style={{
-                background: "linear-gradient(135deg, #5B7CFF, #F4B860)",
-                boxShadow: "0 0 40px rgba(91,124,255,0.28), 0 8px 32px rgba(0,0,0,0.3)",
-              }}
-            >
-              <Home className="h-4 w-4" />
-              العودة للرئيسية
-            </Link>
-          </motion.div>
-
-          <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.04, y: -2 }}>
-            <Link
-              href="/en"
-              className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold text-foreground transition duration-300"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(91,124,255,0.25)",
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              English
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        {/* Bottom tagline */}
         <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="mt-12 text-xs font-semibold uppercase tracking-[0.3em] text-foreground-soft"
+          className="fresh-eyebrow"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
         >
-          Moalfarras · Developer · Germany
+          <Compass size={15} />
+          Lost signal / إشارة مفقودة
         </motion.p>
-      </div>
-    </section>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 24, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+        >
+          404
+        </motion.h1>
+
+        <div className="not-found-copy">
+          <h2>The page stepped outside the Digital OS.</h2>
+          <p>
+            The link may be old, moved, or mistyped. Choose a stable route below and get back to the useful part of the system.
+          </p>
+          <h2 dir="rtl">هذه الصفحة خرجت من النظام الرقمي.</h2>
+          <p dir="rtl">
+            ربما تغيّر الرابط أو كُتب بشكل غير صحيح. اختر مسارًا واضحًا من الأسفل وعد إلى التجربة الأساسية.
+          </p>
+        </div>
+
+        <div className="not-found-actions">
+          <Link href="/en" className="fresh-button fresh-button-primary magnetic-surface">
+            <Home size={17} />
+            English home
+          </Link>
+          <Link href="/ar" className="fresh-button magnetic-surface">
+            <Languages size={17} />
+            الرئيسية العربية
+          </Link>
+          <button type="button" className="fresh-button magnetic-surface" onClick={() => window.history.back()}>
+            <RotateCcw size={17} />
+            Go back
+          </button>
+        </div>
+
+        <div className="not-found-routes">
+          {nodes.map(([node, href], index) => (
+            <Link key={node} href={href} className="magnetic-surface">
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              {node}
+              <ArrowUpRight size={14} />
+            </Link>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }

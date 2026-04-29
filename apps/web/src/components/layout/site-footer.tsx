@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUp } from "lucide-react";
 
 import { socialLinks } from "@/content/site";
 import type { Locale } from "@/types/cms";
@@ -35,6 +36,7 @@ export function SiteFooter({
     <footer className="site-footer-wrap mt-20 pb-8" dir={isAr ? "rtl" : "ltr"}>
       <div className="section-frame">
         <div className="fresh-footer">
+          <div className="fresh-footer-aurora" aria-hidden="true" />
           <div className="fresh-footer-brand">
             <span className="fresh-brand-mark">
               <Image src={logoSrc || "/images/logo.png"} alt={brandName} width={52} height={52} className="fresh-brand-logo" />
@@ -89,6 +91,9 @@ export function SiteFooter({
           <div className="fresh-footer-bottom">
             <p>{`Copyright ${year} ${brandName}`}</p>
             <Link href={`/${locale}/privacy`}>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
+            <a href="#top" className="fresh-footer-top" aria-label={isAr ? "العودة للأعلى" : "Back to top"}>
+              <ArrowUp size={16} />
+            </a>
           </div>
         </div>
       </div>

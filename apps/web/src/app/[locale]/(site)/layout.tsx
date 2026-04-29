@@ -179,7 +179,7 @@ export default async function SiteLayout({
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
 
-      <div className="liquid-site relative min-h-screen" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+      <div id="top" className="liquid-site relative min-h-screen" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
         <LocaleDocumentSync locale={locale} />
         <div className="noise-overlay" />
         <DigitalOsClientEffects />

@@ -11,12 +11,12 @@ const seoCopy = {
       title: "محمد الفراس | مطور ويب ومصمم واجهات وصانع MoPlayer في ألمانيا",
       description:
         "محمد الفراس: مطور ويب ومصمم UI/UX وباني MoPlayer وصانع محتوى تقني عربي في ألمانيا، يحوّل الخبرة اللوجستية إلى مواقع وتطبيقات واضحة وسريعة الثقة.",
-      image: "/images/protofeilnew.jpeg",
+      image: "/images/hero_tech.png",
     },
     cv: {
       title: "السيرة الذاتية | محمد الفراس",
       description: "خبرة عملية تجمع اللوجستيات، تطوير الويب، وبناء المنتجات مع سرد بصري واضح بالعربية والإنجليزية.",
-      image: "/images/protofeilnew.jpeg",
+      image: "/images/portrait.jpg",
     },
     work: {
       title: "الأعمال | محمد الفراس",
@@ -26,12 +26,12 @@ const seoCopy = {
     youtube: {
       title: "يوتيوب | محمد الفراس",
       description: "قناة تقنية عربية تبني جمهورًا بالوضوح والشرح الهادئ، وتكمل نفس الهوية التي يقدمها الموقع والمنتج.",
-      image: "/images/hero-profile-bg.png",
+      image: "/images/yt-channel-hero.png",
     },
     contact: {
       title: "تواصل | محمد الفراس",
       description: "تواصل مباشر لمواقع الويب، صفحات التعريف، المنتجات الرقمية، وإعادة صياغة الحضور البصري بشكل أوضح وأكثر ثقة.",
-      image: "/images/hero_tech.png",
+      image: "/images/service_tech.png",
     },
     privacy: {
       title: "الخصوصية | محمد الفراس",
@@ -61,12 +61,12 @@ const seoCopy = {
       title: "Mohammad Alfarras | Web developer, UI/UX designer, and MoPlayer builder in Germany",
       description:
         "Syrian-German web developer, UI/UX designer, Android/MoPlayer builder, Arabic tech creator, and logistics professional turning real operations into clear digital experiences.",
-      image: "/images/protofeilnew.jpeg",
+      image: "/images/hero_tech.png",
     },
     cv: {
       title: "CV | Mohammad Alfarras",
       description: "A practical profile spanning logistics discipline, frontend execution, product thinking, and bilingual communication.",
-      image: "/images/protofeilnew.jpeg",
+      image: "/images/portrait.jpg",
     },
     work: {
       title: "Work | Mohammad Alfarras",
@@ -77,12 +77,12 @@ const seoCopy = {
     youtube: {
       title: "YouTube | Mohammad Alfarras",
       description: "Arabic tech content that extends the same brand language: clearer explanation, stronger presence, and long-term audience trust.",
-      image: "/images/hero-profile-bg.png",
+      image: "/images/yt-channel-hero.png",
     },
     contact: {
       title: "Contact | Mohammad Alfarras",
       description: "Direct contact for web projects, product pages, redesigns, and digital presentation work.",
-      image: "/images/hero_tech.png",
+      image: "/images/service_tech.png",
     },
     privacy: {
       title: "Privacy | Mohammad Alfarras",
@@ -156,7 +156,6 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
           width: 1200,
           height: 630,
           alt: copy.title,
-          type: "image/jpeg",
         },
       ],
     },

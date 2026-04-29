@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Boxes, Code2, Filter, MonitorPlay, PlayCircle, Truck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { type CSSProperties, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { withLocale } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
@@ -267,10 +267,8 @@ function ProjectCard({
   hovered: boolean;
   onHover: (id: string | null) => void;
 }) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const Icon = toneIcon[project.tone];
   const external = project.href.startsWith("http");
-  const style = { "--tilt-x": `${tilt.x}px`, "--tilt-y": `${tilt.y}px` } as CSSProperties;
 
   return (
     <motion.article
@@ -282,18 +280,7 @@ function ProjectCard({
       transition={{ type: "spring", stiffness: 140, damping: 22, delay: index * 0.025 }}
       className={`work-project-card work-card-${project.tone} ${project.featured ? "work-project-featured" : ""} ${hovered ? "work-project-hovered" : ""}`}
       onMouseEnter={() => onHover(project.id)}
-      onMouseLeave={() => {
-        onHover(null);
-        setTilt({ x: 0, y: 0 });
-      }}
-      onMouseMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        setTilt({
-          x: ((event.clientX - rect.left) / rect.width - 0.5) * 18,
-          y: ((event.clientY - rect.top) / rect.height - 0.5) * 18,
-        });
-      }}
-      style={style}
+      onMouseLeave={() => onHover(null)}
     >
       <div className="work-card-chrome">
         <div>

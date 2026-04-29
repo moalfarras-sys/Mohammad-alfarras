@@ -18,7 +18,7 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
-import { AnimatePresence, motion, useMotionTemplate, useMotionValue } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn";
@@ -166,9 +166,6 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
   const [playlistUrl, setPlaylistUrl] = useState("");
   const [epgUrl, setEpgUrl] = useState("");
 
-  const mouseX = useMotionValue(50);
-  const mouseY = useMotionValue(50);
-  const aura = useMotionTemplate`radial-gradient(circle at ${mouseX}% ${mouseY}%, rgba(255, 35, 91, .22), transparent 35%), radial-gradient(circle at 82% 12%, rgba(104, 79, 255, .18), transparent 34%), radial-gradient(circle at 20% 90%, rgba(55, 220, 255, .14), transparent 30%)`;
   const fullCode = `MO-${code}`;
 
   const statusMeta = useMemo(() => {
@@ -257,16 +254,8 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
   const steps = [t.productStep, t.loginStep, t.codeStep];
 
   return (
-    <main
-      className="activation-lux"
-      dir={isAr ? "rtl" : "ltr"}
-      onPointerMove={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        mouseX.set(Math.round(((event.clientX - rect.left) / rect.width) * 100));
-        mouseY.set(Math.round(((event.clientY - rect.top) / rect.height) * 100));
-      }}
-    >
-      <motion.div className="activation-aura" style={{ background: aura }} aria-hidden />
+    <main className="activation-lux" dir={isAr ? "rtl" : "ltr"}>
+      <div className="activation-aura" aria-hidden />
       <section className="activation-hero">
         <div className="activation-copy">
           <Link href={withLocale(locale, "apps")} className="activation-back">

@@ -4083,20 +4083,18 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .work-project-card {
-  --card-tone: var(--os-cyan);
   position: relative;
   grid-column: span 3;
   min-height: 610px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--card-tone) 18%, var(--os-glass-border));
+  border: 1px solid rgba(220, 235, 255, 0.12);
   border-radius: 30px;
   padding: 18px;
   background:
-    radial-gradient(circle at calc(50% + var(--tilt-x, 0px)) calc(10% + var(--tilt-y, 0px)), color-mix(in srgb, var(--card-tone) 22%, transparent), transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.074), rgba(255, 255, 255, 0.016)),
     color-mix(in srgb, var(--os-surface-strong) 88%, transparent);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34);
-  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease, background 220ms ease;
 }
 
 .work-project-featured {
@@ -4104,18 +4102,17 @@ html[dir="rtl"] .fresh-section-head h1,
   min-height: 700px;
 }
 
-.work-card-cyan { --card-tone: var(--os-cyan); }
-.work-card-red { --card-tone: #ff3131; }
-.work-card-violet { --card-tone: var(--os-violet); }
-.work-card-gold { --card-tone: var(--os-gold); }
-
 .work-project-hovered,
 .work-project-card:hover {
-  border-color: color-mix(in srgb, var(--card-tone) 58%, var(--os-glass-border));
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(220, 235, 255, 0.3);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.086), rgba(255, 255, 255, 0.022)),
+    color-mix(in srgb, var(--os-surface-strong) 90%, transparent);
   box-shadow:
     0 34px 120px rgba(0, 0, 0, 0.42),
-    0 0 0 1px color-mix(in srgb, var(--card-tone) 18%, transparent),
-    0 0 70px color-mix(in srgb, var(--card-tone) 18%, transparent);
+    0 0 0 1px rgba(220, 235, 255, 0.1),
+    0 0 54px rgba(180, 210, 238, 0.07);
 }
 
 .work-card-chrome {
@@ -4139,16 +4136,15 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .work-card-chrome svg {
-  color: var(--card-tone);
+  color: rgba(205, 231, 255, 0.86);
 }
 
 .work-mockup {
   position: relative;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--card-tone) 24%, var(--os-glass-border));
+  border: 1px solid rgba(220, 235, 255, 0.14);
   border-radius: 24px;
   background: #050812;
-  transform: translate3d(calc(var(--tilt-x, 0px) * 0.22), calc(var(--tilt-y, 0px) * 0.22), 0);
   transition: transform 300ms ease;
 }
 
@@ -4159,7 +4155,7 @@ html[dir="rtl"] .fresh-section-head h1,
 .work-mockup-tv {
   aspect-ratio: 16 / 9;
   border-radius: 28px;
-  box-shadow: 0 18px 80px color-mix(in srgb, var(--card-tone) 16%, transparent);
+  box-shadow: 0 18px 80px rgba(0, 0, 0, 0.3);
 }
 
 .work-mockup-phone {
@@ -4174,7 +4170,7 @@ html[dir="rtl"] .fresh-section-head h1,
   height: 34px;
   align-items: center;
   gap: 7px;
-  border-bottom: 1px solid color-mix(in srgb, var(--card-tone) 18%, transparent);
+  border-bottom: 1px solid rgba(220, 235, 255, 0.1);
   padding: 0 12px;
   background: rgba(255, 255, 255, 0.045);
 }
@@ -4187,7 +4183,7 @@ html[dir="rtl"] .fresh-section-head h1,
   width: 9px;
   height: 9px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--card-tone) 50%, #fff);
+  background: rgba(220, 235, 255, 0.58);
 }
 
 .work-mockup-toolbar small {
@@ -4213,13 +4209,13 @@ html[dir="rtl"] .fresh-section-head h1,
 .work-project-image {
   object-fit: cover;
   object-position: top center;
-  transform: scale(1.01) translate3d(calc(var(--tilt-x, 0px) * -0.18), calc(var(--tilt-y, 0px) * -0.18), 0);
+  transform: scale(1.01);
   transition: transform 850ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 420ms ease;
 }
 
 .work-project-card:hover .work-project-image {
-  transform: scale(1.08) translate3d(calc(var(--tilt-x, 0px) * -0.28), calc(var(--tilt-y, 0px) * -0.28), 0);
-  filter: saturate(1.12) contrast(1.05);
+  transform: scale(1.055);
+  filter: saturate(1.03) contrast(1.03);
 }
 
 .work-image-overlay {
@@ -4230,7 +4226,7 @@ html[dir="rtl"] .fresh-section-head h1,
   gap: 8px;
   background:
     linear-gradient(180deg, transparent, rgba(3, 7, 16, 0.72)),
-    radial-gradient(circle at 50% 54%, color-mix(in srgb, var(--card-tone) 26%, transparent), transparent 44%);
+    linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.08), transparent);
   color: var(--os-text);
   font-weight: 950;
   opacity: 0;
@@ -4276,10 +4272,10 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .work-card-tags span {
-  border: 1px solid color-mix(in srgb, var(--card-tone) 28%, var(--os-glass-border));
+  border: 1px solid rgba(220, 235, 255, 0.14);
   border-radius: 999px;
   padding: 7px 10px;
-  background: color-mix(in srgb, var(--card-tone) 8%, transparent);
+  background: rgba(255, 255, 255, 0.045);
   color: var(--os-text-muted);
   font-size: 0.72rem;
   font-weight: 900;
@@ -4290,7 +4286,7 @@ html[dir="rtl"] .fresh-section-head h1,
   align-items: center;
   gap: 8px;
   margin-top: 20px;
-  color: color-mix(in srgb, var(--card-tone) 78%, var(--os-text));
+  color: rgba(220, 235, 255, 0.88);
   font-weight: 950;
 }
 
@@ -5609,18 +5605,14 @@ html[dir="rtl"] .fresh-section-head h1,
 .contact-social-card::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -34%;
   border-radius: inherit;
   pointer-events: none;
-  padding: 1px;
-  background: conic-gradient(from var(--beam-angle, 0deg), transparent 0 62%, color-mix(in srgb, var(--os-cyan) 58%, transparent), color-mix(in srgb, var(--os-violet) 48%, transparent), transparent 78% 100%);
+  background: linear-gradient(105deg, transparent 34%, rgba(255, 255, 255, 0.12) 48%, rgba(210, 230, 255, 0.08) 52%, transparent 66%);
   opacity: 0;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  transition: opacity var(--os-motion-normal);
-  animation: borderBeam 6s linear infinite;
+  transform: translateX(-64%) rotate(8deg);
+  mix-blend-mode: screen;
+  transition: opacity 260ms ease, transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fresh-card:hover::after,
@@ -5630,6 +5622,19 @@ html[dir="rtl"] .fresh-section-head h1,
 .cv-experience-card:hover::after,
 .contact-social-card:hover::after {
   opacity: 1;
+  transform: translateX(64%) rotate(8deg);
+}
+
+.fresh-card:hover,
+.fresh-project:hover,
+.fresh-feature:hover,
+.cv-experience-card:hover,
+.contact-social-card:hover {
+  border-color: rgba(220, 235, 255, 0.24);
+  box-shadow:
+    var(--os-shadow-soft),
+    0 0 0 1px rgba(220, 235, 255, 0.08),
+    0 24px 72px rgba(0, 0, 0, 0.32);
 }
 
 .not-found-os {
@@ -5740,16 +5745,6 @@ html[dir="rtl"] .fresh-section-head h1,
   font-weight: 950;
 }
 
-@keyframes borderBeam {
-  to { --beam-angle: 360deg; }
-}
-
-@property --beam-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
 @keyframes footerLogoFloat {
   0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 0 transparent); }
   50% { transform: translateY(-4px); filter: drop-shadow(0 0 18px color-mix(in srgb, var(--os-cyan) 26%, transparent)); }
@@ -5764,7 +5759,6 @@ html[dir="rtl"] .fresh-section-head h1,
   .work-project-card::after,
   .cv-experience-card::after,
   .contact-social-card::after {
-    animation: none !important;
     transition: none !important;
   }
 }
@@ -5822,9 +5816,9 @@ html[dir="rtl"] .fresh-section-head h1,
 
 .activation-lux {
   background:
-    radial-gradient(circle at 12% 10%, rgba(255, 32, 83, 0.12), transparent 34rem),
-    radial-gradient(circle at 86% 18%, rgba(104, 80, 255, 0.18), transparent 36rem),
-    linear-gradient(180deg, #050507 0%, #090a12 46%, #050507 100%);
+    radial-gradient(circle at 12% 10%, rgba(190, 220, 255, 0.08), transparent 34rem),
+    radial-gradient(circle at 86% 18%, rgba(255, 255, 255, 0.055), transparent 36rem),
+    linear-gradient(180deg, #050607 0%, #090d13 46%, #050607 100%);
 }
 
 .activation-lux {
@@ -5838,8 +5832,11 @@ html[dir="rtl"] .fresh-section-head h1,
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  opacity: 0.86;
-  filter: blur(8px);
+  opacity: 0.44;
+  filter: blur(10px);
+  background:
+    radial-gradient(circle at 18% 16%, rgba(190, 220, 255, 0.09), transparent 35rem),
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.045), transparent 34rem);
 }
 
 .apps-showcase::before,
@@ -6088,6 +6085,12 @@ html[dir="rtl"] .apps-hero-copy h1,
   background:
     radial-gradient(circle, rgba(210, 232, 255, 0.12), transparent 58%),
     conic-gradient(from 120deg, rgba(255, 255, 255, 0.18), rgba(92, 128, 160, 0.16), rgba(48, 218, 255, 0.1), rgba(255, 255, 255, 0.18));
+}
+
+.activation-device::before {
+  background:
+    radial-gradient(circle, rgba(210, 232, 255, 0.12), transparent 58%),
+    conic-gradient(from 120deg, rgba(255, 255, 255, 0.16), rgba(92, 128, 160, 0.14), rgba(48, 218, 255, 0.08), rgba(255, 255, 255, 0.16));
 }
 
 @keyframes apps-orbit {
@@ -6432,8 +6435,8 @@ html[dir="rtl"] .apps-section-head h2,
 }
 
 .activation-step.is-active {
-  border-color: rgba(255, 67, 113, 0.46);
-  background: rgba(255, 33, 82, 0.14);
+  border-color: rgba(220, 235, 255, 0.3);
+  background: rgba(220, 235, 255, 0.1);
   color: #fff;
 }
 
@@ -6464,7 +6467,7 @@ html[dir="rtl"] .apps-section-head h2,
   display: grid;
   place-items: center;
   border-radius: 1.6rem;
-  background: radial-gradient(circle, rgba(255, 36, 88, 0.24), transparent 16rem), rgba(255, 255, 255, 0.06);
+  background: radial-gradient(circle, rgba(210, 232, 255, 0.12), transparent 16rem), rgba(255, 255, 255, 0.06);
 }
 
 .activation-product-visual img {
@@ -6476,11 +6479,11 @@ html[dir="rtl"] .apps-section-head h2,
 .activation-product-visual svg {
   position: absolute;
   color: #fff;
-  filter: drop-shadow(0 0 26px rgba(255, 42, 92, 0.6));
+  filter: drop-shadow(0 0 22px rgba(210, 232, 255, 0.22));
 }
 
 .activation-product-card > div > span {
-  color: #ff5e82;
+  color: rgba(210, 232, 255, 0.82);
   font-size: 0.78rem;
   font-weight: 950;
   letter-spacing: 0.08em;
@@ -6548,7 +6551,7 @@ html[dir="rtl"] .apps-section-head h2,
   min-height: 130px;
   margin-bottom: 1rem;
   border-radius: 1.3rem;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 51, 104, 0.3), transparent 16rem), rgba(0, 0, 0, 0.36);
+  background: radial-gradient(circle at 50% 50%, rgba(210, 232, 255, 0.14), transparent 16rem), rgba(0, 0, 0, 0.36);
   color: #fff;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: clamp(2.5rem, 7vw, 5rem);
@@ -6680,8 +6683,8 @@ html[dir="rtl"] .apps-section-head h2,
 }
 
 .activation-segments button.is-active {
-  border-color: rgba(255, 74, 119, 0.44);
-  background: rgba(255, 38, 91, 0.18);
+  border-color: rgba(220, 235, 255, 0.3);
+  background: rgba(220, 235, 255, 0.1);
   color: #fff;
 }
 
@@ -7222,6 +7225,83 @@ html[dir="rtl"] .apps-section-head h2,
     radial-gradient(circle at 20% 10%, rgba(220,238,255,0.11), transparent 30rem),
     radial-gradient(circle at 80% 20%, rgba(70,220,255,0.08), transparent 28rem),
     rgba(255,255,255,0.07);
+}
+
+/* Final neutral metallic card reset: no colorful moving blobs on text cards. */
+.fresh-card,
+.fresh-project,
+.fresh-feature,
+.work-project-card,
+.cv-experience-card,
+.contact-social-card,
+.apps-card,
+.moplayer-feature-card,
+.moplayer-info-card,
+.moplayer-spec,
+.moplayer-step-list article,
+.moplayer-faq-list details,
+.yt-stat-card,
+.yt-video-card,
+.yt-playlist-card {
+  border-color: rgba(220, 235, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.022)),
+    rgba(8, 12, 18, 0.72);
+}
+
+.fresh-card::before,
+.fresh-project::before,
+.fresh-feature::before,
+.contact-social-card::before,
+.contact-orbit-card::after,
+.contact-form-panel::after,
+.os-mode-card::after,
+.cv-experience-card::before {
+  background:
+    linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.055), transparent) !important;
+  opacity: 0.42;
+}
+
+.work-project-card,
+.fresh-card,
+.fresh-project,
+.fresh-feature,
+.cv-experience-card,
+.contact-social-card,
+.apps-card,
+.moplayer-feature-card,
+.moplayer-info-card {
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+
+.work-project-card:hover,
+.fresh-card:hover,
+.fresh-project:hover,
+.fresh-feature:hover,
+.cv-experience-card:hover,
+.contact-social-card:hover,
+.apps-card:hover,
+.moplayer-feature-card:hover,
+.moplayer-info-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(220, 235, 255, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 28px 86px rgba(0, 0, 0, 0.34),
+    0 0 42px rgba(180, 210, 238, 0.06);
+}
+
+.contact-social-card:hover::before,
+.os-mode-card:hover::after {
+  opacity: 0.52;
+}
+
+.activation-button-primary,
+.apps-showcase .apps-button-primary,
+.moplayer-button-primary {
+  border-color: rgba(220, 235, 255, 0.3);
+  background: linear-gradient(135deg, rgba(235, 245, 255, 0.2), rgba(93, 126, 156, 0.24));
+  box-shadow: 0 20px 62px rgba(145, 190, 230, 0.12);
 }
 
 @media (max-width: 980px) {

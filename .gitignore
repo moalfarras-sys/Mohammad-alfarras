@@ -40,6 +40,10 @@ local.properties
 # Local QA screenshots / automation artifacts (not versioned)
 artifacts/
 
+# Large universal MoPlayer APK is published through release metadata / external hosting,
+# not bundled into Vercel public output.
+apps/web/public/downloads/moplayer/app-sideload-universal-release.apk
+
 # One-off local scripts (password tests / ad-hoc edits) — do not commit
 /check_hash.js
 /fix_footer.js

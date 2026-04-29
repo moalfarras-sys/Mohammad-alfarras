@@ -1,5 +1,7 @@
 package com.mo.moplayer.ui.home
 
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -41,6 +43,7 @@ import com.mo.moplayer.ui.series.SeriesActivity
 import com.mo.moplayer.ui.search.SearchActivity
 import com.mo.moplayer.ui.settings.SettingsActivity
 import com.mo.moplayer.util.BackgroundManager
+import com.mo.moplayer.util.CrashGuard
 import com.mo.moplayer.util.SmartRefreshManager
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
@@ -211,6 +214,9 @@ class HomeActivity : BaseTvActivity() {
             startupHandler.postDelayed({
                 startSilentRefreshIfNeeded()
             }, 6000L)
+            startupHandler.postDelayed({
+                CrashGuard.markStable(this@HomeActivity)
+            }, 12_000L)
         }
     }
 
@@ -279,6 +285,9 @@ class HomeActivity : BaseTvActivity() {
             binding.tvPreviewTitle.text = message
             binding.tvPreviewDescription.text = "Managed from the Moalfarras control center."
             binding.tvPreviewDescription.isVisible = true
+        } else if (appRemoteConfigService.isUsingCachedConfig()) {
+            binding.tvPreviewDescription.text = appRemoteConfigService.connectionStatusLabel()
+            binding.tvPreviewDescription.isVisible = true
         }
         binding.root.post { setupFocusMap() }
     }
@@ -293,6 +302,18 @@ class HomeActivity : BaseTvActivity() {
     private fun startVisualEffectsIfNeeded() {
         if (visualFxStarted) return
         visualFxStarted = true
+
+        if (shouldUseReducedStartupVisuals()) {
+            deferHeavyVisuals = true
+            binding.weatherOverlay.visibility = View.GONE
+            binding.weatherOverlay.pauseAnimation()
+            binding.animatedBackground.setAnimationEnabled(false)
+            binding.animatedBackground.pauseAnimation()
+            applyThemeToViews(themeManager.currentAccentColor.value)
+            CrashGuard.markStable(this)
+            return
+        }
+
         deferHeavyVisuals = false
 
         binding.weatherOverlay.visibility = View.VISIBLE
@@ -300,6 +321,11 @@ class HomeActivity : BaseTvActivity() {
         binding.animatedBackground.resumeAnimation()
         binding.weatherOverlay.startAnimation()
         applyThemeToViews(themeManager.currentAccentColor.value)
+    }
+
+    private fun shouldUseReducedStartupVisuals(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        return activityManager?.isLowRamDevice == true || CrashGuard.shouldUseSafeMode(this)
     }
 
     private fun startSilentRefreshIfNeeded() {
@@ -967,9 +993,12 @@ class HomeActivity : BaseTvActivity() {
         
         lifecycleScope.launch {
             viewModel.surpriseEvent.collect { item ->
-                // Show a simple toast or effect for now, then open
-                android.widget.Toast.makeText(this@HomeActivity, "Surprise! ${item.title}", android.widget.Toast.LENGTH_SHORT).show()
-                handleItemClick(item)
+                android.widget.Toast.makeText(
+                    this@HomeActivity,
+                    getString(R.string.surprise_preview_ready, item.title),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                showPreviewBackdrop(item)
             }
         }
 
@@ -982,7 +1011,7 @@ class HomeActivity : BaseTvActivity() {
 
     private fun renderHomeEmptyState() {
         val showEmpty = homeRowsEmpty && !homeRowsLoading
-        // binding.homeEmptyState.isVisible = showEmpty
+        binding.homeEmptyState.isVisible = showEmpty
         binding.rvContent.isVisible = !showEmpty
     }
 

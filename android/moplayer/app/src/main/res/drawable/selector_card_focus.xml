@@ -15,8 +15,8 @@
                         android:gradientRadius="150dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="#665DEBFF"
-                        android:centerColor="#245DEBFF"
+                        android:startColor="@color/moplayer_orange_glow"
+                        android:centerColor="@color/moplayer_orange_subtle"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -27,8 +27,8 @@
                     <gradient
                         android:angle="315"
                         android:startColor="#20FFFFFF"
-                        android:centerColor="#1F8B5CF6"
-                        android:endColor="#145DEBFF" />
+                        android:centerColor="#1800E5FF"
+                        android:endColor="#1038BDF8" />
                 </shape>
             </item>
             

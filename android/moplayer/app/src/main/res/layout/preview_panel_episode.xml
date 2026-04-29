@@ -39,13 +39,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:padding="24dp"
+        android:padding="@dimen/tv_preview_panel_padding"
         android:gravity="bottom">
 
         <!-- Left Side - Series Poster -->
         <FrameLayout
-            android:layout_width="160dp"
-            android:layout_height="240dp">
+            android:layout_width="@dimen/tv_series_poster_width"
+            android:layout_height="@dimen/tv_series_poster_height">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -71,7 +71,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="24dp"
+            android:layout_marginStart="18dp"
             android:orientation="vertical">
 
             <!-- Series Title -->
@@ -80,7 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/htc_text_primary"
-                android:textSize="28sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end"
@@ -117,7 +117,7 @@
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:textColor="@color/htc_text_primary"
-                    android:textSize="24sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end"
@@ -194,9 +194,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:textColor="@color/htc_text_primary"
-                android:textSize="18sp"
-                android:lineSpacingMultiplier="1.5"
-                android:maxLines="3"
+                android:textSize="13sp"
+                android:lineSpacingMultiplier="1.25"
+                android:maxLines="2"
                 android:ellipsize="end"
                 android:shadowColor="#99000000"
                 android:shadowDx="1"

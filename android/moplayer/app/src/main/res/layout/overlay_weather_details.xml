@@ -15,13 +15,13 @@
     <!-- Center card -->
     <LinearLayout
         android:id="@+id/weatherDetailsCard"
-        android:layout_width="560dp"
+        android:layout_width="460dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:background="@drawable/bg_glass_panel_premium"
         android:orientation="vertical"
-        android:paddingHorizontal="28dp"
-        android:paddingVertical="22dp"
+        android:paddingHorizontal="22dp"
+        android:paddingVertical="18dp"
         tools:ignore="UselessParent">
 
         <TextView
@@ -30,18 +30,18 @@
             android:layout_height="wrap_content"
             android:text="@string/weather_details_title"
             android:textColor="@color/htc_text_primary"
-            android:textSize="22sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvWeatherDetailsCity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/htc_text_primary"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             tools:text="Damascus" />
 
@@ -53,23 +53,23 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/htc_text_secondary"
-            android:textSize="14sp"
+            android:textSize="12sp"
             tools:text="Cloudy" />
 
         <TextView
             android:id="@+id/tvWeatherDetailsTemp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/htc_text_primary"
-            android:textSize="48sp"
+            android:textSize="38sp"
             android:textStyle="bold"
             tools:text="-2°" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:orientation="vertical">
 
             <TextView
@@ -77,52 +77,52 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 tools:text="Feels like: -6°" />
 
             <TextView
                 android:id="@+id/tvWeatherDetailsHumidity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 tools:text="Humidity: 72%" />
 
             <TextView
                 android:id="@+id/tvWeatherDetailsWind"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 tools:text="Wind: 12 km/h (250°)" />
 
             <TextView
                 android:id="@+id/tvWeatherDetailsGust"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 tools:text="Gust: 22 km/h" />
 
             <TextView
                 android:id="@+id/tvWeatherDetailsPrecip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 tools:text="Precip: 0.2 mm" />
 
             <TextView
                 android:id="@+id/tvWeatherDetailsCloud"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 tools:text="Cloud: 90%" />
 
         </LinearLayout>
@@ -131,16 +131,16 @@
             android:id="@+id/tvWeatherDetailsUpdated"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/htc_text_tertiary"
-            android:textSize="13sp"
+            android:textSize="11sp"
             tools:text="Updated: 5 min ago" />
 
         <Button
             android:id="@+id/btnWeatherDetailsClose"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/selector_glass_button"
             android:focusable="true"
             android:text="@string/weather_details_close"

@@ -183,9 +183,9 @@ constructor(
         tvAwayTeam.text = shortenTeamName(data.awayTeam)
 
         tvScore.visibility = View.VISIBLE
-        if (data.isLive) {
+        if (data.isLive || data.isFinished) {
             tvScore.text = "${data.homeScore} - ${data.awayScore}"
-            tvLiveBadge.visibility = View.VISIBLE
+            tvLiveBadge.visibility = if (data.isLive) View.VISIBLE else View.GONE
         } else {
             tvScore.text = "vs"
             tvLiveBadge.visibility = View.GONE
@@ -214,6 +214,12 @@ constructor(
                 }
                 if (isEmpty()) data.statusLong?.let { append(it) }
             }.ifEmpty { data.statusShort ?: "" }
+        } else if (data.isFinished) {
+            buildString {
+                data.leagueName?.let { append(it) }
+                if (isNotEmpty()) append(" - ")
+                append(context.getString(R.string.football_widget_final_result))
+            }
         } else {
             buildString {
                 data.displayTime?.let { append(it) }

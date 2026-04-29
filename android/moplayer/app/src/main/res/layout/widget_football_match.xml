@@ -11,14 +11,14 @@
         android:layout_height="match_parent"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="12dp">
 
         <!-- Football icon -->
         <ImageView
             android:id="@+id/ivFootballIcon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginEnd="12dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="10dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_football"
             app:tint="@color/cinematic_text_primary" />
@@ -45,9 +45,9 @@
 
                     <ImageView
                         android:id="@+id/ivHomeLogo"
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
-                        android:layout_marginEnd="8dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_marginEnd="6dp"
                         android:contentDescription="@null"
                         tools:src="@drawable/ic_football" />
 
@@ -57,9 +57,9 @@
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:maxWidth="100dp"
+                        android:maxWidth="88dp"
                         android:textColor="@color/cinematic_text_primary"
-                        android:textSize="15sp"
+                        android:textSize="12sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
                         tools:text="Man Utd" />
@@ -70,16 +70,16 @@
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="10dp"
                         android:textColor="@color/moplayer_orange"
-                        android:textSize="17sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
                         tools:text="2 - 1" />
 
                     <ImageView
                         android:id="@+id/ivAwayLogo"
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
-                        android:layout_marginEnd="8dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_marginEnd="6dp"
                         android:contentDescription="@null"
                         tools:src="@drawable/ic_football" />
 
@@ -89,9 +89,9 @@
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:maxWidth="100dp"
+                        android:maxWidth="88dp"
                         android:textColor="@color/cinematic_text_primary"
-                        android:textSize="15sp"
+                        android:textSize="12sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
                         tools:text="Chelsea" />
@@ -111,7 +111,7 @@
                         android:paddingVertical="3dp"
                         android:text="@string/football_widget_live"
                         android:textColor="#FFFFFF"
-                        android:textSize="10sp"
+                        android:textSize="9sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
                         android:visibility="gone"

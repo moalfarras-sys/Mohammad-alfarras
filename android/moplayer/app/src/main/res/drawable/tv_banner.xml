@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/tv_banner_image"
-    android:gravity="fill" />
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:startColor="#050712"
+                android:centerColor="#062D3D"
+                android:endColor="#0A1024" />
+        </shape>
+    </item>
+
+    <item android:right="0dp" android:top="0dp" android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="315"
+                android:startColor="#3A00E810"
+                android:centerColor="#0019E6FF"
+                android:endColor="#1AFFFFFF" />
+        </shape>
+    </item>
+
+    <item
+        android:left="28dp"
+        android:top="18dp"
+        android:bottom="18dp"
+        android:width="132dp"
+        android:gravity="start|center_vertical"
+        android:drawable="@drawable/moplayer_brand_logo_new" />
+</layer-list>

@@ -126,25 +126,37 @@ class FootballService @Inject constructor(
     suspend fun fetchLiveMatch(forceRefresh: Boolean = false): Result<LiveMatchData?> {
         val result = fetchFootballData(forceRefresh)
         return result.map { data ->
-            // Prioritize:
-            // 1. Live Match (Top leagues first)
-            // 2. Scheduled Today (soonest)
-            // 3. Recently Finished (today)
+            // Prioritize useful TV information:
+            // 1. Live top competition
+            // 2. Recently finished top match/result
+            // 3. Next upcoming top match
             
             val matches = data.matches
             if (matches.isEmpty()) return@map null
             
-            // 1. Live
-            val live = matches.firstOrNull { it.isLive }
+            val ranked = matches.sortedWith(
+                compareByDescending<LiveMatchData> { it.competitionPriority }
+                    .thenByDescending { if (it.isLive) 1 else 0 }
+                    .thenBy { it.timestamp }
+            )
+
+            val live = ranked.firstOrNull { it.isLive }
             if (live != null) return@map live
-            
-            // 2. Upcoming (NS)
-            val upcoming = matches.filter { it.statusShort == "NS" }.minByOrNull { it.timestamp }
+
+            val nowSeconds = System.currentTimeMillis() / 1000L
+            val twoDaysAgo = nowSeconds - (2L * 24L * 60L * 60L)
+            val finished = ranked
+                .filter { it.isFinished && it.timestamp >= twoDaysAgo }
+                .maxWithOrNull(compareBy<LiveMatchData> { it.competitionPriority }.thenBy { it.timestamp })
+            if (finished != null) return@map finished
+
+            val upcoming = ranked.filter { it.isUpcoming }.minByOrNull { it.timestamp }
             if (upcoming != null) return@map upcoming
-            
-            // 3. Finished (FT)
-            val finished = matches.filter { it.statusShort == "FT" }.maxByOrNull { it.timestamp }
-            return@map finished
+
+            val anyRecent = ranked.maxByOrNull { it.timestamp }
+            if (anyRecent != null) return@map anyRecent
+
+            null
         }
     }
     
@@ -288,6 +300,30 @@ data class LiveMatchData(
 ) {
     val isLive: Boolean
         get() = statusShort in listOf("1H", "2H", "ET", "P", "LIVE", "HT", "BT")
+
+    val isFinished: Boolean
+        get() = statusShort in listOf("FT", "AET", "PEN")
+
+    val isUpcoming: Boolean
+        get() = statusShort in listOf("NS", "TBD")
+
+    val competitionPriority: Int
+        get() {
+            val value = leagueName.orEmpty().lowercase(Locale.US)
+            return when {
+                value.contains("world cup") || value.contains("fifa") -> 100
+                value.contains("champions league") -> 90
+                value.contains("europa") -> 82
+                value.contains("premier league") -> 78
+                value.contains("la liga") -> 76
+                value.contains("bundesliga") -> 74
+                value.contains("serie a") -> 72
+                value.contains("ligue 1") -> 70
+                value.contains("euro") -> 68
+                value.contains("saudi") -> 58
+                else -> 10
+            }
+        }
         
     val minute: Int?
         get() = if (elapsed > 0) elapsed else null

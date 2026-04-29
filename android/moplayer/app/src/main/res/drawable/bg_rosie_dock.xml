@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- HTC Rosie Dock - Metallic/Glassy Arc Background -->
+<!-- MoPlayer Digital OS dock - deep glass with cyan edge light -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Bottom shadow for depth -->
@@ -20,9 +20,9 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="90"
-                android:startColor="#CC080808"
-                android:centerColor="#CC0D0D0D"
-                android:endColor="#CC151515"
+                android:startColor="#E0020712"
+                android:centerColor="#E7061024"
+                android:endColor="#EE0A1830"
                 android:type="linear" />
             <size android:height="80dp" />
         </shape>
@@ -40,14 +40,14 @@
         </shape>
     </item>
 
-    <!-- Top edge gold highlight line -->
+    <!-- Top edge cyan highlight line -->
     <item android:gravity="bottom" android:bottom="78dp">
         <shape android:shape="rectangle">
             <size android:height="2dp" />
             <gradient
                 android:angle="0"
                 android:startColor="#00FFFFFF"
-                android:centerColor="@color/glow_gold_subtle"
+                android:centerColor="@color/moplayer_orange_glow"
                 android:endColor="#00FFFFFF"
                 android:type="linear" />
         </shape>

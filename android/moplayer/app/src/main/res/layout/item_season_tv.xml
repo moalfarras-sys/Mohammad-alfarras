@@ -25,13 +25,13 @@
             android:background="@drawable/bg_season_card_tv"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingVertical="20dp"
-            android:paddingHorizontal="12dp">
+            android:paddingVertical="12dp"
+            android:paddingHorizontal="8dp">
 
             <!-- Season Number Badge -->
             <FrameLayout
-                android:layout_width="50dp"
-                android:layout_height="50dp">
+                android:layout_width="@dimen/tv_season_badge_size"
+                android:layout_height="@dimen/tv_season_badge_size">
 
                 <View
                     android:layout_width="match_parent"
@@ -44,7 +44,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:textColor="@color/htc_text_primary"
-                    android:textSize="22sp"
+                    android:textSize="18sp"
                     android:textStyle="bold"
                     tools:text="1" />
 
@@ -55,12 +55,12 @@
                 android:id="@+id/tvSeasonLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
                 android:textColor="@color/htc_text_secondary"
-                android:textSize="13sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
                 tools:text="Season 1" />
 

@@ -43,8 +43,8 @@ class CastManager @Inject constructor(@ApplicationContext private val context: C
 
             setupCastStateListener()
             setupSessionManagerListener()
-        } catch (e: Exception) {
-            android.util.Log.e("CastManager", "Failed to initialize Cast: ${e.message}")
+        } catch (throwable: Throwable) {
+            android.util.Log.e("CastManager", "Failed to initialize Cast: ${throwable.message}", throwable)
         }
     }
 
@@ -53,7 +53,7 @@ class CastManager @Inject constructor(@ApplicationContext private val context: C
         return try {
             // CastState.NO_DEVICES_AVAILABLE = 1
             castContext != null && castContext?.castState != 1
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             false
         }
     }
@@ -72,8 +72,8 @@ class CastManager @Inject constructor(@ApplicationContext private val context: C
     fun setupCastButton(menu: Menu, menuItemId: Int) {
         try {
             CastButtonFactory.setUpMediaRouteButton(context.applicationContext, menu, menuItemId)
-        } catch (e: Exception) {
-            android.util.Log.e("CastManager", "Failed to setup cast button: ${e.message}")
+        } catch (throwable: Throwable) {
+            android.util.Log.e("CastManager", "Failed to setup cast button: ${throwable.message}", throwable)
         }
     }
 

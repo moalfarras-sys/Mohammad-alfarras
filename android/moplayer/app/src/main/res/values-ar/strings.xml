@@ -78,6 +78,7 @@
     <string name="football_widget_live">مباشر</string>
     <string name="football_widget_no_match">لا توجد مباريات مباشرة الآن</string>
     <string name="football_widget_today_match">مباراة اليوم</string>
+    <string name="football_widget_final_result">النتيجة النهائية</string>
     <string name="football_widget_next_match">التالي: %1$s ضد %2$s - %3$s</string>
     <string name="football_widget_loading">جاري التحميل…</string>
     <string name="football_widget_loading_subtitle">يتم فحص أهم مباريات اليوم</string>
@@ -457,4 +458,8 @@
     <string name="player_next_episode">الحلقة التالية</string>
     <string name="player_next_episode_countdown">يبدأ خلال 10 ثواني...</string>
     <string name="player_play_now">تشغيل الآن</string>
+    <string name="crash_guard_unknown">Last crash reason unavailable.</string>
+    <string name="crash_guard_safe_mode_message">Safe mode is active. Home auto-start was paused after a recent crash.\n%1$s</string>
+    <string name="crash_guard_last_crash_short">Last crash diagnostic: %1$s</string>
+    <string name="surprise_preview_ready">اختيار مقترح: %1$s</string>
 </resources>

@@ -15,6 +15,13 @@ import javax.inject.Singleton
 class AppRemoteConfigService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    companion object {
+        private const val KEY_LAST_FETCH_STATUS = "lastFetchStatus"
+        private const val KEY_LAST_FETCH_TIME = "lastFetchTime"
+        private const val STATUS_CONNECTED = "connected"
+        private const val STATUS_CACHED = "cached"
+    }
+
     private val prefs = context.getSharedPreferences("moplayer_remote_config", Context.MODE_PRIVATE)
     private val endpoint = "${BuildConfig.WEB_API_BASE_URL.trimEnd('/')}/api/app/config"
 
@@ -27,14 +34,18 @@ class AppRemoteConfigService @Inject constructor(
                 setRequestProperty("Accept", "application/json")
             }
 
-            val body = if (connection.responseCode in 200..299) {
+            val isSuccess = connection.responseCode in 200..299
+            val body = if (isSuccess) {
                 connection.inputStream.bufferedReader().use { it.readText() }
             } else {
                 connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
             }
             connection.disconnect()
 
-            if (body.isBlank()) return@withContext cachedConfig()
+            if (!isSuccess || body.isBlank()) {
+                saveFetchStatus(STATUS_CACHED)
+                return@withContext cachedConfig()
+            }
 
             val root = JSONObject(body)
             val config = root.optJSONObject("config") ?: root
@@ -45,7 +56,7 @@ class AppRemoteConfigService @Inject constructor(
                 minimumVersionCode = config.optInt("minimumVersionCode", 1),
                 latestVersionName = config.optString("latestVersionName", BuildConfig.VERSION_NAME),
                 message = config.optString("message", ""),
-                accentColor = config.optString("accentColor", "#5B7CFF"),
+                accentColor = config.optString("accentColor", "#00E5FF"),
                 logoUrl = config.optString("logoUrl", ""),
                 backgroundUrl = config.optString("backgroundUrl", ""),
                 supportUrl = config.optString("supportUrl", "https://moalfarras.space/support"),
@@ -54,9 +65,23 @@ class AppRemoteConfigService @Inject constructor(
                 footballEnabled = config.optJSONObject("widgets")?.optBoolean("football", true) ?: true
             )
             saveConfig(parsed)
+            saveFetchStatus(STATUS_CONNECTED)
             parsed
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
+            saveFetchStatus(STATUS_CACHED)
             cachedConfig()
+        }
+    }
+
+    fun isUsingCachedConfig(): Boolean {
+        return prefs.getString(KEY_LAST_FETCH_STATUS, STATUS_CACHED) != STATUS_CONNECTED
+    }
+
+    fun connectionStatusLabel(): String {
+        return if (isUsingCachedConfig()) {
+            "Using cached Control Center config"
+        } else {
+            "Connected to Control Center"
         }
     }
 
@@ -68,7 +93,7 @@ class AppRemoteConfigService @Inject constructor(
             minimumVersionCode = prefs.getInt("minimumVersionCode", 1),
             latestVersionName = prefs.getString("latestVersionName", BuildConfig.VERSION_NAME) ?: BuildConfig.VERSION_NAME,
             message = prefs.getString("message", "").orEmpty(),
-            accentColor = prefs.getString("accentColor", "#5B7CFF") ?: "#5B7CFF",
+            accentColor = prefs.getString("accentColor", "#00E5FF") ?: "#00E5FF",
             logoUrl = prefs.getString("logoUrl", "").orEmpty(),
             backgroundUrl = prefs.getString("backgroundUrl", "").orEmpty(),
             supportUrl = prefs.getString("supportUrl", "https://moalfarras.space/support") ?: "https://moalfarras.space/support",
@@ -95,6 +120,13 @@ class AppRemoteConfigService @Inject constructor(
             .putBoolean("footballEnabled", config.footballEnabled)
             .apply()
     }
+
+    private fun saveFetchStatus(status: String) {
+        prefs.edit()
+            .putString(KEY_LAST_FETCH_STATUS, status)
+            .putLong(KEY_LAST_FETCH_TIME, System.currentTimeMillis())
+            .apply()
+    }
 }
 
 data class AppRemoteConfig(
@@ -104,7 +136,7 @@ data class AppRemoteConfig(
     val minimumVersionCode: Int = 1,
     val latestVersionName: String = BuildConfig.VERSION_NAME,
     val message: String = "",
-    val accentColor: String = "#5B7CFF",
+    val accentColor: String = "#00E5FF",
     val logoUrl: String = "",
     val backgroundUrl: String = "",
     val supportUrl: String = "https://moalfarras.space/support",

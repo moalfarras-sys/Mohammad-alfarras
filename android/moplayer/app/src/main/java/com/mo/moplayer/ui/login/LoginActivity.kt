@@ -45,6 +45,7 @@ import com.mo.moplayer.ui.home.HomeActivity
 import com.mo.moplayer.ui.common.ExitHelper
 import com.mo.moplayer.ui.common.design.TvCinematicTokens
 import com.mo.moplayer.util.BackgroundManager
+import com.mo.moplayer.util.CrashGuard
 import com.mo.moplayer.util.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -151,11 +152,12 @@ class LoginActivity : AppCompatActivity() {
         window.setBackgroundDrawableResource(R.color.cinematic_bg_base)
 
         lifecycleScope.launch {
+            val safeMode = CrashGuard.shouldUseSafeMode(this@LoginActivity)
             val hasSavedSession = withContext(Dispatchers.IO) {
                 repository.getActiveServerSync() != null
             }
 
-            if (hasSavedSession) {
+            if (hasSavedSession && !safeMode) {
                 startupResolved = true
                 navigateToHome()
                 return@launch
@@ -176,8 +178,20 @@ class LoginActivity : AppCompatActivity() {
             startEntranceAnimations()
             handleActivationCompletedIntent(intent)
             startWebsiteSourcePollingIfActivated()
+            showCrashSafeModeIfNeeded(safeMode)
+            binding.root.postDelayed({
+                CrashGuard.markStable(this@LoginActivity)
+            }, 8_000L)
             startupResolved = true
         }
+    }
+
+    private fun showCrashSafeModeIfNeeded(enabled: Boolean) {
+        if (!enabled) return
+        val summary = CrashGuard.lastCrashSummary(this) ?: getString(R.string.crash_guard_unknown)
+        binding.tvErrorClean.text = getString(R.string.crash_guard_safe_mode_message, summary)
+        binding.tvErrorClean.isVisible = true
+        binding.tvErrorClean.requestFocus()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -243,9 +257,11 @@ class LoginActivity : AppCompatActivity() {
         // Set default particle color for animated background (will be overridden by persisted theme if set)
         binding.htcAnimatedBackground.setParticleColor(Color.WHITE)
         binding.htcAnimatedBackground.setTvOptimizationMode(isTvDevice())
-        binding.htcAnimatedBackground.setCinematicMode(true)
+        binding.htcAnimatedBackground.setCinematicMode(false)
+        binding.htcAnimatedBackground.setAnimationEnabled(false)
+        binding.weatherOverlay.visibility = View.GONE
         CinematicBackgroundController.applyBackgroundProfile(
-            mode = BackgroundVisualMode.CITY_WALLPAPER_LOGIN,
+            mode = BackgroundVisualMode.REDUCED_MOTION,
             background = binding.htcAnimatedBackground,
             weatherOverlay = binding.weatherOverlay,
             wallpaperView = binding.ivLoginCityWallpaper,
@@ -257,7 +273,7 @@ class LoginActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 val currentTheme = backgroundManager.currentTheme.first()
                 val particleColor = backgroundManager.particleColor.first()
-                val animationEnabled = backgroundManager.animationEnabled.first()
+                val animationEnabled = false
                 val customImagePath = if (backgroundManager.hasCustomImage()) {
                     backgroundManager.getCustomImageFile().absolutePath
                 } else null

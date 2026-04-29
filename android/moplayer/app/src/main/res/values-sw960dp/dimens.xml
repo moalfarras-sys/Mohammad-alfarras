@@ -40,11 +40,11 @@
     
     <!-- Cards - Larger for 4K -->
     <dimen name="card_margin">10dp</dimen>
-    <dimen name="card_poster_width">164dp</dimen>
-    <dimen name="card_poster_height">246dp</dimen>
-    <dimen name="card_content_height">292dp</dimen>
-    <dimen name="content_row_items_height">324dp</dimen>
-    <dimen name="card_title_size">16sp</dimen>
+    <dimen name="card_poster_width">136dp</dimen>
+    <dimen name="card_poster_height">204dp</dimen>
+    <dimen name="card_content_height">248dp</dimen>
+    <dimen name="content_row_items_height">270dp</dimen>
+    <dimen name="card_title_size">12sp</dimen>
     
     <!-- Flip Clock - Larger for 4K -->
     <dimen name="flip_clock_digit_width">48dp</dimen>
@@ -60,10 +60,10 @@
     <dimen name="dock_bottom_margin">14dp</dimen>
     <dimen name="dock_corner_radius">28dp</dimen>
     <dimen name="home_top_action_size">44dp</dimen>
-    <dimen name="home_widget_height">76dp</dimen>
-    <dimen name="home_weather_widget_width">190dp</dimen>
-    <dimen name="home_clock_widget_height">62dp</dimen>
-    <dimen name="preview_panel_width">560dp</dimen>
+    <dimen name="home_widget_height">64dp</dimen>
+    <dimen name="home_weather_widget_width">154dp</dimen>
+    <dimen name="home_clock_widget_height">52dp</dimen>
+    <dimen name="preview_panel_width">440dp</dimen>
     <dimen name="top_bar_height">112dp</dimen>
     <dimen name="home_empty_width">720dp</dimen>
 </resources>

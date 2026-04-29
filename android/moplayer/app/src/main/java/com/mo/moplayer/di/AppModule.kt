@@ -134,8 +134,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCastManager(@ApplicationContext context: Context): com.mo.moplayer.util.CastManager {
-        return com.mo.moplayer.util.CastManager(context).apply {
-            initialize()
+        return com.mo.moplayer.util.CastManager(context).also { manager ->
+            runCatching { manager.initialize() }
         }
     }
     

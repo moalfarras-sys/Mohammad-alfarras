@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Episode Card Dimensions - Optimized for 720p TV -->
-    <dimen name="tv_episode_card_height">156dp</dimen>
-    <dimen name="tv_episode_thumbnail_width">248dp</dimen>
-    <dimen name="tv_episode_thumbnail_height">132dp</dimen>
-    <dimen name="tv_episode_card_margin">6dp</dimen>
-    <dimen name="tv_episode_card_padding">12dp</dimen>
+    <dimen name="tv_episode_card_height">108dp</dimen>
+    <dimen name="tv_episode_thumbnail_width">164dp</dimen>
+    <dimen name="tv_episode_thumbnail_height">88dp</dimen>
+    <dimen name="tv_episode_card_margin">4dp</dimen>
+    <dimen name="tv_episode_card_padding">8dp</dimen>
     
     <!-- Season Card Dimensions -->
     <dimen name="tv_season_card_width">80dp</dimen>
@@ -33,10 +33,10 @@
     <dimen name="tv_text_tiny">12sp</dimen>
     
     <!-- Episode Card Text Sizes -->
-    <dimen name="tv_episode_title">18sp</dimen>
-    <dimen name="tv_episode_number">14sp</dimen>
-    <dimen name="tv_episode_meta">13sp</dimen>
-    <dimen name="tv_episode_description">14sp</dimen>
+    <dimen name="tv_episode_title">14sp</dimen>
+    <dimen name="tv_episode_number">11sp</dimen>
+    <dimen name="tv_episode_meta">11sp</dimen>
+    <dimen name="tv_episode_description">11sp</dimen>
     
     <!-- Spacing for TV (larger for better readability) -->
     <dimen name="tv_spacing_xs">4dp</dimen>
@@ -66,7 +66,7 @@
     <dimen name="dock_height">66dp</dimen>
     <dimen name="dock_icon_size">24dp</dimen>
     <dimen name="dock_label_size">10sp</dimen>
-    <dimen name="preview_panel_width">460dp</dimen>
+    <dimen name="preview_panel_width">400dp</dimen>
     <dimen name="top_bar_height">96dp</dimen>
     <dimen name="home_empty_width">640dp</dimen>
 
@@ -90,8 +90,8 @@
     <dimen name="login_method_title_size">18sp</dimen>
     <dimen name="login_method_subtitle_size">10sp</dimen>
     <dimen name="login_choice_panel_margin_top">8dp</dimen>
-    <dimen name="login_choice_card_height_primary">56dp</dimen>
-    <dimen name="login_choice_card_height">52dp</dimen>
+    <dimen name="login_choice_card_height_primary">50dp</dimen>
+    <dimen name="login_choice_card_height">48dp</dimen>
     <dimen name="login_choice_gap">6dp</dimen>
     <dimen name="login_choice_card_padding_horizontal">11dp</dimen>
     <dimen name="login_choice_title_size">13sp</dimen>

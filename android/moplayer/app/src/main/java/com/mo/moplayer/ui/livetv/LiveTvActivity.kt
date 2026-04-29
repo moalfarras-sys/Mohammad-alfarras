@@ -103,6 +103,7 @@ class LiveTvActivity : BaseTvActivity() {
     private val OVERLAY_TIMEOUT = 15000L // Extended timeout for TiviMate style (15 seconds)
     private val CHANNEL_INPUT_TIMEOUT = 2000L
     private var overlayAutoHideEnabled = true // Can be disabled by user
+    private var playbackArmed = false
 
     // Animations
     private lateinit var slideInAnimation: Animation
@@ -123,6 +124,7 @@ class LiveTvActivity : BaseTvActivity() {
 
         // Check for direct channel navigation
         intent.getStringExtra(EXTRA_CHANNEL_ID)?.let { channelId ->
+            playbackArmed = true
             viewModel.selectChannelById(channelId)
         }
 
@@ -865,6 +867,7 @@ class LiveTvActivity : BaseTvActivity() {
                         onChannelClick = { channel ->
                             // Stop preview before selecting channel
                             stopAudioPreview()
+                            playbackArmed = true
                             viewModel.selectChannel(channel)
                             hideOverlay()
                         },
@@ -1089,8 +1092,12 @@ class LiveTvActivity : BaseTvActivity() {
 
         viewModel.currentChannel.observe(this) { channel ->
             channel?.let {
-                playChannel(it)
                 updateChannelInfo(it)
+                if (playbackArmed) {
+                    playChannel(it)
+                } else {
+                    showOverlay()
+                }
                 // Re-submit list to trigger DiffUtil change detection for playing state
                 // Use safe wrapper to prevent crashes during rapid channel switching
                 safelyUpdateAdapter(viewModel.filteredChannels.value, it.channelId)
@@ -1314,6 +1321,7 @@ class LiveTvActivity : BaseTvActivity() {
                             isFavorite = isFav,
                             details = details,
                             onPlay = {
+                                playbackArmed = true
                                 viewModel.selectChannel(channel)
                                 hideOverlay()
                             },
@@ -1500,6 +1508,7 @@ class LiveTvActivity : BaseTvActivity() {
         channelInputTimeout = Runnable {
             val channelNumber = channelInputBuffer.toString().toIntOrNull()
             if (channelNumber != null) {
+                playbackArmed = true
                 viewModel.selectChannelByNumber(channelNumber)
             }
             channelInputBuffer.clear()

@@ -65,10 +65,10 @@
     <dimen name="dock_bottom_margin">10dp</dimen>
     <dimen name="dock_corner_radius">22dp</dimen>
     <dimen name="home_top_action_size">40dp</dimen>
-    <dimen name="home_widget_height">72dp</dimen>
-    <dimen name="home_weather_widget_width">170dp</dimen>
-    <dimen name="home_clock_widget_height">58dp</dimen>
-    <dimen name="preview_panel_width">500dp</dimen>
+    <dimen name="home_widget_height">64dp</dimen>
+    <dimen name="home_weather_widget_width">148dp</dimen>
+    <dimen name="home_clock_widget_height">52dp</dimen>
+    <dimen name="preview_panel_width">420dp</dimen>
     <dimen name="top_bar_height">104dp</dimen>
 
     <!-- Text Sizes -->
@@ -94,7 +94,7 @@
     <!-- Card Sizes -->
     <dimen name="card_poster_width">@dimen/cinematic_poster_width</dimen>
     <dimen name="card_poster_height">@dimen/cinematic_poster_height</dimen>
-    <dimen name="card_content_height">276dp</dimen>
+    <dimen name="card_content_height">236dp</dimen>
     <dimen name="content_row_items_height">@dimen/cinematic_row_height</dimen>
     <dimen name="card_title_size">@dimen/text_caption</dimen>
     <dimen name="card_focus_scale">@dimen/focus_scale</dimen>
@@ -197,19 +197,19 @@
     <dimen name="login_choice_subtitle_size">11sp</dimen>
     
     <!-- TV-specific defaults -->
-    <dimen name="tv_episode_card_height">140dp</dimen>
-    <dimen name="tv_episode_thumbnail_width">240dp</dimen>
-    <dimen name="tv_episode_thumbnail_height">135dp</dimen>
+    <dimen name="tv_episode_card_height">108dp</dimen>
+    <dimen name="tv_episode_thumbnail_width">164dp</dimen>
+    <dimen name="tv_episode_thumbnail_height">88dp</dimen>
     <dimen name="tv_episode_card_margin">4dp</dimen>
-    <dimen name="tv_episode_card_padding">10dp</dimen>
-    <dimen name="tv_season_card_width">100dp</dimen>
-    <dimen name="tv_season_card_height">120dp</dimen>
-    <dimen name="tv_season_badge_size">50dp</dimen>
-    <dimen name="tv_season_sidebar_width">120dp</dimen>
-    <dimen name="tv_preview_height">400dp</dimen>
-    <dimen name="tv_preview_panel_padding">24dp</dimen>
-    <dimen name="tv_series_poster_width">160dp</dimen>
-    <dimen name="tv_series_poster_height">240dp</dimen>
+    <dimen name="tv_episode_card_padding">8dp</dimen>
+    <dimen name="tv_season_card_width">84dp</dimen>
+    <dimen name="tv_season_card_height">92dp</dimen>
+    <dimen name="tv_season_badge_size">38dp</dimen>
+    <dimen name="tv_season_sidebar_width">108dp</dimen>
+    <dimen name="tv_preview_height">280dp</dimen>
+    <dimen name="tv_preview_panel_padding">16dp</dimen>
+    <dimen name="tv_series_poster_width">112dp</dimen>
+    <dimen name="tv_series_poster_height">168dp</dimen>
     <dimen name="tv_focus_scale">1.1</dimen>
     <dimen name="tv_focus_elevation">16dp</dimen>
     <dimen name="tv_focus_translation">8dp</dimen>
@@ -219,10 +219,10 @@
     <dimen name="tv_text_caption">16sp</dimen>
     <dimen name="tv_text_small">14sp</dimen>
     <dimen name="tv_text_tiny">13sp</dimen>
-    <dimen name="tv_episode_title">17sp</dimen>
-    <dimen name="tv_episode_number">13sp</dimen>
-    <dimen name="tv_episode_meta">12sp</dimen>
-    <dimen name="tv_episode_description">14sp</dimen>
+    <dimen name="tv_episode_title">14sp</dimen>
+    <dimen name="tv_episode_number">11sp</dimen>
+    <dimen name="tv_episode_meta">11sp</dimen>
+    <dimen name="tv_episode_description">11sp</dimen>
     <dimen name="tv_spacing_xs">6dp</dimen>
     <dimen name="tv_spacing_sm">12dp</dimen>
     <dimen name="tv_spacing_md">16dp</dimen>

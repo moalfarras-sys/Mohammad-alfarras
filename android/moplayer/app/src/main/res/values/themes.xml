@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Luxury Dark & White Accent Theme (Shadcn Zinc Style) -->
-    <style name="Theme.MoPlayer" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.MoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color - Shadcn White/Zinc -->
         <item name="colorPrimary">@color/color_accent_primary</item>
         <item name="colorPrimaryDark">@color/color_bg_primary</item>
         <item name="colorAccent">@color/color_accent_primary</item>
         <item name="colorError">@color/theme_critical</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
         
         <!-- Secondary brand color -->
         <item name="colorSecondary">@color/color_text_secondary</item>
@@ -32,6 +37,8 @@
         
         <!-- Button styling -->
         <item name="buttonStyle">@style/Widget.MoPlayer.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.MoPlayer.MaterialCard</item>
+        <item name="materialButtonStyle">@style/Widget.MoPlayer.MaterialButton</item>
     </style>
 
     <style name="Theme.MoPlayer.Splash" parent="Theme.MoPlayer">
@@ -44,13 +51,13 @@
     </style>
 
 
-    <style name="Theme.MoPlayer.Dialog" parent="Theme.AppCompat.Dialog">
+    <style name="Theme.MoPlayer.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="colorAccent">@color/color_accent_primary</item>
         <item name="android:windowBackground">@drawable/bg_card_zinc</item>
     </style>
 
     <!-- Fullscreen Theme for Player -->
-    <style name="Theme.MoPlayer.Fullscreen">
+    <style name="Theme.MoPlayer.Fullscreen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@color/color_bg_primary</item>
@@ -171,6 +178,22 @@
         <item name="android:background">@drawable/selector_card_focus</item>
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
+    </style>
+
+    <style name="Widget.MoPlayer.MaterialCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">22dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/card_bg_luxury</item>
+        <item name="strokeColor">@color/card_border_luxury_subtle</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">@color/moplayer_orange_subtle</item>
+    </style>
+
+    <style name="Widget.MoPlayer.MaterialButton" parent="Widget.MaterialComponents.Button">
+        <item name="cornerRadius">18dp</item>
+        <item name="backgroundTint">@color/moplayer_orange_dark</item>
+        <item name="android:textColor">@color/htc_pure_white</item>
+        <item name="rippleColor">@color/moplayer_orange_light</item>
     </style>
 
     <!-- Dock Item Style -->

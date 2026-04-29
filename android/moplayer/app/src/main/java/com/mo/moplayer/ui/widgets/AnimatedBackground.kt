@@ -223,6 +223,11 @@ class AnimatedBackground @JvmOverloads constructor(
         initializeTheme(currentTheme)
         invalidate()
     }
+
+    fun setGlowColor(color: Int) {
+        this.horizonAccentColor = color
+        invalidate()
+    }
     
     private fun adjustBrightness(color: Int, factor: Float): Int {
         val r = (Color.red(color) * factor).toInt().coerceIn(0, 255)

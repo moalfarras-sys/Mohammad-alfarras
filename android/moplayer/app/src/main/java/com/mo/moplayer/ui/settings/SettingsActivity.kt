@@ -21,6 +21,7 @@ import com.mo.moplayer.ui.login.LoginActivity
 import com.mo.moplayer.ui.settings.adapters.SourceStatusAdapter
 import com.mo.moplayer.ui.settings.adapters.SettingsCategoryAdapter
 import com.mo.moplayer.util.BackgroundManager
+import com.mo.moplayer.util.CrashGuard
 import com.mo.moplayer.util.ParentalLockManager
 import com.mo.moplayer.util.PlayerPreferences
 import com.mo.moplayer.util.SmartRefreshManager
@@ -142,7 +143,12 @@ class SettingsActivity : BaseTvActivity() {
             descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         }
 
-        binding.tvVersion.text = getString(R.string.about_version)
+        val crashSummary = CrashGuard.lastCrashSummary(this)
+        binding.tvVersion.text = if (crashSummary.isNullOrBlank()) {
+            getString(R.string.about_version)
+        } else {
+            getString(R.string.about_version) + "\n\n" + getString(R.string.crash_guard_last_crash_short, crashSummary)
+        }
 
         // Hidden: long-press version to open Weather Debug/Preview.
         binding.tvVersion.setOnLongClickListener {
@@ -973,6 +979,8 @@ class SettingsActivity : BaseTvActivity() {
             backgroundManager.setGlowColor(glowColor)
              
             binding.animatedBackground.setParticleColor(accentColor)
+            binding.animatedBackground.setGlowColor(glowColor)
+            applyThemeToViews(accentColor)
              
             val themeName = themeManager.getThemeDisplayName(themeId)
             Toast.makeText(

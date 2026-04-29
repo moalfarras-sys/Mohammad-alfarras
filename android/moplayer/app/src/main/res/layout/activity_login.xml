@@ -66,7 +66,7 @@
     <View
         android:layout_width="280dp"
         android:layout_height="280dp"
-        android:alpha="0.52"
+        android:alpha="0.10"
         android:background="@drawable/bg_logo_glow_large"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -74,7 +74,7 @@
     <View
         android:layout_width="240dp"
         android:layout_height="240dp"
-        android:alpha="0.28"
+        android:alpha="0.08"
         android:background="@drawable/bg_logo_glow_outer"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -100,7 +100,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.46"
-        app:layout_constraintWidth_max="400dp">
+        app:layout_constraintWidth_max="360dp">
 
         <LinearLayout
             android:id="@+id/imgLogoClean"

@@ -49,7 +49,7 @@
                 <!-- Bottom gradient for title readability -->
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="42dp"
                     android:layout_gravity="bottom"
                     android:background="@drawable/gradient_bottom_overlay" />
 
@@ -143,7 +143,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="7dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:ellipsize="end"
@@ -151,9 +151,9 @@
             android:maxLines="2"
             android:minLines="1"
             android:textColor="@color/cinematic_text_primary"
-            android:textSize="14sp"
+            android:textSize="@dimen/card_title_size"
             android:fontFamily="sans-serif-medium"
-            android:lineSpacingMultiplier="1.15"
+            android:lineSpacingMultiplier="1.08"
             android:alpha="0.92"
             tools:text="Movie Title Here" />
     </LinearLayout>

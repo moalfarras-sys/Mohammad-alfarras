@@ -30,10 +30,10 @@
     <!-- ═══════════════════════════════════════════════════════════
          INK BLUE — Primary Accent
          ═══════════════════════════════════════════════════════════ -->
-    <color name="liquid_accent_primary">#5B7CFF</color>
-    <color name="liquid_accent_primary_pressed">#324CCF</color>
-    <color name="liquid_accent_primary_soft">#445B7CFF</color>
-    <color name="liquid_accent_secondary">#F4B860</color>
+    <color name="liquid_accent_primary">#00E5FF</color>
+    <color name="liquid_accent_primary_pressed">#0087A8</color>
+    <color name="liquid_accent_primary_soft">#4400E5FF</color>
+    <color name="liquid_accent_secondary">#8B5CF6</color>
     <color name="liquid_focus_glow">#CC5B7CFF</color>
     <color name="liquid_focus_ring">#FF5B7CFF</color>
 

@@ -350,6 +350,57 @@
         <!-- ═══════════════════════════════════════════
              CONTENT ROWS — Netflix-style scrolling rows
              ═══════════════════════════════════════════ -->
+        <LinearLayout
+            android:id="@+id/homeEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="@dimen/screen_margin_horizontal"
+            android:layout_marginTop="52dp"
+            android:layout_marginEnd="@dimen/screen_margin_horizontal"
+            android:layout_marginBottom="28dp"
+            android:background="@drawable/bg_premium_clean_panel"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="36dp"
+            android:paddingVertical="26dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.08"
+                android:text="CONNECTED TO DIGITAL OS"
+                android:textColor="@color/moplayer_orange"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="Your media space is ready."
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:lineSpacingMultiplier="1.25"
+                android:text="Add an Xtream or M3U source from Settings, or send it from moalfarras.space activation. The app stays connected to the Control Center for updates and widgets."
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvContent"
             android:layout_width="match_parent"

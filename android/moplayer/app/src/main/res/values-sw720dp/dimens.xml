@@ -40,11 +40,11 @@
     
     <!-- Cards - Standard for 1080p -->
     <dimen name="card_margin">8dp</dimen>
-    <dimen name="card_poster_width">136dp</dimen>
-    <dimen name="card_poster_height">204dp</dimen>
-    <dimen name="card_content_height">254dp</dimen>
-    <dimen name="content_row_items_height">282dp</dimen>
-    <dimen name="card_title_size">14sp</dimen>
+    <dimen name="card_poster_width">118dp</dimen>
+    <dimen name="card_poster_height">178dp</dimen>
+    <dimen name="card_content_height">218dp</dimen>
+    <dimen name="content_row_items_height">238dp</dimen>
+    <dimen name="card_title_size">11sp</dimen>
     
     <!-- Flip Clock - Standard -->
     <dimen name="flip_clock_digit_width">36dp</dimen>
@@ -60,10 +60,10 @@
     <dimen name="dock_bottom_margin">12dp</dimen>
     <dimen name="dock_corner_radius">26dp</dimen>
     <dimen name="home_top_action_size">40dp</dimen>
-    <dimen name="home_widget_height">64dp</dimen>
-    <dimen name="home_weather_widget_width">160dp</dimen>
-    <dimen name="home_clock_widget_height">54dp</dimen>
-    <dimen name="preview_panel_width">480dp</dimen>
+    <dimen name="home_widget_height">58dp</dimen>
+    <dimen name="home_weather_widget_width">138dp</dimen>
+    <dimen name="home_clock_widget_height">48dp</dimen>
+    <dimen name="preview_panel_width">400dp</dimen>
     <dimen name="top_bar_height">100dp</dimen>
     <dimen name="home_empty_width">620dp</dimen>
 
@@ -87,8 +87,8 @@
     <dimen name="login_method_title_size">18sp</dimen>
     <dimen name="login_method_subtitle_size">10sp</dimen>
     <dimen name="login_choice_panel_margin_top">8dp</dimen>
-    <dimen name="login_choice_card_height_primary">50dp</dimen>
-    <dimen name="login_choice_card_height">48dp</dimen>
+    <dimen name="login_choice_card_height_primary">48dp</dimen>
+    <dimen name="login_choice_card_height">46dp</dimen>
     <dimen name="login_choice_gap">6dp</dimen>
     <dimen name="login_choice_card_padding_horizontal">11dp</dimen>
     <dimen name="login_choice_title_size">13sp</dimen>

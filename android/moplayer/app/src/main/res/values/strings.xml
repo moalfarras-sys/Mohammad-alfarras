@@ -141,6 +141,7 @@
     <string name="football_widget_live">LIVE</string>
     <string name="football_widget_no_match">No live matches now</string>
     <string name="football_widget_today_match">Match today</string>
+    <string name="football_widget_final_result">Final result</string>
     <string name="football_widget_next_match">Next: %1$s vs %2$s - %3$s</string>
     <string name="football_widget_loading">Loading…</string>
     <string name="football_widget_loading_subtitle">Checking today\'s top leagues</string>
@@ -624,4 +625,8 @@
     <string name="series_empty_subtitle">Refresh the active source or choose another series category.</string>
     <string name="live_tv_empty_title">No live channels here</string>
     <string name="live_tv_empty_subtitle">Try another category or refresh the active source from Settings.</string>
+    <string name="crash_guard_unknown">Last crash reason unavailable.</string>
+    <string name="crash_guard_safe_mode_message">Safe mode is active. Home auto-start was paused after a recent crash.\n%1$s</string>
+    <string name="crash_guard_last_crash_short">Last crash diagnostic: %1$s</string>
+    <string name="surprise_preview_ready">Surprise pick: %1$s</string>
 </resources>

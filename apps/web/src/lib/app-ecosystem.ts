@@ -195,7 +195,7 @@ const fallbackReleases: AppRelease[] = [
         abi: "universal",
         storage_bucket: null,
         storage_path: null,
-        external_url: "/downloads/moplayer/app-sideload-universal-release.apk",
+        external_url: "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/4babeb83ca92b84e4c8cda3cbf47d35ae381136a/apps/web/public/downloads/moplayer/app-sideload-universal-release.apk",
         mime_type: "application/vnd.android.package-archive",
         file_size_bytes: 91037540,
         checksum_sha256: "ec967890d364b436af3705ce61518d267fe838cf9df77bb16a71bf7d0f74a9c8",

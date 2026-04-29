@@ -1,38 +1,65 @@
 "use client";
 
-import { CheckCircle2, Clock3, QrCode, RefreshCcw, ShieldCheck, XCircle } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Apple,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  KeyRound,
+  Mail,
+  PlayCircle,
+  QrCode,
+  RefreshCcw,
+  ShieldCheck,
+  Sparkles,
+  Tv,
+  UserRound,
+  XCircle,
+} from "lucide-react";
+import { AnimatePresence, motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn";
-import { repairMojibakeDeep } from "@/lib/text-cleanup";
+import { withLocale } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
 
 const allowed = /^[A-HJ-NP-RT-Z2-46789]{4}$/;
 
 const copy = {
   en: {
-    kicker: "MoPlayer activation",
-    title: "Pair your TV first, then send the source in one clean flow.",
+    kicker: "Guided MoPlayer activation",
+    title: "Unlock the full cinematic experience in seconds.",
     body:
-      "Enter the short code shown inside MoPlayer on Android TV. After pairing, you can send an Xtream or M3U source securely through the website without exposing provider details on the public page.",
+      "Choose MoPlayer, continue with your account layer, then enter the short MO code shown on your Android TV. The flow stays simple on a phone and secure for your TV setup.",
+    productStep: "Choose your Product",
+    loginStep: "Login or Register",
+    codeStep: "Enter Activation Code",
+    productTitle: "MoPlayer for Android TV",
+    productBody: "Pair your TV, connect sources, and keep the setup controlled from the official website.",
+    continue: "Continue",
+    welcome: "Welcome Back",
+    loginBody: "Use an email or a social sign-in entry point before pairing the device. This keeps the activation journey clear for normal users.",
+    emailLabel: "Email address",
+    emailPlaceholder: "you@example.com",
+    google: "Continue with Google",
+    apple: "Continue with Apple",
+    emailContinue: "Continue with email",
+    skip: "Continue to activation",
     codeLabel: "Activation code",
-    check: "Check code",
-    checking: "Checking...",
+    check: "Verify code",
+    checking: "Verifying...",
     testing: "Testing...",
     sending: "Sending...",
-    steps: [
-      "Open MoPlayer on Android TV",
-      "Choose website activation",
-      "Enter the code here",
-      "Send the source securely",
-    ],
-    waiting: ["Waiting for code", "Enter the four-character code shown on TV to continue."],
-    invalid: ["Invalid code", "Use exactly four valid characters. Ambiguous characters are not accepted."],
-    activated: ["TV paired", "The device is linked. You can now send the IPTV source to the app."],
-    expired: ["Code expired", "Codes are short-lived. Generate a fresh one on the TV and try again."],
+    waiting: ["Ready for your TV code", "Enter the four-character code shown inside MoPlayer. The app displays it as MO-XXXX."],
+    invalid: ["Code needs attention", "Use exactly four valid characters. Ambiguous characters are ignored for safer typing."],
+    activated: ["Activation successful", "Your TV is paired. You can now send an IPTV source to MoPlayer securely."],
+    expired: ["Code expired", "Generate a fresh code on the TV and verify it again."],
     backend: ["Connection issue", "The activation service did not respond correctly. Try again in a moment."],
-    sourceTitle: "Source setup",
-    sourceBody: "Choose the provider type, test the connection, then send the source directly to the app.",
+    success: "Activation Successful",
+    sourceTitle: "Send your playlist securely",
+    sourceBody: "After pairing, choose the provider type, test the connection, then send the source directly to the app.",
     sourceName: "Source name",
     xtream: "Xtream",
     m3u: "M3U playlist",
@@ -43,38 +70,48 @@ const copy = {
     epgUrl: "EPG URL, optional",
     test: "Test source",
     send: "Send to app",
-    privacy: "Only the app receives the source. The public page never displays provider credentials.",
+    privacy: "Only the paired app receives the source. The public page never displays provider credentials.",
+    codeHint: "Open MoPlayer on Android TV and choose website activation to see your code.",
     successTest: "Connection test successful.",
     failureTest: "Connection test failed.",
     unavailableTest: "Could not test the source right now.",
     successSend: "Source sent to the app. Import will begin automatically.",
     failureSend: "Could not send the source.",
     unavailableSend: "Could not send the source right now.",
-    codeHint: "The code always starts with MO- inside the app.",
+    backApps: "Back to apps",
   },
   ar: {
-    kicker: "تفعيل MoPlayer",
-    title: "اربط التلفزيون أولاً، ثم أرسل المصدر بخطوات واضحة وسريعة.",
+    kicker: "تفعيل MoPlayer الموجّه",
+    title: "افتح التجربة السينمائية الكاملة في ثوانٍ.",
     body:
-      "أدخل الكود القصير الظاهر داخل MoPlayer على Android TV. بعد نجاح الربط يمكنك إرسال مصدر Xtream أو M3U من الموقع بشكل آمن، من دون إظهار بيانات المزود على الصفحة العامة.",
+      "اختر MoPlayer، تابع عبر طبقة الحساب، ثم أدخل كود MO القصير الظاهر على Android TV. المسار واضح على الجوال وآمن لإعداد التلفزيون.",
+    productStep: "اختر المنتج",
+    loginStep: "تسجيل الدخول أو إنشاء حساب",
+    codeStep: "أدخل كود التفعيل",
+    productTitle: "MoPlayer لتلفزيون Android",
+    productBody: "اربط التلفزيون، أرسل المصادر، وتحكم بالإعداد من الموقع الرسمي بسهولة.",
+    continue: "متابعة",
+    welcome: "أهلًا بعودتك",
+    loginBody: "استخدم البريد أو خيار دخول اجتماعي قبل ربط الجهاز حتى تبقى تجربة التفعيل واضحة للمستخدم العادي.",
+    emailLabel: "البريد الإلكتروني",
+    emailPlaceholder: "you@example.com",
+    google: "المتابعة عبر Google",
+    apple: "المتابعة عبر Apple",
+    emailContinue: "المتابعة بالبريد",
+    skip: "الانتقال للتفعيل",
     codeLabel: "كود التفعيل",
-    check: "فحص الكود",
-    checking: "جارٍ الفحص...",
+    check: "تحقق من الكود",
+    checking: "جارٍ التحقق...",
     testing: "جارٍ الاختبار...",
     sending: "جارٍ الإرسال...",
-    steps: [
-      "افتح MoPlayer على التلفزيون",
-      "اختر التفعيل عبر الموقع",
-      "أدخل الكود هنا",
-      "أرسل المصدر بأمان",
-    ],
-    waiting: ["بانتظار الكود", "أدخل الكود المكوّن من أربع خانات كما يظهر على شاشة التلفزيون."],
-    invalid: ["الكود غير صحيح", "استخدم أربع خانات صحيحة فقط. الأحرف والأرقام المربكة غير مقبولة."],
-    activated: ["تم الربط", "تم ربط الجهاز. يمكنك الآن إرسال مصدر IPTV إلى التطبيق."],
-    expired: ["انتهت صلاحية الكود", "الكود صالح لفترة قصيرة. أنشئ كوداً جديداً من التلفزيون ثم حاول مرة أخرى."],
-    backend: ["مشكلة اتصال", "خدمة التفعيل لم تستجب بشكل صحيح. حاول مرة أخرى بعد قليل."],
-    sourceTitle: "إعداد المصدر",
-    sourceBody: "اختر نوع المزود، اختبر الاتصال، ثم أرسل المصدر مباشرة إلى التطبيق.",
+    waiting: ["جاهز لكود التلفزيون", "أدخل الكود المكوّن من أربع خانات كما يظهر داخل MoPlayer بصيغة MO-XXXX."],
+    invalid: ["الكود يحتاج تصحيح", "استخدم أربع خانات صحيحة فقط. الأحرف والأرقام المربكة يتم تجاهلها لتسهيل الكتابة."],
+    activated: ["تم التفعيل بنجاح", "تم ربط التلفزيون. يمكنك الآن إرسال مصدر IPTV إلى MoPlayer بشكل آمن."],
+    expired: ["انتهت صلاحية الكود", "أنشئ كودًا جديدًا من التلفزيون ثم حاول التحقق مرة أخرى."],
+    backend: ["مشكلة اتصال", "خدمة التفعيل لم تستجب بشكل صحيح. حاول بعد قليل."],
+    success: "تم التفعيل بنجاح",
+    sourceTitle: "أرسل قائمتك بأمان",
+    sourceBody: "بعد الربط، اختر نوع المزود، اختبر الاتصال، ثم أرسل المصدر مباشرة إلى التطبيق.",
     sourceName: "اسم المصدر",
     xtream: "Xtream",
     m3u: "رابط M3U",
@@ -85,20 +122,22 @@ const copy = {
     epgUrl: "رابط EPG، اختياري",
     test: "اختبار المصدر",
     send: "إرسال إلى التطبيق",
-    privacy: "المصدر يصل إلى التطبيق فقط. الصفحة العامة لا تعرض بيانات مزود الخدمة.",
+    privacy: "المصدر يصل إلى التطبيق المرتبط فقط. الصفحة العامة لا تعرض بيانات المزود.",
+    codeHint: "افتح MoPlayer على Android TV واختر التفعيل عبر الموقع لرؤية الكود.",
     successTest: "تم اختبار الاتصال بنجاح.",
     failureTest: "فشل اختبار الاتصال.",
-    unavailableTest: "تعذر اختبار المصدر حالياً.",
-    successSend: "تم إرسال المصدر إلى التطبيق. سيبدأ الاستيراد تلقائياً.",
+    unavailableTest: "تعذر اختبار المصدر حاليًا.",
+    successSend: "تم إرسال المصدر إلى التطبيق. سيبدأ الاستيراد تلقائيًا.",
     failureSend: "تعذر إرسال المصدر.",
-    unavailableSend: "تعذر إرسال المصدر حالياً.",
-    codeHint: "الكود يظهر داخل التطبيق بصيغة تبدأ دائماً بـ MO-.",
+    unavailableSend: "تعذر إرسال المصدر حاليًا.",
+    backApps: "العودة للتطبيقات",
   },
 } as const;
 
 type Status = "waiting" | "invalid" | "activated" | "expired" | "backend";
 type SourceType = "xtream" | "m3u";
 type SourceState = "idle" | "testing" | "ok" | "sending" | "sent" | "error";
+type WizardStep = 1 | 2 | 3;
 
 function normalizeCode(value: string) {
   return value
@@ -111,7 +150,9 @@ function normalizeCode(value: string) {
 
 export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: Locale; initialCode?: string }) {
   const isAr = locale === "ar";
-  const t = repairMojibakeDeep(copy[locale]);
+  const t = copy[locale];
+  const [wizardStep, setWizardStep] = useState<WizardStep>(() => (initialCode ? 3 : 1));
+  const [accountEmail, setAccountEmail] = useState("");
   const [code, setCode] = useState(() => normalizeCode(initialCode));
   const [status, setStatus] = useState<Status>("waiting");
   const [checking, setChecking] = useState(false);
@@ -125,14 +166,17 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
   const [playlistUrl, setPlaylistUrl] = useState("");
   const [epgUrl, setEpgUrl] = useState("");
 
+  const mouseX = useMotionValue(50);
+  const mouseY = useMotionValue(50);
+  const aura = useMotionTemplate`radial-gradient(circle at ${mouseX}% ${mouseY}%, rgba(255, 35, 91, .22), transparent 35%), radial-gradient(circle at 82% 12%, rgba(104, 79, 255, .18), transparent 34%), radial-gradient(circle at 20% 90%, rgba(55, 220, 255, .14), transparent 30%)`;
   const fullCode = `MO-${code}`;
 
   const statusMeta = useMemo(() => {
-    if (status === "invalid") return { icon: XCircle, tone: "text-[var(--danger)]", data: t.invalid };
-    if (status === "activated") return { icon: CheckCircle2, tone: "text-[var(--brand-blue)]", data: t.activated };
-    if (status === "expired") return { icon: Clock3, tone: "text-[var(--gold)]", data: t.expired };
-    if (status === "backend") return { icon: XCircle, tone: "text-[var(--danger)]", data: t.backend };
-    return { icon: Clock3, tone: "text-[var(--brand-blue)]", data: t.waiting };
+    if (status === "invalid") return { icon: XCircle, tone: "is-error", data: t.invalid };
+    if (status === "activated") return { icon: CheckCircle2, tone: "is-success", data: t.activated };
+    if (status === "expired") return { icon: Clock3, tone: "is-warn", data: t.expired };
+    if (status === "backend") return { icon: XCircle, tone: "is-error", data: t.backend };
+    return { icon: Clock3, tone: "is-waiting", data: t.waiting };
   }, [status, t]);
 
   async function checkCode() {
@@ -149,15 +193,10 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
         body: JSON.stringify({ code: fullCode, deviceName: "MoPlayer TV" }),
       });
       const payload = (await response.json().catch(() => null)) as { status?: string } | null;
-      if (response.ok && payload?.status === "activated") {
-        setStatus("activated");
-      } else if (payload?.status === "expired") {
-        setStatus("expired");
-      } else if (payload?.status === "invalid") {
-        setStatus("invalid");
-      } else {
-        setStatus("backend");
-      }
+      if (response.ok && payload?.status === "activated") setStatus("activated");
+      else if (payload?.status === "expired") setStatus("expired");
+      else if (payload?.status === "invalid") setStatus("invalid");
+      else setStatus("backend");
     } catch {
       setStatus("backend");
     } finally {
@@ -215,161 +254,210 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
   }
 
   const StatusIcon = statusMeta.icon;
+  const steps = [t.productStep, t.loginStep, t.codeStep];
 
   return (
-    <main className="fresh-page" dir={isAr ? "rtl" : "ltr"}>
-      <section className="fresh-hero">
-        <div className="fresh-hero-copy">
-          <div>
-            <div>
-              <p className="fresh-eyebrow">{t.kicker}</p>
-              <h1>{t.title}</h1>
-              <p>{t.body}</p>
-
-              <div className="fresh-list">
-                {t.steps.map((step, index) => (
-                  <div key={step}>
-                    <span>0{index + 1}</span>
-                    <p>{step}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="fresh-note-stack">
-                <div className="fresh-note">
-                  <ShieldCheck className="h-4 w-4" />
-                  {t.privacy}
-                </div>
-                <div className="fresh-note">
-                  <QrCode className="h-4 w-4" />
-                  {t.codeHint}
-                </div>
-              </div>
-            </div>
+    <main
+      className="activation-lux"
+      dir={isAr ? "rtl" : "ltr"}
+      onPointerMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        mouseX.set(Math.round(((event.clientX - rect.left) / rect.width) * 100));
+        mouseY.set(Math.round(((event.clientY - rect.top) / rect.height) * 100));
+      }}
+    >
+      <motion.div className="activation-aura" style={{ background: aura }} aria-hidden />
+      <section className="activation-hero">
+        <div className="activation-copy">
+          <Link href={withLocale(locale, "apps")} className="activation-back">
+            <ChevronRight className="h-4 w-4" />
+            {t.backApps}
+          </Link>
+          <span className="activation-kicker">
+            <Sparkles className="h-4 w-4" />
+            {t.kicker}
+          </span>
+          <h1>{t.title}</h1>
+          <p>{t.body}</p>
+          <div className="activation-trust">
+            <span>
+              <ShieldCheck className="h-4 w-4" />
+              {t.privacy}
+            </span>
+            <span>
+              <QrCode className="h-4 w-4" />
+              {t.codeHint}
+            </span>
           </div>
         </div>
 
-        <div className="fresh-form">
-            <div className="grid gap-5">
-              <div className="fresh-card">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="fresh-mini-icon">
-                      <QrCode className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="fresh-eyebrow">MO code</p>
-                      <p>MO-{code || "----"}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCode("");
-                      setStatus("waiting");
-                      setSourceState("idle");
-                      setSourceMessage("");
-                    }}
-                    className="fresh-icon-button"
-                    aria-label="Reset code"
-                  >
-                    <RefreshCcw className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <label className="mt-6 block">
-                  <span className="fresh-field-label">{t.codeLabel}</span>
-                  <input
-                    value={code}
-                    maxLength={4}
-                    onChange={(event) => setCode(normalizeCode(event.target.value))}
-                    placeholder="4C7K"
-                    className="fresh-input fresh-code-input"
-                  />
-                </label>
-
-                <button type="button" onClick={checkCode} disabled={checking || code.length < 4} className="fresh-button fresh-button-primary mt-5 w-full">
-                  {checking ? t.checking : t.check}
-                </button>
-
-                <div className="fresh-note mt-5">
-                  <div className={cn("flex items-center gap-3 text-sm font-black", statusMeta.tone)}>
-                    <StatusIcon className="h-4 w-4" />
-                    {statusMeta.data[0]}
-                  </div>
-                  <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{statusMeta.data[1]}</p>
-                </div>
-              </div>
-
-              <div className={cn("fresh-card", status !== "activated" && "opacity-60")}>
-                <p className="fresh-eyebrow">{t.sourceTitle}</p>
-                <p>{t.sourceBody}</p>
-
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSourceType("xtream")}
-                    className={cn(
-                      "fresh-segment",
-                      sourceType === "xtream" && "fresh-segment-active",
-                    )}
-                  >
-                    {t.xtream}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSourceType("m3u")}
-                    className={cn(
-                      "fresh-segment",
-                      sourceType === "m3u" && "fresh-segment-active",
-                    )}
-                  >
-                    {t.m3u}
-                  </button>
-                </div>
-
-                <div className="mt-5 grid gap-4">
-                  <input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder={t.sourceName} className="fresh-input" disabled={status !== "activated"} />
-                  {sourceType === "xtream" ? (
-                    <>
-                      <input value={serverUrl} onChange={(event) => setServerUrl(event.target.value)} placeholder={t.serverUrl} className="fresh-input" disabled={status !== "activated"} />
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder={t.username} className="fresh-input" disabled={status !== "activated"} />
-                        <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t.password} type="password" className="fresh-input" disabled={status !== "activated"} />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <input value={playlistUrl} onChange={(event) => setPlaylistUrl(event.target.value)} placeholder={t.playlistUrl} className="fresh-input" disabled={status !== "activated"} />
-                      <input value={epgUrl} onChange={(event) => setEpgUrl(event.target.value)} placeholder={t.epgUrl} className="fresh-input" disabled={status !== "activated"} />
-                    </>
-                  )}
-                </div>
-
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <button type="button" onClick={testSource} disabled={status !== "activated" || sourceState === "testing"} className="fresh-button">
-                    {sourceState === "testing" ? t.testing : t.test}
-                  </button>
-                  <button type="button" onClick={sendSource} disabled={status !== "activated" || sourceState === "sending"} className="fresh-button fresh-button-primary">
-                    {sourceState === "sending" ? t.sending : t.send}
-                  </button>
-                </div>
-
-                {sourceMessage ? (
-                  <div
-                    className={cn(
-                      "mt-5 rounded-[1.2rem] border p-4 text-sm leading-7",
-                      sourceState === "ok" || sourceState === "sent"
-                        ? "border-blue-400/25 bg-blue-500/10 text-blue-100"
-                        : "border-red-500/20 bg-red-500/10 text-red-100",
-                    )}
-                  >
-                    {sourceMessage}
-                  </div>
-                ) : null}
-              </div>
-            </div>
+        <div className="activation-device">
+          <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV activation" width={820} height={620} priority />
+          <div className="activation-code-chip">
+            <KeyRound className="h-4 w-4" />
+            {fullCode || "MO-XXXX"}
           </div>
+        </div>
+      </section>
+
+      <section className="activation-wizard">
+        <div className="activation-stepper">
+          {steps.map((step, index) => {
+            const current = (index + 1) as WizardStep;
+            return (
+              <button
+                key={step}
+                type="button"
+                onClick={() => setWizardStep(current)}
+                className={cn("activation-step", wizardStep === current && "is-active", wizardStep > current && "is-done")}
+              >
+                <span>{index + 1}</span>
+                {step}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="activation-panel">
+          <AnimatePresence mode="wait">
+            {wizardStep === 1 ? (
+              <motion.div key="product" initial={{ opacity: 0, x: isAr ? -28 : 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isAr ? 28 : -28 }} transition={{ duration: 0.28 }}>
+                <div className="activation-product-card">
+                  <div className="activation-product-visual">
+                    <Image src="/images/moplayer-icon-512.png" alt="" width={88} height={88} />
+                    <PlayCircle className="h-10 w-10" />
+                  </div>
+                  <div>
+                    <span>Android TV</span>
+                    <h2>{t.productTitle}</h2>
+                    <p>{t.productBody}</p>
+                  </div>
+                  <button type="button" onClick={() => setWizardStep(2)} className="activation-button activation-button-primary">
+                    {t.continue}
+                  </button>
+                </div>
+              </motion.div>
+            ) : null}
+
+            {wizardStep === 2 ? (
+              <motion.div key="login" initial={{ opacity: 0, x: isAr ? -28 : 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isAr ? 28 : -28 }} transition={{ duration: 0.28 }}>
+                <div className="activation-login-grid">
+                  <div>
+                    <span className="activation-kicker">
+                      <UserRound className="h-4 w-4" />
+                      {t.loginStep}
+                    </span>
+                    <h2>{t.welcome}</h2>
+                    <p>{t.loginBody}</p>
+                  </div>
+                  <div className="activation-login-form">
+                    <button type="button" onClick={() => setWizardStep(3)} className="activation-social">
+                      <Mail className="h-4 w-4" />
+                      {t.google}
+                    </button>
+                    <button type="button" onClick={() => setWizardStep(3)} className="activation-social">
+                      <Apple className="h-4 w-4" />
+                      {t.apple}
+                    </button>
+                    <label>
+                      <span>{t.emailLabel}</span>
+                      <input value={accountEmail} onChange={(event) => setAccountEmail(event.target.value)} placeholder={t.emailPlaceholder} type="email" />
+                    </label>
+                    <button type="button" onClick={() => setWizardStep(3)} className="activation-button activation-button-primary">
+                      {accountEmail ? t.emailContinue : t.skip}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
+
+            {wizardStep === 3 ? (
+              <motion.div key="code" initial={{ opacity: 0, x: isAr ? -28 : 28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isAr ? 28 : -28 }} transition={{ duration: 0.28 }}>
+                <div className="activation-code-grid">
+                  <div className="activation-code-entry">
+                    <div className="activation-code-preview">MO-{code || "XXXX"}</div>
+                    <label>
+                      <span>{t.codeLabel}</span>
+                      <input value={code} maxLength={4} onChange={(event) => setCode(normalizeCode(event.target.value))} placeholder="4C7K" />
+                    </label>
+                    <button type="button" onClick={checkCode} disabled={checking || code.length < 4} className="activation-button activation-button-primary">
+                      {checking ? t.checking : t.check}
+                    </button>
+                  </div>
+
+                  <div className={cn("activation-status", statusMeta.tone)}>
+                    {status === "activated" ? <div className="activation-confetti" aria-hidden>{Array.from({ length: 12 }).map((_, index) => <i key={index} />)}</div> : null}
+                    <StatusIcon className="h-7 w-7" />
+                    <h3>{status === "activated" ? t.success : statusMeta.data[0]}</h3>
+                    <p>{statusMeta.data[1]}</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCode("");
+                        setStatus("waiting");
+                        setSourceState("idle");
+                        setSourceMessage("");
+                      }}
+                      className="activation-reset"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </section>
+
+      <section className={cn("activation-source", status !== "activated" && "is-locked")}>
+        <div>
+          <span className="activation-kicker">
+            <Tv className="h-4 w-4" />
+            {t.sourceTitle}
+          </span>
+          <h2>{t.sourceTitle}</h2>
+          <p>{t.sourceBody}</p>
+        </div>
+
+        <div className="activation-source-form">
+          <div className="activation-segments">
+            <button type="button" onClick={() => setSourceType("xtream")} className={cn(sourceType === "xtream" && "is-active")}>{t.xtream}</button>
+            <button type="button" onClick={() => setSourceType("m3u")} className={cn(sourceType === "m3u" && "is-active")}>{t.m3u}</button>
+          </div>
+
+          <div className="activation-fields">
+            <input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder={t.sourceName} disabled={status !== "activated"} />
+            {sourceType === "xtream" ? (
+              <>
+                <input value={serverUrl} onChange={(event) => setServerUrl(event.target.value)} placeholder={t.serverUrl} disabled={status !== "activated"} />
+                <input value={username} onChange={(event) => setUsername(event.target.value)} placeholder={t.username} disabled={status !== "activated"} />
+                <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t.password} type="password" disabled={status !== "activated"} />
+              </>
+            ) : (
+              <>
+                <input value={playlistUrl} onChange={(event) => setPlaylistUrl(event.target.value)} placeholder={t.playlistUrl} disabled={status !== "activated"} />
+                <input value={epgUrl} onChange={(event) => setEpgUrl(event.target.value)} placeholder={t.epgUrl} disabled={status !== "activated"} />
+              </>
+            )}
+          </div>
+
+          <div className="activation-source-actions">
+            <button type="button" onClick={testSource} disabled={status !== "activated" || sourceState === "testing"} className="activation-button">
+              {sourceState === "testing" ? t.testing : t.test}
+            </button>
+            <button type="button" onClick={sendSource} disabled={status !== "activated" || sourceState === "sending"} className="activation-button activation-button-primary">
+              {sourceState === "sending" ? t.sending : t.send}
+            </button>
+          </div>
+
+          {sourceMessage ? (
+            <div className={cn("activation-source-message", sourceState === "ok" || sourceState === "sent" ? "is-success" : "is-error")}>
+              {sourceMessage}
+            </div>
+          ) : null}
+        </div>
       </section>
     </main>
   );

@@ -22,6 +22,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { AppsShowcasePage } from "@/components/site/apps-showcase-page";
 import { ContactHubPage } from "@/components/site/contact-hub-page";
 import { InteractiveCvPage } from "@/components/site/interactive-cv-page";
 import { WorkDigitalExhibition } from "@/components/site/work-digital-exhibition";
@@ -635,10 +636,6 @@ function pathFor(locale: SiteViewModel["locale"], key: string) {
   return withLocale(locale, key);
 }
 
-function featuredProjects(model: SiteViewModel) {
-  return [...model.projects].sort((a, b) => a.featuredRank - b.featuredRank).slice(0, 4);
-}
-
 function PillarGrid({ model }: { model: SiteViewModel }) {
   const icons = [Globe2, MonitorPlay, Film, BriefcaseBusiness];
   return (
@@ -1201,30 +1198,7 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
 }
 
 function AppsPage({ model }: { model: SiteViewModel }) {
-  const c = t(model.locale);
-  const project = model.projects.find((item) => item.slug === "moplayer") || featuredProjects(model)[0];
-  return (
-    <PageShell>
-      <section className="fresh-section fresh-first">
-        <SectionHeader eyebrow={c.apps.eyebrow} title={c.apps.title} body={c.apps.body} />
-        {project ? (
-          <div className="fresh-feature">
-            <div className="fresh-feature-media">
-              <Image src={project.image} alt={project.title} fill sizes="(max-width: 900px) 100vw, 50vw" className="fresh-image" />
-            </div>
-            <div>
-              <p className="fresh-eyebrow">MoPlayer</p>
-              <h2>{project.title}</h2>
-              <p>{project.description || project.summary}</p>
-              <Link href={withLocale(model.locale, "apps/moplayer")} className="fresh-button fresh-button-primary">
-                {c.labels.openProduct}
-              </Link>
-            </div>
-          </div>
-        ) : null}
-      </section>
-    </PageShell>
-  );
+  return <AppsShowcasePage locale={model.locale} />;
 }
 
 function YoutubePage({ model }: { model: SiteViewModel }) {

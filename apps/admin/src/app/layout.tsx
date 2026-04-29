@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cairo, DM_Sans, Syne } from "next/font/google";
+import { AdminPwaBridge } from "@/components/admin/admin-pwa-bridge";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" dir="ltr" suppressHydrationWarning className={`${arabic.variable} ${latin.variable} ${display.variable}`}>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
+          <AdminPwaBridge />
           {children}
         </ThemeProvider>
       </body>

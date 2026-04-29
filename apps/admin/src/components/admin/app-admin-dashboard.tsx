@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Shield,
   Layout,
-  CheckCircle2
+  CheckCircle2,
+  Bell,
 } from "lucide-react";
 
 import {
@@ -115,6 +116,31 @@ function StatusBadge({ status }: { status: string }) {
     )}>
       {status}
     </span>
+  );
+}
+
+function NativeToggle({
+  name,
+  label,
+  description,
+  checked,
+  tone = "cyan",
+}: {
+  name: string;
+  label: string;
+  description: string;
+  checked: boolean;
+  tone?: "cyan" | "red" | "green";
+}) {
+  return (
+    <label className={`admin-toggle-card admin-toggle-${tone}`}>
+      <span>
+        <strong>{label}</strong>
+        <small>{description}</small>
+      </span>
+      <input type="checkbox" name={name} defaultChecked={checked} />
+      <i aria-hidden />
+    </label>
   );
 }
 
@@ -348,7 +374,7 @@ export function AppAdminDashboard({
           { label: "Waiting", value: activationRequests.filter(r => r.status === 'waiting').length, icon: <Key className="text-amber-400" /> },
           { label: "Sources", value: providerSources.length, icon: <UploadCloud className="text-cyan-400" /> },
           { label: "Releases", value: releases.length, icon: <Box className="text-violet-400" /> },
-          { label: "Visual Assets", value: screenshots.length, icon: <Layout className="text-pink-400" /> },
+          { label: "Visual Assets", value: screenshots.length, icon: <Layout className="text-sky-200" /> },
           { label: "Inquiries", value: supportRequests.filter(s => s.status === 'new').length, icon: <Mail className="text-red-400" /> },
         ].map((item, idx) => (
           <motion.div 
@@ -370,27 +396,44 @@ export function AppAdminDashboard({
       {/* Runtime Control Panel */}
       <Panel 
         title="Runtime Configuration" 
-        description="Remote feature flags and global system message. The Android app synchronizes these parameters on every cold start."
+        description="Real control switches consumed by MoPlayer through the public app configuration endpoint. Save once and the app reads the new state on sync."
         icon={<Settings2 className="h-6 w-6" />}
         className="bg-cyan-500/[0.01] border-cyan-500/10"
       >
         <form action={saveRuntimeConfigAction} className="grid gap-6 lg:grid-cols-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 lg:col-span-2">
-            App state · maintenance · widgets
-          </p>
-          <div className="grid gap-4 md:grid-cols-2 lg:col-span-2">
-            {[
-              { name: "enabled", label: "Application Active", checked: runtimeConfig.enabled },
-              { name: "maintenanceMode", label: "Maintenance Mode", checked: runtimeConfig.maintenanceMode },
-              { name: "forceUpdate", label: "Mandatory Update", checked: runtimeConfig.forceUpdate },
-              { name: "weather", label: "Weather Services", checked: runtimeConfig.widgets.weather },
-              { name: "football", label: "Sports Engine", checked: runtimeConfig.widgets.football },
-            ].map(flag => (
-              <label key={flag.name} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer transition-all">
-                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">{flag.label}</span>
-                <input type="checkbox" name={flag.name} defaultChecked={flag.checked} className="h-5 w-5 accent-cyan-500" />
-              </label>
-            ))}
+          <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
+            <NativeToggle
+              name="enabled"
+              label="App Master Switch"
+              description={runtimeConfig.enabled ? "MoPlayer is online for users." : "MoPlayer is currently offline."}
+              checked={runtimeConfig.enabled}
+              tone="green"
+            />
+            <NativeToggle
+              name="maintenanceMode"
+              label="Maintenance Mode"
+              description="Show controlled downtime state inside the app."
+              checked={runtimeConfig.maintenanceMode}
+              tone="red"
+            />
+            <NativeToggle
+              name="forceUpdate"
+              label="Force Update"
+              description="Require users to install the newest build."
+              checked={runtimeConfig.forceUpdate}
+            />
+            <NativeToggle
+              name="weather"
+              label="Weather Widget"
+              description="Enable the website proxy powered weather module."
+              checked={runtimeConfig.widgets.weather}
+            />
+            <NativeToggle
+              name="football"
+              label="Football Widget"
+              description="Enable match widgets through website proxies."
+              checked={runtimeConfig.widgets.football}
+            />
           </div>
 
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 lg:col-span-2">
@@ -412,13 +455,22 @@ export function AppAdminDashboard({
             <InputField label="Privacy Policy URI" name="privacyUrl" defaultValue={runtimeConfig.privacyUrl} />
           </div>
 
-          <div className="lg:col-span-2">
-            <TextAreaField label="Global System Message (Banner)" name="message" defaultValue={runtimeConfig.message} placeholder="Enter message for all users..." />
+          <div className="lg:col-span-2 rounded-[2rem] border border-cyan-200/10 bg-cyan-200/[0.035] p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-200/15 bg-cyan-200/8 text-cyan-100">
+                <Bell className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white">Broadcast / In-app Message</h3>
+                <p className="text-xs leading-6 text-slate-400">Write one clear message. It is stored in runtime config and can be displayed by MoPlayer as a global banner.</p>
+              </div>
+            </div>
+            <TextAreaField label="Message to users" name="message" defaultValue={runtimeConfig.message} placeholder="Example: A new version is ready. Please update for the best experience." />
           </div>
           
           <div className="lg:col-span-2 pt-4">
             <button type="submit" className="w-full md:w-auto px-10 h-14 rounded-full bg-cyan-500 text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all">
-              Save Runtime Parameters
+              Save & Sync Runtime
             </button>
           </div>
         </form>
@@ -519,6 +571,59 @@ export function AppAdminDashboard({
         </div>
       </Panel>
 
+      <Panel
+        title="License Manager"
+        description="A clear operator view for active, pending, expired, and revoked access states. Key generation stays tied to your current activation backend."
+        icon={<Shield className="h-6 w-6" />}
+        className="border-emerald-300/10 bg-emerald-300/[0.01]"
+      >
+        <div className="mb-8 grid gap-4 md:grid-cols-3">
+          {[
+            { label: "Active", value: licenses.filter((item) => item.status === "active").length, tone: "text-emerald-300" },
+            { label: "Expired", value: licenses.filter((item) => item.status === "expired").length, tone: "text-amber-300" },
+            { label: "Revoked", value: licenses.filter((item) => item.status === "revoked").length, tone: "text-red-300" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{item.label}</p>
+              <p className={`mt-2 text-3xl font-black ${item.tone}`}>{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-black/30">
+          <div className="grid grid-cols-[1.15fr_0.7fr_0.7fr] gap-3 border-b border-white/10 px-5 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <span>Device</span>
+            <span>Plan</span>
+            <span>Status</span>
+          </div>
+          <div className="divide-y divide-white/10">
+            {licenses.slice(0, 8).map((license) => (
+              <div key={license.id} className="grid grid-cols-[1.15fr_0.7fr_0.7fr] items-center gap-3 px-5 py-4 text-xs">
+                <span className="min-w-0 truncate font-mono text-slate-300">{license.device_id}</span>
+                <span className="font-black uppercase tracking-widest text-slate-400">{license.plan}</span>
+                <StatusBadge status={license.status} />
+              </div>
+            ))}
+            {!licenses.length && (
+              <div className="flex flex-col items-center justify-center px-5 py-12 text-center">
+                <Key className="mb-3 h-8 w-8 text-slate-600" />
+                <p className="text-sm font-black uppercase tracking-widest text-slate-500">No licenses tracked yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 rounded-[1.5rem] border border-cyan-200/10 bg-cyan-200/[0.035] p-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-black text-white">Generate key flow</p>
+            <p className="mt-1 text-xs leading-6 text-slate-400">Use the activation route for real device-bound keys. This panel keeps the operator focused on status and follow-up.</p>
+          </div>
+          <Link href={`${webBaseUrl}/en/activate`} target="_blank" className="admin-secondary-button">
+            Open Activation
+          </Link>
+        </div>
+      </Panel>
+
       {/* Support Inbox */}
       <Panel
         title="Intelligence Inbox"
@@ -561,8 +666,16 @@ export function AppAdminDashboard({
                 <input type="checkbox" name="is_featured" className="h-5 w-5 accent-cyan-500" />
               </label>
            </div>
-           <div className="lg:col-span-2">
+           <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
               <InputField label="Public Path Override" name="image_path" placeholder="/images/..." />
+              <label className="group relative flex min-h-20 cursor-pointer items-center justify-between overflow-hidden rounded-[2rem] border border-dashed border-cyan-200/20 bg-cyan-200/[0.035] px-6 py-5 transition hover:border-cyan-200/45 hover:bg-cyan-200/[0.06]">
+                <span>
+                  <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-cyan-100">Drag / Select Image</span>
+                  <span className="mt-1 block text-xs text-slate-500">Upload and store a new app visual asset.</span>
+                </span>
+                <UploadCloud className="h-6 w-6 text-cyan-100" />
+                <input type="file" name="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" />
+              </label>
            </div>
            <div className="lg:col-span-2">
               <button type="submit" className="px-10 h-14 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] hover:bg-slate-200 transition-all">

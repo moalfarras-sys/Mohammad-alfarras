@@ -30,7 +30,7 @@ export default async function AdminPage({
           : undefined;
 
     return (
-      <main className="mx-auto min-h-screen max-w-6xl px-5 py-10 md:px-8 md:py-16">
+      <main className="admin-shell min-h-screen px-4 py-5 sm:px-6 md:px-8">
         <AppAdminLogin message={message} initialEmail={query.email ? decodeURIComponent(query.email) : undefined} />
       </main>
     );
@@ -39,7 +39,7 @@ export default async function AdminPage({
   const data = await readAdminAppData("moplayer");
 
   return (
-    <main className="mx-auto min-h-screen max-w-7xl px-5 py-10 md:px-8 md:py-12">
+    <main className="admin-shell min-h-screen">
       <AdminOS
         adminEmail={admin.email}
         role={admin.role}

@@ -14,6 +14,9 @@
  * Storage-only upload while hosted database migrations are not applied yet:
  *   node scripts/publish-android-release.mjs --version 2.0.1 --versionCode 3 --apk <path> --uploadOnly
  *
+ * Metadata-only publish for APKs hosted by the website static downloads:
+ *   node scripts/publish-android-release.mjs --version 2.0.1 --versionCode 3 --apk <path> --externalUrl /downloads/moplayer/app.apk
+ *
  * Required env:
  *   NEXT_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
@@ -51,12 +54,13 @@ async function main() {
       apk: { type: "string" },
       slug: { type: "string", default: "moplayer" },
       notes: { type: "string", default: "" },
-      abi: { type: "string", default: "arm64-v8a" },
+      abi: { type: "string", default: "universal" },
       minSdk: { type: "string", default: "24" },
       targetSdk: { type: "string", default: "35" },
       bucket: { type: "string", default: DEFAULT_BUCKET },
       uploadOnly: { type: "boolean", default: false },
       primary: { type: "boolean", default: false },
+      externalUrl: { type: "string" },
     },
   });
 
@@ -73,21 +77,33 @@ async function main() {
   const sha256 = createHash("sha256").update(apkBytes).digest("hex");
   const fileName = `${values.slug}-${values.version}-${values.abi}.apk`;
   const storagePath = `${values.slug}/${values.version}/${fileName}`;
-  const isPrimary = values.primary || values.abi === "arm64-v8a";
+  const isPrimary = values.primary || values.abi === "universal";
 
-  console.log(
-    `Uploading ${values.apk} -> ${storagePath} (${(apkStat.size / 1024 / 1024).toFixed(1)} MB, sha256 ${sha256.slice(0, 12)}...)`,
-  );
+  let publicUrl = values.externalUrl;
+  let assetBucket = null;
+  let assetPath = null;
 
-  await supabase.storage.createBucket(values.bucket, { public: true }).catch(() => null);
+  if (publicUrl) {
+    console.log(
+      `Publishing metadata for ${values.apk} -> ${publicUrl} (${(apkStat.size / 1024 / 1024).toFixed(1)} MB, sha256 ${sha256.slice(0, 12)}...)`,
+    );
+  } else {
+    console.log(
+      `Uploading ${values.apk} -> ${storagePath} (${(apkStat.size / 1024 / 1024).toFixed(1)} MB, sha256 ${sha256.slice(0, 12)}...)`,
+    );
 
-  const upload = await supabase.storage.from(values.bucket).upload(storagePath, apkBytes, {
-    contentType: "application/vnd.android.package-archive",
-    upsert: true,
-  });
-  if (upload.error) fail("Upload failed.", upload.error);
+    await supabase.storage.createBucket(values.bucket, { public: true }).catch(() => null);
 
-  const publicUrl = supabase.storage.from(values.bucket).getPublicUrl(storagePath).data.publicUrl;
+    const upload = await supabase.storage.from(values.bucket).upload(storagePath, apkBytes, {
+      contentType: "application/vnd.android.package-archive",
+      upsert: true,
+    });
+    if (upload.error) fail("Upload failed.", upload.error);
+
+    publicUrl = supabase.storage.from(values.bucket).getPublicUrl(storagePath).data.publicUrl;
+    assetBucket = values.bucket;
+    assetPath = storagePath;
+  }
 
   if (values.uploadOnly) {
     console.log(`Uploaded ${values.abi} APK.`);
@@ -116,7 +132,7 @@ async function main() {
         version_name: values.version,
         version_code: Number(values.versionCode),
         release_notes: values.notes,
-        compatibility_notes: `Android ${values.minSdk}+ / target SDK ${values.targetSdk} / arm64-v8a primary, armeabi-v7a secondary`,
+        compatibility_notes: `Android ${values.minSdk}+ / target SDK ${values.targetSdk} / universal TV APK primary, arm64-v8a and armeabi-v7a available as advanced downloads`,
         published_at: new Date().toISOString(),
         is_published: true,
       },
@@ -146,10 +162,10 @@ async function main() {
     .insert({
       release_id: release.id,
       asset_type: "apk",
-      label: `${values.abi} sideload APK`,
+      label: values.abi === "universal" ? "Recommended TV APK" : `${values.abi} sideload APK`,
       abi: values.abi,
-      storage_bucket: values.bucket,
-      storage_path: storagePath,
+      storage_bucket: assetBucket,
+      storage_path: assetPath,
       external_url: publicUrl,
       mime_type: "application/vnd.android.package-archive",
       file_size_bytes: apkStat.size,

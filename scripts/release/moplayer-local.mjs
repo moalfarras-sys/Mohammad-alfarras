@@ -11,6 +11,11 @@ const publicDir = resolve(root, "apps/web/public/downloads/moplayer");
 
 const artifacts = [
   {
+    abi: "universal",
+    source: resolve(androidDir, "build-output/app/outputs/apk/sideload/release/app-sideload-universal-release.apk"),
+    target: resolve(publicDir, "app-sideload-universal-release.apk"),
+  },
+  {
     abi: "arm64-v8a",
     source: resolve(androidDir, "build-output/app/outputs/apk/sideload/release/app-sideload-arm64-v8a-release.apk"),
     target: resolve(publicDir, "app-sideload-arm64-v8a-release.apk"),
@@ -36,7 +41,7 @@ function checksum(file) {
   return createHash("sha256").update(readFileSync(file)).digest("hex");
 }
 
-run(process.platform === "win32" ? "gradlew.bat" : "./gradlew", ["assembleSideloadRelease"], androidDir);
+run(process.platform === "win32" ? "gradlew.bat" : "./gradlew", ["assembleSideloadRelease", "-PuniversalSideloadApk=true"], androidDir);
 
 mkdirSync(publicDir, { recursive: true });
 

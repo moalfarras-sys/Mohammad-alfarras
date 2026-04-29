@@ -173,6 +173,7 @@ function ScreenshotCard({ item }: { item: AppScreenshot }) {
 
 function ReleaseCard({ item }: { item: AppRelease }) {
   const primary = item.assets.find((asset) => asset.is_primary) ?? item.assets[0];
+  const advanced = item.assets.filter((asset) => asset.id !== primary?.id);
   return (
     <div className="glass rounded-[2.5rem] p-8 border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-all">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -192,7 +193,19 @@ function ReleaseCard({ item }: { item: AppRelease }) {
              <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300">
                 {formatBytes(primary?.file_size_bytes)}
              </div>
+             <div className="px-4 py-2 rounded-xl bg-emerald-400/10 border border-emerald-300/20 text-[10px] font-black uppercase tracking-widest text-emerald-200">
+                Primary TV download
+             </div>
           </div>
+          {advanced.length ? (
+            <div className="flex flex-wrap gap-2">
+              {advanced.map((asset) => (
+                <span key={asset.id} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-bold text-slate-400">
+                  Advanced: {asset.abi ?? "APK"} / {formatBytes(asset.file_size_bytes)}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="flex flex-row md:flex-col gap-3">
           <Link
@@ -489,7 +502,7 @@ export function AppAdminDashboard({
                  <InputField label="Version Name" name="version_name" placeholder="2.1.0" required />
                  <InputField label="Version Code" name="version_code" type="number" defaultValue="3" required />
               </div>
-              <InputField label="Hardware ABI" name="abi" defaultValue="arm64-v8a" required />
+              <InputField label="Hardware ABI" name="abi" defaultValue="universal" required />
            </div>
            <div className="space-y-6">
               <InputField label="Publish Timestamp" name="published_at" type="datetime-local" />
@@ -517,6 +530,30 @@ export function AppAdminDashboard({
 
         <div className="mt-12 space-y-4">
           {releases.map((item) => <ReleaseCard key={item.id} item={item} />)}
+        </div>
+
+        <div className="mt-10 rounded-[2rem] border border-amber-300/15 bg-amber-300/[0.045] p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/20 bg-amber-300/10 text-amber-200">
+              <Key className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white">TV install troubleshooting</h3>
+              <p className="text-xs leading-6 text-slate-400">Use this when a TV shows “App not installed”. The recommended fix is usually the universal APK plus a clean reinstall if a previous build used a different signature.</p>
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {[
+              "Download the Recommended TV APK first. It contains all packaged native architectures.",
+              "If an older MoPlayer build exists and Android refuses the update, uninstall the old app first, then install again.",
+              "Keep Android 7.0+ as the minimum device requirement.",
+              "If the TV still fails, connect ADB and read the PackageInstaller reason before publishing another build.",
+            ].map((item) => (
+              <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-slate-300">
+                {item}
+              </div>
+            ))}
+          </div>
         </div>
       </Panel>
 

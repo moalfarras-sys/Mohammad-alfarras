@@ -33,6 +33,7 @@ val tvdbApiKey = localProperties.getProperty("tvdb.api.key", "")
 val webApiBaseUrl = localProperties.getProperty("web.api.base.url", "https://moalfarras.space")
 val isPlayBundleBuild = gradle.startParameter.taskNames.any { it.contains("bundleplay", ignoreCase = true) }
 val includeX86Abis = providers.gradleProperty("includeX86Abis").orNull?.toBoolean() ?: false
+val buildUniversalSideloadApk = providers.gradleProperty("universalSideloadApk").orNull?.toBoolean() ?: true
 val sideloadAbis = mutableListOf("armeabi-v7a", "arm64-v8a").apply {
     if (includeX86Abis) {
         add("x86")
@@ -111,7 +112,7 @@ android {
             isEnable = !isPlayBundleBuild
             reset()
             include(*sideloadAbis.toTypedArray())
-            isUniversalApk = false
+            isUniversalApk = buildUniversalSideloadApk
         }
     }
 
@@ -140,6 +141,12 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "/META-INF/DEPENDENCIES"
+        }
+        jniLibs {
+            if (!includeX86Abis) {
+                excludes += "**/x86/**"
+                excludes += "**/x86_64/**"
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 // Next.js 16 "proxy" convention (replaces deprecated middleware.ts).
-// Handles locale prefixing on public pages. Admin routes are exempt so the
-// locale-prefixed Website CMS at /{locale}/admin can keep working while /admin
-// (no locale) redirects externally to admin.moalfarras.space.
+// Handles locale prefixing on public pages. The unified admin lives on
+// admin.moalfarras.space; locale-prefixed admin entrypoints are bridged there
+// so visitors do not land on the legacy CMS login surface.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -44,6 +44,11 @@ export function proxy(request: NextRequest) {
   }
 
   const locale = localeFromPathname(pathname);
+
+  if (locale && (pathname === `/${locale}/admin` || pathname === `/${locale}/admin/`)) {
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space";
+    return NextResponse.redirect(adminUrl, 308);
+  }
 
   if (!locale) {
     const url = request.nextUrl.clone();

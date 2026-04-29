@@ -46,6 +46,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   const t = repairMojibakeDeep(moPlayerCopy[locale]);
   const latest = ecosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((item) => item.is_primary) ?? latest?.assets[0] ?? null;
+  const advancedAssets = latest?.assets.filter((item) => item.id !== primaryAsset?.id) ?? [];
   const size = formatBytes(primaryAsset?.file_size_bytes);
   const releaseDate = formatDate(locale, latest?.published_at ?? ecosystem.product.last_updated_at);
   const downloadHref = latest ? `/api/app/releases/${latest.slug}/download` : null;
@@ -146,6 +147,35 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
             );
           })}
         </div>
+        {latest && primaryAsset ? (
+          <div className="moplayer-download-chooser">
+            <div>
+              <span className="moplayer-kicker">{isAr ? "التنزيل الموصى به" : "Recommended TV download"}</span>
+              <h3>{isAr ? "استخدم ملف Universal APK أولًا لتجنب خطأ التثبيت على التلفزيون." : "Use the Universal APK first to avoid TV install mismatch."}</h3>
+              <p>
+                {isAr
+                  ? "إذا ظهرت رسالة App not installed، احذف أي نسخة قديمة من MoPlayer ثم ثبّت هذا الملف من جديد."
+                  : "If Android shows “App not installed”, remove any older MoPlayer build first, then install this recommended package again."}
+              </p>
+            </div>
+            <div className="moplayer-download-list">
+              <Link href={`/api/app/releases/${latest.slug}/download`} className="moplayer-download-row is-primary">
+                <span>{primaryAsset.label || (isAr ? "ملف التلفزيون الموصى به" : "Recommended TV APK")}</span>
+                <strong>{primaryAsset.abi ?? "universal"} · {formatBytes(primaryAsset.file_size_bytes) ?? "APK"}</strong>
+              </Link>
+              {advancedAssets.map((asset) => (
+                <a
+                  key={asset.id}
+                  href={asset.external_url || `/api/app/releases/${latest.slug}/download`}
+                  className="moplayer-download-row"
+                >
+                  <span>{asset.label || asset.abi || "APK"}</span>
+                  <strong>{asset.abi ?? "APK"} · {formatBytes(asset.file_size_bytes) ?? "APK"}</strong>
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="moplayer-section moplayer-showcase">

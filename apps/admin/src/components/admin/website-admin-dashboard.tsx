@@ -33,16 +33,17 @@ export function WebsiteAdminDashboard() {
     icon: ReactNode;
     title: string;
     desc: string;
+    action: string;
     href: string;
   }[] = [
-    { id: "home", icon: <Globe className="h-5 w-5" />, title: "Homepage Story", desc: "Hero, proof badges, story arc, and main calls to action.", href: p("/admin/pages") },
-    { id: "cv", icon: <FileText className="h-5 w-5" />, title: "CV Builder", desc: "Profile, timeline, skills, languages, projects, and exports.", href: p("/admin/cv") },
-    { id: "projects", icon: <Briefcase className="h-5 w-5" />, title: "Case Studies", desc: "Project challenge, solution, stack, screenshots, and links.", href: p("/admin/projects") },
-    { id: "youtube", icon: <PlayCircle className="h-5 w-5" />, title: "Media Studio", desc: "YouTube proof, categories, collaboration copy, and video framing.", href: p("/admin/pages") },
-    { id: "copy", icon: <MessageSquare className="h-5 w-5" />, title: "Contact & Copy", desc: "Bilingual site copy, contact framing, and CTA clarity.", href: p("/admin/pages") },
-    { id: "seo", icon: <Search className="h-5 w-5" />, title: "SEO & Metadata", desc: "Indexing basics, structured content, and search-facing branding.", href: p("/admin/settings") },
-    { id: "media", icon: <ImageIcon className="h-5 w-5" />, title: "Media Library", desc: "Logo, portrait, project visuals, MoPlayer screens, and alt text.", href: p("/admin/media") },
-    { id: "theme", icon: <Settings className="h-5 w-5" />, title: "Theme & Branding", desc: "Global colors, footer facts, and navigation context.", href: p("/admin/settings") },
+    { id: "home", icon: <Globe className="h-5 w-5" />, title: "Homepage Story", desc: "Edit hero copy, proof badges, story sections, and main calls to action.", action: "Opens the page content editor.", href: p("/admin/pages") },
+    { id: "cv", icon: <FileText className="h-5 w-5" />, title: "CV Builder", desc: "Update profile, timeline, skills, languages, project highlights, and exports.", action: "Opens the CV control engine.", href: p("/admin/cv") },
+    { id: "projects", icon: <Briefcase className="h-5 w-5" />, title: "Case Studies", desc: "Manage project names, descriptions, stack, screenshots, and links.", action: "Opens project editing tools.", href: p("/admin/projects") },
+    { id: "youtube", icon: <PlayCircle className="h-5 w-5" />, title: "Media Studio", desc: "Control YouTube proof, categories, collaboration copy, and video framing.", action: "Opens the shared pages editor.", href: p("/admin/pages") },
+    { id: "copy", icon: <MessageSquare className="h-5 w-5" />, title: "Contact & Copy", desc: "Polish bilingual contact text, CTA clarity, and visitor instructions.", action: "Opens editable site copy.", href: p("/admin/pages") },
+    { id: "seo", icon: <Search className="h-5 w-5" />, title: "SEO & Metadata", desc: "Review search-facing titles, descriptions, indexing, and brand metadata.", action: "Opens site settings.", href: p("/admin/settings") },
+    { id: "media", icon: <ImageIcon className="h-5 w-5" />, title: "Media Library", desc: "Upload, inspect, and swap logo, portrait, project, and MoPlayer assets.", action: "Opens the drag-and-drop media library.", href: p("/admin/media") },
+    { id: "theme", icon: <Settings className="h-5 w-5" />, title: "Theme & Branding", desc: "Review global colors, footer facts, navigation, and publishing status.", action: "Opens visual/site controls.", href: p("/admin/settings") },
   ];
 
   return (
@@ -116,8 +117,11 @@ export function WebsiteAdminDashboard() {
             </div>
             <h3 className="text-xl font-black tracking-tight text-white">{m.title}</h3>
             <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-400">{m.desc}</p>
+            <p className="mt-5 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-[11px] font-bold leading-5 text-slate-400">
+              {m.action}
+            </p>
             <div className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">
-              Open
+              Open module
               <ExternalLink className="h-3 w-3" />
               <ArrowRight className="h-3 w-3 transition-all group-hover:translate-x-0.5" />
             </div>
@@ -138,6 +142,25 @@ export function WebsiteAdminDashboard() {
           </div>
         </div>
         <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">Production</div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <div className="glass rounded-[2rem] border border-white/5 p-6 md:rounded-[2.5rem] md:p-8">
+          <h2 className="text-xl font-black tracking-tight text-white">Admin access reset</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            Passwords are never shown in this dashboard. To reset access, update the secure environment variables or Supabase admin role, then redeploy the admin project.
+          </p>
+          <div className="mt-5 grid gap-2 text-xs leading-6 text-slate-500">
+            <span>Allowed identities are controlled by the admin allowlist.</span>
+            <span>Hashed passwords and session secrets stay server-side only.</span>
+          </div>
+        </div>
+        <div className="glass rounded-[2rem] border border-white/5 p-6 md:rounded-[2.5rem] md:p-8">
+          <h2 className="text-xl font-black tracking-tight text-white">Why modules open the site</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            The editing engines still live in the public web app for data safety. This command center is now the single entry point, while each module opens the exact secured editor that already writes to the live content model.
+          </p>
+        </div>
       </section>
     </div>
   );

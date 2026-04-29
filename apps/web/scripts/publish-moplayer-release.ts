@@ -31,7 +31,7 @@ async function main() {
 
   const bytes = await readFile(path.resolve(filePath));
   const checksum = createHash("sha256").update(bytes).digest("hex");
-  const abi = abiRaw || "arm64-v8a";
+  const abi = abiRaw || "universal";
   const releaseSlug = slugify(`moplayer-v${versionName}`);
   const supabase = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -54,7 +54,10 @@ async function main() {
         version_name: versionName,
         version_code: versionCode,
         release_notes: `Release ${versionName}`,
-        compatibility_notes: `${abi} build`,
+        compatibility_notes:
+          abi === "universal"
+            ? "Recommended universal TV APK. Advanced ABI-specific builds may also be available."
+            : `${abi} build`,
         published_at: new Date().toISOString(),
         is_published: true,
       },
@@ -81,7 +84,7 @@ async function main() {
   const assetPayload = {
     release_id: releaseUpsert.data.id,
     asset_type: "apk",
-    label: "Recommended APK",
+    label: abi === "universal" ? "Recommended TV APK" : "Recommended APK",
     abi,
     storage_bucket: "app-downloads",
     storage_path: storagePath,

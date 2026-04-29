@@ -2668,6 +2668,10 @@ html[dir="rtl"] .fresh-section-head h1,
     grid-template-columns: 1fr;
   }
 
+  .moplayer-download-chooser {
+    grid-template-columns: 1fr;
+  }
+
   .os-moplayer-visual {
     min-height: 360px;
   }
@@ -4353,6 +4357,21 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 @media (max-width: 720px) {
+  .moplayer-download-chooser {
+    border-radius: 1.35rem;
+    padding: 0.85rem;
+  }
+
+  .moplayer-download-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .moplayer-download-row strong {
+    white-space: normal;
+  }
+
   .work-exhibition {
     width: min(100% - 20px, 1240px);
     padding-top: 104px;
@@ -7112,6 +7131,75 @@ html[dir="rtl"] .apps-section-head h2,
 .moplayer-feature-card svg,
 .moplayer-info-card svg {
   color: rgba(205, 231, 255, 0.9);
+}
+
+.moplayer-download-chooser {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 0.8fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(220,235,255,0.14);
+  border-radius: 1.8rem;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.075), rgba(255,255,255,0.026)),
+    rgba(3, 6, 12, 0.72);
+  box-shadow: 0 24px 78px rgba(0,0,0,0.34);
+  backdrop-filter: blur(18px);
+}
+
+.moplayer-download-chooser h3 {
+  margin-top: 0.85rem;
+  color: #fff;
+  font-size: clamp(1.35rem, 3vw, 2.3rem);
+  line-height: 1.05;
+}
+
+.moplayer-download-chooser p {
+  margin-top: 0.75rem;
+  max-width: 58ch;
+  color: rgba(235, 244, 255, 0.68);
+  line-height: 1.8;
+}
+
+.moplayer-download-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.moplayer-download-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(220,235,255,0.13);
+  border-radius: 1.2rem;
+  background: rgba(255,255,255,0.045);
+  color: rgba(235,244,255,0.82);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.moplayer-download-row:hover {
+  transform: translateY(-2px);
+  border-color: rgba(220,235,255,0.32);
+  background: rgba(255,255,255,0.07);
+}
+
+.moplayer-download-row.is-primary {
+  border-color: rgba(110, 231, 183, 0.28);
+  background: rgba(110, 231, 183, 0.09);
+}
+
+.moplayer-download-row span {
+  font-weight: 900;
+}
+
+.moplayer-download-row strong {
+  color: #fff;
+  font-size: 0.78rem;
+  white-space: nowrap;
 }
 
 .moplayer-feature-card h3 {

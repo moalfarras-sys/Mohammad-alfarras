@@ -85,10 +85,10 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           <p>{t.heroBody}</p>
           <div className="moplayer-actions">
             {downloadHref ? (
-              <Link href={downloadHref} className="moplayer-button moplayer-button-primary">
+              <a href={downloadHref} className="moplayer-button moplayer-button-primary">
                 <ArrowDownToLine className="h-4 w-4" />
                 {t.download}
-              </Link>
+              </a>
             ) : (
               <span className="moplayer-button">{t.releasePending}</span>
             )}
@@ -159,10 +159,10 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
               </p>
             </div>
             <div className="moplayer-download-list">
-              <Link href={`/api/app/releases/${latest.slug}/download`} className="moplayer-download-row is-primary">
+              <a href={`/api/app/releases/${latest.slug}/download`} className="moplayer-download-row is-primary">
                 <span>{primaryAsset.label || (isAr ? "ملف التلفزيون الموصى به" : "Recommended TV APK")}</span>
                 <strong>{primaryAsset.abi ?? "universal"} · {formatBytes(primaryAsset.file_size_bytes) ?? "APK"}</strong>
-              </Link>
+              </a>
               {advancedAssets.map((asset) => (
                 <a
                   key={asset.id}

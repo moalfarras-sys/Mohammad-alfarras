@@ -140,6 +140,22 @@ export type AppLicense = {
   updated_at: string;
 };
 
+export type DeviceProviderSourceQueue = {
+  id: string;
+  publicDeviceId: string;
+  sourceType: "xtream" | "m3u";
+  displayName: string;
+  status: "pending" | "fetched" | "imported" | "failed" | "revoked";
+  lastTestStatus?: "success" | "failed";
+  lastTestMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+  pulledAt?: string;
+  importedAt?: string;
+  failedAt?: string;
+  failureMessage?: string;
+};
+
 export type AppRuntimeConfig = {
   enabled: boolean;
   maintenanceMode: boolean;

@@ -32,21 +32,21 @@ export default function GlobalNotFound() {
         animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute left-1/4 top-1/4 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.4), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(91,124,255,0.34), transparent 70%)" }}
       />
       <motion.div
         aria-hidden
         animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.2, 0.12] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         className="pointer-events-none absolute bottom-1/4 right-1/4 h-[400px] w-[400px] rounded-full blur-[100px]"
-        style={{ background: "radial-gradient(circle, rgba(217,70,239,0.45), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(244,184,96,0.32), transparent 70%)" }}
       />
       <motion.div
         aria-hidden
         animate={{ x: [0, 30, 0], opacity: [0.08, 0.14, 0.08] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute bottom-1/3 left-1/3 h-[300px] w-[300px] rounded-full blur-[80px]"
-        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.35), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(255,122,144,0.24), transparent 70%)" }}
       />
 
       {/* Floating particles */}
@@ -87,7 +87,7 @@ export default function GlobalNotFound() {
             animate={{ rotate: 360 }}
             transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
             style={{
-              border: "2px dashed rgba(0,229,255,0.25)",
+              border: "2px dashed rgba(91,124,255,0.28)",
             }}
           />
           {/* Middle ring — opposite spin */}
@@ -96,7 +96,7 @@ export default function GlobalNotFound() {
             animate={{ rotate: -360 }}
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
             style={{
-              border: "1px solid rgba(217,70,239,0.2)",
+              border: "1px solid rgba(244,184,96,0.24)",
             }}
           />
           {/* Inner glow card */}
@@ -105,9 +105,9 @@ export default function GlobalNotFound() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="relative flex h-16 w-16 items-center justify-center rounded-2xl"
             style={{
-              background: "linear-gradient(135deg, rgba(0,229,255,0.12), rgba(217,70,239,0.1))",
-              border: "1px solid rgba(0,229,255,0.3)",
-              boxShadow: "0 0 40px rgba(0,229,255,0.2), 0 0 80px rgba(217,70,239,0.1)",
+              background: "linear-gradient(135deg, rgba(91,124,255,0.14), rgba(244,184,96,0.11))",
+              border: "1px solid rgba(91,124,255,0.3)",
+              boxShadow: "0 0 40px rgba(91,124,255,0.2), 0 0 80px rgba(244,184,96,0.12)",
             }}
           >
             <Image
@@ -129,15 +129,15 @@ export default function GlobalNotFound() {
           <motion.span
             animate={{
               textShadow: [
-                "0 0 30px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2)",
-                "0 0 60px rgba(0,229,255,0.8), 0 0 120px rgba(217,70,239,0.3)",
-                "0 0 30px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2)",
+                "0 0 30px rgba(91,124,255,0.5), 0 0 80px rgba(91,124,255,0.2)",
+                "0 0 60px rgba(91,124,255,0.72), 0 0 120px rgba(244,184,96,0.28)",
+                "0 0 30px rgba(91,124,255,0.5), 0 0 80px rgba(91,124,255,0.2)",
               ],
             }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="block text-[7rem] font-black leading-none md:text-[9rem]"
             style={{
-              background: "linear-gradient(135deg, #00E5FF 0%, #D946EF 60%, #6366F1 100%)",
+              background: "linear-gradient(135deg, #5B7CFF 0%, #F4B860 62%, #FF7A90 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               fontFamily: "var(--font-brand)",
@@ -176,7 +176,7 @@ export default function GlobalNotFound() {
           animate={{ scaleX: 1, opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
           className="mx-auto my-10 h-px w-56"
-          style={{ background: "linear-gradient(90deg, transparent, #00E5FF, #D946EF, transparent)" }}
+          style={{ background: "linear-gradient(90deg, transparent, #5B7CFF, #F4B860, transparent)" }}
         />
 
         {/* CTAs */}
@@ -191,8 +191,8 @@ export default function GlobalNotFound() {
               href="/ar"
               className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-bold text-black transition duration-300"
               style={{
-                background: "linear-gradient(135deg, #00E5FF, #00B8D4)",
-                boxShadow: "0 0 40px rgba(0,229,255,0.3), 0 8px 32px rgba(0,0,0,0.3)",
+                background: "linear-gradient(135deg, #5B7CFF, #F4B860)",
+                boxShadow: "0 0 40px rgba(91,124,255,0.28), 0 8px 32px rgba(0,0,0,0.3)",
               }}
             >
               <Home className="h-4 w-4" />
@@ -206,7 +206,7 @@ export default function GlobalNotFound() {
               className="inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold text-foreground transition duration-300"
               style={{
                 background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(0,229,255,0.25)",
+                border: "1px solid rgba(91,124,255,0.25)",
               }}
             >
               <ArrowLeft className="h-4 w-4" />

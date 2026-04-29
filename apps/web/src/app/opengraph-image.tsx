@@ -28,8 +28,8 @@ export default async function OpengraphImage() {
               width: 10,
               height: 10,
               borderRadius: 999,
-              background: "#00e5ff",
-              boxShadow: "0 0 24px #00e5ff",
+              background: "#5B7CFF",
+              boxShadow: "0 0 24px #5B7CFF",
             }}
           />
           <div
@@ -37,7 +37,7 @@ export default async function OpengraphImage() {
               fontSize: 22,
               fontWeight: 700,
               letterSpacing: "0.32em",
-              color: "#00e5ff",
+              color: "#5B7CFF",
               textTransform: "uppercase",
             }}
           >
@@ -80,7 +80,7 @@ export default async function OpengraphImage() {
             style={{
               fontSize: 20,
               fontWeight: 700,
-              color: "#00e5ff",
+              color: "#5B7CFF",
               letterSpacing: "0.24em",
               textTransform: "uppercase",
             }}

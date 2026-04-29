@@ -400,7 +400,7 @@ class PlayerActivity : BaseTvActivity() {
                                 if (isLiveStream) {
                                     handleLiveStreamError()
                                 } else {
-                                    binding.errorOverlay.visibility = View.VISIBLE
+                                    showPlaybackError(getString(R.string.player_stream_error_with_external_hint))
                                 }
                             }
                             MediaPlayer.Event.TimeChanged -> {
@@ -488,12 +488,18 @@ class PlayerActivity : BaseTvActivity() {
             // Check if LibVLC is available
             if (libVLC == null) {
                 setLoadingOverlayVisible(false)
-                binding.errorOverlay.visibility = View.VISIBLE
+                showPlaybackError(getString(R.string.player_not_available_restart))
                 Toast.makeText(
                     this,
                     getString(R.string.player_not_available_restart),
                     Toast.LENGTH_LONG
                 ).show()
+                return
+            }
+
+            if (!isSupportedStreamScheme(streamUrl)) {
+                setLoadingOverlayVisible(false)
+                showPlaybackError(getString(R.string.player_unsupported_stream_format))
                 return
             }
 
@@ -553,8 +559,19 @@ class PlayerActivity : BaseTvActivity() {
 
         } catch (e: Exception) {
             setLoadingOverlayVisible(false)
-            binding.errorOverlay.visibility = View.VISIBLE
+            showPlaybackError(getString(R.string.player_stream_error_with_external_hint))
         }
+    }
+
+    private fun isSupportedStreamScheme(url: String): Boolean {
+        val scheme = runCatching { Uri.parse(url).scheme?.lowercase(Locale.ROOT) }.getOrNull()
+        return scheme in setOf("http", "https", "rtmp", "rtsp", "udp", "rtp", "file", "content")
+    }
+
+    private fun showPlaybackError(message: String) {
+        binding.tvErrorMessage.text = message
+        binding.errorOverlay.visibility = View.VISIBLE
+        binding.btnRetry.requestFocus()
     }
 
     private fun handleLiveStreamEnded() {
@@ -581,13 +598,13 @@ class PlayerActivity : BaseTvActivity() {
                     playStream()
                 } else {
                     setLoadingOverlayVisible(false)
-                    binding.errorOverlay.visibility = View.VISIBLE
+                    showPlaybackError(getString(R.string.player_no_network_retry))
                     Toast.makeText(this, getString(R.string.player_no_network_retry), Toast.LENGTH_LONG).show()
                 }
             }, delay)
         } else {
             setLoadingOverlayVisible(false)
-            binding.errorOverlay.visibility = View.VISIBLE
+            showPlaybackError(getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES))
             Toast.makeText(this, getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES), Toast.LENGTH_LONG).show()
             liveRetryCount = 0 // Reset for manual retry
         }

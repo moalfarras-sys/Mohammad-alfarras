@@ -1,9 +1,9 @@
-import { Inter, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Manrope } from "next/font/google";
 
-/** Latin body + UI — Inter: readable, neutral, pairs cleanly with IBM Plex Arabic */
-export const interFont = Inter({
+/** Latin body + UI — Manrope: cleaner editorial tone without becoming decorative */
+export const interFont = Manrope({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-inter",
   display: "swap",
 });

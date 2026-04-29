@@ -17,7 +17,7 @@ export type SiteProject = {
   repoUrl?: string;
   featured: boolean;
   featuredRank: number;
-  accent: "green" | "orange" | "cyan" | "purple";
+  accent: "blue" | "amber" | "rose" | "ink";
   highlightStyle: "operations" | "trust" | "app" | "editorial";
   deviceFrame: "browser" | "phone" | "floating";
   eyebrow: string;

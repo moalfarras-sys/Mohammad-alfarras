@@ -3,6 +3,7 @@ package com.mo.moplayer.ui.activation
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -45,6 +46,7 @@ class DeviceActivationActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         super.onCreate(savedInstanceState)
         binding = ActivityDeviceActivationBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -21,7 +21,7 @@
                         android:gradientRadius="120dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="#6000F5FF"
+                        android:startColor="#605B7CFF"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -33,7 +33,7 @@
                         android:angle="270"
                         android:startColor="@color/cinematic_cyan_light"
                         android:endColor="@color/cinematic_cyan" />
-                    <stroke android:width="2dp" android:color="#80FFFFFF" />
+                    <stroke android:width="2dp" android:color="#AFC0FFFF" />
                 </shape>
             </item>
         </layer-list>

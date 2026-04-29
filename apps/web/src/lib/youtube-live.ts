@@ -121,33 +121,34 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
       fetchVideoDetails(popularVideoIds),
     ]);
 
-    // 4. Fetch comments from the most popular video for better "Social Proof"
+    // 4. Fetch comments from the strongest available videos for better social proof.
     const comments: LiveYoutubeComment[] = [];
-    const targetVidId = popularVideos[0]?.id || latestVideos[0]?.id;
+    const candidateVideoIds = [...new Set([...popularVideos, ...latestVideos].map((video) => video.id).filter(Boolean))].slice(0, 5);
 
-    if (targetVidId) {
+    for (const targetVidId of candidateVideoIds) {
       const commentsRes = await fetch(
         `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${targetVidId}&maxResults=10&order=relevance&key=${API_KEY}`,
         { next: { revalidate: 3600 } }
       );
-      if (commentsRes.ok) {
-        const commentsData = (await commentsRes.ok ? commentsRes.json() : {}) as YoutubeCommentThreadsResponse;
-        if (commentsData.items) {
-          commentsData.items.forEach((item) => {
-            const topComment = item.snippet.topLevelComment.snippet;
-            const text = topComment.textOriginal || topComment.textDisplay;
-            if (text.length > 15 && !text.includes("http")) {
-               comments.push({
-                 id: item.id,
-                 author: topComment.authorDisplayName,
-                 text: text,
-                 likes: parseInt(String(topComment.likeCount || "0"), 10),
-                 videoId: targetVidId,
-               });
-            }
+
+      if (!commentsRes.ok) continue;
+
+      const commentsData = (await commentsRes.json()) as YoutubeCommentThreadsResponse;
+      for (const item of commentsData.items || []) {
+        const topComment = item.snippet.topLevelComment.snippet;
+        const text = topComment.textOriginal || topComment.textDisplay;
+        if (text.length > 15 && !text.includes("http")) {
+          comments.push({
+            id: item.id,
+            author: topComment.authorDisplayName,
+            text,
+            likes: parseInt(String(topComment.likeCount || "0"), 10),
+            videoId: targetVidId,
           });
         }
       }
+
+      if (comments.length >= 4) break;
     }
 
     return {

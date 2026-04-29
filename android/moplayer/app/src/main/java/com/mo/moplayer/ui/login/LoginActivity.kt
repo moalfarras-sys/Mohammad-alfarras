@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -143,6 +144,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition { !startupResolved }
@@ -686,6 +688,9 @@ class LoginActivity : AppCompatActivity() {
     private fun scheduleNextWebsiteSourcePoll() {
         if (websiteSourcePollAttempts < 45 && pendingWebsiteSourceId == null) {
             websiteSourceHandler.postDelayed(websiteSourceRunnable, 4_000)
+        } else if (pendingWebsiteSourceId == null && ::binding.isInitialized) {
+            binding.tvErrorClean.text = getString(R.string.website_source_wait_timeout)
+            binding.tvErrorClean.isVisible = true
         }
     }
 
@@ -726,6 +731,8 @@ class LoginActivity : AppCompatActivity() {
 
     private fun importWebsiteDeliveredSource(source: JSONObject?) {
         if (source == null) {
+            binding.tvErrorClean.text = getString(R.string.website_source_failed)
+            binding.tvErrorClean.isVisible = true
             ackWebsiteSource("failed", "Missing source payload")
             return
         }
@@ -748,7 +755,11 @@ class LoginActivity : AppCompatActivity() {
                 showSourceForm(LoginViewModel.LoginTab.M3U)
                 viewModel.importM3uFromUrl(source.optString("playlistUrl"), name)
             }
-            else -> ackWebsiteSource("failed", "Unsupported source type")
+            else -> {
+                binding.tvErrorClean.text = getString(R.string.website_source_failed)
+                binding.tvErrorClean.isVisible = true
+                ackWebsiteSource("failed", "Unsupported source type")
+            }
         }
     }
 

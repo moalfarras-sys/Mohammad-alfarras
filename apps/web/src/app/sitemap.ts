@@ -1,11 +1,8 @@
 import type { MetadataRoute } from "next";
 
-/**
- * Sitemap for Google + Bing + Yandex + IndexNow.
- * Locale pairs (ar/en) are declared via `alternates.languages` so search
- * engines understand bilingual parity. /app is preserved as legacy but points
- * to /en/apps/moplayer as the canonical product URL.
- */
+import { readSnapshot } from "@/lib/content/store";
+
+const BASE = "https://moalfarras.space";
 
 type RouteDef = {
   path: string;
@@ -19,22 +16,18 @@ const localizedRoutes: RouteDef[] = [
   { path: "/services", priority: 0.85, changeFrequency: "monthly" },
   { path: "/cv", priority: 0.9, changeFrequency: "monthly" },
   { path: "/work", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/work/seeltransport", priority: 0.82, changeFrequency: "monthly" },
-  { path: "/work/schnellsicherumzug", priority: 0.82, changeFrequency: "monthly" },
-  { path: "/work/moplayer", priority: 0.8, changeFrequency: "monthly" },
   { path: "/apps", priority: 0.9, changeFrequency: "weekly" },
   { path: "/apps/moplayer", priority: 0.95, changeFrequency: "weekly" },
   { path: "/activate", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/youtube", priority: 0.75, changeFrequency: "weekly" },
+  { path: "/youtube", priority: 0.8, changeFrequency: "weekly" },
   { path: "/contact", priority: 0.7, changeFrequency: "monthly" },
   { path: "/support", priority: 0.55, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.45, changeFrequency: "yearly" },
 ];
 
-const BASE = "https://moalfarras.space";
-
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const snapshot = await readSnapshot();
 
   const localized = (["ar", "en"] as const).flatMap((locale) =>
     localizedRoutes.map<MetadataRoute.Sitemap[number]>((route) => ({
@@ -52,11 +45,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   );
 
+  const projectRoutes = snapshot.work_projects
+    .filter((project) => project.is_active && project.slug)
+    .map((project) => ({
+      slug: project.slug,
+      updatedAt: project.updated_at ? new Date(project.updated_at) : now,
+    }));
+
+  const localizedProjects = (["ar", "en"] as const).flatMap((locale) =>
+    projectRoutes.map<MetadataRoute.Sitemap[number]>((project) => ({
+      url: `${BASE}/${locale}/work/${project.slug}`,
+      lastModified: project.updatedAt,
+      changeFrequency: "monthly",
+      priority: 0.82,
+      alternates: {
+        languages: {
+          ar: `${BASE}/ar/work/${project.slug}`,
+          en: `${BASE}/en/work/${project.slug}`,
+          "x-default": `${BASE}/en/work/${project.slug}`,
+        },
+      },
+    })),
+  );
+
   const canonical: MetadataRoute.Sitemap = [
     { url: `${BASE}/app`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
     { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE}/support`, lastModified: now, changeFrequency: "monthly", priority: 0.35 },
   ];
 
-  return [...localized, ...canonical];
+  return [...localized, ...localizedProjects, ...canonical];
 }

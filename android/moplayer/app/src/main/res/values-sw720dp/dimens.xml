@@ -59,6 +59,10 @@
     <dimen name="dock_horizontal_margin">200dp</dimen>
     <dimen name="dock_bottom_margin">12dp</dimen>
     <dimen name="dock_corner_radius">26dp</dimen>
+    <dimen name="home_top_action_size">40dp</dimen>
+    <dimen name="home_widget_height">64dp</dimen>
+    <dimen name="home_weather_widget_width">160dp</dimen>
+    <dimen name="home_clock_widget_height">54dp</dimen>
     <dimen name="preview_panel_width">480dp</dimen>
     <dimen name="top_bar_height">100dp</dimen>
     <dimen name="home_empty_width">620dp</dimen>

@@ -53,22 +53,25 @@ class M3uParser {
     }
     
     fun parse(inputStream: InputStream): ParseResult {
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        val lines = reader.readLines()
-        reader.close()
-        return parseLines(lines)
+        return BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
+            parseLines(lines)
+        }
     }
     
-    private fun parseLines(lines: List<String>): ParseResult {
+    private fun parseLines(lines: Iterable<String>): ParseResult = parseLines(lines.asSequence())
+
+    private fun parseLines(lines: Sequence<String>): ParseResult {
         val items = mutableListOf<M3uItem>()
         val categories = mutableSetOf<String>()
         val seenStreamUrls = hashSetOf<String>()
         var skippedEntries = 0
         var duplicateEntries = 0
+        var totalLines = 0
         
         var currentInfo: String? = null
         
         for (line in lines) {
+            totalLines += 1
             val trimmedLine = line.trim()
             
             when {
@@ -122,7 +125,7 @@ class M3uParser {
         return ParseResult(
             items = items,
             categories = categories,
-            totalLines = lines.size,
+            totalLines = totalLines,
             skippedEntries = skippedEntries,
             duplicateEntries = duplicateEntries
         )

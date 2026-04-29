@@ -28,6 +28,7 @@ local.properties
 **/.next-dev*.log
 **/.next-start*.log
 **/.codex-dev.log
+**/.tmp-*.log
 
 # Android / Gradle
 **/.gradle/

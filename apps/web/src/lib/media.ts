@@ -5,7 +5,7 @@ export const MEDIA_PATHS = {
   fallbackPortrait: "/images/protofeilnew.jpeg",
   brandMark: "/images/logo.png",
   heroBrandCinematic: "/images/hero_tech.png",
-  brandSpotlight: "/images/hero-dark-bg.png",
+  brandSpotlight: "/images/hero_tech.png",
   portraitHeroFrame: "/images/hero-profile-bg.png",
 } as const;
 

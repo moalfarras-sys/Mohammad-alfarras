@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mo.moplayer.data.remote.dto.AuthResponse
 import com.mo.moplayer.data.repository.IptvRepository
+import com.mo.moplayer.data.util.ProviderSourceUrlParser
 import com.mo.moplayer.util.Resource
 import com.mo.moplayer.worker.ServerSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -63,7 +64,7 @@ class LoginViewModel @Inject constructor(
         }
         
         // Validate URL format
-        val cleanUrl = normalizeServerUrl(serverUrl)
+        val cleanUrl = ProviderSourceUrlParser.normalizeServerUrl(serverUrl)
         if (!isValidUrl(cleanUrl)) {
             _loginState.value = LoginState.Error("Invalid server URL format")
             return
@@ -140,33 +141,12 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Check if it's an Xtream API URL
-                if (isXtreamUrl(url)) {
+                if (ProviderSourceUrlParser.isXtreamUrl(url)) {
                     handleXtreamUrl(url, name)
                     return@launch
                 }
                 
-                // Download M3U content
-                val content = downloadM3uContent(url)
-                
-                if (content != null) {
-                    _loadingMessage.value = "Parsing playlist..."
-                    val result = repository.importM3uPlaylist(content, name)
-                    
-                    when (result) {
-                        is Resource.Success -> {
-                            _isLoading.value = false
-                            _loginState.value = LoginState.M3uImported(result.data!!)
-                        }
-                        is Resource.Error -> {
-                            _isLoading.value = false
-                            _loginState.value = LoginState.Error(result.message ?: "Failed to import M3U")
-                        }
-                        is Resource.Loading -> { }
-                    }
-                } else {
-                    _isLoading.value = false
-                    _loginState.value = LoginState.Error("Failed to download playlist")
-                }
+                importM3uFromNetwork(url, name)
             } catch (e: Exception) {
                 _isLoading.value = false
                 _loginState.value = LoginState.Error("Error: ${e.message}")
@@ -183,10 +163,12 @@ class LoginViewModel @Inject constructor(
         
         viewModelScope.launch {
             try {
-                val content = readFileContent(uri)
-                if (content != null) {
+                val inputStream = application.contentResolver.openInputStream(uri)
+                if (inputStream != null) {
                     val name = playlistName.ifBlank { "Local Playlist" }
-                    importM3u(content, name)
+                    _loadingMessage.value = "Parsing playlist..."
+                    val result = repository.importM3uPlaylist(inputStream, name)
+                    handleM3uImportResult(result)
                 } else {
                     _isLoading.value = false
                     _loginState.value = LoginState.Error("Failed to read file")
@@ -207,18 +189,7 @@ class LoginViewModel @Inject constructor(
         
         viewModelScope.launch {
             val result = repository.importM3uPlaylist(content, name)
-            
-            when (result) {
-                is Resource.Success -> {
-                    _isLoading.value = false
-                    _loginState.value = LoginState.M3uImported(result.data!!)
-                }
-                is Resource.Error -> {
-                    _isLoading.value = false
-                    _loginState.value = LoginState.Error(result.message ?: "Failed to import M3U")
-                }
-                is Resource.Loading -> { }
-            }
+            handleM3uImportResult(result)
         }
     }
     
@@ -255,33 +226,51 @@ class LoginViewModel @Inject constructor(
         }
     }
     
-    private suspend fun downloadM3uContent(url: String): String? = withContext(Dispatchers.IO) {
+    private fun handleM3uImportResult(result: Resource<Long>) {
+        when (result) {
+            is Resource.Success -> {
+                _isLoading.value = false
+                _loginState.value = LoginState.M3uImported(result.data!!)
+            }
+            is Resource.Error -> {
+                _isLoading.value = false
+                _loginState.value = LoginState.Error(result.message ?: "Failed to import M3U")
+            }
+            is Resource.Loading -> { }
+        }
+    }
+
+    private suspend fun importM3uFromNetwork(url: String, name: String) = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
             .url(url)
             .header("User-Agent", "MoPlayer/1.0")
             .build()
             
-            val response = okHttpClient.newCall(request).execute()
-            
-            if (response.isSuccessful) {
-                response.body?.string()
-            } else {
-                null
+            okHttpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful && response.body != null) {
+                    _loadingMessage.postValue("Parsing playlist...")
+                    val result = repository.importM3uPlaylist(response.body!!.byteStream(), name)
+                    when (result) {
+                        is Resource.Success -> {
+                            _isLoading.postValue(false)
+                            _loginState.postValue(LoginState.M3uImported(result.data!!))
+                        }
+                        is Resource.Error -> {
+                            _isLoading.postValue(false)
+                            _loginState.postValue(LoginState.Error(result.message ?: "Failed to import M3U"))
+                        }
+                        is Resource.Loading -> { }
+                    }
+                } else {
+                    _isLoading.postValue(false)
+                    _loginState.postValue(LoginState.Error("Failed to download playlist"))
+                }
             }
         } catch (e: Exception) {
-            null
+            _isLoading.postValue(false)
+            _loginState.postValue(LoginState.Error("Error: ${e.message}"))
         }
-    }
-    
-    /**
-     * Check if URL is an Xtream Codes API URL
-     */
-    private fun isXtreamUrl(url: String): Boolean {
-        // Common Xtream patterns
-        return url.contains("get.php?") || 
-               url.contains("player_api.php") ||
-               (url.contains("username=") && url.contains("password="))
     }
     
     /**
@@ -289,24 +278,15 @@ class LoginViewModel @Inject constructor(
      */
     private suspend fun handleXtreamUrl(url: String, name: String) {
         try {
-            val uri = java.net.URI(url)
-            val query = uri.query ?: ""
-            val params = query.split("&").associate {
-                val parts = it.split("=", limit = 2)
-                parts[0] to (parts.getOrNull(1) ?: "")
-            }
-            
-            val username = params["username"] ?: ""
-            val password = params["password"] ?: ""
-            
-            if (username.isBlank() || password.isBlank()) {
+            val credentials = ProviderSourceUrlParser.parseXtream(url)
+            if (credentials == null) {
                 _isLoading.value = false
                 _loginState.value = LoginState.Error("Invalid Xtream URL format")
                 return
             }
-            
-            // Build base URL
-            val baseUrl = "${uri.scheme}://${uri.host}${if (uri.port != -1) ":${uri.port}" else ""}"
+            val baseUrl = credentials.serverUrl
+            val username = credentials.username
+            val password = credentials.password
             
             // Use normal login flow
             _loadingMessage.postValue("Connecting to server...")
@@ -347,20 +327,6 @@ class LoginViewModel @Inject constructor(
         if (_loginState.value is LoginState.Error) {
             _loginState.value = LoginState.Idle
         }
-    }
-    
-    private fun normalizeServerUrl(url: String): String {
-        var cleanUrl = url.trim()
-        
-        // Add protocol if missing
-        if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
-            cleanUrl = "http://$cleanUrl"
-        }
-        
-        // Remove trailing slash
-        cleanUrl = cleanUrl.trimEnd('/')
-        
-        return cleanUrl
     }
     
     private fun isValidUrl(url: String): Boolean {
@@ -411,21 +377,13 @@ class LoginViewModel @Inject constructor(
         }
 
         // Check for Xtream Codes URL (username=...&password=...)
-        if (input.contains("username=") && input.contains("password=")) {
-            try {
-                val uri = Uri.parse(input)
-                val username = uri.getQueryParameter("username") ?: ""
-                val password = uri.getQueryParameter("password") ?: ""
-                
-                // Extract base URL (scheme://host:port)
-                val port = if (uri.port != -1) ":${uri.port}" else ""
-                val baseUrl = "${uri.scheme}://${uri.host}$port"
-
-                if (username.isNotBlank() && password.isNotBlank()) {
-                     _detectedCredentials.value = DetectedCredentials.Xtream(baseUrl, username, password)
-                }
-            } catch (e: Exception) {
-                // Ignore parse errors
+        if (ProviderSourceUrlParser.isXtreamUrl(input)) {
+            ProviderSourceUrlParser.parseXtream(input)?.let { credentials ->
+                _detectedCredentials.value = DetectedCredentials.Xtream(
+                    credentials.serverUrl,
+                    credentials.username,
+                    credentials.password
+                )
             }
         }
     }

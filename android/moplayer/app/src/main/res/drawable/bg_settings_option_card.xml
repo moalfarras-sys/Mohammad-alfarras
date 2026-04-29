@@ -14,7 +14,7 @@
                         android:centerX="0.5"
                         android:centerY="0.5"
                         android:gradientRadius="250dp"
-                        android:startColor="#4400F5FF"
+                        android:startColor="#445B7CFF"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -27,7 +27,7 @@
                         android:startColor="#3A0E2A50"
                         android:centerColor="#301828"
                         android:endColor="#281016" />
-                    <stroke android:width="2dp" android:color="#CC00F5FF" />
+                    <stroke android:width="2dp" android:color="#CC5B7CFF" />
                 </shape>
             </item>
             <!-- Top inner highlight -->
@@ -36,7 +36,7 @@
                     <gradient
                         android:angle="0"
                         android:startColor="#0000F5FF"
-                        android:centerColor="#2800F5FF"
+                        android:centerColor="#285B7CFF"
                         android:endColor="#0000F5FF" />
                     <size android:height="1dp" />
                 </shape>
@@ -52,7 +52,7 @@
                 android:angle="315"
                 android:startColor="#3000D0F0"
                 android:endColor="#20008090" />
-            <stroke android:width="2dp" android:color="#9900F5FF" />
+            <stroke android:width="2dp" android:color="#995B7CFF" />
         </shape>
     </item>
 
@@ -65,7 +65,7 @@
                 android:startColor="#200C1E36"
                 android:centerColor="#180A1628"
                 android:endColor="#14060C18" />
-            <stroke android:width="1dp" android:color="#3000F5FF" />
+            <stroke android:width="1dp" android:color="#305B7CFF" />
         </shape>
     </item>
 

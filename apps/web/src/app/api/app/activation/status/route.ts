@@ -4,12 +4,15 @@ import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation
 import { deviceSourceQueueSettingKey, type ProviderSourceQueueValue } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
-function hasPendingSource(value: unknown, publicDeviceId: string) {
+function sourceDeliveryStatus(value: unknown, publicDeviceId: string) {
   const queue = (value ?? {}) as Partial<ProviderSourceQueueValue>;
-  return (
-    queue.publicDeviceId === publicDeviceId &&
-    (queue.status === "pending" || queue.status === "fetched")
-  );
+  if (queue.publicDeviceId !== publicDeviceId) return { pending: false, status: "none" };
+  if (queue.status === "pending") return { pending: true, status: "source_sent" };
+  if (queue.status === "fetched") return { pending: true, status: "source_fetched" };
+  if (queue.status === "imported") return { pending: false, status: "imported" };
+  if (queue.status === "failed") return { pending: false, status: "failed", message: queue.failureMessage };
+  if (queue.status === "revoked") return { pending: false, status: "revoked" };
+  return { pending: false, status: "none" };
 }
 
 export async function GET(request: Request) {
@@ -57,12 +60,15 @@ export async function GET(request: Request) {
       .eq("key", deviceSourceQueueSettingKey(data.public_device_id))
       .maybeSingle();
 
+    const source = sourceDeliveryStatus(sourceRow?.value, data.public_device_id);
     return NextResponse.json({
       status: "activated",
       code,
       publicDeviceId: data.public_device_id,
       activatedAt: data.activated_at,
-      sourcePending: hasPendingSource(sourceRow?.value, data.public_device_id),
+      sourcePending: source.pending,
+      sourceStatus: source.status,
+      sourceMessage: source.message,
     });
   }
 

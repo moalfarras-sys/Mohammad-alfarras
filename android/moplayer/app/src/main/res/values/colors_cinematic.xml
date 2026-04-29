@@ -20,32 +20,32 @@
     <!-- ═══════════════════════════════════════════════════════════
          PRIMARY: Electric Cyan — Signature Accent
          ═══════════════════════════════════════════════════════════ -->
-    <color name="cinematic_cyan">#00F5FF</color>
-    <color name="cinematic_cyan_light">#80FFFF</color>
-    <color name="cinematic_cyan_dark">#00C8D4</color>
-    <color name="cinematic_focus_soft">#BB00F5FF</color>
-    <color name="cinematic_focus_glow">#7700F5FF</color>
+    <color name="cinematic_cyan">#5B7CFF</color>
+    <color name="cinematic_cyan_light">#AFC0FF</color>
+    <color name="cinematic_cyan_dark">#324CCF</color>
+    <color name="cinematic_focus_soft">#BB5B7CFF</color>
+    <color name="cinematic_focus_glow">#775B7CFF</color>
     <color name="cinematic_divider">#2A9DB8D8</color>
 
     <!-- Cyan glow layers -->
-    <color name="cinematic_blue_glow_strong">#9900F5FF</color>
-    <color name="cinematic_blue_glow_medium">#5500F5FF</color>
-    <color name="cinematic_blue_glow_subtle">#2200F5FF</color>
+    <color name="cinematic_blue_glow_strong">#995B7CFF</color>
+    <color name="cinematic_blue_glow_medium">#555B7CFF</color>
+    <color name="cinematic_blue_glow_subtle">#225B7CFF</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          SECONDARY: Vivid Indigo/Violet
          ═══════════════════════════════════════════════════════════ -->
-    <color name="cinematic_violet">#7C3AED</color>
-    <color name="cinematic_violet_light">#A78BFA</color>
-    <color name="cinematic_violet_glow">#607C3AED</color>
-    <color name="cinematic_violet_subtle">#307C3AED</color>
+    <color name="cinematic_violet">#F4B860</color>
+    <color name="cinematic_violet_light">#FFD28A</color>
+    <color name="cinematic_violet_glow">#60F4B860</color>
+    <color name="cinematic_violet_subtle">#30F4B860</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          GLASS LAYERS — Ultra-premium frosted glass
          ═══════════════════════════════════════════════════════════ -->
     <color name="cinematic_glass_bg">#1AFFFFFF</color>
     <color name="cinematic_glass_surface">#28FFFFFF</color>
-    <color name="cinematic_glass_border">#5000F5FF</color>
+    <color name="cinematic_glass_border">#505B7CFF</color>
     <color name="cinematic_glass_highlight">#70FFFFFF</color>
     <color name="cinematic_glass_reflection">#0CFFFFFF</color>
 
@@ -54,22 +54,22 @@
          ═══════════════════════════════════════════════════════════ -->
     <color name="cinematic_card_primary">#0D1E38</color>
     <color name="cinematic_card_elevated">#142845</color>
-    <color name="cinematic_card_border">#2000F5FF</color>
-    <color name="cinematic_card_border_focused">#CC00F5FF</color>
+    <color name="cinematic_card_border">#205B7CFF</color>
+    <color name="cinematic_card_border_focused">#CC5B7CFF</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          STATUS COLORS
          ═══════════════════════════════════════════════════════════ -->
-    <color name="cinematic_success">#00E676</color>
-    <color name="cinematic_warning">#FFB300</color>
+    <color name="cinematic_success">#5B7CFF</color>
+    <color name="cinematic_warning">#F4B860</color>
     <color name="cinematic_error">#FF4444</color>
-    <color name="cinematic_info">#00F5FF</color>
+    <color name="cinematic_info">#5B7CFF</color>
 
     <!-- Episode Number Badge accent -->
-    <color name="cinematic_episode_badge_bg">#1A00F5FF</color>
-    <color name="cinematic_episode_badge_text">#00F5FF</color>
+    <color name="cinematic_episode_badge_bg">#1A5B7CFF</color>
+    <color name="cinematic_episode_badge_text">#5B7CFF</color>
 
     <!-- Accent Gold for ratings/stars -->
-    <color name="cinematic_gold">#FFD700</color>
-    <color name="cinematic_gold_glow">#55FFD700</color>
+    <color name="cinematic_gold">#F4B860</color>
+    <color name="cinematic_gold_glow">#55F4B860</color>
 </resources>

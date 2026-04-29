@@ -120,6 +120,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      status: "source_sent",
       message: "Source saved. MoPlayer will import it automatically while the activation screen is open.",
       source: {
         id: queueValue.id,

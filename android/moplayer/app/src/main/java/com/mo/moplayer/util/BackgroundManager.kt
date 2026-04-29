@@ -435,7 +435,7 @@ class BackgroundManager @Inject constructor(
         return listOf(
             "Premium Blue" to Color.parseColor("#0A84FF"),
             "Ocean" to Color.parseColor("#00D4FF"),
-            "Royal Purple" to Color.parseColor("#AF52DE"),
+            "Royal Purple" to Color.parseColor("#F4B860"),
             "Coral" to Color.parseColor("#FF6B6B"),
             "Gold" to Color.parseColor("#FFD60A"),
             "Mint" to Color.parseColor("#30D158"),

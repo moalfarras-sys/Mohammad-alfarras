@@ -52,6 +52,7 @@ export default async function AdminPage({
         devices={data.devices}
         activationRequests={data.activationRequests}
         licenses={data.licenses}
+        providerSources={data.providerSources}
         runtimeConfig={data.runtimeConfig}
       />
     </main>

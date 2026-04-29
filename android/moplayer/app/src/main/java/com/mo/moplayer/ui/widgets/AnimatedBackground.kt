@@ -93,7 +93,7 @@ class AnimatedBackground @JvmOverloads constructor(
     // Premium Blue color palette
     private var primaryColor = Color.parseColor("#0A84FF")
     private var secondaryColor = Color.parseColor("#5AC8FA")
-    private var accentColor = Color.parseColor("#AF52DE")
+    private var accentColor = Color.parseColor("#F4B860")
     private var horizonAccentColor = Color.parseColor("#FFDE42")
     
     // Space background color
@@ -385,7 +385,7 @@ class AnimatedBackground @JvmOverloads constructor(
         // Premium blue/purple nebula colors
         val nebulaColors = listOf(
             primaryColor,
-            Color.parseColor("#AF52DE"),  // Purple
+            Color.parseColor("#F4B860"),  // Purple
             secondaryColor
         )
         

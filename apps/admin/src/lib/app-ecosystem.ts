@@ -14,6 +14,7 @@ import type {
   AppDevice,
   AppScreenshot,
   AppRuntimeConfig,
+  DeviceProviderSourceQueue,
   AppStepItem,
   AppSupportRequest,
 } from "@/types/app-ecosystem";
@@ -406,11 +407,12 @@ export async function readAdminAppData(productSlug = "moplayer") {
   let devices: AppDevice[] = [];
   let activationRequests: ActivationRequest[] = [];
   let licenses: AppLicense[] = [];
+  let providerSources: DeviceProviderSourceQueue[] = [];
   let runtimeConfig: AppRuntimeConfig = fallbackRuntimeConfig;
 
   try {
     const supabase = createSupabaseAdminClient();
-    const [{ data }, { data: deviceRows }, { data: activationRows }, { data: licenseRows }, { data: settingsRow }] = await Promise.all([
+    const [{ data }, { data: deviceRows }, { data: activationRows }, { data: licenseRows }, { data: settingsRow }, { data: sourceRows }] = await Promise.all([
       supabase
       .from("app_support_requests")
       .select("*")
@@ -421,12 +423,16 @@ export async function readAdminAppData(productSlug = "moplayer") {
       supabase.from("activation_requests").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("licenses").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("app_settings").select("value").eq("key", "moplayer_public_config").maybeSingle(),
+      supabase.from("app_settings").select("value").like("key", "moplayer_device_source:%").order("updated_at", { ascending: false }).limit(100),
     ]);
     supportRequests = (data as AppSupportRequest[] | null) ?? [];
     devices = (deviceRows as AppDevice[] | null) ?? [];
     activationRequests = (activationRows as ActivationRequest[] | null) ?? [];
     licenses = (licenseRows as AppLicense[] | null) ?? [];
     runtimeConfig = { ...fallbackRuntimeConfig, ...((settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {}) };
+    providerSources = ((sourceRows as Array<{ value: unknown }> | null) ?? [])
+      .map((row) => row.value as Partial<DeviceProviderSourceQueue>)
+      .filter((row): row is DeviceProviderSourceQueue => Boolean(row?.id && row?.publicDeviceId && row?.status));
   } catch {
     if (hasDatabaseUrl()) {
       const result = await queryRows<{
@@ -471,6 +477,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
     devices,
     activationRequests,
     licenses,
+    providerSources,
     runtimeConfig,
   };
 }

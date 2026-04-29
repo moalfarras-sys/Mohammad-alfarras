@@ -113,8 +113,8 @@
             <!-- Surprise Me Button -->
             <ImageButton
                 android:id="@+id/btnSurprise"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:layout_width="@dimen/home_top_action_size"
+                android:layout_height="@dimen/home_top_action_size"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/selector_tv_button"
                 android:contentDescription="@string/surprise_me"
@@ -129,8 +129,8 @@
             <!-- Search Button -->
             <ImageButton
                 android:id="@+id/btnSearch"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:layout_width="@dimen/home_top_action_size"
+                android:layout_height="@dimen/home_top_action_size"
                 android:background="@drawable/selector_tv_button"
                 android:contentDescription="@string/search"
                 android:focusable="true"
@@ -181,8 +181,8 @@
             <!-- Weather Widget 3D — Larger and prominent -->
             <com.mo.moplayer.ui.widgets.Weather3DWidget
                 android:id="@+id/weatherWidget"
-                android:layout_width="190dp"
-                android:layout_height="82dp"
+                android:layout_width="@dimen/home_weather_widget_width"
+                android:layout_height="@dimen/home_widget_height"
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusLeft="@id/weatherWidget"
@@ -194,7 +194,7 @@
             <com.mo.moplayer.ui.widgets.FootballMatchWidget
                 android:id="@+id/footballWidget"
                 android:layout_width="0dp"
-                android:layout_height="82dp"
+                android:layout_height="@dimen/home_widget_height"
                 android:layout_weight="1"
                 android:layout_marginStart="10dp"
                 android:clickable="true"
@@ -208,7 +208,7 @@
             <FrameLayout
                 android:id="@+id/flipClockContainer"
                 android:layout_width="wrap_content"
-                android:layout_height="62dp"
+                android:layout_height="@dimen/home_clock_widget_height"
                 android:layout_marginStart="10dp"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
@@ -402,8 +402,8 @@
 
             <ImageView
                 android:id="@+id/iconHome"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_home"
                 tools:ignore="ContentDescription" />
 
@@ -414,7 +414,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_home"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>
@@ -437,8 +437,8 @@
 
             <ImageView
                 android:id="@+id/iconLive"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_live_tv"
                 tools:ignore="ContentDescription" />
 
@@ -449,7 +449,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_live"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>
@@ -472,8 +472,8 @@
 
             <ImageView
                 android:id="@+id/iconMovies"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_movie"
                 tools:ignore="ContentDescription" />
 
@@ -484,7 +484,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_movies"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>
@@ -507,8 +507,8 @@
 
             <ImageView
                 android:id="@+id/iconSeries"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_series"
                 tools:ignore="ContentDescription" />
 
@@ -519,7 +519,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_series"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>
@@ -542,8 +542,8 @@
 
             <ImageView
                 android:id="@+id/iconFavorites"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_favorite"
                 tools:ignore="ContentDescription" />
 
@@ -554,7 +554,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_favorites"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>
@@ -577,8 +577,8 @@
 
             <ImageView
                 android:id="@+id/iconDockSearch"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_search"
                 tools:ignore="ContentDescription" />
 
@@ -589,7 +589,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_search"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>
@@ -612,8 +612,8 @@
 
             <ImageView
                 android:id="@+id/iconSettings"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="@dimen/dock_icon_size"
+                android:layout_height="@dimen/dock_icon_size"
                 android:src="@drawable/ic_settings"
                 tools:ignore="ContentDescription" />
 
@@ -624,7 +624,7 @@
                 android:layout_marginTop="3dp"
                 android:text="@string/nav_settings"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="9sp"
+                android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.06" />
         </LinearLayout>

@@ -64,6 +64,8 @@
     <string name="activation_refresh">Check status</string>
     <string name="activation_add_source">Add source</string>
     <string name="activation_privacy">Private app device ID. Hardware identifiers are not used.</string>
+    <string name="website_source_wait_timeout">Activation is complete. No website source arrived yet; you can keep this screen open or add Xtream/M3U manually.</string>
+    <string name="website_source_failed">Website source could not be imported. Check the source in the website and send it again.</string>
     
     
     <string name="tab_xtream">Xtream Codes</string>
@@ -608,6 +610,8 @@
     <string name="player_not_available_restart">Video player not available. Please restart the app.</string>
     <string name="player_no_network_retry">No network connection. Check your internet and retry.</string>
     <string name="player_stream_error_after_retries">Stream error after %1$d attempts. Press Retry or use external player.</string>
+    <string name="player_stream_error_with_external_hint">This stream could not start. Press Retry, or use an external player if your provider uses a rare format.</string>
+    <string name="player_unsupported_stream_format">This stream link uses an unsupported format or protocol.</string>
     <string name="player_audio_track_format">Audio: %1$s</string>
     <string name="player_subtitles_off">Subtitles: Off</string>
     <string name="player_subtitles_track_format">Subtitles: %1$s</string>

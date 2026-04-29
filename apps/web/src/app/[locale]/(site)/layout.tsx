@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 
 import { CookieBanner } from "@/components/layout/cookie-banner";
-import { HireMeFab } from "@/components/layout/hire-me-fab";
+import { DigitalOsClientEffects } from "@/components/layout/digital-os-client-effects";
 import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
-import { MobileDock } from "@/components/layout/mobile-dock";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { getNavigation } from "@/content/navigation";
@@ -103,6 +102,17 @@ function buildFooterQuickFacts(locale: "ar" | "en", yt: YoutubeMetricsSetting) {
   const arViewsCore = viewsLabel.replace(/\+$/, "").trim();
   if (locale === "ar") {
     return [
+      { label: "\u0645\u0642\u064a\u0645 \u0641\u064a", value: "\u0623\u0644\u0645\u0627\u0646\u064a\u0627" },
+      { label: "\u0627\u0644\u062c\u0630\u0648\u0631", value: "\u0627\u0644\u062d\u0633\u0643\u0629\u060c \u0633\u0648\u0631\u064a\u0627" },
+      { label: "\u0627\u0644\u0644\u063a\u0627\u062a", value: "\u0627\u0644\u0639\u0631\u0628\u064a\u0629 / \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 / \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629" },
+      { label: "\u064a\u0648\u062a\u064a\u0648\u0628", value: `+${arViewsCore} \u0645\u0634\u0627\u0647\u062f\u0629 \u0639\u0644\u0649 \u064a\u0648\u062a\u064a\u0648\u0628` },
+      { label: "\u0627\u0644\u0645\u0634\u062a\u0631\u0643\u0648\u0646", value: formatYoutubeSubsLabel(yt.subscribers) },
+      { label: "\u0627\u0644\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a", value: String(videoCount) },
+      { label: "\u0627\u0644\u0645\u0646\u062a\u062c", value: "MoPlayer" },
+    ];
+  }
+  if (String(locale) === "__legacy_ar_fallback__") {
+    return [
       { label: "مقيم في", value: "ألمانيا" },
       { label: "الجذور", value: "الحسكة، سوريا" },
       { label: "اللغات", value: "العربية / الألمانية / الإنجليزية" },
@@ -172,12 +182,11 @@ export default async function SiteLayout({
       <div className="liquid-site relative min-h-screen" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
         <LocaleDocumentSync locale={locale} />
         <div className="noise-overlay" />
+        <DigitalOsClientEffects />
 
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
-        <main className="pb-dock lg:pb-0">{children}</main>
+        <main>{children}</main>
         <CookieBanner locale={locale} />
-        <MobileDock locale={locale} />
-        <HireMeFab locale={locale} />
         <SiteFooter
           locale={locale}
           logoSrc={logoSrc}

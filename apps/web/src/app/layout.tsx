@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { siteFontClassName } from "@/lib/fonts";
-// CinematicOverlay removed — replaced by CSS mesh gradients in globals.css
 
 import "./globals.css";
 
@@ -15,7 +14,7 @@ const defaultDescription =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Mohammad Alfarras Digital OS — Web, MoPlayer, Arabic tech",
+    default: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     template: "%s | Mohammad Alfarras",
   },
   description: defaultDescription,
@@ -47,14 +46,14 @@ export const metadata: Metadata = {
     type: "website",
     url: siteUrl,
     siteName,
-    title: "Mohammad Alfarras Digital OS — Web, MoPlayer, Arabic tech",
+    title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     locale: "en_US",
     alternateLocale: ["ar_SA"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mohammad Alfarras Digital OS — Web, MoPlayer, Arabic tech",
+    title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     creator: "@Moalfarras",
   },
@@ -82,8 +81,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafaf7" },
-    { media: "(prefers-color-scheme: dark)", color: "#050811" },
+    { media: "(prefers-color-scheme: light)", color: "#f8f6f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#070912" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -124,10 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     url: siteUrl,
     founder: { "@id": `${siteUrl}/#person` },
     logo: `${siteUrl}/images/logo.png`,
-    sameAs: [
-      "https://www.youtube.com/@Moalfarras",
-      "https://github.com/moalfarras-sys",
-    ],
+    sameAs: ["https://www.youtube.com/@Moalfarras", "https://github.com/moalfarras-sys"],
   };
 
   const rootWebsiteJsonLd = {
@@ -141,12 +137,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html
-      lang={resolvedLocale}
-      dir={resolvedDir}
-      suppressHydrationWarning
-      className={`liquid-site ${siteFontClassName}`}
-    >
+    <html lang={resolvedLocale} dir={resolvedDir} suppressHydrationWarning className={`liquid-site ${siteFontClassName}`}>
       <head>
         <meta charSet="UTF-8" />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootPersonJsonLd) }} />
@@ -154,7 +145,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootWebsiteJsonLd) }} />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="moalfarras-theme-ink-blue-amber-v2" disableTransitionOnChange>
           {children}
         </ThemeProvider>
       </body>

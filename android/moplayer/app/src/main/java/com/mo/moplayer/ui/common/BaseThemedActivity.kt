@@ -3,6 +3,7 @@ package com.mo.moplayer.ui.common
 import android.app.ActivityManager
 import android.app.UiModeManager
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
@@ -57,6 +58,7 @@ abstract class BaseThemedActivity : AppCompatActivity() {
     private var themeAndBackgroundObserversStarted: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         super.onCreate(savedInstanceState)
         setupBackPressHandler()
     }

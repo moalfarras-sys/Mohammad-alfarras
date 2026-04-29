@@ -54,7 +54,7 @@ class HtcCurvedDockView @JvmOverloads constructor(
     private var themeManager: com.mo.moplayer.util.ThemeManager? = null
     
     // Default accent color (used as fallback if ThemeManager not set)
-    private val defaultAccentColor = Color.parseColor("#00FF88")
+    private val defaultAccentColor = Color.parseColor("#5B7CFF")
 
     // Animation constants
     private val scaleFocused = 1.3f

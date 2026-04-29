@@ -8,8 +8,8 @@
     <color name="theme_surface_base">#020510</color>
     <color name="theme_surface_elevated">#09172E</color>
     <color name="theme_surface_card">#102240</color>
-    <color name="theme_focus">#00F5FF</color>
-    <color name="theme_success">#00E676</color>
+    <color name="theme_focus">#5B7CFF</color>
+    <color name="theme_success">#5B7CFF</color>
     <color name="theme_critical">#FF4444</color>
 
     <!-- Background chain -->
@@ -34,7 +34,7 @@
 
     <!-- Fixed utility -->
     <color name="color_scrim_strong">#E6000000</color>
-    <color name="color_glass_20">#2000F5FF</color>
+    <color name="color_glass_20">#205B7CFF</color>
     <color name="color_glass_15">#1500F5FF</color>
     <color name="color_glass_10">#1000F5FF</color>
     <color name="color_surface_dark">#020510</color>

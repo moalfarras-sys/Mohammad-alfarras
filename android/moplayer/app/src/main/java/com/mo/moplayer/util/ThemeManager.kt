@@ -60,18 +60,18 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
 
         val DEFAULT_THEME_ID = AppThemeId.LIQUID_BLUE
         val DEFAULT_ACCENT_ID = AccentId.BLUE
-        val DEFAULT_ACCENT_COLOR = Color.parseColor("#4F8BFF")
+        val DEFAULT_ACCENT_COLOR = Color.parseColor("#5B7CFF")
 
         private val ACCENT_OPTIONS =
             mapOf(
-                AccentId.BLUE to AccentOption(AccentId.BLUE, "Royal Blue", Color.parseColor("#4F8BFF")),
-                AccentId.CYAN to AccentOption(AccentId.CYAN, "Cyan", Color.parseColor("#00E5FF")),
-                AccentId.PURPLE to AccentOption(AccentId.PURPLE, "Neon Indigo", Color.parseColor("#7C6BFF")),
-                AccentId.ORANGE to AccentOption(AccentId.ORANGE, "Orange", Color.parseColor("#FF8800")),
-                AccentId.GOLD to AccentOption(AccentId.GOLD, "Gold", Color.parseColor("#FFD700")),
-                AccentId.PINK to AccentOption(AccentId.PINK, "Pink", Color.parseColor("#FF4081")),
+                AccentId.BLUE to AccentOption(AccentId.BLUE, "Ink Blue", Color.parseColor("#5B7CFF")),
+                AccentId.CYAN to AccentOption(AccentId.CYAN, "Soft Blue", Color.parseColor("#AFC0FF")),
+                AccentId.PURPLE to AccentOption(AccentId.PURPLE, "Warm Amber", Color.parseColor("#F4B860")),
+                AccentId.ORANGE to AccentOption(AccentId.ORANGE, "Amber", Color.parseColor("#F4B860")),
+                AccentId.GOLD to AccentOption(AccentId.GOLD, "Soft Gold", Color.parseColor("#FFD28A")),
+                AccentId.PINK to AccentOption(AccentId.PINK, "Muted Rose", Color.parseColor("#FF7A90")),
                 AccentId.WHITE to AccentOption(AccentId.WHITE, "White", Color.parseColor("#FFFFFF")),
-                AccentId.GREEN to AccentOption(AccentId.GREEN, "HTC Green", Color.parseColor("#00FF88"))
+                AccentId.GREEN to AccentOption(AccentId.GREEN, "Legacy Amber", Color.parseColor("#F4B860"))
             )
 
         private val THEMES =
@@ -79,7 +79,7 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
                 AppThemeId.LIQUID_BLUE to
                     AppTheme(
                         id = AppThemeId.LIQUID_BLUE,
-                        displayName = "Liquid Blue",
+                        displayName = "Ink Blue",
                         defaultAccent = AccentId.BLUE,
                         allowedAccents =
                             setOf(
@@ -93,7 +93,7 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
                 AppThemeId.HTC_ORANGE to
                     AppTheme(
                         id = AppThemeId.HTC_ORANGE,
-                        displayName = "HTC Orange",
+                        displayName = "Warm Amber",
                         defaultAccent = AccentId.ORANGE,
                         allowedAccents = setOf(AccentId.ORANGE, AccentId.GOLD, AccentId.GREEN)
                     )

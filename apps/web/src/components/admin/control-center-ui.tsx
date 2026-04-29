@@ -233,7 +233,7 @@ export function StatusPill({
   message?: string;
 }) {
   const config = useMemo(() => {
-    if (tone === "success") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-200";
+    if (tone === "success") return "border-blue-400/20 bg-blue-500/10 text-blue-200";
     if (tone === "error") return "border-red-400/20 bg-red-500/10 text-red-200";
     if (tone === "saving") return "border-primary/20 bg-primary/10 text-primary";
     return "border-[var(--os-border)] bg-black/5 dark:bg-white/5 text-foreground-soft";

@@ -125,7 +125,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "من الحسكة إلى ألمانيا: محمد الفراس يبني حضورًا رقميًا يربح الثقة من أول شاشة عبر تطوير الواجهات، التصميم الجريء، والمحتوى التقني العربي.",
         ogTitle: "محمد الفراس | حضور رقمي لا يُنسى",
         ogDescription: "تطوير ويب، تصميم جريء، ومحتوى تقني عربي بصوت واضح وانضباط تنفيذي حقيقي.",
-        image: "/images/hero-dark-bg.png",
+        image: "/images/hero_tech.png",
       },
       cv: {
         title: "السيرة | محمد الفراس",
@@ -146,7 +146,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "دراسات حالة مختارة توضح كيف يتحول الويب من واجهة جميلة إلى أداة تقنع وتحوّل الزائر إلى خطوة فعلية.",
         ogTitle: "الأعمال | كل مشروع هنا حلّ مشكلة حقيقية",
         ogDescription: "صفحات وتجارب صُممت لتقود إلى الثقة، القرار، والحجز.",
-        image: "/images/seel-home-case.png",
+        image: "/images/projects/seel-home-case.png",
       },
       youtube: {
         title: "يوتيوب | محمد الفراس",
@@ -386,7 +386,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "From Al-Hasakah to Germany, Mohammad Alfarras combines logistics discipline, visual sharpness, and honest tech content into a personal brand that earns trust fast.",
         ogTitle: "Mohammad Alfarras | A digital presence that gets remembered",
         ogDescription: "Bold web execution, confident design, and Arabic tech content shaped by real operational discipline.",
-        image: "/images/hero-dark-bg.png",
+        image: "/images/hero_tech.png",
       },
       cv: {
         title: "About | Mohammad Alfarras",
@@ -407,7 +407,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         description: "Selected case studies showing how websites become clearer, more persuasive, and more conversion-focused.",
         ogTitle: "Work | Every project here solved a real problem",
         ogDescription: "Challenge, solution, result — presented as decision-making tools, not decorative galleries.",
-        image: "/images/seel-home-case.png",
+        image: "/images/projects/seel-home-case.png",
       },
       youtube: {
         title: "YouTube | Mohammad Alfarras",

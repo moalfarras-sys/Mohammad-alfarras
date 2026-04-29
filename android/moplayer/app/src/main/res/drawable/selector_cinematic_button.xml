@@ -14,7 +14,7 @@
                     android:gradientRadius="140dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="#AA00E5FF"
+                        android:startColor="#AA5B7CFF"
                         android:endColor="#00000000" />
                 </shape>
             </item>
@@ -23,7 +23,7 @@
                     <corners android:radius="14dp" />
                     <gradient
                         android:angle="135"
-                        android:startColor="#AA00E5FF"
+                        android:startColor="#AA5B7CFF"
                         android:centerColor="#66286DFF"
                         android:endColor="#997C3AED" />
                     <stroke android:width="2.5dp" android:color="#FFFFFFFF" />

@@ -11,7 +11,7 @@ export type ProjectStudioItem = {
   project_id: string;
   is_featured: boolean;
   featured_rank: number;
-  accent: "green" | "orange" | "cyan" | "purple";
+  accent: "blue" | "amber" | "rose" | "ink";
   highlight_style: "operations" | "trust" | "app" | "editorial";
   device_frame: "browser" | "phone" | "floating";
   eyebrow_ar: string;
@@ -27,6 +27,13 @@ export type ProjectStudioItem = {
   metrics: ProjectStudioMetric[];
   gallery_media_ids: string[];
 };
+
+export function normalizeProjectAccent(value: unknown): ProjectStudioItem["accent"] {
+  if (value === "blue" || value === "amber" || value === "rose" || value === "ink") return value;
+  if (value === "orange" || value === "gold" || value === "purple") return "amber";
+  if (value === "pink") return "rose";
+  return "blue";
+}
 
 export type ProjectsStudioSetting = {
   version: 1;
@@ -74,7 +81,7 @@ export function createDefaultProjectStudioItem(project: WorkProject): ProjectStu
       project_id: project.id,
       is_featured: true,
       featured_rank: 1,
-      accent: "green",
+      accent: "blue",
       highlight_style: "operations",
       device_frame: "browser",
       eyebrow_ar: "منصة خدمات وتشغيل",
@@ -97,7 +104,7 @@ export function createDefaultProjectStudioItem(project: WorkProject): ProjectStu
       project_id: project.id,
       is_featured: true,
       featured_rank: 2,
-      accent: "orange",
+      accent: "amber",
       highlight_style: "trust",
       device_frame: "browser",
       eyebrow_ar: "موقع حجز وتحويل",
@@ -120,7 +127,7 @@ export function createDefaultProjectStudioItem(project: WorkProject): ProjectStu
       project_id: project.id,
       is_featured: true,
       featured_rank: 3,
-      accent: "cyan",
+      accent: "blue",
       highlight_style: "app",
       device_frame: "phone",
       eyebrow_ar: "تجربة تطبيق ومنتج",
@@ -142,7 +149,7 @@ export function createDefaultProjectStudioItem(project: WorkProject): ProjectStu
     project_id: project.id,
     is_featured: false,
     featured_rank: 99,
-    accent: "purple",
+    accent: "ink",
     highlight_style: "editorial",
     device_frame: "floating",
     eyebrow_ar: "دراسة حالة رقمية",
@@ -180,7 +187,9 @@ export function getProjectsStudioData(snapshot: CmsSnapshot): ProjectsStudioSett
     version: 1,
     items: snapshot.work_projects.map((project) => {
       const saved = byProjectId.get(project.id);
-      return saved ? { ...createDefaultProjectStudioItem(project), ...saved } : createDefaultProjectStudioItem(project);
+      return saved
+        ? { ...createDefaultProjectStudioItem(project), ...saved, accent: normalizeProjectAccent(saved.accent) }
+        : createDefaultProjectStudioItem(project);
     }),
   };
 }

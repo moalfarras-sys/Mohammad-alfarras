@@ -1,4 +1,3 @@
-import { projects as localProjects } from "@/data/projects";
 import { getPdfRegistry, resolveBrandAssetPaths, resolveRebuildLocaleContent } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot, readVideos } from "@/lib/content/store";
 import { buildCvPresentationModel } from "@/lib/cv-presenter";
@@ -10,18 +9,10 @@ import { getLiveWeather } from "@/lib/weather-live";
 import { getLiveYoutubeData } from "@/lib/youtube-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
+import { PortfolioPrivacyPage } from "./portfolio-pages";
+import { DigitalOsPage } from "./digital-os-vnext";
 import type { SiteViewModel } from "./site-view-model";
-import {
-  PortfolioCvPage,
-  PortfolioPrivacyPage,
-} from "./portfolio-pages";
-import { PortfolioHomePageNew } from "./home-page-new";
-import { AboutPageBody } from "@/components/sections/about-page-body";
-import { AppsPageBody } from "@/components/sections/apps-page-body";
-import { ContactPageBody } from "@/components/sections/contact-page-body";
-import { ServicesPageBody } from "@/components/sections/services-page-body";
-import { WorkPageBody } from "@/components/sections/work-page-body";
-import { YoutubePageBody } from "@/components/sections/youtube-page-body";
+import { projects as localProjects } from "@/data/projects";
 
 function safeImageSrc(path: string | null | undefined, fallback: string) {
   if (!path?.trim()) return fallback;
@@ -43,46 +34,44 @@ function getProfile(snapshot: CmsSnapshot, locale: Locale) {
     location_en: "Germany",
   });
 
-  const profile: SiteViewModel["profile"] = {
+  return repairMojibakeDeep({
     name: locale === "ar" ? String(brand.title_ar) : String(brand.title_en),
     subtitle: locale === "ar" ? String(brand.subtitle_ar ?? "") : String(brand.subtitle_en ?? ""),
     location: locale === "ar" ? String(brand.location_ar ?? "ألمانيا") : String(brand.location_en ?? "Germany"),
-  };
-
-  return repairMojibakeDeep(profile);
+  });
 }
 
 function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["services"] {
   const fallback = [
     {
       id: "service-web",
-      title: locale === "ar" ? "واجهات ومواقع تشرح القيمة بسرعة" : "Web experiences that explain value fast",
+      title: locale === "ar" ? "مواقع وواجهات تشرح القيمة بسرعة" : "Web experiences that explain value fast",
       body:
         locale === "ar"
-          ? "أبني صفحات إطلاق ومواقع شخصية وتجارية بحضور بصري واضح ورسالة مفهومة وتجربة مرتبة من أول شاشة."
-          : "Launch pages and digital surfaces with stronger visual control, sharper hierarchy, and a clearer commercial message from the first screen.",
-      bullets: locale === "ar" ? ["صفحات إطلاق", "حضور رقمي", "تحويل أوضح"] : ["Launch pages", "Brand presence", "Conversion focus"],
+          ? "مواقع أعمال وصفحات إطلاق وحضور رقمي ثنائي اللغة مبني على وضوح الرسالة والثقة من أول شاشة."
+          : "Business websites, launches, and bilingual digital surfaces built around clarity, trust, and first-screen hierarchy.",
+      bullets: locale === "ar" ? ["مواقع أعمال", "واجهات حديثة", "ثنائية اللغة"] : ["Business sites", "Modern UI", "Bilingual delivery"],
       image: "/images/service_web.png",
     },
     {
       id: "service-ops",
-      title: locale === "ar" ? "تنفيذ منضبط بعقلية تشغيلية" : "Execution shaped by logistics discipline",
+      title: locale === "ar" ? "تنفيذ منضبط بعقلية تشغيلية" : "Execution shaped by operational discipline",
       body:
         locale === "ar"
-          ? "الخبرة في التشغيل اليومي تنعكس هنا على شكل سرعة أعلى، تنظيم أوضح، وتجربة أكثر ثباتاً."
-          : "Operational pressure from logistics becomes faster turnaround, cleaner systems, and frontend execution that stays reliable under change.",
-      bullets: locale === "ar" ? ["سرعة", "اعتمادية", "تنفيذ منظم"] : ["Speed", "Reliability", "Structured delivery"],
-      image: "/images/projects/adtransporte-home.png",
+          ? "الخبرة في اللوجستيات والتشغيل تنعكس على شكل بنية أوضح، قرارات أسرع، وتجربة أكثر استقراراً."
+          : "Logistics experience becomes clearer systems, faster decisions, and more stable frontend delivery.",
+      bullets: locale === "ar" ? ["تشغيل", "بنية", "اعتمادية"] : ["Operations", "Structure", "Reliability"],
+      image: "/images/service_logistics.png",
     },
     {
-      id: "service-creator",
-      title: locale === "ar" ? "محتوى تقني يصنع الثقة" : "Creator-grade content that builds trust",
+      id: "service-media",
+      title: locale === "ar" ? "محتوى تقني يرفع الثقة" : "Technical storytelling that raises trust",
       body:
         locale === "ar"
-          ? "من يوتيوب إلى عرض المنتجات، أتعامل مع المحتوى كطبقة ثقة ترفع صورة المشروع وتدعمه بصرياً."
-          : "From YouTube to product storytelling, content becomes a trust layer that strengthens brand perception instead of just filling space.",
-      bullets: locale === "ar" ? ["يوتيوب", "عرض المنتج", "ثقة الجمهور"] : ["YouTube", "Product storytelling", "Audience trust"],
-      image: "/images/hero-profile-bg.png",
+          ? "من يوتيوب إلى صفحات المنتجات، المحتوى هنا جزء من التجربة وليس طبقة منفصلة عنها."
+          : "From YouTube to product pages, content here is part of the product experience rather than a separate layer.",
+      bullets: locale === "ar" ? ["يوتيوب", "سرد منتجات", "ثقة الجمهور"] : ["YouTube", "Product storytelling", "Audience trust"],
+      image: "/images/yt-channel-hero.png",
     },
   ];
 
@@ -93,7 +82,6 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
       const translation = snapshot.service_offering_translations.find((item) => item.service_id === entry.id && item.locale === locale);
       const asset = entry.cover_media_id ? snapshot.media_assets.find((item) => item.id === entry.cover_media_id) : null;
       const base = fallback[index] ?? fallback[fallback.length - 1];
-
       return {
         id: entry.id,
         title: translation?.title ?? base.title,
@@ -103,54 +91,52 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
       };
     });
 
-  return active.length ? active : fallback;
+  return repairMojibakeDeep(active.length ? active : fallback);
 }
 
 function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
-  const project: SiteViewModel["projects"][number] = {
+  return repairMojibakeDeep({
     id: "moplayer-fallback",
     slug: "moplayer",
     title: locale === "ar" ? localProjects[0].nameAR : localProjects[0].nameEN,
     ctaLabel: locale === "ar" ? "استكشف التطبيق" : "Explore app",
     summary: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
     description: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-    image: localProjects[0].coverImage,
-    href: "/app",
+    image: "/images/moplayer-hero-3d-final.png",
+    href: `/${locale}/apps/moplayer`,
     repoUrl: localProjects[0].downloadLinks.github,
     featured: true,
     featuredRank: 3,
-    accent: "cyan",
+    accent: "blue",
     highlightStyle: "app",
     deviceFrame: "phone",
-    eyebrow: locale === "ar" ? "تجربة تطبيق ومنتج" : "App and product experience",
+    eyebrow: locale === "ar" ? "منتج Android TV" : "Android TV product",
     challenge:
       locale === "ar"
-        ? "الهدف كان تقديم تجربة وسائط أوضح وأكثر اتساقاً كمنتج حقيقي داخل الموقع."
-        : "The target was a clearer, more coherent media product surface inside the site.",
+        ? "بناء واجهة منتج حقيقية مع تنشيط وإصدارات ودعم وقصة واضحة حول المنتج."
+        : "Build a real product surface with activation, releases, support, and a clear product story.",
     solution:
       locale === "ar"
-        ? "تم التركيز على واجهة أوضح، إيقاع تنقل أفضل، وهوية بصرية أكثر تماسكاً بين الهاتف وAndroid TV."
-        : "The build focuses on a clearer interface, smoother navigation, and a stronger visual identity across phone and Android TV.",
+        ? "تجميع الهوية والتحميل والتفعيل والدعم داخل موقع واحد واضح."
+        : "Bring identity, release delivery, activation, and support into one coherent website surface.",
     result:
       locale === "ar"
-        ? "هوية تطبيق أوضح وقصة منتج أنظف داخل الموقع وصفحة تنزيل مستقلة على /app."
-        : "A clearer app identity and a cleaner product story across the site and the dedicated /app surface.",
-    tags: locale === "ar" ? ["تطبيق", "واجهة هاتف", "منتج رقمي"] : ["App", "Mobile UI", "Digital product"],
-    gallery: [...new Set(localProjects[0].screenshots)],
+        ? "منظومة منتج أوضح عبر الموقع والتطبيق."
+        : "A clearer product ecosystem across site and app.",
+    tags: locale === "ar" ? ["Android TV", "واجهة منتج", "MoPlayer"] : ["Android TV", "Product UI", "MoPlayer"],
+    gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer-ui-mock-final.png", "/images/moplayer-tv-banner-final.png"],
     metrics: locale === "ar"
       ? [
           { value: "API 24+", label: "الحد الأدنى" },
-            { value: "TV", label: "سياق Android TV" },
-          { value: "UI", label: "واجهة مركزة" },
+          { value: "TV", label: "سياق Android TV" },
+          { value: "VLC", label: "محرك التشغيل" },
         ]
       : [
           { value: "API 24+", label: "Minimum SDK" },
-            { value: "TV", label: "Android TV context" },
-          { value: "UI", label: "Focused interface" },
+          { value: "TV", label: "Android TV focus" },
+          { value: "VLC", label: "Playback engine" },
         ],
-  };
-
-  return repairMojibakeDeep(project);
+  });
 }
 
 function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
@@ -162,84 +148,70 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
       title: "A&D Fahrzeugtransporte",
       ctaLabel: isAr ? "عرض المشروع" : "View project",
       summary: isAr
-        ? "حضور رقمي ألماني لخدمات Abschleppdienst ونقل المركبات في Berlin وBrandenburg، مبني حول سرعة الفهم والتواصل."
-        : "A German service website for towing, vehicle transport, and transfer work in Berlin and Brandenburg, structured for fast trust and contact.",
+        ? "حضور رقمي ألماني لخدمات نقل المركبات والجر، مبني على الوضوح والاتصال السريع."
+        : "A German towing and vehicle transport surface built around clarity, speed, and direct contact.",
       description: isAr
-        ? "موقع خدمات نقل مركبات يحتاج أن يشرح العرض بسرعة: Abschleppdienst، Fahrzeugtransport، Überführungen، Baumaschinen-Transport، ودعوات اتصال واضحة عبر الهاتف وWhatsApp."
-        : "A transport and towing service site shaped around clear service categories: Abschleppdienst, Fahrzeugtransport, Überführungen, Baumaschinen transport, and direct call/WhatsApp action.",
-      image: "/images/service_logistics.png",
+        ? "موقع يقدّم الخدمات بسرعة ويقود الزائر إلى الهاتف أو واتساب بدون تشتت."
+        : "A service site that explains the offer quickly and moves visitors toward phone or WhatsApp without friction.",
+      image: "/images/projects/adtransporte-home.png",
       href: "https://www.adtransporte.de/",
       featured: true,
       featuredRank: 1,
-      accent: "cyan",
+      accent: "blue",
       highlightStyle: "operations",
       deviceFrame: "browser",
-      eyebrow: isAr ? "موقع خدمات نقل وجر سيارات" : "Transport and towing service website",
-      challenge: isAr
-        ? "الزائر في هذا النوع من الخدمات يريد معرفة ما إذا كانت الشركة مناسبة الآن، وأي غموض يقلل فرصة التواصل."
-        : "Visitors in this service category need to know quickly whether the company can help now; vague structure weakens contact intent.",
-      solution: isAr
-        ? "تم تقديم الخدمات بلغة مباشرة، بنية أقسام واضحة، وتركيز قوي على الاتصال السريع وWhatsApp."
-        : "The service offer is framed with direct language, clear sections, and a strong call/WhatsApp conversion route.",
-      result: isAr
-        ? "حضور خدمة ألماني أوضح، مناسب للموبايل، ومبني على الثقة العملية بدل الزخرفة."
-        : "A clearer German service presence, mobile-first, and built around practical trust rather than decoration.",
-      tags: isAr
-        ? ["Abschleppdienst", "Fahrzeugtransport", "Berlin & Brandenburg"]
-        : ["Towing", "Vehicle transport", "Berlin & Brandenburg"],
+      eyebrow: isAr ? "نقل وجر سيارات" : "Transport and towing",
+      challenge: isAr ? "بناء ثقة سريعة في سوق خدمات يعتمد على القرار الفوري." : "Create fast trust inside a service market that depends on immediate contact.",
+      solution: isAr ? "ترتيب العرض والخدمات والـ CTA بشكل أوضح." : "Clarify services, hierarchy, and CTA flow.",
+      result: isAr ? "واجهة عملية وواضحة مناسبة للجوال." : "A practical, mobile-ready service surface.",
+      tags: isAr ? ["ألمانيا", "موقع خدمات", "نقل مركبات"] : ["Germany", "Service site", "Vehicle transport"],
       gallery: ["/images/projects/adtransporte-home.png", "/images/projects/adtransporte-mobile.png"],
       metrics: isAr
         ? [
-            { value: "24/7", label: "تموضع خدمة" },
+            { value: "24/7", label: "تموضع الخدمة" },
             { value: "DE", label: "سوق ألماني" },
             { value: "CTA", label: "اتصال مباشر" },
           ]
         : [
             { value: "24/7", label: "Service positioning" },
             { value: "DE", label: "German market" },
-            { value: "CTA", label: "Direct contact flow" },
+            { value: "CTA", label: "Direct contact" },
           ],
     },
     {
       id: "wp-intelligent-umzuege",
       slug: "intelligent-umzuege",
-      title: "Intelligent Umzüge",
+      title: "Intelligent Umzuege",
       ctaLabel: isAr ? "عرض المشروع" : "View project",
       summary: isAr
-        ? "موقع شركة نقل وانتقال في Berlin يعرض Umzüge وTransporte وEntsorgung ضمن مسار طلب واضح."
-        : "A moving and transport company presence for Berlin, covering Umzüge, Transporte, and Entsorgung through a clear request path.",
+        ? "حضور رقمي لشركة نقل وانتقال يشرح الخدمة بسرعة ويوجّه نحو الطلب."
+        : "A moving company site that explains the service fast and guides users toward inquiry.",
       description: isAr
-        ? "المشروع يركّز على جعل خدمات الانتقال والنقل والتخلص مفهومة بسرعة، مع بنية مناسبة للزائر الذي يريد طلب عرض أو التواصل مباشرة."
-        : "The project focuses on making moving, transport, and disposal services easy to understand, with a structure for quote requests and direct contact.",
+        ? "المشروع يركّز على الوضوح والثقة وبنية طلب سهلة على الجوال."
+        : "The build focuses on clarity, trust, and a mobile-friendly request path.",
       image: "/images/projects/intelligent-umzuege-home.png",
       href: "https://intelligent-umzuege.vercel.app/",
       featured: true,
       featuredRank: 2,
-      accent: "purple",
+      accent: "amber",
       highlightStyle: "trust",
       deviceFrame: "browser",
-      eyebrow: isAr ? "موقع شركة انتقال ونقل" : "Moving and transport company website",
-      challenge: isAr
-        ? "خدمات الانتقال تحتاج ثقة فورية، خصوصاً على الموبايل، لأن الزائر غالباً يقارن بسرعة بين عدة شركات."
-        : "Moving services need instant trust, especially on mobile, because visitors compare providers quickly.",
-      solution: isAr
-        ? "تم ترتيب الخدمات، CTA، ونبرة الموقع حتى تقود الزائر من فهم الخدمة إلى طلب التواصل بدون ضياع."
-        : "Services, CTAs, and copy are organized to move visitors from service understanding to contact without friction.",
-      result: isAr
-        ? "موقع خدمة أوضح وأكثر قابلية للمسح السريع، مناسب لشركة محلية تريد طلبات أكثر انتظاماً."
-        : "A clearer, easier-to-scan service site for a local company that needs structured inbound requests.",
-      tags: isAr ? ["Umzüge", "Transporte", "Entsorgung", "Berlin"] : ["Moving", "Transport", "Disposal", "Berlin"],
-      gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png", "/images/schnell-service-case.png"],
+      eyebrow: isAr ? "موقع شركة انتقال" : "Moving company site",
+      challenge: isAr ? "الزائر يقارن بسرعة ويحتاج وضوحاً فورياً." : "Visitors compare quickly and need instant clarity.",
+      solution: isAr ? "بنية أوضح للعرض والخدمات والطلب." : "A clearer structure for services and quote flow.",
+      result: isAr ? "تجربة أخف وأوضح على الجوال والكمبيوتر." : "A clearer experience across phone and desktop.",
+      tags: isAr ? ["نقل", "خدمات محلية", "برلين"] : ["Moving", "Local services", "Berlin"],
+      gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png"],
       metrics: isAr
         ? [
             { value: "Mobile", label: "طلب سريع" },
             { value: "Berlin", label: "سوق محلي" },
-            { value: "Form", label: "مسار عرض" },
+            { value: "Form", label: "مسار الطلب" },
           ]
         : [
             { value: "Mobile", label: "Fast request path" },
             { value: "Berlin", label: "Local market" },
-            { value: "Form", label: "Quote structure" },
+            { value: "Form", label: "Quote flow" },
           ],
     },
   ];
@@ -259,11 +231,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         .filter((item) => item.project_id === entry.id)
         .sort((a, b) => a.sort_order - b.sort_order);
       const coverAsset = snapshot.work_project_media.find((item) => item.project_id === entry.id && item.role === "cover");
-      const fallbackImage = entry.slug.includes("moplayer")
-        ? "/images/moplayer-ui-mock-final.png"
-        : entry.slug.includes("schnell")
-          ? "/images/schnell-home-case.png"
-          : "/images/seel-home-case.png";
+      const fallbackImage = entry.slug.includes("moplayer") ? "/images/moplayer-hero-3d-final.png" : "/images/projects/seel-home-case.png";
 
       return {
         id: entry.id,
@@ -273,7 +241,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         summary: translation?.summary ?? "",
         description: translation?.description ?? translation?.summary ?? "",
         image: safeImageSrc(resolveMediaPath(snapshot.media_assets, coverAsset?.media_id ?? entry.cover_media_id, fallbackImage), fallbackImage),
-        href: entry.project_url || (entry.slug.includes("moplayer") ? "/app" : undefined),
+        href: entry.project_url || (entry.slug.includes("moplayer") ? `/${locale}/apps/moplayer` : undefined),
         repoUrl: entry.repo_url || undefined,
         featured: typeof entry.featured_rank === "number" ? entry.featured_rank < 99 : studio.is_featured,
         featuredRank: entry.featured_rank ?? studio.featured_rank,
@@ -294,14 +262,9 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       };
     });
 
-  if (!active.some((project) => project.slug === "moplayer")) {
-    active.push(moplayerFallback(locale));
-  }
-
+  if (!active.some((project) => project.slug === "moplayer")) active.push(moplayerFallback(locale));
   for (const showcase of businessShowcaseProjects(locale)) {
-    if (!active.some((project) => project.slug === showcase.slug)) {
-      active.push(showcase);
-    }
+    if (!active.some((project) => project.slug === showcase.slug)) active.push(showcase);
   }
 
   const visualOverrides: Record<string, { image: string; gallery: string[] }> = {
@@ -327,99 +290,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
     }
   }
 
-  if (active.length) {
-    return active;
-  }
-
-  return [
-    {
-      id: "wp-seel",
-      slug: "seel",
-      title: "SEEL Transport",
-      ctaLabel: locale === "ar" ? "عرض المشروع" : "Open project",
-      summary: locale === "ar" ? "دراسة حالة لخدمة لوجستية احتاجت ترتيباً أوضح وصورة أكثر ثقة." : "A logistics service case study built around clarity and trust.",
-      description:
-        locale === "ar"
-          ? "إعادة ترتيب العرض البصري والرسالة لتبدو الخدمة أوضح وأكثر مهنية من أول شاشة."
-          : "A visual and messaging reset that makes the service feel more credible from the first screen.",
-      image: "/images/seel-home-case.png",
-      featured: true,
-      featuredRank: 1,
-      accent: "green",
-      highlightStyle: "operations",
-      deviceFrame: "browser",
-      eyebrow: locale === "ar" ? "منصة خدمات وتشغيل" : "Operations-led service platform",
-      challenge:
-        locale === "ar"
-          ? "الموقع كان يحتاج ثقة أسرع وترتيباً أوضح لما تعنيه الخدمة فعلاً."
-          : "The site needed faster trust and a clearer explanation of what the service actually delivers.",
-      solution:
-        locale === "ar"
-          ? "تم بناء التسلسل حول الوضوح التشغيلي والقراءة الأسرع وإحساس أقوى بالاعتمادية."
-          : "The hierarchy was rebuilt around operational clarity, faster reading, and stronger dependability.",
-      result:
-        locale === "ar"
-          ? "واجهة أهدأ وأوضح وأقرب لطبيعة شركة تعمل يومياً تحت ضغط حقيقي."
-          : "The result is calmer, clearer, and much closer to a business that operates under real daily pressure.",
-      tags: locale === "ar" ? ["لوجستيات", "واجهة تشغيل", "ثقة الخدمة"] : ["Logistics", "Operations UI", "Service trust"],
-      gallery: ["/images/seel-home-case.png"],
-      metrics: locale === "ar"
-        ? [
-            { value: "Ops", label: "إيقاع تشغيلي" },
-            { value: "Routes", label: "تنسيق المسارات" },
-            { value: "Trust", label: "ثقة الخدمة" },
-          ]
-        : [
-            { value: "Ops", label: "Operations rhythm" },
-            { value: "Routes", label: "Route coordination" },
-            { value: "Trust", label: "Service trust" },
-          ],
-    },
-    {
-      id: "wp-schnell",
-      slug: "schnell-sicher",
-      title: "Schnell Sicher Umzug",
-      ctaLabel: locale === "ar" ? "عرض المشروع" : "Open project",
-      summary: locale === "ar" ? "واجهة حجز أوضح وأقوى في دفع الزائر نحو القرار." : "A booking-first redesign that pushes visitors toward action faster.",
-      description:
-        locale === "ar"
-          ? "تقديم رقمي أكثر وضوحاً وحدّة لمشروع يعتمد على الثقة والتحويل من أول زيارة."
-          : "A sharper digital presentation for a business that depends on fast trust and conversion.",
-      image: "/images/schnell-home-case.png",
-      featured: true,
-      featuredRank: 2,
-      accent: "orange",
-      highlightStyle: "trust",
-      deviceFrame: "browser",
-      eyebrow: locale === "ar" ? "موقع حجز وتحويل" : "Lead-generation service site",
-      challenge:
-        locale === "ar"
-          ? "أي تشويش في الرسالة أو الترتيب يضيع الطلب بسرعة."
-          : "Any noise in the message or structure costs the lead quickly.",
-      solution:
-        locale === "ar"
-          ? "تم بناء الصفحة حول عرض مباشر ودعوة واضحة ومسار يقود الزائر نحو الحجز."
-          : "The page was rebuilt around a direct offer, clear CTA, and a stronger route toward booking.",
-      result:
-        locale === "ar"
-          ? "واجهة أقوى في الانطباع والثقة والحجز الفعلي من أول زيارة."
-          : "A more persuasive interface with stronger trust and booking intent on first visit.",
-      tags: locale === "ar" ? ["حجز", "واجهة مبيعات", "تحويل"] : ["Booking", "Sales UI", "Conversion"],
-      gallery: ["/images/schnell-home-case.png"],
-      metrics: locale === "ar"
-        ? [
-            { value: "Offer", label: "وضوح العرض" },
-            { value: "Lead", label: "تركيز على الطلب" },
-            { value: "Trust", label: "بناء الثقة" },
-          ]
-        : [
-            { value: "Offer", label: "First-screen clarity" },
-            { value: "Lead", label: "Lead-first structure" },
-            { value: "Trust", label: "Trust layer" },
-          ],
-    },
-    moplayerFallback(locale),
-  ];
+  return repairMojibakeDeep(active);
 }
 
 function getExperience(snapshot: CmsSnapshot, locale: Locale, nowLabel: string): SiteViewModel["experience"] {
@@ -460,13 +331,11 @@ function getContact(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["conta
   const email = channels.find((entry) => entry.type === "email");
   const whatsapp = channels.find((entry) => entry.type === "whatsapp");
 
-  const contact: SiteViewModel["contact"] = {
+  return repairMojibakeDeep({
     channels,
     emailAddress: String(email?.value ?? "mohammad.alfarras@gmail.com").replace(/^mailto:/, ""),
     whatsappUrl: whatsapp?.value ?? "https://wa.me/4917623419358",
-  };
-
-  return repairMojibakeDeep(contact);
+  });
 }
 
 function getCertifications(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["certifications"] {
@@ -511,7 +380,6 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const snapshot = await readSnapshot();
   const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
-  const portraitImage = safeImageSrc("/images/protofeilnew.jpeg", "/images/protofeilnew.jpeg");
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
 
@@ -523,13 +391,6 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   ]);
 
   const pageSlug = slug || "home";
-  const profile = getProfile(snapshot, locale);
-  const projects = getProjects(snapshot, locale);
-  const experience = getExperience(snapshot, locale, locale === "ar" ? "الآن" : "Now");
-  const contact = getContact(snapshot, locale);
-  const certifications = getCertifications(snapshot, locale);
-  const services = getServices(snapshot, locale);
-  const featuredVideo = videos.find((item) => item.is_featured) ?? videos[0] ?? null;
   const cvPresentation = buildCvPresentationModel(snapshot, locale);
   const brandedDownload =
     pdfRegistry.active.branded === "uploaded" && pdfRegistry.uploads.branded?.url
@@ -539,20 +400,19 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     pdfRegistry.active.ats === "uploaded" && pdfRegistry.uploads.ats?.url
       ? pdfRegistry.uploads.ats.url
       : `/api/cv-pdf?locale=${locale}&variant=ats`;
-  const docxDownload = `/api/cv-docx?locale=${locale}`;
 
-  const model: SiteViewModel = {
+  return repairMojibakeDeep({
     locale,
     pageSlug,
     t: copy,
-    profile,
-    projects,
-    services,
-    experience,
-    certifications,
-    contact,
+    profile: getProfile(snapshot, locale),
+    projects: getProjects(snapshot, locale),
+    services: getServices(snapshot, locale),
+    experience: getExperience(snapshot, locale, locale === "ar" ? "الآن" : "Now"),
+    certifications: getCertifications(snapshot, locale),
+    contact: getContact(snapshot, locale),
     youtube,
-    featuredVideo,
+    featuredVideo: videos.find((item) => item.is_featured) ?? videos[0] ?? null,
     latestVideos: videos.slice(0, 6),
     gallery: getGallery(snapshot),
     live: {
@@ -565,41 +425,20 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     cvSections: cvPresentation.sections,
     cvProjects: cvPresentation.projects,
     cvExperience: cvPresentation.experience,
-    portraitImage,
+    portraitImage: safeImageSrc("/images/protofeilnew.jpeg", "/images/protofeilnew.jpeg"),
     brandMedia,
     downloads: {
       branded: brandedDownload,
       ats: atsDownload,
-      docx: docxDownload,
+      docx: `/api/cv-docx?locale=${locale}`,
     },
-  };
-
-  return repairMojibakeDeep(model);
+  });
 }
 
 export async function SitePage({ locale, slug }: { locale: Locale; slug: string }) {
   const model = await buildSiteModel({ locale, slug });
-  switch (model.pageSlug) {
-    case "home":
-      return <PortfolioHomePageNew model={model} />;
-    case "about":
-      return <AboutPageBody model={model} />;
-    case "cv":
-      return <PortfolioCvPage model={model} />;
-    case "services":
-      return <ServicesPageBody model={model} />;
-    case "projects":
-    case "work":
-      return <WorkPageBody model={model} />;
-    case "youtube":
-      return <YoutubePageBody model={model} />;
-    case "contact":
-      return <ContactPageBody model={model} />;
-    case "apps":
-      return <AppsPageBody model={model} />;
-    case "privacy":
-      return <PortfolioPrivacyPage locale={model.locale} />;
-    default:
-      return <PortfolioHomePageNew model={model} />;
+  if (model.pageSlug === "privacy") {
+    return <PortfolioPrivacyPage locale={model.locale} />;
   }
+  return <DigitalOsPage model={model} />;
 }

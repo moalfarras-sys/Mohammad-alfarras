@@ -53,12 +53,16 @@
     <dimen name="flip_clock_text_size">48sp</dimen>
     
     <!-- Dock -->
-    <dimen name="dock_height">100dp</dimen>
-    <dimen name="dock_icon_size">40dp</dimen>
-    <dimen name="dock_label_size">13sp</dimen>
-    <dimen name="dock_horizontal_margin">320dp</dimen>
+    <dimen name="dock_height">82dp</dimen>
+    <dimen name="dock_icon_size">30dp</dimen>
+    <dimen name="dock_label_size">11sp</dimen>
+    <dimen name="dock_horizontal_margin">260dp</dimen>
     <dimen name="dock_bottom_margin">14dp</dimen>
     <dimen name="dock_corner_radius">28dp</dimen>
+    <dimen name="home_top_action_size">44dp</dimen>
+    <dimen name="home_widget_height">76dp</dimen>
+    <dimen name="home_weather_widget_width">190dp</dimen>
+    <dimen name="home_clock_widget_height">62dp</dimen>
     <dimen name="preview_panel_width">560dp</dimen>
     <dimen name="top_bar_height">112dp</dimen>
     <dimen name="home_empty_width">720dp</dimen>

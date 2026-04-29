@@ -27,16 +27,30 @@ const display = Syne({
 
 export const metadata: Metadata = {
   title: {
-    default: "Moalfarras Digital OS — Control Center",
+    default: "Moalfarras Digital OS - Control Center",
     template: "%s | Moalfarras Admin",
   },
   description:
-    "Unified admin: MoPlayer releases, activations, devices — plus quick access to the public site CMS on moalfarras.space.",
+    "Unified admin for MoPlayer releases, activations, devices, and quick access to the public site CMS on moalfarras.space.",
   metadataBase: new URL("https://admin.moalfarras.space"),
   applicationName: "Moalfarras Admin",
+  manifest: "/manifest.webmanifest",
   robots: {
     index: false,
     follow: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Moalfarras Admin",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
 };
 

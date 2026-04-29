@@ -48,7 +48,7 @@ import {
   replaceWorkProjectMetrics,
 } from "@/lib/content/store";
 import { getPdfRegistry, type PdfRegistryDocument } from "@/lib/cms-documents";
-import { getProjectsStudioData, type ProjectStudioItem } from "@/lib/projects-studio";
+import { getProjectsStudioData, normalizeProjectAccent, type ProjectStudioItem } from "@/lib/projects-studio";
 import {
   certificationSchema,
   certificationTranslationSchema,
@@ -524,9 +524,7 @@ export async function upsertProjectStudioAction(formData: FormData) {
     project_id: parsed.data.id,
     is_featured: formData.get("studio_is_featured") !== null,
     featured_rank: Number(formData.get("studio_featured_rank") || 99),
-    accent: ["green", "orange", "cyan", "purple"].includes(String(formData.get("studio_accent") || "green"))
-      ? (String(formData.get("studio_accent")) as ProjectStudioItem["accent"])
-      : "green",
+    accent: normalizeProjectAccent(formData.get("studio_accent")),
     highlight_style: ["operations", "trust", "app", "editorial"].includes(String(formData.get("studio_highlight_style") || "editorial"))
       ? (String(formData.get("studio_highlight_style")) as ProjectStudioItem["highlight_style"])
       : "editorial",

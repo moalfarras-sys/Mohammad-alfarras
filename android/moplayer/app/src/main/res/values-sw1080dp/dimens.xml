@@ -25,6 +25,16 @@
     <dimen name="card_content_height">318dp</dimen>
     <dimen name="content_row_items_height">348dp</dimen>
     <dimen name="card_title_size">18sp</dimen>
+    <dimen name="dock_height">86dp</dimen>
+    <dimen name="dock_icon_size">32dp</dimen>
+    <dimen name="dock_label_size">12sp</dimen>
+    <dimen name="dock_horizontal_margin">300dp</dimen>
+    <dimen name="dock_bottom_margin">16dp</dimen>
+    <dimen name="dock_corner_radius">30dp</dimen>
+    <dimen name="home_top_action_size">46dp</dimen>
+    <dimen name="home_widget_height">82dp</dimen>
+    <dimen name="home_weather_widget_width">210dp</dimen>
+    <dimen name="home_clock_widget_height">68dp</dimen>
 
     <!-- Clean Login Dimensions - 4K (wider fields for long URLs) -->
     <dimen name="login_card_width_clean">520dp</dimen>

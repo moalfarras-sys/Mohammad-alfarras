@@ -37,6 +37,7 @@ import type {
   AppRuntimeConfig,
   AppScreenshot,
   AppSupportRequest,
+  DeviceProviderSourceQueue,
 } from "@/types/app-ecosystem";
 import { cn } from "@/lib/cn";
 
@@ -247,6 +248,31 @@ function DeviceCard({ item }: { item: AppDevice }) {
   );
 }
 
+function ProviderSourceCard({ item }: { item: DeviceProviderSourceQueue }) {
+  return (
+    <div className="glass rounded-[1.5rem] p-5 border-white/5 bg-white/[0.02]">
+      <div className="mb-4 flex items-center justify-between gap-3">
+         <StatusBadge status={item.status} />
+         <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{item.sourceType}</span>
+      </div>
+      <h3 className="text-sm font-black text-white truncate">{item.displayName || "MoPlayer source"}</h3>
+      <p className="mt-2 font-mono text-[10px] text-slate-500 truncate">{item.publicDeviceId}</p>
+      <div className="mt-4 border-t border-white/5 pt-4 text-[10px]">
+        <div className="flex justify-between gap-3">
+          <span className="text-slate-500">Updated</span>
+          <span className="font-bold text-slate-300">{new Date(item.updatedAt).toLocaleString("en-GB")}</span>
+        </div>
+        {item.lastTestMessage && (
+          <p className={cn("mt-3 leading-relaxed", item.lastTestStatus === "failed" ? "text-red-300" : "text-emerald-300")}>
+            {item.lastTestMessage}
+          </p>
+        )}
+        {item.failureMessage && <p className="mt-3 leading-relaxed text-red-300">{item.failureMessage}</p>}
+      </div>
+    </div>
+  );
+}
+
 // ── MAIN DASHBOARD ──
 
 export function AppAdminDashboard({
@@ -257,6 +283,7 @@ export function AppAdminDashboard({
   devices,
   activationRequests,
   licenses,
+  providerSources,
   runtimeConfig,
 }: {
   adminEmail: string;
@@ -270,6 +297,7 @@ export function AppAdminDashboard({
   devices: AppDevice[];
   activationRequests: ActivationRequest[];
   licenses: AppLicense[];
+  providerSources: DeviceProviderSourceQueue[];
   runtimeConfig: AppRuntimeConfig;
 }) {
   return (
@@ -313,11 +341,12 @@ export function AppAdminDashboard({
       </section>
 
       {/* Quick Stats */}
-      <section className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <section className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
         {[
           { label: "Fleet", value: devices.length, icon: <Activity className="text-cyan-400" /> },
           { label: "Licenses", value: licenses.length, icon: <Shield className="text-emerald-400" /> },
           { label: "Waiting", value: activationRequests.filter(r => r.status === 'waiting').length, icon: <Key className="text-amber-400" /> },
+          { label: "Sources", value: providerSources.length, icon: <UploadCloud className="text-cyan-400" /> },
           { label: "Releases", value: releases.length, icon: <Box className="text-violet-400" /> },
           { label: "Visual Assets", value: screenshots.length, icon: <Layout className="text-pink-400" /> },
           { label: "Inquiries", value: supportRequests.filter(s => s.status === 'new').length, icon: <Mail className="text-red-400" /> },
@@ -475,6 +504,17 @@ export function AppAdminDashboard({
                     <p className="text-sm text-slate-600 text-center py-10 italic">No pending activations.</p>
                  )}
               </div>
+           </div>
+           <div className="space-y-6 lg:col-span-2">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                 <UploadCloud className="h-4 w-4" /> Website Source Delivery
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                 {providerSources.slice(0, 9).map(item => <ProviderSourceCard key={item.id} item={item} />)}
+              </div>
+              {!providerSources.length && (
+                <p className="text-sm text-slate-600 text-center py-8 italic">No website-delivered Xtream/M3U sources yet.</p>
+              )}
            </div>
         </div>
       </Panel>

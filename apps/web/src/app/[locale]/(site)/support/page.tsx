@@ -48,63 +48,58 @@ export default async function LocalizedSupportPage({
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: copy.eyebrow, path: `/${loc}/support` },
   ]);
-  const page = webPageJsonLd({
-    locale: loc,
-    path: `/${loc}/support`,
-    name: copy.title,
-    description: copy.intro,
-  });
+  const page = webPageJsonLd({ locale: loc, path: `/${loc}/support`, name: copy.title, description: copy.intro });
 
   return (
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <section className="pt-10 md:pt-16">
-        <div className="section-frame">
-          <div className="max-w-4xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent)]">{copy.eyebrow}</p>
-            <h1 className="headline-display mt-4 text-[clamp(2.1rem,6vw,4.5rem)] font-black leading-tight text-[var(--text-1)]">
-              {copy.title}
-            </h1>
-            <p className="mt-5 text-base leading-8 text-[var(--text-2)]">{copy.intro}</p>
+      <main className="fresh-page" dir={loc === "ar" ? "rtl" : "ltr"}>
+        <section className="fresh-hero">
+          <div className="fresh-hero-copy">
+            <p className="fresh-eyebrow">{copy.eyebrow}</p>
+            <h1>{copy.title}</h1>
+            <p>{copy.intro}</p>
+            {isSent ? (
+              <div className="fresh-note mt-6 text-blue-100">
+                {copy.sent}
+              </div>
+            ) : null}
           </div>
-
-          {isSent ? (
-            <div className="mt-6 rounded-[var(--radius-md)] border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-              {copy.sent}
-            </div>
-          ) : null}
-
-          <div className="mt-10 grid gap-6 lg:grid-cols-[0.45fr_0.55fr]">
-            <aside className="space-y-4">
-              <section className="glass rounded-[var(--radius-lg)] p-6">
-                <h2 className="text-xl font-bold text-[var(--text-1)]">{copy.directTitle}</h2>
-                <div className="mt-4 grid gap-3 text-sm leading-7 text-[var(--text-2)]">
-                  <a href={`mailto:${product.support_email}`} className="text-[var(--accent)]">
+          <aside className="fresh-card">
+            <p className="fresh-eyebrow">{copy.directTitle}</p>
+            <div className="fresh-channel-list">
+                  <a href={`mailto:${product.support_email}`}>
                     {product.support_email}
                   </a>
-                  <a href={product.support_whatsapp} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)]">
+                  <a href={product.support_whatsapp} target="_blank" rel="noopener noreferrer">
                     WhatsApp
                   </a>
-                  <Link href={`/${loc}/privacy`} className="text-[var(--accent)]">
+                  <Link href={`/${loc}/privacy`}>
                     {copy.privacy}
                   </Link>
-                  <Link href={`/${loc}/apps/moplayer`} className="text-[var(--accent)]">
+                  <Link href={`/${loc}/apps/moplayer`}>
                     {copy.product}
                   </Link>
-                </div>
-              </section>
-              <section className="glass rounded-[var(--radius-lg)] p-6">
-                <h2 className="text-xl font-bold text-[var(--text-1)]">{copy.legalTitle}</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{copy.legal}</p>
-              </section>
-              <section className="glass rounded-[var(--radius-lg)] p-6">
-                <h2 className="text-xl font-bold text-[var(--text-1)]">{copy.todoTitle}</h2>
-                <p className="mt-3 text-sm leading-7 text-[var(--text-2)]">{copy.todo}</p>
-              </section>
+            </div>
+          </aside>
+        </section>
+
+        <section className="fresh-section">
+          <div className="fresh-contact">
+            <aside className="fresh-grid">
+              <article className="fresh-card">
+                <p className="fresh-eyebrow">{copy.legalTitle}</p>
+                <p>{copy.legal}</p>
+              </article>
+
+              <article className="fresh-card">
+                <p className="fresh-eyebrow">{copy.todoTitle}</p>
+                <p>{copy.todo}</p>
+              </article>
             </aside>
 
-            <form action="/api/app/support" method="post" className="glass grid gap-4 rounded-[var(--radius-lg)] p-6">
+            <form action="/api/app/support" method="post" className="fresh-form">
               <input type="hidden" name="product_slug" value={product.slug} />
               <input type="hidden" name="locale" value={loc} />
               <div className="sr-only" aria-hidden>
@@ -113,26 +108,29 @@ export default async function LocalizedSupportPage({
                   <input name="website" tabIndex={-1} autoComplete="off" />
                 </label>
               </div>
-              <h2 className="text-xl font-bold text-[var(--text-1)]">{copy.formTitle}</h2>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-[var(--text-2)]">{copy.name}</span>
-                <input name="name" required className="w-full min-h-12 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 py-3 text-sm text-[var(--text-1)] outline-none focus:border-[var(--accent)]" />
+
+              <p className="fresh-eyebrow">{copy.formTitle}</p>
+
+              <label className="fresh-field">
+                <span className="fresh-field-label">{copy.name}</span>
+                <input name="name" required className="fresh-input" />
               </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-[var(--text-2)]">{copy.email}</span>
-                <input name="email" type="email" required className="w-full min-h-12 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 py-3 text-sm text-[var(--text-1)] outline-none focus:border-[var(--accent)]" />
+              <label className="fresh-field">
+                <span className="fresh-field-label">{copy.email}</span>
+                <input name="email" type="email" required className="fresh-input" />
               </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-[var(--text-2)]">{copy.message}</span>
-                <textarea name="message" required rows={7} className="w-full min-h-40 rounded-[var(--radius-md)] border border-[var(--glass-border)] bg-[var(--bg-elevated)] px-4 py-3 text-sm text-[var(--text-1)] outline-none focus:border-[var(--accent)]" />
+              <label className="fresh-field">
+                <span className="fresh-field-label">{copy.message}</span>
+                <textarea name="message" required rows={8} className="fresh-input fresh-textarea" />
               </label>
-              <button type="submit" className="button-liquid-primary justify-center">
+
+              <button type="submit" className="fresh-button fresh-button-primary">
                 {copy.submit}
               </button>
             </form>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
     </>
   );
 }

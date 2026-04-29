@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- MoPlayer: Liquid Glass — Ultra-Premium Night-Sky Cyber Theme (TV 720p Ready) -->
+    <!-- MoPlayer: Ink Blue / Warm Amber identity (TV 720p Ready) -->
 
     <!-- ═══════════════════════════════════════════════════════════
          BASE BACKGROUNDS
@@ -12,9 +12,9 @@
     <!-- ═══════════════════════════════════════════════════════════
          GLASS SURFACES — Frosted Premium
          ═══════════════════════════════════════════════════════════ -->
-    <color name="liquid_glass_surface">#1800F5FF</color>
-    <color name="liquid_glass_surface_strong">#2C00F5FF</color>
-    <color name="liquid_glass_border">#3500F5FF</color>
+    <color name="liquid_glass_surface">#185B7CFF</color>
+    <color name="liquid_glass_surface_strong">#2C5B7CFF</color>
+    <color name="liquid_glass_border">#355B7CFF</color>
     <color name="liquid_glass_highlight">#50FFFFFF</color>
     <color name="liquid_glass_shadow">#60000000</color>
     <color name="liquid_glass_reflection">#0AFFFFFF</color>
@@ -28,25 +28,25 @@
     <color name="liquid_text_disabled">#2D4060</color>
 
     <!-- ═══════════════════════════════════════════════════════════
-         ELECTRIC CYAN — Primary Accent
+         INK BLUE — Primary Accent
          ═══════════════════════════════════════════════════════════ -->
-    <color name="liquid_accent_primary">#00F5FF</color>
-    <color name="liquid_accent_primary_pressed">#00C8D4</color>
-    <color name="liquid_accent_primary_soft">#4400F5FF</color>
-    <color name="liquid_accent_secondary">#7C3AED</color>
-    <color name="liquid_focus_glow">#CC00F5FF</color>
-    <color name="liquid_focus_ring">#FF00F5FF</color>
+    <color name="liquid_accent_primary">#5B7CFF</color>
+    <color name="liquid_accent_primary_pressed">#324CCF</color>
+    <color name="liquid_accent_primary_soft">#445B7CFF</color>
+    <color name="liquid_accent_secondary">#F4B860</color>
+    <color name="liquid_focus_glow">#CC5B7CFF</color>
+    <color name="liquid_focus_ring">#FF5B7CFF</color>
 
     <!-- Dividers and overlays -->
-    <color name="liquid_divider">#2800F5FF</color>
+    <color name="liquid_divider">#285B7CFF</color>
     <color name="liquid_overlay_scrim">#CC000000</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          PREMIUM BUTTON STATES
          ═══════════════════════════════════════════════════════════ -->
-    <color name="liquid_button_primary_start">#00BFD8</color>
-    <color name="liquid_button_primary_end">#00F5FF</color>
-    <color name="liquid_button_primary_pressed">#0091A8</color>
-    <color name="liquid_button_glass_bg">#1A00F5FF</color>
-    <color name="liquid_button_glass_border">#6000F5FF</color>
+    <color name="liquid_button_primary_start">#5B7CFF</color>
+    <color name="liquid_button_primary_end">#5B7CFF</color>
+    <color name="liquid_button_primary_pressed">#324CCF</color>
+    <color name="liquid_button_glass_bg">#1A5B7CFF</color>
+    <color name="liquid_button_glass_border">#605B7CFF</color>
 </resources>

@@ -9,7 +9,7 @@ const fallbackConfig = {
   minimumVersionCode: 2,
   latestVersionName: "2.0.0",
   message: "",
-  accentColor: "#00e5ff",
+  accentColor: "#5B7CFF",
   logoUrl: "/images/moplayer-brand-logo-final.png",
   backgroundUrl: "/images/moplayer-tv-banner-final.png",
   widgets: { weather: true, football: true },

@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -393,10 +394,13 @@ class IptvRepository @Inject constructor(
             val response = xtreamApi.getLiveStreams(apiUrl, username, password)
             
             if (response.isSuccessful) {
+                val dtos = response.body().orEmpty()
+                if (dtos.isEmpty()) {
+                    return@withContext Resource.Success(0)
+                }
                 channelDao.deleteAllChannels(server.id)
                 contentSearchDao.deleteByType(server.id, "channel")
 
-                val dtos = response.body().orEmpty()
                 val batchSize = 500
                 val buffer = ArrayList<ChannelEntity>(batchSize)
                 val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
@@ -498,10 +502,13 @@ class IptvRepository @Inject constructor(
             val response = xtreamApi.getVodStreams(apiUrl, username, password)
             
             if (response.isSuccessful) {
+                val dtos = response.body().orEmpty()
+                if (dtos.isEmpty()) {
+                    return@withContext Resource.Success(0)
+                }
                 movieDao.deleteAllMovies(server.id)
                 contentSearchDao.deleteByType(server.id, "movie")
 
-                val dtos = response.body().orEmpty()
                 val batchSize = 500
                 val buffer = ArrayList<MovieEntity>(batchSize)
                 val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
@@ -605,10 +612,13 @@ class IptvRepository @Inject constructor(
             val response = xtreamApi.getSeries(apiUrl, username, password)
             
             if (response.isSuccessful) {
+                val dtos = response.body().orEmpty()
+                if (dtos.isEmpty()) {
+                    return@withContext Resource.Success(0)
+                }
                 seriesDao.deleteAllSeries(server.id)
                 contentSearchDao.deleteByType(server.id, "series")
 
-                val dtos = response.body().orEmpty()
                 val batchSize = 500
                 val buffer = ArrayList<SeriesEntity>(batchSize)
                 val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
@@ -876,95 +886,109 @@ class IptvRepository @Inject constructor(
     ): Resource<Long> = withContext(Dispatchers.IO) {
         try {
             val parseResult = m3uParser.parse(content)
-            if (parseResult.items.isEmpty()) {
-                return@withContext Resource.Error(
-                    "Playlist did not contain playable items. Check that the M3U URL is valid and contains stream URLs."
-                )
-            }
-            
-            // Create server entry
-            val serverId = saveServer(
-                name = serverName,
-                serverUrl = "",
-                username = "",
-                password = "",
-                serverType = "m3u"
-            )
-            
-            // Convert categories
-            val liveCategories = m3uParser.toCategoryEntities(
-                parseResult.categories, serverId, "live"
-            )
-            categoryDao.insertCategories(liveCategories)
-            
-            val categoryMap = liveCategories.associate { it.name to it.categoryId }
-            
-            // Convert items to channels
-            val channels = m3uParser.toChannelEntities(parseResult.items, serverId, categoryMap)
-            channelDao.insertChannels(channels)
-            
-            // Convert VOD items to movies
-            val movies = m3uParser.toMovieEntities(parseResult.items, serverId, categoryMap)
-            movieDao.insertMovies(movies)
-
-            contentSearchDao.deleteByServer(serverId)
-            val searchItems = buildList {
-                addAll(
-                    channels.map {
-                        ContentSearchEntity(
-                            uniqueId = "$serverId:channel:${it.channelId}",
-                            serverId = serverId,
-                            contentId = it.channelId,
-                            contentType = "channel",
-                            title = it.name,
-                            subtitle = it.categoryId,
-                            posterUrl = normalizeImageUrl(it.streamIcon)
-                        )
-                    }
-                )
-                addAll(
-                    movies.map {
-                        ContentSearchEntity(
-                            uniqueId = "$serverId:movie:${it.movieId}",
-                            serverId = serverId,
-                            contentId = it.movieId,
-                            contentType = "movie",
-                            title = it.name,
-                            subtitle = it.categoryId,
-                            posterUrl = normalizeImageUrl(it.streamIcon)
-                        )
-                    }
-                )
-            }
-            if (searchItems.isNotEmpty()) {
-                contentSearchDao.upsertAll(searchItems)
-            }
-
-            serverSyncStateDao.upsert(
-                ServerSyncStateEntity(
-                    serverId = serverId,
-                    lastSyncAt = System.currentTimeMillis(),
-                    lastStatus = "SUCCESS",
-                    lastError = buildString {
-                        append("Imported ${channels.size} live and ${movies.size} movies")
-                        if (parseResult.categories.isNotEmpty()) {
-                            append(" across ${parseResult.categories.size} categories")
-                        }
-                        if (parseResult.skippedEntries > 0 || parseResult.duplicateEntries > 0) {
-                            append(". Skipped ${parseResult.skippedEntries} malformed and ${parseResult.duplicateEntries} duplicate entries")
-                        }
-                    },
-                    totalChannels = channels.size,
-                    totalMovies = movies.size,
-                    totalSeries = 0,
-                    totalCategories = liveCategories.size
-                )
-            )
-            
-            Resource.Success(serverId)
+            importParsedM3u(parseResult, serverName)
         } catch (e: Exception) {
             Resource.Error("Failed to import M3U: ${e.message}")
         }
+    }
+
+    suspend fun importM3uPlaylist(
+        inputStream: InputStream,
+        serverName: String
+    ): Resource<Long> = withContext(Dispatchers.IO) {
+        try {
+            val parseResult = inputStream.use { m3uParser.parse(it) }
+            importParsedM3u(parseResult, serverName)
+        } catch (e: Exception) {
+            Resource.Error("Failed to import M3U: ${e.message}")
+        }
+    }
+
+    private suspend fun importParsedM3u(
+        parseResult: M3uParser.ParseResult,
+        serverName: String
+    ): Resource<Long> {
+        if (parseResult.items.isEmpty()) {
+            return Resource.Error(
+                "Playlist did not contain playable items. Check that the M3U URL is valid and contains stream URLs."
+            )
+        }
+
+        val serverId = saveServer(
+            name = serverName,
+            serverUrl = "",
+            username = "",
+            password = "",
+            serverType = "m3u"
+        )
+
+        val liveCategories = m3uParser.toCategoryEntities(
+            parseResult.categories, serverId, "live"
+        )
+        categoryDao.insertCategories(liveCategories)
+
+        val categoryMap = liveCategories.associate { it.name to it.categoryId }
+        val channels = m3uParser.toChannelEntities(parseResult.items, serverId, categoryMap)
+        channelDao.insertChannels(channels)
+
+        val movies = m3uParser.toMovieEntities(parseResult.items, serverId, categoryMap)
+        movieDao.insertMovies(movies)
+
+        contentSearchDao.deleteByServer(serverId)
+        val searchItems = buildList {
+            addAll(
+                channels.map {
+                    ContentSearchEntity(
+                        uniqueId = "$serverId:channel:${it.channelId}",
+                        serverId = serverId,
+                        contentId = it.channelId,
+                        contentType = "channel",
+                        title = it.name,
+                        subtitle = it.categoryId,
+                        posterUrl = normalizeImageUrl(it.streamIcon)
+                    )
+                }
+            )
+            addAll(
+                movies.map {
+                    ContentSearchEntity(
+                        uniqueId = "$serverId:movie:${it.movieId}",
+                        serverId = serverId,
+                        contentId = it.movieId,
+                        contentType = "movie",
+                        title = it.name,
+                        subtitle = it.categoryId,
+                        posterUrl = normalizeImageUrl(it.streamIcon)
+                    )
+                }
+            )
+        }
+        if (searchItems.isNotEmpty()) {
+            contentSearchDao.upsertAll(searchItems)
+        }
+
+        serverSyncStateDao.upsert(
+            ServerSyncStateEntity(
+                serverId = serverId,
+                lastSyncAt = System.currentTimeMillis(),
+                lastStatus = "SUCCESS",
+                lastError = buildString {
+                    append("Imported ${channels.size} live and ${movies.size} movies")
+                    if (parseResult.categories.isNotEmpty()) {
+                        append(" across ${parseResult.categories.size} categories")
+                    }
+                    if (parseResult.skippedEntries > 0 || parseResult.duplicateEntries > 0) {
+                        append(". Skipped ${parseResult.skippedEntries} malformed and ${parseResult.duplicateEntries} duplicate entries")
+                    }
+                },
+                totalChannels = channels.size,
+                totalMovies = movies.size,
+                totalSeries = 0,
+                totalCategories = liveCategories.size
+            )
+        )
+
+        return Resource.Success(serverId)
     }
     
     // Content Count Operations (for smart sync)

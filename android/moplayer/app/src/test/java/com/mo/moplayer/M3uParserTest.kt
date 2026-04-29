@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ByteArrayInputStream
 
 class M3uParserTest {
 
@@ -88,5 +89,20 @@ class M3uParserTest {
         assertEquals("Live Channel", channels.first().name)
         assertEquals(1, movies.size)
         assertEquals("Movie Item", movies.first().name)
+    }
+
+    @Test
+    fun `parse input stream handles large playlists without dropping entries`() {
+        val builder = StringBuilder("#EXTM3U\n")
+        repeat(2_000) { index ->
+            builder.append("#EXTINF:-1 group-title=\"Bulk\",Channel $index\n")
+            builder.append("https://stream.example/live/$index.m3u8\n")
+        }
+
+        val result = parser.parse(ByteArrayInputStream(builder.toString().toByteArray()))
+
+        assertEquals(2_000, result.items.size)
+        assertEquals(setOf("Bulk"), result.categories)
+        assertTrue(result.totalLines >= 4_001)
     }
 }

@@ -142,11 +142,11 @@ function ProjectCard({
             </label>
             <label>
               <span>{t(locale, "اللون", "Accent")}</span>
-              <select name="studio_accent" defaultValue={studio?.accent ?? "green"}>
-                <option value="green">green</option>
-                <option value="orange">orange</option>
-                <option value="cyan">cyan</option>
-                <option value="purple">purple</option>
+              <select name="studio_accent" defaultValue={studio?.accent ?? "blue"}>
+                <option value="blue">ink blue</option>
+                <option value="amber">warm amber</option>
+                <option value="rose">muted rose</option>
+                <option value="ink">deep ink</option>
               </select>
             </label>
             <label>

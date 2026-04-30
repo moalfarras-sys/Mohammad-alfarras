@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Lock, Radar, ShieldCheck, Sparkles, TerminalSquare } from "lucide-react";
+import { Lock, Radar, ShieldCheck, Smartphone, TerminalSquare } from "lucide-react";
 
 import { loginAdminAction } from "@/app/actions";
 
@@ -35,7 +35,7 @@ export function AppAdminLogin({ message, initialEmail }: { message?: string; ini
             {[
               { icon: <Radar className="h-4 w-4" />, label: "Fleet HUD" },
               { icon: <TerminalSquare className="h-4 w-4" />, label: "CMD+K Ready" },
-              { icon: <Sparkles className="h-4 w-4" />, label: "PWA Native Feel" },
+              { icon: <Smartphone className="h-4 w-4" />, label: "PWA Native Feel" },
             ].map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-white">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-200/15 bg-cyan-200/8 text-cyan-200">

@@ -12,7 +12,6 @@ import {
   MonitorPlay,
   ShieldCheck,
   Smartphone,
-  Sparkles,
   Tv2,
   Workflow,
 } from "lucide-react";
@@ -86,7 +85,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
       <section className="moplayer-hero">
         <div className="moplayer-hero-copy">
           <span className="moplayer-kicker">
-            <Sparkles className="h-4 w-4" />
+            <ShieldCheck className="h-4 w-4" />
             {t.badge}
           </span>
           <h1>{t.heroTitle}</h1>

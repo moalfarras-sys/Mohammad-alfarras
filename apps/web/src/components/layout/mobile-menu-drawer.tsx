@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, X } from "lucide-react";
+import { Send, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -86,7 +86,7 @@ export function MobileMenuDrawer({
             {localeMeta[nextLocale].label}
           </LocalePreferenceLink>
           <Link href={`/${locale}/contact`} onClick={onClose} className="fresh-button fresh-button-primary">
-            <Sparkles className="h-4 w-4" />
+            <Send className="h-4 w-4" />
             {locale === "ar" ? "ابدأ التواصل" : "Start Contact"}
           </Link>
         </div>

@@ -13,7 +13,6 @@ import {
   QrCode,
   RefreshCcw,
   ShieldCheck,
-  Sparkles,
   Tv,
   UserRound,
   XCircle,
@@ -264,7 +263,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
             {t.backApps}
           </Link>
           <span className="activation-kicker">
-            <Sparkles className="h-4 w-4" />
+            <ShieldCheck className="h-4 w-4" />
             {t.kicker}
           </span>
           <h1>{t.title}</h1>

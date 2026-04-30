@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Clock3, Mail, MapPin, MessageCircle, MonitorPlay, Network, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpRight, Clock3, Mail, MapPin, MessageCircle, MonitorPlay, Network, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
@@ -147,7 +147,7 @@ export function ContactHubPage({ locale }: ContactHubPageProps) {
     <main className="contact-hub fresh-page">
       <section className="contact-hero">
         <div className="contact-hero-copy">
-          <p className="fresh-eyebrow"><Sparkles size={15} />{t.eyebrow}</p>
+          <p className="fresh-eyebrow"><ShieldCheck size={15} />{t.eyebrow}</p>
           <div className="contact-live-status">
             <span aria-hidden="true" />
             <strong>{t.status}</strong>

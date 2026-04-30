@@ -17,7 +17,6 @@ import {
   MonitorPlay,
   PlayCircle,
   Radio,
-  Sparkles,
   Truck,
   Users,
 } from "lucide-react";
@@ -641,7 +640,7 @@ function PillarGrid({ model }: { model: SiteViewModel }) {
   return (
     <div className="fresh-grid fresh-grid-4">
       {t(model.locale).pillars.map((item, index) => {
-        const Icon = icons[index] ?? Sparkles;
+        const Icon = icons[index] ?? Compass;
         return (
           <article className="fresh-card fresh-card-quiet" key={item.title}>
             <Icon className="fresh-card-icon" />
@@ -655,11 +654,11 @@ function PillarGrid({ model }: { model: SiteViewModel }) {
 }
 
 function homeExploreIcons(index: number) {
-  return [Globe2, MonitorPlay, PlayCircle, BriefcaseBusiness, Mail, Compass][index] ?? Sparkles;
+  return [Globe2, MonitorPlay, PlayCircle, BriefcaseBusiness, Mail, Compass][index] ?? Compass;
 }
 
 function homeHighlightIcons(index: number) {
-  return [Code2, Cpu, Film, Truck][index] ?? Sparkles;
+  return [Code2, Cpu, Film, Truck][index] ?? Compass;
 }
 
 // Kept temporarily as a fallback reference while the Digital OS v2 homepage is reviewed.
@@ -875,7 +874,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
       <section className="os-home-hero os-wow-hero">
         <div className="os-wow-hero-copy">
           <div className="os-command-badge">
-            <Sparkles size={16} />
+            <Compass size={16} />
             <span>{home.eyebrow}</span>
           </div>
           <h1>{home.title}</h1>
@@ -1035,7 +1034,7 @@ function WorkPage({ model }: { model: SiteViewModel }) {
           <h1>{w.hero.title}</h1>
           <p className="os-work-subtitle">{w.hero.subtitle}</p>
           <div className="os-work-positioning">
-            <Sparkles className="h-5 w-5" />
+            <Radio className="h-5 w-5" />
             <p>{w.hero.positioning}</p>
           </div>
           <div className="fresh-actions">
@@ -1372,7 +1371,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         </div>
         <div className="yt-dashboard">
           {statsData.map((item, index) => {
-            const Icon = [Users, Eye, Film][index] ?? Sparkles;
+            const Icon = [Users, Eye, Film][index] ?? Compass;
             return (
               <div className="yt-stat-card" key={item.label}>
                 <Icon />

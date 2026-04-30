@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, BadgeCheck, Box, Download, KeyRound, MonitorPlay, Play, Sparkles, Tv } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, Box, Download, KeyRound, MonitorPlay, Play, Tv } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { PageShell } from "@/components/ui/os-primitives";
@@ -144,7 +144,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
             className="apps-hero-copy"
           >
             <span className="apps-kicker">
-              <Sparkles className="h-4 w-4" />
+              <BadgeCheck className="h-4 w-4" />
               {c.eyebrow}
             </span>
             <h1>{c.title}</h1>

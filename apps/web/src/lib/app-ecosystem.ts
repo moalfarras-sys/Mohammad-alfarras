@@ -16,6 +16,13 @@ import type {
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
+const moplayerDownloadBase =
+  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/4babeb83ca92b84e4c8cda3cbf47d35ae381136a/apps/web/public/downloads/moplayer";
+const moplayerDownloadUrls = {
+  universal: `${moplayerDownloadBase}/app-sideload-universal-release.apk`,
+  arm64: `${moplayerDownloadBase}/app-sideload-arm64-v8a-release.apk`,
+  armv7: `${moplayerDownloadBase}/app-sideload-armeabi-v7a-release.apk`,
+};
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
   if (!Array.isArray(value)) return fallback;
@@ -195,7 +202,7 @@ const fallbackReleases: AppRelease[] = [
         abi: "universal",
         storage_bucket: null,
         storage_path: null,
-        external_url: "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/4babeb83ca92b84e4c8cda3cbf47d35ae381136a/apps/web/public/downloads/moplayer/app-sideload-universal-release.apk",
+        external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
         file_size_bytes: 91037540,
         checksum_sha256: "ec967890d364b436af3705ce61518d267fe838cf9df77bb16a71bf7d0f74a9c8",
@@ -210,7 +217,7 @@ const fallbackReleases: AppRelease[] = [
         abi: "arm64-v8a",
         storage_bucket: null,
         storage_path: null,
-        external_url: "/downloads/moplayer/app-sideload-arm64-v8a-release.apk",
+        external_url: moplayerDownloadUrls.arm64,
         mime_type: "application/vnd.android.package-archive",
         file_size_bytes: 51752849,
         checksum_sha256: "df5308c0d71e7ad3faa9ac2e39aa6b0c68515ddae7195769d21ef6e419a34d48",
@@ -225,7 +232,7 @@ const fallbackReleases: AppRelease[] = [
         abi: "armeabi-v7a",
         storage_bucket: null,
         storage_path: null,
-        external_url: "/downloads/moplayer/app-sideload-armeabi-v7a-release.apk",
+        external_url: moplayerDownloadUrls.armv7,
         mime_type: "application/vnd.android.package-archive",
         file_size_bytes: 47701553,
         checksum_sha256: "064935e22a03d600b219f9829ec85ddcb5d81a45351d76272d3f96e33750c9ee",
@@ -254,6 +261,7 @@ function normalizeProduct(row: Partial<AppProduct> | null | undefined): AppProdu
 }
 
 function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
+  const rawExternalUrl = row.external_url ? String(row.external_url) : null;
   return {
     id: String(row.id),
     release_id: String(row.release_id),
@@ -262,13 +270,23 @@ function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
     abi: row.abi ? String(row.abi) : null,
     storage_bucket: row.storage_bucket ? String(row.storage_bucket) : null,
     storage_path: row.storage_path ? String(row.storage_path) : null,
-    external_url: row.external_url ? String(row.external_url) : null,
+    external_url: normalizeReleaseAssetUrl(rawExternalUrl, row.abi ? String(row.abi) : null),
     mime_type: String(row.mime_type ?? "application/vnd.android.package-archive"),
     file_size_bytes: typeof row.file_size_bytes === "number" ? row.file_size_bytes : Number(row.file_size_bytes ?? 0) || null,
     checksum_sha256: row.checksum_sha256 ? String(row.checksum_sha256) : null,
     is_primary: Boolean(row.is_primary),
     created_at: String(row.created_at ?? now),
   };
+}
+
+function normalizeReleaseAssetUrl(url: string | null, abi: string | null) {
+  if (!url) return null;
+  if (url.startsWith("/downloads/moplayer/")) {
+    if (abi === "arm64-v8a") return moplayerDownloadUrls.arm64;
+    if (abi === "armeabi-v7a") return moplayerDownloadUrls.armv7;
+    return moplayerDownloadUrls.universal;
+  }
+  return url;
 }
 
 function normalizeRelease(row: Record<string, unknown>, assets: AppReleaseAsset[]): AppRelease {

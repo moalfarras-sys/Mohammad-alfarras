@@ -2007,6 +2007,42 @@ html[dir="rtl"] .fresh-section-head h1,
   margin-top: auto;
 }
 
+.os-home-case-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.os-home-case-card {
+  padding: clamp(18px, 3vw, 26px);
+}
+
+.os-home-case-card dl {
+  display: grid;
+  gap: 13px;
+  margin: 22px 0 0;
+}
+
+.os-home-case-card dl div {
+  border-top: 1px solid color-mix(in srgb, var(--os-glass-border) 80%, transparent);
+  padding-top: 13px;
+}
+
+.os-home-case-card dt {
+  color: var(--os-cyan);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.os-home-case-card dd {
+  margin: 5px 0 0;
+  color: var(--os-text-muted);
+  line-height: 1.65;
+}
+
 .os-home-positioning {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
@@ -3393,9 +3429,50 @@ html[dir="rtl"] .fresh-section-head h1,
   height: 58px;
   place-items: center;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--os-cyan), #ff8438);
-  color: #05101c;
-  font-weight: 950;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(220, 235, 255, 0.18), 0 12px 38px rgba(0, 0, 0, 0.24);
+}
+
+.cv-language-flag img {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 999px;
+}
+
+.cv-language-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.cv-language-title h3 {
+  margin: 0;
+}
+
+.cv-language-title strong {
+  color: var(--os-cyan);
+  font-size: 0.94rem;
+  letter-spacing: 0.04em;
+}
+
+.cv-language-meter {
+  overflow: hidden;
+  height: 9px;
+  margin-top: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(220, 235, 255, 0.08);
+}
+
+.cv-language-meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--os-cyan), color-mix(in srgb, var(--os-violet) 45%, #dcecff));
+  box-shadow: 0 0 24px rgba(72, 216, 255, 0.22);
 }
 
 .cv-language-badge svg {
@@ -3482,7 +3559,8 @@ html[dir="rtl"] .fresh-section-head h1,
   .cv-game-stats,
   .cv-rings,
   .cv-languages > div,
-  .cv-dashboard-cells {
+  .cv-dashboard-cells,
+  .os-home-case-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -3532,7 +3610,8 @@ html[dir="rtl"] .fresh-section-head h1,
   .cv-rings,
   .cv-languages > div,
   .cv-experience-grid,
-  .cv-dashboard-cells {
+  .cv-dashboard-cells,
+  .os-home-case-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3572,7 +3651,7 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .contact-hero {
-  min-height: clamp(520px, 68vh, 760px);
+  min-height: auto;
 }
 
 .contact-hero-copy,
@@ -3610,7 +3689,7 @@ html[dir="rtl"] .fresh-section-head h1,
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(24px, 5vw, 64px);
+  padding: clamp(22px, 4vw, 46px);
 }
 
 .contact-hero-copy::after,
@@ -3660,12 +3739,12 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .contact-hero h1 {
-  max-width: 980px;
+  max-width: 900px;
   margin: 0;
   color: var(--os-text);
-  font-size: clamp(2.55rem, 6.5vw, 5.35rem);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  font-size: clamp(2.28rem, 5.1vw, 4.45rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
@@ -3680,7 +3759,7 @@ html[dir="rtl"] .fresh-section-head h1,
 .contact-orbit-core p {
   max-width: 760px;
   color: var(--os-text-muted);
-  line-height: 1.85;
+  line-height: 1.7;
 }
 
 .contact-orbit-card {
@@ -5874,9 +5953,10 @@ html[dir="rtl"] .fresh-section-head h1,
 /* Apps showcase + guided activation */
 .apps-lux-page {
   background:
-    radial-gradient(circle at 14% 8%, rgba(190, 220, 255, 0.08), transparent 34rem),
-    radial-gradient(circle at 88% 16%, rgba(255, 255, 255, 0.06), transparent 34rem),
-    linear-gradient(180deg, #050607 0%, #090d13 46%, #050607 100%);
+    radial-gradient(circle at 11% 8%, rgba(72, 216, 255, 0.14), transparent 33rem),
+    radial-gradient(circle at 90% 18%, rgba(132, 155, 255, 0.16), transparent 34rem),
+    radial-gradient(circle at 50% 98%, rgba(214, 188, 122, 0.09), transparent 31rem),
+    linear-gradient(180deg, #020611 0%, #07101d 48%, #030713 100%);
 }
 
 .apps-showcase {
@@ -5949,9 +6029,9 @@ html[dir="rtl"] .fresh-section-head h1,
 .apps-hero-copy h1,
 .activation-copy h1 {
   max-width: 850px;
-  font-size: clamp(2.75rem, 6.4vw, 6.6rem);
-  line-height: 0.92;
-  letter-spacing: -0.045em;
+  font-size: clamp(2.15rem, 4.8vw, 4.85rem);
+  line-height: 1.02;
+  letter-spacing: -0.032em;
   color: #fff;
   text-wrap: balance;
   text-shadow: 0 0 42px rgba(190, 220, 255, 0.12);
@@ -6880,8 +6960,8 @@ html[dir="rtl"] .apps-section-head h2,
 
   .apps-hero-copy h1,
   .activation-copy h1 {
-    font-size: clamp(2.35rem, 11.5vw, 3.45rem);
-    line-height: 1;
+    font-size: clamp(2rem, 9.4vw, 2.85rem);
+    line-height: 1.05;
   }
 
   .apps-proof-grid,
@@ -6948,9 +7028,10 @@ html[dir="rtl"] .apps-section-head h2,
   min-height: 100svh;
   padding-top: var(--site-nav-offset, 88px);
   background:
-    radial-gradient(circle at 12% 8%, rgba(190, 224, 255, 0.1), transparent 34rem),
-    radial-gradient(circle at 88% 14%, rgba(255, 255, 255, 0.07), transparent 32rem),
-    linear-gradient(180deg, #050607 0%, #080c12 52%, #050607 100%);
+    radial-gradient(circle at 12% 8%, rgba(72, 216, 255, 0.13), transparent 34rem),
+    radial-gradient(circle at 88% 14%, rgba(132, 155, 255, 0.16), transparent 32rem),
+    radial-gradient(circle at 50% 94%, rgba(214, 188, 122, 0.08), transparent 30rem),
+    linear-gradient(180deg, #020611 0%, #07101d 48%, #030713 100%);
 }
 
 .moplayer-page::before {
@@ -7004,9 +7085,9 @@ html[dir="rtl"] .apps-section-head h2,
 .moplayer-hero-copy h1 {
   margin-top: 1rem;
   color: #fff;
-  font-size: clamp(2.7rem, 6.2vw, 6.3rem);
-  line-height: 0.94;
-  letter-spacing: -0.045em;
+  font-size: clamp(2.25rem, 4.9vw, 5.05rem);
+  line-height: 1.02;
+  letter-spacing: -0.032em;
   text-wrap: balance;
 }
 
@@ -7530,8 +7611,8 @@ html[dir="rtl"] .apps-section-head h2,
   }
 
   .moplayer-hero-copy h1 {
-    font-size: clamp(2.45rem, 12vw, 3.55rem);
-    line-height: 0.98;
+    font-size: clamp(2rem, 9.7vw, 2.95rem);
+    line-height: 1.05;
   }
 
   .moplayer-actions,

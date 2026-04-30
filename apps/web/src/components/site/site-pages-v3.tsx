@@ -102,7 +102,7 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
     ctaLabel: locale === "ar" ? "استكشف التطبيق" : "Explore app",
     summary: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
     description: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-    image: "/images/moplayer-hero-3d-final.png",
+    image: "/images/moplayer-cinema-frame.webp",
     href: `/${locale}/apps/moplayer`,
     repoUrl: localProjects[0].downloadLinks.github,
     featured: true,
@@ -124,7 +124,7 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
         ? "منظومة منتج أوضح عبر الموقع والتطبيق."
         : "A clearer product ecosystem across site and app.",
     tags: locale === "ar" ? ["Android TV", "واجهة منتج", "MoPlayer"] : ["Android TV", "Product UI", "MoPlayer"],
-    gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer-ui-mock-final.png", "/images/moplayer-tv-banner-final.png"],
+    gallery: ["/images/moplayer-cinema-frame.webp", "/images/moplayer-activation-flow.webp", "/images/moplayer-release-panel.webp"],
     metrics: locale === "ar"
       ? [
           { value: "API 24+", label: "الحد الأدنى" },
@@ -231,7 +231,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
         .filter((item) => item.project_id === entry.id)
         .sort((a, b) => a.sort_order - b.sort_order);
       const coverAsset = snapshot.work_project_media.find((item) => item.project_id === entry.id && item.role === "cover");
-      const fallbackImage = entry.slug.includes("moplayer") ? "/images/moplayer-hero-3d-final.png" : "/images/projects/seel-home-case.png";
+      const fallbackImage = entry.slug.includes("moplayer") ? "/images/moplayer-cinema-frame.webp" : "/images/projects/seel-home-case.png";
 
       return {
         id: entry.id,
@@ -277,8 +277,8 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png"],
     },
     moplayer: {
-      image: "/images/moplayer-hero-3d-final.png",
-      gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer-ui-mock-final.png", "/images/moplayer-tv-banner-final.png"],
+      image: "/images/moplayer-cinema-frame.webp",
+      gallery: ["/images/moplayer-cinema-frame.webp", "/images/moplayer-activation-flow.webp", "/images/moplayer-release-panel.webp"],
     },
   };
 

@@ -257,9 +257,24 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
       <section className="cv-languages">
         <h2>{t.languageTitle}</h2>
         <div>
-          <LanguageBadge flag="AR" title={isAr ? "العربية" : "Arabic"} level={isAr ? "اللغة الأم" : "Native Mother Tongue"} />
-          <LanguageBadge flag="DE" title={isAr ? "الألمانية" : "German"} level={isAr ? "C1 مهني - حياة وعمل في ألمانيا" : "C1 Professional - Life & Work in Germany"} />
-          <LanguageBadge flag="EN" title={isAr ? "الإنجليزية" : "English"} level={isAr ? "كفاءة مهنية عملية" : "Professional Working Proficiency"} />
+          <LanguageBadge
+            flagSrc="/icons/flag-sy-new.svg"
+            title={isAr ? "العربية" : "Arabic"}
+            level={isAr ? "اللغة الأم - تعبير وشرح وصناعة محتوى" : "Native - writing, explanation, and content"}
+            score={100}
+          />
+          <LanguageBadge
+            flagSrc="/icons/flag-de.svg"
+            title={isAr ? "الألمانية" : "German"}
+            level={isAr ? "C1 مهني - حياة وعمل في ألمانيا" : "C1 professional - life and work in Germany"}
+            score={88}
+          />
+          <LanguageBadge
+            flagSrc="/icons/flag-gb.svg"
+            title={isAr ? "الإنجليزية" : "English"}
+            level={isAr ? "كفاءة مهنية عملية للتقنية والتواصل" : "Professional working proficiency"}
+            score={78}
+          />
         </div>
       </section>
 
@@ -361,12 +376,20 @@ function SkillBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-function LanguageBadge({ flag, title, level }: { flag: string; title: string; level: string }) {
+function LanguageBadge({ flagSrc, title, level, score }: { flagSrc: string; title: string; level: string; score: number }) {
   return (
     <article className="cv-language-badge">
-      <span>{flag}</span>
-      <h3>{title}</h3>
+      <span className="cv-language-flag">
+        <Image src={flagSrc} alt="" width={58} height={58} />
+      </span>
+      <div className="cv-language-title">
+        <h3>{title}</h3>
+        <strong>{score}%</strong>
+      </div>
       <p>{level}</p>
+      <div className="cv-language-meter" aria-hidden="true">
+        <i style={{ width: `${score}%` }} />
+      </div>
       <Languages />
     </article>
   );

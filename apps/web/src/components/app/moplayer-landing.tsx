@@ -56,6 +56,14 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
     : [
         { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-tv-hero.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
       ];
+  const visualFallbacks = [
+    { id: "visual-cinema", title: isAr ? "واجهة تلفزيونية" : "TV showcase", alt_text: "MoPlayer cinematic TV visual", image_path: "/images/moplayer-cinema-frame.webp", product_slug: "moplayer", device_frame: "tv", sort_order: 10, is_featured: false, created_at: "" },
+    { id: "visual-activation", title: isAr ? "تفعيل واضح" : "Guided activation", alt_text: "MoPlayer activation flow visual", image_path: "/images/moplayer-activation-flow.webp", product_slug: "moplayer", device_frame: "phone", sort_order: 11, is_featured: false, created_at: "" },
+    { id: "visual-release", title: isAr ? "مركز التحميل" : "Release center", alt_text: "MoPlayer APK release visual", image_path: "/images/moplayer-release-panel.webp", product_slug: "moplayer", device_frame: "tv", sort_order: 12, is_featured: false, created_at: "" },
+  ];
+  const galleryShots = [...screenshots, ...visualFallbacks].filter((shot, index, list) => {
+    return list.findIndex((item) => item.image_path === shot.image_path) === index;
+  });
 
   const specs = [
     { icon: Download, label: t.specsLabels.version, value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
@@ -200,7 +208,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           })}
         </div>
         <div className="moplayer-gallery">
-          {screenshots.slice(0, 4).map((shot, index) => (
+          {galleryShots.slice(0, 4).map((shot, index) => (
             <figure key={shot.id} className={index === 0 ? "is-wide" : ""}>
               <Image src={shot.image_path} alt={shot.alt_text || shot.title || "MoPlayer screenshot"} fill sizes={index === 0 ? "(max-width: 900px) 92vw, 58vw" : "(max-width: 900px) 92vw, 28vw"} className="moplayer-image" />
               <figcaption>{shot.title || "MoPlayer"}</figcaption>

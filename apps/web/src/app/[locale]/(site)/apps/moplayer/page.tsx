@@ -50,13 +50,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: "/images/moplayer-hero-3d-final.png", width: 1600, height: 900, alt: meta.title }],
+      images: [{ url: "/images/moplayer-cinema-frame.webp", width: 1600, height: 900, alt: meta.title }],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.title,
       description: meta.description,
-      images: ["/images/moplayer-hero-3d-final.png"],
+      images: ["/images/moplayer-cinema-frame.webp"],
     },
   };
 }

@@ -791,43 +791,42 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
   const portrait = model.portraitImage || "/images/protofeilnew.jpeg";
   const views = compact(model.locale, model.live.youtube?.totalViews ?? model.youtube.views, "1.5M+");
   const subscribers = compact(model.locale, model.live.youtube?.subscribers ?? model.youtube.subscribers, "6.1K+");
-  const videoCount = compact(model.locale, model.live.youtube?.videoCount ?? model.youtube.videos, "162");
   const home = isAr
     ? {
         eyebrow: "Mohammad Alfarras Digital OS",
-        title: "أصنع تجارب رقمية تترك أثرًا.",
+        title: "أصمم وأبني مواقع وتجارب رقمية تساعد مشروعك على الظهور باحتراف.",
         body:
-          "مركز شخصي فاخر يجمع تصميم وتطوير المواقع، التفكير التسويقي، صناعة المحتوى التقني، الخبرة اللوجستية، وبناء منتجات مثل MoPlayer داخل هوية رقمية واحدة.",
-        primary: "استكشف الأعمال",
-        secondary: "ابدأ مشروعك",
+          "مواقع ويب، واجهات استخدام، تطبيقات، ومحتوى تقني بتنفيذ واضح، تجربة سلسة، وهوية بصرية تترك أثرًا وتحول الزائر إلى خطوة مفهومة.",
+        primary: "ابدأ مشروعك",
+        secondary: "شاهد الأعمال",
         secondarySoft: "شاهد يوتيوب",
-        quickFacts: ["مقيم في ألمانيا", `${views} مشاهدة`, `${videoCount} فيديو`, "باني MoPlayer"],
-        modesEyebrow: "أربعة أوضاع",
-        modesTitle: "نظام واحد، أربع طرق للتفكير والبناء.",
+        quickFacts: ["تصميم وتطوير واجهات", "مواقع وصفحات هبوط", "تطبيقات وتجارب تفاعلية", "محتوى تقني ومنتجات رقمية"],
+        modesEyebrow: "كيف أساعدك",
+        modesTitle: "خدمات واضحة لمشروع يحتاج حضورًا رقميًا أقوى.",
         storyEyebrow: "القصة",
         storyTitle: "من الواقع العملي إلى الأنظمة الرقمية.",
         stackEyebrow: "Stack",
         stackTitle: "أدوات حديثة لواجهات سريعة وواضحة.",
         productEyebrow: "Featured product",
-        productTitle: "MoPlayer كواجهة منتج سينمائية.",
+        productTitle: "MoPlayer منتج مستقل لتجربة تشغيل سلسة على Android و Android TV.",
         productBody:
           "تجربة Android TV تربط التطبيق، التفعيل، مصادر IPTV، صفحات التحميل، والإعدادات عن بعد ضمن نظام واحد واضح للمستخدم.",
-        ctaTitle: "هل تريد حضورًا رقميًا بهذا المستوى؟",
-        ctaBody: "أرسل فكرتك وسأساعدك على تحويلها إلى تجربة ويب أو منتج واضح، جميل، ومصمم للتحويل.",
+        ctaTitle: "جاهز نحول فكرتك إلى تجربة رقمية واضحة؟",
+        ctaBody: "اكتب لي فكرة المشروع، المرحلة الحالية، والنتيجة التي تريد الوصول لها. سأرد عليك بخطوة عملية تساعدك تبدأ بشكل صحيح.",
         ctaPrimary: "ابدأ المحادثة",
-        ctaSecondary: "شاهد المشاريع",
+        ctaSecondary: "راسلني على واتساب",
       }
     : {
         eyebrow: "Mohammad Alfarras Digital OS",
-        title: "Crafting digital experiences that WOW.",
+        title: "I design and build premium websites and digital experiences that help projects look professional.",
         body:
-          "A premium personal command center for web design, development, marketing-aware digital work, Arabic tech content, logistics discipline, and product building through MoPlayer.",
-        primary: "Explore the work",
-        secondary: "Start a project",
+          "Websites, interfaces, apps, and technical content shaped with clear execution, smooth UX, and a visual identity that turns attention into action.",
+        primary: "Start a project",
+        secondary: "See the work",
         secondarySoft: "Watch YouTube",
-        quickFacts: ["Germany Based", `${views} Views`, `${videoCount} Videos`, "MoPlayer Builder"],
-        modesEyebrow: "4 modes",
-        modesTitle: "One digital OS, four ways to build.",
+        quickFacts: ["Interface design & frontend", "Websites and landing pages", "Interactive product experiences", "Tech content and digital products"],
+        modesEyebrow: "How I can help",
+        modesTitle: "Clear services for projects that need a stronger digital presence.",
         storyEyebrow: "Story arc",
         storyTitle: "From real-world pressure to digital systems.",
         stackEyebrow: "Stack",
@@ -836,17 +835,17 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         productTitle: "MoPlayer as a cinematic product surface.",
         productBody:
           "An Android TV ecosystem connecting the app, activation, IPTV sources, release pages, and remote configuration into one clear product system.",
-        ctaTitle: "Need a digital presence at this level?",
-        ctaBody: "Send the idea. I can shape the structure, visuals, content, and user flow into a serious website or product experience.",
+        ctaTitle: "Ready to turn the idea into a clear digital experience?",
+        ctaBody: "Send the current situation, the goal, and what needs to happen next. I will help shape the structure, visual direction, and first practical move.",
         ctaPrimary: "Start the conversation",
-        ctaSecondary: "View projects",
+        ctaSecondary: "Message me on WhatsApp",
       };
 
   const modes = [
-    { icon: Code2, tone: "cyan", title: isAr ? "وضع التطوير" : "Developer mode", detail: "UI / Frontend / Systems", body: isAr ? "مواقع Next.js، واجهات سريعة، وتجارب ثنائية اللغة مبنية بوضوح." : "Next.js websites, fast frontend systems, and bilingual experiences built with clarity." },
-    { icon: PlayCircle, tone: "red", title: isAr ? "وضع الصانع" : "Creator mode", detail: "YouTube / Reviews / Tutorials", body: isAr ? "محتوى تقني عربي يشرح المنتجات والتجارب بطريقة عملية وسهلة." : "Arabic tech storytelling that makes products, tools, and experiments easier to understand." },
-    { icon: Truck, tone: "gold", title: isAr ? "وضع العمليات" : "Operations mode", detail: "Logistics / Flow / Trust", body: isAr ? "خبرة لوجستية تساعدني على تصميم صفحات تخدم القرار والخطوة التالية." : "Logistics discipline that turns service complexity into clean customer journeys." },
-    { icon: MonitorPlay, tone: "violet", title: isAr ? "وضع MoPlayer" : "MoPlayer mode", detail: "Android TV / Product OS", body: isAr ? "تفكير منتج كامل: Android TV، تفعيل، مصادر، إصدارات، ودعم." : "Product thinking across Android TV, activation, sources, releases, and support." },
+    { icon: Code2, tone: "cyan", title: isAr ? "موقع تعريفي احترافي" : "Professional business website", detail: "Brand / Web / Trust", body: isAr ? "صفحة واضحة تشرح من أنت، ماذا تقدم، ولماذا يثق بك العميل من أول زيارة." : "A clear website that explains who you are, what you offer, and why visitors should trust you." },
+    { icon: Compass, tone: "violet", title: isAr ? "صفحة هبوط لحملة أو منتج" : "Landing page for a product or campaign", detail: "Campaign / Product / CTA", body: isAr ? "مسار قصير ومقنع يوجه الزائر إلى طلب، تسجيل، تحميل، أو تواصل بدون تشتيت." : "A focused path that moves visitors toward inquiry, signup, download, or contact without clutter." },
+    { icon: Cpu, tone: "gold", title: isAr ? "واجهة أو تطبيق ويب" : "Web app or interface", detail: "UI / UX / Product", body: isAr ? "واجهة منظمة لمنتج، لوحة تحكم، أو تجربة تفاعلية قابلة للتوسع." : "A structured interface for a product, dashboard, or interactive experience that can grow." },
+    { icon: MonitorPlay, tone: "red", title: isAr ? "MoPlayer / دعم المنتج" : "MoPlayer / product support", detail: "Android TV / Setup / Support", body: isAr ? "صفحات منتج، تفعيل، تحميل، وشرح واضح يساعد المستخدم العادي يفهم الخطوة التالية." : "Product pages, activation, downloads, and clear support flows that normal users can follow." },
   ];
 
   const story = [
@@ -860,11 +859,16 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
 
   const stack = ["Next.js", "TypeScript", "React", "Framer Motion", "Tailwind CSS", "Supabase", "Android TV", "UI Systems", "RTL/LTR", "SEO"];
   const explore = [
-    [isAr ? "الأعمال" : "Work", isAr ? "مشاريع مواقع وتجارب رقمية لعملاء حقيقيين." : "Websites and digital experiences built for real businesses.", "work", Globe2],
-    ["MoPlayer", isAr ? "تطبيق ومنظومة Android TV بواجهة منتج واضحة." : "An Android TV app ecosystem with a clear product surface.", "apps/moplayer", MonitorPlay],
-    ["YouTube", isAr ? "محتوى تقني عربي، مراجعات، وشروحات." : "Arabic tech videos, reviews, and practical tutorials.", "youtube", Film],
-    [isAr ? "تواصل" : "Contact", isAr ? "ابدأ مشروعًا أو تعاونًا أو خطوة عملية جديدة." : "Start a project, collaboration, or practical next step.", "contact", Mail],
+    [isAr ? "الأعمال" : "Work", isAr ? "دراسات حالة لمواقع وخدمات بتركيز على المشكلة والدور والقرار." : "Case studies framed by problem, role, decision, and outcome.", "work", Globe2],
+    ["MoPlayer", isAr ? "منتج مستقل لتجربة Android TV والتفعيل والتحميل والدعم." : "A standalone Android TV product for activation, downloads, and support.", "apps/moplayer", MonitorPlay],
+    ["YouTube", isAr ? "محتوى تقني يشرح لماذا تهم الأدوات والمنتجات وكيف تستخدمها." : "Tech content that explains why tools matter and how to use them.", "youtube", Film],
+    [isAr ? "تواصل" : "Contact", isAr ? "ابدأ محادثة عن موقع، صفحة هبوط، واجهة، أو دعم MoPlayer." : "Start a conversation about a website, landing page, interface, or MoPlayer support.", "contact", Mail],
   ] as const;
+  const featuredWork = [
+    { title: "Schnell Sicher Umzug", type: isAr ? "موقع شركة نقل" : "Moving company website", problem: isAr ? "الخدمة تحتاج وضوحًا سريعًا ومسار طلب بسيطًا." : "The service needed faster clarity and a simple request path.", role: isAr ? "هيكلة المحتوى، واجهة، ومسار تواصل." : "Content structure, interface, and contact flow.", result: isAr ? "موقع يشرح الخدمات ويقود الزائر للطلب بثقة." : "A site that explains services and guides visitors toward inquiry." },
+    { title: "A&D Fahrzeugtransporte", type: isAr ? "نقل وسحب سيارات" : "Vehicle transport", problem: isAr ? "الزائر يحتاج قرارًا سريعًا في حالات طارئة." : "Visitors need fast decisions in urgent situations.", role: isAr ? "تصميم مباشر للثقة والاتصال." : "Direct-response design for trust and contact.", result: isAr ? "تصنيف خدمات واضح مع دعوات تواصل قوية." : "Clear service categories with strong contact cues." },
+    { title: "MoPlayer", type: isAr ? "منتج Android TV" : "Android TV product", problem: isAr ? "التطبيق يحتاج عرضًا وتفعيلًا وتنزيلًا مفهومًا." : "The app needs clear presentation, activation, and download flow.", role: isAr ? "نظام منتج من الموقع إلى التطبيق." : "Product system from website to app.", result: isAr ? "مسار منتج مستقل يربط التحميل والتفعيل والدعم." : "A product path connecting download, activation, and support." },
+  ];
 
   return (
     <PageShell className="os-home os-digital-os">
@@ -880,8 +884,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
             {home.quickFacts.map((item) => <span key={item}>{item}</span>)}
           </div>
           <div className="fresh-actions">
-            <Link href={pathFor(model.locale, "work")} className="fresh-button fresh-button-primary magnetic-surface">{home.primary}<ArrowUpRight size={17} /></Link>
-            <Link href={pathFor(model.locale, "contact")} className="fresh-button magnetic-surface">{home.secondary}</Link>
+            <Link href={pathFor(model.locale, "contact")} className="fresh-button fresh-button-primary magnetic-surface">{home.primary}<ArrowUpRight size={17} /></Link>
+            <Link href={pathFor(model.locale, "work")} className="fresh-button magnetic-surface">{home.secondary}</Link>
             <Link href={pathFor(model.locale, "youtube")} className="fresh-button fresh-button-ghost magnetic-surface"><PlayCircle size={17} />{home.secondarySoft}</Link>
           </div>
         </div>
@@ -936,6 +940,36 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
+      <section className="fresh-section os-home-work-snapshot">
+        <SectionHeader
+          eyebrow={isAr ? "أعمال مختارة" : "Featured work"}
+          title={isAr ? "مشاريع توضّح المشكلة، الدور، والقرار بدل عرض صور فقط." : "Projects framed by problem, role, and decision, not just screenshots."}
+          body={isAr ? "هذه نظرة سريعة على طريقة تفكيري: أفهم العرض، أرتب مسار الزائر، ثم أبني واجهة تجعل الخطوة التالية واضحة." : "A quick look at how I think: understand the offer, shape the visitor path, then build an interface where the next step is obvious."}
+        />
+        <div className="os-home-case-grid">
+          {featuredWork.map((item, index) => (
+            <article className="fresh-card os-home-case-card" key={item.title}>
+              <span className="os-home-card-kicker">0{index + 1} / {item.type}</span>
+              <h3>{item.title}</h3>
+              <dl>
+                <div><dt>{isAr ? "المشكلة" : "Problem"}</dt><dd>{item.problem}</dd></div>
+                <div><dt>{isAr ? "دوري" : "My role"}</dt><dd>{item.role}</dd></div>
+                <div><dt>{isAr ? "الأثر" : "Outcome"}</dt><dd>{item.result}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+        <div className="fresh-actions">
+          <Link href={pathFor(model.locale, "work")} className="fresh-button fresh-button-primary magnetic-surface">
+            {isAr ? "شاهد الأعمال" : "View the work"}
+            <ArrowUpRight size={17} />
+          </Link>
+          <Link href={pathFor(model.locale, "contact")} className="fresh-button magnetic-surface">
+            {isAr ? "أريد موقعًا مشابهًا" : "I need something similar"}
+          </Link>
+        </div>
+      </section>
+
       <section className="fresh-section os-story-section">
         <SectionHeader eyebrow={home.storyEyebrow} title={home.storyTitle} />
         <div className="os-story-rail">
@@ -965,8 +999,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         </div>
         <div className="os-moplayer-visual">
           <div className="os-moplayer-glow" />
-          <div className="os-moplayer-device"><Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" /></div>
-          <div className="os-moplayer-mini"><Image src="/images/moplayer_ui_now_playing-final.png" alt="MoPlayer now playing UI" fill sizes="220px" className="fresh-image" /></div>
+          <div className="os-moplayer-device"><Image src="/images/moplayer-cinema-frame.webp" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" /></div>
+          <div className="os-moplayer-mini"><Image src="/images/moplayer-activation-flow.webp" alt="MoPlayer activation flow" fill sizes="220px" className="fresh-image" /></div>
         </div>
       </section>
 
@@ -976,7 +1010,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         <p>{home.ctaBody}</p>
         <div className="fresh-actions">
           <Link href={pathFor(model.locale, "contact")} className="fresh-button fresh-button-primary magnetic-surface">{home.ctaPrimary}</Link>
-          <Link href={pathFor(model.locale, "work")} className="fresh-button magnetic-surface">{home.ctaSecondary}</Link>
+          <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="fresh-button magnetic-surface">{home.ctaSecondary}</a>
         </div>
       </section>
     </PageShell>
@@ -1109,9 +1143,9 @@ function WorkPage({ model }: { model: SiteViewModel }) {
           </div>
         </div>
         <div className="os-work-product-media">
-          <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer product visual" fill sizes="(max-width: 900px) 100vw, 45vw" className="fresh-image" loading="eager" />
+          <Image src="/images/moplayer-release-panel.webp" alt="MoPlayer release and download product visual" fill sizes="(max-width: 900px) 100vw, 45vw" className="fresh-image" loading="eager" />
           <div>
-            <Image src="/images/moplayer_ui_now_playing-final.png" alt="MoPlayer now playing screen" fill sizes="260px" className="fresh-image" loading="eager" />
+            <Image src="/images/moplayer-cinema-frame.webp" alt="MoPlayer Android TV cinematic screen" fill sizes="260px" className="fresh-image" loading="eager" />
           </div>
         </div>
       </section>

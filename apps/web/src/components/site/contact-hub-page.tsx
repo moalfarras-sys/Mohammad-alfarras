@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import { socialLinks } from "@/content/site";
 import { withLocale } from "@/lib/i18n";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 type ContactHubPageProps = {
@@ -108,7 +109,7 @@ function formatTime(locale: Locale, timeZone: string, date: Date) {
 
 function TimezoneWidget({ locale }: { locale: Locale }) {
   const [now, setNow] = useState(() => new Date());
-  const t = copy[locale];
+  const t = repairMojibakeDeep(copy[locale]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
@@ -140,7 +141,7 @@ function TimezoneWidget({ locale }: { locale: Locale }) {
 }
 
 export function ContactHubPage({ locale }: ContactHubPageProps) {
-  const t = copy[locale];
+  const t = repairMojibakeDeep(copy[locale]);
 
   return (
     <main className="contact-hub fresh-page">

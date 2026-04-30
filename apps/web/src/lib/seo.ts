@@ -41,7 +41,7 @@ const seoCopy = {
     apps: {
       title: "التطبيقات والمنتجات | محمد الفراس",
       description: "MoPlayer كمنتج Android TV رئيسي مع APK رسمي، تفعيل عبر الموقع، بيانات إصدار، checksum، دعم، وخصوصية واضحة.",
-      image: "/images/moplayer-hero-3d-final.png",
+      image: "/images/moplayer-cinema-frame.webp",
     },
     about: {
       title: "عني | محمد الفراس — واجهات ومنتجات ومحتوى تقني من ألمانيا",
@@ -92,7 +92,7 @@ const seoCopy = {
     apps: {
       title: "Apps & Products | Mohammad Alfarras",
       description: "MoPlayer as the flagship Android TV product with official APK download, activation, release metadata, checksum, support, and privacy.",
-      image: "/images/moplayer-hero-3d-final.png",
+      image: "/images/moplayer-release-panel.webp",
     },
     about: {
       title: "About | Mohammad Alfarras — Interfaces, products, and Arabic tech content from Germany",
@@ -126,7 +126,16 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   const localizedPath = normalized === "home" ? `/${locale}` : `/${locale}/${normalized}`;
   const altAr = normalized === "home" ? "/ar" : `/ar/${normalized}`;
   const altEn = normalized === "home" ? "/en" : `/en/${normalized}`;
-  const copy = repairMojibakeDeep(seoCopy[locale][normalized as keyof typeof seoCopy.en] ?? seoCopy[locale].home);
+  const baseCopy = repairMojibakeDeep(seoCopy[locale][normalized as keyof typeof seoCopy.en] ?? seoCopy[locale].home);
+  const copy =
+    locale === "ar" && normalized === "home"
+      ? {
+          ...baseCopy,
+          title: "محمد الفراس | تصميم وتطوير مواقع وتجارب رقمية",
+          description: "أصمم وأبني مواقع ويب، واجهات استخدام، تطبيقات وتجارب رقمية تساعد المشاريع على الظهور باحتراف وتحويل الزوار إلى عملاء.",
+          image: "/images/logo.png",
+        }
+      : baseCopy;
   const localeTag = locale === "ar" ? "ar_SA" : "en_US";
   const altLocaleTag = locale === "ar" ? "en_US" : "ar_SA";
 

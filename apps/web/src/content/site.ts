@@ -46,17 +46,17 @@ export const navigationItems = {
   en: [
     { id: "home", label: "Home", slug: "" },
     { id: "work", label: "Work", slug: "work" },
-    { id: "apps", label: "Apps", slug: "apps" },
-    { id: "youtube", label: "YouTube", slug: "youtube" },
-    { id: "cv", label: "CV", slug: "cv" },
+    { id: "services", label: "Services", slug: "services" },
+    { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
+    { id: "youtube", label: "Content", slug: "youtube" },
     { id: "contact", label: "Contact", slug: "contact" },
   ],
   ar: [
     { id: "home", label: "الرئيسية", slug: "" },
     { id: "work", label: "الأعمال", slug: "work" },
-    { id: "apps", label: "التطبيقات", slug: "apps" },
-    { id: "youtube", label: "يوتيوب", slug: "youtube" },
-    { id: "cv", label: "السيرة", slug: "cv" },
+    { id: "services", label: "الخدمات", slug: "services" },
+    { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
+    { id: "youtube", label: "المحتوى", slug: "youtube" },
     { id: "contact", label: "تواصل", slug: "contact" },
   ],
 } satisfies Localized<Array<{ id: string; label: string; slug: string }>>;

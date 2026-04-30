@@ -54,7 +54,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   const screenshots = ecosystem.screenshots.length
     ? ecosystem.screenshots
     : [
-        { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-hero-3d-final.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
+        { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-tv-hero.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
       ];
 
   const specs = [
@@ -106,7 +106,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="moplayer-device-stage">
           <div className="moplayer-device-glow" />
           <div className="moplayer-tv-frame">
-            <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 620px" className="moplayer-image" priority />
+            <Image src="/images/moplayer-tv-hero.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 620px" className="moplayer-image" priority />
           </div>
           <div className="moplayer-floating-card">
             <Image src="/images/moplayer-icon-512.png" alt="" width={44} height={44} />

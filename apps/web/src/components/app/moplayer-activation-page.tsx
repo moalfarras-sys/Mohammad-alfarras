@@ -23,6 +23,7 @@ import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { withLocale } from "@/lib/i18n";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 const allowed = /^[A-HJ-NP-RT-Z2-46789]{4}$/;
@@ -150,7 +151,7 @@ function normalizeCode(value: string) {
 
 export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: Locale; initialCode?: string }) {
   const isAr = locale === "ar";
-  const t = copy[locale];
+  const t = repairMojibakeDeep(copy[locale]);
   const [wizardStep, setWizardStep] = useState<WizardStep>(() => (initialCode ? 3 : 1));
   const [accountEmail, setAccountEmail] = useState("");
   const [code, setCode] = useState(() => normalizeCode(initialCode));
@@ -281,7 +282,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
         </div>
 
         <div className="activation-device">
-          <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV activation" width={820} height={620} priority />
+          <Image src="/images/moplayer-tv-banner-final.png" alt="MoPlayer Android TV activation" width={820} height={620} priority />
           <div className="activation-code-chip">
             <KeyRound className="h-4 w-4" />
             {fullCode || "MO-XXXX"}
@@ -400,20 +401,28 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
         </div>
       </section>
 
-      <section className={cn("activation-source", status !== "activated" && "is-locked")}>
+      <section hidden={status !== "activated"} className="activation-source">
         <div>
           <span className="activation-kicker">
             <Tv className="h-4 w-4" />
             {t.sourceTitle}
           </span>
-          <h2>{t.sourceTitle}</h2>
+          <h2>{isAr ? "اختر طريقة ربط المصدر" : "Choose your source type"}</h2>
           <p>{t.sourceBody}</p>
         </div>
 
         <div className="activation-source-form">
-          <div className="activation-segments">
-            <button type="button" onClick={() => setSourceType("xtream")} className={cn(sourceType === "xtream" && "is-active")}>{t.xtream}</button>
-            <button type="button" onClick={() => setSourceType("m3u")} className={cn(sourceType === "m3u" && "is-active")}>{t.m3u}</button>
+          <div className="activation-source-cards">
+            <button type="button" onClick={() => setSourceType("xtream")} className={cn("activation-source-card", sourceType === "xtream" && "is-active")}>
+              <Tv className="h-5 w-5" />
+              <strong>{t.xtream}</strong>
+              <span>{isAr ? "بيانات السيرفر، المستخدم، وكلمة المرور." : "Server URL, username, and password."}</span>
+            </button>
+            <button type="button" onClick={() => setSourceType("m3u")} className={cn("activation-source-card", sourceType === "m3u" && "is-active")}>
+              <PlayCircle className="h-5 w-5" />
+              <strong>{t.m3u}</strong>
+              <span>{isAr ? "رابط قائمة تشغيل واحد مع EPG اختياري." : "One playlist URL with optional EPG."}</span>
+            </button>
           </div>
 
           <div className="activation-fields">

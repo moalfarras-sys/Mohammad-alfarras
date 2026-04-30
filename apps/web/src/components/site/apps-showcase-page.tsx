@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 
 import { PageShell } from "@/components/ui/os-primitives";
 import { withLocale } from "@/lib/i18n";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 const copy = {
@@ -53,7 +54,7 @@ const copy = {
         badges: ["APK path", "Version clarity", "Website-linked"],
         cta: "Download APK",
         href: "api/app/download/latest",
-        image: "/images/moplayer-ui-mock-final.png",
+        image: "/images/moplayer_ui_playlist-final.png",
         icon: "/images/moplayer-icon-512.png",
         accent: "metal",
       },
@@ -129,7 +130,7 @@ const copy = {
 } as const;
 
 export function AppsShowcasePage({ locale }: { locale: Locale }) {
-  const c = copy[locale];
+  const c = repairMojibakeDeep(copy[locale]);
   const isAr = locale === "ar";
 
   return (
@@ -176,7 +177,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
           >
             <div className="apps-device-orbit" />
             <Image
-              src="/images/moplayer-hero-3d-final.png"
+              src="/images/moplayer-tv-hero.png"
               alt="MoPlayer Android TV product mockup"
               width={900}
               height={700}

@@ -11,7 +11,7 @@ export function AppAdminLogin({ message, initialEmail }: { message?: string; ini
         <div className="relative z-10">
           <div className="mb-10 flex items-center gap-4">
             <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.4rem] border border-cyan-200/20 bg-cyan-200/8 shadow-[0_0_45px_rgba(91,220,255,0.18)]">
-              <Image src="/icons/icon-192.png" alt="Moalfarras Admin" width={52} height={52} className="h-12 w-12 rounded-2xl object-cover" priority />
+              <Image src="/images/logo.png" alt="Moalfarras Admin" width={52} height={52} className="h-12 w-12 rounded-2xl object-contain" priority />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-200">Moalfarras OS</p>

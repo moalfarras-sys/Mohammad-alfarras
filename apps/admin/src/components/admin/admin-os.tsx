@@ -174,7 +174,7 @@ export function AdminOS({
       <header className="command-topbar">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border border-cyan-200/15 bg-cyan-200/8 shadow-[0_0_34px_rgba(91,220,255,0.18)]">
-            <Image src="/icons/icon-192.png" alt="Moalfarras Admin" width={44} height={44} className="h-10 w-10 rounded-2xl object-cover" />
+            <Image src="/images/logo.png" alt="Moalfarras Admin" width={44} height={44} className="h-10 w-10 rounded-2xl object-contain" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200">Digital Command Center</p>

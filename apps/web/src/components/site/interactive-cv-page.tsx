@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { withLocale } from "@/lib/i18n";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 type CvExperience = {
@@ -60,7 +61,7 @@ function compactNumber(value: number, suffix = "+") {
 
 function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
   const ar = locale === "ar";
-  return {
+  return repairMojibakeDeep({
     heroTitle: ar ? "محمد الفراس - مهندس برمجيات ومعماري رقمي" : "Mohamed Al Farras - Software Engineer & Digital Architect",
     heroHook: ar
       ? "الجسر بين عالم اللوجستيات الواقعي والأنظمة الرقمية المتقدمة."
@@ -86,9 +87,9 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
         ],
     waypoints: [
       {
-        year: "2017",
+        year: "2015",
         title: ar ? "الانتقال" : "The Transition",
-        body: ar ? "من دمشق وسوريا إلى ألمانيا: بداية جديدة، لغة جديدة، ومسؤولية مختلفة." : "From Damascus and Syria to Germany: a new beginning, a new language, and sharper responsibility.",
+        body: ar ? "من سوريا إلى ألمانيا: بداية جديدة في 2015، لغة جديدة، ومسؤولية مختلفة." : "From Syria to Germany in 2015: a new beginning, a new language, and sharper responsibility.",
         icon: Route,
       },
       {
@@ -127,7 +128,7 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
       [4200, ar ? "شحنة/عملية لوجستية" : "Logistics Flows Managed", Truck],
       [999, ar ? "قهوة أثناء البناء" : "Coffees Brewed", Coffee],
     ] as Array<[number, string, LucideIcon]>,
-  };
+  });
 }
 
 export function InteractiveCvPage({ locale, profileName, portrait, downloads, stats, experience }: InteractiveCvProps) {

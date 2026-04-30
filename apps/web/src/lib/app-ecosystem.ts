@@ -104,7 +104,7 @@ const fallbackProduct: AppProduct = {
   ],
   changelog_intro: "Each release keeps the product story focused on compatibility, installation clarity, and support.",
   logo_path: "/images/moplayer-brand-logo-final.png",
-  hero_image_path: "/images/moplayer-hero-3d-final.png",
+  hero_image_path: "/images/moplayer-tv-hero.png",
   tv_banner_path: "/images/moplayer-tv-banner-final.png",
   status: "published",
   last_updated_at: now,

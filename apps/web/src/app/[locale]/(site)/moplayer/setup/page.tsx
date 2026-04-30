@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: `${SITE_URL}/${locale}/moplayer/setup`,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
-      images: [{ url: "/images/moplayer-tv-banner.png", width: 1600, height: 900, alt: copy.title }],
+      images: [{ url: "/images/moplayer-tv-banner-final.png", width: 1600, height: 900, alt: copy.title }],
     },
   };
 }

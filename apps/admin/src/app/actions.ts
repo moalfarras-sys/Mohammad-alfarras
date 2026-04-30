@@ -101,7 +101,7 @@ export async function saveProductAction(formData: FormData) {
     tv_banner_path: String(formData.get("tv_banner_path") ?? "").trim() || null,
     feature_highlights: parseStructuredLines(String(formData.get("feature_highlights") ?? "")).map((item, index) => ({
       ...item,
-      icon: ["tv", "zap", "shield", "sparkles"][index % 4],
+      icon: ["tv", "zap", "shield", "box"][index % 4],
     })),
     how_it_works: parseStructuredLines(String(formData.get("how_it_works") ?? "")),
     install_steps: parseStructuredLines(String(formData.get("install_steps") ?? "")),
@@ -238,7 +238,7 @@ export async function saveRuntimeConfigAction(formData: FormData) {
     message: String(formData.get("message") ?? ""),
     accentColor: String(formData.get("accentColor") ?? "#00e5ff"),
     logoUrl: String(formData.get("logoUrl") ?? "/images/moplayer-icon-512.png"),
-    backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner.png"),
+    backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner-final.png"),
     widgets: {
       weather: formData.get("weather") === "on",
       football: formData.get("football") === "on",

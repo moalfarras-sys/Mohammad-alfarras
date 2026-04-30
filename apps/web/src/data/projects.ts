@@ -31,7 +31,7 @@ export const projects: ProjectEntry[] = [
     nameEN: "MoPlayer",
     descriptionAR: "تطبيق شخصي قيد التطوير لتجربة تشغيل وسائط بواجهة مرتبة، سريعة، وواضحة بصرياً.",
     descriptionEN: "A personal app in development for a clean, focused media experience.",
-    coverImage: "/images/moplayer-ui-mock-final.png",
+    coverImage: "/images/moplayer-hero-3d-final.png",
     screenshots: [
       "/images/moplayer_ui_now_playing-final.png",
       "/images/moplayer_ui_playlist-final.png",
@@ -39,7 +39,7 @@ export const projects: ProjectEntry[] = [
     ],
     features: [
       { icon: "play", labelAR: "تشغيل سريع وواجهة نظيفة", labelEN: "Fast playback, clean UI" },
-      { icon: "sparkles", labelAR: "هوية بصرية متماسكة", labelEN: "Cohesive visual identity" },
+      { icon: "shield", labelAR: "هوية بصرية متماسكة", labelEN: "Cohesive visual identity" },
       { icon: "shield", labelAR: "تجربة مستقرة وقابلة للتوسع", labelEN: "Stable and scalable UX" },
     ],
     downloadLinks: {

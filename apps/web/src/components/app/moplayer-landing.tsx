@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { moPlayerCopy } from "@/content/apps";
+import { normalizePublicImagePath } from "@/lib/asset-url";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -209,7 +210,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="moplayer-gallery">
           {galleryShots.slice(0, 4).map((shot, index) => (
             <figure key={shot.id} className={index === 0 ? "is-wide" : ""}>
-              <Image src={shot.image_path} alt={shot.alt_text || shot.title || "MoPlayer screenshot"} fill sizes={index === 0 ? "(max-width: 900px) 92vw, 58vw" : "(max-width: 900px) 92vw, 28vw"} className="moplayer-image" />
+              <Image src={normalizePublicImagePath(shot.image_path)} alt={shot.alt_text || shot.title || "MoPlayer screenshot"} fill sizes={index === 0 ? "(max-width: 900px) 92vw, 58vw" : "(max-width: 900px) 92vw, 28vw"} className="moplayer-image" />
               <figcaption>{shot.title || "MoPlayer"}</figcaption>
             </figure>
           ))}

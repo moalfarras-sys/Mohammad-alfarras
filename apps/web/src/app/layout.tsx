@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "bilingual website",
     "Next.js developer germany",
     "UI designer germany",
-    "مطور ويب",
+    "مطوّر ويب",
     "مصمم مواقع",
     "تطوير مواقع عربية",
     "Mohammad Alfarras",
@@ -50,12 +50,14 @@ export const metadata: Metadata = {
     description: defaultDescription,
     locale: "en_US",
     alternateLocale: ["ar_SA"],
+    images: [{ url: "/images/logo.png", width: 512, height: 512, alt: "Mohammad Alfarras logo" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     creator: "@Moalfarras",
+    images: ["/images/logo.png"],
   },
   robots: {
     index: true,

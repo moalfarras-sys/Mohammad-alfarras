@@ -25,12 +25,12 @@ export const siteIdentity = {
     ar: "محمد الفراس",
   },
   tagline: {
-    en: "Logistics-born digital products, websites, and Arabic tech storytelling",
-    ar: "منتجات رقمية ومواقع ومحتوى تقني عربي بعقلية لوجستية عملية",
+    en: "Web | Apps | Content | Logistics",
+    ar: "ويب | تطبيقات | محتوى | لوجستيات",
   },
   shortPositioning: {
-    en: "Syrian-German web developer, UI/UX designer, MoPlayer builder, and Arabic tech creator based in Germany.",
-    ar: "مطوّر ويب ومصمم واجهات وباني MoPlayer وصانع محتوى تقني عربي سوري/ألماني مقيم في ألمانيا.",
+    en: "Frontend developer, UI/UX-focused builder, MoPlayer product owner, and Arabic tech creator based in Germany.",
+    ar: "مطوّر واجهات ومصمم تجارب وباني MoPlayer وصانع محتوى تقني عربي مقيم في ألمانيا.",
   },
   origin: {
     en: "From Al-Hasakah, Syria",
@@ -49,6 +49,7 @@ export const navigationItems = {
     { id: "services", label: "Services", slug: "services" },
     { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
     { id: "youtube", label: "YouTube", slug: "youtube" },
+    { id: "cv", label: "CV", slug: "cv" },
     { id: "contact", label: "Contact", slug: "contact" },
   ],
   ar: [
@@ -56,44 +57,24 @@ export const navigationItems = {
     { id: "work", label: "الأعمال", slug: "work" },
     { id: "services", label: "الخدمات", slug: "services" },
     { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
-    { id: "youtube", label: "المحتوى", slug: "youtube" },
+    { id: "youtube", label: "يوتيوب", slug: "youtube" },
+    { id: "cv", label: "السيرة الذاتية", slug: "cv" },
     { id: "contact", label: "تواصل", slug: "contact" },
   ],
 } satisfies Localized<Array<{ id: string; label: string; slug: string }>>;
 
-const mutableIdentity = siteIdentity as Record<string, Record<Locale, string>>;
-mutableIdentity.name.ar = "محمد الفراس";
-mutableIdentity.tagline.en = "Web | Apps | Content | Logistics";
-mutableIdentity.tagline.ar = "ويب | تطبيقات | محتوى | لوجستيات";
-mutableIdentity.shortPositioning.en =
-  "Frontend developer, UI/UX-focused builder, MoPlayer product owner, and Arabic tech creator based in Germany.";
-mutableIdentity.shortPositioning.ar =
-  "مطوّر واجهات ومصمم تجارب وباني MoPlayer وصانع محتوى تقني عربي مقيم في ألمانيا.";
-mutableIdentity.origin.ar = "من الحسكة، سوريا";
-mutableIdentity.location.ar = "مقيم في ألمانيا";
-const mutableNavigation = navigationItems as Localized<Array<{ id: string; label: string; slug: string }>>;
-mutableNavigation.en = mutableNavigation.en.map((item) => (item.id === "youtube" ? { ...item, label: "YouTube" } : item));
-mutableNavigation.ar = [
-  { id: "home", label: "الرئيسية", slug: "" },
-  { id: "work", label: "الأعمال", slug: "work" },
-  { id: "services", label: "الخدمات", slug: "services" },
-  { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
-  { id: "youtube", label: "يوتيوب", slug: "youtube" },
-  { id: "contact", label: "تواصل", slug: "contact" },
-];
-
 export const homeContent = {
   en: {
     eyebrow: "Syrian roots · German discipline · digital execution",
-    title: "I turn real-world operations into clear digital experiences.",
+    title: "I design and build premium digital experiences that make your project look professional.",
     body:
-      "I am Mohammad Alfarras: a web developer, UI/UX designer, Android app builder, logistics/disposition professional, and Arabic tech creator in Germany. I build websites, product pages, apps, and content that explain value faster and make trust easier.",
-    primaryCta: "View the work",
-    secondaryCta: "Explore MoPlayer",
+      "Websites, interfaces, apps, and technical content shaped with clear structure, strong visuals, and a practical understanding of how real customers decide.",
+    primaryCta: "Start your project",
+    secondaryCta: "View the work",
     proof: [
       { value: "Germany", label: "Based and working" },
       { value: "Syria", label: "Al-Hasakah roots" },
-      { value: "Rhenus", label: "Logistics discipline" },
+      { value: "Rhenus", label: "Operations mindset" },
       { value: "MoPlayer", label: "Android TV product" },
     ],
     youtubeProof: [
@@ -101,53 +82,53 @@ export const homeContent = {
       { value: "6.1K+", label: "Subscribers" },
       { value: "162", label: "Videos" },
     ],
-    capabilitiesEyebrow: "What I build",
+    capabilitiesEyebrow: "What I can help with",
     capabilities: [
       {
-        title: "Business websites that make trust faster",
-        body: "Service websites, landing pages, and bilingual brand surfaces for transport, moving, local services, and creators who need visitors to understand the offer quickly.",
+        title: "Professional business websites",
+        body: "Clear service pages and bilingual websites that make visitors understand the offer and trust the next step faster.",
       },
       {
-        title: "Product interfaces with real structure",
-        body: "Next.js, React, TypeScript, Tailwind, Supabase, release flows, admin dashboards, and interfaces that can grow without becoming visually messy.",
+        title: "Landing pages for products and campaigns",
+        body: "Focused pages for launches, services, and offers with strong hierarchy, persuasive copy, and direct conversion paths.",
       },
       {
-        title: "Android and Android TV app experience",
-        body: "MoPlayer anchors the product side: app UI, activation, APK release metadata, Android TV focus, support, privacy, and product storytelling.",
+        title: "Web apps and product interfaces",
+        body: "Next.js, React, TypeScript, Tailwind, Supabase, admin dashboards, and user interfaces designed to scale cleanly.",
       },
       {
-        title: "Arabic product storytelling",
-        body: "YouTube reviews, SaaS and AI tools, electronics, design tools, and tutorials shaped as honest explanations, not empty promotion.",
+        title: "MoPlayer and Android TV product support",
+        body: "Product positioning, activation flows, APK release metadata, support pages, privacy surfaces, and TV-first presentation.",
       },
     ],
     flagshipEyebrow: "Flagship product",
     flagshipTitle: "MoPlayer is the product proof: Android TV, activation, releases, and support in one ecosystem.",
     flagshipBody:
-      "MoPlayer is not a small side page. It is a real product surface with Android TV positioning, APK download, version metadata, checksum, activation, installation guidance, privacy notes, and support.",
-    workEyebrow: "Selected engineering work",
-    workTitle: "Work that connects operations, design, content, and business clarity.",
+      "MoPlayer connects the app, website, APK releases, activation, and remote configuration into one product surface built for Android and Android TV users.",
+    workEyebrow: "Selected work",
+    workTitle: "Projects that connect design, operations, content, and business clarity.",
     proofEyebrow: "Why the mix is different",
     process: [
       "Logistics taught me sequence, pressure, timing, and customer reality.",
-      "Design turns that discipline into pages people can understand fast.",
-      "Content gives products a voice that normal visitors trust.",
+      "Design turns that discipline into pages people understand fast.",
+      "Content gives products a voice normal visitors can trust.",
       "Code ties the promise to a working system, not just a pretty screen.",
     ],
-    finalTitle: "Have a business, product, or idea that needs to be understood faster?",
-    finalBody: "Send the project as it is. I will map the real goal, the audience, the constraints, and the first useful digital move.",
+    finalTitle: "Have a business, product, or idea that needs a stronger digital presence?",
+    finalBody: "Send the project as it is. I will map the goal, audience, constraints, and the first useful digital move.",
     finalCta: "Start a serious conversation",
   },
   ar: {
     eyebrow: "جذور سورية · انضباط ألماني · تنفيذ رقمي",
-    title: "أحوّل العمليات الواقعية إلى تجارب رقمية واضحة.",
+    title: "أصمم وأبني مواقع وتجارب رقمية تساعد مشروعك على الظهور باحتراف.",
     body:
-      "أنا محمد الفراس: مطوّر ويب، مصمم واجهات، باني تطبيقات Android، أعمل في اللوجستيات/الديسبوزيشن، وصانع محتوى تقني عربي في ألمانيا. أبني مواقع وتطبيقات وصفحات منتجات ومحتوى يشرح القيمة بسرعة ويجعل الثقة أسهل.",
-    primaryCta: "شاهد الأعمال",
-    secondaryCta: "استكشف MoPlayer",
+      "مواقع ويب، واجهات استخدام، تطبيقات، ومحتوى تقني — بتنفيذ واضح، تجربة سلسة، وهوية بصرية تترك أثراً وتساعد الزائر أن يفهم ويتخذ الخطوة التالية.",
+    primaryCta: "ابدأ مشروعك",
+    secondaryCta: "شاهد الأعمال",
     proof: [
       { value: "ألمانيا", label: "الإقامة والعمل" },
-      { value: "سوريا", label: "جذور من الحسكة" },
-      { value: "Rhenus", label: "انضباط لوجستي" },
+      { value: "سوريا", label: "الجذور: الحسكة" },
+      { value: "Rhenus", label: "عقلية تشغيلية" },
       { value: "MoPlayer", label: "منتج Android TV" },
     ],
     youtubeProof: [
@@ -155,40 +136,40 @@ export const homeContent = {
       { value: "+6.1K", label: "مشترك" },
       { value: "162", label: "فيديو" },
     ],
-    capabilitiesEyebrow: "ماذا أبني",
+    capabilitiesEyebrow: "كيف أستطيع مساعدتك",
     capabilities: [
       {
-        title: "مواقع أعمال تجعل الثقة أسرع",
-        body: "مواقع خدمية وصفحات هبوط وحضور ثنائي اللغة لشركات النقل، الانتقال، الخدمات المحلية، وصناع المحتوى الذين يريدون من الزائر فهم العرض بسرعة.",
+        title: "موقع تعريفي احترافي",
+        body: "صفحات واضحة لشركتك أو خدمتك تجعل الزائر يفهم العرض بسرعة ويثق بالتواصل معك.",
       },
       {
-        title: "واجهات منتجات ببنية حقيقية",
-        body: "Next.js وReact وTypeScript وTailwind وSupabase ولوحات تحكم ومسارات إصدار وواجهات تكبر بدون أن تفقد وضوحها البصري.",
+        title: "صفحة هبوط لحملة أو منتج",
+        body: "صفحة مركزة لإطلاق منتج أو خدمة، بنص مقنع، ترتيب بصري قوي، وخطوة واضحة للعميل.",
       },
       {
-        title: "تجربة Android وAndroid TV",
-        body: "MoPlayer يثبت جانب المنتج: واجهة التطبيق، التفعيل، بيانات إصدار APK، تركيز الريموت في Android TV، الدعم، الخصوصية، وسرد المنتج.",
+        title: "واجهة أو تطبيق ويب",
+        body: "واجهات مبنية بـ Next.js وReact وTypeScript وSupabase مع بنية قابلة للتوسع ولوحات تحكم عملية.",
       },
       {
-        title: "سرد منتجات تقني بالعربية",
-        body: "مراجعات يوتيوب، أدوات SaaS وAI، إلكترونيات، أدوات تصميم، وشروحات تُبنى كشرح صادق لا كترويج فارغ.",
+        title: "MoPlayer ودعم تجربة المنتج",
+        body: "تموضع المنتج، التفعيل، بيانات الإصدارات، صفحات الدعم والخصوصية، وتجربة عرض مناسبة لـ Android TV.",
       },
     ],
     flagshipEyebrow: "المنتج الرئيسي",
     flagshipTitle: "MoPlayer هو دليل المنتج: Android TV، التفعيل، الإصدارات، والدعم ضمن منظومة واحدة.",
     flagshipBody:
-      "MoPlayer ليس صفحة صغيرة جانبية. هو سطح منتج حقيقي فيه تموضع Android TV، تنزيل APK، بيانات الإصدار، checksum، التفعيل، إرشادات التثبيت، الخصوصية، والدعم.",
-    workEyebrow: "أعمال هندسية مختارة",
-    workTitle: "أعمال تربط التشغيل، التصميم، المحتوى، ووضوح القرار التجاري.",
+      "MoPlayer يربط التطبيق والموقع وإصدارات APK والتفعيل والإعدادات عن بعد في تجربة منتج واضحة لمستخدمي Android وAndroid TV.",
+    workEyebrow: "أعمال مختارة",
+    workTitle: "مشاريع تربط التصميم، التشغيل، المحتوى، ووضوح القرار التجاري.",
     proofEyebrow: "لماذا هذا المزيج مختلف",
     process: [
       "اللوجستيات علمتني التسلسل، الضغط، الوقت، وواقع العميل.",
-      "التصميم يحوّل هذا الانضباط إلى صفحات تُفهم بسرعة.",
+      "التصميم يحول هذا الانضباط إلى صفحات تُفهم بسرعة.",
       "المحتوى يعطي المنتج صوتاً يثق به الزائر العادي.",
       "الكود يربط الوعد بنظام يعمل، لا بصورة جميلة فقط.",
     ],
-    finalTitle: "لديك عمل أو منتج أو فكرة تحتاج أن تُفهم أسرع؟",
-    finalBody: "أرسل المشروع كما هو. سأرتب الهدف الحقيقي، الجمهور، القيود، وأول خطوة رقمية مفيدة.",
+    finalTitle: "لديك مشروع أو منتج يحتاج حضوراً رقمياً أقوى؟",
+    finalBody: "أرسل الفكرة كما هي. سأرتب الهدف والجمهور والقيود وأول خطوة رقمية مفيدة.",
     finalCta: "ابدأ محادثة جدية",
   },
 } satisfies Localized<{

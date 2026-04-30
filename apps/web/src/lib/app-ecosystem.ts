@@ -81,7 +81,7 @@ const fallbackProduct: AppProduct = {
     { title: "Android and Android TV", body: "Presented as one product surface across phone and TV contexts.", icon: "tv" },
     { title: "Release details", body: "Version, SDK, APK size, and architecture are shown from release data.", icon: "zap" },
     { title: "Legal clarity", body: "The product states what it does not provide: channels, playlists, subscriptions, or copyrighted media.", icon: "shield" },
-    { title: "Integrated support", body: "Support and privacy live in the same site architecture as the product page.", icon: "sparkles" },
+    { title: "Integrated support", body: "Support and privacy live in the same site architecture as the product page.", icon: "shield" },
   ],
   how_it_works: [
     { title: "Download the APK", body: "Use the latest release route from the product page." },
@@ -118,7 +118,7 @@ const fallbackScreenshots: AppScreenshot[] = [
     product_slug: "moplayer",
     title: "TV product showcase",
     alt_text: "MoPlayer cinematic Android TV product preview",
-    image_path: "/images/moplayer-cinema-frame.webp",
+    image_path: "/images/moplayer-hero-3d-final.png",
     device_frame: "tv",
     sort_order: 1,
     is_featured: true,

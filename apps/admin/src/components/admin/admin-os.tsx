@@ -170,7 +170,7 @@ export function AdminOS({
   }, []);
 
   return (
-    <div className="command-center min-h-screen overflow-hidden bg-black text-slate-200">
+    <div className="command-center min-h-screen overflow-x-hidden bg-black text-slate-200">
       <div className="command-bg" aria-hidden />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} setView={setView} />
 
@@ -219,7 +219,20 @@ export function AdminOS({
         ))}
       </nav>
 
-      <main className="relative z-10 mx-auto w-full max-w-[1500px] px-4 pb-28 pt-24 sm:px-6 md:px-8 md:pb-10 lg:px-10">
+      <main className="command-workspace relative z-10 w-full px-4 pb-28 pt-6 sm:px-6 md:px-8 md:pb-10 lg:px-10">
+        <div className="command-pagebar">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">Moalfarras Control Center</p>
+            <h2 className="mt-2 text-2xl font-black text-white md:text-4xl">
+              {view === "home" ? "Command Dashboard" : view === "website" ? "Website CMS" : "MoPlayer App Control"}
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setPaletteOpen(true)} className="command-icon-button" aria-label="Open command palette">
+              <Command className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
         <AnimatePresence mode="wait">
           {view === "home" ? (
             <motion.div key="home" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="space-y-6 md:space-y-8">

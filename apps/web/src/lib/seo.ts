@@ -41,7 +41,7 @@ const seoCopy = {
     apps: {
       title: "التطبيقات والمنتجات | محمد الفراس",
       description: "MoPlayer كمنتج Android TV رئيسي مع APK رسمي، تفعيل عبر الموقع، بيانات إصدار، checksum، دعم، وخصوصية واضحة.",
-      image: "/images/moplayer-cinema-frame.webp",
+      image: "/images/moplayer-hero-3d-final.png",
     },
     about: {
       title: "عني | محمد الفراس — واجهات ومنتجات ومحتوى تقني من ألمانيا",

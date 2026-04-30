@@ -40,6 +40,7 @@ import type {
   AppSupportRequest,
   DeviceProviderSourceQueue,
 } from "@/types/app-ecosystem";
+import { resolveAdminAssetUrl } from "@/lib/asset-url";
 import { cn } from "@/lib/cn";
 
 const webBaseUrl = process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space";
@@ -147,10 +148,11 @@ function NativeToggle({
 // ── DATA CARDS ──
 
 function ScreenshotCard({ item }: { item: AppScreenshot }) {
+  const imageSrc = resolveAdminAssetUrl(item.image_path);
   return (
     <div className="group relative glass rounded-[2.5rem] p-4 border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-all">
       <div className="relative aspect-video rounded-2xl overflow-hidden mb-5">
-         <img src={item.image_path} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+         <img src={imageSrc} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
          <div className="absolute top-3 left-3">
             <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[9px] font-black uppercase tracking-widest text-white">{item.device_frame}</span>
          </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, PlayCircle, Send, Sun, UserRound } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, PlayCircle, Send, Sun, UserRound, Wrench } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +18,7 @@ type NavLink = { id: string; label: string; href: string };
 const dockIcons = {
   home: Home,
   work: BriefcaseBusiness,
+  services: Wrench,
   apps: MonitorPlay,
   youtube: PlayCircle,
   cv: UserRound,
@@ -117,7 +118,7 @@ export function SiteNavbar({
       />
 
       <nav className="mobile-bottom-dock" aria-label={dockLabel}>
-        {links.slice(0, 6).map((item) => {
+        {links.map((item) => {
           const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Home;
           const active =
             item.href === `/${locale}`

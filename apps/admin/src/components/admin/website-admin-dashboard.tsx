@@ -22,6 +22,7 @@ import {
   saveWebsiteServicesAction,
   uploadWebsiteMediaAction,
 } from "@/app/actions";
+import { resolveAdminAssetUrl } from "@/lib/asset-url";
 import type { WebsiteCmsData, WebsiteSetting } from "@/lib/website-cms";
 
 function setting<T>(settings: WebsiteSetting[], key: string, fallback: T): T {
@@ -232,7 +233,7 @@ export function WebsiteAdminDashboard({ data }: { data: WebsiteCmsData }) {
             <article key={item.id} className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035]">
               <div className="aspect-video bg-black/30">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.path} alt={item.alt_en || item.id} className="h-full w-full object-cover" />
+                <img src={resolveAdminAssetUrl(item.path)} alt={item.alt_en || item.id} className="h-full w-full object-cover" />
               </div>
               <div className="space-y-2 p-4">
                 <p className="truncate text-sm font-black text-white">{item.id}</p>

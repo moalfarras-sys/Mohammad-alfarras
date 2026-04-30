@@ -194,6 +194,8 @@ h3 {
 
 .command-center {
   --bar-h: 72px;
+  --sidebar-w: 292px;
+  overflow-x: hidden;
 }
 
 .command-bg {
@@ -219,19 +221,38 @@ h3 {
 
 .command-topbar {
   position: fixed;
-  inset-inline: 0;
-  top: 0;
+  inset-block: 1rem;
+  inset-inline-start: 1rem;
+  width: var(--sidebar-w);
   z-index: 50;
   display: flex;
-  min-height: calc(var(--bar-h) + env(safe-area-inset-top));
-  align-items: center;
-  justify-content: space-between;
+  min-height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: 1rem;
-  padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.64);
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025)),
+    rgba(0, 0, 0, 0.68);
+  box-shadow: 0 24px 90px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.08);
   backdrop-filter: blur(24px) saturate(1.25);
   -webkit-backdrop-filter: blur(24px) saturate(1.25);
+}
+
+.command-topbar > .hidden {
+  width: 100%;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-radius: 1.4rem;
+  background: rgba(255,255,255,0.035);
+}
+
+.command-topbar > .flex:last-child {
+  margin-top: auto;
+  justify-content: space-between;
 }
 
 .command-tab,
@@ -250,6 +271,8 @@ h3 {
   align-items: center;
   gap: 0.55rem;
   min-height: 2.75rem;
+  width: 100%;
+  justify-content: flex-start;
   border-radius: 999px;
   padding: 0 1rem;
   color: #94a3b8;
@@ -301,6 +324,28 @@ h3 {
   backdrop-filter: blur(24px) saturate(1.2);
 }
 
+.command-workspace {
+  margin-inline-start: calc(var(--sidebar-w) + 2rem);
+  max-width: calc(100vw - var(--sidebar-w) - 2rem);
+}
+
+.command-pagebar {
+  margin: 1rem auto 1.5rem;
+  display: flex;
+  max-width: 1500px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(224, 246, 255, 0.1);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025)),
+    rgba(0,0,0,0.48);
+  padding: 1rem clamp(1rem, 3vw, 1.5rem);
+  box-shadow: 0 22px 80px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(22px);
+}
+
 .command-dock-item {
   display: flex;
   min-height: 3.35rem;
@@ -342,6 +387,21 @@ h3 {
 
   .command-mobile-dock {
     display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .command-topbar {
+    display: none;
+  }
+
+  .command-workspace {
+    margin-inline-start: 0;
+    max-width: 100vw;
+  }
+
+  .command-pagebar {
+    margin-top: max(0.75rem, env(safe-area-inset-top));
   }
 }
 

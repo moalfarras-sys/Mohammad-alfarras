@@ -998,7 +998,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         </div>
         <div className="os-moplayer-visual">
           <div className="os-moplayer-glow" />
-          <div className="os-moplayer-device"><Image src="/images/moplayer-cinema-frame.webp" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" /></div>
+          <div className="os-moplayer-device"><Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" /></div>
           <div className="os-moplayer-mini"><Image src="/images/moplayer-activation-flow.webp" alt="MoPlayer activation flow" fill sizes="220px" className="fresh-image" /></div>
         </div>
       </section>
@@ -1144,7 +1144,7 @@ function WorkPage({ model }: { model: SiteViewModel }) {
         <div className="os-work-product-media">
           <Image src="/images/moplayer-release-panel.webp" alt="MoPlayer release and download product visual" fill sizes="(max-width: 900px) 100vw, 45vw" className="fresh-image" loading="eager" />
           <div>
-            <Image src="/images/moplayer-cinema-frame.webp" alt="MoPlayer Android TV cinematic screen" fill sizes="260px" className="fresh-image" loading="eager" />
+            <Image src="/images/moplayer_ui_now_playing-final.png" alt="MoPlayer Android TV cinematic screen" fill sizes="260px" className="fresh-image" loading="eager" />
           </div>
         </div>
       </section>

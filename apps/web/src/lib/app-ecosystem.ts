@@ -17,9 +17,9 @@ import type {
 
 const now = new Date().toISOString();
 const moplayerDownloadBase =
-  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/main/android/moplayer/releases/v1-full";
+  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/main/android/moplayer/releases/v2-full";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/app-sideload-universal-v1-full.apk`,
+  universal: `${moplayerDownloadBase}/app-sideload-universal-v2-full.apk`,
 };
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
@@ -96,7 +96,7 @@ const fallbackProduct: AppProduct = {
   compatibility_notes: [
     "Android 7.0+ (API 24 and above)",
     "Positioned for Android TV and remote-based navigation",
-    "Recommended TV download is the V1 full universal APK for Android 7.0+ TV devices",
+    "Recommended TV download is the v2 full universal APK for Android 7.0+ TV devices",
   ],
   legal_notes: [
     "MoPlayer is a playback interface. It does not provide channels, playlists, or copyrighted media.",
@@ -179,13 +179,13 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-v1-full",
+    id: "release-v2-full",
     product_slug: "moplayer",
-    slug: "moplayer-v1-full",
-    version_name: "V1 full",
-    version_code: 3,
+    slug: "moplayer-v2-full",
+    version_name: "v2 full",
+    version_code: 4,
     release_notes:
-      "V1 full release for wider Android TV compatibility. Includes non-required hardware feature declarations for older TVs, reduced startup visuals for weak devices, and refreshed MoPlayer TV banner/icon/splash assets.",
+      "v2 full release for better Android TV settings control. Fixes DPAD access across Settings, makes accent colors and backgrounds apply clearly, improves server/player/parental controls, and keeps the universal Android 7+ TV APK path.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -193,8 +193,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-v1-full-universal",
-        release_id: "release-v1-full",
+        id: "asset-v2-full-universal",
+        release_id: "release-v2-full",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -202,8 +202,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 92262973,
-        checksum_sha256: "8e53fb6574ce3ddb70d5b96db463ae26c116e2737401b51ff0c85597c483257e",
+        file_size_bytes: 92263305,
+        checksum_sha256: "4cefd3dbf85d82ae838e2dbeb9810da358b21ecc166a7a35e18a3c1b237e2fb2",
         is_primary: true,
         created_at: now,
       },

@@ -167,6 +167,8 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
         }
     }
 
+    fun getAccentOption(accentId: AccentId): AccentOption? = ACCENT_OPTIONS[accentId]
+
     fun getThemeDisplayName(themeId: AppThemeId): String = THEMES.getValue(themeId).displayName
 
     fun getFocusGlowColor(alpha: Int = 100): Int {

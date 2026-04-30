@@ -840,12 +840,12 @@
 
                     </LinearLayout>
 
-                    <!-- Particle Color Section -->
+                    <!-- App Accent Color Section -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xl"
-                        android:text="Particle Color"
+                        android:text="App Accent Color"
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -854,7 +854,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xs"
-                        android:text="Choose accent color for animated particles"
+                        android:text="Changes buttons, focus rings, cards, badges, dock icons, and background accents"
                         android:textColor="@color/htc_text_tertiary"
                         android:textSize="13sp" />
 
@@ -1204,7 +1204,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:checked="true"
-                            android:focusable="true" />
+                            android:clickable="false"
+                            android:focusable="false" />
 
                     </LinearLayout>
 
@@ -1228,6 +1229,7 @@
 
                     <!-- Weather Enable/Disable Switch -->
                     <LinearLayout
+                        android:id="@+id/optionWeatherEnabled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
@@ -1236,7 +1238,8 @@
                         android:orientation="horizontal"
                         android:padding="@dimen/spacing_lg"
                         android:focusable="true"
-                        android:nextFocusUp="@id/optionFootballWidget">
+                        android:nextFocusUp="@id/optionFootballWidget"
+                        android:nextFocusDown="@id/optionWeatherEffectsQuality">
 
                         <TextView
                             android:layout_width="0dp"
@@ -1251,12 +1254,14 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:checked="true"
-                            android:focusable="true" />
+                            android:clickable="false"
+                            android:focusable="false" />
 
                     </LinearLayout>
 
                     <!-- Weather Effects Quality -->
                     <LinearLayout
+                        android:id="@+id/optionWeatherEffectsQuality"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
@@ -1264,7 +1269,9 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="@dimen/spacing_lg"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:nextFocusUp="@id/optionWeatherEnabled"
+                        android:nextFocusDown="@id/optionWeatherReduceMotion">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -1300,6 +1307,7 @@
 
                     <!-- Reduce Motion -->
                     <LinearLayout
+                        android:id="@+id/optionWeatherReduceMotion"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
@@ -1307,7 +1315,9 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="@dimen/spacing_lg"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:nextFocusUp="@id/optionWeatherEffectsQuality"
+                        android:nextFocusDown="@id/optionWeatherDisableLightning">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -1342,6 +1352,7 @@
 
                     <!-- Disable Lightning Flash -->
                     <LinearLayout
+                        android:id="@+id/optionWeatherDisableLightning"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
@@ -1349,7 +1360,9 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="@dimen/spacing_lg"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:nextFocusUp="@id/optionWeatherReduceMotion"
+                        android:nextFocusDown="@id/optionDetectedLocation">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -1384,13 +1397,17 @@
 
                     <!-- Current Location Display -->
                     <LinearLayout
+                        android:id="@+id/optionDetectedLocation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg">
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusUp="@id/optionWeatherDisableLightning"
+                        android:nextFocusDown="@id/btnRefreshWeatherLocation">
 
                         <LinearLayout
                             android:layout_width="0dp"

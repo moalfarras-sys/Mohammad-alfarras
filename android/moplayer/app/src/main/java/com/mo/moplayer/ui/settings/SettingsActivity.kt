@@ -1,7 +1,9 @@
 package com.mo.moplayer.ui.settings
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.format.DateUtils
 import android.util.Log
@@ -36,6 +38,7 @@ import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import com.mo.moplayer.ui.common.utils.FocusMapRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -82,6 +85,7 @@ class SettingsActivity : BaseTvActivity() {
     private var lastPanelFocusId = mutableMapOf<SettingsPanel, Int>()
     private val panelRoots: MutableMap<SettingsPanel, View> = mutableMapOf()
     private var serverRefreshInFlight = false
+    private val accentChipViews = mutableMapOf<View, Pair<ThemeManager.AppThemeId, ThemeManager.AccentId>>()
 
     private enum class SettingsPanel {
         SERVER, PLAYER, PARENTAL, INTERFACE, ABOUT
@@ -101,6 +105,7 @@ class SettingsActivity : BaseTvActivity() {
         setupPinDialog()
         setupPanelRegistry()
         setupCategoryRailFocus()
+        setupSettingsInteractionPolish()
         observeViewModel()
 
         // Show server panel by default
@@ -279,6 +284,9 @@ class SettingsActivity : BaseTvActivity() {
             showPlaybackProfileDialog()
         }
 
+        binding.optionHardwareAccel.setOnClickListener {
+            binding.switchHardwareAccel.toggle()
+        }
         binding.switchHardwareAccel.setOnCheckedChangeListener { _, isChecked ->
             lifecycleScope.launch {
                 playerPreferences.setHardwareAcceleration(isChecked)
@@ -472,6 +480,10 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun setupParentalPanel() {
+        binding.optionParentalEnabled.setOnClickListener {
+            binding.switchParentalEnabled.toggle()
+        }
+
         binding.switchParentalEnabled.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 showPinDialog(PinAction.ENABLE)
@@ -482,6 +494,10 @@ class SettingsActivity : BaseTvActivity() {
 
         binding.optionSetPin.setOnClickListener {
             showPinDialog(PinAction.CHANGE)
+        }
+
+        binding.optionLockAdult.setOnClickListener {
+            binding.switchLockAdult.toggle()
         }
 
         binding.switchLockAdult.setOnCheckedChangeListener { _, isChecked ->
@@ -499,17 +515,7 @@ class SettingsActivity : BaseTvActivity() {
 
     private fun setupInterfacePanel() {
         binding.optionBackground.setOnClickListener {
-            // Cycle through themes
-            lifecycleScope.launch {
-                val currentTheme = backgroundManager.currentTheme.first()
-                val themes = backgroundManager.getAvailableThemes()
-                val currentIndex = themes.indexOfFirst { it.first == currentTheme }
-                val nextIndex = (currentIndex + 1) % themes.size
-                val nextTheme = themes[nextIndex]
-
-                backgroundManager.setTheme(nextTheme.first)
-                binding.tvBackgroundValue.text = nextTheme.second
-            }
+            showBackgroundThemeDialog()
         }
 
         // Load current theme
@@ -617,6 +623,9 @@ class SettingsActivity : BaseTvActivity() {
             val enabled = footballService.footballWidgetEnabled.first()
             binding.switchFootballWidgetEnabled.isChecked = enabled
         }
+        binding.optionFootballWidget.setOnClickListener {
+            binding.switchFootballWidgetEnabled.toggle()
+        }
         binding.switchFootballWidgetEnabled.setOnCheckedChangeListener { _, isChecked ->
             lifecycleScope.launch {
                 footballService.setFootballWidgetEnabled(isChecked)
@@ -675,11 +684,22 @@ class SettingsActivity : BaseTvActivity() {
             }
         }
 
+        binding.optionWeatherEnabled.setOnClickListener {
+            binding.switchWeatherEnabled.toggle()
+        }
+
+        binding.optionWeatherEffectsQuality.setOnClickListener {
+            binding.spinnerWeatherEffectsQuality.performClick()
+        }
+
         // Reduce motion switch
         binding.switchWeatherReduceMotion.setOnCheckedChangeListener { _, isChecked ->
             lifecycleScope.launch {
                 weatherService.setWeatherReduceMotion(isChecked)
             }
+        }
+        binding.optionWeatherReduceMotion.setOnClickListener {
+            binding.switchWeatherReduceMotion.toggle()
         }
 
         // Disable lightning switch
@@ -688,11 +708,56 @@ class SettingsActivity : BaseTvActivity() {
                 weatherService.setWeatherDisableLightning(isChecked)
             }
         }
+        binding.optionWeatherDisableLightning.setOnClickListener {
+            binding.switchWeatherDisableLightning.toggle()
+        }
+
+        binding.optionDetectedLocation.setOnClickListener {
+            refreshWeatherAndLocation()
+        }
         
         // Refresh location button
         binding.btnRefreshWeatherLocation.setOnClickListener {
             refreshWeatherAndLocation()
         }
+    }
+
+    private fun showBackgroundThemeDialog() {
+        val themes = backgroundManager.getAvailableThemes()
+        lifecycleScope.launch {
+            val currentTheme = backgroundManager.currentTheme.first()
+            val currentIndex = themes.indexOfFirst { it.first == currentTheme }.coerceAtLeast(0)
+            val labels = themes.map { it.second }.toTypedArray()
+
+            val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
+                .setTitle(R.string.settings_ui_background)
+                .setSingleChoiceItems(labels, currentIndex) { d, which ->
+                    lifecycleScope.launch {
+                        val selected = themes[which]
+                        backgroundManager.setTheme(selected.first)
+                        binding.tvBackgroundValue.text = selected.second
+                        applyBackgroundSelectionImmediately(selected.first)
+                    }
+                    d.dismiss()
+                }
+                .setNegativeButton(R.string.cancel) { d, _ -> d.dismiss() }
+                .create()
+            dialog.setOnShowListener { applyDialogListFocusStyle(dialog) }
+            dialog.show()
+        }
+    }
+
+    private fun applyBackgroundSelectionImmediately(theme: Int) {
+        val background = binding.animatedBackground
+        if (theme == BackgroundManager.THEME_CUSTOM_IMAGE && backgroundManager.hasCustomImage()) {
+            background.loadCustomImageFromFile(backgroundManager.getCustomImageFile().absolutePath)
+        } else {
+            background.setCustomImage(null)
+            background.setCurrentTheme(theme)
+        }
+        val enabled = binding.switchAnimationEnabled.isChecked
+        background.setAnimationEnabled(enabled)
+        if (enabled) background.resumeAnimation() else background.pauseAnimation()
     }
 
     private fun showWeatherDebugDialog() {
@@ -954,17 +1019,29 @@ class SettingsActivity : BaseTvActivity() {
             binding.colorChipBlue to Pair(ThemeManager.AppThemeId.LIQUID_BLUE, ThemeManager.AccentId.BLUE),
             binding.colorChipWhite to Pair(ThemeManager.AppThemeId.LIQUID_BLUE, ThemeManager.AccentId.WHITE)
         )
+        accentChipViews.clear()
+        accentChipViews.putAll(colorChips)
 
         colorChips.forEach { (chip, selection) ->
+            chip.isClickable = true
+            chip.isFocusable = true
+            chip.setOnFocusChangeListener { view, hasFocus ->
+                updateAccentChipVisual(view, selection.second, hasFocus)
+            }
             chip.setOnClickListener {
                 applyThemeColor(selection.first, selection.second)
             }
         }
+        FocusMapRegistry.mapHorizontalStrip(colorChips.keys.toList(), wrap = false, upTarget = binding.optionAnimationToggle, downTarget = binding.etCustomImageUrl)
         
-        // Load current selected color - displayed in background value
         lifecycleScope.launch {
-            themeManager.currentThemeName.collect { _ ->
-                // Theme name updated - UI reflects in animated background
+            themeManager.currentAccentId.collect { selectedAccent ->
+                updateAllAccentChipVisuals(selectedAccent)
+            }
+        }
+        lifecycleScope.launch {
+            themeManager.currentAccentColor.collect { color ->
+                applyThemeToViews(color)
             }
         }
     }
@@ -981,6 +1058,7 @@ class SettingsActivity : BaseTvActivity() {
             binding.animatedBackground.setParticleColor(accentColor)
             binding.animatedBackground.setGlowColor(glowColor)
             applyThemeToViews(accentColor)
+            updateAllAccentChipVisuals(accentId)
              
             val themeName = themeManager.getThemeDisplayName(themeId)
             Toast.makeText(
@@ -1104,7 +1182,8 @@ class SettingsActivity : BaseTvActivity() {
             lifecycleScope.launch {
                 backgroundManager.clearCustomImage()
                 binding.etCustomImageUrl.text?.clear()
-                binding.tvBackgroundValue.text = backgroundManager.getThemeName(BackgroundManager.THEME_STARFIELD)
+                binding.tvBackgroundValue.text = backgroundManager.getThemeName(BackgroundManager.THEME_SOLID)
+                applyBackgroundSelectionImmediately(BackgroundManager.THEME_SOLID)
                 Toast.makeText(this@SettingsActivity, getString(R.string.settings_image_cleared), Toast.LENGTH_SHORT).show()
             }
         }
@@ -1230,7 +1309,7 @@ class SettingsActivity : BaseTvActivity() {
         }
 
         binding.pinDialogOverlay.visibility = View.VISIBLE
-        binding.etPin.requestFocus()
+        binding.pinDialogOverlay.post { binding.etPin.requestFocus() }
     }
 
     private fun hidePinDialog() {
@@ -1336,7 +1415,7 @@ class SettingsActivity : BaseTvActivity() {
         val firstFocusable = when (panel) {
             SettingsPanel.SERVER -> binding.btnRefreshServer
             SettingsPanel.PLAYER -> binding.optionPlayerSelection
-            SettingsPanel.PARENTAL -> binding.switchParentalEnabled
+            SettingsPanel.PARENTAL -> binding.optionParentalEnabled
             SettingsPanel.INTERFACE -> binding.optionBackground
             SettingsPanel.ABOUT -> binding.btnWhatsApp
         }
@@ -1352,6 +1431,23 @@ class SettingsActivity : BaseTvActivity() {
         if (focusables.isEmpty()) return
 
         FocusMapRegistry.mapVerticalChain(focusables, leftTarget = binding.rvCategories)
+        if (panel == SettingsPanel.INTERFACE) {
+            FocusMapRegistry.mapHorizontalStrip(
+                listOf(
+                    binding.colorChipGreen,
+                    binding.colorChipCyan,
+                    binding.colorChipPurple,
+                    binding.colorChipOrange,
+                    binding.colorChipGold,
+                    binding.colorChipPink,
+                    binding.colorChipBlue,
+                    binding.colorChipWhite
+                ),
+                wrap = false,
+                upTarget = binding.optionAnimationToggle,
+                downTarget = binding.etCustomImageUrl
+            )
+        }
 
         // Keep right navigation inside content area unless explicit next-focus exists.
         focusables.forEach { view ->
@@ -1367,7 +1463,7 @@ class SettingsActivity : BaseTvActivity() {
         return when (panel) {
             SettingsPanel.SERVER -> binding.btnRefreshServer
             SettingsPanel.PLAYER -> binding.optionPlayerSelection
-            SettingsPanel.PARENTAL -> binding.switchParentalEnabled
+            SettingsPanel.PARENTAL -> binding.optionParentalEnabled
             SettingsPanel.INTERFACE -> binding.optionBackground
             SettingsPanel.ABOUT -> binding.btnWhatsApp
         }
@@ -1389,7 +1485,27 @@ class SettingsActivity : BaseTvActivity() {
         }
 
         walk(root)
-        return result.sortedWith(compareBy<View> { it.top }.thenBy { it.left })
+        return result.sortedWith(compareBy<View> { getAbsoluteTop(it) }.thenBy { getAbsoluteLeft(it) })
+    }
+
+    private fun getAbsoluteTop(view: View): Int {
+        var top = view.top
+        var parent = view.parent
+        while (parent is View) {
+            top += parent.top
+            parent = parent.parent
+        }
+        return top
+    }
+
+    private fun getAbsoluteLeft(view: View): Int {
+        var left = view.left
+        var parent = view.parent
+        while (parent is View) {
+            left += parent.left
+            parent = parent.parent
+        }
+        return left
     }
 
     private fun observeViewModel() {
@@ -1552,7 +1668,17 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     override fun handleTvKeyEvent(keyCode: Int, event: KeyEvent?): Boolean {
+        if (event?.action != KeyEvent.ACTION_DOWN) return false
         when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (currentFocus == null) {
+                    restorePanelFocus(currentPanel, getCurrentPanelView())
+                    return true
+                }
+            }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 return handleLeftKey()
             }
@@ -1636,6 +1762,105 @@ class SettingsActivity : BaseTvActivity() {
     private fun getCurrentPanelView(): View {
         return panelRoots[currentPanel] ?: binding.panelServer
     }
+
+    private fun setupSettingsInteractionPolish() {
+        makeSwitchRowsRemoteFriendly(binding.root)
+        markPrimaryButtonsDynamic()
+    }
+
+    private fun makeSwitchRowsRemoteFriendly(root: View) {
+        if (root is SwitchCompat) {
+            root.isFocusable = false
+            root.isFocusableInTouchMode = false
+            root.isClickable = false
+        }
+        if (root is ViewGroup) {
+            for (i in 0 until root.childCount) makeSwitchRowsRemoteFriendly(root.getChildAt(i))
+        }
+    }
+
+    private fun markPrimaryButtonsDynamic() {
+        listOf(
+            binding.btnRefreshServer,
+            binding.btnAddServer,
+            binding.btnApplyImage,
+            binding.btnChooseLocalImage,
+            binding.btnRefreshWeatherLocation,
+            binding.btnPinConfirm
+        ).forEach { it.tag = "dynamic_button" }
+        applyThemeToViews(themeManager.currentAccentColor.value)
+    }
+
+    override fun applyThemeToViews(color: Int) {
+        super.applyThemeToViews(color)
+        val tint = ColorStateList.valueOf(color)
+        val softTint = ColorStateList.valueOf(withAlpha(color, 62))
+
+        listOf(
+            binding.tvServerType,
+            binding.tvServerExpiry,
+            binding.tvWeatherStatus
+        ).forEach { it.setTextColor(color) }
+
+        listOf(
+            binding.switchAnimationEnabled,
+            binding.switchAutoCityWallpaper,
+            binding.switchFootballWidgetEnabled,
+            binding.switchWeatherEnabled,
+            binding.switchWeatherReduceMotion,
+            binding.switchWeatherDisableLightning,
+            binding.switchHardwareAccel,
+            binding.switchLivePreview,
+            binding.switchPipMode,
+            binding.switchParentalEnabled,
+            binding.switchLockAdult
+        ).forEach { switch ->
+            switch.thumbTintList = tint
+            switch.trackTintList = softTint
+        }
+
+        binding.spinnerWeatherEffectsQuality.backgroundTintList = tint
+        updateAllAccentChipVisuals(themeManager.currentAccentId.value)
+    }
+
+    private fun updateAllAccentChipVisuals(selectedAccent: ThemeManager.AccentId) {
+        accentChipViews.forEach { (view, selection) ->
+            updateAccentChipVisual(view, selection.second, view.hasFocus(), selection.second == selectedAccent)
+        }
+    }
+
+    private fun updateAccentChipVisual(
+        view: View,
+        accentId: ThemeManager.AccentId,
+        hasFocus: Boolean,
+        isSelected: Boolean = accentId == themeManager.currentAccentId.value
+    ) {
+        val option = themeManager.getAccentOption(accentId) ?: return
+        view.background = createAccentChipDrawable(option.color, hasFocus, isSelected)
+        view.scaleX = if (hasFocus || isSelected) 1.12f else 1f
+        view.scaleY = if (hasFocus || isSelected) 1.12f else 1f
+    }
+
+    private fun createAccentChipDrawable(color: Int, hasFocus: Boolean, isSelected: Boolean): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+            val strokeWidth = when {
+                hasFocus -> 4
+                isSelected -> 3
+                else -> 2
+            }
+            val strokeColor = when {
+                hasFocus -> Color.WHITE
+                isSelected -> themeManager.currentAccentColor.value
+                else -> Color.argb(86, 255, 255, 255)
+            }
+            setStroke(strokeWidth, strokeColor)
+        }
+    }
+
+    private fun withAlpha(color: Int, alpha: Int): Int =
+        Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color))
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

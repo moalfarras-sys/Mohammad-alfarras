@@ -20,6 +20,11 @@ import type {
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
+const moplayerDownloadBase =
+  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/main/android/moplayer/releases/v1-full";
+const moplayerDownloadUrls = {
+  universal: `${moplayerDownloadBase}/app-sideload-universal-v1-full.apk`,
+};
 const localSettings = new Map<string, unknown>();
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
@@ -181,8 +186,8 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   enabled: true,
   maintenanceMode: false,
   forceUpdate: false,
-  minimumVersionCode: 2,
-  latestVersionName: "2.0.0",
+  minimumVersionCode: 3,
+  latestVersionName: "V1 full",
   message: "",
   accentColor: "#00e5ff",
   logoUrl: "/images/moplayer-icon-512.png",
@@ -194,62 +199,32 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-v2-0-0",
+    id: "release-v1-full",
     product_slug: "moplayer",
-    slug: "moplayer-v2.0.0",
-    version_name: "2.0.0",
-    version_code: 2,
+    slug: "moplayer-v1-full",
+    version_name: "V1 full",
+    version_code: 3,
     release_notes:
-      "First production-ready MoPlayer release under the unified brand surface.\nIncludes Android TV-first navigation, cleaner playback flow, and release packaging updates.",
-    compatibility_notes: "Recommended universal TV APK. Advanced arm64-v8a and armeabi-v7a builds are also available.",
+      "V1 full release for wider Android TV compatibility. Includes non-required hardware feature declarations for older TVs, reduced startup visuals for weak devices, and refreshed MoPlayer TV banner/icon/splash assets.",
+    compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
     created_at: now,
     updated_at: now,
     assets: [
       {
-        id: "asset-v2-universal",
-        release_id: "release-v2-0-0",
+        id: "asset-v1-full-universal",
+        release_id: "release-v1-full",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
         storage_bucket: null,
         storage_path: null,
-        external_url: "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/424734607f7508cf51c1ec72be193dc3bd7556f8/apps/web/public/downloads/moplayer/app-sideload-universal-release.apk",
+        external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 91705192,
-        checksum_sha256: "c5db743097b0fb8d2412ed37ad8b55f5045e9d01a35278b284b7581bfcef74e8",
+        file_size_bytes: 92262973,
+        checksum_sha256: "8e53fb6574ce3ddb70d5b96db463ae26c116e2737401b51ff0c85597c483257e",
         is_primary: true,
-        created_at: now,
-      },
-      {
-        id: "asset-v2-arm64",
-        release_id: "release-v2-0-0",
-        asset_type: "apk",
-        label: "arm64-v8a advanced APK",
-        abi: "arm64-v8a",
-        storage_bucket: null,
-        storage_path: null,
-        external_url: "/downloads/moplayer/app-sideload-arm64-v8a-release.apk",
-        mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52420501,
-        checksum_sha256: "b06d9465f5d651169aabfb212eab261053ad70ae84db57c941976bb20d7591f1",
-        is_primary: false,
-        created_at: now,
-      },
-      {
-        id: "asset-v2-armv7",
-        release_id: "release-v2-0-0",
-        asset_type: "apk",
-        label: "armeabi-v7a advanced APK",
-        abi: "armeabi-v7a",
-        storage_bucket: null,
-        storage_path: null,
-        external_url: "/downloads/moplayer/app-sideload-armeabi-v7a-release.apk",
-        mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 48369205,
-        checksum_sha256: "ccdef1e3a08a137393f42bd5c401b99d4262f0b6ddf3bf98f92edb25c91c04be",
-        is_primary: false,
         created_at: now,
       },
     ],
@@ -310,6 +285,7 @@ function normalizeProduct(row: Partial<AppProduct> | null | undefined): AppProdu
 }
 
 function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
+  const rawExternalUrl = row.external_url ? String(row.external_url) : null;
   return {
     id: String(row.id),
     release_id: String(row.release_id),
@@ -318,13 +294,19 @@ function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
     abi: row.abi ? String(row.abi) : null,
     storage_bucket: row.storage_bucket ? String(row.storage_bucket) : null,
     storage_path: row.storage_path ? String(row.storage_path) : null,
-    external_url: row.external_url ? String(row.external_url) : null,
+    external_url: normalizeReleaseAssetUrl(rawExternalUrl),
     mime_type: String(row.mime_type ?? "application/vnd.android.package-archive"),
     file_size_bytes: typeof row.file_size_bytes === "number" ? row.file_size_bytes : Number(row.file_size_bytes ?? 0) || null,
     checksum_sha256: row.checksum_sha256 ? String(row.checksum_sha256) : null,
     is_primary: Boolean(row.is_primary),
     created_at: String(row.created_at ?? now),
   };
+}
+
+function normalizeReleaseAssetUrl(url: string | null) {
+  if (!url) return null;
+  if (url.startsWith("/downloads/moplayer/")) return moplayerDownloadUrls.universal;
+  return url;
 }
 
 function normalizeRelease(row: Record<string, unknown>, assets: AppReleaseAsset[]): AppRelease {

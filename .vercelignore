@@ -13,4 +13,5 @@ keystore.properties
 .supabase/
 android/moplayer/build/
 android/moplayer/build-output/
+android/moplayer/releases/
 android/moplayer/.gradle/

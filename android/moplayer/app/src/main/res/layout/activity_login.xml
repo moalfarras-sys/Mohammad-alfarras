@@ -28,7 +28,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/tv_banner_image" />
+        tools:src="@drawable/moplayer_tv_hero_v1_full" />
 
     <View
         android:id="@+id/viewLoginWallpaperScrim"

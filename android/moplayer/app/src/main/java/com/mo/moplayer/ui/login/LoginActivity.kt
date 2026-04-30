@@ -3,6 +3,7 @@ package com.mo.moplayer.ui.login
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.app.UiModeManager
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -344,14 +345,16 @@ class LoginActivity : AppCompatActivity() {
             }.collect { (enabled, quality, reduceMotion, disableLightning, weatherData) ->
                 val weatherVisible = enabled && remoteWeatherEnabled
                 binding.weatherWidget.visibility = if (weatherVisible) android.view.View.VISIBLE else android.view.View.GONE
+                val reducedVisuals = shouldUseReducedLoginVisuals()
                 binding.weatherOverlay.visibility = when {
+                    reducedVisuals -> android.view.View.GONE
                     !weatherVisible -> android.view.View.GONE
                     quality == WeatherService.EFFECT_QUALITY_OFF -> android.view.View.GONE
                     else -> android.view.View.VISIBLE
                 }
                 (binding.weatherOverlay as FullScreenWeatherOverlay).setEffectSettings(
-                    quality = quality,
-                    reduceMotion = reduceMotion,
+                    quality = if (reducedVisuals) WeatherService.EFFECT_QUALITY_OFF else quality,
+                    reduceMotion = reducedVisuals || reduceMotion,
                     disableLightning = disableLightning
                 )
                 weatherData?.let { data: WeatherService.WeatherData ->
@@ -1367,6 +1370,11 @@ class LoginActivity : AppCompatActivity() {
         return uiModeManager.currentModeType == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION
     }
 
+    private fun shouldUseReducedLoginVisuals(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        return isTvDevice() || activityManager?.isLowRamDevice == true || CrashGuard.shouldUseSafeMode(this)
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -1383,8 +1391,15 @@ class LoginActivity : AppCompatActivity() {
         applySavedActivationState()
         ensureInitialTvFocus()
         startWebsiteSourcePollingIfActivated()
-        binding.htcAnimatedBackground.resumeAnimation()
-        binding.weatherOverlay.startAnimation()
+        if (shouldUseReducedLoginVisuals()) {
+            binding.htcAnimatedBackground.pauseAnimation()
+            binding.htcAnimatedBackground.setAnimationEnabled(false)
+            binding.weatherOverlay.visibility = View.GONE
+            binding.weatherOverlay.pauseAnimation()
+        } else {
+            binding.htcAnimatedBackground.resumeAnimation()
+            binding.weatherOverlay.startAnimation()
+        }
         
         // Check clipboard for auto-login credentials
         checkClipboardForCredentials()

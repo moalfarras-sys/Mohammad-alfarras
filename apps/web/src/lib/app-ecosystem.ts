@@ -17,11 +17,9 @@ import type {
 
 const now = new Date().toISOString();
 const moplayerDownloadBase =
-  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/4babeb83ca92b84e4c8cda3cbf47d35ae381136a/apps/web/public/downloads/moplayer";
+  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/main/android/moplayer/releases/v1-full";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/app-sideload-universal-release.apk`,
-  arm64: `${moplayerDownloadBase}/app-sideload-arm64-v8a-release.apk`,
-  armv7: `${moplayerDownloadBase}/app-sideload-armeabi-v7a-release.apk`,
+  universal: `${moplayerDownloadBase}/app-sideload-universal-v1-full.apk`,
 };
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
@@ -98,7 +96,7 @@ const fallbackProduct: AppProduct = {
   compatibility_notes: [
     "Android 7.0+ (API 24 and above)",
     "Positioned for Android TV and remote-based navigation",
-    "Recommended TV download is the universal APK; ABI-specific builds are available for advanced installs",
+    "Recommended TV download is the V1 full universal APK for Android 7.0+ TV devices",
   ],
   legal_notes: [
     "MoPlayer is a playback interface. It does not provide channels, playlists, or copyrighted media.",
@@ -181,22 +179,22 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-v2-0-0",
+    id: "release-v1-full",
     product_slug: "moplayer",
-    slug: "moplayer-v2.0.0",
-    version_name: "2.0.0",
-    version_code: 2,
+    slug: "moplayer-v1-full",
+    version_name: "V1 full",
+    version_code: 3,
     release_notes:
-      "First production-ready MoPlayer release under the unified brand surface.\nIncludes Android TV-first navigation, cleaner playback flow, and release packaging updates.",
-    compatibility_notes: "Recommended universal TV APK. Advanced arm64-v8a and armeabi-v7a builds are also available.",
+      "V1 full release for wider Android TV compatibility. Includes non-required hardware feature declarations for older TVs, reduced startup visuals for weak devices, and refreshed MoPlayer TV banner/icon/splash assets.",
+    compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
     created_at: now,
     updated_at: now,
     assets: [
       {
-        id: "asset-v2-universal",
-        release_id: "release-v2-0-0",
+        id: "asset-v1-full-universal",
+        release_id: "release-v1-full",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -204,39 +202,9 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 91037540,
-        checksum_sha256: "ec967890d364b436af3705ce61518d267fe838cf9df77bb16a71bf7d0f74a9c8",
+        file_size_bytes: 92262973,
+        checksum_sha256: "8e53fb6574ce3ddb70d5b96db463ae26c116e2737401b51ff0c85597c483257e",
         is_primary: true,
-        created_at: now,
-      },
-      {
-        id: "asset-v2-arm64",
-        release_id: "release-v2-0-0",
-        asset_type: "apk",
-        label: "arm64-v8a advanced APK",
-        abi: "arm64-v8a",
-        storage_bucket: null,
-        storage_path: null,
-        external_url: moplayerDownloadUrls.arm64,
-        mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 51752849,
-        checksum_sha256: "df5308c0d71e7ad3faa9ac2e39aa6b0c68515ddae7195769d21ef6e419a34d48",
-        is_primary: false,
-        created_at: now,
-      },
-      {
-        id: "asset-v2-armv7",
-        release_id: "release-v2-0-0",
-        asset_type: "apk",
-        label: "armeabi-v7a advanced APK",
-        abi: "armeabi-v7a",
-        storage_bucket: null,
-        storage_path: null,
-        external_url: moplayerDownloadUrls.armv7,
-        mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 47701553,
-        checksum_sha256: "064935e22a03d600b219f9829ec85ddcb5d81a45351d76272d3f96e33750c9ee",
-        is_primary: false,
         created_at: now,
       },
     ],
@@ -270,7 +238,7 @@ function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
     abi: row.abi ? String(row.abi) : null,
     storage_bucket: row.storage_bucket ? String(row.storage_bucket) : null,
     storage_path: row.storage_path ? String(row.storage_path) : null,
-    external_url: normalizeReleaseAssetUrl(rawExternalUrl, row.abi ? String(row.abi) : null),
+    external_url: normalizeReleaseAssetUrl(rawExternalUrl),
     mime_type: String(row.mime_type ?? "application/vnd.android.package-archive"),
     file_size_bytes: typeof row.file_size_bytes === "number" ? row.file_size_bytes : Number(row.file_size_bytes ?? 0) || null,
     checksum_sha256: row.checksum_sha256 ? String(row.checksum_sha256) : null,
@@ -279,11 +247,9 @@ function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
   };
 }
 
-function normalizeReleaseAssetUrl(url: string | null, abi: string | null) {
+function normalizeReleaseAssetUrl(url: string | null) {
   if (!url) return null;
   if (url.startsWith("/downloads/moplayer/")) {
-    if (abi === "arm64-v8a") return moplayerDownloadUrls.arm64;
-    if (abi === "armeabi-v7a") return moplayerDownloadUrls.armv7;
     return moplayerDownloadUrls.universal;
   }
   return url;

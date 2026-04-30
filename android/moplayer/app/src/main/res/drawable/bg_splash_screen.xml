@@ -39,8 +39,8 @@
 
     <item
         android:gravity="center"
-        android:width="200dp"
-        android:height="160dp"
-        android:drawable="@drawable/logo" />
+        android:width="260dp"
+        android:height="260dp"
+        android:drawable="@drawable/moplayer_logo_transparent_v1_full" />
 
 </layer-list>

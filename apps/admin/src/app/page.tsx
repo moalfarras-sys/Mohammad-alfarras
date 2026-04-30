@@ -4,6 +4,7 @@ import { AdminOS } from "@/components/admin/admin-os";
 import { AppAdminLogin } from "@/components/admin/app-admin-login";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { readAdminAppData } from "@/lib/app-ecosystem";
+import { readWebsiteCmsData } from "@/lib/website-cms";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -36,7 +37,7 @@ export default async function AdminPage({
     );
   }
 
-  const data = await readAdminAppData("moplayer");
+  const [data, website] = await Promise.all([readAdminAppData("moplayer"), readWebsiteCmsData()]);
 
   return (
     <main className="admin-shell min-h-screen">
@@ -54,6 +55,7 @@ export default async function AdminPage({
         licenses={data.licenses}
         providerSources={data.providerSources}
         runtimeConfig={data.runtimeConfig}
+        website={website}
       />
     </main>
   );

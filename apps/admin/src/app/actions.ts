@@ -17,6 +17,7 @@ import {
   uploadAppScreenshot,
   uploadReleaseAsset,
 } from "@/lib/app-ecosystem";
+import { deleteWebsiteProject, mergeSiteSetting, saveWebsiteProject, uploadWebsiteMedia } from "@/lib/website-cms";
 
 function revalidateAppSurface() {
   revalidatePath("/");
@@ -247,4 +248,101 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   });
   revalidateAppSurface();
   redirect("/?updated=runtime_config");
+}
+
+export async function saveWebsiteHeroAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const value = {
+    ar: {
+      hero: {
+        title: String(formData.get("hero_ar_headline") ?? "").trim(),
+        body: String(formData.get("hero_ar_subheadline") ?? "").trim(),
+        primary: String(formData.get("hero_ar_primary_cta") ?? "ابدأ مشروعك").trim(),
+        secondary: String(formData.get("hero_ar_secondary_cta") ?? "شاهد الأعمال").trim(),
+      },
+    },
+    en: {
+      hero: {
+        title: String(formData.get("hero_en_headline") ?? "").trim(),
+        body: String(formData.get("hero_en_subheadline") ?? "").trim(),
+        primary: String(formData.get("hero_en_primary_cta") ?? "Start Project").trim(),
+        secondary: String(formData.get("hero_en_secondary_cta") ?? "See Work").trim(),
+      },
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  await mergeSiteSetting("home_content", value);
+  revalidatePath("/");
+  redirect("/?updated=website_hero");
+}
+
+export async function saveWebsiteServicesAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const value = {
+    ar: {
+      services: {
+        title: String(formData.get("services_ar_title") ?? "").trim(),
+        body: String(formData.get("services_ar_body") ?? "").trim(),
+      },
+    },
+    en: {
+      services: {
+        title: String(formData.get("services_en_title") ?? "").trim(),
+        body: String(formData.get("services_en_body") ?? "").trim(),
+      },
+    },
+    updatedAt: new Date().toISOString(),
+  };
+
+  await mergeSiteSetting("home_content", value);
+  revalidatePath("/");
+  redirect("/?updated=website_services");
+}
+
+export async function saveWebsiteProjectAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const slug = normalizeSlug(String(formData.get("slug") ?? ""));
+  const id = String(formData.get("id") ?? "").trim() || slug || crypto.randomUUID();
+  if (!slug) throw new Error("Project slug is required.");
+
+  await saveWebsiteProject({
+    id,
+    slug,
+    is_active: formData.get("is_active") === "on",
+    sort_order: Number(formData.get("sort_order") ?? 0),
+    project_url: String(formData.get("project_url") ?? "").trim(),
+    repo_url: String(formData.get("repo_url") ?? "").trim(),
+    cover_media_id: String(formData.get("cover_media_id") ?? "").trim() || null,
+  });
+
+  revalidatePath("/");
+  redirect("/?updated=website_project");
+}
+
+export async function deleteWebsiteProjectAction(formData: FormData) {
+  await requireAdminRole("admin");
+  await deleteWebsiteProject(String(formData.get("id") ?? ""));
+  revalidatePath("/");
+  redirect("/?updated=website_project_deleted");
+}
+
+export async function uploadWebsiteMediaAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("Select an image before uploading.");
+  }
+
+  await uploadWebsiteMedia({
+    filename: file.name,
+    contentType: file.type || "image/png",
+    bytes: new Uint8Array(await file.arrayBuffer()),
+    altAr: String(formData.get("alt_ar") ?? "").trim(),
+    altEn: String(formData.get("alt_en") ?? "").trim(),
+    kind: String(formData.get("kind") ?? "general").trim() || "general",
+  });
+
+  revalidatePath("/");
+  redirect("/?updated=website_media");
 }

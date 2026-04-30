@@ -17,7 +17,7 @@ import {
   Shield,
   Layout,
   CheckCircle2,
-  Bell,
+  MessageSquare,
 } from "lucide-react";
 
 import {
@@ -461,21 +461,23 @@ export function AppAdminDashboard({
           </div>
 
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 lg:col-span-2">
-            Public links · in-app banner
+            Public links · Supabase in-app banner
           </p>
           <div className="lg:col-span-2 grid gap-6 md:grid-cols-2">
             <InputField label="Cloud Support Link" name="supportUrl" defaultValue={runtimeConfig.supportUrl} />
             <InputField label="Privacy Policy URI" name="privacyUrl" defaultValue={runtimeConfig.privacyUrl} />
+            <InputField label="App Logo URL" name="logoUrl" defaultValue={runtimeConfig.logoUrl} />
+            <InputField label="App Background URL" name="backgroundUrl" defaultValue={runtimeConfig.backgroundUrl} />
           </div>
 
           <div className="lg:col-span-2 rounded-[2rem] border border-cyan-200/10 bg-cyan-200/[0.035] p-5 md:p-6">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-200/15 bg-cyan-200/8 text-cyan-100">
-                <Bell className="h-5 w-5" />
+                <MessageSquare className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white">Broadcast / In-app Message</h3>
-                <p className="text-xs leading-6 text-slate-400">Write one clear message. It is stored in runtime config and can be displayed by MoPlayer as a global banner.</p>
+                <h3 className="text-lg font-black text-white">In-app Broadcast Message</h3>
+                <p className="text-xs leading-6 text-slate-400">Write one clear message. It is stored in Supabase runtime config and displayed by MoPlayer when the app syncs.</p>
               </div>
             </div>
             <TextAreaField label="Message to users" name="message" defaultValue={runtimeConfig.message} placeholder="Example: A new version is ready. Please update for the best experience." />

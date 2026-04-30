@@ -48,7 +48,7 @@ export const navigationItems = {
     { id: "work", label: "Work", slug: "work" },
     { id: "services", label: "Services", slug: "services" },
     { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
-    { id: "youtube", label: "Content", slug: "youtube" },
+    { id: "youtube", label: "YouTube", slug: "youtube" },
     { id: "contact", label: "Contact", slug: "contact" },
   ],
   ar: [
@@ -60,6 +60,27 @@ export const navigationItems = {
     { id: "contact", label: "تواصل", slug: "contact" },
   ],
 } satisfies Localized<Array<{ id: string; label: string; slug: string }>>;
+
+const mutableIdentity = siteIdentity as Record<string, Record<Locale, string>>;
+mutableIdentity.name.ar = "محمد الفراس";
+mutableIdentity.tagline.en = "Web | Apps | Content | Logistics";
+mutableIdentity.tagline.ar = "ويب | تطبيقات | محتوى | لوجستيات";
+mutableIdentity.shortPositioning.en =
+  "Frontend developer, UI/UX-focused builder, MoPlayer product owner, and Arabic tech creator based in Germany.";
+mutableIdentity.shortPositioning.ar =
+  "مطوّر واجهات ومصمم تجارب وباني MoPlayer وصانع محتوى تقني عربي مقيم في ألمانيا.";
+mutableIdentity.origin.ar = "من الحسكة، سوريا";
+mutableIdentity.location.ar = "مقيم في ألمانيا";
+const mutableNavigation = navigationItems as Localized<Array<{ id: string; label: string; slug: string }>>;
+mutableNavigation.en = mutableNavigation.en.map((item) => (item.id === "youtube" ? { ...item, label: "YouTube" } : item));
+mutableNavigation.ar = [
+  { id: "home", label: "الرئيسية", slug: "" },
+  { id: "work", label: "الأعمال", slug: "work" },
+  { id: "services", label: "الخدمات", slug: "services" },
+  { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
+  { id: "youtube", label: "يوتيوب", slug: "youtube" },
+  { id: "contact", label: "تواصل", slug: "contact" },
+];
 
 export const homeContent = {
   en: {

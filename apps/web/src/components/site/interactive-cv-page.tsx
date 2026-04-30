@@ -162,7 +162,7 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
   ] as const;
   const bars = [
     ["Supabase", 78],
-    ["Firebase", 72],
+    ["Postgres / APIs", 74],
     ["Tailwind", 94],
     ["Framer Motion", 82],
   ] as const;

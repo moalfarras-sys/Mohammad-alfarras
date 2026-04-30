@@ -21,6 +21,7 @@ import { logoutAdminAction } from "@/app/actions";
 import { cn } from "@/lib/cn";
 import { AppAdminDashboard } from "./app-admin-dashboard";
 import { WebsiteAdminDashboard } from "./website-admin-dashboard";
+import type { WebsiteCmsData } from "@/lib/website-cms";
 
 import type {
   ActivationRequest,
@@ -119,6 +120,7 @@ export function AdminOS({
   licenses,
   providerSources,
   runtimeConfig,
+  website,
 }: {
   adminEmail: string;
   role: string;
@@ -133,6 +135,7 @@ export function AdminOS({
   licenses: AppLicense[];
   providerSources: DeviceProviderSourceQueue[];
   runtimeConfig: AppRuntimeConfig;
+  website: WebsiteCmsData;
 }) {
   const [view, setView] = useState<View>("home");
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -233,8 +236,8 @@ export function AdminOS({
                     </p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <SystemMetric label="Fleet Devices" value={`${devices.length || 21}`} />
-                    <SystemMetric label="Active Licenses" value={`${activeLicenses || 15}`} tone="green" />
+                    <SystemMetric label="Fleet Devices" value={`${devices.length}`} />
+                    <SystemMetric label="Active Licenses" value={`${activeLicenses}`} tone="green" />
                     <SystemMetric label="Pending Codes" value={`${waitingActivations}`} tone="amber" />
                   </div>
                 </div>
@@ -280,7 +283,7 @@ export function AdminOS({
                 <button onClick={() => setView("website")} className="command-module-card command-module-card-cyan">
                   <Globe className="h-9 w-9" />
                   <span>Website CMS</span>
-                  <p>Content editor routes, media studio, CV, projects, SEO, and public site controls.</p>
+                      <p>Supabase powered content, media, messages, projects, and public site controls.</p>
                 </button>
                 <button onClick={() => setView("app")} className="command-module-card command-module-card-ice">
                   <Smartphone className="h-9 w-9" />
@@ -321,7 +324,7 @@ export function AdminOS({
 
           {view === "website" ? (
             <motion.div key="website" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }}>
-              <WebsiteAdminDashboard />
+              <WebsiteAdminDashboard data={website} />
             </motion.div>
           ) : null}
         </AnimatePresence>

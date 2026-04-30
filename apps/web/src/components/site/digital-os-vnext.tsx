@@ -1206,10 +1206,35 @@ function WorkPage({ model }: { model: SiteViewModel }) {
 
 function ServicesPage({ model }: { model: SiteViewModel }) {
   const c = t(model.locale);
+  const isAr = model.locale === "ar";
+  const steps = isAr
+    ? [
+        ["01", "نفهم الهدف", "نحدد الجمهور، العرض، والمشكلة التي يجب أن يحلها الموقع قبل رسم أي شاشة."],
+        ["02", "نبني الهيكل", "نرتب الصفحات، الرسائل، CTA، ومسار التواصل حتى يفهم الزائر الخطوة التالية."],
+        ["03", "نصمم وننفذ", "واجهة حديثة، حركة خفيفة، أداء جيد، وتجربة مناسبة للجوال والكمبيوتر."],
+        ["04", "نطلق ونحسن", "تسليم واضح، ربط النماذج والقياس، وتطوير تدريجي حسب احتياج المشروع."],
+      ]
+    : [
+        ["01", "Understand the goal", "We define the audience, offer, and core problem before drawing any screen."],
+        ["02", "Shape the structure", "Pages, messages, CTAs, and contact paths are arranged around clarity."],
+        ["03", "Design and build", "Modern interface, subtle motion, strong performance, and responsive behavior."],
+        ["04", "Launch and refine", "Clean delivery, form/analytics wiring, and iteration where the project needs it."],
+      ];
+  const outcomes = isAr
+    ? ["رسالة أوضح", "ثقة أسرع", "تجربة جوال أفضل", "مسار تواصل مباشر"]
+    : ["Clearer message", "Faster trust", "Better mobile UX", "Direct contact path"];
   return (
-    <PageShell>
-      <section className="fresh-section fresh-first">
+    <PageShell className="services-command-page">
+      <section className="fresh-section fresh-first services-hero-band">
         <SectionHeader eyebrow={c.services.eyebrow} title={c.services.title} body={c.services.body} />
+        <div className="services-proof-row">
+          {outcomes.map((item) => (
+            <span key={item}>{item}</span>
+          ))}
+        </div>
+      </section>
+
+      <section className="fresh-section">
         <div className="fresh-grid fresh-grid-3">
           {model.services.map((service) => (
             <article className="fresh-card" key={service.id}>
@@ -1225,6 +1250,45 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="fresh-section services-process-section">
+        <div>
+          <p className="fresh-eyebrow">{isAr ? "طريقة العمل" : "How we work"}</p>
+          <h2>{isAr ? "عملية واضحة بدل الفوضى: من الفكرة إلى صفحة تعمل وتبيع." : "A clear process instead of chaos: from idea to a page that works."}</h2>
+          <p>
+            {isAr
+              ? "الخدمة ليست مجرد تصميم جميل. كل قرار في النص، الصورة، الحركة، والزر يجب أن يساعد الزائر على الفهم والثقة والتواصل."
+              : "The service is not only visual polish. Every decision in copy, imagery, motion, and buttons should help the visitor understand, trust, and act."}
+          </p>
+        </div>
+        <div className="services-process-grid">
+          {steps.map(([number, title, body]) => (
+            <article key={number} className="fresh-card services-step-card">
+              <span>{number}</span>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="fresh-section os-premium-cta">
+        <p className="fresh-eyebrow">{isAr ? "جاهز للبدء؟" : "Ready to start?"}</p>
+        <h2>{isAr ? "حوّل مشروعك إلى تجربة رقمية واضحة ومقنعة." : "Turn your project into a clear, persuasive digital experience."}</h2>
+        <p>
+          {isAr
+            ? "أرسل فكرة المشروع، وسأساعدك في ترتيبها بصريًا وتسويقيًا وتقنيًا بدون تعقيد."
+            : "Send the idea, and I will help shape it visually, commercially, and technically without unnecessary complexity."}
+        </p>
+        <div className="fresh-actions">
+          <Link href={pathFor(model.locale, "contact")} className="fresh-button fresh-button-primary magnetic-surface">
+            {isAr ? "ابدأ مشروعك" : "Start your project"}
+          </Link>
+          <Link href={pathFor(model.locale, "work")} className="fresh-button magnetic-surface">
+            {isAr ? "شاهد الأعمال" : "See the work"}
+          </Link>
         </div>
       </section>
     </PageShell>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, Send, Sparkles, Sun, UserRound } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, PlayCircle, Send, Sun, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,7 +19,7 @@ const dockIcons = {
   home: Home,
   work: BriefcaseBusiness,
   apps: MonitorPlay,
-  youtube: Sparkles,
+  youtube: PlayCircle,
   cv: UserRound,
   contact: Send,
 } as const;
@@ -45,6 +45,8 @@ export function SiteNavbar({
   const nextLocale = locale === "ar" ? "en" : "ar";
   const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${nextLocale}`;
   const isAr = locale === "ar";
+  const ctaLabel = isAr ? "ابدأ مشروعك" : "Start Project";
+  const dockLabel = isAr ? "التنقل السريع" : "Quick navigation";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -91,8 +93,8 @@ export function SiteNavbar({
             </button>
 
             <Link href={`/${locale}/contact`} className="fresh-nav-cta">
-              <Sparkles size={16} />
-              <span>{isAr ? "ابدأ الطلب" : "Start Inquiry"}</span>
+              <Send size={16} />
+              <span>{ctaLabel}</span>
               <ArrowUpRight size={16} />
             </Link>
 
@@ -114,9 +116,9 @@ export function SiteNavbar({
         pathname={pathname}
       />
 
-      <nav className="mobile-bottom-dock" aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
+      <nav className="mobile-bottom-dock" aria-label={dockLabel}>
         {links.slice(0, 6).map((item) => {
-          const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Sparkles;
+          const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Home;
           const active =
             item.href === `/${locale}`
               ? pathname === `/${locale}` || pathname === `/${locale}/`

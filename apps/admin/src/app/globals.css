@@ -14,20 +14,22 @@
 
 :root {
   color-scheme: dark;
-  --os-bg: #000000;
-  --os-bg-soft: #030711;
-  --os-surface: rgba(11, 18, 31, 0.78);
-  --os-surface-strong: rgba(8, 13, 23, 0.92);
-  --os-glass-border: rgba(180, 210, 255, 0.16);
-  --os-glass-border-strong: rgba(91, 218, 255, 0.34);
-  --os-text: #f6f2ea;
-  --os-text-muted: #c9d0dc;
-  --os-text-soft: #8f9cae;
-  --os-cyan: #5bdcff;
-  --os-violet: #9a7cff;
-  --os-gold: #e0b152;
-  --os-danger: #ff7f91;
-  --os-success: #65d6a8;
+  --os-bg: #020510;
+  --os-bg-soft: #06112a;
+  --os-surface: rgba(9, 23, 46, 0.78);
+  --os-surface-strong: rgba(2, 5, 16, 0.92);
+  --os-glass-border: rgba(0, 229, 255, 0.16);
+  --os-glass-border-strong: rgba(0, 229, 255, 0.34);
+  --os-text: #ffffff;
+  --os-text-muted: #c8d8f0;
+  --os-text-soft: #8ea8cc;
+  --os-cyan: #00e5ff;
+  --os-cyan-light: #8ff4ff;
+  --os-cyan-dark: #0087a8;
+  --os-violet: #8b5cf6;
+  --os-gold: #f4b860;
+  --os-danger: #ff4444;
+  --os-success: #22c55e;
   --bg-0: var(--os-bg);
   --bg-1: var(--os-bg-soft);
   --surface: var(--os-surface);
@@ -50,16 +52,18 @@
 
 [data-theme="light"] {
   color-scheme: light;
-  --os-bg: #f3f7fb;
-  --os-bg-soft: #e9f0f7;
+  --os-bg: #f3f8fb;
+  --os-bg-soft: #e7f1f7;
   --os-surface: rgba(255, 255, 255, 0.74);
   --os-surface-strong: rgba(255, 255, 255, 0.9);
-  --os-glass-border: rgba(17, 39, 66, 0.12);
-  --os-glass-border-strong: rgba(26, 135, 194, 0.3);
-  --os-text: #0c1727;
+  --os-glass-border: rgba(0, 135, 168, 0.14);
+  --os-glass-border-strong: rgba(0, 135, 168, 0.32);
+  --os-text: #07111f;
   --os-text-muted: #34485e;
   --os-text-soft: #66788d;
-  --os-cyan: #147db2;
+  --os-cyan: #0087a8;
+  --os-cyan-light: #2fb8d4;
+  --os-cyan-dark: #006f86;
   --os-violet: #6d54cf;
   --os-gold: #a96d1f;
   --os-danger: #bd455d;
@@ -89,13 +93,13 @@ body {
 }
 
 ::selection {
-  background: rgba(91, 220, 255, 0.32);
+  background: rgba(0, 229, 255, 0.32);
   color: #ffffff;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(91, 220, 255, 0.45) rgba(255, 255, 255, 0.04);
+  scrollbar-color: rgba(0, 229, 255, 0.45) rgba(255, 255, 255, 0.04);
 }
 
 *::-webkit-scrollbar {
@@ -110,8 +114,8 @@ body {
 *::-webkit-scrollbar-thumb {
   border: 2px solid rgba(0, 0, 0, 0.8);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(228, 246, 255, 0.72), rgba(91, 220, 255, 0.48));
-  box-shadow: 0 0 18px rgba(91, 220, 255, 0.28);
+  background: linear-gradient(180deg, rgba(228, 246, 255, 0.72), rgba(0, 229, 255, 0.48));
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.28);
 }
 
 a {

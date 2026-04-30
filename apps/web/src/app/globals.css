@@ -11,55 +11,97 @@
 :root {
   color-scheme: dark;
   --font-body: var(--font-inter), var(--font-arabic), ui-sans-serif, system-ui, sans-serif;
-  --bg: #070912;
-  --bg-soft: #10172a;
-  --panel: rgba(17, 24, 39, 0.86);
-  --panel-strong: rgba(9, 13, 24, 0.94);
-  --line: rgba(117, 138, 255, 0.2);
-  --line-strong: rgba(244, 184, 96, 0.56);
-  --text: #f7f2e8;
-  --muted: #c9c3b9;
-  --quiet: #8f96aa;
-  --brand-blue: #5b7cff;
+  --bg: #020510;
+  --bg-soft: #06112a;
+  --panel: rgba(9, 23, 46, 0.84);
+  --panel-strong: rgba(2, 5, 16, 0.94);
+  --line: rgba(0, 229, 255, 0.2);
+  --line-strong: rgba(0, 229, 255, 0.42);
+  --text: #ffffff;
+  --muted: #c8d8f0;
+  --quiet: #8ea8cc;
+  --brand-blue: #00e5ff;
   --brand-amber: #f4b860;
-  --brand-rose: #ff7a90;
+  --brand-rose: #ff6b88;
   --text-1: var(--text);
   --text-2: var(--muted);
   --text-3: var(--quiet);
   --text-4: var(--quiet);
   --surface: var(--panel);
-  --surface-soft: rgba(91, 124, 255, 0.1);
-  --surface-elevated: rgba(244, 184, 96, 0.11);
+  --surface-soft: rgba(0, 229, 255, 0.1);
+  --surface-elevated: rgba(139, 92, 246, 0.1);
   --surface-border: var(--line);
   --surface-border-strong: var(--line-strong);
-  --danger: #ff8aa3;
-  --shadow: 0 26px 80px rgba(0, 0, 0, 0.36);
+  --danger: #ff4444;
+  --success: #22c55e;
+  --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+  --os-bg: var(--bg);
+  --os-bg-soft: var(--bg-soft);
+  --os-surface: var(--panel);
+  --os-surface-strong: var(--panel-strong);
+  --os-glass: rgba(9, 23, 46, 0.62);
+  --os-glass-border: var(--line);
+  --os-glass-border-strong: var(--line-strong);
+  --os-text: var(--text);
+  --os-text-muted: var(--muted);
+  --os-text-soft: var(--quiet);
+  --os-cyan: var(--brand-blue);
+  --os-cyan-light: #8ff4ff;
+  --os-cyan-dark: #0087a8;
+  --os-violet: #8b5cf6;
+  --os-gold: var(--brand-amber);
+  --os-danger: var(--danger);
+  --os-success: var(--success);
+  --os-shadow-soft: var(--shadow);
+  --os-shadow-glow: 0 0 34px rgba(0, 229, 255, 0.16);
+  --os-motion-fast: 180ms;
+  --os-motion-normal: 280ms;
 }
 
 .light {
   color-scheme: light;
-  --bg: #f8f6f1;
-  --bg-soft: #eeeaf7;
+  --bg: #f3f8fb;
+  --bg-soft: #e7f1f7;
   --panel: rgba(255, 255, 255, 0.9);
   --panel-strong: rgba(255, 255, 255, 0.98);
-  --line: rgba(91, 124, 255, 0.18);
-  --line-strong: rgba(185, 119, 42, 0.38);
-  --text: #151827;
-  --muted: #4e5365;
-  --quiet: #777d91;
-  --brand-blue: #3758d8;
-  --brand-amber: #b9772a;
+  --line: rgba(0, 135, 168, 0.18);
+  --line-strong: rgba(0, 135, 168, 0.34);
+  --text: #07111f;
+  --muted: #34485e;
+  --quiet: #66788d;
+  --brand-blue: #0087a8;
+  --brand-amber: #a96d1f;
   --brand-rose: #c94d66;
   --text-1: var(--text);
   --text-2: var(--muted);
   --text-3: var(--quiet);
   --text-4: var(--quiet);
   --surface: var(--panel);
-  --surface-soft: rgba(55, 88, 216, 0.08);
-  --surface-elevated: rgba(185, 119, 42, 0.1);
+  --surface-soft: rgba(0, 135, 168, 0.08);
+  --surface-elevated: rgba(139, 92, 246, 0.08);
   --surface-border: var(--line);
   --surface-border-strong: var(--line-strong);
   --danger: #b63d57;
+  --success: #168a67;
+  --os-bg: var(--bg);
+  --os-bg-soft: var(--bg-soft);
+  --os-surface: var(--panel);
+  --os-surface-strong: var(--panel-strong);
+  --os-glass: rgba(255, 255, 255, 0.74);
+  --os-glass-border: var(--line);
+  --os-glass-border-strong: var(--line-strong);
+  --os-text: var(--text);
+  --os-text-muted: var(--muted);
+  --os-text-soft: var(--quiet);
+  --os-cyan: var(--brand-blue);
+  --os-cyan-light: #2fb8d4;
+  --os-cyan-dark: #006f86;
+  --os-violet: #6d54cf;
+  --os-gold: var(--brand-amber);
+  --os-danger: var(--danger);
+  --os-success: var(--success);
+  --os-shadow-soft: 0 24px 70px rgba(7, 17, 31, 0.12);
+  --os-shadow-glow: 0 0 30px rgba(0, 135, 168, 0.12);
 }
 
 html {
@@ -74,8 +116,8 @@ body {
   background:
     linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(91, 124, 255, 0.16), transparent 34%),
-    linear-gradient(315deg, rgba(244, 184, 96, 0.13), transparent 34%),
+    linear-gradient(135deg, rgba(0, 229, 255, 0.14), transparent 34%),
+    linear-gradient(315deg, rgba(139, 92, 246, 0.09), transparent 34%),
     var(--bg);
   background-size: 48px 48px, 48px 48px, auto, auto, auto;
   color: var(--muted);
@@ -112,7 +154,7 @@ select {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--os-cyan, #48d8ff) 48%, #2b3448) color-mix(in srgb, var(--bg, #070912) 88%, #111827);
+  scrollbar-color: color-mix(in srgb, var(--os-cyan, #00e5ff) 48%, #2b3448) color-mix(in srgb, var(--bg, #020510) 88%, #111827);
 }
 
 ::-webkit-scrollbar {
@@ -121,11 +163,11 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--bg, #070912) 88%, #111827);
+  background: color-mix(in srgb, var(--bg, #020510) 88%, #111827);
 }
 
 ::-webkit-scrollbar-thumb {
-  border: 2px solid color-mix(in srgb, var(--bg, #070912) 88%, #111827);
+  border: 2px solid color-mix(in srgb, var(--bg, #020510) 88%, #111827);
   border-radius: 999px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--os-cyan, #48d8ff) 72%, #4b5563), color-mix(in srgb, var(--os-violet, #8d5cff) 58%, #374151));

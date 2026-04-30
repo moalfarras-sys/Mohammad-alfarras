@@ -9,8 +9,8 @@ import type { Locale } from "@/types/cms";
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eefbf4" },
-    { media: "(prefers-color-scheme: dark)", color: "#070b12" },
+    { media: "(prefers-color-scheme: light)", color: "#f3f8fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#020510" },
   ],
   width: "device-width",
   initialScale: 1,

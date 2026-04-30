@@ -7650,6 +7650,48 @@ html[dir="rtl"] .apps-section-head h2,
   opacity: 0.52;
 }
 
+.light .fresh-card,
+.light .fresh-project,
+.light .fresh-feature,
+.light .work-project-card,
+.light .cv-experience-card,
+.light .contact-social-card,
+.light .apps-card,
+.light .moplayer-feature-card,
+.light .moplayer-info-card,
+.light .moplayer-spec,
+.light .moplayer-step-list article,
+.light .moplayer-faq-list details,
+.light .yt-stat-card,
+.light .yt-video-card,
+.light .yt-playlist-card {
+  border-color: rgba(15, 45, 78, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 255, 0.88)),
+    rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 48px rgba(20, 42, 68, 0.12);
+}
+
+.light .fresh-card h3,
+.light .fresh-project h3,
+.light .work-project-card h2,
+.light .apps-card h3,
+.light .moplayer-feature-card h3,
+.light .moplayer-info-card h2,
+.light .moplayer-info-card h3 {
+  color: #0c1727;
+}
+
+.light .fresh-card p,
+.light .fresh-card dd,
+.light .fresh-project p,
+.light .work-project-card p,
+.light .apps-card p,
+.light .moplayer-feature-card p,
+.light .moplayer-info-card p {
+  color: #34485e;
+}
+
 .activation-button-primary,
 .apps-showcase .apps-button-primary,
 .moplayer-button-primary {

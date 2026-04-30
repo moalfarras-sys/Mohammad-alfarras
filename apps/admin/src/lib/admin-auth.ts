@@ -4,6 +4,7 @@ import {
   createAdminSession as createLegacyAdminSession,
   destroyAdminSession as destroyLegacyAdminSession,
   getAdminSessionEmail as getLegacyAdminSessionEmail,
+  resolveAdminCredentials,
 } from "@/lib/auth";
 import { createSupabaseAdminClient, createSupabaseServer, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import type { AppAdminRole } from "@/types/app-ecosystem";
@@ -16,16 +17,33 @@ type AuthenticatedAdmin = {
 
 export async function signInAdmin(email: string, password: string) {
   let supabaseSuccess = false;
+  const normalizedEmail = email.trim().toLowerCase();
+  const credentials = await resolveAdminCredentials();
+  const isAllowlisted = credentials.emails.includes(normalizedEmail);
 
   if (hasSupabasePublicEnv()) {
     try {
       const supabase = await createSupabaseServer();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
         password,
       });
       if (!error) {
-        supabaseSuccess = true;
+        const userId = data.user?.id;
+        if (userId) {
+          const { data: roleRow } = await supabase
+            .from("app_admin_roles")
+            .select("role")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          if (roleRow?.role === "admin" || roleRow?.role === "editor") {
+            supabaseSuccess = true;
+          } else if (isAllowlisted) {
+            await upsertAdminRole(userId, "admin");
+            supabaseSuccess = true;
+          }
+        }
       }
     } catch {
       // fall back to legacy auth

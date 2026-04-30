@@ -23,8 +23,8 @@ export function AppAdminLogin({ message, initialEmail }: { message?: string; ini
             <p className="inline-flex rounded-full border border-cyan-200/15 bg-cyan-200/8 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-100">
               Secure PWA Control Center
             </p>
-            <h2 className="max-w-3xl text-4xl font-black leading-[0.95] tracking-tight text-white sm:text-5xl md:text-7xl">
-              One cockpit for the website, MoPlayer, releases, and device fleet.
+            <h2 className="max-w-3xl text-4xl font-black leading-[0.98] tracking-tight text-white sm:text-5xl md:text-6xl">
+              Control your website, MoPlayer, releases, and device fleet from one clear place.
             </h2>
             <p className="max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
               Sign in to operate the public brand, publish APK releases, manage runtime switches, monitor activations, and keep the ecosystem clean from one focused mobile-first dashboard.

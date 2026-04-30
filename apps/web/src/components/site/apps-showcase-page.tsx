@@ -32,7 +32,7 @@ const copy = {
         badges: ["Official product", "TV interface", "Activation-ready"],
         cta: "Open MoPlayer",
         href: "apps/moplayer",
-        image: "/images/moplayer-cinema-frame.webp",
+        image: "/images/moplayer_ui_playlist-final.png",
         icon: "/images/moplayer-icon-512.png",
         accent: "metal",
       },
@@ -90,7 +90,7 @@ const copy = {
         badges: ["منتج رسمي", "واجهة تلفزيونية", "جاهز للتفعيل"],
         cta: "افتح MoPlayer",
         href: "apps/moplayer",
-        image: "/images/moplayer-cinema-frame.webp",
+        image: "/images/moplayer-hero-3d-final.png",
         icon: "/images/moplayer-icon-512.png",
         accent: "metal",
       },
@@ -177,7 +177,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
           >
             <div className="apps-device-orbit" />
             <Image
-              src="/images/moplayer-tv-hero.png"
+              src="/images/moplayer-hero-3d-final.png"
               alt="MoPlayer Android TV product mockup"
               width={900}
               height={700}

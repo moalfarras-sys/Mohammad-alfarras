@@ -53,26 +53,37 @@ export type WebsiteCmsData = {
   messages: WebsiteContactMessage[];
 };
 
+const emptyWebsiteCmsData: WebsiteCmsData = {
+  settings: [],
+  mediaAssets: [],
+  projects: [],
+  messages: [],
+};
+
 export async function readWebsiteCmsData(): Promise<WebsiteCmsData> {
-  const supabase = createSupabaseAdminClient();
-  const [settings, mediaAssets, projects, messages] = await Promise.all([
-    supabase.from("site_settings").select("key,value_json").order("key"),
-    supabase.from("media_assets").select("*").order("kind").order("id").limit(80),
-    supabase.from("work_projects").select("*").order("sort_order"),
-    supabase.from("contact_messages").select("*").order("created_at", { ascending: false }).limit(80),
-  ]);
+  try {
+    const supabase = createSupabaseAdminClient();
+    const [settings, mediaAssets, projects, messages] = await Promise.all([
+      supabase.from("site_settings").select("key,value_json").order("key"),
+      supabase.from("media_assets").select("*").order("kind").order("id").limit(80),
+      supabase.from("work_projects").select("*").order("sort_order"),
+      supabase.from("contact_messages").select("*").order("created_at", { ascending: false }).limit(80),
+    ]);
 
-  if (settings.error) throw settings.error;
-  if (mediaAssets.error) throw mediaAssets.error;
-  if (projects.error) throw projects.error;
-  if (messages.error) throw messages.error;
+    if (settings.error) throw settings.error;
+    if (mediaAssets.error) throw mediaAssets.error;
+    if (projects.error) throw projects.error;
+    if (messages.error) throw messages.error;
 
-  return {
-    settings: (settings.data ?? []) as WebsiteSetting[],
-    mediaAssets: (mediaAssets.data ?? []) as WebsiteMediaAsset[],
-    projects: (projects.data ?? []) as WebsiteProject[],
-    messages: (messages.data ?? []) as WebsiteContactMessage[],
-  };
+    return {
+      settings: (settings.data ?? []) as WebsiteSetting[],
+      mediaAssets: (mediaAssets.data ?? []) as WebsiteMediaAsset[],
+      projects: (projects.data ?? []) as WebsiteProject[],
+      messages: (messages.data ?? []) as WebsiteContactMessage[],
+    };
+  } catch {
+    return emptyWebsiteCmsData;
+  }
 }
 
 export async function saveSiteSetting(key: string, value: unknown) {

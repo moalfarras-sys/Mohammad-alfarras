@@ -4,6 +4,12 @@ import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation
 import { deviceSourceQueueSettingKey, type ProviderSourceQueueValue } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
+function json(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 function sourceDeliveryStatus(value: unknown, publicDeviceId: string) {
   const queue = (value ?? {}) as Partial<ProviderSourceQueueValue>;
   if (queue.publicDeviceId !== publicDeviceId) return { pending: false, status: "none" };
@@ -20,7 +26,7 @@ export async function GET(request: Request) {
   const code = normalizeActivationCode(searchParams.get("code"));
 
   if (!isValidActivationCode(code)) {
-    return NextResponse.json(
+    return json(
       {
         status: "invalid",
         message: "Invalid activation code format.",
@@ -37,11 +43,11 @@ export async function GET(request: Request) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ status: "error", message: "Activation lookup failed." }, { status: 500 });
+    return json({ status: "error", message: "Activation lookup failed." }, { status: 500 });
   }
 
   if (!data) {
-    return NextResponse.json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
+    return json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
   }
 
   const isExpired = new Date(data.expires_at).getTime() <= Date.now();
@@ -50,7 +56,7 @@ export async function GET(request: Request) {
       .from("activation_requests")
       .update({ status: "expired", updated_at: new Date().toISOString() })
       .eq("id", data.id);
-    return NextResponse.json({ status: "expired", code, expiresAt: data.expires_at }, { status: 410 });
+    return json({ status: "expired", code, expiresAt: data.expires_at }, { status: 410 });
   }
 
   if (data.status === "activated") {
@@ -61,7 +67,7 @@ export async function GET(request: Request) {
       .maybeSingle();
 
     const source = sourceDeliveryStatus(sourceRow?.value, data.public_device_id);
-    return NextResponse.json({
+    return json({
       status: "activated",
       code,
       publicDeviceId: data.public_device_id,
@@ -72,7 +78,7 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.json(
+  return json(
     {
       status: "pending",
       code,

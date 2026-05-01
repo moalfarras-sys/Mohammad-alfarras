@@ -31,11 +31,13 @@ if (localPropertiesFile.exists()) {
 val tmdbApiKey = localProperties.getProperty("tmdb.api.key", "")
 val tvdbApiKey = localProperties.getProperty("tvdb.api.key", "")
 val webApiBaseUrl = localProperties.getProperty("web.api.base.url", "https://moalfarras.space")
+val requestedTaskNames = gradle.startParameter.taskNames.map { it.lowercase(Locale.US) }
 val isPlayBundleBuild = gradle.startParameter.taskNames.any {
     val task = it.lowercase(Locale.US)
     (task.contains("bundleplay") || task.contains("buildplayrelease")) && task.contains("release")
 }
-val includeX86Abis = providers.gradleProperty("includeX86Abis").orNull?.toBoolean() ?: false
+val isDebugBuild = requestedTaskNames.any { it.contains("debug") || it.contains("install") }
+val includeX86Abis = providers.gradleProperty("includeX86Abis").orNull?.toBoolean() ?: isDebugBuild
 val buildUniversalSideloadApk = providers.gradleProperty("universalSideloadApk").orNull?.toBoolean() ?: true
 val sideloadAbis = mutableListOf("armeabi-v7a", "arm64-v8a").apply {
     if (includeX86Abis) {
@@ -53,8 +55,8 @@ android {
         applicationId = "com.mo.moplayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "v2 full"
+        versionCode = 6
+        versionName = "v2.2 full"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -146,6 +148,7 @@ android {
             excludes += "/META-INF/DEPENDENCIES"
         }
         jniLibs {
+            useLegacyPackaging = true
             if (!includeX86Abis) {
                 excludes += "**/x86/**"
                 excludes += "**/x86_64/**"

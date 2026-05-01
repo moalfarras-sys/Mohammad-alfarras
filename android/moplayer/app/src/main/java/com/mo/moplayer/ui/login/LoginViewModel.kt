@@ -303,7 +303,8 @@ class LoginViewModel @Inject constructor(
                         username = username,
                         password = password,
                         serverType = "xtream",
-                        authResponse = authResponse
+                        authResponse = authResponse,
+                        preferredOutputFormat = credentials.preferredOutputFormat
                     )
 
                     ServerSyncWorker.syncNow(application)

@@ -4,12 +4,18 @@ import android.content.Context
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.mo.moplayer.data.local.dao.*
 import com.mo.moplayer.data.local.entity.*
 import com.mo.moplayer.data.parser.M3uParser
 import com.mo.moplayer.data.remote.api.XtreamApi
 import com.mo.moplayer.data.remote.dto.AuthResponse
+import com.mo.moplayer.data.remote.dto.SeriesDto
+import com.mo.moplayer.data.remote.dto.VodStreamDto
 import com.mo.moplayer.data.util.ImageUrlNormalizer
+import com.mo.moplayer.data.util.ProviderSourceUrlParser
 import com.mo.moplayer.util.ContentSnapshot
 import com.mo.moplayer.util.CredentialManager
 import com.mo.moplayer.util.Resource
@@ -41,6 +47,7 @@ class IptvRepository @Inject constructor(
 ) {
     companion object {
         private const val M3U_IMPORT_BATCH_SIZE = 400
+        private const val API_IMPORT_BATCH_SIZE = 500
     }
 
     internal fun normalizeImageUrl(raw: String?): String? = ImageUrlNormalizer.normalize(raw)
@@ -90,7 +97,8 @@ class IptvRepository @Inject constructor(
         username: String,
         password: String,
         serverType: String,
-        authResponse: AuthResponse? = null
+        authResponse: AuthResponse? = null,
+        preferredOutputFormat: String? = null
     ): Long = withContext(Dispatchers.IO) {
         val server = ServerEntity(
             name = name,
@@ -100,6 +108,7 @@ class IptvRepository @Inject constructor(
             password = "",
             serverType = serverType,
             isActive = true,
+            serverInfo = buildServerInfoJson(authResponse, preferredOutputFormat),
             expirationDate = authResponse?.userInfo?.expDate,
             maxConnections = authResponse?.userInfo?.maxConnections?.toIntOrNull(),
             activeConnections = authResponse?.userInfo?.activeConnections?.toIntOrNull()
@@ -154,18 +163,18 @@ class IptvRepository @Inject constructor(
             try {
                 when (syncMode) {
                     SyncMode.FULL -> {
-                        fetchAndSaveCategories(server)
-                        fetchAndSaveChannels(server)
-                        fetchAndSaveMovies(server)
-                        fetchAndSaveSeries(server)
+                        requireSyncSuccess("categories", fetchAndSaveCategories(server))
+                        requireSyncSuccess("channels", fetchAndSaveChannels(server))
+                        requireSyncSuccess("movies", fetchAndSaveMovies(server))
+                        requireSyncSuccess("series", fetchAndSaveSeries(server))
                         fetchEpgForAllChannels(server)
                     }
                     SyncMode.DELTA -> {
                         // Delta endpoints are not available on all providers.
                         // Fallback to efficient batched refresh for each content type.
-                        fetchAndSaveChannels(server)
-                        fetchAndSaveMovies(server)
-                        fetchAndSaveSeries(server)
+                        requireSyncSuccess("channels", fetchAndSaveChannels(server))
+                        requireSyncSuccess("movies", fetchAndSaveMovies(server))
+                        requireSyncSuccess("series", fetchAndSaveSeries(server))
                     }
                     SyncMode.EPG_ONLY -> {
                         fetchEpgForAllChannels(server)
@@ -334,8 +343,9 @@ class IptvRepository @Inject constructor(
                         sortOrder = index
                     )
                 } ?: emptyList()
-                categoryDao.deleteCategoriesByType(server.id, "live")
-                categoryDao.insertCategories(categories)
+                if (categories.isNotEmpty()) {
+                    categoryDao.insertCategories(categories)
+                }
             }
             
             // Fetch movie categories
@@ -352,8 +362,9 @@ class IptvRepository @Inject constructor(
                         sortOrder = index
                     )
                 } ?: emptyList()
-                categoryDao.deleteCategoriesByType(server.id, "movie")
-                categoryDao.insertCategories(categories)
+                if (categories.isNotEmpty()) {
+                    categoryDao.insertCategories(categories)
+                }
             }
             
             // Fetch series categories
@@ -370,8 +381,9 @@ class IptvRepository @Inject constructor(
                         sortOrder = index
                     )
                 } ?: emptyList()
-                categoryDao.deleteCategoriesByType(server.id, "series")
-                categoryDao.insertCategories(categories)
+                if (categories.isNotEmpty()) {
+                    categoryDao.insertCategories(categories)
+                }
             }
             
             Resource.Success(Unit)
@@ -408,18 +420,16 @@ class IptvRepository @Inject constructor(
             if (response.isSuccessful) {
                 val dtos = response.body().orEmpty()
                 if (dtos.isEmpty()) {
-                    return@withContext Resource.Success(0)
+                    return@withContext Resource.Success(channelDao.getChannelCount(server.id))
                 }
-                channelDao.deleteAllChannels(server.id)
-                contentSearchDao.deleteByType(server.id, "channel")
 
-                val batchSize = 500
+                val batchSize = API_IMPORT_BATCH_SIZE
                 val buffer = ArrayList<ChannelEntity>(batchSize)
                 val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
                 var inserted = 0
 
                 for (dto in dtos) {
-                    val streamId = dto.streamId ?: 0
+                    val streamId = dto.streamId ?: continue
                     val channelId = "${server.id}_$streamId"
                     val name = dto.name ?: "Unknown"
                     val categoryId = dto.categoryId?.let { "${server.id}_live_$it" }
@@ -429,7 +439,8 @@ class IptvRepository @Inject constructor(
                             serverId = server.id,
                             streamId = streamId,
                             name = name,
-                            streamUrl = buildStreamUrl(server, streamId, "live"),
+                            streamUrl = dto.directSource?.takeIf { it.isNotBlank() }
+                                ?: buildStreamUrl(server, streamId, "live"),
                             streamIcon = normalizeImageUrl(dto.streamIcon),
                             categoryId = categoryId,
                             epgChannelId = dto.epgChannelId,
@@ -511,75 +522,99 @@ class IptvRepository @Inject constructor(
         try {
             val apiUrl = buildApiUrl(server.serverUrl)
             val (username, password) = resolveCredentials(server)
-            val response = xtreamApi.getVodStreams(apiUrl, username, password)
-            
-            if (response.isSuccessful) {
+            val categoryIds = getCategoryOriginalIds(server.id, "movie")
+            var inserted = 0
+            var successfulRequests = 0
+            var firstError: String? = null
+
+            val requests: List<String?> = if (categoryIds.isEmpty()) listOf(null) else categoryIds
+            for (categoryId in requests) {
+                val response = xtreamApi.getVodStreams(apiUrl, username, password, categoryId = categoryId)
+                if (!response.isSuccessful) {
+                    if (firstError == null) firstError = "HTTP ${response.code()}"
+                    continue
+                }
+
+                successfulRequests += 1
                 val dtos = response.body().orEmpty()
-                if (dtos.isEmpty()) {
-                    return@withContext Resource.Success(0)
+                inserted += insertMovieDtos(server, dtos)
+
+                // Some panels ignore category_id and return the complete list. Insert it once and stop.
+                if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
+                    break
                 }
-                movieDao.deleteAllMovies(server.id)
-                contentSearchDao.deleteByType(server.id, "movie")
-
-                val batchSize = 500
-                val buffer = ArrayList<MovieEntity>(batchSize)
-                val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
-                var inserted = 0
-
-                for (dto in dtos) {
-                    val streamId = dto.streamId ?: 0
-                    val movieId = "${server.id}_$streamId"
-                    val name = dto.name ?: "Unknown"
-                    val categoryId = dto.categoryId?.let { "${server.id}_movie_$it" }
-                    buffer.add(
-                        MovieEntity(
-                            movieId = movieId,
-                            serverId = server.id,
-                            streamId = streamId,
-                            name = name,
-                            streamUrl = buildStreamUrl(server, streamId, "movie", dto.containerExtension),
-                            containerExtension = dto.containerExtension,
-                            streamIcon = normalizeImageUrl(dto.streamIcon),
-                            categoryId = categoryId,
-                            rating = dto.rating5Based,
-                            addedTimestamp = parseTimestamp(dto.added),
-                            isAdult = dto.isAdult == "1"
-                        )
-                    )
-                    searchBuffer.add(
-                        ContentSearchEntity(
-                            uniqueId = "${server.id}:movie:$movieId",
-                            serverId = server.id,
-                            contentId = movieId,
-                            contentType = "movie",
-                            title = name,
-                            subtitle = categoryId,
-                            posterUrl = normalizeImageUrl(dto.streamIcon)
-                        )
-                    )
-
-                    if (buffer.size >= batchSize) {
-                        movieDao.insertMovies(buffer)
-                        contentSearchDao.upsertAll(searchBuffer)
-                        inserted += buffer.size
-                        buffer.clear()
-                        searchBuffer.clear()
-                    }
-                }
-
-                if (buffer.isNotEmpty()) {
-                    movieDao.insertMovies(buffer)
-                    contentSearchDao.upsertAll(searchBuffer)
-                    inserted += buffer.size
-                }
-
-                Resource.Success(inserted)
-            } else {
-                Resource.Error("Failed to fetch movies: ${response.code()}")
             }
+
+            val result = when {
+                successfulRequests == 0 -> Resource.Error("Failed to fetch movies: ${firstError ?: "no successful response"}")
+                inserted > 0 -> Resource.Success(inserted)
+                else -> Resource.Success(movieDao.getMovieCount(server.id))
+            }
+            if (result is Resource.Success && (result.data ?: 0) > 0) {
+                upsertSyncState(server.id, status = "SUCCESS", error = null, durationMs = 0L)
+            }
+            result
         } catch (e: Exception) {
             Resource.Error("Error fetching movies: ${e.message}")
         }
+    }
+
+    private suspend fun insertMovieDtos(server: ServerEntity, dtos: List<VodStreamDto>): Int {
+        if (dtos.isEmpty()) return 0
+
+        val buffer = ArrayList<MovieEntity>(API_IMPORT_BATCH_SIZE)
+        val searchBuffer = ArrayList<ContentSearchEntity>(API_IMPORT_BATCH_SIZE)
+        var inserted = 0
+
+        suspend fun flush() {
+            if (buffer.isEmpty()) return
+            movieDao.insertMovies(buffer)
+            contentSearchDao.upsertAll(searchBuffer)
+            inserted += buffer.size
+            buffer.clear()
+            searchBuffer.clear()
+        }
+
+        for (dto in dtos) {
+            val streamId = dto.streamId ?: continue
+            val movieId = "${server.id}_$streamId"
+            val name = dto.name ?: "Unknown"
+            val categoryId = dto.categoryId?.let { "${server.id}_movie_$it" }
+            buffer.add(
+                MovieEntity(
+                    movieId = movieId,
+                    serverId = server.id,
+                    streamId = streamId,
+                    name = name,
+                    streamUrl = dto.directSource?.takeIf { it.isNotBlank() }
+                        ?: buildStreamUrl(server, streamId, "movie", dto.containerExtension),
+                    containerExtension = dto.containerExtension,
+                    streamIcon = normalizeImageUrl(dto.streamIcon),
+                    categoryId = categoryId,
+                    rating = dto.rating5Based,
+                    addedTimestamp = parseTimestamp(dto.added),
+                    isAdult = dto.isAdult == "1"
+                )
+            )
+            searchBuffer.add(
+                ContentSearchEntity(
+                    uniqueId = "${server.id}:movie:$movieId",
+                    serverId = server.id,
+                    contentId = movieId,
+                    contentType = "movie",
+                    title = name,
+                    subtitle = categoryId,
+                    posterUrl = normalizeImageUrl(dto.streamIcon)
+                )
+            )
+
+            if (buffer.size >= API_IMPORT_BATCH_SIZE) {
+                flush()
+            }
+        }
+
+        flush()
+        return inserted
     }
     
     suspend fun updateMovieProgress(movieId: String, position: Long) {
@@ -621,81 +656,129 @@ class IptvRepository @Inject constructor(
         try {
             val apiUrl = buildApiUrl(server.serverUrl)
             val (username, password) = resolveCredentials(server)
-            val response = xtreamApi.getSeries(apiUrl, username, password)
-            
-            if (response.isSuccessful) {
+            val categoryIds = getCategoryOriginalIds(server.id, "series")
+            var inserted = 0
+            var successfulRequests = 0
+            var firstError: String? = null
+
+            val requests: List<String?> = if (categoryIds.isEmpty()) listOf(null) else categoryIds
+            for (categoryId in requests) {
+                val response = xtreamApi.getSeries(apiUrl, username, password, categoryId = categoryId)
+                if (!response.isSuccessful) {
+                    if (firstError == null) firstError = "HTTP ${response.code()}"
+                    continue
+                }
+
+                successfulRequests += 1
                 val dtos = response.body().orEmpty()
-                if (dtos.isEmpty()) {
-                    return@withContext Resource.Success(0)
+                inserted += insertSeriesDtos(server, dtos)
+
+                // Some panels ignore category_id and return the complete list. Insert it once and stop.
+                if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
+                    break
                 }
-                seriesDao.deleteAllSeries(server.id)
-                contentSearchDao.deleteByType(server.id, "series")
-
-                val batchSize = 500
-                val buffer = ArrayList<SeriesEntity>(batchSize)
-                val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
-                var inserted = 0
-
-                for (dto in dtos) {
-                    val seriesId = dto.seriesId ?: 0
-                    val localSeriesId = "${server.id}_$seriesId"
-                    val name = dto.name ?: "Unknown"
-                    val categoryId = dto.categoryId?.let { "${server.id}_series_$it" }
-                    buffer.add(
-                        SeriesEntity(
-                            seriesId = localSeriesId,
-                            serverId = server.id,
-                            originalSeriesId = seriesId,
-                            name = name,
-                            cover = normalizeImageUrl(dto.cover),
-                            categoryId = categoryId,
-                            rating = dto.rating5Based,
-                            plot = dto.plot,
-                            cast = dto.cast,
-                            director = dto.director,
-                            genre = dto.genre,
-                            releaseDate = dto.releaseDate ?: dto.releaseDateAlt,
-                            lastModified = parseTimestamp(dto.lastModified),
-                            backdrop = normalizeImageUrl(dto.backdropPath?.firstOrNull()),
-                            youtubeTrailer = dto.youtubeTrailer,
-                            tmdbId = dto.tmdbId,
-                            isAdult = dto.isAdult == "1"
-                        )
-                    )
-                    searchBuffer.add(
-                        ContentSearchEntity(
-                            uniqueId = "${server.id}:series:$localSeriesId",
-                            serverId = server.id,
-                            contentId = localSeriesId,
-                            contentType = "series",
-                            title = name,
-                            subtitle = categoryId,
-                            posterUrl = normalizeImageUrl(dto.cover)
-                        )
-                    )
-
-                    if (buffer.size >= batchSize) {
-                        seriesDao.insertSeries(buffer)
-                        contentSearchDao.upsertAll(searchBuffer)
-                        inserted += buffer.size
-                        buffer.clear()
-                        searchBuffer.clear()
-                    }
-                }
-
-                if (buffer.isNotEmpty()) {
-                    seriesDao.insertSeries(buffer)
-                    contentSearchDao.upsertAll(searchBuffer)
-                    inserted += buffer.size
-                }
-
-                Resource.Success(inserted)
-            } else {
-                Resource.Error("Failed to fetch series: ${response.code()}")
             }
+
+            val result = when {
+                successfulRequests == 0 -> Resource.Error("Failed to fetch series: ${firstError ?: "no successful response"}")
+                inserted > 0 -> Resource.Success(inserted)
+                else -> Resource.Success(seriesDao.getSeriesCount(server.id))
+            }
+            if (result is Resource.Success && (result.data ?: 0) > 0) {
+                upsertSyncState(server.id, status = "SUCCESS", error = null, durationMs = 0L)
+            }
+            result
         } catch (e: Exception) {
             Resource.Error("Error fetching series: ${e.message}")
         }
+    }
+
+    private suspend fun insertSeriesDtos(server: ServerEntity, dtos: List<SeriesDto>): Int {
+        if (dtos.isEmpty()) return 0
+
+        val buffer = ArrayList<SeriesEntity>(API_IMPORT_BATCH_SIZE)
+        val searchBuffer = ArrayList<ContentSearchEntity>(API_IMPORT_BATCH_SIZE)
+        var inserted = 0
+
+        suspend fun flush() {
+            if (buffer.isEmpty()) return
+            seriesDao.insertSeries(buffer)
+            contentSearchDao.upsertAll(searchBuffer)
+            inserted += buffer.size
+            buffer.clear()
+            searchBuffer.clear()
+        }
+
+        for (dto in dtos) {
+            val seriesId = dto.seriesId ?: continue
+            val localSeriesId = "${server.id}_$seriesId"
+            val name = dto.name ?: "Unknown"
+            val categoryId = dto.categoryId?.let { "${server.id}_series_$it" }
+            buffer.add(
+                SeriesEntity(
+                    seriesId = localSeriesId,
+                    serverId = server.id,
+                    originalSeriesId = seriesId,
+                    name = name,
+                    cover = normalizeImageUrl(dto.cover),
+                    categoryId = categoryId,
+                    rating = dto.rating5Based,
+                    plot = dto.plot,
+                    cast = dto.cast,
+                    director = dto.director,
+                    genre = dto.genre,
+                    releaseDate = dto.releaseDate ?: dto.releaseDateAlt,
+                    lastModified = parseTimestamp(dto.lastModified),
+                    backdrop = normalizeImageUrl(dto.backdropPath?.firstOrNull()),
+                    youtubeTrailer = dto.youtubeTrailer,
+                    tmdbId = dto.tmdbId,
+                    isAdult = dto.isAdult == "1"
+                )
+            )
+            searchBuffer.add(
+                ContentSearchEntity(
+                    uniqueId = "${server.id}:series:$localSeriesId",
+                    serverId = server.id,
+                    contentId = localSeriesId,
+                    contentType = "series",
+                    title = name,
+                    subtitle = categoryId,
+                    posterUrl = normalizeImageUrl(dto.cover)
+                )
+            )
+
+            if (buffer.size >= API_IMPORT_BATCH_SIZE) {
+                flush()
+            }
+        }
+
+        flush()
+        return inserted
+    }
+
+    private suspend fun getCategoryOriginalIds(serverId: Long, type: String): List<String> =
+        categoryDao.getCategoriesByTypeOnce(serverId, type)
+            .mapNotNull { category ->
+                category.originalId.trim().takeIf { it.isNotEmpty() }
+            }
+            .distinct()
+
+    private fun responseLooksUnfiltered(dtos: List<*>, requestedCategoryId: String): Boolean {
+        val distinctCategoryIds = dtos.asSequence()
+            .mapNotNull { dto ->
+                when (dto) {
+                    is VodStreamDto -> dto.categoryId
+                    is SeriesDto -> dto.categoryId
+                    else -> null
+                }
+            }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .take(2)
+            .toList()
+
+        if (distinctCategoryIds.isEmpty()) return false
+        return distinctCategoryIds.size > 1 || distinctCategoryIds.firstOrNull() != requestedCategoryId
     }
     
     suspend fun getSeriesInfo(
@@ -942,18 +1025,20 @@ class IptvRepository @Inject constructor(
             val summary = inputStream.use { stream ->
                 m3uParser.parseStreaming(stream) { item ->
                     importedItems += 1
+                    val contentType = if (item.isLive) "live" else "movie"
                     val categoryName = item.group?.takeIf { it.isNotBlank() } ?: "Uncategorized"
-                    val categoryId = categoryIdMap.getOrPut(categoryName) {
-                        val id = "${serverId}_${categoryName.hashCode()}"
+                    val categoryKey = "$contentType:$categoryName"
+                    val categoryId = categoryIdMap.getOrPut(categoryKey) {
+                        val id = m3uCategoryId(serverId, categoryName, contentType)
                         pendingCategories += CategoryEntity(
                             categoryId = id,
                             serverId = serverId,
                             originalId = categoryName.hashCode().toString(),
                             name = categoryName,
-                            type = "live",
+                            type = contentType,
                             sortOrder = categoryOrderMap.size
                         )
-                        categoryOrderMap[categoryName] = categoryOrderMap.size
+                        categoryOrderMap[categoryKey] = categoryOrderMap.size
                         id
                     }
 
@@ -1093,16 +1178,24 @@ class IptvRepository @Inject constructor(
             serverType = "m3u"
         )
 
-        val liveCategories = m3uParser.toCategoryEntities(
-            parseResult.categories, serverId, "live"
-        )
-        categoryDao.insertCategories(liveCategories)
+        val liveCategoryNames = parseResult.items
+            .filter { it.isLive }
+            .map { it.group?.takeIf { name -> name.isNotBlank() } ?: "Uncategorized" }
+            .toSet()
+        val movieCategoryNames = parseResult.items
+            .filter { !it.isLive }
+            .map { it.group?.takeIf { name -> name.isNotBlank() } ?: "Uncategorized" }
+            .toSet()
+        val liveCategories = m3uCategories(liveCategoryNames, serverId, "live")
+        val movieCategories = m3uCategories(movieCategoryNames, serverId, "movie")
+        categoryDao.insertCategories(liveCategories + movieCategories)
 
-        val categoryMap = liveCategories.associate { it.name to it.categoryId }
-        val channels = m3uParser.toChannelEntities(parseResult.items, serverId, categoryMap)
+        val liveCategoryMap = liveCategories.associate { it.name to it.categoryId }
+        val movieCategoryMap = movieCategories.associate { it.name to it.categoryId }
+        val channels = m3uParser.toChannelEntities(parseResult.items, serverId, liveCategoryMap)
         channelDao.insertChannels(channels)
 
-        val movies = m3uParser.toMovieEntities(parseResult.items, serverId, categoryMap)
+        val movies = m3uParser.toMovieEntities(parseResult.items, serverId, movieCategoryMap)
         movieDao.insertMovies(movies)
 
         contentSearchDao.deleteByServer(serverId)
@@ -1146,7 +1239,7 @@ class IptvRepository @Inject constructor(
                 lastError = buildString {
                     append("Imported ${channels.size} live and ${movies.size} movies")
                     if (parseResult.categories.isNotEmpty()) {
-                        append(" across ${parseResult.categories.size} categories")
+                        append(" across ${liveCategories.size + movieCategories.size} categories")
                     }
                     if (parseResult.skippedEntries > 0 || parseResult.duplicateEntries > 0) {
                         append(". Skipped ${parseResult.skippedEntries} malformed and ${parseResult.duplicateEntries} duplicate entries")
@@ -1155,7 +1248,7 @@ class IptvRepository @Inject constructor(
                 totalChannels = channels.size,
                 totalMovies = movies.size,
                 totalSeries = 0,
-                totalCategories = liveCategories.size
+                totalCategories = liveCategories.size + movieCategories.size
             )
         )
 
@@ -1200,9 +1293,17 @@ class IptvRepository @Inject constructor(
     suspend fun getMovieCount(serverId: Long): Int = withContext(Dispatchers.IO) {
         movieDao.getMovieCount(serverId)
     }
+
+    suspend fun getMovieCategoryCounts(serverId: Long): Map<String, Int> = withContext(Dispatchers.IO) {
+        movieDao.getMovieCategoryCounts(serverId).associate { it.categoryId to it.itemCount }
+    }
     
     suspend fun getSeriesCount(serverId: Long): Int = withContext(Dispatchers.IO) {
         seriesDao.getSeriesCount(serverId)
+    }
+
+    suspend fun getSeriesCategoryCounts(serverId: Long): Map<String, Int> = withContext(Dispatchers.IO) {
+        seriesDao.getSeriesCategoryCounts(serverId).associate { it.categoryId to it.itemCount }
     }
     
     suspend fun getCategoryCount(serverId: Long): Int = withContext(Dispatchers.IO) {
@@ -1290,6 +1391,12 @@ class IptvRepository @Inject constructor(
         return state
     }
 
+    private fun requireSyncSuccess(label: String, result: Resource<*>) {
+        if (result is Resource.Error) {
+            throw IllegalStateException(result.message ?: "$label sync failed")
+        }
+    }
+
     private fun buildFtsQuery(query: String): String {
         return query
             .trim()
@@ -1354,10 +1461,88 @@ class IptvRepository @Inject constructor(
         val baseUrl = server.serverUrl.trimEnd('/')
         val (username, password) = credentialManager.getCredentials(server.id) ?: ("" to "")
         return when (type) {
-            "live" -> "$baseUrl/live/$username/$password/$streamId.m3u8"
+            "live" -> buildLiveStreamUrl(baseUrl, username, password, streamId, server)
             "movie" -> "$baseUrl/movie/$username/$password/$streamId.${extension ?: "mp4"}"
             "series" -> "$baseUrl/series/$username/$password/$streamId.${extension ?: "mp4"}"
             else -> "$baseUrl/$type/$username/$password/$streamId"
+        }
+    }
+
+    private fun buildLiveStreamUrl(
+        baseUrl: String,
+        username: String,
+        password: String,
+        streamId: Int,
+        server: ServerEntity
+    ): String {
+        return when (preferredLiveOutputFormat(server)) {
+            "mpegts", "ts" -> "$baseUrl/live/$username/$password/$streamId.ts"
+            "rtmp" -> "$baseUrl/live/$username/$password/$streamId"
+            else -> "$baseUrl/live/$username/$password/$streamId.m3u8"
+        }
+    }
+
+    private fun preferredLiveOutputFormat(server: ServerEntity): String {
+        val metadata = runCatching {
+            server.serverInfo?.takeIf { it.isNotBlank() }?.let { JsonParser.parseString(it).asJsonObject }
+        }.getOrNull()
+        val preferred = ProviderSourceUrlParser.normalizeOutputFormat(
+            metadata?.stringOrNull("preferred_output_format")
+        )
+        if (preferred != null) return preferred
+
+        val allowed = metadata?.getAsJsonArray("allowed_output_formats")
+            ?.mapNotNull { element ->
+                ProviderSourceUrlParser.normalizeOutputFormat(element.takeIf { it.isJsonPrimitive }?.asString)
+            }
+            .orEmpty()
+        return when {
+            "mpegts" in allowed || "ts" in allowed -> "mpegts"
+            "m3u8" in allowed -> "m3u8"
+            "rtmp" in allowed -> "rtmp"
+            else -> "mpegts"
+        }
+    }
+
+    private fun buildServerInfoJson(authResponse: AuthResponse?, preferredOutputFormat: String?): String? {
+        if (authResponse == null && preferredOutputFormat.isNullOrBlank()) return null
+        return JsonObject().apply {
+            ProviderSourceUrlParser.normalizeOutputFormat(preferredOutputFormat)?.let {
+                addProperty("preferred_output_format", it)
+            }
+            val allowed = authResponse?.userInfo?.allowedOutputFormats
+                ?.mapNotNull { ProviderSourceUrlParser.normalizeOutputFormat(it) }
+                ?.distinct()
+                .orEmpty()
+            if (allowed.isNotEmpty()) {
+                add("allowed_output_formats", JsonArray().apply { allowed.forEach { add(it) } })
+            }
+            authResponse?.serverInfo?.let { info ->
+                addProperty("server_protocol", info.serverProtocol ?: "")
+                addProperty("server_timezone", info.timezone ?: "")
+            }
+        }.toString()
+    }
+
+    private fun JsonObject.stringOrNull(key: String): String? {
+        val element = get(key) ?: return null
+        if (!element.isJsonPrimitive) return null
+        return element.asString.takeIf { it.isNotBlank() }
+    }
+
+    private fun m3uCategoryId(serverId: Long, categoryName: String, type: String): String =
+        "${serverId}_${type}_${categoryName.hashCode()}"
+
+    private fun m3uCategories(categoryNames: Set<String>, serverId: Long, type: String): List<CategoryEntity> {
+        return categoryNames.mapIndexed { index, categoryName ->
+            CategoryEntity(
+                categoryId = m3uCategoryId(serverId, categoryName, type),
+                serverId = serverId,
+                originalId = categoryName.hashCode().toString(),
+                name = categoryName,
+                type = type,
+                sortOrder = index
+            )
         }
     }
     

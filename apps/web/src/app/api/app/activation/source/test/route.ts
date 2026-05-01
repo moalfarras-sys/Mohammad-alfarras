@@ -4,6 +4,12 @@ import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation
 import { normalizeProviderSource, testProviderSource } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
+function json(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 async function getActivatedDevice(code: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
@@ -24,25 +30,25 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ ok: false, message: "Invalid JSON body." }, { status: 400 });
+    return json({ ok: false, message: "Invalid JSON body." }, { status: 400 });
   }
 
   const code = normalizeActivationCode(String(body.code ?? ""));
   if (!isValidActivationCode(code)) {
-    return NextResponse.json({ ok: false, message: "Invalid activation code." }, { status: 400 });
+    return json({ ok: false, message: "Invalid activation code." }, { status: 400 });
   }
 
   const activated = await getActivatedDevice(code);
   if (!activated.publicDeviceId) {
-    return NextResponse.json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
+    return json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
   }
 
   try {
     const source = normalizeProviderSource(body.source);
     const result = await testProviderSource(source);
-    return NextResponse.json(result, { status: result.ok ? 200 : 422 });
+    return json(result, { status: result.ok ? 200 : 422 });
   } catch (error) {
-    return NextResponse.json(
+    return json(
       { ok: false, message: error instanceof Error ? error.message : "Invalid source." },
       { status: 400 },
     );

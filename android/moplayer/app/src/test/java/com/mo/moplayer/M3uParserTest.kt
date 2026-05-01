@@ -92,6 +92,26 @@ class M3uParserTest {
     }
 
     @Test
+    fun `parse treats movie and series urls as vod even with minus one duration`() {
+        val result = parser.parse(
+            """
+            #EXTM3U
+            #EXTINF:-1 group-title="Films",Movie Item
+            http://provider.test/movie/user/pass/1200.mp4
+            #EXTINF:-1 group-title="Series",Episode Item
+            http://provider.test/series/user/pass/2200.mkv
+            #EXTINF:-1 group-title="Live",Live Item
+            http://provider.test/live/user/pass/55.ts
+            """.trimIndent()
+        )
+
+        assertEquals(3, result.items.size)
+        assertFalse(result.items[0].isLive)
+        assertFalse(result.items[1].isLive)
+        assertTrue(result.items[2].isLive)
+    }
+
+    @Test
     fun `parse input stream handles large playlists without dropping entries`() {
         val builder = StringBuilder("#EXTM3U\n")
         repeat(2_000) { index ->

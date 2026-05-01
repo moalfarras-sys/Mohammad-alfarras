@@ -54,6 +54,14 @@ type Match = {
   priority: number;
 };
 
+type PublicMatch = Omit<Match, "priority">;
+
+function stripPriority(match: Match): PublicMatch {
+  const { priority: internalPriority, ...publicMatch } = match;
+  void internalPriority;
+  return publicMatch;
+}
+
 type ApiFootballFixture = {
   fixture?: {
     id?: number;
@@ -331,7 +339,7 @@ async function getApiFootballMatches() {
   const matches = (liveMatches.length > 0 ? liveMatches : [...recentResults, ...upcomingFixtures])
     .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 20)
-    .map(({ priority, ...match }) => match);
+    .map(stripPriority);
 
   if (matches.length === 0) {
     return fallbackFeaturedMatches();
@@ -340,17 +348,17 @@ async function getApiFootballMatches() {
   const importantMatches = (liveMatches.length > 0 ? liveMatches : [...previousDay, ...today, ...nextDay, ...recentResults, ...upcomingFixtures])
     .sort((a, b) => b.priority - a.priority || Math.abs(new Date(a.date).getTime() - Date.now()) - Math.abs(new Date(b.date).getTime() - Date.now()))
     .slice(0, 16)
-    .map(({ priority, ...match }) => match);
+    .map(stripPriority);
 
   return {
     primaryMatch: matches[0] ?? null,
     matches,
-    previousDay: previousDay.map(({ priority, ...match }) => match),
-    today: today.map(({ priority, ...match }) => match),
-    nextDay: nextDay.map(({ priority, ...match }) => match),
+    previousDay: previousDay.map(stripPriority),
+    today: today.map(stripPriority),
+    nextDay: nextDay.map(stripPriority),
     importantMatches,
-    recentResults: recentResults.map(({ priority, ...match }) => match),
-    upcomingFixtures: upcomingFixtures.map(({ priority, ...match }) => match),
+    recentResults: recentResults.map(stripPriority),
+    upcomingFixtures: upcomingFixtures.map(stripPriority),
     source: "api-football",
     mode: liveMatches.length > 0 ? "live" : "results_upcoming",
   };
@@ -403,7 +411,7 @@ export async function GET() {
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       })
       .slice(0, 20)
-      .map(({ priority, ...match }) => match);
+      .map(stripPriority);
 
     const recentResults = matches.filter((match) => match.status === "FT").slice(0, 12);
     const upcomingFixtures = matches.filter((match) => match.status === "NS").slice(0, 8);

@@ -343,9 +343,17 @@ class SeriesActivity : BaseTvActivity() {
                         onSeriesLongPress = { series -> showSeriesContextMenu(series) },
                         onFavoriteShortcut = { series -> viewModel.toggleFavorite(series) },
                         themeManager = themeManager
-                )
+        )
 
         binding.rvMovies.apply {
+            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
+                    context = this@SeriesActivity,
+                    cardWidthDp = 180,
+                    cardMarginDp = LayoutHelper.getCardMarginDp(this@SeriesActivity),
+                    screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@SeriesActivity),
+                    minColumns = 4,
+                    maxColumns = 9
+            )
             adapter = seriesAdapter
             setHasFixedSize(true)
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -423,7 +431,7 @@ class SeriesActivity : BaseTvActivity() {
         }
 
         viewModel.categories.observe(this) { categories ->
-            val realCategories = categories.filter { it.categoryId != "all" && it.name.isNotBlank() }
+            val realCategories = categories.filter { it.name.isNotBlank() }
             categoryAdapter.submitList(realCategories)
 
             val selected = viewModel.selectedCategory.value

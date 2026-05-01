@@ -35,14 +35,14 @@
         android:id="@+id/activationShell"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="56dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="56dp"
-        android:layout_marginBottom="40dp"
+        android:layout_marginStart="@dimen/activation_shell_margin_horizontal"
+        android:layout_marginTop="@dimen/activation_shell_margin_vertical"
+        android:layout_marginEnd="@dimen/activation_shell_margin_horizontal"
+        android:layout_marginBottom="@dimen/activation_shell_margin_vertical"
         android:background="@drawable/bg_activation_card"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="28dp"
+        android:padding="@dimen/activation_shell_padding"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -54,30 +54,30 @@
             android:layout_weight="1.15"
             android:gravity="center_vertical"
             android:orientation="vertical"
-            android:paddingEnd="32dp">
+            android:paddingEnd="@dimen/activation_copy_padding_end">
 
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="28dp"
+                android:layout_height="@dimen/activation_badge_height"
                 android:background="@drawable/bg_badge_premium"
                 android:gravity="center"
                 android:includeFontPadding="true"
-                android:minWidth="142dp"
+                android:minWidth="@dimen/activation_badge_min_width"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:text="WEBSITE PAIRING"
                 android:textColor="@color/login_white"
-                android:textSize="11sp"
+                android:textSize="@dimen/activation_badge_text_size"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvActivationTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="@dimen/activation_title_margin_top"
                 android:text="@string/activation_title"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="38sp"
+                android:textSize="@dimen/activation_title_text_size"
                 android:textStyle="bold"
                 tools:text="Activate MoPlayer" />
 
@@ -85,35 +85,35 @@
                 android:id="@+id/tvActivationSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/activation_subtitle_margin_top"
                 android:lineSpacingExtra="2dp"
                 android:text="@string/activation_subtitle"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="16sp" />
+                android:textSize="@dimen/activation_subtitle_text_size" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                android:layout_marginTop="@dimen/activation_label_margin_top"
                 android:text="@string/activation_code_label"
                 android:textColor="@color/cinematic_text_tertiary"
-                android:textSize="12sp"
+                android:textSize="@dimen/activation_label_text_size"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvDeviceCode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/activation_code_margin_top"
                 android:background="@drawable/bg_activation_code"
                 android:fontFamily="monospace"
                 android:letterSpacing="0.08"
-                android:paddingStart="20dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="10dp"
+                android:paddingStart="@dimen/activation_code_padding_horizontal"
+                android:paddingTop="@dimen/activation_code_padding_vertical"
+                android:paddingEnd="@dimen/activation_code_padding_horizontal"
+                android:paddingBottom="@dimen/activation_code_padding_vertical"
                 android:textColor="@color/login_white"
-                android:textSize="28sp"
+                android:textSize="@dimen/activation_code_text_size"
                 android:textStyle="bold"
                 tools:text="MO-4C7K" />
 
@@ -121,10 +121,10 @@
                 android:id="@+id/tvActivationStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/activation_status_margin_top"
                 android:text="@string/activation_waiting"
                 android:textColor="@color/moplayer_orange_light"
-                android:textSize="16sp"
+                android:textSize="@dimen/activation_status_text_size"
                 android:textStyle="bold" />
 
             <TextView
@@ -135,19 +135,19 @@
                 android:lineSpacingExtra="2dp"
                 android:text="@string/activation_waiting_body"
                 android:textColor="@color/cinematic_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="@dimen/activation_body_text_size" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/activation_buttons_margin_top"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btnCheckStatus"
-                    android:layout_width="190dp"
-                    android:layout_height="46dp"
+                    android:layout_width="@dimen/activation_button_width"
+                    android:layout_height="@dimen/activation_button_height"
                     android:background="@drawable/bg_login_button_primary_hero"
                     android:focusable="true"
                     android:stateListAnimator="@null"
@@ -158,9 +158,9 @@
 
                 <Button
                     android:id="@+id/btnAddSource"
-                    android:layout_width="190dp"
-                    android:layout_height="46dp"
-                    android:layout_marginStart="14dp"
+                    android:layout_width="@dimen/activation_button_width"
+                    android:layout_height="@dimen/activation_button_height"
+                    android:layout_marginStart="@dimen/activation_button_gap"
                     android:background="@drawable/bg_login_button_secondary_hero"
                     android:focusable="true"
                     android:stateListAnimator="@null"
@@ -178,10 +178,10 @@
             android:orientation="vertical">
 
             <FrameLayout
-                android:layout_width="260dp"
-                android:layout_height="260dp"
+                android:layout_width="@dimen/activation_qr_size"
+                android:layout_height="@dimen/activation_qr_size"
                 android:background="@drawable/bg_activation_qr"
-                android:padding="16dp">
+                android:padding="@dimen/activation_qr_padding">
 
                 <ImageView
                     android:id="@+id/ivQrCode"
@@ -195,21 +195,21 @@
                 android:id="@+id/tvActivationUrl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="@dimen/activation_url_margin_top"
                 android:fontFamily="monospace"
                 android:text="@string/activation_url"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="18sp"
+                android:textSize="@dimen/activation_url_text_size"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/activation_privacy_margin_top"
                 android:gravity="center"
                 android:text="@string/activation_privacy"
                 android:textColor="@color/cinematic_text_tertiary"
-                android:textSize="11sp" />
+                android:textSize="@dimen/activation_privacy_text_size" />
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

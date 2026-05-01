@@ -9,6 +9,9 @@ interface CategoryDao {
     
     @Query("SELECT * FROM categories WHERE serverId = :serverId AND type = :type ORDER BY sortOrder")
     fun getCategoriesByType(serverId: Long, type: String): Flow<List<CategoryEntity>>
+
+    @Query("SELECT * FROM categories WHERE serverId = :serverId AND type = :type ORDER BY sortOrder")
+    suspend fun getCategoriesByTypeOnce(serverId: Long, type: String): List<CategoryEntity>
     
     @Query("SELECT * FROM categories WHERE serverId = :serverId ORDER BY type, sortOrder")
     fun getAllCategories(serverId: Long): Flow<List<CategoryEntity>>

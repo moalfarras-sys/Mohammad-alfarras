@@ -142,7 +142,8 @@ class SeriesDetailViewModel @Inject constructor(
                         title = episodeDto.title ?: "Episode ${episodeDto.episodeNum}",
                         plot = episodeDto.info?.plot,
                         duration = episodeDto.info?.duration,
-                        streamUrl = buildEpisodeStreamUrl(episodeDto.id ?: "", episodeDto.containerExtension),
+                        streamUrl = episodeDto.directSource?.takeIf { it.isNotBlank() }
+                            ?: buildEpisodeStreamUrl(episodeDto.id ?: "", episodeDto.containerExtension),
                         thumbnail = episodeDto.info?.movieImage ?: _series.value?.cover,
                         releaseDate = episodeDto.info?.releaseDate,
                         rating = episodeDto.info?.rating

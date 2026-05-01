@@ -195,6 +195,73 @@
     <dimen name="login_choice_title_size">16sp</dimen>
     <dimen name="login_choice_title_size_secondary">15sp</dimen>
     <dimen name="login_choice_subtitle_size">11sp</dimen>
+
+    <!-- Responsive login card defaults for small landscape phones -->
+    <dimen name="login_clean_margin_horizontal">14dp</dimen>
+    <dimen name="login_clean_margin_bottom">10dp</dimen>
+    <dimen name="login_clean_width_max">390dp</dimen>
+    <dimen name="login_clean_padding_horizontal">14dp</dimen>
+    <dimen name="login_clean_padding_top">10dp</dimen>
+    <dimen name="login_clean_padding_bottom">10dp</dimen>
+    <dimen name="login_clean_logo_halo_size">58dp</dimen>
+    <dimen name="login_clean_logo_size">44dp</dimen>
+    <dimen name="login_clean_title_margin_top">8dp</dimen>
+    <dimen name="login_clean_title_text_size">18sp</dimen>
+    <dimen name="login_clean_subtitle_margin_top">4dp</dimen>
+    <dimen name="login_clean_subtitle_text_size">9sp</dimen>
+    <dimen name="login_clean_choice_panel_margin_top">10dp</dimen>
+    <dimen name="login_clean_choice_primary_height">56dp</dimen>
+    <dimen name="login_clean_choice_height">52dp</dimen>
+    <dimen name="login_clean_choice_gap">7dp</dimen>
+    <dimen name="login_clean_choice_padding_horizontal">10dp</dimen>
+    <dimen name="login_clean_choice_padding_vertical">8dp</dimen>
+    <dimen name="login_clean_action_icon_badge_size">38dp</dimen>
+    <dimen name="login_clean_action_icon_size">20dp</dimen>
+    <dimen name="login_clean_action_text_margin_start">10dp</dimen>
+    <dimen name="login_clean_action_title_size">13sp</dimen>
+    <dimen name="login_clean_action_title_secondary_size">12sp</dimen>
+    <dimen name="login_clean_action_subtitle_size">8sp</dimen>
+    <dimen name="login_clean_action_chip_height">24dp</dimen>
+    <dimen name="login_clean_tabs_height">34dp</dimen>
+    <dimen name="login_clean_field_height">38dp</dimen>
+    <dimen name="login_clean_button_height">36dp</dimen>
+    <dimen name="login_clean_button_back_height">34dp</dimen>
+    <dimen name="login_clean_form_text_size">11sp</dimen>
+    <dimen name="login_clean_button_text_size">10sp</dimen>
+    <dimen name="login_clean_error_text_size">9sp</dimen>
+    <dimen name="login_clean_loading_logo_size">72dp</dimen>
+
+    <!-- Responsive activation pairing screen -->
+    <dimen name="activation_shell_margin_horizontal">14dp</dimen>
+    <dimen name="activation_shell_margin_vertical">12dp</dimen>
+    <dimen name="activation_shell_padding">14dp</dimen>
+    <dimen name="activation_copy_padding_end">14dp</dimen>
+    <dimen name="activation_badge_height">24dp</dimen>
+    <dimen name="activation_badge_min_width">112dp</dimen>
+    <dimen name="activation_badge_text_size">8sp</dimen>
+    <dimen name="activation_title_margin_top">8dp</dimen>
+    <dimen name="activation_title_text_size">23sp</dimen>
+    <dimen name="activation_subtitle_margin_top">4dp</dimen>
+    <dimen name="activation_subtitle_text_size">10sp</dimen>
+    <dimen name="activation_label_margin_top">10dp</dimen>
+    <dimen name="activation_label_text_size">8sp</dimen>
+    <dimen name="activation_code_margin_top">4dp</dimen>
+    <dimen name="activation_code_padding_horizontal">12dp</dimen>
+    <dimen name="activation_code_padding_vertical">6dp</dimen>
+    <dimen name="activation_code_text_size">18sp</dimen>
+    <dimen name="activation_status_margin_top">10dp</dimen>
+    <dimen name="activation_status_text_size">11sp</dimen>
+    <dimen name="activation_body_text_size">9sp</dimen>
+    <dimen name="activation_buttons_margin_top">10dp</dimen>
+    <dimen name="activation_button_width">124dp</dimen>
+    <dimen name="activation_button_height">36dp</dimen>
+    <dimen name="activation_button_gap">8dp</dimen>
+    <dimen name="activation_qr_size">136dp</dimen>
+    <dimen name="activation_qr_padding">8dp</dimen>
+    <dimen name="activation_url_margin_top">8dp</dimen>
+    <dimen name="activation_url_text_size">11sp</dimen>
+    <dimen name="activation_privacy_margin_top">6dp</dimen>
+    <dimen name="activation_privacy_text_size">8sp</dimen>
     
     <!-- TV-specific defaults -->
     <dimen name="tv_episode_card_height">54dp</dimen>

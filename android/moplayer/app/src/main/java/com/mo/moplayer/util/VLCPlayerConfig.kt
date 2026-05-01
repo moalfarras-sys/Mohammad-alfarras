@@ -20,6 +20,11 @@ class VLCPlayerConfig @Inject constructor(
      * Creates optimized LibVLC instance for IPTV
      */
     fun createLibVLC(): LibVLC {
+        val nativeVlc = NativeVlcLoader.ensureAvailable(context)
+        if (!nativeVlc.available) {
+            throw IllegalStateException(nativeVlc.message)
+        }
+
         val options = buildOptimizedOptions()
         return LibVLC(context, ArrayList(options))
     }

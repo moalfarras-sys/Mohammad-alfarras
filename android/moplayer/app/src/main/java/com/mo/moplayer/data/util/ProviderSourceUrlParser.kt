@@ -9,7 +9,8 @@ object ProviderSourceUrlParser {
     data class XtreamCredentials(
         val serverUrl: String,
         val username: String,
-        val password: String
+        val password: String,
+        val preferredOutputFormat: String? = null
     )
 
     fun normalizeServerUrl(input: String): String {
@@ -41,11 +42,13 @@ object ProviderSourceUrlParser {
         val params = parseQuery(uri.rawQuery ?: return null)
         val username = params["username"]?.trim().orEmpty()
         val password = params["password"]?.trim().orEmpty()
+        val output = normalizeOutputFormat(params["output"])
         if (username.isBlank() || password.isBlank()) return null
         return XtreamCredentials(
             serverUrl = normalizeServerUrl(normalizedInput),
             username = username,
-            password = password
+            password = password,
+            preferredOutputFormat = output
         )
     }
 
@@ -62,4 +65,18 @@ object ProviderSourceUrlParser {
 
     private fun decode(value: String): String =
         runCatching { URLDecoder.decode(value, StandardCharsets.UTF_8.name()) }.getOrDefault(value)
+
+    fun normalizeOutputFormat(value: String?): String? {
+        val normalized = value
+            ?.trim()
+            ?.lowercase(Locale.ROOT)
+            ?.replace(".", "")
+            ?: return null
+        return when (normalized) {
+            "mpegts", "ts" -> "mpegts"
+            "m3u8", "hls" -> "m3u8"
+            "rtmp" -> "rtmp"
+            else -> normalized.takeIf { it.matches(Regex("[a-z0-9_+-]{1,16}")) }
+        }
+    }
 }

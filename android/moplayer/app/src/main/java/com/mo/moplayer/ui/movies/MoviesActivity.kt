@@ -363,6 +363,14 @@ class MoviesActivity : BaseTvActivity() {
         )
 
         binding.rvMovies.apply {
+            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
+                context = this@MoviesActivity,
+                cardWidthDp = 180,
+                cardMarginDp = LayoutHelper.getCardMarginDp(this@MoviesActivity),
+                screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@MoviesActivity),
+                minColumns = 4,
+                maxColumns = 9
+            )
             adapter = movieAdapter
             setHasFixedSize(true)
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -437,7 +445,7 @@ class MoviesActivity : BaseTvActivity() {
         }
 
         viewModel.categories.observe(this) { categories ->
-            val realCategories = categories.filter { it.categoryId != "all" && it.name.isNotBlank() }
+            val realCategories = categories.filter { it.name.isNotBlank() }
             categoryAdapter.submitList(realCategories)
 
             val selected = viewModel.selectedCategory.value

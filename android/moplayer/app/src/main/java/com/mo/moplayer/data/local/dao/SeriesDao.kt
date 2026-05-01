@@ -6,6 +6,11 @@ import com.mo.moplayer.data.local.entity.EpisodeEntity
 import com.mo.moplayer.data.local.entity.SeriesEntity
 import kotlinx.coroutines.flow.Flow
 
+data class SeriesCategoryCount(
+    val categoryId: String,
+    val itemCount: Int
+)
+
 @Dao
 interface SeriesDao {
     
@@ -48,6 +53,18 @@ interface SeriesDao {
     
     @Query("SELECT COUNT(*) FROM series WHERE serverId = :serverId")
     suspend fun getSeriesCount(serverId: Long): Int
+
+    @Query(
+        """
+        SELECT categoryId, COUNT(*) AS itemCount
+        FROM series
+        WHERE serverId = :serverId
+          AND categoryId IS NOT NULL
+          AND categoryId != ''
+        GROUP BY categoryId
+        """
+    )
+    suspend fun getSeriesCategoryCounts(serverId: Long): List<SeriesCategoryCount>
     
     // Episode queries
     @Query("SELECT * FROM episodes WHERE seriesId = :seriesId ORDER BY seasonNumber, episodeNumber")

@@ -30,6 +30,7 @@ import com.mo.moplayer.databinding.ActivityPlayerBinding
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.repository.WatchHistoryRepository
 import com.mo.moplayer.ui.common.BaseTvActivity
+import com.mo.moplayer.util.NativeVlcLoader
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -307,6 +308,14 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun initVLC() {
+        val nativeVlc = NativeVlcLoader.ensureAvailable(this)
+        if (!nativeVlc.available) {
+            android.util.Log.e("PlayerActivity", nativeVlc.message)
+            setLoadingOverlayVisible(false)
+            showPlaybackError(getString(R.string.player_unavailable_use_external))
+            return
+        }
+
         // Multi-strategy initialization for x86 emulator compatibility
         val cachingMs = if (api24SafePlayerMode) {
             vlcBufferMs.coerceAtLeast(if (isLiveStream) 6500 else 3500)
@@ -397,7 +406,7 @@ class PlayerActivity : BaseTvActivity() {
             ))
         )
 
-        var lastException: Exception? = null
+        var lastException: Throwable? = null
         
         for ((strategyName, options) in strategies) {
             try {
@@ -455,7 +464,7 @@ class PlayerActivity : BaseTvActivity() {
                 android.util.Log.i("PlayerActivity", "VLC initialized successfully with strategy: $strategyName")
                 return // Success! Exit function
                 
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 android.util.Log.w("PlayerActivity", "VLC initialization failed with strategy $strategyName: ${e.message}")
                 lastException = e
                 libVLC?.release()
@@ -648,17 +657,35 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun getVlcPlaybackUrl(url: String): String {
-        if (!api24SafePlayerMode || !useHttpFallbackForApi24Stream) return url
-        val parsed = runCatching { Uri.parse(url) }.getOrNull() ?: return url
+        val liveAdjustedUrl = if (isLiveStream) livePlaybackUrl(url, liveRetryCount) else url
+        if (!api24SafePlayerMode || !useHttpFallbackForApi24Stream) return liveAdjustedUrl
+        val parsed = runCatching { Uri.parse(liveAdjustedUrl) }.getOrNull() ?: return liveAdjustedUrl
         val host = parsed.host.orEmpty()
         val isAppHost = host.contains("moalfarras.space", ignoreCase = true) ||
             host.contains("vercel.app", ignoreCase = true)
         return if (parsed.scheme.equals("https", ignoreCase = true) && !isAppHost) {
             parsed.buildUpon().scheme("http").build().toString()
         } else {
-            url
+            liveAdjustedUrl
         }
     }
+
+    private fun livePlaybackUrl(url: String, attempt: Int): String {
+        val cleanUrl = url.trim()
+        return when {
+            hasLiveExtension(cleanUrl, "m3u8") ->
+                if (attempt % 2 == 0) replaceLiveExtension(cleanUrl, "ts") else cleanUrl
+            hasLiveExtension(cleanUrl, "ts") ->
+                if (attempt % 2 == 0) cleanUrl else replaceLiveExtension(cleanUrl, "m3u8")
+            else -> cleanUrl
+        }
+    }
+
+    private fun hasLiveExtension(url: String, extension: String): Boolean =
+        Regex("(?i)\\.${Regex.escape(extension)}(?=([?#]|$))").containsMatchIn(url)
+
+    private fun replaceLiveExtension(url: String, extension: String): String =
+        url.replace(Regex("(?i)\\.(m3u8|ts)(?=([?#]|$))"), ".$extension")
 
     private fun showPlaybackError(message: String) {
         binding.tvErrorMessage.text = message

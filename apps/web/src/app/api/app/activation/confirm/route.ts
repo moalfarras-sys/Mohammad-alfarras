@@ -3,17 +3,23 @@ import { NextResponse } from "next/server";
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
+function json(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 export async function POST(request: Request) {
   let body: { code?: string; deviceName?: string } = {};
   try {
     body = (await request.json()) as { code?: string; deviceName?: string };
   } catch {
-    return NextResponse.json({ status: "invalid", message: "Invalid JSON body." }, { status: 400 });
+    return json({ status: "invalid", message: "Invalid JSON body." }, { status: 400 });
   }
 
   const code = normalizeActivationCode(body.code);
   if (!isValidActivationCode(code)) {
-    return NextResponse.json({ status: "invalid", message: "Invalid activation code format." }, { status: 400 });
+    return json({ status: "invalid", message: "Invalid activation code format." }, { status: 400 });
   }
 
   const supabase = createSupabaseAdminClient();
@@ -24,11 +30,11 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ status: "error", message: "Activation lookup failed." }, { status: 500 });
+    return json({ status: "error", message: "Activation lookup failed." }, { status: 500 });
   }
 
   if (!data) {
-    return NextResponse.json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
+    return json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
   }
 
   if (new Date(data.expires_at).getTime() <= Date.now()) {
@@ -36,7 +42,7 @@ export async function POST(request: Request) {
       .from("activation_requests")
       .update({ status: "expired", updated_at: new Date().toISOString() })
       .eq("id", data.id);
-    return NextResponse.json({ status: "expired", code, expiresAt: data.expires_at }, { status: 410 });
+    return json({ status: "expired", code, expiresAt: data.expires_at }, { status: 410 });
   }
 
   const now = new Date().toISOString();
@@ -69,7 +75,7 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({
+  return json({
     status: "activated",
     code,
     publicDeviceId: data.public_device_id,

@@ -19,17 +19,23 @@ type CreateBody = {
   sourcePullToken?: string;
 };
 
+function json(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 export async function POST(request: Request) {
   let body: CreateBody = {};
   try {
     body = (await request.json()) as CreateBody;
   } catch {
-    return NextResponse.json({ status: "invalid", message: "Invalid JSON body." }, { status: 400 });
+    return json({ status: "invalid", message: "Invalid JSON body." }, { status: 400 });
   }
 
   const publicDeviceId = normalizePublicDeviceId(body.publicDeviceId);
   if (!isValidPublicDeviceId(publicDeviceId)) {
-    return NextResponse.json({ status: "invalid", message: "Invalid public device id." }, { status: 400 });
+    return json({ status: "invalid", message: "Invalid public device id." }, { status: 400 });
   }
 
   const supabase = createSupabaseAdminClient();
@@ -52,7 +58,7 @@ export async function POST(request: Request) {
     .upsert(devicePayload, { onConflict: "public_device_id" });
 
   if (deviceError) {
-    return NextResponse.json({ status: "error", message: "Could not register device." }, { status: 500 });
+    return json({ status: "error", message: "Could not register device." }, { status: 500 });
   }
 
   if (sourcePullTokenHash) {
@@ -71,7 +77,7 @@ export async function POST(request: Request) {
     );
 
     if (authError) {
-      return NextResponse.json({ status: "error", message: "Could not enable secure source sync." }, { status: 500 });
+      return json({ status: "error", message: "Could not enable secure source sync." }, { status: 500 });
     }
   }
 
@@ -97,7 +103,7 @@ export async function POST(request: Request) {
       .single();
 
     if (!error && data) {
-      return NextResponse.json({
+      return json({
         status: "waiting",
         code: data.device_code,
         expiresAt: data.expires_at,
@@ -106,5 +112,5 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ status: "error", message: "Could not create activation code." }, { status: 500 });
+  return json({ status: "error", message: "Could not create activation code." }, { status: 500 });
 }

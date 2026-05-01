@@ -28,6 +28,17 @@ class ProviderSourceUrlParserTest {
         assertEquals("https://iptv.example.com:8443", parsed!!.serverUrl)
         assertEquals("user@mail.com", parsed.username)
         assertEquals("p@ss", parsed.password)
+        assertEquals(null, parsed.preferredOutputFormat)
+    }
+
+    @Test
+    fun `parses preferred output format from get php url`() {
+        val parsed = ProviderSourceUrlParser.parseXtream(
+            "http://provider.test/get.php?username=demo&password=secret&type=m3u_plus&output=mpegts"
+        )
+
+        assertNotNull(parsed)
+        assertEquals("mpegts", parsed!!.preferredOutputFormat)
     }
 
     @Test

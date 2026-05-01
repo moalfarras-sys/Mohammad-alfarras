@@ -5,6 +5,11 @@ import androidx.room.*
 import com.mo.moplayer.data.local.entity.MovieEntity
 import kotlinx.coroutines.flow.Flow
 
+data class MovieCategoryCount(
+    val categoryId: String,
+    val itemCount: Int
+)
+
 @Dao
 interface MovieDao {
     
@@ -53,6 +58,18 @@ interface MovieDao {
     
     @Query("SELECT COUNT(*) FROM movies WHERE serverId = :serverId")
     suspend fun getMovieCount(serverId: Long): Int
+
+    @Query(
+        """
+        SELECT categoryId, COUNT(*) AS itemCount
+        FROM movies
+        WHERE serverId = :serverId
+          AND categoryId IS NOT NULL
+          AND categoryId != ''
+        GROUP BY categoryId
+        """
+    )
+    suspend fun getMovieCategoryCounts(serverId: Long): List<MovieCategoryCount>
 
     @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY RANDOM() LIMIT 1")
     suspend fun getRandomMovie(serverId: Long): MovieEntity?

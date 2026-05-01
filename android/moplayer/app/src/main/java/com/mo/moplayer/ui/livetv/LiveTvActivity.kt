@@ -32,6 +32,7 @@ import com.mo.moplayer.ui.common.ContentMenuHelper
 import com.mo.moplayer.util.PlayerLauncher
 import com.mo.moplayer.ui.livetv.adapters.ChannelTiviMateAdapter
 import com.mo.moplayer.ui.livetv.adapters.GroupAdapter
+import com.mo.moplayer.util.NativeVlcLoader
 import com.mo.moplayer.util.PlayerPreferences
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
@@ -237,6 +238,13 @@ class LiveTvActivity : BaseTvActivity() {
 
     private fun initVLC() {
         try {
+            val nativeVlc = NativeVlcLoader.ensureAvailable(this)
+            if (!nativeVlc.available) {
+                android.util.Log.e("LiveTvActivity", nativeVlc.message)
+                showError(getString(R.string.error_player_init))
+                return
+            }
+
             val isEmulator = isRunningOnEmulator()
             // Keep startup fast enough while still stable.
             val cachingMs =
@@ -376,7 +384,7 @@ class LiveTvActivity : BaseTvActivity() {
                             )
                     )
 
-            var lastException: Exception? = null
+            var lastException: Throwable? = null
 
             for ((strategyName, options) in strategies) {
                 try {
@@ -430,7 +438,7 @@ class LiveTvActivity : BaseTvActivity() {
                             "VLC initialized successfully with strategy: $strategyName"
                     )
                     return // Success! Exit function
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     android.util.Log.w(
                             "LiveTvActivity",
                             "VLC initialization failed with strategy $strategyName: ${e.message}"
@@ -514,6 +522,13 @@ class LiveTvActivity : BaseTvActivity() {
      */
     private fun initPreviewPlayer() {
         try {
+            val nativeVlc = NativeVlcLoader.ensureAvailable(this)
+            if (!nativeVlc.available) {
+                android.util.Log.w("LiveTvActivity", "Preview disabled: ${nativeVlc.message}")
+                isPreviewEnabled = false
+                return
+            }
+
             // Lightweight preview options: video-only, no stats, small buffer
             val previewCachingMs = minOf(vlcBufferMs, 1000).coerceAtLeast(300)
             val options =
@@ -637,7 +652,7 @@ class LiveTvActivity : BaseTvActivity() {
                         binding.previewLoading.visibility = View.VISIBLE
                         binding.noPreviewPlaceholder.visibility = View.GONE
 
-                        val media = Media(previewLibVLC, Uri.parse(channel.streamUrl))
+                        val media = Media(previewLibVLC, Uri.parse(primaryLivePlaybackUrl(channel)))
                         media.addOption(":network-caching=500")
                         media.addOption(":live-caching=500")
                         media.addOption(":codec=all") // دعم جميع قوانين الصوت
@@ -1158,6 +1173,9 @@ class LiveTvActivity : BaseTvActivity() {
 
     private fun playChannel(channel: ChannelEntity) {
         try {
+            if (channel.channelId != currentChannel?.channelId) {
+                retryCount = 0
+            }
             val requestToken = ++activePlayRequestToken
             activePlaybackToken = requestToken
             channelSwitchCount++
@@ -1189,7 +1207,7 @@ class LiveTvActivity : BaseTvActivity() {
                 return
             }
 
-            val media = Media(libVLC, Uri.parse(channel.streamUrl))
+            val media = Media(libVLC, Uri.parse(livePlaybackUrlForAttempt(channel)))
 
             // Enable hardware decoding for 4K/8K support with fallback
             media.setHWDecoderEnabled(vlcHardwareAccelerationEnabled, false)
@@ -1241,6 +1259,29 @@ class LiveTvActivity : BaseTvActivity() {
             showError(getString(R.string.error_stream_failed))
         }
     }
+
+    private fun primaryLivePlaybackUrl(channel: ChannelEntity): String =
+            livePlaybackUrl(channel.streamUrl, attempt = 0)
+
+    private fun livePlaybackUrlForAttempt(channel: ChannelEntity): String =
+            livePlaybackUrl(channel.streamUrl, attempt = retryCount)
+
+    private fun livePlaybackUrl(url: String, attempt: Int): String {
+        val cleanUrl = url.trim()
+        return when {
+            hasLiveExtension(cleanUrl, "m3u8") ->
+                    if (attempt % 2 == 0) replaceLiveExtension(cleanUrl, "ts") else cleanUrl
+            hasLiveExtension(cleanUrl, "ts") ->
+                    if (attempt % 2 == 0) cleanUrl else replaceLiveExtension(cleanUrl, "m3u8")
+            else -> cleanUrl
+        }
+    }
+
+    private fun hasLiveExtension(url: String, extension: String): Boolean =
+            Regex("(?i)\\.${Regex.escape(extension)}(?=([?#]|$))").containsMatchIn(url)
+
+    private fun replaceLiveExtension(url: String, extension: String): String =
+            url.replace(Regex("(?i)\\.(m3u8|ts)(?=([?#]|$))"), ".$extension")
 
     private fun updateChannelInfo(channel: ChannelEntity) {
         val channelIndex = viewModel.currentChannelIndex.value?.plus(1) ?: 1

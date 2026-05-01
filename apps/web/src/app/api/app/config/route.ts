@@ -6,8 +6,8 @@ const fallbackConfig = {
   enabled: true,
   maintenanceMode: false,
   forceUpdate: false,
-  minimumVersionCode: 4,
-  latestVersionName: "v2 full",
+  minimumVersionCode: 6,
+  latestVersionName: "2.2.0",
   message: "",
   accentColor: "#00e5ff",
   logoUrl: "/images/moplayer-brand-logo-final.png",
@@ -23,17 +23,51 @@ export async function GET() {
   }
 
   const supabase = createSupabaseDataClient();
-  const { data, error } = await supabase
-    .from("app_settings")
-    .select("value, updated_at")
-    .eq("key", "moplayer_public_config")
-    .maybeSingle();
+  const [settingsRes, releaseRes] = await Promise.all([
+    supabase.from("app_settings").select("value, updated_at").eq("key", "moplayer_public_config").maybeSingle(),
+    supabase
+      .from("app_releases")
+      .select("version_name, version_code")
+      .eq("product_slug", "moplayer")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
+  const { data, error } = settingsRes;
+  const latestRelease = releaseRes.data;
 
   if (error || !data) {
-    return NextResponse.json({ source: "fallback", config: fallbackConfig });
+    return NextResponse.json({
+      source: latestRelease ? "release" : "fallback",
+      config: {
+        ...fallbackConfig,
+        ...(latestRelease
+          ? {
+              latestVersionName: String(latestRelease.version_name),
+              minimumVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
+            }
+          : {}),
+      },
+    });
   }
 
-  const config = { ...fallbackConfig, ...(typeof data.value === "object" && data.value ? data.value : {}) };
+  const settingsValue =
+    typeof data.value === "object" && data.value ? (data.value as Record<string, unknown>) : {};
+  const config = {
+    ...fallbackConfig,
+    ...settingsValue,
+    ...(latestRelease
+      ? {
+          latestVersionName: String(latestRelease.version_name),
+          minimumVersionCode: Math.max(
+            Number(settingsValue.minimumVersionCode ?? 0) || 0,
+            Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
+          ),
+        }
+      : {}),
+  };
   if (config.backgroundUrl === "/images/moplayer-tv-banner.png") {
     config.backgroundUrl = "/images/moplayer-tv-banner-final.png";
   }

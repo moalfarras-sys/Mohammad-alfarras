@@ -7,7 +7,9 @@ import com.mo.moplayer.data.local.entity.ServerEntity
 import com.mo.moplayer.data.parser.M3uParser
 import com.mo.moplayer.data.remote.api.XtreamApi
 import com.mo.moplayer.data.repository.IptvRepository
+import com.mo.moplayer.util.CredentialManager
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -26,6 +28,7 @@ class IptvRepositoryTest {
     private lateinit var serverDao: ServerDao
     private lateinit var categoryDao: CategoryDao
     private lateinit var m3uParser: M3uParser
+    private lateinit var credentialManager: CredentialManager
     private lateinit var repository: IptvRepository
 
     @Before
@@ -34,6 +37,7 @@ class IptvRepositoryTest {
         serverDao = mockk(relaxed = true)
         categoryDao = mockk(relaxed = true)
         m3uParser = mockk(relaxed = true)
+        credentialManager = mockk(relaxed = true)
         // Create repository with all required mocks - use relaxed mocks for unused DAOs
         repository = IptvRepository(
             xtreamApi = xtreamApi,
@@ -48,7 +52,7 @@ class IptvRepositoryTest {
             serverSyncStateDao = mockk(relaxed = true),
             contentSearchDao = mockk(relaxed = true),
             m3uParser = m3uParser,
-            credentialManager = mockk(relaxed = true)
+            credentialManager = credentialManager
         )
     }
 
@@ -95,6 +99,18 @@ class IptvRepositoryTest {
 
         assertEquals(1, result.size)
         assertEquals("Action", result[0].name)
+    }
+
+    @Test
+    fun `buildStreamUrl respects mpegts preferred live output`() {
+        every { credentialManager.getCredentials(7L) } returns ("demo" to "secret")
+        val server = createTestServer(id = 7L).copy(
+            serverInfo = """{"preferred_output_format":"mpegts","allowed_output_formats":["mpegts","m3u8"]}"""
+        )
+
+        val result = repository.buildStreamUrl(server, streamId = 99, type = "live")
+
+        assertEquals("http://example.com/live/demo/secret/99.ts", result)
     }
 
     private fun createTestServer(id: Long = 1L) = ServerEntity(

@@ -93,28 +93,28 @@
         android:id="@+id/loginCardClean"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="28dp"
+        android:layout_marginStart="@dimen/login_clean_margin_horizontal"
+        android:layout_marginEnd="@dimen/login_clean_margin_horizontal"
+        android:layout_marginBottom="@dimen/login_clean_margin_bottom"
         android:background="@drawable/bg_login_auth_panel_glass"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:elevation="6dp"
-        android:paddingStart="24dp"
-        android:paddingTop="22dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="18dp"
+        android:paddingStart="@dimen/login_clean_padding_horizontal"
+        android:paddingTop="@dimen/login_clean_padding_top"
+        android:paddingEnd="@dimen/login_clean_padding_horizontal"
+        android:paddingBottom="@dimen/login_clean_padding_bottom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.47"
-        app:layout_constraintWidth_max="448dp">
+        app:layout_constraintWidth_max="@dimen/login_clean_width_max">
 
         <FrameLayout
             android:id="@+id/logoHaloContainer"
-            android:layout_width="92dp"
-            android:layout_height="92dp"
+            android:layout_width="@dimen/login_clean_logo_halo_size"
+            android:layout_height="@dimen/login_clean_logo_halo_size"
             android:background="@drawable/bg_login_logo_ring"
             android:clipChildren="false"
             android:clipToPadding="false"
@@ -124,8 +124,8 @@
 
             <ImageView
                 android:id="@+id/imgLogoClean"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
+                android:layout_width="@dimen/login_clean_logo_size"
+                android:layout_height="@dimen/login_clean_logo_size"
                 android:layout_gravity="center"
                 android:contentDescription="@string/cd_logo"
                 android:scaleType="fitCenter"
@@ -136,11 +136,11 @@
             android:id="@+id/tvLoginTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="@dimen/login_clean_title_margin_top"
             android:gravity="center"
             android:text="@string/login_clean_title"
             android:textColor="@color/login_white"
-            android:textSize="22sp"
+            android:textSize="@dimen/login_clean_title_text_size"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -150,12 +150,12 @@
             android:id="@+id/tvLoginSubtitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/login_clean_subtitle_margin_top"
             android:gravity="center"
             android:lineSpacingExtra="2dp"
             android:text="@string/login_form_subtitle"
             android:textColor="@color/color_text_primary_80"
-            android:textSize="11sp"
+            android:textSize="@dimen/login_clean_subtitle_text_size"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvLoginTitle" />
@@ -164,7 +164,7 @@
             android:id="@+id/setupChoicePanel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="@dimen/login_clean_choice_panel_margin_top"
             android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -173,8 +173,8 @@
             <LinearLayout
                 android:id="@+id/btnChooseActivation"
                 android:layout_width="match_parent"
-                android:layout_height="88dp"
-                android:layout_marginBottom="12dp"
+                android:layout_height="@dimen/login_clean_choice_primary_height"
+                android:layout_marginBottom="@dimen/login_clean_choice_gap"
                 android:background="@drawable/selector_login_action_card"
                 android:clickable="true"
                 android:clipChildren="false"
@@ -183,20 +183,20 @@
                 android:gravity="center_vertical"
                 android:nextFocusDown="@id/btnChooseXtream"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingTop="14dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="14dp">
+                android:paddingStart="@dimen/login_clean_choice_padding_horizontal"
+                android:paddingTop="@dimen/login_clean_choice_padding_vertical"
+                android:paddingEnd="@dimen/login_clean_choice_padding_horizontal"
+                android:paddingBottom="@dimen/login_clean_choice_padding_vertical">
 
                 <FrameLayout
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="@dimen/login_clean_action_icon_badge_size"
+                    android:layout_height="@dimen/login_clean_action_icon_badge_size"
                     android:background="@drawable/bg_login_action_icon_badge">
 
                     <ImageView
                         android:id="@+id/ivActivationIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="@dimen/login_clean_action_icon_size"
+                        android:layout_height="@dimen/login_clean_action_icon_size"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_login_lock"
                         app:tint="@color/login_white" />
@@ -205,7 +205,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
+                    android:layout_marginStart="@dimen/login_clean_action_text_margin_start"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -214,7 +214,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/login_choice_activation"
                         android:textColor="@color/login_white"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/login_clean_action_title_size"
                         android:textStyle="bold" />
 
                     <TextView
@@ -223,19 +223,19 @@
                         android:layout_marginTop="4dp"
                         android:text="@string/login_choice_activation_subtitle"
                         android:textColor="@color/color_text_primary_80"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/login_clean_action_subtitle_size" />
                 </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="28dp"
+                    android:layout_height="@dimen/login_clean_action_chip_height"
                     android:background="@drawable/bg_login_qr_chip"
                     android:gravity="center"
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
                     android:text="QR"
                     android:textColor="@color/login_white"
-                    android:textSize="10sp"
+                    android:textSize="@dimen/login_clean_action_subtitle_size"
                     android:textStyle="bold" />
 
                 <ImageView
@@ -249,8 +249,8 @@
             <LinearLayout
                 android:id="@+id/btnChooseXtream"
                 android:layout_width="match_parent"
-                android:layout_height="82dp"
-                android:layout_marginBottom="12dp"
+                android:layout_height="@dimen/login_clean_choice_height"
+                android:layout_marginBottom="@dimen/login_clean_choice_gap"
                 android:background="@drawable/selector_login_action_card"
                 android:clickable="true"
                 android:clipChildren="false"
@@ -260,20 +260,20 @@
                 android:nextFocusDown="@id/btnChooseM3u"
                 android:nextFocusUp="@id/btnChooseActivation"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingTop="13dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="13dp">
+                android:paddingStart="@dimen/login_clean_choice_padding_horizontal"
+                android:paddingTop="@dimen/login_clean_choice_padding_vertical"
+                android:paddingEnd="@dimen/login_clean_choice_padding_horizontal"
+                android:paddingBottom="@dimen/login_clean_choice_padding_vertical">
 
                 <FrameLayout
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="@dimen/login_clean_action_icon_badge_size"
+                    android:layout_height="@dimen/login_clean_action_icon_badge_size"
                     android:background="@drawable/bg_login_action_icon_badge">
 
                     <ImageView
                         android:id="@+id/ivXtreamIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="@dimen/login_clean_action_icon_size"
+                        android:layout_height="@dimen/login_clean_action_icon_size"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_login_server"
                         app:tint="@color/login_white" />
@@ -282,7 +282,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
+                    android:layout_marginStart="@dimen/login_clean_action_text_margin_start"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -291,7 +291,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/login_choice_xtream"
                         android:textColor="@color/login_white"
-                        android:textSize="15sp"
+                        android:textSize="@dimen/login_clean_action_title_secondary_size"
                         android:textStyle="bold" />
 
                     <TextView
@@ -300,7 +300,7 @@
                         android:layout_marginTop="4dp"
                         android:text="@string/login_choice_xtream_subtitle"
                         android:textColor="@color/color_text_primary_80"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/login_clean_action_subtitle_size" />
                 </LinearLayout>
 
                 <ImageView
@@ -313,7 +313,7 @@
             <LinearLayout
                 android:id="@+id/btnChooseM3u"
                 android:layout_width="match_parent"
-                android:layout_height="82dp"
+                android:layout_height="@dimen/login_clean_choice_height"
                 android:background="@drawable/selector_login_action_card"
                 android:clickable="true"
                 android:clipChildren="false"
@@ -322,20 +322,20 @@
                 android:gravity="center_vertical"
                 android:nextFocusUp="@id/btnChooseXtream"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingTop="13dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="13dp">
+                android:paddingStart="@dimen/login_clean_choice_padding_horizontal"
+                android:paddingTop="@dimen/login_clean_choice_padding_vertical"
+                android:paddingEnd="@dimen/login_clean_choice_padding_horizontal"
+                android:paddingBottom="@dimen/login_clean_choice_padding_vertical">
 
                 <FrameLayout
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="@dimen/login_clean_action_icon_badge_size"
+                    android:layout_height="@dimen/login_clean_action_icon_badge_size"
                     android:background="@drawable/bg_login_action_icon_badge">
 
                     <ImageView
                         android:id="@+id/ivM3uIcon"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="@dimen/login_clean_action_icon_size"
+                        android:layout_height="@dimen/login_clean_action_icon_size"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_login_file"
                         app:tint="@color/login_white" />
@@ -344,7 +344,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
+                    android:layout_marginStart="@dimen/login_clean_action_text_margin_start"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -353,7 +353,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/login_choice_m3u"
                         android:textColor="@color/login_white"
-                        android:textSize="15sp"
+                        android:textSize="@dimen/login_clean_action_title_secondary_size"
                         android:textStyle="bold" />
 
                     <TextView
@@ -362,7 +362,7 @@
                         android:layout_marginTop="4dp"
                         android:text="@string/login_choice_m3u_subtitle"
                         android:textColor="@color/color_text_primary_80"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/login_clean_action_subtitle_size" />
                 </LinearLayout>
 
                 <ImageView
@@ -376,7 +376,7 @@
         <LinearLayout
             android:id="@+id/sourceModeTabs"
             android:layout_width="0dp"
-            android:layout_height="38dp"
+            android:layout_height="@dimen/login_clean_tabs_height"
             android:layout_marginTop="18dp"
             android:background="@drawable/bg_login_tab_glass"
             android:gravity="center_vertical"
@@ -404,7 +404,7 @@
                 android:text="@string/tab_xtream"
                 android:textAllCaps="false"
                 android:textColor="@color/login_white"
-                android:textSize="11sp"
+                android:textSize="@dimen/login_clean_button_text_size"
                 android:textStyle="bold" />
 
             <Space
@@ -428,7 +428,7 @@
                 android:text="@string/tab_m3u"
                 android:textAllCaps="false"
                 android:textColor="@color/login_white"
-                android:textSize="11sp"
+                android:textSize="@dimen/login_clean_button_text_size"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -453,7 +453,7 @@
                 <EditText
                     android:id="@+id/etServerUrlClean"
                     android:layout_width="match_parent"
-                    android:layout_height="42dp"
+                    android:layout_height="@dimen/login_clean_field_height"
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_login_input_hero"
                     android:gravity="start|center_vertical"
@@ -471,13 +471,13 @@
                     android:textColor="@color/login_white"
                     android:textColorHint="@color/color_text_primary_80"
                     android:textDirection="ltr"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/login_clean_form_text_size"
                     tools:ignore="Autofill,LabelFor" />
 
                 <EditText
                     android:id="@+id/etUsernameClean"
                     android:layout_width="match_parent"
-                    android:layout_height="42dp"
+                    android:layout_height="@dimen/login_clean_field_height"
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_login_input_hero"
                     android:gravity="start|center_vertical"
@@ -493,12 +493,12 @@
                     android:singleLine="true"
                     android:textColor="@color/login_white"
                     android:textColorHint="@color/color_text_primary_80"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/login_clean_form_text_size"
                     tools:ignore="Autofill,LabelFor" />
 
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="42dp"
+                    android:layout_height="@dimen/login_clean_field_height"
                     android:layout_marginBottom="10dp">
 
                     <EditText
@@ -519,7 +519,7 @@
                         android:singleLine="true"
                         android:textColor="@color/login_white"
                         android:textColorHint="@color/color_text_primary_80"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/login_clean_form_text_size"
                         tools:ignore="Autofill,LabelFor" />
 
                     <ImageButton
@@ -537,7 +537,7 @@
                 <Button
                     android:id="@+id/btnConnectClean"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/login_clean_button_height"
                     android:background="@drawable/bg_login_button_primary_hero"
                     android:focusable="true"
                     android:gravity="center"
@@ -549,7 +549,7 @@
                     android:text="@string/btn_connect"
                     android:textAllCaps="false"
                     android:textColor="@color/login_white"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/login_clean_button_text_size"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -562,7 +562,7 @@
                 <EditText
                     android:id="@+id/etM3uUrlClean"
                     android:layout_width="match_parent"
-                    android:layout_height="42dp"
+                    android:layout_height="@dimen/login_clean_field_height"
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_login_input_hero"
                     android:gravity="start|center_vertical"
@@ -580,13 +580,13 @@
                     android:textColor="@color/login_white"
                     android:textColorHint="@color/color_text_primary_80"
                     android:textDirection="ltr"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/login_clean_form_text_size"
                     tools:ignore="Autofill,LabelFor" />
 
                 <Button
                     android:id="@+id/btnImportM3uClean"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/login_clean_button_height"
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_login_button_primary_hero"
                     android:focusable="true"
@@ -599,13 +599,13 @@
                     android:text="@string/btn_import_m3u"
                     android:textAllCaps="false"
                     android:textColor="@color/login_white"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/login_clean_button_text_size"
                     android:textStyle="bold" />
 
                 <Button
                     android:id="@+id/btnImportM3uLocalClean"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
+                    android:layout_height="@dimen/login_clean_button_height"
                     android:background="@drawable/bg_login_button_secondary_hero"
                     android:focusable="true"
                     android:gravity="center"
@@ -617,14 +617,14 @@
                     android:text="@string/btn_import_m3u_local"
                     android:textAllCaps="false"
                     android:textColor="@color/login_white"
-                    android:textSize="11sp" />
+                    android:textSize="@dimen/login_clean_button_text_size" />
             </LinearLayout>
         </ViewFlipper>
 
         <Button
             android:id="@+id/btnBackToMethodsClean"
             android:layout_width="0dp"
-            android:layout_height="38dp"
+            android:layout_height="@dimen/login_clean_button_back_height"
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_login_button_secondary_hero"
             android:focusable="true"
@@ -635,7 +635,7 @@
             android:text="@string/setup_back_to_methods"
             android:textAllCaps="false"
             android:textColor="@color/login_white"
-            android:textSize="10sp"
+            android:textSize="@dimen/login_clean_button_text_size"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -666,7 +666,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/activation_entry_title"
                 android:textColor="@color/login_white"
-                android:textSize="12sp"
+                android:textSize="@dimen/login_clean_action_title_secondary_size"
                 android:textStyle="bold" />
 
             <TextView
@@ -676,12 +676,12 @@
                 android:lineSpacingExtra="2dp"
                 android:text="@string/activation_entry_subtitle"
                 android:textColor="@color/color_text_primary_80"
-                android:textSize="10sp" />
+                android:textSize="@dimen/login_clean_action_subtitle_size" />
 
             <Button
                 android:id="@+id/btnOpenActivationClean"
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
+                android:layout_height="@dimen/login_clean_button_back_height"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_login_button_secondary_hero"
                 android:focusable="true"
@@ -696,7 +696,7 @@
                 android:text="@string/activation_entry_button"
                 android:textAllCaps="false"
                 android:textColor="@color/login_white"
-                android:textSize="10sp" />
+                android:textSize="@dimen/login_clean_button_text_size" />
         </LinearLayout>
 
         <TextView
@@ -708,7 +708,7 @@
             android:gravity="center"
             android:padding="10dp"
             android:textColor="@color/login_white"
-            android:textSize="10sp"
+            android:textSize="@dimen/login_clean_error_text_size"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -755,8 +755,8 @@
 
             <FrameLayout
                 android:id="@+id/loadingLogoClean"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
+                android:layout_width="@dimen/login_clean_loading_logo_size"
+                android:layout_height="@dimen/login_clean_loading_logo_size"
                 android:background="@drawable/bg_login_logo_ring">
 
                 <ImageView

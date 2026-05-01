@@ -25,6 +25,8 @@ const dockIcons = {
   contact: Send,
 } as const;
 
+const fallbackLogoSrc = "/images/logo.png";
+
 export function SiteNavbar({
   locale,
   links,
@@ -43,7 +45,9 @@ export function SiteNavbar({
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [brandLogoSrc, setBrandLogoSrc] = useState(logoSrc || "/images/logo.png");
+  const [failedLogoSrcs, setFailedLogoSrcs] = useState<ReadonlySet<string>>(() => new Set());
+  const resolvedLogoSrc = logoSrc || fallbackLogoSrc;
+  const brandLogoSrc = failedLogoSrcs.has(resolvedLogoSrc) ? fallbackLogoSrc : resolvedLogoSrc;
   const nextLocale = locale === "ar" ? "en" : "ar";
   const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${nextLocale}`;
   const isAr = locale === "ar";
@@ -56,10 +60,6 @@ export function SiteNavbar({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    setBrandLogoSrc(logoSrc || "/images/logo.png");
-  }, [logoSrc]);
 
   return (
     <>
@@ -74,7 +74,14 @@ export function SiteNavbar({
                 height={44}
                 className="fresh-brand-logo"
                 priority
-                onError={() => setBrandLogoSrc("/images/logo.png")}
+                onError={() =>
+                  setFailedLogoSrcs((current) => {
+                    if (current.has(resolvedLogoSrc)) return current;
+                    const next = new Set(current);
+                    next.add(resolvedLogoSrc);
+                    return next;
+                  })
+                }
               />
             </span>
             <span>

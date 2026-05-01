@@ -16,9 +16,8 @@ import type {
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
-const moplayerDownloadBase = "/api/app/releases";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/moplayer-v2-full/download`,
+  universal: "/downloads/moplayer/app-sideload-universal-release.apk",
 };
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
@@ -95,7 +94,7 @@ const fallbackProduct: AppProduct = {
   compatibility_notes: [
     "Android 7.0+ (API 24 and above)",
     "Positioned for Android TV and remote-based navigation",
-    "Recommended TV download is the v2 full universal APK for Android 7.0+ TV devices",
+    "Recommended TV download is the v2.2 full universal APK for Android 7.0+ TV devices",
   ],
   legal_notes: [
     "MoPlayer is a playback interface. It does not provide channels, playlists, or copyrighted media.",
@@ -189,13 +188,13 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-v2-full",
+    id: "release-v2-2-full",
     product_slug: "moplayer",
-    slug: "moplayer-v2-full",
-    version_name: "v2 full",
-    version_code: 4,
+    slug: "moplayer-v2.2-full",
+    version_name: "v2.2 full",
+    version_code: 6,
     release_notes:
-      "v2 full release for better Android TV settings control. Fixes DPAD access across Settings, makes accent colors and backgrounds apply clearly, improves server/player/parental controls, and keeps the universal Android 7+ TV APK path.",
+      "v2.2 full fixes LibVLC native library extraction on emulator and x86 devices, adds safe VLC preflight loading, improves live MPEG-TS/HLS fallback, hardens large Xtream movie and series sync, and recovers empty catalogs after interrupted imports.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -203,8 +202,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-v2-full-universal",
-        release_id: "release-v2-full",
+        id: "asset-v2-2-full-universal",
+        release_id: "release-v2-2-full",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -212,8 +211,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 92263305,
-        checksum_sha256: "4cefd3dbf85d82ae838e2dbeb9810da358b21ecc166a7a35e18a3c1b237e2fb2",
+        file_size_bytes: 47948265,
+        checksum_sha256: "594364262f5a46c76e54c4e8d5d6961a59dfa2ba4308b616eec987b88ba573b1",
         is_primary: true,
         created_at: now,
       },

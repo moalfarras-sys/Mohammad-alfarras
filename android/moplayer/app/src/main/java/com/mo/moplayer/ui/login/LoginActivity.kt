@@ -159,8 +159,11 @@ class LoginActivity : AppCompatActivity() {
             val hasSavedSession = withContext(Dispatchers.IO) {
                 repository.getActiveServerSync() != null
             }
+            val shouldStayForSetup =
+                intent?.getBooleanExtra(EXTRA_ACTIVATION_COMPLETED, false) == true ||
+                    intent?.getBooleanExtra("add_new_server", false) == true
 
-            if (hasSavedSession && !safeMode) {
+            if (hasSavedSession && !safeMode && !shouldStayForSetup) {
                 startupResolved = true
                 navigateToHome()
                 return@launch

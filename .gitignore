@@ -39,6 +39,10 @@ local.properties
 
 # Local QA screenshots / automation artifacts (not versioned)
 artifacts/
+current_state.png
+tv-emulator-login.png
+m3u_test_playlist.txt
+moplayer_database_copy.db
 
 # Large universal MoPlayer APK is published through release metadata / external hosting,
 # not bundled into Vercel public output.

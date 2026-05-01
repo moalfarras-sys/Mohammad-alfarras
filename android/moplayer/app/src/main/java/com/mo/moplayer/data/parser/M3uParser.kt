@@ -80,7 +80,7 @@ class M3uParser {
     private fun parseLines(lines: Sequence<String>): ParseResult {
         val items = mutableListOf<M3uItem>()
         val categories = mutableSetOf<String>()
-        val seenStreamUrls = hashSetOf<String>()
+        val seenStreamFingerprints = hashSetOf<Long>()
         var skippedEntries = 0
         var duplicateEntries = 0
         var totalLines = 0
@@ -108,7 +108,7 @@ class M3uParser {
                         continue
                     }
                     val normalizedUrl = trimmedLine.trim()
-                    if (!seenStreamUrls.add(normalizedUrl)) {
+                    if (!markStreamSeen(seenStreamFingerprints, normalizedUrl)) {
                         duplicateEntries += 1
                         currentInfo = null
                         continue
@@ -120,7 +120,7 @@ class M3uParser {
                 }
                 trimmedLine.isNotEmpty() && currentInfo == null && isPotentialStreamUrl(trimmedLine) -> {
                     val normalizedUrl = trimmedLine.trim()
-                    if (!seenStreamUrls.add(normalizedUrl)) {
+                    if (!markStreamSeen(seenStreamFingerprints, normalizedUrl)) {
                         duplicateEntries += 1
                         continue
                     }
@@ -153,7 +153,7 @@ class M3uParser {
         onItem: suspend (M3uItem) -> Unit
     ): StreamingParseResult {
         val categories = mutableSetOf<String>()
-        val seenStreamUrls = hashSetOf<String>()
+        val seenStreamFingerprints = hashSetOf<Long>()
         var skippedEntries = 0
         var duplicateEntries = 0
         var totalLines = 0
@@ -178,7 +178,7 @@ class M3uParser {
                         continue
                     }
                     val normalizedUrl = trimmedLine.trim()
-                    if (!seenStreamUrls.add(normalizedUrl)) {
+                    if (!markStreamSeen(seenStreamFingerprints, normalizedUrl)) {
                         duplicateEntries += 1
                         currentInfo = null
                         continue
@@ -191,7 +191,7 @@ class M3uParser {
                 }
                 trimmedLine.isNotEmpty() && currentInfo == null && isPotentialStreamUrl(trimmedLine) -> {
                     val normalizedUrl = trimmedLine.trim()
-                    if (!seenStreamUrls.add(normalizedUrl)) {
+                    if (!markStreamSeen(seenStreamFingerprints, normalizedUrl)) {
                         duplicateEntries += 1
                         continue
                     }
@@ -243,9 +243,7 @@ class M3uParser {
         // Extract name (last part after comma, or after all attributes)
         val name = extractName(restOfLine)
         
-        // Determine if it's live or VOD based on URL and duration
-        val isLive = duration == -1 || url.contains(".m3u8") || 
-                     url.contains("/live/") || !url.matches(Regex(".*\\.(mp4|mkv|avi|mov|wmv|flv)$"))
+        val isLive = inferIsLive(url, duration)
         
         return M3uItem(
             name = name,
@@ -293,6 +291,41 @@ class M3uParser {
             lower.startsWith("/")
     }
 
+    private fun inferIsLive(url: String, duration: Int): Boolean {
+        val lower = url.substringBefore('?').lowercase()
+        val vodExtensions = listOf(".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".3gp")
+        if (lower.contains("/movie/") || lower.contains("/vod/") || lower.contains("/series/")) {
+            return false
+        }
+        if (vodExtensions.any { lower.endsWith(it) }) {
+            return false
+        }
+        if (
+            lower.contains("/live/") ||
+            lower.endsWith(".m3u8") ||
+            lower.endsWith(".ts") ||
+            lower.endsWith(".mpegts") ||
+            lower.startsWith("udp://") ||
+            lower.startsWith("rtp://") ||
+            lower.startsWith("rtmp://")
+        ) {
+            return true
+        }
+        return duration == -1
+    }
+
+    private fun markStreamSeen(seen: MutableSet<Long>, url: String): Boolean =
+        seen.add(streamFingerprint(url))
+
+    private fun streamFingerprint(value: String): Long {
+        var hash = -0x340d631b7bdddcdbL
+        for (char in value) {
+            hash = hash xor char.code.toLong()
+            hash *= 0x100000001b3L
+        }
+        return hash
+    }
+
     private fun extractFallbackName(url: String): String {
         val cleaned = url.substringBefore('?').trimEnd('/')
         val segment = cleaned.substringAfterLast('/')
@@ -319,7 +352,8 @@ class M3uParser {
         categoryMap: Map<String, String> = emptyMap() // group name -> categoryId
     ): List<ChannelEntity> {
         return items.filter { it.isLive }.mapIndexed { index, item ->
-            val categoryId = item.group?.let { categoryMap[it] ?: "${serverId}_${it.hashCode()}" }
+            val categoryName = item.group?.takeIf { it.isNotBlank() } ?: "Uncategorized"
+            val categoryId = categoryMap[categoryName] ?: "${serverId}_live_${categoryName.hashCode()}"
             
             ChannelEntity(
                 channelId = "${serverId}_${index}_${item.name.hashCode()}",
@@ -346,7 +380,8 @@ class M3uParser {
         categoryMap: Map<String, String> = emptyMap()
     ): List<MovieEntity> {
         return items.filter { !it.isLive }.mapIndexed { index, item ->
-            val categoryId = item.group?.let { categoryMap[it] ?: "${serverId}_${it.hashCode()}" }
+            val categoryName = item.group?.takeIf { it.isNotBlank() } ?: "Uncategorized"
+            val categoryId = categoryMap[categoryName] ?: "${serverId}_movie_${categoryName.hashCode()}"
             val extension = item.url.substringAfterLast('.', "mp4").take(4)
             
             MovieEntity(

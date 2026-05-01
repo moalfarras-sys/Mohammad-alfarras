@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.view.SurfaceView
+import com.mo.moplayer.util.NativeVlcLoader
 import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
@@ -50,6 +51,12 @@ class VideoPreviewManager(private val context: Context) {
     private fun initializePlayer() {
         if (libVLC == null) {
             try {
+                val nativeVlc = NativeVlcLoader.ensureAvailable(context)
+                if (!nativeVlc.available) {
+                    listener?.onPreviewError("Video preview unavailable.")
+                    return
+                }
+
                 val options = arrayListOf(
                     "--quiet",
                     "--no-audio", // No audio for preview

@@ -29,22 +29,22 @@ const allowed = /^[A-HJ-NP-RT-Z2-46789]{4}$/;
 
 const copy = {
   en: {
-    kicker: "Guided MoPlayer activation",
-    title: "Unlock the full cinematic experience in seconds.",
+    kicker: "MoPlayer TV activation",
+    title: "Sign in, enter the TV code, and send your source.",
     body:
-      "Choose MoPlayer, continue with your account layer, then enter the short MO code shown on your Android TV. The flow stays simple on a phone and secure for your TV setup.",
-    productStep: "Choose your Product",
-    loginStep: "Login or Register",
-    codeStep: "Enter Activation Code",
+      "Scan the QR code from MoPlayer, confirm the product, continue with email, then type the short MO code shown on your Android TV. The phone flow is clear, fast, and built for normal customers.",
+    productStep: "Choose product",
+    loginStep: "Sign in",
+    codeStep: "Enter TV code",
     productTitle: "MoPlayer for Android TV",
-    productBody: "Pair your TV, connect sources, and keep the setup controlled from the official website.",
+    productBody: "Pair your TV from the official website, then send the playlist source directly to the app.",
     continue: "Continue",
-    welcome: "Welcome Back",
-    loginBody: "Use an email or a social sign-in entry point before pairing the device. This keeps the activation journey clear for normal users.",
+    welcome: "Continue on your phone",
+    loginBody: "Use your email to keep this TV activation tied to the customer who is setting it up. Social sign-in buttons are prepared as a friendly shortcut.",
     emailLabel: "Email address",
     emailPlaceholder: "you@example.com",
-    google: "Continue with Google",
-    apple: "Continue with Apple",
+    google: "Google shortcut",
+    apple: "Apple shortcut",
     emailContinue: "Continue with email",
     skip: "Continue to activation",
     codeLabel: "Activation code",
@@ -60,9 +60,12 @@ const copy = {
     success: "Activation Successful",
     sourceTitle: "Send your playlist securely",
     sourceBody: "After pairing, choose the provider type, test the connection, then send the source directly to the app.",
+    sourceChoiceTitle: "Choose your source type",
     sourceName: "Source name",
     xtream: "Xtream",
+    xtreamHint: "Server URL, username, and password.",
     m3u: "M3U playlist",
+    m3uHint: "One playlist URL with optional EPG.",
     serverUrl: "Server URL",
     username: "Username",
     password: "Password",
@@ -79,24 +82,25 @@ const copy = {
     failureSend: "Could not send the source.",
     unavailableSend: "Could not send the source right now.",
     backApps: "Back to apps",
+    reset: "Reset",
   },
   ar: {
-    kicker: "تفعيل MoPlayer الموجّه",
-    title: "افتح التجربة السينمائية الكاملة في ثوانٍ.",
+    kicker: "تفعيل MoPlayer للتلفزيون",
+    title: "سجّل الدخول، أدخل كود التلفزيون، وأرسل مصدرك.",
     body:
-      "اختر MoPlayer، تابع عبر طبقة الحساب، ثم أدخل كود MO القصير الظاهر على Android TV. المسار واضح على الجوال وآمن لإعداد التلفزيون.",
+      "امسح رمز QR من تطبيق MoPlayer، أكّد المنتج، تابع بالبريد، ثم اكتب كود MO القصير الظاهر على Android TV. المسار على الجوال واضح وسريع ومناسب لأي عميل.",
     productStep: "اختر المنتج",
-    loginStep: "تسجيل الدخول أو إنشاء حساب",
-    codeStep: "أدخل كود التفعيل",
+    loginStep: "تسجيل الدخول",
+    codeStep: "أدخل كود التلفزيون",
     productTitle: "MoPlayer لتلفزيون Android",
-    productBody: "اربط التلفزيون، أرسل المصادر، وتحكم بالإعداد من الموقع الرسمي بسهولة.",
+    productBody: "اربط التلفزيون من الموقع الرسمي، ثم أرسل مصدر القائمة مباشرة إلى التطبيق.",
     continue: "متابعة",
-    welcome: "أهلًا بعودتك",
-    loginBody: "استخدم البريد أو خيار دخول اجتماعي قبل ربط الجهاز حتى تبقى تجربة التفعيل واضحة للمستخدم العادي.",
+    welcome: "تابع من الجوال",
+    loginBody: "استخدم بريدك حتى يبقى تفعيل التلفزيون مرتبطًا بالعميل الذي يجهّزه. أزرار الدخول السريع جاهزة كاختصار واضح.",
     emailLabel: "البريد الإلكتروني",
     emailPlaceholder: "you@example.com",
-    google: "المتابعة عبر Google",
-    apple: "المتابعة عبر Apple",
+    google: "اختصار Google",
+    apple: "اختصار Apple",
     emailContinue: "المتابعة بالبريد",
     skip: "الانتقال للتفعيل",
     codeLabel: "كود التفعيل",
@@ -112,9 +116,12 @@ const copy = {
     success: "تم التفعيل بنجاح",
     sourceTitle: "أرسل قائمتك بأمان",
     sourceBody: "بعد الربط، اختر نوع المزود، اختبر الاتصال، ثم أرسل المصدر مباشرة إلى التطبيق.",
+    sourceChoiceTitle: "اختر طريقة ربط المصدر",
     sourceName: "اسم المصدر",
     xtream: "Xtream",
+    xtreamHint: "بيانات السيرفر، المستخدم، وكلمة المرور.",
     m3u: "رابط M3U",
+    m3uHint: "رابط قائمة تشغيل واحد مع EPG اختياري.",
     serverUrl: "رابط السيرفر",
     username: "اسم المستخدم",
     password: "كلمة المرور",
@@ -131,6 +138,7 @@ const copy = {
     failureSend: "تعذر إرسال المصدر.",
     unavailableSend: "تعذر إرسال المصدر حاليًا.",
     backApps: "العودة للتطبيقات",
+    reset: "إعادة ضبط",
   },
 } as const;
 
@@ -390,7 +398,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
                       className="activation-reset"
                     >
                       <RefreshCcw className="h-4 w-4" />
-                      Reset
+                      {t.reset}
                     </button>
                   </div>
                 </div>
@@ -406,7 +414,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
             <Tv className="h-4 w-4" />
             {t.sourceTitle}
           </span>
-          <h2>{isAr ? "اختر طريقة ربط المصدر" : "Choose your source type"}</h2>
+          <h2>{t.sourceChoiceTitle}</h2>
           <p>{t.sourceBody}</p>
         </div>
 
@@ -415,12 +423,12 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
             <button type="button" onClick={() => setSourceType("xtream")} className={cn("activation-source-card", sourceType === "xtream" && "is-active")}>
               <Tv className="h-5 w-5" />
               <strong>{t.xtream}</strong>
-              <span>{isAr ? "بيانات السيرفر، المستخدم، وكلمة المرور." : "Server URL, username, and password."}</span>
+              <span>{t.xtreamHint}</span>
             </button>
             <button type="button" onClick={() => setSourceType("m3u")} className={cn("activation-source-card", sourceType === "m3u" && "is-active")}>
               <PlayCircle className="h-5 w-5" />
               <strong>{t.m3u}</strong>
-              <span>{isAr ? "رابط قائمة تشغيل واحد مع EPG اختياري." : "One playlist URL with optional EPG."}</span>
+              <span>{t.m3uHint}</span>
             </button>
           </div>
 

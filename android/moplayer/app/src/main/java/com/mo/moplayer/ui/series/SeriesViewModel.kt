@@ -10,6 +10,7 @@ import com.mo.moplayer.data.local.entity.CategoryEntity
 import com.mo.moplayer.data.local.entity.SeriesEntity
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.util.NetworkErrorHandler
+import com.mo.moplayer.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,15 +42,25 @@ class SeriesViewModel @Inject constructor(
     val networkError: StateFlow<NetworkErrorHandler.NetworkError?> = _networkError.asStateFlow()
 
     private var serverId: Long = 0
+    private var emptyCatalogRefreshStarted = false
+
+    private data class SeriesQuery(
+        val serverId: Long,
+        val categoryId: String?
+    )
     
     // StateFlow to track current category for pagination
-    private val currentCategoryFlow = MutableStateFlow<String?>(null)
+    private val currentQueryFlow = MutableStateFlow(SeriesQuery(0L, null))
     
     // Paged series flow
     @OptIn(ExperimentalCoroutinesApi::class)
-    val seriesPaged: Flow<PagingData<SeriesEntity>> = currentCategoryFlow
-        .flatMapLatest { categoryId ->
-            repository.getSeriesPaginated(serverId, categoryId)
+    val seriesPaged: Flow<PagingData<SeriesEntity>> = currentQueryFlow
+        .flatMapLatest { query ->
+            if (query.serverId <= 0L) {
+                flowOf(PagingData.empty())
+            } else {
+                repository.getSeriesPaginated(query.serverId, query.categoryId)
+            }
         }
         .cachedIn(viewModelScope)
 
@@ -79,8 +91,30 @@ class SeriesViewModel @Inject constructor(
                     }
                     result.fold(
                         onSuccess = { cats ->
-                            _categories.value = cats
-                            currentCategoryFlow.value = null
+                            val counts = repository.getSeriesCategoryCounts(serverId)
+                            val totalSeries = repository.getSeriesCount(serverId)
+                            val filteredCategories = cats.filter { (counts[it.categoryId] ?: 0) > 0 }
+                            val allCategory = CategoryEntity(
+                                categoryId = "all",
+                                serverId = serverId,
+                                originalId = "all",
+                                name = "All",
+                                type = "series",
+                                sortOrder = -1
+                            )
+                            val visibleCategories =
+                                if (totalSeries > 0) listOf(allCategory) + filteredCategories else cats
+                            _categories.value = visibleCategories
+                            val selected = _selectedCategory.value
+                            val nextSelection = when {
+                                selected != null && visibleCategories.any { it.categoryId == selected.categoryId } -> selected
+                                visibleCategories.isNotEmpty() -> visibleCategories.first()
+                                else -> null
+                            }
+                            selectCategory(nextSelection)
+                            if (totalSeries == 0 && cats.isNotEmpty()) {
+                                refreshEmptyCatalogOnce(server)
+                            }
                         },
                         onFailure = { e ->
                             _networkError.value = networkErrorHandler.categorizeError(e)
@@ -95,15 +129,36 @@ class SeriesViewModel @Inject constructor(
         }
     }
 
+    private fun refreshEmptyCatalogOnce(server: com.mo.moplayer.data.local.entity.ServerEntity) {
+        if (emptyCatalogRefreshStarted) return
+        emptyCatalogRefreshStarted = true
+        viewModelScope.launch {
+            when (val refresh = repository.fetchAndSaveSeries(server)) {
+                is Resource.Success -> {
+                    _isLoading.value = false
+                    if ((refresh.data ?: 0) > 0) {
+                        loadData()
+                    }
+                }
+                is Resource.Error -> {
+                    _isLoading.value = false
+                    _networkError.value = networkErrorHandler.categorizeError(
+                        IllegalStateException(refresh.message ?: "Series refresh failed")
+                    )
+                }
+                else -> _isLoading.value = false
+            }
+        }
+    }
+
     fun selectCategory(category: CategoryEntity?) {
         _selectedCategory.value = category
         
         // Update the category flow to trigger new paging data
-        currentCategoryFlow.value = if (category == null || category.categoryId == "all") {
-            null
-        } else {
-            category.categoryId
-        }
+        currentQueryFlow.value = SeriesQuery(
+            serverId = serverId,
+            categoryId = if (category == null || category.categoryId == "all") null else category.categoryId
+        )
     }
 
     fun toggleFavorite(series: SeriesEntity) {

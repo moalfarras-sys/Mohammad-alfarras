@@ -18,6 +18,12 @@ import {
 } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
+function json(body: unknown, init?: ResponseInit) {
+  const response = NextResponse.json(body, init);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
 async function activatedDeviceByCode(code: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
@@ -68,24 +74,24 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ ok: false, message: "Invalid JSON body." }, { status: 400 });
+    return json({ ok: false, message: "Invalid JSON body." }, { status: 400 });
   }
 
   const code = normalizeActivationCode(String(body.code ?? ""));
   if (!isValidActivationCode(code)) {
-    return NextResponse.json({ ok: false, message: "Invalid activation code." }, { status: 400 });
+    return json({ ok: false, message: "Invalid activation code." }, { status: 400 });
   }
 
   const activated = await activatedDeviceByCode(code);
   if (!activated.publicDeviceId) {
-    return NextResponse.json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
+    return json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
   }
 
   try {
     const source = normalizeProviderSource(body.source);
     const test = await testProviderSource(source);
     if (!test.ok) {
-      return NextResponse.json(test, { status: 422 });
+      return json(test, { status: 422 });
     }
 
     const supabase = createSupabaseAdminClient();
@@ -115,10 +121,10 @@ export async function POST(request: Request) {
     );
 
     if (error) {
-      return NextResponse.json({ ok: false, message: "Could not save source for the device." }, { status: 500 });
+      return json({ ok: false, message: "Could not save source for the device." }, { status: 500 });
     }
 
-    return NextResponse.json({
+    return json({
       ok: true,
       status: "source_sent",
       message: "Source saved. MoPlayer will import it automatically while the activation screen is open.",
@@ -131,7 +137,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
+    return json(
       { ok: false, message: error instanceof Error ? error.message : "Invalid source." },
       { status: 400 },
     );
@@ -144,12 +150,12 @@ export async function GET(request: Request) {
   const token = normalizeSourcePullToken(searchParams.get("token"));
 
   if (!isValidPublicDeviceId(publicDeviceId) || token.length < 32) {
-    return NextResponse.json({ status: "invalid", message: "Invalid device credentials." }, { status: 400 });
+    return json({ status: "invalid", message: "Invalid device credentials." }, { status: 400 });
   }
 
   const verified = await verifiedDeviceByToken(publicDeviceId, token);
   if (!verified.publicDeviceId) {
-    return NextResponse.json({ status: "unauthorized", message: verified.error }, { status: verified.status ?? 500 });
+    return json({ status: "unauthorized", message: verified.error }, { status: verified.status ?? 500 });
   }
 
   const supabase = createSupabaseAdminClient();
@@ -160,12 +166,12 @@ export async function GET(request: Request) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ status: "error", message: "Could not read pending source." }, { status: 500 });
+    return json({ status: "error", message: "Could not read pending source." }, { status: 500 });
   }
 
   const queue = readQueueValue(data?.value);
   if (!queue || queue.publicDeviceId !== publicDeviceId || !["pending", "fetched"].includes(queue.status)) {
-    return NextResponse.json({ status: "empty" });
+    return json({ status: "empty" });
   }
 
   const now = new Date().toISOString();
@@ -184,7 +190,7 @@ export async function GET(request: Request) {
     { onConflict: "key" },
   );
 
-  return NextResponse.json({
+  return json({
     status: "source_available",
     sourceId: queue.id,
     source: publicProviderSource(decryptProviderSource(queue.encryptedPayload)),

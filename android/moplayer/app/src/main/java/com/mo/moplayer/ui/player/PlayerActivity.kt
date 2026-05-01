@@ -17,10 +17,17 @@ import android.os.SystemClock
 import android.util.Rational
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
 import com.mo.moplayer.R
+import com.mo.moplayer.data.local.entity.ChannelEntity
 import com.mo.moplayer.databinding.ActivityPlayerBinding
+import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.repository.WatchHistoryRepository
 import com.mo.moplayer.ui.common.BaseTvActivity
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,6 +68,12 @@ class PlayerActivity : BaseTvActivity() {
     
     @Inject
     lateinit var playerPreferences: com.mo.moplayer.util.PlayerPreferences
+
+    @Inject
+    lateinit var repository: IptvRepository
+
+    @Inject
+    lateinit var tvUiPreferences: com.mo.moplayer.util.TvUiPreferences
     
     private val activityScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -74,8 +87,8 @@ class PlayerActivity : BaseTvActivity() {
     private var seeking = false
     private var lastFocusedViewId: Int = View.NO_ID
 
-    private val CONTROLS_TIMEOUT = 5000L
     private val SEEK_AMOUNT = 10000L // 10 seconds
+    private var controlsTimeoutMs = 4000L
 
     private var streamUrl: String = ""
     private var title: String = ""
@@ -95,11 +108,14 @@ class PlayerActivity : BaseTvActivity() {
     private var vlcHardwareAccelerationEnabled: Boolean = true
     private var vlcPlaybackProfile: Int = com.mo.moplayer.util.PlayerPreferences.PLAYBACK_PROFILE_BALANCED
     private var pipModeEnabled: Boolean = false  // Default OFF for TV compatibility
+    private val api24SafePlayerMode: Boolean
+        get() = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N
     
     // Throttle UI updates from VLC buffering callbacks
     private val BUFFERING_UI_THROTTLE_MS = 250L
     private var lastBufferingUiVisible: Boolean? = null
     private var lastBufferingUiUpdateAtMs: Long = 0L
+    private var hasStartedPlayback = false
 
     private val isLiveStream: Boolean
         get() = contentType.equals("CHANNEL", ignoreCase = true) ||
@@ -109,9 +125,15 @@ class PlayerActivity : BaseTvActivity() {
     private val LIVE_MAX_RETRIES = 5  // Increased from 3 for better resilience
     private var lastRetryTime = 0L
     private val RETRY_BACKOFF_MS = 2000L  // Base backoff time
+    private var useHttpFallbackForApi24Stream = false
     
     // PIP (Picture-in-Picture) support
     private var isInPipMode = false
+    private var optionSheetVisible = false
+    private var channelDrawerVisible = false
+    private var channelList: List<ChannelEntity> = emptyList()
+    private var currentChannelIndex = -1
+    private var currentServerId: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,6 +172,7 @@ class PlayerActivity : BaseTvActivity() {
 
             binding.tvTitle.text = title
             binding.tvSubtitle.text = contentType
+            updatePlaybackChrome()
             
             // FIX: Load saved position BEFORE initVLC to avoid race condition.
             // Previously this was fire-and-forget, so the player could start before
@@ -160,6 +183,9 @@ class PlayerActivity : BaseTvActivity() {
 
             setupControls()
             binding.loadingOverlay.visibility = View.VISIBLE
+            if (isLiveStream) {
+                loadLiveSupportData()
+            }
             binding.root.post {
                 initVLC()
                 playStream()
@@ -239,6 +265,7 @@ class PlayerActivity : BaseTvActivity() {
         vlcHardwareAccelerationEnabled = playerPreferences.hardwareAcceleration.first()
         vlcPlaybackProfile = playerPreferences.playbackProfile.first()
         pipModeEnabled = playerPreferences.pipModeEnabled.first()
+        controlsTimeoutMs = tvUiPreferences.playerAutoHideSeconds.first() * 1000L
     }
     
     private fun startProgressSaving() {
@@ -281,14 +308,19 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun initVLC() {
         // Multi-strategy initialization for x86 emulator compatibility
-        val cachingMs = vlcBufferMs.coerceAtLeast(500)
+        val cachingMs = if (api24SafePlayerMode) {
+            vlcBufferMs.coerceAtLeast(if (isLiveStream) 6500 else 3500)
+        } else {
+            vlcBufferMs.coerceAtLeast(500)
+        }
         
         // Dynamic thread count based on device CPU cores for optimal 4K/8K performance
         val cpuCores = Runtime.getRuntime().availableProcessors()
         val dynamicThreadCount = (cpuCores * 2).coerceIn(8, 16)  // 8-16 threads for 4K/8K
         
-        val codecOption = if (vlcHardwareAccelerationEnabled) {
-            "--codec=mediacodec_ndk,mediacodec_jni,all"
+        val hardwareEnabledForThisDevice = vlcHardwareAccelerationEnabled
+        val codecOption = if (hardwareEnabledForThisDevice) {
+            if (api24SafePlayerMode) "--codec=mediacodec_jni,all" else "--codec=mediacodec_ndk,mediacodec_jni,all"
         } else {
             "--codec=all"
         }
@@ -320,14 +352,20 @@ class PlayerActivity : BaseTvActivity() {
                 add("--quiet")
                 add("--no-stats")
                 add("--no-video-title-show")
+                add("--aout=android_audiotrack")
+                add("--no-spdif")
+                add("--no-audio-time-stretch")
                 addAll(opts)
             }
         }
 
         val strategies = listOf(
-            // Strategy 1: Minimal options (most compatible)
-            Pair("Minimal", optionsOf(
-                "--aout=opensles",
+            // Strategy 1: API 24 safe. Avoid OpenSLES; it crashes AudioTrackShared on
+            // some Android TV 7 emulators and low-end boxes.
+            Pair("API24Safe", optionsOf(
+                "--network-caching=$cachingMs",
+                "--live-caching=$cachingMs",
+                "--file-caching=$cachingMs",
                 dropLateFramesOpt,
                 skipFramesOpt,
                 avcodecSkipFrameOpt,
@@ -335,8 +373,6 @@ class PlayerActivity : BaseTvActivity() {
             )),
             // Strategy 2: Basic with caching
             Pair("Basic", optionsOf(
-                "--aout=opensles",
-                "--audio-time-stretch",
                 dropLateFramesOpt,
                 skipFramesOpt,
                 avcodecSkipFrameOpt,
@@ -347,8 +383,6 @@ class PlayerActivity : BaseTvActivity() {
             )),
             // Strategy 3: Full options with 4K/8K support (for real devices)
             Pair("Full", optionsOf(
-                "--aout=opensles",
-                "--audio-time-stretch",
                 "--network-caching=$cachingMs",
                 "--live-caching=$cachingMs",
                 "--file-caching=$cachingMs",
@@ -376,6 +410,7 @@ class PlayerActivity : BaseTvActivity() {
                     runOnUiThread {
                         when (event.type) {
                             MediaPlayer.Event.Playing -> {
+                                hasStartedPlayback = true
                                 setLoadingOverlayVisible(false)
                                 binding.errorOverlay.visibility = View.GONE
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
@@ -386,7 +421,7 @@ class PlayerActivity : BaseTvActivity() {
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_play)
                             }
                             MediaPlayer.Event.Buffering -> {
-                                setLoadingOverlayVisible(event.buffering < 100f)
+                                setLoadingOverlayVisible(event.buffering < 100f && !hasStartedPlayback)
                             }
                             MediaPlayer.Event.EndReached -> {
                                 if (isLiveStream) {
@@ -397,7 +432,9 @@ class PlayerActivity : BaseTvActivity() {
                             }
                             MediaPlayer.Event.EncounteredError -> {
                                 setLoadingOverlayVisible(false)
-                                if (isLiveStream) {
+                                if (tryApi24HttpFallbackAfterPlaybackError()) {
+                                    return@runOnUiThread
+                                } else if (isLiveStream) {
                                     handleLiveStreamError()
                                 } else {
                                     showPlaybackError(getString(R.string.player_stream_error_with_external_hint))
@@ -438,17 +475,22 @@ class PlayerActivity : BaseTvActivity() {
     private fun setupControls() {
         binding.btnBack.setOnClickListener { finish() }
 
+        binding.btnPreviousChannel.setOnClickListener { playAdjacentChannel(-1) }
+        binding.btnNextChannel.setOnClickListener { playAdjacentChannel(1) }
         binding.btnPlayPause.setOnClickListener { togglePlayPause() }
         binding.btnRewind.setOnClickListener { seekBackward() }
         binding.btnForward.setOnClickListener { seekForward() }
 
-        binding.btnAudio.setOnClickListener { cycleAudioTrack() }
-        binding.btnSubtitles.setOnClickListener { cycleSubtitleTrack() }
+        binding.btnGuide.setOnClickListener { toggleChannelDrawer() }
+        binding.btnAudio.setOnClickListener { showAudioTrackSheet() }
+        binding.btnSubtitles.setOnClickListener { showSubtitleSheet() }
         binding.btnAspectRatio.setOnClickListener { cycleAspectRatio() }
         binding.btnSpeed.setOnClickListener { cyclePlaybackSpeed() }
         binding.btnExternalPlayer.setOnClickListener { showExternalPlayerDialog() }
 
         binding.btnRetry.setOnClickListener { playStream() }
+        binding.optionSheet.setOnClickListener { hideOptionSheet() }
+        binding.channelDrawer.setOnClickListener { hideChannelDrawer() }
 
         // SeekBar
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -478,11 +520,32 @@ class PlayerActivity : BaseTvActivity() {
         binding.btnVlcExternal.setOnClickListener { openInExternalPlayer("vlc") }
         binding.btnOtherPlayer.setOnClickListener { openInExternalPlayer("other") }
         binding.btnCancelExternal.setOnClickListener { hideExternalPlayerDialog() }
+
+        listOf(
+            binding.btnBack,
+            binding.btnPreviousChannel,
+            binding.btnRewind,
+            binding.btnPlayPause,
+            binding.btnForward,
+            binding.btnNextChannel,
+            binding.btnGuide,
+            binding.btnAudio,
+            binding.btnSubtitles,
+            binding.btnAspectRatio,
+            binding.btnSpeed,
+            binding.btnExternalPlayer,
+            binding.seekBar
+        ).forEach { view ->
+            view.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) resetControlsTimeout()
+            }
+        }
     }
 
     private fun playStream() {
         try {
             setLoadingOverlayVisible(true)
+            hasStartedPlayback = false
             binding.errorOverlay.visibility = View.GONE
 
             // Check if LibVLC is available
@@ -503,8 +566,10 @@ class PlayerActivity : BaseTvActivity() {
                 return
             }
 
-            val media = Media(libVLC, Uri.parse(streamUrl))
-            media.setHWDecoderEnabled(vlcHardwareAccelerationEnabled, false)
+            val playbackUrl = getVlcPlaybackUrl(streamUrl)
+            val media = Media(libVLC, Uri.parse(playbackUrl))
+            val hardwareEnabledForThisDevice = vlcHardwareAccelerationEnabled
+            media.setHWDecoderEnabled(hardwareEnabledForThisDevice, false)
             
             // Dynamic thread count for 4K/8K performance
             val cpuCores = Runtime.getRuntime().availableProcessors()
@@ -513,8 +578,17 @@ class PlayerActivity : BaseTvActivity() {
             // Use adaptive buffering based on network type
             val adaptiveBuffer = getAdaptiveBufferMs()
             // Increased minimum buffer for 4K/8K streams
-            val cachingMs = if (isLiveStream) adaptiveBuffer.coerceAtLeast(4000) else adaptiveBuffer.coerceAtLeast(2000)
+            val cachingMs = if (api24SafePlayerMode) {
+                if (isLiveStream) adaptiveBuffer.coerceAtLeast(6500) else adaptiveBuffer.coerceAtLeast(3500)
+            } else {
+                if (isLiveStream) adaptiveBuffer.coerceAtLeast(4000) else adaptiveBuffer.coerceAtLeast(2000)
+            }
             media.addOption(":network-caching=$cachingMs")
+            media.addOption(":aout=android_audiotrack")
+            media.addOption(":no-spdif")
+            media.addOption(":no-audio-time-stretch")
+            media.addOption(":http-user-agent=Mozilla/5.0 (Linux; Android TV 7.0) MoPlayer/1.0 VLC")
+            media.addOption(":http-referrer=")
 
             // Live streams need extra buffering stability and optimized settings for 4K/8K
             if (isLiveStream) {
@@ -522,7 +596,7 @@ class PlayerActivity : BaseTvActivity() {
                 media.addOption(":file-caching=$cachingMs")
                 media.addOption(":avcodec-fast")
                 media.addOption(":avcodec-threads=$dynamicThreads")  // Dynamic threads for 4K/8K
-                if (vlcHardwareAccelerationEnabled) {
+                if (hardwareEnabledForThisDevice) {
                     media.addOption(":avcodec-hw=any")  // Use hardware decoder when available
                 }
                 // Keep it tolerant; some devices misbehave with strict sync on IPTV
@@ -544,6 +618,11 @@ class PlayerActivity : BaseTvActivity() {
                 media.addOption(":start-time=${resumePosition / 1000}")
             }
 
+            runCatching {
+                if (mediaPlayer?.isPlaying == true || liveRetryCount > 0 || useHttpFallbackForApi24Stream) {
+                    mediaPlayer?.stop()
+                }
+            }
             mediaPlayer?.media = media
             media.release()
             mediaPlayer?.play()
@@ -568,6 +647,19 @@ class PlayerActivity : BaseTvActivity() {
         return scheme in setOf("http", "https", "rtmp", "rtsp", "udp", "rtp", "file", "content")
     }
 
+    private fun getVlcPlaybackUrl(url: String): String {
+        if (!api24SafePlayerMode || !useHttpFallbackForApi24Stream) return url
+        val parsed = runCatching { Uri.parse(url) }.getOrNull() ?: return url
+        val host = parsed.host.orEmpty()
+        val isAppHost = host.contains("moalfarras.space", ignoreCase = true) ||
+            host.contains("vercel.app", ignoreCase = true)
+        return if (parsed.scheme.equals("https", ignoreCase = true) && !isAppHost) {
+            parsed.buildUpon().scheme("http").build().toString()
+        } else {
+            url
+        }
+    }
+
     private fun showPlaybackError(message: String) {
         binding.tvErrorMessage.text = message
         binding.errorOverlay.visibility = View.VISIBLE
@@ -577,6 +669,26 @@ class PlayerActivity : BaseTvActivity() {
     private fun handleLiveStreamEnded() {
         // IPTV sometimes reports EndReached when the segment list stalls briefly.
         handleLiveStreamError()
+    }
+
+    private fun tryApi24HttpFallbackAfterPlaybackError(): Boolean {
+        if (!api24SafePlayerMode || useHttpFallbackForApi24Stream) return false
+
+        val parsed = runCatching { Uri.parse(streamUrl) }.getOrNull() ?: return false
+        val host = parsed.host.orEmpty()
+        val isAppHost = host.contains("moalfarras.space", ignoreCase = true) ||
+            host.contains("vercel.app", ignoreCase = true)
+        if (!parsed.scheme.equals("https", ignoreCase = true) || isAppHost) {
+            return false
+        }
+
+        useHttpFallbackForApi24Stream = true
+        liveRetryCount = 0
+        setLoadingOverlayVisible(true)
+        binding.errorOverlay.visibility = View.GONE
+        android.util.Log.w("PlayerActivity", "Retrying API24 stream with HTTP fallback after HTTPS playback error")
+        handler.postDelayed({ playStream() }, 350L)
+        return true
     }
 
     private fun handleLiveStreamError() {
@@ -658,6 +770,24 @@ class PlayerActivity : BaseTvActivity() {
         resetControlsTimeout()
     }
 
+    private fun showAudioTrackSheet() {
+        val tracks = mediaPlayer?.audioTracks.orEmpty()
+        if (tracks.isEmpty()) {
+            Toast.makeText(this, getString(R.string.player_audio_track_format, "Default"), Toast.LENGTH_SHORT).show()
+            return
+        }
+        showOptionSheet("Audio Tracks", tracks.mapIndexed { index, track ->
+            OptionItem(
+                label = track.name ?: "Track ${index + 1}",
+                selected = mediaPlayer?.audioTrack == track.id
+            ) {
+                mediaPlayer?.audioTrack = track.id
+                hideOptionSheet()
+                resetControlsTimeout()
+            }
+        })
+    }
+
     private var currentAudioTrack = 0
     private fun cycleAudioTrack() {
         val tracks = mediaPlayer?.audioTracks ?: return
@@ -667,6 +797,31 @@ class PlayerActivity : BaseTvActivity() {
             Toast.makeText(this, getString(R.string.player_audio_track_format, tracks[currentAudioTrack].name), Toast.LENGTH_SHORT).show()
         }
         resetControlsTimeout()
+    }
+
+    private fun showSubtitleSheet() {
+        val tracks = mediaPlayer?.spuTracks.orEmpty()
+        val subtitleItems = mutableListOf(
+            OptionItem(
+                label = getString(R.string.player_subtitles_off),
+                selected = mediaPlayer?.spuTrack == -1
+            ) {
+                mediaPlayer?.spuTrack = -1
+                hideOptionSheet()
+                resetControlsTimeout()
+            }
+        )
+        subtitleItems += tracks.mapIndexed { index, track ->
+            OptionItem(
+                label = track.name ?: "Subtitle ${index + 1}",
+                selected = mediaPlayer?.spuTrack == track.id
+            ) {
+                mediaPlayer?.spuTrack = track.id
+                hideOptionSheet()
+                resetControlsTimeout()
+            }
+        }
+        showOptionSheet("Subtitles", subtitleItems)
     }
 
     private var currentSubtitleTrack = -1
@@ -713,6 +868,41 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun hideExternalPlayerDialog() {
         binding.externalPlayerDialog.visibility = View.GONE
+    }
+
+    private fun showOptionSheet(title: String, items: List<OptionItem>) {
+        optionSheetVisible = true
+        binding.tvOptionSheetTitle.text = title
+        binding.optionSheetContent.removeAllViews()
+        items.forEachIndexed { index, item ->
+            val button = Button(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).also { lp ->
+                    lp.topMargin = if (index == 0) 0 else 8
+                }
+                background = getDrawable(if (item.selected) R.drawable.bg_button_play else R.drawable.bg_button_secondary)
+                text = item.label
+                isAllCaps = false
+                setTextColor(
+                    if (item.selected) resources.getColor(R.color.htc_pure_black, theme)
+                    else resources.getColor(R.color.cinematic_text_primary, theme)
+                )
+                setOnClickListener { item.onClick.invoke() }
+            }
+            binding.optionSheetContent.addView(button)
+            if (index == 0) {
+                button.requestFocus()
+            }
+        }
+        binding.optionSheet.visibility = View.VISIBLE
+    }
+
+    private fun hideOptionSheet() {
+        optionSheetVisible = false
+        binding.optionSheet.visibility = View.GONE
+        showControls()
     }
 
     private fun openInExternalPlayer(player: String) {
@@ -797,8 +987,141 @@ class PlayerActivity : BaseTvActivity() {
         }
     }
 
+    private data class OptionItem(
+        val label: String,
+        val selected: Boolean,
+        val onClick: () -> Unit
+    )
+
+    private fun updatePlaybackChrome() {
+        binding.liveBadge.isVisible = isLiveStream
+        binding.tvPlaybackMeta.isVisible = isLiveStream
+        binding.btnGuide.isVisible = isLiveStream
+        binding.btnPreviousChannel.isVisible = isLiveStream
+        binding.btnNextChannel.isVisible = isLiveStream
+        binding.btnRewind.isVisible = !isLiveStream
+        binding.btnForward.isVisible = !isLiveStream
+        binding.seekBar.isVisible = !isLiveStream
+        binding.tvPosition.isVisible = !isLiveStream
+        binding.tvDuration.isVisible = !isLiveStream
+        if (isLiveStream) {
+            binding.tvPlaybackMeta.text = getString(R.string.nav_live)
+        }
+    }
+
+    private fun loadLiveSupportData() {
+        activityScope.launch {
+            val activeServer = repository.getActiveServerSync() ?: return@launch
+            currentServerId = activeServer.id
+            val current = repository.getChannelById(contentId)
+            channelList = if (!current?.categoryId.isNullOrBlank()) {
+                repository.getChannelsByCategory(activeServer.id, current!!.categoryId).first()
+            } else {
+                repository.getAllChannelsLimited(activeServer.id, 300).first()
+            }
+            currentChannelIndex = channelList.indexOfFirst { it.channelId == contentId }
+            val currentChannel = if (currentChannelIndex in channelList.indices) channelList[currentChannelIndex] else null
+            val streamId = currentChannel?.streamId
+            if (streamId != null) {
+                val currentProgram = repository.getCurrentProgram(streamId, activeServer.id)
+                val nextProgram = repository.getNextProgram(streamId, activeServer.id)
+                binding.tvCurrentProgram.text =
+                    currentProgram?.title?.let { "Now • $it" } ?: "Now • $title"
+                binding.tvNextProgram.text =
+                    nextProgram?.title?.let { "Next • $it" } ?: "Next • No upcoming EPG"
+                binding.tvPlaybackMeta.text =
+                    currentProgram?.title?.takeIf { it.isNotBlank() } ?: getString(R.string.nav_live)
+            }
+            populateChannelDrawer()
+        }
+    }
+
+    private fun populateChannelDrawer() {
+        binding.channelListContainer.removeAllViews()
+        if (channelList.isEmpty()) {
+            binding.channelListContainer.addView(createChannelRow(title = "No channels available", selected = false, onClick = {}))
+            return
+        }
+
+        val anchor = currentChannelIndex.takeIf { it >= 0 } ?: 0
+        val visibleChannels = channelList.drop((anchor - 5).coerceAtLeast(0)).take(14)
+        visibleChannels.forEach { channel ->
+            val isSelected = channel.channelId == contentId
+            binding.channelListContainer.addView(
+                createChannelRow(
+                    title = channel.name,
+                    selected = isSelected,
+                    onClick = {
+                        switchToChannel(channel)
+                        hideChannelDrawer()
+                    }
+                )
+            )
+        }
+    }
+
+    private fun createChannelRow(title: String, selected: Boolean, onClick: () -> Unit): View {
+        return Button(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).also { it.bottomMargin = 8 }
+            background = getDrawable(if (selected) R.drawable.bg_button_play else R.drawable.bg_button_secondary)
+            text = title
+            gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+            isAllCaps = false
+            setPadding(18, 16, 18, 16)
+            setTextColor(
+                if (selected) resources.getColor(R.color.htc_pure_black, theme)
+                else resources.getColor(R.color.cinematic_text_primary, theme)
+            )
+            setOnClickListener { onClick() }
+        }
+    }
+
+    private fun toggleChannelDrawer() {
+        if (channelDrawerVisible) hideChannelDrawer() else showChannelDrawer()
+    }
+
+    private fun showChannelDrawer() {
+        if (!isLiveStream) return
+        channelDrawerVisible = true
+        binding.channelDrawer.visibility = View.VISIBLE
+        populateChannelDrawer()
+        (binding.channelListContainer.getChildAt(0) ?: return).requestFocus()
+    }
+
+    private fun hideChannelDrawer() {
+        channelDrawerVisible = false
+        binding.channelDrawer.visibility = View.GONE
+        showControls()
+    }
+
+    private fun playAdjacentChannel(direction: Int) {
+        if (channelList.isEmpty()) return
+        val baseIndex = currentChannelIndex.takeIf { it >= 0 } ?: channelList.indexOfFirst { it.channelId == contentId }
+        if (baseIndex < 0) return
+        val nextIndex = (baseIndex + direction).coerceIn(0, channelList.lastIndex)
+        if (nextIndex != baseIndex) {
+            switchToChannel(channelList[nextIndex])
+        }
+    }
+
+    private fun switchToChannel(channel: ChannelEntity) {
+        contentId = channel.channelId
+        streamUrl = channel.streamUrl
+        title = channel.name
+        binding.tvTitle.text = title
+        binding.tvSubtitle.text = getString(R.string.nav_live)
+        currentChannelIndex = channelList.indexOfFirst { it.channelId == channel.channelId }
+        playStream()
+        loadLiveSupportData()
+    }
+
     private fun showControls() {
         controlsVisible = true
+        binding.topScrim.visibility = View.VISIBLE
+        binding.bottomScrim.visibility = View.VISIBLE
         binding.topControlsBar.visibility = View.VISIBLE
         binding.centerControls.visibility = View.VISIBLE
         binding.bottomControlsBar.visibility = View.VISIBLE
@@ -819,6 +1142,7 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun hideControls() {
+        if (optionSheetVisible || channelDrawerVisible || binding.externalPlayerDialog.isVisible) return
         // Save currently focused view
         val currentFocus = currentFocus
         if (currentFocus != null && currentFocus.id != View.NO_ID) {
@@ -826,6 +1150,8 @@ class PlayerActivity : BaseTvActivity() {
         }
         
         controlsVisible = false
+        binding.topScrim.visibility = View.GONE
+        binding.bottomScrim.visibility = View.GONE
         binding.topControlsBar.visibility = View.GONE
         binding.centerControls.visibility = View.GONE
         binding.bottomControlsBar.visibility = View.GONE
@@ -841,7 +1167,7 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun resetControlsTimeout() {
         handler.removeCallbacks(hideControlsRunnable)
-        handler.postDelayed(hideControlsRunnable, CONTROLS_TIMEOUT)
+        handler.postDelayed(hideControlsRunnable, controlsTimeoutMs)
     }
 
     private val hideControlsRunnable = Runnable {
@@ -1021,6 +1347,20 @@ class PlayerActivity : BaseTvActivity() {
             }
             return super.onKeyDown(keyCode, event)
         }
+        if (optionSheetVisible) {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                hideOptionSheet()
+                return true
+            }
+            return super.onKeyDown(keyCode, event)
+        }
+        if (channelDrawerVisible) {
+            if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
+                hideChannelDrawer()
+                return true
+            }
+            return super.onKeyDown(keyCode, event)
+        }
         
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
@@ -1086,6 +1426,18 @@ class PlayerActivity : BaseTvActivity() {
                 seekBackward()
                 return true
             }
+            KeyEvent.KEYCODE_MENU -> {
+                toggleChannelDrawer()
+                return true
+            }
+            KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                playAdjacentChannel(1)
+                return true
+            }
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                playAdjacentChannel(-1)
+                return true
+            }
         }
         return super.onKeyDown(keyCode, event)
     }
@@ -1109,7 +1461,7 @@ class PlayerActivity : BaseTvActivity() {
         }
         
         // Otherwise, let default focus navigation work
-        return super.onKeyDown(KeyEvent.KEYCODE_DPAD_LEFT, null)
+        return false
     }
     
     /**
@@ -1131,7 +1483,7 @@ class PlayerActivity : BaseTvActivity() {
         }
         
         // Otherwise, let default focus navigation work
-        return super.onKeyDown(KeyEvent.KEYCODE_DPAD_RIGHT, null)
+        return false
     }
 
     override fun onPause() {
@@ -1150,9 +1502,30 @@ class PlayerActivity : BaseTvActivity() {
         super.onDestroy()
         saveCurrentProgress()
         activityScope.cancel()
-        mediaPlayer?.stop()
-        mediaPlayer?.detachViews()
-        mediaPlayer?.release()
-        libVLC?.release()
+        handler.removeCallbacksAndMessages(null)
+        val player = mediaPlayer
+        val vlc = libVLC
+        mediaPlayer = null
+        libVLC = null
+        try {
+            player?.setEventListener(null)
+            player?.detachViews()
+        } catch (e: Exception) {
+            android.util.Log.w("PlayerActivity", "VLC detach failed during destroy: ${e.message}")
+        }
+        Thread {
+            try {
+                player?.stop()
+            } catch (_: Exception) {
+            }
+            try {
+                player?.release()
+            } catch (_: Exception) {
+            }
+            try {
+                vlc?.release()
+            } catch (_: Exception) {
+            }
+        }.start()
     }
 }

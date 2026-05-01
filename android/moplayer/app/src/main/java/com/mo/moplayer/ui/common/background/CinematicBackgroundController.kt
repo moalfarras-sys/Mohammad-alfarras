@@ -37,17 +37,17 @@ object CinematicBackgroundController {
             BackgroundVisualMode.CITY_WALLPAPER_LOGIN -> BackgroundProfile(
                 mode = mode,
                 showWallpaper = true,
-                wallpaperAlpha = 0.92f,
-                scrimAlpha = 0.9f,
-                weatherAlpha = 0.28f,
+                wallpaperAlpha = 1f,
+                scrimAlpha = 0.58f,
+                weatherAlpha = 0.34f,
                 cinematicMode = true
             )
             BackgroundVisualMode.WEATHER_REACTIVE -> BackgroundProfile(
                 mode = mode,
                 showWallpaper = false,
                 wallpaperAlpha = 0f,
-                scrimAlpha = 0.5f,
-                weatherAlpha = 0.22f,
+                scrimAlpha = 0.42f,
+                weatherAlpha = 0.34f,
                 cinematicMode = true
             )
             BackgroundVisualMode.REDUCED_MOTION -> BackgroundProfile(
@@ -55,15 +55,15 @@ object CinematicBackgroundController {
                 showWallpaper = false,
                 wallpaperAlpha = 0f,
                 scrimAlpha = 0.54f,
-                weatherAlpha = 0.14f,
+                weatherAlpha = 0.18f,
                 cinematicMode = false
             )
             BackgroundVisualMode.CINEMATIC_ANIMATED -> BackgroundProfile(
                 mode = mode,
                 showWallpaper = false,
                 wallpaperAlpha = 0f,
-                scrimAlpha = 0.52f,
-                weatherAlpha = 0.18f,
+                scrimAlpha = 0.44f,
+                weatherAlpha = 0.26f,
                 cinematicMode = true
             )
         }

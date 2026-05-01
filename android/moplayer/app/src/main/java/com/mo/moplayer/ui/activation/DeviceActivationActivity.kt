@@ -89,17 +89,10 @@ class DeviceActivationActivity : AppCompatActivity() {
                         put("appVersion", BuildConfig.VERSION_NAME)
                         put("sourcePullToken", getOrCreateSourcePullToken())
                     }.toString()
-                    val connection = (URL("$activationBaseUrl/api/app/activation/create").openConnection() as HttpURLConnection).apply {
-                        requestMethod = "POST"
-                        connectTimeout = 8_000
-                        readTimeout = 8_000
-                        doOutput = true
-                        setRequestProperty("content-type", "application/json")
+                    postActivationJson("/api/app/activation/create", body).let { (code, responseText) ->
+                        val json = JSONObject(responseText)
+                        ActivationCreateResult(code, json.optString("code"), json.optString("expiresAt"))
                     }
-                    connection.outputStream.use { it.write(body.toByteArray()) }
-                    val responseText = connection.inputStream.bufferedReader().use { it.readText() }
-                    val json = JSONObject(responseText)
-                    ActivationCreateResult(connection.responseCode, json.optString("code"), json.optString("expiresAt"))
                 }.getOrElse { ActivationCreateResult(-1, "", "") }
             }
 
@@ -107,6 +100,7 @@ class DeviceActivationActivity : AppCompatActivity() {
                 deviceCode = result.deviceCode
                 binding.tvDeviceCode.text = deviceCode
                 binding.ivQrCode.setImageBitmap(createQrBitmap("$activationBaseUrl/activate?code=$deviceCode", 720))
+                binding.ivQrCode.alpha = 1f
                 activationPrefs.edit()
                     .putString("public_device_code", deviceCode)
                     .putLong("public_device_code_created_at", System.currentTimeMillis())
@@ -118,7 +112,8 @@ class DeviceActivationActivity : AppCompatActivity() {
             } else {
                 deviceCode = getLocalFallbackCode()
                 binding.tvDeviceCode.text = deviceCode
-                binding.ivQrCode.setImageBitmap(createQrBitmap("$activationBaseUrl/activate?code=$deviceCode", 720))
+                binding.ivQrCode.setImageDrawable(null)
+                binding.ivQrCode.alpha = 0.22f
                 binding.tvActivationStatus.setText(R.string.activation_service_unavailable)
                 binding.tvActivationBody.setText(R.string.activation_service_unavailable_body)
             }
@@ -140,18 +135,9 @@ class DeviceActivationActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val url = URL("$activationBaseUrl/api/app/activation/status?code=$deviceCode")
-                    val connection = (url.openConnection() as HttpURLConnection).apply {
-                        requestMethod = "GET"
-                        connectTimeout = 6_000
-                        readTimeout = 6_000
+                    getActivationJson("/api/app/activation/status?code=$deviceCode").let { (code, response) ->
+                        ActivationStatusResult(code, JSONObject(response).optString("status"))
                     }
-                    val response = if (connection.responseCode < 400) {
-                        connection.inputStream.bufferedReader().use { it.readText() }
-                    } else {
-                        connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-                    }
-                    ActivationStatusResult(connection.responseCode, JSONObject(response).optString("status"))
                 }.getOrDefault(ActivationStatusResult(-1, "error"))
             }
 
@@ -181,6 +167,59 @@ class DeviceActivationActivity : AppCompatActivity() {
     }
 
     private data class ActivationStatusResult(val code: Int, val status: String)
+
+    private fun postActivationJson(path: String, body: String): Pair<Int, String> {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls(path).forEach { urlString ->
+            try {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 8_000
+                    readTimeout = 8_000
+                    doOutput = true
+                    setRequestProperty("content-type", "application/json")
+                    setRequestProperty("accept", "application/json")
+                }
+                connection.outputStream.use { it.write(body.toByteArray()) }
+                return readActivationResponse(connection)
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Activation service unavailable")
+    }
+
+    private fun getActivationJson(path: String): Pair<Int, String> {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls(path).forEach { urlString ->
+            try {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 6_000
+                    readTimeout = 6_000
+                    setRequestProperty("accept", "application/json")
+                }
+                return readActivationResponse(connection)
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Activation service unavailable")
+    }
+
+    private fun readActivationResponse(connection: HttpURLConnection): Pair<Int, String> {
+        return try {
+            val code = connection.responseCode
+            val response = if (code < 400) {
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            }
+            code to response
+        } finally {
+            connection.disconnect()
+        }
+    }
 
     private fun handleActivated() {
         pollHandler.removeCallbacks(pollRunnable)

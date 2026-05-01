@@ -54,6 +54,9 @@ class MoviesActivity : BaseTvActivity() {
     @Inject
     lateinit var networkErrorHandler: com.mo.moplayer.util.NetworkErrorHandler
 
+    @Inject
+    lateinit var tvUiPreferences: com.mo.moplayer.util.TvUiPreferences
+
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var movieAdapter: MovieAdapter
     
@@ -360,19 +363,6 @@ class MoviesActivity : BaseTvActivity() {
         )
 
         binding.rvMovies.apply {
-            // Use responsive grid layout that adapts to screen size
-            val cardWidthDp = LayoutHelper.getCardWidthDp(this@MoviesActivity)
-            val cardMarginDp = LayoutHelper.getCardMarginDp(this@MoviesActivity)
-            val screenMarginDp = LayoutHelper.getScreenMarginHorizontalDp(this@MoviesActivity)
-            
-            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
-                context = this@MoviesActivity,
-                cardWidthDp = cardWidthDp,
-                cardMarginDp = cardMarginDp,
-                screenMarginHorizontalDp = screenMarginDp,
-                minColumns = 2,
-                maxColumns = 6
-            )
             adapter = movieAdapter
             setHasFixedSize(true)
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -382,6 +372,27 @@ class MoviesActivity : BaseTvActivity() {
             isNestedScrollingEnabled = false
             clipToPadding = false
             clipChildren = false
+        }
+
+        lifecycleScope.launch {
+            kotlinx.coroutines.flow.combine(tvUiPreferences.layoutStyle, tvUiPreferences.posterSize) { layoutStyle, posterSize ->
+                layoutStyle to posterSize
+            }.collect { (layoutStyle, posterSize) ->
+                val metrics = tvUiPreferences.posterMetrics(posterSize)
+                binding.rvMovies.layoutManager =
+                    if (layoutStyle == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.GRID) {
+                        LayoutHelper.createResponsiveGridLayoutManager(
+                            context = this@MoviesActivity,
+                            cardWidthDp = metrics.widthDp,
+                            cardMarginDp = LayoutHelper.getCardMarginDp(this@MoviesActivity),
+                            screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@MoviesActivity),
+                            minColumns = 4,
+                            maxColumns = 9
+                        )
+                    } else {
+                        GridLayoutManager(this@MoviesActivity, 1)
+                    }
+            }
         }
         
         // Add load state listener for paging

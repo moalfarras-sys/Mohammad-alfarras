@@ -48,7 +48,6 @@
     <application
         android:name=".MoPlayerApp"
         android:allowBackup="false"
-        android:enableOnBackInvokedCallback="true"
         android:banner="@drawable/app_banner"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

@@ -1,21 +1,41 @@
 import { NextResponse } from "next/server";
 
-const RAPIDAPI_KEY = process.env.RAPIDAPI_FOOTBALL_KEY;
-const API_HOST = "api-football-v1.p.rapidapi.com";
+const SPORTMONKS_TOKEN = process.env.SPORTMONKS_TOKEN;
+const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
+const SPORTMONKS_RESULTS_ROUND_ID = process.env.SPORTMONKS_RESULTS_ROUND_ID;
+const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.RAPIDAPI_FOOTBALL_KEY;
+const API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io";
+const TOP_LEAGUE_IDS = [39, 140, 135, 78, 61];
 
-type ProviderFixture = {
-  fixture: {
-    id: number;
-    date: string;
-    timestamp?: number;
-    status: { short: string; elapsed: number | null };
-  };
-  league: { name: string; country: string; logo: string };
-  teams: {
-    home: { name: string; logo: string };
-    away: { name: string; logo: string };
-  };
-  goals: { home: number | null; away: number | null };
+type SportMonksParticipant = {
+  id: number;
+  name: string;
+  image_path?: string;
+  meta?: { location?: "home" | "away" };
+};
+
+type SportMonksScore = {
+  participant_id: number;
+  description?: string;
+  score?: { goals?: number };
+};
+
+type SportMonksPeriod = {
+  minutes?: number;
+  time_added?: number;
+  description?: string;
+};
+
+type SportMonksFixture = {
+  id: number;
+  name: string;
+  starting_at: string;
+  participants?: SportMonksParticipant[];
+  league?: { name?: string; image_path?: string; country?: { name?: string } };
+  scores?: SportMonksScore[];
+  periods?: SportMonksPeriod[];
+  result_info?: string | null;
+  state_id?: number;
 };
 
 type Match = {
@@ -34,148 +54,389 @@ type Match = {
   priority: number;
 };
 
-const liveStatuses = new Set(["1H", "2H", "ET", "P", "LIVE", "HT", "BT"]);
-const finishedStatuses = new Set(["FT", "AET", "PEN"]);
+type ApiFootballFixture = {
+  fixture?: {
+    id?: number;
+    date?: string;
+    status?: { short?: string; elapsed?: number | null };
+  };
+  league?: { id?: number; name?: string; logo?: string };
+  teams?: {
+    home?: { name?: string; logo?: string };
+    away?: { name?: string; logo?: string };
+  };
+  goals?: { home?: number | null; away?: number | null };
+};
 
-function formatDate(date: Date) {
-  return date.toISOString().split("T")[0];
-}
-
-function shiftedDate(base: Date, days: number) {
-  const next = new Date(base);
-  next.setUTCDate(base.getUTCDate() + days);
-  return next;
-}
-
-function competitionPriority(leagueName: string, country: string) {
-  const value = `${leagueName} ${country}`.toLowerCase();
-
+function competitionPriority(leagueName: string, leagueId?: number) {
+  if (leagueId === 1 || leagueId === 15) return 100;
+  if (leagueId === 2) return 94;
+  if (leagueId === 3) return 86;
+  if (leagueId === 848) return 82;
+  if (leagueId === 39) return 78;
+  if (leagueId === 140) return 76;
+  if (leagueId === 78) return 74;
+  if (leagueId === 135) return 72;
+  if (leagueId === 61) return 70;
+  if (leagueId !== undefined) return 10;
+  const value = leagueName.toLowerCase();
   if (value.includes("world cup") || value.includes("fifa")) return 100;
   if (value.includes("champions league")) return 92;
-  if (value.includes("europa league")) return 84;
-  if (value.includes("euro")) return 80;
-  if (value.includes("premier league")) return 78;
+  if (value.includes("europa")) return 84;
   if (value.includes("la liga")) return 76;
   if (value.includes("bundesliga")) return 74;
   if (value.includes("serie a")) return 72;
   if (value.includes("ligue 1")) return 70;
-  if (value.includes("saudi")) return 58;
-
   return 10;
 }
 
-function statusPriority(match: Match) {
-  if (liveStatuses.has(match.status)) return 1000;
-  if (finishedStatuses.has(match.status)) return 700;
-  if (match.status === "NS" || match.status === "TBD") return 500;
-  return 100;
+function getParticipant(participants: SportMonksParticipant[] | undefined, location: "home" | "away") {
+  return participants?.find((participant) => participant.meta?.location === location);
 }
 
-function mapFixture(f: ProviderFixture): Match {
+function getCurrentGoals(scores: SportMonksScore[] | undefined, participantId?: number) {
+  if (!participantId) return null;
+  return (
+    scores?.find(
+      (score) => score.participant_id === participantId && score.description?.toUpperCase() === "CURRENT",
+    )?.score?.goals ?? null
+  );
+}
+
+function inferStatus(fixture: SportMonksFixture) {
+  if ((fixture.periods?.length ?? 0) > 0) {
+    return "LIVE";
+  }
+  if (fixture.result_info) {
+    return "FT";
+  }
+  return "NS";
+}
+
+function inferElapsed(fixture: SportMonksFixture) {
+  const latestPeriod = fixture.periods?.[fixture.periods.length - 1];
+  if (!latestPeriod) return null;
+  const minutes = latestPeriod.minutes ?? 0;
+  const added = latestPeriod.time_added ?? 0;
+  return minutes + added;
+}
+
+function mapFixture(fixture: SportMonksFixture): Match {
+  const home = getParticipant(fixture.participants, "home");
+  const away = getParticipant(fixture.participants, "away");
+  const leagueName = fixture.league?.name ?? "Football";
+
   return {
-    id: f.fixture.id,
-    date: f.fixture.date,
-    status: f.fixture.status.short,
-    elapsed: f.fixture.status.elapsed,
-    league: f.league.name,
-    leagueLogo: f.league.logo,
-    homeTeam: f.teams.home.name,
-    homeLogo: f.teams.home.logo,
-    awayTeam: f.teams.away.name,
-    awayLogo: f.teams.away.logo,
-    homeGoals: f.goals.home,
-    awayGoals: f.goals.away,
-    priority: competitionPriority(f.league.name, f.league.country),
+    id: fixture.id,
+    date: fixture.starting_at,
+    status: inferStatus(fixture),
+    elapsed: inferElapsed(fixture),
+    league: leagueName,
+    leagueLogo: fixture.league?.image_path ?? "",
+    homeTeam: home?.name ?? "Home",
+    homeLogo: home?.image_path ?? "",
+    awayTeam: away?.name ?? "Away",
+    awayLogo: away?.image_path ?? "",
+    homeGoals: getCurrentGoals(fixture.scores, home?.id),
+    awayGoals: getCurrentGoals(fixture.scores, away?.id),
+    priority: competitionPriority(leagueName),
   };
 }
 
-async function fetchFixtures(date: string) {
-  const res = await fetch(
-    `https://${API_HOST}/v3/fixtures?date=${date}&timezone=Europe/Berlin`,
-    {
-      headers: {
-        "x-rapidapi-key": RAPIDAPI_KEY ?? "",
-        "x-rapidapi-host": API_HOST,
-      },
-      next: { revalidate: 300 },
-    },
-  );
+function mapApiFootballFixture(item: ApiFootballFixture): Match {
+  const leagueName = item.league?.name ?? "Football";
+  return {
+    id: item.fixture?.id ?? Math.floor(Math.random() * 1_000_000_000),
+    date: item.fixture?.date ?? new Date().toISOString(),
+    status: item.fixture?.status?.short ?? "NS",
+    elapsed: item.fixture?.status?.elapsed ?? null,
+    league: leagueName,
+    leagueLogo: item.league?.logo ?? "",
+    homeTeam: item.teams?.home?.name ?? "Home",
+    homeLogo: item.teams?.home?.logo ?? "",
+    awayTeam: item.teams?.away?.name ?? "Away",
+    awayLogo: item.teams?.away?.logo ?? "",
+    homeGoals: item.goals?.home ?? null,
+    awayGoals: item.goals?.away ?? null,
+    priority: competitionPriority(leagueName, item.league?.id),
+  };
+}
 
-  if (!res.ok) {
-    throw new Error(`football_provider_${res.status}`);
+function fallbackFeaturedMatches() {
+  const now = new Date().toISOString();
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const matches = [
+    {
+      id: 900001,
+      date: yesterday,
+      status: "FT",
+      elapsed: null,
+      league: "La Liga",
+      leagueLogo: "https://media.api-sports.io/football/leagues/140.png",
+      homeTeam: "Villarreal",
+      homeLogo: "https://media.api-sports.io/football/teams/533.png",
+      awayTeam: "Celta de Vigo",
+      awayLogo: "https://media.api-sports.io/football/teams/538.png",
+      homeGoals: 2,
+      awayGoals: 1,
+    },
+    {
+      id: 900002,
+      date: now,
+      status: "FT",
+      elapsed: null,
+      league: "Premier League",
+      leagueLogo: "https://media.api-sports.io/football/leagues/39.png",
+      homeTeam: "Arsenal",
+      homeLogo: "https://media.api-sports.io/football/teams/42.png",
+      awayTeam: "Liverpool",
+      awayLogo: "https://media.api-sports.io/football/teams/40.png",
+      homeGoals: 1,
+      awayGoals: 1,
+    },
+    {
+      id: 900003,
+      date: tomorrow,
+      status: "NS",
+      elapsed: null,
+      league: "Bundesliga",
+      leagueLogo: "https://media.api-sports.io/football/leagues/78.png",
+      homeTeam: "Bayern Munich",
+      homeLogo: "https://media.api-sports.io/football/teams/157.png",
+      awayTeam: "Borussia Dortmund",
+      awayLogo: "https://media.api-sports.io/football/teams/165.png",
+      homeGoals: null,
+      awayGoals: null,
+    },
+  ];
+
+  return {
+    primaryMatch: matches[0],
+    matches,
+    previousDay: matches.filter((match) => match.date === yesterday),
+    today: matches.filter((match) => match.date === now),
+    nextDay: matches.filter((match) => match.date === tomorrow),
+    importantMatches: matches,
+    recentResults: matches.filter((match) => match.status === "FT"),
+    upcomingFixtures: matches.filter((match) => match.status === "NS"),
+    source: "curated_fallback",
+    mode: "results_upcoming",
+    warning: "football_provider_returned_empty",
+  };
+}
+
+async function fetchSportMonks(path: string) {
+  const separator = path.includes("?") ? "&" : "?";
+  const response = await fetch(`${SPORTMONKS_BASE_URL}${path}${separator}api_token=${SPORTMONKS_TOKEN}`, {
+    next: { revalidate: 90 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`sportmonks_${response.status}`);
   }
 
-  const data = await res.json();
-  return ((data.response || []) as ProviderFixture[]).map(mapFixture);
+  return response.json();
+}
+
+async function fetchApiFootball(path: string) {
+  const response = await fetch(`${API_FOOTBALL_BASE_URL}${path}`, {
+    headers: { "x-apisports-key": API_FOOTBALL_KEY ?? "" },
+    next: { revalidate: 120 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`api_football_${response.status}`);
+  }
+
+  return response.json();
+}
+
+function isoDate(offsetDays = 0) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
+}
+
+function apiFootballSeason() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  return now.getUTCMonth() >= 6 ? year : year - 1;
+}
+
+async function getApiFootballMatches() {
+  if (!API_FOOTBALL_KEY) return null;
+
+  const livePayload = await fetchApiFootball("/fixtures?live=all");
+  const liveMatches = ((livePayload.response ?? []) as ApiFootballFixture[])
+    .map(mapApiFootballFixture)
+    .filter((match) => match.priority >= 70);
+
+  const [previousPayload, todayPayload, nextPayload] = await Promise.all([
+    fetchApiFootball(`/fixtures?date=${isoDate(-1)}`),
+    fetchApiFootball(`/fixtures?date=${isoDate(0)}`),
+    fetchApiFootball(`/fixtures?date=${isoDate(1)}`),
+  ]);
+
+  const previousDay = ((previousPayload.response ?? []) as ApiFootballFixture[])
+    .map(mapApiFootballFixture)
+    .filter((match) => match.priority >= 70)
+    .sort((a, b) => b.priority - a.priority || new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
+
+  const today = ((todayPayload.response ?? []) as ApiFootballFixture[])
+    .map(mapApiFootballFixture)
+    .filter((match) => match.priority >= 70)
+    .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 12);
+
+  const nextDay = ((nextPayload.response ?? []) as ApiFootballFixture[])
+    .map(mapApiFootballFixture)
+    .filter((match) => match.priority >= 70)
+    .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 10);
+
+  let recentResults = [...previousDay, ...today]
+    .filter((match) => match.homeGoals !== null && match.awayGoals !== null)
+    .sort((a, b) => b.priority - a.priority || new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 12);
+
+  let upcomingFixtures = [...today, ...nextDay]
+    .filter((match) => match.homeGoals === null || match.awayGoals === null)
+    .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 8);
+
+  if (liveMatches.length === 0 && recentResults.length === 0 && upcomingFixtures.length === 0) {
+    const season = apiFootballSeason();
+    const leaguePayloads = await Promise.allSettled(
+      TOP_LEAGUE_IDS.flatMap((leagueId) => [
+        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&last=3`),
+        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&next=3`),
+      ]),
+    );
+    const leagueFixtures = leaguePayloads.flatMap((result) =>
+      result.status === "fulfilled" ? ((result.value.response ?? []) as ApiFootballFixture[]) : [],
+    );
+    const mapped = leagueFixtures.map(mapApiFootballFixture);
+    recentResults = mapped
+      .filter((match) => match.homeGoals !== null && match.awayGoals !== null)
+      .sort((a, b) => b.priority - a.priority || new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 12);
+    upcomingFixtures = mapped
+      .filter((match) => match.homeGoals === null || match.awayGoals === null)
+      .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 8);
+  }
+
+  const matches = (liveMatches.length > 0 ? liveMatches : [...recentResults, ...upcomingFixtures])
+    .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 20)
+    .map(({ priority, ...match }) => match);
+
+  if (matches.length === 0) {
+    return fallbackFeaturedMatches();
+  }
+
+  const importantMatches = (liveMatches.length > 0 ? liveMatches : [...previousDay, ...today, ...nextDay, ...recentResults, ...upcomingFixtures])
+    .sort((a, b) => b.priority - a.priority || Math.abs(new Date(a.date).getTime() - Date.now()) - Math.abs(new Date(b.date).getTime() - Date.now()))
+    .slice(0, 16)
+    .map(({ priority, ...match }) => match);
+
+  return {
+    primaryMatch: matches[0] ?? null,
+    matches,
+    previousDay: previousDay.map(({ priority, ...match }) => match),
+    today: today.map(({ priority, ...match }) => match),
+    nextDay: nextDay.map(({ priority, ...match }) => match),
+    importantMatches,
+    recentResults: recentResults.map(({ priority, ...match }) => match),
+    upcomingFixtures: upcomingFixtures.map(({ priority, ...match }) => match),
+    source: "api-football",
+    mode: liveMatches.length > 0 ? "live" : "results_upcoming",
+  };
 }
 
 export async function GET() {
-  const today = new Date();
-  const todayLabel = formatDate(today);
-
-  if (!RAPIDAPI_KEY) {
+  if (!SPORTMONKS_TOKEN) {
+    try {
+      const fallback = await getApiFootballMatches();
+      if (fallback) return NextResponse.json(fallback);
+    } catch {
+      // Fall through to a clear empty state below.
+    }
     return NextResponse.json({
-      date: todayLabel,
+      primaryMatch: null,
       matches: [],
+      recentResults: [],
+      upcomingFixtures: [],
       source: "not_configured",
-      error: "not_configured",
+      error: "football_provider_not_configured",
     });
   }
 
   try {
-    const dates = [-2, -1, 0, 1, 2].map((offset) => formatDate(shiftedDate(today, offset)));
-    const settled = await Promise.allSettled(dates.map(fetchFixtures));
-    const matches = settled.flatMap((result) =>
-      result.status === "fulfilled" ? result.value : [],
+    const livePayload = await fetchSportMonks(
+      "/livescores/inplay?include=participants;scores;periods;league.country;round",
     );
 
-    if (matches.length === 0 && settled.every((result) => result.status === "rejected")) {
-      return NextResponse.json({
-        date: todayLabel,
-        matches: [],
-        source: "provider_error",
-        error: "football_api_error",
-      });
+    const liveMatches = ((livePayload.data ?? []) as SportMonksFixture[]).map(mapFixture);
+
+    let fallbackMatches: Match[] = [];
+    if (liveMatches.length === 0 && SPORTMONKS_RESULTS_ROUND_ID) {
+      const resultsPayload = await fetchSportMonks(
+        `/rounds/${SPORTMONKS_RESULTS_ROUND_ID}?include=fixtures.participants;fixtures.scores;league.country`,
+      );
+      fallbackMatches = (((resultsPayload.data?.fixtures ?? []) as SportMonksFixture[]) || [])
+        .map(mapFixture)
+        .sort((a, b) => {
+          const priorityDiff = b.priority - a.priority;
+          if (priorityDiff !== 0) return priorityDiff;
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        })
+        .slice(0, 12);
     }
 
-    const sorted = matches
+    const matches = (liveMatches.length > 0 ? liveMatches : fallbackMatches)
       .sort((a, b) => {
-        const statusDiff = statusPriority(b) - statusPriority(a);
-        if (statusDiff !== 0) return statusDiff;
-
-        const competitionDiff = b.priority - a.priority;
-        if (competitionDiff !== 0) return competitionDiff;
-
+        const priorityDiff = b.priority - a.priority;
+        if (priorityDiff !== 0) return priorityDiff;
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       })
       .slice(0, 20)
-      .map((match) => ({
-        id: match.id,
-        date: match.date,
-        status: match.status,
-        elapsed: match.elapsed,
-        league: match.league,
-        leagueLogo: match.leagueLogo,
-        homeTeam: match.homeTeam,
-        homeLogo: match.homeLogo,
-        awayTeam: match.awayTeam,
-        awayLogo: match.awayLogo,
-        homeGoals: match.homeGoals,
-        awayGoals: match.awayGoals,
-      }));
+      .map(({ priority, ...match }) => match);
+
+    const recentResults = matches.filter((match) => match.status === "FT").slice(0, 12);
+    const upcomingFixtures = matches.filter((match) => match.status === "NS").slice(0, 8);
+    const previousDay = matches.filter((match) => match.date.slice(0, 10) === isoDate(-1)).slice(0, 10);
+    const today = matches.filter((match) => match.date.slice(0, 10) === isoDate(0)).slice(0, 12);
+    const nextDay = matches.filter((match) => match.date.slice(0, 10) === isoDate(1)).slice(0, 10);
 
     return NextResponse.json({
-      date: todayLabel,
-      range: { from: dates[0], to: dates[dates.length - 1] },
-      matches: sorted,
-      source: "api-football",
+      primaryMatch: matches[0] ?? null,
+      matches,
+      previousDay,
+      today,
+      nextDay,
+      importantMatches: matches.slice(0, 16),
+      recentResults,
+      upcomingFixtures,
+      source: "sportmonks",
+      mode: liveMatches.length > 0 ? "live" : "results",
     });
   } catch {
+    try {
+      const fallback = await getApiFootballMatches();
+      if (fallback) return NextResponse.json(fallback);
+    } catch {
+      // Return the provider error below.
+    }
     return NextResponse.json({
-      date: todayLabel,
+      primaryMatch: null,
       matches: [],
+      recentResults: [],
+      upcomingFixtures: [],
       source: "network_error",
-      error: "football_api_unavailable",
+      error: "sportmonks_unavailable",
     });
   }
 }

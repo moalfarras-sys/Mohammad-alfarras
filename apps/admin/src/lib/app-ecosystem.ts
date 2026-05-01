@@ -20,10 +20,9 @@ import type {
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
-const moplayerDownloadBase =
-  "https://raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/main/android/moplayer/releases/v2-full";
+const moplayerDownloadBase = "/api/app/releases";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/app-sideload-universal-v2-full.apk`,
+  universal: `${moplayerDownloadBase}/moplayer-v2-full/download`,
 };
 const localSettings = new Map<string, unknown>();
 
@@ -305,7 +304,7 @@ function normalizeAsset(row: Record<string, unknown>): AppReleaseAsset {
 
 function normalizeReleaseAssetUrl(url: string | null) {
   if (!url) return null;
-  if (url.startsWith("/downloads/moplayer/")) return moplayerDownloadUrls.universal;
+  if (url.includes("raw.githubusercontent.com/moalfarras-sys/Mohammad-alfarras/")) return null;
   return url;
 }
 

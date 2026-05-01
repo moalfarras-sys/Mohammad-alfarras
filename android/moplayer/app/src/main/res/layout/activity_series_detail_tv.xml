@@ -39,17 +39,17 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_percent="0.34" />
+            app:layout_constraintHeight_percent="0.30" />
 
         <!-- Seasons Sidebar -->
         <LinearLayout
             android:id="@+id/llSeasonsPanel"
             android:layout_width="@dimen/tv_season_sidebar_width"
             android:layout_height="0dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/bg_premium_clean_panel"
             android:orientation="vertical"
-            android:paddingTop="16dp"
+            android:paddingTop="12dp"
             app:layout_constraintTop_toBottomOf="@id/previewPanel"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -59,7 +59,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingBottom="12dp"
+                android:paddingBottom="8dp"
                 android:text="@string/series_seasons"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="15sp"
@@ -90,8 +90,8 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/previewPanel"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -103,7 +103,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingBottom="8dp">
+                android:paddingBottom="6dp">
 
                 <View
                     android:layout_width="4dp"
@@ -117,7 +117,7 @@
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:textColor="@color/htc_text_primary"
-                    android:textSize="15sp"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     tools:text="Season 1 - 10 Episodes" />
 
@@ -146,7 +146,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:clipToPadding="false"
-                android:paddingVertical="8dp"
+                android:paddingVertical="4dp"
                 android:focusable="true"
                 android:nextFocusLeft="@id/rvSeasons"
                 tools:listitem="@layout/item_episode_tv" />

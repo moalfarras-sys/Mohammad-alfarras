@@ -1,6 +1,7 @@
 package com.mo.moplayer.ui.home.adapters
 
 import android.graphics.drawable.Drawable
+import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -26,7 +27,8 @@ class ContentItemAdapter(
     private val onItemFocused: (ContentItem) -> Unit,
     private val onItemLongPress: ((ContentItem) -> Unit)? = null,
     private val onFavoriteShortcut: ((ContentItem) -> Unit)? = null,
-    private val themeManager: com.mo.moplayer.util.ThemeManager
+    private val themeManager: com.mo.moplayer.util.ThemeManager,
+    private val tvUiPreferences: com.mo.moplayer.util.TvUiPreferences
 ) : ListAdapter<ContentItem, ContentItemAdapter.ItemViewHolder>(ItemDiffCallback()) {
 
     init {
@@ -34,6 +36,9 @@ class ContentItemAdapter(
     }
 
     private var recyclerView: RecyclerView? = null
+    private var animationsEnabled: Boolean = true
+    private var posterSize: com.mo.moplayer.util.TvUiPreferences.PosterSize =
+        com.mo.moplayer.util.TvUiPreferences.PosterSize.SMALL
 
     override fun getItemId(position: Int): Long {
         return getItem(position).id.hashCode().toLong()
@@ -64,6 +69,18 @@ class ContentItemAdapter(
         }
     }
 
+    fun updateUiPreferences(
+        newPosterSize: com.mo.moplayer.util.TvUiPreferences.PosterSize,
+        newAnimationsEnabled: Boolean
+    ) {
+        val changed = posterSize != newPosterSize || animationsEnabled != newAnimationsEnabled
+        posterSize = newPosterSize
+        animationsEnabled = newAnimationsEnabled
+        if (changed) {
+            notifyDataSetChanged()
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val binding = ItemContentCardBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -86,6 +103,7 @@ class ContentItemAdapter(
         private var remoteShortcutManager: RemoteShortcutManager? = null
 
         fun bind(item: ContentItem, position: Int) {
+            applyPosterMetrics()
             // Reset visual state so recycled views never show stuck/half-animated state (poster moves with row)
             binding.root.alpha = 1f
             binding.root.scaleX = 1f
@@ -214,18 +232,40 @@ class ContentItemAdapter(
                 binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor)
             }
 
-            LiquidFocusDelegate.animateCardFocus(
-                target = binding.contentLayout,
-                hasFocus = hasFocus,
-                focusGlow = binding.focusGlow,
-                focusRing = binding.focusBorder,
-                focusedElevation = com.mo.moplayer.ui.common.design.LiquidGlassTokens.FOCUS_ELEVATION_FOCUSED,
-                restingElevation = com.mo.moplayer.ui.common.design.LiquidGlassTokens.FOCUS_ELEVATION_REST,
-                translationYFocused = com.mo.moplayer.ui.common.design.LiquidGlassTokens.TRANSLATION_Y_FOCUSED
-            )
+            if (animationsEnabled) {
+                LiquidFocusDelegate.animateCardFocus(
+                    target = binding.contentLayout,
+                    hasFocus = hasFocus,
+                    focusGlow = binding.focusGlow,
+                    focusRing = binding.focusBorder,
+                    focusedElevation = com.mo.moplayer.ui.common.design.LiquidGlassTokens.FOCUS_ELEVATION_FOCUSED,
+                    restingElevation = com.mo.moplayer.ui.common.design.LiquidGlassTokens.FOCUS_ELEVATION_REST,
+                    translationYFocused = com.mo.moplayer.ui.common.design.LiquidGlassTokens.TRANSLATION_Y_FOCUSED
+                )
+            } else {
+                binding.contentLayout.animate().cancel()
+                binding.contentLayout.scaleX = if (hasFocus) 1.02f else 1f
+                binding.contentLayout.scaleY = if (hasFocus) 1.02f else 1f
+                binding.contentLayout.translationY = 0f
+                binding.focusGlow?.alpha = if (hasFocus) 1f else 0f
+                binding.focusBorder?.alpha = if (hasFocus) 1f else 0f
+            }
             binding.posterCard?.elevation =
                 if (hasFocus) com.mo.moplayer.ui.common.design.LiquidGlassTokens.FOCUS_ELEVATION_FOCUSED
                 else com.mo.moplayer.ui.common.design.LiquidGlassTokens.FOCUS_ELEVATION_REST
+        }
+
+        private fun applyPosterMetrics() {
+            val metrics = tvUiPreferences.posterMetrics(posterSize)
+            val density = binding.root.resources.displayMetrics.density
+            binding.root.layoutParams = binding.root.layoutParams.apply {
+                width = (metrics.widthDp * density).toInt()
+                height = (metrics.contentHeightDp * density).toInt()
+            }
+            binding.posterCard?.layoutParams = binding.posterCard?.layoutParams?.apply {
+                height = (metrics.heightDp * density).toInt()
+            }
+            binding.tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, metrics.titleTextSp)
         }
 
         /**

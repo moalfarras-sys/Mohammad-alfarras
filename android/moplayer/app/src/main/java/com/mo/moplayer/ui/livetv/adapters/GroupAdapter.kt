@@ -105,6 +105,8 @@ class GroupAdapter(
         return GroupViewHolder(binding)
     }
 
+    override fun getItemViewType(position: Int): Int = VIEW_TYPE_LIVE_GROUP
+
     override fun onBindViewHolder(holder: GroupViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
@@ -250,5 +252,9 @@ class GroupAdapter(
         override fun areContentsTheSame(oldItem: GroupItem, newItem: GroupItem): Boolean {
             return oldItem == newItem
         }
+    }
+
+    companion object {
+        private const val VIEW_TYPE_LIVE_GROUP = 102
     }
 }

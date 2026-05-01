@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.mo.moplayer.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +31,6 @@ class FootballService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
-        private val FOOTBALL_PROXY_URL = "${BuildConfig.WEB_API_BASE_URL}/api/football"
         private val CACHED_DATA_PREF = stringPreferencesKey("cached_football_json")
         private val LAST_UPDATE_PREF = longPreferencesKey("last_update_timestamp")
         private val WIDGET_ENABLED_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("football_widget_enabled")
@@ -89,19 +87,7 @@ class FootballService @Inject constructor(
             // But we want "Today's" timeline (Past/Live/Future).
             // So GET /fixtures?date=YYYY-MM-DD&ids=... (ids of leagues)
             
-            val urlStr = FOOTBALL_PROXY_URL
-            val url = URL(urlStr)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-            connection.connectTimeout = 10_000
-            connection.readTimeout = 12_000
-            
-            val responseCode = connection.responseCode
-            if (responseCode != 200) {
-                 return@withContext Result.failure(Exception("Sports proxy error: $responseCode"))
-            }
-            
-            val response = connection.inputStream.bufferedReader().use { it.readText() }
+            val response = fetchFootballProxyJson()
             val json = JSONObject(response)
             
             if (json.has("error")) {
@@ -119,8 +105,36 @@ class FootballService @Inject constructor(
             Result.success(data)
 
         } catch (e: Exception) {
-            Result.failure(e)
+            val cached = footballData.firstOrNull()
+            Result.success(cached ?: FootballData(emptyList()))
         }
+    }
+
+    private fun fetchFootballProxyJson(): String {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls("/api/football").forEach { urlString ->
+            try {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 10_000
+                    readTimeout = 12_000
+                    setRequestProperty("Accept", "application/json")
+                }
+                return try {
+                    val stream = if (connection.responseCode in 200..299) {
+                        connection.inputStream
+                    } else {
+                        connection.errorStream ?: connection.inputStream
+                    }
+                    stream.bufferedReader().use { it.readText() }
+                } finally {
+                    connection.disconnect()
+                }
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Football proxy unavailable")
     }
     
     suspend fun fetchLiveMatch(forceRefresh: Boolean = false): Result<LiveMatchData?> {
@@ -162,6 +176,22 @@ class FootballService @Inject constructor(
     
     private fun parseProxyFootballData(root: JSONObject): FootballData {
         val responseArray = root.optJSONArray("matches") ?: JSONArray()
+        val matches = parseProxyMatchArray(responseArray)
+        val previousDay = parseProxyMatchArray(root.optJSONArray("previousDay") ?: JSONArray())
+        val today = parseProxyMatchArray(root.optJSONArray("today") ?: JSONArray())
+        val nextDay = parseProxyMatchArray(root.optJSONArray("nextDay") ?: JSONArray())
+        val important = parseProxyMatchArray(root.optJSONArray("importantMatches") ?: JSONArray())
+
+        return FootballData(
+            matches = matches.sortedWith(compareBy({ !it.isLive }, { it.timestamp })),
+            previousDay = previousDay,
+            today = today,
+            nextDay = nextDay,
+            importantMatches = important
+        )
+    }
+
+    private fun parseProxyMatchArray(responseArray: JSONArray): List<LiveMatchData> {
         val matches = mutableListOf<LiveMatchData>()
 
         for (i in 0 until responseArray.length()) {
@@ -184,48 +214,54 @@ class FootballService @Inject constructor(
                 )
             )
         }
-        
-        // Sort: Live first, then Time
-        matches.sortWith(compareBy({ !it.isLive }, { it.timestamp }))
-        
-        return FootballData(matches)
+
+        return matches
     }
     
     private fun parseFootballData(jsonStr: String): FootballData {
         return try {
             val root = JSONObject(jsonStr)
-            val arr = root.optJSONArray("matches") ?: JSONArray()
-            val matches = mutableListOf<LiveMatchData>()
-
-            for (i in 0 until arr.length()) {
-                val item = arr.optJSONObject(i) ?: continue
-                matches.add(
-                    LiveMatchData(
-                        leagueName = item.optString("leagueName").takeIf { it.isNotBlank() },
-                        leagueLogo = item.optString("leagueLogo").takeIf { it.isNotBlank() },
-                        homeTeam = item.optString("homeTeam"),
-                        homeLogo = item.optString("homeLogo"),
-                        awayTeam = item.optString("awayTeam"),
-                        awayLogo = item.optString("awayLogo"),
-                        homeScore = item.optInt("homeScore", 0),
-                        awayScore = item.optInt("awayScore", 0),
-                        statusShort = item.optString("statusShort").takeIf { it.isNotBlank() },
-                        statusLong = item.optString("statusLong").takeIf { it.isNotBlank() },
-                        elapsed = item.optInt("elapsed", 0),
-                        timestamp = item.optLong("timestamp", 0L),
-                        venueName = item.optString("venueName").takeIf { it.isNotBlank() },
-                        venueCity = item.optString("venueCity").takeIf { it.isNotBlank() },
-                        fixtureDate = item.optString("fixtureDate").takeIf { it.isNotBlank() },
-                        referee = item.optString("referee").takeIf { it.isNotBlank() },
-                        halftimeHome = item.optInt("halftimeHome").takeIf { item.has("halftimeHome") },
-                        halftimeAway = item.optInt("halftimeAway").takeIf { item.has("halftimeAway") }
-                    )
-                )
-            }
-            FootballData(matches)
+            FootballData(
+                matches = parseCachedMatchArray(root.optJSONArray("matches") ?: JSONArray()),
+                previousDay = parseCachedMatchArray(root.optJSONArray("previousDay") ?: JSONArray()),
+                today = parseCachedMatchArray(root.optJSONArray("today") ?: JSONArray()),
+                nextDay = parseCachedMatchArray(root.optJSONArray("nextDay") ?: JSONArray()),
+                importantMatches = parseCachedMatchArray(root.optJSONArray("importantMatches") ?: JSONArray())
+            )
         } catch (_: Exception) {
             FootballData(emptyList())
         }
+    }
+
+    private fun parseCachedMatchArray(arr: JSONArray): List<LiveMatchData> {
+        val matches = mutableListOf<LiveMatchData>()
+
+        for (i in 0 until arr.length()) {
+            val item = arr.optJSONObject(i) ?: continue
+            matches.add(
+                LiveMatchData(
+                    leagueName = item.optString("leagueName").takeIf { it.isNotBlank() },
+                    leagueLogo = item.optString("leagueLogo").takeIf { it.isNotBlank() },
+                    homeTeam = item.optString("homeTeam"),
+                    homeLogo = item.optString("homeLogo"),
+                    awayTeam = item.optString("awayTeam"),
+                    awayLogo = item.optString("awayLogo"),
+                    homeScore = item.optInt("homeScore", 0),
+                    awayScore = item.optInt("awayScore", 0),
+                    statusShort = item.optString("statusShort").takeIf { it.isNotBlank() },
+                    statusLong = item.optString("statusLong").takeIf { it.isNotBlank() },
+                    elapsed = item.optInt("elapsed", 0),
+                    timestamp = item.optLong("timestamp", 0L),
+                    venueName = item.optString("venueName").takeIf { it.isNotBlank() },
+                    venueCity = item.optString("venueCity").takeIf { it.isNotBlank() },
+                    fixtureDate = item.optString("fixtureDate").takeIf { it.isNotBlank() },
+                    referee = item.optString("referee").takeIf { it.isNotBlank() },
+                    halftimeHome = item.optInt("halftimeHome").takeIf { item.has("halftimeHome") },
+                    halftimeAway = item.optInt("halftimeAway").takeIf { item.has("halftimeAway") }
+                )
+            )
+        }
+        return matches
     }
     
     fun hasApiKey(): Boolean = true
@@ -247,35 +283,59 @@ class FootballService @Inject constructor(
 
     private fun FootballData.toJsonString(): String {
         val matchesArray = JSONArray()
-        matches.forEach { match ->
-            val obj = JSONObject().apply {
-                put("leagueName", match.leagueName)
-                put("leagueLogo", match.leagueLogo)
-                put("homeTeam", match.homeTeam)
-                put("homeLogo", match.homeLogo)
-                put("awayTeam", match.awayTeam)
-                put("awayLogo", match.awayLogo)
-                put("homeScore", match.homeScore)
-                put("awayScore", match.awayScore)
-                put("statusShort", match.statusShort)
-                put("statusLong", match.statusLong)
-                put("elapsed", match.elapsed)
-                put("timestamp", match.timestamp)
-                put("venueName", match.venueName)
-                put("venueCity", match.venueCity)
-                put("fixtureDate", match.fixtureDate)
-                put("referee", match.referee)
-                if (match.halftimeHome != null) put("halftimeHome", match.halftimeHome)
-                if (match.halftimeAway != null) put("halftimeAway", match.halftimeAway)
-            }
-            matchesArray.put(obj)
+        val previousDayArray = JSONArray()
+        val todayArray = JSONArray()
+        val nextDayArray = JSONArray()
+        val importantArray = JSONArray()
+        fun appendMatch(target: JSONArray, match: LiveMatchData) {
+            target.put(match.toJsonObject())
         }
-        return JSONObject().put("matches", matchesArray).toString()
+        matches.forEach { match ->
+            appendMatch(matchesArray, match)
+        }
+        previousDay.forEach { appendMatch(previousDayArray, it) }
+        today.forEach { appendMatch(todayArray, it) }
+        nextDay.forEach { appendMatch(nextDayArray, it) }
+        importantMatches.forEach { appendMatch(importantArray, it) }
+        return JSONObject()
+            .put("matches", matchesArray)
+            .put("previousDay", previousDayArray)
+            .put("today", todayArray)
+            .put("nextDay", nextDayArray)
+            .put("importantMatches", importantArray)
+            .toString()
+    }
+
+    private fun LiveMatchData.toJsonObject(): JSONObject {
+        return JSONObject().apply {
+            put("leagueName", leagueName)
+            put("leagueLogo", leagueLogo)
+            put("homeTeam", homeTeam)
+            put("homeLogo", homeLogo)
+            put("awayTeam", awayTeam)
+            put("awayLogo", awayLogo)
+            put("homeScore", homeScore)
+            put("awayScore", awayScore)
+            put("statusShort", statusShort)
+            put("statusLong", statusLong)
+            put("elapsed", elapsed)
+            put("timestamp", timestamp)
+            put("venueName", venueName)
+            put("venueCity", venueCity)
+            put("fixtureDate", fixtureDate)
+            put("referee", referee)
+            if (halftimeHome != null) put("halftimeHome", halftimeHome)
+            if (halftimeAway != null) put("halftimeAway", halftimeAway)
+        }
     }
 }
 
 data class FootballData(
-    val matches: List<LiveMatchData>
+    val matches: List<LiveMatchData>,
+    val previousDay: List<LiveMatchData> = emptyList(),
+    val today: List<LiveMatchData> = emptyList(),
+    val nextDay: List<LiveMatchData> = emptyList(),
+    val importantMatches: List<LiveMatchData> = emptyList()
 )
 
 data class LiveMatchData(

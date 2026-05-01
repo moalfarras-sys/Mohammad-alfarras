@@ -8,17 +8,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MovieDao {
     
-    @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY name")
+    @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY addedTimestamp DESC, name COLLATE NOCASE ASC")
     fun getAllMovies(serverId: Long): Flow<List<MovieEntity>>
     
-    @Query("SELECT * FROM movies WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY name")
+    @Query("SELECT * FROM movies WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY addedTimestamp DESC, name COLLATE NOCASE ASC")
     fun getMoviesByCategory(serverId: Long, categoryId: String): Flow<List<MovieEntity>>
     
     // Paging queries
-    @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY name")
+    @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY addedTimestamp DESC, name COLLATE NOCASE ASC")
     fun getAllMoviesPaged(serverId: Long): PagingSource<Int, MovieEntity>
     
-    @Query("SELECT * FROM movies WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY name")
+    @Query("SELECT * FROM movies WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY addedTimestamp DESC, name COLLATE NOCASE ASC")
     fun getMoviesByCategoryPaged(serverId: Long, categoryId: String): PagingSource<Int, MovieEntity>
     
     @Query("SELECT * FROM movies WHERE movieId = :movieId")

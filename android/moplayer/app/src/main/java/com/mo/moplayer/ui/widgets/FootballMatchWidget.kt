@@ -2,6 +2,10 @@ package com.mo.moplayer.ui.widgets
 
 import android.os.Handler
 import android.os.Looper
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.GradientDrawable
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -51,6 +55,7 @@ constructor(
     private var refreshRunnable: Runnable? = null
     private var currentMatchData: LiveMatchData? = null
     private var widgetState: WidgetUiState<LiveMatchData> = WidgetUiState.Loading
+    private var accentColor: Int = Color.parseColor("#00E5FF")
 
     var onMatchClick: ((LiveMatchData) -> Unit)? = null
 
@@ -104,6 +109,18 @@ constructor(
         onFocusChangeListener = OnFocusChangeListener { _, hasFocus -> animateFocus(hasFocus) }
 
         renderState(WidgetUiState.Loading)
+    }
+
+    fun setAccentColor(color: Int) {
+        accentColor = color
+        tvScore.setTextColor(color)
+        tvLiveBadge.background = createLiveBadgeBackground(color)
+        progressBar.indeterminateTintList = android.content.res.ColorStateList.valueOf(color)
+        findViewById<android.widget.ImageView>(R.id.ivFootballIcon)?.colorFilter =
+            PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+        if (hasFocus()) {
+            background = createWidgetBackground(color, focused = true)
+        }
     }
 
     fun initialize(footballService: FootballService) {
@@ -281,6 +298,7 @@ constructor(
     private fun animateFocus(hasFocus: Boolean) {
         val targetScale = if (hasFocus) 1.05f else 1.0f
         val targetElevation = if (hasFocus) 14f else 4f
+        background = createWidgetBackground(accentColor, focused = hasFocus)
         animate()
             .scaleX(targetScale)
             .scaleY(targetScale)
@@ -290,6 +308,26 @@ constructor(
             .start()
         elevation = targetElevation
     }
+
+    private fun createWidgetBackground(color: Int, focused: Boolean): GradientDrawable {
+        val alphaSurface = if (focused) 60 else 34
+        val strokeAlpha = if (focused) 230 else 92
+        return GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(
+            Color.argb(alphaSurface, Color.red(color), Color.green(color), Color.blue(color)),
+            Color.argb(176, 4, 14, 32)
+        )).apply {
+            cornerRadius = dp(22f)
+            setStroke(dp(if (focused) 2f else 1f).toInt(), Color.argb(strokeAlpha, Color.red(color), Color.green(color), Color.blue(color)))
+        }
+    }
+
+    private fun createLiveBadgeBackground(color: Int): GradientDrawable =
+        GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(10f)
+        }
+
+    private fun dp(value: Float): Float = value * resources.displayMetrics.density
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()

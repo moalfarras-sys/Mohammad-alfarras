@@ -39,10 +39,10 @@
     <dimen name="logo_height">64dp</dimen>
     
     <!-- Cards - Larger for 4K -->
-    <dimen name="card_margin">10dp</dimen>
-    <dimen name="card_poster_width">136dp</dimen>
-    <dimen name="card_poster_height">204dp</dimen>
-    <dimen name="card_content_height">248dp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_poster_width">112dp</dimen>
+    <dimen name="card_poster_height">168dp</dimen>
+    <dimen name="card_content_height">206dp</dimen>
     <dimen name="content_row_items_height">270dp</dimen>
     <dimen name="card_title_size">12sp</dimen>
     
@@ -63,7 +63,7 @@
     <dimen name="home_widget_height">64dp</dimen>
     <dimen name="home_weather_widget_width">154dp</dimen>
     <dimen name="home_clock_widget_height">52dp</dimen>
-    <dimen name="preview_panel_width">440dp</dimen>
+    <dimen name="preview_panel_width">540dp</dimen>
     <dimen name="top_bar_height">112dp</dimen>
     <dimen name="home_empty_width">720dp</dimen>
 </resources>

@@ -68,14 +68,6 @@ class EpisodeAdapter(
             binding.tvEpisodeTitle.text = episode.title
             binding.tvDuration.text = episode.duration ?: ""
 
-            // Show plot if available
-            if (!episode.plot.isNullOrEmpty()) {
-                binding.tvEpisodePlot.text = episode.plot
-                binding.tvEpisodePlot.visibility = View.VISIBLE
-            } else {
-                binding.tvEpisodePlot.visibility = View.GONE
-            }
-
             // Load thumbnail
             if (!episode.thumbnail.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.root.context)) {
                 Glide.with(binding.root.context)

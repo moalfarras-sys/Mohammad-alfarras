@@ -160,6 +160,7 @@
     <string name="match_details_halftime_format">Halftime: %1$d - %2$d</string>
     <string name="match_details_status">Status</string>
     <string name="match_details_date_time">Date &amp; time</string>
+    <string name="match_details_nearby_title">Yesterday, today and next key matches</string>
     
     
     <string name="movies_title">Movies</string>
@@ -363,7 +364,7 @@
     
     
     <string name="exit_title">Exit App</string>
-    <string name="exit_message">Are you sure you want to exit MoPlayer?</string>
+    <string name="exit_message">Are you sure you want to close the app now?</string>
     <string name="exit_confirm">Exit</string>
     <string name="exit_cancel">Stay</string>
     <string name="press_back_again_to_exit">Press back again to exit</string>
@@ -376,6 +377,8 @@
     <string name="about_contact_title">Contact Us</string>
     <string name="about_contact_whatsapp">Contact on WhatsApp</string>
     <string name="about_contact_email">Contact via Email</string>
+    <string name="about_contact_website">Open Website</string>
+    <string name="about_contact_moplayer">MoPlayer Page</string>
     <string name="about_copyright">© 2026 MoPlayer by Moalfarras. All rights reserved.</string>
     <string name="about_developer_name">Mohammad Alfarras</string>
     

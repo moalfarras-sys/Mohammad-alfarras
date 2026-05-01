@@ -14,4 +14,12 @@ keystore.properties
 android/moplayer/build/
 android/moplayer/build-output/
 android/moplayer/releases/
+android/moplayer/releases/**
 android/moplayer/.gradle/
+*.png
+!apps/web/public/**/*.png
+!apps/web/public/**/*.jpg
+!apps/web/public/**/*.jpeg
+!apps/web/public/**/*.webp
+*_dump.xml
+m3u_test_playlist.txt

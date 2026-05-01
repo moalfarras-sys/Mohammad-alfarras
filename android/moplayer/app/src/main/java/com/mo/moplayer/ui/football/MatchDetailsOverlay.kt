@@ -40,6 +40,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     private val tvDateTime: TextView
     private val tvReferee: TextView
     private val tvHalftime: TextView
+    private val tvNearbyTitle: TextView
+    private val tvNearbyList: TextView
     private val btnClose: Button
 
     private var onDismiss: (() -> Unit)? = null
@@ -64,6 +66,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         tvDateTime = findViewById(R.id.tvMatchDateTime)
         tvReferee = findViewById(R.id.tvMatchReferee)
         tvHalftime = findViewById(R.id.tvMatchHalftime)
+        tvNearbyTitle = findViewById(R.id.tvMatchNearbyTitle)
+        tvNearbyList = findViewById(R.id.tvMatchNearbyList)
         btnClose = findViewById(R.id.btnMatchDetailsClose)
 
         btnClose.setOnClickListener { hide() }
@@ -95,7 +99,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         onDismiss = listener
     }
 
-    fun show(data: LiveMatchData) {
+    fun show(data: LiveMatchData, nearbyMatches: List<LiveMatchData> = emptyList()) {
         visibility = View.VISIBLE
         alpha = 0f
         animate().alpha(1f).setDuration(180).start()
@@ -178,6 +182,25 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         } else {
             tvHalftime.isVisible = false
         }
+
+        val nearbyText = nearbyMatches
+            .take(8)
+            .joinToString(separator = "\n") { match ->
+                val status = when {
+                    match.isLive -> match.minute?.let { "${it}'" } ?: (match.statusShort ?: "LIVE")
+                    match.isFinished -> "FT"
+                    else -> match.displayTime
+                }
+                val score = if (match.isLive || match.isFinished) {
+                    "${match.homeScore}-${match.awayScore}"
+                } else {
+                    "vs"
+                }
+                "$status  ${match.homeTeam} $score ${match.awayTeam}"
+            }
+        tvNearbyTitle.isVisible = nearbyText.isNotBlank()
+        tvNearbyList.isVisible = nearbyText.isNotBlank()
+        tvNearbyList.text = nearbyText
 
         post { btnClose.requestFocus() }
     }

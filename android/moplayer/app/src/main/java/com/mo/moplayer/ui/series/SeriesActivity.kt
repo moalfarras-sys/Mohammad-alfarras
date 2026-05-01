@@ -48,6 +48,8 @@ class SeriesActivity : BaseTvActivity() {
 
     @Inject lateinit var networkErrorHandler: com.mo.moplayer.util.NetworkErrorHandler
 
+    @Inject lateinit var tvUiPreferences: com.mo.moplayer.util.TvUiPreferences
+
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var seriesAdapter: SeriesAdapter
 
@@ -344,20 +346,6 @@ class SeriesActivity : BaseTvActivity() {
                 )
 
         binding.rvMovies.apply {
-            // Use responsive grid layout that adapts to screen size
-            val cardWidthDp = LayoutHelper.getCardWidthDp(this@SeriesActivity)
-            val cardMarginDp = LayoutHelper.getCardMarginDp(this@SeriesActivity)
-            val screenMarginDp = LayoutHelper.getScreenMarginHorizontalDp(this@SeriesActivity)
-
-            layoutManager =
-                    LayoutHelper.createResponsiveGridLayoutManager(
-                            context = this@SeriesActivity,
-                            cardWidthDp = cardWidthDp,
-                            cardMarginDp = cardMarginDp,
-                            screenMarginHorizontalDp = screenMarginDp,
-                            minColumns = 2,
-                            maxColumns = 6
-                    )
             adapter = seriesAdapter
             setHasFixedSize(true)
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -367,6 +355,27 @@ class SeriesActivity : BaseTvActivity() {
             isNestedScrollingEnabled = false
             clipToPadding = false
             clipChildren = false
+        }
+
+        lifecycleScope.launch {
+            kotlinx.coroutines.flow.combine(tvUiPreferences.layoutStyle, tvUiPreferences.posterSize) { layoutStyle, posterSize ->
+                layoutStyle to posterSize
+            }.collect { (layoutStyle, posterSize) ->
+                val metrics = tvUiPreferences.posterMetrics(posterSize)
+                binding.rvMovies.layoutManager =
+                    if (layoutStyle == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.GRID) {
+                        LayoutHelper.createResponsiveGridLayoutManager(
+                            context = this@SeriesActivity,
+                            cardWidthDp = metrics.widthDp,
+                            cardMarginDp = LayoutHelper.getCardMarginDp(this@SeriesActivity),
+                            screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@SeriesActivity),
+                            minColumns = 4,
+                            maxColumns = 9
+                        )
+                    } else {
+                        androidx.recyclerview.widget.GridLayoutManager(this@SeriesActivity, 1)
+                    }
+            }
         }
 
         // Add load state listener for paging

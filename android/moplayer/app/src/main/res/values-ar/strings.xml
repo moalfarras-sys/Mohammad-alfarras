@@ -97,6 +97,7 @@
     <string name="match_details_halftime_format">نصف الوقت: %1$d - %2$d</string>
     <string name="match_details_status">الحالة</string>
     <string name="match_details_date_time">التاريخ والوقت</string>
+    <string name="match_details_nearby_title">أمس واليوم وبكرا وأهم المباريات</string>
     
     
     <string name="movies_title">أفلام</string>

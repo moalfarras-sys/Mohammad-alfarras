@@ -31,7 +31,10 @@ if (localPropertiesFile.exists()) {
 val tmdbApiKey = localProperties.getProperty("tmdb.api.key", "")
 val tvdbApiKey = localProperties.getProperty("tvdb.api.key", "")
 val webApiBaseUrl = localProperties.getProperty("web.api.base.url", "https://moalfarras.space")
-val isPlayBundleBuild = gradle.startParameter.taskNames.any { it.contains("bundleplay", ignoreCase = true) }
+val isPlayBundleBuild = gradle.startParameter.taskNames.any {
+    val task = it.lowercase(Locale.US)
+    (task.contains("bundleplay") || task.contains("buildplayrelease")) && task.contains("release")
+}
 val includeX86Abis = providers.gradleProperty("includeX86Abis").orNull?.toBoolean() ?: false
 val buildUniversalSideloadApk = providers.gradleProperty("universalSideloadApk").orNull?.toBoolean() ?: true
 val sideloadAbis = mutableListOf("armeabi-v7a", "arm64-v8a").apply {

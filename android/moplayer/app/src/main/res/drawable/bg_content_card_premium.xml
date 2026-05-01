@@ -19,7 +19,7 @@
                 android:bottom="2dp">
                 <shape android:shape="rectangle">
                     <gradient
-                        android:angle="145"
+                        android:angle="135"
                         android:startColor="#E8173470"
                         android:centerColor="#D6221B61"
                         android:endColor="#DA092C58" />
@@ -47,7 +47,7 @@
     <item>
         <shape android:shape="rectangle">
             <gradient
-                android:angle="145"
+                android:angle="135"
                 android:startColor="#BB0B1D3D"
                 android:centerColor="#AA111A3F"
                 android:endColor="#AA190B30" />

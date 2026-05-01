@@ -9,9 +9,15 @@ interface ChannelDao {
     
     @Query("SELECT * FROM channels WHERE serverId = :serverId ORDER BY customOrder, name")
     fun getAllChannels(serverId: Long): Flow<List<ChannelEntity>>
+
+    @Query("SELECT * FROM channels WHERE serverId = :serverId ORDER BY customOrder, name LIMIT :limit")
+    fun getAllChannelsLimited(serverId: Long, limit: Int): Flow<List<ChannelEntity>>
     
     @Query("SELECT * FROM channels WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY customOrder, name")
     fun getChannelsByCategory(serverId: Long, categoryId: String): Flow<List<ChannelEntity>>
+
+    @Query("SELECT * FROM channels WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY customOrder, name LIMIT :limit")
+    fun getChannelsByCategoryLimited(serverId: Long, categoryId: String, limit: Int): Flow<List<ChannelEntity>>
     
     @Query("SELECT * FROM channels WHERE channelId = :channelId")
     suspend fun getChannelById(channelId: String): ChannelEntity?
@@ -36,4 +42,7 @@ interface ChannelDao {
     
     @Query("SELECT COUNT(*) FROM channels WHERE serverId = :serverId")
     suspend fun getChannelCount(serverId: Long): Int
+
+    @Query("SELECT COUNT(*) FROM channels WHERE serverId = :serverId AND categoryId = :categoryId")
+    suspend fun getChannelCountByCategory(serverId: Long, categoryId: String): Int
 }

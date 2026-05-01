@@ -17,6 +17,7 @@ class ContentRowAdapter(
     private val onItemLongPress: ((ContentItem) -> Unit)? = null,
     private val onFavoriteShortcut: ((ContentItem) -> Unit)? = null,
     private val themeManager: com.mo.moplayer.util.ThemeManager,
+    private val tvUiPreferences: com.mo.moplayer.util.TvUiPreferences,
     private val recyclerViewOptimizer: com.mo.moplayer.util.RecyclerViewOptimizer? = null
 ) : ListAdapter<ContentRow, ContentRowAdapter.RowViewHolder>(RowDiffCallback()) {
 
@@ -55,6 +56,22 @@ class ContentRowAdapter(
         }
     }
 
+    fun updateUiPreferences(
+        posterSize: com.mo.moplayer.util.TvUiPreferences.PosterSize,
+        animationsEnabled: Boolean
+    ) {
+        recyclerView?.let { rv ->
+            for (i in 0 until rv.childCount) {
+                val child = rv.getChildAt(i)
+                val viewHolder = rv.getChildViewHolder(child)
+                if (viewHolder is RowViewHolder) {
+                    viewHolder.itemAdapter.updateUiPreferences(posterSize, animationsEnabled)
+                }
+            }
+        }
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RowViewHolder {
         val binding = ItemContentRowBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -75,7 +92,8 @@ class ContentRowAdapter(
             onItemFocused = onItemFocused,
             onItemLongPress = onItemLongPress,
             onFavoriteShortcut = onFavoriteShortcut,
-            themeManager = themeManager
+            themeManager = themeManager,
+            tvUiPreferences = tvUiPreferences
         )
 
         init {

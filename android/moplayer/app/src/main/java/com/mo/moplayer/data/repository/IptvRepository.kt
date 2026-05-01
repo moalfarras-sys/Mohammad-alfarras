@@ -39,6 +39,9 @@ class IptvRepository @Inject constructor(
     private val m3uParser: M3uParser,
     private val credentialManager: CredentialManager
 ) {
+    companion object {
+        private const val M3U_IMPORT_BATCH_SIZE = 400
+    }
 
     internal fun normalizeImageUrl(raw: String?): String? = ImageUrlNormalizer.normalize(raw)
     
@@ -380,9 +383,18 @@ class IptvRepository @Inject constructor(
     // Channels
     fun getAllChannels(serverId: Long): Flow<List<ChannelEntity>> = 
         channelDao.getAllChannels(serverId)
+
+    fun getAllChannelsLimited(serverId: Long, limit: Int): Flow<List<ChannelEntity>> =
+        channelDao.getAllChannelsLimited(serverId, limit)
     
     fun getChannelsByCategory(serverId: Long, categoryId: String): Flow<List<ChannelEntity>> =
         channelDao.getChannelsByCategory(serverId, categoryId)
+
+    fun getChannelsByCategoryLimited(serverId: Long, categoryId: String, limit: Int): Flow<List<ChannelEntity>> =
+        channelDao.getChannelsByCategoryLimited(serverId, categoryId, limit)
+
+    fun getRecentlyAddedChannels(serverId: Long, limit: Int = 30): Flow<List<ChannelEntity>> =
+        channelDao.getRecentlyAddedChannels(serverId, limit)
     
     fun searchChannels(serverId: Long, query: String): Flow<List<ChannelEntity>> =
         channelDao.searchChannels(serverId, query)
@@ -897,9 +909,168 @@ class IptvRepository @Inject constructor(
         serverName: String
     ): Resource<Long> = withContext(Dispatchers.IO) {
         try {
-            val parseResult = inputStream.use { m3uParser.parse(it) }
-            importParsedM3u(parseResult, serverName)
+            importLargeM3uPlaylist(inputStream, serverName)
         } catch (e: Exception) {
+            Resource.Error("Failed to import M3U: ${e.message}")
+        }
+    }
+
+    private suspend fun importLargeM3uPlaylist(
+        inputStream: InputStream,
+        serverName: String
+    ): Resource<Long> {
+        val serverId = saveServer(
+            name = serverName,
+            serverUrl = "",
+            username = "",
+            password = "",
+            serverType = "m3u"
+        )
+
+        return try {
+            val categoryOrderMap = linkedMapOf<String, Int>()
+            val categoryIdMap = hashMapOf<String, String>()
+            val pendingCategories = mutableListOf<CategoryEntity>()
+            val pendingChannels = mutableListOf<ChannelEntity>()
+            val pendingMovies = mutableListOf<MovieEntity>()
+            val pendingSearchItems = mutableListOf<ContentSearchEntity>()
+            var streamIndex = 0
+            var importedItems = 0
+            var liveCount = 0
+            var movieCount = 0
+
+            val summary = inputStream.use { stream ->
+                m3uParser.parseStreaming(stream) { item ->
+                    importedItems += 1
+                    val categoryName = item.group?.takeIf { it.isNotBlank() } ?: "Uncategorized"
+                    val categoryId = categoryIdMap.getOrPut(categoryName) {
+                        val id = "${serverId}_${categoryName.hashCode()}"
+                        pendingCategories += CategoryEntity(
+                            categoryId = id,
+                            serverId = serverId,
+                            originalId = categoryName.hashCode().toString(),
+                            name = categoryName,
+                            type = "live",
+                            sortOrder = categoryOrderMap.size
+                        )
+                        categoryOrderMap[categoryName] = categoryOrderMap.size
+                        id
+                    }
+
+                    if (pendingCategories.size >= M3U_IMPORT_BATCH_SIZE) {
+                        categoryDao.insertCategories(pendingCategories.toList())
+                        pendingCategories.clear()
+                    }
+
+                    if (item.isLive) {
+                        liveCount += 1
+                        val channelId = "${serverId}_${streamIndex}_${item.name.hashCode()}"
+                        val channel = ChannelEntity(
+                            channelId = channelId,
+                            serverId = serverId,
+                            streamId = streamIndex,
+                            name = item.name,
+                            streamUrl = item.url,
+                            streamIcon = item.logo,
+                            categoryId = categoryId,
+                            epgChannelId = item.tvgId,
+                            tvArchive = false,
+                            tvArchiveDuration = 0,
+                            isAdult = categoryName.contains("adult", ignoreCase = true) ||
+                                categoryName.contains("xxx", ignoreCase = true),
+                            addedAt = System.currentTimeMillis(),
+                            customOrder = streamIndex
+                        )
+                        pendingChannels += channel
+                        pendingSearchItems += ContentSearchEntity(
+                            uniqueId = "$serverId:channel:${channel.channelId}",
+                            serverId = serverId,
+                            contentId = channel.channelId,
+                            contentType = "channel",
+                            title = channel.name,
+                            subtitle = channel.categoryId,
+                            posterUrl = normalizeImageUrl(channel.streamIcon)
+                        )
+                    } else {
+                        movieCount += 1
+                        val extension = item.url.substringAfterLast('.', "mp4").take(4)
+                        val movieId = "${serverId}_${streamIndex}_${item.name.hashCode()}"
+                        val movie = MovieEntity(
+                            movieId = movieId,
+                            serverId = serverId,
+                            streamId = streamIndex,
+                            name = item.name,
+                            streamUrl = item.url,
+                            containerExtension = extension,
+                            streamIcon = item.logo,
+                            categoryId = categoryId,
+                            addedTimestamp = System.currentTimeMillis(),
+                            isAdult = categoryName.contains("adult", ignoreCase = true) ||
+                                categoryName.contains("xxx", ignoreCase = true)
+                        )
+                        pendingMovies += movie
+                        pendingSearchItems += ContentSearchEntity(
+                            uniqueId = "$serverId:movie:${movie.movieId}",
+                            serverId = serverId,
+                            contentId = movie.movieId,
+                            contentType = "movie",
+                            title = movie.name,
+                            subtitle = movie.categoryId,
+                            posterUrl = normalizeImageUrl(movie.streamIcon)
+                        )
+                    }
+
+                    if (pendingChannels.size >= M3U_IMPORT_BATCH_SIZE) {
+                        channelDao.insertChannels(pendingChannels.toList())
+                        pendingChannels.clear()
+                    }
+                    if (pendingMovies.size >= M3U_IMPORT_BATCH_SIZE) {
+                        movieDao.insertMovies(pendingMovies.toList())
+                        pendingMovies.clear()
+                    }
+                    if (pendingSearchItems.size >= M3U_IMPORT_BATCH_SIZE) {
+                        contentSearchDao.upsertAll(pendingSearchItems.toList())
+                        pendingSearchItems.clear()
+                    }
+
+                    streamIndex += 1
+                }
+            }
+
+            if (importedItems == 0 || summary.itemCount == 0) {
+                deleteServer(serverId)
+                return Resource.Error(
+                    "Playlist did not contain playable items. Check that the M3U URL is valid and contains stream URLs."
+                )
+            }
+
+            if (pendingCategories.isNotEmpty()) {
+                categoryDao.insertCategories(pendingCategories.toList())
+            }
+            if (pendingChannels.isNotEmpty()) {
+                channelDao.insertChannels(pendingChannels.toList())
+            }
+            if (pendingMovies.isNotEmpty()) {
+                movieDao.insertMovies(pendingMovies.toList())
+            }
+            if (pendingSearchItems.isNotEmpty()) {
+                contentSearchDao.upsertAll(pendingSearchItems.toList())
+            }
+
+            serverSyncStateDao.upsert(
+                ServerSyncStateEntity(
+                    serverId = serverId,
+                    lastSyncAt = System.currentTimeMillis(),
+                    lastStatus = "SUCCESS",
+                    totalChannels = liveCount,
+                    totalMovies = movieCount,
+                    totalCategories = categoryIdMap.size
+                )
+            )
+
+            Resource.Success(serverId)
+        } catch (e: Exception) {
+            deleteServer(serverId)
             Resource.Error("Failed to import M3U: ${e.message}")
         }
     }
@@ -1004,6 +1175,10 @@ class IptvRepository @Inject constructor(
     
     suspend fun getChannelCount(serverId: Long): Int = withContext(Dispatchers.IO) {
         channelDao.getChannelCount(serverId)
+    }
+
+    suspend fun getChannelCountByCategory(serverId: Long, categoryId: String): Int = withContext(Dispatchers.IO) {
+        channelDao.getChannelCountByCategory(serverId, categoryId)
     }
 
     suspend fun getMovieById(movieId: String): MovieEntity? = withContext(Dispatchers.IO) {

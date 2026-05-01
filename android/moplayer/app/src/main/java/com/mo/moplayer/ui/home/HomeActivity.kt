@@ -84,6 +84,9 @@ class HomeActivity : BaseTvActivity() {
     lateinit var recyclerViewOptimizer: com.mo.moplayer.util.RecyclerViewOptimizer
 
     @Inject
+    lateinit var tvUiPreferences: com.mo.moplayer.util.TvUiPreferences
+
+    @Inject
     lateinit var appRemoteConfigService: AppRemoteConfigService
     
     private lateinit var contentAdapter: ContentRowAdapter
@@ -171,6 +174,7 @@ class HomeActivity : BaseTvActivity() {
         if (::contentAdapter.isInitialized) {
             contentAdapter.updateThemeColor(color)
         }
+        binding.footballWidget.setAccentColor(color)
     }
     
     private fun updateDockColors(accentColor: Int) {
@@ -265,12 +269,6 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun applyRemoteConfigState() {
-        parseRemoteAccentColor(appRemoteConfig.accentColor)?.let { accentColor ->
-            lifecycleScope.launch {
-                themeManager.overrideRuntimeAccentColor(accentColor)
-                applyThemeToViews(accentColor)
-            }
-        }
         binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled) View.VISIBLE else View.GONE
         binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
 
@@ -384,7 +382,20 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun showMatchDetailsOverlay(match: com.mo.moplayer.data.football.LiveMatchData) {
-        binding.matchDetailsOverlay.show(match)
+        lifecycleScope.launch {
+            val data = footballService.footballData.first()
+            val related = data?.let { footballData ->
+                (footballData.importantMatches + footballData.previousDay + footballData.today + footballData.nextDay + footballData.matches)
+                    .distinctBy { it.timestamp.toString() + it.homeTeam + it.awayTeam }
+                    .filterNot { it.homeTeam == match.homeTeam && it.awayTeam == match.awayTeam && it.timestamp == match.timestamp }
+                    .sortedWith(
+                        compareByDescending<com.mo.moplayer.data.football.LiveMatchData> { it.competitionPriority }
+                            .thenBy { kotlin.math.abs(it.timestamp - match.timestamp) }
+                    )
+                    .take(8)
+            }.orEmpty()
+            binding.matchDetailsOverlay.show(match, related)
+        }
     }
 
     private fun showWeatherDetailsOverlay() {
@@ -532,6 +543,7 @@ class HomeActivity : BaseTvActivity() {
                 }
             },
             themeManager = themeManager,
+            tvUiPreferences = tvUiPreferences,
             recyclerViewOptimizer = recyclerViewOptimizer
         )
         
@@ -556,6 +568,14 @@ class HomeActivity : BaseTvActivity() {
                     binding.weatherOverlay.setScrollOffset(offsetY)
                 }
             })
+        }
+
+        lifecycleScope.launch {
+            combine(tvUiPreferences.posterSize, tvUiPreferences.animationsEnabled) { posterSize, animationsEnabled ->
+                posterSize to animationsEnabled
+            }.collect { (posterSize, animationsEnabled) ->
+                contentAdapter.updateUiPreferences(posterSize, animationsEnabled)
+            }
         }
     }
     
@@ -999,6 +1019,9 @@ class HomeActivity : BaseTvActivity() {
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
                 showPreviewBackdrop(item)
+                binding.root.postDelayed({
+                    handleItemClick(item)
+                }, 220L)
             }
         }
 

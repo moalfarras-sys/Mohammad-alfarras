@@ -29,13 +29,13 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="8dp">
+        android:paddingHorizontal="9dp"
+        android:paddingVertical="6dp">
 
         <!-- Group Icon Container -->
         <FrameLayout
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_marginEnd="8dp">
 
             <View
@@ -46,8 +46,8 @@
 
             <ImageView
                 android:id="@+id/ivGroupIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_live_tv"
                 app:tint="@color/htc_text_primary"
@@ -59,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:minHeight="36dp"
+            android:minHeight="32dp"
             android:gravity="center_vertical"
             android:orientation="vertical">
 
@@ -70,6 +70,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
+                android:textDirection="locale"
                 android:textColor="@color/liquid_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold"
@@ -83,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/liquid_text_tertiary"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 tools:text="125 قناة" />
 
         </LinearLayout>

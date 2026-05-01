@@ -554,9 +554,9 @@ class AnimatedBackground @JvmOverloads constructor(
             0f,
             viewHeight,
             intArrayOf(
-                Color.argb(156, 4, 8, 16),
-                Color.argb(120, 15, 25, 48),
-                Color.argb(186, 4, 8, 16)
+                Color.argb(96, 5, 10, 18),
+                Color.argb(58, 16, 28, 52),
+                Color.argb(122, 5, 10, 18)
             ),
             floatArrayOf(0f, 0.48f, 1f),
             Shader.TileMode.CLAMP

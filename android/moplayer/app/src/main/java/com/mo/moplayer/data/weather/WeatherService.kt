@@ -296,23 +296,7 @@ class WeatherService @Inject constructor(
             
             // Fetch weather through the public website proxy so provider keys stay server-side.
             val query = "${location.latitude},${location.longitude}"
-            val url = "$WEATHER_PROXY_URL?city=${URLEncoder.encode(query, "UTF-8")}"
-            val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                connectTimeout = CONNECT_TIMEOUT_MS
-                readTimeout = READ_TIMEOUT_MS
-                setRequestProperty("Accept", "application/json")
-            }
-            val response = try {
-                val stream = if (connection.responseCode in 200..299) {
-                    connection.inputStream
-                } else {
-                    connection.errorStream ?: connection.inputStream
-                }
-                stream.bufferedReader().use { it.readText() }
-            } finally {
-                connection.disconnect()
-            }
+            val response = fetchWeatherProxyJson("?city=${URLEncoder.encode(query, "UTF-8")}")
             val json = JSONObject(response)
             
             // Check for API error
@@ -366,11 +350,57 @@ class WeatherService @Inject constructor(
             
             Result.success(weatherData)
         } catch (e: Exception) {
-            Log.w(TAG, "Weather refresh failed, using cached data when available")
+            Log.w(TAG, "Weather refresh failed, using cached/default data when available: ${e.message}")
             val cached = cachedWeather.first()
             if (cached != null) return@withContext Result.success(cached)
-            Result.failure(e)
+            Result.success(defaultWeather())
         }
+    }
+
+    private fun fetchWeatherProxyJson(queryString: String): String {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls("/api/weather$queryString").forEach { url ->
+            try {
+                val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = CONNECT_TIMEOUT_MS
+                    readTimeout = READ_TIMEOUT_MS
+                    setRequestProperty("Accept", "application/json")
+                }
+                return try {
+                    val stream = if (connection.responseCode in 200..299) {
+                        connection.inputStream
+                    } else {
+                        connection.errorStream ?: connection.inputStream
+                    }
+                    stream.bufferedReader().use { it.readText() }
+                } finally {
+                    connection.disconnect()
+                }
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Weather proxy unavailable")
+    }
+
+    private fun defaultWeather(): WeatherData {
+        return WeatherData(
+            temperature = 18,
+            feelsLike = 18,
+            condition = "Cloudy",
+            conditionCode = 1006,
+            icon = "",
+            cityName = "Local weather",
+            humidity = 55,
+            windSpeed = 6.0,
+            windDegree = 0,
+            gustSpeed = 8.0,
+            precipMm = 0.0,
+            cloud = 65,
+            isDay = true,
+            lastUpdatedEpochMs = System.currentTimeMillis()
+        )
     }
     
     /**

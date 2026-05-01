@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Transparent MoPlayer wordmark. Keep decorative glow in the layout, not inside the logo asset. -->
 <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/moplayer_logo_transparent"
+    android:src="@drawable/moplayer_logo_transparent_v1_full"
     android:gravity="center" />

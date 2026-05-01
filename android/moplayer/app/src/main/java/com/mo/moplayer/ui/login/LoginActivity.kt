@@ -59,6 +59,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.security.SecureRandom
 import javax.inject.Inject
+import java.util.WeakHashMap
 import kotlin.math.sin
 
 @AndroidEntryPoint
@@ -139,6 +140,7 @@ class LoginActivity : AppCompatActivity() {
     private val websiteSourceHandler = Handler(Looper.getMainLooper())
     private var websiteSourcePollAttempts = 0
     private var pendingWebsiteSourceId: String? = null
+    private val focusIconAnimators = WeakHashMap<View, AnimatorSet>()
     private val websiteSourceRunnable = object : Runnable {
         override fun run() {
             checkWebsiteDeliveredSource(scheduleNext = true)
@@ -255,14 +257,15 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupHtcBackground() {
+        val reducedVisuals = shouldUseReducedLoginVisuals()
         // Set default particle color for animated background (will be overridden by persisted theme if set)
         binding.htcAnimatedBackground.setParticleColor(Color.WHITE)
         binding.htcAnimatedBackground.setTvOptimizationMode(isTvDevice())
-        binding.htcAnimatedBackground.setCinematicMode(false)
-        binding.htcAnimatedBackground.setAnimationEnabled(false)
-        binding.weatherOverlay.visibility = View.GONE
+        binding.htcAnimatedBackground.setCinematicMode(!reducedVisuals)
+        binding.htcAnimatedBackground.setAnimationEnabled(!reducedVisuals)
+        binding.weatherOverlay.visibility = if (reducedVisuals) View.GONE else View.VISIBLE
         CinematicBackgroundController.applyBackgroundProfile(
-            mode = BackgroundVisualMode.REDUCED_MOTION,
+            mode = if (reducedVisuals) BackgroundVisualMode.REDUCED_MOTION else BackgroundVisualMode.CITY_WALLPAPER_LOGIN,
             background = binding.htcAnimatedBackground,
             weatherOverlay = binding.weatherOverlay,
             wallpaperView = binding.ivLoginCityWallpaper,
@@ -284,9 +287,9 @@ class LoginActivity : AppCompatActivity() {
                     currentTheme = currentTheme,
                     particleColor = particleColor
                 )
-                binding.htcAnimatedBackground.setAnimationEnabled(animationEnabled)
+                binding.htcAnimatedBackground.setAnimationEnabled(animationEnabled && !reducedVisuals)
                 CinematicBackgroundController.bindWeatherOverlay(
-                    mode = BackgroundVisualMode.CITY_WALLPAPER_LOGIN,
+                    mode = if (reducedVisuals) BackgroundVisualMode.REDUCED_MOTION else BackgroundVisualMode.CITY_WALLPAPER_LOGIN,
                     weatherOverlay = binding.weatherOverlay,
                     accentColor = particleColor
                 )
@@ -561,42 +564,49 @@ class LoginActivity : AppCompatActivity() {
         }
         setupDpadFocusOverrides()
 
-        // Focus change listeners
+        applyPremiumFocus(
+            target = binding.btnChooseActivation,
+            icon = binding.ivActivationIcon,
+            focusedScale = 1.08f,
+            unfocusedAlpha = 0.82f,
+            focusedAlpha = 1f
+        )
+        applyPremiumFocus(
+            target = binding.btnChooseXtream,
+            icon = binding.ivXtreamIcon,
+            focusedScale = 1.07f,
+            unfocusedAlpha = 0.78f,
+            focusedAlpha = 0.98f
+        )
+        applyPremiumFocus(
+            target = binding.btnChooseM3u,
+            icon = binding.ivM3uIcon,
+            focusedScale = 1.07f,
+            unfocusedAlpha = 0.78f,
+            focusedAlpha = 0.98f
+        )
+
         listOf(
-            binding.btnChooseActivation,
-            binding.btnChooseXtream,
-            binding.btnChooseM3u,
             binding.btnTabXtreamClean,
             binding.btnTabM3uClean,
             binding.btnConnectClean,
             binding.btnImportM3uClean,
             binding.btnImportM3uLocalClean,
-            binding.etServerUrlClean, 
-            binding.etUsernameClean, 
+            binding.etServerUrlClean,
+            binding.etUsernameClean,
             binding.etPasswordClean,
             binding.etM3uUrlClean,
             binding.activationEntryCard,
             binding.btnOpenActivationClean,
             binding.btnBackToMethodsClean
-        ).forEach { editText ->
-            editText.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) {
-                    viewModel.clearError()
-                    view.animate()
-                        .scaleX(TvCinematicTokens.BUTTON_SCALE)
-                        .scaleY(TvCinematicTokens.BUTTON_SCALE)
-                        .setDuration(TvCinematicTokens.FOCUS_IN_DURATION_MS)
-                        .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-                        .start()
-                } else {
-                    view.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(TvCinematicTokens.FOCUS_OUT_DURATION_MS)
-                        .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-                        .start()
-                }
-            }
+        ).forEach { view ->
+            applyPremiumFocus(
+                target = view,
+                icon = null,
+                focusedScale = TvCinematicTokens.BUTTON_SCALE,
+                unfocusedAlpha = 1f,
+                focusedAlpha = 1f
+            )
         }
 
         
@@ -725,16 +735,7 @@ class LoginActivity : AppCompatActivity() {
                 runCatching {
                     val queryDevice = URLEncoder.encode(publicDeviceId, "UTF-8")
                     val queryToken = URLEncoder.encode(sourcePullToken, "UTF-8")
-                    val connection = (URL("${BuildConfig.WEB_API_BASE_URL.trimEnd('/')}/api/app/activation/source?publicDeviceId=$queryDevice&token=$queryToken").openConnection() as HttpURLConnection).apply {
-                        requestMethod = "GET"
-                        connectTimeout = 8_000
-                        readTimeout = 8_000
-                    }
-                    val responseText = if (connection.responseCode < 400) {
-                        connection.inputStream.bufferedReader().use { it.readText() }
-                    } else {
-                        connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-                    }
+                    val responseText = getWebsiteApiJson("/api/app/activation/source?publicDeviceId=$queryDevice&token=$queryToken")
                     JSONObject(responseText)
                 }.getOrNull()
             }
@@ -801,19 +802,7 @@ class LoginActivity : AppCompatActivity() {
                         put("status", status)
                         if (!message.isNullOrBlank()) put("message", message.take(240))
                     }.toString()
-                    val connection = (URL("${BuildConfig.WEB_API_BASE_URL.trimEnd('/')}/api/app/activation/source/ack").openConnection() as HttpURLConnection).apply {
-                        requestMethod = "POST"
-                        connectTimeout = 8_000
-                        readTimeout = 8_000
-                        doOutput = true
-                        setRequestProperty("content-type", "application/json")
-                    }
-                    connection.outputStream.use { it.write(body.toByteArray()) }
-                    if (connection.responseCode < 400) {
-                        connection.inputStream.close()
-                    } else {
-                        connection.errorStream?.close()
-                    }
+                    postWebsiteApiJson("/api/app/activation/source/ack", body)
                 }
             }
             pendingWebsiteSourceId = null
@@ -831,6 +820,58 @@ class LoginActivity : AppCompatActivity() {
         val token = Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         activationPrefs.edit().putString("source_pull_token", token).apply()
         return token
+    }
+
+    private fun getWebsiteApiJson(path: String): String {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls(path).forEach { urlString ->
+            try {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 8_000
+                    readTimeout = 8_000
+                    setRequestProperty("accept", "application/json")
+                }
+                return readWebsiteApiResponse(connection)
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Website API unavailable")
+    }
+
+    private fun postWebsiteApiJson(path: String, body: String): String {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls(path).forEach { urlString ->
+            try {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 8_000
+                    readTimeout = 8_000
+                    doOutput = true
+                    setRequestProperty("content-type", "application/json")
+                    setRequestProperty("accept", "application/json")
+                }
+                connection.outputStream.use { it.write(body.toByteArray()) }
+                return readWebsiteApiResponse(connection)
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Website API unavailable")
+    }
+
+    private fun readWebsiteApiResponse(connection: HttpURLConnection): String {
+        return try {
+            val stream = if (connection.responseCode < 400) {
+                connection.inputStream
+            } else {
+                connection.errorStream ?: connection.inputStream
+            }
+            stream.bufferedReader().use { it.readText() }
+        } finally {
+            connection.disconnect()
+        }
     }
 
     private fun setupDpadFocusOverrides() {
@@ -1347,7 +1388,7 @@ class LoginActivity : AppCompatActivity() {
                 }
             })
 
-            editText.setOnFocusChangeListener { _, hasFocus ->
+            chainFocusListener(editText) { _, hasFocus ->
                 if (hasFocus) {
                     editText.post {
                         val len = editText.text?.length ?: 0
@@ -1394,10 +1435,14 @@ class LoginActivity : AppCompatActivity() {
         if (shouldUseReducedLoginVisuals()) {
             binding.htcAnimatedBackground.pauseAnimation()
             binding.htcAnimatedBackground.setAnimationEnabled(false)
+            binding.htcAnimatedBackground.setCinematicMode(false)
             binding.weatherOverlay.visibility = View.GONE
             binding.weatherOverlay.pauseAnimation()
         } else {
+            binding.htcAnimatedBackground.setCinematicMode(true)
+            binding.htcAnimatedBackground.setAnimationEnabled(true)
             binding.htcAnimatedBackground.resumeAnimation()
+            binding.weatherOverlay.visibility = View.VISIBLE
             binding.weatherOverlay.startAnimation()
         }
         
@@ -1437,7 +1482,85 @@ class LoginActivity : AppCompatActivity() {
         websiteSourceHandler.removeCallbacksAndMessages(null)
         logoAnimatorSet?.cancel()
         loadingAnimatorSet?.cancel()
+        focusIconAnimators.values.forEach { it.cancel() }
+        focusIconAnimators.clear()
         exitHelper.dismissDialog()
+    }
+
+    private fun chainFocusListener(view: View, block: (View, Boolean) -> Unit) {
+        val existing = view.onFocusChangeListener
+        view.onFocusChangeListener = View.OnFocusChangeListener { focusedView, hasFocus ->
+            existing?.onFocusChange(focusedView, hasFocus)
+            block(focusedView, hasFocus)
+        }
+    }
+
+    private fun applyPremiumFocus(
+        target: View,
+        icon: View?,
+        focusedScale: Float,
+        unfocusedAlpha: Float,
+        focusedAlpha: Float
+    ) {
+        target.alpha = unfocusedAlpha
+        chainFocusListener(target) { view, hasFocus ->
+            viewModel.clearError()
+            view.isSelected = hasFocus
+            view.animate()
+                .scaleX(if (hasFocus) focusedScale else 1f)
+                .scaleY(if (hasFocus) focusedScale else 1f)
+                .alpha(if (hasFocus) focusedAlpha else unfocusedAlpha)
+                .translationZ(if (hasFocus) 18f else 0f)
+                .setDuration(if (hasFocus) TvCinematicTokens.FOCUS_IN_DURATION_MS else TvCinematicTokens.FOCUS_OUT_DURATION_MS)
+                .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
+                .start()
+
+            if (icon != null) {
+                toggleFocusIconPulse(icon, hasFocus)
+            }
+        }
+    }
+
+    private fun toggleFocusIconPulse(icon: View, active: Boolean) {
+        focusIconAnimators.remove(icon)?.cancel()
+        if (!active) {
+            icon.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(140)
+                .start()
+            return
+        }
+
+        val scaleX = ObjectAnimator.ofFloat(icon, View.SCALE_X, 1f, 1.08f, 1f).apply {
+            duration = 1200
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+        }
+        val scaleY = ObjectAnimator.ofFloat(icon, View.SCALE_Y, 1f, 1.08f, 1f).apply {
+            duration = 1200
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+        }
+        val floatY = ObjectAnimator.ofFloat(icon, View.TRANSLATION_Y, 0f, -3f, 0f).apply {
+            duration = 1200
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+        }
+        val alpha = ObjectAnimator.ofFloat(icon, View.ALPHA, 1f, 0.88f, 1f).apply {
+            duration = 1200
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.RESTART
+        }
+
+        AnimatorSet().apply {
+            playTogether(scaleX, scaleY, floatY, alpha)
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+            focusIconAnimators[icon] = this
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

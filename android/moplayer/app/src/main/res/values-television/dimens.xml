@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Episode Card Dimensions - Optimized for 720p TV -->
-    <dimen name="tv_episode_card_height">108dp</dimen>
-    <dimen name="tv_episode_thumbnail_width">164dp</dimen>
-    <dimen name="tv_episode_thumbnail_height">88dp</dimen>
-    <dimen name="tv_episode_card_margin">4dp</dimen>
-    <dimen name="tv_episode_card_padding">8dp</dimen>
+    <dimen name="tv_episode_card_height">56dp</dimen>
+    <dimen name="tv_episode_thumbnail_width">84dp</dimen>
+    <dimen name="tv_episode_thumbnail_height">46dp</dimen>
+    <dimen name="tv_episode_card_margin">1dp</dimen>
+    <dimen name="tv_episode_card_padding">5dp</dimen>
     
     <!-- Season Card Dimensions -->
     <dimen name="tv_season_card_width">80dp</dimen>
@@ -14,10 +14,10 @@
     <dimen name="tv_season_sidebar_width">90dp</dimen>
     
     <!-- Preview Panel Dimensions -->
-    <dimen name="tv_preview_height">280dp</dimen>
-    <dimen name="tv_preview_panel_padding">16dp</dimen>
-    <dimen name="tv_series_poster_width">120dp</dimen>
-    <dimen name="tv_series_poster_height">180dp</dimen>
+    <dimen name="tv_preview_height">220dp</dimen>
+    <dimen name="tv_preview_panel_padding">12dp</dimen>
+    <dimen name="tv_series_poster_width">90dp</dimen>
+    <dimen name="tv_series_poster_height">135dp</dimen>
     
     <!-- Focus and Animation -->
     <dimen name="tv_focus_scale">1.09</dimen>
@@ -33,7 +33,7 @@
     <dimen name="tv_text_tiny">12sp</dimen>
     
     <!-- Episode Card Text Sizes -->
-    <dimen name="tv_episode_title">14sp</dimen>
+    <dimen name="tv_episode_title">12sp</dimen>
     <dimen name="tv_episode_number">11sp</dimen>
     <dimen name="tv_episode_meta">11sp</dimen>
     <dimen name="tv_episode_description">11sp</dimen>

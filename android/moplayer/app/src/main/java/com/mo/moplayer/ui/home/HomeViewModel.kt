@@ -276,6 +276,18 @@ class HomeViewModel @Inject constructor(
             val movie = repository.getRandomMovie(server.id)
             if (movie != null) {
                 _surpriseEvent.emit(movie.toContentItem())
+                return@launch
+            }
+
+            val recentSeries = repository.getRecentlyAddedSeries(server.id, 1).firstOrNull().orEmpty()
+            if (recentSeries.isNotEmpty()) {
+                _surpriseEvent.emit(recentSeries.first().toContentItem())
+                return@launch
+            }
+
+            val recentChannels = repository.getRecentlyAddedChannels(server.id, 1).firstOrNull().orEmpty()
+            if (recentChannels.isNotEmpty()) {
+                _surpriseEvent.emit(recentChannels.first().toContentItem())
             }
         }
     }
@@ -296,6 +308,14 @@ class HomeViewModel @Inject constructor(
         posterUrl = cover,
         rating = rating,
         type = ContentType.SERIES
+    )
+
+    private fun ChannelEntity.toContentItem() = ContentItem(
+        id = channelId,
+        title = name,
+        posterUrl = streamIcon,
+        type = ContentType.CHANNEL,
+        streamUrl = streamUrl
     )
     
     private fun WatchHistoryEntity.toContentItem() = ContentItem(

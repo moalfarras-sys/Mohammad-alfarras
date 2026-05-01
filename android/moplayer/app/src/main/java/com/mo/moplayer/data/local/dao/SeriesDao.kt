@@ -9,17 +9,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SeriesDao {
     
-    @Query("SELECT * FROM series WHERE serverId = :serverId ORDER BY name")
+    @Query("SELECT * FROM series WHERE serverId = :serverId ORDER BY lastModified DESC, name COLLATE NOCASE ASC")
     fun getAllSeries(serverId: Long): Flow<List<SeriesEntity>>
     
-    @Query("SELECT * FROM series WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY name")
+    @Query("SELECT * FROM series WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY lastModified DESC, name COLLATE NOCASE ASC")
     fun getSeriesByCategory(serverId: Long, categoryId: String): Flow<List<SeriesEntity>>
     
     // Paging queries
-    @Query("SELECT * FROM series WHERE serverId = :serverId ORDER BY name")
+    @Query("SELECT * FROM series WHERE serverId = :serverId ORDER BY lastModified DESC, name COLLATE NOCASE ASC")
     fun getAllSeriesPaged(serverId: Long): PagingSource<Int, SeriesEntity>
     
-    @Query("SELECT * FROM series WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY name")
+    @Query("SELECT * FROM series WHERE serverId = :serverId AND categoryId = :categoryId ORDER BY lastModified DESC, name COLLATE NOCASE ASC")
     fun getSeriesByCategoryPaged(serverId: Long, categoryId: String): PagingSource<Int, SeriesEntity>
     
     @Query("SELECT * FROM series WHERE seriesId = :seriesId")

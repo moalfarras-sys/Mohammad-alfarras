@@ -25,6 +25,8 @@ class CategoryAdapter(
         return CategoryViewHolder(binding)
     }
 
+    override fun getItemViewType(position: Int): Int = VIEW_TYPE_MOVIE_SERIES_CATEGORY
+
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val category = getItem(position)
         holder.bind(category)
@@ -94,5 +96,9 @@ class CategoryAdapter(
         override fun areContentsTheSame(oldItem: CategoryEntity, newItem: CategoryEntity): Boolean {
             return oldItem == newItem
         }
+    }
+
+    companion object {
+        private const val VIEW_TYPE_MOVIE_SERIES_CATEGORY = 101
     }
 }

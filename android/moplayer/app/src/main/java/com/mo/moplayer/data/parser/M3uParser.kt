@@ -37,6 +37,14 @@ class M3uParser {
         val skippedEntries: Int = 0,
         val duplicateEntries: Int = 0
     )
+
+    data class StreamingParseResult(
+        val categories: Set<String>,
+        val totalLines: Int = 0,
+        val skippedEntries: Int = 0,
+        val duplicateEntries: Int = 0,
+        val itemCount: Int = 0
+    )
     
     companion object {
         private val EXTINF_PATTERN = Regex("#EXTINF:(-?\\d+)\\s*,?(.*)$")
@@ -55,6 +63,15 @@ class M3uParser {
     fun parse(inputStream: InputStream): ParseResult {
         return BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
             parseLines(lines)
+        }
+    }
+
+    suspend fun parseStreaming(
+        inputStream: InputStream,
+        onItem: suspend (M3uItem) -> Unit
+    ): StreamingParseResult {
+        return BufferedReader(InputStreamReader(inputStream)).useLines { lines ->
+            parseStreamingLines(lines, onItem)
         }
     }
     
@@ -128,6 +145,78 @@ class M3uParser {
             totalLines = totalLines,
             skippedEntries = skippedEntries,
             duplicateEntries = duplicateEntries
+        )
+    }
+
+    private suspend fun parseStreamingLines(
+        lines: Sequence<String>,
+        onItem: suspend (M3uItem) -> Unit
+    ): StreamingParseResult {
+        val categories = mutableSetOf<String>()
+        val seenStreamUrls = hashSetOf<String>()
+        var skippedEntries = 0
+        var duplicateEntries = 0
+        var totalLines = 0
+        var itemCount = 0
+
+        var currentInfo: String? = null
+
+        for (line in lines) {
+            totalLines += 1
+            val trimmedLine = line.trim()
+
+            when {
+                trimmedLine.isEmpty() || trimmedLine.startsWith("#EXTM3U") -> Unit
+                trimmedLine.startsWith("#EXTINF:") -> {
+                    currentInfo = trimmedLine
+                }
+                trimmedLine.startsWith("#") -> Unit
+                trimmedLine.isNotEmpty() && currentInfo != null -> {
+                    if (!isPotentialStreamUrl(trimmedLine)) {
+                        skippedEntries += 1
+                        currentInfo = null
+                        continue
+                    }
+                    val normalizedUrl = trimmedLine.trim()
+                    if (!seenStreamUrls.add(normalizedUrl)) {
+                        duplicateEntries += 1
+                        currentInfo = null
+                        continue
+                    }
+                    val item = parseExtInf(currentInfo, normalizedUrl)
+                    onItem(item)
+                    item.group?.let { categories.add(it) }
+                    itemCount += 1
+                    currentInfo = null
+                }
+                trimmedLine.isNotEmpty() && currentInfo == null && isPotentialStreamUrl(trimmedLine) -> {
+                    val normalizedUrl = trimmedLine.trim()
+                    if (!seenStreamUrls.add(normalizedUrl)) {
+                        duplicateEntries += 1
+                        continue
+                    }
+                    val item = M3uItem(
+                        name = extractFallbackName(normalizedUrl),
+                        url = normalizedUrl,
+                        group = "Uncategorized",
+                        isLive = true
+                    )
+                    onItem(item)
+                    categories.add("Uncategorized")
+                    itemCount += 1
+                }
+                trimmedLine.isNotEmpty() -> {
+                    skippedEntries += 1
+                }
+            }
+        }
+
+        return StreamingParseResult(
+            categories = categories,
+            totalLines = totalLines,
+            skippedEntries = skippedEntries,
+            duplicateEntries = duplicateEntries,
+            itemCount = itemCount
         )
     }
     

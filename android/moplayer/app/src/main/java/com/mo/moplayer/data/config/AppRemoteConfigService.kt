@@ -23,26 +23,10 @@ class AppRemoteConfigService @Inject constructor(
     }
 
     private val prefs = context.getSharedPreferences("moplayer_remote_config", Context.MODE_PRIVATE)
-    private val endpoint = "${BuildConfig.WEB_API_BASE_URL.trimEnd('/')}/api/app/config"
-
     suspend fun fetchConfig(): AppRemoteConfig = withContext(Dispatchers.IO) {
         try {
-            val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                connectTimeout = 8_000
-                readTimeout = 8_000
-                setRequestProperty("Accept", "application/json")
-            }
-
-            val isSuccess = connection.responseCode in 200..299
-            val body = if (isSuccess) {
-                connection.inputStream.bufferedReader().use { it.readText() }
-            } else {
-                connection.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
-            }
-            connection.disconnect()
-
-            if (!isSuccess || body.isBlank()) {
+            val body = fetchConfigBody()
+            if (body.isBlank()) {
                 saveFetchStatus(STATUS_CACHED)
                 return@withContext cachedConfig()
             }
@@ -71,6 +55,33 @@ class AppRemoteConfigService @Inject constructor(
             saveFetchStatus(STATUS_CACHED)
             cachedConfig()
         }
+    }
+
+    private fun fetchConfigBody(): String {
+        var lastError: Throwable? = null
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls("/api/app/config").forEach { urlString ->
+            try {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 8_000
+                    readTimeout = 8_000
+                    setRequestProperty("Accept", "application/json")
+                }
+                return try {
+                    val stream = if (connection.responseCode in 200..299) {
+                        connection.inputStream
+                    } else {
+                        connection.errorStream ?: connection.inputStream
+                    }
+                    stream.bufferedReader().use { it.readText() }
+                } finally {
+                    connection.disconnect()
+                }
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("Config endpoint unavailable")
     }
 
     fun isUsingCachedConfig(): Boolean {

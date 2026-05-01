@@ -79,6 +79,9 @@ class SettingsActivity : BaseTvActivity() {
     @Inject
     lateinit var locationService: com.mo.moplayer.data.location.IpLocationService
 
+    @Inject
+    lateinit var tvUiPreferences: com.mo.moplayer.util.TvUiPreferences
+
     private lateinit var categoryAdapter: SettingsCategoryAdapter
     private lateinit var sourceStatusAdapter: SourceStatusAdapter
     private var currentPanel = SettingsPanel.SERVER
@@ -561,9 +564,30 @@ class SettingsActivity : BaseTvActivity() {
         
         binding.switchAnimationEnabled.setOnCheckedChangeListener { _, isChecked ->
             lifecycleScope.launch {
+                tvUiPreferences.setAnimationsEnabled(isChecked)
                 backgroundManager.setAnimationEnabled(isChecked)
                 binding.animatedBackground.setAnimationEnabled(isChecked)
             }
+        }
+
+        lifecycleScope.launch {
+            tvUiPreferences.posterSize.collect { size ->
+                binding.tvPosterSizeValue.text = size.name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) }
+            }
+        }
+
+        lifecycleScope.launch {
+            tvUiPreferences.layoutStyle.collect { style ->
+                binding.tvLayoutStyleValue.text = if (style == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.ROWS) "Rows" else "Grid"
+            }
+        }
+
+        binding.optionPosterSize.setOnClickListener {
+            showPosterSizeDialog()
+        }
+
+        binding.optionLayoutStyle.setOnClickListener {
+            showLayoutStyleDialog()
         }
 
         // Setup color chip click handlers
@@ -641,11 +665,13 @@ class SettingsActivity : BaseTvActivity() {
             getString(R.string.settings_weather_effects_medium),
             getString(R.string.settings_weather_effects_high)
         )
-        binding.spinnerWeatherEffectsQuality.adapter = ArrayAdapter(
+        val qualityAdapter = ArrayAdapter(
             this,
-            android.R.layout.simple_spinner_dropdown_item,
+            R.layout.item_spinner_compact,
             qualityOptions
         )
+        qualityAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown_premium)
+        binding.spinnerWeatherEffectsQuality.adapter = qualityAdapter
         binding.spinnerWeatherEffectsQuality.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 lifecycleScope.launch {
@@ -1250,6 +1276,10 @@ class SettingsActivity : BaseTvActivity() {
         binding.btnEmail?.setOnClickListener {
             openEmail()
         }
+
+        binding.btnWebsite?.setOnClickListener {
+            openWebsite("https://moalfarras.space/apps/moplayer")
+        }
     }
     
     private fun openWhatsApp() {
@@ -1274,6 +1304,14 @@ class SettingsActivity : BaseTvActivity() {
             startActivity(Intent.createChooser(intent, "Send Email"))
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.about_no_email_app), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openWebsite(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: Exception) {
+            Toast.makeText(this, url, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1444,7 +1482,7 @@ class SettingsActivity : BaseTvActivity() {
                     binding.colorChipWhite
                 ),
                 wrap = false,
-                upTarget = binding.optionAnimationToggle,
+                upTarget = binding.optionLayoutStyle,
                 downTarget = binding.etCustomImageUrl
             )
         }
@@ -1821,6 +1859,48 @@ class SettingsActivity : BaseTvActivity() {
 
         binding.spinnerWeatherEffectsQuality.backgroundTintList = tint
         updateAllAccentChipVisuals(themeManager.currentAccentId.value)
+    }
+
+    private fun showPosterSizeDialog() {
+        val labels = arrayOf("Small", "Medium", "Large")
+        val values = com.mo.moplayer.util.TvUiPreferences.PosterSize.entries.toTypedArray()
+        lifecycleScope.launch {
+            val current = tvUiPreferences.posterSize.first()
+            val currentIndex = values.indexOf(current).coerceAtLeast(0)
+            val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
+                .setTitle("Poster Size")
+                .setSingleChoiceItems(labels, currentIndex) { d, which ->
+                    lifecycleScope.launch {
+                        tvUiPreferences.setPosterSize(values[which])
+                    }
+                    d.dismiss()
+                }
+                .setNegativeButton(R.string.cancel) { d, _ -> d.dismiss() }
+                .create()
+            dialog.setOnShowListener { applyDialogListFocusStyle(dialog) }
+            dialog.show()
+        }
+    }
+
+    private fun showLayoutStyleDialog() {
+        val labels = arrayOf("Rows", "Grid")
+        val values = com.mo.moplayer.util.TvUiPreferences.LayoutStyle.entries.toTypedArray()
+        lifecycleScope.launch {
+            val current = tvUiPreferences.layoutStyle.first()
+            val currentIndex = values.indexOf(current).coerceAtLeast(0)
+            val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
+                .setTitle("Layout Style")
+                .setSingleChoiceItems(labels, currentIndex) { d, which ->
+                    lifecycleScope.launch {
+                        tvUiPreferences.setLayoutStyle(values[which])
+                    }
+                    d.dismiss()
+                }
+                .setNegativeButton(R.string.cancel) { d, _ -> d.dismiss() }
+                .create()
+            dialog.setOnShowListener { applyDialogListFocusStyle(dialog) }
+            dialog.show()
+        }
     }
 
     private fun updateAllAccentChipVisuals(selectedAccent: ThemeManager.AccentId) {

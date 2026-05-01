@@ -5,6 +5,7 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.content.res.ColorStateList
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
@@ -406,6 +407,12 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 child.setTextColor(color)
             } else if (child.tag == "accent_icon" && child is ImageView) {
                 child.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+            } else if (child.tag == "accent_background") {
+                child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(58))
+            } else if (child.tag == "accent_surface") {
+                child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(34))
+            } else if (child.tag == "accent_button") {
+                child.background = buttonStyleHelper.createThemedButtonBackground(this)
             }
             
             // Recursively process child views

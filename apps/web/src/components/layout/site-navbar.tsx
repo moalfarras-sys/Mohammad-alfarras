@@ -43,6 +43,7 @@ export function SiteNavbar({
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [brandLogoSrc, setBrandLogoSrc] = useState(logoSrc || "/images/logo.png");
   const nextLocale = locale === "ar" ? "en" : "ar";
   const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${nextLocale}`;
   const isAr = locale === "ar";
@@ -56,13 +57,25 @@ export function SiteNavbar({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    setBrandLogoSrc(logoSrc || "/images/logo.png");
+  }, [logoSrc]);
+
   return (
     <>
       <header className="fresh-nav-wrap">
         <div className={scrolled ? "site-navbar-shell fresh-nav fresh-nav-scrolled" : "site-navbar-shell fresh-nav"}>
           <Link href={`/${locale}`} className="fresh-brand">
             <span className="fresh-brand-mark">
-              <Image src={logoSrc || "/images/logo.png"} alt={brandName} width={44} height={44} className="fresh-brand-logo" priority />
+              <Image
+                src={brandLogoSrc}
+                alt={brandName}
+                width={44}
+                height={44}
+                className="fresh-brand-logo"
+                priority
+                onError={() => setBrandLogoSrc("/images/logo.png")}
+              />
             </span>
             <span>
               <strong>{brandName}</strong>
@@ -112,7 +125,7 @@ export function SiteNavbar({
         locale={locale}
         brandName={brandName}
         tagline={tagline}
-        logoSrc={logoSrc}
+        logoSrc={brandLogoSrc}
         links={links}
         pathname={pathname}
       />

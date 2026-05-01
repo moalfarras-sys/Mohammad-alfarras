@@ -4,83 +4,124 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/liquid_bg_base">
+    android:background="@android:color/black">
 
-    <!-- VLC Player Surface -->
     <org.videolan.libvlc.util.VLCVideoLayout
         android:id="@+id/vlcVideoLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top Controls Bar -->
+    <View
+        android:id="@+id/topScrim"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_gravity="top"
+        android:background="@drawable/bg_player_top_gradient"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/bottomScrim"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_player_bottom_gradient"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <LinearLayout
         android:id="@+id/topControlsBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:background="@drawable/bg_liquid_glass_surface"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="@dimen/spacing_lg"
+        android:paddingStart="24dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="12dp"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <!-- Back Button -->
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_liquid_glass_button"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="@drawable/selector_tv_button"
             android:contentDescription="@string/cd_back"
-            android:padding="12dp"
-            android:tag="accent_icon"
+            android:padding="14dp"
             android:src="@drawable/ic_back"
-            android:focusable="true"
-            android:nextFocusDown="@id/btnPlayPause" />
+            app:tint="@color/cinematic_text_primary" />
 
-        <!-- Title -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="@dimen/spacing_lg"
+            android:layout_marginStart="18dp"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/liquid_text_primary"
-                android:textSize="22sp"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                tools:text="Movie Title" />
+                tools:text="MoPlayer Premium Stream" />
 
-            <TextView
-                android:id="@+id/tvSubtitle"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/liquid_text_secondary"
-                android:textSize="14sp"
-                tools:text="2024 • HD" />
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
+                <TextView
+                    android:id="@+id/tvSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/cinematic_text_secondary"
+                    android:textSize="13sp"
+                    tools:text="Live TV" />
+
+                <TextView
+                    android:id="@+id/liveBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_live_badge"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="LIVE"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/tvPlaybackMeta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:textColor="@color/cinematic_text_tertiary"
+                    android:textSize="12sp"
+                    tools:text="Premier League • 67'" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Time -->
         <TextView
             android:id="@+id/tvCurrentTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:tag="accent_text"
-            android:textColor="@color/liquid_accent_primary"
-            android:textSize="24sp"
+            android:textColor="@color/cinematic_text_primary"
+            android:textSize="18sp"
             android:textStyle="bold"
-            tools:text="14:35" />
-
+            tools:text="21:36" />
     </LinearLayout>
 
-    <!-- Center Controls -->
     <LinearLayout
         android:id="@+id/centerControls"
         android:layout_width="wrap_content"
@@ -91,64 +132,67 @@
         android:visibility="gone"
         tools:visibility="visible">
 
-        <!-- Rewind -->
+        <ImageButton
+            android:id="@+id/btnPreviousChannel"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/selector_tv_button"
+            android:padding="16dp"
+            android:src="@drawable/ic_skip_previous"
+            app:tint="@color/cinematic_text_primary" />
+
         <ImageButton
             android:id="@+id/btnRewind"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:background="@drawable/bg_liquid_glass_button"
-            android:padding="16dp"
-            android:tag="accent_icon"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/selector_tv_button"
+            android:padding="18dp"
             android:src="@drawable/ic_rewind"
-            android:focusable="true"
-            android:nextFocusUp="@id/btnBack"
-            android:nextFocusDown="@id/seekBar"
-            tools:ignore="ContentDescription" />
+            app:tint="@color/cinematic_text_primary" />
 
-        <!-- Play/Pause -->
         <ImageButton
             android:id="@+id/btnPlayPause"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginHorizontal="@dimen/spacing_xl"
-            android:background="@drawable/bg_liquid_glass_button"
-            android:padding="20dp"
-            android:tag="accent_icon"
+            android:layout_width="86dp"
+            android:layout_height="86dp"
+            android:layout_marginHorizontal="14dp"
+            android:background="@drawable/bg_button_play"
+            android:padding="22dp"
             android:src="@drawable/ic_pause"
-            android:focusable="true"
-            android:nextFocusUp="@id/btnBack"
-            android:nextFocusDown="@id/seekBar"
-            tools:ignore="ContentDescription" />
+            app:tint="@color/htc_pure_black" />
 
-        <!-- Forward -->
         <ImageButton
             android:id="@+id/btnForward"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:background="@drawable/bg_liquid_glass_button"
-            android:padding="16dp"
-            android:tag="accent_icon"
+            android:background="@drawable/selector_tv_button"
+            android:padding="18dp"
             android:src="@drawable/ic_forward"
-            android:focusable="true"
-            android:nextFocusUp="@id/btnBack"
-            android:nextFocusDown="@id/seekBar"
-            tools:ignore="ContentDescription" />
+            app:tint="@color/cinematic_text_primary" />
 
+        <ImageButton
+            android:id="@+id/btnNextChannel"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/selector_tv_button"
+            android:padding="16dp"
+            android:src="@drawable/ic_skip_next"
+            app:tint="@color/cinematic_text_primary" />
     </LinearLayout>
 
-    <!-- Bottom Controls Bar -->
     <LinearLayout
         android:id="@+id/bottomControlsBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@drawable/bg_liquid_glass_surface"
         android:orientation="vertical"
-        android:padding="@dimen/spacing_lg"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="22dp"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <!-- Progress Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -159,136 +203,201 @@
                 android:id="@+id/tvPosition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/liquid_text_secondary"
-                android:textSize="14sp"
-                tools:text="01:23:45" />
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="13sp"
+                tools:text="00:14" />
 
             <SeekBar
                 android:id="@+id/seekBar"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/spacing_md"
+                android:layout_marginHorizontal="12dp"
                 android:layout_weight="1"
                 android:max="100"
-                android:progress="30"
+                android:progress="35"
                 android:progressDrawable="@drawable/bg_progress_bar"
-                android:thumb="@drawable/bg_seekbar_thumb"
-                android:background="@drawable/bg_focus_seekbar"
-                android:focusable="true"
-                android:nextFocusUp="@id/btnPlayPause"
-                android:nextFocusDown="@id/btnAudio" />
+                android:thumb="@drawable/bg_seekbar_thumb" />
 
             <TextView
                 android:id="@+id/tvDuration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/liquid_text_secondary"
-                android:textSize="14sp"
-                tools:text="02:15:30" />
-
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="13sp"
+                tools:text="02:20" />
         </LinearLayout>
 
-        <!-- Control Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:gravity="center"
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Audio Tracks -->
+            <ImageButton
+                android:id="@+id/btnGuide"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/selector_tv_button"
+                android:padding="14dp"
+                android:src="@drawable/ic_live_tv"
+                app:tint="@color/cinematic_text_primary" />
+
             <ImageButton
                 android:id="@+id/btnAudio"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="@dimen/spacing_md"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:padding="12dp"
-                android:tag="accent_icon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/selector_tv_button"
+                android:padding="14dp"
                 android:src="@drawable/ic_audio"
-                android:focusable="true"
-                android:nextFocusUp="@id/seekBar"
-                tools:ignore="ContentDescription" />
+                app:tint="@color/cinematic_text_primary" />
 
-            <!-- Subtitles -->
             <ImageButton
                 android:id="@+id/btnSubtitles"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="@dimen/spacing_md"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:padding="12dp"
-                android:tag="accent_icon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/selector_tv_button"
+                android:padding="14dp"
                 android:src="@drawable/ic_subtitles"
-                android:focusable="true"
-                android:nextFocusUp="@id/seekBar"
-                tools:ignore="ContentDescription" />
+                app:tint="@color/cinematic_text_primary" />
 
-            <!-- Aspect Ratio -->
             <ImageButton
                 android:id="@+id/btnAspectRatio"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="@dimen/spacing_md"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:padding="12dp"
-                android:tag="accent_icon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/selector_tv_button"
+                android:padding="14dp"
                 android:src="@drawable/ic_aspect_ratio"
-                android:focusable="true"
-                android:nextFocusUp="@id/seekBar"
-                tools:ignore="ContentDescription" />
+                app:tint="@color/cinematic_text_primary" />
 
-            <!-- Playback Speed -->
             <ImageButton
                 android:id="@+id/btnSpeed"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginEnd="@dimen/spacing_md"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:padding="12dp"
-                android:tag="accent_icon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/selector_tv_button"
+                android:padding="14dp"
                 android:src="@drawable/ic_speed"
-                android:contentDescription="@string/player_speed"
-                android:focusable="true"
-                android:nextFocusUp="@id/seekBar" />
+                app:tint="@color/cinematic_text_primary" />
 
-            <!-- External Player -->
             <ImageButton
                 android:id="@+id/btnExternalPlayer"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:padding="12dp"
-                android:tag="accent_icon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/selector_tv_button"
+                android:padding="14dp"
                 android:src="@drawable/ic_external"
-                android:focusable="true"
-                android:nextFocusUp="@id/seekBar"
-                tools:ignore="ContentDescription" />
-
-
+                app:tint="@color/cinematic_text_primary" />
         </LinearLayout>
-
     </LinearLayout>
 
-    <!-- Skip Intro Button -->
+    <FrameLayout
+        android:id="@+id/optionSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/bg_glass_panel_premium"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:id="@+id/tvOptionSheetTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Audio Tracks" />
+
+            <LinearLayout
+                android:id="@+id/optionSheetContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/channelDrawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#52000000"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="420dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_dialog_premium"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Quick Guide"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvCurrentProgram"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="15sp"
+                tools:text="Now • Main Event Coverage" />
+
+            <TextView
+                android:id="@+id/tvNextProgram"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="13sp"
+                tools:text="Next • Studio Analysis" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
+                    android:id="@+id/channelListContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
+        </LinearLayout>
+    </FrameLayout>
+
     <Button
         android:id="@+id/btnSkipIntro"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
+        android:layout_height="44dp"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="140dp"
-        android:background="@drawable/bg_skip_intro_button"
-        android:paddingHorizontal="24dp"
-        android:text="تخطي المقدمة"
-        android:textColor="@color/liquid_text_primary"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:focusable="true"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        android:background="@drawable/bg_button_secondary"
+        android:paddingHorizontal="20dp"
+        android:text="Skip Intro"
+        android:textAllCaps="false"
+        android:textColor="@color/cinematic_text_primary"
+        android:visibility="gone" />
 
-    <!-- Auto-Play Next Episode Panel -->
     <LinearLayout
         android:id="@+id/nextEpisodePanel"
         android:layout_width="360dp"
@@ -296,30 +405,27 @@
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="140dp"
-        android:background="@drawable/bg_liquid_glass_surface"
+        android:background="@drawable/bg_dialog_premium"
         android:orientation="vertical"
         android:padding="16dp"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="الحلقة التالية"
-            android:textColor="@color/liquid_text_secondary"
+            android:text="Next Episode"
+            android:textColor="@color/cinematic_text_secondary"
             android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvNextEpisodeTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/liquid_text_primary"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/cinematic_text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
-            tools:text="S01E02 - Episode Title" />
+            tools:text="S01E02 • Episode Title" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -328,47 +434,36 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Countdown Timer -->
             <TextView
                 android:id="@+id/tvNextEpisodeCountdown"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="@color/gradient_gold_start"
-                android:textSize="14sp"
-                tools:text="يبدأ خلال 10 ثواني..." />
+                android:textColor="@color/moplayer_orange_light"
+                android:textSize="13sp"
+                tools:text="Starts in 10 seconds..." />
 
-            <!-- Cancel Button -->
             <Button
                 android:id="@+id/btnCancelAutoPlay"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:paddingHorizontal="16dp"
-                android:text="إلغاء"
-                android:textColor="@color/liquid_text_secondary"
-                android:textSize="12sp"
-                android:focusable="true" />
+                android:layout_height="40dp"
+                android:background="@drawable/bg_button_secondary"
+                android:text="Cancel"
+                android:textAllCaps="false"
+                android:textColor="@color/cinematic_text_primary" />
 
-            <!-- Play Now Button -->
             <Button
                 android:id="@+id/btnPlayNow"
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
+                android:layout_height="40dp"
                 android:layout_marginStart="8dp"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:paddingHorizontal="16dp"
-                android:text="تشغيل الآن"
-                android:textColor="@color/liquid_bg_base"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:focusable="true" />
-
+                android:background="@drawable/bg_button_play"
+                android:text="Play Now"
+                android:textAllCaps="false"
+                android:textColor="@color/htc_pure_black" />
         </LinearLayout>
-
     </LinearLayout>
 
-    <!-- Loading Indicator -->
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="wrap_content"
@@ -379,25 +474,23 @@
         <ProgressBar
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:indeterminateTint="@color/gradient_gold_start" />
-
+            android:indeterminateTint="@color/moplayer_orange" />
     </FrameLayout>
 
-    <!-- Error Overlay -->
     <LinearLayout
         android:id="@+id/errorOverlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/bg_liquid_glass_surface"
+        android:background="@drawable/bg_dialog_premium"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="@dimen/spacing_xl"
+        android:padding="24dp"
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:src="@drawable/ic_error"
             app:tint="@color/htc_error"
             tools:ignore="ContentDescription" />
@@ -406,105 +499,86 @@
             android:id="@+id/tvErrorMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:text="@string/player_error"
-            android:textColor="@color/liquid_text_primary"
-            android:textSize="16sp" />
+            android:layout_marginTop="12dp"
+            android:textColor="@color/cinematic_text_primary"
+            android:textSize="16sp"
+            tools:text="Playback failed." />
 
         <Button
             android:id="@+id/btnRetry"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginTop="@dimen/spacing_md"
-            android:background="@drawable/bg_liquid_glass_button"
-            android:paddingHorizontal="@dimen/spacing_xl"
+            android:layout_height="46dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_button_play"
+            android:paddingHorizontal="20dp"
             android:text="@string/retry"
-            android:textColor="@color/liquid_text_primary"
-            android:focusable="true" />
-
+            android:textAllCaps="false"
+            android:textColor="@color/htc_pure_black" />
     </LinearLayout>
 
-    <!-- External Player Selection Dialog -->
     <FrameLayout
         android:id="@+id/externalPlayerDialog"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/liquid_overlay_scrim"
+        android:background="#7A000000"
         android:visibility="gone">
 
         <LinearLayout
             android:layout_width="360dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="@drawable/bg_liquid_glass_surface"
+            android:background="@drawable/bg_dialog_premium"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_xl">
+            android:padding="22dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/player_external"
-                android:textColor="@color/liquid_text_primary"
+                android:textColor="@color/cinematic_text_primary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <!-- MX Player -->
             <Button
                 android:id="@+id/btnMxPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="@dimen/spacing_lg"
-                android:background="@drawable/bg_liquid_glass_button"
+                android:layout_height="52dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_button_secondary"
                 android:text="MX Player"
-                android:textColor="@color/liquid_text_primary"
-                android:textSize="16sp"
-                android:focusable="true"
-                android:nextFocusDown="@id/btnVlcExternal" />
+                android:textAllCaps="false"
+                android:textColor="@color/cinematic_text_primary" />
 
-            <!-- VLC -->
             <Button
                 android:id="@+id/btnVlcExternal"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="@dimen/spacing_sm"
-                android:background="@drawable/bg_liquid_glass_button"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_button_secondary"
                 android:text="VLC"
-                android:textColor="@color/liquid_text_primary"
-                android:textSize="16sp"
-                android:focusable="true"
-                android:nextFocusUp="@id/btnMxPlayer"
-                android:nextFocusDown="@id/btnOtherPlayer" />
+                android:textAllCaps="false"
+                android:textColor="@color/cinematic_text_primary" />
 
-            <!-- Other Player -->
             <Button
                 android:id="@+id/btnOtherPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="@dimen/spacing_sm"
-                android:background="@drawable/bg_liquid_glass_button"
-                android:text="Other..."
-                android:textColor="@color/liquid_text_primary"
-                android:textSize="16sp"
-                android:focusable="true"
-                android:nextFocusUp="@id/btnVlcExternal"
-                android:nextFocusDown="@id/btnCancelExternal" />
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_button_secondary"
+                android:text="Other"
+                android:textAllCaps="false"
+                android:textColor="@color/cinematic_text_primary" />
 
-            <!-- Cancel -->
             <Button
                 android:id="@+id/btnCancelExternal"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="@dimen/spacing_lg"
-                android:background="@drawable/bg_liquid_glass_button"
+                android:layout_height="46dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_button_secondary"
                 android:text="@string/cancel"
-                android:textColor="@color/liquid_text_secondary"
-                android:textSize="14sp"
-                android:focusable="true"
-                android:nextFocusUp="@id/btnOtherPlayer" />
-
+                android:textAllCaps="false"
+                android:textColor="@color/cinematic_text_secondary" />
         </LinearLayout>
-
     </FrameLayout>
 
 </FrameLayout>
-

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item
+                android:left="-2dp"
+                android:top="-2dp"
+                android:right="-2dp"
+                android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="16dp" />
+                    <gradient
+                        android:type="radial"
+                        android:gradientRadius="96dp"
+                        android:centerX="0.5"
+                        android:centerY="0.5"
+                        android:startColor="#244F8BFF"
+                        android:endColor="#00000000" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="14dp" />
+                    <gradient
+                        android:angle="315"
+                        android:startColor="#E00D1730"
+                        android:endColor="#D00A101D" />
+                    <stroke
+                        android:width="2dp"
+                        android:color="@color/htc_focus_glow" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <gradient
+                android:angle="315"
+                android:startColor="#D90B1223"
+                android:endColor="#C7080D18" />
+            <stroke
+                android:width="1dp"
+                android:color="#339DEBFF" />
+        </shape>
+    </item>
+</selector>

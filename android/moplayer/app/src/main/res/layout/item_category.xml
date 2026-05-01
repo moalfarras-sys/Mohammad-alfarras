@@ -6,7 +6,9 @@
     android:background="@drawable/selector_card_focus"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="@dimen/spacing_md"
+    android:minHeight="54dp"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="7dp"
     android:focusable="true"
     android:clickable="true">
 
@@ -24,11 +26,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="@dimen/spacing_md"
+        android:layout_marginStart="9dp"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxLines="2"
+        android:textDirection="locale"
         android:textColor="@color/htc_text_primary"
-        android:textSize="16sp"
+        android:textSize="14sp"
+        android:lineSpacingMultiplier="1.05"
         tools:text="Action Movies" />
 
 </LinearLayout>

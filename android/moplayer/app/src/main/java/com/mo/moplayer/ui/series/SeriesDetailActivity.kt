@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -43,6 +44,8 @@ class SeriesDetailActivity : BaseTvActivity() {
     private lateinit var seasonAdapter: SeasonAdapter
     private var videoPreviewManager: VideoPreviewManager? = null
     private var isTvMode = false
+    private val videoPreviewEnabled: Boolean
+        get() = isTvMode && Build.VERSION.SDK_INT > Build.VERSION_CODES.N
 
     private var longPressDetectorPlay: com.mo.moplayer.ui.common.LongPressDetector? = null
     private var longPressDetectorPreview: com.mo.moplayer.ui.common.LongPressDetector? = null
@@ -58,8 +61,10 @@ class SeriesDetailActivity : BaseTvActivity() {
         if (isTvMode) {
             tvBinding = ActivitySeriesDetailTvBinding.inflate(layoutInflater)
             setContentView(tvBinding?.root)
-            videoPreviewManager = VideoPreviewManager(this)
-            setupVideoPreviewListener()
+            if (videoPreviewEnabled) {
+                videoPreviewManager = VideoPreviewManager(this)
+                setupVideoPreviewListener()
+            }
         } else {
             normalBinding = ActivitySeriesDetailBinding.inflate(layoutInflater)
             setContentView(normalBinding?.root)
@@ -137,10 +142,13 @@ class SeriesDetailActivity : BaseTvActivity() {
                             if (isTvMode) {
                                 updatePreviewPanel(episode)
 
-                                // Schedule video preview if URL is available
-                                episode.previewUrl?.let { previewUrl ->
-                                    tvBinding?.previewPanel?.videoPreviewSurface?.let { surface ->
-                                        videoPreviewManager?.schedulePreview(previewUrl, surface)
+                                // Keep Android 7 lightweight: thumbnail preview only. Video preview
+                                // starts a second VLC instance and can stall low-end TV boxes.
+                                if (videoPreviewEnabled) {
+                                    episode.previewUrl?.let { previewUrl ->
+                                        tvBinding?.previewPanel?.videoPreviewSurface?.let { surface ->
+                                            videoPreviewManager?.schedulePreview(previewUrl, surface)
+                                        }
                                     }
                                 }
                             }
@@ -549,9 +557,9 @@ class SeriesDetailActivity : BaseTvActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         videoPreviewManager?.release()
         videoPreviewManager = null
+        super.onDestroy()
         normalBinding = null
         tvBinding = null
     }

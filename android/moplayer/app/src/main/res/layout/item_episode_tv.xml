@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
-    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="@dimen/tv_episode_card_margin"
+    android:layout_marginHorizontal="4dp"
     android:background="@drawable/selector_cinematic_card">
 
     <androidx.cardview.widget.CardView
@@ -16,7 +16,7 @@
         android:focusable="true"
         app:cardBackgroundColor="@color/cinematic_surface"
         app:cardCornerRadius="@dimen/cinematic_radius_card"
-        app:cardElevation="6dp">
+        app:cardElevation="4dp">
 
         <LinearLayout
             android:id="@+id/episodeContainer"
@@ -36,7 +36,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:cardBackgroundColor="@android:color/transparent"
-                    app:cardCornerRadius="8dp"
+                    app:cardCornerRadius="6dp"
                     app:cardElevation="0dp">
 
                     <ImageView
@@ -75,14 +75,14 @@
 
                 <!-- Play Icon Overlay -->
                 <FrameLayout
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_button_small">
 
                     <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_play"
                         app:tint="@color/htc_pure_white"
@@ -96,7 +96,7 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:layout_marginHorizontal="8dp"
+                android:layout_marginHorizontal="6dp"
                 android:background="@drawable/divider_vertical_gradient" />
 
             <!-- Episode Info -->
@@ -105,7 +105,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:paddingVertical="4dp">
+                android:paddingVertical="2dp">
 
                 <!-- Episode Number and Title Row -->
                 <LinearLayout
@@ -119,8 +119,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_episode_number"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="3dp"
+                        android:paddingHorizontal="7dp"
+                        android:paddingVertical="2dp"
                         android:textColor="@color/moplayer_orange"
                         android:textSize="@dimen/tv_episode_number"
                         android:textStyle="bold"
@@ -131,7 +131,7 @@
                         android:id="@+id/tvEpisodeTitle"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="8dp"
                         android:layout_weight="1"
                         android:ellipsize="end"
                         android:maxLines="1"
@@ -150,7 +150,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -175,7 +175,7 @@
                         android:id="@+id/ivWatched"
                         android:layout_width="16dp"
                         android:layout_height="16dp"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="10dp"
                         android:src="@drawable/ic_check_circle"
                         android:visibility="gone"
                         app:tint="@color/htc_accent_green"
@@ -195,21 +195,6 @@
                         tools:visibility="visible" />
 
                 </LinearLayout>
-
-                <!-- Episode Description -->
-                <TextView
-                    android:id="@+id/tvEpisodePlot"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:lineSpacingMultiplier="1.15"
-                    android:maxLines="2"
-                    android:textColor="@color/htc_text_secondary"
-                    android:textSize="@dimen/tv_episode_description"
-                    android:visibility="visible"
-                    tools:text="Walter White, a high school chemistry teacher diagnosed with terminal lung cancer, turns to making meth with a former student." />
 
             </LinearLayout>
 

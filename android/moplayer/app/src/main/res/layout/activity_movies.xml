@@ -18,12 +18,12 @@
         <!-- Left Sidebar - Categories -->
         <LinearLayout
             android:id="@+id/categorySidebar"
-            android:layout_width="248dp"
+            android:layout_width="258dp"
             android:layout_height="match_parent"
             android:layout_margin="@dimen/spacing_12"
             android:background="@drawable/bg_premium_clean_panel"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_md">
+            android:padding="10dp">
 
             <!-- Header -->
             <TextView
@@ -54,9 +54,9 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:paddingStart="@dimen/spacing_md"
+            android:paddingStart="@dimen/spacing_sm"
             android:paddingTop="@dimen/spacing_12"
-            android:paddingEnd="@dimen/spacing_md"
+            android:paddingEnd="@dimen/spacing_sm"
             android:paddingBottom="@dimen/spacing_md">
 
             <!-- Selected Category Title -->

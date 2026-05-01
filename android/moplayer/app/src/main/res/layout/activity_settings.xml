@@ -840,6 +840,84 @@
 
                     </LinearLayout>
 
+                    <LinearLayout
+                        android:id="@+id/optionPosterSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionAnimationToggle"
+                        android:nextFocusDown="@id/optionLayoutStyle">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Poster Size"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvPosterSizeValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Small" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/optionLayoutStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionPosterSize"
+                        android:nextFocusDown="@id/colorChipGreen">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Layout Style"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvLayoutStyleValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Rows" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
                     <!-- App Accent Color Section -->
                     <TextView
                         android:layout_width="wrap_content"
@@ -877,7 +955,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/rvCategories"
                             android:nextFocusRight="@id/colorChipCyan"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -889,7 +967,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipGreen"
                             android:nextFocusRight="@id/colorChipPurple"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -901,7 +979,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipCyan"
                             android:nextFocusRight="@id/colorChipOrange"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -913,7 +991,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipPurple"
                             android:nextFocusRight="@id/colorChipGold"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -925,7 +1003,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipOrange"
                             android:nextFocusRight="@id/colorChipPink"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -937,7 +1015,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipGold"
                             android:nextFocusRight="@id/colorChipBlue"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -949,7 +1027,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipPink"
                             android:nextFocusRight="@id/colorChipWhite"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -960,7 +1038,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipBlue"
                             android:nextFocusRight="@id/colorChipWhite"
-                            android:nextFocusUp="@id/optionAnimationToggle"
+                            android:nextFocusUp="@id/optionLayoutStyle"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                     </LinearLayout>
@@ -1296,12 +1374,14 @@
 
                         </LinearLayout>
 
-                        <Spinner
+                        <androidx.appcompat.widget.AppCompatSpinner
                             android:id="@+id/spinnerWeatherEffectsQuality"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:minWidth="120dp"
-                            android:focusable="true" />
+                            android:focusable="true"
+                            android:background="@drawable/bg_spinner_compact_glass"
+                            android:popupBackground="@drawable/bg_spinner_dropdown_popup" />
 
                     </LinearLayout>
 
@@ -1587,21 +1667,23 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
                         android:gravity="center"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
 
                         <!-- WhatsApp Button -->
                         <LinearLayout
                             android:id="@+id/btnWhatsApp"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:background="@drawable/selector_card_focus"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingHorizontal="@dimen/spacing_xl"
+                            android:paddingHorizontal="@dimen/spacing_lg"
                             android:paddingVertical="@dimen/spacing_lg"
                             android:focusable="true"
                             android:nextFocusLeft="@id/rvCategories"
-                            android:nextFocusRight="@id/btnEmail">
+                            android:nextFocusRight="@id/btnWebsite">
 
                             <ImageView
                                 android:layout_width="48dp"
@@ -1613,7 +1695,41 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_sm"
+                                android:gravity="center"
                                 android:text="@string/about_contact_whatsapp"
+                                android:textColor="@color/htc_text_secondary"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <!-- Website Button -->
+                        <LinearLayout
+                            android:id="@+id/btnWebsite"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_lg"
+                            android:layout_weight="1"
+                            android:background="@drawable/selector_card_focus"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/spacing_lg"
+                            android:paddingVertical="@dimen/spacing_lg"
+                            android:focusable="true"
+                            android:nextFocusLeft="@id/btnWhatsApp"
+                            android:nextFocusRight="@id/btnEmail">
+
+                            <ImageView
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:src="@drawable/ic_website"
+                                tools:ignore="ContentDescription" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_sm"
+                                android:gravity="center"
+                                android:text="@string/about_contact_website"
                                 android:textColor="@color/htc_text_secondary"
                                 android:textSize="12sp" />
 
@@ -1622,16 +1738,17 @@
                         <!-- Email Button -->
                         <LinearLayout
                             android:id="@+id/btnEmail"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/spacing_xl"
+                            android:layout_marginStart="@dimen/spacing_lg"
+                            android:layout_weight="1"
                             android:background="@drawable/selector_card_focus"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingHorizontal="@dimen/spacing_xl"
+                            android:paddingHorizontal="@dimen/spacing_lg"
                             android:paddingVertical="@dimen/spacing_lg"
                             android:focusable="true"
-                            android:nextFocusLeft="@id/btnWhatsApp">
+                            android:nextFocusLeft="@id/btnWebsite">
 
                             <ImageView
                                 android:layout_width="48dp"
@@ -1643,6 +1760,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_sm"
+                                android:gravity="center"
                                 android:text="@string/about_contact_email"
                                 android:textColor="@color/htc_text_secondary"
                                 android:textSize="12sp" />

@@ -72,11 +72,14 @@ class LiveTvActivity : BaseTvActivity() {
     private var vlcBufferMs: Int = PlayerPreferences.BUFFER_MEDIUM
     private var vlcHardwareAccelerationEnabled: Boolean = true
     private var vlcPlaybackProfile: Int = PlayerPreferences.PLAYBACK_PROFILE_BALANCED
+    private val api24SafePlayerMode: Boolean
+        get() = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N
 
     // Throttle UI updates from VLC buffering callbacks
     private val BUFFERING_UI_THROTTLE_MS = 250L
     private var lastBufferingUiVisible: Boolean? = null
     private var lastBufferingUiUpdateAtMs: Long = 0L
+    private var hasStartedPlayback = false
 
     @Inject lateinit var playerPreferences: com.mo.moplayer.util.PlayerPreferences
 
@@ -142,7 +145,7 @@ class LiveTvActivity : BaseTvActivity() {
         vlcBufferMs = playerPreferences.bufferSize.first()
         vlcHardwareAccelerationEnabled = playerPreferences.hardwareAcceleration.first()
         vlcPlaybackProfile = playerPreferences.playbackProfile.first()
-        isPreviewEnabled = playerPreferences.livePreviewEnabled.first()
+        isPreviewEnabled = playerPreferences.livePreviewEnabled.first() && !api24SafePlayerMode
     }
 
     private fun initAnimations() {
@@ -284,6 +287,9 @@ class LiveTvActivity : BaseTvActivity() {
                     add("--quiet")
                     add("--no-stats")
                     add("--no-video-title-show")
+                    add("--aout=android_audiotrack")
+                    add("--no-spdif")
+                    add("--no-audio-time-stretch")
                     addAll(opts)
                 }
             }
@@ -295,7 +301,7 @@ class LiveTvActivity : BaseTvActivity() {
                             Pair(
                                     "Minimal",
                                     optionsOf(
-                                            "--aout=opensles",
+                                            "--aout=android_audiotrack",
                                             "--codec=all", // Support all audio codecs
                                             dropLateFramesOpt,
                                             skipFramesOpt,
@@ -307,8 +313,8 @@ class LiveTvActivity : BaseTvActivity() {
                             Pair(
                                     "Basic",
                                     optionsOf(
-                                            "--aout=opensles",
-                                            "--audio-time-stretch",
+                                            "--aout=android_audiotrack",
+                                            "--no-audio-time-stretch",
                                             "--codec=all", // Support all audio codecs (AAC, AC3,
                                             // EAC3, MP3, etc.)
                                             dropLateFramesOpt,
@@ -324,8 +330,8 @@ class LiveTvActivity : BaseTvActivity() {
                             Pair(
                                     "Enhanced4K",
                                     optionsOf(
-                                            "--aout=opensles",
-                                            "--audio-time-stretch",
+                                            "--aout=android_audiotrack",
+                                            "--no-audio-time-stretch",
                                             codecOption, // Hardware + software codecs (or software
                                             // only if HW disabled)
                                             dropLateFramesOpt,
@@ -349,8 +355,8 @@ class LiveTvActivity : BaseTvActivity() {
                             Pair(
                                     "Full",
                                     optionsOf(
-                                            "--aout=opensles",
-                                            "--audio-time-stretch",
+                                            "--aout=android_audiotrack",
+                                            "--no-audio-time-stretch",
                                             codecOption,
                                             dropLateFramesOpt,
                                             skipFramesOpt,
@@ -389,7 +395,9 @@ class LiveTvActivity : BaseTvActivity() {
                             if (!isActivePlayback) return@runOnUiThread
                             when (event.type) {
                                 MediaPlayer.Event.Playing -> {
+                                    hasStartedPlayback = true
                                     setLoadingOverlayVisible(false)
+                                    binding.networkErrorView.hide()
                                     retryCount = 0
                                     val startupMs =
                                             SystemClock.uptimeMillis() -
@@ -401,7 +409,7 @@ class LiveTvActivity : BaseTvActivity() {
                                     updateQualityIndicator()
                                 }
                                 MediaPlayer.Event.Buffering -> {
-                                    setLoadingOverlayVisible(event.buffering < 100f)
+                                    setLoadingOverlayVisible(event.buffering < 100f && !hasStartedPlayback)
                                 }
                                 MediaPlayer.Event.EncounteredError -> {
                                     setLoadingOverlayVisible(false)
@@ -561,7 +569,9 @@ class LiveTvActivity : BaseTvActivity() {
             // Mute preview player - video only, no audio to avoid interference with main player
             previewPlayer?.setVolume(0)
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.w("LiveTvActivity", "Preview player init skipped: ${e.message}")
+            releasePreviewPlayer()
+            isPreviewEnabled = false
         }
     }
 
@@ -571,7 +581,10 @@ class LiveTvActivity : BaseTvActivity() {
      * default)
      */
     private fun startVideoPreview(channel: ChannelEntity) {
-        if (!isPreviewEnabled) return
+        if (!isPreviewEnabled) {
+            stopVideoPreview()
+            return
+        }
 
         val now = SystemClock.uptimeMillis()
         if (now - lastChannelFocusAtMs < FAST_FOCUS_SCROLL_WINDOW_MS) {
@@ -605,6 +618,7 @@ class LiveTvActivity : BaseTvActivity() {
         // Delay preview start to avoid loading on quick scrolling
         previewDelayHandler.postDelayed(
                 {
+                    if (!isPreviewEnabled || !overlayVisible) return@postDelayed
                     try {
                         previewChannel = channel
 
@@ -640,7 +654,6 @@ class LiveTvActivity : BaseTvActivity() {
                         // يمكن تفعيل الصوت لاحقاً إذا رغب المستخدم
                         previewPlayer?.setVolume(0)
                     } catch (e: Exception) {
-                        e.printStackTrace()
                         android.util.Log.e("LiveTvActivity", "Preview playback error: ${e.message}")
                         binding.previewLoading.visibility = View.GONE
                         binding.noPreviewPlaceholder.visibility = View.VISIBLE
@@ -648,7 +661,8 @@ class LiveTvActivity : BaseTvActivity() {
                         // Retry mechanism for preview
                         handler.postDelayed(
                                 {
-                                    if (previewChannel?.channelId == channel.channelId &&
+                                    if (isPreviewEnabled &&
+                                                    previewChannel?.channelId == channel.channelId &&
                                                     overlayVisible
                                     ) {
                                         android.util.Log.d(
@@ -1042,26 +1056,17 @@ class LiveTvActivity : BaseTvActivity() {
         }
 
         viewModel.categories.observe(this) { categories ->
-            // Add "All" category at the beginning
-            val allCategories = mutableListOf<CategoryEntity?>(null) // null represents "All"
-            allCategories.addAll(categories)
-
-            // Calculate channel counts per category
-            val channelCounts = mutableMapOf<String?, Int>()
-            val allChannels = viewModel.channels.value ?: emptyList()
-            channelCounts[null] = allChannels.size // "All" count
-            categories.forEach { category ->
-                channelCounts[category.categoryId] =
-                        allChannels.count { it.categoryId == category.categoryId }
-            }
-
-            groupAdapter.submitGroupList(allCategories, channelCounts)
+            groupAdapter.submitGroupList(categories, viewModel.categoryCounts.value.orEmpty())
 
             if (overlayVisible && !binding.rvGroups.hasFocus() && !binding.rvChannels.hasFocus()) {
                 binding.rvGroups.post {
                     binding.rvGroups.getChildAt(0)?.requestFocus()
                 }
             }
+        }
+
+        viewModel.categoryCounts.observe(this) { counts ->
+            groupAdapter.submitGroupList(viewModel.categories.value.orEmpty(), counts)
         }
 
         viewModel.filteredChannels.observe(this) { channels ->
@@ -1159,6 +1164,8 @@ class LiveTvActivity : BaseTvActivity() {
             lastChannelSwitchStartedAtMs = SystemClock.uptimeMillis()
             currentChannel = channel
             binding.loadingOverlay.visibility = View.VISIBLE
+            hasStartedPlayback = false
+            binding.networkErrorView.hide()
 
             // Stop and clear preview to avoid conflicts
             clearPreviewSurface()
@@ -1419,11 +1426,11 @@ class LiveTvActivity : BaseTvActivity() {
             val selectedCategoryId = viewModel.selectedCategory.value
             val categoryIndex =
                     if (selectedCategoryId == null) {
-                        0 // "All" category
+                        0
                     } else {
                         viewModel.categories.value
                                 ?.indexOfFirst { it.categoryId == selectedCategoryId }
-                                ?.let { it + 1 }
+                                ?.takeIf { it >= 0 }
                                 ?: 0
                     }
             binding.rvGroups.scrollToPosition(categoryIndex)
@@ -1592,7 +1599,7 @@ class LiveTvActivity : BaseTvActivity() {
                                 } else {
                                     viewModel.categories.value
                                             ?.indexOfFirst { it.categoryId == selectedCategoryId }
-                                            ?.let { it + 1 }
+                                            ?.takeIf { it >= 0 }
                                             ?: 0
                                 }
                         binding.rvGroups.scrollToPosition(categoryIndex)
@@ -1659,6 +1666,21 @@ class LiveTvActivity : BaseTvActivity() {
         detachMainViewsIfNeeded()
     }
 
+    private fun releasePreviewPlayer() {
+        try {
+            detachPreviewViewsIfNeeded()
+            previewPlayer?.setEventListener(null)
+            previewPlayer?.release()
+            previewLibVLC?.release()
+        } catch (e: Exception) {
+            android.util.Log.w("LiveTvActivity", "Preview release failed: ${e.message}")
+        } finally {
+            previewPlayer = null
+            previewLibVLC = null
+            previewChannel = null
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isDestroying = true
@@ -1675,9 +1697,7 @@ class LiveTvActivity : BaseTvActivity() {
         libVLC?.release()
 
         // Release preview player
-        detachPreviewViewsIfNeeded()
-        previewPlayer?.release()
-        previewLibVLC?.release()
+        releasePreviewPlayer()
         android.util.Log.i(
                 "LiveTvPerf",
                 "session_end switches=$channelSwitchCount decoder_fallbacks=$decoderFallbackCount"

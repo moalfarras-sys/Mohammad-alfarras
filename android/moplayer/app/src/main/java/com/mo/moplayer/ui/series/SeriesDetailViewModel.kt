@@ -59,9 +59,9 @@ class SeriesDetailViewModel @Inject constructor(
             if (server != null) {
                 serverId = server.id
 
-                // Get series from database
-                val allSeries = repository.getAllSeries(serverId).first()
-                val foundSeries = allSeries.find { it.seriesId == seriesId }
+                // Load only the selected series. Loading the full catalog here can freeze
+                // large Xtream/M3U libraries on Android TV boxes.
+                val foundSeries = repository.getSeriesById(seriesId)
                 _series.value = foundSeries
 
                 // Check if favorite

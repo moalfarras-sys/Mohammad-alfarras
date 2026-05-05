@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MoPlayer Fiery Glass Premium Palette -->
+    <color name="mo_black">#FF0A0908</color>
+    <color name="mo_navy">#FF141110</color>
+    <color name="mo_espresso">#FF1A120C</color>
+    <color name="mo_surface">#66241914</color>
+    <color name="mo_champagne">#FFE3BC78</color>
+    <color name="mo_orange">#FFFF8C42</color>
+    <color name="mo_amber">#FFFFB366</color>
+    <color name="mo_gold">#FFFFD27A</color>
+    <color name="mo_glow">#88E3BC78</color>
+    <color name="mo_ember">#FFFF6B6B</color>
+    <!-- Legacy aliases -->
+    <color name="mo_cyan">@color/mo_champagne</color>
+    <color name="mo_blue">@color/mo_orange</color>
+    <color name="mo_violet">@color/mo_amber</color>
+</resources>

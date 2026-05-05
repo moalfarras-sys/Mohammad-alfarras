@@ -14,11 +14,13 @@ import {
   RadioTower,
   Search,
   Smartphone,
+  MonitorPlay,
   Zap,
 } from "lucide-react";
 
 import { logoutAdminAction } from "@/app/actions";
 import { cn } from "@/lib/cn";
+import { managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 import { AppAdminDashboard } from "./app-admin-dashboard";
 import { WebsiteAdminDashboard } from "./website-admin-dashboard";
 import type { WebsiteCmsData } from "@/lib/website-cms";
@@ -59,7 +61,8 @@ function CommandPalette({
   const actions = [
     { label: "Open Home HUD", hint: "Dashboard overview", view: "home" as const, icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: "Website CMS", hint: "Edit public website surfaces", view: "website" as const, icon: <Globe className="h-4 w-4" /> },
-    { label: "MoPlayer OS Control", hint: "Runtime, releases, fleet, support", view: "app" as const, icon: <Smartphone className="h-4 w-4" /> },
+    { label: "MoPlayer Classic Control", hint: "Runtime, releases, fleet", view: "app" as const, icon: <Smartphone className="h-4 w-4" /> },
+    { label: "MoPlayer 2 Control", hint: "Next-gen TV player OS", view: "app" as const, icon: <MonitorPlay className="h-4 w-4" /> },
   ];
 
   return (
@@ -110,6 +113,8 @@ export function AdminOS({
   adminEmail,
   role,
   updated,
+  selectedApp,
+  appData,
   product,
   faqs,
   screenshots,
@@ -125,6 +130,19 @@ export function AdminOS({
   adminEmail: string;
   role: string;
   updated?: string;
+  selectedApp?: string;
+  appData?: Array<{
+    product: AppProduct;
+    faqs: AppFaq[];
+    screenshots: AppScreenshot[];
+    releases: AppRelease[];
+    supportRequests: AppSupportRequest[];
+    devices: AppDevice[];
+    activationRequests: ActivationRequest[];
+    licenses: AppLicense[];
+    providerSources: DeviceProviderSourceQueue[];
+    runtimeConfig: AppRuntimeConfig;
+  }>;
   product: AppProduct;
   faqs: AppFaq[];
   screenshots: AppScreenshot[];
@@ -138,10 +156,25 @@ export function AdminOS({
   website: WebsiteCmsData;
 }) {
   const [view, setView] = useState<View>("home");
+  const [activeAppSlug, setActiveAppSlug] = useState(resolveManagedAppSlug(selectedApp));
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const waitingActivations = activationRequests.filter((request) => request.status === "waiting").length;
-  const activeLicenses = licenses.filter((license) => license.status === "active").length;
-  const latestRelease = [...releases].sort((a, b) => b.version_code - a.version_code)[0];
+  const activeData =
+    appData?.find((item) => item.product.slug === activeAppSlug) ??
+    appData?.[0] ?? {
+      product,
+      faqs,
+      screenshots,
+      releases,
+      supportRequests,
+      devices,
+      activationRequests,
+      licenses,
+      providerSources,
+      runtimeConfig,
+    };
+  const waitingActivations = activeData.activationRequests.filter((request) => request.status === "waiting").length;
+  const activeLicenses = activeData.licenses.filter((license) => license.status === "active").length;
+  const latestRelease = [...activeData.releases].sort((a, b) => b.version_code - a.version_code)[0];
 
   const navItems = useMemo(
     () => [
@@ -170,7 +203,7 @@ export function AdminOS({
   }, []);
 
   return (
-    <div className="command-center min-h-screen overflow-x-hidden bg-black text-slate-200">
+    <div className="command-center min-h-screen overflow-x-hidden text-slate-200">
       <div className="command-bg" aria-hidden />
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} setView={setView} />
 
@@ -245,11 +278,11 @@ export function AdminOS({
                   <div>
                     <h1 className="headline-display text-4xl font-black leading-[0.95] text-white sm:text-5xl md:text-7xl">Ultimate Admin OS.</h1>
                     <p className="mt-5 max-w-2xl text-base leading-8 text-slate-400 md:text-lg">
-                      A native-feeling control center for moalfarras.space and MoPlayer: website CMS entry points, APK releases, runtime switches, support, licenses, activations, and device fleet signals.
+                      A native-feeling control center for moalfarras.space, MoPlayer, and MoPlayer2: website CMS entry points, APK releases, runtime switches, support, licenses, activations, and device fleet signals.
                     </p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <SystemMetric label="Fleet Devices" value={`${devices.length}`} />
+                    <SystemMetric label="Fleet Devices" value={`${activeData.devices.length}`} />
                     <SystemMetric label="Active Licenses" value={`${activeLicenses}`} tone="green" />
                     <SystemMetric label="Pending Codes" value={`${waitingActivations}`} tone="amber" />
                   </div>
@@ -292,24 +325,29 @@ export function AdminOS({
                 ))}
               </section>
 
-              <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+              <section className="grid gap-4 md:grid-cols-3">
                 <button onClick={() => setView("website")} className="command-module-card command-module-card-cyan">
                   <Globe className="h-9 w-9" />
                   <span>Website CMS</span>
-                      <p>Supabase powered content, media, messages, projects, and public site controls.</p>
+                  <p>Supabase powered content, media, projects, and public site controls.</p>
                 </button>
-                <button onClick={() => setView("app")} className="command-module-card command-module-card-ice">
+                <button onClick={() => { setView("app"); setActiveAppSlug("moplayer"); }} className="command-module-card command-module-card-ice">
                   <Smartphone className="h-9 w-9" />
-                  <span>App Ecosystem</span>
-                  <p>Runtime config, releases, activation queue, licenses, support, and product assets.</p>
+                  <span>MoPlayer Classic</span>
+                  <p>Runtime config, releases, activation queue, licenses, and assets.</p>
+                </button>
+                <button onClick={() => { setView("app"); setActiveAppSlug("moplayer2"); }} className="command-module-card command-module-card-ice" style={{ borderColor: "rgba(0, 229, 255, 0.3)" }}>
+                  <MonitorPlay className="h-9 w-9 text-cyan-400" />
+                  <span className="text-cyan-50">MoPlayer 2</span>
+                  <p>Next generation TV-first player controls, assets, and runtime.</p>
                 </button>
               </section>
 
               <section className="command-status-strip">
                 <CircleGauge className="h-5 w-5 text-cyan-200" />
-                <span>Latest release: <strong>{latestRelease?.version_name ?? product.default_download_label}</strong></span>
-                <span>Runtime: <strong>{runtimeConfig.enabled ? "Online" : "Offline"}</strong></span>
-                <span>Maintenance: <strong>{runtimeConfig.maintenanceMode ? "On" : "Off"}</strong></span>
+                <span>Latest release: <strong>{latestRelease?.version_name ?? activeData.product.default_download_label}</strong></span>
+                <span>Runtime: <strong>{activeData.runtimeConfig.enabled ? "Online" : "Offline"}</strong></span>
+                <span>Maintenance: <strong>{activeData.runtimeConfig.maintenanceMode ? "On" : "Off"}</strong></span>
                 {updated ? <span>Last action: <strong>{updated}</strong></span> : null}
               </section>
             </motion.div>
@@ -317,20 +355,32 @@ export function AdminOS({
 
           {view === "app" ? (
             <motion.div key="app" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }}>
+              <div className="mb-6 flex flex-wrap gap-3 rounded-[2rem] border border-white/10 bg-white/[0.035] p-2">
+                {managedApps.map((app) => (
+                  <button
+                    key={app.slug}
+                    type="button"
+                    onClick={() => setActiveAppSlug(app.slug)}
+                    className={cn("command-tab", activeAppSlug === app.slug && "command-tab-active")}
+                  >
+                    {app.label}
+                  </button>
+                ))}
+              </div>
               <AppAdminDashboard
                 adminEmail={adminEmail}
                 role={role}
                 updated={updated}
-                product={product}
-                faqs={faqs}
-                screenshots={screenshots}
-                releases={releases}
-                supportRequests={supportRequests}
-                devices={devices}
-                activationRequests={activationRequests}
-                licenses={licenses}
-                providerSources={providerSources}
-                runtimeConfig={runtimeConfig}
+                product={activeData.product}
+                faqs={activeData.faqs}
+                screenshots={activeData.screenshots}
+                releases={activeData.releases}
+                supportRequests={activeData.supportRequests}
+                devices={activeData.devices}
+                activationRequests={activeData.activationRequests}
+                licenses={activeData.licenses}
+                providerSources={activeData.providerSources}
+                runtimeConfig={activeData.runtimeConfig}
               />
             </motion.div>
           ) : null}

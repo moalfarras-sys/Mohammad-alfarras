@@ -139,6 +139,46 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
   });
 }
 
+function moplayer2Fallback(locale: Locale): SiteViewModel["projects"][number] {
+  const isAr = locale === "ar";
+  return repairMojibakeDeep({
+    id: "moplayer2-fallback",
+    slug: "moplayer2",
+    title: "MoPlayer2",
+    ctaLabel: isAr ? "استكشف التطبيق الجديد" : "Explore new app",
+    summary: isAr
+      ? "الجيل الجديد من MoPlayer كمنتج مستقل داخل نفس موقع محمد الفراس، مع صفحة وإصدارات وإدارة منفصلة."
+      : "The new MoPlayer generation as a separate product inside the same Mohammad Alfarras site, with its own page, releases, and admin control.",
+    description: isAr
+      ? "MoPlayer2 يبقى تحت نفس الدومين ونفس Supabase، لكنه يظهر كمنتج مستقل عن MoPlayer القديم."
+      : "MoPlayer2 stays under the same domain and Supabase system, but appears as its own product separate from classic MoPlayer.",
+    image: "/images/moplayer-tv-hero.png",
+    href: `/${locale}/apps/moplayer2`,
+    featured: true,
+    featuredRank: 4,
+    accent: "blue",
+    highlightStyle: "app",
+    deviceFrame: "phone",
+    eyebrow: isAr ? "تطبيق Android TV جديد" : "New Android TV app",
+    challenge: isAr ? "فصل التطبيق الجديد عن القديم بدون إنشاء مشاريع Vercel زائدة." : "Separate the new app from the old one without adding extra Vercel projects.",
+    solution: isAr ? "منتجان داخل نفس صفحة التطبيقات ونفس لوحة الإدارة مع product switcher." : "Two products inside the same Apps page and admin, controlled by a product switcher.",
+    result: isAr ? "هيكلة أوضح للنشر والإدارة والفهرسة." : "A clearer structure for publishing, admin, and indexing.",
+    tags: isAr ? ["MoPlayer2", "Android TV", "إدارة موحدة"] : ["MoPlayer2", "Android TV", "Unified admin"],
+    gallery: ["/images/moplayer-tv-hero.png", "/images/moplayer-tv-banner-final.png", "/images/moplayer-release-panel.webp"],
+    metrics: isAr
+      ? [
+          { value: "2", label: "تطبيقات منفصلة" },
+          { value: "1", label: "لوحة إدارة" },
+          { value: "SEO", label: "صفحة مستقلة" },
+        ]
+      : [
+          { value: "2", label: "Separate apps" },
+          { value: "1", label: "Admin panel" },
+          { value: "SEO", label: "Standalone page" },
+        ],
+  });
+}
+
 function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
   const isAr = locale === "ar";
   return [
@@ -263,6 +303,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
     });
 
   if (!active.some((project) => project.slug === "moplayer")) active.push(moplayerFallback(locale));
+  if (!active.some((project) => project.slug === "moplayer2")) active.push(moplayer2Fallback(locale));
   for (const showcase of businessShowcaseProjects(locale)) {
     if (!active.some((project) => project.slug === showcase.slug)) active.push(showcase);
   }
@@ -279,6 +320,10 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
     moplayer: {
       image: "/images/moplayer-hero-3d-final.png",
       gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer_ui_playlist-final.png", "/images/moplayer-release-panel.webp"],
+    },
+    moplayer2: {
+      image: "/images/moplayer2-hero-banner.png",
+      gallery: ["/images/moplayer2-hero-banner.png", "/images/moplayer2-home-screen.png", "/images/moplayer2-login.png", "/images/moplayer2-player.png"],
     },
   };
 

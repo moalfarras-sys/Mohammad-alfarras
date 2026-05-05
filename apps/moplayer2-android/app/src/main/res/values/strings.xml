@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MoPlayer2</string>
+    <string name="developer_signature">Moalfarras</string>
+
+    <!-- Navigation Sections -->
+    <string name="nav_home">Home</string>
+    <string name="nav_live">Live TV</string>
+    <string name="nav_movies">Movies</string>
+    <string name="nav_series">Series</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Login -->
+    <string name="login_title">Welcome to MoPlayer2</string>
+    <string name="login_m3u_url">M3U URL</string>
+    <string name="login_m3u_file">M3U File</string>
+    <string name="login_xtream">Xtream Codes</string>
+    <string name="login_activation">Activation Code</string>
+    <string name="login_server_name">Server Name</string>
+    <string name="login_url">URL</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_enter">Login</string>
+    <string name="login_loading">Loading…</string>
+
+    <!-- Player -->
+    <string name="player_buffering">Buffering…</string>
+    <string name="player_retry">Retry</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_play">Play</string>
+    <string name="player_favorite">Favorite</string>
+    <string name="player_live_hint">Up/Down: Switch channel | Back: Exit</string>
+    <string name="player_vod_hint">Left/Right: 10 sec | Up/Down: 60 sec</string>
+    <string name="player_error_title">Unable to play stream</string>
+    <string name="player_select_route">Select Player</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_player">Player</string>
+    <string name="settings_live_tv">Live TV</string>
+    <string name="settings_accounts">Accounts</string>
+    <string name="settings_cache">Cache</string>
+    <string name="settings_parental">Parental</string>
+    <string name="settings_diagnostics">Diagnostics</string>
+    <string name="settings_preview">Preview Channel</string>
+    <string name="settings_auto_play">Auto-play Last Channel</string>
+    <string name="settings_hide_empty">Hide Empty Categories</string>
+    <string name="settings_hide_no_logo">Hide Channels Without Logo</string>
+    <string name="settings_parental_filter">Parental Control Filter</string>
+    <string name="settings_refresh">Refresh Library</string>
+    <string name="settings_test_connection">Test Server Connection</string>
+    <string name="settings_clear_history">Clear Watch History</string>
+    <string name="settings_clear_epg">Clear EPG Cache</string>
+    <string name="settings_logout">Logout Account</string>
+
+    <!-- General -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="exit_title">Exit MoPlayer2?</string>
+    <string name="exit_message">Do you want to leave the app?</string>
+    <string name="exit_stay">Stay</string>
+    <string name="exit_confirm">Exit</string>
+    <string name="no_favorites">No favorites yet</string>
+    <string name="no_favorites_hint">Long press OK, or triple press OK in the player, to add content here.</string>
+    <string name="empty_library">Library is empty</string>
+    <string name="empty_library_hint">Sync a server or choose another category.</string>
+    <string name="no_results">No results for "%1$s"</string>
+</resources>

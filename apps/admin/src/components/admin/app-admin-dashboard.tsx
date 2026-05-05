@@ -318,6 +318,7 @@ function ProviderSourceCard({ item }: { item: DeviceProviderSourceQueue }) {
 
 export function AppAdminDashboard({
   updated,
+  product,
   screenshots,
   releases,
   supportRequests,
@@ -355,13 +356,13 @@ export function AppAdminDashboard({
                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">App Ecosystem Control</p>
                 </div>
-                <h1 className="headline-display text-4xl font-black text-white md:text-6xl tracking-tight">MoPlayer OS</h1>
+                <h1 className="headline-display text-4xl font-black text-white md:text-6xl tracking-tight">{product.product_name} OS</h1>
                 <p className="max-w-2xl text-lg text-slate-400 leading-relaxed">
-                  Unified management for product content, remote configuration, and device fleet operations.
+                  Unified management for {product.product_name} content, remote configuration, and device fleet operations.
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
-                 <Link href={`${webBaseUrl}/en/apps/moplayer`} target="_blank" className="flex items-center h-14 px-8 rounded-full border border-white/10 bg-white/5 text-white text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                 <Link href={`${webBaseUrl}/en/apps/${product.slug}`} target="_blank" className="flex items-center h-14 px-8 rounded-full border border-white/10 bg-white/5 text-white text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Public View
                  </Link>
@@ -411,11 +412,12 @@ export function AppAdminDashboard({
       {/* Runtime Control Panel */}
       <Panel 
         title="Runtime Configuration" 
-        description="Real control switches consumed by MoPlayer through the public app configuration endpoint. Save once and the app reads the new state on sync."
+        description={`Real control switches consumed by ${product.product_name} through the public app configuration endpoint. Save once and the app reads the new state on sync.`}
         icon={<Settings2 className="h-6 w-6" />}
         className="bg-cyan-500/[0.01] border-cyan-500/10"
       >
         <form action={saveRuntimeConfigAction} className="grid gap-6 lg:grid-cols-2">
+          <input type="hidden" name="product_slug" value={product.slug} />
           <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
             <NativeToggle
               name="enabled"
@@ -500,6 +502,7 @@ export function AppAdminDashboard({
         icon={<UploadCloud className="h-6 w-6" />}
       >
         <form action={saveReleaseAction} className="grid gap-6 lg:grid-cols-2" encType="multipart/form-data">
+           <input type="hidden" name="product_slug" value={product.slug} />
            <div className="space-y-6">
               <InputField label="Release Slug" name="slug" placeholder="moplayer-v2-1-0" required />
               <div className="grid gap-4 sm:grid-cols-2">
@@ -549,7 +552,7 @@ export function AppAdminDashboard({
           <div className="grid gap-3 md:grid-cols-2">
             {[
               "Download the Recommended TV APK first. It contains all packaged native architectures.",
-              "If an older MoPlayer build exists and Android refuses the update, uninstall the old app first, then install again.",
+              `If an older ${product.product_name} build exists and Android refuses the update, uninstall the old app first, then install again.`,
               "Keep Android 7.0+ as the minimum device requirement.",
               "If the TV still fails, connect ADB and read the PackageInstaller reason before publishing another build.",
             ].map((item) => (
@@ -657,7 +660,7 @@ export function AppAdminDashboard({
         <div className="mt-6 flex flex-col gap-3 rounded-[1.5rem] border border-cyan-200/10 bg-cyan-200/[0.035] p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-black text-white">Generate key flow</p>
-            <p className="mt-1 text-xs leading-6 text-slate-400">Use the activation route for real device-bound keys. This panel keeps the operator focused on status and follow-up.</p>
+              <p className="mt-1 text-xs leading-6 text-slate-400">Use the activation route for real device-bound keys where supported. This panel keeps the operator focused on status and follow-up.</p>
           </div>
           <Link href={`${webBaseUrl}/en/activate`} target="_blank" className="admin-secondary-button">
             Open Activation
@@ -689,6 +692,7 @@ export function AppAdminDashboard({
         icon={<Layout className="h-6 w-6" />}
       >
         <form action={saveScreenshotAction} className="grid gap-6 lg:grid-cols-2" encType="multipart/form-data">
+           <input type="hidden" name="product_slug" value={product.slug} />
            <div className="space-y-6">
               <InputField label="Asset Title" name="title" required />
               <InputField label="Index Order" name="sort_order" type="number" defaultValue="1" required />

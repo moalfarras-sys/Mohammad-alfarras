@@ -35,6 +35,8 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/admin/") ||
     pathname === "/app" ||
     pathname.startsWith("/app/") ||
+    pathname === "/activate" ||
+    pathname.startsWith("/activate/") ||
     pathname === "/privacy" ||
     pathname.startsWith("/privacy/") ||
     pathname === "/support" ||

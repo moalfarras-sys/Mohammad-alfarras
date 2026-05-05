@@ -19,6 +19,7 @@ local.properties
 # Node / Next
 **/node_modules/
 **/.next/
+apps/moplayer-dashboard/dist/
 **/coverage/
 **/test-results/
 **/playwright-report/
@@ -64,15 +65,23 @@ _backups/
 **/moplayer_database_copy
 
 # Android root-level layout/focus dump artifacts
-android/moplayer/codex_*.xml
-android/moplayer/home_*.xml
-android/moplayer/login_dump*.xml
-android/moplayer/.superdesign/
-android/moplayer/.home-isolated/
+apps/moplayer-android/codex_*.xml
+apps/moplayer-android/home_*.xml
+apps/moplayer-android/login_dump*.xml
+apps/moplayer-android/.superdesign/
+apps/moplayer-android/.home-isolated/
+apps/moplayer2-android/codex_*.xml
+apps/moplayer2-android/home_*.xml
+apps/moplayer2-android/login_dump*.xml
+apps/moplayer2-android/.superdesign/
+apps/moplayer2-android/.home-isolated/
+
+# QA UI dumps (optional local only)
+apps/moplayer-android/qa-screenshots/
+apps/moplayer2-android/qa-screenshots/
 
 # Docker compose files at the Android root are temporary
-android/moplayer/docker-compose.yml
-
-.vercel
+apps/moplayer-android/docker-compose.yml
+apps/moplayer2-android/docker-compose.yml
 
 .vercel

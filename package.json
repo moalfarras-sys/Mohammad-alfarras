@@ -8,20 +8,23 @@
   "scripts": {
     "build:web": "npm --prefix apps/web run build",
     "build:admin": "npm --prefix apps/admin run build",
-    "build": "npm run build:web && npm run build:admin",
+    "build:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",
+    "build": "npm run build:web && npm run build:admin && npm run build:moplayer-dashboard",
     "test": "npm --prefix apps/web test",
     "test:web": "npm --prefix apps/web test",
-    "test:android": "cd android/moplayer && gradlew.bat testSideloadDebugUnitTest",
+    "test:android": "cd apps/moplayer-android && gradlew.bat testSideloadDebugUnitTest",
     "verify:web": "npm --prefix apps/web run typecheck && npm --prefix apps/web run lint && npm --prefix apps/web run build && npm --prefix apps/web test",
     "verify:admin": "npm --prefix apps/admin run typecheck && npm --prefix apps/admin run lint && npm --prefix apps/admin run build",
-    "verify": "npm run verify:web && npm run verify:admin",
+    "verify:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",
+    "verify": "npm run verify:web && npm run verify:admin && npm run verify:moplayer-dashboard",
     "release:moplayer": "node scripts/release/moplayer-local.mjs",
     "typecheck:web": "npm --prefix apps/web run typecheck",
     "typecheck:admin": "npm --prefix apps/admin run typecheck",
     "lint:web": "npm --prefix apps/web run lint",
     "lint:admin": "npm --prefix apps/admin run lint",
     "dev:web": "npm --prefix apps/web run dev",
-    "dev:admin": "npm --prefix apps/admin run dev"
+    "dev:admin": "npm --prefix apps/admin run dev",
+    "dev:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run dev"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",

@@ -5,6 +5,7 @@ import { AppAdminLogin } from "@/components/admin/app-admin-login";
 import { getAuthenticatedAdmin } from "@/lib/admin-auth";
 import { readAdminAppData } from "@/lib/app-ecosystem";
 import { readWebsiteCmsData } from "@/lib/website-cms";
+import { managedApps } from "@moalfarras/shared/app-products";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; unauthorized?: string; forbidden?: string; updated?: string; email?: string }>;
+  searchParams: Promise<{ error?: string; unauthorized?: string; forbidden?: string; updated?: string; email?: string; app?: string }>;
 }) {
   const [query, admin] = await Promise.all([searchParams, getAuthenticatedAdmin()]);
 
@@ -37,7 +38,11 @@ export default async function AdminPage({
     );
   }
 
-  const [data, website] = await Promise.all([readAdminAppData("moplayer"), readWebsiteCmsData()]);
+  const [appData, website] = await Promise.all([
+    Promise.all(managedApps.map((app) => readAdminAppData(app.slug))),
+    readWebsiteCmsData(),
+  ]);
+  const data = appData[0];
 
   return (
     <main className="admin-shell min-h-screen">
@@ -45,6 +50,8 @@ export default async function AdminPage({
         adminEmail={admin.email}
         role={admin.role}
         updated={query.updated}
+        selectedApp={query.app}
+        appData={appData}
         product={data.product}
         faqs={data.faqs}
         screenshots={data.screenshots}

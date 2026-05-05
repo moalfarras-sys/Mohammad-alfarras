@@ -44,13 +44,17 @@ function formatDate(locale: Locale, value?: string | null) {
 export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
   const isAr = locale === "ar";
   const t = repairMojibakeDeep(moPlayerCopy[locale]);
+  const productName = ecosystem.product.product_name || "MoPlayer";
+  const productHero = ecosystem.product.long_description || ecosystem.product.short_description || t.heroBody;
+  const heroImage = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-hero-3d-final.png");
+  const logoImage = normalizePublicImagePath(ecosystem.product.logo_path || "/images/moplayer-icon-512.png");
   const latest = ecosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((item) => item.is_primary) ?? latest?.assets[0] ?? null;
   const advancedAssets = latest?.assets.filter((item) => item.id !== primaryAsset?.id) ?? [];
   const size = formatBytes(primaryAsset?.file_size_bytes);
   const releaseDate = formatDate(locale, latest?.published_at ?? ecosystem.product.last_updated_at);
-  const downloadHref = latest ? `/api/app/releases/${latest.slug}/download` : null;
-  const updateHref = "/api/app/releases/latest";
+  const downloadHref = latest && latest.assets.some((asset) => asset.external_url || asset.storage_path) ? `/api/app/releases/${latest.slug}/download` : null;
+  const updateHref = `/api/app/releases/latest?product=${ecosystem.product.slug}`;
   const screenshots = ecosystem.screenshots.length
     ? ecosystem.screenshots
     : [
@@ -87,10 +91,10 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="moplayer-hero-copy">
           <span className="moplayer-kicker">
             <ShieldCheck className="h-4 w-4" />
-            {t.badge}
+            {ecosystem.product.hero_badge || t.badge}
           </span>
-          <h1>{t.heroTitle}</h1>
-          <p>{t.heroBody}</p>
+          <h1>{productName}</h1>
+          <p>{productHero}</p>
           <div className="moplayer-actions">
             {downloadHref ? (
               <a href={downloadHref} className="moplayer-button moplayer-button-primary">
@@ -102,7 +106,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
             )}
             <Link href={`/${locale}/activate`} className="moplayer-button">
               <KeyRound className="h-4 w-4" />
-              {isAr ? "التفعيل" : "Activate"}
+              {isAr ? "التفعيل / التحكم" : "Activate / Control"}
             </Link>
             <Link href={updateHref} className="moplayer-button">
               <ArrowUpRight className="h-4 w-4" />
@@ -114,12 +118,12 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="moplayer-device-stage">
           <div className="moplayer-device-glow" />
           <div className="moplayer-tv-frame">
-            <Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 620px" className="moplayer-image" priority />
+            <Image src={heroImage} alt={`${productName} Android TV product visual`} fill sizes="(max-width: 900px) 92vw, 620px" className="moplayer-image" priority />
           </div>
           <div className="moplayer-floating-card">
-            <Image src="/images/moplayer-icon-512.png" alt="" width={44} height={44} />
+            <Image src={logoImage} alt="" width={44} height={44} />
             <div>
-              <strong>MoPlayer</strong>
+              <strong>{productName}</strong>
               <span>{isAr ? "جاهز للتلفزيون والتفعيل" : "TV and activation ready"}</span>
             </div>
           </div>
@@ -192,10 +196,10 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
             <MonitorPlay className="h-4 w-4" />
             {t.featuresEyebrow}
           </span>
-          <h2>{t.featuresTitle}</h2>
+          <h2>{ecosystem.product.tagline || t.featuresTitle}</h2>
         </div>
         <div className="moplayer-feature-grid">
-          {t.features.map((feature, index) => {
+          {(ecosystem.product.feature_highlights.length ? ecosystem.product.feature_highlights : t.features).map((feature, index) => {
             const icons = [Tv2, MonitorPlay, ShieldCheck, CheckCircle2];
             const Icon = icons[index] ?? CheckCircle2;
             return (
@@ -221,13 +225,13 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <article className="moplayer-info-card">
           <Workflow className="h-6 w-6" />
           <h2>{t.philosophyTitle}</h2>
-          <p>{t.philosophy}</p>
+          <p>{ecosystem.product.short_description || t.philosophy}</p>
         </article>
         <article className="moplayer-info-card">
           <ShieldCheck className="h-6 w-6" />
           <h2>{t.privacyTitle}</h2>
           <div className="moplayer-check-list">
-            {t.privacyBullets.map((item) => (
+            {(ecosystem.product.legal_notes.length ? ecosystem.product.legal_notes : t.privacyBullets).map((item) => (
               <span key={item}>
                 <CheckCircle2 className="h-4 w-4" />
                 {item}
@@ -242,7 +246,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           <span className="moplayer-kicker">{isAr ? "خطوات التثبيت" : "Install steps"}</span>
           <h2>{t.installTitle}</h2>
           <div className="moplayer-step-list">
-            {t.installSteps.map((step, index) => (
+            {(ecosystem.product.install_steps.length ? ecosystem.product.install_steps : t.installSteps).map((step, index) => (
               <article key={step.title}>
                 <span>{`0${index + 1}`}</span>
                 <h3>{step.title}</h3>
@@ -254,7 +258,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div>
           <span className="moplayer-kicker">{t.faqTitle}</span>
           <div className="moplayer-faq-list">
-            {t.faqs.map((faq) => (
+            {(ecosystem.faqs.length ? ecosystem.faqs : t.faqs).map((faq) => (
               <details key={faq.question}>
                 <summary>{faq.question}</summary>
                 <p>{faq.answer}</p>
@@ -266,8 +270,8 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
 
       <section className="moplayer-final">
         <span className="moplayer-kicker">{t.disclaimerTitle}</span>
-        <h2>{t.finalTitle}</h2>
-        <p>{t.finalBody}</p>
+        <h2>{productName}</h2>
+        <p>{ecosystem.product.changelog_intro || t.finalBody}</p>
         <div className="moplayer-actions">
           {downloadHref ? (
             <Link href={downloadHref} className="moplayer-button moplayer-button-primary">
@@ -277,7 +281,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           ) : null}
           <Link href={`/${locale}/activate`} className="moplayer-button">
             <KeyRound className="h-4 w-4" />
-            {isAr ? "فعّل التطبيق" : "Activate the app"}
+            {isAr ? "فعّل التطبيق / التحكم" : "Activate / Control"}
           </Link>
           <Link href={`/${locale}/support`} className="moplayer-button">
             {t.support}

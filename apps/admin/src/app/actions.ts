@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminRole, signInAdmin, signOutAdmin } from "@/lib/admin-auth";
+import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 import {
   deleteAppFaq,
   deleteAppRelease,
@@ -54,6 +55,14 @@ function normalizeSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function formProductSlug(formData: FormData) {
+  return resolveManagedAppSlug(String(formData.get("product_slug") ?? "moplayer"));
+}
+
+function appRedirect(updated: string, productSlug: string) {
+  redirect(`/?updated=${encodeURIComponent(updated)}&app=${encodeURIComponent(productSlug)}`);
+}
+
 export async function loginAdminAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -78,8 +87,9 @@ export async function logoutAdminAction() {
 
 export async function saveProductAction(formData: FormData) {
   await requireAdminRole("editor");
+  const productSlug = formProductSlug(formData);
   await saveAppProduct({
-    slug: "moplayer",
+    slug: productSlug,
     product_name: String(formData.get("product_name") ?? ""),
     hero_badge: String(formData.get("hero_badge") ?? ""),
     tagline: String(formData.get("tagline") ?? ""),
@@ -111,21 +121,22 @@ export async function saveProductAction(formData: FormData) {
   });
 
   revalidateAppSurface();
-  redirect("/?updated=product");
+  appRedirect("product", productSlug);
 }
 
 export async function saveFaqAction(formData: FormData) {
   await requireAdminRole("editor");
+  const productSlug = formProductSlug(formData);
   await saveAppFaq({
     id: String(formData.get("id") ?? "").trim() || undefined,
-    product_slug: "moplayer",
+    product_slug: productSlug,
     question: String(formData.get("question") ?? ""),
     answer: String(formData.get("answer") ?? ""),
     sort_order: Number(formData.get("sort_order") ?? 1),
   });
 
   revalidateAppSurface();
-  redirect("/?updated=faq");
+  appRedirect("faq", productSlug);
 }
 
 export async function deleteFaqAction(formData: FormData) {
@@ -137,6 +148,7 @@ export async function deleteFaqAction(formData: FormData) {
 
 export async function saveScreenshotAction(formData: FormData) {
   await requireAdminRole("editor");
+  const productSlug = formProductSlug(formData);
   let imagePath = String(formData.get("image_path") ?? "").trim();
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
@@ -154,7 +166,7 @@ export async function saveScreenshotAction(formData: FormData) {
 
   await saveAppScreenshot({
     id: String(formData.get("id") ?? "").trim() || undefined,
-    product_slug: "moplayer",
+    product_slug: productSlug,
     title: String(formData.get("title") ?? ""),
     alt_text: String(formData.get("alt_text") ?? ""),
     image_path: imagePath,
@@ -164,7 +176,7 @@ export async function saveScreenshotAction(formData: FormData) {
   });
 
   revalidateAppSurface();
-  redirect("/?updated=screenshot");
+  appRedirect("screenshot", productSlug);
 }
 
 export async function deleteScreenshotAction(formData: FormData) {
@@ -176,6 +188,7 @@ export async function deleteScreenshotAction(formData: FormData) {
 
 export async function saveReleaseAction(formData: FormData) {
   const admin = await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
   const slug = normalizeSlug(String(formData.get("slug") ?? ""));
   if (!slug) {
     throw new Error("Release slug is required.");
@@ -183,7 +196,7 @@ export async function saveReleaseAction(formData: FormData) {
 
   const releaseId = await saveAppRelease({
     id: String(formData.get("id") ?? "").trim() || undefined,
-    product_slug: "moplayer",
+    product_slug: productSlug,
     slug,
     version_name: String(formData.get("version_name") ?? ""),
     version_code: Number(formData.get("version_code") ?? 1),
@@ -207,7 +220,7 @@ export async function saveReleaseAction(formData: FormData) {
   }
 
   revalidateAppSurface();
-  redirect(`/?updated=release&by=${encodeURIComponent(admin.email)}`);
+  redirect(`/?updated=release&app=${encodeURIComponent(productSlug)}&by=${encodeURIComponent(admin.email)}`);
 }
 
 export async function deleteReleaseAction(formData: FormData) {
@@ -229,6 +242,7 @@ export async function updateSupportRequestAction(formData: FormData) {
 
 export async function saveRuntimeConfigAction(formData: FormData) {
   await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
   await saveRuntimeConfig({
     enabled: formData.get("enabled") === "on",
     maintenanceMode: formData.get("maintenanceMode") === "on",
@@ -245,9 +259,9 @@ export async function saveRuntimeConfigAction(formData: FormData) {
     },
     supportUrl: String(formData.get("supportUrl") ?? "https://moalfarras.space/en/contact"),
     privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),
-  });
+  }, productSlug);
   revalidateAppSurface();
-  redirect("/?updated=runtime_config");
+  appRedirect("runtime_config", productSlug);
 }
 
 export async function saveWebsiteHeroAction(formData: FormData) {

@@ -7,7 +7,7 @@
  *   node scripts/publish-android-release.mjs \
  *     --version 2.0.1 \
  *     --versionCode 3 \
- *     --apk android/moplayer/build-output/app/outputs/apk/sideload/release/app-sideload-arm64-v8a-release.apk \
+ *     --apk apps/moplayer-android/build-output/app/outputs/apk/sideload/release/app-sideload-arm64-v8a-release.apk \
  *     --abi arm64-v8a \
  *     --notes "Bug fixes + faster startup."
  *

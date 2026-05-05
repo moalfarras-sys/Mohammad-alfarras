@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import { hasDatabaseUrl, queryRows, upsertRow } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
+import { getManagedApp, managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 import type {
   AppEcosystemData,
   AppFaq,
@@ -230,6 +231,148 @@ const fallbackReleases: AppRelease[] = [
   },
 ];
 
+const fallbackProductBySlug: Record<string, AppProduct> = {
+  moplayer: fallbackProduct,
+  moplayer2: {
+    ...fallbackProduct,
+    id: "moplayer2-product",
+    slug: "moplayer2",
+    product_name: "MoPlayer2",
+    hero_badge: "Next Android TV Media Experience",
+    tagline: "The newer MoPlayer generation with its own releases, page, and admin control.",
+    short_description:
+      "MoPlayer2 is the new Android and Android TV app line, managed separately while staying inside the same Moalfarras website and admin system.",
+    long_description:
+      "MoPlayer2 keeps the same Supabase, admin, and domain foundation but has its own product content, APK releases, visual assets, FAQs, support, and runtime settings.",
+    default_download_label: "Download MoPlayer2 APK",
+    feature_highlights: [
+      { title: "Separate product line", body: "Independent records for releases, screenshots, FAQs, and support.", icon: "box" },
+      { title: "Same admin system", body: "Managed from the existing admin without a new Vercel project.", icon: "shield" },
+      { title: "TV-first direction", body: "Prepared for Android TV and remote-first navigation.", icon: "tv" },
+      { title: "Growth-ready", body: "Runtime and release controls can evolve independently.", icon: "zap" },
+    ],
+    how_it_works: [
+      { title: "Switch product", body: "Choose MoPlayer2 in the admin product switcher." },
+      { title: "Publish assets", body: "Upload MoPlayer2 releases and screenshots separately." },
+      { title: "Open public page", body: "Users reach MoPlayer2 at /apps/moplayer2." },
+    ],
+    install_steps: [
+      { title: "Download MoPlayer2", body: "Use the MoPlayer2 release card." },
+      { title: "Allow installation", body: "Enable install from trusted sources if Android asks." },
+      { title: "Open and configure", body: "Launch MoPlayer2 and connect permitted sources only." },
+    ],
+    compatibility_notes: [
+      "Android 7.0+ (API 24 and above)",
+      "Separate from the classic MoPlayer channel",
+      "Designed for Android TV and remote-first navigation",
+    ],
+    changelog_intro: "MoPlayer2 releases are tracked separately from classic MoPlayer.",
+    logo_path: "/images/moplayer-icon-512.png",
+    hero_image_path: "/images/moplayer-tv-hero.png",
+    tv_banner_path: "/images/moplayer-tv-banner-final.png",
+  },
+};
+
+const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
+  moplayer: fallbackScreenshots,
+  moplayer2: [
+    {
+      id: "moplayer2-screen-1",
+      product_slug: "moplayer2",
+      title: "MoPlayer2 TV Room",
+      alt_text: "MoPlayer2 TV Presentation",
+      image_path: "/images/moplayer2-tv-room.png",
+      device_frame: "tv",
+      sort_order: 1,
+      is_featured: true,
+      created_at: now,
+    },
+    {
+      id: "moplayer2-screen-2",
+      product_slug: "moplayer2",
+      title: "MoPlayer2 App Screens",
+      alt_text: "MoPlayer2 Multi-screen layout",
+      image_path: "/images/moplayer2-app-screens.png",
+      device_frame: "tv",
+      sort_order: 2,
+      is_featured: false,
+      created_at: now,
+    },
+    {
+      id: "moplayer2-screen-3",
+      product_slug: "moplayer2",
+      title: "MoPlayer2 Home Screen",
+      alt_text: "MoPlayer2 Main UI",
+      image_path: "/images/moplayer2-home-screen.png",
+      device_frame: "tv",
+      sort_order: 3,
+      is_featured: false,
+      created_at: now,
+    },
+  ],
+};
+
+const fallbackFaqsBySlug: Record<string, AppFaq[]> = {
+  moplayer: fallbackFaqs,
+  moplayer2: fallbackFaqs.map((item, index) => ({
+    ...item,
+    id: `moplayer2-faq-${index + 1}`,
+    product_slug: "moplayer2",
+    question: item.question.replace("MoPlayer", "MoPlayer2"),
+    answer: item.answer.replace("MoPlayer", "MoPlayer2"),
+  })),
+};
+
+const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
+  moplayer: fallbackReleases,
+  moplayer2: [
+    {
+      ...fallbackReleases[0],
+      id: "release-moplayer2-v1",
+      product_slug: "moplayer2",
+      slug: "moplayer2-v1-full",
+      version_name: "v1 full",
+      version_code: 1,
+      release_notes:
+        "Initial MoPlayer2 product channel. Upload the public APK from this admin when the new app is ready.",
+      assets: [
+        {
+          ...fallbackReleases[0].assets[0],
+          id: "asset-moplayer2-v1-placeholder",
+          release_id: "release-moplayer2-v1",
+          label: "MoPlayer2 APK",
+          external_url: null,
+          file_size_bytes: null,
+          checksum_sha256: null,
+        },
+      ],
+    },
+  ],
+};
+
+const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
+  moplayer: fallbackRuntimeConfig,
+  moplayer2: {
+    ...fallbackRuntimeConfig,
+    minimumVersionCode: 1,
+    latestVersionName: "v1 full",
+    logoUrl: "/images/moplayer-icon-512.png",
+    backgroundUrl: "/images/moplayer-tv-banner-final.png",
+    supportUrl: "https://moalfarras.space/en/support",
+  },
+};
+
+function fallbackFor(productSlug: string) {
+  const slug = resolveManagedAppSlug(productSlug);
+  return {
+    product: fallbackProductBySlug[slug],
+    screenshots: fallbackScreenshotsBySlug[slug],
+    faqs: fallbackFaqsBySlug[slug],
+    releases: fallbackReleasesBySlug[slug],
+    runtimeConfig: fallbackRuntimeConfigBySlug[slug],
+  };
+}
+
 function asSiteSettingValue<T>(value: T): Record<string, unknown> {
   return value as unknown as Record<string, unknown>;
 }
@@ -270,16 +413,17 @@ async function upsertSiteSetting(key: string, value: Record<string, unknown>): P
   );
 }
 
-function normalizeProduct(row: Partial<AppProduct> | null | undefined): AppProduct {
-  if (!row) return fallbackProduct;
+function normalizeProduct(row: Partial<AppProduct> | null | undefined, productSlug = "moplayer"): AppProduct {
+  const fallback = fallbackFor(productSlug).product;
+  if (!row) return fallback;
   return {
-    ...fallbackProduct,
+    ...fallback,
     ...row,
-    feature_highlights: parseFeatureList(row.feature_highlights, fallbackProduct.feature_highlights),
-    how_it_works: parseStepsList(row.how_it_works, fallbackProduct.how_it_works),
-    install_steps: parseStepsList(row.install_steps, fallbackProduct.install_steps),
-    compatibility_notes: parseStringList(row.compatibility_notes, fallbackProduct.compatibility_notes),
-    legal_notes: parseStringList(row.legal_notes, fallbackProduct.legal_notes),
+    feature_highlights: parseFeatureList(row.feature_highlights, fallback.feature_highlights),
+    how_it_works: parseStepsList(row.how_it_works, fallback.how_it_works),
+    install_steps: parseStepsList(row.install_steps, fallback.install_steps),
+    compatibility_notes: parseStringList(row.compatibility_notes, fallback.compatibility_notes),
+    legal_notes: parseStringList(row.legal_notes, fallback.legal_notes),
   };
 }
 
@@ -325,34 +469,39 @@ function normalizeRelease(row: Record<string, unknown>, assets: AppReleaseAsset[
   };
 }
 
-async function readLegacyAppSettings(): Promise<AppEcosystemData> {
+async function readLegacyAppSettings(productSlug = "moplayer"): Promise<AppEcosystemData> {
+  const slug = resolveManagedAppSlug(productSlug);
+  const fallback = fallbackFor(slug);
+  const prefix = `${slug}_app`;
   const [product, screenshots, faqs, releases] = await Promise.all([
-    readSiteSetting("moplayer_app_product", fallbackProduct),
-    readSiteSetting("moplayer_app_screenshots", asSiteSettingValue(fallbackScreenshots)),
-    readSiteSetting("moplayer_app_faqs", asSiteSettingValue(fallbackFaqs)),
-    readSiteSetting("moplayer_app_releases", asSiteSettingValue(fallbackReleases)),
+    readSiteSetting(`${prefix}_product`, fallback.product),
+    readSiteSetting(`${prefix}_screenshots`, asSiteSettingValue(fallback.screenshots)),
+    readSiteSetting(`${prefix}_faqs`, asSiteSettingValue(fallback.faqs)),
+    readSiteSetting(`${prefix}_releases`, asSiteSettingValue(fallback.releases)),
   ]);
 
   return {
-    product: normalizeProduct(product as Partial<AppProduct>),
-    screenshots: (Array.isArray(screenshots) ? screenshots : fallbackScreenshots) as AppScreenshot[],
-    faqs: (Array.isArray(faqs) ? faqs : fallbackFaqs) as AppFaq[],
-    releases: (Array.isArray(releases) ? releases : fallbackReleases) as AppRelease[],
+    product: normalizeProduct(product as Partial<AppProduct>, slug),
+    screenshots: (Array.isArray(screenshots) ? screenshots : fallback.screenshots) as AppScreenshot[],
+    faqs: (Array.isArray(faqs) ? faqs : fallback.faqs) as AppFaq[],
+    releases: (Array.isArray(releases) ? releases : fallback.releases) as AppRelease[],
   };
 }
 
 export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEcosystemData> {
+  const slug = resolveManagedAppSlug(productSlug);
+  const fallback = fallbackFor(slug);
   if (!hasSupabasePublicEnv()) {
-    return readLegacyAppSettings();
+    return readLegacyAppSettings(slug);
   }
 
   try {
     const supabase = createSupabaseDataClient();
     const [productRes, screenshotsRes, faqRes, releasesRes] = await Promise.all([
-      supabase.from("app_products").select("*").eq("slug", productSlug).maybeSingle(),
-      supabase.from("app_screenshots").select("*").eq("product_slug", productSlug).order("sort_order"),
-      supabase.from("app_faqs").select("*").eq("product_slug", productSlug).order("sort_order"),
-      supabase.from("app_releases").select("*").eq("product_slug", productSlug).eq("is_published", true).order("published_at", { ascending: false }),
+      supabase.from("app_products").select("*").eq("slug", slug).maybeSingle(),
+      supabase.from("app_screenshots").select("*").eq("product_slug", slug).order("sort_order"),
+      supabase.from("app_faqs").select("*").eq("product_slug", slug).order("sort_order"),
+      supabase.from("app_releases").select("*").eq("product_slug", slug).eq("is_published", true).order("published_at", { ascending: false }),
     ]);
 
     if (productRes.error && !String(productRes.error.message).includes("does not exist")) throw productRes.error;
@@ -377,34 +526,35 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
     }
 
     const data = {
-      product: normalizeProduct(productRes.data as Partial<AppProduct> | null),
+      product: normalizeProduct(productRes.data as Partial<AppProduct> | null, slug),
       screenshots:
         (screenshotsRes.data as AppScreenshot[] | null)?.length
           ? ((screenshotsRes.data as AppScreenshot[]) ?? [])
-          : fallbackScreenshots,
-      faqs: (faqRes.data as AppFaq[] | null)?.length ? ((faqRes.data as AppFaq[]) ?? []) : fallbackFaqs,
+          : fallback.screenshots,
+      faqs: (faqRes.data as AppFaq[] | null)?.length ? ((faqRes.data as AppFaq[]) ?? []) : fallback.faqs,
       releases: releases.map((row) => normalizeRelease(row, assetsMap.get(row.id) ?? [])),
     };
 
     if (!data.releases.length) {
-      const legacy = await readLegacyAppSettings();
+      const legacy = await readLegacyAppSettings(slug);
       return { ...data, releases: legacy.releases };
     }
 
     return data;
   } catch {
-    return readLegacyAppSettings();
+    return readLegacyAppSettings(slug);
   }
 }
 
 export async function readAdminAppData(productSlug = "moplayer") {
+  const slug = resolveManagedAppSlug(productSlug);
   const ecosystem = await readAppEcosystem(productSlug);
   let supportRequests: AppSupportRequest[] = [];
   let devices: AppDevice[] = [];
   let activationRequests: ActivationRequest[] = [];
   let licenses: AppLicense[] = [];
   let providerSources: DeviceProviderSourceQueue[] = [];
-  let runtimeConfig: AppRuntimeConfig = fallbackRuntimeConfig;
+  let runtimeConfig: AppRuntimeConfig = fallbackFor(slug).runtimeConfig;
 
   try {
     const supabase = createSupabaseAdminClient();
@@ -412,20 +562,20 @@ export async function readAdminAppData(productSlug = "moplayer") {
       supabase
       .from("app_support_requests")
       .select("*")
-      .eq("product_slug", productSlug)
+      .eq("product_slug", slug)
       .order("created_at", { ascending: false })
       .limit(50),
       supabase.from("devices").select("*").order("last_seen_at", { ascending: false }).limit(100),
       supabase.from("activation_requests").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("licenses").select("*").order("created_at", { ascending: false }).limit(100),
-      supabase.from("app_settings").select("value").eq("key", "moplayer_public_config").maybeSingle(),
+      supabase.from("app_settings").select("value").eq("key", getManagedApp(slug).runtimeConfigKey).maybeSingle(),
       supabase.from("app_settings").select("value").like("key", "moplayer_device_source:%").order("updated_at", { ascending: false }).limit(100),
     ]);
     supportRequests = (data as AppSupportRequest[] | null) ?? [];
     devices = (deviceRows as AppDevice[] | null) ?? [];
     activationRequests = (activationRows as ActivationRequest[] | null) ?? [];
     licenses = (licenseRows as AppLicense[] | null) ?? [];
-    runtimeConfig = { ...fallbackRuntimeConfig, ...((settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {}) };
+    runtimeConfig = { ...fallbackFor(slug).runtimeConfig, ...((settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {}) };
     providerSources = ((sourceRows as Array<{ value: unknown }> | null) ?? [])
       .map((row) => row.value as Partial<DeviceProviderSourceQueue>)
       .filter((row): row is DeviceProviderSourceQueue => Boolean(row?.id && row?.publicDeviceId && row?.status));
@@ -449,7 +599,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
       supportRequests =
         result?.rows.map((row) => ({
           id: row.id,
-          product_slug: productSlug,
+          product_slug: slug,
           name: row.name,
           email: row.email,
           message: row.message,
@@ -459,9 +609,9 @@ export async function readAdminAppData(productSlug = "moplayer") {
     }
 
     if (!supportRequests.length) {
-      const current = await readSiteSetting("moplayer_app_support_requests", asSiteSettingValue(fallbackSupportRequests));
+      const current = await readSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(fallbackSupportRequests));
       supportRequests = (Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)
-        .filter((item) => item.product_slug === productSlug)
+        .filter((item) => item.product_slug === slug)
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 50);
     }
@@ -478,12 +628,13 @@ export async function readAdminAppData(productSlug = "moplayer") {
   };
 }
 
-export async function saveRuntimeConfig(input: AppRuntimeConfig) {
+export async function saveRuntimeConfig(input: AppRuntimeConfig, productSlug = "moplayer") {
+  const slug = resolveManagedAppSlug(productSlug);
   const payload: AppRuntimeConfig = {
-    ...fallbackRuntimeConfig,
+    ...fallbackFor(slug).runtimeConfig,
     ...input,
     widgets: {
-      ...fallbackRuntimeConfig.widgets,
+      ...fallbackFor(slug).runtimeConfig.widgets,
       ...(input.widgets ?? {}),
     },
   };
@@ -491,9 +642,9 @@ export async function saveRuntimeConfig(input: AppRuntimeConfig) {
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from("app_settings").upsert(
     {
-      key: "moplayer_public_config",
+      key: getManagedApp(slug).runtimeConfigKey,
       value: payload,
-      description: "Public MoPlayer runtime configuration consumed by Android and admin.",
+      description: `Public ${getManagedApp(slug).name} runtime configuration consumed by Android and admin.`,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "key" },
@@ -502,10 +653,12 @@ export async function saveRuntimeConfig(input: AppRuntimeConfig) {
 }
 
 export async function saveAppProduct(input: Partial<AppProduct> & { slug: string }) {
+  const slug = resolveManagedAppSlug(input.slug);
+  const fallback = fallbackFor(slug).product;
   const payload = {
-    ...fallbackProduct,
+    ...fallback,
     ...input,
-    slug: input.slug,
+    slug,
     updated_at: new Date().toISOString(),
   };
 
@@ -514,7 +667,7 @@ export async function saveAppProduct(input: Partial<AppProduct> & { slug: string
     const { error } = await supabase.from("app_products").upsert(payload, { onConflict: "slug" });
     if (error) throw error;
   } catch {
-    await upsertSiteSetting("moplayer_app_product", asSiteSettingValue(payload));
+    await upsertSiteSetting(`${slug}_app_product`, asSiteSettingValue(payload));
   }
 }
 
@@ -532,11 +685,13 @@ export async function saveAppFaq(input: Partial<AppFaq> & { product_slug: string
     const { error } = await supabase.from("app_faqs").upsert(payload, { onConflict: "id" });
     if (error) throw error;
   } catch {
-    const current = await readSiteSetting("moplayer_app_faqs", asSiteSettingValue(fallbackFaqs));
-    const next = [...(Array.isArray(current) ? (current as AppFaq[]) : fallbackFaqs).filter((item) => item.id !== payload.id), payload].sort(
+    const slug = resolveManagedAppSlug(payload.product_slug);
+    const fallback = fallbackFor(slug);
+    const current = await readSiteSetting(`${slug}_app_faqs`, asSiteSettingValue(fallback.faqs));
+    const next = [...(Array.isArray(current) ? (current as AppFaq[]) : fallback.faqs).filter((item) => item.id !== payload.id), payload].sort(
       (a, b) => a.sort_order - b.sort_order,
     );
-    await upsertSiteSetting("moplayer_app_faqs", asSiteSettingValue(next));
+    await upsertSiteSetting(`${slug}_app_faqs`, asSiteSettingValue(next));
   }
 }
 
@@ -598,11 +753,13 @@ export async function saveAppScreenshot(input: Partial<AppScreenshot> & { produc
     const { error } = await supabase.from("app_screenshots").upsert(payload, { onConflict: "id" });
     if (error) throw error;
   } catch {
-    const current = await readSiteSetting("moplayer_app_screenshots", asSiteSettingValue(fallbackScreenshots));
-    const next = [...(Array.isArray(current) ? (current as AppScreenshot[]) : fallbackScreenshots).filter((item) => item.id !== payload.id), payload].sort(
+    const slug = resolveManagedAppSlug(payload.product_slug);
+    const fallback = fallbackFor(slug);
+    const current = await readSiteSetting(`${slug}_app_screenshots`, asSiteSettingValue(fallback.screenshots));
+    const next = [...(Array.isArray(current) ? (current as AppScreenshot[]) : fallback.screenshots).filter((item) => item.id !== payload.id), payload].sort(
       (a, b) => a.sort_order - b.sort_order,
     );
-    await upsertSiteSetting("moplayer_app_screenshots", asSiteSettingValue(next));
+    await upsertSiteSetting(`${slug}_app_screenshots`, asSiteSettingValue(next));
   }
 }
 
@@ -637,12 +794,14 @@ export async function saveAppRelease(input: Partial<AppRelease> & { product_slug
     const { error } = await supabase.from("app_releases").upsert(payload, { onConflict: "slug" });
     if (error) throw error;
   } catch {
-    const current = await readSiteSetting("moplayer_app_releases", asSiteSettingValue(fallbackReleases));
+    const slug = resolveManagedAppSlug(payload.product_slug);
+    const fallback = fallbackFor(slug);
+    const current = await readSiteSetting(`${slug}_app_releases`, asSiteSettingValue(fallback.releases));
     const next = [
-      ...(Array.isArray(current) ? (current as AppRelease[]) : fallbackReleases).filter((item) => item.slug !== payload.slug),
+      ...(Array.isArray(current) ? (current as AppRelease[]) : fallback.releases).filter((item) => item.slug !== payload.slug),
       { ...payload, assets: input.assets ?? [] },
     ].sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-    await upsertSiteSetting("moplayer_app_releases", asSiteSettingValue(next));
+    await upsertSiteSetting(`${slug}_app_releases`, asSiteSettingValue(next));
   }
   return payload.id;
 }
@@ -738,9 +897,10 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
       }
     }
 
-    const current = await readSiteSetting("moplayer_app_support_requests", asSiteSettingValue(fallbackSupportRequests));
+    const slug = resolveManagedAppSlug(input.product_slug);
+    const current = await readSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(fallbackSupportRequests));
     const next = [fallbackPayload, ...(Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)].slice(0, 100);
-    await upsertSiteSetting("moplayer_app_support_requests", asSiteSettingValue(next));
+    await upsertSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(next));
   }
 }
 
@@ -809,8 +969,8 @@ export async function resolveDownloadBySlug(slug: string) {
       asset: normalizeAsset(primary),
     };
   } catch {
-    const legacy = await readLegacyAppSettings();
-    const release = legacy.releases.find((item) => item.slug === slug);
+    const legacySets = await Promise.all(managedApps.map((app) => readLegacyAppSettings(app.slug)));
+    const release = legacySets.flatMap((set) => set.releases).find((item) => item.slug === slug);
     if (!release) return null;
     const asset = release.assets.find((item) => item.is_primary) ?? release.assets[0];
     if (!asset?.external_url) return null;

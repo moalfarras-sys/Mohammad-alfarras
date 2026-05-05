@@ -8,7 +8,7 @@
   --color-primary: var(--os-cyan);
   --color-surface: var(--os-surface);
   --color-border-glass: var(--os-glass-border);
-  --font-sans: "DM Sans", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "SFMono-Regular", "Cascadia Code", Consolas, ui-monospace, monospace;
 }
 
@@ -82,10 +82,12 @@ body {
 body {
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 10% 12%, color-mix(in srgb, var(--os-cyan) 16%, transparent), transparent 28%),
-    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--os-violet) 14%, transparent), transparent 30%),
-    radial-gradient(circle at 50% 96%, color-mix(in srgb, var(--os-gold) 10%, transparent), transparent 34%),
-    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(0, 229, 255, 0.14), transparent 34%),
+    linear-gradient(315deg, rgba(139, 92, 246, 0.09), transparent 34%),
+    var(--bg-0);
+  background-size: 48px 48px, 48px 48px, auto, auto, auto;
   color: var(--text-2);
   font-family: var(--font-latin), var(--font-arabic), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -133,7 +135,7 @@ h1,
 h2,
 h3 {
   color: var(--text-1);
-  font-family: var(--font-display), var(--font-arabic), sans-serif;
+  font-family: var(--font-latin), var(--font-arabic), sans-serif;
   letter-spacing: -0.03em;
 }
 
@@ -186,10 +188,6 @@ h3 {
   min-height: 100vh;
   padding-top: max(0px, env(safe-area-inset-top));
   padding-bottom: max(0px, env(safe-area-inset-bottom));
-  background:
-    radial-gradient(circle at 18% 8%, rgba(91, 220, 255, 0.15), transparent 30%),
-    radial-gradient(circle at 92% 16%, rgba(255, 255, 255, 0.07), transparent 24%),
-    linear-gradient(180deg, #000 0%, #020611 48%, #000 100%);
 }
 
 .command-center {
@@ -203,12 +201,6 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(circle at 18% 10%, rgba(91, 220, 255, 0.16), transparent 26%),
-    radial-gradient(circle at 76% 2%, rgba(240, 248, 255, 0.08), transparent 28%),
-    radial-gradient(circle at 50% 100%, rgba(91, 220, 255, 0.09), transparent 34%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.026) 0 1px, transparent 1px 90px),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 90px);
 }
 
 .command-bg::after {

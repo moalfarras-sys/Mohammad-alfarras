@@ -12,6 +12,16 @@ it). The product page lives inside the same `SiteNavbar` + `SiteFooter` shell so
 the brand stays coherent; only the *content* switches to the "Apple-cinematic"
 dark-forever section via a scoped `.cinematic-section` class.
 
+### Documentation
+
+- [Docs index](docs/README.md) — table of contents
+- [Architecture](docs/architecture.md) — repo layout, target vs actual folders, data flow, shared-code roadmap
+- [Admin flows](docs/admin-flow.md) — what works today vs ERP-style roadmap
+- [Deployment](docs/deployment.md) — Vercel roots, env templates, CI pointer
+- [Android projects](docs/android-projects.md) — `moplayer-android` + `moplayer2-android`
+
+Folder guides: [backend](backend/README.md) · [database](database/README.md) · [storage](storage/README.md)
+
 ---
 
 ## Layout
@@ -19,27 +29,30 @@ dark-forever section via a scoped `.cinematic-section` class.
 ```text
 Moalfarrasappseit/
 ├── apps/
-│   ├── web/             # moalfarras.space (Next.js 16, public + /admin redirect)
-│   └── admin/           # admin.moalfarras.space (Next.js 16 — unified admin)
-├── android/
-│   └── moplayer/        # Android Studio project (com.mo.moplayer, v2.0.0)
+│   ├── web/                  # Public site (moalfarras.space)
+│   ├── admin/                # Admin app (admin.moalfarras.space)
+│   ├── moplayer-dashboard/   # Optional Vite MoPlayer SPA
+│   ├── moplayer-android/     # MoPlayer TV — com.mo.moplayer
+│   └── moplayer2-android/    # MoPlayer2 Compose — com.moalfarras.moplayer2
 ├── packages/
-│   └── shared/          # Shared TS helpers consumed by both Next apps
+│   └── shared/
 ├── supabase/
-│   └── migrations/      # Versioned SQL for the Supabase schema
+│   └── migrations/
 └── scripts/
-    ├── hash-admin-password.mjs        # scrypt hash generator
-    └── publish-android-release.mjs    # APK → Supabase storage + app_releases
+    ├── hash-admin-password.mjs
+    └── publish-android-release.mjs
 ```
 
 ## Workspaces
 
 | Package                    | Path               | Purpose                              |
 | -------------------------- | ------------------ | ------------------------------------ |
-| `moalfarrasweb`            | `apps/web`         | Public website + `/admin` redirect   |
-| `moalfarras-control-center`| `apps/admin`       | Unified admin (MoPlayer + links to Website CMS) |
-| `@moalfarras/shared`       | `packages/shared`  | Cross-app TypeScript helpers         |
-| `MoPlayerapp` (Android)    | `android/moplayer` | Native Android client                |
+| `moalfarrasweb`            | `apps/web`               | Public website + `/admin` redirect   |
+| `moalfarras-control-center`| `apps/admin`             | Unified admin (MoPlayer + links to Website CMS) |
+| `@moalfarras/moplayer-dashboard` | `apps/moplayer-dashboard` | MoPlayer-focused Vite + React SPA |
+| `@moalfarras/shared`       | `packages/shared`        | Cross-app TypeScript helpers         |
+| `MoPlayerapp` (Android TV) | `apps/moplayer-android` | Primary client — `com.mo.moplayer`   |
+| `MoPlayer2` (Android)      | `apps/moplayer2-android` | Compose line — `com.moalfarras.moplayer2` |
 
 ---
 
@@ -238,6 +251,17 @@ npm run dev:web
 
 # Admin dev server
 npm run dev:admin
+
+# MoPlayer Vite dashboard (default Vite port; see terminal output)
+npm run dev:moplayer-dashboard
+```
+
+Per-app folder (after `npm install` from the repo root):
+
+```bash
+cd apps/web && npm run dev
+cd apps/admin && npm run dev
+cd apps/moplayer-dashboard && npm run dev
 ```
 
 Checks:
@@ -247,7 +271,7 @@ npm run typecheck:web
 npm run typecheck:admin
 npm run lint:web
 npm run lint:admin
-npm run build        # builds both web + admin
+npm run build        # web + admin + moplayer-dashboard
 ```
 
 ---
@@ -270,6 +294,8 @@ Per project:
 
 After pushing new env vars you must **Redeploy** from the Vercel dashboard for
 them to take effect.
+
+`apps/moplayer-dashboard` is a Vite SPA (not part of those two Vercel roots). Build it with `npm run build:moplayer-dashboard` and deploy the `dist/` output as a static site if you need it online.
 
 ---
 
@@ -312,14 +338,14 @@ Important tables:
 ## Android — MoPlayer release flow
 
 ```text
-android/moplayer/        # open this folder in Android Studio
+apps/moplayer-android/        # open this folder in Android Studio
 └── app/                 # com.mo.moplayer, v2.0.0, minSdk 24, targetSdk 35
 ```
 
 Build APKs:
 
 ```bash
-cd android/moplayer
+cd apps/moplayer-android
 ./gradlew.bat --version
 ./gradlew.bat clean
 ./gradlew.bat test
@@ -347,8 +373,8 @@ cmdline-tools;latest
 Output:
 
 ```text
-android/moplayer/build-output/app/outputs/apk/sideload/debug/
-android/moplayer/build-output/app/outputs/apk/sideload/release/
+apps/moplayer-android/build-output/app/outputs/apk/sideload/debug/
+apps/moplayer-android/build-output/app/outputs/apk/sideload/release/
 ```
 
 Refresh the website download artifacts locally (build APKs, copy into
@@ -369,7 +395,7 @@ Publish a new version (upload APK → Supabase storage → `app_releases` row):
 node scripts/publish-android-release.mjs \
   --version 2.0.1 \
   --versionCode 3 \
-  --apk android/moplayer/build-output/app/outputs/apk/sideload/release/moplayer-release.apk \
+  --apk apps/moplayer-android/build-output/app/outputs/apk/sideload/release/moplayer-release.apk \
   --notes "Bug fixes + faster startup"
 ```
 
@@ -380,7 +406,7 @@ the APK to Storage only:
 node scripts/publish-android-release.mjs \
   --version 2.0.1 \
   --versionCode 3 \
-  --apk android/moplayer/build-output/app/outputs/apk/sideload/release/app-sideload-arm64-v8a-release.apk \
+  --apk apps/moplayer-android/build-output/app/outputs/apk/sideload/release/app-sideload-arm64-v8a-release.apk \
   --uploadOnly
 ```
 

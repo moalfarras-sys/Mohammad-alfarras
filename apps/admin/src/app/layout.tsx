@@ -1,28 +1,21 @@
 import type { Metadata } from "next";
-import { Cairo, DM_Sans, Syne } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Manrope } from "next/font/google";
 import { AdminPwaBridge } from "@/components/admin/admin-pwa-bridge";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
 
-const arabic = Cairo({
+const arabic = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
   variable: "--font-arabic",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
-const latin = DM_Sans({
+const latin = Manrope({
   subsets: ["latin"],
   variable: "--font-latin",
   weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const display = Syne({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -57,7 +50,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning className={`${arabic.variable} ${latin.variable} ${display.variable}`}>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={`${arabic.variable} ${latin.variable}`}>
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem={false}>
           <AdminPwaBridge />

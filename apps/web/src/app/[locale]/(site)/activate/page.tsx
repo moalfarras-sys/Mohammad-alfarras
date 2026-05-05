@@ -50,10 +50,10 @@ export default async function ActivateRoute({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{ code?: string; device_code?: string }>;
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const { code = "" } = await searchParams;
-  return <MoPlayerActivationPage locale={locale as Locale} initialCode={code} />;
+  const { code = "", device_code = "" } = await searchParams;
+  return <MoPlayerActivationPage locale={locale as Locale} initialCode={code || device_code} />;
 }

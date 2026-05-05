@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MoPlayer" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:fontFamily">sans</item>
+        <!-- Premium Fiery Champagne Gold accent -->
+        <item name="android:colorAccent">@color/mo_champagne</item>
+        <item name="android:windowBackground">@color/mo_black</item>
+    </style>
+</resources>

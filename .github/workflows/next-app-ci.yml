@@ -6,6 +6,7 @@ on:
     paths:
       - "apps/web/**"
       - "apps/admin/**"
+      - "apps/moplayer-dashboard/**"
       - "packages/shared/**"
       - "package.json"
       - "package-lock.json"
@@ -14,6 +15,7 @@ on:
     paths:
       - "apps/web/**"
       - "apps/admin/**"
+      - "apps/moplayer-dashboard/**"
       - "packages/shared/**"
       - "package.json"
       - "package-lock.json"
@@ -29,9 +31,15 @@ jobs:
           - app: web
             prefix: apps/web
             run-tests: true
+            run-lint: true
           - app: admin
             prefix: apps/admin
             run-tests: false
+            run-lint: true
+          - app: moplayer-dashboard
+            prefix: apps/moplayer-dashboard
+            run-tests: false
+            run-lint: false
 
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +54,7 @@ jobs:
         run: npm ci
 
       - name: Lint
+        if: matrix.run-lint
         run: npm --prefix ${{ matrix.prefix }} run lint
 
       - name: Typecheck

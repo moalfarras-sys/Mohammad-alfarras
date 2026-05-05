@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const androidDir = resolve(root, "android/moplayer");
+const androidDir = resolve(root, "apps/moplayer-android");
 const publicDir = resolve(root, "apps/web/public/downloads/moplayer");
 
 const artifacts = [

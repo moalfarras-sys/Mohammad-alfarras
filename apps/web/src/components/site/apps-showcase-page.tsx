@@ -37,6 +37,17 @@ const copy = {
         accent: "metal",
       },
       {
+        title: "MoPlayer2",
+        label: "New Android TV app line",
+        body: "A separate next-generation product channel with its own public page, releases, and admin controls.",
+        badges: ["Separate product", "Same domain", "Admin-ready"],
+        cta: "Open MoPlayer2",
+        href: "apps/moplayer2",
+        image: "/images/moplayer-tv-hero.png",
+        icon: "/images/moplayer-icon-512.png",
+        accent: "metal",
+      },
+      {
         title: "Guided Activation",
         label: "Pairing and setup flow",
         body: "A simple step-by-step route that helps users choose MoPlayer, continue with an account layer, and verify their TV code.",
@@ -132,6 +143,19 @@ const copy = {
 export function AppsShowcasePage({ locale }: { locale: Locale }) {
   const c = repairMojibakeDeep(copy[locale]);
   const isAr = locale === "ar";
+  const moplayer2Card = {
+    title: "MoPlayer2",
+    label: isAr ? "أفضل تطبيق IPTV لـ Android TV" : "Premium IPTV for Android TV",
+    body: isAr
+      ? "مشغل IPTV جديد بأداء أقوى، واجهة احترافية خاصة، دعم Xtream/M3U، QR Activation، وإدارة أفضل."
+      : "A faster IPTV player with a premium warm glass UI, Xtream / M3U / QR activation, and powerful playback controls.",
+    badges: isAr ? ["Glass UI", "Xtream + M3U", "QR Activation"] : ["Glass UI", "Xtream + M3U", "QR Activation"],
+    cta: isAr ? "افتح MoPlayer2" : "Open MoPlayer2",
+    href: "apps/moplayer2",
+    image: "/images/moplayer2-hero-banner.png",
+    icon: "/images/moplayer-icon-512.png",
+    accent: "metal",
+  };
 
   return (
     <PageShell className="apps-lux-page">
@@ -206,7 +230,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
           </div>
 
           <div className="apps-bento">
-            {c.appCards.map((app, index) => (
+            {[...c.appCards.filter((app) => app.title !== "MoPlayer2"), moplayer2Card].map((app, index) => (
               <motion.article
                 key={app.title}
                 initial={{ opacity: 0, y: 18 }}

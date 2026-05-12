@@ -32,6 +32,7 @@ class AppContainer(context: Context) {
     )
     val widgetRepository = WidgetRepository(
         weatherService = NetworkModule.weatherService,
+        freeWeatherService = NetworkModule.freeWeatherService,
         footballService = NetworkModule.footballService,
     )
 }

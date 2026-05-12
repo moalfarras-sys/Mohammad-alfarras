@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import { normalizeProviderSource, testProviderSource } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
+import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
   const response = NextResponse.json(body, init);
@@ -10,12 +11,13 @@ function json(body: unknown, init?: ResponseInit) {
   return response;
 }
 
-async function getActivatedDevice(code: string) {
+async function getActivatedDevice(code: string, productSlug: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("activation_requests")
-    .select("public_device_id, status, expires_at")
+    .select("public_device_id, product_slug, status, expires_at")
     .eq("device_code", code)
+    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
     .maybeSingle();
 
   if (error) return { error: "Activation lookup failed." };
@@ -34,11 +36,12 @@ export async function POST(request: Request) {
   }
 
   const code = normalizeActivationCode(String(body.code ?? ""));
+  const productSlug = resolveManagedAppSlug(String(body.productSlug ?? body.product_slug ?? ""));
   if (!isValidActivationCode(code)) {
     return json({ ok: false, message: "Invalid activation code." }, { status: 400 });
   }
 
-  const activated = await getActivatedDevice(code);
+  const activated = await getActivatedDevice(code, productSlug);
   if (!activated.publicDeviceId) {
     return json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
   }

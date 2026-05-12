@@ -1,10 +1,14 @@
-# Documentation index
+# Documentation
 
-| Document | Description |
+Start with [PRODUCTION_GUIDE.md](PRODUCTION_GUIDE.md). It is the current source of truth for deploys, activation, APK publishing, and verification.
+
+Supporting docs:
+
+| Document | Purpose |
 | --- | --- |
-| [architecture.md](architecture.md) | How the monorepo is wired, data flow, target vs actual folders |
-| [deployment.md](deployment.md) | Vercel projects, environment variables, CI |
-| [admin-flow.md](admin-flow.md) | What the admin can do today vs product roadmap |
-| [android-projects.md](android-projects.md) | Canonical Android tree inside the repo vs extra folders |
+| [architecture.md](architecture.md) | Monorepo layout and data flow |
+| [deployment.md](deployment.md) | Vercel project notes |
+| [android-projects.md](android-projects.md) | Classic and Pro Android projects |
+| [admin-flow.md](admin-flow.md) | Admin workflows and roadmap |
 
-The main narrative and scripts also live in the root [README.md](../README.md).
+The root [README.md](../README.md) gives the short project overview.

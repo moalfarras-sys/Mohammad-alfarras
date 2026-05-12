@@ -188,9 +188,20 @@ function displayDate(value?: string) {
   return new Date(value).toLocaleString();
 }
 
-export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: Locale; initialCode?: string }) {
+export function MoPlayerActivationPage({
+  locale,
+  initialCode = "",
+  productSlug = "moplayer",
+}: {
+  locale: Locale;
+  initialCode?: string;
+  productSlug?: "moplayer" | "moplayer2";
+}) {
   const isAr = locale === "ar";
+  const isPro = productSlug === "moplayer2";
   const t = repairMojibakeDeep(copy[locale]);
+  const productName = isPro ? "MoPlayer Pro" : "MoPlayer";
+  const controlBrand = isPro ? "MoPlayer Pro Control" : t.brand;
   const [code, setCode] = useState(() => normalizeCode(initialCode));
   const [status, setStatus] = useState<Status>("waiting");
   const [checking, setChecking] = useState(false);
@@ -239,10 +250,13 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
 
     setChecking(true);
     try {
-      const response = await fetch(`/api/app/activation/status?code=${encodeURIComponent(`MO-${code}`)}`, {
+      const response = await fetch(
+        `/api/app/activation/status?code=${encodeURIComponent(`MO-${code}`)}&product=${encodeURIComponent(productSlug)}`,
+        {
         method: "GET",
         cache: "no-store",
-      });
+        },
+      );
       const payload = (await response.json().catch(() => null)) as StatusPayload | null;
       setActivationMeta(payload);
 
@@ -282,7 +296,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
       const response = await fetch("/api/app/activation/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, deviceName: "MoPlayer TV" }),
+        body: JSON.stringify({ code: `MO-${code}`, productSlug, deviceName: isPro ? "MoPlayer Pro TV" : "MoPlayer TV" }),
       });
       const payload = (await response.json().catch(() => null)) as StatusPayload | null;
       setActivationMeta(payload);
@@ -322,7 +336,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
       const response = await fetch("/api/app/activation/source/test", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, source: sourcePayload() }),
+        body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
       });
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
       setSourceState(response.ok && payload?.ok ? "ok" : "error");
@@ -341,7 +355,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
       const response = await fetch("/api/app/activation/source", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, source: sourcePayload() }),
+        body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
       });
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
       if (response.ok && payload?.ok) {
@@ -366,12 +380,12 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
     <main className="activation-lux activation-control" dir={isAr ? "rtl" : "ltr"}>
       <div className="activation-aura" aria-hidden />
       <aside className="activation-control-sidebar">
-        <Link href={withLocale(locale, "apps/moplayer")} className="activation-control-back">
-          {t.backApps}
+        <Link href={withLocale(locale, isPro ? "apps/moplayer2" : "apps/moplayer")} className="activation-control-back">
+          {isPro ? (isAr ? "العودة إلى MoPlayer Pro" : "Back to MoPlayer Pro") : t.backApps}
         </Link>
         <div className="activation-control-brand">
           <Image src="/images/moplayer-icon-512.png" alt="" width={48} height={48} />
-          <span>{t.brand}</span>
+          <span>{controlBrand}</span>
         </div>
         <nav aria-label="MoPlayer control">
           <a className="is-active">
@@ -412,7 +426,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
           <div>
             <span className="activation-kicker">
               <ShieldCheck className="h-4 w-4" />
-              {t.brand}
+              {controlBrand}
             </span>
             <h2>{t.heroTitle}</h2>
             <p>{t.heroBody}</p>
@@ -420,7 +434,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
           <div className="activation-control-tv">
             <Tv className="h-11 w-11" />
             <strong>{fullCode}</strong>
-            <span>{status === "activated" ? t.deviceReady : t.scan}</span>
+            <span>{status === "activated" ? t.deviceReady.replace("MoPlayer", productName) : t.scan}</span>
           </div>
         </section>
 
@@ -439,7 +453,7 @@ export function MoPlayerActivationPage({ locale, initialCode = "" }: { locale: L
 
             <label>
               <span>{t.device}</span>
-              <input readOnly value={status === "activated" ? `${t.deviceReady} (${fullCode})` : t.deviceWaiting} />
+              <input readOnly value={status === "activated" ? `${t.deviceReady.replace("MoPlayer", productName)} (${fullCode})` : t.deviceWaiting} />
             </label>
             <label>
               <span>{t.serverName}</span>

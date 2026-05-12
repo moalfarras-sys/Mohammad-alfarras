@@ -199,11 +199,11 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-v2-full",
+    id: "release-v2-2-full",
     product_slug: "moplayer",
-    slug: "moplayer-v2-full",
-    version_name: "v2 full",
-    version_code: 4,
+    slug: "moplayer-v2.2-full",
+    version_name: "v2.2 full",
+    version_code: 6,
     release_notes:
       "v2 full release for better Android TV settings control. Fixes DPAD access across Settings, makes accent colors and backgrounds apply clearly, improves server/player/parental controls, and keeps the universal Android 7+ TV APK path.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
@@ -214,7 +214,7 @@ const fallbackReleases: AppRelease[] = [
     assets: [
       {
         id: "asset-v2-full-universal",
-        release_id: "release-v2-full",
+        release_id: "release-v2-2-full",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -222,8 +222,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 92263305,
-        checksum_sha256: "4cefd3dbf85d82ae838e2dbeb9810da358b21ecc166a7a35e18a3c1b237e2fb2",
+        file_size_bytes: 90259499,
+        checksum_sha256: "68795d7fadcf1de9f91d8394fece0d090248d6a48eb6d46ad365a0466c02d7d4",
         is_primary: true,
         created_at: now,
       },
@@ -237,14 +237,14 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
     ...fallbackProduct,
     id: "moplayer2-product",
     slug: "moplayer2",
-    product_name: "MoPlayer2",
+    product_name: "MoPlayer Pro",
     hero_badge: "Next Android TV Media Experience",
-    tagline: "The newer MoPlayer generation with its own releases, page, and admin control.",
+    tagline: "The Pro MoPlayer generation with its own releases, page, and admin control.",
     short_description:
-      "MoPlayer2 is the new Android and Android TV app line, managed separately while staying inside the same Moalfarras website and admin system.",
+      "MoPlayer Pro is the new Android and Android TV app line, managed separately while staying inside the same Moalfarras website and admin system.",
     long_description:
-      "MoPlayer2 keeps the same Supabase, admin, and domain foundation but has its own product content, APK releases, visual assets, FAQs, support, and runtime settings.",
-    default_download_label: "Download MoPlayer2 APK",
+      "MoPlayer Pro keeps the same Supabase, admin, and domain foundation but has its own product content, APK releases, visual assets, FAQs, support, and runtime settings.",
+    default_download_label: "Download MoPlayer Pro APK",
     feature_highlights: [
       { title: "Separate product line", body: "Independent records for releases, screenshots, FAQs, and support.", icon: "box" },
       { title: "Same admin system", body: "Managed from the existing admin without a new Vercel project.", icon: "shield" },
@@ -252,21 +252,21 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
       { title: "Growth-ready", body: "Runtime and release controls can evolve independently.", icon: "zap" },
     ],
     how_it_works: [
-      { title: "Switch product", body: "Choose MoPlayer2 in the admin product switcher." },
-      { title: "Publish assets", body: "Upload MoPlayer2 releases and screenshots separately." },
-      { title: "Open public page", body: "Users reach MoPlayer2 at /apps/moplayer2." },
+      { title: "Switch product", body: "Choose MoPlayer Pro in the admin product switcher." },
+      { title: "Publish assets", body: "Upload MoPlayer Pro releases and screenshots separately." },
+      { title: "Open public page", body: "Users reach MoPlayer Pro at /apps/moplayer2." },
     ],
     install_steps: [
-      { title: "Download MoPlayer2", body: "Use the MoPlayer2 release card." },
+      { title: "Download MoPlayer Pro", body: "Use the MoPlayer Pro release card." },
       { title: "Allow installation", body: "Enable install from trusted sources if Android asks." },
-      { title: "Open and configure", body: "Launch MoPlayer2 and connect permitted sources only." },
+      { title: "Open and configure", body: "Launch MoPlayer Pro and connect permitted sources only." },
     ],
     compatibility_notes: [
       "Android 7.0+ (API 24 and above)",
       "Separate from the classic MoPlayer channel",
       "Designed for Android TV and remote-first navigation",
     ],
-    changelog_intro: "MoPlayer2 releases are tracked separately from classic MoPlayer.",
+    changelog_intro: "MoPlayer Pro releases are tracked separately from classic MoPlayer.",
     logo_path: "/images/moplayer-icon-512.png",
     hero_image_path: "/images/moplayer-tv-hero.png",
     tv_banner_path: "/images/moplayer-tv-banner-final.png",
@@ -279,8 +279,8 @@ const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
     {
       id: "moplayer2-screen-1",
       product_slug: "moplayer2",
-      title: "MoPlayer2 TV Room",
-      alt_text: "MoPlayer2 TV Presentation",
+      title: "MoPlayer Pro TV Room",
+      alt_text: "MoPlayer Pro TV presentation",
       image_path: "/images/moplayer2-tv-room.png",
       device_frame: "tv",
       sort_order: 1,
@@ -290,8 +290,8 @@ const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
     {
       id: "moplayer2-screen-2",
       product_slug: "moplayer2",
-      title: "MoPlayer2 App Screens",
-      alt_text: "MoPlayer2 Multi-screen layout",
+      title: "MoPlayer Pro App Screens",
+      alt_text: "MoPlayer Pro multi-screen layout",
       image_path: "/images/moplayer2-app-screens.png",
       device_frame: "tv",
       sort_order: 2,
@@ -301,8 +301,8 @@ const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
     {
       id: "moplayer2-screen-3",
       product_slug: "moplayer2",
-      title: "MoPlayer2 Home Screen",
-      alt_text: "MoPlayer2 Main UI",
+      title: "MoPlayer Pro Home Screen",
+      alt_text: "MoPlayer Pro main UI",
       image_path: "/images/moplayer2-home-screen.png",
       device_frame: "tv",
       sort_order: 3,
@@ -318,8 +318,8 @@ const fallbackFaqsBySlug: Record<string, AppFaq[]> = {
     ...item,
     id: `moplayer2-faq-${index + 1}`,
     product_slug: "moplayer2",
-    question: item.question.replace("MoPlayer", "MoPlayer2"),
-    answer: item.answer.replace("MoPlayer", "MoPlayer2"),
+    question: item.question.replace("MoPlayer", "MoPlayer Pro"),
+    answer: item.answer.replace("MoPlayer", "MoPlayer Pro"),
   })),
 };
 
@@ -328,22 +328,22 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v1",
+      id: "release-moplayer2-v2-1-0",
       product_slug: "moplayer2",
-      slug: "moplayer2-v1-full",
-      version_name: "v1 full",
-      version_code: 1,
+      slug: "moplayer2-v2.1.0-full",
+      version_name: "2.1.0",
+      version_code: 4,
       release_notes:
-        "Initial MoPlayer2 product channel. Upload the public APK from this admin when the new app is ready.",
+        "MoPlayer Pro 2.1.0 ships the production QR activation channel, receiver-style Live IPTV controls, weather and color polish, and the latest Android TV stability fixes.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v1-placeholder",
-          release_id: "release-moplayer2-v1",
-          label: "MoPlayer2 APK",
-          external_url: null,
-          file_size_bytes: null,
-          checksum_sha256: null,
+          id: "asset-moplayer2-v2-1-0-release",
+          release_id: "release-moplayer2-v2-1-0",
+          label: "MoPlayer Pro APK",
+          external_url: "/downloads/moplayer2/app-release.apk",
+          file_size_bytes: 9480101,
+          checksum_sha256: "22c1b03a51f32bb4f40254115c77fe7088675917bfa69212af8aee4e0bf351e4",
         },
       ],
     },
@@ -566,7 +566,12 @@ export async function readAdminAppData(productSlug = "moplayer") {
       .order("created_at", { ascending: false })
       .limit(50),
       supabase.from("devices").select("*").order("last_seen_at", { ascending: false }).limit(100),
-      supabase.from("activation_requests").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase
+        .from("activation_requests")
+        .select("*")
+        .or(slug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${slug}`)
+        .order("created_at", { ascending: false })
+        .limit(100),
       supabase.from("licenses").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("app_settings").select("value").eq("key", getManagedApp(slug).runtimeConfigKey).maybeSingle(),
       supabase.from("app_settings").select("value").like("key", "moplayer_device_source:%").order("updated_at", { ascending: false }).limit(100),
@@ -578,7 +583,9 @@ export async function readAdminAppData(productSlug = "moplayer") {
     runtimeConfig = { ...fallbackFor(slug).runtimeConfig, ...((settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {}) };
     providerSources = ((sourceRows as Array<{ value: unknown }> | null) ?? [])
       .map((row) => row.value as Partial<DeviceProviderSourceQueue>)
-      .filter((row): row is DeviceProviderSourceQueue => Boolean(row?.id && row?.publicDeviceId && row?.status));
+      .filter((row): row is DeviceProviderSourceQueue =>
+        Boolean(row?.id && row?.publicDeviceId && row?.status && (row.productSlug ?? "moplayer") === slug),
+      );
   } catch {
     if (hasDatabaseUrl()) {
       const result = await queryRows<{

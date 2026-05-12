@@ -5,231 +5,108 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
-import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.random.Random
 
 /**
- * Premium Animated Login Background — Fiery Glass Cinematic.
- *
- * Multi-layered GPU-efficient animation using only Canvas draw calls:
- * 1. Deep warm radial gradient base
- * 2. Slow-drifting nebula blobs (gold / amber / ember)
- * 3. Subtle horizon light sweep
- * 4. Floating ember particles with depth-of-field glow
- * 5. Cinematic vignette overlay
- *
- * No bitmaps, no images, purely procedural — lightweight & sharp on all DPIs.
+ * Premium Luxury Background — Studio Light Sweep.
+ * Elegant, high-contrast, deep obsidian base with slow-moving golden rays
+ * simulating light passing through premium dark glass.
  */
 @Composable
 fun AnimatedLoginBackground(modifier: Modifier = Modifier) {
     val visuals = LocalMoVisuals.current
-    val transition = rememberInfiniteTransition(label = "login-bg")
+    val transition = rememberInfiniteTransition(label = "luxury-bg")
 
-    // Slow nebula drift
-    val nebulaDrift by transition.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(40_000, easing = LinearEasing)),
-        label = "nebula-drift",
-    )
-    // Horizon sweep
-    val horizonSweep by transition.animateFloat(
-        initialValue = -0.3f, targetValue = 1.3f,
-        animationSpec = infiniteRepeatable(tween(8_000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "horizon-sweep",
-    )
-    // Aurora pulse
-    val auroraPulse by transition.animateFloat(
-        initialValue = 0.6f, targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(tween(5_000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "aurora-pulse",
-    )
-    // Particle time
-    val particleTime by transition.animateFloat(
-        initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(20_000, easing = LinearEasing)),
-        label = "particle-time",
+    val lightSweep by transition.animateFloat(
+        initialValue = -0.5f, targetValue = 1.5f,
+        animationSpec = infiniteRepeatable(tween(18000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "light-sweep"
     )
 
-    val particles = remember {
-        List(45) {
-            LoginParticle(
-                x = Random.nextFloat(),
-                y = Random.nextFloat(),
-                size = Random.nextFloat() * 3.5f + 1f,
-                speed = Random.nextFloat() * 0.012f + 0.003f,
-                alpha = Random.nextFloat() * 0.35f + 0.08f,
-                colorIndex = Random.nextInt(4),
-                hasGlow = Random.nextFloat() > 0.55f,
-                glowRadius = Random.nextFloat() * 24f + 10f,
-                phaseOffset = Random.nextFloat() * PI.toFloat() * 2f,
-                driftAmplitude = Random.nextFloat() * 30f + 8f,
-            )
-        }
-    }
+    val waveShift by transition.animateFloat(
+        initialValue = 0f, targetValue = 6.28f, // 2*PI
+        animationSpec = infiniteRepeatable(tween(25000, easing = LinearEasing)),
+        label = "wave-shift"
+    )
 
     Box(modifier.fillMaxSize()) {
-        // Layer 1: Deep warm base gradient
+        // Layer 1: Deep obsidian base
         Box(
             Modifier
                 .fillMaxSize()
                 .background(
                     Brush.radialGradient(
                         colorStops = arrayOf(
-                            0.00f to Color(0xFF1E1610),
-                            0.35f to Color(0xFF140F0B),
-                            0.65f to Color(0xFF0E0A07),
-                            1.00f to Color(0xFF080604),
+                            0.0f to Color(0xFF14100D),
+                            0.5f to Color(0xFF0C0907),
+                            1.0f to Color(0xFF050403),
                         ),
-                        center = Offset(0.5f, 0.4f),
-                        radius = Float.POSITIVE_INFINITY,
+                        center = Offset(0.5f, 0.5f),
+                        radius = Float.POSITIVE_INFINITY
                     )
                 )
         )
 
-        // Layer 2–5: All drawn via Canvas for performance
+        // Layer 2: Sweeping Studio Lights & Glass Refractions
         Canvas(Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
             val accent = visuals.accent
-            val accentB = visuals.accentB
-            val accentC = visuals.accentC
+            val accentWarm = visuals.accentWarm
 
-            // ── Nebula blobs (6 warm-toned drifting orbs) ──
-            val nebulaBlobs = listOf(
-                NebulaBlobSpec(0.20f, 0.30f, 0.32f, accent, 0.10f, 1.0f),
-                NebulaBlobSpec(0.75f, 0.25f, 0.28f, accentB, 0.08f, 1.5f),
-                NebulaBlobSpec(0.50f, 0.70f, 0.35f, accentC, 0.06f, 0.7f),
-                NebulaBlobSpec(0.85f, 0.60f, 0.25f, accent, 0.07f, 2.0f),
-                NebulaBlobSpec(0.10f, 0.75f, 0.22f, accentB, 0.05f, 1.3f),
-                NebulaBlobSpec(0.55f, 0.15f, 0.20f, Color(0xFFFFD27A), 0.06f, 1.8f),
-            )
-            nebulaBlobs.forEach { blob ->
-                val angle = (nebulaDrift * blob.speedMult) * (PI.toFloat() / 180f)
-                val cx = w * blob.baseX + cos(angle) * w * 0.06f
-                val cy = h * blob.baseY + sin(angle * 0.7f) * h * 0.04f
-                val r = w * blob.radius * auroraPulse
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(blob.color.copy(alpha = blob.alpha * auroraPulse), Color.Transparent),
-                        center = Offset(cx, cy),
-                        radius = r,
-                    ),
-                    radius = r,
-                    center = Offset(cx, cy),
-                )
-            }
-
-            // ── Horizon light sweep ──
-            val sweepX = w * horizonSweep
-            drawOval(
-                brush = Brush.radialGradient(
-                    colors = listOf(accent.copy(alpha = 0.08f), Color.Transparent),
-                    center = Offset(sweepX, h * 0.92f),
-                    radius = w * 0.4f,
-                ),
-                topLeft = Offset(sweepX - w * 0.25f, h * 0.78f),
-                size = Size(w * 0.5f, h * 0.3f),
-            )
-
-            // ── Floating particles ──
-            drawLoginParticles(particles, particleTime, accent, accentB, accentC, visuals.accentWarm)
-
-            // ── Cinematic vignette ──
-            drawRect(
-                brush = Brush.radialGradient(
-                    colors = listOf(Color.Transparent, Color(0xAA060402)),
-                    center = Offset(w * 0.5f, h * 0.45f),
-                    radius = w * 0.85f,
-                ),
-            )
-
-            // ── Top and bottom edge gradients ──
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0.00f to Color(0x660A0806),
-                        0.08f to Color.Transparent,
-                    ),
-                ),
-                size = Size(w, h * 0.15f),
-            )
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0.00f to Color.Transparent,
-                        1.00f to Color(0x880A0806),
-                    ),
-                ),
-                topLeft = Offset(0f, h * 0.85f),
-                size = Size(w, h * 0.15f),
-            )
-        }
-    }
-}
-
-private fun DrawScope.drawLoginParticles(
-    particles: List<LoginParticle>,
-    time: Float,
-    accent: Color,
-    accentB: Color,
-    accentC: Color,
-    accentWarm: Color,
-) {
-    val w = size.width
-    val h = size.height
-    particles.forEachIndexed { index, p ->
-        val color = when (p.colorIndex) {
-            0 -> accent
-            1 -> accentB
-            2 -> accentC
-            else -> accentWarm
-        }
-        val currentY = (p.y - time * p.speed * 25f) % 1f
-        val xOffset = sin(time * PI.toFloat() * 2f + p.phaseOffset + index * 0.25f) * p.driftAmplitude
-
-        val cx = (p.x * w + xOffset).coerceIn(0f, w)
-        val cy = (if (currentY < 0) currentY + 1f else currentY) * h
-
-        // Soft glow halo
-        if (p.hasGlow) {
+            // Large soft ambient glow moving horizontally
+            val glowCx = w * lightSweep
+            val glowCy = h * (0.3f + 0.2f * sin(waveShift))
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(color.copy(alpha = p.alpha * 0.4f), Color.Transparent),
-                    center = Offset(cx, cy),
-                    radius = p.glowRadius,
+                    colors = listOf(accent.copy(alpha = 0.08f), Color.Transparent),
+                    center = Offset(glowCx, glowCy),
+                    radius = w * 0.7f
                 ),
-                radius = p.glowRadius,
-                center = Offset(cx, cy),
+                radius = w * 0.7f,
+                center = Offset(glowCx, glowCy)
+            )
+
+            // Secondary warm glow moving opposite
+            val glowCx2 = w * (1f - lightSweep)
+            val glowCy2 = h * (0.6f + 0.2f * cos(waveShift))
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(accentWarm.copy(alpha = 0.05f), Color.Transparent),
+                    center = Offset(glowCx2, glowCy2),
+                    radius = w * 0.9f
+                ),
+                radius = w * 0.9f,
+                center = Offset(glowCx2, glowCy2)
+            )
+
+            // Sharp diagonal glass reflection / ray
+            val rayCenter = w * lightSweep
+            drawRect(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, accent.copy(alpha = 0.04f), Color(0x33FFFFFF), accent.copy(alpha = 0.04f), Color.Transparent),
+                    start = Offset(rayCenter - w * 0.2f, 0f),
+                    end = Offset(rayCenter + w * 0.2f, h)
+                )
+            )
+
+            // Another slower, wider reflection
+            val rayCenter2 = w * (0.8f - lightSweep * 0.5f)
+            drawRect(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.Transparent, accentWarm.copy(alpha = 0.03f), Color.Transparent),
+                    start = Offset(rayCenter2 - w * 0.4f, 0f),
+                    end = Offset(rayCenter2 + w * 0.4f, h)
+                )
             )
         }
-        // Core dot
-        drawCircle(
-            color = color.copy(alpha = p.alpha),
-            radius = p.size,
-            center = Offset(cx, cy),
-        )
     }
 }
-
-private data class LoginParticle(
-    val x: Float, val y: Float,
-    val size: Float, val speed: Float, val alpha: Float,
-    val colorIndex: Int, val hasGlow: Boolean, val glowRadius: Float,
-    val phaseOffset: Float, val driftAmplitude: Float,
-)
-
-private data class NebulaBlobSpec(
-    val baseX: Float, val baseY: Float,
-    val radius: Float, val color: Color,
-    val alpha: Float, val speedMult: Float,
-)

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gold MP emblem foreground for MoPlayer Pro -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer glow ring -->
+    <path
+        android:fillColor="#22E3BC78"
+        android:pathData="M54,54m-28,0a28,28 0,1,1 56,0a28,28 0,1,1 -56,0" />
+    <!-- Inner warm circle -->
+    <path
+        android:fillColor="#33E3BC78"
+        android:pathData="M54,54m-20,0a20,20 0,1,1 40,0a20,20 0,1,1 -40,0" />
+    <!-- M letter - left stroke -->
+    <path
+        android:fillColor="#FFE3BC78"
+        android:pathData="M38,68 L38,40 L46,54 L54,40 L54,68 L50,68 L50,50 L46,58 L42,50 L42,68 Z" />
+    <!-- P letter -->
+    <path
+        android:fillColor="#FFE3BC78"
+        android:pathData="M58,68 L58,40 L67,40 Q72,40 72,46 Q72,52 67,52 L62,52 L62,68 Z M62,48 L66,48 Q68,48 68,46 Q68,44 66,44 L62,44 Z" />
+    <!-- Accent dot -->
+    <path
+        android:fillColor="#FFFF8C42"
+        android:pathData="M54,72m-2,0a2,2 0,1,1 4,0a2,2 0,1,1 -4,0" />
+</vector>

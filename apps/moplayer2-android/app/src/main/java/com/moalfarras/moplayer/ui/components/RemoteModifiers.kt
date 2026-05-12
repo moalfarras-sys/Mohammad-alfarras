@@ -16,19 +16,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -39,16 +33,56 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 
+enum class RemoteInputAction {
+    None,
+    Click,
+    LongOk,
+    TripleOk,
+}
+
+class RemoteInputController(
+    private val longPressMs: Long = 3_000L,
+    private val triplePressWindowMs: Long = 650L,
+) {
+    private var okCount = 0
+    private var lastOkAt = 0L
+    private var okDownAt = 0L
+
+    fun onOkDown(timestampMs: Long) {
+        if (okDownAt == 0L) okDownAt = timestampMs
+    }
+
+    fun onOkUp(timestampMs: Long): RemoteInputAction {
+        val heldMs = if (okDownAt == 0L) 0L else timestampMs - okDownAt
+        okDownAt = 0L
+
+        if (heldMs >= longPressMs) {
+            okCount = 0
+            lastOkAt = 0L
+            return RemoteInputAction.LongOk
+        }
+
+        okCount = if (timestampMs - lastOkAt < triplePressWindowMs) okCount + 1 else 1
+        lastOkAt = timestampMs
+
+        return if (okCount >= 3) {
+            okCount = 0
+            lastOkAt = 0L
+            RemoteInputAction.TripleOk
+        } else {
+            RemoteInputAction.Click
+        }
+    }
+}
+
 /**
- * Premium Focus Glow — VERY VISIBLE TV focus indicator.
- * Creates a thick, highly visible golden border with animated scale,
- * bright outer glow, and warm gold fill — designed to be seen from
- * across the room on a TV.
+ * Visible TV focus treatment for D-pad navigation.
  */
 @Composable
 fun FocusGlow(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 20.dp,
+    focusRequester: FocusRequester? = null,
     onFocused: () -> Unit = {},
     onClick: (() -> Unit)? = null,
     onTripleOk: () -> Unit = {},
@@ -59,16 +93,13 @@ fun FocusGlow(
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val shape = RoundedCornerShape(cornerRadius)
+    val remoteInput = remember { RemoteInputController() }
 
     val scale by animateFloatAsState(
-        targetValue = if (focused) 1.06f else 1f,
+        targetValue = if (focused) 1.045f else 1f,
         animationSpec = spring(dampingRatio = 0.65f, stiffness = 380f),
         label = "focus-scale",
     )
-
-    var okCount by remember { mutableIntStateOf(0) }
-    var lastOkAt by remember { mutableLongStateOf(0L) }
-    var okDownAt by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(focused) {
         if (focused) onFocused()
@@ -100,32 +131,23 @@ fun FocusGlow(
 
     Surface(
         modifier = modifier
+            .let { m -> if (focusRequester != null) m.focusRequester(focusRequester) else m }
             .onPreviewKeyEvent { event ->
                 if (event.key != Key.Enter && event.key != Key.DirectionCenter) return@onPreviewKeyEvent false
                 val now = System.currentTimeMillis()
                 when (event.type) {
                     KeyEventType.KeyDown -> {
-                        if (okDownAt == 0L) okDownAt = now
-                        false
+                        remoteInput.onOkDown(now)
+                        true
                     }
                     KeyEventType.KeyUp -> {
-                        val held = now - okDownAt
-                        okDownAt = 0L
-                        if (held >= 3000L) {
-                            onLongOk()
-                            true
-                        } else {
-                            okCount = if (now - lastOkAt < 650L) okCount + 1 else 1
-                            lastOkAt = now
-                            if (okCount >= 3) {
-                                okCount = 0
-                                onTripleOk()
-                                true
-                            } else {
-                                onClick?.invoke()
-                                onClick != null
-                            }
+                        when (remoteInput.onOkUp(now)) {
+                            RemoteInputAction.LongOk -> onLongOk()
+                            RemoteInputAction.TripleOk -> onTripleOk()
+                            RemoteInputAction.Click -> onClick?.invoke()
+                            RemoteInputAction.None -> Unit
                         }
+                        true
                     }
                     else -> false
                 }
@@ -135,15 +157,15 @@ fun FocusGlow(
                 scaleY = scale
             }
             .shadow(
-                elevation = if (focused) 24.dp else 0.dp,
+                elevation = if (focused) 18.dp else 0.dp,
                 shape = shape,
                 clip = false,
-                ambientColor = if (focused) visuals.accent.copy(alpha = 0.80f) else Color.Transparent,
-                spotColor = if (focused) visuals.accent.copy(alpha = 0.70f) else Color.Transparent,
+                ambientColor = if (focused) visuals.accent.copy(alpha = 0.62f) else Color.Transparent,
+                spotColor = if (focused) visuals.accent.copy(alpha = 0.52f) else Color.Transparent,
             )
             .then(focusTarget),
         shape = shape,
-        color = if (focused) visuals.accent.copy(alpha = 0.18f) else Color.Transparent,
+        color = if (focused) visuals.accent.copy(alpha = 0.13f) else Color.Transparent,
         border = if (focused) BorderStroke(borderWidth, borderBrush) else null,
     ) {
         Box(

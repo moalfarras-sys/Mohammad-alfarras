@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.git/
+.vercel/
+.vercel/**
+node_modules/
+.next/
+build/
+coverage/
+*.tsbuildinfo
+local.properties
+keystore.properties
+*.keystore
+*.jks
+

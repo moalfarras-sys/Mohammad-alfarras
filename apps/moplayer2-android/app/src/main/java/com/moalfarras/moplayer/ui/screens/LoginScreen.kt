@@ -15,6 +15,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -43,29 +45,79 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.moalfarras.moplayer.R
+import com.moalfarras.moplayerpro.R
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.DeviceActivationSession
 import com.moalfarras.moplayer.domain.model.DeviceActivationStatus
 import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.ui.components.AnimatedLoginBackground
-import com.moalfarras.moplayer.ui.components.CinematicBackdrop
 import com.moalfarras.moplayer.ui.components.GlassPanel
 import com.moalfarras.moplayer.ui.theme.*
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.time.LocalTime
 
 private enum class LoginMode { M3U, XTREAM, FILE, ACTIVATION }
 
 @Composable
+private fun LoginBackdropLayer(settings: AppSettings) {
+    val epochDay = LocalDate.now().toEpochDay()
+    val backdropUrl = remember(
+        settings.backgroundMode,
+        settings.customBackgroundUrl,
+        settings.themePreset,
+        epochDay,
+    ) {
+        resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
+    }
+    Box(Modifier.fillMaxSize()) {
+        if (backdropUrl != null) {
+            AsyncImage(
+                model = backdropUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = 1f
+                        scaleX = 1.04f
+                        scaleY = 1.04f
+                    },
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0f to Color(0x18050403),
+                                0.35f to Color.Transparent,
+                                0.72f to Color(0x28050403),
+                                1f to Color(0x55050403),
+                            ),
+                        ),
+                    ),
+            )
+            AnimatedLoginBackground(Modifier.graphicsLayer { alpha = 0.07f })
+        } else {
+            Box(Modifier.fillMaxSize().background(Color(0xFF050403)))
+            AnimatedLoginBackground()
+        }
+    }
+}
+
+@Composable
 fun LoginScreen(
+    settings: AppSettings = AppSettings(),
     loading: LoadProgress?,
     error: String?,
     activationSession: DeviceActivationSession?,
-    onM3u: (String, String) -> Unit,
+    onM3u: (String, String, String) -> Unit,
     onM3uFile: (String, String, String) -> Unit,
     onXtream: (String, String, String, String) -> Unit,
     onActivationCode: (String) -> Unit,
@@ -74,9 +126,10 @@ fun LoginScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val tv = rememberTvScale()
-    var mode by remember { mutableStateOf(LoginMode.M3U) }
-    var name by remember { mutableStateOf("My IPTV") }
+    var mode by remember { mutableStateOf(LoginMode.XTREAM) }
+    var name by remember { mutableStateOf("") }
     var m3u  by remember { mutableStateOf("") }
+    var epgUrl by remember { mutableStateOf("") }
     var url  by remember { mutableStateOf("") }
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
@@ -100,9 +153,11 @@ fun LoginScreen(
 
     if (!tv.isTv) {
         CompactLoginScreen(
+            settings = settings,
             mode = mode,
             name = name,
             m3u = m3u,
+            epgUrl = epgUrl,
             url = url,
             user = user,
             pass = pass,
@@ -113,11 +168,12 @@ fun LoginScreen(
             onMode = { mode = it },
             onName = { name = it },
             onM3u = { m3u = it },
+            onEpgUrl = { epgUrl = it },
             onUrl = { url = it },
             onUser = { user = it },
             onPass = { pass = it },
             onActivationCode = { activationCode = it.uppercase().filter { char -> char.isLetterOrDigit() || char == '-' }.take(18) },
-            submitM3u = { onM3u(name, m3u) },
+            submitM3u = { onM3u(name, m3u, epgUrl) },
             submitM3uFile = { fileMessage = null; filePicker.launch(arrayOf("audio/x-mpegurl", "application/vnd.apple.mpegurl", "text/*", "application/octet-stream")) },
             submitXtream = { onXtream(name, url, user, pass) },
             submitActivation = { if (activationCode.isBlank()) onRefreshQr() else onActivationCode(activationCode) },
@@ -126,7 +182,7 @@ fun LoginScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        AnimatedLoginBackground()
+        LoginBackdropLayer(settings)
 
         // Top status bar
         Row(
@@ -144,11 +200,12 @@ fun LoginScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             LoginGlassCard(
                 mode = mode, name = name, m3u = m3u, url = url, user = user, pass = pass, activationCode = activationCode,
+                epgUrl = epgUrl,
                 loading = loading, error = error, fileMessage = fileMessage, activationSession = activationSession, tv = tv,
-                onMode = { mode = it }, onName = { name = it }, onM3u = { m3u = it },
+                onMode = { mode = it }, onName = { name = it }, onM3u = { m3u = it }, onEpgUrl = { epgUrl = it },
                 onUrl = { url = it }, onUser = { user = it }, onPass = { pass = it },
                 onActivationCode = { activationCode = it.uppercase().filter { char -> char.isLetterOrDigit() || char == '-' }.take(18) },
-                submitM3u = { onM3u(name, m3u) },
+                submitM3u = { onM3u(name, m3u, epgUrl) },
                 submitM3uFile = { fileMessage = null; filePicker.launch(arrayOf("audio/x-mpegurl", "application/vnd.apple.mpegurl", "text/*", "application/octet-stream")) },
                 submitXtream = { onXtream(name, url, user, pass) },
                 submitActivation = { if (activationCode.isBlank()) onRefreshQr() else onActivationCode(activationCode) },
@@ -171,7 +228,7 @@ private fun TopStatusWidget(tv: TvScale, modifier: Modifier = Modifier) {
             Icon(Icons.Rounded.WifiTethering, null, tint = accent, modifier = Modifier.size((18 * tv.factor).dp))
             Text(LocalTime.now().withSecond(0).withNano(0).toString(), color = Color.White, fontSize = (15 * tv.factor).sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.width((1 * tv.factor).dp).height((16 * tv.factor).dp).background(Color(0x33FFFFFF)))
-            Text("MoPlayer2 Premium", color = Color(0xCCE3BC78), fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.Medium)
+            Text("MoPlayer Pro", color = Color(0xCCE3BC78), fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -194,10 +251,11 @@ private fun LoginGlassChip(tv: TvScale) {
 @Composable
 private fun LoginGlassCard(
     mode: LoginMode, name: String, m3u: String, url: String, user: String, pass: String, activationCode: String,
+    epgUrl: String,
     loading: LoadProgress?, error: String?, fileMessage: String?, activationSession: DeviceActivationSession?,
     tv: TvScale,
     onMode: (LoginMode) -> Unit,
-    onName: (String) -> Unit, onM3u: (String) -> Unit, onUrl: (String) -> Unit,
+    onName: (String) -> Unit, onM3u: (String) -> Unit, onEpgUrl: (String) -> Unit, onUrl: (String) -> Unit,
     onUser: (String) -> Unit, onPass: (String) -> Unit,
     onActivationCode: (String) -> Unit,
     submitM3u: () -> Unit, submitM3uFile: () -> Unit, submitXtream: () -> Unit, submitActivation: () -> Unit, submitQrRefresh: () -> Unit,
@@ -205,7 +263,7 @@ private fun LoginGlassCard(
     val visuals = LocalMoVisuals.current
     GlassPanel(
         modifier = if (tv.isTv) {
-            Modifier.width((600 * tv.factor).dp)
+            Modifier.width((460 * tv.factor).dp)
         } else {
             Modifier.fillMaxWidth().padding(horizontal = tv.contentPadding)
         },
@@ -216,32 +274,18 @@ private fun LoginGlassCard(
         Column(
             modifier = Modifier.padding(tv.panelPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy((18 * tv.factor).dp),
+            verticalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
         ) {
             PulsingLogo(tv, loading != null)
             Text(
-                "MoPlayer2",
+                "MoPlayer Pro",
                 color = Color.White,
-                fontSize = (36 * tv.factor).sp,
+                fontSize = (28 * tv.factor).sp,
                 fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 3.sp,
-            )
-            Text(
-                "PREMIUM IPTV EXPERIENCE",
-                color = visuals.accent.copy(alpha = 0.90f),
-                fontSize = (12 * tv.factor).sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
-            Text(
-                "by Moalfarras",
-                color = Color(0x99FFFFFF),
-                fontSize = (10 * tv.factor).sp,
-                fontWeight = FontWeight.Medium,
-                letterSpacing = 1.sp,
+                letterSpacing = 2.sp,
             )
 
-            Spacer(Modifier.height((8 * tv.factor).dp))
+            Spacer(Modifier.height((4 * tv.factor).dp))
             ModeDock(mode, tv, onMode)
             if (mode == LoginMode.ACTIVATION) {
                 QrActivationPanel(
@@ -258,6 +302,7 @@ private fun LoginGlassCard(
                 LoginMode.M3U -> {
                     GlassTextField(name, onName, "الاسم", tv, Icons.Rounded.Person)
                     GlassTextField(m3u,  onM3u,  "رابط M3U", tv, Icons.Rounded.Link, KeyboardType.Uri)
+                    GlassTextField(epgUrl, onEpgUrl, "رابط XMLTV اختياري", tv, Icons.Rounded.EventNote, KeyboardType.Uri)
                     GlassActionButton("دخول", Icons.Rounded.RocketLaunch, loading == null && m3u.isNotBlank(), tv, submitM3u)
                 }
                 LoginMode.XTREAM -> {
@@ -286,7 +331,7 @@ private fun LoginGlassCard(
                         icon = Icons.Rounded.Key,
                     )
                     Text(
-                        "أدخل الكود من لوحة MoPlayer2 Control لربط الجهاز بدون كتابة بيانات السيرفر على التلفزيون.",
+                        "أدخل الكود من لوحة MoPlayer Pro Control لربط الجهاز بدون كتابة بيانات السيرفر على التلفزيون.",
                         color = Color(0xAAE3BC78),
                         fontSize = (12 * tv.factor).sp,
                         textAlign = TextAlign.Center,
@@ -304,9 +349,11 @@ private fun LoginGlassCard(
 
 @Composable
 private fun CompactLoginScreen(
+    settings: AppSettings,
     mode: LoginMode,
     name: String,
     m3u: String,
+    epgUrl: String,
     url: String,
     user: String,
     pass: String,
@@ -317,6 +364,7 @@ private fun CompactLoginScreen(
     onMode: (LoginMode) -> Unit,
     onName: (String) -> Unit,
     onM3u: (String) -> Unit,
+    onEpgUrl: (String) -> Unit,
     onUrl: (String) -> Unit,
     onUser: (String) -> Unit,
     onPass: (String) -> Unit,
@@ -369,6 +417,7 @@ private fun CompactLoginScreen(
             when (mode) {
                 LoginMode.M3U -> {
                     CompactTextField(m3u, onM3u, "رابط M3U", Icons.Rounded.Link, KeyboardType.Uri)
+                    CompactTextField(epgUrl, onEpgUrl, "XMLTV اختياري", Icons.Rounded.EventNote, KeyboardType.Uri)
                     Button(
                         onClick = submitM3u,
                         enabled = loading == null && m3u.isNotBlank(),
@@ -412,7 +461,7 @@ private fun CompactLoginScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        AnimatedLoginBackground()
+        LoginBackdropLayer(settings)
         Box(
             Modifier
                 .fillMaxSize()
@@ -433,11 +482,11 @@ private fun CompactLoginScreen(
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_splash_logo),
-                        contentDescription = "MoPlayer2",
+                        contentDescription = "MoPlayer Pro",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.size(logoSize + 10.dp),
                     )
-                    Text("MoPlayer2", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                    Text("MoPlayer Pro", color = Color.White, style = MaterialTheme.typography.headlineSmall)
                     if (!tv.isLowHeightLandscape) {
                         Text(
                             "IPTV for TV and mobile",
@@ -468,12 +517,12 @@ private fun CompactLoginScreen(
             ) {
                 Image(
                     painter = painterResource(R.drawable.ic_splash_logo),
-                    contentDescription = "MoPlayer2",
+                    contentDescription = "MoPlayer Pro",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.size(logoSize),
                 )
                 Text(
-                    "MoPlayer2",
+                    "MoPlayer Pro",
                     color = Color.White,
                     style = if (tv.isLowHeightLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineLarge,
                 )
@@ -585,7 +634,8 @@ private fun GlassTextField(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val accent = LocalMoVisuals.current.accent
+    val visuals = LocalMoVisuals.current
+    val accent = visuals.accent
     val border by animateColorAsState(if (focused) accent else Color(0x33E3BC78), label = "field-border")
     val scale  by animateFloatAsState(
         if (focused) 1.025f else 1f,
@@ -595,7 +645,7 @@ private fun GlassTextField(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height((72 * tv.factor).dp)
+            .height((56 * tv.factor).dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(if (focused) 24.dp else 0.dp, RoundedCornerShape(999.dp), clip = false,
                 ambientColor = accent.copy(alpha = 0.3f), spotColor = accent.copy(alpha = 0.3f)),
@@ -603,39 +653,57 @@ private fun GlassTextField(
         color  = if (focused) Color(0x552A2723) else Color(0x44312D28),
         border = BorderStroke(if (focused) 1.5.dp else 1.dp, border),
     ) {
-        OutlinedTextField(
-            value = value, onValueChange = onValue,
-            modifier = Modifier.fillMaxSize(),
-            singleLine = true,
-            interactionSource = interaction,
-            leadingIcon = { Icon(icon, null, tint = if (focused) accent else Color(0x88E3BC78)) },
-            label = { Text(label, maxLines = 1) },
-            placeholder = { Text(label, maxLines = 1) },
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            visualTransformation = visualTransformation,
-            textStyle = LocalTextStyle.current.copy(
-                color = Color.White,
-                fontSize = (18 * tv.factor).sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.sp,
-            ),
-            shape = RoundedCornerShape(999.dp),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor        = Color.White,
-                unfocusedTextColor      = Color.White,
-                focusedContainerColor   = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor   = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedPlaceholderColor   = Color(0xEEFFFFFF),
-                unfocusedPlaceholderColor = Color(0xDDE3BC78),
-                focusedLabelColor = accent,
-                unfocusedLabelColor = Color(0xDDE3BC78),
-                focusedLeadingIconColor = accent,
-                unfocusedLeadingIconColor = Color(0xDDE3BC78),
-                cursorColor = accent,
-            ),
-        )
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = (26 * tv.factor).dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
+        ) {
+            Icon(icon, null, tint = if (focused) accent else Color(0xAAE3BC78), modifier = Modifier.size((28 * tv.factor).dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                if (value.isNotBlank()) {
+                    Text(
+                        label,
+                        color = if (focused) accent else Color(0xDDE3BC78),
+                        fontSize = (13 * tv.factor).sp,
+                        lineHeight = (17 * tv.factor).sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                    )
+                }
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValue,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    interactionSource = interaction,
+                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                    visualTransformation = visualTransformation,
+                    textStyle = TextStyle(
+                        color = visuals.textPrimary,
+                        fontSize = (16 * tv.factor).sp,
+                        lineHeight = (22 * tv.factor).sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.sp,
+                    ),
+                    cursorBrush = SolidColor(accent),
+                    decorationBox = { innerTextField ->
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                            if (value.isBlank()) {
+                                Text(
+                                    label,
+                                    color = Color(0x88E3BC78),
+                                    fontSize = (16 * tv.factor).sp,
+                                    lineHeight = (22 * tv.factor).sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                )
+            }
+        }
     }
 }
 
@@ -646,7 +714,8 @@ private fun GlassPasswordField(
     var visible by remember { mutableStateOf(false) }
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val accent = LocalMoVisuals.current.accent
+    val visuals = LocalMoVisuals.current
+    val accent = visuals.accent
     val border by animateColorAsState(if (focused) accent else Color(0x33E3BC78), label = "pw-border")
     val scale by animateFloatAsState(
         if (focused) 1.025f else 1f,
@@ -656,7 +725,7 @@ private fun GlassPasswordField(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height((72 * tv.factor).dp)
+            .height((56 * tv.factor).dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(if (focused) 24.dp else 0.dp, RoundedCornerShape(999.dp), clip = false,
                 ambientColor = accent.copy(alpha = 0.3f), spotColor = accent.copy(alpha = 0.3f)),
@@ -664,40 +733,64 @@ private fun GlassPasswordField(
         color = if (focused) Color(0x552A2723) else Color(0x44312D28),
         border = BorderStroke(if (focused) 1.5.dp else 1.dp, border),
     ) {
-        OutlinedTextField(
-            value = value, onValueChange = onValue,
-            modifier = Modifier.fillMaxSize(),
-            singleLine = true,
-            interactionSource = interaction,
-            leadingIcon = { Icon(Icons.Rounded.Lock, null, tint = if (focused) accent else Color(0x88E3BC78)) },
-            trailingIcon = {
-                IconButton(onClick = { visible = !visible }) {
-                    Icon(
-                        if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        contentDescription = if (visible) "Hide password" else "Show password",
-                        tint = if (focused) accent else Color(0x88E3BC78),
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = (26 * tv.factor).dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
+        ) {
+            Icon(Icons.Rounded.Lock, null, tint = if (focused) accent else Color(0xAAE3BC78), modifier = Modifier.size((28 * tv.factor).dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                if (value.isNotBlank()) {
+                    Text(
+                        label,
+                        color = if (focused) accent else Color(0xDDE3BC78),
+                        fontSize = (13 * tv.factor).sp,
+                        lineHeight = (17 * tv.factor).sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
                     )
                 }
-            },
-            label = { Text(label, maxLines = 1) },
-            placeholder = { Text(label, maxLines = 1) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-            textStyle = LocalTextStyle.current.copy(
-                color = Color.White, fontSize = (18 * tv.factor).sp,
-                fontWeight = FontWeight.Bold, letterSpacing = 0.sp,
-            ),
-            shape = RoundedCornerShape(999.dp),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-                focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
-                focusedPlaceholderColor = Color(0xEEFFFFFF), unfocusedPlaceholderColor = Color(0xDDE3BC78),
-                focusedLabelColor = accent, unfocusedLabelColor = Color(0xDDE3BC78),
-                focusedLeadingIconColor = accent, unfocusedLeadingIconColor = Color(0xDDE3BC78),
-                cursorColor = accent,
-            ),
-        )
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValue,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    interactionSource = interaction,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+                    textStyle = TextStyle(
+                        color = visuals.textPrimary,
+                        fontSize = (16 * tv.factor).sp,
+                        lineHeight = (22 * tv.factor).sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 0.sp,
+                    ),
+                    cursorBrush = SolidColor(accent),
+                    decorationBox = { innerTextField ->
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                            if (value.isBlank()) {
+                                Text(
+                                    label,
+                                    color = Color(0x88E3BC78),
+                                    fontSize = (16 * tv.factor).sp,
+                                    lineHeight = (22 * tv.factor).sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                )
+            }
+            IconButton(onClick = { visible = !visible }) {
+                Icon(
+                    if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                    contentDescription = if (visible) "إخفاء كلمة المرور" else "إظهار كلمة المرور",
+                    tint = if (focused) accent else Color(0xAAE3BC78),
+                )
+            }
+        }
     }
 }
 
@@ -750,7 +843,7 @@ private fun GlassActionButton(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height((58 * tv.factor).dp)
+            .height((48 * tv.factor).dp)
             .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
             .shadow(if (focused) 40.dp else 12.dp, RoundedCornerShape(999.dp), clip = false,
                 ambientColor = accent.copy(alpha = 0.5f), spotColor = accent.copy(alpha = 0.5f))
@@ -906,10 +999,10 @@ private fun QrActivationPanel(
             Text(session.userCode, color = Color.White, fontSize = codeFont, fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
             Text(session.verificationUrl, color = Color(0xCCE3BC78), fontSize = smallFont, textAlign = TextAlign.Center, maxLines = 2)
             val statusText = when (session.status) {
-                DeviceActivationStatus.WAITING -> "Waiting for activation - ${session.secondsRemaining}s"
-                DeviceActivationStatus.ACTIVATED -> "Activated. Sync is starting..."
-                DeviceActivationStatus.EXPIRED -> "Expired. Refresh the QR code."
-                DeviceActivationStatus.ERROR -> session.error.ifBlank { "Activation error" }
+                DeviceActivationStatus.WAITING -> "بانتظار التفعيل - ${session.secondsRemaining} ث"
+                DeviceActivationStatus.ACTIVATED -> "تم التفعيل. بدء المزامنة..."
+                DeviceActivationStatus.EXPIRED -> "انتهت صلاحية الكود. حدّث QR."
+                DeviceActivationStatus.ERROR -> session.error.ifBlank { "تعذر التفعيل الآن." }
             }
             Text(
                 statusText,
@@ -918,18 +1011,18 @@ private fun QrActivationPanel(
                 textAlign = TextAlign.Center,
             )
         } else {
-            Text("Create a short-lived QR code for this TV.", color = Color(0xAAFFFFFF), fontSize = (13 * tv.factor).sp, textAlign = TextAlign.Center)
+            Text("أنشئ كود QR مؤقت لربط هذا التلفزيون.", color = Color(0xAAFFFFFF), fontSize = (13 * tv.factor).sp, textAlign = TextAlign.Center)
         }
-        GlassActionButton("Refresh QR", Icons.Rounded.Refresh, true, tv, onRefresh)
+        GlassActionButton("تحديث QR", Icons.Rounded.Refresh, true, tv, onRefresh)
         if (!tv.isTv) {
             GlassTextField(
                 value = manualCode,
                 onValue = onManualCode,
-                label = "Manual activation code",
+                label = "كود التفعيل اليدوي",
                 tv = tv,
                 icon = Icons.Rounded.Key,
             )
-            GlassActionButton("Use Manual Code", Icons.Rounded.Verified, manualCode.length >= 6, tv, onSubmitManual)
+            GlassActionButton("استخدام الكود", Icons.Rounded.Verified, manualCode.length >= 6, tv, onSubmitManual)
         }
     }
 }
@@ -953,7 +1046,7 @@ private fun LoginScreenPreview1080() {
             loading = LoadProgress("جاري التحميل", 62, 100),
             error = null,
             activationSession = null,
-            onM3u = { _, _ -> },
+            onM3u = { _, _, _ -> },
             onM3uFile = { _, _, _ -> },
             onXtream = { _, _, _, _ -> },
             onActivationCode = {},
@@ -970,7 +1063,7 @@ private fun LoginScreenPreview720() {
             loading = null,
             error = "Server is reachable, but credentials were rejected.",
             activationSession = null,
-            onM3u = { _, _ -> },
+            onM3u = { _, _, _ -> },
             onM3uFile = { _, _, _ -> },
             onXtream = { _, _, _, _ -> },
             onActivationCode = {},

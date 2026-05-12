@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
-import { deviceSourceQueueSettingKey, type ProviderSourceQueueValue } from "@/lib/provider-source-security";
+import {
+  deviceSourceQueueSettingKey,
+  providerSourceQueueBelongsToProduct,
+  type ProviderSourceQueueValue,
+} from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
+import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
   const response = NextResponse.json(body, init);
@@ -10,9 +15,10 @@ function json(body: unknown, init?: ResponseInit) {
   return response;
 }
 
-function sourceDeliveryStatus(value: unknown, publicDeviceId: string) {
+function sourceDeliveryStatus(value: unknown, publicDeviceId: string, productSlug: string) {
   const queue = (value ?? {}) as Partial<ProviderSourceQueueValue>;
   if (queue.publicDeviceId !== publicDeviceId) return { pending: false, status: "none" };
+  if (!providerSourceQueueBelongsToProduct(queue, productSlug)) return { pending: false, status: "none" };
   if (queue.status === "pending") return { pending: true, status: "source_sent" };
   if (queue.status === "fetched") return { pending: true, status: "source_fetched" };
   if (queue.status === "imported") return { pending: false, status: "imported" };
@@ -24,6 +30,7 @@ function sourceDeliveryStatus(value: unknown, publicDeviceId: string) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = normalizeActivationCode(searchParams.get("code"));
+  const productSlug = resolveManagedAppSlug(searchParams.get("product") ?? searchParams.get("productSlug"));
 
   if (!isValidActivationCode(code)) {
     return json(
@@ -38,8 +45,9 @@ export async function GET(request: Request) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("activation_requests")
-    .select("id, public_device_id, device_code, status, expires_at, activated_at")
+    .select("id, public_device_id, device_code, product_slug, status, expires_at, activated_at")
     .eq("device_code", code)
+    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
     .maybeSingle();
 
   if (error) {
@@ -66,10 +74,11 @@ export async function GET(request: Request) {
       .eq("key", deviceSourceQueueSettingKey(data.public_device_id))
       .maybeSingle();
 
-    const source = sourceDeliveryStatus(sourceRow?.value, data.public_device_id);
+    const source = sourceDeliveryStatus(sourceRow?.value, data.public_device_id, productSlug);
     return json({
       status: "activated",
       code,
+      productSlug,
       publicDeviceId: data.public_device_id,
       activatedAt: data.activated_at,
       sourcePending: source.pending,
@@ -82,6 +91,7 @@ export async function GET(request: Request) {
     {
       status: "pending",
       code,
+      productSlug,
       expiresAt: data.expires_at,
       message: "Activation is waiting for confirmation.",
     },

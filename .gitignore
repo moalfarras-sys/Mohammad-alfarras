@@ -40,6 +40,7 @@ apps/moplayer-dashboard/dist/
 
 # Local QA screenshots / automation artifacts (not versioned)
 artifacts/
+output/
 current_state.png
 tv-emulator-login.png
 m3u_test_playlist.txt
@@ -58,6 +59,7 @@ _backups/
 **/*dump*.xml
 **/focus*.xml
 **/view*.xml
+!apps/moplayer-android/app/src/main/res/layout/view_*.xml
 **/window_dump*.xml
 **/home_*.png
 **/login_*.png
@@ -79,6 +81,7 @@ apps/moplayer2-android/.home-isolated/
 # QA UI dumps (optional local only)
 apps/moplayer-android/qa-screenshots/
 apps/moplayer2-android/qa-screenshots/
+apps/web/apps/
 
 # Docker compose files at the Android root are temporary
 apps/moplayer-android/docker-compose.yml

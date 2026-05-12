@@ -1,24 +1,39 @@
-# Android MoPlayer projects
+# Android Projects
 
-Both native clients live under **`apps/`** in this monorepo.
+Both native clients live under `apps/`.
 
-## `apps/moplayer-android` — production MoPlayer (TV / sideload)
+## MoPlayer Classic
 
-- **Open in Android Studio:** [`../apps/moplayer-android`](../apps/moplayer-android)
-- **applicationId:** `com.mo.moplayer`
-- **Gradle project name:** `MoPlayerapp`
-- Integrated with website downloads, `npm run release:moplayer`, and `scripts/publish-android-release.mjs`.
+- Path: `apps/moplayer-android`
+- Public name: `MoPlayer`
+- Internal slug: `moplayer`
+- Android application ID: `com.mo.moplayer`
+- Release task: `assembleSideloadRelease -PincludeX86Abis=true`
+- Published APK folder: `apps/web/public/downloads/moplayer`
 
-## `apps/moplayer2-android` — MoPlayer2 (Compose)
+Classic QR links must use:
 
-- **Open in Android Studio:** [`../apps/moplayer2-android`](../apps/moplayer2-android)
-- **applicationId:** `com.moalfarras.moplayer2`
-- **Gradle project name:** `MoPlayer2`
-- Kotlin + Compose stack; pairs with the public product page **`/{locale}/apps/moplayer2`** and admin slug `moplayer2`.
-- Was previously kept **outside** the repo as `moplayer2/`; it is now **inside** the monorepo for a single clear tree.
+```text
+https://moalfarras.space/activate?code=MO-XXXX
+```
 
-The two apps **do not share** the same `applicationId` — you can install both on one device for testing.
+## MoPlayer Pro
 
-## Optional Vite dashboard
+- Path: `apps/moplayer2-android`
+- Public name: `MoPlayer Pro`
+- Internal slug: `moplayer2`
+- Android application ID: `com.moalfarras.moplayerpro`
+- Release task: `assembleRelease`
+- Published APK: `apps/web/public/downloads/moplayer2/app-release.apk`
 
-The cross-app MoPlayer admin SPA is **`apps/moplayer-dashboard`**, not inside either Android folder.
+Pro QR links must use:
+
+```text
+https://moalfarras.space/activate?product=moplayer2&code=MO-XXXX
+```
+
+Keep `moplayer2` as the slug in code and database rows. Only visible labels should say `MoPlayer Pro`.
+
+## Optional Dashboard
+
+`apps/moplayer-dashboard` is a separate Vite app and is not part of either Android project.

@@ -19,25 +19,48 @@ const meta = {
   },
 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ product?: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const copy = meta[locale];
+
+  const { product = "" } = await searchParams;
+  const isPro = product === "moplayer2";
+  const copy =
+    isPro && locale === "ar"
+      ? {
+          title: "تفعيل MoPlayer Pro | moalfarras.space",
+          description: "أكد كود التلفاز وأرسل مصدر M3U أو Xtream إلى MoPlayer Pro.",
+        }
+      : isPro
+        ? {
+            title: "Activate MoPlayer Pro | moalfarras.space",
+            description: "Confirm your TV code and send an M3U or Xtream source to MoPlayer Pro.",
+          }
+        : meta[locale];
+  const suffix = isPro ? "?product=moplayer2" : "";
+  const canonical = `${SITE_URL}/${locale}/activate${suffix}`;
+
   return {
     title: copy.title,
     description: copy.description,
     alternates: {
-      canonical: `${SITE_URL}/${locale}/activate`,
+      canonical,
       languages: {
-        ar: `${SITE_URL}/ar/activate`,
-        en: `${SITE_URL}/en/activate`,
-        "x-default": `${SITE_URL}/en/activate`,
+        ar: `${SITE_URL}/ar/activate${suffix}`,
+        en: `${SITE_URL}/en/activate${suffix}`,
+        "x-default": `${SITE_URL}/en/activate${suffix}`,
       },
     },
     openGraph: {
       title: copy.title,
       description: copy.description,
-      url: `${SITE_URL}/${locale}/activate`,
+      url: canonical,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       images: [{ url: "/images/moplayer-activation-flow.webp", width: 1600, height: 900, alt: copy.title }],
@@ -50,10 +73,17 @@ export default async function ActivateRoute({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ code?: string; device_code?: string }>;
+  searchParams: Promise<{ code?: string; device_code?: string; product?: string }>;
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const { code = "", device_code = "" } = await searchParams;
-  return <MoPlayerActivationPage locale={locale as Locale} initialCode={code || device_code} />;
+  const { code = "", device_code = "", product = "" } = await searchParams;
+
+  return (
+    <MoPlayerActivationPage
+      locale={locale as Locale}
+      initialCode={code || device_code}
+      productSlug={product === "moplayer2" ? "moplayer2" : "moplayer"}
+    />
+  );
 }

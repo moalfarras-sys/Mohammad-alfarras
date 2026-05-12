@@ -63,7 +63,9 @@ interface ServerDao {
             allowedOutputFormats = :allowedOutputFormats,
             timezone = :timezone,
             serverMessage = :serverMessage,
-            lastSyncSource = :lastSyncSource
+            lastSyncSource = :lastSyncSource,
+            epgUrl = :epgUrl,
+            sourceKey = :sourceKey
         WHERE id = :serverId
         """
     )
@@ -78,6 +80,8 @@ interface ServerDao {
         timezone: String,
         serverMessage: String,
         lastSyncSource: String,
+        epgUrl: String,
+        sourceKey: String,
     )
 
     @Query("DELETE FROM servers WHERE id = :serverId")
@@ -86,8 +90,25 @@ interface ServerDao {
 
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories WHERE serverId = :serverId AND type = :type ORDER BY sortOrder, name")
+    @Query("SELECT * FROM categories WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type ORDER BY serverId, sortOrder, name")
     fun observe(serverId: Long, type: ContentType): Flow<List<CategoryEntity>>
+
+    @Query(
+        """
+        SELECT * FROM categories
+        WHERE (:serverId <= 0 OR serverId = :serverId)
+            AND type = :type
+            AND EXISTS (
+                SELECT 1 FROM media
+                WHERE media.serverId = categories.serverId
+                    AND media.type = categories.type
+                    AND media.categoryId = categories.id
+                    AND (:hideNoLogo = 0 OR media.posterUrl != '')
+            )
+        ORDER BY sortOrder, name
+        """
+    )
+    fun observeNonEmpty(serverId: Long, type: ContentType, hideNoLogo: Boolean): Flow<List<CategoryEntity>>
 
     @Upsert
     suspend fun upsertAll(items: List<CategoryEntity>)
@@ -101,35 +122,107 @@ interface CategoryDao {
 
 @Dao
 interface MediaDao {
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type = :type ORDER BY serverOrder, title COLLATE NOCASE")
-    fun observeByTypePaging(serverId: Long, type: ContentType): androidx.paging.PagingSource<Int, MediaEntity>
+    @Query(
+        """
+        SELECT * FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId)
+            AND type = :type
+            AND (:hideNoLogo = 0 OR posterUrl != '')
+        ORDER BY
+            CASE WHEN :sortOption = 'LATEST_ADDED' THEN CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END END DESC,
+            CASE WHEN :sortOption = 'TITLE_ASC' THEN title ELSE '' END COLLATE NOCASE ASC,
+            CASE WHEN :sortOption = 'TITLE_DESC' THEN title ELSE '' END COLLATE NOCASE DESC,
+            CASE WHEN :sortOption = 'RECENTLY_WATCHED' THEN lastPlayedAt END DESC,
+            CASE WHEN :sortOption = 'FAVORITES_FIRST' THEN isFavorite END DESC,
+            CASE WHEN :sortOption = 'RATING' THEN CAST(rating AS REAL) END DESC,
+            serverId ASC,
+            serverOrder ASC,
+            title COLLATE NOCASE ASC
+        """
+    )
+    fun observeByTypePaging(
+        serverId: Long,
+        type: ContentType,
+        sortOption: String,
+        hideNoLogo: Boolean,
+    ): androidx.paging.PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type = :type ORDER BY serverOrder, title COLLATE NOCASE")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type ORDER BY serverId, serverOrder, title COLLATE NOCASE")
     fun pagingByType(serverId: Long, type: ContentType): PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type = :type AND categoryId = :categoryId ORDER BY serverOrder, title COLLATE NOCASE")
+    @Query(
+        """
+        SELECT * FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId)
+            AND type = 'LIVE'
+            AND (:categoryId = '' OR categoryId = :categoryId)
+            AND (:hideNoLogo = 0 OR posterUrl != '')
+        ORDER BY
+            CASE WHEN :sortOption = 'LATEST_ADDED' THEN CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END END DESC,
+            CASE WHEN :sortOption = 'TITLE_ASC' THEN title ELSE '' END COLLATE NOCASE ASC,
+            CASE WHEN :sortOption = 'TITLE_DESC' THEN title ELSE '' END COLLATE NOCASE DESC,
+            CASE WHEN :sortOption = 'RECENTLY_WATCHED' THEN lastPlayedAt END DESC,
+            CASE WHEN :sortOption = 'FAVORITES_FIRST' THEN isFavorite END DESC,
+            CASE WHEN :sortOption = 'RATING' THEN CAST(rating AS REAL) END DESC,
+            serverId ASC,
+            serverOrder ASC,
+            title COLLATE NOCASE ASC
+        """
+    )
+    fun observeLiveZapItems(
+        serverId: Long,
+        categoryId: String,
+        sortOption: String,
+        hideNoLogo: Boolean,
+    ): Flow<List<MediaEntity>>
+
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND categoryId = :categoryId ORDER BY serverId, serverOrder, title COLLATE NOCASE")
     fun observeByCategory(serverId: Long, type: ContentType, categoryId: String): Flow<List<MediaEntity>>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type = :type AND categoryId = :categoryId ORDER BY serverOrder, title COLLATE NOCASE")
-    fun observeByCategoryPaging(serverId: Long, type: ContentType, categoryId: String): androidx.paging.PagingSource<Int, MediaEntity>
+    @Query(
+        """
+        SELECT * FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId)
+            AND type = :type
+            AND categoryId = :categoryId
+            AND (:hideNoLogo = 0 OR posterUrl != '')
+        ORDER BY
+            CASE WHEN :sortOption = 'LATEST_ADDED' THEN CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END END DESC,
+            CASE WHEN :sortOption = 'TITLE_ASC' THEN title ELSE '' END COLLATE NOCASE ASC,
+            CASE WHEN :sortOption = 'TITLE_DESC' THEN title ELSE '' END COLLATE NOCASE DESC,
+            CASE WHEN :sortOption = 'RECENTLY_WATCHED' THEN lastPlayedAt END DESC,
+            CASE WHEN :sortOption = 'FAVORITES_FIRST' THEN isFavorite END DESC,
+            CASE WHEN :sortOption = 'RATING' THEN CAST(rating AS REAL) END DESC,
+            serverId ASC,
+            serverOrder ASC,
+            title COLLATE NOCASE ASC
+        """
+    )
+    fun observeByCategoryPaging(
+        serverId: Long,
+        type: ContentType,
+        categoryId: String,
+        sortOption: String,
+        hideNoLogo: Boolean,
+    ): androidx.paging.PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type IN (:types) ORDER BY CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END DESC, serverOrder ASC")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type IN (:types) ORDER BY CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END DESC, serverId ASC, serverOrder ASC")
     fun observeLatestPaging(serverId: Long, types: List<ContentType>): androidx.paging.PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND isFavorite = 1 ORDER BY updatedAt DESC")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND isFavorite = 1 ORDER BY updatedAt DESC")
     fun observeFavoritesPaging(serverId: Long): androidx.paging.PagingSource<Int, MediaEntity>
 
 
     @Query("SELECT * FROM media WHERE serverId = :serverId AND seriesId = :seriesId AND type = 'EPISODE' ORDER BY seasonNumber, episodeNumber, title")
     fun observeEpisodes(serverId: Long, seriesId: String): Flow<List<MediaEntity>>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type != 'LIVE' AND watchPositionMs > 0 AND watchDurationMs > 0 ORDER BY lastPlayedAt DESC, updatedAt DESC")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type != 'LIVE' AND watchPositionMs > 0 AND watchDurationMs > 0 ORDER BY lastPlayedAt DESC, updatedAt DESC")
     fun observeContinueWatchingPaging(serverId: Long): PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND type = :type AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC")
     fun observeRecentlyPlayedPaging(serverId: Long, type: ContentType): PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE serverId = :serverId AND title LIKE :query ESCAPE '\\' ORDER BY CASE WHEN lastPlayedAt > 0 THEN 0 ELSE 1 END, title COLLATE NOCASE")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND title LIKE :query ESCAPE '\\' ORDER BY CASE WHEN lastPlayedAt > 0 THEN 0 ELSE 1 END, serverId ASC, title COLLATE NOCASE")
     fun searchPaging(serverId: Long, query: String): PagingSource<Int, MediaEntity>
 
     @Query("SELECT * FROM media WHERE serverId = :serverId AND type = 'LIVE' AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC LIMIT 1")
@@ -256,7 +349,7 @@ interface SyncStateDao {
         EpgProgramEntity::class,
         SyncStateEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(MoConverters::class)
@@ -320,7 +413,7 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         fun get(context: Context): MoPlayerDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(context, MoPlayerDatabase::class.java, "moplayer.db")
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
                     .build()
                     .also { instance = it }
@@ -478,6 +571,14 @@ abstract class MoPlayerDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE media ADD COLUMN lastPlayedAt INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_media_serverId_type_lastPlayedAt ON media(serverId, type, lastPlayedAt)")
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE servers ADD COLUMN epgUrl TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE servers ADD COLUMN sourceKey TEXT NOT NULL DEFAULT ''")
+                db.execSQL("UPDATE servers SET sourceKey = 'server:' || id WHERE sourceKey = ''")
             }
         }
     }

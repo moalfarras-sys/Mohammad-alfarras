@@ -95,7 +95,10 @@ data class WeatherResponseDto(
 )
 
 @Serializable
-data class WeatherLocationDto(val name: String = "")
+data class WeatherLocationDto(
+    val name: String = "",
+    @SerialName("tz_id") val tzId: String = "",
+)
 
 @Serializable
 data class WeatherCurrentDto(
@@ -135,6 +138,7 @@ data class ActivationCodeDto(
     val username: String = "",
     val password: String = "",
     @SerialName("playlist_url") val playlistUrl: String = "",
+    @SerialName("epg_url") val epgUrl: String = "",
     @SerialName("expires_at") val expiresAt: String? = null,
     val revoked: Boolean = false,
 )
@@ -174,6 +178,7 @@ data class DeviceActivationDto(
     val username: String = "",
     val password: String = "",
     @SerialName("playlist_url") val playlistUrl: String = "",
+    @SerialName("epg_url") val epgUrl: String = "",
     @SerialName("expires_at") val expiresAt: String = "",
     @SerialName("activated_at") val activatedAt: String? = null,
     @SerialName("consumed_at") val consumedAt: String? = null,
@@ -189,6 +194,7 @@ data class WebActivationCreateRequestDto(
     val platform: String = "android",
     val appVersion: String = "",
     val sourcePullToken: String,
+    val productSlug: String = "moplayer2",
 )
 
 @Serializable
@@ -227,4 +233,30 @@ data class WebProviderSourceDto(
     val password: String = "",
     val playlistUrl: String = "",
     val epgUrl: String = "",
+)
+
+@Serializable
+data class WatchProgressDto(
+    @SerialName("source_key") val sourceKey: String = "",
+    @SerialName("media_id") val mediaId: String = "",
+    @SerialName("media_type") val mediaType: String = "",
+    @SerialName("position_ms") val positionMs: Long = 0,
+    @SerialName("duration_ms") val durationMs: Long = 0,
+    @SerialName("updated_at_ms") val updatedAtMs: Long = 0,
+    @SerialName("device_id") val deviceId: String = "",
+)
+
+@Serializable
+data class RemoteCommandDto(
+    val id: String = "",
+    @SerialName("device_id") val deviceId: String = "",
+    val command: String = "",
+    val payload: String = "",
+    val status: String = "pending",
+    @SerialName("created_at") val createdAt: String = "",
+)
+
+@Serializable
+data class RemoteCommandAckDto(
+    val status: String = "handled",
 )

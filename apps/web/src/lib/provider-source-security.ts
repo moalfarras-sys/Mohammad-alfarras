@@ -21,6 +21,7 @@ export type ProviderSourceTestResult = {
   ok: boolean;
   message: string;
   details?: Record<string, unknown>;
+  normalizedSource?: ProviderSourcePayload;
 };
 
 export type ProviderSourceQueueStatus = "pending" | "fetched" | "imported" | "failed" | "revoked";
@@ -41,6 +42,7 @@ export type ProviderSourceQueueValue = {
   importedAt?: string;
   failedAt?: string;
   failureMessage?: string;
+  productSlug?: string;
 };
 
 const ENCRYPTION_PREFIX = "aes-256-gcm:v1";
@@ -59,7 +61,10 @@ function encryptionKey() {
 }
 
 function normalizeHttpUrl(value: unknown, fieldName: string) {
-  const raw = String(value ?? "").trim();
+  let raw = String(value ?? "").trim();
+  if (raw && !/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) {
+    raw = `http://${raw}`;
+  }
   let url: URL;
   try {
     url = new URL(raw);
@@ -178,6 +183,14 @@ export function deviceSourceQueueSettingKey(publicDeviceId: string) {
   return `moplayer_device_source:${deviceSettingHash(publicDeviceId)}`;
 }
 
+export function providerSourceQueueBelongsToProduct(
+  queue: Partial<ProviderSourceQueueValue> | null | undefined,
+  productSlug: string,
+) {
+  const queueProduct = queue?.productSlug ?? "moplayer";
+  return queueProduct === productSlug;
+}
+
 export function normalizeSourcePullToken(value: unknown) {
   return String(value ?? "")
     .trim()
@@ -197,6 +210,11 @@ function xtreamApiUrl(serverUrl: string, username: string, password: string) {
   url.searchParams.set("username", username);
   url.searchParams.set("password", password);
   return url;
+}
+
+function insecureFallbackSource(payload: ProviderSourcePayload): ProviderSourcePayload | null {
+  if (payload.type !== "xtream" || !payload.serverUrl.startsWith("https://")) return null;
+  return { ...payload, serverUrl: payload.serverUrl.replace(/^https:\/\//i, "http://") };
 }
 
 async function readLimitedText(response: Response, maxBytes = MAX_TEST_BYTES) {
@@ -221,38 +239,47 @@ async function readLimitedText(response: Response, maxBytes = MAX_TEST_BYTES) {
 
 export async function testProviderSource(payload: ProviderSourcePayload): Promise<ProviderSourceTestResult> {
   if (payload.type === "xtream") {
-    const timeout = withTimeout(12_000);
-    try {
-      const response = await fetch(xtreamApiUrl(payload.serverUrl, payload.username, payload.password), {
-        signal: timeout.controller.signal,
-        headers: { accept: "application/json" },
-        cache: "no-store",
-      });
-      const text = await response.text();
-      if (!response.ok) {
-        return { ok: false, message: `Server responded with HTTP ${response.status}.` };
+    const candidates = [payload, insecureFallbackSource(payload)].filter(Boolean) as ProviderSourcePayload[];
+    for (const candidate of candidates) {
+      if (candidate.type !== "xtream") continue;
+      const timeout = withTimeout(12_000);
+      try {
+        const response = await fetch(xtreamApiUrl(candidate.serverUrl, candidate.username, candidate.password), {
+          signal: timeout.controller.signal,
+          headers: { accept: "application/json" },
+          cache: "no-store",
+        });
+        const text = await response.text();
+        if (!response.ok) {
+          if (candidate === candidates[candidates.length - 1]) return { ok: false, message: `Server responded with HTTP ${response.status}.` };
+          continue;
+        }
+        const json = JSON.parse(text) as { user_info?: { auth?: number; status?: string; exp_date?: string; message?: string } };
+        const userInfo = json.user_info;
+        if (userInfo?.auth !== 1) {
+          return { ok: false, message: userInfo?.message || "Xtream credentials were not accepted." };
+        }
+        if (String(userInfo.status ?? "").toLowerCase() === "expired") {
+          return { ok: false, message: "Xtream account appears to be expired." };
+        }
+        return {
+          ok: true,
+          message: "Xtream connection works.",
+          normalizedSource: candidate,
+          details: {
+            status: userInfo.status ?? "active",
+            expDate: userInfo.exp_date ?? null,
+          },
+        };
+      } catch (error) {
+        if (candidate === candidates[candidates.length - 1]) {
+          return { ok: false, message: error instanceof Error && error.name === "AbortError" ? "Server timeout." : "Could not test Xtream connection." };
+        }
+      } finally {
+        timeout.done();
       }
-      const json = JSON.parse(text) as { user_info?: { auth?: number; status?: string; exp_date?: string; message?: string } };
-      const userInfo = json.user_info;
-      if (userInfo?.auth !== 1) {
-        return { ok: false, message: userInfo?.message || "Xtream credentials were not accepted." };
-      }
-      if (String(userInfo.status ?? "").toLowerCase() === "expired") {
-        return { ok: false, message: "Xtream account appears to be expired." };
-      }
-      return {
-        ok: true,
-        message: "Xtream connection works.",
-        details: {
-          status: userInfo.status ?? "active",
-          expDate: userInfo.exp_date ?? null,
-        },
-      };
-    } catch (error) {
-      return { ok: false, message: error instanceof Error && error.name === "AbortError" ? "Server timeout." : "Could not test Xtream connection." };
-    } finally {
-      timeout.done();
     }
+    return { ok: false, message: "Could not test Xtream connection." };
   }
 
   const timeout = withTimeout(12_000);
@@ -278,6 +305,7 @@ export async function testProviderSource(payload: ProviderSourcePayload): Promis
     return {
       ok: true,
       message: "M3U playlist is reachable.",
+      normalizedSource: payload,
       details: {
         sampleBytes: sample.length,
         hasM3uHeader,

@@ -122,6 +122,7 @@ export type AppDevice = {
 export type ActivationRequest = {
   id: string;
   public_device_id: string;
+  product_slug?: string | null;
   device_code: string;
   status: "waiting" | "activated" | "expired" | "failed";
   expires_at: string;
@@ -143,6 +144,7 @@ export type AppLicense = {
 export type DeviceProviderSourceQueue = {
   id: string;
   publicDeviceId: string;
+  productSlug?: string;
   sourceType: "xtream" | "m3u";
   displayName: string;
   status: "pending" | "fetched" | "imported" | "failed" | "revoked";

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
+import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
   const response = NextResponse.json(body, init);
@@ -10,14 +11,15 @@ function json(body: unknown, init?: ResponseInit) {
 }
 
 export async function POST(request: Request) {
-  let body: { code?: string; deviceName?: string } = {};
+  let body: { code?: string; deviceName?: string; productSlug?: string; product_slug?: string } = {};
   try {
-    body = (await request.json()) as { code?: string; deviceName?: string };
+    body = (await request.json()) as typeof body;
   } catch {
     return json({ status: "invalid", message: "Invalid JSON body." }, { status: 400 });
   }
 
   const code = normalizeActivationCode(body.code);
+  const productSlug = resolveManagedAppSlug(body.productSlug ?? body.product_slug);
   if (!isValidActivationCode(code)) {
     return json({ status: "invalid", message: "Invalid activation code format." }, { status: 400 });
   }
@@ -25,8 +27,9 @@ export async function POST(request: Request) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("activation_requests")
-    .select("id, public_device_id, status, expires_at")
+    .select("id, public_device_id, product_slug, status, expires_at")
     .eq("device_code", code)
+    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
     .maybeSingle();
 
   if (error) {
@@ -78,6 +81,7 @@ export async function POST(request: Request) {
   return json({
     status: "activated",
     code,
+    productSlug,
     publicDeviceId: data.public_device_id,
     activatedAt: now,
   });

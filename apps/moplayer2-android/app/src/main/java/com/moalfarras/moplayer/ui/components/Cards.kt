@@ -12,13 +12,17 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -32,6 +36,7 @@ import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
+import kotlinx.coroutines.delay
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA POSTER — Premium Glass Card
@@ -43,6 +48,7 @@ fun MediaPoster(
     onClick: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit = {},
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -51,6 +57,7 @@ fun MediaPoster(
             .width(tv.posterWidth)
             .aspectRatio(0.68f),
         cornerRadius = tv.cardRadius,
+        focusRequester = focusRequester,
         onFocused = { onFocus(item) },
         onClick = { onClick(item) },
         onTripleOk = { onFavorite(item) },
@@ -71,10 +78,10 @@ fun MediaPoster(
                         .fillMaxSize()
                         .clip(RoundedCornerShape(tv.cardRadius - 6.dp))
                         .background(
-                            Brush.radialGradient(
+                            Brush.verticalGradient(
                                 listOf(
-                                    visuals.accentB.copy(alpha = 0.22f),
-                                    Color(0xBB131110),
+                                    visuals.surfaceHigh,
+                                    visuals.surface,
                                 ),
                             ),
                         )
@@ -134,8 +141,8 @@ fun MediaPoster(
                             .background(
                                 Brush.horizontalGradient(
                                     listOf(
-                                        Color(0xFFFF1744),
-                                        Color(0xFFFF5252),
+                                        visuals.live,
+                                        visuals.error,
                                     ),
                                 ),
                             )
@@ -146,9 +153,40 @@ fun MediaPoster(
                             color = Color.White,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 0.5.sp,
+                                letterSpacing = 0.sp,
                             ),
                         )
+                    }
+                }
+
+                if (item.type == ContentType.LIVE && item.catchup.isNotBlank()) {
+                    Box(
+                        Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = (8 * tv.factor).dp, top = (34 * tv.factor).dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(visuals.surfaceHigh.copy(alpha = 0.86f))
+                            .border(0.7.dp, visuals.accent.copy(alpha = 0.34f), RoundedCornerShape(999.dp))
+                            .padding(horizontal = (8 * tv.factor).dp, vertical = (4 * tv.factor).dp),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Rounded.Update,
+                                null,
+                                tint = visuals.accent,
+                                modifier = Modifier.size((10 * tv.factor).dp),
+                            )
+                            Text(
+                                "أرشيف",
+                                color = visuals.textPrimary,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 }
 
@@ -244,10 +282,10 @@ fun ChannelRow(
                         .size((40 * tv.factor).dp)
                         .clip(RoundedCornerShape((12 * tv.factor).dp))
                         .background(
-                            Brush.radialGradient(
+                            Brush.verticalGradient(
                                 listOf(
-                                    visuals.accentB.copy(alpha = 0.30f),
-                                    Color(0x881E1A16),
+                                    visuals.surfaceHigh.copy(alpha = 0.96f),
+                                    visuals.surface.copy(alpha = 0.88f),
                                 )
                             )
                         )
@@ -269,7 +307,7 @@ fun ChannelRow(
                         Icon(
                             Icons.Rounded.Tv,
                             null,
-                            tint = visuals.accent.copy(alpha = 0.70f),
+                            tint = visuals.accent.copy(alpha = 0.76f),
                             modifier = Modifier.size((20 * tv.factor).dp),
                         )
                     }
@@ -282,6 +320,34 @@ fun ChannelRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
+                if (item.type == ContentType.LIVE && item.catchup.isNotBlank()) {
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(visuals.accent.copy(alpha = 0.12f))
+                            .border(0.7.dp, visuals.accent.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
+                            .padding(horizontal = (9 * tv.factor).dp, vertical = (5 * tv.factor).dp),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Rounded.Update,
+                                null,
+                                tint = visuals.accent,
+                                modifier = Modifier.size((13 * tv.factor).dp),
+                            )
+                            Text(
+                                "أرشيف",
+                                color = visuals.textPrimary,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
                 if (item.isFavorite) {
                     Icon(
                         Icons.Rounded.Favorite,
@@ -321,14 +387,23 @@ fun MediaLane(
     onClick: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit = {},
     modifier: Modifier = Modifier,
+    restoreFocusTarget: MediaItem? = null,
 ) {
     val tv = rememberTvScale()
     if (items.isEmpty()) return
     Column(modifier, verticalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
         GlassSectionTitle(title)
         LazyRow(horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
-            items(items, key = { "${it.type}-${it.id}" }) { item ->
-                MediaPoster(item, onFocus, onClick, onFavorite)
+            items(items, key = { "${it.type}-${it.serverId}-${it.id}" }) { item ->
+                val rowFocus = remember(item.id, item.type, item.serverId) { FocusRequester() }
+                val isRestore = restoreFocusTarget.matchesLaneFocus(item)
+                LaunchedEffect(restoreFocusTarget, items.size, item.id) {
+                    if (isRestore) {
+                        delay(80)
+                        runCatching { rowFocus.requestFocus() }
+                    }
+                }
+                MediaPoster(item, onFocus, onClick, onFavorite, focusRequester = rowFocus)
             }
         }
     }
@@ -363,7 +438,7 @@ private fun GlassSectionTitle(title: String) {
             title,
             color = Color.White,
             style = (if (tv.isLowHeightLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge)
-                .copy(fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp),
+                .copy(fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
         )
     }
 }
@@ -427,3 +502,6 @@ fun SurpriseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         }
     }
 }
+
+private fun MediaItem?.matchesLaneFocus(item: MediaItem): Boolean =
+    this != null && id == item.id && type == item.type && serverId == item.serverId

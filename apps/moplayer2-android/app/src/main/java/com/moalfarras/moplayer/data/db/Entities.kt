@@ -26,6 +26,8 @@ data class ServerEntity(
     val timezone: String,
     val serverMessage: String,
     val lastSyncSource: String,
+    val epgUrl: String,
+    val sourceKey: String,
 )
 
 @Entity(

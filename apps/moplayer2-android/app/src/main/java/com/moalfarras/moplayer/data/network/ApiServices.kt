@@ -1,5 +1,6 @@
 package com.moalfarras.moplayer.data.network
 
+import kotlinx.serialization.Serializable
 import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -154,4 +155,75 @@ interface SupabaseService {
         @Query("device_code") deviceCodeEq: String,
         @Body body: DeviceActivationUpdateDto,
     ): ResponseBody
+
+    @POST("rest/v1/watch_progress")
+    suspend fun upsertWatchProgress(
+        @Header("apikey") anonKey: String,
+        @Header("Authorization") bearer: String?,
+        @Header("Prefer") prefer: String = "resolution=merge-duplicates,return=minimal",
+        @Body body: WatchProgressDto,
+    ): ResponseBody
+
+    @GET("rest/v1/watch_progress")
+    suspend fun watchProgress(
+        @Header("apikey") anonKey: String,
+        @Header("Authorization") bearer: String?,
+        @Query("source_key") sourceKeyEq: String,
+        @Query("media_id") mediaIdEq: String,
+        @Query("media_type") mediaTypeEq: String,
+        @Query("select") select: String = "*",
+        @Query("order") order: String = "updated_at_ms.desc",
+        @Query("limit") limit: Int = 1,
+    ): List<WatchProgressDto>
+
+    @GET("rest/v1/remote_commands")
+    suspend fun pendingRemoteCommands(
+        @Header("apikey") anonKey: String,
+        @Header("Authorization") bearer: String?,
+        @Query("device_id") deviceIdEq: String,
+        @Query("status") statusEq: String = "eq.pending",
+        @Query("select") select: String = "*",
+        @Query("order") order: String = "created_at.asc",
+        @Query("limit") limit: Int = 20,
+    ): List<RemoteCommandDto>
+
+    @PATCH("rest/v1/remote_commands")
+    suspend fun acknowledgeRemoteCommand(
+        @Header("apikey") anonKey: String,
+        @Header("Authorization") bearer: String?,
+        @Header("Prefer") prefer: String = "return=minimal",
+        @Query("id") idEq: String,
+        @Body body: RemoteCommandAckDto = RemoteCommandAckDto(),
+    ): ResponseBody
+}
+
+@Serializable
+data class IpApiResponse(
+    val city: String = "غرفة الجلوس",
+    val lat: Double = 0.0,
+    val lon: Double = 0.0,
+    val timezone: String = java.time.ZoneId.systemDefault().id,
+)
+
+@Serializable
+data class OpenMeteoCurrent(
+    val temperature_2m: Double = 20.0,
+    val weather_code: Int = 0
+)
+
+@Serializable
+data class OpenMeteoResponse(
+    val current: OpenMeteoCurrent
+)
+
+interface FreeWeatherService {
+    @GET("http://ip-api.com/json/")
+    suspend fun getIpLocation(): IpApiResponse
+
+    @GET("https://api.open-meteo.com/v1/forecast")
+    suspend fun getWeather(
+        @Query("latitude") lat: Double,
+        @Query("longitude") lon: Double,
+        @Query("current") current: String = "temperature_2m,weather_code"
+    ): OpenMeteoResponse
 }

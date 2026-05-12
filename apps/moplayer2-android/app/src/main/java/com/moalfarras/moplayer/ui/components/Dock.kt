@@ -12,9 +12,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -31,6 +34,7 @@ private data class DockItem(val section: AppSection, val label: String, val icon
 @Composable
 fun BottomDock(
     selected: AppSection,
+    restoreFocusSection: AppSection? = null,
     onSelect: (AppSection) -> Unit,
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,
@@ -38,6 +42,7 @@ fun BottomDock(
     val tv = rememberTvScale()
     val scrollState = rememberScrollState()
     val items = listOf(
+        DockItem(AppSection.SEARCH, "بحث", Icons.Rounded.Search),
         DockItem(AppSection.HOME, "الرئيسية", Icons.Rounded.Home),
         DockItem(AppSection.LIVE, "بث مباشر", Icons.Rounded.LiveTv),
         DockItem(AppSection.MOVIES, "أفلام", Icons.Rounded.Movie),
@@ -46,10 +51,39 @@ fun BottomDock(
         DockItem(AppSection.SETTINGS, "الإعدادات", Icons.Rounded.Settings),
     )
 
+    val frSearch = remember { FocusRequester() }
+    val frHome = remember { FocusRequester() }
+    val frLive = remember { FocusRequester() }
+    val frMovies = remember { FocusRequester() }
+    val frSeries = remember { FocusRequester() }
+    val frFav = remember { FocusRequester() }
+    val frSettings = remember { FocusRequester() }
+
+    fun focusRequesterFor(section: AppSection): FocusRequester = when (section) {
+        AppSection.SEARCH -> frSearch
+        AppSection.HOME -> frHome
+        AppSection.LIVE -> frLive
+        AppSection.MOVIES -> frMovies
+        AppSection.SERIES, AppSection.SERIES_DETAIL -> frSeries
+        AppSection.FAVORITES -> frFav
+        AppSection.SETTINGS -> frSettings
+        else -> frHome
+    }
+
+    LaunchedEffect(restoreFocusSection) {
+        restoreFocusSection?.let {
+            kotlinx.coroutines.delay(80)
+            runCatching { focusRequesterFor(it).requestFocus() }
+        }
+    }
+
+    val visuals = LocalMoVisuals.current
     GlassPanel(
         modifier = modifier.fillMaxWidth(if (tv.isLowHeightLandscape) 0.68f else if (tv.isCompact) 0.86f else 0.72f),
         radius = 999.dp,
         highlighted = true,
+        blur = 20.dp,
+        glow = visuals.accent.copy(alpha = 0.08f),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -65,16 +99,25 @@ fun BottomDock(
                     AppSection.FAVORITES -> selected == AppSection.FAVORITES
                     else -> selected == item.section
                 }
-                DockButton(item, active, tv.factor) { onSelect(item.section) }
+                DockButton(
+                    item = item,
+                    active = active,
+                    factor = tv.factor,
+                    focusRequester = focusRequesterFor(item.section),
+                ) { if (item.section == AppSection.SEARCH) onSearch() else onSelect(item.section) }
             }
-            // Search button
-            DockButton(DockItem(AppSection.SEARCH, "بحث", Icons.Rounded.Search), selected == AppSection.SEARCH, tv.factor, onSearch)
         }
     }
 }
 
 @Composable
-private fun DockButton(item: DockItem, active: Boolean, factor: Float, onClick: () -> Unit) {
+private fun DockButton(
+    item: DockItem,
+    active: Boolean,
+    factor: Float,
+    focusRequester: FocusRequester,
+    onClick: () -> Unit,
+) {
     val visuals = LocalMoVisuals.current
     val activeWidth = if (factor < 1f) 96f else 112f * factor
     val idleWidth = if (factor < 1f) 42f else 48f * factor
@@ -102,6 +145,7 @@ private fun DockButton(item: DockItem, active: Boolean, factor: Float, onClick: 
             .graphicsLayer { translationY = lift.toPx(); scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(999.dp)),
         cornerRadius = 999.dp,
+        focusRequester = focusRequester,
         onClick = onClick,
     ) {
         Box(

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MoPlayer2"
+rootProject.name = "MoPlayerPro"
 include(":app")

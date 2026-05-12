@@ -10,6 +10,10 @@
       ]
     },
     {
+      "source": "/api/app/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
       "source": "/api/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "s-maxage=3600" }]
     }

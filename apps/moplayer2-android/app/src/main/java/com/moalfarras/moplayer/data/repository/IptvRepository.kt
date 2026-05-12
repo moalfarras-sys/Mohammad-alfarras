@@ -5,7 +5,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.moalfarras.moplayer.BuildConfig
+import com.moalfarras.moplayerpro.BuildConfig
 import com.moalfarras.moplayer.data.db.MoPlayerDatabase
 import com.moalfarras.moplayer.data.db.toDomain
 import com.moalfarras.moplayer.data.db.toEntity
@@ -17,6 +17,7 @@ import com.moalfarras.moplayer.data.network.DeviceActivationInsertDto
 import com.moalfarras.moplayer.data.network.DeviceActivationUpdateDto
 import com.moalfarras.moplayer.data.network.WebActivationCreateRequestDto
 import com.moalfarras.moplayer.data.network.WebProviderSourceDto
+import com.moalfarras.moplayer.data.network.WatchProgressDto
 import com.moalfarras.moplayer.data.parser.M3uParser
 import com.moalfarras.moplayer.domain.model.ActivatedProfile
 import com.moalfarras.moplayer.domain.model.Category
@@ -28,6 +29,7 @@ import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.domain.model.LoginKind
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.ServerProfile
+import com.moalfarras.moplayer.domain.model.SortOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -61,22 +63,56 @@ class IptvRepository(
     val servers: Flow<List<ServerProfile>> = database.serverDao().observeServers().map { list -> list.map { it.toDomain() } }
     val activeServer: Flow<ServerProfile?> = database.serverDao().observeActiveServer().map { it?.toDomain() }
 
-    fun categories(serverId: Long, type: ContentType): Flow<List<Category>> =
-        database.categoryDao().observe(serverId, type).map { it.map { entity -> entity.toDomain() } }
+    fun categories(
+        serverId: Long,
+        type: ContentType,
+        hideEmpty: Boolean = false,
+        hideNoLogo: Boolean = false,
+    ): Flow<List<Category>> {
+        val source = if (hideEmpty) {
+            database.categoryDao().observeNonEmpty(serverId, type, hideNoLogo)
+        } else {
+            database.categoryDao().observe(serverId, type)
+        }
+        return source.map { it.map { entity -> entity.toDomain() } }
+    }
 
-    fun mediaByCategory(serverId: Long, type: ContentType, categoryId: String): Flow<PagingData<MediaItem>> = Pager(
+    fun mediaByCategory(
+        serverId: Long,
+        type: ContentType,
+        categoryId: String,
+        sortOption: SortOption = SortOption.SERVER_ORDER,
+        hideNoLogo: Boolean = false,
+    ): Flow<PagingData<MediaItem>> = Pager(
         config = PagingConfig(pageSize = 50, enablePlaceholders = false),
-        pagingSourceFactory = { database.mediaDao().observeByCategoryPaging(serverId, type, categoryId) }
+        pagingSourceFactory = {
+            database.mediaDao().observeByCategoryPaging(serverId, type, categoryId, sortOption.name, hideNoLogo)
+        }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
 
-    fun mediaByType(serverId: Long, type: ContentType): Flow<PagingData<MediaItem>> = Pager(
+    fun mediaByType(
+        serverId: Long,
+        type: ContentType,
+        sortOption: SortOption = SortOption.SERVER_ORDER,
+        hideNoLogo: Boolean = false,
+    ): Flow<PagingData<MediaItem>> = Pager(
         config = PagingConfig(pageSize = 50, enablePlaceholders = false),
-        pagingSourceFactory = { database.mediaDao().observeByTypePaging(serverId, type) }
+        pagingSourceFactory = { database.mediaDao().observeByTypePaging(serverId, type, sortOption.name, hideNoLogo) }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
+
+    fun liveZapItems(
+        serverId: Long,
+        categoryId: String,
+        sortOption: SortOption = SortOption.SERVER_ORDER,
+        hideNoLogo: Boolean = false,
+    ): Flow<List<MediaItem>> =
+        database.mediaDao()
+            .observeLiveZapItems(serverId, categoryId, sortOption.name, hideNoLogo)
+            .map { list -> list.map { entity -> entity.toDomain() } }
 
     fun latestLive(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
         config = PagingConfig(pageSize = 50, enablePlaceholders = false),
@@ -204,6 +240,56 @@ class IptvRepository(
             else -> positionMs.coerceAtMost(safeDuration)
         }
         database.mediaDao().updateWatch(item.serverId, item.id, item.type, normalizedPosition, safeDuration, System.currentTimeMillis())
+        pushWatchProgress(item, normalizedPosition, safeDuration)
+    }
+
+    suspend fun syncWatchProgressFromCloud(item: MediaItem): MediaItem {
+        val service = supabaseService ?: return item
+        val server = database.serverDao().getServer(item.serverId)?.toDomain() ?: return item
+        val sourceKey = server.sourceKey.ifBlank { sourceKey(server.kind.name.lowercase(Locale.US), server.baseUrl.ifBlank { server.playlistUrl }) }
+        val remote = runCatching {
+            withContext(Dispatchers.IO) {
+                service.watchProgress(
+                    anonKey = BuildConfig.SUPABASE_ANON_KEY,
+                    bearer = supabaseBearer,
+                    sourceKeyEq = "eq.$sourceKey",
+                    mediaIdEq = "eq.${item.id}",
+                    mediaTypeEq = "eq.${item.type.name}",
+                ).firstOrNull()
+            }
+        }.getOrNull() ?: return item
+        if (remote.durationMs <= 0 || remote.positionMs <= 0) return item
+        val completion = remote.positionMs.toDouble() / remote.durationMs.toDouble()
+        if (completion >= 0.95) return item
+        if (remote.updatedAtMs <= item.lastPlayedAt && item.watchPositionMs > 0) return item
+        database.mediaDao().updateWatch(item.serverId, item.id, item.type, remote.positionMs, remote.durationMs, remote.updatedAtMs)
+        return item.copy(
+            watchPositionMs = remote.positionMs,
+            watchDurationMs = remote.durationMs,
+            lastPlayedAt = remote.updatedAtMs,
+        )
+    }
+
+    suspend fun pendingRemoteCommands(deviceId: String): List<com.moalfarras.moplayer.data.network.RemoteCommandDto> {
+        val service = supabaseService ?: return emptyList()
+        return withContext(Dispatchers.IO) {
+            service.pendingRemoteCommands(
+                anonKey = BuildConfig.SUPABASE_ANON_KEY,
+                bearer = supabaseBearer,
+                deviceIdEq = "eq.$deviceId",
+            )
+        }
+    }
+
+    suspend fun acknowledgeRemoteCommand(id: String) {
+        val service = supabaseService ?: return
+        withContext(Dispatchers.IO) {
+            service.acknowledgeRemoteCommand(
+                anonKey = BuildConfig.SUPABASE_ANON_KEY,
+                bearer = supabaseBearer,
+                idEq = "eq.$id",
+            ).close()
+        }
     }
 
     suspend fun lastWatchedLive(serverId: Long): MediaItem? =
@@ -246,11 +332,17 @@ class IptvRepository(
     }
 
     suspend fun refreshFullEpg(server: ServerProfile): Int {
-        if (server.kind != LoginKind.XTREAM) return 0
-        val api = xtreamFactory(server.baseUrl.ensureTrailingSlash())
         val parsed = runCatching {
             withContext(Dispatchers.IO) {
-                XtreamSupport.parseXmltv(server.id, api.xmltv(server.username, server.password).safeString())
+                val xml = when {
+                    server.kind == LoginKind.XTREAM -> {
+                        val api = xtreamFactory(server.baseUrl.ensureTrailingSlash())
+                        api.xmltv(server.username, server.password).safeString()
+                    }
+                    server.epgUrl.isNotBlank() -> playlistService.getText(server.epgUrl).safeString()
+                    else -> ""
+                }
+                if (xml.isBlank()) emptyList() else XtreamSupport.parseXmltv(server.id, xml)
             }
         }.getOrDefault(emptyList())
         if (parsed.isEmpty()) return 0
@@ -320,7 +412,7 @@ class IptvRepository(
         }
     }
 
-    fun loginM3u(name: String, playlistUrl: String): Flow<LoadProgress> = flow {
+    fun loginM3u(name: String, playlistUrl: String, epgUrl: String = ""): Flow<LoadProgress> = flow {
         val extracted = XtreamSupport.extractCredentialsFromPlaylistUrl(playlistUrl)
         if (extracted != null) {
             val xtreamResult = runCatching {
@@ -337,7 +429,7 @@ class IptvRepository(
             }
             emit(LoadProgress("Xtream unavailable, using playlist fallback", 8, 100))
         }
-        syncM3u(name, playlistUrl) { emit(it) }
+        syncM3u(name, playlistUrl, epgUrl = epgUrl) { emit(it) }
         emit(LoadProgress("Ready", 100, 100))
     }
 
@@ -369,7 +461,7 @@ class IptvRepository(
                 existingServerId = server.id,
             ) { emit(it) }
         } else {
-            syncM3u(server.name, server.playlistUrl, existingServerId = server.id) { emit(it) }
+            syncM3u(server.name, server.playlistUrl, existingServerId = server.id, epgUrl = server.epgUrl) { emit(it) }
         }
         emit(LoadProgress("Ready", 100, 100))
     }
@@ -401,6 +493,7 @@ class IptvRepository(
                 loginM3u(
                     name = activation.serverName.ifBlank { cleanCode },
                     playlistUrl = activation.playlistUrl.ifBlank { activation.baseUrl },
+                    epgUrl = activation.epgUrl,
                 ).collect { emit(it) }
             }
         }
@@ -418,12 +511,13 @@ class IptvRepository(
                     deviceName = deviceName.ifBlank { "Android TV" },
                     appVersion = BuildConfig.VERSION_NAME,
                     sourcePullToken = sourcePullToken,
+                    productSlug = BuildConfig.APP_PRODUCT_SLUG,
                 ),
             )
         }
         val webCode = webResponse.code.trim().uppercase(Locale.US)
         require(webCode.isNotBlank()) { webResponse.message.ifBlank { "Activation backend did not return a code" } }
-        val verificationUrl = BuildConfig.ACTIVATION_URL.substringBefore('?')
+        val verificationUrl = BuildConfig.ACTIVATION_URL
         val completeUrl = verificationUrl.withQueryParameter("code", webCode)
         val expiresAt = webResponse.expiresAt.parseInstantOr(
             System.currentTimeMillis() + webResponse.ttlSeconds.coerceAtLeast(60) * 1000L,
@@ -486,7 +580,13 @@ class IptvRepository(
         if (session.publicDeviceId.isNotBlank() && session.sourcePullToken.isNotBlank()) {
             val statusResponse = withContext(Dispatchers.IO) {
                 service.webDeviceActivationStatus(
-                    activationApiUrl("status", mapOf("code" to session.deviceCode)),
+                    activationApiUrl(
+                        "status",
+                        mapOf(
+                            "code" to session.deviceCode,
+                            "product" to BuildConfig.APP_PRODUCT_SLUG,
+                        ),
+                    ),
                 )
             }
             return when (statusResponse.status.lowercase(Locale.US)) {
@@ -498,6 +598,7 @@ class IptvRepository(
                                 mapOf(
                                     "publicDeviceId" to session.publicDeviceId,
                                     "token" to session.sourcePullToken,
+                                    "product" to BuildConfig.APP_PRODUCT_SLUG,
                                 ),
                             ),
                         )
@@ -568,6 +669,7 @@ class IptvRepository(
         name: String,
         playlistUrl: String,
         existingServerId: Long = 0,
+        epgUrl: String = "",
         progress: suspend (LoadProgress) -> Unit,
     ) {
         progress(LoadProgress("Connecting to M3U server", 0, 100))
@@ -579,24 +681,37 @@ class IptvRepository(
             playlistUrl = playlistUrl,
             host = XtreamSupport.hostLabel(playlistUrl),
             lastSyncSource = "m3u",
+            epgUrl = epgUrl.trim(),
+            sourceKey = sourceKey("m3u", playlistUrl),
         )
         val serverId = upsertServer(server)
         progress(LoadProgress("Downloading playlist", 18, 100))
         val body = withContext(Dispatchers.IO) { playlistService.getText(playlistUrl).safeString() }
         progress(LoadProgress("Parsing channels and VOD", 48, 100))
         val parsed = withContext(Dispatchers.Default) { parser.parse(serverId, body) }
+        progress(LoadProgress("Loading XMLTV guide", 62, 100))
+        val epgPrograms = if (epgUrl.isNotBlank()) {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    XtreamSupport.parseXmltv(serverId, playlistService.getText(epgUrl).safeString())
+                }
+            }.getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
+        val now = System.currentTimeMillis()
         val syncState = com.moalfarras.moplayer.data.db.SyncStateEntity(
             serverId = serverId,
             source = "m3u",
             status = "ready",
-            lastSyncAt = System.currentTimeMillis(),
-            liveSyncedAt = System.currentTimeMillis(),
-            vodSyncedAt = System.currentTimeMillis(),
-            seriesSyncedAt = System.currentTimeMillis(),
-            epgSyncedAt = 0,
+            lastSyncAt = now,
+            liveSyncedAt = now,
+            vodSyncedAt = now,
+            seriesSyncedAt = now,
+            epgSyncedAt = if (epgPrograms.isNotEmpty()) now else 0,
             lastError = "",
-            rawJson = """{"source":"m3u"}""",
-            updatedAt = System.currentTimeMillis(),
+            rawJson = """{"source":"m3u","epg":${epgPrograms.size}}""",
+            updatedAt = now,
         )
         progress(LoadProgress("Optimizing local library", 78, 100))
         withContext(Dispatchers.IO) {
@@ -607,11 +722,11 @@ class IptvRepository(
                 accountInfo = null,
                 serverInfo = null,
                 syncState = syncState,
-                epgPrograms = emptyList(),
+                epgPrograms = epgPrograms,
             )
             database.serverDao().updateRuntimeInfo(
                 serverId = serverId,
-                lastSyncAt = System.currentTimeMillis(),
+                lastSyncAt = now,
                 accountStatus = "",
                 expiryDate = 0,
                 activeConnections = 0,
@@ -620,6 +735,8 @@ class IptvRepository(
                 timezone = "",
                 serverMessage = "",
                 lastSyncSource = "m3u",
+                epgUrl = epgUrl.trim(),
+                sourceKey = sourceKey("m3u", playlistUrl),
             )
         }
     }
@@ -641,6 +758,7 @@ class IptvRepository(
             playlistUrl = sourceLabel,
             host = sourceName.ifBlank { "Local M3U" },
             lastSyncSource = "m3u-file",
+            sourceKey = sourceKey("m3u-file", sourceName),
         )
         val serverId = upsertServer(server)
         progress(LoadProgress("Parsing channels and VOD", 48, 100))
@@ -682,6 +800,8 @@ class IptvRepository(
                 timezone = "",
                 serverMessage = "",
                 lastSyncSource = "m3u-file",
+                epgUrl = "",
+                sourceKey = sourceKey("m3u-file", sourceName),
             )
         }
     }
@@ -705,6 +825,7 @@ class IptvRepository(
             playlistUrl = playlistUrl,
             host = XtreamSupport.hostLabel(credentials.baseUrl),
             lastSyncSource = sourceLabel,
+            sourceKey = sourceKey("xtream", "${credentials.baseUrl}|${credentials.username}"),
         )
         val serverId = upsertServer(server)
         val api = xtreamFactory(server.baseUrl)
@@ -735,6 +856,8 @@ class IptvRepository(
                 timezone = payload.serverInfo?.timezone.orEmpty(),
                 serverMessage = payload.serverInfo?.message.orEmpty(),
                 lastSyncSource = sourceLabel,
+                epgUrl = "",
+                sourceKey = sourceKey("xtream", "${server.baseUrl}|${server.username}"),
             )
         }
     }
@@ -820,8 +943,35 @@ class IptvRepository(
             server.toEntity().copy(
                 createdAt = server.createdAt.takeIf { it > 0 } ?: System.currentTimeMillis(),
                 host = server.host.ifBlank { XtreamSupport.hostLabel(server.baseUrl.ifBlank { server.playlistUrl }) },
+                sourceKey = server.sourceKey.ifBlank { sourceKey(server.kind.name.lowercase(Locale.US), server.baseUrl.ifBlank { server.playlistUrl }) },
             ),
         )
+    }
+
+    private suspend fun pushWatchProgress(item: MediaItem, positionMs: Long, durationMs: Long) {
+        val service = supabaseService ?: return
+        if (item.type == ContentType.LIVE || durationMs <= 0) return
+        val completion = positionMs.toDouble() / durationMs.toDouble()
+        if (completion >= 0.95) return
+        val server = database.serverDao().getServer(item.serverId)?.toDomain() ?: return
+        val sourceKey = server.sourceKey.ifBlank { sourceKey(server.kind.name.lowercase(Locale.US), server.baseUrl.ifBlank { server.playlistUrl }) }
+        runCatching {
+            withContext(Dispatchers.IO) {
+                service.upsertWatchProgress(
+                    anonKey = BuildConfig.SUPABASE_ANON_KEY,
+                    bearer = supabaseBearer,
+                    body = WatchProgressDto(
+                        sourceKey = sourceKey,
+                        mediaId = item.id,
+                        mediaType = item.type.name,
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        updatedAtMs = System.currentTimeMillis(),
+                        deviceId = runtimeDeviceId,
+                    ),
+                ).close()
+            }
+        }
     }
 
     private suspend fun playerApiObject(
@@ -874,6 +1024,12 @@ private fun secureToken(bytes: Int): String {
     return data.joinToString("") { "%02x".format(it) }
 }
 
+private fun sourceKey(kind: String, value: String): String {
+    val digest = java.security.MessageDigest.getInstance("SHA-1")
+        .digest("$kind:${value.trim().lowercase(Locale.US)}".toByteArray(StandardCharsets.UTF_8))
+    return "$kind:${digest.joinToString("") { "%02x".format(it) }}"
+}
+
 private fun shortUserCode(): String {
     val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return buildString {
@@ -891,6 +1047,8 @@ private fun publicDeviceId(): String {
         repeat(24) { append(alphabet[secureRandom.nextInt(alphabet.length)]) }
     }
 }
+
+private val runtimeDeviceId: String by lazy { publicDeviceId() }
 
 private fun activationApiUrl(path: String, query: Map<String, String> = emptyMap()): String {
     val origin = runCatching {
@@ -932,6 +1090,7 @@ private fun com.moalfarras.moplayer.data.network.DeviceActivationDto.toActivated
                 username = username,
                 password = password,
                 playlistUrl = playlistUrl,
+                epgUrl = epgUrl,
             )
         }
         "m3u", "m3u8" -> {
@@ -940,6 +1099,7 @@ private fun com.moalfarras.moplayer.data.network.DeviceActivationDto.toActivated
                 name = serverName.ifBlank { XtreamSupport.hostLabel(source) },
                 kind = LoginKind.M3U,
                 playlistUrl = source,
+                epgUrl = epgUrl,
             )
         }
         else -> null
@@ -956,6 +1116,7 @@ private fun WebProviderSourceDto.toActivatedProfile(): ActivatedProfile? {
                 username = username,
                 password = password,
                 playlistUrl = playlistUrl,
+                epgUrl = epgUrl,
             )
         }
         "m3u", "m3u8" -> {
@@ -964,6 +1125,7 @@ private fun WebProviderSourceDto.toActivatedProfile(): ActivatedProfile? {
                 name = name.ifBlank { XtreamSupport.hostLabel(source) },
                 kind = LoginKind.M3U,
                 playlistUrl = source,
+                epgUrl = epgUrl,
             )
         }
         else -> null

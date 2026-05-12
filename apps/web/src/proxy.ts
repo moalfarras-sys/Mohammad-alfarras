@@ -17,6 +17,13 @@ function localeFromPathname(pathname: string) {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host")?.toLowerCase();
+
+  if (host === "www.moalfarras.space") {
+    const url = request.nextUrl.clone();
+    url.hostname = "moalfarras.space";
+    return NextResponse.redirect(url, 308);
+  }
 
   if (
     pathname.startsWith("/_next") ||

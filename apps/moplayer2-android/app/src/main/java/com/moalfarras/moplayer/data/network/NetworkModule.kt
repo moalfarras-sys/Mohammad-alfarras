@@ -1,6 +1,6 @@
 package com.moalfarras.moplayer.data.network
 
-import com.moalfarras.moplayer.BuildConfig
+import com.moalfarras.moplayerpro.BuildConfig
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -34,6 +34,7 @@ object NetworkModule {
 
     val playlistService: PlaylistService by lazy { retrofit("https://example.com/").create(PlaylistService::class.java) }
     val weatherService: WeatherService by lazy { retrofit("https://api.weatherapi.com/").create(WeatherService::class.java) }
+    val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
     val footballService: FootballService by lazy {
         val client = okHttp.newBuilder()
             .addInterceptor { chain ->

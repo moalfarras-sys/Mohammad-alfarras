@@ -8,11 +8,13 @@ export async function GET(request: Request) {
   const ecosystem = await readAppEcosystem(product);
   const latest = ecosystem.releases[0] ?? null;
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     product: {
       slug: ecosystem.product.slug,
       name: ecosystem.product.product_name,
     },
     latestRelease: latest,
   });
+  response.headers.set("Cache-Control", "no-store");
+  return response;
 }

@@ -50,7 +50,7 @@ fun rememberTvScale(): TvScale {
                 dockPadding = (18 * factor).dp,
                 laneSpacing = (15 * factor).dp,
                 cardRadius = (18f * factor).coerceAtLeast(14f).dp,
-                posterWidth = (95 * factor).dp,
+                posterWidth = (164 * factor).dp,
                 panelPadding = (18 * factor).dp,
                 isTv = true,
                 isCompact = false,

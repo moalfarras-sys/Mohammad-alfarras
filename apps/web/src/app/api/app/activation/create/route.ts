@@ -9,6 +9,7 @@ import {
   normalizeSourcePullToken,
 } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
+import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 type CreateBody = {
   publicDeviceId?: string;
@@ -17,6 +18,7 @@ type CreateBody = {
   platform?: string;
   appVersion?: string;
   sourcePullToken?: string;
+  productSlug?: string;
 };
 
 function json(body: unknown, init?: ResponseInit) {
@@ -40,6 +42,7 @@ export async function POST(request: Request) {
 
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
+  const productSlug = resolveManagedAppSlug(body.productSlug);
   const sourcePullToken = normalizeSourcePullToken(body.sourcePullToken);
   const sourcePullTokenHash = sourcePullToken.length >= 32 ? hashSourcePullToken(sourcePullToken) : "";
 
@@ -85,6 +88,7 @@ export async function POST(request: Request) {
     .from("activation_requests")
     .update({ status: "expired", updated_at: now })
     .eq("public_device_id", publicDeviceId)
+    .eq("product_slug", productSlug)
     .eq("status", "waiting");
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -94,6 +98,7 @@ export async function POST(request: Request) {
       .from("activation_requests")
       .insert({
         public_device_id: publicDeviceId,
+        product_slug: productSlug,
         device_code: code,
         status: "waiting",
         expires_at: expiresAt,

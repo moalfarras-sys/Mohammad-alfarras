@@ -20,8 +20,8 @@ export const managedApps: ManagedAppDefinition[] = [
   },
   {
     slug: "moplayer2",
-    name: "MoPlayer2",
-    label: "MoPlayer2 New",
+    name: "MoPlayer Pro",
+    label: "MoPlayer Pro",
     route: "/apps/moplayer2",
     runtimeConfigKey: "moplayer2_public_config",
   },

@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.moalfarras.moplayer.R
+import com.moalfarras.moplayerpro.R
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PREMIUM FIERY GLASS — Warm Luxury Gold & Ember Palette
@@ -33,13 +33,64 @@ val EmberRose      = Color(0xFFFF6B6B)
 val WarmEspresso   = Color(0xFF1A120C)
 
 // Legacy aliases for backward compat
-val NeonCyan    = GlassChampagne
 val RoyalBlue   = FieryOrange
 val NeonViolet  = WarmAmber
 val LuxuryAmber = Color(0xFFFFD27A)
 
 val MidnightBlack = Color(0xFF0A0908)
 val DeepNavy      = Color(0xFF141110)
+val MoSurface     = Color(0xFF18130F)
+val MoSurfaceHigh = Color(0xFF241914)
+val MoTextPrimary = Color(0xFFF8F2EA)
+val MoTextMuted   = Color(0xFFCDBBA6)
+val MoLiveRed     = Color(0xFFFF3B4D)
+val MoSuccess     = Color(0xFF8BD88B)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DESIGN SYSTEM TOKENS — Spacing, Elevation, Radius, Motion
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Standardized spacing tokens for consistent padding/margins across components */
+object MoSpacing {
+    val xxs  = 2   // Micro gaps (between dots, inline)
+    val xs   = 4   // Tight gaps (icon-to-text)
+    val sm   = 8   // Small gaps (compact list items)
+    val md   = 12  // Medium (standard content spacing)
+    val lg   = 16  // Large (section spacing)
+    val xl   = 20  // Extra (panel padding)
+    val xxl  = 28  // Hero (screen edges)
+    val xxxl = 40  // Maximum (TV margin)
+}
+
+/** Shadow/elevation tokens for layered depth effects */
+object MoElevation {
+    val none  = 0   // Flat elements
+    val low   = 4   // Subtle hover/rest state
+    val mid   = 12  // Cards, panels
+    val high  = 24  // Modals, overlays
+    val ultra = 40  // Floating control islands
+}
+
+/** Corner radius tokens for consistent rounding */
+object MoRadius {
+    val xs    = 6   // Tiny chips, tags
+    val sm    = 10  // Buttons, input fields
+    val md    = 16  // Cards, panels
+    val lg    = 24  // Large panels, widgets
+    val xl    = 28  // Control islands
+    val pill  = 999 // Full pill shape (dock, capsules)
+}
+
+/** Motion duration/easing tokens */
+object MoMotion {
+    val instant   = 100  // Micro-interaction (press feedback)
+    val fast      = 200  // Quick transitions (fade, slide)
+    val standard  = 350  // Standard transitions (page, panel)
+    val slow      = 600  // Deliberate animations (morph, expand)
+    val ambient   = 3000 // Breathing/pulse ambient effects
+    val stiffness = 340f // Spring stiffness for dock/button animations
+    val damping   = 0.62f // Spring damping ratio
+}
 
 private val DisplayFamily = FontFamily(
     Font(R.font.manrope, FontWeight.ExtraBold),
@@ -56,16 +107,16 @@ private val BodyFamily = FontFamily(
 
 private fun colors(accent: Color): ColorScheme = darkColorScheme(
     primary            = accent,
-    secondary          = Color(0xFF241914),
-    tertiary           = Color(0xFF2E1F16),
+    secondary          = MoSurfaceHigh,
+    tertiary           = Color(0xFF2A1D15),
     background         = MidnightBlack,
-    surface            = Color(0x66241914),
+    surface            = MoSurface,
     surfaceVariant     = Color(0x22FFFFFF),
     onPrimary          = Color(0xFF0A0908),
-    onSecondary        = Color.White,
-    onBackground       = Color(0xFFF5E6D0),
-    onSurface          = Color.White,
-    onSurfaceVariant   = Color(0xFFBFA98E),
+    onSecondary        = MoTextPrimary,
+    onBackground       = MoTextPrimary,
+    onSurface          = MoTextPrimary,
+    onSurfaceVariant   = MoTextMuted,
     outline            = Color(0x33E3BC78),
     error              = Color(0xFFFF4D6D),
 )
@@ -103,6 +154,14 @@ data class MoVisuals(
     val accentC: Color = WarmAmber,
     /** Highlight warm */
     val accentWarm: Color = LuxuryAmber,
+    val background: Color = MidnightBlack,
+    val surface: Color = MoSurface,
+    val surfaceHigh: Color = MoSurfaceHigh,
+    val textPrimary: Color = MoTextPrimary,
+    val textMuted: Color = MoTextMuted,
+    val live: Color = MoLiveRed,
+    val success: Color = MoSuccess,
+    val error: Color = EmberRose,
 )
 
 val LocalMoVisuals = staticCompositionLocalOf { MoVisuals() }
@@ -125,7 +184,7 @@ fun MoTheme(
         }
     }
     
-    val clamped = accent.clampToWarmPalette()
+    val clamped = accent
     val visuals = MoVisuals(
         accent  = clamped,
         glass   = Color(0x66241914),
@@ -135,6 +194,14 @@ fun MoTheme(
         accentB = FieryOrange,
         accentC = WarmAmber,
         accentWarm = LuxuryAmber,
+        background = MidnightBlack,
+        surface = MoSurface,
+        surfaceHigh = MoSurfaceHigh,
+        textPrimary = MoTextPrimary,
+        textMuted = MoTextMuted,
+        live = MoLiveRed,
+        success = MoSuccess,
+        error = EmberRose,
     )
     
     androidx.compose.runtime.CompositionLocalProvider(LocalMoVisuals provides visuals) {

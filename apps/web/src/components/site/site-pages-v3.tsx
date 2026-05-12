@@ -144,14 +144,14 @@ function moplayer2Fallback(locale: Locale): SiteViewModel["projects"][number] {
   return repairMojibakeDeep({
     id: "moplayer2-fallback",
     slug: "moplayer2",
-    title: "MoPlayer2",
+    title: "MoPlayer Pro",
     ctaLabel: isAr ? "استكشف التطبيق الجديد" : "Explore new app",
     summary: isAr
       ? "الجيل الجديد من MoPlayer كمنتج مستقل داخل نفس موقع محمد الفراس، مع صفحة وإصدارات وإدارة منفصلة."
       : "The new MoPlayer generation as a separate product inside the same Mohammad Alfarras site, with its own page, releases, and admin control.",
     description: isAr
-      ? "MoPlayer2 يبقى تحت نفس الدومين ونفس Supabase، لكنه يظهر كمنتج مستقل عن MoPlayer القديم."
-      : "MoPlayer2 stays under the same domain and Supabase system, but appears as its own product separate from classic MoPlayer.",
+      ? "MoPlayer Pro يبقى تحت نفس الدومين ونفس Supabase، لكنه يظهر كمنتج مستقل عن MoPlayer القديم."
+      : "MoPlayer Pro stays under the same domain and Supabase system, but appears as its own product separate from classic MoPlayer.",
     image: "/images/moplayer-tv-hero.png",
     href: `/${locale}/apps/moplayer2`,
     featured: true,
@@ -163,7 +163,7 @@ function moplayer2Fallback(locale: Locale): SiteViewModel["projects"][number] {
     challenge: isAr ? "فصل التطبيق الجديد عن القديم بدون إنشاء مشاريع Vercel زائدة." : "Separate the new app from the old one without adding extra Vercel projects.",
     solution: isAr ? "منتجان داخل نفس صفحة التطبيقات ونفس لوحة الإدارة مع product switcher." : "Two products inside the same Apps page and admin, controlled by a product switcher.",
     result: isAr ? "هيكلة أوضح للنشر والإدارة والفهرسة." : "A clearer structure for publishing, admin, and indexing.",
-    tags: isAr ? ["MoPlayer2", "Android TV", "إدارة موحدة"] : ["MoPlayer2", "Android TV", "Unified admin"],
+    tags: isAr ? ["MoPlayer Pro", "Android TV", "إدارة موحدة"] : ["MoPlayer Pro", "Android TV", "Unified admin"],
     gallery: ["/images/moplayer-tv-hero.png", "/images/moplayer-tv-banner-final.png", "/images/moplayer-release-panel.webp"],
     metrics: isAr
       ? [

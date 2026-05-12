@@ -7373,7 +7373,7 @@ html[dir="rtl"] .apps-section-head h2,
 }
 
 /* ═══════════════════════════════════════════
-   MoPlayer2 — dedicated product page
+   MoPlayer Pro dedicated product page
    ═══════════════════════════════════════════ */
 
 .mp2-page {
@@ -7856,7 +7856,7 @@ html[dir="rtl"] .apps-section-head h2,
   max-width: 65ch;
 }
 
-/* Compare MoPlayer vs MoPlayer2 */
+/* Compare MoPlayer vs MoPlayer Pro */
 .mp2-compare-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

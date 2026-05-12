@@ -24,11 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 
-/**
- * Premium Glassmorphism Panel — Fiery Glass Luxury UI.
- * Features: Warm-toned frosted glass, golden accent borders,
- * rich ember glow, and smooth focus interactions.
- */
+/** Restrained warm glass panel used across TV surfaces. */
 @Composable
 fun GlassPanel(
     modifier: Modifier = Modifier,
@@ -43,20 +39,20 @@ fun GlassPanel(
 
     val bg by animateColorAsState(
         targetValue = if (highlighted) {
-            visuals.accent.copy(alpha = 0.18f)
+            visuals.surfaceHigh.copy(alpha = 0.88f)
         } else {
-            Color(0x4D1E1814) // Warm Espresso Glass
+            visuals.surface.copy(alpha = 0.72f)
         },
         label = "glass-bg",
     )
 
     val borderAlpha by animateFloatAsState(
-        targetValue = if (highlighted) 0.9f else 0.25f,
+        targetValue = if (highlighted) 0.72f else 0.22f,
         label = "glass-border-alpha",
     )
 
-    val activeGlow = glow ?: if (highlighted) visuals.accent.copy(alpha = 0.5f) else Color.Transparent
-    val shadowElevation = if (highlighted) 42.dp else 0.dp
+    val activeGlow = glow ?: if (highlighted) visuals.accent.copy(alpha = 0.34f) else Color.Transparent
+    val shadowElevation = if (highlighted) 24.dp else 0.dp
     val shape = RoundedCornerShape(radius)
 
     Surface(
@@ -74,9 +70,9 @@ fun GlassPanel(
             width = if (highlighted) 1.6.dp else 1.dp,
             brush = Brush.linearGradient(
                 colors = listOf(
-                    Color.White.copy(alpha = if (highlighted) 0.50f else 0.15f),
+                    Color.White.copy(alpha = if (highlighted) 0.32f else 0.12f),
                     visuals.accent.copy(alpha = borderAlpha),
-                    visuals.accentB.copy(alpha = if (highlighted) 0.40f else 0.12f),
+                    visuals.accentB.copy(alpha = if (highlighted) 0.22f else 0.08f),
                     Color(0x0DFFFFFF),
                 ),
                 start = Offset(0f, 0f),
@@ -90,10 +86,10 @@ fun GlassPanel(
                 .background(
                     Brush.linearGradient(
                         colorStops = arrayOf(
-                            0.00f to Color.White.copy(alpha = if (highlighted) 0.14f else 0.07f),
-                            0.30f to visuals.accent.copy(alpha = if (highlighted) 0.07f else 0.02f),
+                            0.00f to Color.White.copy(alpha = if (highlighted) 0.10f else 0.045f),
+                            0.30f to visuals.accent.copy(alpha = if (highlighted) 0.045f else 0.015f),
                             0.50f to Color.Transparent,
-                            1.00f to visuals.accentB.copy(alpha = if (highlighted) 0.06f else 0.02f),
+                            1.00f to visuals.accentB.copy(alpha = if (highlighted) 0.035f else 0.012f),
                         ),
                         start = Offset(0f, 0f),
                         end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),

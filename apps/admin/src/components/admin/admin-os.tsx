@@ -62,7 +62,7 @@ function CommandPalette({
     { label: "Open Home HUD", hint: "Dashboard overview", view: "home" as const, icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: "Website CMS", hint: "Edit public website surfaces", view: "website" as const, icon: <Globe className="h-4 w-4" /> },
     { label: "MoPlayer Classic Control", hint: "Runtime, releases, fleet", view: "app" as const, icon: <Smartphone className="h-4 w-4" /> },
-    { label: "MoPlayer 2 Control", hint: "Next-gen TV player OS", view: "app" as const, icon: <MonitorPlay className="h-4 w-4" /> },
+    { label: "MoPlayer Pro Control", hint: "Next-gen TV player OS", view: "app" as const, icon: <MonitorPlay className="h-4 w-4" /> },
   ];
 
   return (
@@ -278,7 +278,7 @@ export function AdminOS({
                   <div>
                     <h1 className="headline-display text-4xl font-black leading-[0.95] text-white sm:text-5xl md:text-7xl">Ultimate Admin OS.</h1>
                     <p className="mt-5 max-w-2xl text-base leading-8 text-slate-400 md:text-lg">
-                      A native-feeling control center for moalfarras.space, MoPlayer, and MoPlayer2: website CMS entry points, APK releases, runtime switches, support, licenses, activations, and device fleet signals.
+                      A native-feeling control center for moalfarras.space, MoPlayer, and MoPlayer Pro: website CMS entry points, APK releases, runtime switches, support, licenses, activations, and device fleet signals.
                     </p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -338,7 +338,7 @@ export function AdminOS({
                 </button>
                 <button onClick={() => { setView("app"); setActiveAppSlug("moplayer2"); }} className="command-module-card command-module-card-ice" style={{ borderColor: "rgba(0, 229, 255, 0.3)" }}>
                   <MonitorPlay className="h-9 w-9 text-cyan-400" />
-                  <span className="text-cyan-50">MoPlayer 2</span>
+                  <span className="text-cyan-50">MoPlayer Pro</span>
                   <p>Next generation TV-first player controls, assets, and runtime.</p>
                 </button>
               </section>

@@ -36,10 +36,10 @@ function formatBytes(size?: number | null) {
 const t = {
   en: {
     badge: "Premium Android TV Media Player",
-    heroTitle: "MoPlayer2",
+    heroTitle: "MoPlayer Pro",
     heroSub: "A warmer, faster, and more focused IPTV experience for Android TV and mobile.",
     heroBody:
-      "Built with a premium warm-glass UI, remote-first navigation, and a powerful playback engine. MoPlayer2 brings live TV, movies, and series into one elegant surface — without clutter.",
+      "Built with a premium warm-glass UI, remote-first navigation, and a powerful playback engine. MoPlayer Pro brings live TV, movies, and series into one elegant surface — without clutter.",
     download: "Download APK",
     activate: "Activate / Control",
     releasePending: "Coming Soon",
@@ -70,29 +70,29 @@ const t = {
       { icon: "monitor", title: "Fire TV / Stick", body: "Compatible with Amazon Fire TV devices." },
     ],
     galleryTitle: "App preview",
-    gallerySub: "See MoPlayer2 in action across different screens.",
-    compareTitle: "MoPlayer vs MoPlayer2",
-    compareSub: "MoPlayer2 is the next-generation product line. It keeps the same trusted domain, but everything else is rebuilt for a calmer, richer experience.",
+    gallerySub: "See MoPlayer Pro in action across different screens.",
+    compareTitle: "MoPlayer vs MoPlayer Pro",
+    compareSub: "MoPlayer Pro is the next-generation product line. It keeps the same trusted domain, but everything else is rebuilt for a calmer, richer experience.",
     compareOld: "MoPlayer Classic",
-    compareNew: "MoPlayer2",
+    compareNew: "MoPlayer Pro",
     compareOldPoints: ["Classic TV-first interface", "VLC-based playback", "Single product channel", "Standard dark theme"],
     compareNewPoints: ["Warm premium glass UI (Champagne Gold)", "Media3 + ExoPlayer with track controls", "Separate releases + admin panel", "Weather & football widgets on Home"],
     faqTitle: "Frequently asked questions",
-    ctaTitle: "Ready to try MoPlayer2?",
+    ctaTitle: "Ready to try MoPlayer Pro?",
     ctaBody: "Download the latest APK or activate your device to get started.",
     disclaimer: "Legal notice",
     disclaimerBody:
-      "MoPlayer2 is a media player shell. It does not provide channels, playlists, subscriptions, or copyrighted media. Users connect only sources they are authorized to use.",
+      "MoPlayer Pro is a media player shell. It does not provide channels, playlists, subscriptions, or copyrighted media. Users connect only sources they are authorized to use.",
     support: "Get support",
     privacy: "Privacy policy",
     plannedBadge: "Coming Soon",
   },
   ar: {
     badge: "مشغل وسائط Android TV فاخر",
-    heroTitle: "MoPlayer2",
+    heroTitle: "MoPlayer Pro",
     heroSub: "تجربة IPTV أدفأ وأسرع وأكثر تركيزاً لأجهزة Android TV والهواتف.",
     heroBody:
-      "مبني بواجهة warm-glass فاخرة، تنقل أولاً بالريموت، ومحرك تشغيل قوي. يجمع MoPlayer2 التلفزيون المباشر والأفلام والمسلسلات في واجهة أنيقة — بدون فوضى.",
+      "مبني بواجهة warm-glass فاخرة، تنقل أولاً بالريموت، ومحرك تشغيل قوي. يجمع MoPlayer Pro التلفزيون المباشر والأفلام والمسلسلات في واجهة أنيقة — بدون فوضى.",
     download: "تنزيل APK",
     activate: "التفعيل / التحكم",
     releasePending: "قريباً",
@@ -123,19 +123,19 @@ const t = {
       { icon: "monitor", title: "Fire TV / Stick", body: "متوافق مع أجهزة Amazon Fire TV." },
     ],
     galleryTitle: "معاينة التطبيق",
-    gallerySub: "شاهد MoPlayer2 على الشاشات المختلفة.",
-    compareTitle: "MoPlayer مقابل MoPlayer2",
-    compareSub: "MoPlayer2 هو خط الإنتاج من الجيل الجديد. يبقى على نفس الدومين الموثوق، لكن كل شيء آخر أُعيد بناؤه لتجربة أغنى وأهدأ.",
+    gallerySub: "شاهد MoPlayer Pro على الشاشات المختلفة.",
+    compareTitle: "MoPlayer مقابل MoPlayer Pro",
+    compareSub: "MoPlayer Pro هو خط الإنتاج من الجيل الجديد. يبقى على نفس الدومين الموثوق، لكن كل شيء آخر أُعيد بناؤه لتجربة أغنى وأهدأ.",
     compareOld: "MoPlayer القديم",
-    compareNew: "MoPlayer2",
+    compareNew: "MoPlayer Pro",
     compareOldPoints: ["واجهة تلفزيونية كلاسيكية", "تشغيل مبني على VLC", "قناة إصدار واحدة", "ثيم داكن قياسي"],
     compareNewPoints: ["واجهة warm-glass فاخرة (Champagne Gold)", "Media3 + ExoPlayer مع تحكم المسارات", "إصدارات منفصلة + لوحة إدارة", "ويدجت الطقس والكرة على الشاشة الرئيسية"],
     faqTitle: "الأسئلة الشائعة",
-    ctaTitle: "جاهز لتجربة MoPlayer2؟",
+    ctaTitle: "جاهز لتجربة MoPlayer Pro؟",
     ctaBody: "نزّل أحدث ملف APK أو فعّل جهازك للبدء.",
     disclaimer: "تنبيه قانوني",
     disclaimerBody:
-      "MoPlayer2 واجهة تشغيل فقط. لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمي الحقوق. المستخدم يربط فقط المصادر التي يملك حق استخدامها.",
+      "MoPlayer Pro واجهة تشغيل فقط. لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمي الحقوق. المستخدم يربط فقط المصادر التي يملك حق استخدامها.",
     support: "الحصول على الدعم",
     privacy: "سياسة الخصوصية",
     plannedBadge: "قريباً",
@@ -148,12 +148,12 @@ const featureIcons: Record<string, React.ElementType> = {
 };
 
 const mp2Screenshots = [
-  { id: "mp2-hero", src: "/images/moplayer2-hero-banner.png", alt: "MoPlayer2 hero banner with premium warm UI on Android TV", label: "Hero" },
-  { id: "mp2-home", src: "/images/moplayer2-home-screen.png", alt: "MoPlayer2 home screen with widgets and content rows", label: "Home" },
-  { id: "mp2-live", src: "/images/moplayer2-live-tv.png", alt: "MoPlayer2 live TV channel grid", label: "Live TV" },
-  { id: "mp2-movies", src: "/images/moplayer2-movies.png", alt: "MoPlayer2 movies and series browser", label: "Movies & Series" },
-  { id: "mp2-player", src: "/images/moplayer2-player.png", alt: "MoPlayer2 media player screen with controls", label: "Player" },
-  { id: "mp2-login", src: "/images/moplayer2-login.png", alt: "MoPlayer2 login and activation screen", label: "Login" },
+  { id: "mp2-hero", src: "/images/moplayer2-hero-banner.png", alt: "MoPlayer Pro hero banner with premium warm UI on Android TV", label: "Hero" },
+  { id: "mp2-home", src: "/images/moplayer2-home-screen.png", alt: "MoPlayer Pro home screen with widgets and content rows", label: "Home" },
+  { id: "mp2-live", src: "/images/moplayer2-live-tv.png", alt: "MoPlayer Pro live TV channel grid", label: "Live TV" },
+  { id: "mp2-movies", src: "/images/moplayer2-movies.png", alt: "MoPlayer Pro movies and series browser", label: "Movies & Series" },
+  { id: "mp2-player", src: "/images/moplayer2-player.png", alt: "MoPlayer Pro media player screen with controls", label: "Player" },
+  { id: "mp2-login", src: "/images/moplayer2-login.png", alt: "MoPlayer Pro login and activation screen", label: "Login" },
 ];
 
 export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
@@ -195,7 +195,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           <div className="mp2-hero-frame">
             <Image
               src={normalizePublicImagePath("/images/moplayer2-hero-banner.png")}
-              alt={isAr ? "تجربة MoPlayer2 Android TV" : "MoPlayer2 Android TV experience"}
+              alt={isAr ? "تجربة MoPlayer Pro Android TV" : "MoPlayer Pro Android TV experience"}
               fill
               sizes="(max-width: 900px) 92vw, 620px"
               className="mp2-hero-img"
@@ -286,7 +286,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
         </div>
       </section>
 
-      {/* ── Comparison MoPlayer vs MoPlayer2 ── */}
+      {/* Comparison: MoPlayer Classic vs MoPlayer Pro */}
       <section className="mp2-section">
         <div className="mp2-section-head">
           <span className="mp2-badge"><Star className="h-4 w-4" /> {isAr ? "الفرق" : "Compare"}</span>

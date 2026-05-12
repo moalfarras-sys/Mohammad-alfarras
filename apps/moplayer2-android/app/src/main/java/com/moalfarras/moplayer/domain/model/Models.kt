@@ -6,6 +6,20 @@ enum class ContentType { LIVE, MOVIE, SERIES, EPISODE }
 
 enum class SortOption { SERVER_ORDER, LATEST_ADDED, TITLE_ASC, TITLE_DESC, RECENTLY_WATCHED, FAVORITES_FIRST, RATING }
 
+enum class LibraryMode { ACTIVE_SOURCE, MERGED }
+
+enum class BackgroundMode { AUTO, CITY_ROTATION, CUSTOM_URL, NONE }
+
+enum class ThemePreset { CINEMATIC_AUTO, CITY, CALM }
+
+enum class MotionLevel { LOW, BALANCED, RICH }
+
+enum class AccentMode { DYNAMIC, CUSTOM }
+
+enum class WeatherMode { AUTO_IP, CITY, MANUAL }
+
+enum class ManualWeatherEffect { SUNNY, CLOUDY, RAIN, STORM, SNOW, FOG }
+
 data class ServerProfile(
     val id: Long = 0,
     val name: String,
@@ -25,6 +39,8 @@ data class ServerProfile(
     val timezone: String = "",
     val serverMessage: String = "",
     val lastSyncSource: String = "",
+    val epgUrl: String = "",
+    val sourceKey: String = "",
 )
 
 data class Category(
@@ -76,6 +92,8 @@ data class WeatherSnapshot(
     val condition: String = "Clear",
     val temperatureC: Double = 21.0,
     val iconUrl: String = "",
+    val timeZoneId: String = java.time.ZoneId.systemDefault().id,
+    val isManual: Boolean = false,
 )
 
 data class FootballMatch(
@@ -89,6 +107,18 @@ data class FootballMatch(
 data class AppSettings(
     val previewEnabled: Boolean = true,
     val accentColor: Long = 0xFF4DA3FF,
+    val accentMode: AccentMode = AccentMode.DYNAMIC,
+    val backgroundMode: BackgroundMode = BackgroundMode.AUTO,
+    val customBackgroundUrl: String = "",
+    val themePreset: ThemePreset = ThemePreset.CINEMATIC_AUTO,
+    val motionLevel: MotionLevel = MotionLevel.BALANCED,
+    val showWeatherWidget: Boolean = true,
+    val showClockWidget: Boolean = true,
+    val showFootballWidget: Boolean = true,
+    val weatherMode: WeatherMode = WeatherMode.AUTO_IP,
+    val manualWeatherEffect: ManualWeatherEffect = ManualWeatherEffect.SUNNY,
+    val weatherCityOverride: String = "",
+    val footballMaxMatches: Int = 4,
     val preferredPlayer: String = "media3",
     val defaultSort: SortOption = SortOption.SERVER_ORDER,
     val parentalControlsEnabled: Boolean = false,
@@ -99,6 +129,7 @@ data class AppSettings(
     val searchHistory: List<String> = emptyList(),
     val languageTag: String = "system",
     val lastSection: String = "HOME",
+    val libraryMode: LibraryMode = LibraryMode.MERGED,
 )
 
 data class EpgEntry(
@@ -152,4 +183,5 @@ data class ActivatedProfile(
     val username: String = "",
     val password: String = "",
     val playlistUrl: String = "",
+    val epgUrl: String = "",
 )

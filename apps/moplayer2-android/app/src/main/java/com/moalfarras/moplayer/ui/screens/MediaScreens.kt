@@ -66,6 +66,7 @@ import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.LiveEpgSnapshot
 import com.moalfarras.moplayer.domain.model.MediaItem
+import com.moalfarras.moplayer.ui.components.AtmosphericBackground
 import com.moalfarras.moplayer.ui.components.ChannelRow
 import com.moalfarras.moplayer.ui.components.CinematicBackdrop
 import com.moalfarras.moplayer.ui.components.FocusGlow
@@ -74,6 +75,11 @@ import com.moalfarras.moplayer.ui.components.MediaPoster
 import com.moalfarras.moplayer.ui.components.backdropUrlFrom
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
+import com.moalfarras.moplayer.domain.model.WeatherSnapshot
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.*
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.TimeUnit
 
@@ -96,56 +102,43 @@ fun LiveScreen(
     val channels = channelsFlow.collectAsLazyPagingItems()
     val firstChannel = if (channels.itemCount > 0) channels.peek(0) else null
     val current = focused ?: firstChannel
-    val focusRequester = remember { FocusRequester() }
-    var showGuide by remember { mutableStateOf(true) }
     val backdrop = remember(current?.id) { backdropUrlFrom(current) }
 
-    LaunchedEffect(channels.itemCount) {
-        if (focused == null && channels.itemCount > 0) channels.peek(0)?.let(onFocus)
-        runCatching { focusRequester.requestFocus() }
-    }
-
     Box(
-        Modifier
-            .fillMaxSize()
-            .onPreviewKeyEvent { event ->
-                if (event.type != KeyEventType.KeyDown || channels.itemCount == 0) return@onPreviewKeyEvent false
-                val index = (0 until channels.itemCount).firstOrNull { channels.peek(it)?.id == current?.id } ?: 0
-                when (event.key) {
-                    Key.DirectionLeft -> { showGuide = false; true }
-                    Key.DirectionRight -> { showGuide = true; true }
-                    Key.DirectionUp -> { channels.peek((index - 1).coerceAtLeast(0))?.let(onFocus); true }
-                    Key.DirectionDown -> { channels.peek((index + 1).coerceAtMost(channels.itemCount - 1))?.let(onFocus); true }
-                    Key.Enter, Key.DirectionCenter -> { current?.let(onPlay); true }
-                    else -> false
-                }
-            },
+        Modifier.fillMaxSize()
     ) {
         CinematicBackdrop(backdrop)
+        // Subtle atmospheric vignette overlay
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
+            colorStops = arrayOf(0.0f to Color.Transparent, 0.85f to Color.Black.copy(alpha = 0.3f), 1.0f to Color.Black.copy(alpha = 0.5f))
+        )))
         if (tv.isTv) {
             Row(
-                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding * 0.6f, tv.contentPadding, tv.contentPadding * 0.6f),
+                Modifier.fillMaxSize().padding(
+                    start = tv.contentPadding,
+                    top = tv.contentPadding * 0.6f,
+                    end = tv.contentPadding,
+                    bottom = tv.contentPadding * 1.5f,
+                ),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
                 CategoryRail("البث المباشر", categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
                 GlassPanel(Modifier.fillMaxHeight().weight(0.60f), radius = tv.cardRadius, blur = 18.dp) {
                     Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp)) {
                         ReceiverHeader(current, focusedEpg)
-                        PagingChannelList(channels.itemCount, { channels[it] }, current?.id, onFocus, onPlay, onFavorite, focusRequester)
+                        PagingChannelList(channels.itemCount, { channels[it] }, current?.id, onFocus, onPlay, onFavorite)
                     }
                 }
-                AnimatedVisibility(showGuide) {
-                    PreviewPane(current, Modifier.fillMaxHeight().weight(0.22f), live = true, previewEnabled = previewEnabled, liveEpg = focusedEpg)
-                }
+                PreviewPane(current, Modifier.fillMaxHeight().weight(0.22f), live = true, previewEnabled = previewEnabled, liveEpg = focusedEpg)
             }
         } else {
             Column(
-                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.bottomBarHeight),
+                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.contentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                HeaderRow("Live TV", Icons.Rounded.LiveTv)
+                HeaderRow("البث المباشر", Icons.Rounded.LiveTv)
                 CategoryPills(categories, selectedCategoryId, onCategory, onAllCategories)
-                PagingChannelList(channels.itemCount, { channels[it] }, current?.id, onFocus, onPlay, onFavorite, focusRequester)
+                PagingChannelList(channels.itemCount, { channels[it] }, current?.id, onFocus, onPlay, onFavorite)
             }
         }
     }
@@ -173,7 +166,12 @@ fun PosterScreen(
         CinematicBackdrop(backdrop)
         if (tv.isTv) {
             Row(
-                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding * 0.6f, tv.contentPadding, tv.contentPadding * 0.6f),
+                Modifier.fillMaxSize().padding(
+                    start = tv.contentPadding,
+                    top = tv.contentPadding * 0.6f,
+                    end = tv.contentPadding,
+                    bottom = tv.contentPadding * 1.5f,
+                ),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
                 CategoryRail(title, categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
@@ -183,7 +181,7 @@ fun PosterScreen(
             }
         } else {
             Column(
-                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.bottomBarHeight),
+                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.contentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 HeaderRow(title, Icons.Rounded.Tv)
@@ -212,15 +210,20 @@ fun FavoritesScreen(
         CinematicBackdrop(backdrop)
         if (items.itemCount == 0) {
             EmptyState(
-                title = "No favorites yet",
-                message = "Long press OK, or triple press OK in the player, to add content here.",
+                title = "لا توجد مفضلة بعد",
+                message = "اضغط مطولاً على OK أو اضغط OK ثلاث مرات لإضافة القنوات والأفلام هنا.",
                 modifier = Modifier.fillMaxSize().padding(tv.contentPadding),
             )
             return@Box
         }
         if (tv.isTv) {
             Row(
-                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding * 0.6f, tv.contentPadding, tv.contentPadding * 0.6f),
+                Modifier.fillMaxSize().padding(
+                    start = tv.contentPadding,
+                    top = tv.contentPadding * 0.6f,
+                    end = tv.contentPadding,
+                    bottom = tv.contentPadding * 1.5f,
+                ),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
                 GlassPanel(Modifier.fillMaxHeight().weight(0.18f), radius = tv.cardRadius, blur = 20.dp) {
@@ -237,10 +240,10 @@ fun FavoritesScreen(
             }
         } else {
             Column(
-                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.bottomBarHeight),
+                Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.contentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                HeaderRow("Favorites", Icons.Rounded.Favorite)
+                HeaderRow("المفضلة", Icons.Rounded.Favorite)
                 PosterGrid(items.itemCount, { items[it] }, onFocus, onPlay, onFavorite, Modifier.fillMaxSize())
             }
         }
@@ -256,34 +259,63 @@ fun SeriesDetailsScreen(
     onFavorite: (MediaItem) -> Unit,
 ) {
     val tv = rememberTvScale()
+    val visuals = LocalMoVisuals.current
     val seasons = episodes.map { it.seasonNumber.coerceAtLeast(1) }.distinct().sorted().ifEmpty { listOf(1) }
     var selectedSeason by remember(series.id, seasons) { mutableIntStateOf(seasons.first()) }
+    val seasonEpisodes = episodes.filter { it.seasonNumber.coerceAtLeast(1) == selectedSeason }
     val backdrop = remember(series.id) { backdropUrlFrom(series) }
 
     Box(Modifier.fillMaxSize()) {
         CinematicBackdrop(backdrop)
         Row(
             Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding * 0.8f, tv.contentPadding, tv.contentPadding),
-            horizontalArrangement = Arrangement.spacedBy((20 * tv.factor).dp),
+            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
         ) {
-            PreviewPane(series, Modifier.fillMaxHeight().weight(0.36f), live = false, previewEnabled = true)
-            GlassPanel(Modifier.fillMaxHeight().weight(0.64f), radius = tv.cardRadius, blur = 18.dp) {
-                Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((14 * tv.factor).dp)) {
-                    Text("Seasons and Episodes", color = Color.White, style = MaterialTheme.typography.headlineMedium)
+            PreviewPane(series, Modifier.fillMaxHeight().weight(0.32f), live = false, previewEnabled = true)
+            Column(Modifier.fillMaxHeight().weight(0.68f), verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp)) {
+                // Season tabs row
+                if (seasons.size > 1) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        items(seasons, key = { it }) { season ->
+                            val isSelected = selectedSeason == season
+                            FocusGlow(
+                                cornerRadius = 999.dp,
+                                onClick = { selectedSeason = season },
+                                modifier = Modifier.clip(RoundedCornerShape(999.dp)),
+                            ) {
+                                Box(
+                                    Modifier
+                                        .background(
+                                            if (isSelected) visuals.accent else Color(0x22FFFFFF),
+                                            RoundedCornerShape(999.dp)
+                                        )
+                                        .padding(horizontal = (16 * tv.factor).dp, vertical = (8 * tv.factor).dp),
+                                ) {
+                                    Text(
+                                        "\u0627\u0644\u0645\u0648\u0633\u0645 $season",
+                                        color = if (isSelected) Color.Black else Color.White,
+                                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                        fontSize = (14 * tv.factor).sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                // Episodes list
+                GlassPanel(Modifier.fillMaxSize(), radius = tv.cardRadius, blur = 18.dp) {
                     if (episodes.isEmpty()) {
-                        EmptyState("No episodes loaded", "Open the series again after sync, or refresh the server from Settings.", Modifier.fillMaxSize())
+                        EmptyState("\u0644\u0645 \u064a\u062a\u0645 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u062d\u0644\u0642\u0627\u062a", "\u0627\u0641\u062a\u062d \u0627\u0644\u0645\u0633\u0644\u0633\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649 \u0628\u0639\u062f \u0627\u0644\u0645\u0632\u0627\u0645\u0646\u0629.", Modifier.fillMaxSize().padding(tv.panelPadding))
                     } else {
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
-                            items(seasons, key = { it }) { season ->
-                                SeasonSection(
-                                    seasonNumber = season,
-                                    episodes = episodes.filter { it.seasonNumber.coerceAtLeast(1) == season },
-                                    isExpanded = selectedSeason == season,
-                                    onToggle = { selectedSeason = if (selectedSeason == season) -1 else season },
-                                    onFocus = onFocus,
-                                    onPlay = onPlay,
-                                    onFavorite = onFavorite,
-                                )
+                        LazyColumn(
+                            Modifier.fillMaxSize().padding(tv.panelPadding),
+                            verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
+                        ) {
+                            items(seasonEpisodes, key = { "${it.seasonNumber}-${it.episodeNumber}-${it.id}" }) { episode ->
+                                EpisodeRow(episode, onFocus, onPlay, onFavorite)
                             }
                         }
                     }
@@ -301,18 +333,17 @@ private fun PagingChannelList(
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
-    focusRequester: FocusRequester,
 ) {
     val tv = rememberTvScale()
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy((7 * tv.factor).dp)) {
-        items(count, key = { index -> itemAt(index)?.let { "${it.type}-${it.id}" } ?: "placeholder-$index" }) { index ->
+        items(count, key = { "ch-$it" }) { index ->
             itemAt(index)?.let { item ->
                 ChannelRow(
                     item = item,
                     onFocus = onFocus,
                     onClick = onPlay,
                     onFavorite = onFavorite,
-                    modifier = if (item.id == activeId) Modifier.focusRequester(focusRequester) else Modifier,
+                    modifier = Modifier,
                 )
             }
         }
@@ -330,7 +361,7 @@ private fun PosterGrid(
 ) {
     val tv = rememberTvScale()
     if (count == 0) {
-        EmptyState("Library is empty", "Sync a server or choose another category.", modifier)
+        EmptyState("المكتبة فارغة", "زامن السيرفر أو اختر تصنيفاً آخر.", modifier)
         return
     }
     LazyVerticalGrid(
@@ -339,7 +370,7 @@ private fun PosterGrid(
         verticalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
         modifier = modifier,
     ) {
-        items(count, key = { index -> itemAt(index)?.let { "${it.type}-${it.id}" } ?: "placeholder-$index" }) { index ->
+        items(count, key = { "poster-$it" }) { index ->
             itemAt(index)?.let { MediaPoster(it, onFocus, onPlay, onFavorite) }
         }
     }
@@ -349,6 +380,12 @@ private fun PosterGrid(
 private fun ReceiverHeader(item: MediaItem?, liveEpg: LiveEpgSnapshot) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val transition = rememberInfiniteTransition(label = "live-header")
+    val livePulse by transition.animateFloat(
+        initialValue = 0.4f, targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "live-pulse",
+    )
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(tv.cardRadius)).background(Color(0x66110F10)).padding(horizontal = (16 * tv.factor).dp, vertical = (12 * tv.factor).dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -356,10 +393,21 @@ private fun ReceiverHeader(item: MediaItem?, liveEpg: LiveEpgSnapshot) {
     ) {
         Icon(Icons.Rounded.LiveTv, null, tint = visuals.accent, modifier = Modifier.size((28 * tv.factor).dp))
         Column(Modifier.weight(1f)) {
-            Text(item?.title ?: "Live TV", color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(liveEpg.current?.title ?: item?.description.orEmpty().ifBlank { "Ready" }, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(item?.title ?: "البث المباشر", color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(liveEpg.current?.title ?: item?.description.orEmpty().ifBlank { "جاهز" }, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Text("LIVE", color = Color.White, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.ExtraBold))
+        // Live pulse indicator
+        Box(
+            Modifier.size((10 * tv.factor).dp).drawBehind {
+                drawCircle(Color(0xFFFF3B4D).copy(alpha = 0.3f * livePulse), radius = size.minDimension * 1.5f)
+                drawCircle(Color(0xFFFF3B4D).copy(alpha = livePulse))
+            },
+        )
+        Box(
+            Modifier.clip(RoundedCornerShape(999.dp)).background(Color(0xFFFF3B4D).copy(alpha = 0.18f)).padding(horizontal = (10 * tv.factor).dp, vertical = (4 * tv.factor).dp),
+        ) {
+            Text("LIVE", color = Color(0xFFFF3B4D), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.ExtraBold))
+        }
     }
 }
 
@@ -378,7 +426,7 @@ fun CategoryRail(
             Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height((6 * tv.factor).dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy((4 * tv.factor).dp)) {
-                item { CategoryChip("All", selectedCategoryId.isBlank(), tv.factor, onAllCategories) }
+                item { CategoryChip("الكل", selectedCategoryId.isBlank(), tv.factor, onAllCategories) }
                 items(categories, key = { it.id }) { cat ->
                     CategoryChip(cat.name, selectedCategoryId == cat.id, tv.factor) { onCategory(cat) }
                 }
@@ -395,7 +443,7 @@ private fun CategoryPills(
     onAllCategories: () -> Unit,
 ) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { CategoryPill("All", selectedCategoryId.isBlank(), onAllCategories) }
+        item { CategoryPill("الكل", selectedCategoryId.isBlank(), onAllCategories) }
         items(categories, key = { it.id }) { cat ->
             CategoryPill(cat.name, selectedCategoryId == cat.id) { onCategory(cat) }
         }
@@ -405,13 +453,21 @@ private fun CategoryPills(
 @Composable
 private fun CategoryChip(name: String, selected: Boolean, factor: Float, onClick: () -> Unit) {
     val visuals = LocalMoVisuals.current
-    Box(
-        Modifier.fillMaxWidth().heightIn(min = (52 * factor).dp).clip(RoundedCornerShape((10 * factor).dp))
-            .background(if (selected) visuals.accent.copy(alpha = 0.24f) else Color.Transparent)
-            .clickable(onClick = onClick)
-            .padding(horizontal = (13 * factor).dp, vertical = (10 * factor).dp),
+    FocusGlow(
+        modifier = Modifier.fillMaxWidth().heightIn(min = (52 * factor).dp).clip(RoundedCornerShape((10 * factor).dp)),
+        cornerRadius = (10 * factor).dp,
+        onFocused = onClick,
+        onClick = onClick,
     ) {
-        Text(name, color = if (selected) visuals.accent else Color.White, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(if (selected) visuals.accent.copy(alpha = 0.24f) else Color.Transparent)
+                .padding(horizontal = (13 * factor).dp, vertical = (10 * factor).dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(name, color = if (selected) visuals.accent else Color.White, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -419,10 +475,28 @@ private fun CategoryChip(name: String, selected: Boolean, factor: Float, onClick
 private fun CategoryPill(name: String, selected: Boolean, onClick: () -> Unit) {
     val visuals = LocalMoVisuals.current
     Box(
-        Modifier.clip(RoundedCornerShape(999.dp)).background(if (selected) visuals.accent.copy(alpha = 0.24f) else Color(0x662A3140)).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 9.dp),
+        Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .then(
+                if (selected) Modifier.drawBehind {
+                    drawCircle(
+                        brush = Brush.radialGradient(listOf(visuals.accent.copy(alpha = 0.2f), Color.Transparent)),
+                        radius = size.maxDimension,
+                    )
+                } else Modifier
+            )
+            .background(if (selected) visuals.accent.copy(alpha = 0.24f) else Color(0x44241914))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(name, color = if (selected) Color.White else Color(0xCCE3BC78), style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            name,
+            color = if (selected) Color.White else Color(0xCCE3BC78),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -449,7 +523,7 @@ fun PreviewPane(
         Box(Modifier.fillMaxSize().padding((6 * tv.factor).dp).clip(RoundedCornerShape(tv.cardRadius - 6.dp)).background(Color(0x661E1814))) {
             if (item == null) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Select an item to preview", color = Color(0x88FFFFFF), style = MaterialTheme.typography.bodyMedium)
+                    Text("اختر عنصراً للمعاينة", color = Color(0x88FFFFFF), style = MaterialTheme.typography.bodyMedium)
                 }
                 return@Box
             }
@@ -460,7 +534,7 @@ fun PreviewPane(
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0x22000000), Color(0xEE01040A)))))
             Column(Modifier.align(Alignment.BottomStart).padding((20 * tv.factor).dp), verticalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)) {
-                if (live) GlassTag("Live", Icons.Rounded.LiveTv)
+                if (live) GlassTag("مباشر", Icons.Rounded.LiveTv)
                 Text(item.title, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (item.rating.isNotBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -468,10 +542,10 @@ fun PreviewPane(
                         Text(item.rating, color = Color(0xFFFFCC44), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
                     }
                 }
-                Text(item.description.ifBlank { if (live) "Press OK to play" else "Content details will appear here" }, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                Text(item.description.ifBlank { if (live) "اضغط OK للتشغيل" else "ستظهر تفاصيل المحتوى هنا" }, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
                 if (item.durationSecs > 0) Text(formatDuration(item.durationSecs), color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodySmall)
                 liveEpg.current?.let {
-                    Text("Now: ${it.title}", color = visuals.accent, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("الآن: ${it.title}", color = visuals.accent, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -526,8 +600,8 @@ private fun SeasonSection(
             Row(Modifier.fillMaxWidth().padding(horizontal = (16 * tv.factor).dp, vertical = (12 * tv.factor).dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Rounded.Layers, null, tint = if (isExpanded) visuals.accent else Color.White, modifier = Modifier.size((18 * tv.factor).dp))
-                    Text("Season $seasonNumber", color = Color.White, style = MaterialTheme.typography.titleLarge)
-                    Text("${episodes.size} episodes", color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodyMedium)
+                    Text("الموسم $seasonNumber", color = Color.White, style = MaterialTheme.typography.titleLarge)
+                    Text("${episodes.size} حلقة", color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodyMedium)
                 }
                 Icon(if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = Color(0x99FFFFFF))
             }
@@ -565,8 +639,8 @@ private fun EpisodeRow(
                         Text("${episode.episodeNumber.coerceAtLeast(1)}", color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
                     }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy((3 * tv.factor).dp)) {
-                        Text(episode.title.ifBlank { "Episode ${episode.episodeNumber}" }, color = Color.White, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(episode.description.ifBlank { "Ready to play" }, color = Color(0x99E3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(episode.title.ifBlank { "الحلقة ${episode.episodeNumber}" }, color = Color.White, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(episode.description.ifBlank { "جاهزة للتشغيل" }, color = Color(0x99E3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         if (episode.durationSecs > 0) Text(formatDuration(episode.durationSecs), color = Color(0x66FFFFFF), style = MaterialTheme.typography.bodySmall)
                     }
                     Box(Modifier.size((42 * tv.factor).dp).clip(RoundedCornerShape(999.dp)).background(visuals.accent).clickable { onPlay(episode) }, contentAlignment = Alignment.Center) {

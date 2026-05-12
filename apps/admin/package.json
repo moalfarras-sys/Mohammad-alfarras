@@ -12,8 +12,6 @@
   "dependencies": {
     "@moalfarras/db": "file:../../packages/db",
     "@moalfarras/shared": "file:../../packages/shared",
-    "@modelcontextprotocol/server-filesystem": "^2026.1.14",
-    "@modelcontextprotocol/server-github": "^2025.4.8",
     "@pdf-lib/fontkit": "^1.1.1",
     "@sparticuz/chromium": "^147.0.0",
     "@supabase/ssr": "^0.7.0",
@@ -23,7 +21,7 @@
     "dotenv": "^17.3.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
-    "next": "^16.2.3",
+    "next": "^16.2.6",
     "next-themes": "^0.4.6",
     "pdf-lib": "^1.17.1",
     "puppeteer-core": "^24.40.0",
@@ -39,14 +37,17 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
-    "eslint-config-next": "^16.2.3",
+    "eslint-config-next": "^16.2.6",
     "eslint-config-prettier": "^10.1.8",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.13",
     "prettier": "^3.6.2",
     "typescript": "^5"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "^4.2.2",
     "lightningcss-linux-x64-gnu": "^1.32.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.13"
   }
 }

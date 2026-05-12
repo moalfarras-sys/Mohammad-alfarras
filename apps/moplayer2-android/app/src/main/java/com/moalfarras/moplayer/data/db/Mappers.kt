@@ -23,6 +23,8 @@ fun ServerEntity.toDomain() = ServerProfile(
     timezone = timezone,
     serverMessage = serverMessage,
     lastSyncSource = lastSyncSource,
+    epgUrl = epgUrl,
+    sourceKey = sourceKey,
 )
 
 fun ServerProfile.toEntity() = ServerEntity(
@@ -44,6 +46,8 @@ fun ServerProfile.toEntity() = ServerEntity(
     timezone = timezone,
     serverMessage = serverMessage,
     lastSyncSource = lastSyncSource,
+    epgUrl = epgUrl,
+    sourceKey = sourceKey,
 )
 
 fun CategoryEntity.toDomain() = Category(id, serverId, type, name, sortOrder, parentId, rawJson)

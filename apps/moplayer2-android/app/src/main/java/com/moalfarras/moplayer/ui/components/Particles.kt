@@ -6,34 +6,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import kotlin.math.sin
 import kotlin.random.Random
 
-/**
- * Enhanced Floating Particles — Premium Fiery Glass.
- * Uses a warm tri-color palette (Gold → Orange → Amber) for depth.
- * Features varied particle sizes, soft glow circles, and smooth drift.
- */
+/** Subtle ambient sparks, kept sparse so media content stays dominant. */
 @Composable
 fun FloatingParticles(modifier: Modifier = Modifier) {
     val visuals = LocalMoVisuals.current
-    val particleCount = 30
+    val particleCount = 12
     val particles = remember {
         List(particleCount) {
             ParticleData(
                 x = Random.nextFloat(),
                 y = Random.nextFloat(),
-                size = Random.nextFloat() * 5f + 1.5f,
-                speed = Random.nextFloat() * 0.018f + 0.006f,
-                alpha = Random.nextFloat() * 0.26f + 0.06f,
-                // 0 = accent (Gold), 1 = accentB (Orange), 2 = accentC (Amber)
+                size = Random.nextFloat() * 2.4f + 0.8f,
+                speed = Random.nextFloat() * 0.012f + 0.004f,
+                alpha = Random.nextFloat() * 0.12f + 0.035f,
                 colorIndex = Random.nextInt(3),
-                // Larger particles get a soft radial glow
-                hasGlow = Random.nextFloat() > 0.65f,
-                glowRadius = Random.nextFloat() * 18f + 12f,
                 phaseOffset = Random.nextFloat() * PI * 2f,
             )
         }
@@ -66,23 +56,6 @@ fun FloatingParticles(modifier: Modifier = Modifier) {
             val cx = (p.x * w + xOffset).coerceIn(0f, w)
             val cy = (if (currentY < 0) currentY + 1f else currentY) * h
 
-            // Soft glow halo for larger particles
-            if (p.hasGlow) {
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            color.copy(alpha = p.alpha * 0.5f),
-                            Color.Transparent,
-                        ),
-                        center = Offset(cx, cy),
-                        radius = p.glowRadius,
-                    ),
-                    radius = p.glowRadius,
-                    center = Offset(cx, cy),
-                )
-            }
-
-            // Core particle dot
             drawCircle(
                 color = color.copy(alpha = p.alpha),
                 radius = p.size,
@@ -99,8 +72,6 @@ private data class ParticleData(
     val speed: Float,
     val alpha: Float,
     val colorIndex: Int,
-    val hasGlow: Boolean,
-    val glowRadius: Float,
     val phaseOffset: Float,
 )
 

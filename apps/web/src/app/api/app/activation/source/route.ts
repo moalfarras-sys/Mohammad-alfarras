@@ -12,11 +12,13 @@ import {
   normalizePublicDeviceId,
   normalizeProviderSource,
   normalizeSourcePullToken,
+  providerSourceQueueBelongsToProduct,
   publicProviderSource,
   type ProviderSourceQueueValue,
   testProviderSource,
 } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
+import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
   const response = NextResponse.json(body, init);
@@ -24,12 +26,13 @@ function json(body: unknown, init?: ResponseInit) {
   return response;
 }
 
-async function activatedDeviceByCode(code: string) {
+async function activatedDeviceByCode(code: string, productSlug: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("activation_requests")
-    .select("public_device_id, status, expires_at")
+    .select("public_device_id, product_slug, status, expires_at")
     .eq("device_code", code)
+    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
     .maybeSingle();
 
   if (error) return { error: "Activation lookup failed." };
@@ -82,7 +85,8 @@ export async function POST(request: Request) {
     return json({ ok: false, message: "Invalid activation code." }, { status: 400 });
   }
 
-  const activated = await activatedDeviceByCode(code);
+  const productSlug = resolveManagedAppSlug(String(body.productSlug ?? body.product_slug ?? ""));
+  const activated = await activatedDeviceByCode(code, productSlug);
   if (!activated.publicDeviceId) {
     return json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
   }
@@ -93,15 +97,17 @@ export async function POST(request: Request) {
     if (!test.ok) {
       return json(test, { status: 422 });
     }
+    const normalizedSource = test.normalizedSource ?? source;
 
     const supabase = createSupabaseAdminClient();
     const now = new Date().toISOString();
     const queueValue: ProviderSourceQueueValue = {
       id: randomUUID(),
       publicDeviceId: activated.publicDeviceId,
-      sourceType: source.type,
-      displayName: source.name,
-      encryptedPayload: encryptProviderSource(source),
+      productSlug,
+      sourceType: normalizedSource.type,
+      displayName: normalizedSource.name,
+      encryptedPayload: encryptProviderSource(normalizedSource),
       encryptionVersion: "aes-256-gcm:v1",
       status: "pending",
       lastTestStatus: "success",
@@ -148,6 +154,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const publicDeviceId = normalizePublicDeviceId(searchParams.get("publicDeviceId"));
   const token = normalizeSourcePullToken(searchParams.get("token"));
+  const productSlug = resolveManagedAppSlug(searchParams.get("product") ?? searchParams.get("productSlug"));
 
   if (!isValidPublicDeviceId(publicDeviceId) || token.length < 32) {
     return json({ status: "invalid", message: "Invalid device credentials." }, { status: 400 });
@@ -170,7 +177,12 @@ export async function GET(request: Request) {
   }
 
   const queue = readQueueValue(data?.value);
-  if (!queue || queue.publicDeviceId !== publicDeviceId || !["pending", "fetched"].includes(queue.status)) {
+  if (
+    !queue ||
+    queue.publicDeviceId !== publicDeviceId ||
+    !providerSourceQueueBelongsToProduct(queue, productSlug) ||
+    !["pending", "fetched"].includes(queue.status)
+  ) {
     return json({ status: "empty" });
   }
 

@@ -15,6 +15,13 @@ val localProperties = Properties().apply {
     }
 }
 
+val releaseSigningProperties = Properties().apply {
+    val signingFile = rootProject.file("../moplayer-android/keystore.properties")
+    if (signingFile.isFile) {
+        signingFile.inputStream().use(::load)
+    }
+}
+
 fun secretProperty(name: String): String =
     (providers.gradleProperty(name).orNull
         ?: localProperties.getProperty(name)
@@ -31,30 +38,45 @@ fun secretPropertyAny(vararg names: String): String =
     }.orEmpty()
 
 android {
-    namespace = "com.moalfarras.moplayer"
+    namespace = "com.moalfarras.moplayerpro"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.moalfarras.moplayer2"
+        applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 4
+        versionName = "2.1.0"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')
                 .takeIf { it.isNotBlank() }
-                ?.let { "$it/activate" }
-                ?: "http://127.0.0.1:5173/activate"
+                ?.let { "$it/activate?product=moplayer2" }
+                ?: "https://moalfarras.space/activate?product=moplayer2"
         }
         buildConfigField("String", "SUPABASE_URL", "\"${secretPropertyAny("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "EXPO_PUBLIC_SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secretPropertyAny("SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY", "EXPO_PUBLIC_SUPABASE_KEY")}\"")
         buildConfigField("String", "WEATHER_API_KEY", "\"${secretProperty("WEATHER_API_KEY")}\"")
         buildConfigField("String", "FOOTBALL_API_KEY", "\"${secretPropertyAny("FOOTBALL_API_KEY", "API_FOOTBALL_KEY", "RAPIDAPI_FOOTBALL_KEY")}\"")
         buildConfigField("String", "ACTIVATION_URL", "\"$activationUrl\"")
+        val webApiBaseUrl = secretProperty("WEB_API_BASE_URL").ifBlank { "https://moalfarras.space" }
+        val appProductSlug = secretProperty("APP_PRODUCT_SLUG").ifBlank { "moplayer2" }
+        buildConfigField("String", "WEB_API_BASE_URL", "\"$webApiBaseUrl\"")
+        buildConfigField("String", "APP_PRODUCT_SLUG", "\"$appProductSlug\"")
 
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            if (releaseSigningProperties.isNotEmpty()) {
+                keyAlias = releaseSigningProperties.getProperty("keyAlias")
+                keyPassword = releaseSigningProperties.getProperty("keyPassword")
+                storeFile = rootProject.file("../moplayer-android/moplayer-release.keystore")
+                storePassword = releaseSigningProperties.getProperty("storePassword")
+            }
         }
     }
 
@@ -62,6 +84,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            if (releaseSigningProperties.isNotEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -131,6 +156,7 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.10.0")
     implementation("androidx.media3:media3-session:1.10.0")
     implementation("androidx.media3:media3-datasource-okhttp:1.10.0")
+    implementation("com.google.android.gms:play-services-cast-framework:22.1.0")
 
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0")

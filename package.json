@@ -1,6 +1,7 @@
 {
   "name": "moalfarras-space-monorepo",
   "private": true,
+  "packageManager": "npm@11.12.1",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -43,6 +44,9 @@
       "postcss": "^8.5.13"
     },
     "next@16.2.4": {
+      "postcss": "^8.5.13"
+    },
+    "next@16.2.6": {
       "postcss": "^8.5.13"
     },
     "resend": {

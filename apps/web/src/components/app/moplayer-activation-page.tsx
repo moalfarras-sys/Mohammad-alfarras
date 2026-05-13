@@ -377,7 +377,7 @@ export function MoPlayerActivationPage({
   const endpointValue = sourceType === "xtream" ? serverUrl : playlistUrl;
 
   return (
-    <main className="activation-lux activation-control" dir={isAr ? "rtl" : "ltr"}>
+    <main className={cn("activation-lux activation-control", isPro && "activation-control-pro")} dir={isAr ? "rtl" : "ltr"}>
       <div className="activation-aura" aria-hidden />
       <aside className="activation-control-sidebar">
         <Link href={withLocale(locale, isPro ? "apps/moplayer2" : "apps/moplayer")} className="activation-control-back">

@@ -1,9 +1,12 @@
 package com.moalfarras.moplayer.ui.screens
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.speech.RecognizerIntent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -633,11 +636,13 @@ private fun PlayerSettingsCard(
     onPlayer: (String) -> Unit,
 ) {
     val tv = rememberTvScale()
+    val context = LocalContext.current
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else tv.panelPadding), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             SectionHeader("المشغّل")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(
+                    "auto" to "تلقائي",
                     "media3" to "Media3",
                     "ask" to "اسألني",
                     "vlc" to "VLC",
@@ -664,9 +669,48 @@ private fun PlayerSettingsCard(
             SettingSwitch("إخفاء القنوات بلا شعار", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)
             SectionHeader("الخصوصية")
             SettingSwitch("فلتر الرقابة الأبوية", settings.parentalControlsEnabled, Icons.Rounded.Lock, onParental)
+            SectionHeader("التحديث")
+            FocusGlow(cornerRadius = 14.dp, onClick = { openLatestAppDownload(context) }) {
+                GlassPanel(radius = 14.dp, highlighted = true) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Rounded.Download, null, tint = LocalMoVisuals.current.accent, modifier = Modifier.size(24.dp))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                "تحميل النسخة الجديدة",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
+                            )
+                            Text(
+                                "يفتح رابط التحديث الرسمي مباشرة. الإصدار الحالي ${BuildConfig.VERSION_NAME}",
+                                color = Color(0x99FFFFFF),
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Icon(Icons.Rounded.OpenInNew, null, tint = Color(0xCCFFFFFF), modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
         }
     }
     if (isTv) content() else GlassPanel(radius = tv.cardRadius) { content() }
+}
+
+private fun openLatestAppDownload(context: Context) {
+    val baseUrl = BuildConfig.WEB_API_BASE_URL.trim().ifBlank { "https://moalfarras.space" }.trimEnd('/')
+    val downloadUrl = "$baseUrl/api/app/download/latest?product=moplayer2"
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    runCatching { context.startActivity(intent) }
+        .onFailure {
+            Toast.makeText(context, "تعذر فتح رابط التحديث الآن.", Toast.LENGTH_LONG).show()
+        }
 }
 
 @Composable

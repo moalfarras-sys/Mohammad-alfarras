@@ -45,8 +45,8 @@ android {
         applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.1.0"
+        versionCode = 6
+        versionName = "2.1.2"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')
@@ -113,12 +113,28 @@ android {
         buildConfig = true
     }
 
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = true
+        }
+    }
+
     packaging {
         resources {
             excludes += setOf(
                 "/META-INF/{AL2.0,LGPL2.1}",
                 "META-INF/INDEX.LIST",
                 "META-INF/io.netty.versions.properties",
+            )
+        }
+        jniLibs {
+            useLegacyPackaging = true
+            excludes += setOf(
+                "**/x86/**",
+                "**/x86_64/**",
             )
         }
     }
@@ -156,6 +172,7 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.10.0")
     implementation("androidx.media3:media3-session:1.10.0")
     implementation("androidx.media3:media3-datasource-okhttp:1.10.0")
+    implementation("org.videolan.android:libvlc-all:3.6.2")
     implementation("com.google.android.gms:play-services-cast-framework:22.1.0")
 
     implementation("com.squareup.retrofit2:retrofit:3.0.0")

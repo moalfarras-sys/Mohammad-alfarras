@@ -26,7 +26,14 @@ class WidgetRepository(
                 WeatherMode.MANUAL -> manualWeather(settings.manualWeatherEffect)
             }
         }.getOrElse {
-            WeatherSnapshot(city = "غرفة الجلوس", condition = "Clear", temperatureC = 21.0)
+            val fallbackCity = settings.weatherCityOverride.trim().ifBlank { "غرفة الجلوس" }
+            WeatherSnapshot(
+                city = fallbackCity,
+                condition = settings.manualWeatherEffect.toCondition(),
+                temperatureC = settings.manualWeatherEffect.toTemperature(),
+                timeZoneId = ZoneId.systemDefault().id,
+                isManual = true,
+            )
         }
     }
 
@@ -84,6 +91,24 @@ class WidgetRepository(
         71, 73, 75, 77, 85, 86 -> "Snow"
         95, 96, 99 -> "Thunderstorm"
         else -> "Clear"
+    }
+
+    private fun ManualWeatherEffect.toCondition(): String = when (this) {
+        ManualWeatherEffect.SUNNY -> "Sunny"
+        ManualWeatherEffect.CLOUDY -> "Cloudy"
+        ManualWeatherEffect.RAIN -> "Rain"
+        ManualWeatherEffect.STORM -> "Thunderstorm"
+        ManualWeatherEffect.SNOW -> "Snow"
+        ManualWeatherEffect.FOG -> "Fog"
+    }
+
+    private fun ManualWeatherEffect.toTemperature(): Double = when (this) {
+        ManualWeatherEffect.SUNNY -> 28.0
+        ManualWeatherEffect.CLOUDY -> 20.0
+        ManualWeatherEffect.RAIN -> 16.0
+        ManualWeatherEffect.STORM -> 14.0
+        ManualWeatherEffect.SNOW -> -2.0
+        ManualWeatherEffect.FOG -> 9.0
     }
 
     suspend fun football(): List<FootballMatch> = withContext(Dispatchers.IO) {

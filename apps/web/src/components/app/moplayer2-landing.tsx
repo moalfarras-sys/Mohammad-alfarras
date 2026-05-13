@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { normalizePublicImagePath } from "@/lib/asset-url";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 
@@ -148,21 +149,19 @@ const featureIcons: Record<string, React.ElementType> = {
 };
 
 const mp2Screenshots = [
-  { id: "mp2-hero", src: "/images/moplayer2-hero-banner.png", alt: "MoPlayer Pro hero banner with premium warm UI on Android TV", label: "Hero" },
-  { id: "mp2-home", src: "/images/moplayer2-home-screen.png", alt: "MoPlayer Pro home screen with widgets and content rows", label: "Home" },
-  { id: "mp2-live", src: "/images/moplayer2-live-tv.png", alt: "MoPlayer Pro live TV channel grid", label: "Live TV" },
-  { id: "mp2-movies", src: "/images/moplayer2-movies.png", alt: "MoPlayer Pro movies and series browser", label: "Movies & Series" },
-  { id: "mp2-player", src: "/images/moplayer2-player.png", alt: "MoPlayer Pro media player screen with controls", label: "Player" },
-  { id: "mp2-login", src: "/images/moplayer2-login.png", alt: "MoPlayer Pro login and activation screen", label: "Login" },
+  { id: "mp2-home", src: "/images/moplayer-pro-home.webp", alt: "MoPlayer Pro warm gold Android TV home screen", label: "Home" },
+  { id: "mp2-activation", src: "/images/moplayer-pro-activation.webp", alt: "MoPlayer Pro QR activation and website pairing flow", label: "Activation" },
+  { id: "mp2-player", src: "/images/moplayer-pro-player.webp", alt: "MoPlayer Pro warm glass media player controls", label: "Player" },
 ];
 
 export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
   const isAr = locale === "ar";
-  const c = t[locale];
+  const c = repairMojibakeDeep(t[locale]);
   const latest = ecosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
   const hasDownload = latest && latest.assets.some((a) => a.external_url || a.storage_path);
   const downloadHref = hasDownload ? `/api/app/releases/${latest.slug}/download` : null;
+  const activateHref = `/${locale}/activate?product=moplayer2`;
   const size = formatBytes(primaryAsset?.file_size_bytes);
 
   return (
@@ -185,7 +184,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
             ) : (
               <span className="mp2-btn mp2-btn-pending">{c.releasePending}</span>
             )}
-            <Link href={`/${locale}/activate`} className="mp2-btn">
+            <Link href={activateHref} className="mp2-btn">
               <KeyRound className="h-4 w-4" /> {c.activate}
             </Link>
           </div>
@@ -194,12 +193,13 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           <div className="mp2-hero-glow" />
           <div className="mp2-hero-frame">
             <Image
-              src={normalizePublicImagePath("/images/moplayer2-hero-banner.png")}
+              src={normalizePublicImagePath("/images/moplayer-pro-hero.webp")}
               alt={isAr ? "تجربة MoPlayer Pro Android TV" : "MoPlayer Pro Android TV experience"}
               fill
               sizes="(max-width: 900px) 92vw, 620px"
               className="mp2-hero-img"
-              priority
+              loading="eager"
+              preload
             />
           </div>
         </div>
@@ -211,7 +211,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           { label: isAr ? "الإصدار" : "Version", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
           { label: isAr ? "الحجم" : "Size", value: size ?? "APK" },
           { label: isAr ? "الحد الأدنى" : "Min SDK", value: `API ${ecosystem.product.android_min_sdk}` },
-          { label: isAr ? "التلفزيون" : "TV Ready", value: ecosystem.product.android_tv_ready ? "✓" : "—" },
+          { label: isAr ? "جاهز للتلفزيون" : "TV Ready", value: ecosystem.product.android_tv_ready ? "Yes" : "-" },
         ].map((s) => (
           <div key={s.label}>
             <span>{s.label}</span>
@@ -219,6 +219,27 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           </div>
         ))}
       </section>
+
+      {latest && primaryAsset ? (
+        <section className="mp2-section">
+          <div className="mp2-section-head">
+            <span className="mp2-badge"><Download className="h-4 w-4" /> {isAr ? "تحميل موحد" : "Universal Download"}</span>
+            <h2>{isAr ? "ملف APK واحد للتلفزيونات الحقيقية" : "One APK for real Android TVs"}</h2>
+            <p>
+              {isAr
+                ? "هذه النسخة تحتوي ARM 32-bit وARM 64-bit داخل ملف واحد، وهي الموصى بها لتلفزيونات Android 8 والأجهزة الحديثة."
+                : "This build includes 32-bit ARM and 64-bit ARM in one file, recommended for Android 8 TVs and modern devices."}
+            </p>
+          </div>
+          <div className="mp2-feature-grid">
+            <a href={`/api/app/releases/${latest.slug}/download`} className="mp2-feature-card">
+              <Download className="h-5 w-5" />
+              <h3>{primaryAsset.label || (isAr ? "ملف APK موحد" : "Universal TV APK")}</h3>
+              <p>{primaryAsset.abi ?? "universal"} · {formatBytes(primaryAsset.file_size_bytes) ?? "APK"}</p>
+            </a>
+          </div>
+        </section>
+      ) : null}
 
       {/* ── Features ── */}
       <section className="mp2-section">
@@ -365,7 +386,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
               <Download className="h-4 w-4" /> {c.download}
             </a>
           ) : null}
-          <Link href={`/${locale}/activate`} className="mp2-btn">
+          <Link href={activateHref} className="mp2-btn">
             <KeyRound className="h-4 w-4" /> {c.activate}
           </Link>
           <Link href={`/${locale}/support`} className="mp2-btn">

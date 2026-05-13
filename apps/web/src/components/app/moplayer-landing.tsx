@@ -11,6 +11,7 @@ import {
   KeyRound,
   MonitorPlay,
   ShieldCheck,
+  Sparkles,
   Smartphone,
   Tv2,
   Workflow,
@@ -55,6 +56,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   const releaseDate = formatDate(locale, latest?.published_at ?? ecosystem.product.last_updated_at);
   const downloadHref = latest && latest.assets.some((asset) => asset.external_url || asset.storage_path) ? `/api/app/releases/${latest.slug}/download` : null;
   const updateHref = `/api/app/releases/latest?product=${ecosystem.product.slug}`;
+  const proHref = `/${locale}/apps/moplayer2`;
   const screenshots = ecosystem.screenshots.length
     ? ecosystem.screenshots
     : [
@@ -137,6 +139,34 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
             <strong>{item.value}</strong>
           </div>
         ))}
+      </section>
+
+      <section className="moplayer-pro-switch">
+        <div>
+          <span className="moplayer-kicker">
+            <Sparkles className="h-4 w-4" />
+            {isAr ? "النسخة الجديدة" : "New product line"}
+          </span>
+          <h2>{isAr ? "تريد تجربة أدفأ وأحدث؟ انتقل إلى MoPlayer Pro." : "Want the warmer next-generation app? Open MoPlayer Pro."}</h2>
+          <p>
+            {isAr
+              ? "MoPlayer يبقى التطبيق الأزرق الكلاسيكي. MoPlayer Pro تطبيق منفصل بالهوية الذهبية، تحميل مستقل، وتفعيل QR خاص به."
+              : "MoPlayer stays the blue classic app. MoPlayer Pro is a separate warm-gold app with its own APK, QR activation, and release channel."}
+          </p>
+          <Link href={proHref} className="moplayer-button moplayer-button-pro">
+            <Sparkles className="h-4 w-4" />
+            {isAr ? "افتح MoPlayer Pro" : "Open MoPlayer Pro"}
+          </Link>
+        </div>
+        <Link href={proHref} className="moplayer-pro-switch-media" aria-label={isAr ? "افتح صفحة MoPlayer Pro" : "Open MoPlayer Pro page"}>
+          <Image
+            src="/images/moplayer-pro-hero.webp"
+            alt={isAr ? "واجهة MoPlayer Pro باللون الذهبي" : "MoPlayer Pro warm gold product preview"}
+            fill
+            sizes="(max-width: 900px) 92vw, 470px"
+            className="moplayer-image"
+          />
+        </Link>
       </section>
 
       <section className="moplayer-section">

@@ -53,7 +53,7 @@ class AppSettingsRepository(private val context: Context) {
     private val libraryModeKey = stringPreferencesKey("library_mode")
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
-        val storedPlayer = prefs[playerKey] ?: "media3"
+        val storedPlayer = prefs[playerKey] ?: "auto"
         val storedSort = prefs[sortKey] ?: SortOption.SERVER_ORDER.name
         val storedLibraryMode = prefs[libraryModeKey] ?: LibraryMode.MERGED.name
         AppSettings(
@@ -71,7 +71,7 @@ class AppSettingsRepository(private val context: Context) {
             manualWeatherEffect = prefs[manualWeatherEffectKey].toEnum(ManualWeatherEffect.SUNNY),
             weatherCityOverride = prefs[weatherCityOverrideKey].orEmpty(),
             footballMaxMatches = (prefs[footballMaxMatchesKey] ?: 4).coerceIn(1, 8),
-            preferredPlayer = if (storedPlayer == "internal") "media3" else storedPlayer,
+            preferredPlayer = if (storedPlayer == "internal") "auto" else storedPlayer,
             defaultSort = runCatching { SortOption.valueOf(storedSort) }.getOrDefault(SortOption.SERVER_ORDER),
             parentalControlsEnabled = prefs[parentalKey] ?: false,
             hasParentalPin = !prefs[parentalPinKey].isNullOrBlank(),

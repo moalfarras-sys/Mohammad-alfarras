@@ -32,6 +32,7 @@ import com.mo.moplayer.ui.common.ContentMenuHelper
 import com.mo.moplayer.util.PlayerLauncher
 import com.mo.moplayer.ui.livetv.adapters.ChannelTiviMateAdapter
 import com.mo.moplayer.ui.livetv.adapters.GroupAdapter
+import com.mo.moplayer.util.LivePlaybackRetryPolicy
 import com.mo.moplayer.util.NativeVlcLoader
 import com.mo.moplayer.util.PlayerPreferences
 import dagger.hilt.android.AndroidEntryPoint
@@ -219,8 +220,8 @@ class LiveTvActivity : BaseTvActivity() {
     }
 
     private var retryCount = 0
-    private val MAX_RETRIES = 5 // Increased from 3 for better resilience
-    private val RETRY_BACKOFF_MS = 2000L // Base backoff time
+    private val MAX_RETRIES = LivePlaybackRetryPolicy.DEFAULT_MAX_RETRIES
+    private val RETRY_BACKOFF_MS = LivePlaybackRetryPolicy.DEFAULT_BASE_DELAY_MS
     private var currentChannel: ChannelEntity? = null
     private var activePlayRequestToken = 0L
     private var activePlaybackToken = 0L
@@ -472,14 +473,12 @@ class LiveTvActivity : BaseTvActivity() {
     }
 
     private fun handleStreamError() {
-        if (retryCount < MAX_RETRIES && currentChannel != null) {
+        val failedToken = activePlaybackToken
+        if (LivePlaybackRetryPolicy.canRetry(retryCount, MAX_RETRIES) && currentChannel != null) {
             retryCount++
             decoderFallbackCount++
 
-            // Exponential backoff: 2s, 4s, 8s, 16s, 32s
-            val backoffDelay = RETRY_BACKOFF_MS * (1L shl (retryCount - 1))
-            val maxDelay = 10000L // Cap at 10 seconds
-            val delay = backoffDelay.coerceAtMost(maxDelay)
+            val delay = LivePlaybackRetryPolicy.nextDelayMs(retryCount, RETRY_BACKOFF_MS)
 
             android.util.Log.d(
                     "LiveTvActivity",
@@ -488,6 +487,9 @@ class LiveTvActivity : BaseTvActivity() {
 
             handler.postDelayed(
                     {
+                        if (failedToken != activePlaybackToken || isFinishing || isDestroying) {
+                            return@postDelayed
+                        }
                         // Check network before retrying
                         if (isNetworkAvailable()) {
                             currentChannel?.let { playChannel(it) }
@@ -760,6 +762,21 @@ class LiveTvActivity : BaseTvActivity() {
 
     private fun showError(message: String) {
         setLoadingOverlayVisible(false)
+        binding.networkErrorView.setListener(
+                object : com.mo.moplayer.ui.common.LoadingStateView.LoadingStateListener {
+                    override fun onRetryClicked() {
+                        currentChannel?.let {
+                            retryCount = 0
+                            playChannel(it)
+                        } ?: viewModel.retry()
+                    }
+                }
+        )
+        binding.networkErrorView.showError(
+                title = getString(R.string.error_stream_failed),
+                message = message,
+                showRetry = true
+        )
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
@@ -1697,14 +1714,19 @@ class LiveTvActivity : BaseTvActivity() {
         super.onPause()
         isSurfaceReadyForMain = false
         stopVideoPreview()
-        mediaPlayer?.pause()
+        if (isFinishing) {
+            mediaPlayer?.pause()
+        }
     }
 
     override fun onStop() {
         super.onStop()
         stopVideoPreview()
-        mediaPlayer?.stop()
-        detachMainViewsIfNeeded()
+        if (isFinishing) {
+            activePlaybackToken++
+            mediaPlayer?.stop()
+            detachMainViewsIfNeeded()
+        }
     }
 
     private fun releasePreviewPlayer() {

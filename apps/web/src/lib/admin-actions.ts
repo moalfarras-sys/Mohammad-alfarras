@@ -4,11 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
-  createAdminSession,
-  destroyAdminSession,
   getAdminSessionEmail,
   requireAdmin,
 } from "@/lib/auth";
+import { signInAdmin, signOutAdmin } from "@/lib/admin-auth";
 import {
   appendAuditLog,
   deleteCertification,
@@ -173,8 +172,9 @@ export async function loginAdminAction(formData: FormData) {
   const locale = String(formData.get("locale") ?? "ar") === "en" ? "en" : "ar";
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const ok = await createAdminSession(email, password);
-  if (!ok) {
+  try {
+    await signInAdmin(email, password);
+  } catch {
     redirect(`/${locale}/admin?error=invalid_credentials`);
   }
 
@@ -182,7 +182,7 @@ export async function loginAdminAction(formData: FormData) {
 }
 
 export async function logoutAdminAction(formData: FormData) {
-  await destroyAdminSession();
+  await signOutAdmin();
   const locale = String(formData.get("locale") ?? "ar") === "en" ? "en" : "ar";
   redirect(`/${locale}/admin`);
 }

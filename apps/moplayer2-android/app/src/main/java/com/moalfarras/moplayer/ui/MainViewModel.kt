@@ -178,7 +178,7 @@ class MainViewModel(
         val server = state.activeServer ?: return@flatMapLatest flowOf(emptyList())
         iptv.liveZapItems(
             serverId = state.libraryServerId(server.id),
-            categoryId = state.selectedCategoryId.takeIf { state.returnSection == AppSection.LIVE || state.section == AppSection.LIVE || state.section == AppSection.PLAYER }.orEmpty(),
+            categoryId = state.selectedCategoryId.takeIf { state.section == AppSection.LIVE }.orEmpty(),
             sortOption = state.settings.defaultSort,
             hideNoLogo = state.settings.hideChannelsWithoutLogo,
         ).map { items ->
@@ -307,16 +307,32 @@ class MainViewModel(
         val sec = internal.value.section
         if (sec in sectionsWithMediaFocus()) {
             lastCategoryBySection[sec] = category.id
+            lastFocusedBySection[sec] = null
         }
-        internal.update { it.copy(selectedCategoryId = category.id) }
+        internal.update {
+            it.copy(
+                selectedCategoryId = category.id,
+                focusedItem = null,
+                dockFocusSection = null,
+            )
+        }
+        saveLastSection(sec)
     }
 
     fun clearCategory() {
         val sec = internal.value.section
         if (sec in sectionsWithMediaFocus()) {
             lastCategoryBySection[sec] = ""
+            lastFocusedBySection[sec] = null
         }
-        internal.update { it.copy(selectedCategoryId = "") }
+        internal.update {
+            it.copy(
+                selectedCategoryId = "",
+                focusedItem = null,
+                dockFocusSection = null,
+            )
+        }
+        saveLastSection(sec)
     }
 
     fun focusItem(item: MediaItem?) {
@@ -336,6 +352,11 @@ class MainViewModel(
         viewModelScope.launch { iptv.notePlaybackStart(item) }
         when (item.type) {
             ContentType.SERIES -> openSeries(item)
+            ContentType.LIVE -> internal.update {
+                persistSnapshot(it.section, it.focusedItem, it.selectedCategoryId)
+                saveLastSection(it.section)
+                it.copy(playingItem = item, returnSection = it.section, section = AppSection.PLAYER)
+            }
             else -> viewModelScope.launch {
                 val syncedItem = runCatching { iptv.syncWatchProgressFromCloud(item) }.getOrDefault(item)
                 internal.update {
@@ -364,6 +385,7 @@ class MainViewModel(
                 section = back,
                 focusedItem = f,
                 selectedCategoryId = c.ifEmpty { it.selectedCategoryId },
+                dockFocusSection = null,
             )
         }
     }
@@ -383,6 +405,7 @@ class MainViewModel(
                         seriesDetail = null,
                         focusedItem = f,
                         selectedCategoryId = c,
+                        dockFocusSection = null,
                     )
                 }
                 AppSection.SEARCH, AppSection.SETTINGS, AppSection.LIVE, AppSection.MOVIES, AppSection.SERIES, AppSection.FAVORITES -> {

@@ -25,8 +25,8 @@ set product_name = 'MoPlayer Pro',
     compatibility_notes = '["Android 7.0+ (API 24 and above)","Separate package: com.moalfarras.moplayerpro","Designed for Android TV and remote-first navigation"]'::jsonb,
     legal_notes = '["MoPlayer Pro is a playback interface. It does not provide channels, playlists, subscriptions, or copyrighted media.","Users are responsible for the legality of the content sources they connect."]'::jsonb,
     changelog_intro = 'MoPlayer Pro releases are tracked separately from classic MoPlayer.',
-    hero_image_path = '/images/moplayer-pro-banner.jpeg',
-    tv_banner_path = '/images/moplayer-pro-banner.jpeg',
+    hero_image_path = '/images/moplayer-pro-hero.webp',
+    tv_banner_path = '/images/moplayer-pro-hero.webp',
     updated_at = timezone('utc', now())
 where slug = 'moplayer2';
 
@@ -44,7 +44,7 @@ values (
     "message": "",
     "accentColor": "#f5c66b",
     "logoUrl": "/images/moplayer-icon-512.png",
-    "backgroundUrl": "/images/moplayer-pro-banner.jpeg",
+    "backgroundUrl": "/images/moplayer-pro-hero.webp",
     "widgets": {
       "weather": true,
       "football": true

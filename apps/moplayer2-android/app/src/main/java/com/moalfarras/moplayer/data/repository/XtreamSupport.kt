@@ -177,8 +177,13 @@ internal object XtreamSupport {
             null
         } else {
             val categoryId = obj.string("category_id")
-            val output = pickLiveExtension(allowedFormats)
             val directSource = obj.string("direct_source")
+            val output = pickLiveExtension(
+                allowedFormats = allowedFormats,
+                streamExtension = obj.string("container_extension").ifBlank { obj.string("stream_type") },
+                directSource = directSource,
+                playlistUrl = credentials.playlistUrl,
+            )
             val addedAt = parseTimestamp(obj.string("added"))
             val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
             MediaItem(
@@ -586,11 +591,64 @@ private fun JsonElement?.contentOrNull(): String? = when (this) {
     else -> null
 }
 
-private fun pickLiveExtension(allowedFormats: List<String>): String =
-    when {
-        allowedFormats.any { it.equals("ts", ignoreCase = true) } -> "ts"
-        allowedFormats.any { it.equals("m3u8", ignoreCase = true) } -> "m3u8"
-        else -> "ts"
+internal fun pickLiveExtension(
+    allowedFormats: List<String>,
+    streamExtension: String = "",
+    directSource: String = "",
+    playlistUrl: String = "",
+): String {
+    val directExtension = directSource.extractMediaExtension()
+    if (directExtension.isNotBlank()) return directExtension
+
+    val metadataExtension = streamExtension.normalizeLiveExtension()
+    if (metadataExtension.isNotBlank()) return metadataExtension
+
+    val playlistOutput = runCatching {
+        URI(playlistUrl).rawQuery
+            ?.split('&')
+            ?.mapNotNull { part ->
+                val pieces = part.split('=', limit = 2)
+                if (pieces.size == 2) {
+                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()) to URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
+                } else {
+                    null
+                }
+            }
+            ?.firstOrNull { (key, _) -> key.equals("output", ignoreCase = true) }
+            ?.second
+            .orEmpty()
+    }.getOrDefault("").normalizeLiveExtension()
+    if (playlistOutput.isNotBlank()) return playlistOutput
+
+    val supported = allowedFormats.mapNotNull { it.normalizeLiveExtension().takeIf(String::isNotBlank) }
+    return when {
+        supported.any { it == "m3u8" } -> "m3u8"
+        supported.any { it == "ts" } -> "ts"
+        supported.any { it == "mp4" } -> "mp4"
+        supported.isNotEmpty() -> supported.first()
+        else -> "m3u8"
+    }
+}
+
+private fun String.extractMediaExtension(): String {
+    val path = substringBefore('|').substringBefore('?').substringBefore('#')
+    return path.substringAfterLast('/', "")
+        .substringAfterLast('.', "")
+        .normalizeLiveExtension()
+}
+
+private fun String.normalizeLiveExtension(): String = trim()
+    .trimStart('.')
+    .lowercase(Locale.US)
+    .let { value ->
+        when (value) {
+            "hls", "m3u", "m3u8" -> "m3u8"
+            "mpegts", "mpeg-ts", "ts" -> "ts"
+            "dash", "mpd" -> "mpd"
+            "smooth", "ism" -> "ism"
+            "mp4", "mkv", "webm", "flv" -> value
+            else -> ""
+        }
     }
 
 private fun parseXmltvTime(value: String): Long {

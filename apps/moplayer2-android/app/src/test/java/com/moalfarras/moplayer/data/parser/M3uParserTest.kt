@@ -80,4 +80,31 @@ class M3uParserTest {
         assertEquals(ContentType.LIVE, parsed.media.last().type)
         assertEquals("ch9999", parsed.media.last().tvgId)
     }
+
+    @Test
+    fun preservesCommonIptvHeadersOnStreamUrl() {
+        val playlist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-name="Header Channel" group-title="Live" http-user-agent="Attr Agent" http-referrer="https://attr.example",Header Channel
+            #EXTVLCOPT:http-user-agent=VLC Agent
+            #KODIPROP:inputstream.adaptive.stream_headers=Referer=https://kodi.example&Origin=https://origin.example
+            https://example.test/live/header.m3u8
+            #EXTINF:-1 tvg-name="Cookie Channel" group-title="Live",Cookie Channel
+            #EXTHTTP:{"Cookie":"session=abc","User-Agent":"Json Agent"}
+            https://example.test/live/cookie.ts|Referer=https://inline.example
+        """.trimIndent()
+
+        val parsed = parser.parse(serverId = 12, text = playlist)
+
+        val first = parsed.media.first { it.title == "Header Channel" }
+        assertTrue(first.streamUrl.startsWith("https://example.test/live/header.m3u8|"))
+        assertTrue(first.streamUrl.contains("User-Agent=VLC%20Agent"))
+        assertTrue(first.streamUrl.contains("Referer=https%3A%2F%2Fkodi.example"))
+        assertTrue(first.streamUrl.contains("Origin=https%3A%2F%2Forigin.example"))
+
+        val second = parsed.media.first { it.title == "Cookie Channel" }
+        assertTrue(second.streamUrl.contains("Referer=https%3A%2F%2Finline.example"))
+        assertTrue(second.streamUrl.contains("Cookie=session%3Dabc"))
+        assertTrue(second.streamUrl.contains("User-Agent=Json%20Agent"))
+    }
 }

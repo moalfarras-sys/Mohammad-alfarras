@@ -322,8 +322,8 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer_ui_playlist-final.png", "/images/moplayer-release-panel.webp"],
     },
     moplayer2: {
-      image: "/images/moplayer2-hero-banner.png",
-      gallery: ["/images/moplayer2-hero-banner.png", "/images/moplayer2-home-screen.png", "/images/moplayer2-login.png", "/images/moplayer2-player.png"],
+      image: "/images/moplayer-pro-hero.webp",
+      gallery: ["/images/moplayer-pro-hero.webp", "/images/moplayer-pro-home.webp", "/images/moplayer-pro-activation.webp", "/images/moplayer-pro-player.webp"],
     },
   };
 

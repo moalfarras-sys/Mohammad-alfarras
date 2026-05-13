@@ -8,11 +8,11 @@ update public.app_products
 set
   downloader_code = null,
   hero_image_path = case
-    when slug = 'moplayer2' then '/images/moplayer-pro-banner.jpeg'
+    when slug = 'moplayer2' then '/images/moplayer-pro-hero.webp'
     else hero_image_path
   end,
   tv_banner_path = case
-    when slug = 'moplayer2' then '/images/moplayer-pro-banner.jpeg'
+    when slug = 'moplayer2' then '/images/moplayer-pro-hero.webp'
     else tv_banner_path
   end
 where slug in ('moplayer', 'moplayer2');

@@ -119,7 +119,7 @@ data class AppSettings(
     val manualWeatherEffect: ManualWeatherEffect = ManualWeatherEffect.SUNNY,
     val weatherCityOverride: String = "",
     val footballMaxMatches: Int = 4,
-    val preferredPlayer: String = "media3",
+    val preferredPlayer: String = "auto",
     val defaultSort: SortOption = SortOption.SERVER_ORDER,
     val parentalControlsEnabled: Boolean = false,
     val hasParentalPin: Boolean = false,

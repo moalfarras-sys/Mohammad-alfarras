@@ -24,11 +24,8 @@ internal fun resolveHomeBackdropUrl(
     val contentBackdrop = contentBackdropUrl?.trim()?.takeIf(::isValidBackdropUrl)
     return when (settings.backgroundMode) {
         BackgroundMode.AUTO -> {
-            if (settings.themePreset == ThemePreset.CITY) {
-                cityBackgroundUrlForDay(epochDay)
-            } else {
-                contentBackdrop
-            }
+            if (settings.themePreset == ThemePreset.CITY) cityBackgroundUrlForDay(epochDay)
+            else contentBackdrop ?: cityBackgroundUrlForDay(epochDay)
         }
         BackgroundMode.CITY_ROTATION -> cityBackgroundUrlForDay(epochDay)
         BackgroundMode.CUSTOM_URL -> settings.customBackgroundUrl.trim().takeIf(::isValidBackdropUrl)

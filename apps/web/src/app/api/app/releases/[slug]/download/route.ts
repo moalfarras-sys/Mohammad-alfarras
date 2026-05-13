@@ -8,7 +8,8 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const resolved = await resolveDownloadBySlug(slug);
+  const abi = new URL(request.url).searchParams.get("abi");
+  const resolved = await resolveDownloadBySlug(slug, abi);
 
   if (!resolved) {
     return NextResponse.json({ error: "Release not found" }, { status: 404 });

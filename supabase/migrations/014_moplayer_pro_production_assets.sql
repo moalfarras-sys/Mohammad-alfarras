@@ -9,8 +9,8 @@ set product_name = 'MoPlayer Pro',
     long_description = 'MoPlayer Pro stays under the same moalfarras.space Supabase and admin system, but has its own product page, APK releases, runtime settings, Downloader code, screenshots, and activation flow.',
     package_name = 'com.moalfarras.moplayerpro',
     default_download_label = 'Download MoPlayer Pro APK',
-    hero_image_path = '/images/moplayer-pro-banner.jpeg',
-    tv_banner_path = '/images/moplayer-pro-banner.jpeg',
+    hero_image_path = '/images/moplayer-pro-hero.webp',
+    tv_banner_path = '/images/moplayer-pro-hero.webp',
     legal_notes = '[
       "MoPlayer Pro is a player only. It does not provide channels, movies, series, playlists, subscriptions, or copyrighted content.",
       "Users connect only Xtream or M3U sources they are authorized to use."
@@ -41,7 +41,7 @@ values (
     "message": "",
     "accentColor": "#f5c66b",
     "logoUrl": "/images/moplayer-icon-512.png",
-    "backgroundUrl": "/images/moplayer-pro-banner.jpeg",
+    "backgroundUrl": "/images/moplayer-pro-hero.webp",
     "widgets": {
       "weather": true,
       "football": true
@@ -72,11 +72,10 @@ where product_slug = 'moplayer2'
 
 insert into public.app_screenshots (id, product_slug, title, alt_text, image_path, device_frame, sort_order, is_featured)
 values
-  ('44444444-4444-4444-4444-444444444421', 'moplayer2', 'MoPlayer Pro TV Home', 'MoPlayer Pro TV home interface preview', '/images/moplayer-pro-tv-home.jpeg', 'tv', 1, true),
-  ('44444444-4444-4444-4444-444444444422', 'moplayer2', 'MoPlayer Pro TV Feature', 'MoPlayer Pro Android TV feature preview', '/images/moplayer-pro-tv-feature.jpeg', 'tv', 2, false),
-  ('44444444-4444-4444-4444-444444444423', 'moplayer2', 'MoPlayer Pro Phone Flow', 'MoPlayer Pro phone activation and setup preview', '/images/moplayer-pro-phone-showcase.jpeg', 'phone', 3, false),
-  ('44444444-4444-4444-4444-444444444424', 'moplayer2', 'MoPlayer Pro Large Screen', 'MoPlayer Pro large screen interface preview', '/images/moplayer-pro-tv-poster.jpeg', 'tv', 4, false),
-  ('44444444-4444-4444-4444-444444444425', 'moplayer2', 'MoPlayer Pro Product Board', 'MoPlayer Pro product board preview', '/images/moplayer-pro-brand-board.jpeg', 'landscape', 5, false)
+  ('44444444-4444-4444-4444-444444444421', 'moplayer2', 'MoPlayer Pro Home', 'MoPlayer Pro warm gold Android TV home screen', '/images/moplayer-pro-home.webp', 'tv', 1, true),
+  ('44444444-4444-4444-4444-444444444422', 'moplayer2', 'MoPlayer Pro Activation', 'MoPlayer Pro QR activation and website pairing flow', '/images/moplayer-pro-activation.webp', 'tv', 2, false),
+  ('44444444-4444-4444-4444-444444444423', 'moplayer2', 'MoPlayer Pro Player', 'MoPlayer Pro warm glass media player controls', '/images/moplayer-pro-player.webp', 'tv', 3, false),
+  ('44444444-4444-4444-4444-444444444424', 'moplayer2', 'MoPlayer Pro TV + Phone', 'MoPlayer Pro warm product preview on TV and phone', '/images/moplayer-pro-hero.webp', 'landscape', 4, false)
 on conflict (id) do update
 set title = excluded.title,
     alt_text = excluded.alt_text,

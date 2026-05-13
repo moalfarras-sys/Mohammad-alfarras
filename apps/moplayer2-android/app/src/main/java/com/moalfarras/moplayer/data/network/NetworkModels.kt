@@ -194,7 +194,7 @@ data class WebActivationCreateRequestDto(
     val platform: String = "android",
     val appVersion: String = "",
     val sourcePullToken: String,
-    val productSlug: String = "moplayer2",
+    val productSlug: String,
 )
 
 @Serializable

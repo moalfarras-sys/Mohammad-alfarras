@@ -32,7 +32,14 @@ export function isManagedAppSlug(value: string): value is ManagedAppSlug {
 }
 
 export function resolveManagedAppSlug(value: string | null | undefined): ManagedAppSlug {
-  return isManagedAppSlug(String(value ?? "")) ? (value as ManagedAppSlug) : "moplayer";
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-");
+  if (normalized === "moplayer-pro" || normalized === "mo-player-pro" || normalized === "pro") {
+    return "moplayer2";
+  }
+  return isManagedAppSlug(normalized) ? normalized : "moplayer";
 }
 
 export function getManagedApp(slug: string | null | undefined): ManagedAppDefinition {

@@ -23,9 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import coil3.compose.AsyncImage
 import com.moalfarras.moplayerpro.R
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
@@ -55,8 +55,10 @@ fun WeatherClockWidget(
     showClock: Boolean = true,
 ) {
     val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
     val condition = weather.condition.lowercase()
+    val hasWeather = showWeather
+    val hasClock = showClock
+    if (!hasWeather && !hasClock) return
 
     val transition = rememberInfiniteTransition(label = "weather-widget")
     val pulse by transition.animateFloat(
@@ -69,12 +71,6 @@ fun WeatherClockWidget(
         infiniteRepeatable(tween(14_000, easing = LinearEasing)),
         label = "drift",
     )
-    val rainShift by transition.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(800, easing = LinearEasing)),
-        label = "rain",
-    )
-
     val conditionColor = weatherOrbColor(condition)
     val zoneId = remember(weather.timeZoneId) { weather.timeZoneId.toZoneId() }
     var clock by remember(zoneId) { mutableStateOf(ZonedDateTime.now(zoneId)) }
@@ -103,78 +99,83 @@ fun WeatherClockWidget(
                 Row(
                     modifier = Modifier.padding(
                         start = (24 * tv.factor).dp,
-                        end = (72 * tv.factor).dp, // Extra space for the oversized weather orb
+                        end = ((if (hasWeather) 72f else 24f) * tv.factor).dp, // Extra space for the oversized weather orb
                         top = (20 * tv.factor).dp,
                         bottom = (20 * tv.factor).dp,
                     ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy((24 * tv.factor).dp),
                 ) {
-                    // 1. HTC Sense Inspired Flip Clock
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)
-                    ) {
-                        FlipDigitCard(hourText, tv.factor)
-                        Text(
-                            ":",
-                            color = Color(0x99FFFFFF),
-                            fontSize = (32 * tv.factor).sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.offset(y = (-2 * tv.factor).dp)
-                        )
-                        FlipDigitCard(minuteText, tv.factor)
+                    if (hasClock) {
+                        // HTC Sense-inspired flip clock, updated every second.
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)
+                        ) {
+                            FlipDigitCard(hourText, tv.factor)
+                            Text(
+                                ":",
+                                color = Color(0x99FFFFFF),
+                                fontSize = (32 * tv.factor).sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.offset(y = (-2 * tv.factor).dp)
+                            )
+                            FlipDigitCard(minuteText, tv.factor)
+                        }
                     }
 
-                    // 2. Weather Typography (Temp & Details)
-                    Column(
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                "${weather.temperatureC.toInt()}°",
-                                color = Color.White,
-                                fontSize = (46 * tv.factor).sp,
-                                fontWeight = FontWeight.Light,
-                                letterSpacing = 0.sp,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    shadow = androidx.compose.ui.graphics.Shadow(
-                                        color = Color(0x88000000), blurRadius = 16f
+                    if (hasWeather) {
+                        // 2. Weather Typography (Temp & Details)
+                        Column(
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    "${weather.temperatureC.toInt()}°",
+                                    color = Color.White,
+                                    fontSize = (46 * tv.factor).sp,
+                                    fontWeight = FontWeight.Light,
+                                    letterSpacing = 0.sp,
+                                    style = androidx.compose.ui.text.TextStyle(
+                                        shadow = androidx.compose.ui.graphics.Shadow(
+                                            color = Color(0x88000000), blurRadius = 16f
+                                        )
                                     )
                                 )
-                            )
-                            Column(modifier = Modifier.padding(bottom = (8 * tv.factor).dp)) {
-                                Text(
-                                    weather.city,
-                                    color = Color(0xFFE3BC78),
-                                    fontSize = (15 * tv.factor).sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    weatherConditionLabel(condition),
-                                    color = conditionColor,
-                                    fontSize = (13 * tv.factor).sp,
-                                    fontWeight = FontWeight.Medium,
-                                )
+                                Column(modifier = Modifier.padding(bottom = (8 * tv.factor).dp)) {
+                                    Text(
+                                        weather.city,
+                                        color = Color(0xFFE3BC78),
+                                        fontSize = (15 * tv.factor).sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        weatherConditionLabel(condition),
+                                        color = conditionColor,
+                                        fontSize = (13 * tv.factor).sp,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // ── Oversized Volumetric Weather Orb (Overflowing) ──
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .offset(x = (20 * tv.factor).dp, y = (-15 * tv.factor).dp) // Peeking out
-                    .size((110 * tv.factor).dp) // Much larger than before!
-                    .graphicsLayer {
-                        // Subtle 3D floating animation
-                        translationY = sin(drift) * 8f
-                        scaleX = 1f + (pulse - 1f) * 0.1f
-                        scaleY = 1f + (pulse - 1f) * 0.1f
-                    }
-            ) {
+            if (hasWeather) {
+                // ── Oversized Volumetric Weather Orb (Overflowing) ──
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .offset(x = (20 * tv.factor).dp, y = (-15 * tv.factor).dp) // Peeking out
+                        .size((110 * tv.factor).dp) // Much larger than before!
+                        .graphicsLayer {
+                            // Subtle 3D floating animation
+                            translationY = sin(drift) * 8f
+                            scaleX = 1f + (pulse - 1f) * 0.1f
+                            scaleY = 1f + (pulse - 1f) * 0.1f
+                        }
+                ) {
                 // Orb Shadow/Glow (Cinematic lighting)
                 Box(
                     modifier = Modifier
@@ -193,7 +194,7 @@ fun WeatherClockWidget(
                         }
                 )
 
-                // Photorealistic 3D generated weather icon
+                // Photorealistic 3D generated weather icon, with online icon when provider supplies it.
                 val iconRes = when {
                     condition.contains("thunder") || condition.contains("storm") -> R.drawable.ic_weather_storm
                     condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> R.drawable.ic_weather_rain
@@ -201,12 +202,24 @@ fun WeatherClockWidget(
                     else -> R.drawable.ic_weather_sun
                 }
                 
-                Image(
-                    painter = painterResource(id = iconRes),
-                    contentDescription = condition,
-                    modifier = Modifier.fillMaxSize().graphicsLayer { blendMode = BlendMode.Screen },
-                    contentScale = ContentScale.Fit
-                )
+                    if (weather.iconUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = weather.iconUrl.toWeatherIconUrl(),
+                            contentDescription = condition,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                            error = painterResource(id = iconRes),
+                            placeholder = painterResource(id = iconRes),
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = condition,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
             }
         }
     }
@@ -310,3 +323,9 @@ private fun weatherConditionLabel(condition: String): String {
 
 private fun String.toZoneId(): ZoneId =
     runCatching { ZoneId.of(this) }.getOrDefault(ZoneId.systemDefault())
+
+private fun String.toWeatherIconUrl(): String = when {
+    startsWith("//") -> "https:$this"
+    startsWith("http://") -> replaceFirst("http://", "https://")
+    else -> this
+}

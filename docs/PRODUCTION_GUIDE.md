@@ -123,13 +123,12 @@ cd apps/moplayer-android
 .\gradlew.bat assembleSideloadRelease -PincludeX86Abis=true
 ```
 
-Copy these files into `apps/web/public/downloads/moplayer`:
+Copy the production download into `apps/web/public/downloads/moplayer`:
 
 - `app-sideload-universal-release.apk`
-- `app-sideload-arm64-v8a-release.apk`
-- `app-sideload-armeabi-v7a-release.apk`
-- `app-sideload-x86-release.apk`
-- `app-sideload-x86_64-release.apk`
+
+ABI split APKs are release-script outputs only. Do not commit them unless a
+release entry explicitly needs separate ABI downloads.
 
 Pro:
 
@@ -175,4 +174,3 @@ After deploy:
 - Keep release APKs only in the public download folders that are intentionally served.
 - Do not commit local passwords, Supabase service keys, Vercel tokens, keystores, or `local.properties`.
 - If a file looks old, first confirm it is not imported, routed, or referenced by Gradle/Next before deleting it.
-

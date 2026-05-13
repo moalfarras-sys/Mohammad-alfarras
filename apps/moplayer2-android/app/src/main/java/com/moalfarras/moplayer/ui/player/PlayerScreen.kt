@@ -30,6 +30,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -115,16 +118,22 @@ import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import kotlinx.coroutines.delay
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer
+import org.videolan.libvlc.util.VLCVideoLayout
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import java.util.LinkedHashMap
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-private const val APP_USER_AGENT = "MoPlayer Pro/2.1.0 (Media3 IPTV)"
+private const val APP_USER_AGENT = "VLC/3.0.21 LibVLC/3.0.21 MoPlayerPro/2.1.0"
 
 enum class LiveQualityMode { AUTO, BEST, STABLE }
+private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -143,13 +152,16 @@ fun PlayerScreen(
     val streamRequest = remember(item.streamUrl) { parseStreamRequest(item.streamUrl) }
     val normalizedPreferred = remember(preferredPlayer) {
         when (preferredPlayer) {
-            "internal" -> "media3"
+            "internal" -> "auto"
             else -> preferredPlayer.ifBlank { "media3" }
         }
     }
 
     var route by remember(item.id, normalizedPreferred) {
-        mutableStateOf(if (normalizedPreferred == "ask" && !isLive) null else if (normalizedPreferred == "ask") "media3" else normalizedPreferred)
+        mutableStateOf(if (normalizedPreferred == "ask" && !isLive) null else if (normalizedPreferred == "ask") "auto" else normalizedPreferred)
+    }
+    var internalEngine by remember(item.id, route, streamRequest.uri) {
+        mutableStateOf(if (isLive && route == "auto") InternalPlaybackEngine.LIBVLC else InternalPlaybackEngine.MEDIA3)
     }
     var launchMessage by remember(item.id) { mutableStateOf<String?>(null) }
     var externalLaunchNonce by remember(item.id) { mutableIntStateOf(0) }
@@ -167,6 +179,7 @@ fun PlayerScreen(
     var favoriteMarked by remember(item.id, item.type) { mutableStateOf(item.isFavorite) }
     var liveQualityMode by remember { mutableStateOf(LiveQualityMode.AUTO) }
     var playbackSignal by remember { mutableStateOf("") }
+    var libVlcRetryNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
 
     val resizeModes = listOf(
         AspectRatioFrameLayout.RESIZE_MODE_FIT,
@@ -178,7 +191,7 @@ fun PlayerScreen(
     LaunchedEffect(item.id, route, externalLaunchNonce) {
         launchMessage = null
         val resolvedRoute = route ?: return@LaunchedEffect
-        if (resolvedRoute == "media3") return@LaunchedEffect
+        if (resolvedRoute == "media3" || resolvedRoute == "auto") return@LaunchedEffect
         val externalResult = openExternalPlayer(context, streamRequest, item.title, resolvedRoute)
         if (externalResult.success) {
             onBack(0, 0)
@@ -196,7 +209,7 @@ fun PlayerScreen(
         return
     }
 
-    if (route != "media3") {
+    if (route != "media3" && route != "auto") {
         ExternalLaunchScreen(
             title = item.title,
             message = launchMessage ?: "جاري فتح المشغل الخارجي...",
@@ -207,6 +220,7 @@ fun PlayerScreen(
             onUseMedia3 = {
                 launchMessage = null
                 route = "media3"
+                internalEngine = InternalPlaybackEngine.MEDIA3
             },
             onPickAnother = { route = null },
             onBack = { onBack(0, 0) },
@@ -214,6 +228,7 @@ fun PlayerScreen(
         return
     }
 
+    val useLibVlc = route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC
     val exoPlayer = remember(item.id, streamRequest.uri) {
         buildPlayer(
             context = context,
@@ -226,7 +241,22 @@ fun PlayerScreen(
                 if (state == Player.STATE_READY) playbackError = null
             },
             onPlayerError = { error ->
+                if (isLive && shouldFallbackToLibVlc(error)) {
+                    playbackError = null
+                    isBuffering = true
+                    internalEngine = InternalPlaybackEngine.LIBVLC
+                    return@buildPlayer
+                }
                 playbackError = explainPlaybackError(context, error, streamRequest.uri, isLive)
+                PlaybackTelemetryStore.record(
+                    PlaybackTelemetrySnapshot(
+                        mediaId = item.id,
+                        title = item.title,
+                        isLive = isLive,
+                        collectedAt = System.currentTimeMillis(),
+                        statsSummary = "error=${error.errorCodeName}; cause=${error.cause?.javaClass?.simpleName.orEmpty()}; ${streamRequest.uri.safeStreamLabel()}",
+                    ),
+                )
             },
             onDurationChanged = { latestDuration ->
                 duration = latestDuration.coerceAtLeast(1L)
@@ -280,6 +310,10 @@ fun PlayerScreen(
         playbackError = null
         launchMessage = null
         isBuffering = true
+        if (useLibVlc) {
+            libVlcRetryNonce++
+            return
+        }
         exoPlayer.stop()
         exoPlayer.setMediaItem(buildPlayableMediaItem(streamRequest, item, isLive), if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
         exoPlayer.prepare()
@@ -301,7 +335,29 @@ fun PlayerScreen(
     val currentIndex = remember(item.id, relatedItems) { relatedItems.indexOfFirst { it.id == item.id && it.type == item.type } }
     val previousItem = liveZapTargetIndex(currentIndex, -1, relatedItems.size)?.let(relatedItems::get)
     val nextItem = liveZapTargetIndex(currentIndex, 1, relatedItems.size)?.let(relatedItems::get)
-    var liveZapIndex by remember(item.id, relatedItems.size) { mutableIntStateOf(currentIndex.coerceAtLeast(0)) }
+    val liveZapCategories = remember(relatedItems) { relatedItems.toLiveZapCategories() }
+    var liveZapCategoryId by remember(item.id, relatedItems) { mutableStateOf(item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }) }
+    val displayedLiveZapItems = remember(relatedItems, liveZapCategoryId) {
+        when (liveZapCategoryId) {
+            LIVE_ZAP_ALL_CATEGORY_ID -> relatedItems
+            LIVE_ZAP_UNCATEGORIZED_ID -> relatedItems.filter { it.categoryId.isBlank() }
+            else -> relatedItems.filter { it.categoryId == liveZapCategoryId }
+        }
+    }
+    val displayedCurrentIndex = remember(item.id, item.categoryId, displayedLiveZapItems) {
+        displayedLiveZapItems.indexOfFirst { it.id == item.id && it.serverId == item.serverId && it.type == item.type }
+    }
+    var liveZapIndex by remember(item.id, liveZapCategoryId, displayedLiveZapItems.size) {
+        mutableIntStateOf(displayedCurrentIndex.coerceAtLeast(0))
+    }
+
+    fun selectLiveZapCategory(direction: Int) {
+        if (liveZapCategories.isEmpty()) return
+        val currentCategoryIndex = liveZapCategories.indexOfFirst { it.id == liveZapCategoryId }.let { if (it >= 0) it else 0 }
+        val nextCategory = liveZapCategories[(currentCategoryIndex + direction).floorMod(liveZapCategories.size)]
+        liveZapCategoryId = nextCategory.id
+        liveZapIndex = 0
+    }
 
     LaunchedEffect(exoPlayer, liveQualityMode) {
         if (isLive) applyLiveQualityMode(exoPlayer, liveQualityMode)
@@ -326,28 +382,37 @@ fun PlayerScreen(
                     // ── LIVE TV: Receiver-style remote ──────────────────
                     isLive -> when (event.key) {
                         Key.DirectionUp -> {
-                            showLiveZap = false
-                            showControls = false
-                            showMiniInfo = true
-                            switchTo(previousItem)
+                            if (showLiveZap && displayedLiveZapItems.isNotEmpty()) {
+                                liveZapIndex = (liveZapIndex - 1).floorMod(displayedLiveZapItems.size)
+                            } else {
+                                showLiveZap = false
+                                showControls = false
+                                showMiniInfo = true
+                                switchTo(previousItem)
+                            }
                             true
                         }
                         Key.DirectionDown -> {
-                            showLiveZap = false
-                            showControls = false
-                            showMiniInfo = true
-                            switchTo(nextItem)
+                            if (showLiveZap && displayedLiveZapItems.isNotEmpty()) {
+                                liveZapIndex = (liveZapIndex + 1).floorMod(displayedLiveZapItems.size)
+                            } else {
+                                showLiveZap = false
+                                showControls = false
+                                showMiniInfo = true
+                                switchTo(nextItem)
+                            }
                             true
                         }
                         Key.Enter, Key.DirectionCenter -> {
                             if (showLiveZap) {
-                                relatedItems.getOrNull(liveZapIndex)?.let { selected ->
+                                displayedLiveZapItems.getOrNull(liveZapIndex)?.let { selected ->
                                     if (selected.id != item.id || selected.serverId != item.serverId) switchTo(selected)
                                 }
                                 showLiveZap = false
                                 showMiniInfo = true
                             } else {
-                                liveZapIndex = currentIndex.coerceAtLeast(0)
+                                liveZapCategoryId = item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }
+                                liveZapIndex = displayedCurrentIndex.coerceAtLeast(0)
                                 showLiveZap = true
                                 showMiniInfo = false
                             }
@@ -365,12 +430,8 @@ fun PlayerScreen(
                             true
                         }
                         Key.DirectionLeft, Key.DirectionRight -> {
-                            if (showLiveZap && relatedItems.isNotEmpty()) {
-                                liveZapIndex = if (event.key == Key.DirectionLeft) {
-                                    (liveZapIndex - 1).floorMod(relatedItems.size)
-                                } else {
-                                    (liveZapIndex + 1).floorMod(relatedItems.size)
-                                }
+                            if (showLiveZap) {
+                                selectLiveZapCategory(if (event.key == Key.DirectionLeft) -1 else 1)
                             } else {
                                 showMiniInfo = true
                             }
@@ -428,18 +489,40 @@ fun PlayerScreen(
                 }
             },
     ) {
-        AndroidView(
-            factory = {
-                PlayerView(it).apply {
-                    player = exoPlayer
-                    useController = false
-                    resizeMode = resizeModes[resizeIndex]
-                    keepScreenOn = true
-                }
-            },
-            update = { it.resizeMode = resizeModes[resizeIndex] },
-            modifier = Modifier.fillMaxSize(),
-        )
+        if (useLibVlc) {
+            LibVlcPlayerView(
+                request = streamRequest,
+                title = item.title,
+                resizeMode = resizeModes[resizeIndex],
+                retryNonce = libVlcRetryNonce,
+                onBuffering = { isBuffering = it },
+                onPlaying = {
+                    isPlaying = true
+                    isBuffering = false
+                    playbackError = null
+                    playbackSignal = "VLC · بث مباشر"
+                },
+                onPaused = { isPlaying = false },
+                onError = { message ->
+                    isBuffering = false
+                    playbackError = message
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            AndroidView(
+                factory = {
+                    PlayerView(it).apply {
+                        player = exoPlayer
+                        useController = false
+                        resizeMode = resizeModes[resizeIndex]
+                        keepScreenOn = true
+                    }
+                },
+                update = { it.resizeMode = resizeModes[resizeIndex] },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
 
         if (isBuffering && playbackError == null) {
             GlassPanel(
@@ -490,6 +573,17 @@ fun PlayerScreen(
                                 Text("إعادة", color = Color.Black, fontSize = 13.sp)
                             }
                             OutlinedButton(onClick = { route = "vlc" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("VLC", fontSize = 12.sp) }
+                            if (isLive) {
+                                OutlinedButton(
+                                    onClick = {
+                                        playbackError = null
+                                        isBuffering = true
+                                        route = "auto"
+                                        internalEngine = InternalPlaybackEngine.LIBVLC
+                                    },
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                ) { Text("داخلي", fontSize = 12.sp) }
+                            }
                             OutlinedButton(onClick = { route = "mx" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("MX", fontSize = 12.sp) }
                             OutlinedButton(onClick = { route = "external" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("خارجي", fontSize = 12.sp) }
                             OutlinedButton(onClick = { onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0)) }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("رجوع", fontSize = 12.sp) }
@@ -505,7 +599,9 @@ fun PlayerScreen(
                 visible = showLiveZap,
                 miniVisible = showMiniInfo && !showLiveZap,
                 currentItem = item,
-                items = relatedItems,
+                categories = liveZapCategories,
+                selectedCategoryId = liveZapCategoryId,
+                items = displayedLiveZapItems,
                 selectedIndex = liveZapIndex,
                 currentIndex = currentIndex,
                 isBuffering = isBuffering,
@@ -514,6 +610,10 @@ fun PlayerScreen(
                 qualityMode = liveQualityMode,
                 accent = accent,
                 onSelectIndex = { index -> liveZapIndex = index },
+                onCategory = { categoryId ->
+                    liveZapCategoryId = categoryId
+                    liveZapIndex = 0
+                },
                 onPlay = { selected ->
                     showLiveZap = false
                     showMiniInfo = true
@@ -729,7 +829,7 @@ fun PlayerScreen(
                                         resizeIndex = (resizeIndex + 1) % resizeModes.size
                                     }
                                     SmallControlButton(Icons.Rounded.Cast, accent) {
-                                        launchCastFallback(context, item.streamUrl)
+                                        launchCastFallback(context, streamRequest.uri)
                                     }
                                     SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, accent) { route = null }
                                 }
@@ -771,6 +871,8 @@ private fun LiveZapOverlay(
     visible: Boolean,
     miniVisible: Boolean,
     currentItem: AppMediaItem,
+    categories: List<LiveZapCategory>,
+    selectedCategoryId: String,
     items: List<AppMediaItem>,
     selectedIndex: Int,
     currentIndex: Int,
@@ -780,6 +882,7 @@ private fun LiveZapOverlay(
     qualityMode: LiveQualityMode,
     accent: Color,
     onSelectIndex: (Int) -> Unit,
+    onCategory: (String) -> Unit,
     onPlay: (AppMediaItem) -> Unit,
     onQualityMode: (LiveQualityMode) -> Unit,
     onAudio: () -> Unit,
@@ -788,6 +891,14 @@ private fun LiveZapOverlay(
     onResize: () -> Unit,
     onExternal: () -> Unit,
 ) {
+    val channelListState = rememberLazyListState()
+
+    LaunchedEffect(visible, selectedIndex, items.size) {
+        if (visible && selectedIndex in items.indices) {
+            channelListState.animateScrollToItem(selectedIndex.coerceAtLeast(0))
+        }
+    }
+
     AnimatedVisibility(
         visible = miniVisible,
         enter = fadeIn(tween(120)),
@@ -858,33 +969,56 @@ private fun LiveZapOverlay(
                     }
 
                     Text(
-                        "القنوات",
+                        "المجموعات والقنوات",
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                     )
 
-                    LazyColumn(
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        itemsIndexed(items, key = { _, channel -> "${channel.serverId}-${channel.id}-${channel.type}" }) { index, channel ->
-                            val isSelected = index == selectedIndex
-                            val isCurrent = channel.id == currentItem.id && channel.serverId == currentItem.serverId
-                            LiveChannelRow(
-                                channel = channel,
-                                index = index,
-                                selected = isSelected,
-                                current = isCurrent,
-                                accent = accent,
-                                onFocus = { onSelectIndex(index) },
-                                onPlay = { onPlay(channel) },
-                            )
+                    if (categories.isNotEmpty()) {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(categories, key = { it.id }) { category ->
+                                LiveCategoryPill(
+                                    category = category,
+                                    selected = category.id == selectedCategoryId,
+                                    accent = accent,
+                                    onClick = { onCategory(category.id) },
+                                )
+                            }
+                        }
+                    }
+
+                    if (items.isEmpty()) {
+                        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text("لا توجد قنوات في هذه المجموعة", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            state = channelListState,
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            itemsIndexed(items, key = { _, channel -> "${channel.serverId}-${channel.id}-${channel.type}" }) { index, channel ->
+                                val isSelected = index == selectedIndex
+                                val isCurrent = channel.id == currentItem.id && channel.serverId == currentItem.serverId
+                                LiveChannelRow(
+                                    channel = channel,
+                                    index = index,
+                                    selected = isSelected,
+                                    current = isCurrent,
+                                    accent = accent,
+                                    onFocus = { onSelectIndex(index) },
+                                    onPlay = { onPlay(channel) },
+                                )
+                            }
                         }
                     }
 
                     Text(
-                        "▲▼ تبديل مباشر  •  ◄► اختيار سريع  •  OK تشغيل/إغلاق",
+                        "OK فتح/تشغيل  •  ▲▼ القنوات  •  ◄► المجموعات",
                         color = Color(0x99FFFFFF),
                         fontSize = 11.sp,
                         maxLines = 1,
@@ -892,6 +1026,51 @@ private fun LiveZapOverlay(
                     )
                 }
             }
+        }
+    }
+}
+
+private data class LiveZapCategory(
+    val id: String,
+    val name: String,
+    val count: Int,
+)
+
+private const val LIVE_ZAP_ALL_CATEGORY_ID = "__all__"
+private const val LIVE_ZAP_UNCATEGORIZED_ID = "__uncategorized__"
+
+private fun List<AppMediaItem>.toLiveZapCategories(): List<LiveZapCategory> {
+    if (isEmpty()) return emptyList()
+    val allCategory = LiveZapCategory(LIVE_ZAP_ALL_CATEGORY_ID, "الكل", size)
+    val grouped = groupBy { it.categoryId.ifBlank { LIVE_ZAP_UNCATEGORIZED_ID } }
+    val itemCategories = grouped.map { (id, channels) ->
+        LiveZapCategory(
+            id = id,
+            name = channels.firstOrNull()?.categoryName?.ifBlank { "بث مباشر" } ?: "بث مباشر",
+            count = channels.size,
+        )
+    }
+    return listOf(allCategory) + itemCategories
+}
+
+@Composable
+private fun LiveCategoryPill(
+    category: LiveZapCategory,
+    selected: Boolean,
+    accent: Color,
+    onClick: () -> Unit,
+) {
+    FocusGlow(cornerRadius = 999.dp, onClick = onClick) {
+        Row(
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(if (selected) accent.copy(alpha = 0.24f) else Color(0x22FFFFFF))
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(category.name, color = if (selected) accent else Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(category.count.toString(), color = Color(0x99FFFFFF), fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -1078,26 +1257,29 @@ private fun PlayerRoutePicker(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(
-                        onClick = { onSelect("media3") },
+                        onClick = { onSelect("auto") },
                         colors = ButtonDefaults.buttonColors(containerColor = visuals.accent, contentColor = Color.Black),
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text("Media3")
+                        Text("تلقائي")
                     }
-                    OutlinedButton(onClick = { onSelect("vlc") }, modifier = Modifier.weight(1f)) {
-                        Text("VLC")
+                    OutlinedButton(onClick = { onSelect("media3") }, modifier = Modifier.weight(1f)) {
+                        Text("Media3")
                     }
                 }
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    OutlinedButton(onClick = { onSelect("vlc") }, modifier = Modifier.weight(1f)) {
+                        Text("VLC")
+                    }
                     OutlinedButton(onClick = { onSelect("mx") }, modifier = Modifier.weight(1f)) {
                         Text("MX")
                     }
-                    OutlinedButton(onClick = { onSelect("external") }, modifier = Modifier.weight(1f)) {
-                        Text("عام")
-                    }
+                }
+                OutlinedButton(onClick = { onSelect("external") }, modifier = Modifier.fillMaxWidth()) {
+                    Text("عام")
                 }
                 OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                     Text("إلغاء")
@@ -1192,6 +1374,93 @@ private fun SmallControlButton(
     }
 }
 
+@Composable
+private fun LibVlcPlayerView(
+    request: StreamRequest,
+    title: String,
+    resizeMode: Int,
+    retryNonce: Int,
+    onBuffering: (Boolean) -> Unit,
+    onPlaying: () -> Unit,
+    onPaused: () -> Unit,
+    onError: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val vlcOptions = remember {
+        arrayListOf(
+            "--network-caching=1200",
+            "--live-caching=1200",
+            "--file-caching=800",
+            "--clock-jitter=0",
+            "--clock-synchro=0",
+            "--drop-late-frames",
+            "--skip-frames",
+            "--avcodec-fast",
+        )
+    }
+    val libVlc = remember { LibVLC(context, vlcOptions) }
+    val mediaPlayer = remember { MediaPlayer(libVlc) }
+
+    DisposableEffect(request.uri, retryNonce) {
+        onBuffering(true)
+        val media = Media(libVlc, Uri.parse(request.uri)).apply {
+            setHWDecoderEnabled(true, false)
+            addOption(":network-caching=1200")
+            addOption(":live-caching=1200")
+            addOption(":http-user-agent=${request.headers["User-Agent"] ?: APP_USER_AGENT}")
+            request.headers["Referer"]?.let { addOption(":http-referrer=$it") }
+            request.headers["Cookie"]?.let { addOption(":http-cookie=$it") }
+            request.headers["Origin"]?.let { addOption(":http-header=Origin: $it") }
+            addOption(":meta-title=$title")
+        }
+        mediaPlayer.media = media
+        media.release()
+        mediaPlayer.setEventListener { event ->
+            when (event.type) {
+                MediaPlayer.Event.Buffering -> onBuffering(event.buffering < 100f)
+                MediaPlayer.Event.Playing -> onPlaying()
+                MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped -> onPaused()
+                MediaPlayer.Event.EndReached -> onError(livePlaybackFailureMessage())
+                MediaPlayer.Event.EncounteredError -> onError(livePlaybackFailureMessage())
+            }
+        }
+        mediaPlayer.play()
+
+        onDispose {
+            runCatching { mediaPlayer.stop() }
+            mediaPlayer.setEventListener(null)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            runCatching { mediaPlayer.release() }
+            runCatching { libVlc.release() }
+        }
+    }
+
+    AndroidView(
+        factory = { viewContext ->
+            VLCVideoLayout(viewContext).apply {
+                keepScreenOn = true
+                mediaPlayer.attachViews(this, null, false, false)
+            }
+        },
+        update = { layout ->
+            mediaPlayer.aspectRatio = null
+            if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
+                mediaPlayer.scale = 0f
+            }
+            if (!mediaPlayer.isPlaying) {
+                runCatching { mediaPlayer.play() }
+            }
+            layout.keepScreenOn = true
+        },
+        modifier = modifier,
+    )
+}
+
 private fun launchCastFallback(context: Context, streamUrl: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(streamUrl)).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -1244,6 +1513,14 @@ internal fun liveZapTargetIndex(currentIndex: Int, direction: Int, size: Int): I
     return (currentIndex + direction).floorMod(size)
 }
 
+private fun Int.playbackStateLabel(): String = when (this) {
+    Player.STATE_IDLE -> "IDLE"
+    Player.STATE_BUFFERING -> "BUFFERING"
+    Player.STATE_READY -> "READY"
+    Player.STATE_ENDED -> "ENDED"
+    else -> toString()
+}
+
 @Composable
 private fun OverlayCard(
     modifier: Modifier = Modifier,
@@ -1266,9 +1543,9 @@ private fun buildPlayer(
     onDurationChanged: (Long) -> Unit,
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
-    // Ultra-fast live: 500ms startup buffer for instant zapping
+    // Receiver-style live: still quick, but enough buffer for real-world IPTV jitter.
     val liveLoadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(1_500, 8_000, 500, 800)
+        .setBufferDurationsMs(3_000, 18_000, 1_000, 2_500)
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
     // VOD: generous buffer for smooth 4K/8K playback
@@ -1309,7 +1586,7 @@ private fun buildPlayer(
             DefaultLivePlaybackSpeedControl.Builder()
                 .setFallbackMinPlaybackSpeed(0.97f)
                 .setFallbackMaxPlaybackSpeed(1.04f)
-                .setTargetLiveOffsetIncrementOnRebufferMs(1_500)
+                .setTargetLiveOffsetIncrementOnRebufferMs(2_000)
                 .build(),
         )
         .setMediaSourceFactory(mediaSourceFactory.setLoadErrorHandlingPolicy(errorHandlingPolicy))
@@ -1326,6 +1603,15 @@ private fun buildPlayer(
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     onPlaybackStateChanged(playbackState)
                     if (this@apply.duration > 0) onDurationChanged(this@apply.duration)
+                    PlaybackTelemetryStore.record(
+                        PlaybackTelemetrySnapshot(
+                            mediaId = item.id,
+                            title = item.title,
+                            isLive = isLive,
+                            collectedAt = System.currentTimeMillis(),
+                            statsSummary = "state=${playbackState.playbackStateLabel()}; mime=${request.mimeType.orEmpty()}; headers=${request.headers.keys.joinToString()}",
+                        ),
+                    )
                 }
                 override fun onPlayerError(error: PlaybackException) {
                     if (isLive && error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
@@ -1348,7 +1634,7 @@ private fun buildPlayer(
 private fun buildPlayableMediaItem(request: StreamRequest, item: AppMediaItem, isLive: Boolean): MediaItem {
     val liveConfiguration = if (isLive) {
         MediaItem.LiveConfiguration.Builder()
-            .setTargetOffsetMs(2_500)
+            .setTargetOffsetMs(5_000)
             .setMinPlaybackSpeed(0.97f)
             .setMaxPlaybackSpeed(1.03f)
             .build()
@@ -1366,7 +1652,7 @@ private fun buildPlayableMediaItem(request: StreamRequest, item: AppMediaItem, i
         .build()
 }
 
-private data class StreamRequest(
+internal data class StreamRequest(
     val uri: String,
     val headers: Map<String, String>,
     val mimeType: String?,
@@ -1377,10 +1663,10 @@ private data class ExternalLaunchResult(
     val message: String,
 )
 
-private fun parseStreamRequest(rawUrl: String): StreamRequest {
+internal fun parseStreamRequest(rawUrl: String): StreamRequest {
     val parts = rawUrl.split("|", limit = 2)
     val cleanUrl = parts.first().trim()
-    val headers = linkedMapOf<String, String>()
+    val headers = LinkedHashMap<String, String>()
     if (parts.size > 1) {
         parts[1]
             .split("&")
@@ -1394,10 +1680,11 @@ private fun parseStreamRequest(rawUrl: String): StreamRequest {
             }
             .forEach { (key, value) -> headers[key] = value }
     }
+    val normalizedHeaders = normalizeStreamHeaders(headers)
     val mimeType = inferMimeType(cleanUrl)
     return StreamRequest(
         uri = cleanUrl,
-        headers = headers.ifEmpty { emptyMap() },
+        headers = normalizedHeaders.ifEmpty { emptyMap() },
         mimeType = mimeType,
     )
 }
@@ -1406,14 +1693,40 @@ private fun decodeHeader(value: String): String = runCatching {
     URLDecoder.decode(value, StandardCharsets.UTF_8.name())
 }.getOrDefault(value)
 
+internal fun normalizeStreamHeaders(headers: Map<String, String>): Map<String, String> {
+    if (headers.isEmpty()) return emptyMap()
+    val normalized = LinkedHashMap<String, String>()
+    headers.forEach { (rawKey, rawValue) ->
+        val key = when (rawKey.trim().lowercase(Locale.US)) {
+            "user-agent", "useragent", "ua", "http-user-agent" -> "User-Agent"
+            "referer", "referrer", "http-referrer", "http-referer" -> "Referer"
+            "origin" -> "Origin"
+            "cookie", "cookies" -> "Cookie"
+            "authorization", "auth" -> "Authorization"
+            else -> rawKey.trim()
+        }
+        val value = rawValue.trim()
+        if (key.isNotBlank() && value.isNotBlank()) normalized[key] = value
+    }
+    return normalized
+}
+
 internal fun inferMimeType(url: String): String? {
-    val normalized = url.substringBefore('?').lowercase(Locale.US)
+    val normalizedFull = url.lowercase(Locale.US)
+    val normalized = normalizedFull.substringBefore('?')
+    val outputHint = Regex("""[?&](?:output|type|format|extension)=([^&#]+)""")
+        .find(normalizedFull)
+        ?.groupValues
+        ?.getOrNull(1)
+        ?.substringBefore('&')
+        ?.substringBefore('#')
+        .orEmpty()
     return when {
         normalized.startsWith("rtsp://") -> null
-        normalized.contains(".m3u8") -> MimeTypes.APPLICATION_M3U8
-        normalized.contains(".mpd") -> MimeTypes.APPLICATION_MPD
-        normalized.contains(".ism") || normalized.contains("manifest") -> MimeTypes.APPLICATION_SS
-        normalized.endsWith(".ts") -> MimeTypes.VIDEO_MP2T
+        normalized.contains(".m3u8") || outputHint == "m3u8" -> MimeTypes.APPLICATION_M3U8
+        normalized.contains(".mpd") || outputHint == "mpd" || outputHint == "dash" -> MimeTypes.APPLICATION_MPD
+        normalized.contains(".ism") || normalized.contains("manifest") || outputHint == "ism" || outputHint == "smoothstreaming" -> MimeTypes.APPLICATION_SS
+        normalized.endsWith(".ts") || normalized.endsWith(".m2ts") || outputHint == "ts" || outputHint == "mpegts" -> MimeTypes.VIDEO_MP2T
         normalized.endsWith(".mp4") || normalized.endsWith(".m4v") || normalized.endsWith(".mov") -> MimeTypes.VIDEO_MP4
         normalized.endsWith(".mkv") -> MimeTypes.VIDEO_MATROSKA
         normalized.endsWith(".webm") -> MimeTypes.VIDEO_WEBM
@@ -1424,6 +1737,21 @@ internal fun inferMimeType(url: String): String? {
         else -> null
     }
 }
+
+internal fun shouldFallbackToLibVlc(error: PlaybackException): Boolean {
+    return shouldFallbackToLibVlc(error.errorCode, error.cause)
+}
+
+internal fun shouldFallbackToLibVlc(errorCode: Int, cause: Throwable?): Boolean {
+    return cause is ParserException ||
+        errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
+        errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ||
+        errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED ||
+        errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
+}
+
+internal fun livePlaybackFailureMessage(): String =
+    "توقف البث المباشر مؤقتًا. جرّب إعادة المحاولة أو افتحه في مشغل خارجي."
 
 private fun explainPlaybackError(
     context: Context,

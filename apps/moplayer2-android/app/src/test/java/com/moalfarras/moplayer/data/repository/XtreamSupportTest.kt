@@ -36,4 +36,30 @@ class XtreamSupportTest {
         assertTrue(!message.contains("user123"))
         assertTrue(!message.contains("pass456"))
     }
+
+    @Test
+    fun picksLiveExtensionFromProviderHintsBeforeFallback() {
+        assertEquals(
+            "m3u8",
+            pickLiveExtension(
+                allowedFormats = listOf("ts", "m3u8"),
+                playlistUrl = "http://example.com/get.php?username=u&password=p&output=m3u8",
+            ),
+        )
+        assertEquals(
+            "mpd",
+            pickLiveExtension(
+                allowedFormats = listOf("ts"),
+                streamExtension = "dash",
+            ),
+        )
+        assertEquals(
+            "flv",
+            pickLiveExtension(
+                allowedFormats = listOf("ts"),
+                directSource = "https://cdn.example/live/channel.flv?token=1",
+            ),
+        )
+        assertEquals("m3u8", pickLiveExtension(allowedFormats = emptyList()))
+    }
 }

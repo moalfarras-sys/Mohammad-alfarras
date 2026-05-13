@@ -30,6 +30,7 @@ import com.mo.moplayer.databinding.ActivityPlayerBinding
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.repository.WatchHistoryRepository
 import com.mo.moplayer.ui.common.BaseTvActivity
+import com.mo.moplayer.util.LivePlaybackRetryPolicy
 import com.mo.moplayer.util.NativeVlcLoader
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -123,10 +124,11 @@ class PlayerActivity : BaseTvActivity() {
             contentType.equals("LIVE", ignoreCase = true)
 
     private var liveRetryCount = 0
-    private val LIVE_MAX_RETRIES = 5  // Increased from 3 for better resilience
+    private val LIVE_MAX_RETRIES = LivePlaybackRetryPolicy.DEFAULT_MAX_RETRIES
     private var lastRetryTime = 0L
-    private val RETRY_BACKOFF_MS = 2000L  // Base backoff time
+    private val RETRY_BACKOFF_MS = LivePlaybackRetryPolicy.DEFAULT_BASE_DELAY_MS
     private var useHttpFallbackForApi24Stream = false
+    private var activePlaybackToken = 0L
     
     // PIP (Picture-in-Picture) support
     private var isInPipMode = false
@@ -553,6 +555,7 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun playStream() {
         try {
+            val requestToken = ++activePlaybackToken
             setLoadingOverlayVisible(true)
             hasStartedPlayback = false
             binding.errorOverlay.visibility = View.GONE
@@ -632,6 +635,10 @@ class PlayerActivity : BaseTvActivity() {
                     mediaPlayer?.stop()
                 }
             }
+            if (requestToken != activePlaybackToken) {
+                media.release()
+                return
+            }
             mediaPlayer?.media = media
             media.release()
             mediaPlayer?.play()
@@ -639,7 +646,7 @@ class PlayerActivity : BaseTvActivity() {
             // Also seek to position after playback starts (more reliable)
             if (resumePosition > 0) {
                 handler.postDelayed({
-                    if (mediaPlayer?.isPlaying == true) {
+                    if (requestToken == activePlaybackToken && mediaPlayer?.isPlaying == true) {
                         mediaPlayer?.time = resumePosition
                     }
                 }, 1000)
@@ -714,24 +721,30 @@ class PlayerActivity : BaseTvActivity() {
         setLoadingOverlayVisible(true)
         binding.errorOverlay.visibility = View.GONE
         android.util.Log.w("PlayerActivity", "Retrying API24 stream with HTTP fallback after HTTPS playback error")
-        handler.postDelayed({ playStream() }, 350L)
+        val retryToken = activePlaybackToken
+        handler.postDelayed({
+            if (retryToken == activePlaybackToken && !isFinishing && !isDestroyed) {
+                playStream()
+            }
+        }, 350L)
         return true
     }
 
     private fun handleLiveStreamError() {
-        if (liveRetryCount < LIVE_MAX_RETRIES) {
+        if (LivePlaybackRetryPolicy.canRetry(liveRetryCount, LIVE_MAX_RETRIES)) {
             liveRetryCount++
             setLoadingOverlayVisible(true)
             binding.errorOverlay.visibility = View.GONE
 
-            // Exponential backoff: 2s, 4s, 8s, 16s, 32s
-            val backoffDelay = RETRY_BACKOFF_MS * (1L shl (liveRetryCount - 1))
-            val maxDelay = 10000L // Cap at 10 seconds
-            val delay = backoffDelay.coerceAtMost(maxDelay)
+            val delay = LivePlaybackRetryPolicy.nextDelayMs(liveRetryCount, RETRY_BACKOFF_MS)
             
             android.util.Log.d("PlayerActivity", "Retry attempt $liveRetryCount/$LIVE_MAX_RETRIES after ${delay}ms")
             
+            val retryToken = activePlaybackToken
             handler.postDelayed({
+                if (retryToken != activePlaybackToken || isFinishing || isDestroyed) {
+                    return@postDelayed
+                }
                 // Check network before retrying
                 if (isNetworkAvailable()) {
                     playStream()
@@ -1516,13 +1529,18 @@ class PlayerActivity : BaseTvActivity() {
     override fun onPause() {
         super.onPause()
         saveCurrentProgress()
-        mediaPlayer?.pause()
+        if (!isLiveStream || isFinishing) {
+            mediaPlayer?.pause()
+        }
     }
 
     override fun onStop() {
         super.onStop()
         handler.removeCallbacks(saveProgressRunnable)
-        handler.removeCallbacksAndMessages(null)
+        if (isFinishing) {
+            activePlaybackToken++
+            handler.removeCallbacksAndMessages(null)
+        }
     }
 
     override fun onDestroy() {

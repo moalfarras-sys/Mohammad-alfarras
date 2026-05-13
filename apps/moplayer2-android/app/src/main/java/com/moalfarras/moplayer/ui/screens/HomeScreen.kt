@@ -358,25 +358,14 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp, Alignment.End),
                         verticalAlignment = Alignment.Top,
                     ) {
-                        // Weather + Clock widget (enhanced with animated weather icon)
-                        when {
-                            settings.showWeatherWidget && settings.showClockWidget -> {
-                                WeatherClockWidget(
-                                    weather = weather,
-                                    showWeather = true,
-                                    showClock = true,
-                                    modifier = Modifier.wrapContentWidth(),
-                                )
-                            }
-                            settings.showWeatherWidget || settings.showClockWidget -> {
-                                CompactWidgetCard(
-                                    weather = weather,
-                                    clock = tvClock,
-                                    showWeather = settings.showWeatherWidget,
-                                    showClock = settings.showClockWidget,
-                                    modifier = Modifier.wrapContentWidth(),
-                                )
-                            }
+                        // Weather + Clock widget keeps the premium treatment in combined and single-widget modes.
+                        if (settings.showWeatherWidget || settings.showClockWidget) {
+                            WeatherClockWidget(
+                                weather = weather,
+                                showWeather = settings.showWeatherWidget,
+                                showClock = settings.showClockWidget,
+                                modifier = Modifier.wrapContentWidth(),
+                            )
                         }
 
                         // Football ticker (if matches available)
@@ -518,7 +507,7 @@ private fun CompactWidgetCard(
                 if (showWeather) {
                     Icon(weatherConditionIcon(weather.condition), null, tint = weatherConditionColor(weather.condition), modifier = Modifier.size((24 * tv.factor).dp))
                     Text(
-                        "${weather.temperatureC.toInt()}Â°  ${weather.city}",
+                        "${weather.temperatureC.toInt()}°  ${weather.city}",
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         maxLines = 1,

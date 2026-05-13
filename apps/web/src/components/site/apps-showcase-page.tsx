@@ -152,7 +152,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
     badges: isAr ? ["Glass UI", "Xtream + M3U", "QR Activation"] : ["Glass UI", "Xtream + M3U", "QR Activation"],
     cta: isAr ? "افتح MoPlayer Pro" : "Open MoPlayer Pro",
     href: "apps/moplayer2",
-    image: "/images/moplayer2-hero-banner.png",
+    image: "/images/moplayer-pro-hero.webp",
     icon: "/images/moplayer-icon-512.png",
     accent: "metal",
   };

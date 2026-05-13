@@ -110,6 +110,7 @@ cd ..\moplayer2-android
 
 Start here:
 
+- [Project Handoff](docs/PROJECT_HANDOFF.md)
 - [Production Guide](docs/PRODUCTION_GUIDE.md)
 - [Deployment Notes](docs/deployment.md)
 - [Android Projects](docs/android-projects.md)

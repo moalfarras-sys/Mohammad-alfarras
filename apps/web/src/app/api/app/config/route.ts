@@ -29,7 +29,7 @@ const fallbackConfigs = {
     message: "",
     accentColor: "#f5c66b",
     logoUrl: "/images/moplayer-icon-512.png",
-    backgroundUrl: "/images/moplayer-pro-banner.jpeg",
+    backgroundUrl: "/images/moplayer-pro-hero.webp",
     syncIntervalMinutes: 120,
     sourceProtocolFallback: true,
     footballProviderMode: "auto",

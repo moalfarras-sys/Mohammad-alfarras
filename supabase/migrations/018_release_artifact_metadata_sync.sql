@@ -22,14 +22,17 @@ where release_id in (
 );
 
 update public.app_release_assets
-set file_size_bytes = 9480101,
-    checksum_sha256 = '22c1b03a51f32bb4f40254115c77fe7088675917bfa69212af8aee4e0bf351e4'
+set file_size_bytes = 49112730,
+    checksum_sha256 = '4f65faac40a057e0674ccbac72b83a72178cdf544cc91b80377ca74ccabe3357',
+    external_url = '/downloads/moplayer2/app-release.apk',
+    abi = 'universal',
+    label = 'MoPlayer Pro Universal Android TV APK'
 where release_id in (
   select id from public.app_releases
   where product_slug = 'moplayer2'
-    and slug = 'moplayer2-v2.1.0-full'
+    and slug = 'moplayer2-v2.1.2-full'
 )
-and abi = 'universal';
+and is_primary = true;
 
 update public.app_products
 set product_name = 'MoPlayer Pro',

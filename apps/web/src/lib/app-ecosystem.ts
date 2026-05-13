@@ -259,19 +259,18 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
     ],
     changelog_intro: "MoPlayer Pro releases are tracked separately from the classic MoPlayer app.",
     logo_path: "/images/moplayer-icon-512.png",
-    hero_image_path: "/images/moplayer2-hero-banner.png",
-    tv_banner_path: "/images/moplayer2-hero-banner.png",
+    hero_image_path: "/images/moplayer-pro-hero.webp",
+    tv_banner_path: "/images/moplayer-pro-hero.webp",
   },
 };
 
 const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
   moplayer: fallbackScreenshots,
   moplayer2: [
-    { id: "moplayer2-screen-1", product_slug: "moplayer2", title: "Home Screen", alt_text: "MoPlayer Pro home screen with content rows", image_path: "/images/moplayer2-home-screen.png", device_frame: "tv", sort_order: 1, is_featured: true, created_at: now },
-    { id: "moplayer2-screen-2", product_slug: "moplayer2", title: "Live TV", alt_text: "MoPlayer Pro live TV channel grid", image_path: "/images/moplayer2-live-tv.png", device_frame: "tv", sort_order: 2, is_featured: false, created_at: now },
-    { id: "moplayer2-screen-3", product_slug: "moplayer2", title: "Movies", alt_text: "MoPlayer Pro movies and series browser", image_path: "/images/moplayer2-movies.png", device_frame: "tv", sort_order: 3, is_featured: false, created_at: now },
-    { id: "moplayer2-screen-4", product_slug: "moplayer2", title: "Player", alt_text: "MoPlayer Pro media player screen", image_path: "/images/moplayer2-player.png", device_frame: "tv", sort_order: 4, is_featured: false, created_at: now },
-    { id: "moplayer2-screen-5", product_slug: "moplayer2", title: "Login", alt_text: "MoPlayer Pro login and activation screen", image_path: "/images/moplayer2-login.png", device_frame: "tv", sort_order: 5, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-1", product_slug: "moplayer2", title: "Home Screen", alt_text: "MoPlayer Pro warm gold home screen with widgets and content rows", image_path: "/images/moplayer-pro-home.webp", device_frame: "tv", sort_order: 1, is_featured: true, created_at: now },
+    { id: "moplayer2-screen-2", product_slug: "moplayer2", title: "Activation Flow", alt_text: "MoPlayer Pro QR activation and website pairing flow", image_path: "/images/moplayer-pro-activation.webp", device_frame: "tv", sort_order: 2, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-3", product_slug: "moplayer2", title: "Player Controls", alt_text: "MoPlayer Pro warm glass player controls and channel list", image_path: "/images/moplayer-pro-player.webp", device_frame: "tv", sort_order: 3, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-4", product_slug: "moplayer2", title: "TV and Phone", alt_text: "MoPlayer Pro product preview on TV and phone", image_path: "/images/moplayer-pro-hero.webp", device_frame: "tv", sort_order: 4, is_featured: false, created_at: now },
   ],
 };
 
@@ -293,21 +292,22 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
       ...fallbackReleases[0],
       id: "release-moplayer2-v2-1-0",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.1.0-full",
-      version_name: "2.1.0",
-      version_code: 4,
+      slug: "moplayer2-v2.1.2-full",
+      version_name: "2.1.2",
+      version_code: 6,
       release_notes:
-        "MoPlayer Pro 2.1.0 ships the production QR activation channel, receiver-style Live IPTV controls, weather and color polish, and the latest Android TV stability fixes.",
-      compatibility_notes: "Recommended MoPlayer Pro APK for Android 6.0+ and Android TV devices with remote-first navigation.",
+        "MoPlayer Pro 2.1.2 ships one universal Android TV APK with ARM 32-bit and 64-bit support, embedded VLC live playback, QR activation, receiver-style controls, and Android TV stability fixes.",
+      compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-1-0-release",
+          id: "asset-moplayer2-v2-1-2-universal",
           release_id: "release-moplayer2-v2-1-0",
-          label: "MoPlayer Pro APK",
+          label: "MoPlayer Pro Universal Android TV APK",
+          abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 9480101,
-          checksum_sha256: "22c1b03a51f32bb4f40254115c77fe7088675917bfa69212af8aee4e0bf351e4",
+          file_size_bytes: 49112730,
+          checksum_sha256: "4f65faac40a057e0674ccbac72b83a72178cdf544cc91b80377ca74ccabe3357",
         },
       ],
     },
@@ -793,7 +793,18 @@ export async function updateSupportRequestStatus(id: string, status: AppSupportR
   }
 }
 
-export async function resolveDownloadBySlug(slug: string) {
+function pickReleaseAsset(assets: AppReleaseAsset[], preferredAbi?: string | null) {
+  const normalizedAbi = preferredAbi?.trim().toLowerCase();
+  if (normalizedAbi) {
+    const exact = assets.find((item) => item.abi?.toLowerCase() === normalizedAbi);
+    if (exact) return exact;
+  }
+  const universal = assets.find((item) => item.abi?.toLowerCase() === "universal");
+  if (universal) return universal;
+  return assets.find((item) => item.is_primary) ?? assets[0];
+}
+
+export async function resolveDownloadBySlug(slug: string, preferredAbi?: string | null) {
   try {
     const supabase = createSupabaseAdminClient();
     const { data: release, error: releaseError } = await supabase
@@ -813,13 +824,14 @@ export async function resolveDownloadBySlug(slug: string) {
 
     if (assetError || !assetRows?.length) throw assetError ?? new Error("Release asset not found");
 
-    const primary = assetRows.find((item) => item.is_primary) ?? assetRows[0];
+    const normalizedAssets = assetRows.map((item) => normalizeAsset(item));
+    const primary = pickReleaseAsset(normalizedAssets, preferredAbi);
     if (primary.external_url) {
       return {
         filename: `${release.slug}.apk`,
         redirectUrl: primary.external_url,
         release,
-        asset: normalizeAsset(primary),
+        asset: primary,
       };
     }
 
@@ -838,7 +850,7 @@ export async function resolveDownloadBySlug(slug: string) {
     const legacySets = await Promise.all(managedApps.map((app) => readLegacyAppSettings(app.slug)));
     const release = legacySets.flatMap((set) => set.releases).find((item) => item.slug === slug);
     if (!release) return null;
-    const asset = release.assets.find((item) => item.is_primary) ?? release.assets[0];
+    const asset = pickReleaseAsset(release.assets, preferredAbi);
     if (!asset?.external_url) return null;
     return {
       filename: `${release.slug}.apk`,

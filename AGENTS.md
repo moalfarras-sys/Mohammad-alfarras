@@ -11,6 +11,7 @@ Read these files before making broad changes:
 - `docs/architecture.md`: ownership boundaries and data flow.
 - `docs/PROJECT_HANDOFF.md`: current production notes.
 - `docs/PRODUCTION_GUIDE.md`: release and operations details.
+- The nearest nested `AGENTS.md` before editing inside an app/package folder.
 
 ## Modern Research Policy
 
@@ -56,6 +57,19 @@ If a requested change crosses multiple areas, plan the ownership boundaries firs
 | Shared DB helpers | `packages/db` | Server-side Postgres helpers only |
 | Database schema | `supabase/migrations` | Ordered Supabase/Postgres migrations |
 | Docs | `docs` | Operational and architecture handoff |
+
+## Nested Project Guides
+
+Each major workspace has its own local guide. If you open only one folder in an IDE or AI coding session, read that folder's guide first:
+
+- `apps/web/AGENTS.md`
+- `apps/admin/AGENTS.md`
+- `apps/moplayer-android/AGENTS.md`
+- `apps/moplayer2-android/AGENTS.md`
+- `apps/moplayer-dashboard/AGENTS.md`
+- `packages/shared/AGENTS.md`
+- `packages/db/AGENTS.md`
+- `supabase/AGENTS.md`
 
 ## Product Slugs
 

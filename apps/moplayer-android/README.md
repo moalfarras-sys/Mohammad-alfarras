@@ -3,6 +3,7 @@
 Production **Android / Android TV** client shipped as `com.mo.moplayer`. Gradle project name: **`MoPlayerapp`**.
 
 - Open this folder in **Android Studio** (not `moplayer2-android` unless you need the Compose variant).
+- Before AI-assisted edits, read [AGENTS.md](AGENTS.md). This app is connected to `apps/web`, `apps/admin`, `packages/shared`, and Supabase migrations.
 - Releases: see repo [README.md](../../README.md) (`npm run release:moplayer`, `scripts/publish-android-release.mjs`).
 - Build outputs go to `build-output/` (see `app/build.gradle.kts`).
 

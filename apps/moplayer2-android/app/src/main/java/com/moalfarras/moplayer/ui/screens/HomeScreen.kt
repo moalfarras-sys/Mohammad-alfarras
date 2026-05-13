@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -99,8 +100,8 @@ fun HomeScreen(
     // Dynamic backdrop follows focused item
     var focusedBackdrop by remember { mutableStateOf<String?>(null) }
     val displayBackdrop = focusedBackdrop ?: homeBackdropUrl
-    val selectedBackdrop = remember(settings.backgroundMode, settings.customBackgroundUrl, settings.themePreset, displayBackdrop) {
-        resolveHomeBackdropUrl(settings, displayBackdrop)
+    val selectedBackdrop = remember(settings.backgroundMode, settings.customBackgroundUrl, settings.themePreset, displayBackdrop, weather.city) {
+        resolveHomeBackdropUrl(settings, displayBackdrop, weather.city)
     }
     // Keep the photo layer strong; motion level mainly affects particles + atmosphere elsewhere.
     val backdropAlpha = when (settings.motionLevel) {
@@ -137,12 +138,32 @@ fun HomeScreen(
             }
         }
         val mobileClock = mobileNow.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val mobileListState = rememberLazyListState()
+        val mobileRestoreIndex = remember(
+            restoreFocusItem,
+            tv.isLowHeightLandscape,
+            hasContent,
+            continueWatching,
+            latestLive,
+            latestMovies,
+            latestSeries,
+        ) {
+            homeRestoreIndex(
+                target = restoreFocusItem,
+                leadingItems = 1 + (if (!tv.isLowHeightLandscape) 1 else 0) + (if (!hasContent) 1 else 0),
+                lanes = listOf(continueWatching, latestLive, latestMovies, latestSeries),
+            )
+        }
+        LaunchedEffect(mobileRestoreIndex, restoreFocusItem?.id) {
+            if (mobileRestoreIndex != null) mobileListState.scrollToItem(mobileRestoreIndex)
+        }
         Box(Modifier.fillMaxSize()) {
             AtmosphericSkyGradient(timeZoneId = weather.timeZoneId)
             CinematicBackdrop(selectedBackdrop, showParticles = settings.motionLevel != MotionLevel.LOW, modifier = Modifier.graphicsLayer { alpha = backdropAlpha })
             AtmosphericWeatherEffectsOverlay(weather = weather, accent = accent, motionLevel = settings.motionLevel)
 
             LazyColumn(
+                state = mobileListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.bottomBarHeight),
@@ -163,13 +184,7 @@ fun HomeScreen(
                                 .widthIn(max = if (tv.isLowHeightLandscape) 96.dp else 120.dp),
                         )
                         if (tv.isLowHeightLandscape) {
-                            Row(Modifier.fillMaxWidth(0.50f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                AiHomeButton("AI", Icons.Rounded.AutoAwesome, Modifier.weight(1f)) { showAiAssistant = true }
-                                AiHomeButton("فاجئني", Icons.Rounded.Casino, Modifier.weight(1f)) {
-                                    surpriseSeed++
-                                    showAiAssistant = true
-                                }
-                            }
+                            AiHomeButton("المساعد الذكي", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth(0.50f)) { showAiAssistant = true }
                         }
                         if (settings.showWeatherWidget || settings.showClockWidget) {
                             MobileWeatherChip(weather, visuals, mobileClock, settings.showWeatherWidget, settings.showClockWidget)
@@ -177,13 +192,7 @@ fun HomeScreen(
                     }
                 }
                 if (!tv.isLowHeightLandscape) item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        AiHomeButton("مساعد AI مجاني", Icons.Rounded.SmartToy, Modifier.weight(1f)) { showAiAssistant = true }
-                        AiHomeButton("فاجئني", Icons.Rounded.Casino, Modifier.weight(1f)) {
-                            surpriseSeed++
-                            showAiAssistant = true
-                        }
-                    }
+                    AiHomeButton("المساعد الذكي", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth()) { showAiAssistant = true }
                 }
                 if (!hasContent) {
                     item {
@@ -245,6 +254,25 @@ fun HomeScreen(
         }
     }
     val tvClock = tvNow.format(DateTimeFormatter.ofPattern("HH:mm"))
+    val tvListState = rememberLazyListState()
+    val tvRestoreIndex = remember(
+        restoreFocusItem,
+        hasContent,
+        continueWatching,
+        recentLive,
+        latestLive,
+        latestMovies,
+        latestSeries,
+    ) {
+        homeRestoreIndex(
+            target = restoreFocusItem,
+            leadingItems = 1 + if (!hasContent) 1 else 0,
+            lanes = listOf(continueWatching, recentLive, latestLive, latestMovies, latestSeries),
+        )
+    }
+    LaunchedEffect(tvRestoreIndex, restoreFocusItem?.id) {
+        if (tvRestoreIndex != null) tvListState.scrollToItem(tvRestoreIndex)
+    }
 
     Box(
         Modifier
@@ -282,6 +310,7 @@ fun HomeScreen(
         AtmosphericWeatherEffectsOverlay(weather = weather, accent = accent, motionLevel = settings.motionLevel)
 
         LazyColumn(
+            state = tvListState,
             verticalArrangement = Arrangement.spacedBy(tv.laneSpacing),
             modifier = Modifier
                 .fillMaxSize()
@@ -334,19 +363,10 @@ fun HomeScreen(
                         )
 
                         AiHomeButton(
-                            label = "مساعد AI مجاني",
-                            icon = Icons.Rounded.SmartToy,
+                            label = "المساعد الذكي",
+                            icon = Icons.Rounded.AutoAwesome,
                             modifier = Modifier.fillMaxWidth(0.88f),
                         ) {
-                            aiTvAction = 0
-                            showAiAssistant = true
-                        }
-                        AiHomeButton(
-                            label = "فاجئني",
-                            icon = Icons.Rounded.Casino,
-                            modifier = Modifier.fillMaxWidth(0.88f),
-                        ) {
-                            surpriseSeed++
                             aiTvAction = 0
                             showAiAssistant = true
                         }
@@ -459,11 +479,10 @@ private fun MobileWeatherChip(weather: WeatherSnapshot, visuals: MoVisuals, cloc
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    weatherConditionIcon(weather.condition),
-                    contentDescription = null,
-                    tint = weatherConditionColor(weather.condition),
-                    modifier = Modifier.size(16.dp),
+                Text(
+                    weatherConditionEmoji(weather.condition),
+                    fontSize = 18.sp,
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -505,7 +524,7 @@ private fun CompactWidgetCard(
                     Text(clock, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
                 }
                 if (showWeather) {
-                    Icon(weatherConditionIcon(weather.condition), null, tint = weatherConditionColor(weather.condition), modifier = Modifier.size((24 * tv.factor).dp))
+                    Text(weatherConditionEmoji(weather.condition), fontSize = (22 * tv.factor).sp)
                     Text(
                         "${weather.temperatureC.toInt()}°  ${weather.city}",
                         color = Color.White,
@@ -528,6 +547,18 @@ private fun weatherConditionIcon(condition: String): androidx.compose.ui.graphic
         c.contains("fog") || c.contains("mist") || c.contains("haze") -> Icons.Rounded.Cloud
         c.contains("cloud") || c.contains("overcast") -> Icons.Rounded.CloudQueue
         else -> Icons.Rounded.WbSunny
+    }
+}
+
+private fun weatherConditionEmoji(condition: String): String {
+    val c = condition.lowercase()
+    return when {
+        c.contains("thunder") || c.contains("storm") -> "⛈️"
+        c.contains("rain") || c.contains("drizzle") || c.contains("shower") -> "🌧️"
+        c.contains("snow") || c.contains("blizzard") -> "❄️"
+        c.contains("fog") || c.contains("mist") || c.contains("haze") -> "🌫️"
+        c.contains("cloud") || c.contains("overcast") -> "☁️"
+        else -> "☀️"
     }
 }
 
@@ -624,8 +655,8 @@ private fun AiAssistantPanel(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size((22 * s).dp))
                     Column {
-                        Text("Mo AI", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
-                        Text("مساعد مجاني · www.moalfarras.space", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
+                        Text("Mo AI المساعد", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
+                        Text("اقتراحات · شات · ذكاء اصطناعي", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
                     }
                 }
                 IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, null, tint = Color.White) }
@@ -957,6 +988,25 @@ private fun typeIcon(item: MediaItem): androidx.compose.ui.graphics.vector.Image
     com.moalfarras.moplayer.domain.model.ContentType.SERIES,
     com.moalfarras.moplayer.domain.model.ContentType.EPISODE -> Icons.Rounded.VideoLibrary
 }
+
+private fun homeRestoreIndex(
+    target: MediaItem?,
+    leadingItems: Int,
+    lanes: List<List<MediaItem>>,
+): Int? {
+    if (target == null) return null
+    var index = leadingItems
+    lanes.forEach { lane ->
+        if (lane.isNotEmpty()) {
+            if (lane.any { it.matchesHomeFocus(target) }) return index
+            index++
+        }
+    }
+    return null
+}
+
+private fun MediaItem.matchesHomeFocus(target: MediaItem): Boolean =
+    id == target.id && type == target.type && serverId == target.serverId
 
 private fun String.toZoneId(): ZoneId =
     runCatching { ZoneId.of(this) }.getOrDefault(ZoneId.systemDefault())

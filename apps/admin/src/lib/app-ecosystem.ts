@@ -328,23 +328,23 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-1-0",
+      id: "release-moplayer2-v2-1-3",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.1.2-full",
-      version_name: "2.1.2",
-      version_code: 6,
+      slug: "moplayer2-v2.1.3-full",
+      version_name: "2.1.3",
+      version_code: 7,
       release_notes:
-        "MoPlayer Pro 2.1.2 ships one universal Android TV APK with ARM 32-bit and 64-bit support, embedded VLC live playback, QR activation, receiver-style controls, and Android TV stability fixes.",
+        "MoPlayer Pro 2.1.3 improves player stability, TV remote navigation, weather and football widgets, and adds direct in-app updating from moalfarras.space.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-1-2-universal",
-          release_id: "release-moplayer2-v2-1-0",
+          id: "asset-moplayer2-v2-1-3-universal",
+          release_id: "release-moplayer2-v2-1-3",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49112730,
-          checksum_sha256: "4f65faac40a057e0674ccbac72b83a72178cdf544cc91b80377ca74ccabe3357",
+          file_size_bytes: 49131072,
+          checksum_sha256: "ca10226eb6265c69fb51593584f75b42c1e30dde9843f65e0d2fa2fae12ad73c",
         },
       ],
     },

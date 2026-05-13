@@ -3,6 +3,7 @@ package com.moalfarras.moplayer.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -80,6 +83,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.*
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.TimeUnit
 
@@ -119,14 +123,14 @@ fun LiveScreen(
                     top = tv.contentPadding * 0.6f,
                     end = tv.contentPadding,
                     bottom = tv.contentPadding * 1.5f,
-                ),
+                ).focusGroup(),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
                 CategoryRail("البث المباشر", categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
                 GlassPanel(Modifier.fillMaxHeight().weight(0.60f), radius = tv.cardRadius, blur = 18.dp) {
                     Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp)) {
                         ReceiverHeader(current, focusedEpg)
-                        PagingChannelList(channels.itemCount, { channels[it] }, current?.id, onFocus, onPlay, onFavorite)
+                        PagingChannelList(channels, current, onFocus, onPlay, onFavorite)
                     }
                 }
                 PreviewPane(current, Modifier.fillMaxHeight().weight(0.22f), live = true, previewEnabled = previewEnabled, liveEpg = focusedEpg)
@@ -138,7 +142,7 @@ fun LiveScreen(
             ) {
                 HeaderRow("البث المباشر", Icons.Rounded.LiveTv)
                 CategoryPills(categories, selectedCategoryId, onCategory, onAllCategories)
-                PagingChannelList(channels.itemCount, { channels[it] }, current?.id, onFocus, onPlay, onFavorite)
+                PagingChannelList(channels, current, onFocus, onPlay, onFavorite)
             }
         }
     }
@@ -171,11 +175,11 @@ fun PosterScreen(
                     top = tv.contentPadding * 0.6f,
                     end = tv.contentPadding,
                     bottom = tv.contentPadding * 1.5f,
-                ),
+                ).focusGroup(),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
                 CategoryRail(title, categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
-                PosterGrid(items.itemCount, { items[it] }, onFocus, onPlay, onFavorite, Modifier.fillMaxHeight().weight(0.64f))
+                PosterGrid(items, focused, onFocus, onPlay, onFavorite, Modifier.fillMaxHeight().weight(0.64f))
                 val firstItem = if (items.itemCount > 0) items.peek(0) else null
                 PreviewPane(focused ?: firstItem, Modifier.fillMaxHeight().weight(0.18f), live = false, previewEnabled = previewEnabled)
             }
@@ -186,7 +190,7 @@ fun PosterScreen(
             ) {
                 HeaderRow(title, Icons.Rounded.Tv)
                 CategoryPills(categories, selectedCategoryId, onCategory, onAllCategories)
-                PosterGrid(items.itemCount, { items[it] }, onFocus, onPlay, onFavorite, Modifier.fillMaxSize())
+                PosterGrid(items, focused, onFocus, onPlay, onFavorite, Modifier.fillMaxSize())
             }
         }
     }
@@ -223,7 +227,7 @@ fun FavoritesScreen(
                     top = tv.contentPadding * 0.6f,
                     end = tv.contentPadding,
                     bottom = tv.contentPadding * 1.5f,
-                ),
+                ).focusGroup(),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
                 GlassPanel(Modifier.fillMaxHeight().weight(0.18f), radius = tv.cardRadius, blur = 20.dp) {
@@ -234,7 +238,7 @@ fun FavoritesScreen(
                         GlassTag("${items.itemCount} عنصر", Icons.Rounded.Bookmark)
                     }
                 }
-                PosterGrid(items.itemCount, { items[it] }, onFocus, onPlay, onFavorite, Modifier.fillMaxHeight().weight(0.64f))
+                PosterGrid(items, focused, onFocus, onPlay, onFavorite, Modifier.fillMaxHeight().weight(0.64f))
                 val firstItem = if (items.itemCount > 0) items.peek(0) else null
                 PreviewPane(focused ?: firstItem, Modifier.fillMaxHeight().weight(0.18f), live = false, previewEnabled = previewEnabled)
             }
@@ -244,7 +248,7 @@ fun FavoritesScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 HeaderRow("المفضلة", Icons.Rounded.Favorite)
-                PosterGrid(items.itemCount, { items[it] }, onFocus, onPlay, onFavorite, Modifier.fillMaxSize())
+                PosterGrid(items, focused, onFocus, onPlay, onFavorite, Modifier.fillMaxSize())
             }
         }
     }
@@ -254,6 +258,7 @@ fun FavoritesScreen(
 fun SeriesDetailsScreen(
     series: MediaItem,
     episodes: List<MediaItem>,
+    focused: MediaItem?,
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
@@ -261,14 +266,18 @@ fun SeriesDetailsScreen(
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     val seasons = episodes.map { it.seasonNumber.coerceAtLeast(1) }.distinct().sorted().ifEmpty { listOf(1) }
-    var selectedSeason by remember(series.id, seasons) { mutableIntStateOf(seasons.first()) }
+    val restoredSeason = focused?.takeIf { it.type == com.moalfarras.moplayer.domain.model.ContentType.EPISODE }
+        ?.seasonNumber
+        ?.coerceAtLeast(1)
+        ?.takeIf { it in seasons }
+    var selectedSeason by remember(series.id, seasons, restoredSeason) { mutableIntStateOf(restoredSeason ?: seasons.first()) }
     val seasonEpisodes = episodes.filter { it.seasonNumber.coerceAtLeast(1) == selectedSeason }
     val backdrop = remember(series.id) { backdropUrlFrom(series) }
 
     Box(Modifier.fillMaxSize()) {
         CinematicBackdrop(backdrop)
         Row(
-            Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding * 0.8f, tv.contentPadding, tv.contentPadding),
+            Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding * 0.8f, tv.contentPadding, tv.contentPadding).focusGroup(),
             horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
         ) {
             PreviewPane(series, Modifier.fillMaxHeight().weight(0.32f), live = false, previewEnabled = true)
@@ -310,14 +319,14 @@ fun SeriesDetailsScreen(
                     if (episodes.isEmpty()) {
                         EmptyState("\u0644\u0645 \u064a\u062a\u0645 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u062d\u0644\u0642\u0627\u062a", "\u0627\u0641\u062a\u062d \u0627\u0644\u0645\u0633\u0644\u0633\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649 \u0628\u0639\u062f \u0627\u0644\u0645\u0632\u0627\u0645\u0646\u0629.", Modifier.fillMaxSize().padding(tv.panelPadding))
                     } else {
-                        LazyColumn(
-                            Modifier.fillMaxSize().padding(tv.panelPadding),
-                            verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
-                        ) {
-                            items(seasonEpisodes, key = { "${it.seasonNumber}-${it.episodeNumber}-${it.id}" }) { episode ->
-                                EpisodeRow(episode, onFocus, onPlay, onFavorite)
-                            }
-                        }
+                        RestoringEpisodeList(
+                            episodes = seasonEpisodes,
+                            restoreFocusItem = focused?.takeIf { it.type == com.moalfarras.moplayer.domain.model.ContentType.EPISODE },
+                            onFocus = onFocus,
+                            onPlay = onPlay,
+                            onFavorite = onFavorite,
+                            modifier = Modifier.fillMaxSize().padding(tv.panelPadding),
+                        )
                     }
                 }
             }
@@ -327,23 +336,43 @@ fun SeriesDetailsScreen(
 
 @Composable
 private fun PagingChannelList(
-    count: Int,
-    itemAt: (Int) -> MediaItem?,
-    activeId: String?,
+    items: androidx.paging.compose.LazyPagingItems<MediaItem>,
+    restoreFocusItem: MediaItem?,
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
 ) {
     val tv = rememberTvScale()
-    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy((7 * tv.factor).dp)) {
-        items(count, key = { "ch-$it" }) { index ->
-            itemAt(index)?.let { item ->
+    val listState = rememberLazyListState()
+    val restoreIndex = remember(items.itemCount, restoreFocusItem) {
+        restoreFocusItem?.let { target -> (0 until items.itemCount).firstOrNull { items.peek(it).sameMedia(target) } }
+    }
+    LaunchedEffect(restoreIndex, restoreFocusItem?.id) {
+        if (restoreIndex != null) {
+            listState.scrollToItem(restoreIndex)
+        }
+    }
+    LazyColumn(Modifier.fillMaxSize(), state = listState, verticalArrangement = Arrangement.spacedBy((7 * tv.factor).dp)) {
+        items(
+            count = items.itemCount,
+            key = items.itemKey { it.id }
+        ) { index ->
+            items[index]?.let { item ->
+                val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
+                val shouldRestore = item.sameMedia(restoreFocusItem)
+                LaunchedEffect(shouldRestore, restoreIndex) {
+                    if (shouldRestore && restoreIndex != null) {
+                        delay(120)
+                        runCatching { focusRequester.requestFocus() }
+                    }
+                }
                 ChannelRow(
                     item = item,
                     onFocus = onFocus,
                     onClick = onPlay,
                     onFavorite = onFavorite,
                     modifier = Modifier,
+                    focusRequester = focusRequester,
                 )
             }
         }
@@ -352,26 +381,85 @@ private fun PagingChannelList(
 
 @Composable
 private fun PosterGrid(
-    count: Int,
-    itemAt: (Int) -> MediaItem?,
+    items: androidx.paging.compose.LazyPagingItems<MediaItem>,
+    restoreFocusItem: MediaItem?,
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
     modifier: Modifier,
 ) {
     val tv = rememberTvScale()
-    if (count == 0) {
+    if (items.itemCount == 0) {
         EmptyState("المكتبة فارغة", "زامن السيرفر أو اختر تصنيفاً آخر.", modifier)
         return
+    }
+    val gridState = rememberLazyGridState()
+    val restoreIndex = remember(items.itemCount, restoreFocusItem) {
+        restoreFocusItem?.let { target -> (0 until items.itemCount).firstOrNull { items.peek(it).sameMedia(target) } }
+    }
+    LaunchedEffect(restoreIndex, restoreFocusItem?.id) {
+        if (restoreIndex != null) {
+            gridState.scrollToItem(restoreIndex)
+        }
     }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(tv.posterWidth),
         horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
         verticalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
+        state = gridState,
         modifier = modifier,
     ) {
-        items(count, key = { "poster-$it" }) { index ->
-            itemAt(index)?.let { MediaPoster(it, onFocus, onPlay, onFavorite) }
+        items(
+            count = items.itemCount,
+            key = items.itemKey { it.id }
+        ) { index ->
+            items[index]?.let { item ->
+                val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
+                val shouldRestore = item.sameMedia(restoreFocusItem)
+                LaunchedEffect(shouldRestore, restoreIndex) {
+                    if (shouldRestore && restoreIndex != null) {
+                        delay(120)
+                        runCatching { focusRequester.requestFocus() }
+                    }
+                }
+                MediaPoster(item, onFocus, onPlay, onFavorite, focusRequester = focusRequester)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RestoringEpisodeList(
+    episodes: List<MediaItem>,
+    restoreFocusItem: MediaItem?,
+    onFocus: (MediaItem) -> Unit,
+    onPlay: (MediaItem) -> Unit,
+    onFavorite: (MediaItem) -> Unit,
+    modifier: Modifier,
+) {
+    val tv = rememberTvScale()
+    val listState = rememberLazyListState()
+    val restoreIndex = remember(episodes, restoreFocusItem) {
+        restoreFocusItem?.let { target -> episodes.indexOfFirst { it.sameMedia(target) }.takeIf { it >= 0 } }
+    }
+    LaunchedEffect(restoreIndex, restoreFocusItem?.id) {
+        if (restoreIndex != null) listState.scrollToItem(restoreIndex)
+    }
+    LazyColumn(
+        modifier,
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
+    ) {
+        items(episodes, key = { "${it.seasonNumber}-${it.episodeNumber}-${it.id}" }) { episode ->
+            val focusRequester = remember(episode.id, episode.seasonNumber, episode.episodeNumber) { FocusRequester() }
+            val shouldRestore = episode.sameMedia(restoreFocusItem)
+            LaunchedEffect(shouldRestore, restoreIndex) {
+                if (shouldRestore && restoreIndex != null) {
+                    delay(120)
+                    runCatching { focusRequester.requestFocus() }
+                }
+            }
+            EpisodeRow(episode, onFocus, onPlay, onFavorite, focusRequester = focusRequester)
         }
     }
 }
@@ -421,11 +509,26 @@ fun CategoryRail(
     modifier: Modifier,
 ) {
     val tv = rememberTvScale()
+    val categoryState = rememberLazyListState()
+    val selectedIndex = remember(categories, selectedCategoryId) {
+        if (selectedCategoryId.isBlank()) {
+            0
+        } else {
+            categories.indexOfFirst { it.id == selectedCategoryId }.takeIf { it >= 0 }?.plus(1) ?: 0
+        }
+    }
+    LaunchedEffect(selectedIndex) {
+        categoryState.scrollToItem(selectedIndex)
+    }
     GlassPanel(modifier = modifier, radius = tv.cardRadius, blur = 18.dp) {
         Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)) {
             Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height((6 * tv.factor).dp))
-            LazyColumn(verticalArrangement = Arrangement.spacedBy((4 * tv.factor).dp)) {
+            LazyColumn(
+                state = categoryState,
+                verticalArrangement = Arrangement.spacedBy((4 * tv.factor).dp),
+                modifier = Modifier.focusGroup(),
+            ) {
                 item { CategoryChip("الكل", selectedCategoryId.isBlank(), tv.factor, onAllCategories) }
                 items(categories, key = { it.id }) { cat ->
                     CategoryChip(cat.name, selectedCategoryId == cat.id, tv.factor) { onCategory(cat) }
@@ -442,7 +545,22 @@ private fun CategoryPills(
     onCategory: (Category) -> Unit,
     onAllCategories: () -> Unit,
 ) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val categoryState = rememberLazyListState()
+    val selectedIndex = remember(categories, selectedCategoryId) {
+        if (selectedCategoryId.isBlank()) {
+            0
+        } else {
+            categories.indexOfFirst { it.id == selectedCategoryId }.takeIf { it >= 0 }?.plus(1) ?: 0
+        }
+    }
+    LaunchedEffect(selectedIndex) {
+        categoryState.scrollToItem(selectedIndex)
+    }
+    LazyRow(
+        state = categoryState,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.focusGroup(),
+    ) {
         item { CategoryPill("الكل", selectedCategoryId.isBlank(), onAllCategories) }
         items(categories, key = { it.id }) { cat ->
             CategoryPill(cat.name, selectedCategoryId == cat.id) { onCategory(cat) }
@@ -620,6 +738,7 @@ private fun EpisodeRow(
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
+    focusRequester: FocusRequester? = null,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -627,6 +746,7 @@ private fun EpisodeRow(
     FocusGlow(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(tv.cardRadius)),
         cornerRadius = tv.cardRadius,
+        focusRequester = focusRequester,
         onFocused = { onFocus(episode) },
         onClick = { onPlay(episode) },
         onLongOk = { onFavorite(episode) },
@@ -656,6 +776,13 @@ private fun EpisodeRow(
         }
     }
 }
+
+private fun MediaItem?.sameMedia(other: MediaItem?): Boolean =
+    this != null &&
+        other != null &&
+        id == other.id &&
+        type == other.type &&
+        serverId == other.serverId
 
 private fun formatDuration(secs: Long): String {
     val h = TimeUnit.SECONDS.toHours(secs)

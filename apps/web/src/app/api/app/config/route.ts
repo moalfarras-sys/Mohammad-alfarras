@@ -22,8 +22,9 @@ const fallbackConfigs = {
     enabled: true,
     maintenanceMode: false,
     forceUpdate: false,
-    minimumVersionCode: 4,
-    latestVersionName: "2.1.0",
+    minimumVersionCode: 7,
+    latestVersionName: "2.1.3",
+    latestVersionCode: 7,
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",
     message: "",
@@ -34,6 +35,16 @@ const fallbackConfigs = {
     sourceProtocolFallback: true,
     footballProviderMode: "auto",
     widgets: { weather: true, football: true, weatherCity: "Berlin", footballMaxMatches: 8 },
+    update: {
+      latestVersionName: "2.1.3",
+      latestVersionCode: 7,
+      downloadUrl: "/api/app/download/latest?product=moplayer2",
+      apkSizeBytes: 49131072,
+      checksumSha256: "ca10226eb6265c69fb51593584f75b42c1e30dde9843f65e0d2fa2fae12ad73c",
+      releaseNotes: "Improved player stability, TV remote navigation, weather, matches, and in-app updating.",
+    },
+    weatherBackgroundMode: "city_daily",
+    weatherBackgroundUrl: "",
     supportUrl: "https://moalfarras.space/en/support",
     privacyUrl: "https://moalfarras.space/privacy",
   },
@@ -53,6 +64,12 @@ const legacyFallbackConfig = {
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",
 };
+
+function updateFallback(config: object): Record<string, unknown> {
+  return "update" in config && typeof config.update === "object" && config.update
+    ? (config.update as Record<string, unknown>)
+    : {};
+}
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
@@ -90,10 +107,17 @@ export async function GET(request: Request) {
         ...fallbackConfig,
         ...(latestRelease
           ? {
-              latestVersionName: String(latestRelease.version_name),
-              minimumVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-            }
-          : {}),
+          latestVersionName: String(latestRelease.version_name),
+          latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
+          minimumVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
+          update: {
+            ...updateFallback(fallbackConfig),
+            latestVersionName: String(latestRelease.version_name),
+            latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
+            downloadUrl: `/api/app/download/latest?product=${product}`,
+          },
+        }
+      : {}),
       },
     });
     response.headers.set("Cache-Control", "no-store");
@@ -108,10 +132,18 @@ export async function GET(request: Request) {
     ...(latestRelease
       ? {
           latestVersionName: String(latestRelease.version_name),
+          latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
           minimumVersionCode: Math.max(
             Number(settingsValue.minimumVersionCode ?? 0) || 0,
             Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
           ),
+          update: {
+            ...updateFallback(fallbackConfig),
+            ...(typeof settingsValue.update === "object" && settingsValue.update ? settingsValue.update : {}),
+            latestVersionName: String(latestRelease.version_name),
+            latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
+            downloadUrl: `/api/app/download/latest?product=${product}`,
+          },
         }
       : {}),
   };

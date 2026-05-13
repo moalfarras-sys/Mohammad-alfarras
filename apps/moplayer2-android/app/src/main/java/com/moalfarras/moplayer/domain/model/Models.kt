@@ -123,7 +123,7 @@ data class AppSettings(
     val defaultSort: SortOption = SortOption.SERVER_ORDER,
     val parentalControlsEnabled: Boolean = false,
     val hasParentalPin: Boolean = false,
-    val autoPlayLastLive: Boolean = false,
+    val autoPlayLastLive: Boolean = true,
     val hideEmptyCategories: Boolean = false,
     val hideChannelsWithoutLogo: Boolean = false,
     val searchHistory: List<String> = emptyList(),

@@ -86,8 +86,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private fun LazyPagingItems<MediaItem>.snapshotItems(): List<MediaItem> =
-    itemSnapshotList.items
+private fun LazyPagingItems<MediaItem>.snapshotItems(limit: Int = 30): List<MediaItem> =
+    itemSnapshotList.items.take(limit)
 
 @Composable
 private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
@@ -111,25 +111,24 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
     val dynamicAccent = rememberDynamicAccent(state.playingItem ?: state.focusedItem)
     val accent = if (state.settings.accentMode == AccentMode.CUSTOM) Color(state.settings.accentColor) else dynamicAccent
     val tv = rememberTvScale()
-    var lastBackAt = remember { mutableLongStateOf(0L) }
 
     fun requestBack() {
-        val now = System.currentTimeMillis()
         if (state.activeServer == null) {
             viewModel.setExitDialog(true)
         } else if (state.section != AppSection.HOME) {
             viewModel.navigateBack()
-        } else if (now - lastBackAt.longValue < 1500) {
-            viewModel.setExitDialog(true)
         } else {
-            viewModel.showNotice("\u0627\u0636\u063a\u0637 \u0631\u062c\u0648\u0639 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649 \u0644\u0644\u062e\u0631\u0648\u062c")
+            viewModel.setExitDialog(true)
         }
-        lastBackAt.longValue = now
     }
 
     MoTheme(accent = accent) {
-        BackHandler(enabled = state.section != AppSection.PLAYER) {
-            requestBack()
+        BackHandler {
+            if (state.section == AppSection.PLAYER && state.playingItem != null) {
+                viewModel.closePlayer()
+            } else {
+                requestBack()
+            }
         }
         when {
             state.activeServer == null -> {
@@ -156,13 +155,16 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
             }
             state.section == AppSection.PLAYER && state.playingItem != null -> {
                 val playing = state.playingItem!!
-                val relatedItems = when (state.returnSection) {
-                    AppSection.LIVE -> liveZapItems.ifEmpty { media.snapshotItems().filter { it.type == playing.type } }
-                    AppSection.SERIES_DETAIL -> seriesEpisodes.filter { it.type == playing.type }
-                    AppSection.MOVIES, AppSection.SERIES -> media.snapshotItems().filter { it.type == playing.type }
-                    AppSection.FAVORITES -> favorites.snapshotItems().filter { it.type == playing.type }
-                    AppSection.SEARCH -> searchResults.snapshotItems().filter { it.type == playing.type }
-                    else -> emptyList()
+                val relatedItems = if (playing.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE) {
+                    liveZapItems.ifEmpty { media.snapshotItems(100).filter { it.type == playing.type } }
+                } else {
+                    when (state.returnSection) {
+                        AppSection.SERIES_DETAIL -> seriesEpisodes.filter { it.type == playing.type }
+                        AppSection.MOVIES, AppSection.SERIES -> media.snapshotItems(100).filter { it.type == playing.type }
+                        AppSection.FAVORITES -> favorites.snapshotItems(100).filter { it.type == playing.type }
+                        AppSection.SEARCH -> searchResults.snapshotItems(100).filter { it.type == playing.type }
+                        else -> emptyList()
+                    }
                 }
                 PlayerScreen(
                     item = playing,
@@ -205,6 +207,7 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                                     SeriesDetailsScreen(
                                         series = series,
                                         episodes = seriesEpisodes,
+                                        focused = state.focusedItem,
                                         onFocus = viewModel::focusItem,
                                         onPlay = viewModel::play,
                                         onFavorite = viewModel::toggleFavorite,
@@ -215,7 +218,7 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                             }
                             AppSection.SEARCH -> SearchScreen(state.searchQuery, state.settings.searchHistory, viewModel.searchResults, viewModel::setSearch, viewModel::clearSearchHistory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.SETTINGS -> SettingsScreen(state.settings, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setLibraryMode, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer)
-                            AppSection.PLAYER -> Unit
+                            AppSection.PLAYER -> LaunchedEffect(Unit) { viewModel.closePlayer() }
                         }
                         androidx.compose.animation.AnimatedVisibility(
                             visible = state.activeServer != null && state.section == AppSection.HOME,

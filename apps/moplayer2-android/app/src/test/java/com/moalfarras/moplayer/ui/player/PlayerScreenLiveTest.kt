@@ -27,6 +27,8 @@ class PlayerScreenLiveTest {
         assertEquals(MimeTypes.VIDEO_MP2T, inferMimeType("https://example.com/live/1?output=ts"))
         assertEquals(MimeTypes.VIDEO_MP4, inferMimeType("https://example.com/movie.mp4"))
         assertEquals(MimeTypes.VIDEO_MATROSKA, inferMimeType("https://example.com/movie.mkv"))
+        assertEquals(MimeTypes.VIDEO_WEBM, inferMimeType("https://example.com/movie.webm"))
+        assertEquals("video/x-flv", inferMimeType("https://example.com/live/legacy.flv"))
         assertNull(inferMimeType("rtsp://example.com/live/1"))
     }
 
@@ -46,6 +48,13 @@ class PlayerScreenLiveTest {
     @Test
     fun malformedLiveErrorsCanFallbackToLibVlc() {
         assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, null))
+    }
+
+    @Test
+    fun transientLiveNetworkErrorsCanFallbackToLibVlc() {
+        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
+        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, null))
+        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
     }
 
     @Test

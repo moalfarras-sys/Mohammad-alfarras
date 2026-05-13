@@ -87,6 +87,7 @@ class MainViewModel(
         AppSection.MOVIES,
         AppSection.SERIES,
         AppSection.FAVORITES,
+        AppSection.SERIES_DETAIL,
         AppSection.SEARCH,
     )
 
@@ -352,17 +353,30 @@ class MainViewModel(
         viewModelScope.launch { iptv.notePlaybackStart(item) }
         when (item.type) {
             ContentType.SERIES -> openSeries(item)
-            ContentType.LIVE -> internal.update {
-                persistSnapshot(it.section, it.focusedItem, it.selectedCategoryId)
-                saveLastSection(it.section)
-                it.copy(playingItem = item, returnSection = it.section, section = AppSection.PLAYER)
+            ContentType.LIVE -> {
+                uiState.value.activeServer?.let { autoPlayedServerId = it.id }
+                internal.update { current ->
+                    val returnSection = if (current.section == AppSection.PLAYER) {
+                        current.returnSection.playerReturnSection()
+                    } else {
+                        persistSnapshot(current.section, current.focusedItem, current.selectedCategoryId)
+                        saveLastSection(current.section)
+                        current.section.playerReturnSection()
+                    }
+                    current.copy(playingItem = item, returnSection = returnSection, section = AppSection.PLAYER)
+                }
             }
             else -> viewModelScope.launch {
                 val syncedItem = runCatching { iptv.syncWatchProgressFromCloud(item) }.getOrDefault(item)
-                internal.update {
-                    persistSnapshot(it.section, it.focusedItem, it.selectedCategoryId)
-                    saveLastSection(it.section)
-                    it.copy(playingItem = syncedItem, returnSection = it.section, section = AppSection.PLAYER)
+                internal.update { current ->
+                    val returnSection = if (current.section == AppSection.PLAYER) {
+                        current.returnSection.playerReturnSection()
+                    } else {
+                        persistSnapshot(current.section, current.focusedItem, current.selectedCategoryId)
+                        saveLastSection(current.section)
+                        current.section.playerReturnSection()
+                    }
+                    current.copy(playingItem = syncedItem, returnSection = returnSection, section = AppSection.PLAYER)
                 }
             }
         }
@@ -370,7 +384,11 @@ class MainViewModel(
 
     fun closePlayer(positionMs: Long = 0, durationMs: Long = 0) {
         val item = internal.value.playingItem
-        val back = internal.value.returnSection
+        val back = when (internal.value.returnSection) {
+            AppSection.PLAYER -> AppSection.HOME
+            else -> internal.value.returnSection
+        }
+        uiState.value.activeServer?.let { autoPlayedServerId = it.id }
         if (item != null && item.type != ContentType.LIVE && durationMs > 0) {
             viewModelScope.launch { iptv.updateWatch(item, positionMs, durationMs) }
         }
@@ -759,7 +777,10 @@ class MainViewModel(
     }
 
     fun setFootballMaxMatches(value: Int) {
-        viewModelScope.launch { settingsRepo.setFootballMaxMatches(value) }
+        viewModelScope.launch {
+            settingsRepo.setFootballMaxMatches(value)
+            football.value = widgets.football(uiState.value.settings.copy(footballMaxMatches = value))
+        }
     }
 
     fun deleteServer(serverId: Long) {
@@ -844,7 +865,7 @@ class MainViewModel(
     fun refreshWidgets() {
         val settings = uiState.value.settings
         viewModelScope.launch { weather.value = widgets.weather(settings) }
-        viewModelScope.launch { football.value = widgets.football() }
+        viewModelScope.launch { football.value = widgets.football(settings) }
     }
 
     private fun refreshEpgSilently() {
@@ -898,6 +919,11 @@ private fun String.toRestorableSection(): AppSection =
 private fun AppSection.restorable(): AppSection = when (this) {
     AppSection.PLAYER -> AppSection.HOME
     AppSection.SERIES_DETAIL -> AppSection.SERIES
+    else -> this
+}
+
+private fun AppSection.playerReturnSection(): AppSection = when (this) {
+    AppSection.PLAYER -> AppSection.HOME
     else -> this
 }
 

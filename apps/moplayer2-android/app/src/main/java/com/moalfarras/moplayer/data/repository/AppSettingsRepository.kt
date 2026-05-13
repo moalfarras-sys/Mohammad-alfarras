@@ -75,7 +75,7 @@ class AppSettingsRepository(private val context: Context) {
             defaultSort = runCatching { SortOption.valueOf(storedSort) }.getOrDefault(SortOption.SERVER_ORDER),
             parentalControlsEnabled = prefs[parentalKey] ?: false,
             hasParentalPin = !prefs[parentalPinKey].isNullOrBlank(),
-            autoPlayLastLive = prefs[autoPlayLastLiveKey] ?: false,
+            autoPlayLastLive = prefs[autoPlayLastLiveKey] ?: true,
             hideEmptyCategories = prefs[hideEmptyCategoriesKey] ?: false,
             hideChannelsWithoutLogo = prefs[hideChannelsWithoutLogoKey] ?: false,
             searchHistory = prefs[searchHistoryKey]?.split('\n')?.map(String::trim)?.filter(String::isNotBlank) ?: emptyList(),

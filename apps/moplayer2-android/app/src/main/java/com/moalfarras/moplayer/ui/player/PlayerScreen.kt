@@ -78,6 +78,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -93,6 +95,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.ParserException
@@ -112,6 +115,9 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.data.network.NetworkModule
 import com.moalfarras.moplayer.domain.model.ContentType
@@ -135,6 +141,15 @@ private const val APP_USER_AGENT = "VLC/3.0.21 LibVLC/3.0.21 MoPlayerPro/2.1.0"
 enum class LiveQualityMode { AUTO, BEST, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
 
+private fun preferredLiveAutoEngine(request: StreamRequest): InternalPlaybackEngine {
+    return when (request.mimeType) {
+        MimeTypes.APPLICATION_M3U8,
+        MimeTypes.APPLICATION_MPD,
+        MimeTypes.APPLICATION_SS -> InternalPlaybackEngine.MEDIA3
+        else -> InternalPlaybackEngine.LIBVLC
+    }
+}
+
 @OptIn(UnstableApi::class)
 @Composable
 fun PlayerScreen(
@@ -148,6 +163,7 @@ fun PlayerScreen(
     preferredPlayer: String = "media3",
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val isLive = item.type == ContentType.LIVE
     val streamRequest = remember(item.streamUrl) { parseStreamRequest(item.streamUrl) }
     val normalizedPreferred = remember(preferredPlayer) {
@@ -158,10 +174,17 @@ fun PlayerScreen(
     }
 
     var route by remember(item.id, normalizedPreferred) {
-        mutableStateOf(if (normalizedPreferred == "ask" && !isLive) null else if (normalizedPreferred == "ask") "auto" else normalizedPreferred)
+        mutableStateOf(
+            when {
+                normalizedPreferred == "ask" && !isLive -> null
+                normalizedPreferred == "ask" -> "auto"
+                isLive && normalizedPreferred == "media3" -> "auto"
+                else -> normalizedPreferred
+            },
+        )
     }
     var internalEngine by remember(item.id, route, streamRequest.uri) {
-        mutableStateOf(if (isLive && route == "auto") InternalPlaybackEngine.LIBVLC else InternalPlaybackEngine.MEDIA3)
+        mutableStateOf(if (isLive && route == "auto") preferredLiveAutoEngine(streamRequest) else InternalPlaybackEngine.MEDIA3)
     }
     var launchMessage by remember(item.id) { mutableStateOf<String?>(null) }
     var externalLaunchNonce by remember(item.id) { mutableIntStateOf(0) }
@@ -180,6 +203,17 @@ fun PlayerScreen(
     var liveQualityMode by remember { mutableStateOf(LiveQualityMode.AUTO) }
     var playbackSignal by remember { mutableStateOf("") }
     var libVlcRetryNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
+    var liveSwitchLocked by remember(item.id) { mutableStateOf(false) }
+    var lastLiveSwitchAt by remember { mutableLongStateOf(0L) }
+    var liveLastPlayingAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
+    var liveConsecutiveFailures by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
+    var triedMedia3ForLive by remember(item.id, streamRequest.uri) {
+        mutableStateOf(preferredLiveAutoEngine(streamRequest) == InternalPlaybackEngine.MEDIA3)
+    }
+    var triedLibVlcForLive by remember(item.id, streamRequest.uri) {
+        mutableStateOf(preferredLiveAutoEngine(streamRequest) == InternalPlaybackEngine.LIBVLC)
+    }
+    val playerFocusRequester = remember { FocusRequester() }
 
     val resizeModes = listOf(
         AspectRatioFrameLayout.RESIZE_MODE_FIT,
@@ -229,7 +263,7 @@ fun PlayerScreen(
     }
 
     val useLibVlc = route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC
-    val exoPlayer = remember(item.id, streamRequest.uri) {
+    val exoPlayer = remember(item.id, streamRequest.uri, useLibVlc) {
         buildPlayer(
             context = context,
             request = streamRequest,
@@ -238,10 +272,17 @@ fun PlayerScreen(
             onIsPlayingChanged = { isPlaying = it },
             onPlaybackStateChanged = { state ->
                 isBuffering = state == Player.STATE_BUFFERING || state == Player.STATE_IDLE
-                if (state == Player.STATE_READY) playbackError = null
+                if (state == Player.STATE_READY) {
+                    liveLastPlayingAt = System.currentTimeMillis()
+                    liveConsecutiveFailures = 0
+                    liveSwitchLocked = false
+                    playbackError = null
+                }
             },
             onPlayerError = { error ->
-                if (isLive && shouldFallbackToLibVlc(error)) {
+                liveSwitchLocked = false
+                if (isLive && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
+                    triedLibVlcForLive = true
                     playbackError = null
                     isBuffering = true
                     internalEngine = InternalPlaybackEngine.LIBVLC
@@ -261,6 +302,7 @@ fun PlayerScreen(
             onDurationChanged = { latestDuration ->
                 duration = latestDuration.coerceAtLeast(1L)
             },
+            startPlayback = !useLibVlc,
         )
     }
 
@@ -294,6 +336,49 @@ fun PlayerScreen(
         }
     }
 
+    DisposableEffect(lifecycleOwner, exoPlayer, useLibVlc) {
+        var resumeMedia3OnStart = false
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    resumeMedia3OnStart = !useLibVlc && exoPlayer.playWhenReady
+                    if (!useLibVlc) {
+                        exoPlayer.playWhenReady = false
+                        exoPlayer.pause()
+                    }
+                }
+                Lifecycle.Event.ON_START -> {
+                    if (resumeMedia3OnStart && !useLibVlc) {
+                        exoPlayer.playWhenReady = true
+                        exoPlayer.play()
+                    }
+                    resumeMedia3OnStart = false
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(item.id) {
+        runCatching { playerFocusRequester.requestFocus() }
+    }
+
+    LaunchedEffect(useLibVlc, exoPlayer) {
+        if (useLibVlc) {
+            exoPlayer.pause()
+            exoPlayer.stop()
+        }
+    }
+
+    LaunchedEffect(liveSwitchLocked, item.id, streamRequest.uri) {
+        if (liveSwitchLocked) {
+            delay(3_500)
+            liveSwitchLocked = false
+        }
+    }
+
     LaunchedEffect(seekJump) {
         if (seekJump != 0) {
             delay(900)
@@ -310,6 +395,12 @@ fun PlayerScreen(
         playbackError = null
         launchMessage = null
         isBuffering = true
+        liveConsecutiveFailures = 0
+        liveSwitchLocked = false
+        if (isLive) {
+            triedMedia3ForLive = !useLibVlc
+            triedLibVlcForLive = useLibVlc
+        }
         if (useLibVlc) {
             libVlcRetryNonce++
             return
@@ -321,15 +412,61 @@ fun PlayerScreen(
     }
 
     fun switchTo(target: AppMediaItem?) {
-        if (target == null || target.id == item.id) return
+        if (target == null || target.id == item.id || liveSwitchLocked) return
+        if (target.type == ContentType.LIVE) {
+            val now = System.currentTimeMillis()
+            if (now - lastLiveSwitchAt < 750L) return
+            lastLiveSwitchAt = now
+            liveSwitchLocked = true
+        }
         if (!isLive && exoPlayer.duration > 0) {
             onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
         }
         onPlayItem(target)
     }
 
+    fun handleLibVlcLiveError(message: String) {
+        if (!isLive) {
+            isBuffering = false
+            playbackError = message
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        val recentlyPlaying = isPlaying || (liveLastPlayingAt > 0L && now - liveLastPlayingAt < 10_000L)
+        liveConsecutiveFailures += 1
+        playbackError = null
+
+        if (recentlyPlaying && liveConsecutiveFailures > 3) {
+            isBuffering = false
+            return
+        }
+
+        if (liveConsecutiveFailures <= 4 || recentlyPlaying) {
+            isBuffering = !recentlyPlaying
+            libVlcRetryNonce++
+            return
+        }
+
+        if (!triedMedia3ForLive && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true)) {
+            triedMedia3ForLive = true
+            playbackError = null
+            isBuffering = true
+            internalEngine = InternalPlaybackEngine.MEDIA3
+            return
+        }
+
+        isBuffering = false
+        playbackError = message
+    }
+
     BackHandler {
-        onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
+        when {
+            isLive && showLiveZap -> showLiveZap = false
+            isLive -> onBack(0, 0)
+            showControls -> showControls = false
+            else -> onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
+        }
     }
 
     val currentIndex = remember(item.id, relatedItems) { relatedItems.indexOfFirst { it.id == item.id && it.type == item.type } }
@@ -338,11 +475,12 @@ fun PlayerScreen(
     val liveZapCategories = remember(relatedItems) { relatedItems.toLiveZapCategories() }
     var liveZapCategoryId by remember(item.id, relatedItems) { mutableStateOf(item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }) }
     val displayedLiveZapItems = remember(relatedItems, liveZapCategoryId) {
-        when (liveZapCategoryId) {
+        val filtered = when (liveZapCategoryId) {
             LIVE_ZAP_ALL_CATEGORY_ID -> relatedItems
             LIVE_ZAP_UNCATEGORIZED_ID -> relatedItems.filter { it.categoryId.isBlank() }
             else -> relatedItems.filter { it.categoryId == liveZapCategoryId }
         }
+        filtered.ifEmpty { relatedItems }
     }
     val displayedCurrentIndex = remember(item.id, item.categoryId, displayedLiveZapItems) {
         displayedLiveZapItems.indexOfFirst { it.id == item.id && it.serverId == item.serverId && it.type == item.type }
@@ -374,6 +512,7 @@ fun PlayerScreen(
         Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .focusRequester(playerFocusRequester)
             .focusable()
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
@@ -422,7 +561,6 @@ fun PlayerScreen(
                         }
                         Key.Back, Key.Escape -> {
                             if (showLiveZap) { showLiveZap = false; true }
-                            else if (showMiniInfo) { showMiniInfo = false; true }
                             else { onBack(0, 0); true }
                         }
                         Key.MediaPlayPause, Key.Spacebar -> {
@@ -499,14 +637,14 @@ fun PlayerScreen(
                 onPlaying = {
                     isPlaying = true
                     isBuffering = false
+                    liveLastPlayingAt = System.currentTimeMillis()
+                    liveConsecutiveFailures = 0
+                    liveSwitchLocked = false
                     playbackError = null
                     playbackSignal = "VLC · بث مباشر"
                 },
                 onPaused = { isPlaying = false },
-                onError = { message ->
-                    isBuffering = false
-                    playbackError = message
-                },
+                onError = ::handleLibVlcLiveError,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
@@ -950,45 +1088,44 @@ private fun LiveZapOverlay(
                         modifier = Modifier.fillMaxWidth(),
                     )
 
+                    val selectedCategory = categories.firstOrNull { it.id == selectedCategoryId }
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            selectedCategory?.name ?: "القنوات",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            "${selectedIndex.coerceAtLeast(0) + 1}/${items.size.coerceAtLeast(1)}",
+                            color = accent,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        LiveQualityModeButton("تلقائي", qualityMode == LiveQualityMode.AUTO, accent) { onQualityMode(LiveQualityMode.AUTO) }
-                        LiveQualityModeButton("أفضل", qualityMode == LiveQualityMode.BEST, accent) { onQualityMode(LiveQualityMode.BEST) }
-                        LiveQualityModeButton("ثابت", qualityMode == LiveQualityMode.STABLE, accent) { onQualityMode(LiveQualityMode.STABLE) }
-                    }
-
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SmallControlButton(Icons.Rounded.Audiotrack, accent, onAudio)
-                        SmallControlButton(Icons.Rounded.Subtitles, accent, onSubtitles)
-                        SmallControlButton(Icons.Rounded.HighQuality, accent, onVideo)
-                        SmallControlButton(Icons.Rounded.Tune, accent, onResize)
-                        SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, accent, onExternal)
-                    }
-
-                    Text(
-                        "المجموعات والقنوات",
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-
-                    if (categories.isNotEmpty()) {
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            items(categories, key = { it.id }) { category ->
-                                LiveCategoryPill(
-                                    category = category,
-                                    selected = category.id == selectedCategoryId,
-                                    accent = accent,
-                                    onClick = { onCategory(category.id) },
-                                )
-                            }
+                        LiveQualityModeButton("تلقائي", qualityMode == LiveQualityMode.AUTO, accent) {
+                            onQualityMode(LiveQualityMode.AUTO)
                         }
+                        LiveQualityModeButton("أعلى", qualityMode == LiveQualityMode.BEST, accent) {
+                            onQualityMode(LiveQualityMode.BEST)
+                        }
+                        LiveQualityModeButton("ثابت", qualityMode == LiveQualityMode.STABLE, accent) {
+                            onQualityMode(LiveQualityMode.STABLE)
+                        }
+                        LiveQualityModeButton("اختيار", false, accent, onVideo)
                     }
 
                     if (items.isEmpty()) {
@@ -1018,7 +1155,7 @@ private fun LiveZapOverlay(
                     }
 
                     Text(
-                        "OK فتح/تشغيل  •  ▲▼ القنوات  •  ◄► المجموعات",
+                        "OK تشغيل  •  ▲▼ تنقل  •  ◄► مجموعات  •  Back إغلاق",
                         color = Color(0x99FFFFFF),
                         fontSize = 11.sp,
                         maxLines = 1,
@@ -1387,13 +1524,12 @@ private fun LibVlcPlayerView(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val vlcOptions = remember {
         arrayListOf(
-            "--network-caching=1200",
-            "--live-caching=1200",
-            "--file-caching=800",
-            "--clock-jitter=0",
-            "--clock-synchro=0",
+            "--network-caching=1800",
+            "--live-caching=1800",
+            "--file-caching=1200",
             "--drop-late-frames",
             "--skip-frames",
             "--avcodec-fast",
@@ -1403,11 +1539,18 @@ private fun LibVlcPlayerView(
     val mediaPlayer = remember { MediaPlayer(libVlc) }
 
     DisposableEffect(request.uri, retryNonce) {
+        var activeSession = true
         onBuffering(true)
         val media = Media(libVlc, Uri.parse(request.uri)).apply {
             setHWDecoderEnabled(true, false)
-            addOption(":network-caching=1200")
-            addOption(":live-caching=1200")
+            addOption(":network-caching=1800")
+            addOption(":live-caching=1800")
+            addOption(":file-caching=1200")
+            addOption(":http-reconnect")
+            addOption(":http-continuous")
+            addOption(":drop-late-frames")
+            addOption(":skip-frames")
+            addOption(":avcodec-fast")
             addOption(":http-user-agent=${request.headers["User-Agent"] ?: APP_USER_AGENT}")
             request.headers["Referer"]?.let { addOption(":http-referrer=$it") }
             request.headers["Cookie"]?.let { addOption(":http-cookie=$it") }
@@ -1417,24 +1560,52 @@ private fun LibVlcPlayerView(
         mediaPlayer.media = media
         media.release()
         mediaPlayer.setEventListener { event ->
+            if (!activeSession) return@setEventListener
             when (event.type) {
                 MediaPlayer.Event.Buffering -> onBuffering(event.buffering < 100f)
                 MediaPlayer.Event.Playing -> onPlaying()
                 MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped -> onPaused()
-                MediaPlayer.Event.EndReached -> onError(livePlaybackFailureMessage())
-                MediaPlayer.Event.EncounteredError -> onError(livePlaybackFailureMessage())
+                MediaPlayer.Event.EndReached -> {
+                    onBuffering(true)
+                    onError(livePlaybackFailureMessage())
+                }
+                MediaPlayer.Event.EncounteredError -> {
+                    onBuffering(true)
+                    onError(livePlaybackFailureMessage())
+                }
             }
         }
         mediaPlayer.play()
 
         onDispose {
+            activeSession = false
             runCatching { mediaPlayer.stop() }
             mediaPlayer.setEventListener(null)
         }
     }
 
+    DisposableEffect(lifecycleOwner, mediaPlayer) {
+        var resumeOnStart = false
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    resumeOnStart = mediaPlayer.isPlaying
+                    runCatching { mediaPlayer.pause() }
+                }
+                Lifecycle.Event.ON_START -> {
+                    if (resumeOnStart) runCatching { mediaPlayer.play() }
+                    resumeOnStart = false
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
+            runCatching { mediaPlayer.detachViews() }
             runCatching { mediaPlayer.release() }
             runCatching { libVlc.release() }
         }
@@ -1448,12 +1619,19 @@ private fun LibVlcPlayerView(
             }
         },
         update = { layout ->
-            mediaPlayer.aspectRatio = null
-            if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
-                mediaPlayer.scale = 0f
-            }
-            if (!mediaPlayer.isPlaying) {
-                runCatching { mediaPlayer.play() }
+            when (resizeMode) {
+                AspectRatioFrameLayout.RESIZE_MODE_FILL -> {
+                    mediaPlayer.aspectRatio = if (layout.width > 0 && layout.height > 0) "${layout.width}:${layout.height}" else null
+                    mediaPlayer.scale = 0f
+                }
+                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> {
+                    mediaPlayer.aspectRatio = null
+                    mediaPlayer.scale = 1.18f
+                }
+                else -> {
+                    mediaPlayer.aspectRatio = null
+                    mediaPlayer.scale = 0f
+                }
             }
             layout.keepScreenOn = true
         },
@@ -1541,11 +1719,12 @@ private fun buildPlayer(
     onPlaybackStateChanged: (Int) -> Unit,
     onPlayerError: (PlaybackException) -> Unit,
     onDurationChanged: (Long) -> Unit,
+    startPlayback: Boolean = true,
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
     // Receiver-style live: still quick, but enough buffer for real-world IPTV jitter.
     val liveLoadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(3_000, 18_000, 1_000, 2_500)
+        .setBufferDurationsMs(4_000, 24_000, 1_500, 3_500)
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
     // VOD: generous buffer for smooth 4K/8K playback
@@ -1584,20 +1763,23 @@ private fun buildPlayer(
         .setLoadControl(if (isLive) liveLoadControl else vodLoadControl)
         .setLivePlaybackSpeedControl(
             DefaultLivePlaybackSpeedControl.Builder()
-                .setFallbackMinPlaybackSpeed(0.97f)
-                .setFallbackMaxPlaybackSpeed(1.04f)
-                .setTargetLiveOffsetIncrementOnRebufferMs(2_000)
+                .setFallbackMinPlaybackSpeed(0.98f)
+                .setFallbackMaxPlaybackSpeed(1.02f)
+                .setTargetLiveOffsetIncrementOnRebufferMs(2_500)
                 .build(),
+        )
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build(),
+            true,
         )
         .setMediaSourceFactory(mediaSourceFactory.setLoadErrorHandlingPolicy(errorHandlingPolicy))
         .setSeekForwardIncrementMs(10_000)
         .setSeekBackIncrementMs(10_000)
         .build()
         .apply {
-            val mediaItem = buildPlayableMediaItem(request, item, isLive)
-            setMediaItem(mediaItem, if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
-            playWhenReady = true
-            prepare()
             addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) = onIsPlayingChanged(isPlaying)
                 override fun onPlaybackStateChanged(playbackState: Int) {
@@ -1628,6 +1810,12 @@ private fun buildPlayer(
                     }
                 }
             })
+            if (startPlayback) {
+                val mediaItem = buildPlayableMediaItem(request, item, isLive)
+                setMediaItem(mediaItem, if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
+                playWhenReady = true
+                prepare()
+            }
         }
 }
 
@@ -1746,6 +1934,9 @@ internal fun shouldFallbackToLibVlc(errorCode: Int, cause: Throwable?): Boolean 
     return cause is ParserException ||
         errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
         errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ||
+        errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
+        errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+        errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
         errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED ||
         errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
 }

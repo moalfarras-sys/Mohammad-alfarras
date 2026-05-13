@@ -111,12 +111,13 @@ class WidgetRepository(
         ManualWeatherEffect.FOG -> 9.0
     }
 
-    suspend fun football(): List<FootballMatch> = withContext(Dispatchers.IO) {
+    suspend fun football(settings: AppSettings = AppSettings()): List<FootballMatch> = withContext(Dispatchers.IO) {
+        val maxMatches = settings.footballMaxMatches.coerceIn(1, 8)
         if (ApiKeys.apiFootball.isBlank()) {
-            return@withContext fallbackFootball()
+            return@withContext fallbackFootball().take(maxMatches)
         }
         runCatching {
-            footballService.fixtures().response.take(8).map {
+            footballService.fixtures().response.take(maxMatches).map {
                 FootballMatch(
                     league = it.league.name,
                     home = it.teams.home.name,
@@ -125,12 +126,12 @@ class WidgetRepository(
                     minute = it.fixture.status.elapsed?.let { min -> "$min'" } ?: it.fixture.status.short,
                 )
             }
-        }.getOrElse { fallbackFootball() }
+        }.getOrElse { fallbackFootball().take(maxMatches) }.ifEmpty { fallbackFootball().take(maxMatches) }
     }
 
     private fun fallbackFootball(): List<FootballMatch> = listOf(
-        FootballMatch("دوري أبطال أوروبا", "ريال مدريد", "مان سيتي", "2-1", "74'"),
+        FootballMatch("دوري أبطال أوروبا", "ريال مدريد", "مانشستر سيتي", "2-1", "74'"),
         FootballMatch("الدوري الإنجليزي", "أرسنال", "ليفربول", "1-0", "الشوط 2"),
-        FootballMatch("الدوري الإسباني", "برشلونة", "أتلتيكو", "0-0", "مباشر"),
+        FootballMatch("الدوري الإسباني", "برشلونة", "أتلتيكو مدريد", "0-0", "مباشر"),
     )
 }

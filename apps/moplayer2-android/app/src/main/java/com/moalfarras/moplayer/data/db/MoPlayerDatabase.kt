@@ -167,6 +167,7 @@ interface MediaDao {
             serverId ASC,
             serverOrder ASC,
             title COLLATE NOCASE ASC
+        LIMIT 1000
         """
     )
     fun observeLiveZapItems(
@@ -176,7 +177,7 @@ interface MediaDao {
         hideNoLogo: Boolean,
     ): Flow<List<MediaEntity>>
 
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND categoryId = :categoryId ORDER BY serverId, serverOrder, title COLLATE NOCASE")
+    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND categoryId = :categoryId ORDER BY serverId, serverOrder, title COLLATE NOCASE LIMIT 1000")
     fun observeByCategory(serverId: Long, type: ContentType, categoryId: String): Flow<List<MediaEntity>>
 
     @Query(

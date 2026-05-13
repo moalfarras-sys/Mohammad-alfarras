@@ -7,6 +7,7 @@ plugins {
 }
 
 import java.util.Properties
+import java.util.Locale
 
 val localProperties = Properties().apply {
     val localFile = rootProject.file("local.properties")
@@ -19,6 +20,16 @@ val releaseSigningProperties = Properties().apply {
     val signingFile = rootProject.file("../moplayer-android/keystore.properties")
     if (signingFile.isFile) {
         signingFile.inputStream().use(::load)
+    }
+}
+
+val requestedTaskNames = gradle.startParameter.taskNames.map { it.lowercase(Locale.US) }
+val isDebugBuild = requestedTaskNames.any { it.contains("debug") || it.contains("install") }
+val includeX86Abis = providers.gradleProperty("includeX86Abis").orNull?.toBoolean() ?: isDebugBuild
+val sideloadAbis = mutableListOf("arm64-v8a", "armeabi-v7a").apply {
+    if (includeX86Abis) {
+        add("x86")
+        add("x86_64")
     }
 }
 
@@ -45,8 +56,8 @@ android {
         applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 6
-        versionName = "2.1.2"
+        versionCode = 7
+        versionName = "2.1.3"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')
@@ -117,7 +128,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("arm64-v8a", "armeabi-v7a")
+            include(*sideloadAbis.toTypedArray())
             isUniversalApk = true
         }
     }
@@ -132,10 +143,12 @@ android {
         }
         jniLibs {
             useLegacyPackaging = true
-            excludes += setOf(
-                "**/x86/**",
-                "**/x86_64/**",
-            )
+            if (!includeX86Abis) {
+                excludes += setOf(
+                    "**/x86/**",
+                    "**/x86_64/**",
+                )
+            }
         }
     }
 }

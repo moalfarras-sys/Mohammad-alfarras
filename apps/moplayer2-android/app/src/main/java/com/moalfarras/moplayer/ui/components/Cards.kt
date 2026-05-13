@@ -2,9 +2,11 @@ package com.moalfarras.moplayer.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
@@ -259,12 +261,14 @@ fun ChannelRow(
     onClick: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit = {},
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     FocusGlow(
         modifier = modifier.fillMaxWidth().height((68 * tv.factor).dp),
         cornerRadius = tv.cardRadius,
+        focusRequester = focusRequester,
         onFocused = { onFocus(item) },
         onClick = { onClick(item) },
         onTripleOk = { onFavorite(item) },
@@ -391,14 +395,25 @@ fun MediaLane(
 ) {
     val tv = rememberTvScale()
     if (items.isEmpty()) return
+    val rowState = rememberLazyListState()
+    val restoreIndex = remember(restoreFocusTarget, items) {
+        restoreFocusTarget?.let { target -> items.indexOfFirst { target.matchesLaneFocus(it) }.takeIf { it >= 0 } }
+    }
+    LaunchedEffect(restoreIndex, restoreFocusTarget?.id) {
+        if (restoreIndex != null) rowState.scrollToItem(restoreIndex)
+    }
     Column(modifier, verticalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
         GlassSectionTitle(title)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
+        LazyRow(
+            state = rowState,
+            horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
+            modifier = Modifier.focusGroup(),
+        ) {
             items(items, key = { "${it.type}-${it.serverId}-${it.id}" }) { item ->
                 val rowFocus = remember(item.id, item.type, item.serverId) { FocusRequester() }
                 val isRestore = restoreFocusTarget.matchesLaneFocus(item)
-                LaunchedEffect(restoreFocusTarget, items.size, item.id) {
-                    if (isRestore) {
+                LaunchedEffect(isRestore, restoreIndex) {
+                    if (isRestore && restoreIndex != null) {
                         delay(80)
                         runCatching { rowFocus.requestFocus() }
                     }

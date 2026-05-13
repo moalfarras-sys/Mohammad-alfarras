@@ -42,6 +42,7 @@ object NetworkModule {
                     chain.request().newBuilder()
                         .header("x-rapidapi-host", "v3.football.api-sports.io")
                         .header("x-rapidapi-key", ApiKeys.apiFootball)
+                        .header("x-apisports-key", ApiKeys.apiFootball)
                         .build(),
                 )
             }

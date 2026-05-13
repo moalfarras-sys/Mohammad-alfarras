@@ -573,15 +573,33 @@ export async function readAdminAppData(productSlug = "moplayer") {
         .or(slug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${slug}`)
         .order("created_at", { ascending: false })
         .limit(100),
-      supabase.from("licenses").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("licenses").select("*, devices(public_device_id)").order("created_at", { ascending: false }).limit(100),
       supabase.from("app_settings").select("value").eq("key", getManagedApp(slug).runtimeConfigKey).maybeSingle(),
       supabase.from("app_settings").select("value").like("key", "moplayer_device_source:%").order("updated_at", { ascending: false }).limit(100),
     ]);
     supportRequests = (data as AppSupportRequest[] | null) ?? [];
-    devices = (deviceRows as AppDevice[] | null) ?? [];
     activationRequests = (activationRows as ActivationRequest[] | null) ?? [];
-    licenses = (licenseRows as AppLicense[] | null) ?? [];
-    runtimeConfig = { ...fallbackFor(slug).runtimeConfig, ...((settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {}) };
+    const scopedDeviceIds = new Set(activationRequests.map((request) => request.public_device_id));
+    devices = ((deviceRows as AppDevice[] | null) ?? []).filter((device) => scopedDeviceIds.has(device.public_device_id));
+    licenses = ((licenseRows as Array<AppLicense & { devices?: { public_device_id?: string | null } | null }> | null) ?? [])
+      .map((license) => ({
+        ...license,
+        public_device_id: license.public_device_id ?? license.devices?.public_device_id ?? null,
+      }))
+      .filter((license) => license.public_device_id ? scopedDeviceIds.has(license.public_device_id) : true);
+    const savedConfig = (settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {};
+    runtimeConfig = {
+      ...fallbackFor(slug).runtimeConfig,
+      ...savedConfig,
+      widgets: {
+        ...fallbackFor(slug).runtimeConfig.widgets,
+        ...(savedConfig.widgets ?? {}),
+      },
+      update: {
+        ...(fallbackFor(slug).runtimeConfig.update ?? {}),
+        ...(savedConfig.update ?? {}),
+      },
+    };
     providerSources = ((sourceRows as Array<{ value: unknown }> | null) ?? [])
       .map((row) => row.value as Partial<DeviceProviderSourceQueue>)
       .filter((row): row is DeviceProviderSourceQueue =>
@@ -644,6 +662,10 @@ export async function saveRuntimeConfig(input: AppRuntimeConfig, productSlug = "
     widgets: {
       ...fallbackFor(slug).runtimeConfig.widgets,
       ...(input.widgets ?? {}),
+    },
+    update: {
+      ...(fallbackFor(slug).runtimeConfig.update ?? {}),
+      ...(input.update ?? {}),
     },
   };
 

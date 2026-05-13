@@ -55,6 +55,13 @@ function normalizeSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function optionalNumber(formData: FormData, key: string) {
+  const raw = String(formData.get(key) ?? "").trim();
+  if (!raw) return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function formProductSlug(formData: FormData) {
   return resolveManagedAppSlug(String(formData.get("product_slug") ?? "moplayer"));
 }
@@ -141,9 +148,10 @@ export async function saveFaqAction(formData: FormData) {
 
 export async function deleteFaqAction(formData: FormData) {
   await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
   await deleteAppFaq(String(formData.get("id") ?? ""));
   revalidateAppSurface();
-  redirect("/?updated=faq_deleted");
+  appRedirect("faq_deleted", productSlug);
 }
 
 export async function saveScreenshotAction(formData: FormData) {
@@ -243,19 +251,44 @@ export async function updateSupportRequestAction(formData: FormData) {
 export async function saveRuntimeConfigAction(formData: FormData) {
   await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
+  const latestVersionCode = optionalNumber(formData, "latestVersionCode");
+  const updateApkSizeBytes = optionalNumber(formData, "updateApkSizeBytes");
+  const weatherCity = String(formData.get("weatherCity") ?? "").trim();
+  const footballMaxMatches = optionalNumber(formData, "footballMaxMatches");
+  const updateDownloadUrl = String(formData.get("updateDownloadUrl") ?? "").trim();
+  const updateChecksumSha256 = String(formData.get("updateChecksumSha256") ?? "").trim();
+  const updateReleaseNotes = String(formData.get("updateReleaseNotes") ?? "").trim();
   await saveRuntimeConfig({
     enabled: formData.get("enabled") === "on",
     maintenanceMode: formData.get("maintenanceMode") === "on",
     forceUpdate: formData.get("forceUpdate") === "on",
     minimumVersionCode: Number(formData.get("minimumVersionCode") ?? 2),
     latestVersionName: String(formData.get("latestVersionName") ?? "2.0.0"),
+    latestVersionCode,
+    appName: String(formData.get("appName") ?? "").trim() || undefined,
+    packageName: String(formData.get("packageName") ?? "").trim() || undefined,
     message: String(formData.get("message") ?? ""),
     accentColor: String(formData.get("accentColor") ?? "#00e5ff"),
     logoUrl: String(formData.get("logoUrl") ?? "/images/moplayer-icon-512.png"),
     backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner-final.png"),
+    syncIntervalMinutes: optionalNumber(formData, "syncIntervalMinutes"),
+    sourceProtocolFallback: formData.get("sourceProtocolFallback") === "on",
+    footballProviderMode: String(formData.get("footballProviderMode") ?? "").trim() || undefined,
+    weatherBackgroundMode: String(formData.get("weatherBackgroundMode") ?? "").trim() || undefined,
+    weatherBackgroundUrl: String(formData.get("weatherBackgroundUrl") ?? "").trim() || undefined,
     widgets: {
       weather: formData.get("weather") === "on",
       football: formData.get("football") === "on",
+      ...(weatherCity ? { weatherCity } : {}),
+      ...(footballMaxMatches ? { footballMaxMatches } : {}),
+    },
+    update: {
+      latestVersionName: String(formData.get("latestVersionName") ?? "2.0.0"),
+      ...(latestVersionCode ? { latestVersionCode } : {}),
+      ...(updateDownloadUrl ? { downloadUrl: updateDownloadUrl } : {}),
+      ...(updateApkSizeBytes ? { apkSizeBytes: updateApkSizeBytes } : {}),
+      ...(updateChecksumSha256 ? { checksumSha256: updateChecksumSha256 } : {}),
+      ...(updateReleaseNotes ? { releaseNotes: updateReleaseNotes } : {}),
     },
     supportUrl: String(formData.get("supportUrl") ?? "https://moalfarras.space/en/contact"),
     privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),

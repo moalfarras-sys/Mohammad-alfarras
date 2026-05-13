@@ -8,19 +8,18 @@ import {
   ArrowLeft,
   CircleGauge,
   Command,
-  DatabaseZap,
   Globe,
   LayoutDashboard,
   RadioTower,
   Search,
   Smartphone,
   MonitorPlay,
-  Zap,
+  Settings2,
 } from "lucide-react";
 
 import { logoutAdminAction } from "@/app/actions";
 import { cn } from "@/lib/cn";
-import { managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
+import { managedApps, resolveManagedAppSlug, type ManagedAppSlug } from "@moalfarras/shared/app-products";
 import { AppAdminDashboard } from "./app-admin-dashboard";
 import { WebsiteAdminDashboard } from "./website-admin-dashboard";
 import type { WebsiteCmsData } from "@/lib/website-cms";
@@ -53,17 +52,24 @@ function CommandPalette({
   open,
   onClose,
   setView,
+  setActiveAppSlug,
 }: {
   open: boolean;
   onClose: () => void;
   setView: (view: View) => void;
+  setActiveAppSlug: (slug: ManagedAppSlug) => void;
 }) {
+  const [query, setQuery] = useState("");
   const actions = [
-    { label: "Open Home HUD", hint: "Dashboard overview", view: "home" as const, icon: <LayoutDashboard className="h-4 w-4" /> },
-    { label: "Website CMS", hint: "Edit public website surfaces", view: "website" as const, icon: <Globe className="h-4 w-4" /> },
-    { label: "MoPlayer Classic Control", hint: "Runtime, releases, fleet", view: "app" as const, icon: <Smartphone className="h-4 w-4" /> },
-    { label: "MoPlayer Pro Control", hint: "Next-gen TV player OS", view: "app" as const, icon: <MonitorPlay className="h-4 w-4" /> },
+    { label: "Open Dashboard", hint: "Operations overview and health signals", view: "home" as const, keywords: "home dashboard overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: "Website CMS", hint: "Edit public website surfaces", view: "website" as const, keywords: "website cms content media projects", icon: <Globe className="h-4 w-4" /> },
+    { label: "MoPlayer Classic Control", hint: "Runtime, releases, fleet", view: "app" as const, appSlug: "moplayer" as ManagedAppSlug, keywords: "classic moplayer runtime releases activations devices", icon: <Smartphone className="h-4 w-4" /> },
+    { label: "MoPlayer Pro Control", hint: "MoPlayer Pro runtime, sources, releases", view: "app" as const, appSlug: "moplayer2" as ManagedAppSlug, keywords: "pro moplayer2 runtime releases activations devices", icon: <MonitorPlay className="h-4 w-4" /> },
   ];
+  const filteredActions = actions.filter((action) => {
+    const haystack = `${action.label} ${action.hint} ${action.keywords}`.toLowerCase();
+    return haystack.includes(query.trim().toLowerCase());
+  });
 
   return (
     <AnimatePresence>
@@ -81,16 +87,24 @@ function CommandPalette({
           >
             <div className="flex items-center gap-3 border-b border-white/10 p-4">
               <Search className="h-5 w-5 text-cyan-200" />
-              <input autoFocus placeholder="Search commands, modules, devices..." className="h-12 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search commands, modules, devices..."
+                className="h-12 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
+              />
               <kbd className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black text-slate-400">ESC</kbd>
             </div>
             <div className="space-y-2 p-3">
-              {actions.map((action) => (
+              {filteredActions.map((action) => (
                 <button
                   key={action.label}
                   className="flex w-full items-center gap-4 rounded-2xl border border-transparent p-4 text-left transition hover:border-cyan-200/20 hover:bg-cyan-200/8"
                   onClick={() => {
+                    if (action.appSlug) setActiveAppSlug(action.appSlug);
                     setView(action.view);
+                    setQuery("");
                     onClose();
                   }}
                 >
@@ -101,6 +115,11 @@ function CommandPalette({
                   </span>
                 </button>
               ))}
+              {!filteredActions.length ? (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-slate-500">
+                  No command matched that search.
+                </div>
+              ) : null}
             </div>
           </motion.div>
         </motion.div>
@@ -205,7 +224,7 @@ export function AdminOS({
   return (
     <div className="command-center min-h-screen overflow-x-hidden text-slate-200">
       <div className="command-bg" aria-hidden />
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} setView={setView} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} setView={setView} setActiveAppSlug={setActiveAppSlug} />
 
       <header className="command-topbar">
         <div className="flex min-w-0 items-center gap-3">
@@ -276,9 +295,9 @@ export function AdminOS({
                     Server Health Online
                   </div>
                   <div>
-                    <h1 className="headline-display text-4xl font-black leading-[0.95] text-white sm:text-5xl md:text-7xl">Ultimate Admin OS.</h1>
+                    <h1 className="headline-display text-4xl font-black leading-[0.95] text-white sm:text-5xl md:text-7xl">Operations Control.</h1>
                     <p className="mt-5 max-w-2xl text-base leading-8 text-slate-400 md:text-lg">
-                      A native-feeling control center for moalfarras.space, MoPlayer, and MoPlayer Pro: website CMS entry points, APK releases, runtime switches, support, licenses, activations, and device fleet signals.
+                      A practical control center for moalfarras.space, MoPlayer, and MoPlayer Pro: website content, APK releases, runtime switches, support, licenses, activations, and device fleet signals.
                     </p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
@@ -311,9 +330,9 @@ export function AdminOS({
 
               <section className="grid gap-4 md:grid-cols-3">
                 {[
-                  { label: "Deploy Web", text: "Open the Website CMS and ship through Vercel.", icon: <Zap className="h-5 w-5" />, view: "website" as const },
-                  { label: "Clear Cache", text: "Review site settings and publishing state.", icon: <DatabaseZap className="h-5 w-5" />, view: "website" as const },
-                  { label: "Sync Fleet", text: "Open MoPlayer runtime and device signals.", icon: <RadioTower className="h-5 w-5" />, view: "app" as const },
+                  { label: "Open Website CMS", text: "Edit homepage copy, services, media, projects, and messages.", icon: <Globe className="h-5 w-5" />, view: "website" as const },
+                  { label: "Review Runtime", text: "Open app configuration, update gates, and user broadcast settings.", icon: <Settings2 className="h-5 w-5" />, view: "app" as const },
+                  { label: "Inspect Fleet", text: "Review activations, device health, licenses, and source delivery.", icon: <RadioTower className="h-5 w-5" />, view: "app" as const },
                 ].map((action) => (
                   <motion.button key={action.label} whileHover={{ y: -5, scale: 1.01 }} whileTap={{ scale: 0.97 }} onClick={() => setView(action.view)} className="command-action-card">
                     <span className="command-action-icon">{action.icon}</span>

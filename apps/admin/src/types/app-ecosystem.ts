@@ -134,6 +134,7 @@ export type ActivationRequest = {
 export type AppLicense = {
   id: string;
   device_id: string;
+  public_device_id?: string | null;
   plan: string;
   status: "active" | "expired" | "revoked";
   valid_until: string | null;
@@ -164,13 +165,31 @@ export type AppRuntimeConfig = {
   forceUpdate: boolean;
   minimumVersionCode: number;
   latestVersionName: string;
+  latestVersionCode?: number;
+  appName?: string;
+  packageName?: string;
   message: string;
   accentColor: string;
   logoUrl: string;
   backgroundUrl: string;
+  syncIntervalMinutes?: number;
+  sourceProtocolFallback?: boolean;
+  footballProviderMode?: string;
+  weatherBackgroundMode?: string;
+  weatherBackgroundUrl?: string;
   widgets: {
     weather: boolean;
     football: boolean;
+    weatherCity?: string;
+    footballMaxMatches?: number;
+  };
+  update?: {
+    latestVersionName?: string;
+    latestVersionCode?: number;
+    downloadUrl?: string;
+    apkSizeBytes?: number;
+    checksumSha256?: string;
+    releaseNotes?: string;
   };
   supportUrl: string;
   privacyUrl: string;

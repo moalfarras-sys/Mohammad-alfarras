@@ -8,8 +8,11 @@ on:
       - "apps/admin/**"
       - "apps/moplayer-dashboard/**"
       - "packages/shared/**"
+      - "packages/db/**"
       - "package.json"
       - "package-lock.json"
+      - "AGENTS.md"
+      - "docs/**"
       - ".github/workflows/next-app-ci.yml"
   pull_request:
     paths:
@@ -17,8 +20,11 @@ on:
       - "apps/admin/**"
       - "apps/moplayer-dashboard/**"
       - "packages/shared/**"
+      - "packages/db/**"
       - "package.json"
       - "package-lock.json"
+      - "AGENTS.md"
+      - "docs/**"
       - ".github/workflows/next-app-ci.yml"
 
 jobs:
@@ -46,7 +52,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: package-lock.json
 

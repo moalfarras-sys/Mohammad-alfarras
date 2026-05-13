@@ -52,6 +52,21 @@ npm --prefix apps/web run dev -- --hostname 127.0.0.1 --port 3000
 npm --prefix apps/admin run dev -- --hostname 127.0.0.1 --port 3001
 ```
 
+## Research Before Implementation
+
+For fast-moving topics, verify current docs before changing code. This matters because the project uses active platforms: Next.js 16, React 19, Vercel, Supabase, Android/Kotlin, Media3/ExoPlayer, LibVLC, and Android TV.
+
+Research is required before:
+
+- changing routing, caching, middleware/proxy, metadata, server actions, or Next.js build behavior;
+- changing Vercel project settings, deploy commands, env vars, aliases, or production workflow;
+- changing Android permissions, Gradle config, playback engines, lifecycle, or TV focus behavior;
+- changing Supabase auth, RLS, migrations, service role logic, storage, or provider-source encryption;
+- adding or replacing dependencies;
+- making performance, security, accessibility, Arabic/RTL, or image optimization decisions.
+
+Use official docs and release notes first. Keep the implementation conservative: current, stable, testable, and consistent with this repository's existing structure.
+
 ## Verification Matrix
 
 | Change type | Minimum check |

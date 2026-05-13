@@ -12,6 +12,38 @@ Read these files before making broad changes:
 - `docs/PROJECT_HANDOFF.md`: current production notes.
 - `docs/PRODUCTION_GUIDE.md`: release and operations details.
 
+## Modern Research Policy
+
+The project is maintained in May 2026. Do not assume framework, platform, Android, Vercel, Supabase, or browser behavior from memory when the topic may have changed.
+
+Before changing modern or fast-moving areas, research the current best practice first:
+
+- Next.js, React, App Router, Server Components, middleware/proxy, caching, Turbopack, metadata, image handling, and security headers.
+- Vercel deploys, project settings, production aliases, environment variables, build output, CLI behavior, logs, and rollbacks.
+- Android, Kotlin, Gradle, Jetpack Compose, Media3/ExoPlayer, LibVLC, Android TV focus/navigation, permissions, and Play Store requirements.
+- Supabase Auth, Postgres/RLS, Storage, Edge Functions, security advisors, migrations, and client/server key handling.
+- IPTV/OTT playback, M3U/Xtream parsing, EPG handling, buffering, retry policy, lifecycle, remote control UX, and legal content boundaries.
+- Accessibility, Arabic/RTL UI, responsive design, performance, image formats, Core Web Vitals, and modern browser compatibility.
+
+Use primary sources first: official framework docs, Android Developers, Vercel docs, Supabase docs, package release notes, and source repositories. Use blog posts or forum threads only as supporting context, not as the authority.
+
+If internet access is available, look up the current docs before making architecture, dependency, deployment, permissions, security, or performance decisions. Record any important source or version assumption in the final handoff when it affects the implementation.
+
+Do not add a trendy dependency just because it is new. Prefer the existing stack unless research shows a clear reliability, security, performance, or maintainability win.
+
+## Required Agent Skills
+
+Match the work to the strongest available skill or toolset before editing:
+
+- IPTV or Android player work: use IPTV/OTT and Android QA guidance; prioritize playback stability, lifecycle, retry behavior, focus, and source handling.
+- Web UI work: use modern frontend, React/Next.js, accessibility, responsive, visual QA, and browser testing guidance.
+- Vercel/deploy work: use Vercel deployment/CI guidance and inspect production after changes.
+- Supabase/database work: use Supabase/Postgres guidance and verify migrations before relying on them.
+- Security-sensitive work: use security review/threat-model guidance and keep secrets server-side.
+- Visual/product polish: use premium IPTV/media-product design guidance and verify desktop/mobile screenshots.
+
+If a requested change crosses multiple areas, plan the ownership boundaries first, then edit the smallest safe set of files.
+
 ## Ownership Map
 
 | Area | Path | Owns |

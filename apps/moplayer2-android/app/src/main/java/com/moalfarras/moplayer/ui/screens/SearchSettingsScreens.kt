@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -619,36 +618,21 @@ private fun SettingsPaneButton(
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     FocusGlow(
-        modifier = Modifier.fillMaxWidth().height((40 * tv.factor).dp),
-        cornerRadius = (10 * tv.factor).dp,
+        modifier = Modifier.fillMaxWidth().height((48 * tv.factor).dp),
+        cornerRadius = (12 * tv.factor).dp,
         onClick = onClick,
     ) {
         Row(
             Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape((10 * tv.factor).dp))
-                .then(
-                    if (selected) {
-                        Modifier.background(
-                            Brush.horizontalGradient(
-                                listOf(visuals.accent.copy(alpha = 0.25f), Color.Transparent)
-                            )
-                        )
-                    } else {
-                        Modifier.background(Color.Transparent)
-                    }
-                )
-                .border(
-                    width = if (selected) 0.5.dp else 0.dp,
-                    color = if (selected) visuals.accent.copy(alpha = 0.3f) else Color.Transparent,
-                    shape = RoundedCornerShape((10 * tv.factor).dp)
-                )
+                .clip(RoundedCornerShape((12 * tv.factor).dp))
+                .background(if (selected) visuals.accent.copy(alpha = 0.20f) else Color.Transparent)
                 .padding(horizontal = (12 * tv.factor).dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
         ) {
-            Icon(icon, null, tint = if (selected) visuals.accent else Color(0xCCFFFFFF), modifier = Modifier.size((18 * tv.factor).dp))
-            Text(title, color = Color.White, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(icon, null, tint = if (selected) visuals.accent else Color(0xCCFFFFFF), modifier = Modifier.size((20 * tv.factor).dp))
+            Text(title, color = Color.White, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -658,9 +642,8 @@ private fun SettingsHeader() {
     val visuals = LocalMoVisuals.current
     val tv = rememberTvScale()
     val titleStyle = when {
-        tv.isTv -> MaterialTheme.typography.headlineMedium
-        tv.isLowHeightLandscape -> MaterialTheme.typography.headlineMedium
-        tv.isCompact -> MaterialTheme.typography.headlineLarge
+        !tv.isTv && tv.isLowHeightLandscape -> MaterialTheme.typography.headlineMedium
+        !tv.isTv && tv.isCompact -> MaterialTheme.typography.headlineLarge
         else -> MaterialTheme.typography.displaySmall
     }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1035,21 +1018,12 @@ private fun AppearanceSettingsCard(
                     0xFF9B6BFFL to Color(0xFF9B6BFF),
                     0xFF62E8FFL to Color(0xFF62E8FF),
                 ).forEach { (value, color) ->
-                    val isSelected = settings.accentMode == AccentMode.CUSTOM && settings.accentColor == value
-                    FocusGlow(cornerRadius = 14.dp, onClick = {
-                        onAccentMode(AccentMode.CUSTOM)
-                        onAccentColor(value)
-                    }) {
+                    FocusGlow(cornerRadius = 14.dp, onClick = { onAccentColor(value) }) {
                         Box(
                             Modifier
                                 .size(if (isTv) 42.dp else 36.dp)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(color)
-                                .border(
-                                    width = if (isSelected) 3.dp else 0.dp,
-                                    color = if (isSelected) Color.White else Color.Transparent,
-                                    shape = RoundedCornerShape(14.dp)
-                                )
                                 .padding(2.dp),
                         )
                     }
@@ -1149,19 +1123,18 @@ private fun AppearancePill(
     onClick: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
-    val tv = rememberTvScale()
-    FocusGlow(cornerRadius = (10 * tv.factor).dp, onClick = onClick, modifier = modifier.heightIn(min = (36 * tv.factor).dp, max = (44 * tv.factor).dp)) {
-        GlassPanel(radius = (10 * tv.factor).dp, highlighted = selected) {
+    FocusGlow(cornerRadius = 12.dp, onClick = onClick, modifier = modifier.heightIn(min = 44.dp, max = 56.dp)) {
+        GlassPanel(radius = 12.dp, highlighted = selected) {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = (8 * tv.factor).dp, vertical = (4 * tv.factor).dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     label,
                     color = if (selected) visuals.accent else Color.White,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
@@ -1511,20 +1484,20 @@ private fun SettingSwitch(title: String, value: Boolean, icon: androidx.compose.
     val tv = rememberTvScale()
     val accent = LocalMoVisuals.current.accent
     FocusGlow(
-        modifier = Modifier.fillMaxWidth().height((46 * tv.factor).dp),
-        cornerRadius = (10 * tv.factor).dp,
+        modifier = Modifier.fillMaxWidth().height((56 * tv.factor).dp),
+        cornerRadius = (12 * tv.factor).dp,
         onClick = { onValue(!value) },
     ) {
         Row(
-            Modifier.fillMaxSize().padding(horizontal = (14 * tv.factor).dp),
+            Modifier.fillMaxSize().padding(horizontal = (16 * tv.factor).dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (icon != null) {
-                    Icon(icon, contentDescription = null, tint = if (value) accent else Color(0x99FFFFFF), modifier = Modifier.size((20 * tv.factor).dp))
+                    Icon(icon, contentDescription = null, tint = if (value) accent else Color(0x99FFFFFF), modifier = Modifier.size(24.dp))
                 }
-                Text(title, color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                Text(title, color = Color.White, style = MaterialTheme.typography.titleMedium)
             }
             Switch(
                 checked = value,

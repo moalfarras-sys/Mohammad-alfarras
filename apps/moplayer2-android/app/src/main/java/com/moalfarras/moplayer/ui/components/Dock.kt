@@ -79,7 +79,7 @@ fun BottomDock(
 
     val visuals = LocalMoVisuals.current
     GlassPanel(
-        modifier = modifier.fillMaxWidth(if (tv.isLowHeightLandscape) 0.68f else if (tv.isCompact) 0.86f else if (tv.isTv) 0.58f else 0.72f),
+        modifier = modifier.fillMaxWidth(if (tv.isLowHeightLandscape) 0.68f else if (tv.isCompact) 0.86f else 0.72f),
         radius = 999.dp,
         highlighted = true,
         blur = 20.dp,
@@ -119,9 +119,9 @@ private fun DockButton(
     onClick: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
-    val activeWidth = if (factor < 1f) 96f else 92f * factor
-    val idleWidth = if (factor < 1f) 42f else 42f * factor
-    val buttonHeight = if (factor < 1f) 42f else 40f * factor
+    val activeWidth = if (factor < 1f) 96f else 112f * factor
+    val idleWidth = if (factor < 1f) 42f else 48f * factor
+    val buttonHeight = if (factor < 1f) 42f else 46f * factor
     val width by animateDpAsState(
         if (active) activeWidth.dp else idleWidth.dp,
         animationSpec = spring(dampingRatio = 0.62f, stiffness = 340f),

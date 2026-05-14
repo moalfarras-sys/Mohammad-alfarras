@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayerpro.R
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,18 +107,18 @@ private val BodyFamily = FontFamily(
 
 private fun colors(accent: Color): ColorScheme = darkColorScheme(
     primary            = accent,
-    secondary          = Color(0xFF1A1C20),
-    tertiary           = Color(0xFF23252A),
-    background         = Color(0xFF07080A),
-    surface            = Color(0xFF101114),
+    secondary          = MoSurfaceHigh,
+    tertiary           = Color(0xFF2A1D15),
+    background         = MidnightBlack,
+    surface            = MoSurface,
     surfaceVariant     = Color(0x22FFFFFF),
     onPrimary          = Color(0xFF0A0908),
-    onSecondary        = Color(0xFFF0F2F5),
-    onBackground       = Color(0xFFF0F2F5),
-    onSurface          = Color(0xFFF0F2F5),
-    onSurfaceVariant   = Color(0xFF9AA0A6),
-    outline            = accent.copy(alpha = 0.35f),
-    error              = Color(0xFFFF3B30),
+    onSecondary        = MoTextPrimary,
+    onBackground       = MoTextPrimary,
+    onSurface          = MoTextPrimary,
+    onSurfaceVariant   = MoTextMuted,
+    outline            = Color(0x33E3BC78),
+    error              = Color(0xFFFF4D6D),
 )
 
 private fun appTypography(scale: Float) = Typography(
@@ -174,43 +173,35 @@ fun MoTheme(
 ) {
     val configuration = LocalConfiguration.current
     val shortestDp = minOf(configuration.screenWidthDp, configuration.screenHeightDp)
-    val isTv = Adaptive.isTv
-    val typeScale = remember(shortestDp, isTv) {
-        if (isTv) {
-            0.75f
-        } else {
-            when {
-                shortestDp < 360 -> 0.76f
-                shortestDp < 400 -> 0.80f
-                shortestDp < 480 -> 0.84f
-                shortestDp < 600 -> 0.90f
-                shortestDp < 720 -> 0.96f
-                else -> 1f
-            }
+    val typeScale = remember(shortestDp) {
+        when {
+            shortestDp < 360 -> 0.76f
+            shortestDp < 400 -> 0.80f
+            shortestDp < 480 -> 0.84f
+            shortestDp < 600 -> 0.90f
+            shortestDp < 720 -> 0.96f
+            else -> 1f
         }
     }
     
     val clamped = accent
-    // Instead of forcing warm colors and hardcoding FieryOrange, we derive a sleek palette
-    // based on the chosen accent so the whole app transforms beautifully.
     val visuals = MoVisuals(
         accent  = clamped,
-        glass   = Color(0x66101114), // Sleek, cool-neutral dark glass
+        glass   = Color(0x66241914),
         frosted = Color(0x0DFFFFFF),
-        line    = clamped.copy(alpha = 0.35f), // Border lines tint with the accent
+        line    = Color(0x33E3BC78),
         glow    = clamped.copy(alpha = 0.50f),
-        // Derive complementary and secondary tones dynamically
-        accentB = clamped.copy(alpha = 0.85f),
-        accentC = clamped.copy(alpha = 0.65f),
-        accentWarm = clamped,
-        background = Color(0xFF07080A), // Very deep modern dark (nearly OLED black but slightly tinted)
-        surface = Color(0xFF101114), // Modern elevated surface
-        surfaceHigh = Color(0xFF1A1C20),
-        textPrimary = Color(0xFFF0F2F5),
-        textMuted = Color(0xFF9AA0A6),
-        live = Color(0xFFFF3B30), // Modern iOS-like crisp red
-        success = Color(0xFF34C759),
-        error = Color(0xFFFF3B30),
+        accentB = FieryOrange,
+        accentC = WarmAmber,
+        accentWarm = LuxuryAmber,
+        background = MidnightBlack,
+        surface = MoSurface,
+        surfaceHigh = MoSurfaceHigh,
+        textPrimary = MoTextPrimary,
+        textMuted = MoTextMuted,
+        live = MoLiveRed,
+        success = MoSuccess,
+        error = EmberRose,
     )
     
     androidx.compose.runtime.CompositionLocalProvider(LocalMoVisuals provides visuals) {

@@ -39,9 +39,9 @@ fun GlassPanel(
 
     val bg by animateColorAsState(
         targetValue = if (highlighted) {
-            visuals.surfaceHigh.copy(alpha = 0.85f)
+            visuals.surfaceHigh.copy(alpha = 0.88f)
         } else {
-            visuals.surface.copy(alpha = 0.65f)
+            visuals.surface.copy(alpha = 0.72f)
         },
         label = "glass-bg",
     )
@@ -67,13 +67,13 @@ fun GlassPanel(
         shape = shape,
         color = bg,
         border = BorderStroke(
-            width = if (highlighted) 1.5.dp else 0.8.dp,
+            width = if (highlighted) 1.6.dp else 1.dp,
             brush = Brush.linearGradient(
                 colors = listOf(
-                    Color.White.copy(alpha = if (highlighted) 0.4f else 0.15f),
+                    Color.White.copy(alpha = if (highlighted) 0.32f else 0.12f),
                     visuals.accent.copy(alpha = borderAlpha),
-                    visuals.accentB.copy(alpha = if (highlighted) 0.15f else 0.05f),
-                    Color(0x05FFFFFF),
+                    visuals.accentB.copy(alpha = if (highlighted) 0.22f else 0.08f),
+                    Color(0x0DFFFFFF),
                 ),
                 start = Offset(0f, 0f),
                 end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
@@ -155,8 +155,8 @@ fun GlassGlowScale(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val scale by animateFloatAsState(
-        targetValue = if (focused) 1.05f else 1f,
-        animationSpec = spring(dampingRatio = 0.75f, stiffness = 300f),
+        targetValue = if (focused) 1.07f else 1f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 300f),
         label = "glass-scale",
     )
     GlassPanel(

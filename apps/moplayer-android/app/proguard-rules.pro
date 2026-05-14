@@ -270,6 +270,29 @@
 -keep class com.mo.moplayer.databinding.** { *; }
 
 #===============================================================================
+# Media3 / ExoPlayer
+#===============================================================================
+
+-keep class androidx.media3.** { *; }
+-keep interface androidx.media3.** { *; }
+-dontwarn androidx.media3.**
+
+# Keep MediaSession callbacks
+-keep class * extends android.support.v4.media.session.MediaSessionCompat$Callback { *; }
+
+#===============================================================================
+# AndroidX Lifecycle / Media (for MediaSession)
+#===============================================================================
+
+-keep class android.support.v4.media.** { *; }
+-keep class android.support.v4.media.session.** { *; }
+-dontwarn android.support.v4.media.**
+
+-keep class androidx.media.** { *; }
+-keep class androidx.media.session.** { *; }
+-dontwarn androidx.media.**
+
+#===============================================================================
 # Suppress warnings
 #===============================================================================
 

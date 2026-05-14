@@ -29,9 +29,13 @@ import com.mo.moplayer.data.local.entity.ChannelEntity
 import com.mo.moplayer.databinding.ActivityPlayerBinding
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.repository.WatchHistoryRepository
+import com.mo.moplayer.service.PlaybackService
 import com.mo.moplayer.ui.common.BaseTvActivity
+import com.mo.moplayer.ui.player.engine.PlayerEngine
+import com.mo.moplayer.ui.player.engine.PlayerEngineManager
 import com.mo.moplayer.util.LivePlaybackRetryPolicy
 import com.mo.moplayer.util.NativeVlcLoader
+import com.mo.moplayer.util.TvRecommendationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -138,17 +142,34 @@ class PlayerActivity : BaseTvActivity() {
     private var currentChannelIndex = -1
     private var currentServerId: Long = 0L
 
+    // Modern dual-engine playback manager (ExoPlayer + VLC fallback)
+    private var engineManager: PlayerEngineManager? = null
+    private var broadcastBridge: PlayerBroadcastBridge? = null
+    private var useExoPlayerPrimary = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        streamUrl = intent.getStringExtra(EXTRA_STREAM_URL) ?: ""
-        title = intent.getStringExtra(EXTRA_TITLE) ?: ""
-        contentType = intent.getStringExtra(EXTRA_TYPE) ?: "MOVIE"
-        contentId = intent.getStringExtra(EXTRA_CONTENT_ID) ?: streamUrl
-        posterUrl = intent.getStringExtra(EXTRA_POSTER_URL)
-        resumePosition = intent.getLongExtra(EXTRA_RESUME_POSITION, 0)
+        // Handle deep-link intents (e.g. from Android TV home "Continue Watching")
+        val deepLinkData = intent.data
+        if (deepLinkData != null && deepLinkData.scheme == "moplayer" && deepLinkData.host == "play") {
+            streamUrl = deepLinkData.getQueryParameter("url") ?: ""
+            title = deepLinkData.getQueryParameter("title") ?: ""
+            contentType = deepLinkData.getQueryParameter("type") ?: "MOVIE"
+            contentId = deepLinkData.getQueryParameter("content_id") ?: streamUrl
+            posterUrl = deepLinkData.getQueryParameter("poster_url")
+            resumePosition = deepLinkData.getQueryParameter("resume")?.toLongOrNull() ?: 0L
+        } else {
+            // Normal launch via extras
+            streamUrl = intent.getStringExtra(EXTRA_STREAM_URL) ?: ""
+            title = intent.getStringExtra(EXTRA_TITLE) ?: ""
+            contentType = intent.getStringExtra(EXTRA_TYPE) ?: "MOVIE"
+            contentId = intent.getStringExtra(EXTRA_CONTENT_ID) ?: streamUrl
+            posterUrl = intent.getStringExtra(EXTRA_POSTER_URL)
+            resumePosition = intent.getLongExtra(EXTRA_RESUME_POSITION, 0)
+        }
         
         // Series episode extras
         seriesId = intent.getStringExtra(EXTRA_SERIES_ID)
@@ -163,23 +184,23 @@ class PlayerActivity : BaseTvActivity() {
                 finish()
                 return@launch
             }
-            
-            // Continue with internal VLC player
+
+            // Determine if ExoPlayer should be primary
+            val playerType = playerPreferences.getPlayerType()
+            useExoPlayerPrimary = (playerType == com.mo.moplayer.util.PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER)
+
             if (streamUrl.isEmpty()) {
                 Toast.makeText(this@PlayerActivity, getString(R.string.player_no_stream_url), Toast.LENGTH_SHORT).show()
                 finish()
                 return@launch
             }
-            
+
             loadPlayerSettings()
 
             binding.tvTitle.text = title
             binding.tvSubtitle.text = contentType
             updatePlaybackChrome()
-            
-            // FIX: Load saved position BEFORE initVLC to avoid race condition.
-            // Previously this was fire-and-forget, so the player could start before
-            // the position was loaded from Room.
+
             if (resumePosition == 0L && contentId.isNotEmpty()) {
                 resumePosition = loadSavedPositionSuspend()
             }
@@ -190,15 +211,41 @@ class PlayerActivity : BaseTvActivity() {
                 loadLiveSupportData()
             }
             binding.root.post {
-                initVLC()
-                playStream()
+                if (useExoPlayerPrimary) {
+                    initPlaybackEngine()
+                } else {
+                    // Legacy VLC path (default): preserve all existing behavior
+                    initVLC()
+                    playStream()
+                }
                 startClockUpdate()
                 startProgressSaving()
                 showControls()
+
+                // Register broadcast bridge for PlaybackService to Activity remote control.
+                val bridge = PlayerBroadcastBridge(this@PlayerActivity, object : PlayerBroadcastBridge.PlayerControlListener {
+                    override fun onPlayPauseRequested() { togglePlayPause() }
+                    override fun onStopRequested() {
+                        engineManager?.stop() ?: mediaPlayer?.stop()
+                        saveCurrentProgress()
+                        finish()
+                    }
+                    override fun onSeekRequested(forward: Boolean, amountMs: Long) {
+                        if (forward) seekForward() else seekBackward()
+                    }
+                    override fun onNextChannelRequested() { playAdjacentChannel(1) }
+                    override fun onPreviousChannelRequested() { playAdjacentChannel(-1) }
+                    override fun onShowControlsRequested() { showControls() }
+                })
+                bridge.register()
+                broadcastBridge = bridge
+
+                // Keep playback alive via the foreground service.
+                PlaybackService.start(this@PlayerActivity, title, isLiveStream)
             }
         }
     }
-    
+
     private fun launchExternalPlayer() {
         activityScope.launch {
             try {
@@ -233,7 +280,7 @@ class PlayerActivity : BaseTvActivity() {
     private suspend fun initInternalPlayer() {
         binding.tvTitle.text = title
         binding.tvSubtitle.text = contentType
-        
+
         if (resumePosition == 0L && contentId.isNotEmpty()) {
             resumePosition = loadSavedPositionSuspend()
         }
@@ -242,8 +289,12 @@ class PlayerActivity : BaseTvActivity() {
         setupControls()
         binding.loadingOverlay.visibility = View.VISIBLE
         binding.root.post {
-            initVLC()
-            playStream()
+            if (useExoPlayerPrimary) {
+                initPlaybackEngine()
+            } else {
+                initVLC()
+                playStream()
+            }
             startClockUpdate()
             startProgressSaving()
             showControls()
@@ -283,8 +334,8 @@ class PlayerActivity : BaseTvActivity() {
     }
     
     private fun saveCurrentProgress() {
-        val currentPosition = mediaPlayer?.time ?: 0
-        val duration = mediaPlayer?.length ?: 0
+        val currentPosition = currentPlaybackPositionMs()
+        val duration = currentPlaybackDurationMs()
         
         // Only save if we have valid content and have played for at least 5 seconds
         if (contentId.isNotEmpty() && currentPosition > 5000 && duration > 0) {
@@ -302,11 +353,95 @@ class PlayerActivity : BaseTvActivity() {
                         seriesId = seriesId,
                         seriesName = seriesName
                     )
+                    // Publish to Android TV home "Continue Watching" row
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isLiveStream) {
+                        TvRecommendationHelper(this@PlayerActivity).publishWatchNext(
+                            contentId = contentId,
+                            title = title,
+                            subtitle = if (seasonNumber != null && episodeNumber != null) {
+                                "S${seasonNumber}:E${episodeNumber}"
+                            } else null,
+                            posterUrl = posterUrl,
+                            type = if (contentType.equals("MOVIE", ignoreCase = true)) "movie" else "series",
+                            progressMs = currentPosition,
+                            durationMs = duration,
+                            resumeUrl = streamUrl
+                        )
+                    }
                 } catch (e: Exception) {
                     // Ignore errors
                 }
             }
         }
+    }
+
+    /**
+     * Initialize the modern dual-engine playback system.
+     * Uses ExoPlayer if user selected it in settings; otherwise VLC.
+     */
+    private fun initPlaybackEngine() {
+        if (streamUrl.isEmpty()) return
+
+        engineManager = PlayerEngineManager(this, isLiveStream).also { manager ->
+            manager.setPrimaryEngine(useExoPlayerPrimary)
+            manager.attachViews(binding.exoPlayerView, binding.vlcVideoLayout)
+        }
+
+        if (useExoPlayerPrimary) {
+            // Switch to ExoPlayer surface
+            binding.vlcVideoLayout.visibility = View.GONE
+            binding.exoPlayerView.visibility = View.VISIBLE
+        } else {
+            // VLC mode: keep legacy layout
+            binding.exoPlayerView.visibility = View.GONE
+            binding.vlcVideoLayout.visibility = View.VISIBLE
+        }
+
+        // Fallback callback: if ExoPlayer fails and VLC takes over, switch surface
+        engineManager?.addCallback(object : PlayerEngine.Callback {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == androidx.media3.common.Player.STATE_READY) {
+                    setLoadingOverlayVisible(false)
+                    binding.errorOverlay.visibility = View.GONE
+                    startProgressUpdate()
+                    updateDuration()
+                }
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                binding.btnPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
+                if (isPlaying) startProgressUpdate()
+            }
+            override fun onPlaybackError(error: PlayerEngine.PlaybackError) { /* handled */ }
+            override fun onPositionChanged(positionMs: Long, durationMs: Long) {
+                if (!seeking) updateProgress()
+                updateDuration()
+            }
+            override fun onVideoSizeChanged(width: Int, height: Int) {
+                if (engineManager?.isFallbackActive == true && binding.vlcVideoLayout.visibility != View.VISIBLE) {
+                    // Switched to VLC fallback; swap surfaces.
+                    binding.exoPlayerView.visibility = View.GONE
+                    binding.vlcVideoLayout.visibility = View.VISIBLE
+                }
+            }
+            override fun onTracksChanged(audio: List<PlayerEngine.TrackInfo>, subtitles: List<PlayerEngine.TrackInfo>) {}
+            override fun onBuffering(buffering: Boolean) {
+                runOnUiThread { setLoadingOverlayVisible(buffering) }
+            }
+        })
+
+        engineManager?.play(streamUrl, title, resumePosition)
+    }
+
+    private fun attachPlaybackEngineView() {
+        val manager = engineManager ?: return
+        if (manager.isFallbackActive || !useExoPlayerPrimary) {
+            binding.exoPlayerView.visibility = View.GONE
+            binding.vlcVideoLayout.visibility = View.VISIBLE
+        } else {
+            binding.vlcVideoLayout.visibility = View.GONE
+            binding.exoPlayerView.visibility = View.VISIBLE
+        }
+        manager.attachViews(binding.exoPlayerView, binding.vlcVideoLayout)
     }
 
     private fun initVLC() {
@@ -499,7 +634,7 @@ class PlayerActivity : BaseTvActivity() {
         binding.btnSpeed.setOnClickListener { cyclePlaybackSpeed() }
         binding.btnExternalPlayer.setOnClickListener { showExternalPlayerDialog() }
 
-        binding.btnRetry.setOnClickListener { playStream() }
+        binding.btnRetry.setOnClickListener { restartCurrentStream() }
         binding.optionSheet.setOnClickListener { hideOptionSheet() }
         binding.channelDrawer.setOnClickListener { hideChannelDrawer() }
 
@@ -507,7 +642,7 @@ class PlayerActivity : BaseTvActivity() {
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    val duration = mediaPlayer?.length ?: 0
+                    val duration = currentPlaybackDurationMs()
                     val position = (progress / 100f * duration).toLong()
                     binding.tvPosition.text = formatTime(position)
                 }
@@ -519,9 +654,9 @@ class PlayerActivity : BaseTvActivity() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 val progress = seekBar?.progress ?: 0
-                val duration = mediaPlayer?.length ?: 0
+                val duration = currentPlaybackDurationMs()
                 val position = (progress / 100f * duration).toLong()
-                mediaPlayer?.time = position
+                engineManager?.seekTo(position) ?: run { mediaPlayer?.time = position }
                 seeking = false
             }
         })
@@ -786,8 +921,17 @@ class PlayerActivity : BaseTvActivity() {
         }
     }
 
+    private fun currentPlaybackPositionMs(): Long = engineManager?.currentPositionMs ?: (mediaPlayer?.time ?: 0)
+
+    private fun currentPlaybackDurationMs(): Long = engineManager?.durationMs ?: (mediaPlayer?.length ?: 0)
+
+    private fun isPlaybackActive(): Boolean = engineManager?.isPlaying ?: (mediaPlayer?.isPlaying == true)
+
     private fun togglePlayPause() {
-        if (mediaPlayer?.isPlaying == true) {
+        val manager = engineManager
+        if (manager != null) {
+            manager.togglePlayPause()
+        } else if (mediaPlayer?.isPlaying == true) {
             mediaPlayer?.pause()
         } else {
             mediaPlayer?.play()
@@ -796,17 +940,27 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun seekForward() {
-        val currentTime = mediaPlayer?.time ?: 0
-        val duration = mediaPlayer?.length ?: 0
-        val newTime = (currentTime + SEEK_AMOUNT).coerceAtMost(duration)
-        mediaPlayer?.time = newTime
+        val manager = engineManager
+        if (manager != null) {
+            manager.seekBy(SEEK_AMOUNT)
+        } else {
+            val currentTime = mediaPlayer?.time ?: 0
+            val duration = mediaPlayer?.length ?: 0
+            val newTime = if (duration > 0) (currentTime + SEEK_AMOUNT).coerceAtMost(duration) else currentTime + SEEK_AMOUNT
+            mediaPlayer?.time = newTime
+        }
         resetControlsTimeout()
     }
 
     private fun seekBackward() {
-        val currentTime = mediaPlayer?.time ?: 0
-        val newTime = (currentTime - SEEK_AMOUNT).coerceAtLeast(0)
-        mediaPlayer?.time = newTime
+        val manager = engineManager
+        if (manager != null) {
+            manager.seekBy(-SEEK_AMOUNT)
+        } else {
+            val currentTime = mediaPlayer?.time ?: 0
+            val newTime = (currentTime - SEEK_AMOUNT).coerceAtLeast(0)
+            mediaPlayer?.time = newTime
+        }
         resetControlsTimeout()
     }
 
@@ -947,7 +1101,7 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun openInExternalPlayer(player: String) {
         hideExternalPlayerDialog()
-        mediaPlayer?.pause()
+        engineManager?.pause() ?: mediaPlayer?.pause()
 
         val intent = Intent(Intent.ACTION_VIEW)
         intent.setDataAndType(Uri.parse(streamUrl), "video/*")
@@ -969,7 +1123,7 @@ class PlayerActivity : BaseTvActivity() {
                         )
                         startActivity(intent)
                     } catch (e2: ActivityNotFoundException) {
-                        mediaPlayer?.play()
+                        engineManager?.resume() ?: mediaPlayer?.play()
                         showInstallPlayerDialog("MX Player", "com.mxtech.videoplayer.ad")
                     }
                 }
@@ -982,7 +1136,7 @@ class PlayerActivity : BaseTvActivity() {
                     )
                     startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    mediaPlayer?.play()
+                    engineManager?.resume() ?: mediaPlayer?.play()
                     showInstallPlayerDialog("VLC", "org.videolan.vlc")
                 }
             }
@@ -992,7 +1146,7 @@ class PlayerActivity : BaseTvActivity() {
                     startActivity(chooser)
                 } catch (e: ActivityNotFoundException) {
                     Toast.makeText(this, getString(R.string.player_no_video_player_found), Toast.LENGTH_SHORT).show()
-                    mediaPlayer?.play()
+                    engineManager?.resume() ?: mediaPlayer?.play()
                 }
             }
         }
@@ -1154,8 +1308,20 @@ class PlayerActivity : BaseTvActivity() {
         binding.tvTitle.text = title
         binding.tvSubtitle.text = getString(R.string.nav_live)
         currentChannelIndex = channelList.indexOfFirst { it.channelId == channel.channelId }
-        playStream()
+        restartCurrentStream(startPositionMs = 0)
         loadLiveSupportData()
+    }
+
+    private fun restartCurrentStream(startPositionMs: Long = resumePosition) {
+        binding.errorOverlay.visibility = View.GONE
+        setLoadingOverlayVisible(true)
+        val manager = engineManager
+        if (manager != null) {
+            activePlaybackToken++
+            manager.play(streamUrl, title, startPositionMs)
+        } else {
+            playStream()
+        }
     }
 
     private fun showControls() {
@@ -1211,14 +1377,14 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private val hideControlsRunnable = Runnable {
-        if (mediaPlayer?.isPlaying == true) {
+        if (isPlaybackActive()) {
             hideControls()
         }
     }
 
     private fun updateProgress() {
-        val currentTime = mediaPlayer?.time ?: 0
-        val duration = mediaPlayer?.length ?: 0
+        val currentTime = currentPlaybackPositionMs()
+        val duration = currentPlaybackDurationMs()
 
         binding.tvPosition.text = formatTime(currentTime)
 
@@ -1229,11 +1395,12 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun updateDuration() {
-        val duration = mediaPlayer?.length ?: 0
+        val duration = currentPlaybackDurationMs()
         binding.tvDuration.text = formatTime(duration)
     }
 
     private fun startProgressUpdate() {
+        handler.removeCallbacks(progressRunnable)
         handler.post(progressRunnable)
     }
 
@@ -1364,7 +1531,7 @@ class PlayerActivity : BaseTvActivity() {
             binding.centerControls.visibility = View.GONE
         } else {
             // Restore controls when exiting PIP
-            if (mediaPlayer?.isPlaying != true) {
+            if (!isPlaybackActive()) {
                 showControls()
             }
         }
@@ -1436,7 +1603,7 @@ class PlayerActivity : BaseTvActivity() {
                     return true
                 }
                 // Enter PIP mode on back press if playing (Android 8.0+) - only if PIP is enabled in settings
-                if (pipModeEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mediaPlayer?.isPlaying == true) {
+                if (pipModeEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPlaybackActive()) {
                     enterPipMode()
                     return true
                 }
@@ -1451,11 +1618,11 @@ class PlayerActivity : BaseTvActivity() {
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                mediaPlayer?.play()
+                engineManager?.resume() ?: mediaPlayer?.play()
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                mediaPlayer?.pause()
+                engineManager?.pause() ?: mediaPlayer?.pause()
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
@@ -1526,11 +1693,36 @@ class PlayerActivity : BaseTvActivity() {
         return false
     }
 
+    override fun onResume() {
+        super.onResume()
+        attachPlaybackEngineView()
+        if (engineManager == null && mediaPlayer != null && binding.vlcVideoLayout.visibility == View.VISIBLE) {
+            runCatching { mediaPlayer?.attachViews(binding.vlcVideoLayout, null, false, false) }
+        }
+    }
+
     override fun onPause() {
         super.onPause()
         saveCurrentProgress()
-        if (!isLiveStream || isFinishing) {
-            mediaPlayer?.pause()
+
+        // Background Audio Mode: if live TV, keep audio playing via ForegroundService
+        // even when the user navigates away (Home, Guide, etc.).
+        // Only pause if explicitly finishing or if user navigated Back.
+        val allowBackgroundAudio = isLiveStream && !isFinishing
+        if (!allowBackgroundAudio) {
+            if (engineManager != null) {
+                engineManager?.pause()
+            } else {
+                mediaPlayer?.pause()
+            }
+        } else {
+            // Keep audio alive — PlaybackService already started
+            if (engineManager != null) {
+                engineManager?.detachView()
+            } else {
+                // Detach video to save decoder resources while audio continues
+                mediaPlayer?.detachViews()
+            }
         }
     }
 
@@ -1546,8 +1738,21 @@ class PlayerActivity : BaseTvActivity() {
     override fun onDestroy() {
         super.onDestroy()
         saveCurrentProgress()
+
+        // Stop the foreground playback service so notification disappears
+        PlaybackService.stop(this)
+
         activityScope.cancel()
         handler.removeCallbacksAndMessages(null)
+        // Unregister broadcast bridge for remote playback controls
+        try {
+            broadcastBridge?.unregister()
+        } catch (_: Exception) { }
+        broadcastBridge = null
+
+        // Release dual-engine manager if active
+        engineManager?.release()
+        engineManager = null
         val player = mediaPlayer
         val vlc = libVLC
         mediaPlayer = null

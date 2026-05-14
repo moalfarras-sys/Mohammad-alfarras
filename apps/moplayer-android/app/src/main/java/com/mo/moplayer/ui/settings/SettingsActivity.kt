@@ -398,22 +398,25 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun showPlayerSelectionDialog() {
-        val players = arrayOf(
-            playerPreferences.getPlayerName(PlayerPreferences.PLAYER_INTERNAL_VLC),
-            playerPreferences.getPlayerName(PlayerPreferences.PLAYER_MX_PLAYER),
-            playerPreferences.getPlayerName(PlayerPreferences.PLAYER_VLC_EXTERNAL),
-            playerPreferences.getPlayerName(PlayerPreferences.PLAYER_JUST_PLAYER),
-            playerPreferences.getPlayerName(PlayerPreferences.PLAYER_SYSTEM_DEFAULT)
+        val playerOptions = listOf(
+            Pair(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_INTERNAL_VLC), PlayerPreferences.PLAYER_INTERNAL_VLC),
+            Pair(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER), PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER),
+            Pair(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_MX_PLAYER), PlayerPreferences.PLAYER_MX_PLAYER),
+            Pair(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_VLC_EXTERNAL), PlayerPreferences.PLAYER_VLC_EXTERNAL),
+            Pair(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_JUST_PLAYER), PlayerPreferences.PLAYER_JUST_PLAYER),
+            Pair(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_SYSTEM_DEFAULT), PlayerPreferences.PLAYER_SYSTEM_DEFAULT)
         )
-        
+        val displayNames = playerOptions.map { it.first }.toTypedArray()
+
         lifecycleScope.launch {
             val currentType = playerPreferences.playerType.first()
-            
+            val currentIndex = playerOptions.indexOfFirst { it.second == currentType }.coerceAtLeast(0)
+
             val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
                 .setTitle(R.string.settings_player_selection)
-                .setSingleChoiceItems(players, currentType) { d, which ->
+                .setSingleChoiceItems(displayNames, currentIndex) { d, which ->
                     lifecycleScope.launch {
-                        playerPreferences.setPlayerType(which)
+                        playerPreferences.setPlayerType(playerOptions[which].second)
                     }
                     d.dismiss()
                 }

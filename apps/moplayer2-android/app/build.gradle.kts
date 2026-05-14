@@ -140,9 +140,22 @@ android {
                 "META-INF/INDEX.LIST",
                 "META-INF/io.netty.versions.properties",
             )
+            // Prevent libc++_shared.so duplication from VLC + Media3 + OkHttp native deps
+            pickFirsts += setOf(
+                "lib/arm64-v8a/libc++_shared.so",
+                "lib/armeabi-v7a/libc++_shared.so",
+                "lib/x86/libc++_shared.so",
+                "lib/x86_64/libc++_shared.so",
+            )
         }
         jniLibs {
+            // Must keep legacy packaging so native libs are NOT compressed in APK.
+            // Compressed native libs cause UnsatisfiedLinkError on many Android TV devices.
             useLegacyPackaging = true
+            // Resolve duplicate native library conflicts (VLC bundles its own libc++_shared)
+            pickFirsts += setOf(
+                "**/libc++_shared.so",
+            )
             if (!includeX86Abis) {
                 excludes += setOf(
                     "**/x86/**",

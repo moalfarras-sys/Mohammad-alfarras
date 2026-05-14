@@ -136,10 +136,30 @@ import java.util.LinkedHashMap
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-private const val APP_USER_AGENT = "VLC/3.0.21 LibVLC/3.0.21 MoPlayerPro/2.1.0"
+private const val APP_USER_AGENT = "VLC/3.0.21 LibVLC/3.0.21 MoPlayerPro/2.1.3"
 
 enum class LiveQualityMode { AUTO, BEST, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
+
+/** Cached flag — set to false the first time LibVLC fails to load native libs. */
+private var vlcNativeAvailable: Boolean? = null
+
+/** Quick check if LibVLC native libraries can be loaded on this device. */
+private fun isVlcAvailable(context: android.content.Context): Boolean {
+    vlcNativeAvailable?.let { return it }
+    return try {
+        LibVLC(context, arrayListOf("--no-audio", "--no-video")).release()
+        vlcNativeAvailable = true
+        true
+    } catch (_: UnsatisfiedLinkError) {
+        android.util.Log.w("MoPlayer", "LibVLC native libs unavailable on this device")
+        vlcNativeAvailable = false
+        false
+    } catch (_: Exception) {
+        vlcNativeAvailable = false
+        false
+    }
+}
 
 private fun preferredLiveAutoEngine(request: StreamRequest): InternalPlaybackEngine {
     return when (request.mimeType) {
@@ -184,7 +204,12 @@ fun PlayerScreen(
         )
     }
     var internalEngine by remember(item.id, route, streamRequest.uri) {
-        mutableStateOf(if (isLive && route == "auto") preferredLiveAutoEngine(streamRequest) else InternalPlaybackEngine.MEDIA3)
+        val preferred = if (isLive && route == "auto") preferredLiveAutoEngine(streamRequest) else InternalPlaybackEngine.MEDIA3
+        // Safety: never route to LIBVLC when native libs are known-unavailable
+        mutableStateOf(
+            if (preferred == InternalPlaybackEngine.LIBVLC && !isVlcAvailable(context)) InternalPlaybackEngine.MEDIA3
+            else preferred
+        )
     }
     var launchMessage by remember(item.id) { mutableStateOf<String?>(null) }
     var externalLaunchNonce by remember(item.id) { mutableIntStateOf(0) }
@@ -281,7 +306,7 @@ fun PlayerScreen(
             },
             onPlayerError = { error ->
                 liveSwitchLocked = false
-                if (isLive && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
+                if (isLive && shouldFallbackToLibVlc(error) && !triedLibVlcForLive && isVlcAvailable(context)) {
                     triedLibVlcForLive = true
                     playbackError = null
                     isBuffering = true
@@ -1535,8 +1560,32 @@ private fun LibVlcPlayerView(
             "--avcodec-fast",
         )
     }
-    val libVlc = remember { LibVLC(context, vlcOptions) }
-    val mediaPlayer = remember { MediaPlayer(libVlc) }
+    // Defensive LibVLC init: catch UnsatisfiedLinkError so the app never crashes on
+    // missing native libs. Instead, we report the error and the user can retry or
+    // switch to Media3.
+    val vlcPair = remember {
+        try {
+            val lib = LibVLC(context, vlcOptions)
+            val player = MediaPlayer(lib)
+            lib to player
+        } catch (e: UnsatisfiedLinkError) {
+            android.util.Log.e("MoPlayer", "LibVLC native init failed: ${e.message}", e)
+            null
+        } catch (e: Exception) {
+            android.util.Log.e("MoPlayer", "LibVLC init failed: ${e.message}", e)
+            null
+        }
+    }
+
+    // If VLC failed to load, report error immediately and bail out
+    if (vlcPair == null) {
+        LaunchedEffect(Unit) {
+            onError("تعذر تحميل مكتبة VLC الداخلية. جرّب استخدام Media3 بدلاً من ذلك.")
+            onBuffering(false)
+        }
+        return
+    }
+    val (libVlc, mediaPlayer) = vlcPair
 
     DisposableEffect(request.uri, retryNonce) {
         var activeSession = true

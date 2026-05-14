@@ -463,4 +463,18 @@
     <string name="crash_guard_safe_mode_message">Safe mode is active. Home auto-start was paused after a recent crash.\n%1$s</string>
     <string name="crash_guard_last_crash_short">Last crash diagnostic: %1$s</string>
     <string name="surprise_preview_ready">اختيار مقترح: %1$s</string>
+
+    <!-- Playback Service / MediaSession -->
+    <string name="notification_channel_playback">التشغيل</string>
+    <string name="notification_channel_playback_desc">أزرار التحكم بالمحتوى وحالة التشغيل</string>
+    <string name="action_play">تشغيل</string>
+    <string name="action_pause">إيقاف مؤقت</string>
+    <string name="action_stop">إيقاف</string>
+    <string name="playing_indicator">قيد التشغيل</string>
+    <string name="live_indicator">مباشر</string>
+
+    <!-- Arabic fallback strings (moved from hardcoded Kotlin) -->
+    <string name="player_stream_starts_seconds">يبدأ خلال %1$d ثواني…</string>
+    <string name="player_stream_starts_now">يبدأ الآن…</string>
+    <string name="player_quick_guide">دليل سريع</string>
 </resources>

@@ -20,7 +20,7 @@
         <!-- Left Side - Categories -->
         <LinearLayout
             android:id="@+id/categoryRail"
-            android:layout_width="300dp"
+            android:layout_width="240dp"
             android:layout_height="match_parent"
             android:background="@drawable/bg_premium_clean_panel"
             android:orientation="vertical"
@@ -111,7 +111,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_server"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="22sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <!-- Current Server Info -->
@@ -136,7 +136,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_sm"
                             android:textColor="@color/htc_text_primary"
-                            android:textSize="18sp"
+                            android:textSize="16sp"
                             android:textStyle="bold"
                             tools:text="My IPTV Server" />
 
@@ -145,7 +145,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textColor="@color/htc_text_tertiary"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             tools:text="http://example.com:8080" />
 
                         <LinearLayout
@@ -205,7 +205,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_sm"
                             android:textColor="@color/htc_accent_green"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             tools:text="Expires: 2026-12-31" />
 
                         <TextView
@@ -231,16 +231,16 @@
                         <Button
                             android:id="@+id/btnRefreshServer"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="38dp"
                             android:layout_weight="1"
                             android:background="@drawable/selector_cinematic_button"
                             android:drawableStart="@drawable/ic_refresh"
-                            android:drawablePadding="8dp"
+                            android:drawablePadding="6dp"
                             android:paddingHorizontal="@dimen/spacing_md"
                             android:text="@string/settings_server_refresh"
                             android:textAllCaps="false"
                             android:textColor="@color/htc_pure_black"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold"
                             android:focusable="true"
                             android:nextFocusLeft="@id/rvCategories"
@@ -250,17 +250,17 @@
                         <Button
                             android:id="@+id/btnDeleteServer"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="38dp"
                             android:layout_marginStart="@dimen/spacing_md"
                             android:layout_weight="1"
                             android:background="@drawable/selector_cinematic_button"
                             android:drawableStart="@drawable/ic_delete"
-                            android:drawablePadding="8dp"
+                            android:drawablePadding="6dp"
                             android:paddingHorizontal="@dimen/spacing_md"
                             android:text="@string/settings_server_delete"
                             android:textAllCaps="false"
                             android:textColor="@color/htc_error"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:focusable="true"
                             android:nextFocusLeft="@id/btnRefreshServer"
                             android:nextFocusDown="@id/btnAddServer" />
@@ -287,15 +287,15 @@
                     <Button
                         android:id="@+id/btnAddServer"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="38dp"
                         android:layout_marginTop="@dimen/spacing_md"
                         android:background="@drawable/selector_tv_button"
                         android:drawableStart="@drawable/ic_add"
-                        android:drawablePadding="8dp"
+                        android:drawablePadding="6dp"
                         android:text="@string/settings_server_add"
                         android:textAllCaps="false"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/btnRefreshServer"
@@ -304,12 +304,13 @@
                     <Button
                         android:id="@+id/btnLogout"
                         android:layout_width="wrap_content"
-                        android:layout_height="48dp"
+                        android:layout_height="38dp"
                         android:layout_marginTop="@dimen/spacing_xl"
                         android:background="@drawable/selector_tv_button"
                         android:paddingHorizontal="@dimen/spacing_xl"
                         android:text="@string/settings_server_logout"
                         android:textColor="@color/htc_text_primary"
+                        android:textSize="12sp"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/btnAddServer" />
@@ -342,7 +343,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_player"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="22sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <!-- Player Selection -->
@@ -637,7 +638,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/settings_parental"
                     android:textColor="@color/htc_text_primary"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <!-- Enable Parental Lock -->
@@ -753,7 +754,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_ui"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="22sp"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <!-- Background Theme -->

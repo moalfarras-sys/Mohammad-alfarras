@@ -2225,11 +2225,16 @@ html[dir="rtl"] .fresh-section-head h1,
   }
 
   .os-home-hero-copy {
-    padding: 22px;
+    min-height: auto;
+    padding: 22px 22px 108px;
   }
 
   .os-home-hero h1 {
-    font-size: clamp(2.15rem, 11vw, 2.8rem);
+    max-width: 100%;
+    overflow-wrap: normal;
+    font-size: clamp(1.5rem, 7vw, 1.78rem);
+    line-height: 1.08;
+    text-wrap: wrap;
   }
 
   .os-home-visual {

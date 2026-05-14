@@ -31,6 +31,9 @@ This folder is the classic Android TV app. It is not an independent product. It 
 - Player stability: `app/src/main/java/com/mo/moplayer/ui/player`.
 - Live TV behavior: `app/src/main/java/com/mo/moplayer/ui/livetv`.
 - Retry/backoff helpers: `app/src/main/java/com/mo/moplayer/util`.
+- Modern player engines: `app/src/main/java/com/mo/moplayer/ui/player/engine`.
+- Background playback / MediaSession: `app/src/main/java/com/mo/moplayer/service/PlaybackService.kt`.
+- Android TV home integration (Watch Next / Recommendations): `app/src/main/java/com/mo/moplayer/util/TvRecommendationHelper.kt`.
 - Build/release config: `app/build.gradle.kts`.
 - Release output guidance: root `../../docs/PRODUCTION_GUIDE.md`.
 

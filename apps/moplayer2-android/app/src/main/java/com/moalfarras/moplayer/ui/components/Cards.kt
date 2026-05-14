@@ -88,11 +88,11 @@ fun MediaPoster(
                             ),
                         )
                         .border(
-                            0.8.dp,
+                            0.6.dp,
                             Brush.verticalGradient(
                                 listOf(
-                                    Color.White.copy(alpha = 0.22f),
-                                    visuals.accent.copy(alpha = 0.10f),
+                                    Color.White.copy(alpha = 0.35f),
+                                    visuals.accent.copy(alpha = 0.15f),
                                     Color.Transparent,
                                 )
                             ),
@@ -109,11 +109,11 @@ fun MediaPoster(
                     Box(
                         Modifier.fillMaxSize().background(
                             Brush.verticalGradient(
-                                listOf(
-                                    Color.Transparent,
-                                    Color(0x11131110),
-                                    Color(0xBB131110),
-                                    Color(0xF0131110),
+                                colorStops = arrayOf(
+                                    0.0f to Color.Transparent,
+                                    0.4f to Color(0x110A0A0A),
+                                    0.7f to Color(0xBB0A0A0A),
+                                    1.0f to Color(0xF50A0A0A),
                                 ),
                             ),
                         ),
@@ -274,7 +274,7 @@ fun ChannelRow(
         onTripleOk = { onFavorite(item) },
         onLongOk = { onFavorite(item) },
     ) {
-        GlassPanel(radius = tv.cardRadius, highlighted = false, blur = 10.dp, modifier = Modifier.fillMaxSize()) {
+        GlassPanel(radius = tv.cardRadius, highlighted = false, blur = 16.dp, modifier = Modifier.fillMaxSize()) {
             Row(
                 Modifier.fillMaxSize().padding(horizontal = (16 * tv.factor).dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -294,8 +294,8 @@ fun ChannelRow(
                             )
                         )
                         .border(
-                            0.7.dp,
-                            visuals.accent.copy(alpha = 0.25f),
+                            0.5.dp,
+                            visuals.accent.copy(alpha = 0.35f),
                             RoundedCornerShape((12 * tv.factor).dp),
                         ),
                     contentAlignment = Alignment.Center,

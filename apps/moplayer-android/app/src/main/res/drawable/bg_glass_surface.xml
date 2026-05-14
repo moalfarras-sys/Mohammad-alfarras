@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Glassmorphism surface with subtle blur-like translucent layering -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base frosted glass layer -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#0DFFFFFF" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+    <!-- Inner subtle highlight at top -->
+    <item android:top="1dp" android:left="1dp" android:right="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#08FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:angle="270" />
+            <corners android:radius="23dp" />
+        </shape>
+    </item>
+</layer-list>

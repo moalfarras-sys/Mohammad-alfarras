@@ -144,11 +144,11 @@ class PlayerFeatureHelper(
         ) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsLeft = (millisUntilFinished / 1000).toInt()
-                binding.tvNextEpisodeCountdown.text = "يبدأ خلال $secondsLeft ثواني..."
+                binding.tvNextEpisodeCountdown.text = binding.root.context.getString(R.string.player_stream_starts_seconds, secondsLeft)
             }
             
             override fun onFinish() {
-                binding.tvNextEpisodeCountdown.text = "يبدأ الآن..."
+                binding.tvNextEpisodeCountdown.text = binding.root.context.getString(R.string.player_stream_starts_now)
                 onPlayNextEpisode()
             }
         }.start()

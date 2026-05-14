@@ -45,11 +45,11 @@
     <!-- ═══════════════════════════════════════════════════════════
          MoPlayer BRAND — Fiery Glass (Warm Orange/Red)
          ═══════════════════════════════════════════════════════════ -->
-    <color name="moplayer_orange">#FF4500</color>
-    <color name="moplayer_orange_light">#FF7A4D</color>
-    <color name="moplayer_orange_dark">#CC3700</color>
-    <color name="moplayer_orange_glow">#66FF4500</color>
-    <color name="moplayer_orange_subtle">#22FF4500</color>
+    <color name="moplayer_orange">#F4A222</color>
+    <color name="moplayer_orange_light">#F7BE54</color>
+    <color name="moplayer_orange_dark">#D68114</color>
+    <color name="moplayer_orange_glow">#66F4A222</color>
+    <color name="moplayer_orange_subtle">#22F4A222</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          EXTENDED PALETTE
@@ -217,6 +217,28 @@
     <color name="login_hero_border">#5000E5FF</color>
     <color name="login_hero_glow">#4000E5FF</color>
     <color name="login_hero_highlight">#30FFFFFF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         NEO 2026 PALETTE — Neon Cyan x Deep Void
+         ═══════════════════════════════════════════════════════════ -->
+    <color name="neo_deep_void">#050505</color>
+    <color name="neo_surface">#0A0A0A</color>
+    <color name="neo_surface_elevated">#111111</color>
+    <color name="neo_surface_card">#161616</color>
+    <color name="neo_neon_cyan">#00F0FF</color>
+    <color name="neo_neon_cyan_glow">#6600F0FF</color>
+    <color name="neo_neon_cyan_dim">#4400F0FF</color>
+    <color name="neo_neon_cyan_subtle">#1A00F0FF</color>
+    <color name="neo_warm_gold">#F4A222</color>
+    <color name="neo_warm_gold_glow">#55F4A222</color>
+    <color name="neo_text_primary">#FFFFFF</color>
+    <color name="neo_text_secondary">#A0A0A0</color>
+    <color name="neo_text_tertiary">#6B6B6B</color>
+    <color name="neo_glass_white">#0DFFFFFF</color>
+    <color name="neo_glass_white_strong">#26FFFFFF</color>
+    <color name="neo_glass_border">#33FFFFFF</color>
+    <color name="neo_error">#FF4D4D</color>
+    <color name="neo_success">#00FF9D</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          SPACE THEME

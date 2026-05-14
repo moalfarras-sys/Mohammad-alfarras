@@ -16,10 +16,10 @@ class LivePlaybackRetryPolicyTest {
 
     @Test
     fun retryDelayUsesCappedExponentialBackoff() {
-        assertEquals(2_000L, LivePlaybackRetryPolicy.nextDelayMs(1))
-        assertEquals(4_000L, LivePlaybackRetryPolicy.nextDelayMs(2))
-        assertEquals(8_000L, LivePlaybackRetryPolicy.nextDelayMs(3))
-        assertEquals(10_000L, LivePlaybackRetryPolicy.nextDelayMs(4))
-        assertEquals(10_000L, LivePlaybackRetryPolicy.nextDelayMs(8))
+        assertEquals(2_000L, LivePlaybackRetryPolicy.nextDelayMs(1, jitterFraction = 0.0))
+        assertEquals(4_000L, LivePlaybackRetryPolicy.nextDelayMs(2, jitterFraction = 0.0))
+        assertEquals(8_000L, LivePlaybackRetryPolicy.nextDelayMs(3, jitterFraction = 0.0))
+        assertEquals(10_000L, LivePlaybackRetryPolicy.nextDelayMs(4, jitterFraction = 0.0))
+        assertEquals(10_000L, LivePlaybackRetryPolicy.nextDelayMs(8, jitterFraction = 0.0))
     }
 }

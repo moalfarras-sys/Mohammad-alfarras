@@ -96,8 +96,8 @@ fun FocusGlow(
     val remoteInput = remember { RemoteInputController() }
 
     val scale by animateFloatAsState(
-        targetValue = if (focused) 1.045f else 1f,
-        animationSpec = spring(dampingRatio = 0.65f, stiffness = 380f),
+        targetValue = if (focused) 1.04f else 1f,
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = 300f),
         label = "focus-scale",
     )
 
@@ -115,14 +115,13 @@ fun FocusGlow(
         Modifier.focusable(interactionSource = interaction)
     }
 
-    val borderWidth = if (focused) 3.dp else 0.dp
+    val borderWidth = if (focused) 1.5.dp else 0.dp
     val borderBrush = if (focused) {
         Brush.linearGradient(
             listOf(
-                Color.White,
+                Color.White.copy(alpha = 0.8f),
                 visuals.accent,
-                visuals.accentB,
-                visuals.accent,
+                visuals.accent.copy(alpha = 0.3f),
             )
         )
     } else {
@@ -157,11 +156,11 @@ fun FocusGlow(
                 scaleY = scale
             }
             .shadow(
-                elevation = if (focused) 18.dp else 0.dp,
+                elevation = if (focused) 20.dp else 0.dp,
                 shape = shape,
                 clip = false,
-                ambientColor = if (focused) visuals.accent.copy(alpha = 0.62f) else Color.Transparent,
-                spotColor = if (focused) visuals.accent.copy(alpha = 0.52f) else Color.Transparent,
+                ambientColor = if (focused) visuals.glow.copy(alpha = 0.4f) else Color.Transparent,
+                spotColor = if (focused) visuals.glow.copy(alpha = 0.3f) else Color.Transparent,
             )
             .then(focusTarget),
         shape = shape,

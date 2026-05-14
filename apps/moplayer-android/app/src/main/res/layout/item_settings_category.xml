@@ -7,7 +7,7 @@
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingHorizontal="@dimen/spacing_md"
-    android:paddingVertical="@dimen/spacing_12"
+    android:paddingVertical="8dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:clickable="true">

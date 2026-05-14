@@ -37,6 +37,7 @@ class PlayerPreferences @Inject constructor(
         
         // Player types
         const val PLAYER_INTERNAL_VLC = 0
+        const val PLAYER_INTERNAL_EXOPLAYER = 5   // NEW: Media3 ExoPlayer (2026)
         const val PLAYER_MX_PLAYER = 1
         const val PLAYER_VLC_EXTERNAL = 2
         const val PLAYER_JUST_PLAYER = 3
@@ -96,7 +97,11 @@ class PlayerPreferences @Inject constructor(
         // Default OFF for TV - PIP doesn't work well on most Android TV devices
         (prefs[PIP_MODE_ENABLED_KEY] ?: 0) == 1
     }
-    
+
+    suspend fun getPlayerType(): Int {
+        return playerType.first()
+    }
+
     suspend fun setPlayerType(type: Int) {
         context.playerDataStore.edit { prefs ->
             prefs[PLAYER_TYPE_KEY] = type
@@ -155,10 +160,11 @@ class PlayerPreferences @Inject constructor(
     }
     
     /**
-     * Check if we should use internal player
+     * Check if we should use internal player (VLC or ExoPlayer)
      */
     suspend fun shouldUseInternalPlayer(): Boolean {
-        return playerType.first() == PLAYER_INTERNAL_VLC
+        val type = playerType.first()
+        return type == PLAYER_INTERNAL_VLC || type == PLAYER_INTERNAL_EXOPLAYER
     }
     
     /**
@@ -225,7 +231,7 @@ class PlayerPreferences @Inject constructor(
     
     fun getPlayerName(type: Int): String {
         return when (type) {
-            PLAYER_INTERNAL_VLC -> "VLC (Internal)"
+            PLAYER_INTERNAL_EXOPLAYER -> "ExoPlayer (Internal)"
             PLAYER_MX_PLAYER -> "MX Player"
             PLAYER_VLC_EXTERNAL -> "VLC (External)"
             PLAYER_JUST_PLAYER -> "Just Player"
@@ -256,6 +262,10 @@ class PlayerPreferences @Inject constructor(
         }
     }
     
+    suspend fun getPlayerName(): String {
+        return getPlayerName(getPlayerType())
+    }
+
     data class ExternalPlayer(
         val name: String,
         val packageName: String,

@@ -39,9 +39,11 @@ object PlayerLauncher {
             val options = mutableListOf<String>()
             val playerTypes = mutableListOf<Int>()
             
-            // Always add internal player
+            // Always add internal players (VLC default, ExoPlayer opt-in)
             options.add(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_INTERNAL_VLC))
             playerTypes.add(PlayerPreferences.PLAYER_INTERNAL_VLC)
+            options.add(playerPreferences.getPlayerName(PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER))
+            playerTypes.add(PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER)
             
             // Add installed external players
             installedPlayers.forEach { player ->
@@ -104,8 +106,8 @@ object PlayerLauncher {
         extraData: Bundle? = null
     ) = withContext(Dispatchers.Main) {
         try {
-            if (playerType == PlayerPreferences.PLAYER_INTERNAL_VLC) {
-                // Use internal player
+            if (playerType == PlayerPreferences.PLAYER_INTERNAL_VLC || playerType == PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER) {
+                // Use internal player (VLC or ExoPlayer)
                 val intent = Intent(context, PlayerActivity::class.java).apply {
                     putExtra(PlayerActivity.EXTRA_STREAM_URL, streamUrl)
                     putExtra(PlayerActivity.EXTRA_TITLE, title)

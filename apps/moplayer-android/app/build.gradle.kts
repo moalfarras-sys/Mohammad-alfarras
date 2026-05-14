@@ -215,6 +215,18 @@ dependencies {
     // VLC Player
     implementation(libs.vlc.android)
 
+    // Media3 ExoPlayer (modern primary player; VLC stays as fallback)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.datasource.okhttp)
+    implementation(libs.media3.cast)
+
+    // Android TV Provider (Watch Next / Recommendations)
+    implementation(libs.androidx.tvprovider)
+
     // Navigation
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)

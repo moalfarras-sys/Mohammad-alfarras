@@ -43,14 +43,14 @@ fun rememberTvScale(): TvScale {
         if (isTv) {
             val widthFactor = w / 1920f
             val heightFactor = h / 1080f
-            val factor = minOf(widthFactor, heightFactor).coerceIn(0.66f, 1.22f)
+            val factor = minOf(widthFactor, heightFactor).coerceIn(0.66f, 1.22f) * 0.85f
             TvScale(
                 factor = factor,
                 contentPadding = (30 * factor).dp,
                 dockPadding = (18 * factor).dp,
-                laneSpacing = (15 * factor).dp,
-                cardRadius = (18f * factor).coerceAtLeast(14f).dp,
-                posterWidth = (164 * factor).dp,
+                laneSpacing = (12 * factor).dp,
+                cardRadius = (12f * factor).coerceAtLeast(10f).dp,
+                posterWidth = (136 * factor).dp,
                 panelPadding = (18 * factor).dp,
                 isTv = true,
                 isCompact = false,

@@ -4,13 +4,23 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.hilt.work.HiltWorker
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.work.*
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.mo.moplayer.data.local.dao.ServerSyncStateDao
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.util.ContentChangeDetector
 import com.mo.moplayer.util.ContentChangeSummary
 import com.mo.moplayer.util.ContentSnapshot
+import com.mo.moplayer.util.SyncEventBus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -197,13 +207,9 @@ class ServerSyncWorker @AssistedInject constructor(
      * This allows the UI to show a non-intrusive indicator.
      */
     private fun broadcastNewContent(changes: ContentChangeSummary) {
-        val intent = Intent(ACTION_NEW_CONTENT).apply {
-            putExtra(EXTRA_NEW_CHANNELS, changes.newChannels)
-            putExtra(EXTRA_NEW_MOVIES, changes.newMovies)
-            putExtra(EXTRA_NEW_SERIES, changes.newSeries)
-            putExtra(EXTRA_TOTAL_NEW, changes.totalNewContent)
-        }
-        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
-        Log.d(TAG, "Broadcast sent: $changes")
+        SyncEventBus.emit(
+            SyncEventBus.SyncEvent.Completed(changes.totalNewContent)
+        )
+        Log.d(TAG, " SyncEventBus emit: $changes")
     }
 }

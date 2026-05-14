@@ -6,10 +6,21 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
+    <!-- ExoPlayer SurfaceView (primary engine) -->
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/exoPlayerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:use_controller="false"
+        app:surface_type="surface_view" />
+
+    <!-- VLC Video Layout (fallback engine) -->
     <org.videolan.libvlc.util.VLCVideoLayout
         android:id="@+id/vlcVideoLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="visible" />
 
     <View
         android:id="@+id/topScrim"
@@ -346,7 +357,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Quick Guide"
+                android:text="@string/player_quick_guide"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="20sp"
                 android:textStyle="bold" />

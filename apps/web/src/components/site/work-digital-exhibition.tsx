@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 
 import { withLocale } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
+import type { SiteProject } from "./site-view-model";
 
 type ProjectCategory = "all" | "web" | "apps" | "logistics";
 type ProjectTone = "cyan" | "red" | "violet" | "gold";
@@ -42,8 +43,44 @@ const categories: Record<Locale, Array<{ id: ProjectCategory; label: string }>> 
   ],
 };
 
-function copy(locale: Locale) {
+function projectCategory(project: SiteProject): ProjectCategory[] {
+  if (project.slug.includes("moplayer") || project.highlightStyle === "app") return ["all", "apps"];
+  if (project.highlightStyle === "operations") return ["all", "web", "logistics"];
+  return ["all", "web"];
+}
+
+function projectTone(project: SiteProject): ProjectTone {
+  if (project.accent === "amber") return "gold";
+  if (project.accent === "rose") return "red";
+  if (project.accent === "ink") return "violet";
+  return "cyan";
+}
+
+function projectMockup(project: SiteProject): MockupKind {
+  if (project.deviceFrame === "phone") return "phone";
+  if (project.highlightStyle === "app") return "tv";
+  return "desktop";
+}
+
+function cmsProjectToExhibition(project: SiteProject, locale: Locale): ExhibitionProject {
+  return {
+    id: project.id,
+    title: project.title,
+    label: project.eyebrow || project.slug,
+    description: project.summary || project.description,
+    image: project.image,
+    href: project.href || withLocale(locale, `work/${project.slug}`),
+    categories: projectCategory(project),
+    tags: project.tags.length ? project.tags : [project.slug],
+    tone: projectTone(project),
+    mockup: projectMockup(project),
+    featured: project.featured,
+  };
+}
+
+function copy(locale: Locale, cmsProjects?: SiteProject[]) {
   const ar = locale === "ar";
+  const projects = cmsProjects?.length ? cmsProjects.map((project) => cmsProjectToExhibition(project, locale)) : undefined;
   return {
     eyebrow: ar ? "Digital Exhibition" : "Digital Exhibition",
     title: ar ? "أعمال هندسية مختارة." : "Selected Engineering Work.",
@@ -60,7 +97,7 @@ function copy(locale: Locale) {
       : "If your project needs a convincing website, product surface, or interface that makes the next step obvious, send the idea.",
     ctaPrimary: ar ? "ابدأ مشروعك" : "Start a project",
     ctaSecondary: ar ? "شاهد MoPlayer" : "Explore MoPlayer",
-    projects: [
+    projects: projects ?? [
       {
         id: "moplayer",
         title: "MoPlayer",
@@ -157,8 +194,8 @@ const toneIcon: Record<ProjectTone, typeof Code2> = {
   gold: Truck,
 };
 
-export function WorkDigitalExhibition({ locale }: { locale: Locale }) {
-  const t = copy(locale);
+export function WorkDigitalExhibition({ locale, projects }: { locale: Locale; projects?: SiteProject[] }) {
+  const t = copy(locale, projects);
   const [active, setActive] = useState<ProjectCategory>("all");
   const [hovered, setHovered] = useState<string | null>(null);
   const visibleProjects = useMemo(

@@ -102,7 +102,7 @@ export type AppSupportRequest = {
   name: string;
   email: string;
   message: string;
-  status: "new" | "resolved";
+  status: "new" | "resolved" | "archived";
   created_at: string;
 };
 
@@ -111,4 +111,7 @@ export type AppEcosystemData = {
   screenshots: AppScreenshot[];
   faqs: AppFaq[];
   releases: AppRelease[];
+  runtimeConfig?: {
+    downloaderCode?: string;
+  };
 };

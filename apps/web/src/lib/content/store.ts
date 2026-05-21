@@ -1,6 +1,6 @@
 import { cache } from "react";
 
-import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
+import { createSupabaseAdminClient, createSupabaseDataClient, getSupabaseEnv, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { deleteWhere, hasDatabaseUrl, updateWhere, upsertRow } from "@/lib/server-db";
 import type {
   AuditLog,
@@ -154,10 +154,11 @@ function mergeSnapshots(base: CmsSnapshot, incoming: CmsSnapshot): CmsSnapshot {
 }
 
 async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
-  if (!hasSupabasePublicEnv()) return null;
+  const { url, service } = getSupabaseEnv();
+  if (!hasSupabasePublicEnv() && !(url && service)) return null;
 
   try {
-    const supabase = createSupabaseDataClient();
+    const supabase = hasSupabasePublicEnv() ? createSupabaseDataClient() : createSupabaseAdminClient();
     const selectOptional = async <T extends Record<string, unknown>>(table: string, orderBy?: string): Promise<T[]> => {
       try {
         let query = supabase.from(table).select("*");
@@ -285,7 +286,15 @@ async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
 
 async function readSnapshotUncached(): Promise<CmsSnapshot> {
   const remote = await readSnapshotFromSupabase();
-  if (!remote || !remote.pages.length) {
+  const hasRemoteContent = Boolean(
+    remote &&
+      (remote.pages.length ||
+        remote.work_projects.length ||
+        remote.service_offerings.length ||
+        remote.media_assets.length ||
+        remote.site_settings.length),
+  );
+  if (!remote || !hasRemoteContent) {
     return deepClone(mutableSnapshot);
   }
   return mergeSnapshots(mutableSnapshot, remote);
@@ -303,6 +312,9 @@ export async function readPage(locale: Locale, slug: string): Promise<PageView |
     (entry) => entry.page_id === page.id && entry.locale === locale,
   );
   if (!translation) return null;
+  const seoImage = page.seo_image_media_id
+    ? snapshot.media_assets.find((asset) => asset.id === page.seo_image_media_id)
+    : null;
 
   const sections = snapshot.sections
     .filter((entry) => entry.page_id === page.id)
@@ -347,6 +359,7 @@ export async function readPage(locale: Locale, slug: string): Promise<PageView |
       description: translation.meta_description,
       ogTitle: translation.og_title,
       ogDescription: translation.og_description,
+      image: seoImage?.path,
     },
     sections,
     blocks,

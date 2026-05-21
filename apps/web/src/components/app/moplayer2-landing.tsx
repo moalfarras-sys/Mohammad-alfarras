@@ -79,6 +79,12 @@ const t = {
     compareOldPoints: ["Classic TV-first interface", "VLC-based playback", "Single product channel", "Standard dark theme"],
     compareNewPoints: ["Warm premium glass UI (Champagne Gold)", "Media3 + ExoPlayer with track controls", "Separate releases + admin panel", "Weather & football widgets on Home"],
     faqTitle: "Frequently asked questions",
+    faqs: [
+      { question: "Does MoPlayer Pro include channels or playlists?", answer: "No. MoPlayer Pro is a player shell only. You connect your own M3U or Xtream sources — the app does not provide any channels or media." },
+      { question: "How do I activate MoPlayer Pro?", answer: "Open the app on your TV, show the QR / activation code, then finish activation from your phone or from this website." },
+      { question: "Which devices are supported?", answer: "Android TV (primary experience), Android phones, and Amazon Fire TV / Stick devices." },
+      { question: "Is it on Google Play?", answer: "No public Google Play listing is shown. Download the official APK directly from this page." },
+    ],
     ctaTitle: "Ready to try MoPlayer Pro?",
     ctaBody: "Download the latest APK or activate your device to get started.",
     disclaimer: "Legal notice",
@@ -132,6 +138,12 @@ const t = {
     compareOldPoints: ["واجهة تلفزيونية كلاسيكية", "تشغيل مبني على VLC", "قناة إصدار واحدة", "ثيم داكن قياسي"],
     compareNewPoints: ["واجهة warm-glass فاخرة (Champagne Gold)", "Media3 + ExoPlayer مع تحكم المسارات", "إصدارات منفصلة + لوحة إدارة", "ويدجت الطقس والكرة على الشاشة الرئيسية"],
     faqTitle: "الأسئلة الشائعة",
+    faqs: [
+      { question: "هل يتضمن MoPlayer Pro قنوات أو قوائم تشغيل؟", answer: "لا. MoPlayer Pro واجهة تشغيل فقط. تربط مصادرك الخاصة عبر M3U أو Xtream — والتطبيق لا يوفّر أي قنوات أو محتوى." },
+      { question: "كيف أفعّل MoPlayer Pro؟", answer: "افتح التطبيق على تلفزيونك، اعرض رمز QR / التفعيل، ثم أكمل التفعيل من هاتفك أو من هذا الموقع." },
+      { question: "ما الأجهزة المدعومة؟", answer: "Android TV (التجربة الأساسية)، هواتف Android، وأجهزة Amazon Fire TV / Stick." },
+      { question: "هل هو متوفر على Google Play؟", answer: "لا تُعرض صفحة Google Play عامة. نزّل ملف APK الرسمي مباشرة من هذه الصفحة." },
+    ],
     ctaTitle: "جاهز لتجربة MoPlayer Pro؟",
     ctaBody: "نزّل أحدث ملف APK أو فعّل جهازك للبدء.",
     disclaimer: "تنبيه قانوني",
@@ -163,6 +175,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
   const downloadHref = hasDownload ? `/api/app/releases/${latest.slug}/download` : null;
   const activateHref = `/${locale}/activate?product=moplayer2`;
   const size = formatBytes(primaryAsset?.file_size_bytes);
+  const downloaderCode = ecosystem.runtimeConfig?.downloaderCode || "4608937";
 
   return (
     <main className="mp2-page" dir={isAr ? "rtl" : "ltr"}>
@@ -171,7 +184,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
         <div className="mp2-hero-content">
           <span className="mp2-badge">
             <Sparkles className="h-4 w-4" />
-            {ecosystem.product.hero_badge || c.badge}
+            {isAr ? c.badge : ecosystem.product.hero_badge || c.badge}
           </span>
           <h1>{c.heroTitle}</h1>
           <p className="mp2-hero-sub">{c.heroSub}</p>
@@ -237,6 +250,11 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
               <h3>{primaryAsset.label || (isAr ? "ملف APK موحد" : "Universal TV APK")}</h3>
               <p>{primaryAsset.abi ?? "universal"} · {formatBytes(primaryAsset.file_size_bytes) ?? "APK"}</p>
             </a>
+            <article className="mp2-feature-card">
+              <QrCode className="h-5 w-5" />
+              <h3>{isAr ? "رمز Downloader" : "Downloader code"}</h3>
+              <p className="font-mono text-2xl font-black tracking-[0.18em]">{downloaderCode}</p>
+            </article>
           </div>
         </section>
       ) : null}
@@ -366,7 +384,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           <span className="mp2-badge"><Workflow className="h-4 w-4" /> {c.faqTitle}</span>
         </div>
         <div className="mp2-faq-list">
-          {ecosystem.faqs.map((faq) => (
+          {(isAr ? c.faqs : ecosystem.faqs.length ? ecosystem.faqs : c.faqs).map((faq) => (
             <details key={faq.question}>
               <summary>{faq.question}</summary>
               <p>{faq.answer}</p>

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import { CookieBanner } from "@/components/layout/cookie-banner";
 import { DigitalOsClientEffects } from "@/components/layout/digital-os-client-effects";
@@ -75,6 +76,7 @@ function safeLogoSrc(path: string | null | undefined) {
 }
 
 type YoutubeMetricsSetting = { views?: number; subscribers?: number; videos?: number };
+type SiteThemeSetting = { accent?: string; background?: string; panel?: string };
 
 const youtubeMetricsFallback: YoutubeMetricsSetting = {
   views: 1494029,
@@ -147,7 +149,17 @@ export default async function SiteLayout({
   const brandMedia = resolveBrandAssetPaths(snapshot);
   const portraitSrc = safePortraitSrc(brandMedia.profilePortrait);
   const logoSrc = safeLogoSrc(brandMedia.logo);
+
+  const siteStatus = getSiteSetting(snapshot, "site_status", {
+    maintenance: false,
+    message_ar: "",
+    message_en: "",
+  });
+  if (siteStatus.maintenance) {
+    return <MaintenanceScreen locale={locale} logoSrc={logoSrc} message={locale === "ar" ? siteStatus.message_ar : siteStatus.message_en} />;
+  }
   const ytMetrics = getSiteSetting(snapshot, "youtube_channel", youtubeMetricsFallback);
+  const siteTheme = getSiteSetting<SiteThemeSetting>(snapshot, "site_theme", {});
   const footerQuickFacts = buildFooterQuickFacts(locale, ytMetrics);
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
@@ -179,7 +191,19 @@ export default async function SiteLayout({
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
 
-      <div id="top" className="liquid-site relative min-h-screen" lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
+      <div
+        id="top"
+        className="liquid-site relative min-h-screen"
+        lang={locale}
+        dir={locale === "ar" ? "rtl" : "ltr"}
+        style={
+          {
+            "--accent": siteTheme.accent,
+            "--site-bg": siteTheme.background,
+            "--panel": siteTheme.panel,
+          } as CSSProperties
+        }
+      >
         <LocaleDocumentSync locale={locale} />
         <div className="noise-overlay" />
         <DigitalOsClientEffects />
@@ -196,5 +220,40 @@ export default async function SiteLayout({
         />
       </div>
     </>
+  );
+}
+
+function MaintenanceScreen({ locale, logoSrc, message }: { locale: "ar" | "en"; logoSrc: string; message?: string }) {
+  const isAr = locale === "ar";
+  const title = isAr ? "الموقع تحت الصيانة" : "Under maintenance";
+  const body = message?.trim()
+    ? message
+    : isAr
+      ? "نقوم حالياً ببعض التحسينات. سنعود قريباً جداً — شكراً لصبرك."
+      : "We are making some improvements. We will be back very soon — thank you for your patience.";
+
+  return (
+    <div
+      lang={locale}
+      dir={isAr ? "rtl" : "ltr"}
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        background: "radial-gradient(900px 600px at 50% -10%, rgba(34,211,238,0.18), transparent 55%), #060a18",
+        color: "#f3f7ff",
+        textAlign: "center",
+      }}
+    >
+      <div style={{ maxWidth: 520 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoSrc} alt="Moalfarras" width={72} height={72} style={{ width: 72, height: 72, objectFit: "contain", margin: "0 auto 24px" }} />
+        <h1 style={{ fontSize: 30, fontWeight: 800, margin: "0 0 14px", letterSpacing: "-0.02em" }}>{title}</h1>
+        <p style={{ fontSize: 16, lineHeight: 1.8, color: "#aebbd8", margin: 0 }}>{body}</p>
+        <p style={{ marginTop: 28, fontSize: 13, color: "#7587a8" }}>moalfarras.space</p>
+      </div>
+    </div>
   );
 }

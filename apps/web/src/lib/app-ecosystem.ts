@@ -290,24 +290,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-1-3",
+      id: "release-moplayer2-v2-2-7",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.1.3-full",
-      version_name: "2.1.3",
-      version_code: 7,
+      slug: "moplayer2-v2.2.7-full",
+      version_name: "2.2.7",
+      version_code: 15,
       release_notes:
-        "MoPlayer Pro 2.1.3 improves player stability, TV remote navigation, weather and football widgets, and adds direct in-app updating from moalfarras.space.",
+        "MoPlayer Pro 2.2.7 strengthens Live playback with smarter Media3/VLC auto-routing, starts MPEG-TS/TS live streams on the more compatible internal VLC engine, and lets Stable mode switch live playback to the VLC path without reinstalling.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-1-3-universal",
-          release_id: "release-moplayer2-v2-1-3",
+          id: "asset-moplayer2-v2-2-7-universal",
+          release_id: "release-moplayer2-v2-2-7",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
-          external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49131072,
-          checksum_sha256: "ca10226eb6265c69fb51593584f75b42c1e30dde9843f65e0d2fa2fae12ad73c",
+          external_url: "https://ckefrnalgnbuaxsuufyx.supabase.co/storage/v1/object/public/app-releases/moplayer2/2.2.7/moplayer2-2.2.7-universal.apk",
+          file_size_bytes: 49175687,
+          checksum_sha256: "20615c00e1a9ad907329fb9c20147f6248d5b9bf60a356a20cd4d9f598ee12f1",
         },
       ],
     },
@@ -322,6 +322,20 @@ function fallbackFor(productSlug: string) {
     faqs: fallbackFaqsBySlug[slug],
     releases: fallbackReleasesBySlug[slug],
   };
+}
+
+function getRuntimeConfigKey(productSlug: string) {
+  return `${resolveManagedAppSlug(productSlug)}_public_config`;
+}
+
+function fallbackDownloaderCode(productSlug: string) {
+  return resolveManagedAppSlug(productSlug) === "moplayer2" ? "4608937" : "2418397";
+}
+
+function runtimeConfigSummary(value: unknown, productSlug: string): AppEcosystemData["runtimeConfig"] {
+  const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const downloaderCode = String(record.downloaderCode ?? fallbackDownloaderCode(productSlug)).trim();
+  return { downloaderCode };
 }
 
 function asSiteSettingValue<T>(value: T): Record<string, unknown> {
@@ -400,6 +414,7 @@ async function readLegacyAppSettings(productSlug = "moplayer"): Promise<AppEcosy
     screenshots: (Array.isArray(screenshots) ? screenshots : fallback.screenshots) as AppScreenshot[],
     faqs: (Array.isArray(faqs) ? faqs : fallback.faqs) as AppFaq[],
     releases: (Array.isArray(releases) ? releases : fallback.releases) as AppRelease[],
+    runtimeConfig: runtimeConfigSummary(null, slug),
   };
 }
 
@@ -412,17 +427,19 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
 
   try {
     const supabase = createSupabaseDataClient();
-    const [productRes, screenshotsRes, faqRes, releasesRes] = await Promise.all([
+    const [productRes, screenshotsRes, faqRes, releasesRes, settingsRes] = await Promise.all([
       supabase.from("app_products").select("*").eq("slug", slug).maybeSingle(),
       supabase.from("app_screenshots").select("*").eq("product_slug", slug).order("sort_order"),
       supabase.from("app_faqs").select("*").eq("product_slug", slug).order("sort_order"),
       supabase.from("app_releases").select("*").eq("product_slug", slug).eq("is_published", true).order("published_at", { ascending: false }),
+      supabase.from("app_settings").select("value").eq("key", getRuntimeConfigKey(slug)).maybeSingle(),
     ]);
 
     if (productRes.error && !String(productRes.error.message).includes("does not exist")) throw productRes.error;
     if (screenshotsRes.error && !String(screenshotsRes.error.message).includes("does not exist")) throw screenshotsRes.error;
     if (faqRes.error && !String(faqRes.error.message).includes("does not exist")) throw faqRes.error;
     if (releasesRes.error && !String(releasesRes.error.message).includes("does not exist")) throw releasesRes.error;
+    if (settingsRes.error && !String(settingsRes.error.message).includes("does not exist")) throw settingsRes.error;
 
     const releases = releasesRes.data ?? [];
     const releaseIds = releases.map((item) => item.id);
@@ -448,6 +465,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
           : fallback.screenshots,
       faqs: (faqRes.data as AppFaq[] | null)?.length ? ((faqRes.data as AppFaq[]) ?? []) : fallback.faqs,
       releases: releases.map((row) => normalizeRelease(row, assetsMap.get(row.id) ?? [])),
+      runtimeConfig: runtimeConfigSummary(settingsRes.data?.value, slug),
     };
 
     if (!data.releases.length) {
@@ -729,8 +747,9 @@ export async function uploadReleaseAsset(params: {
 }
 
 export async function saveSupportRequest(input: { product_slug: string; name: string; email: string; message: string }) {
+  const requestId = crypto.randomUUID();
   const fallbackPayload: AppSupportRequest = {
-    id: crypto.randomUUID(),
+    id: requestId,
     product_slug: input.product_slug,
     name: input.name,
     email: input.email,
@@ -742,6 +761,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
   try {
     const supabase = createSupabaseAdminClient();
     const { error } = await supabase.from("app_support_requests").insert({
+      id: requestId,
       product_slug: input.product_slug,
       name: input.name,
       email: input.email,
@@ -749,6 +769,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
       status: "new",
     });
     if (error) throw error;
+    return requestId;
   } catch {
     if (hasDatabaseUrl()) {
       const inserted = await queryRows(
@@ -759,7 +780,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
       ).then(() => true).catch(() => false);
 
       if (inserted) {
-        return;
+        return requestId;
       }
     }
 
@@ -767,6 +788,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
     const current = await readSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(fallbackSupportRequests));
     const next = [fallbackPayload, ...(Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)].slice(0, 100);
     await upsertSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(next));
+    return requestId;
   }
 }
 

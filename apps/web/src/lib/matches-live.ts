@@ -45,7 +45,7 @@ function statusWeight(status: string) {
 
 export async function getLiveMatches(): Promise<LiveMatch[]> {
   const apiKey = process.env.API_FOOTBALL_KEY;
-  if (!apiKey) return getMockMatches();
+  if (!apiKey) return [];
 
   try {
     const today = new Date().toISOString().split("T")[0];
@@ -57,10 +57,10 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       next: { revalidate: 300 },
     });
 
-    if (!res.ok) return getMockMatches();
+    if (!res.ok) return [];
 
     const data = (await res.json()) as { response?: ApiSportsFixture[] };
-    if (!data.response?.length) return getMockMatches();
+    if (!data.response?.length) return [];
 
     const ranked = data.response
       .filter((match) => PRIORITY_LEAGUES.has(match.league.id))
@@ -70,7 +70,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
         return bScore - aScore;
       });
 
-    if (!ranked.length) return getMockMatches();
+    if (!ranked.length) return [];
 
     return ranked.slice(0, 4).map((match) => ({
       id: match.fixture.id,
@@ -85,48 +85,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       time: match.fixture.status.elapsed ? `${match.fixture.status.elapsed}'` : new Date(match.fixture.date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
     }));
   } catch (error) {
-    console.error("Football fetch failed, using fallback:", error);
-    return getMockMatches();
+    console.error("Football fetch failed:", error);
+    return [];
   }
-}
-
-function getMockMatches(): LiveMatch[] {
-  return [
-    {
-      id: 1,
-      league: "UEFA Champions League",
-      homeTeam: "Real Madrid",
-      homeLogo: "https://media.api-sports.io/football/teams/541.png",
-      awayTeam: "Manchester City",
-      awayLogo: "https://media.api-sports.io/football/teams/50.png",
-      homeScore: 2,
-      awayScore: 3,
-      status: "LIVE",
-      time: "82'",
-    },
-    {
-      id: 2,
-      league: "Bundesliga",
-      homeTeam: "Bayern Munich",
-      homeLogo: "https://media.api-sports.io/football/teams/157.png",
-      awayTeam: "Borussia Dortmund",
-      awayLogo: "https://media.api-sports.io/football/teams/165.png",
-      homeScore: 1,
-      awayScore: 1,
-      status: "HT",
-      time: "HT",
-    },
-    {
-      id: 3,
-      league: "Premier League",
-      homeTeam: "Arsenal",
-      homeLogo: "https://media.api-sports.io/football/teams/42.png",
-      awayTeam: "Liverpool",
-      awayLogo: "https://media.api-sports.io/football/teams/40.png",
-      homeScore: null,
-      awayScore: null,
-      status: "NS",
-      time: "21:00",
-    },
-  ];
 }

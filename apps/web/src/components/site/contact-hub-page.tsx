@@ -9,9 +9,11 @@ import { socialLinks } from "@/content/site";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
+import type { RebuildLocaleContent } from "@/data/rebuild-content";
 
 type ContactHubPageProps = {
   locale: Locale;
+  content?: RebuildLocaleContent["contact"];
 };
 
 const copy = {
@@ -140,8 +142,18 @@ function TimezoneWidget({ locale }: { locale: Locale }) {
   );
 }
 
-export function ContactHubPage({ locale }: ContactHubPageProps) {
-  const t = repairMojibakeDeep(copy[locale]);
+export function ContactHubPage({ locale, content }: ContactHubPageProps) {
+  const fallback = repairMojibakeDeep(copy[locale]);
+  const t = {
+    ...fallback,
+    eyebrow: content?.eyebrow ?? fallback.eyebrow,
+    title: content?.title ?? fallback.title,
+    body: content?.body ?? fallback.body,
+    formTitle: content?.directTitle ?? fallback.formTitle,
+    formBody: content?.directBody ?? fallback.formBody,
+    cta: content?.primaryCta ?? fallback.cta,
+  };
+  const chips = content?.chips?.length ? content.chips : [];
 
   return (
     <main className="contact-hub fresh-page">
@@ -164,6 +176,13 @@ export function ContactHubPage({ locale }: ContactHubPageProps) {
               <Mail size={17} />
             </a>
           </div>
+          {chips.length ? (
+            <div className="contact-chip-row">
+              {chips.map((chip) => (
+                <span key={chip} className="fresh-pill">{chip}</span>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <aside className="contact-orbit-card">

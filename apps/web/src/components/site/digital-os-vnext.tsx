@@ -1477,7 +1477,7 @@ function CvPage({ model }: { model: SiteViewModel }) {
 }
 
 function ContactPage({ model }: { model: SiteViewModel }) {
-  return <ContactHubPage locale={model.locale} />;
+  return <ContactHubPage locale={model.locale} content={model.t.contact} />;
 }
 
 function AboutPage({ model }: { model: SiteViewModel }) {
@@ -1496,7 +1496,7 @@ export function DigitalOsPage({ model }: { model: SiteViewModel }) {
   switch (model.pageSlug) {
     case "work":
     case "projects":
-      return <WorkDigitalExhibition locale={model.locale} />;
+      return <WorkDigitalExhibition locale={model.locale} projects={model.projects} />;
     case "services":
       return <ServicesPage model={model} />;
     case "apps":

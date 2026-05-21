@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { readPage } from "@/lib/content/store";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
@@ -126,16 +127,18 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   const localizedPath = normalized === "home" ? `/${locale}` : `/${locale}/${normalized}`;
   const altAr = normalized === "home" ? "/ar" : `/ar/${normalized}`;
   const altEn = normalized === "home" ? "/en" : `/en/${normalized}`;
+  const page = await readPage(locale, normalized).catch(() => null);
   const baseCopy = repairMojibakeDeep(seoCopy[locale][normalized as keyof typeof seoCopy.en] ?? seoCopy[locale].home);
-  const copy =
-    locale === "ar" && normalized === "home"
-      ? {
-          ...baseCopy,
-          title: "محمد الفراس | تصميم وتطوير مواقع وتجارب رقمية",
-          description: "أصمم وأبني مواقع ويب، واجهات استخدام، تطبيقات وتجارب رقمية تساعد المشاريع على الظهور باحتراف وتحويل الزوار إلى عملاء.",
-          image: "/images/logo.png",
-        }
-      : baseCopy;
+  const cmsCopy = page?.seo
+    ? {
+        title: page.seo.title || baseCopy.title,
+        description: page.seo.description || baseCopy.description,
+        ogTitle: page.seo.ogTitle || page.seo.title || baseCopy.title,
+        ogDescription: page.seo.ogDescription || page.seo.description || baseCopy.description,
+        image: page.seo.image || baseCopy.image,
+      }
+    : null;
+  const copy = cmsCopy ?? baseCopy;
   const localeTag = locale === "ar" ? "ar_SA" : "en_US";
   const altLocaleTag = locale === "ar" ? "en_US" : "ar_SA";
 
@@ -156,12 +159,12 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       locale: localeTag,
       alternateLocale: [altLocaleTag],
       url: `${BASE_URL}${localizedPath}`,
-      title: copy.title,
-      description: copy.description,
+      title: "ogTitle" in copy ? copy.ogTitle : copy.title,
+      description: "ogDescription" in copy ? copy.ogDescription : copy.description,
       siteName: "Mohammad Alfarras | محمد الفراس",
       images: [
         {
-          url: `${BASE_URL}${copy.image}`,
+          url: absoluteImageUrl(copy.image),
           width: 1200,
           height: 630,
           alt: copy.title,
@@ -174,8 +177,13 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       creator: "@Moalfarras",
       title: copy.title,
       description: copy.description,
-      images: [{ url: `${BASE_URL}${copy.image}`, alt: copy.title }],
+      images: [{ url: absoluteImageUrl(copy.image), alt: copy.title }],
     },
     keywords: repairMojibakeDeep(keywordMap[normalized] ?? keywordMap.home),
   };
+}
+
+function absoluteImageUrl(path: string) {
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }

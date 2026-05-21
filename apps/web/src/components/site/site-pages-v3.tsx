@@ -45,23 +45,33 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
   const fallback = [
     {
       id: "service-web",
-      title: locale === "ar" ? "مواقع وواجهات تشرح القيمة بسرعة" : "Web experiences that explain value fast",
+      title: locale === "ar" ? "مواقع ومواقع تعريفية احترافية" : "Professional business websites",
       body:
         locale === "ar"
-          ? "مواقع أعمال وصفحات إطلاق وحضور رقمي ثنائي اللغة مبني على وضوح الرسالة والثقة من أول شاشة."
-          : "Business websites, launches, and bilingual digital surfaces built around clarity, trust, and first-screen hierarchy.",
+          ? "مواقع أعمال وحضور رقمي ثنائي اللغة مبني على وضوح الرسالة والثقة من أول شاشة."
+          : "Business websites and bilingual digital presence built around clarity, trust, and first-screen hierarchy.",
       bullets: locale === "ar" ? ["مواقع أعمال", "واجهات حديثة", "ثنائية اللغة"] : ["Business sites", "Modern UI", "Bilingual delivery"],
       image: "/images/service_web.png",
     },
     {
-      id: "service-ops",
-      title: locale === "ar" ? "تنفيذ منضبط بعقلية تشغيلية" : "Execution shaped by operational discipline",
+      id: "service-landing",
+      title: locale === "ar" ? "صفحات هبوط للحملات والمنتجات" : "Landing pages for campaigns & products",
       body:
         locale === "ar"
-          ? "الخبرة في اللوجستيات والتشغيل تنعكس على شكل بنية أوضح، قرارات أسرع، وتجربة أكثر استقراراً."
-          : "Logistics experience becomes clearer systems, faster decisions, and more stable frontend delivery.",
-      bullets: locale === "ar" ? ["تشغيل", "بنية", "اعتمادية"] : ["Operations", "Structure", "Reliability"],
-      image: "/images/service_logistics.png",
+          ? "صفحة مركّزة لإطلاق منتج أو خدمة، بترتيب بصري قوي ونص مقنع ومسار واضح يحوّل الزائر إلى خطوة فعلية."
+          : "A focused page for a launch or service, with strong hierarchy, persuasive copy, and a direct conversion path.",
+      bullets: locale === "ar" ? ["هدف واحد", "نص مقنع", "تحويل مباشر"] : ["One goal", "Persuasive copy", "Direct conversion"],
+      image: "/images/hero_tech.png",
+    },
+    {
+      id: "service-uiux",
+      title: locale === "ar" ? "واجهات وتطبيقات ويب" : "Web apps & interfaces",
+      body:
+        locale === "ar"
+          ? "واجهات منظمة لمنتج، لوحة تحكم، أو تجربة تفاعلية مبنية بـ Next.js وReact مع تصميم قابل للتوسع."
+          : "Structured interfaces for a product, dashboard, or interactive experience, built with Next.js and React to scale cleanly.",
+      bullets: locale === "ar" ? ["UI/UX حديث", "لوحات تحكم", "بنية قابلة للنمو"] : ["Modern UI/UX", "Dashboards", "Scalable architecture"],
+      image: "/images/service_tech.png",
     },
     {
       id: "service-media",
@@ -72,6 +82,26 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
           : "From YouTube to product pages, content here is part of the product experience rather than a separate layer.",
       bullets: locale === "ar" ? ["يوتيوب", "سرد منتجات", "ثقة الجمهور"] : ["YouTube", "Product storytelling", "Audience trust"],
       image: "/images/yt-channel-hero.png",
+    },
+    {
+      id: "service-product",
+      title: locale === "ar" ? "دعم منتج MoPlayer و Android TV" : "MoPlayer & Android TV product support",
+      body:
+        locale === "ar"
+          ? "تموضع المنتج، صفحات التفعيل والتحميل، بيانات الإصدارات، الدعم والخصوصية، وتجربة عرض مناسبة لـ Android TV."
+          : "Product positioning, activation and download flows, release metadata, support, privacy, and a TV-first presentation.",
+      bullets: locale === "ar" ? ["تموضع منتج", "تفعيل وتحميل", "Android TV"] : ["Positioning", "Activation & download", "Android TV"],
+      image: "/images/moplayer-hero-3d-final.png",
+    },
+    {
+      id: "service-ops",
+      title: locale === "ar" ? "تنفيذ منضبط بعقلية تشغيلية" : "Execution shaped by operational discipline",
+      body:
+        locale === "ar"
+          ? "الخبرة في اللوجستيات والتشغيل تنعكس على شكل بنية أوضح، قرارات أسرع، وتجربة أكثر استقراراً."
+          : "Logistics experience becomes clearer systems, faster decisions, and more stable frontend delivery.",
+      bullets: locale === "ar" ? ["تشغيل", "بنية", "اعتمادية"] : ["Operations", "Structure", "Reliability"],
+      image: "/images/service_logistics.png",
     },
   ];
 

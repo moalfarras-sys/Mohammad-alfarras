@@ -29,6 +29,7 @@ export type Page = {
   slug: string;
   status: PageStatus;
   template: string;
+  seo_image_media_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -372,6 +373,7 @@ export type PageView = {
     description: string;
     ogTitle: string;
     ogDescription: string;
+    image?: string;
   };
   sections: SectionView[];
   blocks: PageBlockView[];

@@ -50,7 +50,7 @@ export async function signInAdmin(email: string, password: string) {
     }
   }
 
-  const legacyOk = await createLegacyAdminSession(email, password);
+  const legacyOk = supabaseSuccess ? false : await createLegacyAdminSession(email, password);
 
   if (!supabaseSuccess && !legacyOk) {
     throw new Error("Invalid admin credentials.");
@@ -113,7 +113,7 @@ export async function getAuthenticatedAdmin(): Promise<AuthenticatedAdmin | null
 export async function requireAuthenticatedAdmin(): Promise<AuthenticatedAdmin> {
   const admin = await getAuthenticatedAdmin();
   if (!admin) {
-    redirect("/?unauthorized=1");
+    redirect("/login?unauthorized=1");
   }
   return admin;
 }
@@ -121,7 +121,7 @@ export async function requireAuthenticatedAdmin(): Promise<AuthenticatedAdmin> {
 export async function requireAdminRole(required: AppAdminRole = "editor"): Promise<AuthenticatedAdmin> {
   const admin = await requireAuthenticatedAdmin();
   if (required === "admin" && admin.role !== "admin") {
-    redirect("/?forbidden=1");
+    redirect("/login?forbidden=1");
   }
   return admin;
 }

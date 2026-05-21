@@ -102,7 +102,7 @@ export type AppSupportRequest = {
   name: string;
   email: string;
   message: string;
-  status: "new" | "resolved";
+  status: "new" | "resolved" | "archived";
   created_at: string;
 };
 
@@ -142,6 +142,24 @@ export type AppLicense = {
   updated_at: string;
 };
 
+export type AdminHealthStatus = {
+  supabase: boolean;
+  storage: boolean;
+  smtp: boolean;
+  websiteDomain: string;
+  adminDomain: string;
+  generatedAt: string;
+};
+
+export type AppOperationalMetrics = {
+  activeNow: number;
+  activeLast24h: number;
+  staleDevices: number;
+  expiredWaitingActivations: number;
+  waitingOlderThan24h: number;
+  activationSuccessRate: number;
+};
+
 export type DeviceProviderSourceQueue = {
   id: string;
   publicDeviceId: string;
@@ -166,6 +184,7 @@ export type AppRuntimeConfig = {
   minimumVersionCode: number;
   latestVersionName: string;
   latestVersionCode?: number;
+  downloaderCode?: string;
   appName?: string;
   packageName?: string;
   message: string;
@@ -175,6 +194,11 @@ export type AppRuntimeConfig = {
   syncIntervalMinutes?: number;
   sourceProtocolFallback?: boolean;
   footballProviderMode?: string;
+  footballLeagueIds?: number[];
+  footballLeagueKeywords?: string[];
+  footballNewsMessage?: string;
+  allowFootballFallback?: boolean;
+  allowWeatherFallback?: boolean;
   weatherBackgroundMode?: string;
   weatherBackgroundUrl?: string;
   widgets: {
@@ -200,4 +224,14 @@ export type AppEcosystemData = {
   screenshots: AppScreenshot[];
   faqs: AppFaq[];
   releases: AppRelease[];
+};
+
+export type AdminAppData = AppEcosystemData & {
+  supportRequests: AppSupportRequest[];
+  devices: AppDevice[];
+  activationRequests: ActivationRequest[];
+  licenses: AppLicense[];
+  providerSources: DeviceProviderSourceQueue[];
+  runtimeConfig: AppRuntimeConfig;
+  metrics: AppOperationalMetrics;
 };

@@ -2,8 +2,10 @@ import { createHash } from "node:crypto";
 
 import { hasDatabaseUrl, queryRows, upsertRow } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
+import { isMailerConfigured } from "@/lib/mailer";
 import { getManagedApp, managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 import type {
+  AdminHealthStatus,
   AppEcosystemData,
   AppFaq,
   AppFeatureItem,
@@ -13,6 +15,7 @@ import type {
   AppReleaseAsset,
   ActivationRequest,
   AppDevice,
+  AppOperationalMetrics,
   AppScreenshot,
   AppRuntimeConfig,
   DeviceProviderSourceQueue,
@@ -182,17 +185,69 @@ const fallbackFaqs: AppFaq[] = [
 
 const fallbackSupportRequests: AppSupportRequest[] = [];
 
+function calculateOperationalMetrics(devices: AppDevice[], activationRequests: ActivationRequest[]): AppOperationalMetrics {
+  const current = Date.now();
+  const activeWindowMs = 15 * 60 * 1000;
+  const dayMs = 24 * 60 * 60 * 1000;
+  const activated = activationRequests.filter((request) => request.status === "activated").length;
+  const completed = activationRequests.filter((request) => request.status !== "waiting").length;
+
+  return {
+    activeNow: devices.filter((device) => current - new Date(device.last_seen_at).getTime() <= activeWindowMs).length,
+    activeLast24h: devices.filter((device) => current - new Date(device.last_seen_at).getTime() <= dayMs).length,
+    staleDevices: devices.filter((device) => current - new Date(device.last_seen_at).getTime() > dayMs).length,
+    expiredWaitingActivations: activationRequests.filter(
+      (request) => request.status === "waiting" && new Date(request.expires_at).getTime() < current,
+    ).length,
+    waitingOlderThan24h: activationRequests.filter(
+      (request) => request.status === "waiting" && current - new Date(request.created_at).getTime() > dayMs,
+    ).length,
+    activationSuccessRate: completed ? Math.round((activated / completed) * 100) : 0,
+  };
+}
+
+export async function readAdminHealthStatus(): Promise<AdminHealthStatus> {
+  const health: AdminHealthStatus = {
+    supabase: false,
+    storage: false,
+    smtp: isMailerConfigured(),
+    websiteDomain: process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space",
+    adminDomain: process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space",
+    generatedAt: new Date().toISOString(),
+  };
+
+  try {
+    const supabase = createSupabaseAdminClient();
+    const probe = await supabase.from("app_products").select("slug").limit(1);
+    health.supabase = !probe.error;
+    const buckets = await supabase.storage.listBuckets();
+    health.storage = !buckets.error;
+  } catch {
+    health.supabase = false;
+    health.storage = false;
+  }
+
+  return health;
+}
+
 export const fallbackRuntimeConfig: AppRuntimeConfig = {
   enabled: true,
   maintenanceMode: false,
   forceUpdate: false,
   minimumVersionCode: 9,
   latestVersionName: "2.2.3",
+  downloaderCode: "2418397",
   message: "",
   accentColor: "#00e5ff",
   logoUrl: "/images/moplayer-icon-512.png",
   backgroundUrl: "/images/moplayer-tv-banner-final.png",
-  widgets: { weather: true, football: true },
+    widgets: { weather: true, football: true },
+    footballProviderMode: "auto",
+    footballLeagueIds: [39, 140, 135, 78, 61, 2, 3, 848, 1, 15],
+    footballLeagueKeywords: ["world cup", "fifa", "champions league", "europa", "premier", "la liga", "serie a", "bundesliga", "ligue 1"],
+    footballNewsMessage: "",
+    allowFootballFallback: false,
+    allowWeatherFallback: false,
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",
   update: {
@@ -337,23 +392,23 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-1-3",
+      id: "release-moplayer2-v2-2-7",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.1.3-full",
-      version_name: "2.1.3",
-      version_code: 7,
+      slug: "moplayer2-v2.2.7-full",
+      version_name: "2.2.7",
+      version_code: 15,
       release_notes:
-        "MoPlayer Pro 2.1.3 improves player stability, TV remote navigation, weather and football widgets, and adds direct in-app updating from moalfarras.space.",
+        "MoPlayer Pro 2.2.7 strengthens Live playback with smarter Media3/VLC auto-routing, starts MPEG-TS/TS live streams on the more compatible internal VLC engine, and lets Stable mode switch live playback to the VLC path without reinstalling.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-1-3-universal",
-          release_id: "release-moplayer2-v2-1-3",
+          id: "asset-moplayer2-v2-2-7-universal",
+          release_id: "release-moplayer2-v2-2-7",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
-          external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49131072,
-          checksum_sha256: "ca10226eb6265c69fb51593584f75b42c1e30dde9843f65e0d2fa2fae12ad73c",
+          external_url: "https://ckefrnalgnbuaxsuufyx.supabase.co/storage/v1/object/public/app-releases/moplayer2/2.2.7/moplayer2-2.2.7-universal.apk",
+          file_size_bytes: 49175687,
+          checksum_sha256: "20615c00e1a9ad907329fb9c20147f6248d5b9bf60a356a20cd4d9f598ee12f1",
         },
       ],
     },
@@ -364,11 +419,19 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
   moplayer: fallbackRuntimeConfig,
   moplayer2: {
     ...fallbackRuntimeConfig,
-    minimumVersionCode: 1,
-    latestVersionName: "v1 full",
+    minimumVersionCode: 10,
+    latestVersionName: "2.2.7",
+    latestVersionCode: 15,
+    downloaderCode: "4608937",
     logoUrl: "/images/moplayer-icon-512.png",
     backgroundUrl: "/images/moplayer-tv-banner-final.png",
     supportUrl: "https://moalfarras.space/en/support",
+    footballProviderMode: "auto",
+    footballLeagueIds: [39, 140, 135, 78, 61, 2, 3, 848, 1, 15],
+    footballLeagueKeywords: ["world cup", "fifa", "champions league", "europa", "premier", "la liga", "serie a", "bundesliga", "ligue 1"],
+    footballNewsMessage: "",
+    allowFootballFallback: false,
+    allowWeatherFallback: false,
   },
 };
 
@@ -568,6 +631,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
 
   try {
     const supabase = createSupabaseAdminClient();
+    await cleanupStaleActivationRequests(slug).catch(() => 0);
     const [{ data }, { data: deviceRows }, { data: activationRows }, { data: licenseRows }, { data: settingsRow }, { data: sourceRows }] = await Promise.all([
       supabase
       .from("app_support_requests")
@@ -660,6 +724,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
     licenses,
     providerSources,
     runtimeConfig,
+    metrics: calculateOperationalMetrics(devices, activationRequests),
   };
 }
 
@@ -902,8 +967,9 @@ export async function uploadReleaseAsset(params: {
 }
 
 export async function saveSupportRequest(input: { product_slug: string; name: string; email: string; message: string }) {
+  const requestId = crypto.randomUUID();
   const fallbackPayload: AppSupportRequest = {
-    id: crypto.randomUUID(),
+    id: requestId,
     product_slug: input.product_slug,
     name: input.name,
     email: input.email,
@@ -915,6 +981,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
   try {
     const supabase = createSupabaseAdminClient();
     const { error } = await supabase.from("app_support_requests").insert({
+      id: requestId,
       product_slug: input.product_slug,
       name: input.name,
       email: input.email,
@@ -922,6 +989,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
       status: "new",
     });
     if (error) throw error;
+    return requestId;
   } catch {
     if (hasDatabaseUrl()) {
       const inserted = await queryRows(
@@ -932,7 +1000,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
       ).then(() => true).catch(() => false);
 
       if (inserted) {
-        return;
+        return requestId;
       }
     }
 
@@ -940,6 +1008,7 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
     const current = await readSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(fallbackSupportRequests));
     const next = [fallbackPayload, ...(Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)].slice(0, 100);
     await upsertSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(next));
+    return requestId;
   }
 }
 
@@ -964,6 +1033,108 @@ export async function updateSupportRequestStatus(id: string, status: AppSupportR
     );
     await upsertSiteSetting("moplayer_app_support_requests", asSiteSettingValue(next));
   }
+}
+
+export async function updateDeviceStatus(publicDeviceId: string, status: AppDevice["status"]) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("devices")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("public_device_id", publicDeviceId);
+  if (error) throw error;
+}
+
+export async function updateActivationRequestStatus(id: string, status: ActivationRequest["status"]) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("activation_requests")
+    .update({
+      status,
+      activated_at: status === "activated" ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteActivationRequest(id: string) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("activation_requests").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function cleanupStaleActivationRequests(productSlug = "moplayer") {
+  const slug = resolveManagedAppSlug(productSlug);
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const supabase = createSupabaseAdminClient();
+  let query = supabase.from("activation_requests").delete({ count: "exact" }).in("status", ["waiting", "expired", "failed"]).lt("created_at", cutoff);
+  query = slug === "moplayer" ? query.or("product_slug.eq.moplayer,product_slug.is.null") : query.eq("product_slug", slug);
+  const { error, count } = await query;
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function upsertDeviceLicense(input: {
+  publicDeviceId: string;
+  plan: string;
+  status: AppLicense["status"];
+  validUntil?: string | null;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const device = await supabase.from("devices").select("id").eq("public_device_id", input.publicDeviceId).maybeSingle();
+  if (device.error || !device.data?.id) {
+    throw new Error(device.error?.message || "Device not found.");
+  }
+
+  const { error } = await supabase.from("licenses").upsert(
+    {
+      device_id: device.data.id,
+      plan: input.plan || "standard",
+      status: input.status,
+      valid_until: input.validUntil || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "device_id" },
+  );
+  if (error) throw error;
+}
+
+export async function updateProviderSourceStatus(id: string, status: DeviceProviderSourceQueue["status"]) {
+  const supabase = createSupabaseAdminClient();
+  const direct = await supabase
+    .from("device_provider_sources")
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+      failed_at: status === "failed" ? new Date().toISOString() : null,
+    })
+    .eq("id", id);
+
+  if (!direct.error) return;
+
+  const settings = await supabase.from("app_settings").select("key,value").like("key", "%device_source:%").limit(200);
+  if (settings.error) throw direct.error;
+
+  for (const row of settings.data ?? []) {
+    const value = row.value as Partial<DeviceProviderSourceQueue>;
+    if (value?.id !== id) continue;
+    const { error } = await supabase
+      .from("app_settings")
+      .update({
+        value: {
+          ...value,
+          status,
+          updatedAt: new Date().toISOString(),
+          failedAt: status === "failed" ? new Date().toISOString() : value.failedAt,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq("key", row.key);
+    if (error) throw error;
+    return;
+  }
+
+  throw direct.error;
 }
 
 export async function resolveDownloadBySlug(slug: string) {

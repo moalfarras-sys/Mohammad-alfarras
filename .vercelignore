@@ -38,7 +38,10 @@ android/moplayer/releases/
 android/moplayer/releases/**
 android/moplayer/.gradle/
 *.png
+!apps/admin/public/**/*.png
+!apps/admin/public/**/*.svg
 !apps/web/public/**/*.png
+!apps/web/public/**/*.svg
 !apps/web/public/**/*.jpg
 !apps/web/public/**/*.jpeg
 !apps/web/public/**/*.webp

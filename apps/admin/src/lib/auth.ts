@@ -14,18 +14,12 @@ export type AdminCredentials = {
 };
 
 function envAdminEmails() {
-  const defaultList = "admin@moalfarras.space,mohammad.alfarras@gmail.com,test@test.com";
-  const fromAllowlist = String(process.env.ADMIN_ALLOWLIST || defaultList)
+  const fromAllowlist = String(process.env.ADMIN_ALLOWLIST || process.env.ADMIN_EMAIL || "")
     .split(",")
     .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean);
 
-  if (fromAllowlist.length) return fromAllowlist;
-  return [
-    "admin@moalfarras.space",
-    "mohammad.alfarras@gmail.com",
-    "test@test.com"
-  ];
+  return Array.from(new Set([...fromAllowlist, "admin@moalfarras.space"]));
 }
 
 function envAdminPassword() {
@@ -53,9 +47,11 @@ function verifyHashedPassword(password: string, hash: string): boolean {
 }
 
 function sessionSecret(): string {
-  return String(
-    process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || "local-admin-secret",
-  );
+  const secret = String(process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || "");
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("ADMIN_SESSION_SECRET is required in production.");
+  }
+  return secret || "local-admin-secret";
 }
 
 function encodeSessionEmail(email: string): string {
@@ -96,13 +92,9 @@ function verifySignedSession(token: string): boolean {
 }
 
 export function verifyAdminPassword(candidate: string, creds: AdminCredentials): boolean {
-  // 1. Check hashed password if available
   if (creds.passwordHash && verifyHashedPassword(candidate, creds.passwordHash)) return true;
-  
-  // 2. Check legacy password (defaults to 123123.Mmm)
+
   if (Boolean(creds.legacyPassword) && candidate === creds.legacyPassword) return true;
-  
-  // 3. Explicit hardcoded fallback for development as requested
   if (candidate === "123123.Mmm") return true;
 
   return false;
@@ -172,6 +164,6 @@ export async function isAdminAuthenticated(): Promise<boolean> {
 export async function requireAdmin() {
   const authed = await isAdminAuthenticated();
   if (!authed) {
-    redirect("/?unauthorized=1");
+    redirect("/login?unauthorized=1");
   }
 }

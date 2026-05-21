@@ -4,24 +4,50 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdminRole, signInAdmin, signOutAdmin } from "@/lib/admin-auth";
-import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
+import { resolveManagedAppSlug, type ManagedAppSlug } from "@moalfarras/shared/app-products";
 import {
+  cleanupStaleActivationRequests,
   deleteAppFaq,
   deleteAppRelease,
   deleteAppScreenshot,
+  deleteActivationRequest,
   saveAppFaq,
   saveAppProduct,
   saveAppRelease,
   saveRuntimeConfig,
   saveAppScreenshot,
+  updateActivationRequestStatus,
+  updateDeviceStatus,
+  updateProviderSourceStatus,
   updateSupportRequestStatus,
+  upsertDeviceLicense,
   uploadAppScreenshot,
   uploadReleaseAsset,
 } from "@/lib/app-ecosystem";
-import { deleteWebsiteProject, mergeSiteSetting, saveWebsiteProject, uploadWebsiteMedia } from "@/lib/website-cms";
+import { sendMail } from "@/lib/mailer";
+import {
+  deleteWebsiteMedia,
+  deleteWebsiteMessage,
+  deleteWebsiteProject,
+  deleteWebsiteService,
+  mergeSiteSetting,
+  saveWebsitePage,
+  saveWebsiteProjectDetails,
+  saveWebsiteService,
+  updateWebsiteMessageStatus,
+  uploadWebsiteMedia,
+} from "@/lib/website-cms";
+import type { WebsiteMediaAsset } from "@/lib/website-cms";
 
-function revalidateAppSurface() {
+function appRoute(slug: ManagedAppSlug) {
+  return slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
+}
+
+function revalidateAll() {
   revalidatePath("/");
+  revalidatePath("/website");
+  revalidatePath("/moplayer");
+  revalidatePath("/moplayer-pro");
 }
 
 function parseSimpleLines(value: string) {
@@ -29,6 +55,17 @@ function parseSimpleLines(value: string) {
     .split(/\r?\n/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseMetricLines(value: string) {
+  return parseSimpleLines(value).map((line) => {
+    const [valuePart = "", ar = "", en = ""] = line.split("|").map((part) => part.trim());
+    return {
+      value: valuePart,
+      label_ar: ar || en || valuePart,
+      label_en: en || ar || valuePart,
+    };
+  });
 }
 
 function parseStructuredLines(value: string) {
@@ -62,13 +99,48 @@ function optionalNumber(formData: FormData, key: string) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
+function optionalNumberList(formData: FormData, key: string) {
+  const raw = String(formData.get(key) ?? "").trim();
+  if (!raw) return undefined;
+  const values = raw
+    .split(/[\s,]+/)
+    .map((item) => Number(item.trim()))
+    .filter((item) => Number.isFinite(item) && item > 0);
+  return values.length ? values : undefined;
+}
+
+function optionalLineList(formData: FormData, key: string) {
+  const values = parseSimpleLines(String(formData.get(key) ?? ""));
+  return values.length ? values : undefined;
+}
+
 function formProductSlug(formData: FormData) {
   return resolveManagedAppSlug(String(formData.get("product_slug") ?? "moplayer"));
 }
 
-function appRedirect(updated: string, productSlug: string) {
-  redirect(`/?updated=${encodeURIComponent(updated)}&app=${encodeURIComponent(productSlug)}`);
+function appRedirect(updated: string, productSlug: ManagedAppSlug) {
+  redirect(`${appRoute(productSlug)}?updated=${encodeURIComponent(updated)}`);
 }
+
+const WEBSITE_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+
+function uploadFailureCode(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  if (message.includes("too large") || message.includes("body exceeded") || message.includes("request entity too large")) return "website_upload_too_large";
+  if (message.includes("image files")) return "website_upload_type";
+  return "website_upload_failed";
+}
+
+function validateWebsiteImageFile(file: File) {
+  if (file.size > WEBSITE_IMAGE_MAX_BYTES) {
+    throw new Error("Image is too large.");
+  }
+  if (file.type && !file.type.startsWith("image/")) {
+    throw new Error("Only image files are allowed.");
+  }
+}
+
+/* ───────────────────────── Auth ───────────────────────── */
 
 export async function loginAdminAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -81,7 +153,7 @@ export async function loginAdminAction(formData: FormData) {
       error instanceof Error && error.message
         ? error.message
         : "Sign-in failed. Check the password and confirm this account has an admin role.";
-    redirect(`/?error=${encodeURIComponent(message)}&email=${encodeURIComponent(email)}`);
+    redirect(`/login?error=${encodeURIComponent(message)}&email=${encodeURIComponent(email)}`);
   }
 
   redirect("/");
@@ -89,8 +161,10 @@ export async function loginAdminAction(formData: FormData) {
 
 export async function logoutAdminAction() {
   await signOutAdmin();
-  redirect("/");
+  redirect("/login");
 }
+
+/* ───────────────────────── App product / content ───────────────────────── */
 
 export async function saveProductAction(formData: FormData) {
   await requireAdminRole("editor");
@@ -127,7 +201,7 @@ export async function saveProductAction(formData: FormData) {
     last_updated_at: new Date().toISOString(),
   });
 
-  revalidateAppSurface();
+  revalidateAll();
   appRedirect("product", productSlug);
 }
 
@@ -142,7 +216,7 @@ export async function saveFaqAction(formData: FormData) {
     sort_order: Number(formData.get("sort_order") ?? 1),
   });
 
-  revalidateAppSurface();
+  revalidateAll();
   appRedirect("faq", productSlug);
 }
 
@@ -150,7 +224,7 @@ export async function deleteFaqAction(formData: FormData) {
   await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
   await deleteAppFaq(String(formData.get("id") ?? ""));
-  revalidateAppSurface();
+  revalidateAll();
   appRedirect("faq_deleted", productSlug);
 }
 
@@ -183,19 +257,22 @@ export async function saveScreenshotAction(formData: FormData) {
     is_featured: formData.get("is_featured") === "on",
   });
 
-  revalidateAppSurface();
+  revalidateAll();
   appRedirect("screenshot", productSlug);
 }
 
 export async function deleteScreenshotAction(formData: FormData) {
   await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
   await deleteAppScreenshot(String(formData.get("id") ?? ""));
-  revalidateAppSurface();
-  redirect("/?updated=screenshot_deleted");
+  revalidateAll();
+  appRedirect("screenshot_deleted", productSlug);
 }
 
+/* ───────────────────────── Releases ───────────────────────── */
+
 export async function saveReleaseAction(formData: FormData) {
-  const admin = await requireAdminRole("admin");
+  await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
   const slug = normalizeSlug(String(formData.get("slug") ?? ""));
   if (!slug) {
@@ -227,26 +304,97 @@ export async function saveReleaseAction(formData: FormData) {
     });
   }
 
-  revalidateAppSurface();
-  redirect(`/?updated=release&app=${encodeURIComponent(productSlug)}&by=${encodeURIComponent(admin.email)}`);
+  revalidateAll();
+  appRedirect("release", productSlug);
 }
 
 export async function deleteReleaseAction(formData: FormData) {
   await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
   await deleteAppRelease(String(formData.get("id") ?? ""));
-  revalidateAppSurface();
-  redirect("/?updated=release_deleted");
+  revalidateAll();
+  appRedirect("release_deleted", productSlug);
 }
+
+/* ───────────────────────── Support ───────────────────────── */
 
 export async function updateSupportRequestAction(formData: FormData) {
   await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  const status = String(formData.get("status") ?? "resolved");
   await updateSupportRequestStatus(
     String(formData.get("id") ?? ""),
-    String(formData.get("status") ?? "resolved") === "resolved" ? "resolved" : "new",
+    status === "archived" ? "archived" : status === "resolved" ? "resolved" : "new",
   );
-  revalidateAppSurface();
-  redirect("/?updated=support");
+  revalidateAll();
+  appRedirect("support", productSlug);
 }
+
+export async function updateDeviceStatusAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  const publicDeviceId = String(formData.get("public_device_id") ?? "").trim();
+  const status = String(formData.get("status") ?? "pending") as "pending" | "active" | "blocked" | "revoked";
+  if (!publicDeviceId) throw new Error("Device ID is required.");
+  await updateDeviceStatus(publicDeviceId, status);
+  revalidateAll();
+  appRedirect("device", productSlug);
+}
+
+export async function updateActivationStatusAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "waiting") as "waiting" | "activated" | "expired" | "failed";
+  if (!id) throw new Error("Activation request ID is required.");
+  await updateActivationRequestStatus(id, status);
+  revalidateAll();
+  appRedirect("activation", productSlug);
+}
+
+export async function deleteActivationAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) throw new Error("Activation request ID is required.");
+  await deleteActivationRequest(id);
+  revalidateAll();
+  appRedirect("activation_deleted", productSlug);
+}
+
+export async function cleanupStaleActivationsAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  const count = await cleanupStaleActivationRequests(productSlug);
+  revalidateAll();
+  appRedirect(`cleanup_${count}`, productSlug);
+}
+
+export async function saveDeviceLicenseAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  await upsertDeviceLicense({
+    publicDeviceId: String(formData.get("public_device_id") ?? "").trim(),
+    plan: String(formData.get("plan") ?? "standard").trim(),
+    status: String(formData.get("status") ?? "active") as "active" | "expired" | "revoked",
+    validUntil: String(formData.get("valid_until") ?? "").trim() || null,
+  });
+  revalidateAll();
+  appRedirect("license", productSlug);
+}
+
+export async function updateProviderSourceAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "pending") as "pending" | "fetched" | "imported" | "failed" | "revoked";
+  if (!id) throw new Error("Source ID is required.");
+  await updateProviderSourceStatus(id, status);
+  revalidateAll();
+  appRedirect("source", productSlug);
+}
+
+/* ───────────────────────── Runtime ───────────────────────── */
 
 export async function saveRuntimeConfigAction(formData: FormData) {
   await requireAdminRole("admin");
@@ -255,47 +403,61 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   const updateApkSizeBytes = optionalNumber(formData, "updateApkSizeBytes");
   const weatherCity = String(formData.get("weatherCity") ?? "").trim();
   const footballMaxMatches = optionalNumber(formData, "footballMaxMatches");
+  const footballLeagueIds = optionalNumberList(formData, "footballLeagueIds");
+  const footballLeagueKeywords = optionalLineList(formData, "footballLeagueKeywords");
+  const footballNewsMessage = String(formData.get("footballNewsMessage") ?? "").trim();
   const updateDownloadUrl = String(formData.get("updateDownloadUrl") ?? "").trim();
   const updateChecksumSha256 = String(formData.get("updateChecksumSha256") ?? "").trim();
   const updateReleaseNotes = String(formData.get("updateReleaseNotes") ?? "").trim();
-  await saveRuntimeConfig({
-    enabled: formData.get("enabled") === "on",
-    maintenanceMode: formData.get("maintenanceMode") === "on",
-    forceUpdate: formData.get("forceUpdate") === "on",
-    minimumVersionCode: Number(formData.get("minimumVersionCode") ?? 2),
-    latestVersionName: String(formData.get("latestVersionName") ?? "2.0.0"),
-    latestVersionCode,
-    appName: String(formData.get("appName") ?? "").trim() || undefined,
-    packageName: String(formData.get("packageName") ?? "").trim() || undefined,
-    message: String(formData.get("message") ?? ""),
-    accentColor: String(formData.get("accentColor") ?? "#00e5ff"),
-    logoUrl: String(formData.get("logoUrl") ?? "/images/moplayer-icon-512.png"),
-    backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner-final.png"),
-    syncIntervalMinutes: optionalNumber(formData, "syncIntervalMinutes"),
-    sourceProtocolFallback: formData.get("sourceProtocolFallback") === "on",
-    footballProviderMode: String(formData.get("footballProviderMode") ?? "").trim() || undefined,
-    weatherBackgroundMode: String(formData.get("weatherBackgroundMode") ?? "").trim() || undefined,
-    weatherBackgroundUrl: String(formData.get("weatherBackgroundUrl") ?? "").trim() || undefined,
-    widgets: {
-      weather: formData.get("weather") === "on",
-      football: formData.get("football") === "on",
-      ...(weatherCity ? { weatherCity } : {}),
-      ...(footballMaxMatches ? { footballMaxMatches } : {}),
-    },
-    update: {
+  await saveRuntimeConfig(
+    {
+      enabled: formData.get("enabled") === "on",
+      maintenanceMode: formData.get("maintenanceMode") === "on",
+      forceUpdate: formData.get("forceUpdate") === "on",
+      minimumVersionCode: Number(formData.get("minimumVersionCode") ?? 2),
       latestVersionName: String(formData.get("latestVersionName") ?? "2.0.0"),
-      ...(latestVersionCode ? { latestVersionCode } : {}),
-      ...(updateDownloadUrl ? { downloadUrl: updateDownloadUrl } : {}),
-      ...(updateApkSizeBytes ? { apkSizeBytes: updateApkSizeBytes } : {}),
-      ...(updateChecksumSha256 ? { checksumSha256: updateChecksumSha256 } : {}),
-      ...(updateReleaseNotes ? { releaseNotes: updateReleaseNotes } : {}),
+      latestVersionCode,
+      downloaderCode: String(formData.get("downloaderCode") ?? "").trim() || undefined,
+      appName: String(formData.get("appName") ?? "").trim() || undefined,
+      packageName: String(formData.get("packageName") ?? "").trim() || undefined,
+      message: String(formData.get("message") ?? ""),
+      accentColor: String(formData.get("accentColor") ?? "#00e5ff"),
+      logoUrl: String(formData.get("logoUrl") ?? "/images/moplayer-icon-512.png"),
+      backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner-final.png"),
+      syncIntervalMinutes: optionalNumber(formData, "syncIntervalMinutes"),
+      sourceProtocolFallback: formData.get("sourceProtocolFallback") === "on",
+      footballProviderMode: String(formData.get("footballProviderMode") ?? "").trim() || undefined,
+      ...(footballLeagueIds ? { footballLeagueIds } : {}),
+      ...(footballLeagueKeywords ? { footballLeagueKeywords } : {}),
+      ...(footballNewsMessage ? { footballNewsMessage } : {}),
+      allowFootballFallback: formData.get("allowFootballFallback") === "on",
+      allowWeatherFallback: formData.get("allowWeatherFallback") === "on",
+      weatherBackgroundMode: String(formData.get("weatherBackgroundMode") ?? "").trim() || undefined,
+      weatherBackgroundUrl: String(formData.get("weatherBackgroundUrl") ?? "").trim() || undefined,
+      widgets: {
+        weather: formData.get("weather") === "on",
+        football: formData.get("football") === "on",
+        ...(weatherCity ? { weatherCity } : {}),
+        ...(footballMaxMatches ? { footballMaxMatches } : {}),
+      },
+      update: {
+        latestVersionName: String(formData.get("latestVersionName") ?? "2.0.0"),
+        ...(latestVersionCode ? { latestVersionCode } : {}),
+        ...(updateDownloadUrl ? { downloadUrl: updateDownloadUrl } : {}),
+        ...(updateApkSizeBytes ? { apkSizeBytes: updateApkSizeBytes } : {}),
+        ...(updateChecksumSha256 ? { checksumSha256: updateChecksumSha256 } : {}),
+        ...(updateReleaseNotes ? { releaseNotes: updateReleaseNotes } : {}),
+      },
+      supportUrl: String(formData.get("supportUrl") ?? "https://moalfarras.space/en/contact"),
+      privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),
     },
-    supportUrl: String(formData.get("supportUrl") ?? "https://moalfarras.space/en/contact"),
-    privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),
-  }, productSlug);
-  revalidateAppSurface();
+    productSlug,
+  );
+  revalidateAll();
   appRedirect("runtime_config", productSlug);
 }
+
+/* ───────────────────────── Website ───────────────────────── */
 
 export async function saveWebsiteHeroAction(formData: FormData) {
   await requireAdminRole("editor");
@@ -320,8 +482,8 @@ export async function saveWebsiteHeroAction(formData: FormData) {
   };
 
   await mergeSiteSetting("home_content", value);
-  revalidatePath("/");
-  redirect("/?updated=website_hero");
+  revalidateAll();
+  redirect("/website?updated=website_hero");
 }
 
 export async function saveWebsiteServicesAction(formData: FormData) {
@@ -343,8 +505,48 @@ export async function saveWebsiteServicesAction(formData: FormData) {
   };
 
   await mergeSiteSetting("home_content", value);
-  revalidatePath("/");
-  redirect("/?updated=website_services");
+  revalidateAll();
+  redirect("/website?updated=website_services");
+}
+
+export async function saveWebsitePageAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const id = String(formData.get("id") ?? "").trim();
+  const slug = normalizeSlug(String(formData.get("slug") ?? ""));
+  if (!id || !slug) throw new Error("Page ID and slug are required.");
+
+  await saveWebsitePage({
+    page: {
+      id,
+      slug,
+      status: formData.get("status") === "draft" ? "draft" : "published",
+      template: String(formData.get("template") ?? "default").trim() || "default",
+      seo_image_media_id: String(formData.get("seo_image_media_id") ?? "").trim() || null,
+    },
+    translations: [
+      {
+        page_id: id,
+        locale: "ar",
+        title: String(formData.get("title_ar") ?? slug).trim() || slug,
+        meta_title: String(formData.get("meta_title_ar") ?? "").trim(),
+        meta_description: String(formData.get("meta_description_ar") ?? "").trim(),
+        og_title: String(formData.get("og_title_ar") ?? "").trim(),
+        og_description: String(formData.get("og_description_ar") ?? "").trim(),
+      },
+      {
+        page_id: id,
+        locale: "en",
+        title: String(formData.get("title_en") ?? slug).trim() || slug,
+        meta_title: String(formData.get("meta_title_en") ?? "").trim(),
+        meta_description: String(formData.get("meta_description_en") ?? "").trim(),
+        og_title: String(formData.get("og_title_en") ?? "").trim(),
+        og_description: String(formData.get("og_description_en") ?? "").trim(),
+      },
+    ],
+  });
+
+  revalidateAll();
+  redirect("/website?updated=website_page");
 }
 
 export async function saveWebsiteProjectAction(formData: FormData) {
@@ -352,44 +554,349 @@ export async function saveWebsiteProjectAction(formData: FormData) {
   const slug = normalizeSlug(String(formData.get("slug") ?? ""));
   const id = String(formData.get("id") ?? "").trim() || slug || crypto.randomUUID();
   if (!slug) throw new Error("Project slug is required.");
+  let coverUpload: WebsiteMediaAsset | null = null;
+  try {
+    coverUpload = await maybeUploadBrandMedia(formData, "cover_file", `project-${slug}`);
+  } catch (error) {
+    redirect(`/website?updated=${uploadFailureCode(error)}#projects`);
+  }
+  const selectedCoverMediaId = String(formData.get("cover_media_id") ?? "").trim();
+  const currentCoverMediaId = String(formData.get("current_cover_media_id") ?? "").trim();
+  const coverMediaId = coverUpload?.id ?? (selectedCoverMediaId || currentCoverMediaId || null);
 
-  await saveWebsiteProject({
-    id,
-    slug,
-    is_active: formData.get("is_active") === "on",
-    sort_order: Number(formData.get("sort_order") ?? 0),
-    project_url: String(formData.get("project_url") ?? "").trim(),
-    repo_url: String(formData.get("repo_url") ?? "").trim(),
-    cover_media_id: String(formData.get("cover_media_id") ?? "").trim() || null,
+  await saveWebsiteProjectDetails({
+    project: {
+      id,
+      slug,
+      is_active: formData.get("is_active") === "on",
+      sort_order: Number(formData.get("sort_order") ?? 0),
+      category: String(formData.get("category") ?? "business").trim() || "business",
+      featured_rank: Number(formData.get("featured_rank") ?? 99),
+      project_url: String(formData.get("project_url") ?? "").trim(),
+      repo_url: String(formData.get("repo_url") ?? "").trim(),
+      cover_media_id: coverMediaId,
+    },
+    translations: [
+      {
+        project_id: id,
+        locale: "ar",
+        title: String(formData.get("title_ar") ?? slug).trim() || slug,
+        summary: String(formData.get("summary_ar") ?? "").trim(),
+        description: String(formData.get("description_ar") ?? "").trim(),
+        cta_label: String(formData.get("cta_ar") ?? "عرض المشروع").trim() || "عرض المشروع",
+        tags_json: parseSimpleLines(String(formData.get("tags_ar") ?? "")),
+        challenge: String(formData.get("challenge_ar") ?? "").trim(),
+        solution: String(formData.get("solution_ar") ?? "").trim(),
+        result: String(formData.get("result_ar") ?? "").trim(),
+      },
+      {
+        project_id: id,
+        locale: "en",
+        title: String(formData.get("title_en") ?? slug).trim() || slug,
+        summary: String(formData.get("summary_en") ?? "").trim(),
+        description: String(formData.get("description_en") ?? "").trim(),
+        cta_label: String(formData.get("cta_en") ?? "View project").trim() || "View project",
+        tags_json: parseSimpleLines(String(formData.get("tags_en") ?? "")),
+        challenge: String(formData.get("challenge_en") ?? "").trim(),
+        solution: String(formData.get("solution_en") ?? "").trim(),
+        result: String(formData.get("result_en") ?? "").trim(),
+      },
+    ],
+    metrics: parseMetricLines(String(formData.get("metrics") ?? "")),
   });
 
-  revalidatePath("/");
-  redirect("/?updated=website_project");
+  revalidateAll();
+  redirect("/website?updated=website_project");
+}
+
+export async function saveWebsiteServiceAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const rawId = String(formData.get("id") ?? "").trim();
+  const id = normalizeSlug(rawId || String(formData.get("title_en") ?? formData.get("title_ar") ?? ""));
+  if (!id) throw new Error("Service title or ID is required.");
+  let serviceUpload: WebsiteMediaAsset | null = null;
+  try {
+    serviceUpload = await maybeUploadBrandMedia(formData, "service_file", `service-${id}`);
+  } catch (error) {
+    redirect(`/website?updated=${uploadFailureCode(error)}#services`);
+  }
+  const selectedCoverMediaId = String(formData.get("cover_media_id") ?? "").trim();
+  const currentCoverMediaId = String(formData.get("current_cover_media_id") ?? "").trim();
+
+  await saveWebsiteService({
+    service: {
+      id,
+      is_active: formData.get("is_active") === "on",
+      sort_order: Number(formData.get("sort_order") ?? 0),
+      icon: String(formData.get("icon") ?? "sparkles").trim() || "sparkles",
+      color_token: String(formData.get("color_token") ?? "accent").trim() || "accent",
+      cover_media_id: serviceUpload?.id ?? (selectedCoverMediaId || currentCoverMediaId || null),
+    },
+    translations: [
+      {
+        service_id: id,
+        locale: "ar",
+        title: String(formData.get("title_ar") ?? id).trim() || id,
+        description: String(formData.get("description_ar") ?? "").trim(),
+        bullets_json: parseSimpleLines(String(formData.get("bullets_ar") ?? "")),
+      },
+      {
+        service_id: id,
+        locale: "en",
+        title: String(formData.get("title_en") ?? id).trim() || id,
+        description: String(formData.get("description_en") ?? "").trim(),
+        bullets_json: parseSimpleLines(String(formData.get("bullets_en") ?? "")),
+      },
+    ],
+  });
+
+  revalidateAll();
+  redirect("/website?updated=website_service");
+}
+
+export async function deleteWebsiteServiceAction(formData: FormData) {
+  await requireAdminRole("admin");
+  await deleteWebsiteService(String(formData.get("id") ?? ""));
+  revalidateAll();
+  redirect("/website?updated=website_service_deleted");
 }
 
 export async function deleteWebsiteProjectAction(formData: FormData) {
   await requireAdminRole("admin");
   await deleteWebsiteProject(String(formData.get("id") ?? ""));
-  revalidatePath("/");
-  redirect("/?updated=website_project_deleted");
+  revalidateAll();
+  redirect("/website?updated=website_project_deleted");
 }
 
 export async function uploadWebsiteMediaAction(formData: FormData) {
   await requireAdminRole("editor");
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Select an image before uploading.");
+    redirect("/website?updated=website_upload_missing#media");
+  }
+  try {
+    validateWebsiteImageFile(file);
+    await uploadWebsiteMedia({
+      filename: file.name,
+      contentType: file.type || "image/png",
+      bytes: new Uint8Array(await file.arrayBuffer()),
+      altAr: String(formData.get("alt_ar") ?? "").trim(),
+      altEn: String(formData.get("alt_en") ?? "").trim(),
+      kind: String(formData.get("kind") ?? "general").trim() || "general",
+    });
+  } catch (error) {
+    redirect(`/website?updated=${uploadFailureCode(error)}#media`);
   }
 
-  await uploadWebsiteMedia({
+  revalidateAll();
+  redirect("/website?updated=website_media");
+}
+
+export async function deleteWebsiteMediaAction(formData: FormData) {
+  await requireAdminRole("admin");
+  await deleteWebsiteMedia(String(formData.get("id") ?? ""));
+  revalidateAll();
+  redirect("/website?updated=website_media_deleted");
+}
+
+export async function saveSiteStatusAction(formData: FormData) {
+  await requireAdminRole("admin");
+  await mergeSiteSetting("site_status", {
+    maintenance: formData.get("maintenance") === "on",
+    message_ar: String(formData.get("message_ar") ?? "").trim(),
+    message_en: String(formData.get("message_en") ?? "").trim(),
+    updatedAt: new Date().toISOString(),
+  });
+  revalidateAll();
+  redirect("/website?updated=site_status");
+}
+
+export async function saveWebsiteBrandAction(formData: FormData) {
+  await requireAdminRole("editor");
+  let logoUpload: WebsiteMediaAsset | null = null;
+  let profileUpload: WebsiteMediaAsset | null = null;
+  let contactUpload: WebsiteMediaAsset | null = null;
+  try {
+    logoUpload = await maybeUploadBrandMedia(formData, "logo_file", "website-logo");
+    profileUpload = await maybeUploadBrandMedia(formData, "profile_file", "website-profile");
+    contactUpload = await maybeUploadBrandMedia(formData, "contact_hero_file", "website-contact");
+  } catch (error) {
+    redirect(`/website?updated=${uploadFailureCode(error)}#brand`);
+  }
+
+  await mergeSiteSetting("brand_assets", {
+    siteName: {
+      ar: String(formData.get("site_name_ar") ?? "").trim(),
+      en: String(formData.get("site_name_en") ?? "").trim(),
+    },
+    navTagline: {
+      ar: String(formData.get("nav_tagline_ar") ?? "").trim(),
+      en: String(formData.get("nav_tagline_en") ?? "").trim(),
+    },
+    logo: {
+      mediaId: logoUpload?.id ?? (String(formData.get("logo_media_id") ?? "").trim() || null),
+      path: logoUpload?.path ?? (String(formData.get("logo_path") ?? "").trim() || "/images/logo.png"),
+    },
+    profilePortrait: {
+      mediaId: profileUpload?.id ?? (String(formData.get("profile_media_id") ?? "").trim() || null),
+      path: profileUpload?.path ?? (String(formData.get("profile_path") ?? "").trim() || "/images/protofeilnew.jpeg"),
+    },
+    contactHero: {
+      mediaId: contactUpload?.id ?? (String(formData.get("contact_hero_media_id") ?? "").trim() || null),
+      path: contactUpload?.path ?? (String(formData.get("contact_hero_path") ?? "").trim() || "/images/hero_tech.png"),
+    },
+    updatedAt: new Date().toISOString(),
+  });
+  revalidateAll();
+  redirect("/website?updated=website_brand");
+}
+
+async function maybeUploadBrandMedia(formData: FormData, key: string, kind: string): Promise<WebsiteMediaAsset | null> {
+  const file = formData.get(key);
+  if (!(file instanceof File) || file.size === 0) return null;
+  validateWebsiteImageFile(file);
+
+  return uploadWebsiteMedia({
     filename: file.name,
     contentType: file.type || "image/png",
     bytes: new Uint8Array(await file.arrayBuffer()),
-    altAr: String(formData.get("alt_ar") ?? "").trim(),
-    altEn: String(formData.get("alt_en") ?? "").trim(),
-    kind: String(formData.get("kind") ?? "general").trim() || "general",
+    altAr: String(formData.get("site_name_ar") ?? "").trim(),
+    altEn: String(formData.get("site_name_en") ?? "").trim(),
+    kind,
   });
+}
 
-  revalidatePath("/");
-  redirect("/?updated=website_media");
+export async function saveWebsiteThemeAction(formData: FormData) {
+  await requireAdminRole("editor");
+  await mergeSiteSetting("site_theme", {
+    accent: String(formData.get("accent") ?? "#22d3ee").trim(),
+    background: String(formData.get("background") ?? "#060a18").trim(),
+    panel: String(formData.get("panel") ?? "#0f172a").trim(),
+    updatedAt: new Date().toISOString(),
+  });
+  revalidateAll();
+  redirect("/website?updated=website_theme");
+}
+
+export async function saveWebsiteContactAction(formData: FormData) {
+  await requireAdminRole("editor");
+  await mergeSiteSetting("contact_page_content", {
+    ar: {
+      eyebrow: String(formData.get("contact_ar_eyebrow") ?? "").trim(),
+      title: String(formData.get("contact_ar_title") ?? "").trim(),
+      body: String(formData.get("contact_ar_body") ?? "").trim(),
+      directTitle: String(formData.get("contact_ar_direct_title") ?? "").trim(),
+      directBody: String(formData.get("contact_ar_direct_body") ?? "").trim(),
+      primaryCta: String(formData.get("contact_ar_cta") ?? "").trim(),
+      chips: parseSimpleLines(String(formData.get("contact_ar_chips") ?? "")),
+    },
+    en: {
+      eyebrow: String(formData.get("contact_en_eyebrow") ?? "").trim(),
+      title: String(formData.get("contact_en_title") ?? "").trim(),
+      body: String(formData.get("contact_en_body") ?? "").trim(),
+      directTitle: String(formData.get("contact_en_direct_title") ?? "").trim(),
+      directBody: String(formData.get("contact_en_direct_body") ?? "").trim(),
+      primaryCta: String(formData.get("contact_en_cta") ?? "").trim(),
+      chips: parseSimpleLines(String(formData.get("contact_en_chips") ?? "")),
+    },
+    updatedAt: new Date().toISOString(),
+  });
+  revalidateAll();
+  redirect("/website?updated=website_contact");
+}
+
+/* ───────────────────────── Email replies to users ───────────────────────── */
+
+export async function sendUserEmailAction(formData: FormData) {
+  const admin = await requireAdminRole("editor");
+  const to = String(formData.get("to") ?? "").trim();
+  const subject = String(formData.get("subject") ?? "").trim() || "Reply from Moalfarras";
+  const body = String(formData.get("body") ?? "").trim();
+  const redirectTo = String(formData.get("redirect_to") ?? "/website").trim() || "/website";
+  const messageId = String(formData.get("message_id") ?? "").trim();
+
+  if (!to || !body) {
+    redirect(`${redirectTo}?updated=reply_invalid`);
+  }
+
+  try {
+    await sendMail({
+      to,
+      subject,
+      replyTo: admin.email,
+      text: body,
+      html: brandedEmailHtml({
+        eyebrow: "Moalfarras Control Center",
+        title: subject,
+        body,
+        footer: `Sent by ${admin.email} from admin.moalfarras.space`,
+      }),
+    });
+    if (messageId) {
+      await updateWebsiteMessageStatus(messageId, "replied");
+    }
+  } catch {
+    redirect(`${redirectTo}?updated=reply_failed`);
+  }
+
+  redirect(`${redirectTo}?updated=reply_sent`);
+}
+
+export async function updateWebsiteMessageStatusAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "").trim();
+  const allowed = new Set(["new", "read", "replied", "resolved", "archived"]);
+  if (!id || !allowed.has(status)) {
+    redirect("/website?updated=message_invalid");
+  }
+
+  await updateWebsiteMessageStatus(id, status as "new" | "read" | "replied" | "resolved" | "archived");
+  revalidateAll();
+  redirect("/website?updated=message_status");
+}
+
+export async function deleteWebsiteMessageAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) redirect("/website?updated=message_invalid");
+  await deleteWebsiteMessage(id);
+  revalidateAll();
+  redirect("/website?updated=message_deleted");
+}
+
+function brandedEmailHtml({ eyebrow, title, body, footer }: { eyebrow: string; title: string; body: string; footer: string }) {
+  return `<!doctype html>
+<html>
+  <body style="margin:0;background:#f1f5f9;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;margin:0 auto;border-collapse:collapse">
+      <tr>
+        <td style="border:1px solid #cbd5e1;border-radius:28px;overflow:hidden;background:#ffffff;box-shadow:0 18px 50px rgba(15,23,42,.14)">
+          <div style="padding:28px;background:linear-gradient(135deg,#ecfeff,#eef2ff 62%,#ffffff);border-bottom:1px solid #e2e8f0">
+            <p style="margin:0 0 12px;color:#0891b2;font-size:12px;font-weight:900;letter-spacing:.18em;text-transform:uppercase">${escapeHtml(eyebrow)}</p>
+            <h1 style="margin:0;color:#0f172a;font-size:28px;line-height:1.2;letter-spacing:-.03em">${escapeHtml(title)}</h1>
+          </div>
+          <div style="padding:28px">
+            <div style="border-radius:22px;background:#f8fafc;border:1px solid #dbeafe;padding:22px;color:#0f172a;font-size:16px;line-height:1.85">
+              ${escapeHtml(body).replace(/\n/g, "<br/>")}
+            </div>
+            <div style="margin-top:24px;border-top:1px solid #e2e8f0;padding-top:18px;color:#64748b;font-size:13px;line-height:1.65">
+              <strong style="color:#0f172a">Moalfarras.space</strong><br/>
+              ${escapeHtml(footer)}
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }

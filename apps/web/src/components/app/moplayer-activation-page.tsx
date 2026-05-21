@@ -1,22 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
   CheckCircle2,
   Clock3,
   Cloud,
   KeyRound,
   Link2,
-  Monitor,
+  Loader2,
   PlayCircle,
-  QrCode,
-  RefreshCw,
-  Shield,
+  Send,
   ShieldCheck,
+  Sparkles,
   Tv,
-  Wifi,
-  XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -29,118 +28,126 @@ const allowed = /^[A-HJ-NP-RT-Z2-46789]{4}$/;
 
 const copy = {
   en: {
-    backApps: "Back to MoPlayer",
-    brand: "MoPlayer Control",
-    navActivation: "Activation",
-    navProfiles: "Profiles",
-    navDevices: "Devices",
-    navSecurity: "Security",
-    title: "TV Activation",
-    ready: "Ready for a TV code.",
-    refresh: "Refresh",
-    heroTitle: "Pair this Android TV without typing passwords on the TV.",
-    heroBody:
-      "Open MoPlayer on Android TV, scan the QR code, confirm the short code here, then send one Xtream or M3U profile through the official moalfarras.space activation service.",
-    scan: "Scan the TV QR code",
-    codeLabel: "Activation code",
-    codeHint: "Use the four characters after MO-. QR links can pass code or device_code.",
-    verify: "Verify code",
-    verifying: "Verifying...",
-    statusTitle: "Device status",
-    userCode: "User code",
-    status: "Status",
-    endpoint: "Endpoint",
-    expires: "Expires",
-    notLoaded: "not loaded",
-    waiting: ["Ready for your TV code", "Enter the four-character code shown inside MoPlayer. The app displays it as MO-XXXX."],
-    invalid: ["Code needs attention", "Use exactly four valid characters. Ambiguous characters are ignored for safer typing."],
-    activated: ["Activation successful", "Your TV is paired. You can now send an IPTV source to MoPlayer securely."],
-    pending: ["Still waiting", "The code exists, but the TV has not been activated yet."],
-    expired: ["Code expired", "Generate a fresh code on the TV and verify it again."],
-    backend: ["Connection issue", "The activation service did not respond correctly. Try again in a moment."],
-    sourceTitle: "Attach IPTV profile",
-    device: "Device",
-    deviceReady: "Paired MoPlayer TV",
-    deviceWaiting: "Waiting for QR",
-    serverName: "Server name",
-    type: "Type",
-    xtream: "Xtream",
-    m3u: "M3U",
+    back: "Back to MoPlayer",
+    backPro: "Back to MoPlayer Pro",
+    pageTitle: "Activate your TV",
+    pageSubtitle: "Two simple steps and {product} is ready on your television.",
+    step: "Step",
+    of: "of",
+    stepConfirm: "Confirm code",
+    stepSource: "Add subscription",
+    // Step 1
+    step1Title: "Confirm your TV code",
+    step1Lead: "Open {product} on your television. A code starting with MO- appears on screen — type the four characters here.",
+    fromQr: "Code detected automatically from the QR scan.",
+    codeLabel: "TV code",
+    confirm: "Confirm TV",
+    confirming: "Checking…",
+    recheck: "Check again",
+    // Step 2
+    step2Title: "Add your subscription",
+    step2Lead: "Enter your IPTV details. We send them securely straight to your TV — no typing on the television.",
+    step2Locked: "Confirm your TV in step 1 to unlock this step.",
+    typeLabel: "Subscription type",
+    xtream: "Xtream Codes",
+    xtreamDesc: "Username, password and portal URL",
+    m3u: "M3U link",
+    m3uDesc: "A single M3U playlist link",
+    serverName: "Subscription name",
+    serverNamePlaceholder: "My IPTV",
     portalUrl: "Portal URL",
-    username: "User",
+    portalPlaceholder: "http://example.com:8080",
+    username: "Username",
     password: "Password",
     playlistUrl: "M3U URL",
-    epgUrl: "EPG URL, optional",
-    test: "Test source",
-    testing: "Testing...",
-    send: "Send to app",
-    sending: "Sending...",
-    securityTitle: "Security notes",
-    securityBody:
-      "MoPlayer and the website share one domain, but they stay distinct: the website confirms the device and the Android TV app imports only the encrypted source queued for that paired device.",
-    successTest: "Connection test successful.",
-    failureTest: "Connection test failed.",
-    unavailableTest: "Could not test the source right now.",
-    successSend: "Source sent to the app. Import will begin automatically.",
-    failureSend: "Could not send the source.",
-    unavailableSend: "Could not send the source right now.",
+    playlistPlaceholder: "https://example.com/playlist.m3u8",
+    epgUrl: "EPG guide URL (optional)",
+    test: "Test connection",
+    testing: "Testing…",
+    send: "Send to TV",
+    sending: "Sending…",
+    // Done
+    doneTitle: "Done — your TV is ready",
+    doneBody: "Channels will appear on {product} in a few moments. You can close this page.",
+    sendAnother: "Send another subscription",
+    secure: "Secure: your subscription is encrypted and delivered only to your paired device via moalfarras.space.",
+    needHelp: "Need help?",
+    support: "Open support",
+    // Statuses [title, helper]
+    waiting: ["Waiting for your code", "Type the four characters exactly as shown on the TV after MO-."],
+    invalid: ["Check the code", "Enter the four characters shown on your TV right now — the code can change."],
+    pending: ["Almost there", "We found your code. Tap “Confirm TV” to finish pairing."],
+    activated: ["TV confirmed", "Great — continue to step 2 and add your subscription."],
+    expired: ["Code expired", "Generate a fresh code on the TV, then enter it again."],
+    backend: ["Connection issue", "Something went wrong for a moment. Check your internet and try again."],
+    // Source results
+    testOk: "Connection works. You can send it now.",
+    testFail: "Connection failed. Double-check the details and try again.",
+    testUnavailable: "Could not test right now. Try again in a moment.",
+    sendOk: "Sent. Import starts automatically on the TV.",
+    sendFail: "Could not send the subscription.",
+    sendUnavailable: "Could not send right now. Try again in a moment.",
   },
   ar: {
-    backApps: "العودة إلى MoPlayer",
-    brand: "MoPlayer Control",
-    navActivation: "التفعيل",
-    navProfiles: "المصادر",
-    navDevices: "الأجهزة",
-    navSecurity: "الأمان",
-    title: "تفعيل التلفزيون",
-    ready: "جاهز لكود التلفزيون.",
-    refresh: "تحديث",
-    heroTitle: "اربط Android TV بدون كتابة كلمات المرور على التلفزيون.",
-    heroBody:
-      "افتح MoPlayer على Android TV، امسح رمز QR، أكد الكود القصير هنا، ثم أرسل مصدر Xtream أو M3U عبر خدمة التفعيل الرسمية على moalfarras.space.",
-    scan: "امسح رمز QR من التلفزيون",
-    codeLabel: "كود التفعيل",
-    codeHint: "استخدم الأحرف الأربعة بعد MO-. روابط QR يمكنها تمرير code أو device_code.",
-    verify: "تحقق من الكود",
-    verifying: "جار التحقق...",
-    statusTitle: "حالة الجهاز",
-    userCode: "كود المستخدم",
-    status: "الحالة",
-    endpoint: "المصدر",
-    expires: "ينتهي",
-    notLoaded: "غير محمل",
-    waiting: ["جاهز لكود التلفزيون", "أدخل الكود المكون من أربعة أحرف كما يظهر داخل MoPlayer بصيغة MO-XXXX."],
-    invalid: ["الكود يحتاج تصحيح", "استخدم أربعة أحرف صحيحة فقط. الأحرف المربكة يتم تجاهلها لتسهيل الكتابة."],
-    activated: ["تم التفعيل بنجاح", "تم ربط التلفزيون. يمكنك الآن إرسال مصدر IPTV إلى MoPlayer بأمان."],
-    pending: ["بانتظار التأكيد", "الكود موجود، لكن لم يتم تفعيل التلفزيون بعد."],
-    expired: ["انتهت صلاحية الكود", "أنشئ كودا جديدا من التلفزيون ثم حاول مرة أخرى."],
-    backend: ["مشكلة اتصال", "خدمة التفعيل لم تستجب بشكل صحيح. حاول بعد قليل."],
-    sourceTitle: "إضافة مصدر IPTV",
-    device: "الجهاز",
-    deviceReady: "تلفزيون MoPlayer مربوط",
-    deviceWaiting: "بانتظار QR",
-    serverName: "اسم السيرفر",
-    type: "النوع",
-    xtream: "Xtream",
-    m3u: "M3U",
-    portalUrl: "رابط البوابة",
-    username: "المستخدم",
+    back: "العودة إلى MoPlayer",
+    backPro: "العودة إلى MoPlayer Pro",
+    pageTitle: "فعِّل تلفزيونك",
+    pageSubtitle: "خطوتان بسيطتان ويصبح {product} جاهزاً على التلفزيون.",
+    step: "الخطوة",
+    of: "من",
+    stepConfirm: "تأكيد الكود",
+    stepSource: "إضافة الاشتراك",
+    // Step 1
+    step1Title: "أكِّد كود التلفزيون",
+    step1Lead: "افتح {product} على التلفزيون. سيظهر كود يبدأ بـ MO- على الشاشة — أدخل الرموز الأربعة هنا.",
+    fromQr: "تم جلب الكود تلقائياً من مسح رمز QR.",
+    codeLabel: "كود التلفزيون",
+    confirm: "أكِّد التلفزيون",
+    confirming: "جارٍ التحقق…",
+    recheck: "إعادة الفحص",
+    // Step 2
+    step2Title: "أضف اشتراكك",
+    step2Lead: "أدخل بيانات اشتراك IPTV وسنرسلها بأمان مباشرة إلى تلفزيونك — بدون أي كتابة على التلفزيون.",
+    step2Locked: "أكمل تأكيد التلفزيون في الخطوة 1 لفتح هذه الخطوة.",
+    typeLabel: "نوع الاشتراك",
+    xtream: "Xtream Codes",
+    xtreamDesc: "مستخدم وكلمة مرور ورابط بوابة",
+    m3u: "رابط M3U",
+    m3uDesc: "رابط تشغيل M3U واحد",
+    serverName: "اسم الاشتراك",
+    serverNamePlaceholder: "اشتراكي",
+    portalUrl: "رابط البوابة (Portal)",
+    portalPlaceholder: "http://example.com:8080",
+    username: "اسم المستخدم",
     password: "كلمة المرور",
     playlistUrl: "رابط M3U",
-    epgUrl: "رابط EPG اختياري",
-    test: "اختبار المصدر",
-    testing: "جار الاختبار...",
-    send: "إرسال إلى التطبيق",
-    sending: "جار الإرسال...",
-    securityTitle: "ملاحظات الأمان",
-    securityBody:
-      "MoPlayer والموقع يعملان على نفس الدومين، لكنهما يبقيان تطبيقين مختلفين: الموقع يؤكد الجهاز، وتطبيق Android TV يستورد فقط المصدر المشفر المخصص للجهاز المرتبط.",
-    successTest: "تم اختبار الاتصال بنجاح.",
-    failureTest: "فشل اختبار الاتصال.",
-    unavailableTest: "تعذر اختبار المصدر حاليا.",
-    successSend: "تم إرسال المصدر إلى التطبيق. سيبدأ الاستيراد تلقائيا.",
-    failureSend: "تعذر إرسال المصدر.",
-    unavailableSend: "تعذر إرسال المصدر حاليا.",
+    playlistPlaceholder: "https://example.com/playlist.m3u8",
+    epgUrl: "رابط دليل القنوات EPG (اختياري)",
+    test: "اختبار الاتصال",
+    testing: "جارٍ الاختبار…",
+    send: "إرسال إلى التلفزيون",
+    sending: "جارٍ الإرسال…",
+    // Done
+    doneTitle: "تم — تلفزيونك جاهز",
+    doneBody: "ستظهر القنوات على {product} خلال لحظات. يمكنك إغلاق هذه الصفحة.",
+    sendAnother: "إرسال اشتراك آخر",
+    secure: "آمن: يُرسَل اشتراكك مشفّراً إلى جهازك المرتبط فقط عبر moalfarras.space.",
+    needHelp: "تحتاج مساعدة؟",
+    support: "افتح الدعم",
+    // Statuses [title, helper]
+    waiting: ["بانتظار الكود", "أدخل الرموز الأربعة كما تظهر على التلفزيون بعد MO- تماماً."],
+    invalid: ["تأكد من الكود", "أدخل الرموز الأربعة الظاهرة على تلفزيونك الآن — قد يتغير الكود."],
+    pending: ["اقتربت من النهاية", "وجدنا كودك. اضغط «أكِّد التلفزيون» لإكمال الربط."],
+    activated: ["تم تأكيد التلفزيون", "رائع — تابع إلى الخطوة 2 وأضف اشتراكك."],
+    expired: ["انتهت صلاحية الكود", "أنشئ كوداً جديداً على التلفزيون ثم أدخله مرة أخرى."],
+    backend: ["مشكلة في الاتصال", "حدث خطأ مؤقت. تحقق من الإنترنت وحاول مرة أخرى."],
+    // Source results
+    testOk: "الاتصال يعمل. يمكنك الإرسال الآن.",
+    testFail: "فشل الاتصال. راجع البيانات وحاول مرة أخرى.",
+    testUnavailable: "تعذّر الاختبار حالياً. حاول بعد قليل.",
+    sendOk: "تم الإرسال. يبدأ الاستيراد تلقائياً على التلفزيون.",
+    sendFail: "تعذّر إرسال الاشتراك.",
+    sendUnavailable: "تعذّر الإرسال حالياً. حاول بعد قليل.",
   },
 } as const;
 
@@ -172,22 +179,6 @@ function safeMessage(value: string) {
     .replace(/\/\/([^/\s:]+):([^@\s]+)@/g, "//***:***@");
 }
 
-function maskEndpoint(value: string) {
-  try {
-    const url = new URL(value);
-    return `${url.protocol}//${url.host}/...`;
-  } catch {
-    return value ? "configured" : "not set";
-  }
-}
-
-function displayDate(value?: string) {
-  if (!value) return "-";
-  const time = new Date(value).getTime();
-  if (Number.isNaN(time)) return "-";
-  return new Date(value).toLocaleString();
-}
-
 export function MoPlayerActivationPage({
   locale,
   initialCode = "",
@@ -201,50 +192,52 @@ export function MoPlayerActivationPage({
   const isPro = productSlug === "moplayer2";
   const t = repairMojibakeDeep(copy[locale]);
   const productName = isPro ? "MoPlayer Pro" : "MoPlayer";
-  const controlBrand = isPro ? "MoPlayer Pro Control" : t.brand;
+  const fill = (value: string) => value.replace(/\{product\}/g, productName);
+
   const [code, setCode] = useState(() => normalizeCode(initialCode));
   const [status, setStatus] = useState<Status>("waiting");
   const [checking, setChecking] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string>(t.ready);
-  const [activationMeta, setActivationMeta] = useState<StatusPayload | null>(null);
   const [sourceType, setSourceType] = useState<SourceType>("xtream");
   const [sourceState, setSourceState] = useState<SourceState>("idle");
   const [sourceMessage, setSourceMessage] = useState("");
-  const [sourceName, setSourceName] = useState("Premium IPTV");
+  const [sourceName, setSourceName] = useState("");
   const [serverUrl, setServerUrl] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [playlistUrl, setPlaylistUrl] = useState("");
   const [epgUrl, setEpgUrl] = useState("");
 
-  const fullCode = code ? `MO-${code}` : "MO-XXXX";
+  const cameFromQr = normalizeCode(initialCode).length === 4;
+  const activated = status === "activated";
+  const sent = sourceState === "sent";
+  const activeStep = sent ? 3 : activated ? 2 : 1;
+
   const canSubmit =
-    status === "activated" &&
+    activated &&
     (sourceType === "xtream"
-      ? sourceName.trim() && serverUrl.trim() && username.trim() && password
-      : sourceName.trim() && playlistUrl.trim());
+      ? Boolean(serverUrl.trim() && username.trim() && password)
+      : Boolean(playlistUrl.trim()));
 
   const statusMeta = useMemo(() => {
-    if (status === "invalid") return { icon: XCircle, tone: "is-error", data: t.invalid };
+    if (status === "invalid") return { icon: AlertCircle, tone: "is-error", data: t.invalid };
     if (status === "activated") return { icon: CheckCircle2, tone: "is-success", data: t.activated };
     if (status === "expired") return { icon: Clock3, tone: "is-warn", data: t.expired };
-    if (status === "backend") return { icon: XCircle, tone: "is-error", data: t.backend };
-    if (status === "pending") return { icon: Clock3, tone: "is-waiting", data: t.pending };
-    return { icon: Clock3, tone: "is-waiting", data: t.waiting };
+    if (status === "backend") return { icon: AlertCircle, tone: "is-error", data: t.backend };
+    if (status === "pending") return { icon: Clock3, tone: "is-pending", data: t.pending };
+    return { icon: KeyRound, tone: "is-waiting", data: t.waiting };
   }, [status, t]);
 
   useEffect(() => {
-    if (code.length === 4) {
+    if (normalizeCode(initialCode).length === 4) {
       void refreshStatus();
     }
-    // Run only for a QR-provided initial code.
+    // Run once for a QR-provided initial code.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function refreshStatus() {
     if (!allowed.test(code)) {
       setStatus("invalid");
-      setStatusMessage(t.invalid[1]);
       return;
     }
 
@@ -252,33 +245,23 @@ export function MoPlayerActivationPage({
     try {
       const response = await fetch(
         `/api/app/activation/status?code=${encodeURIComponent(`MO-${code}`)}&product=${encodeURIComponent(productSlug)}`,
-        {
-        method: "GET",
-        cache: "no-store",
-        },
+        { method: "GET", cache: "no-store" },
       );
       const payload = (await response.json().catch(() => null)) as StatusPayload | null;
-      setActivationMeta(payload);
 
       if (payload?.status === "activated") {
         setStatus("activated");
-        setStatusMessage(payload.sourceStatus ? `Activation status: ${payload.sourceStatus}` : t.activated[0]);
       } else if (payload?.status === "expired") {
         setStatus("expired");
-        setStatusMessage(t.expired[0]);
       } else if (payload?.status === "invalid") {
         setStatus("invalid");
-        setStatusMessage(payload.message ? safeMessage(payload.message) : t.invalid[0]);
       } else if (response.status === 202 || payload?.status === "pending") {
         setStatus("pending");
-        setStatusMessage(t.pending[0]);
       } else {
         setStatus("backend");
-        setStatusMessage(payload?.message ? safeMessage(payload.message) : t.backend[0]);
       }
     } catch {
       setStatus("backend");
-      setStatusMessage(t.backend[0]);
     } finally {
       setChecking(false);
     }
@@ -287,7 +270,6 @@ export function MoPlayerActivationPage({
   async function verifyCode() {
     if (!allowed.test(code)) {
       setStatus("invalid");
-      setStatusMessage(t.invalid[1]);
       return;
     }
 
@@ -299,23 +281,19 @@ export function MoPlayerActivationPage({
         body: JSON.stringify({ code: `MO-${code}`, productSlug, deviceName: isPro ? "MoPlayer Pro TV" : "MoPlayer TV" }),
       });
       const payload = (await response.json().catch(() => null)) as StatusPayload | null;
-      setActivationMeta(payload);
       if (response.ok && payload?.status === "activated") {
         setStatus("activated");
-        setStatusMessage(t.activated[0]);
       } else if (payload?.status === "expired") {
         setStatus("expired");
-        setStatusMessage(t.expired[0]);
       } else if (payload?.status === "invalid") {
         setStatus("invalid");
-        setStatusMessage(payload.message ? safeMessage(payload.message) : t.invalid[0]);
+      } else if (response.status === 202 || payload?.status === "pending") {
+        setStatus("pending");
       } else {
         setStatus("backend");
-        setStatusMessage(payload?.message ? safeMessage(payload.message) : t.backend[0]);
       }
     } catch {
       setStatus("backend");
-      setStatusMessage(t.backend[0]);
     } finally {
       setChecking(false);
     }
@@ -323,13 +301,13 @@ export function MoPlayerActivationPage({
 
   function sourcePayload() {
     if (sourceType === "xtream") {
-      return { type: "xtream", name: sourceName, serverUrl, username, password };
+      return { type: "xtream", name: sourceName.trim() || productName, serverUrl, username, password };
     }
-    return { type: "m3u", name: sourceName, playlistUrl, epgUrl };
+    return { type: "m3u", name: sourceName.trim() || productName, playlistUrl, epgUrl };
   }
 
   async function testSource() {
-    if (status !== "activated") return;
+    if (!activated) return;
     setSourceState("testing");
     setSourceMessage("");
     try {
@@ -339,16 +317,17 @@ export function MoPlayerActivationPage({
         body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
       });
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
-      setSourceState(response.ok && payload?.ok ? "ok" : "error");
-      setSourceMessage(safeMessage(payload?.message || (response.ok ? t.successTest : t.failureTest)));
+      const ok = response.ok && payload?.ok;
+      setSourceState(ok ? "ok" : "error");
+      setSourceMessage(ok ? t.testOk : safeMessage(payload?.message || t.testFail));
     } catch {
       setSourceState("error");
-      setSourceMessage(t.unavailableTest);
+      setSourceMessage(t.testUnavailable);
     }
   }
 
   async function sendSource() {
-    if (status !== "activated" || !canSubmit) return;
+    if (!activated || !canSubmit) return;
     setSourceState("sending");
     setSourceMessage("");
     try {
@@ -360,216 +339,236 @@ export function MoPlayerActivationPage({
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
       if (response.ok && payload?.ok) {
         setSourceState("sent");
-        setSourceMessage(safeMessage(payload?.message || t.successSend));
+        setSourceMessage(t.sendOk);
         setPassword("");
         await refreshStatus();
       } else {
         setSourceState("error");
-        setSourceMessage(safeMessage(payload?.message || t.failureSend));
+        setSourceMessage(safeMessage(payload?.message || t.sendFail));
       }
     } catch {
       setSourceState("error");
-      setSourceMessage(t.unavailableSend);
+      setSourceMessage(t.sendUnavailable);
     }
   }
 
+  function resetSource() {
+    setSourceState("idle");
+    setSourceMessage("");
+    setServerUrl("");
+    setUsername("");
+    setPassword("");
+    setPlaylistUrl("");
+    setEpgUrl("");
+    setSourceName("");
+  }
+
   const StatusIcon = statusMeta.icon;
-  const endpointValue = sourceType === "xtream" ? serverUrl : playlistUrl;
+  const BackArrow = isAr ? ArrowRight : ArrowLeft;
+  const NextArrow = isAr ? ArrowLeft : ArrowRight;
+  const steps = [t.stepConfirm, t.stepSource];
 
   return (
-    <main className={cn("activation-lux activation-control", isPro && "activation-control-pro")} dir={isAr ? "rtl" : "ltr"}>
-      <div className="activation-aura" aria-hidden />
-      <aside className="activation-control-sidebar">
-        <Link href={withLocale(locale, isPro ? "apps/moplayer2" : "apps/moplayer")} className="activation-control-back">
-          {isPro ? (isAr ? "العودة إلى MoPlayer Pro" : "Back to MoPlayer Pro") : t.backApps}
+    <main className={cn("mo-act", isPro && "mo-act-pro")} dir={isAr ? "rtl" : "ltr"}>
+      <div className="mo-act-aura" aria-hidden />
+      <div className="mo-act-shell">
+        <Link href={withLocale(locale, isPro ? "apps/moplayer2" : "apps/moplayer")} className="mo-act-back">
+          <BackArrow className="h-4 w-4" />
+          {isPro ? t.backPro : t.back}
         </Link>
-        <div className="activation-control-brand">
-          <Image src="/images/moplayer-icon-512.png" alt="" width={48} height={48} />
-          <span>{controlBrand}</span>
-        </div>
-        <nav aria-label="MoPlayer control">
-          <a className="is-active">
-            <KeyRound className="h-4 w-4" />
-            {t.navActivation}
-          </a>
-          <a>
-            <Cloud className="h-4 w-4" />
-            {t.navProfiles}
-          </a>
-          <a>
-            <Monitor className="h-4 w-4" />
-            {t.navDevices}
-          </a>
-          <a>
-            <Shield className="h-4 w-4" />
-            {t.navSecurity}
-          </a>
-        </nav>
-      </aside>
 
-      <section className="activation-control-workspace">
-        <header className="activation-control-topbar">
-          <div>
-            <h1>{t.title}</h1>
-            <p>
-              <Wifi className="h-4 w-4" />
-              {statusMessage}
-            </p>
-          </div>
-          <button type="button" onClick={refreshStatus} disabled={checking || code.length < 4} className="activation-button">
-            <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
-            {t.refresh}
-          </button>
+        <header className="mo-act-head">
+          <span className="mo-act-badge">
+            <Tv className="h-4 w-4" />
+            {productName}
+          </span>
+          <h1>{t.pageTitle}</h1>
+          <p>{fill(t.pageSubtitle)}</p>
         </header>
 
-        <section className="activation-control-hero">
-          <div>
-            <span className="activation-kicker">
-              <ShieldCheck className="h-4 w-4" />
-              {controlBrand}
-            </span>
-            <h2>{t.heroTitle}</h2>
-            <p>{t.heroBody}</p>
-          </div>
-          <div className="activation-control-tv">
-            <Tv className="h-11 w-11" />
-            <strong>{fullCode}</strong>
-            <span>{status === "activated" ? t.deviceReady.replace("MoPlayer", productName) : t.scan}</span>
-          </div>
-        </section>
+        <ol className="mo-act-steps" aria-label={`${t.step} ${activeStep > 2 ? 2 : activeStep} ${t.of} 2`}>
+          {steps.map((label, index) => {
+            const stepNumber = index + 1;
+            const state = activeStep > stepNumber ? "done" : activeStep === stepNumber ? "active" : "todo";
+            return (
+              <li key={label} className={cn("mo-act-step", `is-${state}`)}>
+                <span className="mo-act-step-dot">{state === "done" ? <CheckCircle2 className="h-4 w-4" /> : stepNumber}</span>
+                <span className="mo-act-step-label">{label}</span>
+              </li>
+            );
+          })}
+        </ol>
 
-        <section className="activation-control-grid">
-          <div className="activation-control-panel activation-control-form">
-            <h3>{t.sourceTitle}</h3>
-            <label>
-              <span>{t.codeLabel}</span>
-              <input value={code} maxLength={4} onChange={(event) => setCode(normalizeCode(event.target.value))} placeholder="4C7K" />
-              <small>{t.codeHint}</small>
-            </label>
-            <button type="button" onClick={verifyCode} disabled={checking || code.length < 4} className="activation-button activation-button-primary">
+        {/* STEP 1 — Confirm code */}
+        <section className={cn("mo-act-card", activated && "is-complete")} aria-labelledby="mo-act-step1">
+          <div className="mo-act-card-head">
+            <span className="mo-act-card-num">{activated ? <CheckCircle2 className="h-5 w-5" /> : "1"}</span>
+            <div>
+              <h2 id="mo-act-step1">{t.step1Title}</h2>
+              <p>{fill(t.step1Lead)}</p>
+            </div>
+          </div>
+
+          <div className="mo-act-code-field" dir="ltr">
+            <span className="mo-act-code-prefix">MO-</span>
+            <input
+              value={code}
+              maxLength={4}
+              inputMode="text"
+              autoCapitalize="characters"
+              spellCheck={false}
+              aria-label={t.codeLabel}
+              onChange={(event) => setCode(normalizeCode(event.target.value))}
+              placeholder="4C7K"
+            />
+          </div>
+          {cameFromQr ? (
+            <p className="mo-act-hint">
               <CheckCircle2 className="h-4 w-4" />
-              {checking ? t.verifying : t.verify}
-            </button>
+              {t.fromQr}
+            </p>
+          ) : null}
 
-            <label>
-              <span>{t.device}</span>
-              <input readOnly value={status === "activated" ? `${t.deviceReady.replace("MoPlayer", productName)} (${fullCode})` : t.deviceWaiting} />
-            </label>
-            <label>
-              <span>{t.serverName}</span>
-              <input value={sourceName} onChange={(event) => setSourceName(event.target.value)} />
-            </label>
-            <label>
-              <span>{t.type}</span>
-              <select value={sourceType} onChange={(event) => setSourceType(event.target.value as SourceType)}>
-                <option value="xtream">{t.xtream}</option>
-                <option value="m3u">{t.m3u}</option>
-              </select>
-            </label>
+          <div className={cn("mo-act-status", statusMeta.tone)}>
+            <StatusIcon className={cn("h-5 w-5", checking && "animate-spin")} />
+            <div>
+              <strong>{checking ? t.confirming : statusMeta.data[0]}</strong>
+              <span>{statusMeta.data[1]}</span>
+            </div>
+          </div>
 
-            {sourceType === "xtream" ? (
-              <>
-                <label>
-                  <span>{t.portalUrl}</span>
-                  <input value={serverUrl} onChange={(event) => setServerUrl(event.target.value)} />
-                </label>
-                <div className="activation-control-split">
-                  <label>
-                    <span>{t.username}</span>
-                    <input value={username} onChange={(event) => setUsername(event.target.value)} />
-                  </label>
-                  <label>
-                    <span>{t.password}</span>
-                    <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
-                  </label>
-                </div>
-              </>
-            ) : (
-              <>
-                <label>
-                  <span>{t.playlistUrl}</span>
-                  <input value={playlistUrl} onChange={(event) => setPlaylistUrl(event.target.value)} />
-                </label>
-                <label>
-                  <span>{t.epgUrl}</span>
-                  <input value={epgUrl} onChange={(event) => setEpgUrl(event.target.value)} />
-                </label>
-              </>
-            )}
-
-            <div className="activation-source-actions">
-              <button type="button" onClick={testSource} disabled={status !== "activated" || sourceState === "testing"} className="activation-button">
-                <PlayCircle className="h-4 w-4" />
-                {sourceState === "testing" ? t.testing : t.test}
+          {!activated ? (
+            <div className="mo-act-actions">
+              <button
+                type="button"
+                onClick={verifyCode}
+                disabled={checking || code.length < 4}
+                className="mo-act-btn mo-act-btn-primary"
+              >
+                {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                {checking ? t.confirming : t.confirm}
               </button>
-              <button type="button" onClick={sendSource} disabled={!canSubmit || sourceState === "sending"} className="activation-button activation-button-primary">
-                <CheckCircle2 className="h-4 w-4" />
-                {sourceState === "sending" ? t.sending : t.send}
+              <button type="button" onClick={refreshStatus} disabled={checking || code.length < 4} className="mo-act-btn">
+                {t.recheck}
               </button>
             </div>
-
-            {sourceMessage ? (
-              <div className={cn("activation-source-message", sourceState === "ok" || sourceState === "sent" ? "is-success" : "is-error")}>
-                {sourceMessage}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="activation-control-panel">
-            <h3>{t.statusTitle}</h3>
-            <div className="activation-control-list">
-              <div className="activation-control-row">
-                <div>
-                  <strong>{t.userCode}</strong>
-                  <span>{fullCode}</span>
-                </div>
-                <KeyRound className="h-4 w-4" />
-              </div>
-              <div className="activation-control-row">
-                <div>
-                  <strong>{t.status}</strong>
-                  <span>{activationMeta?.status ?? status ?? t.notLoaded}</span>
-                </div>
-                <StatusIcon className="h-4 w-4" />
-              </div>
-              <div className="activation-control-row">
-                <div>
-                  <strong>{t.expires}</strong>
-                  <span>{displayDate(activationMeta?.expiresAt)}</span>
-                </div>
-                <RefreshCw className="h-4 w-4" />
-              </div>
-              <div className="activation-control-row">
-                <div>
-                  <strong>{t.endpoint}</strong>
-                  <span>{maskEndpoint(endpointValue)}</span>
-                </div>
-                <Link2 className="h-4 w-4" />
-              </div>
-            </div>
-            <div className={cn("activation-status activation-control-status", statusMeta.tone)}>
-              <StatusIcon className="h-7 w-7" />
-              <h3>{statusMeta.data[0]}</h3>
-              <p>{statusMeta.data[1]}</p>
-            </div>
-          </div>
-
-          <div className="activation-control-panel activation-control-wide">
-            <h3>{t.securityTitle}</h3>
-            <p>{t.securityBody}</p>
-            <div className="activation-trust">
-              <span>
-                <ShieldCheck className="h-4 w-4" />
-                moalfarras.space
-              </span>
-              <span>
-                <QrCode className="h-4 w-4" />
-                /activate?device_code=XXXX
-              </span>
-            </div>
-          </div>
+          ) : null}
         </section>
-      </section>
+
+        {/* STEP 2 — Add subscription / Done */}
+        {sent ? (
+          <section className="mo-act-card mo-act-done" aria-live="polite">
+            <span className="mo-act-done-icon">
+              <Sparkles className="h-7 w-7" />
+            </span>
+            <h2>{t.doneTitle}</h2>
+            <p>{fill(t.doneBody)}</p>
+            <button type="button" onClick={resetSource} className="mo-act-btn">
+              {t.sendAnother}
+            </button>
+          </section>
+        ) : (
+          <section className={cn("mo-act-card", !activated && "is-locked")} aria-labelledby="mo-act-step2">
+            <div className="mo-act-card-head">
+              <span className="mo-act-card-num">2</span>
+              <div>
+                <h2 id="mo-act-step2">{t.step2Title}</h2>
+                <p>{activated ? fill(t.step2Lead) : t.step2Locked}</p>
+              </div>
+            </div>
+
+            <fieldset className="mo-act-form" disabled={!activated}>
+              <span className="mo-act-field-label">{t.typeLabel}</span>
+              <div className="mo-act-type">
+                <button
+                  type="button"
+                  onClick={() => setSourceType("xtream")}
+                  className={cn("mo-act-type-card", sourceType === "xtream" && "is-active")}
+                  aria-pressed={sourceType === "xtream"}
+                >
+                  <Cloud className="h-5 w-5" />
+                  <strong>{t.xtream}</strong>
+                  <span>{t.xtreamDesc}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSourceType("m3u")}
+                  className={cn("mo-act-type-card", sourceType === "m3u" && "is-active")}
+                  aria-pressed={sourceType === "m3u"}
+                >
+                  <Link2 className="h-5 w-5" />
+                  <strong>{t.m3u}</strong>
+                  <span>{t.m3uDesc}</span>
+                </button>
+              </div>
+
+              <label className="mo-act-label">
+                <span>{t.serverName}</span>
+                <input value={sourceName} onChange={(event) => setSourceName(event.target.value)} placeholder={t.serverNamePlaceholder} />
+              </label>
+
+              {sourceType === "xtream" ? (
+                <>
+                  <label className="mo-act-label">
+                    <span>{t.portalUrl}</span>
+                    <input value={serverUrl} onChange={(event) => setServerUrl(event.target.value)} placeholder={t.portalPlaceholder} inputMode="url" />
+                  </label>
+                  <div className="mo-act-split">
+                    <label className="mo-act-label">
+                      <span>{t.username}</span>
+                      <input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="off" />
+                    </label>
+                    <label className="mo-act-label">
+                      <span>{t.password}</span>
+                      <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="off" />
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <label className="mo-act-label">
+                    <span>{t.playlistUrl}</span>
+                    <input value={playlistUrl} onChange={(event) => setPlaylistUrl(event.target.value)} placeholder={t.playlistPlaceholder} inputMode="url" />
+                  </label>
+                  <label className="mo-act-label">
+                    <span>{t.epgUrl}</span>
+                    <input value={epgUrl} onChange={(event) => setEpgUrl(event.target.value)} inputMode="url" />
+                  </label>
+                </>
+              )}
+
+              <div className="mo-act-actions">
+                <button type="button" onClick={testSource} disabled={!canSubmit || sourceState === "testing"} className="mo-act-btn">
+                  {sourceState === "testing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+                  {sourceState === "testing" ? t.testing : t.test}
+                </button>
+                <button type="button" onClick={sendSource} disabled={!canSubmit || sourceState === "sending"} className="mo-act-btn mo-act-btn-primary">
+                  {sourceState === "sending" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {sourceState === "sending" ? t.sending : t.send}
+                  {canSubmit && sourceState !== "sending" ? <NextArrow className="h-4 w-4 mo-act-btn-arrow" /> : null}
+                </button>
+              </div>
+
+              {sourceMessage ? (
+                <div className={cn("mo-act-msg", sourceState === "ok" ? "is-ok" : sourceState === "error" ? "is-error" : "is-info")}>
+                  {sourceState === "ok" ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                  {sourceMessage}
+                </div>
+              ) : null}
+            </fieldset>
+          </section>
+        )}
+
+        <footer className="mo-act-foot">
+          <p className="mo-act-secure">
+            <ShieldCheck className="h-4 w-4" />
+            {t.secure}
+          </p>
+          <Link href={withLocale(locale, "support")} className="mo-act-help">
+            {t.needHelp} <span>{t.support}</span>
+          </Link>
+        </footer>
+      </div>
     </main>
   );
 }

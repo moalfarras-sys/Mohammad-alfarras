@@ -23,7 +23,7 @@ import type {
 const now = new Date().toISOString();
 const moplayerDownloadBase = "/api/app/releases";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/moplayer-v2-full/download`,
+  universal: `${moplayerDownloadBase}/moplayer-2.2.3/download`,
 };
 const localSettings = new Map<string, unknown>();
 
@@ -186,8 +186,8 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   enabled: true,
   maintenanceMode: false,
   forceUpdate: false,
-  minimumVersionCode: 4,
-  latestVersionName: "v2 full",
+  minimumVersionCode: 9,
+  latestVersionName: "2.2.3",
   message: "",
   accentColor: "#00e5ff",
   logoUrl: "/images/moplayer-icon-512.png",
@@ -195,17 +195,26 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   widgets: { weather: true, football: true },
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",
+  update: {
+    latestVersionName: "2.2.3",
+    latestVersionCode: 9,
+    downloadUrl: "/api/app/download/latest?product=moplayer",
+    apkSizeBytes: 52344371,
+    checksumSha256: "f5810e2c9cb08e8cc6a01e1459e5d6ed224f759475fd05294b3f7772e48ec86a",
+    releaseNotes:
+      "MoPlayer Classic 2.2.3 publishes the latest universal Android TV APK with the current admin-controlled update flow and stable Classic download channel.",
+  },
 };
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-v2-2-full",
+    id: "release-moplayer-2-2-3",
     product_slug: "moplayer",
-    slug: "moplayer-v2.2-full",
-    version_name: "v2.2 full",
-    version_code: 6,
+    slug: "moplayer-2.2.3",
+    version_name: "2.2.3",
+    version_code: 9,
     release_notes:
-      "v2 full release for better Android TV settings control. Fixes DPAD access across Settings, makes accent colors and backgrounds apply clearly, improves server/player/parental controls, and keeps the universal Android 7+ TV APK path.",
+      "MoPlayer Classic 2.2.3 publishes the latest universal Android TV APK with the current admin-controlled update flow and stable Classic download channel.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -213,8 +222,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-v2-full-universal",
-        release_id: "release-v2-2-full",
+        id: "asset-moplayer-2-2-3-universal",
+        release_id: "release-moplayer-2-2-3",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -222,8 +231,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 90259499,
-        checksum_sha256: "68795d7fadcf1de9f91d8394fece0d090248d6a48eb6d46ad365a0466c02d7d4",
+        file_size_bytes: 52344371,
+        checksum_sha256: "f5810e2c9cb08e8cc6a01e1459e5d6ed224f759475fd05294b3f7772e48ec86a",
         is_primary: true,
         created_at: now,
       },

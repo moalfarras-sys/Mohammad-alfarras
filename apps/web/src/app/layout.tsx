@@ -71,9 +71,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: "/images/logo.png", type: "image/png" }],
-    shortcut: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: [{ url: "/images/site-icon.png", type: "image/png", sizes: "512x512" }],
+    shortcut: "/images/site-icon.png",
+    apple: "/images/site-icon.png",
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || undefined,

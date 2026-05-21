@@ -56,7 +56,7 @@
         <LinearLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="@dimen/top_bar_height"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="@dimen/screen_margin_horizontal"
@@ -70,8 +70,8 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="@dimen/home_brand_logo_size"
+                    android:layout_height="@dimen/home_brand_logo_size"
                     android:contentDescription="@string/cd_logo"
                     android:scaleType="fitCenter"
                     android:src="@drawable/moplayer_brand_logo_new" />
@@ -87,10 +87,10 @@
                         android:layout_height="wrap_content"
                         android:text="MoPlayer"
                         android:textColor="@color/cinematic_text_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/home_brand_title_size"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="-0.02" />
+                        android:letterSpacing="0" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -98,9 +98,9 @@
                         android:alpha="0.55"
                         android:text="Premium TV"
                         android:textColor="@color/moplayer_orange_light"
-                        android:textSize="9sp"
+                        android:textSize="@dimen/home_brand_tagline_size"
                         android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.15" />
+                        android:letterSpacing="0" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -173,8 +173,8 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="@dimen/screen_margin_horizontal"
-            android:paddingTop="4dp"
-            android:paddingBottom="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="4dp"
             android:clipChildren="false"
             android:clipToPadding="false">
 
@@ -196,7 +196,7 @@
                 android:layout_width="0dp"
                 android:layout_height="@dimen/home_widget_height"
                 android:layout_weight="1"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="@dimen/home_widget_gap"
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusLeft="@id/weatherWidget"
@@ -209,7 +209,7 @@
                 android:id="@+id/flipClockContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/home_clock_widget_height"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="@dimen/home_widget_gap"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusLeft="@id/footballWidget"
@@ -257,7 +257,7 @@
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="-0.01"
+                android:letterSpacing="0"
                 android:lineSpacingMultiplier="1.05"
                 tools:text="The Dark Knight" />
 
@@ -371,7 +371,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.08"
+                android:letterSpacing="0"
                 android:text="CONNECTED TO DIGITAL OS"
                 android:textColor="@color/moplayer_orange"
                 android:textSize="12sp"
@@ -406,10 +406,11 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:layout_marginBottom="@dimen/home_content_bottom_padding"
             android:clipToPadding="false"
             android:clipChildren="false"
             android:paddingTop="4dp"
-            android:paddingBottom="120dp"
+            android:paddingBottom="@dimen/spacing_16"
             android:nextFocusUp="@id/weatherWidget"
             android:nextFocusDown="@id/dockHome"
             android:descendantFocusability="afterDescendants"
@@ -467,7 +468,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
         <!-- Live TV -->
@@ -502,7 +503,7 @@
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
         <!-- Movies -->
@@ -537,7 +538,7 @@
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
         <!-- Series -->
@@ -572,7 +573,7 @@
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
         <!-- Favorites -->
@@ -607,7 +608,7 @@
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
         <!-- Search -->
@@ -642,7 +643,7 @@
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
         <!-- Settings -->
@@ -677,7 +678,7 @@
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
                 android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.06" />
+                android:letterSpacing="0" />
         </LinearLayout>
 
     </LinearLayout>

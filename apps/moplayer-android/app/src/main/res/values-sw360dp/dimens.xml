@@ -41,11 +41,11 @@
     
     <!-- Cards - Smaller for mobile landscape -->
     <dimen name="card_margin">4dp</dimen>
-    <dimen name="card_poster_width">88dp</dimen>
-    <dimen name="card_poster_height">132dp</dimen>
-    <dimen name="card_content_height">178dp</dimen>
-    <dimen name="content_row_items_height">208dp</dimen>
-    <dimen name="card_title_size">10sp</dimen>
+    <dimen name="card_poster_width">76dp</dimen>
+    <dimen name="card_poster_height">114dp</dimen>
+    <dimen name="card_content_height">144dp</dimen>
+    <dimen name="content_row_items_height">172dp</dimen>
+    <dimen name="card_title_size">9sp</dimen>
     
     <!-- Flip Clock - Smaller for mobile -->
     <dimen name="flip_clock_digit_width">24dp</dimen>
@@ -54,18 +54,22 @@
     <dimen name="flip_clock_text_size">24sp</dimen>
     
     <!-- Dock -->
-    <dimen name="dock_height">54dp</dimen>
+    <dimen name="dock_height">50dp</dimen>
     <dimen name="dock_icon_size">20dp</dimen>
     <dimen name="dock_label_size">8sp</dimen>
     <dimen name="dock_horizontal_margin">16dp</dimen>
     <dimen name="dock_bottom_margin">6dp</dimen>
     <dimen name="dock_corner_radius">20dp</dimen>
     <dimen name="home_top_action_size">36dp</dimen>
-    <dimen name="home_widget_height">56dp</dimen>
-    <dimen name="home_weather_widget_width">132dp</dimen>
-    <dimen name="home_clock_widget_height">48dp</dimen>
+    <dimen name="home_brand_logo_size">28dp</dimen>
+    <dimen name="home_brand_title_size">16sp</dimen>
+    <dimen name="home_brand_tagline_size">7sp</dimen>
+    <dimen name="home_widget_height">42dp</dimen>
+    <dimen name="home_weather_widget_width">118dp</dimen>
+    <dimen name="home_clock_widget_height">38dp</dimen>
     <dimen name="preview_panel_width">280dp</dimen>
-    <dimen name="top_bar_height">64dp</dimen>
+    <dimen name="top_bar_height">40dp</dimen>
+    <dimen name="home_widget_gap">5dp</dimen>
     
     <!-- Clean Login Dimensions for mobile -->
     <dimen name="login_card_width_clean">280dp</dimen>
@@ -84,4 +88,28 @@
     <dimen name="login_marketing_text_size">18sp</dimen>
     <dimen name="developer_credit_size">10sp</dimen>
     <dimen name="home_empty_width">320dp</dimen>
+    <dimen name="home_content_bottom_padding">64dp</dimen>
+
+    <dimen name="settings_rail_width">136dp</dimen>
+    <dimen name="settings_shell_margin">5dp</dimen>
+    <dimen name="settings_panel_padding">10dp</dimen>
+    <dimen name="settings_card_padding">10dp</dimen>
+    <dimen name="settings_header_logo_size">30dp</dimen>
+    <dimen name="settings_title_size">16sp</dimen>
+    <dimen name="settings_section_title_size">15sp</dimen>
+    <dimen name="settings_category_text_size">11sp</dimen>
+    <dimen name="settings_button_height">38dp</dimen>
+    <dimen name="settings_source_min_height">70dp</dimen>
+
+    <dimen name="player_top_scrim_height">112dp</dimen>
+    <dimen name="player_bottom_scrim_height">190dp</dimen>
+    <dimen name="player_edge_padding">12dp</dimen>
+    <dimen name="player_top_button_size">36dp</dimen>
+    <dimen name="player_title_size">16sp</dimen>
+    <dimen name="player_center_button_size">42dp</dimen>
+    <dimen name="player_center_side_button_size">38dp</dimen>
+    <dimen name="player_play_button_size">56dp</dimen>
+    <dimen name="player_bottom_button_size">34dp</dimen>
+    <dimen name="player_sheet_width">260dp</dimen>
+    <dimen name="player_drawer_width">276dp</dimen>
 </resources>

@@ -20,7 +20,7 @@
     </item>
     <item android:state_pressed="true">
         <shape android:shape="oval">
-            <solid android:color="#3300F5FF" />
+            <solid android:color="#3300E5FF" />
         </shape>
     </item>
     <item>

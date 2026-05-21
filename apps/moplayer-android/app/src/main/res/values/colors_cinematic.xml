@@ -35,10 +35,10 @@
     <!-- ═══════════════════════════════════════════════════════════
          SECONDARY: Vivid Indigo/Violet
          ═══════════════════════════════════════════════════════════ -->
-    <color name="cinematic_violet">#F4B860</color>
-    <color name="cinematic_violet_light">#FFD28A</color>
-    <color name="cinematic_violet_glow">#60F4B860</color>
-    <color name="cinematic_violet_subtle">#30F4B860</color>
+    <color name="cinematic_violet">#5B7CFF</color>
+    <color name="cinematic_violet_light">#AFC0FF</color>
+    <color name="cinematic_violet_glow">#605B7CFF</color>
+    <color name="cinematic_violet_subtle">#305B7CFF</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          GLASS LAYERS — Ultra-premium frosted glass
@@ -60,8 +60,8 @@
     <!-- ═══════════════════════════════════════════════════════════
          STATUS COLORS
          ═══════════════════════════════════════════════════════════ -->
-    <color name="cinematic_success">#5B7CFF</color>
-    <color name="cinematic_warning">#F4B860</color>
+    <color name="cinematic_success">#25D98C</color>
+    <color name="cinematic_warning">#FFD28A</color>
     <color name="cinematic_error">#FF4444</color>
     <color name="cinematic_info">#5B7CFF</color>
 
@@ -70,6 +70,6 @@
     <color name="cinematic_episode_badge_text">#5B7CFF</color>
 
     <!-- Accent Gold for ratings/stars -->
-    <color name="cinematic_gold">#F4B860</color>
-    <color name="cinematic_gold_glow">#55F4B860</color>
+    <color name="cinematic_gold">#FFD28A</color>
+    <color name="cinematic_gold_glow">#55FFD28A</color>
 </resources>

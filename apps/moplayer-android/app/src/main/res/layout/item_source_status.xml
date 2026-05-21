@@ -10,9 +10,9 @@
     android:clipChildren="false"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:minHeight="100dp"
+    android:minHeight="@dimen/settings_source_min_height"
     android:orientation="vertical"
-    android:padding="@dimen/spacing_lg">
+    android:padding="@dimen/settings_card_padding">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -72,20 +72,20 @@
             <Button
                 android:id="@+id/btnSourceSwitch"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
+                android:layout_height="@dimen/settings_button_height"
                 android:background="@drawable/selector_cinematic_button"
                 android:minWidth="100dp"
                 android:paddingHorizontal="@dimen/spacing_md"
                 android:text="@string/source_switch"
                 android:textAllCaps="false"
-                android:textColor="@color/htc_pure_black"
+                android:textColor="@color/cinematic_text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btnSourceRemove"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
+                android:layout_height="@dimen/settings_button_height"
                 android:layout_marginStart="@dimen/spacing_sm"
                 android:background="@drawable/selector_tv_button"
                 android:minWidth="92dp"

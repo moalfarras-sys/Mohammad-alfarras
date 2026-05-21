@@ -98,9 +98,9 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
 
     fun posterMetrics(size: PosterSize): PosterMetrics {
         return when (size) {
-            PosterSize.SMALL -> PosterMetrics(widthDp = 88, heightDp = 132, contentHeightDp = 166, titleTextSp = 10f)
-            PosterSize.MEDIUM -> PosterMetrics(widthDp = 98, heightDp = 146, contentHeightDp = 182, titleTextSp = 10.5f)
-            PosterSize.LARGE -> PosterMetrics(widthDp = 112, heightDp = 168, contentHeightDp = 206, titleTextSp = 11f)
+            PosterSize.SMALL -> PosterMetrics(widthDp = 76, heightDp = 114, contentHeightDp = 144, titleTextSp = 9.5f)
+            PosterSize.MEDIUM -> PosterMetrics(widthDp = 88, heightDp = 132, contentHeightDp = 164, titleTextSp = 10f)
+            PosterSize.LARGE -> PosterMetrics(widthDp = 100, heightDp = 150, contentHeightDp = 184, titleTextSp = 10.5f)
         }
     }
 }

@@ -14,7 +14,7 @@
                 android:centerX="0.5"
                 android:centerY="0.5"
                 android:startColor="#245DEBFF"
-                android:centerColor="#128B5CF6"
+                android:centerColor="#125B7CFF"
                 android:endColor="#00000000" />
         </shape>
     </item>

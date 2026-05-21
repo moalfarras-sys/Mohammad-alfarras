@@ -21,6 +21,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.lifecycle.lifecycleScope
 import com.mo.moplayer.util.BackgroundManager
 import com.mo.moplayer.util.ButtonStyleHelper
+import com.mo.moplayer.util.DevicePerformance
 import com.mo.moplayer.util.FocusStyleHelper
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.ui.common.background.BackgroundVisualMode
@@ -109,16 +110,20 @@ abstract class BaseThemedActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val animBg = getAnimatedBackground()
             if (animBg != null) {
-                // Respect user setting; only apply TV performance optimizations.
-                val enabled = backgroundManager.animationEnabled.first()
-                val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-                val lowRamDevice = activityManager.isLowRamDevice
+                // Respect user setting, then scale visuals down by device tier so weak
+                // boxes / Fire TV sticks stay smooth. Low tier => static background.
+                val userEnabled = backgroundManager.animationEnabled.first()
+                val tier = DevicePerformance.tier(this@BaseThemedActivity)
+                val lowTier = tier == DevicePerformance.Tier.LOW
+                val animationEnabled = userEnabled && !lowTier
 
                 animBg.setTvOptimizationMode(true)
-                animBg.setCinematicMode(!lowRamDevice)
-                animBg.setAnimationEnabled(enabled)
-                if (enabled) {
+                animBg.setCinematicMode(tier == DevicePerformance.Tier.HIGH)
+                animBg.setAnimationEnabled(animationEnabled)
+                if (animationEnabled) {
                     animBg.resumeAnimation()
+                } else {
+                    animBg.pauseAnimation()
                 }
             }
         }

@@ -6,8 +6,8 @@
     android:background="@drawable/selector_settings_category_premium"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="@dimen/spacing_md"
-    android:paddingVertical="8dp"
+    android:paddingHorizontal="@dimen/settings_card_padding"
+    android:paddingVertical="@dimen/settings_category_padding_vertical"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:clickable="true">
@@ -16,7 +16,7 @@
     <View
         android:id="@+id/selectionIndicator"
         android:layout_width="4dp"
-        android:layout_height="24dp"
+        android:layout_height="20dp"
         android:background="@color/color_accent_primary"
         android:visibility="invisible" />
 
@@ -29,7 +29,7 @@
         android:layout_marginStart="@dimen/spacing_md"
         android:textColor="@color/htc_text_primary"
         android:fontFamily="sans-serif-medium"
-        android:textSize="15sp"
+        android:textSize="@dimen/settings_category_text_size"
         tools:text="Server Settings" />
 
 </LinearLayout>

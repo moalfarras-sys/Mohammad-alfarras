@@ -9,7 +9,7 @@
                 android:angle="315"
                 android:startColor="#000308"
                 android:centerColor="#04102A"
-                android:endColor="#100520" />
+                android:endColor="#06112A" />
         </shape>
     </item>
 
@@ -27,7 +27,7 @@
         </shape>
     </item>
 
-    <!-- Layer 3: Violet nebula — top-right -->
+    <!-- Layer 3: Cyan nebula — top-right -->
     <item>
         <shape android:shape="rectangle">
             <gradient
@@ -35,8 +35,8 @@
                 android:gradientRadius="600dp"
                 android:centerX="0.92"
                 android:centerY="0.12"
-                android:startColor="#44F4B860"
-                android:centerColor="#1A7C3AED"
+                android:startColor="#4400E5FF"
+                android:centerColor="#1A00E5FF"
                 android:endColor="#00000000" />
         </shape>
     </item>

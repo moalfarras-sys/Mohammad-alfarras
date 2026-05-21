@@ -8,8 +8,8 @@
                     <gradient
                         android:angle="0"
                         android:startColor="#5B7CFF"
-                        android:endColor="#F4B860" />
-                    <stroke android:width="2dp" android:color="#60FFFFFF" />
+                        android:endColor="#00E5FF" />
+                    <stroke android:width="2dp" android:color="#80FFFFFF" />
                 </shape>
             </item>
         </layer-list>
@@ -20,7 +20,7 @@
             <gradient
                 android:angle="0"
                 android:startColor="#5B7CFF"
-                android:endColor="#F4B860" />
+                android:endColor="#00E5FF" />
         </shape>
     </item>
     <item android:state_focused="true">
@@ -30,8 +30,8 @@
                     <corners android:radius="20dp" />
                     <gradient
                         android:angle="135"
-                    android:startColor="#5546F6FF"
-                    android:endColor="#553B1D74" />
+                    android:startColor="#5500E5FF"
+                    android:endColor="#555B7CFF" />
                     <stroke
                         android:width="2dp"
                         android:color="#FFFFFFFF" />

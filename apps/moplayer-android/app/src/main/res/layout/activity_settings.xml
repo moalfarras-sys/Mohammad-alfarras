@@ -20,13 +20,13 @@
         <!-- Left Side - Categories -->
         <LinearLayout
             android:id="@+id/categoryRail"
-            android:layout_width="240dp"
+            android:layout_width="@dimen/settings_rail_width"
             android:layout_height="match_parent"
             android:background="@drawable/bg_premium_clean_panel"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/spacing_lg"
-            android:paddingTop="28dp"
-            android:paddingBottom="@dimen/spacing_lg"
+            android:paddingHorizontal="@dimen/settings_panel_padding"
+            android:paddingTop="@dimen/settings_panel_padding"
+            android:paddingBottom="@dimen/settings_panel_padding"
             android:clipChildren="false">
 
             <!-- Header -->
@@ -37,8 +37,8 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="@dimen/settings_header_logo_size"
+                    android:layout_height="@dimen/settings_header_logo_size"
                     android:src="@drawable/logo"
                     tools:ignore="ContentDescription" />
 
@@ -48,10 +48,10 @@
                     android:layout_marginStart="@dimen/spacing_md"
                     android:text="@string/settings_title"
                     android:textColor="@color/cinematic_text_primary"
-                    android:textSize="24sp"
+                    android:textSize="@dimen/settings_title_size"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium"
-                    android:letterSpacing="-0.01" />
+                    android:letterSpacing="0" />
 
             </LinearLayout>
 
@@ -89,8 +89,8 @@
             android:background="@drawable/bg_premium_clean_panel"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:layout_margin="@dimen/spacing_12"
-            android:padding="@dimen/spacing_lg"
+            android:layout_margin="@dimen/settings_shell_margin"
+            android:padding="@dimen/settings_panel_padding"
             android:nextFocusLeft="@id/rvCategories">
 
             <!-- Server Settings Panel -->
@@ -111,7 +111,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_server"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/settings_section_title_size"
                         android:textStyle="bold" />
 
                     <!-- Current Server Info -->
@@ -121,7 +121,7 @@
                         android:layout_marginTop="@dimen/spacing_lg"
                         android:background="@drawable/bg_cinematic_surface"
                         android:orientation="vertical"
-                        android:padding="@dimen/spacing_lg">
+                        android:padding="@dimen/settings_card_padding">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -231,7 +231,7 @@
                         <Button
                             android:id="@+id/btnRefreshServer"
                             android:layout_width="0dp"
-                            android:layout_height="38dp"
+                            android:layout_height="@dimen/settings_button_height"
                             android:layout_weight="1"
                             android:background="@drawable/selector_cinematic_button"
                             android:drawableStart="@drawable/ic_refresh"
@@ -239,7 +239,7 @@
                             android:paddingHorizontal="@dimen/spacing_md"
                             android:text="@string/settings_server_refresh"
                             android:textAllCaps="false"
-                            android:textColor="@color/htc_pure_black"
+                            android:textColor="@color/cinematic_text_primary"
                             android:textSize="12sp"
                             android:textStyle="bold"
                             android:focusable="true"
@@ -250,7 +250,7 @@
                         <Button
                             android:id="@+id/btnDeleteServer"
                             android:layout_width="0dp"
-                            android:layout_height="38dp"
+                            android:layout_height="@dimen/settings_button_height"
                             android:layout_marginStart="@dimen/spacing_md"
                             android:layout_weight="1"
                             android:background="@drawable/selector_cinematic_button"
@@ -287,7 +287,7 @@
                     <Button
                         android:id="@+id/btnAddServer"
                         android:layout_width="match_parent"
-                        android:layout_height="38dp"
+                        android:layout_height="@dimen/settings_button_height"
                         android:layout_marginTop="@dimen/spacing_md"
                         android:background="@drawable/selector_tv_button"
                         android:drawableStart="@drawable/ic_add"
@@ -304,7 +304,7 @@
                     <Button
                         android:id="@+id/btnLogout"
                         android:layout_width="wrap_content"
-                        android:layout_height="38dp"
+                        android:layout_height="@dimen/settings_button_height"
                         android:layout_marginTop="@dimen/spacing_xl"
                         android:background="@drawable/selector_tv_button"
                         android:paddingHorizontal="@dimen/spacing_xl"
@@ -343,7 +343,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_player"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/settings_section_title_size"
                         android:textStyle="bold" />
 
                     <!-- Player Selection -->
@@ -355,7 +355,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:clickable="true"
@@ -404,7 +404,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:clickable="true"
@@ -446,7 +446,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:focusableInTouchMode="true"
                         android:clickable="true"
@@ -488,7 +488,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionBufferSize"
@@ -535,7 +535,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionPlaybackProfile"
@@ -567,7 +567,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionHardwareAccel"
@@ -599,7 +599,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionLivePreview">
@@ -638,7 +638,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/settings_parental"
                     android:textColor="@color/htc_text_primary"
-                    android:textSize="20sp"
+                    android:textSize="@dimen/settings_section_title_size"
                     android:textStyle="bold" />
 
                 <!-- Enable Parental Lock -->
@@ -650,7 +650,7 @@
                     android:background="@drawable/selector_card_focus"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="@dimen/spacing_lg"
+                    android:padding="@dimen/settings_card_padding"
                     android:focusable="true"
                     android:nextFocusLeft="@id/rvCategories"
                     android:nextFocusDown="@id/optionSetPin">
@@ -680,7 +680,7 @@
                     android:background="@drawable/selector_card_focus"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="@dimen/spacing_lg"
+                    android:padding="@dimen/settings_card_padding"
                     android:focusable="true"
                     android:nextFocusLeft="@id/rvCategories"
                     android:nextFocusUp="@id/optionParentalEnabled"
@@ -712,7 +712,7 @@
                     android:background="@drawable/selector_card_focus"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="@dimen/spacing_lg"
+                    android:padding="@dimen/settings_card_padding"
                     android:focusable="true"
                     android:nextFocusLeft="@id/rvCategories"
                     android:nextFocusUp="@id/optionSetPin">
@@ -754,7 +754,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_ui"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/settings_section_title_size"
                         android:textStyle="bold" />
 
                     <!-- Background Theme -->
@@ -766,7 +766,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusDown="@id/optionAnimationToggle">
@@ -805,7 +805,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionBackground"
@@ -849,7 +849,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionAnimationToggle"
@@ -888,7 +888,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/optionPosterSize"
@@ -1072,7 +1072,7 @@
                         <EditText
                             android:id="@+id/etCustomImageUrl"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="@dimen/settings_button_height"
                             android:layout_weight="1"
                             android:background="@drawable/bg_edittext_compact"
                             android:hint="https://example.com/image.jpg"
@@ -1091,13 +1091,13 @@
                         <Button
                             android:id="@+id/btnApplyImage"
                             android:layout_width="wrap_content"
-                            android:layout_height="48dp"
+                            android:layout_height="@dimen/settings_button_height"
                             android:layout_marginStart="@dimen/spacing_sm"
                             android:background="@drawable/bg_button_primary"
-                            android:paddingHorizontal="@dimen/spacing_lg"
+                            android:paddingHorizontal="@dimen/settings_panel_padding"
                             android:text="Apply"
                             android:textAllCaps="false"
-                            android:textColor="@color/htc_pure_black"
+                            android:textColor="@color/cinematic_text_primary"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:focusable="true"
@@ -1113,10 +1113,10 @@
                         android:layout_height="44dp"
                         android:layout_marginTop="@dimen/spacing_md"
                         android:background="@drawable/bg_button_primary"
-                        android:paddingHorizontal="@dimen/spacing_lg"
+                        android:paddingHorizontal="@dimen/settings_panel_padding"
                         android:text="@string/settings_choose_from_device"
                         android:textAllCaps="false"
-                        android:textColor="@color/htc_pure_black"
+                        android:textColor="@color/cinematic_text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:focusable="true" />
@@ -1128,7 +1128,7 @@
                         android:layout_height="44dp"
                         android:layout_marginTop="@dimen/spacing_sm"
                         android:background="@drawable/selector_glass_button"
-                        android:paddingHorizontal="@dimen/spacing_lg"
+                        android:paddingHorizontal="@dimen/settings_panel_padding"
                         android:text="@string/settings_clear_image"
                         android:textAllCaps="false"
                         android:textColor="@color/htc_text_primary"
@@ -1143,7 +1143,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true">
 
                         <LinearLayout
@@ -1204,7 +1204,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true">
 
                         <LinearLayout
@@ -1265,7 +1265,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusDown="@id/switchWeatherEnabled">
@@ -1315,7 +1315,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusUp="@id/optionFootballWidget"
                         android:nextFocusDown="@id/optionWeatherEffectsQuality">
@@ -1347,7 +1347,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusUp="@id/optionWeatherEnabled"
                         android:nextFocusDown="@id/optionWeatherReduceMotion">
@@ -1395,7 +1395,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusUp="@id/optionWeatherEffectsQuality"
                         android:nextFocusDown="@id/optionWeatherDisableLightning">
@@ -1440,7 +1440,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusUp="@id/optionWeatherReduceMotion"
                         android:nextFocusDown="@id/optionDetectedLocation">
@@ -1485,7 +1485,7 @@
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="@dimen/spacing_lg"
+                        android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusUp="@id/optionWeatherDisableLightning"
                         android:nextFocusDown="@id/btnRefreshWeatherLocation">
@@ -1527,13 +1527,13 @@
                     <Button
                         android:id="@+id/btnRefreshWeatherLocation"
                         android:layout_width="wrap_content"
-                        android:layout_height="48dp"
+                        android:layout_height="@dimen/settings_button_height"
                         android:layout_marginTop="@dimen/spacing_md"
                         android:background="@drawable/bg_button_primary"
                         android:paddingHorizontal="@dimen/spacing_xl"
                         android:text="@string/settings_weather_refresh_location"
                         android:textAllCaps="false"
-                        android:textColor="@color/htc_pure_black"
+                        android:textColor="@color/cinematic_text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:focusable="true" />
@@ -1571,7 +1571,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/settings_about"
                         android:textColor="@color/htc_text_primary"
-                        android:textSize="22sp"
+                        android:textSize="@dimen/settings_section_title_size"
                         android:textStyle="bold" />
 
                     <!-- App Logo and Name -->
@@ -1584,7 +1584,7 @@
 
                         <ImageView
                             android:layout_width="160dp"
-                            android:layout_height="100dp"
+                            android:layout_height="@dimen/settings_source_min_height"
                             android:src="@drawable/logo"
                             tools:ignore="ContentDescription" />
 
@@ -1614,7 +1614,7 @@
                         android:layout_marginTop="@dimen/spacing_xl"
                         android:background="@drawable/bg_glass_panel"
                         android:orientation="vertical"
-                        android:padding="@dimen/spacing_lg">
+                        android:padding="@dimen/settings_card_padding">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -1680,7 +1680,7 @@
                             android:background="@drawable/selector_card_focus"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingHorizontal="@dimen/spacing_lg"
+                            android:paddingHorizontal="@dimen/settings_panel_padding"
                             android:paddingVertical="@dimen/spacing_lg"
                             android:focusable="true"
                             android:nextFocusLeft="@id/rvCategories"
@@ -1688,7 +1688,7 @@
 
                             <ImageView
                                 android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:layout_height="@dimen/settings_button_height"
                                 android:src="@drawable/ic_whatsapp"
                                 tools:ignore="ContentDescription" />
 
@@ -1713,7 +1713,7 @@
                             android:background="@drawable/selector_card_focus"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingHorizontal="@dimen/spacing_lg"
+                            android:paddingHorizontal="@dimen/settings_panel_padding"
                             android:paddingVertical="@dimen/spacing_lg"
                             android:focusable="true"
                             android:nextFocusLeft="@id/btnWhatsApp"
@@ -1721,7 +1721,7 @@
 
                             <ImageView
                                 android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:layout_height="@dimen/settings_button_height"
                                 android:src="@drawable/ic_website"
                                 tools:ignore="ContentDescription" />
 
@@ -1746,14 +1746,14 @@
                             android:background="@drawable/selector_card_focus"
                             android:gravity="center"
                             android:orientation="vertical"
-                            android:paddingHorizontal="@dimen/spacing_lg"
+                            android:paddingHorizontal="@dimen/settings_panel_padding"
                             android:paddingVertical="@dimen/spacing_lg"
                             android:focusable="true"
                             android:nextFocusLeft="@id/btnWebsite">
 
                             <ImageView
                                 android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:layout_height="@dimen/settings_button_height"
                                 android:src="@drawable/ic_email"
                                 tools:ignore="ContentDescription" />
 
@@ -1811,7 +1811,7 @@
                 android:layout_gravity="center_horizontal"
                 android:text="@string/settings_pin_enter_title"
                 android:textColor="@color/htc_text_primary"
-                android:textSize="20sp"
+                android:textSize="@dimen/settings_section_title_size"
                 android:textStyle="bold" />
 
             <EditText
@@ -1838,7 +1838,7 @@
                 <Button
                     android:id="@+id/btnPinCancel"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="@dimen/settings_button_height"
                     android:layout_weight="1"
                     android:background="@drawable/selector_tv_button"
                     android:text="@string/cancel"
@@ -1850,7 +1850,7 @@
                 <Button
                     android:id="@+id/btnPinConfirm"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="@dimen/settings_button_height"
                     android:layout_marginStart="@dimen/spacing_md"
                     android:layout_weight="1"
                     android:background="@drawable/selector_tv_button"

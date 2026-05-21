@@ -25,7 +25,7 @@
     <View
         android:id="@+id/topScrim"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
+        android:layout_height="@dimen/player_top_scrim_height"
         android:layout_gravity="top"
         android:background="@drawable/bg_player_top_gradient"
         android:visibility="gone"
@@ -34,7 +34,7 @@
     <View
         android:id="@+id/bottomScrim"
         android:layout_width="match_parent"
-        android:layout_height="320dp"
+        android:layout_height="@dimen/player_bottom_scrim_height"
         android:layout_gravity="bottom"
         android:background="@drawable/bg_player_bottom_gradient"
         android:visibility="gone"
@@ -47,17 +47,17 @@
         android:layout_gravity="top"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="24dp"
-        android:paddingTop="20dp"
-        android:paddingEnd="24dp"
+        android:paddingStart="@dimen/player_edge_padding"
+        android:paddingTop="@dimen/player_edge_padding"
+        android:paddingEnd="@dimen/player_edge_padding"
         android:paddingBottom="12dp"
         android:visibility="gone"
         tools:visibility="visible">
 
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
+            android:layout_width="@dimen/player_top_button_size"
+            android:layout_height="@dimen/player_top_button_size"
             android:background="@drawable/selector_tv_button"
             android:contentDescription="@string/cd_back"
             android:padding="14dp"
@@ -78,7 +78,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="24sp"
+                android:textSize="@dimen/player_title_size"
                 android:textStyle="bold"
                 tools:text="MoPlayer Premium Stream" />
 
@@ -145,8 +145,8 @@
 
         <ImageButton
             android:id="@+id/btnPreviousChannel"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/player_center_side_button_size"
+            android:layout_height="@dimen/player_center_side_button_size"
             android:background="@drawable/selector_tv_button"
             android:padding="16dp"
             android:src="@drawable/ic_skip_previous"
@@ -154,8 +154,8 @@
 
         <ImageButton
             android:id="@+id/btnRewind"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="@dimen/player_center_button_size"
+            android:layout_height="@dimen/player_center_button_size"
             android:layout_marginStart="10dp"
             android:background="@drawable/selector_tv_button"
             android:padding="18dp"
@@ -164,8 +164,8 @@
 
         <ImageButton
             android:id="@+id/btnPlayPause"
-            android:layout_width="86dp"
-            android:layout_height="86dp"
+            android:layout_width="@dimen/player_play_button_size"
+            android:layout_height="@dimen/player_play_button_size"
             android:layout_marginHorizontal="14dp"
             android:background="@drawable/bg_button_play"
             android:padding="22dp"
@@ -174,8 +174,8 @@
 
         <ImageButton
             android:id="@+id/btnForward"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="@dimen/player_center_button_size"
+            android:layout_height="@dimen/player_center_button_size"
             android:background="@drawable/selector_tv_button"
             android:padding="18dp"
             android:src="@drawable/ic_forward"
@@ -183,8 +183,8 @@
 
         <ImageButton
             android:id="@+id/btnNextChannel"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/player_center_side_button_size"
+            android:layout_height="@dimen/player_center_side_button_size"
             android:layout_marginStart="10dp"
             android:background="@drawable/selector_tv_button"
             android:padding="16dp"
@@ -198,8 +198,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
+        android:paddingStart="@dimen/player_edge_padding"
+        android:paddingEnd="@dimen/player_edge_padding"
         android:paddingBottom="22dp"
         android:visibility="gone"
         tools:visibility="visible">
@@ -247,60 +247,60 @@
 
             <ImageButton
                 android:id="@+id/btnGuide"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/player_bottom_button_size"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:background="@drawable/selector_tv_button"
-                android:padding="14dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_live_tv"
                 app:tint="@color/cinematic_text_primary" />
 
             <ImageButton
                 android:id="@+id/btnAudio"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/player_bottom_button_size"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/selector_tv_button"
-                android:padding="14dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_audio"
                 app:tint="@color/cinematic_text_primary" />
 
             <ImageButton
                 android:id="@+id/btnSubtitles"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/player_bottom_button_size"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/selector_tv_button"
-                android:padding="14dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_subtitles"
                 app:tint="@color/cinematic_text_primary" />
 
             <ImageButton
                 android:id="@+id/btnAspectRatio"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/player_bottom_button_size"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/selector_tv_button"
-                android:padding="14dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_aspect_ratio"
                 app:tint="@color/cinematic_text_primary" />
 
             <ImageButton
                 android:id="@+id/btnSpeed"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/player_bottom_button_size"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/selector_tv_button"
-                android:padding="14dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_speed"
                 app:tint="@color/cinematic_text_primary" />
 
             <ImageButton
                 android:id="@+id/btnExternalPlayer"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/player_bottom_button_size"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginStart="10dp"
                 android:background="@drawable/selector_tv_button"
-                android:padding="14dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_external"
                 app:tint="@color/cinematic_text_primary" />
         </LinearLayout>
@@ -314,7 +314,7 @@
         android:visibility="gone">
 
         <LinearLayout
-            android:layout_width="380dp"
+            android:layout_width="@dimen/player_sheet_width"
             android:layout_height="wrap_content"
             android:layout_gravity="end|center_vertical"
             android:layout_marginEnd="24dp"
@@ -348,7 +348,7 @@
         android:visibility="gone">
 
         <LinearLayout
-            android:layout_width="420dp"
+            android:layout_width="@dimen/player_drawer_width"
             android:layout_height="match_parent"
             android:background="@drawable/bg_dialog_premium"
             android:orientation="vertical"
@@ -400,10 +400,10 @@
         android:layout_width="wrap_content"
         android:layout_height="44dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="@dimen/player_edge_padding"
         android:layout_marginBottom="140dp"
         android:background="@drawable/bg_button_secondary"
-        android:paddingHorizontal="20dp"
+        android:paddingHorizontal="@dimen/player_edge_padding"
         android:text="Skip Intro"
         android:textAllCaps="false"
         android:textColor="@color/cinematic_text_primary"
@@ -411,10 +411,10 @@
 
     <LinearLayout
         android:id="@+id/nextEpisodePanel"
-        android:layout_width="360dp"
+        android:layout_width="@dimen/player_sheet_width"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="@dimen/player_edge_padding"
         android:layout_marginBottom="140dp"
         android:background="@drawable/bg_dialog_premium"
         android:orientation="vertical"
@@ -483,8 +483,8 @@
         android:visibility="gone">
 
         <ProgressBar
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="@dimen/player_center_button_size"
+            android:layout_height="@dimen/player_center_button_size"
             android:indeterminateTint="@color/moplayer_orange" />
     </FrameLayout>
 
@@ -496,7 +496,7 @@
         android:background="@drawable/bg_dialog_premium"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="@dimen/player_edge_padding"
         android:visibility="gone">
 
         <ImageView
@@ -521,7 +521,7 @@
             android:layout_height="46dp"
             android:layout_marginTop="14dp"
             android:background="@drawable/bg_button_play"
-            android:paddingHorizontal="20dp"
+            android:paddingHorizontal="@dimen/player_edge_padding"
             android:text="@string/retry"
             android:textAllCaps="false"
             android:textColor="@color/htc_pure_black" />
@@ -535,7 +535,7 @@
         android:visibility="gone">
 
         <LinearLayout
-            android:layout_width="360dp"
+            android:layout_width="@dimen/player_sheet_width"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@drawable/bg_dialog_premium"
@@ -553,7 +553,7 @@
             <Button
                 android:id="@+id/btnMxPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginTop="18dp"
                 android:background="@drawable/bg_button_secondary"
                 android:text="MX Player"
@@ -563,7 +563,7 @@
             <Button
                 android:id="@+id/btnVlcExternal"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_button_secondary"
                 android:text="VLC"
@@ -573,7 +573,7 @@
             <Button
                 android:id="@+id/btnOtherPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="@dimen/player_bottom_button_size"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_button_secondary"
                 android:text="Other"

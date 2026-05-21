@@ -43,25 +43,28 @@
     <color name="htc_text_accent">@color/liquid_accent_primary</color>
 
     <!-- ═══════════════════════════════════════════════════════════
-         MoPlayer BRAND — Fiery Glass (Warm Orange/Red)
+         MoPlayer BRAND — Electric Cyan (signature accent)
+         NOTE: legacy token names kept ("moplayer_orange" etc.) to avoid
+         a wide rename; values are the cyan brand. New code: prefer
+         @color/cinematic_cyan / @color/liquid_accent_primary.
          ═══════════════════════════════════════════════════════════ -->
-    <color name="moplayer_orange">#F4A222</color>
-    <color name="moplayer_orange_light">#F7BE54</color>
-    <color name="moplayer_orange_dark">#D68114</color>
-    <color name="moplayer_orange_glow">#66F4A222</color>
-    <color name="moplayer_orange_subtle">#22F4A222</color>
+    <color name="moplayer_orange">#00E5FF</color>
+    <color name="moplayer_orange_light">#8FF4FF</color>
+    <color name="moplayer_orange_dark">#0087A8</color>
+    <color name="moplayer_orange_glow">#6600E5FF</color>
+    <color name="moplayer_orange_subtle">#2200E5FF</color>
 
     <!-- ═══════════════════════════════════════════════════════════
          EXTENDED PALETTE
          ═══════════════════════════════════════════════════════════ -->
-    <color name="accent_blue">#FF4500</color>
-    <color name="accent_blue_dim">#55FF4500</color>
-    <color name="accent_blue_glow">#44FF4500</color>
-    <color name="accent_violet">#FF5722</color>
-    <color name="accent_violet_glow">#33FF5722</color>
-    <color name="accent_violet_dim">#55FF5722</color>
-    <color name="accent_gold">#FFB300</color>
-    <color name="accent_green">#FF4500</color>
+    <color name="accent_blue">#5B7CFF</color>
+    <color name="accent_blue_dim">#555B7CFF</color>
+    <color name="accent_blue_glow">#445B7CFF</color>
+    <color name="accent_violet">#AFC0FF</color>
+    <color name="accent_violet_glow">#33AFC0FF</color>
+    <color name="accent_violet_dim">#55AFC0FF</color>
+    <color name="accent_gold">#FFD28A</color>
+    <color name="accent_green">#00E5FF</color>
     <color name="accent_red">#FF4444</color>
 
     <!-- Deep Space / Warm Dark -->
@@ -73,7 +76,7 @@
     <!-- ═══════════════════════════════════════════════════════════
          ACCENT ALIASES
          ═══════════════════════════════════════════════════════════ -->
-    <color name="htc_accent_gold">#F4B860</color>
+    <color name="htc_accent_gold">#FFD28A</color>
     <color name="htc_accent_green">@color/moplayer_orange</color>
     <color name="htc_accent_orange">@color/moplayer_orange</color>
     <color name="htc_accent_green_light">@color/moplayer_orange_light</color>
@@ -84,7 +87,7 @@
          ═══════════════════════════════════════════════════════════ -->
     <color name="htc_success">#22C55E</color>
     <color name="htc_error">#FF4444</color>
-    <color name="htc_warning">#F4B860</color>
+    <color name="htc_warning">#FFD28A</color>
     <color name="htc_info">#00E5FF</color>
 
     <!-- ═══════════════════════════════════════════════════════════
@@ -198,7 +201,7 @@
     <color name="particle_core_green">@color/moplayer_orange_light</color>
     <color name="particle_glow">#5500E5FF</color>
     <color name="orbital_ring_green">#2800E5FF</color>
-    <color name="orbital_ring_gold">#308B5CF6</color>
+    <color name="orbital_ring_gold">#305B7CFF</color>
     <color name="developer_credit_start">@color/moplayer_orange_light</color>
     <color name="developer_credit_end">@color/moplayer_orange</color>
     <color name="heart_pulse_color">@color/moplayer_orange</color>
@@ -229,8 +232,8 @@
     <color name="neo_neon_cyan_glow">#6600F0FF</color>
     <color name="neo_neon_cyan_dim">#4400F0FF</color>
     <color name="neo_neon_cyan_subtle">#1A00F0FF</color>
-    <color name="neo_warm_gold">#F4A222</color>
-    <color name="neo_warm_gold_glow">#55F4A222</color>
+    <color name="neo_warm_gold">#FFD28A</color>
+    <color name="neo_warm_gold_glow">#55FFD28A</color>
     <color name="neo_text_primary">#FFFFFF</color>
     <color name="neo_text_secondary">#A0A0A0</color>
     <color name="neo_text_tertiary">#6B6B6B</color>

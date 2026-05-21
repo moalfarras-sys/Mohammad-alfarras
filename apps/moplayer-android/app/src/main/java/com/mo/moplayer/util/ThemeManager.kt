@@ -66,12 +66,12 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
             mapOf(
                 AccentId.BLUE to AccentOption(AccentId.BLUE, "Ink Blue", Color.parseColor("#5B7CFF")),
                 AccentId.CYAN to AccentOption(AccentId.CYAN, "Soft Blue", Color.parseColor("#AFC0FF")),
-                AccentId.PURPLE to AccentOption(AccentId.PURPLE, "Warm Amber", Color.parseColor("#F4B860")),
-                AccentId.ORANGE to AccentOption(AccentId.ORANGE, "Amber", Color.parseColor("#F4B860")),
+                AccentId.PURPLE to AccentOption(AccentId.PURPLE, "Soft Iris", Color.parseColor("#AFC0FF")),
+                AccentId.ORANGE to AccentOption(AccentId.ORANGE, "Cinematic Cyan", Color.parseColor("#00E5FF")),
                 AccentId.GOLD to AccentOption(AccentId.GOLD, "Soft Gold", Color.parseColor("#FFD28A")),
                 AccentId.PINK to AccentOption(AccentId.PINK, "Muted Rose", Color.parseColor("#FF7A90")),
                 AccentId.WHITE to AccentOption(AccentId.WHITE, "White", Color.parseColor("#FFFFFF")),
-                AccentId.GREEN to AccentOption(AccentId.GREEN, "Legacy Amber", Color.parseColor("#F4B860"))
+                AccentId.GREEN to AccentOption(AccentId.GREEN, "Legacy Cyan", Color.parseColor("#00E5FF"))
             )
 
         private val THEMES =
@@ -93,7 +93,7 @@ class ThemeManager @Inject constructor(@ApplicationContext private val context: 
                 AppThemeId.HTC_ORANGE to
                     AppTheme(
                         id = AppThemeId.HTC_ORANGE,
-                        displayName = "Warm Amber",
+                        displayName = "Cinematic Cyan",
                         defaultAccent = AccentId.ORANGE,
                         allowedAccents = setOf(AccentId.ORANGE, AccentId.GOLD, AccentId.GREEN)
                     )

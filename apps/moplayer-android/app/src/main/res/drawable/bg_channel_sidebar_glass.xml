@@ -16,7 +16,7 @@
             <gradient
                 android:type="linear"
                 android:angle="0"
-                android:startColor="#2000FF88"
+                android:startColor="#2000E5FF"
                 android:endColor="#00000000"
                 android:centerX="0.02" />
         </shape>
@@ -24,7 +24,7 @@
     <!-- Left border -->
     <item android:right="418dp">
         <shape android:shape="rectangle">
-            <solid android:color="#5000FF88" />
+            <solid android:color="#5000E5FF" />
             <size android:width="2dp" />
         </shape>
     </item>
@@ -34,7 +34,7 @@
             <gradient
                 android:type="linear"
                 android:angle="0"
-                android:startColor="#1000FF88"
+                android:startColor="#1000E5FF"
                 android:endColor="#00000000"
                 android:centerX="0.1" />
         </shape>

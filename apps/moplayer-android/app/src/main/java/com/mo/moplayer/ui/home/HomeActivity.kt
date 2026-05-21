@@ -44,6 +44,7 @@ import com.mo.moplayer.ui.search.SearchActivity
 import com.mo.moplayer.ui.settings.SettingsActivity
 import com.mo.moplayer.util.BackgroundManager
 import com.mo.moplayer.util.CrashGuard
+import com.mo.moplayer.util.DevicePerformance
 import com.mo.moplayer.util.SmartRefreshManager
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
@@ -56,6 +57,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import androidx.appcompat.app.AlertDialog
+import com.mo.moplayer.data.update.AppUpdateInfo
+import com.mo.moplayer.data.update.UpdateInstallResult
+import com.mo.moplayer.data.update.UpdateRepository
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -108,6 +113,7 @@ class HomeActivity : BaseTvActivity() {
     private var deferHeavyVisuals = true
     private var pendingPreviewItem: ContentItem? = null
     private var silentRefreshStarted = false
+    private var updateCheckStarted = false
     private var appRemoteConfig = AppRemoteConfig()
     
     private var currentDockIndex = 0
@@ -232,9 +238,10 @@ class HomeActivity : BaseTvActivity() {
         setupWeather()
         setupFootballWidget()
 
+        val richWidgetsAllowed = DevicePerformance.allowRichHomeWidgets(this)
         val visibleChrome = listOfNotNull(
-            binding.weatherWidget.takeIf { appRemoteConfig.weatherEnabled },
-            binding.footballWidget.takeIf { appRemoteConfig.footballEnabled },
+            binding.weatherWidget.takeIf { appRemoteConfig.weatherEnabled && richWidgetsAllowed },
+            binding.footballWidget.takeIf { appRemoteConfig.footballEnabled && richWidgetsAllowed },
             binding.flipClockContainer
         )
         visibleChrome.forEach { view ->
@@ -269,8 +276,9 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun applyRemoteConfigState() {
-        binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled) View.VISIBLE else View.GONE
-        binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
+        val richWidgetsAllowed = DevicePerformance.allowRichHomeWidgets(this)
+        binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled && richWidgetsAllowed) View.VISIBLE else View.GONE
+        binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled && richWidgetsAllowed) View.VISIBLE else View.GONE
 
         val message = when {
             !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { "MoPlayer is temporarily unavailable." }
@@ -322,16 +330,56 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun shouldUseReducedStartupVisuals(): Boolean {
-        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
-        return activityManager?.isLowRamDevice == true || CrashGuard.shouldUseSafeMode(this)
+        return DevicePerformance.isLow(this) || CrashGuard.shouldUseSafeMode(this)
     }
 
     private fun startSilentRefreshIfNeeded() {
         if (silentRefreshStarted) return
         silentRefreshStarted = true
         smartRefreshManager.startForegroundRefresh(lifecycleScope)
+        checkForAppUpdate()
     }
-    
+
+    private fun checkForAppUpdate() {
+        if (updateCheckStarted) return
+        updateCheckStarted = true
+        lifecycleScope.launch {
+            val repo = UpdateRepository(this@HomeActivity)
+            val info = runCatching { repo.fetchUpdateInfo() }.getOrNull() ?: return@launch
+            if (!info.updateAvailable || isFinishing) return@launch
+            showUpdateDialog(repo, info)
+        }
+    }
+
+    private fun showUpdateDialog(repo: UpdateRepository, info: AppUpdateInfo) {
+        val notes = info.releaseNotes.ifBlank {
+            getString(R.string.update_available_message, info.latestVersionName)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.update_available_title, info.latestVersionName))
+            .setMessage(notes)
+            .setCancelable(!info.forceUpdate)
+            .setPositiveButton(R.string.update_now) { dialog, _ ->
+                dialog.dismiss()
+                startUpdateDownload(repo, info)
+            }
+            .apply { if (!info.forceUpdate) setNegativeButton(R.string.update_later, null) }
+            .show()
+    }
+
+    private fun startUpdateDownload(repo: UpdateRepository, info: AppUpdateInfo) {
+        android.widget.Toast.makeText(this, R.string.update_downloading, android.widget.Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            when (val result = repo.downloadAndOpenInstaller(info) { }) {
+                is UpdateInstallResult.InstallPermissionRequired ->
+                    android.widget.Toast.makeText(this@HomeActivity, R.string.update_permission_required, android.widget.Toast.LENGTH_LONG).show()
+                is UpdateInstallResult.Failed ->
+                    android.widget.Toast.makeText(this@HomeActivity, getString(R.string.update_failed, result.message), android.widget.Toast.LENGTH_LONG).show()
+                UpdateInstallResult.InstallerOpened -> Unit
+            }
+        }
+    }
+
     private fun setupWeather() {
         // Initialize weather widget with service (automatic IP-based location)
         binding.weatherWidget.initialize(weatherService)

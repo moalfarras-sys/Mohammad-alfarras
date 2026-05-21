@@ -86,9 +86,9 @@ class BackgroundManager @Inject constructor(
         @Deprecated("Use THEME_SOLID instead", ReplaceWith("THEME_SOLID"))
         const val THEME_MINIMAL_PARTICLES = 0
 
-        // Default colors - Premium Fiery Glass
-        val DEFAULT_PARTICLE_COLOR = Color.parseColor("#FF4500")
-        val DEFAULT_GLOW_COLOR = Color.parseColor("#1AFF4500")
+        // Default colors - premium cyan/ink
+        val DEFAULT_PARTICLE_COLOR = Color.parseColor("#00E5FF")
+        val DEFAULT_GLOW_COLOR = Color.parseColor("#1A00E5FF")
 
         private const val CUSTOM_BG_FILENAME = "custom_background.jpg"
         private const val CITY_BG_FILENAME = "city_background.jpg"
@@ -433,14 +433,14 @@ class BackgroundManager @Inject constructor(
      */
     fun getPresetColors(): List<Pair<String, Int>> {
         return listOf(
-            "Premium Blue" to Color.parseColor("#0A84FF"),
-            "Ocean" to Color.parseColor("#00D4FF"),
-            "Royal Purple" to Color.parseColor("#F4B860"),
-            "Coral" to Color.parseColor("#FF6B6B"),
-            "Gold" to Color.parseColor("#FFD60A"),
-            "Mint" to Color.parseColor("#30D158"),
+            "Premium Blue" to Color.parseColor("#5B7CFF"),
+            "Ocean" to Color.parseColor("#00E5FF"),
+            "Royal Purple" to Color.parseColor("#AFC0FF"),
+            "Aqua Mist" to Color.parseColor("#8FF4FF"),
+            "Starlight" to Color.parseColor("#AFC0FF"),
+            "Aurora" to Color.parseColor("#33D6A6"),
             "Silver" to Color.parseColor("#8E8E93"),
-            "Rose" to Color.parseColor("#FF375F")
+            "Rating Gold" to Color.parseColor("#FFD28A")
         )
     }
 }

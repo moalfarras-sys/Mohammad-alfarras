@@ -90,15 +90,15 @@ class AnimatedBackground @JvmOverloads constructor(
         }
     }
     
-    // Premium Fiery Glass color palette (matching colors.xml)
-    private var primaryColor = Color.parseColor("#FF4500") // moplayer_orange
-    private var secondaryColor = Color.parseColor("#FF7A4D") // moplayer_orange_light
-    private var accentColor = Color.parseColor("#FFB300") // accent_gold
-    private var horizonAccentColor = Color.parseColor("#CC3700") // moplayer_orange_dark
+    // Premium cyan/ink palette (matching colors.xml)
+    private var primaryColor = Color.parseColor("#00E5FF")
+    private var secondaryColor = Color.parseColor("#5B7CFF")
+    private var accentColor = Color.parseColor("#AFC0FF")
+    private var horizonAccentColor = Color.parseColor("#0087A8")
     
-    // Space background color (Warm Dark)
-    private val spaceBlack = Color.parseColor("#0A0502")
-    private val solidBlack = Color.parseColor("#050200")
+    // Space background color (deep ink)
+    private val spaceBlack = Color.parseColor("#020510")
+    private val solidBlack = Color.parseColor("#05070D")
     
     // Custom background image
     private var customBitmap: Bitmap? = null
@@ -390,7 +390,7 @@ class AnimatedBackground @JvmOverloads constructor(
         // Premium blue/purple nebula colors
         val nebulaColors = listOf(
             primaryColor,
-            Color.parseColor("#F4B860"),  // Purple
+            Color.parseColor("#5B7CFF"),
             secondaryColor
         )
         

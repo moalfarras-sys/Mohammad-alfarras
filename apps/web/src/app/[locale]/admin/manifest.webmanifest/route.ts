@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const icon = {
-  src: "/icons/icon.svg",
-  sizes: "any",
-  type: "image/svg+xml",
-  purpose: "any maskable" as const,
-};
+const icons = [
+  {
+    src: "/images/logo.png",
+    sizes: "1024x768",
+    type: "image/png",
+    purpose: "any" as const,
+  },
+];
 
 export async function GET(request: Request, { params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -17,8 +19,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ loca
 
   const manifest = {
     id: `${origin}${base}/`,
-    name: isAr ? "Moalfarras — لوحة التحكم" : "Moalfarras Control Center",
-    short_name: isAr ? "التحكم" : "Control",
+    name: "admin Moalfarras",
+    short_name: "admin Moalfarras",
     description: isAr
       ? "إدارة الموقع، السيرة، المشاريع، الوسائط وملفات PDF."
       : "Manage the site, CV, projects, media, and PDFs.",
@@ -32,31 +34,31 @@ export async function GET(request: Request, { params }: { params: Promise<{ loca
     background_color: "#070b14",
     theme_color: "#5B7CFF",
     categories: ["business", "productivity"],
-    icons: [icon],
+    icons,
     shortcuts: [
       {
         name: isAr ? "ملفات PDF" : "PDFs",
         short_name: "PDF",
         url: `${base}/pdfs`,
-        icons: [icon],
+        icons,
       },
       {
         name: isAr ? "الصفحات" : "Pages",
         short_name: isAr ? "صفحات" : "Pages",
         url: `${base}/pages`,
-        icons: [icon],
+        icons,
       },
       {
         name: isAr ? "المشاريع" : "Projects",
         short_name: isAr ? "أعمال" : "Work",
         url: `${base}/projects`,
-        icons: [icon],
+        icons,
       },
       {
         name: isAr ? "الإعدادات" : "Settings",
         short_name: isAr ? "إعدادات" : "Settings",
         url: `${base}/settings`,
-        icons: [icon],
+        icons,
       },
     ],
   };

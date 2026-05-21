@@ -27,17 +27,17 @@ export async function generateMetadata({
   const isArabic = locale === "ar";
 
   return {
-    title: isArabic ? "Moalfarras — لوحة التحكم" : "Moalfarras Control Center",
+    title: isArabic ? "admin Moalfarras" : "admin Moalfarras",
     description: isArabic ? "تطبيق ويب لإدارة الموقع والسيرة والمشاريع" : "Web app to manage your site, CV, and projects",
-    applicationName: "Moalfarras Control Center",
+    applicationName: "admin Moalfarras",
     manifest: manifestPath,
     icons: {
-      icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
-      apple: [{ url: "/images/logo.png", sizes: "180x180", type: "image/png" }],
+      icon: [{ url: "/images/logo.png", type: "image/png" }],
+      apple: [{ url: "/images/logo.png", type: "image/png" }],
     },
     appleWebApp: {
       capable: true,
-      title: isArabic ? "لوحة Moalfarras" : "Moalfarras Control",
+      title: "admin Moalfarras",
       statusBarStyle: "black-translucent",
     },
     formatDetection: {

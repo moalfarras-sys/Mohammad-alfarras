@@ -21,30 +21,30 @@ import com.moalfarras.moplayerpro.R
 // PREMIUM FIERY GLASS — Warm Luxury Gold & Ember Palette
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Primary accent — adapts to poster palette or defaults to Champagne Gold */
-val GlassChampagne = Color(0xFFE3BC78)
+/** Primary accent — adapts to poster palette or defaults to luminous Champagne Gold */
+val GlassChampagne = Color(0xFFF1CC83)
 /** Secondary accent — Fiery Orange */
-val FieryOrange    = Color(0xFFFF8C42)
+val FieryOrange    = Color(0xFFFF9248)
 /** Tertiary accent — Warm Amber */
-val WarmAmber      = Color(0xFFFFB366)
+val WarmAmber      = Color(0xFFFFC078)
 /** Highlight accent — Ember Red/Rose */
 val EmberRose      = Color(0xFFFF6B6B)
-/** Luxury dark brown base */
-val WarmEspresso   = Color(0xFF1A120C)
+/** Luxury dark base */
+val WarmEspresso   = Color(0xFF15100B)
 
 // Legacy aliases for backward compat
 val RoyalBlue   = FieryOrange
 val NeonViolet  = WarmAmber
-val LuxuryAmber = Color(0xFFFFD27A)
+val LuxuryAmber = Color(0xFFFFD78A)
 
-val MidnightBlack = Color(0xFF0A0908)
-val DeepNavy      = Color(0xFF141110)
-val MoSurface     = Color(0xFF18130F)
-val MoSurfaceHigh = Color(0xFF241914)
-val MoTextPrimary = Color(0xFFF8F2EA)
-val MoTextMuted   = Color(0xFFCDBBA6)
+val MidnightBlack = Color(0xFF060509)
+val DeepNavy      = Color(0xFF0E0C0D)
+val MoSurface     = Color(0xFF141118)
+val MoSurfaceHigh = Color(0xFF221C1B)
+val MoTextPrimary = Color(0xFFFBF9F4)
+val MoTextMuted   = Color(0xFFC3B7A6)
 val MoLiveRed     = Color(0xFFFF3B4D)
-val MoSuccess     = Color(0xFF8BD88B)
+val MoSuccess     = Color(0xFF7FD98A)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DESIGN SYSTEM TOKENS — Spacing, Elevation, Radius, Motion
@@ -117,7 +117,7 @@ private fun colors(accent: Color): ColorScheme = darkColorScheme(
     onBackground       = MoTextPrimary,
     onSurface          = MoTextPrimary,
     onSurfaceVariant   = MoTextMuted,
-    outline            = Color(0x33E3BC78),
+    outline            = Color(0x33F1CC83),
     error              = Color(0xFFFF4D6D),
 )
 
@@ -141,13 +141,13 @@ data class MoVisuals(
     /** Primary accent — adapts to poster palette or defaults to GlassChampagne */
     val accent : Color = GlassChampagne,
     /** Deep glass background */
-    val glass  : Color = Color(0x66241914),
+    val glass  : Color = Color(0x66221C1B),
     /** Frosted highlight layer */
     val frosted: Color = Color(0x0DFFFFFF),
     /** Border line color */
-    val line   : Color = Color(0x33E3BC78),
+    val line   : Color = Color(0x33F1CC83),
     /** Glow for shadows/focus */
-    val glow   : Color = Color(0x88E3BC78),
+    val glow   : Color = Color(0x88F1CC83),
     /** Secondary accent (Fiery Orange) */
     val accentB: Color = FieryOrange,
     /** Tertiary accent (Warm Amber) */
@@ -187,9 +187,9 @@ fun MoTheme(
     val clamped = accent
     val visuals = MoVisuals(
         accent  = clamped,
-        glass   = Color(0x66241914),
+        glass   = Color(0x66221C1B),
         frosted = Color(0x0DFFFFFF),
-        line    = Color(0x33E3BC78),
+        line    = Color(0x33F1CC83),
         glow    = clamped.copy(alpha = 0.50f),
         accentB = FieryOrange,
         accentC = WarmAmber,

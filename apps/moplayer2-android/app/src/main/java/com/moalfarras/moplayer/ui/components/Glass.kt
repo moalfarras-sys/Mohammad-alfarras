@@ -39,9 +39,9 @@ fun GlassPanel(
 
     val bg by animateColorAsState(
         targetValue = if (highlighted) {
-            visuals.surfaceHigh.copy(alpha = 0.88f)
+            visuals.surfaceHigh.copy(alpha = 0.93f)
         } else {
-            visuals.surface.copy(alpha = 0.72f)
+            visuals.surface.copy(alpha = 0.82f)
         },
         label = "glass-bg",
     )

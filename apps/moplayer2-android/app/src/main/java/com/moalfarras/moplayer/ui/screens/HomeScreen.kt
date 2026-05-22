@@ -135,8 +135,10 @@ fun HomeScreen(
         }
     }
     val wrappedOnFocus: (MediaItem) -> Unit = { item ->
-        if (performancePolicy.enableFocusBackdropUpdates) {
-            focusedBackdrop = backdropUrlFrom(item)
+        // Live channels expose only a square logo; cropping it full-bleed looks like a muddy
+        // watermark. Keep the cinematic poster/city backdrop and only follow items with real art.
+        if (performancePolicy.enableFocusBackdropUpdates && item.type != ContentType.LIVE) {
+            backdropUrlFrom(item)?.let { focusedBackdrop = it }
         }
         onFocus(item)
     }

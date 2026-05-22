@@ -424,15 +424,13 @@ private fun ErrorOverlay(message: String) {
 @Composable
 private fun NoticeOverlay(message: String, onDismiss: () -> Unit) {
     val visuals = LocalMoVisuals.current
+    // Auto-dismiss any transient notice so it never stays stuck on screen.
+    LaunchedEffect(message) {
+        kotlinx.coroutines.delay(3200)
+        onDismiss()
+    }
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0x44080604), Color(0x77050403)),
-                ),
-            )
-            .onPreviewKeyEvent { false },
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter,
     ) {
         GlassPanel(

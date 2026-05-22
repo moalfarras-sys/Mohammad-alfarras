@@ -20,11 +20,20 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.moalfarras.moplayer.ui.i18n.AppLanguage
+import com.moalfarras.moplayer.ui.i18n.I18n
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
+import com.moalfarras.moplayer.ui.i18n.stringsFor
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +47,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.core.AppGraph
-import com.moalfarras.moplayer.domain.model.AccentMode
+import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.AppSection
@@ -57,14 +66,13 @@ import com.moalfarras.moplayer.ui.screens.SeriesDetailsScreen
 import com.moalfarras.moplayer.ui.screens.SettingsScreen
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.MoTheme
-import com.moalfarras.moplayer.ui.theme.rememberDynamicAccent
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import androidx.paging.compose.LazyPagingItems
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels {
         val graph = AppGraph.get(applicationContext)
-        MainViewModel.Factory(graph.iptvRepository, graph.settingsRepository, graph.widgetRepository)
+        MainViewModel.Factory(graph.iptvRepository, graph.settingsRepository, graph.widgetRepository, graph.remoteConfigService)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,8 +89,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIncomingPlaylist(intent: Intent?) {
-        val url = intent?.dataString?.takeIf { it.startsWith("http://") || it.startsWith("https://") } ?: return
-        viewModel.loginM3u("Imported IPTV", url)
+        val url = intent?.dataString
+            ?.trim()
+            ?.takeIf { it.isLikelyPlaylistUrl() }
+            ?: return
+        viewModel.handleIncomingPlaylistUrl(url)
+    }
+
+    private fun String.isLikelyPlaylistUrl(): Boolean {
+        if (startsWith("http://", ignoreCase = true) || startsWith("https://", ignoreCase = true)) return true
+        val lower = lowercase()
+        return ('.' in this && '/' in this) ||
+            "get.php" in lower ||
+            "player_api.php" in lower ||
+            "m3u" in lower
     }
 }
 
@@ -108,27 +128,45 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
     val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
     val seriesEpisodes by viewModel.seriesEpisodes.collectAsState(initial = emptyList())
     val focusedLiveEpg by viewModel.focusedLiveEpg.collectAsState()
-    val dynamicAccent = rememberDynamicAccent(state.playingItem ?: state.focusedItem)
-    val accent = if (state.settings.accentMode == AccentMode.CUSTOM) Color(state.settings.accentColor) else dynamicAccent
+    val accent = Color(state.settings.accentColor)
     val tv = rememberTvScale()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val devicePerformance = remember { Adaptive.performanceInfo(context) }
+    val performancePolicy = remember(state.settings, devicePerformance) {
+        Adaptive.performancePolicy(state.settings, devicePerformance)
+    }
+    var lastExitBackAt by remember { mutableLongStateOf(0L) }
 
     fun requestBack() {
-        if (state.activeServer == null) {
-            viewModel.setExitDialog(true)
-        } else if (state.section != AppSection.HOME) {
+        val now = System.currentTimeMillis()
+        if (state.showExitDialog) {
+            viewModel.setExitDialog(false)
+        } else if (state.section == AppSection.PLAYER && state.playingItem != null) {
+            viewModel.closePlayer()
+        } else if (state.activeServer != null && state.section != AppSection.HOME) {
             viewModel.navigateBack()
-        } else {
+            lastExitBackAt = 0L
+        } else if (state.activeServer != null && state.dockFocusSection == null) {
+            viewModel.focusDock(state.section)
+            lastExitBackAt = 0L
+        } else if (now - lastExitBackAt <= 1_500L) {
             viewModel.setExitDialog(true)
+            lastExitBackAt = 0L
+        } else {
+            lastExitBackAt = now
+            viewModel.showNotice("Press Back again to exit MoPlayer Pro")
         }
     }
 
+    val appLanguage = AppLanguage.resolve(state.settings.languageTag)
+    SideEffect { I18n.current = appLanguage }
+    CompositionLocalProvider(
+        LocalLayoutDirection provides if (appLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+        LocalStrings provides stringsFor(appLanguage),
+    ) {
     MoTheme(accent = accent) {
         BackHandler {
-            if (state.section == AppSection.PLAYER && state.playingItem != null) {
-                viewModel.closePlayer()
-            } else {
-                requestBack()
-            }
+            requestBack()
         }
         when {
             state.activeServer == null -> {
@@ -175,6 +213,7 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                     onTripleOk = { viewModel.toggleFavorite(playing) },
                     accent = accent,
                     preferredPlayer = state.settings.preferredPlayer,
+                    performancePolicy = performancePolicy,
                 )
             }
             else -> {
@@ -196,18 +235,21 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                             },
                     ) {
                         when (state.section) {
-                            AppSection.HOME -> HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.settings, if (state.dockFocusSection == null) state.focusedItem else null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent)
-                            AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, focusedLiveEpg, state.selectedCategoryId, state.settings.previewEnabled, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.MOVIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_movies), movieCategories, viewModel.selectedMedia, state.focusedItem, state.selectedCategoryId, state.settings.previewEnabled, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.SERIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_series), seriesCategories, viewModel.selectedMedia, state.focusedItem, state.selectedCategoryId, state.settings.previewEnabled, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.FAVORITES -> FavoritesScreen(viewModel.favorites, state.focusedItem, state.settings.previewEnabled, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
+                            AppSection.HOME -> HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent)
+                            AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, focusedLiveEpg, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
+                            AppSection.MOVIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_movies), movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
+                            AppSection.SERIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_series), seriesCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
+                            AppSection.FAVORITES -> FavoritesScreen(viewModel.favorites, state.focusedItem, state.restoreFocusItem, performancePolicy.enablePreviewPane, performancePolicy, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.SERIES_DETAIL -> {
                                 val series = state.seriesDetail
                                 if (series != null) {
                                     SeriesDetailsScreen(
                                         series = series,
                                         episodes = seriesEpisodes,
+                                        isLoading = state.seriesDetailsLoading,
                                         focused = state.focusedItem,
+                                        restoreFocusItem = state.restoreFocusItem,
+                                        performancePolicy = performancePolicy,
                                         onFocus = viewModel::focusItem,
                                         onPlay = viewModel::play,
                                         onFavorite = viewModel::toggleFavorite,
@@ -217,17 +259,19 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                                 }
                             }
                             AppSection.SEARCH -> SearchScreen(state.searchQuery, state.settings.searchHistory, viewModel.searchResults, viewModel::setSearch, viewModel::clearSearchHistory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.SETTINGS -> SettingsScreen(state.settings, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setLibraryMode, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer)
+                            AppSection.SETTINGS -> SettingsScreen(state.settings, performancePolicy, devicePerformance, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setLibraryMode, viewModel::setLanguage, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setPerformanceMode, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer)
                             AppSection.PLAYER -> LaunchedEffect(Unit) { viewModel.closePlayer() }
                         }
                         androidx.compose.animation.AnimatedVisibility(
-                            visible = state.activeServer != null && state.section == AppSection.HOME,
+                            visible = state.activeServer != null &&
+                                state.section == AppSection.HOME &&
+                                !state.showExitDialog,
                             modifier = Modifier.align(Alignment.BottomCenter),
                             enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }) + androidx.compose.animation.fadeIn(),
                             exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it }) + androidx.compose.animation.fadeOut(),
                         ) {
                             BottomDock(
-                                selected = state.section,
+                                selected = state.dockFocusSection ?: state.section,
                                 restoreFocusSection = state.dockFocusSection,
                                 onSelect = viewModel::select,
                                 onSearch = { viewModel.select(AppSection.SEARCH) },
@@ -240,6 +284,14 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                         state.loading?.let { progress ->
                             SyncOverlay(progress = progress)
                         }
+                        state.backgroundRefresh?.let { progress ->
+                            RefreshStatusChip(
+                                progress = progress,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 18.dp, end = 22.dp),
+                            )
+                        }
                         state.error?.let { error ->
                             ErrorOverlay(message = error)
                         }
@@ -248,6 +300,38 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                         }
                     }
                 }
+            }
+        }
+    }
+    }
+}
+
+@Composable
+private fun RefreshStatusChip(progress: LoadProgress, modifier: Modifier = Modifier) {
+    val visuals = LocalMoVisuals.current
+    GlassPanel(
+        modifier = modifier.widthIn(min = 260.dp, max = 380.dp),
+        radius = 999.dp,
+        highlighted = true,
+        glow = visuals.accent.copy(alpha = 0.18f),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = progress.phase,
+                color = Color.White,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            if (progress.total > 0) {
+                Text(
+                    text = "${progress.loaded} / ${progress.total}",
+                    color = Color(0xCCE3BC78),
+                    style = MaterialTheme.typography.labelMedium,
+                )
             }
         }
     }

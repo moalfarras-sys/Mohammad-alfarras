@@ -1,8 +1,8 @@
 package com.moalfarras.moplayer.data.repository
 
-import com.moalfarras.moplayer.data.network.FootballResponseDto
-import com.moalfarras.moplayer.data.network.FootballService
 import com.moalfarras.moplayer.data.network.FreeWeatherService
+import com.moalfarras.moplayer.data.network.SportsDbEventsDto
+import com.moalfarras.moplayer.data.network.SportsDbService
 import com.moalfarras.moplayer.data.network.IpApiResponse
 import com.moalfarras.moplayer.data.network.OpenMeteoCurrent
 import com.moalfarras.moplayer.data.network.OpenMeteoResponse
@@ -11,6 +11,12 @@ import com.moalfarras.moplayer.data.network.WeatherCurrentDto
 import com.moalfarras.moplayer.data.network.WeatherLocationDto
 import com.moalfarras.moplayer.data.network.WeatherResponseDto
 import com.moalfarras.moplayer.data.network.WeatherService
+import com.moalfarras.moplayer.data.network.WebFootballResponseDto
+import com.moalfarras.moplayer.data.network.WebFootballService
+import com.moalfarras.moplayer.data.network.WebWeatherDto
+import com.moalfarras.moplayer.data.network.WebWeatherService
+import com.moalfarras.moplayer.data.network.OpenMeteoGeocodingResponse
+import com.moalfarras.moplayer.data.network.OpenMeteoGeocodingResult
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.ManualWeatherEffect
 import com.moalfarras.moplayer.domain.model.WeatherMode
@@ -22,10 +28,10 @@ import org.junit.Test
 
 class WidgetRepositoryTest {
     @Test
-    fun manualWeatherDoesNotCallNetwork() = runTest {
+    fun manualWeatherIsPreviewOnlyAndDoesNotCallNetwork() = runTest {
         val weatherService = FakeWeatherService()
         val freeWeatherService = FakeFreeWeatherService()
-        val repo = WidgetRepository(weatherService, freeWeatherService, FakeFootballService())
+        val repo = fakeRepo(weatherService = weatherService, freeWeatherService = freeWeatherService)
 
         val snapshot = repo.weather(
             AppSettings(
@@ -36,6 +42,7 @@ class WidgetRepositoryTest {
 
         assertEquals("Thunderstorm", snapshot.condition)
         assertTrue(snapshot.isManual)
+        assertFalse(snapshot.hasRealWeather)
         assertEquals(0, weatherService.calls)
         assertEquals(0, freeWeatherService.locationCalls)
         assertEquals(0, freeWeatherService.weatherCalls)
@@ -43,7 +50,7 @@ class WidgetRepositoryTest {
 
     @Test
     fun autoWeatherUsesIpLocationTimezoneAndOpenMeteoCondition() = runTest {
-        val repo = WidgetRepository(FakeWeatherService(), FakeFreeWeatherService(), FakeFootballService())
+        val repo = fakeRepo()
 
         val snapshot = repo.weather(AppSettings(weatherMode = WeatherMode.AUTO_IP))
 
@@ -51,11 +58,12 @@ class WidgetRepositoryTest {
         assertEquals("Europe/Berlin", snapshot.timeZoneId)
         assertEquals("Rain", snapshot.condition)
         assertFalse(snapshot.isManual)
+        assertTrue(snapshot.hasRealWeather)
     }
 
     @Test
     fun cityWeatherUsesCityWhenWeatherApiIsUnavailable() = runTest {
-        val repo = WidgetRepository(FakeWeatherService(), FakeFreeWeatherService(), FakeFootballService())
+        val repo = fakeRepo()
 
         val snapshot = repo.weather(
             AppSettings(
@@ -66,8 +74,23 @@ class WidgetRepositoryTest {
 
         assertEquals("Dubai", snapshot.city)
         assertFalse(snapshot.isManual)
+        assertTrue(snapshot.hasRealWeather)
     }
 }
+
+private fun fakeRepo(
+    weatherService: FakeWeatherService = FakeWeatherService(),
+    freeWeatherService: FakeFreeWeatherService = FakeFreeWeatherService(),
+    sportsDbService: FakeSportsDbService = FakeSportsDbService(),
+    webWeatherService: FakeWebWeatherService = FakeWebWeatherService(),
+    webFootballService: FakeWebFootballService = FakeWebFootballService(),
+) = WidgetRepository(
+    weatherService = weatherService,
+    webWeatherService = webWeatherService,
+    freeWeatherService = freeWeatherService,
+    sportsDbService = sportsDbService,
+    webFootballService = webFootballService,
+)
 
 private class FakeWeatherService : WeatherService {
     var calls = 0
@@ -97,8 +120,31 @@ private class FakeFreeWeatherService : FreeWeatherService {
         weatherCalls++
         return OpenMeteoResponse(OpenMeteoCurrent(temperature_2m = 12.0, weather_code = 61))
     }
+
+    override suspend fun geocodeCity(name: String, count: Int, language: String, format: String): OpenMeteoGeocodingResponse {
+        return OpenMeteoGeocodingResponse(
+            results = listOf(
+                OpenMeteoGeocodingResult(
+                    name = name,
+                    latitude = 25.2048,
+                    longitude = 55.2708,
+                    country = "United Arab Emirates",
+                    timezone = "Asia/Dubai",
+                ),
+            ),
+        )
+    }
 }
 
-private class FakeFootballService : FootballService {
-    override suspend fun fixtures(live: String): FootballResponseDto = FootballResponseDto()
+private class FakeSportsDbService : SportsDbService {
+    override suspend fun eventsDay(date: String, sport: String): SportsDbEventsDto = SportsDbEventsDto()
+    override suspend fun nextLeague(leagueId: String): SportsDbEventsDto = SportsDbEventsDto()
+}
+
+private class FakeWebWeatherService : WebWeatherService {
+    override suspend fun weather(url: String): WebWeatherDto = WebWeatherDto(error = "not_configured")
+}
+
+private class FakeWebFootballService : WebFootballService {
+    override suspend fun football(url: String): WebFootballResponseDto = WebFootballResponseDto()
 }

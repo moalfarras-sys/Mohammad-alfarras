@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -99,6 +100,43 @@ function updateFallback(config: object): Record<string, unknown> {
     : {};
 }
 
+type LatestRelease = {
+  slug?: string | null;
+  version_name?: string | null;
+  version_code?: number | string | null;
+  release_notes?: string | null;
+  assets?: Array<{
+    abi?: string | null;
+    external_url?: string | null;
+    file_size_bytes?: number | string | null;
+    checksum_sha256?: string | null;
+    is_primary?: boolean | null;
+  }> | null;
+};
+
+function releaseUpdate(product: string, fallbackConfig: object, latestRelease: LatestRelease | null): Record<string, unknown> {
+  if (!latestRelease) return {};
+  const versionCode = Number(latestRelease.version_code) || Number((fallbackConfig as { minimumVersionCode?: number }).minimumVersionCode) || 0;
+  const primaryAsset =
+    latestRelease.assets?.find((asset) => asset.is_primary) ??
+    latestRelease.assets?.find((asset) => asset.abi === "universal") ??
+    latestRelease.assets?.[0];
+  return {
+    latestVersionName: String(latestRelease.version_name ?? ""),
+    latestVersionCode: versionCode,
+    minimumVersionCode: versionCode,
+    update: {
+      ...updateFallback(fallbackConfig),
+      latestVersionName: String(latestRelease.version_name ?? ""),
+      latestVersionCode: versionCode,
+      downloadUrl: `/api/app/download/latest?product=${product}`,
+      apkSizeBytes: primaryAsset?.file_size_bytes ? Number(primaryAsset.file_size_bytes) : undefined,
+      checksumSha256: primaryAsset?.checksum_sha256 ?? undefined,
+      releaseNotes: latestRelease.release_notes ?? undefined,
+    },
+  };
+}
+
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const product = resolveManagedAppSlug(params.get("app") ?? params.get("product"));
@@ -112,20 +150,13 @@ export async function GET(request: Request) {
   }
 
   const supabase = createSupabaseDataClient();
-  const [settingsRes, releaseRes] = await Promise.all([
+  const [settingsRes, ecosystem] = await Promise.all([
     supabase.from("app_settings").select("value, updated_at").eq("key", settingsKey).maybeSingle(),
-    supabase
-      .from("app_releases")
-      .select("version_name, version_code")
-      .eq("product_slug", product)
-      .eq("is_published", true)
-      .order("published_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+    readAppEcosystem(product),
   ]);
 
   const { data, error } = settingsRes;
-  const latestRelease = releaseRes.data;
+  const latestRelease = (ecosystem.releases[0] ?? null) as LatestRelease | null;
 
   if (error || !data) {
     const response = NextResponse.json({
@@ -133,19 +164,7 @@ export async function GET(request: Request) {
       source: latestRelease ? "release" : "fallback",
       config: {
         ...fallbackConfig,
-        ...(latestRelease
-          ? {
-          latestVersionName: String(latestRelease.version_name),
-          latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-          minimumVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-          update: {
-            ...updateFallback(fallbackConfig),
-            latestVersionName: String(latestRelease.version_name),
-            latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-            downloadUrl: `/api/app/download/latest?product=${product}`,
-          },
-        }
-      : {}),
+        ...releaseUpdate(product, fallbackConfig, latestRelease),
       },
     });
     response.headers.set("Cache-Control", "no-store");
@@ -157,9 +176,10 @@ export async function GET(request: Request) {
   const config: Record<string, unknown> = {
     ...fallbackConfig,
     ...settingsValue,
+    ...releaseUpdate(product, fallbackConfig, latestRelease),
     ...(latestRelease
       ? {
-          latestVersionName: String(latestRelease.version_name),
+          latestVersionName: String(latestRelease.version_name ?? ""),
           latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
           minimumVersionCode: Math.max(
             Number(settingsValue.minimumVersionCode ?? 0) || 0,
@@ -168,7 +188,8 @@ export async function GET(request: Request) {
           update: {
             ...updateFallback(fallbackConfig),
             ...(typeof settingsValue.update === "object" && settingsValue.update ? settingsValue.update : {}),
-            latestVersionName: String(latestRelease.version_name),
+            ...(releaseUpdate(product, fallbackConfig, latestRelease).update as Record<string, unknown>),
+            latestVersionName: String(latestRelease.version_name ?? ""),
             latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
             downloadUrl: `/api/app/download/latest?product=${product}`,
           },

@@ -21,13 +21,17 @@ class M3uParser {
     )
 
     fun parse(serverId: Long, text: String): ParsedPlaylist {
+        return parse(serverId, text.lineSequence())
+    }
+
+    fun parse(serverId: Long, lines: Sequence<String>): ParsedPlaylist {
         val categories = linkedMapOf<String, Category>()
         val media = ArrayList<MediaItem>(8192)
         val seriesMap = mutableMapOf<String, MediaItem>()
         var pendingInfo: ExtInfo? = null
         val pendingHeaders = linkedMapOf<String, String>()
 
-        text.lineSequence()
+        lines
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .forEach { line ->
@@ -93,11 +97,14 @@ class M3uParser {
                                         title = cleanSeriesName.ifBlank { title },
                                         streamUrl = "",
                                         posterUrl = info.logo,
-                                        description = "Series $cleanSeriesName",
+                                    description = info.description.ifBlank { "Series $cleanSeriesName" },
+                                    rating = info.rating,
                                         addedAt = 0,
                                         addedAtUnknown = true,
-                                        serverOrder = media.size,
+                                    serverOrder = info.sortOrder ?: media.size,
                                         seriesId = seriesId,
+                                    genre = info.genre,
+                                    releaseDate = info.releaseDate,
                                         rawJson = info.rawJson,
                                     )
                                     seriesMap[seriesId] = parentSeries
@@ -117,15 +124,21 @@ class M3uParser {
                             title = title,
                             streamUrl = streamUrl,
                             posterUrl = info.logo,
-                            description = if (type == ContentType.EPISODE) "Season $seasonNum - Episode $episodeNum" else title,
+                            description = info.description.ifBlank {
+                                if (type == ContentType.EPISODE) "Season $seasonNum - Episode $episodeNum" else title
+                            },
+                            rating = info.rating,
+                            durationSecs = info.durationSecs,
                             addedAt = 0,
                             addedAtUnknown = true,
-                            serverOrder = media.size,
+                            serverOrder = info.sortOrder ?: media.size,
                             seriesId = seriesId,
                             seasonNumber = seasonNum,
                             episodeNumber = episodeNum,
                             tvgId = info.tvgId,
                             catchup = info.catchup,
+                            genre = info.genre,
+                            releaseDate = info.releaseDate,
                             rawJson = info.rawJson,
                         )
                         pendingInfo = null
@@ -149,6 +162,14 @@ class M3uParser {
         attrs["http-referrer"]?.takeIf { it.isNotBlank() }?.let { headers["Referer"] = it }
         attrs["http-referer"]?.takeIf { it.isNotBlank() }?.let { headers["Referer"] = it }
         attrs["referrer"]?.takeIf { it.isNotBlank() }?.let { headers["Referer"] = it }
+        val description = attrs.firstValue("description", "desc", "plot", "overview", "tvg-description")
+        val rating = attrs.firstValue("rating", "tvg-rating", "imdb-rating", "rating_5based")
+        val genre = attrs.firstValue("genre", "tvg-genre")
+        val releaseDate = attrs.firstValue("release-date", "releasedate", "release_date", "year")
+        val durationSecs = attrs.firstValue("duration", "runtime", "length")
+            .let(::parseDurationSeconds)
+        val sortOrder = attrs.firstValue("tvg-chno", "channel-number", "ch-number", "num", "order")
+            .toIntOrNull()
         return ExtInfo(
             title = title.ifBlank { attrs["tvg-name"].orEmpty() },
             tvgId = attrs["tvg-id"].orEmpty(),
@@ -156,6 +177,12 @@ class M3uParser {
             group = attrs["group-title"].orEmpty(),
             catchup = catchup,
             headers = headers,
+            description = description,
+            rating = rating,
+            genre = genre,
+            releaseDate = releaseDate,
+            durationSecs = durationSecs,
+            sortOrder = sortOrder,
             rawJson = attrs.entries.joinToString(prefix = "{", postfix = "}") { (key, value) -> "\"$key\":\"${value.escapeJson()}\"" },
         )
     }
@@ -188,8 +215,29 @@ class M3uParser {
         val group: String,
         val catchup: String,
         val headers: Map<String, String>,
+        val description: String,
+        val rating: String,
+        val genre: String,
+        val releaseDate: String,
+        val durationSecs: Long,
+        val sortOrder: Int?,
         val rawJson: String,
     )
+}
+
+private fun Map<String, String>.firstValue(vararg keys: String): String =
+    keys.firstNotNullOfOrNull { key -> this[key.lowercase(Locale.US)]?.takeIf { it.isNotBlank() } }.orEmpty()
+
+private fun parseDurationSeconds(raw: String): Long {
+    val value = raw.trim()
+    if (value.isBlank()) return 0
+    value.toLongOrNull()?.let { return it }
+    val parts = value.split(':').mapNotNull { it.toLongOrNull() }
+    return when (parts.size) {
+        3 -> parts[0] * 3600 + parts[1] * 60 + parts[2]
+        2 -> parts[0] * 60 + parts[1]
+        else -> 0
+    }
 }
 
 private fun parseHeaderLine(value: String): Pair<String, String> {

@@ -20,40 +20,34 @@ object NetworkModule {
             .connectTimeout(12, TimeUnit.SECONDS)
             .readTimeout(90, TimeUnit.SECONDS)
             .writeTimeout(90, TimeUnit.SECONDS)
-            .callTimeout(0, TimeUnit.SECONDS)
+            .callTimeout(120, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .build()
     }
 
-    private fun retrofit(baseUrl: String): Retrofit =
+    private val playlistOkHttp: OkHttpClient by lazy {
+        okHttp.newBuilder()
+            .readTimeout(5, TimeUnit.MINUTES)
+            .callTimeout(10, TimeUnit.MINUTES)
+            .build()
+    }
+
+    private fun retrofit(baseUrl: String, client: OkHttpClient = okHttp): Retrofit =
         Retrofit.Builder()
             .baseUrl(baseUrl.ensureTrailingSlash())
-            .client(okHttp)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-            .build()
-
-    val playlistService: PlaylistService by lazy { retrofit("https://example.com/").create(PlaylistService::class.java) }
-    val weatherService: WeatherService by lazy { retrofit("https://api.weatherapi.com/").create(WeatherService::class.java) }
-    val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
-    val footballService: FootballService by lazy {
-        val client = okHttp.newBuilder()
-            .addInterceptor { chain ->
-                chain.proceed(
-                    chain.request().newBuilder()
-                        .header("x-rapidapi-host", "v3.football.api-sports.io")
-                        .header("x-rapidapi-key", ApiKeys.apiFootball)
-                        .header("x-apisports-key", ApiKeys.apiFootball)
-                        .build(),
-                )
-            }
-            .build()
-        Retrofit.Builder()
-            .baseUrl("https://v3.football.api-sports.io/")
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
-            .create(FootballService::class.java)
+
+    val playlistService: PlaylistService by lazy { retrofit("https://example.com/", playlistOkHttp).create(PlaylistService::class.java) }
+    val weatherService: WeatherService by lazy { retrofit("https://api.weatherapi.com/").create(WeatherService::class.java) }
+    val webWeatherService: WebWeatherService by lazy { retrofit("https://example.com/").create(WebWeatherService::class.java) }
+    val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
+
+    val sportsDbService: SportsDbService by lazy {
+        retrofit("https://www.thesportsdb.com/api/v1/json/3/").create(SportsDbService::class.java)
     }
+    val webFootballService: WebFootballService by lazy { retrofit("https://example.com/").create(WebFootballService::class.java) }
 
     fun xtream(baseUrl: String): XtreamService = retrofit(baseUrl).create(XtreamService::class.java)
 
@@ -70,5 +64,4 @@ object NetworkModule {
 
 object ApiKeys {
     val weather: String = BuildConfig.WEATHER_API_KEY
-    val apiFootball: String = BuildConfig.FOOTBALL_API_KEY
 }

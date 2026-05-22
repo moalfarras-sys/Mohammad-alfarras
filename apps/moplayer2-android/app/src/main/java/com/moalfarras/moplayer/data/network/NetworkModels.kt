@@ -110,24 +110,78 @@ data class WeatherCurrentDto(
 data class WeatherConditionDto(val text: String = "", val icon: String = "")
 
 @Serializable
-data class FootballResponseDto(
-    val response: List<FixtureDto> = emptyList(),
+data class SportsDbEventsDto(
+    val events: List<SportsDbEventDto>? = null,
 )
 
 @Serializable
-data class FixtureDto(
-    val league: LeagueDto = LeagueDto(),
-    val teams: TeamsDto = TeamsDto(),
-    val goals: GoalsDto = GoalsDto(),
-    val fixture: FixtureInfoDto = FixtureInfoDto(),
+data class SportsDbEventDto(
+    val idEvent: String = "",
+    val strEvent: String = "",
+    val strLeague: String = "",
+    val idLeague: String = "",
+    val strHomeTeam: String = "",
+    val strAwayTeam: String = "",
+    val intHomeScore: String? = null,
+    val intAwayScore: String? = null,
+    val strTimestamp: String? = null,
+    val dateEvent: String? = null,
+    val strTime: String? = null,
+    val strStatus: String = "",
+    val strProgress: String = "",
+    val strHomeTeamBadge: String = "",
+    val strAwayTeamBadge: String = "",
 )
 
-@Serializable data class LeagueDto(val name: String = "")
-@Serializable data class TeamsDto(val home: TeamDto = TeamDto(), val away: TeamDto = TeamDto())
-@Serializable data class TeamDto(val name: String = "")
-@Serializable data class GoalsDto(val home: Int? = null, val away: Int? = null)
-@Serializable data class FixtureInfoDto(val status: StatusDto = StatusDto())
-@Serializable data class StatusDto(val elapsed: Int? = null, val short: String = "")
+@Serializable
+data class WebFootballResponseDto(
+    val matches: List<WebFootballMatchDto> = emptyList(),
+    val importantMatches: List<WebFootballMatchDto> = emptyList(),
+    val source: String = "",
+    val mode: String = "",
+    val newsMessage: String = "",
+)
+
+@Serializable
+data class WebFootballMatchDto(
+    val id: Long = 0,
+    val date: String = "",
+    val status: String = "",
+    val elapsed: Int? = null,
+    val league: String = "",
+    val leagueLogo: String = "",
+    val homeTeam: String = "",
+    val homeLogo: String = "",
+    val awayTeam: String = "",
+    val awayLogo: String = "",
+    val homeGoals: Int? = null,
+    val awayGoals: Int? = null,
+)
+
+@Serializable
+data class WebWeatherDto(
+    val city: String = "",
+    val country: String = "",
+    @SerialName("temp_c") val tempC: Double? = null,
+    val condition: String = "",
+    val icon: String = "",
+    val localtime: String = "",
+    val error: String = "",
+)
+
+@Serializable
+data class OpenMeteoGeocodingResponse(
+    val results: List<OpenMeteoGeocodingResult> = emptyList(),
+)
+
+@Serializable
+data class OpenMeteoGeocodingResult(
+    val name: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val country: String = "",
+    val timezone: String = java.time.ZoneId.systemDefault().id,
+)
 
 @Serializable
 data class ActivationCodeDto(

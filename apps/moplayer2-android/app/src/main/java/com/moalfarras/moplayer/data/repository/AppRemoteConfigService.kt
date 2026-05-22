@@ -41,13 +41,15 @@ class AppRemoteConfigService {
 
     private fun fetchConfigBody(): String {
         var lastError: Throwable? = null
-        WebApiEndpoint.candidateUrls("/api/app/config?app=${BuildConfig.APP_PRODUCT_SLUG}").forEach { urlString ->
+        WebApiEndpoint.candidateUrls("/api/app/config?product=${BuildConfig.APP_PRODUCT_SLUG}").forEach { urlString ->
             try {
                 val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
                     connectTimeout = 8_000
                     readTimeout = 8_000
                     setRequestProperty("Accept", "application/json")
+                    setRequestProperty("Cache-Control", "no-cache")
+                    useCaches = false
                 }
                 return try {
                     val stream = if (connection.responseCode in 200..299) {

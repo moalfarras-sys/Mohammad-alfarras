@@ -49,8 +49,8 @@ fun rememberTvScale(): TvScale {
                 contentPadding = (30 * factor).dp,
                 dockPadding = (18 * factor).dp,
                 laneSpacing = (15 * factor).dp,
-                cardRadius = (18f * factor).coerceAtLeast(14f).dp,
-                posterWidth = (164 * factor).dp,
+                cardRadius = (16f * factor).coerceAtLeast(12f).dp,
+                posterWidth = (128 * factor).dp,
                 panelPadding = (18 * factor).dp,
                 isTv = true,
                 isCompact = false,
@@ -88,9 +88,9 @@ fun rememberTvScale(): TvScale {
                     else -> 26.dp
                 },
                 posterWidth = when {
-                    lowHeightLandscape -> 76.dp
-                    compact -> 100.dp
-                    else -> 124.dp
+                    lowHeightLandscape -> 72.dp
+                    compact -> 92.dp
+                    else -> 108.dp
                 },
                 panelPadding = when {
                     lowHeightLandscape -> 12.dp

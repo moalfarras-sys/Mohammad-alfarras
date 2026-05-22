@@ -3,6 +3,7 @@ package com.moalfarras.moplayer.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
 import com.moalfarras.moplayer.data.repository.AppSettingsRepository
 import com.moalfarras.moplayer.data.repository.IptvRepository
 import com.moalfarras.moplayer.data.repository.WidgetRepository
@@ -21,6 +22,7 @@ import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.domain.model.ManualWeatherEffect
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.MotionLevel
+import com.moalfarras.moplayer.domain.model.PerformanceMode
 import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.domain.model.ThemePreset
@@ -43,6 +45,9 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 enum class AppSection { HOME, LIVE, MOVIES, SERIES, FAVORITES, SERIES_DETAIL, SETTINGS, SEARCH, PLAYER }
 
@@ -56,7 +61,9 @@ data class UiState(
     val error: String? = null,
     val selectedCategoryId: String = "",
     val focusedItem: MediaItem? = null,
+    val restoreFocusItem: MediaItem? = null,
     val seriesDetail: MediaItem? = null,
+    val seriesDetailsLoading: Boolean = false,
     val playingItem: MediaItem? = null,
     val searchQuery: String = "",
     val showExitDialog: Boolean = false,
@@ -64,6 +71,7 @@ data class UiState(
     val settingsUnlocked: Boolean = false,
     val activationSession: DeviceActivationSession? = null,
     val dockFocusSection: AppSection? = null,
+    val backgroundRefresh: LoadProgress? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -71,12 +79,17 @@ class MainViewModel(
     private val iptv: IptvRepository,
     private val settingsRepo: AppSettingsRepository,
     private val widgets: WidgetRepository,
+    private val remoteConfigService: AppRemoteConfigService = AppRemoteConfigService(),
 ) : ViewModel() {
     private val internal = MutableStateFlow(UiState())
     private var loginJob: Job? = null
     private var activationJob: Job? = null
-    private var autoPlayedServerId: Long? = null
+    private var backgroundSyncJob: Job? = null
     private var restoredLastSection = false
+    private var checkedStartupRefresh = false
+    private var lastFocusUpdateAt = 0L
+    private var lastFocusKey = ""
+    private var lastPersistedNavigationKey = ""
 
     private val lastFocusedBySection = mutableMapOf<AppSection, MediaItem?>()
     private val lastCategoryBySection = mutableMapOf<AppSection, String>()
@@ -95,6 +108,7 @@ class MainViewModel(
         if (section in sectionsWithMediaFocus()) {
             lastFocusedBySection[section] = focused
             lastCategoryBySection[section] = categoryId
+            persistNavigation(section, focused, categoryId)
         }
     }
 
@@ -255,31 +269,18 @@ class MainViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveEpgSnapshot())
 
     init {
+        applyRemoteRuntimeConfig()
         refreshWidgets()
         viewModelScope.launch {
             uiState.collect { state ->
                 if (state.activeServer != null && !restoredLastSection) {
                     restoredLastSection = true
-                    val restored = state.settings.lastSection.toRestorableSection()
-                    internal.update { current ->
-                        if (current.section == AppSection.HOME && current.playingItem == null && current.loading == null) {
-                            current.copy(section = restored, returnSection = restored)
-                        } else {
-                            current
-                        }
-                    }
+                    restorePersistentNavigation(state)
+                    maybeStartStartupRefresh(state.activeServer)
                     return@collect
                 }
 
-                if (state.activeServer != null && restoredLastSection && state.settings.autoPlayLastLive && state.section == AppSection.HOME && state.playingItem == null && state.loading == null) {
-                    if (autoPlayedServerId == state.activeServer.id) return@collect
-                    val lastChannel = iptv.lastWatchedLive(state.activeServer.id) ?: return@collect
-                    autoPlayedServerId = state.activeServer.id
-                    internal.update { current ->
-                        if (current.playingItem != null || current.section == AppSection.PLAYER) current
-                        else current.copy(playingItem = lastChannel, returnSection = AppSection.HOME, section = AppSection.PLAYER)
-                    }
-                }
+                // Restore browsing state only. Live playback must always be started by the user.
             }
         }
     }
@@ -294,8 +295,9 @@ class MainViewModel(
                 section = section,
                 returnSection = section,
                 focusedItem = restoredFocus,
+                restoreFocusItem = restoredFocus,
                 selectedCategoryId = restoredCategory,
-                dockFocusSection = section,
+                dockFocusSection = null,
                 error = null,
                 settingsUnlocked = if (section == AppSection.SETTINGS) !requirePin else it.settingsUnlocked,
                 seriesDetail = if (section == AppSection.SERIES || section == AppSection.HOME || section == AppSection.FAVORITES) null else it.seriesDetail,
@@ -304,16 +306,30 @@ class MainViewModel(
         saveLastSection(section)
     }
 
+    fun handleIncomingPlaylistUrl(url: String) {
+        loginJob?.cancel()
+        loginJob = viewModelScope.launch {
+            if (iptv.hasSavedServer()) {
+                internal.update { it.copy(section = AppSection.HOME, loading = null, error = null) }
+                saveLastSection(AppSection.HOME)
+                return@launch
+            }
+            loginM3u("Imported IPTV", url)
+        }
+    }
+
     fun selectCategory(category: Category) {
         val sec = internal.value.section
         if (sec in sectionsWithMediaFocus()) {
             lastCategoryBySection[sec] = category.id
             lastFocusedBySection[sec] = null
+            persistNavigation(sec, null, category.id)
         }
         internal.update {
             it.copy(
                 selectedCategoryId = category.id,
                 focusedItem = null,
+                restoreFocusItem = null,
                 dockFocusSection = null,
             )
         }
@@ -325,11 +341,13 @@ class MainViewModel(
         if (sec in sectionsWithMediaFocus()) {
             lastCategoryBySection[sec] = ""
             lastFocusedBySection[sec] = null
+            persistNavigation(sec, null, "")
         }
         internal.update {
             it.copy(
                 selectedCategoryId = "",
                 focusedItem = null,
+                restoreFocusItem = null,
                 dockFocusSection = null,
             )
         }
@@ -337,13 +355,20 @@ class MainViewModel(
     }
 
     fun focusItem(item: MediaItem?) {
+        val key = item?.let { "${it.type}:${it.serverId}:${it.id}" }.orEmpty()
+        val now = System.currentTimeMillis()
+        if (item != null && key == lastFocusKey && now - lastFocusUpdateAt < 120L) return
+        lastFocusKey = key
+        lastFocusUpdateAt = now
         internal.update {
             val sec = it.section
             if (sec in sectionsWithMediaFocus() && item != null) {
                 lastFocusedBySection[sec] = item
+                persistNavigation(sec, item, it.selectedCategoryId)
             }
             it.copy(
                 focusedItem = item,
+                restoreFocusItem = if (item != null) null else it.restoreFocusItem,
                 dockFocusSection = if (item != null) null else it.dockFocusSection,
             )
         }
@@ -354,7 +379,6 @@ class MainViewModel(
         when (item.type) {
             ContentType.SERIES -> openSeries(item)
             ContentType.LIVE -> {
-                uiState.value.activeServer?.let { autoPlayedServerId = it.id }
                 internal.update { current ->
                     val returnSection = if (current.section == AppSection.PLAYER) {
                         current.returnSection.playerReturnSection()
@@ -388,7 +412,6 @@ class MainViewModel(
             AppSection.PLAYER -> AppSection.HOME
             else -> internal.value.returnSection
         }
-        uiState.value.activeServer?.let { autoPlayedServerId = it.id }
         if (item != null && item.type != ContentType.LIVE && durationMs > 0) {
             viewModelScope.launch { iptv.updateWatch(item, positionMs, durationMs) }
         }
@@ -401,7 +424,9 @@ class MainViewModel(
             it.copy(
                 playingItem = null,
                 section = back,
+                returnSection = back,
                 focusedItem = f,
+                restoreFocusItem = f,
                 selectedCategoryId = c.ifEmpty { it.selectedCategoryId },
                 dockFocusSection = null,
             )
@@ -421,7 +446,9 @@ class MainViewModel(
                     state.copy(
                         section = AppSection.SERIES,
                         seriesDetail = null,
+                        seriesDetailsLoading = false,
                         focusedItem = f,
+                        restoreFocusItem = f,
                         selectedCategoryId = c,
                         dockFocusSection = null,
                     )
@@ -432,6 +459,8 @@ class MainViewModel(
                         section = AppSection.HOME,
                         dockFocusSection = state.section,
                         focusedItem = null,
+                        restoreFocusItem = null,
+                        seriesDetailsLoading = false,
                         selectedCategoryId = "",
                     )
                 }
@@ -439,6 +468,15 @@ class MainViewModel(
             }
         }
         saveLastSection(internal.value.section)
+    }
+
+    fun focusDock(section: AppSection = internal.value.section) {
+        internal.update {
+            it.copy(
+                dockFocusSection = section,
+                restoreFocusItem = null,
+            )
+        }
     }
 
     fun toggleFavorite(item: MediaItem) {
@@ -495,7 +533,7 @@ class MainViewModel(
             runCatching {
                 iptv.loginActivationCode(code).collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
             }.onFailure { throwable ->
-                internal.update { it.copy(error = activationErrorMessage(throwable, "تعذر تفعيل الجهاز. تأكد من الكود وحاول مرة أخرى."), loading = null) }
+                internal.update { it.copy(error = activationErrorMessage(throwable, "Could not activate this device. Check the code and try again."), loading = null) }
             }.onSuccess {
                 internal.update { it.copy(loading = null, section = AppSection.HOME) }
                 saveLastSection(AppSection.HOME)
@@ -513,7 +551,7 @@ class MainViewModel(
                         internal.update {
                             it.copy(
                                 activationSession = null,
-                                error = activationErrorMessage(throwable, "تعذر إنشاء QR. تأكد من إعداد moalfarras.space/Supabase."),
+                                error = activationErrorMessage(throwable, "Could not create a QR code. Check moalfarras.space/Supabase configuration."),
                             )
                         }
                         return@onFailure
@@ -559,7 +597,7 @@ class MainViewModel(
                 .getOrElse { throwable ->
                     session.copy(
                         status = DeviceActivationStatus.ERROR,
-                        error = activationErrorMessage(throwable, "تعذر متابعة التفعيل الآن. حدّث QR أو جرّب لاحقًا."),
+                        error = activationErrorMessage(throwable, "Could not continue activation right now. Refresh the QR code or try later."),
                     ) to null
                 }
             session = updated
@@ -580,21 +618,74 @@ class MainViewModel(
             runCatching {
                 when (profile.kind) {
                     com.moalfarras.moplayer.domain.model.LoginKind.XTREAM -> {
-                        iptv.loginXtream(profile.name, profile.baseUrl, profile.username, profile.password)
-                            .collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
+                        internal.update { it.copy(loading = LoadProgress("Saving server on this device", 20, 100), error = null) }
+                        val server = iptv.registerXtreamSource(
+                            name = profile.name,
+                            baseUrl = profile.baseUrl,
+                            username = profile.username,
+                            password = profile.password,
+                            playlistUrl = profile.playlistUrl,
+                        )
+                        internal.update {
+                            it.copy(
+                                loading = null,
+                                section = AppSection.HOME,
+                                activationSession = null,
+                                notice = "Server saved on this device. Loading library in the background.",
+                            )
+                        }
+                        saveLastSection(AppSection.HOME)
+                        startBackgroundLibraryRefresh(server)
                     }
                     com.moalfarras.moplayer.domain.model.LoginKind.M3U -> {
                         iptv.loginM3u(profile.name, profile.playlistUrl, profile.epgUrl)
                             .collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
+                        internal.update { it.copy(loading = null, section = AppSection.HOME, activationSession = null) }
+                        saveLastSection(AppSection.HOME)
+                        refreshEpgSilently()
                     }
                 }
             }.onFailure { throwable ->
-                internal.update { it.copy(error = activationErrorMessage(throwable, "تم التفعيل، لكن تعذرت مزامنة الحساب. حاول لاحقًا."), loading = null) }
+                internal.update { it.copy(error = activationErrorMessage(throwable, "Activated, but account sync failed. Try again later."), loading = null) }
+            }
+        }
+    }
+
+    private fun startBackgroundLibraryRefresh(server: ServerProfile) {
+        backgroundSyncJob?.cancel()
+        backgroundSyncJob = viewModelScope.launch {
+            runCatching {
+                iptv.refreshServerFast(server).collect { progress ->
+                    if (progress.loaded == 0 || progress.loaded >= progress.total) {
+                        internal.update { it.copy(backgroundRefresh = progress, error = null) }
+                    }
+                }
+            }.onFailure { throwable ->
+                internal.update {
+                    it.copy(
+                        backgroundRefresh = null,
+                        error = throwable.message ?: "Background library sync failed",
+                    )
+                }
             }.onSuccess {
-                internal.update { it.copy(loading = null, section = AppSection.HOME, activationSession = null) }
-                saveLastSection(AppSection.HOME)
+                internal.update {
+                    it.copy(
+                        backgroundRefresh = null,
+                        error = null,
+                        notice = "Library saved on this device",
+                    )
+                }
                 refreshEpgSilently()
             }
+        }
+    }
+
+    private fun maybeStartStartupRefresh(server: ServerProfile) {
+        if (checkedStartupRefresh) return
+        checkedStartupRefresh = true
+        val ageMs = System.currentTimeMillis() - server.lastSyncAt
+        if (server.lastSyncAt <= 0 || ageMs > 6 * 60 * 60 * 1000L) {
+            startBackgroundLibraryRefresh(server)
         }
     }
 
@@ -608,6 +699,7 @@ class MainViewModel(
                     searchQuery = query,
                     section = AppSection.SEARCH,
                     focusedItem = f,
+                    restoreFocusItem = f,
                     selectedCategoryId = c,
                 )
             }
@@ -716,6 +808,10 @@ class MainViewModel(
         viewModelScope.launch { settingsRepo.setLibraryMode(value) }
     }
 
+    fun setLanguage(tag: String) {
+        viewModelScope.launch { settingsRepo.setLanguage(tag) }
+    }
+
     fun setAccentMode(value: AccentMode) {
         viewModelScope.launch { settingsRepo.setAccentMode(value) }
     }
@@ -741,6 +837,10 @@ class MainViewModel(
 
     fun setMotionLevel(value: MotionLevel) {
         viewModelScope.launch { settingsRepo.setMotionLevel(value) }
+    }
+
+    fun setPerformanceMode(value: PerformanceMode) {
+        viewModelScope.launch { settingsRepo.setPerformanceMode(value) }
     }
 
     fun setShowWeatherWidget(value: Boolean) {
@@ -799,20 +899,33 @@ class MainViewModel(
     fun activateServer(serverId: Long) {
         viewModelScope.launch {
             iptv.activateServer(serverId)
-            internal.update { it.copy(notice = "تم تفعيل الحساب") }
+            internal.update { it.copy(notice = "Account activated") }
         }
     }
 
     fun refreshServer() {
         val server = uiState.value.activeServer ?: return
+        if (internal.value.backgroundRefresh != null || internal.value.loading != null) {
+            showNotice("Refresh is already running")
+            return
+        }
         loginJob?.cancel()
         loginJob = viewModelScope.launch {
             runCatching {
-                iptv.refreshServer(server).collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
+                internal.update { it.copy(backgroundRefresh = LoadProgress("Starting smart refresh", 0, 100), error = null, notice = "Refreshing server in the background") }
+                iptv.refreshServerFast(server).collect { progress ->
+                    internal.update { it.copy(backgroundRefresh = progress, error = null) }
+                }
             }.onFailure { throwable ->
-                internal.update { it.copy(error = throwable.message ?: "Refresh failed", loading = null) }
+                internal.update {
+                    it.copy(
+                        error = throwable.message ?: "Refresh failed",
+                        loading = null,
+                        backgroundRefresh = null,
+                    )
+                }
             }.onSuccess {
-                internal.update { it.copy(loading = null, error = null) }
+                internal.update { it.copy(loading = null, backgroundRefresh = null, error = null, notice = "Server refresh completed") }
                 refreshEpgSilently()
             }
         }
@@ -821,7 +934,7 @@ class MainViewModel(
     fun clearSearchHistory() {
         viewModelScope.launch {
             settingsRepo.clearSearchHistory()
-            internal.update { it.copy(notice = "تم مسح سجل البحث") }
+            internal.update { it.copy(notice = "Search history cleared") }
         }
     }
 
@@ -829,7 +942,7 @@ class MainViewModel(
         val server = uiState.value.activeServer ?: return
         viewModelScope.launch {
             iptv.clearWatchHistory(server.id)
-            internal.update { it.copy(notice = "تم مسح سجل المشاهدة") }
+            internal.update { it.copy(notice = "Watch history cleared") }
         }
     }
 
@@ -837,7 +950,7 @@ class MainViewModel(
         val server = uiState.value.activeServer ?: return
         viewModelScope.launch {
             iptv.clearEpgCache(server.id)
-            internal.update { it.copy(notice = "تم مسح كاش EPG") }
+            internal.update { it.copy(notice = "EPG cache cleared") }
         }
     }
 
@@ -853,12 +966,38 @@ class MainViewModel(
     private fun openSeries(item: MediaItem) {
         val cur = internal.value
         persistSnapshot(cur.section, cur.focusedItem, cur.selectedCategoryId)
-        internal.update { it.copy(seriesDetail = item, focusedItem = item, section = AppSection.SERIES_DETAIL, returnSection = AppSection.SERIES_DETAIL) }
+        internal.update {
+            it.copy(
+                seriesDetail = item,
+                seriesDetailsLoading = true,
+                focusedItem = item,
+                restoreFocusItem = item,
+                section = AppSection.SERIES_DETAIL,
+                returnSection = AppSection.SERIES_DETAIL,
+                error = null,
+            )
+        }
         saveLastSection(AppSection.SERIES)
         val activeServer = uiState.value.activeServer ?: return
         viewModelScope.launch {
             runCatching { iptv.refreshSeriesDetails(activeServer, item) }
-                .onFailure { throwable -> internal.update { state -> state.copy(error = throwable.message ?: "Failed to load series details") } }
+                .onSuccess {
+                    internal.update { state ->
+                        if (state.seriesDetail.matchesMedia(item)) state.copy(seriesDetailsLoading = false) else state
+                    }
+                }
+                .onFailure { throwable ->
+                    internal.update { state ->
+                        if (state.seriesDetail.matchesMedia(item)) {
+                            state.copy(
+                                seriesDetailsLoading = false,
+                                error = throwable.message ?: "Failed to load series details",
+                            )
+                        } else {
+                            state
+                        }
+                    }
+                }
         }
     }
 
@@ -866,6 +1005,30 @@ class MainViewModel(
         val settings = uiState.value.settings
         viewModelScope.launch { weather.value = widgets.weather(settings) }
         viewModelScope.launch { football.value = widgets.football(settings) }
+    }
+
+    private fun MediaItem?.matchesMedia(other: MediaItem): Boolean =
+        this != null &&
+            id == other.id &&
+            type == other.type &&
+            serverId == other.serverId
+
+    private fun applyRemoteRuntimeConfig() {
+        viewModelScope.launch {
+            runCatching { remoteConfigService.fetchConfig() }
+                .onSuccess { config ->
+                    settingsRepo.applyRemoteConfig(config)
+                    val nextSettings = uiState.value.settings.copy(
+                        showWeatherWidget = config.weatherEnabled,
+                        showFootballWidget = config.footballEnabled,
+                        weatherMode = if (config.weatherCity.isNotBlank()) WeatherMode.CITY else uiState.value.settings.weatherMode,
+                        weatherCityOverride = config.weatherCity.takeIf { it.isNotBlank() } ?: uiState.value.settings.weatherCityOverride,
+                        footballMaxMatches = config.footballMaxMatches.coerceIn(1, 8),
+                    )
+                    weather.value = widgets.weather(nextSettings)
+                    football.value = widgets.football(nextSettings)
+                }
+        }
     }
 
     private fun refreshEpgSilently() {
@@ -879,13 +1042,55 @@ class MainViewModel(
         viewModelScope.launch { settingsRepo.setLastSection(restorable.name) }
     }
 
+    private fun persistNavigation(section: AppSection, focused: MediaItem?, categoryId: String) {
+        val restorable = section.restorable()
+        val focusState = encodeFocusState(lastFocusedBySection + (section to focused))
+        val categoryState = encodeCategoryState(lastCategoryBySection + (section to categoryId))
+        val key = "${restorable.name}|$focusState|$categoryState"
+        if (key == lastPersistedNavigationKey) return
+        lastPersistedNavigationKey = key
+        viewModelScope.launch {
+            settingsRepo.setLastNavigationState(restorable.name, focusState, categoryState)
+        }
+    }
+
+    private fun restorePersistentNavigation(state: UiState) {
+        viewModelScope.launch {
+            val focusSnapshots = decodeFocusState(state.settings.lastFocusState)
+            val categorySnapshots = decodeCategoryState(state.settings.lastCategoryState)
+            categorySnapshots.forEach { (section, categoryId) ->
+                lastCategoryBySection[section] = categoryId
+            }
+            focusSnapshots.forEach { (section, snapshot) ->
+                val media = iptv.findMedia(snapshot.serverId, snapshot.id, snapshot.type)
+                if (media != null) lastFocusedBySection[section] = media
+            }
+            val restored = state.settings.lastSection.toRestorableSection()
+            val (restoredFocus, restoredCategory) = loadSnapshot(restored)
+            internal.update { current ->
+                if (current.section == AppSection.HOME && current.playingItem == null && current.loading == null) {
+                    current.copy(
+                        section = restored,
+                        returnSection = restored,
+                        focusedItem = restoredFocus,
+                        restoreFocusItem = restoredFocus,
+                        selectedCategoryId = restoredCategory,
+                    )
+                } else {
+                    current
+                }
+            }
+        }
+    }
+
     class Factory(
         private val iptv: IptvRepository,
         private val settingsRepo: AppSettingsRepository,
         private val widgets: WidgetRepository,
+        private val remoteConfigService: AppRemoteConfigService = AppRemoteConfigService(),
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = MainViewModel(iptv, settingsRepo, widgets) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = MainViewModel(iptv, settingsRepo, widgets, remoteConfigService) as T
     }
 }
 
@@ -893,13 +1098,13 @@ private fun activationErrorMessage(throwable: Throwable, fallback: String): Stri
     val raw = throwable.message.orEmpty()
     return when {
         raw.contains("Supabase is not configured", ignoreCase = true) ->
-            "التفعيل السحابي غير مهيأ بعد. أضف إعدادات Supabase أو استخدم M3U/Xtream."
+            "Cloud activation is not configured yet. Add Supabase settings or use M3U/Xtream."
         raw.contains("failed to connect", ignoreCase = true) ||
             raw.contains("connection refused", ignoreCase = true) ||
             raw.contains("timeout", ignoreCase = true) ||
             raw.contains("timed out", ignoreCase = true) ||
             raw.contains("unable to resolve host", ignoreCase = true) ->
-            "خدمة التفعيل غير متاحة الآن. تأكد من الاتصال أو جرّب لاحقًا."
+            "Activation service is unavailable right now. Check the connection or try later."
         raw.isBlank() -> fallback
         else -> fallback
     }
@@ -908,6 +1113,12 @@ private fun activationErrorMessage(throwable: Throwable, fallback: String): Stri
 private val adultKeywords = listOf(
     "adult", "xxx", "18+", "porn", "sex", "erotic", "hot",
     "للكبار", "اباح", "إباح", "جنس", "ساخن", "+18",
+)
+
+private data class FocusSnapshot(
+    val serverId: Long,
+    val type: ContentType,
+    val id: String,
 )
 
 private fun List<Category>.filterParentalCategories(enabled: Boolean): List<Category> =
@@ -929,3 +1140,55 @@ private fun AppSection.playerReturnSection(): AppSection = when (this) {
 
 private fun UiState.libraryServerId(activeId: Long): Long =
     if (settings.libraryMode == LibraryMode.MERGED) 0L else activeId
+
+private fun encodeFocusState(items: Map<AppSection, MediaItem?>): String =
+    items.entries
+        .mapNotNull { (section, item) ->
+            item?.let {
+                listOf(section.name, it.serverId.toString(), it.type.name, it.id.urlEncode()).joinToString(":")
+            }
+        }
+        .joinToString("|")
+
+private fun decodeFocusState(raw: String): Map<AppSection, FocusSnapshot> =
+    raw.split('|')
+        .mapNotNull { token ->
+            val parts = token.split(':', limit = 4)
+            if (parts.size != 4) return@mapNotNull null
+            val section = runCatching { AppSection.valueOf(parts[0]).restorable() }.getOrNull() ?: return@mapNotNull null
+            val serverId = parts[1].toLongOrNull() ?: return@mapNotNull null
+            val type = runCatching { ContentType.valueOf(parts[2]) }.getOrNull() ?: return@mapNotNull null
+            val id = parts[3].urlDecode().takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            section to FocusSnapshot(serverId, type, id)
+        }
+        .toMap()
+
+private fun encodeCategoryState(items: Map<AppSection, String>): String =
+    items.entries
+        .filter { it.key in restorableMediaSections && it.value.isNotBlank() }
+        .joinToString("|") { (section, categoryId) -> "${section.name}:${categoryId.urlEncode()}" }
+
+private fun decodeCategoryState(raw: String): Map<AppSection, String> =
+    raw.split('|')
+        .mapNotNull { token ->
+            val parts = token.split(':', limit = 2)
+            if (parts.size != 2) return@mapNotNull null
+            val section = runCatching { AppSection.valueOf(parts[0]).restorable() }.getOrNull() ?: return@mapNotNull null
+            section to parts[1].urlDecode()
+        }
+        .toMap()
+
+private val restorableMediaSections = setOf(
+    AppSection.HOME,
+    AppSection.LIVE,
+    AppSection.MOVIES,
+    AppSection.SERIES,
+    AppSection.FAVORITES,
+    AppSection.SEARCH,
+)
+
+private fun String.urlEncode(): String =
+    URLEncoder.encode(this, StandardCharsets.UTF_8.name())
+
+private fun String.urlDecode(): String =
+    runCatching { URLDecoder.decode(this, StandardCharsets.UTF_8.name()) }.getOrDefault(this)

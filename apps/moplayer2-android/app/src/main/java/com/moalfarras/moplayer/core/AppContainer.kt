@@ -10,6 +10,7 @@ import com.moalfarras.moplayer.data.db.MoPlayerDatabase
 import com.moalfarras.moplayer.data.network.NetworkModule
 import com.moalfarras.moplayer.data.parser.M3uParser
 import com.moalfarras.moplayer.data.repository.AppSettingsRepository
+import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
 import com.moalfarras.moplayer.data.repository.IptvRepository
 import com.moalfarras.moplayer.data.repository.WidgetRepository
 import java.util.concurrent.TimeUnit
@@ -23,6 +24,7 @@ class AppContainer(context: Context) {
     }
 
     val settingsRepository = AppSettingsRepository(appContext)
+    val remoteConfigService = AppRemoteConfigService()
     val iptvRepository = IptvRepository(
         database = database,
         playlistService = NetworkModule.playlistService,
@@ -32,8 +34,10 @@ class AppContainer(context: Context) {
     )
     val widgetRepository = WidgetRepository(
         weatherService = NetworkModule.weatherService,
+        webWeatherService = NetworkModule.webWeatherService,
         freeWeatherService = NetworkModule.freeWeatherService,
-        footballService = NetworkModule.footballService,
+        sportsDbService = NetworkModule.sportsDbService,
+        webFootballService = NetworkModule.webFootballService,
     )
 }
 

@@ -14,9 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Modifier
@@ -32,6 +37,9 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class RemoteInputAction {
     None,
@@ -42,7 +50,7 @@ enum class RemoteInputAction {
 
 class RemoteInputController(
     private val longPressMs: Long = 3_000L,
-    private val triplePressWindowMs: Long = 650L,
+    val triplePressWindowMs: Long = 650L,
 ) {
     private var okCount = 0
     private var lastOkAt = 0L
@@ -87,6 +95,8 @@ fun FocusGlow(
     onClick: (() -> Unit)? = null,
     onTripleOk: () -> Unit = {},
     onLongOk: () -> Unit = {},
+    delayClickForTripleOk: Boolean = false,
+    focusable: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
@@ -94,6 +104,8 @@ fun FocusGlow(
     val focused by interaction.collectIsFocusedAsState()
     val shape = RoundedCornerShape(cornerRadius)
     val remoteInput = remember { RemoteInputController() }
+    val scope = rememberCoroutineScope()
+    var pendingClick by remember { mutableStateOf<Job?>(null) }
 
     val scale by animateFloatAsState(
         targetValue = if (focused) 1.045f else 1f,
@@ -101,11 +113,20 @@ fun FocusGlow(
         label = "focus-scale",
     )
 
-    LaunchedEffect(focused) {
-        if (focused) onFocused()
+    LaunchedEffect(focused, focusable) {
+        if (focused && focusable) onFocused()
     }
 
-    val focusTarget = if (onClick != null) {
+    DisposableEffect(Unit) {
+        onDispose {
+            pendingClick?.cancel()
+            pendingClick = null
+        }
+    }
+
+    val focusTarget = if (!focusable) {
+        Modifier
+    } else if (onClick != null) {
         Modifier.clickable(
             interactionSource = interaction,
             indication = null,
@@ -132,24 +153,52 @@ fun FocusGlow(
     Surface(
         modifier = modifier
             .let { m -> if (focusRequester != null) m.focusRequester(focusRequester) else m }
-            .onPreviewKeyEvent { event ->
-                if (event.key != Key.Enter && event.key != Key.DirectionCenter) return@onPreviewKeyEvent false
-                val now = System.currentTimeMillis()
-                when (event.type) {
-                    KeyEventType.KeyDown -> {
-                        remoteInput.onOkDown(now)
-                        true
-                    }
-                    KeyEventType.KeyUp -> {
-                        when (remoteInput.onOkUp(now)) {
-                            RemoteInputAction.LongOk -> onLongOk()
-                            RemoteInputAction.TripleOk -> onTripleOk()
-                            RemoteInputAction.Click -> onClick?.invoke()
-                            RemoteInputAction.None -> Unit
+            .focusProperties { canFocus = focusable }
+            .let { m ->
+                if (!focusable) {
+                    m
+                } else {
+                    m.onPreviewKeyEvent { event ->
+                        if (event.key != Key.Enter && event.key != Key.DirectionCenter && event.key != Key.NumPadEnter) {
+                            return@onPreviewKeyEvent false
                         }
-                        true
+                        val now = System.currentTimeMillis()
+                        when (event.type) {
+                            KeyEventType.KeyDown -> {
+                                pendingClick?.cancel()
+                                pendingClick = null
+                                remoteInput.onOkDown(now)
+                                true
+                            }
+                            KeyEventType.KeyUp -> {
+                                when (remoteInput.onOkUp(now)) {
+                                    RemoteInputAction.LongOk -> {
+                                        pendingClick?.cancel()
+                                        pendingClick = null
+                                        onLongOk()
+                                    }
+                                    RemoteInputAction.TripleOk -> {
+                                        pendingClick?.cancel()
+                                        pendingClick = null
+                                        onTripleOk()
+                                    }
+                                    RemoteInputAction.Click -> {
+                                        if (delayClickForTripleOk && onClick != null) {
+                                            pendingClick = scope.launch {
+                                                delay(remoteInput.triplePressWindowMs)
+                                                onClick.invoke()
+                                            }
+                                        } else {
+                                            onClick?.invoke()
+                                        }
+                                    }
+                                    RemoteInputAction.None -> Unit
+                                }
+                                true
+                            }
+                            else -> false
+                        }
                     }
-                    else -> false
                 }
             }
             .graphicsLayer {

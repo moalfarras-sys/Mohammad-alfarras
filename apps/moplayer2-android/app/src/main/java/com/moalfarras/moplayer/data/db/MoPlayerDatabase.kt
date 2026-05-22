@@ -43,8 +43,14 @@ interface ServerDao {
     @Query("SELECT * FROM servers ORDER BY lastSyncAt DESC, createdAt DESC LIMIT 1")
     fun observeActiveServer(): Flow<ServerEntity?>
 
+    @Query("SELECT COUNT(*) FROM servers")
+    suspend fun countServers(): Int
+
     @Query("SELECT * FROM servers WHERE id = :id")
     suspend fun getServer(id: Long): ServerEntity?
+
+    @Query("SELECT * FROM servers WHERE sourceKey = :sourceKey ORDER BY lastSyncAt DESC, createdAt DESC LIMIT 1")
+    suspend fun getServerBySourceKey(sourceKey: String): ServerEntity?
 
     @Upsert
     suspend fun upsert(server: ServerEntity): Long
@@ -118,6 +124,9 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE serverId = :serverId")
     suspend fun deleteForServer(serverId: Long)
+
+    @Query("DELETE FROM categories WHERE serverId = :serverId AND type IN (:types)")
+    suspend fun deleteForServerTypes(serverId: Long, types: List<ContentType>)
 }
 
 @Dao
@@ -232,6 +241,9 @@ interface MediaDao {
     @Query("SELECT * FROM media WHERE serverId = :serverId AND id = :id AND type = :type LIMIT 1")
     suspend fun get(serverId: Long, id: String, type: ContentType): MediaEntity?
 
+    @Query("SELECT * FROM media WHERE id = :id AND type = :type ORDER BY lastPlayedAt DESC, updatedAt DESC LIMIT 1")
+    suspend fun getAnyServer(id: String, type: ContentType): MediaEntity?
+
     @Query("SELECT id, type, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt FROM media WHERE serverId = :serverId")
     suspend fun playbackState(serverId: Long): List<MediaStateSnapshot>
 
@@ -258,6 +270,12 @@ interface MediaDao {
 
     @Query("DELETE FROM media WHERE serverId = :serverId")
     suspend fun deleteForServer(serverId: Long)
+
+    @Query("DELETE FROM media WHERE serverId = :serverId AND type IN (:types)")
+    suspend fun deleteForServerTypes(serverId: Long, types: List<ContentType>)
+
+    @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId")
+    suspend fun countForServer(serverId: Long): Int
 }
 
 @Dao
@@ -405,6 +423,44 @@ abstract class MoPlayerDatabase : RoomDatabase() {
             epgDao().deleteForServer(serverId)
             epgPrograms.chunked(5_000).forEach { epgDao().insertAll(it) }
         }
+        serverDao().touch(serverId, System.currentTimeMillis())
+    }
+
+    open suspend fun replaceServerContentTypes(
+        serverId: Long,
+        types: List<ContentType>,
+        categories: List<CategoryEntity>,
+        media: List<MediaEntity>,
+        accountInfo: AccountInfoEntity?,
+        serverInfo: ServerInfoEntity?,
+        syncState: SyncStateEntity?,
+    ) = withTransaction {
+        val normalizedTypes = types.distinct()
+        if (normalizedTypes.isEmpty()) return@withTransaction
+
+        val playbackState = mediaDao().playbackState(serverId).associateBy { "${it.type.name}:${it.id}" }
+        val mergedMedia = media.map { item ->
+            val key = "${item.type.name}:${item.id}"
+            val previous = playbackState[key]
+            if (previous == null) {
+                item
+            } else {
+                item.copy(
+                    isFavorite = previous.isFavorite,
+                    watchPositionMs = previous.watchPositionMs,
+                    watchDurationMs = previous.watchDurationMs,
+                    lastPlayedAt = previous.lastPlayedAt,
+                )
+            }
+        }
+
+        categoryDao().deleteForServerTypes(serverId, normalizedTypes)
+        mediaDao().deleteForServerTypes(serverId, normalizedTypes)
+        categoryDao().insertAll(categories)
+        mergedMedia.chunked(5_000).forEach { mediaDao().insertAll(it) }
+        if (accountInfo != null) accountInfoDao().upsert(accountInfo)
+        if (serverInfo != null) serverInfoDao().upsert(serverInfo)
+        if (syncState != null) syncStateDao().upsert(syncState)
         serverDao().touch(serverId, System.currentTimeMillis())
     }
 

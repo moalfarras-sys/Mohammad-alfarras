@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.domain.model.FootballMatch
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
@@ -39,12 +40,13 @@ import com.moalfarras.moplayer.ui.theme.rememberTvScale
 fun FootballTickerWidget(
     matches: List<FootballMatch>,
     modifier: Modifier = Modifier,
+    animate: Boolean = true,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     val match = matches.firstOrNull() ?: return
 
-    val isLive = match.minute.isNotBlank() && !match.minute.contains("FT", ignoreCase = true) && !match.minute.contains("NS", ignoreCase = true)
+    val isLive = match.isLive
 
     val transition = rememberInfiniteTransition(label = "football")
     val livePulse by transition.animateFloat(
@@ -57,6 +59,8 @@ fun FootballTickerWidget(
         infiniteRepeatable(tween(2400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "glow",
     )
+    val effectiveLivePulse = if (animate) livePulse else 0.7f
+    val effectiveGlowAlpha = if (animate) glowAlpha else 0.08f
 
     val liveColor = Color(0xFFFF3B4D)
     val finishedColor = Color(0xFF8BD88B)
@@ -66,7 +70,7 @@ fun FootballTickerWidget(
         modifier = modifier,
         radius = (24 * tv.factor).dp,
         blur = 18.dp,
-        glow = if (isLive) liveColor.copy(alpha = glowAlpha) else Color.Transparent,
+        glow = if (isLive) liveColor.copy(alpha = effectiveGlowAlpha) else Color.Transparent,
     ) {
         Column(
             modifier = Modifier.padding(
@@ -88,11 +92,11 @@ fun FootballTickerWidget(
                             .drawBehind {
                                 // Outer glow
                                 drawCircle(
-                                    liveColor.copy(alpha = 0.3f * livePulse),
+                                    liveColor.copy(alpha = 0.3f * effectiveLivePulse),
                                     radius = size.minDimension * 1.5f,
                                 )
                                 // Core dot
-                                drawCircle(liveColor.copy(alpha = livePulse))
+                                drawCircle(liveColor.copy(alpha = effectiveLivePulse))
                             },
                     )
                 }
@@ -100,11 +104,12 @@ fun FootballTickerWidget(
                 Text(
                     match.league,
                     color = Color(0xCCE3BC78),
-                    fontSize = (11 * tv.factor).sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = (12 * tv.factor).sp,
+                    fontWeight = FontWeight.ExtraBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     letterSpacing = 0.5.sp,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
 
                 Spacer(Modifier.weight(1f))
@@ -125,70 +130,138 @@ fun FootballTickerWidget(
                 }
             }
 
-            // ── Teams + Score ─────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
             ) {
-                // Home team
-                Text(
-                    match.home,
-                    color = Color.White,
-                    fontSize = (14 * tv.factor).sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                TeamBadge(
+                    name = match.home,
+                    badgeUrl = match.homeBadge,
+                    alignEnd = false,
                     modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Start,
                 )
-
-                // Score in center with accent glow
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = (12 * tv.factor).dp)
-                        .drawBehind {
-                            if (isLive) {
-                                drawCircle(
-                                    brush = Brush.radialGradient(
-                                        listOf(visuals.accent.copy(alpha = 0.15f * livePulse), Color.Transparent),
-                                    ),
-                                    radius = size.maxDimension * 1.2f,
-                                )
-                            }
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        match.score.ifBlank { "vs" },
-                        color = if (match.score.isNotBlank()) Color.White else Color(0x88FFFFFF),
-                        fontSize = (18 * tv.factor).sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 2.sp,
-                    )
-                }
-
-                // Away team
-                Text(
-                    match.away,
-                    color = Color.White,
-                    fontSize = (14 * tv.factor).sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                ScoreBadge(
+                    score = match.score.ifBlank { "vs" },
+                    isLive = isLive,
+                    pulse = effectiveLivePulse,
+                    accent = visuals.accent,
+                )
+                TeamBadge(
+                    name = match.away,
+                    badgeUrl = match.awayBadge,
+                    alignEnd = true,
                     modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.End,
                 )
             }
 
             // ── Additional Matches Count (if more than 1) ────────────
             if (matches.size > 1) {
                 Text(
-                    "+${matches.size - 1} مباريات أخرى",
-                    color = Color(0x88E3BC78),
+                    "+${matches.size - 1} more matches",
+                    color = Color(0xCCE3BC78),
+                    fontSize = (11 * tv.factor).sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (match.newsMessage.isNotBlank()) {
+                Text(
+                    match.newsMessage,
+                    color = Color(0xB3FFFFFF),
                     fontSize = (10 * tv.factor).sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun TeamBadge(name: String, badgeUrl: String, alignEnd: Boolean, modifier: Modifier = Modifier) {
+    val tv = rememberTvScale()
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp, if (alignEnd) Alignment.End else Alignment.Start),
+    ) {
+        if (alignEnd) TeamName(name, TextAlign.End, Modifier.weight(1f))
+        TeamCrest(name = name, badgeUrl = badgeUrl)
+        if (!alignEnd) TeamName(name, TextAlign.Start, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun TeamName(name: String, align: TextAlign, modifier: Modifier = Modifier) {
+    val tv = rememberTvScale()
+    Text(
+        name,
+        color = Color.White,
+        fontSize = (13 * tv.factor).sp,
+        fontWeight = FontWeight.ExtraBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = align,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun TeamCrest(name: String, badgeUrl: String) {
+    val tv = rememberTvScale()
+    val initials = remember(name) {
+        name.split(' ', '-', '_')
+            .filter { it.isNotBlank() }
+            .take(2)
+            .joinToString("") { it.first().uppercase() }
+            .ifBlank { "FC" }
+    }
+    Box(
+        modifier = Modifier
+            .size((42 * tv.factor).dp)
+            .clip(CircleShape)
+            .background(Brush.radialGradient(listOf(Color(0x33FFFFFF), Color(0x11000000))))
+            .drawBehind {
+                drawCircle(Color.White.copy(alpha = 0.16f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.2f))
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (badgeUrl.isNotBlank()) {
+            AsyncImage(model = badgeUrl, contentDescription = name, modifier = Modifier.fillMaxSize(0.72f))
+        } else {
+            Text(initials, color = Color.White, fontSize = (12 * tv.factor).sp, fontWeight = FontWeight.Black)
+        }
+    }
+}
+
+@Composable
+private fun ScoreBadge(score: String, isLive: Boolean, pulse: Float, accent: Color) {
+    val tv = rememberTvScale()
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape((18 * tv.factor).dp))
+            .background(Color(0xAA080A0F))
+            .padding(horizontal = (14 * tv.factor).dp, vertical = (10 * tv.factor).dp)
+            .drawBehind {
+                if (isLive) {
+                    drawCircle(
+                        brush = Brush.radialGradient(listOf(accent.copy(alpha = 0.22f * pulse), Color.Transparent)),
+                        radius = size.maxDimension,
+                    )
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            score,
+            color = Color.White,
+            fontSize = (20 * tv.factor).sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 1.5.sp,
+            maxLines = 1,
+        )
     }
 }

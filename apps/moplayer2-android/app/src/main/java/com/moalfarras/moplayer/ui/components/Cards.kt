@@ -1,8 +1,13 @@
 package com.moalfarras.moplayer.ui.components
 
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.snap
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -15,13 +20,17 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material.icons.rounded.Update
+import androidx.compose.material.icons.rounded.VideoFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -40,6 +49,21 @@ import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalFoundationApi::class)
+private val LaneBringIntoViewSpec = object : BringIntoViewSpec {
+    override val scrollAnimationSpec: AnimationSpec<Float> = snap()
+
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
+        val itemStart = offset
+        val itemEnd = offset + size
+        return when {
+            itemStart < 0f -> itemStart
+            itemEnd > containerSize -> itemEnd - containerSize
+            else -> 0f
+        }
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA POSTER — Premium Glass Card
 // ─────────────────────────────────────────────────────────────────────────────
@@ -54,6 +78,7 @@ fun MediaPoster(
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val qualityBadge = remember(item.title, item.streamUrl) { item.qualityBadge() }
     FocusGlow(
         modifier = modifier
             .width(tv.posterWidth)
@@ -64,6 +89,7 @@ fun MediaPoster(
         onClick = { onClick(item) },
         onTripleOk = { onFavorite(item) },
         onLongOk = { onFavorite(item) },
+        delayClickForTripleOk = true,
     ) {
         GlassPanel(
             modifier = Modifier.fillMaxSize(),
@@ -133,6 +159,25 @@ fun MediaPoster(
                     )
                 }
 
+                if (qualityBadge.isNotBlank()) {
+                    Box(
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .padding((8 * tv.factor).dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color(0xCC07090D))
+                            .border(0.8.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(999.dp))
+                            .padding(horizontal = (8 * tv.factor).dp, vertical = (4 * tv.factor).dp),
+                    ) {
+                        Text(
+                            qualityBadge,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold),
+                            maxLines = 1,
+                        )
+                    }
+                }
+
                 // LIVE badge
                 if (item.type == ContentType.LIVE) {
                     Box(
@@ -182,7 +227,7 @@ fun MediaPoster(
                                 modifier = Modifier.size((10 * tv.factor).dp),
                             )
                             Text(
-                                "أرشيف",
+                                "Catch-up",
                                 color = visuals.textPrimary,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 maxLines = 1,
@@ -197,6 +242,25 @@ fun MediaPoster(
                     Modifier.align(Alignment.BottomStart).padding((12 * tv.factor).dp),
                     verticalArrangement = Arrangement.spacedBy((4 * tv.factor).dp),
                 ) {
+                    if (item.type != ContentType.LIVE) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Rounded.VideoFile,
+                                null,
+                                tint = visuals.accent,
+                                modifier = Modifier.size((11 * tv.factor).dp),
+                            )
+                            Text(
+                                if (item.type == ContentType.SERIES) "SERIES" else "VOD",
+                                color = visuals.accent,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold),
+                                maxLines = 1,
+                            )
+                        }
+                    }
                     if (item.rating.isNotBlank()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -251,6 +315,17 @@ fun MediaPoster(
     }
 }
 
+private fun MediaItem.qualityBadge(): String {
+    val value = "$title $streamUrl".uppercase()
+    return when {
+        "4K" in value || "UHD" in value || "2160" in value -> "4K"
+        "FHD" in value || "1080" in value -> "FHD"
+        "HD" in value || "720" in value -> "HD"
+        type == ContentType.LIVE -> "LIVE"
+        else -> ""
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CHANNEL ROW — Glass list item
 // ─────────────────────────────────────────────────────────────────────────────
@@ -266,13 +341,14 @@ fun ChannelRow(
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     FocusGlow(
-        modifier = modifier.fillMaxWidth().height((68 * tv.factor).dp),
+        modifier = modifier.fillMaxWidth().height((58 * tv.factor).dp),
         cornerRadius = tv.cardRadius,
         focusRequester = focusRequester,
         onFocused = { onFocus(item) },
         onClick = { onClick(item) },
         onTripleOk = { onFavorite(item) },
         onLongOk = { onFavorite(item) },
+        delayClickForTripleOk = true,
     ) {
         GlassPanel(radius = tv.cardRadius, highlighted = false, blur = 10.dp, modifier = Modifier.fillMaxSize()) {
             Row(
@@ -343,7 +419,7 @@ fun ChannelRow(
                                 modifier = Modifier.size((13 * tv.factor).dp),
                             )
                             Text(
-                                "أرشيف",
+                                "Catch-up",
                                 color = visuals.textPrimary,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 maxLines = 1,
@@ -383,6 +459,7 @@ fun ChannelRow(
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA LANE (Horizontal scroll row with section header)
 // ─────────────────────────────────────────────────────────────────────────────
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaLane(
     title: String,
@@ -392,33 +469,48 @@ fun MediaLane(
     onFavorite: (MediaItem) -> Unit = {},
     modifier: Modifier = Modifier,
     restoreFocusTarget: MediaItem? = null,
+    autoFocusFirstItem: Boolean = false,
 ) {
     val tv = rememberTvScale()
     if (items.isEmpty()) return
     val rowState = rememberLazyListState()
+    val focusKey = remember(restoreFocusTarget?.id, restoreFocusTarget?.type, restoreFocusTarget?.serverId) {
+        restoreFocusTarget?.let { "${it.type}:${it.serverId}:${it.id}" } ?: "first"
+    }
+    var requestedFocusOnce by remember(focusKey, autoFocusFirstItem) { mutableStateOf(false) }
     val restoreIndex = remember(restoreFocusTarget, items) {
         restoreFocusTarget?.let { target -> items.indexOfFirst { target.matchesLaneFocus(it) }.takeIf { it >= 0 } }
     }
-    LaunchedEffect(restoreIndex, restoreFocusTarget?.id) {
-        if (restoreIndex != null) rowState.scrollToItem(restoreIndex)
+    val initialFocusIndex = restoreIndex ?: if (autoFocusFirstItem) 0 else null
+    LaunchedEffect(initialFocusIndex, focusKey) {
+        initialFocusIndex?.let { index ->
+            rowState.scrollToItem(index)
+        }
     }
     Column(modifier, verticalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
         GlassSectionTitle(title)
-        LazyRow(
-            state = rowState,
-            horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
-            modifier = Modifier.focusGroup(),
-        ) {
-            items(items, key = { "${it.type}-${it.serverId}-${it.id}" }) { item ->
-                val rowFocus = remember(item.id, item.type, item.serverId) { FocusRequester() }
-                val isRestore = restoreFocusTarget.matchesLaneFocus(item)
-                LaunchedEffect(isRestore, restoreIndex) {
-                    if (isRestore && restoreIndex != null) {
-                        delay(80)
-                        runCatching { rowFocus.requestFocus() }
+        CompositionLocalProvider(LocalBringIntoViewSpec provides LaneBringIntoViewSpec) {
+            LazyRow(
+                state = rowState,
+                horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
+                modifier = Modifier.focusGroup(),
+            ) {
+                items(items, key = { "${it.type}-${it.serverId}-${it.id}" }) { item ->
+                    val rowFocus = remember(item.id, item.type, item.serverId) { FocusRequester() }
+                    val shouldRequestInitialFocus = when {
+                        restoreIndex != null -> restoreFocusTarget.matchesLaneFocus(item)
+                        autoFocusFirstItem -> items.firstOrNull()?.matchesLaneFocus(item) == true
+                        else -> false
                     }
+                    LaunchedEffect(shouldRequestInitialFocus, initialFocusIndex, focusKey) {
+                        if (shouldRequestInitialFocus && initialFocusIndex != null && !requestedFocusOnce) {
+                            requestedFocusOnce = true
+                            delay(140)
+                            runCatching { rowFocus.requestFocus() }
+                        }
+                    }
+                    MediaPoster(item, onFocus, onClick, onFavorite, focusRequester = rowFocus)
                 }
-                MediaPoster(item, onFocus, onClick, onFavorite, focusRequester = rowFocus)
             }
         }
     }
@@ -509,7 +601,7 @@ fun SurpriseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
                     modifier = Modifier.size((20 * tv.factor).dp),
                 )
                 Text(
-                    "تشغيل سريع",
+                    "Quick play",
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                 )

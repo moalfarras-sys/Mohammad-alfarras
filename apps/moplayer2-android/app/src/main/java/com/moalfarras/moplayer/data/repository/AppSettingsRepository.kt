@@ -13,11 +13,12 @@ import com.moalfarras.moplayer.domain.model.BackgroundMode
 import com.moalfarras.moplayer.domain.model.LibraryMode
 import com.moalfarras.moplayer.domain.model.ManualWeatherEffect
 import com.moalfarras.moplayer.domain.model.MotionLevel
+import com.moalfarras.moplayer.domain.model.PerformanceMode
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.domain.model.ThemePreset
 import com.moalfarras.moplayer.domain.model.WeatherMode
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.security.SecureRandom
 import java.security.MessageDigest
@@ -32,6 +33,7 @@ class AppSettingsRepository(private val context: Context) {
     private val customBackgroundUrlKey = stringPreferencesKey("custom_background_url")
     private val themePresetKey = stringPreferencesKey("theme_preset")
     private val motionLevelKey = stringPreferencesKey("motion_level")
+    private val performanceModeKey = stringPreferencesKey("performance_mode")
     private val showWeatherWidgetKey = booleanPreferencesKey("show_weather_widget")
     private val showClockWidgetKey = booleanPreferencesKey("show_clock_widget")
     private val showFootballWidgetKey = booleanPreferencesKey("show_football_widget")
@@ -50,6 +52,8 @@ class AppSettingsRepository(private val context: Context) {
     private val searchHistoryKey = stringPreferencesKey("search_history")
     private val languageKey = stringPreferencesKey("language")
     private val lastSectionKey = stringPreferencesKey("last_section")
+    private val lastFocusStateKey = stringPreferencesKey("last_focus_state")
+    private val lastCategoryStateKey = stringPreferencesKey("last_category_state")
     private val libraryModeKey = stringPreferencesKey("library_mode")
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -59,11 +63,12 @@ class AppSettingsRepository(private val context: Context) {
         AppSettings(
             previewEnabled = prefs[previewKey] ?: true,
             accentColor = prefs[accentKey] ?: 0xFF4DA3FF,
-            accentMode = prefs[accentModeKey].toEnum(AccentMode.DYNAMIC),
+            accentMode = AccentMode.CUSTOM,
             backgroundMode = prefs[backgroundModeKey].toEnum(BackgroundMode.AUTO),
             customBackgroundUrl = prefs[customBackgroundUrlKey].orEmpty(),
             themePreset = prefs[themePresetKey].toEnum(ThemePreset.CINEMATIC_AUTO),
             motionLevel = prefs[motionLevelKey].toEnum(MotionLevel.BALANCED),
+            performanceMode = prefs[performanceModeKey].toEnum(PerformanceMode.AUTO),
             showWeatherWidget = prefs[showWeatherWidgetKey] ?: true,
             showClockWidget = prefs[showClockWidgetKey] ?: true,
             showFootballWidget = prefs[showFootballWidgetKey] ?: true,
@@ -75,12 +80,14 @@ class AppSettingsRepository(private val context: Context) {
             defaultSort = runCatching { SortOption.valueOf(storedSort) }.getOrDefault(SortOption.SERVER_ORDER),
             parentalControlsEnabled = prefs[parentalKey] ?: false,
             hasParentalPin = !prefs[parentalPinKey].isNullOrBlank(),
-            autoPlayLastLive = prefs[autoPlayLastLiveKey] ?: true,
+            autoPlayLastLive = prefs[autoPlayLastLiveKey] ?: false,
             hideEmptyCategories = prefs[hideEmptyCategoriesKey] ?: false,
             hideChannelsWithoutLogo = prefs[hideChannelsWithoutLogoKey] ?: false,
             searchHistory = prefs[searchHistoryKey]?.split('\n')?.map(String::trim)?.filter(String::isNotBlank) ?: emptyList(),
             languageTag = prefs[languageKey] ?: "system",
             lastSection = prefs[lastSectionKey] ?: "HOME",
+            lastFocusState = prefs[lastFocusStateKey].orEmpty(),
+            lastCategoryState = prefs[lastCategoryStateKey].orEmpty(),
             libraryMode = runCatching { LibraryMode.valueOf(storedLibraryMode) }.getOrDefault(LibraryMode.MERGED),
         )
     }
@@ -113,6 +120,10 @@ class AppSettingsRepository(private val context: Context) {
         context.settingsDataStore.edit { it[motionLevelKey] = value.name }
     }
 
+    suspend fun setPerformanceMode(value: PerformanceMode) {
+        context.settingsDataStore.edit { it[performanceModeKey] = value.name }
+    }
+
     suspend fun setShowWeatherWidget(value: Boolean) {
         context.settingsDataStore.edit { it[showWeatherWidgetKey] = value }
     }
@@ -139,6 +150,18 @@ class AppSettingsRepository(private val context: Context) {
 
     suspend fun setFootballMaxMatches(value: Int) {
         context.settingsDataStore.edit { it[footballMaxMatchesKey] = value.coerceIn(1, 8) }
+    }
+
+    suspend fun applyRemoteConfig(config: AppRemoteConfig) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[showWeatherWidgetKey] = config.weatherEnabled
+            prefs[showFootballWidgetKey] = config.footballEnabled
+            if (config.weatherCity.isNotBlank()) {
+                prefs[weatherCityOverrideKey] = config.weatherCity.trim().take(80)
+                prefs[weatherModeKey] = WeatherMode.CITY.name
+            }
+            prefs[footballMaxMatchesKey] = config.footballMaxMatches.coerceIn(1, 8)
+        }
     }
 
     suspend fun setPreferredPlayer(value: String) {
@@ -214,6 +237,14 @@ class AppSettingsRepository(private val context: Context) {
 
     suspend fun setLastSection(value: String) {
         context.settingsDataStore.edit { it[lastSectionKey] = value }
+    }
+
+    suspend fun setLastNavigationState(section: String, focusState: String, categoryState: String) {
+        context.settingsDataStore.edit {
+            it[lastSectionKey] = section
+            it[lastFocusStateKey] = focusState
+            it[lastCategoryStateKey] = categoryState
+        }
     }
 
     suspend fun setLibraryMode(value: LibraryMode) {

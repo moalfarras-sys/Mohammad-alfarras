@@ -6,14 +6,20 @@ import android.content.Intent
 import android.net.Uri
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
@@ -67,6 +73,7 @@ import androidx.compose.material3.Text
 import com.moalfarras.moplayer.ui.components.GlassPanel
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,6 +81,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,6 +102,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.viewinterop.AndroidView
+import com.moalfarras.moplayer.core.PerformancePolicy
 import androidx.media3.common.C
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
@@ -122,12 +131,18 @@ import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.data.network.NetworkModule
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.util.VLCVideoLayout
+import android.os.Build
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.URLDecoder
@@ -136,17 +151,40 @@ import java.util.LinkedHashMap
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-private const val APP_USER_AGENT = "VLC/3.0.21 LibVLC/3.0.21 MoPlayerPro/2.1.0"
+private val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
+private const val LIVE_TARGET_OFFSET_MS = 12_000L
+private const val LIVE_MIN_OFFSET_MS = 8_000L
+private const val LIVE_MAX_OFFSET_MS = 30_000L
+private const val LIVE_STALL_RECOVERY_LIMIT = 3
+private const val LIBVLC_LIVE_CACHE_MS = 6_000
+private const val LIBVLC_FILE_CACHE_MS = 2_500
 
 enum class LiveQualityMode { AUTO, BEST, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
 
-private fun preferredLiveAutoEngine(request: StreamRequest): InternalPlaybackEngine {
+@kotlin.OptIn(ExperimentalFoundationApi::class)
+private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
+    override val scrollAnimationSpec: AnimationSpec<Float> = snap()
+
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
+        val itemStart = offset
+        val itemEnd = offset + size
+        return when {
+            itemStart < 0f -> itemStart
+            itemEnd > containerSize -> itemEnd - containerSize
+            else -> 0f
+        }
+    }
+}
+
+private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: PerformancePolicy? = null): InternalPlaybackEngine {
+    val uri = request.uri.lowercase(Locale.US)
+    if (uri.startsWith("rtsp://")) return InternalPlaybackEngine.LIBVLC
     return when (request.mimeType) {
         MimeTypes.APPLICATION_M3U8,
         MimeTypes.APPLICATION_MPD,
         MimeTypes.APPLICATION_SS -> InternalPlaybackEngine.MEDIA3
-        else -> InternalPlaybackEngine.LIBVLC
+        else -> InternalPlaybackEngine.MEDIA3
     }
 }
 
@@ -161,19 +199,23 @@ fun PlayerScreen(
     onTripleOk: () -> Unit,
     accent: Color,
     preferredPlayer: String = "media3",
+    performancePolicy: PerformancePolicy,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val strings = LocalStrings.current
     val isLive = item.type == ContentType.LIVE
     val streamRequest = remember(item.streamUrl) { parseStreamRequest(item.streamUrl) }
-    val normalizedPreferred = remember(preferredPlayer) {
+    val canCast = remember(streamRequest.uri) { canLaunchCast(context, streamRequest.uri) }
+    val normalizedPreferred = remember(preferredPlayer, performancePolicy.mode) {
         when (preferredPlayer) {
             "internal" -> "auto"
+            "media3" -> if (isLive && performancePolicy.isPerformance) "auto" else "media3"
             else -> preferredPlayer.ifBlank { "media3" }
         }
     }
 
-    var route by remember(item.id, normalizedPreferred) {
+    var route by remember(item.id, normalizedPreferred, performancePolicy.mode) {
         mutableStateOf(
             when {
                 normalizedPreferred == "ask" && !isLive -> null
@@ -183,8 +225,8 @@ fun PlayerScreen(
             },
         )
     }
-    var internalEngine by remember(item.id, route, streamRequest.uri) {
-        mutableStateOf(if (isLive && route == "auto") preferredLiveAutoEngine(streamRequest) else InternalPlaybackEngine.MEDIA3)
+    var internalEngine by remember(item.id, route, streamRequest.uri, performancePolicy.mode) {
+        mutableStateOf(if (isLive && route == "auto") preferredLiveAutoEngine(streamRequest, performancePolicy) else InternalPlaybackEngine.MEDIA3)
     }
     var launchMessage by remember(item.id) { mutableStateOf<String?>(null) }
     var externalLaunchNonce by remember(item.id) { mutableIntStateOf(0) }
@@ -200,27 +242,41 @@ fun PlayerScreen(
     var seekJump by remember { mutableIntStateOf(0) }
     var resizeIndex by remember { mutableIntStateOf(0) }
     var favoriteMarked by remember(item.id, item.type) { mutableStateOf(item.isFavorite) }
-    var liveQualityMode by remember { mutableStateOf(LiveQualityMode.AUTO) }
+    var liveQualityMode by remember(performancePolicy.mode) {
+        mutableStateOf(if (performancePolicy.isPerformance) LiveQualityMode.STABLE else LiveQualityMode.AUTO)
+    }
     var playbackSignal by remember { mutableStateOf("") }
     var libVlcRetryNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
+    var libVlcPlayPauseNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     var liveSwitchLocked by remember(item.id) { mutableStateOf(false) }
     var lastLiveSwitchAt by remember { mutableLongStateOf(0L) }
     var liveLastPlayingAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
     var liveConsecutiveFailures by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     var triedMedia3ForLive by remember(item.id, streamRequest.uri) {
-        mutableStateOf(preferredLiveAutoEngine(streamRequest) == InternalPlaybackEngine.MEDIA3)
+        mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.MEDIA3)
     }
     var triedLibVlcForLive by remember(item.id, streamRequest.uri) {
-        mutableStateOf(preferredLiveAutoEngine(streamRequest) == InternalPlaybackEngine.LIBVLC)
+        mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.LIBVLC)
+    }
+    var forceLibVlcForLive by remember(item.id, streamRequest.uri) {
+        mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.LIBVLC)
     }
     val playerFocusRequester = remember { FocusRequester() }
+    val performanceStatus = remember(performancePolicy.mode, internalEngine, route, isLive) {
+        if (performancePolicy.isPerformance) {
+            val engine = if (route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC) "VLC live" else "Media3 stable"
+            "Performance mode · $engine · ${performancePolicy.maxVideoHeight}p cap"
+        } else {
+            ""
+        }
+    }
 
     val resizeModes = listOf(
         AspectRatioFrameLayout.RESIZE_MODE_FIT,
         AspectRatioFrameLayout.RESIZE_MODE_FILL,
         AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
     )
-    val resizeLabels = listOf("ملاءمة", "ملء الشاشة", "تكبير")
+    val resizeLabels = listOf("Fit", "Fill", "Zoom")
 
     LaunchedEffect(item.id, route, externalLaunchNonce) {
         launchMessage = null
@@ -246,7 +302,7 @@ fun PlayerScreen(
     if (route != "media3" && route != "auto") {
         ExternalLaunchScreen(
             title = item.title,
-            message = launchMessage ?: "جاري فتح المشغل الخارجي...",
+            message = launchMessage ?: "Opening external player...",
             onRetrySame = {
                 launchMessage = null
                 externalLaunchNonce++
@@ -262,13 +318,14 @@ fun PlayerScreen(
         return
     }
 
-    val useLibVlc = route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC
-    val exoPlayer = remember(item.id, streamRequest.uri, useLibVlc) {
+    val useLibVlc = route == "auto" && (internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForLive)
+    val exoPlayer = remember(item.id, streamRequest.uri, useLibVlc, performancePolicy.mode) {
         buildPlayer(
             context = context,
             request = streamRequest,
             item = item,
             isLive = isLive,
+            performancePolicy = performancePolicy,
             onIsPlayingChanged = { isPlaying = it },
             onPlaybackStateChanged = { state ->
                 isBuffering = state == Player.STATE_BUFFERING || state == Player.STATE_IDLE
@@ -283,6 +340,7 @@ fun PlayerScreen(
                 liveSwitchLocked = false
                 if (isLive && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
                     triedLibVlcForLive = true
+                    forceLibVlcForLive = true
                     playbackError = null
                     isBuffering = true
                     internalEngine = InternalPlaybackEngine.LIBVLC
@@ -319,7 +377,7 @@ fun PlayerScreen(
         while (true) {
             currentPosition = exoPlayer.currentPosition.coerceAtLeast(0)
             duration = exoPlayer.duration.coerceAtLeast(duration)
-            playbackSignal = playbackSignal(exoPlayer.videoFormat)
+            playbackSignal = playbackSignal(exoPlayer.videoFormat, performanceStatus)
             if (showControls && isPlaying && System.currentTimeMillis() - lastInteraction > if (isLive) 3200 else 5000) {
                 showControls = false
             }
@@ -386,6 +444,28 @@ fun PlayerScreen(
         }
     }
 
+    LaunchedEffect(isLive, isBuffering, playbackError, item.id, streamRequest.uri, useLibVlc, liveConsecutiveFailures) {
+        if (!isLive || !isBuffering || playbackError != null) return@LaunchedEffect
+        delay(if (performancePolicy.isPerformance) 16_000 else 22_000)
+        if (isBuffering && playbackError == null) {
+            if (isLive && !useLibVlc && !triedLibVlcForLive) {
+                triedLibVlcForLive = true
+                internalEngine = InternalPlaybackEngine.LIBVLC
+            } else if (useLibVlc && liveConsecutiveFailures < LIVE_STALL_RECOVERY_LIMIT) {
+                liveConsecutiveFailures += 1
+                libVlcRetryNonce++
+            } else if (!useLibVlc && liveConsecutiveFailures < LIVE_STALL_RECOVERY_LIMIT) {
+                liveConsecutiveFailures += 1
+                exoPlayer.seekToDefaultPosition()
+                exoPlayer.prepare()
+                exoPlayer.play()
+            } else {
+                isBuffering = false
+                playbackError = "The stream is unstable or taking too long to recover. Try again or switch quality/player."
+            }
+        }
+    }
+
     fun wakeControls() {
         showControls = true
         lastInteraction = System.currentTimeMillis()
@@ -400,6 +480,7 @@ fun PlayerScreen(
         if (isLive) {
             triedMedia3ForLive = !useLibVlc
             triedLibVlcForLive = useLibVlc
+            forceLibVlcForLive = useLibVlc
         }
         if (useLibVlc) {
             libVlcRetryNonce++
@@ -415,9 +496,9 @@ fun PlayerScreen(
         if (target == null || target.id == item.id || liveSwitchLocked) return
         if (target.type == ContentType.LIVE) {
             val now = System.currentTimeMillis()
-            if (now - lastLiveSwitchAt < 750L) return
+            if (now - lastLiveSwitchAt < 250L) return
             lastLiveSwitchAt = now
-            liveSwitchLocked = true
+            liveSwitchLocked = false
         }
         if (!isLive && exoPlayer.duration > 0) {
             onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
@@ -439,10 +520,11 @@ fun PlayerScreen(
 
         if (recentlyPlaying && liveConsecutiveFailures > 3) {
             isBuffering = false
+            playbackError = livePlaybackFailureMessage()
             return
         }
 
-        if (liveConsecutiveFailures <= 4 || recentlyPlaying) {
+        if (liveConsecutiveFailures <= 2 || recentlyPlaying) {
             isBuffering = !recentlyPlaying
             libVlcRetryNonce++
             return
@@ -450,6 +532,7 @@ fun PlayerScreen(
 
         if (!triedMedia3ForLive && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true)) {
             triedMedia3ForLive = true
+            forceLibVlcForLive = false
             playbackError = null
             isBuffering = true
             internalEngine = InternalPlaybackEngine.MEDIA3
@@ -497,8 +580,8 @@ fun PlayerScreen(
         liveZapIndex = 0
     }
 
-    LaunchedEffect(exoPlayer, liveQualityMode) {
-        if (isLive) applyLiveQualityMode(exoPlayer, liveQualityMode)
+    LaunchedEffect(exoPlayer, liveQualityMode, performancePolicy.mode) {
+        if (isLive) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
     }
 
     LaunchedEffect(showMiniInfo, item.id) {
@@ -520,7 +603,7 @@ fun PlayerScreen(
                 when {
                     // ── LIVE TV: Receiver-style remote ──────────────────
                     isLive -> when (event.key) {
-                        Key.DirectionUp -> {
+                        Key.DirectionUp, Key.ChannelUp -> {
                             if (showLiveZap && displayedLiveZapItems.isNotEmpty()) {
                                 liveZapIndex = (liveZapIndex - 1).floorMod(displayedLiveZapItems.size)
                             } else {
@@ -531,7 +614,7 @@ fun PlayerScreen(
                             }
                             true
                         }
-                        Key.DirectionDown -> {
+                        Key.DirectionDown, Key.ChannelDown -> {
                             if (showLiveZap && displayedLiveZapItems.isNotEmpty()) {
                                 liveZapIndex = (liveZapIndex + 1).floorMod(displayedLiveZapItems.size)
                             } else {
@@ -563,8 +646,12 @@ fun PlayerScreen(
                             if (showLiveZap) { showLiveZap = false; true }
                             else { onBack(0, 0); true }
                         }
-                        Key.MediaPlayPause, Key.Spacebar -> {
-                            if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                        Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause, Key.Spacebar -> {
+                            if (useLibVlc) {
+                                libVlcPlayPauseNonce++
+                            } else {
+                                if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                            }
                             true
                         }
                         Key.DirectionLeft, Key.DirectionRight -> {
@@ -587,7 +674,7 @@ fun PlayerScreen(
                                     onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
                                     return@onPreviewKeyEvent true
                                 }
-                                Key.MediaPlayPause -> {
+                                Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause -> {
                                     if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                                     wakeControls()
                                     return@onPreviewKeyEvent true
@@ -610,7 +697,7 @@ fun PlayerScreen(
                         // Controls are visible — let D-pad navigate to buttons
                         when (event.key) {
                             Key.Back, Key.Escape -> { showControls = false; true }
-                            Key.MediaPlayPause -> {
+                            Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause -> {
                                 if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
                                 lastInteraction = System.currentTimeMillis()
                                 true
@@ -641,10 +728,11 @@ fun PlayerScreen(
                     liveConsecutiveFailures = 0
                     liveSwitchLocked = false
                     playbackError = null
-                    playbackSignal = "VLC · بث مباشر"
+                    playbackSignal = "VLC · Live"
                 },
                 onPaused = { isPlaying = false },
                 onError = ::handleLibVlcLiveError,
+                playPauseNonce = libVlcPlayPauseNonce,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
@@ -662,7 +750,7 @@ fun PlayerScreen(
             )
         }
 
-        if (isBuffering && playbackError == null) {
+        if (isBuffering && playbackError == null && (!isLive || System.currentTimeMillis() - lastLiveSwitchAt > 900L)) {
             GlassPanel(
                 radius = 999.dp,
                 blur = 16.dp,
@@ -675,7 +763,7 @@ fun PlayerScreen(
                 ) {
                     CircularProgressIndicator(color = accent, modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
                     Text(
-                        if (isLive) "جاري فتح القناة..." else "جاري التحميل...",
+                        if (isLive) "Opening channel..." else "Loading...",
                         color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                     )
                 }
@@ -697,7 +785,7 @@ fun PlayerScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(Icons.Rounded.Warning, null, tint = Color(0xFFFFD166), modifier = Modifier.size(24.dp))
-                            Text("تعذر تشغيل البث", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("Could not play stream", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                         }
                         Text(message, color = Color(0xCCF5E6D0), fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -708,7 +796,7 @@ fun PlayerScreen(
                             ) {
                                 Icon(Icons.Rounded.Refresh, null, tint = Color.Black, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(4.dp))
-                                Text("إعادة", color = Color.Black, fontSize = 13.sp)
+                                Text(strings.retry, color = Color.Black, fontSize = 13.sp)
                             }
                             OutlinedButton(onClick = { route = "vlc" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("VLC", fontSize = 12.sp) }
                             if (isLive) {
@@ -720,11 +808,11 @@ fun PlayerScreen(
                                         internalEngine = InternalPlaybackEngine.LIBVLC
                                     },
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                ) { Text("داخلي", fontSize = 12.sp) }
+                                ) { Text("Internal", fontSize = 12.sp) }
                             }
                             OutlinedButton(onClick = { route = "mx" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("MX", fontSize = 12.sp) }
-                            OutlinedButton(onClick = { route = "external" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("خارجي", fontSize = 12.sp) }
-                            OutlinedButton(onClick = { onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0)) }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("رجوع", fontSize = 12.sp) }
+                            OutlinedButton(onClick = { route = "external" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("External", fontSize = 12.sp) }
+                            OutlinedButton(onClick = { onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0)) }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text(strings.back, fontSize = 12.sp) }
                         }
                     }
                 }
@@ -757,17 +845,26 @@ fun PlayerScreen(
                     showMiniInfo = true
                     switchTo(selected)
                 },
-                onQualityMode = { liveQualityMode = it },
-                onAudio = { runCatching { TrackSelectionDialogBuilder(context, "الصوت", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() } },
-                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, "الترجمة", exoPlayer, C.TRACK_TYPE_TEXT).build().show() } },
-                onVideo = { runCatching { TrackSelectionDialogBuilder(context, "الجودة", exoPlayer, C.TRACK_TYPE_VIDEO).build().show() } },
+                onQualityMode = {
+                    liveQualityMode = it
+                    if (isLive && useLibVlc && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true)) {
+                        forceLibVlcForLive = false
+                        triedMedia3ForLive = true
+                        playbackError = null
+                        isBuffering = true
+                        internalEngine = InternalPlaybackEngine.MEDIA3
+                    }
+                },
+                onAudio = { runCatching { TrackSelectionDialogBuilder(context, "Audio", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() } },
+                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, "Subtitles", exoPlayer, C.TRACK_TYPE_TEXT).build().show() } },
+                onVideo = { runCatching { TrackSelectionDialogBuilder(context, "Quality", exoPlayer, C.TRACK_TYPE_VIDEO).build().show() } },
                 onResize = { resizeIndex = (resizeIndex + 1) % resizeModes.size },
                 onExternal = { route = null },
             )
         }
 
         AnimatedVisibility(
-            visible = showControls && !isLive,
+            visible = showControls && !isLive && !performancePolicy.isPerformance,
             enter = fadeIn(tween(250)),
             exit = fadeOut(tween(400)),
             modifier = Modifier.fillMaxSize(),
@@ -890,7 +987,7 @@ fun PlayerScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 if (isLive && previousItem != null) {
-                                    ControlButton(Icons.Rounded.SkipPrevious, "السابق", accent) { switchTo(previousItem) }
+                                    ControlButton(Icons.Rounded.SkipPrevious, "Previous", accent) { switchTo(previousItem) }
                                     Spacer(Modifier.width(10.dp))
                                 } else if (!isLive) {
                                     ControlButton(Icons.Rounded.Replay10, "-10", accent) {
@@ -915,7 +1012,7 @@ fun PlayerScreen(
                                     )
                                     Spacer(Modifier.width(6.dp))
                                     Text(
-                                        if (isPlaying) "إيقاف" else "تشغيل",
+                                        if (isPlaying) "Pause" else "Play",
                                         color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp,
                                     )
                                 }
@@ -937,7 +1034,7 @@ fun PlayerScreen(
 
                                 if (isLive && nextItem != null) {
                                     Spacer(Modifier.width(10.dp))
-                                    ControlButton(Icons.Rounded.SkipNext, "التالي", accent) { switchTo(nextItem) }
+                                    ControlButton(Icons.Rounded.SkipNext, "Next", accent) { switchTo(nextItem) }
                                 } else if (!isLive) {
                                     Spacer(Modifier.width(8.dp))
                                     ControlButton(Icons.Rounded.Forward10, "+10", accent) {
@@ -953,26 +1050,28 @@ fun PlayerScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    SmallControlButton(Icons.Rounded.Refresh, accent, ::retryPlayback)
-                                    SmallControlButton(Icons.Rounded.Audiotrack, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, "الصوت", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
+                                    SmallControlButton(Icons.Rounded.Refresh, "Retry", accent, ::retryPlayback)
+                                    SmallControlButton(Icons.Rounded.Audiotrack, "Audio", accent) {
+                                        runCatching { TrackSelectionDialogBuilder(context, "Audio", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
                                     }
-                                    SmallControlButton(Icons.Rounded.Subtitles, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, "الترجمة", exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
+                                    SmallControlButton(Icons.Rounded.Subtitles, "Subtitles", accent) {
+                                        runCatching { TrackSelectionDialogBuilder(context, "Subtitles", exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
                                     }
-                                    SmallControlButton(Icons.Rounded.HighQuality, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, "الجودة", exoPlayer, C.TRACK_TYPE_VIDEO).build().show() }
+                                    SmallControlButton(Icons.Rounded.HighQuality, "Quality", accent) {
+                                        runCatching { TrackSelectionDialogBuilder(context, "Quality", exoPlayer, C.TRACK_TYPE_VIDEO).build().show() }
                                     }
-                                    SmallControlButton(Icons.Rounded.Tune, accent) {
+                                    SmallControlButton(Icons.Rounded.Tune, "Aspect", accent) {
                                         resizeIndex = (resizeIndex + 1) % resizeModes.size
                                     }
-                                    SmallControlButton(Icons.Rounded.Cast, accent) {
-                                        launchCastFallback(context, streamRequest.uri)
+                                    if (canCast) {
+                                        SmallControlButton(Icons.Rounded.Cast, "Cast", accent) {
+                                            launchCastFallback(context, streamRequest.uri)
+                                        }
                                     }
-                                    SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, accent) { route = null }
+                                    SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, "Open external", accent) { route = null }
                                 }
                                 Text(
-                                    if (isLive) "▲▼ تبديل القنوات  •  OK إظهار/إخفاء" else "◄► تقديم/تأخير  •  ← إخفاء",
+                                    if (isLive) "▲▼ Change channels  •  OK Show/Hide" else "◄► Seek  •  Back Hide",
                                     color = Color(0x77FFFFFF),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium,
@@ -986,14 +1085,14 @@ fun PlayerScreen(
 
         // ── Seek Jump Indicator — floating pill ─────────────────────
         AnimatedVisibility(
-            visible = seekJump != 0,
+            visible = seekJump != 0 && !performancePolicy.isPerformance,
             enter = fadeIn(tween(100)),
             exit = fadeOut(tween(300)),
             modifier = Modifier.align(Alignment.Center),
         ) {
             GlassPanel(radius = 999.dp, blur = 16.dp) {
                 Text(
-                    text = "${if (seekJump > 0) "+" else ""}${seekJump}ث",
+                    text = "${if (seekJump > 0) "+" else ""}${seekJump}s",
                     color = Color.White,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -1004,6 +1103,7 @@ fun PlayerScreen(
     }
 }
 
+@kotlin.OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LiveZapOverlay(
     visible: Boolean,
@@ -1031,9 +1131,9 @@ private fun LiveZapOverlay(
 ) {
     val channelListState = rememberLazyListState()
 
-    LaunchedEffect(visible, selectedIndex, items.size) {
+    LaunchedEffect(visible, items.size) {
         if (visible && selectedIndex in items.indices) {
-            channelListState.animateScrollToItem(selectedIndex.coerceAtLeast(0))
+            channelListState.scrollToItem(selectedIndex)
         }
     }
 
@@ -1095,7 +1195,7 @@ private fun LiveZapOverlay(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            selectedCategory?.name ?: "القنوات",
+                            selectedCategory?.name ?: "Channels",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
@@ -1116,46 +1216,50 @@ private fun LiveZapOverlay(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        LiveQualityModeButton("تلقائي", qualityMode == LiveQualityMode.AUTO, accent) {
+                        LiveQualityModeButton("Auto", qualityMode == LiveQualityMode.AUTO, accent) {
                             onQualityMode(LiveQualityMode.AUTO)
                         }
-                        LiveQualityModeButton("أعلى", qualityMode == LiveQualityMode.BEST, accent) {
+                        LiveQualityModeButton("Best", qualityMode == LiveQualityMode.BEST, accent) {
                             onQualityMode(LiveQualityMode.BEST)
                         }
-                        LiveQualityModeButton("ثابت", qualityMode == LiveQualityMode.STABLE, accent) {
+                        LiveQualityModeButton("Stable", qualityMode == LiveQualityMode.STABLE, accent) {
                             onQualityMode(LiveQualityMode.STABLE)
                         }
-                        LiveQualityModeButton("اختيار", false, accent, onVideo)
+                        LiveQualityModeButton("Tracks", false, accent, onVideo)
                     }
 
                     if (items.isEmpty()) {
                         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Text("لا توجد قنوات في هذه المجموعة", color = Color(0xCCFFFFFF), fontSize = 13.sp)
+                            Text("No channels in this group", color = Color(0xCCFFFFFF), fontSize = 13.sp)
                         }
                     } else {
-                        LazyColumn(
-                            modifier = Modifier.weight(1f).fillMaxWidth(),
-                            state = channelListState,
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            itemsIndexed(items, key = { _, channel -> "${channel.serverId}-${channel.id}-${channel.type}" }) { index, channel ->
-                                val isSelected = index == selectedIndex
-                                val isCurrent = channel.id == currentItem.id && channel.serverId == currentItem.serverId
-                                LiveChannelRow(
-                                    channel = channel,
-                                    index = index,
-                                    selected = isSelected,
-                                    current = isCurrent,
-                                    accent = accent,
-                                    onFocus = { onSelectIndex(index) },
-                                    onPlay = { onPlay(channel) },
-                                )
+                        CompositionLocalProvider(LocalBringIntoViewSpec provides PlayerEdgeBringIntoViewSpec) {
+                            LazyColumn(
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                state = channelListState,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                itemsIndexed(items, key = { _, channel -> "${channel.serverId}-${channel.id}-${channel.type}" }) { index, channel ->
+                                    val isSelected = index == selectedIndex
+                                    val isCurrent = channel.id == currentItem.id && channel.serverId == currentItem.serverId
+                                    LiveChannelRow(
+                                        channel = channel,
+                                        index = index,
+                                        selected = isSelected,
+                                        current = isCurrent,
+                                        accent = accent,
+                                        onFocus = {
+                                            onSelectIndex(index)
+                                        },
+                                        onPlay = { onPlay(channel) },
+                                    )
+                                }
                             }
                         }
                     }
 
                     Text(
-                        "OK تشغيل  •  ▲▼ تنقل  •  ◄► مجموعات  •  Back إغلاق",
+                        "OK Play  •  ▲▼ Navigate  •  ◄► Groups  •  Back Close",
                         color = Color(0x99FFFFFF),
                         fontSize = 11.sp,
                         maxLines = 1,
@@ -1178,12 +1282,12 @@ private const val LIVE_ZAP_UNCATEGORIZED_ID = "__uncategorized__"
 
 private fun List<AppMediaItem>.toLiveZapCategories(): List<LiveZapCategory> {
     if (isEmpty()) return emptyList()
-    val allCategory = LiveZapCategory(LIVE_ZAP_ALL_CATEGORY_ID, "الكل", size)
+    val allCategory = LiveZapCategory(LIVE_ZAP_ALL_CATEGORY_ID, "All", size)
     val grouped = groupBy { it.categoryId.ifBlank { LIVE_ZAP_UNCATEGORIZED_ID } }
     val itemCategories = grouped.map { (id, channels) ->
         LiveZapCategory(
             id = id,
-            name = channels.firstOrNull()?.categoryName?.ifBlank { "بث مباشر" } ?: "بث مباشر",
+            name = channels.firstOrNull()?.categoryName?.ifBlank { "Live TV" } ?: "Live TV",
             count = channels.size,
         )
     }
@@ -1238,7 +1342,7 @@ private fun LiveInfoCard(
                         fontSize = 13.sp,
                     )
                     Text(
-                        item.categoryName.ifBlank { "بث مباشر" },
+                        item.categoryName.ifBlank { "Live TV" },
                         color = Color(0xB8FFFFFF),
                         fontSize = 12.sp,
                         maxLines = 1,
@@ -1255,10 +1359,10 @@ private fun LiveInfoCard(
                 )
                 Text(
                     when {
-                        error != null -> "تحتاج إعادة محاولة أو مشغل خارجي"
-                        isBuffering -> "جاري فتح القناة..."
+                        error != null -> "Retry or use an external player"
+                        isBuffering -> "Opening channel..."
                         signal.isNotBlank() -> signal
-                        else -> "مباشر الآن"
+                        else -> "Live now"
                     },
                     color = if (error != null) Color(0xFFFFB4AB) else Color(0xCCE3BC78),
                     fontSize = 12.sp,
@@ -1372,7 +1476,7 @@ private fun PlayerRoutePicker(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    "اختيار المشغّل",
+                    "Choose player",
                     color = Color.White,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
@@ -1385,7 +1489,7 @@ private fun PlayerRoutePicker(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    "اختر Media3 أو مشغّلاً خارجياً قبل بدء التشغيل.",
+                    "Choose Media3 or an external player before playback starts.",
                     color = Color(0x99FFFFFF),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -1398,7 +1502,7 @@ private fun PlayerRoutePicker(
                         colors = ButtonDefaults.buttonColors(containerColor = visuals.accent, contentColor = Color.Black),
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text("تلقائي")
+                        Text("Auto")
                     }
                     OutlinedButton(onClick = { onSelect("media3") }, modifier = Modifier.weight(1f)) {
                         Text("Media3")
@@ -1416,10 +1520,10 @@ private fun PlayerRoutePicker(
                     }
                 }
                 OutlinedButton(onClick = { onSelect("external") }, modifier = Modifier.fillMaxWidth()) {
-                    Text("عام")
+                    Text("Generic")
                 }
                 OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text("إلغاء")
+                    Text("Cancel")
                 }
             }
         }
@@ -1450,10 +1554,10 @@ private fun ExternalLaunchScreen(
                 Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                 Text(message, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyLarge)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = onRetrySame) { Text("إعادة المحاولة") }
-                    OutlinedButton(onClick = onUseMedia3) { Text("استخدام Media3") }
-                    OutlinedButton(onClick = onPickAnother) { Text("اختيار آخر") }
-                    OutlinedButton(onClick = onBack) { Text("رجوع") }
+                    Button(onClick = onRetrySame) { Text("Retry") }
+                    OutlinedButton(onClick = onUseMedia3) { Text("Use Media3") }
+                    OutlinedButton(onClick = onPickAnother) { Text("Choose another") }
+                    OutlinedButton(onClick = onBack) { Text("Back") }
                 }
             }
         }
@@ -1492,6 +1596,7 @@ private fun ControlButton(
 @Composable
 private fun SmallControlButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
     accent: Color,
     onClick: () -> Unit,
 ) {
@@ -1506,7 +1611,7 @@ private fun SmallControlButton(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, null, tint = accent, modifier = Modifier.size(18.dp))
+            Icon(icon, label, tint = accent, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -1521,40 +1626,40 @@ private fun LibVlcPlayerView(
     onPlaying: () -> Unit,
     onPaused: () -> Unit,
     onError: (String) -> Unit,
+    playPauseNonce: Int,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val vlcOptions = remember {
         arrayListOf(
-            "--network-caching=1800",
-            "--live-caching=1800",
-            "--file-caching=1200",
-            "--drop-late-frames",
-            "--skip-frames",
+            "--network-caching=$LIBVLC_LIVE_CACHE_MS",
+            "--live-caching=$LIBVLC_LIVE_CACHE_MS",
+            "--file-caching=$LIBVLC_FILE_CACHE_MS",
             "--avcodec-fast",
+            "--audio-resampler=soxr",
         )
     }
     val libVlc = remember { LibVLC(context, vlcOptions) }
     val mediaPlayer = remember { MediaPlayer(libVlc) }
+    val uiScope = rememberCoroutineScope()
 
     DisposableEffect(request.uri, retryNonce) {
         var activeSession = true
         onBuffering(true)
         val media = Media(libVlc, Uri.parse(request.uri)).apply {
             setHWDecoderEnabled(true, false)
-            addOption(":network-caching=1800")
-            addOption(":live-caching=1800")
-            addOption(":file-caching=1200")
+            addOption(":network-caching=$LIBVLC_LIVE_CACHE_MS")
+            addOption(":live-caching=$LIBVLC_LIVE_CACHE_MS")
+            addOption(":file-caching=$LIBVLC_FILE_CACHE_MS")
             addOption(":http-reconnect")
             addOption(":http-continuous")
-            addOption(":drop-late-frames")
-            addOption(":skip-frames")
             addOption(":avcodec-fast")
             addOption(":http-user-agent=${request.headers["User-Agent"] ?: APP_USER_AGENT}")
             request.headers["Referer"]?.let { addOption(":http-referrer=$it") }
             request.headers["Cookie"]?.let { addOption(":http-cookie=$it") }
             request.headers["Origin"]?.let { addOption(":http-header=Origin: $it") }
+            request.headers["Authorization"]?.let { addOption(":http-header=Authorization: $it") }
             addOption(":meta-title=$title")
         }
         mediaPlayer.media = media
@@ -1562,16 +1667,20 @@ private fun LibVlcPlayerView(
         mediaPlayer.setEventListener { event ->
             if (!activeSession) return@setEventListener
             when (event.type) {
-                MediaPlayer.Event.Buffering -> onBuffering(event.buffering < 100f)
-                MediaPlayer.Event.Playing -> onPlaying()
-                MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped -> onPaused()
+                MediaPlayer.Event.Buffering -> uiScope.launchMainIfActive({ activeSession }) { onBuffering(event.buffering < 100f) }
+                MediaPlayer.Event.Playing -> uiScope.launchMainIfActive({ activeSession }) { onPlaying() }
+                MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped -> uiScope.launchMainIfActive({ activeSession }) { onPaused() }
                 MediaPlayer.Event.EndReached -> {
-                    onBuffering(true)
-                    onError(livePlaybackFailureMessage())
+                    uiScope.launchMainIfActive({ activeSession }) {
+                        onBuffering(true)
+                        onError(livePlaybackFailureMessage())
+                    }
                 }
                 MediaPlayer.Event.EncounteredError -> {
-                    onBuffering(true)
-                    onError(livePlaybackFailureMessage())
+                    uiScope.launchMainIfActive({ activeSession }) {
+                        onBuffering(true)
+                        onError(livePlaybackFailureMessage())
+                    }
                 }
             }
         }
@@ -1579,8 +1688,9 @@ private fun LibVlcPlayerView(
 
         onDispose {
             activeSession = false
-            runCatching { mediaPlayer.stop() }
             mediaPlayer.setEventListener(null)
+            runCatching { mediaPlayer.stop() }
+            runCatching { mediaPlayer.media = null }
         }
     }
 
@@ -1601,6 +1711,13 @@ private fun LibVlcPlayerView(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(playPauseNonce) {
+        if (playPauseNonce == 0) return@LaunchedEffect
+        runCatching {
+            if (mediaPlayer.isPlaying) mediaPlayer.pause() else mediaPlayer.play()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -1651,27 +1768,55 @@ private fun launchCastFallback(context: Context, streamUrl: String) {
     }
 }
 
-private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode) {
+private fun canLaunchCast(context: Context, streamUrl: String): Boolean {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(streamUrl))
+    val flags = if (Build.VERSION.SDK_INT >= 23) PackageManager.MATCH_DEFAULT_ONLY else 0
+    return context.packageManager.queryIntentActivities(intent, flags).isNotEmpty()
+}
+
+private fun CoroutineScope.launchMainIfActive(isActiveSession: () -> Boolean, block: () -> Unit) {
+    if (!isActiveSession()) return
+    launch {
+        withContext(Dispatchers.Main.immediate) {
+            if (isActiveSession()) block()
+        }
+    }
+}
+
+private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVideoHeight: Int = 2160) {
     val builder = player.trackSelectionParameters.buildUpon()
+    val maxWidth = when {
+        maxVideoHeight <= 720 -> 1280
+        maxVideoHeight <= 1080 -> 1920
+        maxVideoHeight <= 2160 -> 3840
+        else -> 7680
+    }
+    val liveCapHeight = liveSafeMaxVideoHeight(maxVideoHeight)
+    val liveCapWidth = when {
+        liveCapHeight <= 720 -> 1280
+        liveCapHeight <= 1080 -> 1920
+        liveCapHeight <= 2160 -> 3840
+        else -> 7680
+    }
     when (mode) {
         LiveQualityMode.AUTO -> builder
             .setForceHighestSupportedBitrate(false)
-            .clearVideoSizeConstraints()
-            .setMaxVideoBitrate(Int.MAX_VALUE)
+            .setMaxVideoSize(liveCapWidth, liveCapHeight)
+            .setMaxVideoBitrate(liveSafeMaxBitrate(liveCapHeight))
         LiveQualityMode.BEST -> builder
-            .setForceHighestSupportedBitrate(true)
-            .clearVideoSizeConstraints()
-            .setMaxVideoBitrate(Int.MAX_VALUE)
+            .setForceHighestSupportedBitrate(false)
+            .setMaxVideoSize(maxWidth, maxVideoHeight.coerceAtMost(2160))
+            .setMaxVideoBitrate(liveSafeMaxBitrate(maxVideoHeight.coerceAtMost(2160)))
         LiveQualityMode.STABLE -> builder
             .setForceHighestSupportedBitrate(false)
-            .setMaxVideoSize(1280, 720)
+            .setMaxVideoSize(maxWidth.coerceAtMost(1280), maxVideoHeight.coerceAtMost(720))
             .setMaxVideoBitrate(2_500_000)
     }
     player.trackSelectionParameters = builder.build()
 }
 
-private fun playbackSignal(format: Format?): String {
-    if (format == null) return ""
+private fun playbackSignal(format: Format?, fallback: String = ""): String {
+    if (format == null) return fallback
     val quality = when {
         format.width >= 3840 || format.height >= 2160 -> "4K"
         format.width >= 1920 || format.height >= 1080 -> "FHD"
@@ -1681,7 +1826,20 @@ private fun playbackSignal(format: Format?): String {
     }
     val hdr = if (format.colorInfo != null) "HDR" else ""
     val codec = format.sampleMimeType?.substringAfter("video/")?.uppercase(Locale.US).orEmpty()
-    return listOf(quality, hdr, codec).filter { it.isNotBlank() }.joinToString(" · ")
+    return listOf(quality, hdr, codec, fallback).filter { it.isNotBlank() }.joinToString(" · ")
+}
+
+private fun liveSafeMaxVideoHeight(policyHeight: Int): Int = when {
+    Build.VERSION.SDK_INT < 26 -> policyHeight.coerceAtMost(720)
+    policyHeight <= 720 -> 720
+    policyHeight <= 1080 -> 1080
+    else -> 1080
+}
+
+private fun liveSafeMaxBitrate(videoHeight: Int): Int = when {
+    videoHeight <= 720 -> 2_500_000
+    videoHeight <= 1080 -> 5_500_000
+    else -> 12_000_000
 }
 
 private fun Int.floorMod(size: Int): Int = ((this % size) + size) % size
@@ -1720,11 +1878,19 @@ private fun buildPlayer(
     onPlayerError: (PlaybackException) -> Unit,
     onDurationChanged: (Long) -> Unit,
     startPlayback: Boolean = true,
+    performancePolicy: PerformancePolicy,
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
     // Receiver-style live: still quick, but enough buffer for real-world IPTV jitter.
+    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 10_000 else 12_000)
+    val liveMaxBufferMs = if (performancePolicy.isPerformance) 36_000 else 60_000
     val liveLoadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(4_000, 24_000, 1_500, 3_500)
+        .setBufferDurationsMs(
+            liveMinBufferMs,
+            liveMaxBufferMs,
+            if (performancePolicy.isPerformance) 3_000 else 4_000,
+            if (performancePolicy.isPerformance) 7_000 else 9_000,
+        )
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
     // VOD: generous buffer for smooth 4K/8K playback
@@ -1741,31 +1907,44 @@ private fun buildPlayer(
     } else {
         DefaultMediaSourceFactory(httpFactory)
     }
-    // Auto quality: no resolution/bitrate cap = 8K auto-select
+    if (isLive) {
+        mediaSourceFactory.setLiveTargetOffsetMs(LIVE_TARGET_OFFSET_MS)
+    }
+    val liveVideoHeight = if (isLive) liveSafeMaxVideoHeight(performancePolicy.maxVideoHeight) else performancePolicy.maxVideoHeight
+    val liveVideoWidth = when {
+        liveVideoHeight <= 720 -> 1280
+        liveVideoHeight <= 1080 -> 1920
+        liveVideoHeight <= 2160 -> 3840
+        else -> 7680
+    }
     val trackSelector = DefaultTrackSelector(context).apply {
-        parameters = buildUponParameters()
+        val builder = buildUponParameters()
             .setForceHighestSupportedBitrate(false)
             .setAllowVideoMixedMimeTypeAdaptiveness(true)
             .setAllowAudioMixedMimeTypeAdaptiveness(true)
-            .setPreferredAudioLanguage("ar")
-            .build()
+            .setMaxVideoSize(liveVideoWidth, liveVideoHeight)
+        if (performancePolicy.isPerformance || isLive) {
+            builder
+                .setPreferredVideoMimeTypes(MimeTypes.VIDEO_H264, MimeTypes.VIDEO_H265, MimeTypes.VIDEO_MP4V)
+                .setMaxVideoBitrate(if (isLive) liveSafeMaxBitrate(liveVideoHeight) else 2_500_000)
+        }
+        parameters = builder.build()
     }
     val errorHandlingPolicy = object : DefaultLoadErrorHandlingPolicy() {
         override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
             val attempt = loadErrorInfo.errorCount.coerceAtLeast(1)
-            return if (isLive) (attempt * 800L).coerceAtMost(3_000L) else (attempt * 1_500L).coerceAtMost(6_000L)
+            return if (isLive) (attempt * 1_000L).coerceAtMost(5_000L) else (attempt * 1_500L).coerceAtMost(6_000L)
         }
-        override fun getMinimumLoadableRetryCount(dataType: Int): Int = if (isLive) 8 else 5
+        override fun getMinimumLoadableRetryCount(dataType: Int): Int = if (isLive) 12 else 5
     }
-
     return ExoPlayer.Builder(context)
         .setTrackSelector(trackSelector)
         .setLoadControl(if (isLive) liveLoadControl else vodLoadControl)
         .setLivePlaybackSpeedControl(
             DefaultLivePlaybackSpeedControl.Builder()
-                .setFallbackMinPlaybackSpeed(0.98f)
-                .setFallbackMaxPlaybackSpeed(1.02f)
-                .setTargetLiveOffsetIncrementOnRebufferMs(2_500)
+                .setFallbackMinPlaybackSpeed(0.97f)
+                .setFallbackMaxPlaybackSpeed(1.04f)
+                .setTargetLiveOffsetIncrementOnRebufferMs(5_000)
                 .build(),
         )
         .setAudioAttributes(
@@ -1822,9 +2001,11 @@ private fun buildPlayer(
 private fun buildPlayableMediaItem(request: StreamRequest, item: AppMediaItem, isLive: Boolean): MediaItem {
     val liveConfiguration = if (isLive) {
         MediaItem.LiveConfiguration.Builder()
-            .setTargetOffsetMs(5_000)
+            .setTargetOffsetMs(LIVE_TARGET_OFFSET_MS)
+            .setMinOffsetMs(LIVE_MIN_OFFSET_MS)
+            .setMaxOffsetMs(LIVE_MAX_OFFSET_MS)
             .setMinPlaybackSpeed(0.97f)
-            .setMaxPlaybackSpeed(1.03f)
+            .setMaxPlaybackSpeed(1.04f)
             .build()
     } else {
         null
@@ -1926,6 +2107,20 @@ internal fun inferMimeType(url: String): String? {
     }
 }
 
+private fun String.hasLiveTsHint(): Boolean {
+    val normalizedFull = lowercase(Locale.US)
+    val normalized = normalizedFull.substringBefore('?').substringBefore('#')
+    val outputHint = Regex("""[?&](?:output|type|format|extension)=([^&#]+)""")
+        .find(normalizedFull)
+        ?.groupValues
+        ?.getOrNull(1)
+        .orEmpty()
+    return normalized.endsWith(".ts") ||
+        normalized.endsWith(".m2ts") ||
+        outputHint == "ts" ||
+        outputHint == "mpegts"
+}
+
 internal fun shouldFallbackToLibVlc(error: PlaybackException): Boolean {
     return shouldFallbackToLibVlc(error.errorCode, error.cause)
 }
@@ -1942,7 +2137,10 @@ internal fun shouldFallbackToLibVlc(errorCode: Int, cause: Throwable?): Boolean 
 }
 
 internal fun livePlaybackFailureMessage(): String =
-    "توقف البث المباشر مؤقتًا. جرّب إعادة المحاولة أو افتحه في مشغل خارجي."
+    "Live stream stopped temporarily. Try again or open it in an external player."
+
+internal fun liveFallbackCannotOpenMessage(): String =
+    "The internal fallback player could not open this channel. The source may be blocked, expired, or require a different player."
 
 private fun explainPlaybackError(
     context: Context,
@@ -1952,24 +2150,24 @@ private fun explainPlaybackError(
 ): String {
     val cause = error.cause
     return when {
-        !context.hasInternetConnection() -> "لا يوجد اتصال إنترنت متاح حاليًا."
+        !context.hasInternetConnection() -> "No internet connection is available right now."
         cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode in 300..399 ->
-            "الرابط يعيد تحويلات كثيرة أو غير متوافقة مع البث."
+            "The link returns too many redirects or incompatible stream redirects."
         cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 401 ->
-            "الخادم رفض الوصول إلى البث. قد يحتاج الرابط إلى صلاحية أو Headers خاصة."
+            "The server rejected access to the stream. The link may need authorization or special headers."
         cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 403 ->
-            "الخادم منع تشغيل هذا الرابط على المشغل الداخلي."
+            "The server blocked this link in the internal player."
         cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 404 ->
-            "الرابط لا يعمل أو لم يعد موجودًا على الخادم."
+            "The link is not working or no longer exists on the server."
         cause is SocketTimeoutException ->
-            if (isLive) "الخادم بطيء جدًا أو القناة لا تستجيب في الوقت الحالي." else "انتهت مهلة الاتصال أثناء تحميل الفيديو."
-        cause is ConnectException -> "تعذر الاتصال بالخادم. تحقق من الرابط أو الشبكة."
-        cause is ParserException -> "صيغة البث غير مدعومة أو بيانات البث تالفة."
-        error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "الخادم أعاد استجابة غير صالحة لهذا البث."
-        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "فشل الاتصال بخادم البث."
-        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "انتهت مهلة الاتصال بخادم البث."
-        error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> "ملف الوسائط أو الحاوية غير مدعومين بشكل صحيح."
-        else -> "تعذر تشغيل الرابط الحالي داخل Media3. جرّب إعادة المحاولة أو فتحه في VLC أو MX Player. (${uri.safeStreamLabel()})"
+            if (isLive) "The server is too slow or the channel is not responding right now." else "Connection timed out while loading the video."
+        cause is ConnectException -> "Could not connect to the server. Check the link or network."
+        cause is ParserException -> "The stream format is unsupported or the stream data is malformed."
+        error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "The server returned an invalid response for this stream."
+        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "Connection to the stream server failed."
+        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "Connection to the stream server timed out."
+        error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> "The media file or container is not supported correctly."
+        else -> "Could not play the current link in Media3. Try again or open it in VLC or MX Player. (${uri.safeStreamLabel()})"
     }
 }
 
@@ -2001,13 +2199,13 @@ private fun openExternalPlayer(
     }
 
     if (route == "external") {
-        val chooser = Intent.createChooser(baseIntent, "اختر مشغل فيديو")
+        val chooser = Intent.createChooser(baseIntent, "Choose video player")
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return try {
             context.startActivity(chooser)
-            ExternalLaunchResult(true, "تم فتح المشغل الخارجي.")
+            ExternalLaunchResult(true, "External player opened.")
         } catch (_: ActivityNotFoundException) {
-            ExternalLaunchResult(false, "لا يوجد أي مشغل فيديو خارجي مثبت على الجهاز.")
+            ExternalLaunchResult(false, "No external video player is installed on this device.")
         }
     }
 
@@ -2015,7 +2213,7 @@ private fun openExternalPlayer(
         try {
             context.packageManager.getPackageInfo(packageName, 0)
             context.startActivity(Intent(baseIntent).setPackage(packageName))
-            return ExternalLaunchResult(true, "تم فتح $title في المشغل الخارجي.")
+            return ExternalLaunchResult(true, "$title opened in the external player.")
         } catch (_: Exception) {
         }
     }
@@ -2023,9 +2221,9 @@ private fun openExternalPlayer(
     return ExternalLaunchResult(
         success = false,
         message = when (route) {
-            "vlc" -> "تطبيق VLC غير مثبت. يمكنك تثبيته أو استخدام Media3 أو مشغل خارجي آخر."
-            "mx" -> "تطبيق MX Player غير مثبت. يمكنك تثبيته أو استخدام Media3 أو مشغل خارجي آخر."
-            else -> "تعذر فتح المشغل الخارجي المطلوب."
+            "vlc" -> "VLC is not installed. Install it or use Media3 or another external player."
+            "mx" -> "MX Player is not installed. Install it or use Media3 or another external player."
+            else -> "Could not open the requested external player."
         },
     )
 }

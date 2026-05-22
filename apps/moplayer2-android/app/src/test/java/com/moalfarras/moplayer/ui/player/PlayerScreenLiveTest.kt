@@ -58,10 +58,10 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun liveFailureMessageIsReadableArabic() {
+    fun liveFailureMessageIsReadableEnglish() {
         val message = livePlaybackFailureMessage()
 
-        assertTrue(message.contains("البث المباشر"))
-        assertTrue(message.contains("إعادة المحاولة"))
+        assertTrue(message.contains("Live stream"))
+        assertTrue(message.contains("Try again"))
     }
 }

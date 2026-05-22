@@ -12,20 +12,13 @@
                 android:startY="11"
                 android:endX="80"
                 android:endY="56"
-                android:startColor="#AEB9CE"
-                android:endColor="#6E7C95" />
+                android:startColor="#FFFFFF"
+                android:endColor="#CFE0F2" />
         </aapt:attr>
     </path>
-    <path android:pathData="M50,52l-14,26h12l-7,16l23,-28h-13l9,-14z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:type="linear"
-                android:startX="40"
-                android:startY="52"
-                android:endX="60"
-                android:endY="94"
-                android:startColor="#FFE066"
-                android:endColor="#FFB02E" />
-        </aapt:attr>
-    </path>
+    <path
+        android:pathData="M30,66l0,16M22,70l16,8M38,70l-16,8M48,66l0,16M40,70l16,8M56,70l-16,8M66,66l0,16M58,70l16,8M74,70l-16,8"
+        android:strokeColor="#BFE3FF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
 </vector>

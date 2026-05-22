@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
@@ -53,10 +54,11 @@ fun WeatherClockWidget(
     modifier: Modifier = Modifier,
     showWeather: Boolean = true,
     showClock: Boolean = true,
+    animate: Boolean = true,
 ) {
     val tv = rememberTvScale()
     val condition = weather.condition.lowercase()
-    val hasWeather = showWeather
+    val hasWeather = showWeather && weather.hasRealWeather
     val hasClock = showClock
     if (!hasWeather && !hasClock) return
 
@@ -71,6 +73,8 @@ fun WeatherClockWidget(
         infiniteRepeatable(tween(14_000, easing = LinearEasing)),
         label = "drift",
     )
+    val effectivePulse = if (animate) pulse else 1f
+    val effectiveDrift = if (animate) drift else 0f
     val conditionColor = weatherOrbColor(condition)
     val zoneId = remember(weather.timeZoneId) { weather.timeZoneId.toZoneId() }
     var clock by remember(zoneId) { mutableStateOf(ZonedDateTime.now(zoneId)) }
@@ -83,78 +87,95 @@ fun WeatherClockWidget(
     val hourText = clock.format(DateTimeFormatter.ofPattern("HH"))
     val minuteText = clock.format(DateTimeFormatter.ofPattern("mm"))
 
-    // The entire widget is interactive and responds to TV Focus
     FocusGlow(
         modifier = modifier.padding((12 * tv.factor).dp), // Padding allows weather orb to overflow!
         cornerRadius = (24 * tv.factor).dp,
-        onClick = { /* Open weather details if needed */ }
+        focusable = false,
     ) {
         Box(contentAlignment = Alignment.Center) {
             // ── Base Glass Panel ──────────────────────────────────
             GlassPanel(
                 radius = (24 * tv.factor).dp,
                 blur = 28.dp,
-                glow = conditionColor.copy(alpha = 0.15f * pulse),
+                glow = conditionColor.copy(alpha = 0.15f * effectivePulse),
             ) {
-                Row(
-                    modifier = Modifier.padding(
-                        start = (24 * tv.factor).dp,
-                        end = ((if (hasWeather) 72f else 24f) * tv.factor).dp, // Extra space for the oversized weather orb
-                        top = (20 * tv.factor).dp,
-                        bottom = (20 * tv.factor).dp,
-                    ),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy((24 * tv.factor).dp),
-                ) {
-                    if (hasClock) {
-                        // HTC Sense-inspired flip clock, updated every second.
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)
-                        ) {
-                            FlipDigitCard(hourText, tv.factor)
-                            Text(
-                                ":",
-                                color = Color(0x99FFFFFF),
-                                fontSize = (32 * tv.factor).sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.offset(y = (-2 * tv.factor).dp)
-                            )
-                            FlipDigitCard(minuteText, tv.factor)
-                        }
-                    }
-
+                Box {
                     if (hasWeather) {
-                        // 2. Weather Typography (Temp & Details)
-                        Column(
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        WeatherSceneLayer(
+                            condition = condition,
+                            color = conditionColor,
+                            drift = effectiveDrift,
+                            pulse = effectivePulse,
+                            animate = animate,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.padding(
+                            start = (24 * tv.factor).dp,
+                            end = ((if (hasWeather) 72f else 24f) * tv.factor).dp, // Extra space for the oversized weather orb
+                            top = (20 * tv.factor).dp,
+                            bottom = (20 * tv.factor).dp,
+                        ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy((24 * tv.factor).dp),
+                    ) {
+                        if (hasClock) {
+                            // HTC Sense-inspired flip clock, updated every second.
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)
+                            ) {
+                                FlipDigitCard(hourText, tv.factor)
                                 Text(
-                                    "${weather.temperatureC.toInt()}°",
-                                    color = Color.White,
-                                    fontSize = (46 * tv.factor).sp,
-                                    fontWeight = FontWeight.Light,
-                                    letterSpacing = 0.sp,
-                                    style = androidx.compose.ui.text.TextStyle(
-                                        shadow = androidx.compose.ui.graphics.Shadow(
-                                            color = Color(0x88000000), blurRadius = 16f
+                                    ":",
+                                    color = Color(0x99FFFFFF),
+                                    fontSize = (32 * tv.factor).sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.offset(y = (-2 * tv.factor).dp)
+                                )
+                                FlipDigitCard(minuteText, tv.factor)
+                            }
+                        }
+
+                        if (hasWeather) {
+                            // 2. Weather Typography (Temp & Details)
+                            Column(
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(
+                                        "${weather.temperatureC.toInt()}°",
+                                        color = Color.White,
+                                        fontSize = (46 * tv.factor).sp,
+                                        fontWeight = FontWeight.Light,
+                                        letterSpacing = 0.sp,
+                                        style = androidx.compose.ui.text.TextStyle(
+                                            shadow = androidx.compose.ui.graphics.Shadow(
+                                                color = Color(0x88000000), blurRadius = 16f
+                                            )
                                         )
                                     )
-                                )
-                                Column(modifier = Modifier.padding(bottom = (8 * tv.factor).dp)) {
-                                    Text(
-                                        weather.city,
-                                        color = Color(0xFFE3BC78),
-                                        fontSize = (15 * tv.factor).sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Text(
-                                        weatherConditionLabel(condition),
-                                        color = conditionColor,
-                                        fontSize = (13 * tv.factor).sp,
-                                        fontWeight = FontWeight.Medium,
-                                    )
+                                    Column(modifier = Modifier.padding(bottom = (8 * tv.factor).dp)) {
+                                        Text(
+                                            weather.city,
+                                            color = Color(0xFFE3BC78),
+                                            fontSize = (15 * tv.factor).sp,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.widthIn(max = (120 * tv.factor).dp),
+                                        )
+                                        Text(
+                                            weatherConditionLabel(condition),
+                                            color = conditionColor,
+                                            fontSize = (13 * tv.factor).sp,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.widthIn(max = (120 * tv.factor).dp),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -171,9 +192,9 @@ fun WeatherClockWidget(
                         .size((110 * tv.factor).dp) // Much larger than before!
                         .graphicsLayer {
                             // Subtle 3D floating animation
-                            translationY = sin(drift) * 8f
-                            scaleX = 1f + (pulse - 1f) * 0.1f
-                            scaleY = 1f + (pulse - 1f) * 0.1f
+                            translationY = sin(effectiveDrift) * 8f
+                            scaleX = 1f + (effectivePulse - 1f) * 0.1f
+                            scaleY = 1f + (effectivePulse - 1f) * 0.1f
                         }
                 ) {
                 // Orb Shadow/Glow (Cinematic lighting)
@@ -184,8 +205,8 @@ fun WeatherClockWidget(
                             drawCircle(
                                 brush = Brush.radialGradient(
                                     colors = listOf(
-                                        conditionColor.copy(alpha = 0.5f * pulse),
-                                        conditionColor.copy(alpha = 0.1f * pulse),
+                                        conditionColor.copy(alpha = 0.5f * effectivePulse),
+                                        conditionColor.copy(alpha = 0.1f * effectivePulse),
                                         Color.Transparent
                                     )
                                 ),
@@ -197,8 +218,11 @@ fun WeatherClockWidget(
                 // Photorealistic 3D generated weather icon, with online icon when provider supplies it.
                 val iconRes = when {
                     condition.contains("thunder") || condition.contains("storm") -> R.drawable.ic_weather_storm
+                    condition.contains("snow") || condition.contains("blizzard") || condition.contains("sleet") || condition.contains("ice") -> R.drawable.ic_weather_snow
                     condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> R.drawable.ic_weather_rain
-                    condition.contains("cloud") || condition.contains("overcast") || condition.contains("fog") || condition.contains("snow") -> R.drawable.ic_weather_cloud
+                    condition.contains("fog") || condition.contains("mist") || condition.contains("haze") -> R.drawable.ic_weather_fog
+                    condition.contains("partly") || condition.contains("partial") -> R.drawable.ic_weather_partly
+                    condition.contains("cloud") || condition.contains("overcast") -> R.drawable.ic_weather_cloud
                     else -> R.drawable.ic_weather_sun
                 }
                 
@@ -291,6 +315,62 @@ private fun FlipDigitCard(digit: String, factor: Float) {
     }
 }
 
+@Composable
+private fun WeatherSceneLayer(
+    condition: String,
+    color: Color,
+    drift: Float,
+    pulse: Float,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier.clip(RoundedCornerShape(24.dp))) {
+        val w = size.width
+        val h = size.height
+        when {
+            condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> {
+                repeat(14) { index ->
+                    val x = ((index * 47f) + if (animate) drift * 34f else 0f) % w
+                    val y = ((index * 23f) + if (animate) drift * 18f else 0f) % h
+                    drawLine(
+                        color = color.copy(alpha = 0.10f),
+                        start = Offset(x, y),
+                        end = Offset(x - 12f, y + 28f),
+                        strokeWidth = 2f,
+                        cap = StrokeCap.Round,
+                    )
+                }
+            }
+            condition.contains("snow") || condition.contains("blizzard") || condition.contains("sleet") -> {
+                repeat(16) { index ->
+                    val x = ((index * 53f) + if (animate) drift * 14f else 0f) % w
+                    val y = ((index * 31f) + if (animate) drift * 20f else 0f) % h
+                    drawCircle(color.copy(alpha = 0.16f), radius = 2.2f + (index % 3), center = Offset(x, y))
+                }
+            }
+            else -> {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(color.copy(alpha = 0.16f * pulse), Color.Transparent),
+                        center = Offset(w * 0.82f, h * 0.12f),
+                        radius = h * 0.9f,
+                    ),
+                )
+                repeat(6) { index ->
+                    val angle = drift + index * (PI.toFloat() / 3f)
+                    drawLine(
+                        color = color.copy(alpha = 0.10f),
+                        start = Offset(w * 0.82f, h * 0.12f),
+                        end = Offset(w * 0.82f + cos(angle) * w * 0.35f, h * 0.12f + sin(angle) * h * 0.55f),
+                        strokeWidth = 2f,
+                        cap = StrokeCap.Round,
+                    )
+                }
+            }
+        }
+    }
+}
+
 // ────────────────────────────────────────────────────────────────────────
 // Cinematic Weather Graphics
 // ────────────────────────────────────────────────────────────────────────
@@ -310,14 +390,14 @@ private fun weatherOrbColor(condition: String): Color = when {
 private fun weatherConditionLabel(condition: String): String {
     val c = condition.lowercase()
     return when {
-        c.contains("thunder") || c.contains("storm") -> "عاصفة رعدية"
-        c.contains("rain") || c.contains("drizzle") || c.contains("shower") -> "ممطر"
-        c.contains("snow") || c.contains("blizzard") -> "ثلوج"
-        c.contains("fog") || c.contains("mist") || c.contains("haze") -> "ضبابي"
-        c.contains("cloud") || c.contains("overcast") -> "غائم"
-        c.contains("partly") -> "غائم جزئياً"
-        c.contains("clear") || c.contains("sunny") -> "صافي"
-        else -> "صافي"
+        c.contains("thunder") || c.contains("storm") -> "Thunderstorm"
+        c.contains("rain") || c.contains("drizzle") || c.contains("shower") -> "Rainy"
+        c.contains("snow") || c.contains("blizzard") -> "Snow"
+        c.contains("fog") || c.contains("mist") || c.contains("haze") -> "Foggy"
+        c.contains("cloud") || c.contains("overcast") -> "Cloudy"
+        c.contains("partly") -> "Partly cloudy"
+        c.contains("clear") || c.contains("sunny") -> "Clear"
+        else -> "Clear"
     }
 }
 

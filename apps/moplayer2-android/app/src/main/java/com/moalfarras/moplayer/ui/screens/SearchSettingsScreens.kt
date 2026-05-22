@@ -40,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -57,6 +58,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +79,9 @@ import com.moalfarras.moplayerpro.BuildConfig
 import com.moalfarras.moplayer.data.repository.AppUpdateInfo
 import com.moalfarras.moplayer.data.repository.UpdateInstallResult
 import com.moalfarras.moplayer.data.repository.UpdateRepository
+import com.moalfarras.moplayer.core.DevicePerformanceInfo
+import com.moalfarras.moplayer.core.DevicePerformanceTier
+import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.domain.model.AccentMode
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
@@ -84,6 +90,7 @@ import com.moalfarras.moplayer.domain.model.LoginKind
 import com.moalfarras.moplayer.domain.model.ManualWeatherEffect
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.MotionLevel
+import com.moalfarras.moplayer.domain.model.PerformanceMode
 import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.domain.model.ThemePreset
@@ -91,6 +98,7 @@ import com.moalfarras.moplayer.domain.model.WeatherMode
 import com.moalfarras.moplayer.ui.components.ChannelRow
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import kotlinx.coroutines.flow.Flow
@@ -109,8 +117,14 @@ fun SearchScreen(
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val s = LocalStrings.current
     val results = resultsFlow.collectAsLazyPagingItems()
     val resultsState = rememberLazyListState()
+    val searchFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(120)
+        runCatching { searchFocusRequester.requestFocus() }
+    }
 
     val voiceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -149,7 +163,12 @@ fun SearchScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(tv.contentPadding, tv.contentPadding * 0.8f, tv.contentPadding, if (tv.isTv) tv.contentPadding else tv.bottomBarHeight + 8.dp),
+                .padding(
+                    tv.contentPadding,
+                    tv.contentPadding * 0.8f,
+                    tv.contentPadding,
+                    if (tv.isTv) tv.bottomBarHeight + tv.contentPadding else tv.bottomBarHeight + 8.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy((18 * tv.factor).dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -160,7 +179,7 @@ fun SearchScreen(
                     modifier = Modifier.size(((if (tv.isLowHeightLandscape) 22f else 32f) * tv.factor).dp),
                 )
                 Text(
-                    "بحث",
+                    s.navSearch,
                     color = Color.White,
                     style = if (tv.isLowHeightLandscape) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayMedium,
                 )
@@ -171,9 +190,9 @@ fun SearchScreen(
                     OutlinedTextField(
                         value = query,
                         onValueChange = onQuery,
-                        placeholder = { Text("ابحث عن قنوات، أفلام، مسلسلات، حلقات…") },
+                        placeholder = { Text("Search channels, movies, series, episodes...") },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).focusRequester(searchFocusRequester),
                         leadingIcon = { Icon(Icons.Rounded.Search, null, tint = visuals.accent) },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
@@ -189,13 +208,13 @@ fun SearchScreen(
                             try {
                                 voiceLauncher.launch(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                                     putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "قل ما تريد البحث عنه")
+                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "Say what you want to search for")
                                 })
                             } catch (_: Exception) {
                             }
                         }
                     ) {
-                        Icon(Icons.Rounded.Mic, "بحث صوتي", tint = visuals.accent, modifier = Modifier.size((28 * tv.factor).dp))
+                        Icon(Icons.Rounded.Mic, "Voice search", tint = visuals.accent, modifier = Modifier.size((28 * tv.factor).dp))
                     }
                 }
             }
@@ -213,11 +232,11 @@ fun SearchScreen(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Icon(Icons.Rounded.History, null, tint = visuals.accent)
-                                Text("آخر عمليات البحث", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                                Text("Recent searches", color = Color.White, style = MaterialTheme.typography.titleMedium)
                             }
                             FocusGlow(cornerRadius = 999.dp, onClick = onClearHistory) {
                                 Text(
-                                    "مسح",
+                                    "Clear",
                                     color = visuals.accent,
                                     style = MaterialTheme.typography.labelLarge,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
@@ -247,6 +266,25 @@ fun SearchScreen(
                 }
             }
 
+            if (query.isBlank() && history.isEmpty()) {
+                GlassPanel(radius = (18 * tv.factor).dp, highlighted = true, glow = visuals.accent.copy(alpha = 0.10f)) {
+                    Column(
+                        Modifier.fillMaxWidth().padding((28 * tv.factor).dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
+                    ) {
+                        Icon(Icons.Rounded.TravelExplore, null, tint = visuals.accent, modifier = Modifier.size((46 * tv.factor).dp))
+                        Text("Search your whole library", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            "Type or use voice search to find live channels, movies, series, and episodes.",
+                            color = Color(0xB8E3BC78),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+
             if (query.isNotBlank() && results.itemCount == 0) {
                 GlassPanel(radius = (16 * tv.factor).dp) {
                     Column(
@@ -255,7 +293,7 @@ fun SearchScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Icon(Icons.Rounded.SearchOff, null, tint = Color(0x66FFFFFF), modifier = Modifier.size((48 * tv.factor).dp))
-                        Text("لا توجد نتائج لـ «$query»", color = Color(0x99FFFFFF), style = MaterialTheme.typography.titleMedium)
+                        Text("No results for \"$query\"", color = Color(0x99FFFFFF), style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
@@ -278,6 +316,8 @@ fun SearchScreen(
 @Composable
 fun SettingsScreen(
     settings: AppSettings,
+    performancePolicy: PerformancePolicy,
+    devicePerformanceInfo: DevicePerformanceInfo,
     settingsUnlocked: Boolean,
     activeServer: ServerProfile?,
     servers: List<ServerProfile>,
@@ -288,6 +328,7 @@ fun SettingsScreen(
     onHideChannelsWithoutLogo: (Boolean) -> Unit,
     onPlayer: (String) -> Unit,
     onLibraryMode: (LibraryMode) -> Unit,
+    onLanguage: (String) -> Unit,
     onSort: (SortOption) -> Unit,
     onAccentMode: (AccentMode) -> Unit,
     onAccentColor: (Long) -> Unit,
@@ -295,6 +336,7 @@ fun SettingsScreen(
     onCustomBackgroundUrl: (String) -> Unit,
     onThemePreset: (ThemePreset) -> Unit,
     onMotionLevel: (MotionLevel) -> Unit,
+    onPerformanceMode: (PerformanceMode) -> Unit,
     onShowWeatherWidget: (Boolean) -> Unit,
     onShowClockWidget: (Boolean) -> Unit,
     onShowFootballWidget: (Boolean) -> Unit,
@@ -321,7 +363,7 @@ fun SettingsScreen(
 
     val contentModifier = Modifier
         .fillMaxSize()
-        .padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, if (tv.isTv) tv.contentPadding else tv.bottomBarHeight)
+        .padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, if (tv.isTv) tv.bottomBarHeight + tv.contentPadding else tv.bottomBarHeight)
 
     val settingsHeroHeight = when {
         tv.isTv -> 240.dp
@@ -358,12 +400,16 @@ fun SettingsScreen(
                         AppearanceSettingsCard(
                             settings = settings,
                             isTv = false,
+                            onLanguage = onLanguage,
                             onAccentMode = onAccentMode,
                             onAccentColor = onAccentColor,
                             onBackgroundMode = onBackgroundMode,
                             onCustomBackgroundUrl = onCustomBackgroundUrl,
                             onThemePreset = onThemePreset,
                             onMotionLevel = onMotionLevel,
+                            performancePolicy = performancePolicy,
+                            devicePerformanceInfo = devicePerformanceInfo,
+                            onPerformanceMode = onPerformanceMode,
                             onShowWeatherWidget = onShowWeatherWidget,
                             onShowClockWidget = onShowClockWidget,
                             onShowFootballWidget = onShowFootballWidget,
@@ -421,6 +467,7 @@ fun SettingsScreen(
                 onHideChannelsWithoutLogo = onHideChannelsWithoutLogo,
                 onPlayer = onPlayer,
                 onLibraryMode = onLibraryMode,
+                onLanguage = onLanguage,
                 onSort = onSort,
                 onAccentMode = onAccentMode,
                 onAccentColor = onAccentColor,
@@ -428,6 +475,9 @@ fun SettingsScreen(
                 onCustomBackgroundUrl = onCustomBackgroundUrl,
                 onThemePreset = onThemePreset,
                 onMotionLevel = onMotionLevel,
+                            performancePolicy = performancePolicy,
+                            devicePerformanceInfo = devicePerformanceInfo,
+                            onPerformanceMode = onPerformanceMode,
                 onShowWeatherWidget = onShowWeatherWidget,
                 onShowClockWidget = onShowClockWidget,
                 onShowFootballWidget = onShowFootballWidget,
@@ -467,6 +517,7 @@ private fun TvSettingsLayout(
     onHideChannelsWithoutLogo: (Boolean) -> Unit,
     onPlayer: (String) -> Unit,
     onLibraryMode: (LibraryMode) -> Unit,
+    onLanguage: (String) -> Unit,
     onSort: (SortOption) -> Unit,
     onAccentMode: (AccentMode) -> Unit,
     onAccentColor: (Long) -> Unit,
@@ -474,6 +525,9 @@ private fun TvSettingsLayout(
     onCustomBackgroundUrl: (String) -> Unit,
     onThemePreset: (ThemePreset) -> Unit,
     onMotionLevel: (MotionLevel) -> Unit,
+    performancePolicy: PerformancePolicy,
+    devicePerformanceInfo: DevicePerformanceInfo,
+    onPerformanceMode: (PerformanceMode) -> Unit,
     onShowWeatherWidget: (Boolean) -> Unit,
     onShowClockWidget: (Boolean) -> Unit,
     onShowFootballWidget: (Boolean) -> Unit,
@@ -505,15 +559,15 @@ private fun TvSettingsLayout(
         ) {
             SettingsHeader()
             Spacer(Modifier.height((16 * tv.factor).dp))
-            SettingsPaneButton("المظهر", Icons.Rounded.Palette, selectedPane == 0) { selectedPane = 0 }
-            SettingsPaneButton("المشغّل والعرض", Icons.Rounded.Tv, selectedPane == 1) { selectedPane = 1 }
-            SettingsPaneButton("البث المباشر", Icons.Rounded.Settings, selectedPane == 2) { selectedPane = 2 }
-            SettingsPaneButton("الحسابات", Icons.Rounded.AccountCircle, selectedPane == 3) { selectedPane = 3 }
-            SettingsPaneButton("الذاكرة والسجل", Icons.Rounded.DeleteSweep, selectedPane == 4) { selectedPane = 4 }
-            SettingsPaneButton("الرقابة الأبوية", Icons.Rounded.Warning, selectedPane == 5) { selectedPane = 5 }
-            SettingsPaneButton("التشخيص", Icons.Rounded.History, selectedPane == 6) { selectedPane = 6 }
+            SettingsPaneButton("Appearance", Icons.Rounded.Palette, selectedPane == 0) { selectedPane = 0 }
+            SettingsPaneButton("Player and Display", Icons.Rounded.Tv, selectedPane == 1) { selectedPane = 1 }
+            SettingsPaneButton("Live TV", Icons.Rounded.Settings, selectedPane == 2) { selectedPane = 2 }
+            SettingsPaneButton("Accounts", Icons.Rounded.AccountCircle, selectedPane == 3) { selectedPane = 3 }
+            SettingsPaneButton("Storage and History", Icons.Rounded.DeleteSweep, selectedPane == 4) { selectedPane = 4 }
+            SettingsPaneButton("Parental Control", Icons.Rounded.Warning, selectedPane == 5) { selectedPane = 5 }
+            SettingsPaneButton("Diagnostics", Icons.Rounded.History, selectedPane == 6) { selectedPane = 6 }
             Spacer(Modifier.weight(1f))
-            SettingsPaneButton("حول التطبيق", Icons.Rounded.Info, selectedPane == 7) { selectedPane = 7 }
+            SettingsPaneButton("About", Icons.Rounded.Info, selectedPane == 7) { selectedPane = 7 }
         }
 
         GlassPanel(
@@ -533,12 +587,16 @@ private fun TvSettingsLayout(
                             AppearanceSettingsCard(
                                 settings = settings,
                                 isTv = true,
+                                onLanguage = onLanguage,
                                 onAccentMode = onAccentMode,
                                 onAccentColor = onAccentColor,
                                 onBackgroundMode = onBackgroundMode,
                                 onCustomBackgroundUrl = onCustomBackgroundUrl,
                                 onThemePreset = onThemePreset,
                                 onMotionLevel = onMotionLevel,
+                                performancePolicy = performancePolicy,
+                                devicePerformanceInfo = devicePerformanceInfo,
+                                onPerformanceMode = onPerformanceMode,
                                 onShowWeatherWidget = onShowWeatherWidget,
                                 onShowClockWidget = onShowClockWidget,
                                 onShowFootballWidget = onShowFootballWidget,
@@ -559,11 +617,11 @@ private fun TvSettingsLayout(
                         2 -> {
                             item {
                                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                                    SectionHeader("إعدادات البث المباشر")
-                                    SettingSwitch("معاينة القناة", settings.previewEnabled, Icons.Rounded.Visibility, onPreview)
-                                    SettingSwitch("تشغيل آخر قناة تلقائياً", settings.autoPlayLastLive, Icons.Rounded.PlayArrow, onAutoPlayLastLive)
-                                    SettingSwitch("إخفاء التصنيفات الفارغة", settings.hideEmptyCategories, Icons.Rounded.FolderOff, onHideEmptyCategories)
-                                    SettingSwitch("إخفاء القنوات بلا شعار", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)
+                                    SectionHeader("Live TV settings")
+                                    SettingSwitch("Channel preview", settings.previewEnabled, Icons.Rounded.Visibility, onPreview)
+                                    SettingSwitch("Auto-play last live channel", settings.autoPlayLastLive, Icons.Rounded.PlayArrow, onAutoPlayLastLive)
+                                    SettingSwitch("Hide empty categories", settings.hideEmptyCategories, Icons.Rounded.FolderOff, onHideEmptyCategories)
+                                    SettingSwitch("Hide channels without logo", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)
                                 }
                             }
                         }
@@ -576,28 +634,32 @@ private fun TvSettingsLayout(
                         4 -> {
                             item {
                                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    SectionHeader("إدارة الذاكرة")
+                                    SectionHeader("Storage management")
                                     activeServer?.let {
                                         FocusGlow(cornerRadius = 12.dp, onClick = onClearWatchHistory) {
                                             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                                 Icon(Icons.Rounded.DeleteSweep, null, tint = LocalMoVisuals.current.accent, modifier = Modifier.size(22.dp))
-                                                Text("مسح سجل المشاهدة", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                                                Text("Clear watch history", color = Color.White, style = MaterialTheme.typography.bodyLarge)
                                             }
                                         }
                                         FocusGlow(cornerRadius = 12.dp, onClick = onClearEpgCache) {
                                             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                                 Icon(Icons.Rounded.Tv, null, tint = LocalMoVisuals.current.accent, modifier = Modifier.size(22.dp))
-                                                Text("مسح ذاكرة دليل البرامج", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+                                                Text("Clear EPG cache", color = Color.White, style = MaterialTheme.typography.bodyLarge)
                                             }
                                         }
                                     } ?: run {
-                                        Text("لا يوجد حساب نشط لمسح بياناته.", color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodyMedium)
+                                        Text("No active account to clear.", color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodyMedium)
                                     }
                                 }
                             }
                         }
                         5 -> item {
-                            PinSettingsCard(settings.hasParentalPin, isTv = true, onLockSettings, onSetParentalPin, onChangeParentalPin, onRemoveParentalPin)
+                            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                                SectionHeader("Content filter")
+                                SettingSwitch("Parental control filter", settings.parentalControlsEnabled, Icons.Rounded.Lock, onParental)
+                                PinSettingsCard(settings.hasParentalPin, isTv = true, onLockSettings, onSetParentalPin, onChangeParentalPin, onRemoveParentalPin)
+                            }
                         }
                         6 -> item { DiagnosticsCard(isTv = true) }
                         7 -> item { AboutCard(isTv = true) }
@@ -648,7 +710,7 @@ private fun SettingsHeader() {
     }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Icon(Icons.Rounded.Settings, null, tint = visuals.accent, modifier = Modifier.size((28 * tv.factor).dp))
-        Text("الإعدادات", color = Color.White, style = titleStyle)
+        Text(LocalStrings.current.navSettings, color = Color.White, style = titleStyle)
     }
 }
 
@@ -667,24 +729,24 @@ private fun PlayerSettingsCard(
     val context = LocalContext.current
     val updateRepository = remember(context) { UpdateRepository(context.applicationContext) }
     var updateInfo by remember { mutableStateOf(AppUpdateInfo()) }
-    var updateStatus by remember { mutableStateOf("جاهز للفحص") }
+    var updateStatus by remember { mutableStateOf("Ready to check") }
     var updateProgress by remember { mutableIntStateOf(0) }
     val updateScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         updateInfo = updateRepository.fetchUpdateInfo()
-        updateStatus = if (updateInfo.updateAvailable) "تحديث جديد متوفر" else "التطبيق محدث"
+        updateStatus = updateStatusFor(updateInfo)
     }
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else tv.panelPadding), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            SectionHeader("المشغّل")
+            SectionHeader("Player")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(
-                    "auto" to "تلقائي",
+                    "auto" to "Auto",
                     "media3" to "Media3",
-                    "ask" to "اسألني",
+                    "ask" to "Ask me",
                     "vlc" to "VLC",
                     "mx" to "MX",
-                    "external" to "خارجي",
+                    "external" to "External",
                 ).forEach { (value, label) ->
                     val selected = settings.preferredPlayer == value
                     FocusGlow(cornerRadius = 10.dp, onClick = { onPlayer(value) }) {
@@ -699,65 +761,47 @@ private fun PlayerSettingsCard(
                     }
                 }
             }
-            SectionHeader("البث المباشر")
-            SettingSwitch("معاينة القناة", settings.previewEnabled, Icons.Rounded.Visibility, onPreview)
-            SettingSwitch("تشغيل آخر قناة تلقائياً", settings.autoPlayLastLive, Icons.Rounded.PlayArrow, onAutoPlayLastLive)
-            SettingSwitch("إخفاء التصنيفات الفارغة", settings.hideEmptyCategories, Icons.Rounded.FolderOff, onHideEmptyCategories)
-            SettingSwitch("إخفاء القنوات بلا شعار", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)
-            SectionHeader("الخصوصية")
-            SettingSwitch("فلتر الرقابة الأبوية", settings.parentalControlsEnabled, Icons.Rounded.Lock, onParental)
-            SectionHeader("التحديث")
-            if (false) FocusGlow(cornerRadius = 14.dp, onClick = { openLatestAppDownload(context) }) {
-                GlassPanel(radius = 14.dp, highlighted = true) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Rounded.Download, null, tint = LocalMoVisuals.current.accent, modifier = Modifier.size(24.dp))
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                "تحميل النسخة الجديدة",
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold),
-                            )
-                            Text(
-                                "يفتح رابط التحديث الرسمي مباشرة. الإصدار الحالي ${BuildConfig.VERSION_NAME}",
-                                color = Color(0x99FFFFFF),
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        Icon(Icons.AutoMirrored.Rounded.OpenInNew, null, tint = Color(0xCCFFFFFF), modifier = Modifier.size(18.dp))
-                    }
-                }
+            // Live + privacy toggles live in their own dedicated panes on TV; only the
+            // single-scroll mobile layout shows them inline here (avoids duplicate rows).
+            if (!isTv) {
+                SectionHeader("Live TV")
+                SettingSwitch("Channel preview", settings.previewEnabled, Icons.Rounded.Visibility, onPreview)
+                SettingSwitch("Auto-play last live channel", settings.autoPlayLastLive, Icons.Rounded.PlayArrow, onAutoPlayLastLive)
+                SettingSwitch("Hide empty categories", settings.hideEmptyCategories, Icons.Rounded.FolderOff, onHideEmptyCategories)
+                SettingSwitch("Hide channels without logo", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)
+                SectionHeader("Privacy")
+                SettingSwitch("Parental control filter", settings.parentalControlsEnabled, Icons.Rounded.Lock, onParental)
             }
+            SectionHeader("Update")
             UpdateSettingsPanel(
                 info = updateInfo,
                 status = updateStatus,
                 progress = updateProgress,
                 onCheck = {
                     updateScope.launch {
-                        updateStatus = "جاري فحص أحدث نسخة..."
+                        updateStatus = "Checking latest version..."
                         updateInfo = updateRepository.fetchUpdateInfo()
-                        updateStatus = if (updateInfo.updateAvailable) "تحديث جديد متوفر" else "التطبيق محدث"
+                        updateStatus = updateStatusFor(updateInfo)
                     }
                 },
                 onInstall = {
+                    if (!updateInfo.updateAvailable) {
+                        updateStatus = "App is up to date"
+                        return@UpdateSettingsPanel
+                    }
                     updateScope.launch {
                         updateProgress = 0
-                        updateStatus = "جاري تحميل التحديث..."
+                        updateStatus = "Downloading update..."
                         when (val result = updateRepository.downloadAndOpenInstaller(updateInfo) { updateProgress = it }) {
-                            UpdateInstallResult.InstallerOpened -> updateStatus = "تم فتح شاشة التثبيت"
-                            UpdateInstallResult.InstallPermissionRequired -> updateStatus = "فعّل إذن تثبيت التطبيقات ثم اضغط تحميل مرة أخرى"
-                            is UpdateInstallResult.Failed -> updateStatus = result.message.ifBlank { "تعذر تحميل التحديث" }
+                            UpdateInstallResult.InstallerOpened -> updateStatus = "Installer opened"
+                            UpdateInstallResult.InstallPermissionRequired -> updateStatus = "Enable install permission, then tap download again"
+                            is UpdateInstallResult.Failed -> updateStatus = result.message.ifBlank { "Could not download update" }
                         }
                     }
                 },
                 onOpenWeb = {
                     runCatching { updateRepository.openDownloadInBrowser(updateInfo) }
-                        .onFailure { Toast.makeText(context, "تعذر فتح رابط التحديث الآن.", Toast.LENGTH_LONG).show() }
+                        .onFailure { Toast.makeText(context, "Could not open the update link right now.", Toast.LENGTH_LONG).show() }
                 },
             )
         }
@@ -783,9 +827,9 @@ private fun UpdateSettingsPanel(
             ) {
                 Icon(Icons.Rounded.SystemUpdateAlt, null, tint = accent, modifier = Modifier.size(26.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("تحديث MoPlayer Pro", color = Color.White, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold))
+                    Text("MoPlayer Pro Update", color = Color.White, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold))
                     Text(
-                        "الحالي ${info.currentVersionName} (${info.currentVersionCode})  •  الأحدث ${info.latestVersionName} (${info.latestVersionCode})",
+                        "Current ${info.currentVersionName} (${info.currentVersionCode})  •  Latest ${info.latestVersionName} (${info.latestVersionCode})",
                         color = Color(0xB3FFFFFF),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 2,
@@ -794,11 +838,25 @@ private fun UpdateSettingsPanel(
                 }
             }
             Text(status, color = if (info.updateAvailable) accent else Color(0xB3FFFFFF), style = MaterialTheme.typography.bodySmall)
+            if (info.updateAvailable) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = accent.copy(alpha = 0.16f),
+                ) {
+                    Text(
+                        "Small update notice: version ${info.latestVersionName} is ready to download.",
+                        color = accent,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+            }
             if (progress in 1..99) {
-                Text("التحميل $progress%", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                Text("Downloading $progress%", color = Color.White, style = MaterialTheme.typography.labelMedium)
             }
             val details = listOfNotNull(
-                info.apkSizeBytes?.let { "الحجم ${formatBytes(it)}" },
+                info.apkSizeBytes?.let { "Size ${formatBytes(it)}" },
                 info.checksumSha256.takeIf { it.isNotBlank() }?.let { "SHA-256 ${it.take(12)}..." },
             ).joinToString("  •  ")
             if (details.isNotBlank()) {
@@ -811,12 +869,12 @@ private fun UpdateSettingsPanel(
                 OutlinedButton(onClick = onCheck, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Rounded.Refresh, null)
                     Spacer(Modifier.width(8.dp))
-                    Text("فحص")
+                    Text("Check")
                 }
-                Button(onClick = onInstall, modifier = Modifier.weight(1f)) {
+                Button(onClick = onInstall, enabled = info.updateAvailable, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Rounded.Download, null)
                     Spacer(Modifier.width(8.dp))
-                    Text("تحميل وتثبيت")
+                    Text(if (info.updateAvailable) "Download and install" else "Up to date")
                 }
                 IconButton(onClick = onOpenWeb) {
                     Icon(Icons.AutoMirrored.Rounded.OpenInNew, null, tint = Color.White)
@@ -831,6 +889,13 @@ private fun formatBytes(bytes: Long): String {
     return "${"%.1f".format(mb)} MB"
 }
 
+private fun updateStatusFor(info: AppUpdateInfo): String =
+    if (info.updateAvailable) {
+        "New version ${info.latestVersionName} is available"
+    } else {
+        "App is up to date"
+    }
+
 private fun openLatestAppDownload(context: Context) {
     val baseUrl = BuildConfig.WEB_API_BASE_URL.trim().ifBlank { "https://moalfarras.space" }.trimEnd('/')
     val downloadUrl = "$baseUrl/api/app/download/latest?product=moplayer2"
@@ -839,7 +904,7 @@ private fun openLatestAppDownload(context: Context) {
     }
     runCatching { context.startActivity(intent) }
         .onFailure {
-            Toast.makeText(context, "تعذر فتح رابط التحديث الآن.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Could not open the update link right now.", Toast.LENGTH_LONG).show()
         }
 }
 
@@ -853,11 +918,11 @@ private fun LibraryModeCard(
     val visuals = LocalMoVisuals.current
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else tv.panelPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SectionHeader("وضع المكتبة")
+            SectionHeader("Library mode")
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 listOf(
-                    LibraryMode.MERGED to "كل القوائم",
-                    LibraryMode.ACTIVE_SOURCE to "الحساب النشط",
+                    LibraryMode.MERGED to "All playlists",
+                    LibraryMode.ACTIVE_SOURCE to "Active account",
                 ).forEach { (mode, label) ->
                     val active = selected == mode
                     FocusGlow(cornerRadius = 12.dp, onClick = { onLibraryMode(mode) }, modifier = Modifier.weight(1f)) {
@@ -933,6 +998,9 @@ private fun AppearanceSettingsCard(
     onCustomBackgroundUrl: (String) -> Unit,
     onThemePreset: (ThemePreset) -> Unit,
     onMotionLevel: (MotionLevel) -> Unit,
+    performancePolicy: PerformancePolicy,
+    devicePerformanceInfo: DevicePerformanceInfo,
+    onPerformanceMode: (PerformanceMode) -> Unit,
     onShowWeatherWidget: (Boolean) -> Unit,
     onShowClockWidget: (Boolean) -> Unit,
     onShowFootballWidget: (Boolean) -> Unit,
@@ -941,34 +1009,48 @@ private fun AppearanceSettingsCard(
     onWeatherCityOverride: (String) -> Unit,
     onFootballMaxMatches: (Int) -> Unit,
     onRefreshWidgets: () -> Unit,
+    onLanguage: (String) -> Unit = {},
 ) {
     val tv = rememberTvScale()
+    val s = LocalStrings.current
     var city by remember(settings.weatherCityOverride) { mutableStateOf(settings.weatherCityOverride) }
     var customUrl by remember(settings.customBackgroundUrl) { mutableStateOf(settings.customBackgroundUrl) }
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else tv.panelPadding), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SectionHeader("المظهر")
+            SectionHeader("Appearance")
 
             AppearanceLabeledChoiceRow(
-                title = "سمة الواجهة",
-                hint = "السينمائي يفضّل بوستر المحتوى؛ المدني يميل لخلفيات حضرية؛ الهادئ أبسط وأهدأ بصريًا.",
+                title = s.settingsLanguageTitle,
+                hint = s.settingsLanguageHint,
                 items = listOf(
-                    ThemePreset.CINEMATIC_AUTO to "سينمائي",
-                    ThemePreset.CITY to "مدني",
-                    ThemePreset.CALM to "هادئ",
+                    "system" to s.langSystem,
+                    "en" to s.langEnglish,
+                    "ar" to s.langArabic,
+                ),
+                selected = settings.languageTag,
+                onSelected = onLanguage,
+            )
+
+            AppearanceLabeledChoiceRow(
+                title = "Interface theme",
+                hint = "Cinematic favors content posters; City uses urban backdrops; Calm keeps the UI quieter.",
+                items = listOf(
+                    ThemePreset.CINEMATIC_AUTO to "Cinematic",
+                    ThemePreset.CITY to "City",
+                    ThemePreset.CALM to "Calm",
                 ),
                 selected = settings.themePreset,
                 onSelected = onThemePreset,
             )
 
             AppearanceLabeledChoiceRow(
-                title = "مصدر صورة الخلفية",
-                hint = "«من السمة» يطبّق اختيار السمة أعلاه. «مدن يومية» يفرض صورة مدينة جديدة كل يوم بغض النظر عن السمة.",
+                title = "Background image source",
+                hint = "\"From theme\" follows the theme above. \"Daily city\" forces a new city image each day.",
                 items = listOf(
-                    BackgroundMode.AUTO to "من السمة",
-                    BackgroundMode.CITY_ROTATION to "مدن يومية",
-                    BackgroundMode.CUSTOM_URL to "رابط",
-                    BackgroundMode.NONE to "بدون صورة",
+                    BackgroundMode.AUTO to "From theme",
+                    BackgroundMode.CITY_ROTATION to "Daily city",
+                    BackgroundMode.CUSTOM_URL to "URL",
+                    BackgroundMode.NONE to "No image",
                 ),
                 selected = settings.backgroundMode,
                 onSelected = onBackgroundMode,
@@ -976,8 +1058,8 @@ private fun AppearanceSettingsCard(
 
             if (settings.backgroundMode == BackgroundMode.CUSTOM_URL) {
                 AppearanceSubsection(
-                    title = "رابط الصورة",
-                    description = "أدخل رابط HTTPS مباشرًا لملف صورة (مثل JPG أو WebP).",
+                    title = "Image URL",
+                    description = "Enter a direct HTTPS image URL, such as JPG or WebP.",
                 )
                 OutlinedTextField(
                     value = customUrl,
@@ -985,31 +1067,55 @@ private fun AppearanceSettingsCard(
                         customUrl = it
                         onCustomBackgroundUrl(it)
                     },
-                    label = { Text("عنوان URL") },
+                    label = { Text("URL") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
 
             AppearanceLabeledChoiceRow(
-                title = "حركة الخلفية",
-                hint = "شدة الجزيئات والحركة خلف المحتوى على الشاشة الرئيسية.",
+                title = "Background motion",
+                hint = "Particle and motion intensity behind home content.",
                 items = listOf(
-                    MotionLevel.LOW to "خفيفة",
-                    MotionLevel.BALANCED to "متوازنة",
-                    MotionLevel.RICH to "غنية",
+                    MotionLevel.LOW to "Low",
+                    MotionLevel.BALANCED to "Balanced",
+                    MotionLevel.RICH to "Rich",
                 ),
                 selected = settings.motionLevel,
                 onSelected = onMotionLevel,
             )
 
-            SectionHeader("الألوان")
+            SectionHeader("Performance")
             AppearanceSubsection(
-                title = "لون التمييز",
-                description = "«ديناميكي» يتبع ألوان النظام؛ اضغط أي مربّع لون لاعتماد لون ثابت.",
+                title = "Automatic device profile",
+                description = "${devicePerformanceInfo.summary}: ${devicePerformanceInfo.memoryClassMb} MB RAM class, ${devicePerformanceInfo.cpuCores} CPU cores, Android ${devicePerformanceInfo.sdkInt}. Effective mode: ${performancePolicy.mode.label()}.",
+            )
+            AppearanceLabeledChoiceRow(
+                title = "Performance mode",
+                hint = "Auto keeps old devices light and leaves premium visuals on stronger devices.",
+                items = listOf(
+                    PerformanceMode.AUTO to "Auto",
+                    PerformanceMode.PERFORMANCE to "Performance",
+                    PerformanceMode.BALANCED to "Balanced",
+                    PerformanceMode.QUALITY to "Quality",
+                ),
+                selected = settings.performanceMode,
+                onSelected = onPerformanceMode,
+            )
+            if (devicePerformanceInfo.tier == DevicePerformanceTier.LOW || performancePolicy.isPerformance) {
+                Text(
+                    "Heavy particles, large images, previews, widgets, and autoplay are reduced for smoother TV navigation.",
+                    color = Color.White.copy(alpha = 0.70f),
+                    fontSize = 12.sp,
+                )
+            }
+
+            SectionHeader("Colors")
+            AppearanceSubsection(
+                title = "Accent color",
+                description = "Choose one fixed accent color for the whole app.",
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                AppearancePill("ديناميكي", settings.accentMode == AccentMode.DYNAMIC, modifier = Modifier.weight(1f)) { onAccentMode(AccentMode.DYNAMIC) }
                 listOf(
                     0xFFE3BC78L to Color(0xFFE3BC78),
                     0xFF4DA3FFL to Color(0xFF4DA3FF),
@@ -1018,33 +1124,38 @@ private fun AppearanceSettingsCard(
                     0xFF9B6BFFL to Color(0xFF9B6BFF),
                     0xFF62E8FFL to Color(0xFF62E8FF),
                 ).forEach { (value, color) ->
+                    val selected = settings.accentColor == value
                     FocusGlow(cornerRadius = 14.dp, onClick = { onAccentColor(value) }) {
                         Box(
                             Modifier
                                 .size(if (isTv) 42.dp else 36.dp)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(color)
+                                .then(
+                                    if (selected) Modifier.background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
+                                    else Modifier
+                                )
                                 .padding(2.dp),
                         )
                     }
                 }
             }
 
-            SectionHeader("الطقس والساعة والمباريات")
+            SectionHeader("Weather, clock, and matches")
             AppearanceSubsection(
-                title = "عناصر أعلى الشاشة الرئيسية",
-                description = "تُعرض في بطاقة المنزل ويمكن إخفاؤها لتوفير مساحة أو الهدوء.",
+                title = "Home top widgets",
+                description = "Shown on the home card and can be hidden to save space or reduce visual noise.",
             )
-            SettingSwitch("إظهار الطقس", settings.showWeatherWidget, Icons.Rounded.Cloud, onShowWeatherWidget)
-            SettingSwitch("إظهار الساعة", settings.showClockWidget, Icons.Rounded.Schedule, onShowClockWidget)
-            SettingSwitch("إظهار المباريات", settings.showFootballWidget, Icons.Rounded.SportsSoccer, onShowFootballWidget)
+            SettingSwitch("Show weather", settings.showWeatherWidget, Icons.Rounded.Cloud, onShowWeatherWidget)
+            SettingSwitch("Show clock", settings.showClockWidget, Icons.Rounded.Schedule, onShowClockWidget)
+            SettingSwitch("Show matches", settings.showFootballWidget, Icons.Rounded.SportsSoccer, onShowFootballWidget)
             AppearanceLabeledChoiceRow(
-                title = "مصدر الطقس",
-                hint = "تلقائي يستخدم IP، المدينة تستخدم الاسم الذي تكتبه، واليدوي يعرض المؤثرات فورًا بدون إنترنت.",
+                title = "Weather source",
+                hint = "Auto uses IP, City uses the typed city name, and Manual previews effects without internet.",
                 items = listOf(
-                    WeatherMode.AUTO_IP to "تلقائي IP",
-                    WeatherMode.CITY to "مدينة",
-                    WeatherMode.MANUAL to "يدوي",
+                    WeatherMode.AUTO_IP to "Auto IP",
+                    WeatherMode.CITY to "City",
+                    WeatherMode.MANUAL to "Manual",
                 ),
                 selected = settings.weatherMode,
                 onSelected = onWeatherMode,
@@ -1056,41 +1167,41 @@ private fun AppearanceSettingsCard(
                         city = it
                         onWeatherCityOverride(it)
                     },
-                    label = { Text("مدينة الطقس") },
-                    placeholder = { Text("Berlin أو Istanbul أو Dubai") },
+                    label = { Text("Weather city") },
+                    placeholder = { Text("Berlin, Istanbul, or Dubai") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
             if (settings.weatherMode == WeatherMode.MANUAL) {
                 AppearanceLabeledChoiceRow(
-                    title = "تأثير الطقس",
-                    hint = "اختر التأثير لتجربته على الخلفية والودجت مباشرة.",
+                    title = "Weather effect",
+                    hint = "Choose an effect to preview it on the background and widget.",
                     items = listOf(
-                        ManualWeatherEffect.SUNNY to "شمس",
-                        ManualWeatherEffect.CLOUDY to "غيوم",
-                        ManualWeatherEffect.RAIN to "مطر",
-                        ManualWeatherEffect.STORM to "رعد",
-                        ManualWeatherEffect.SNOW to "ثلج",
-                        ManualWeatherEffect.FOG to "ضباب",
+                        ManualWeatherEffect.SUNNY to "Sunny",
+                        ManualWeatherEffect.CLOUDY to "Cloudy",
+                        ManualWeatherEffect.RAIN to "Rain",
+                        ManualWeatherEffect.STORM to "Storm",
+                        ManualWeatherEffect.SNOW to "Snow",
+                        ManualWeatherEffect.FOG to "Fog",
                     ),
                     selected = settings.manualWeatherEffect,
                     onSelected = onManualWeatherEffect,
                 )
             }
             AppearanceSubsection(
-                title = "عدد المباريات في الشريط",
-                description = "كم مباراة تُعرض في ودجت كرة القدم عند تفعيله.",
+                title = "Match count in ticker",
+                description = "How many matches appear in the football widget when enabled.",
             )
             AppearanceChoiceRow(
-                items = listOf(2 to "2 مباريات", 4 to "4 مباريات", 8 to "8 مباريات"),
+                items = listOf(2 to "2 matches", 4 to "4 matches", 8 to "8 matches"),
                 selected = settings.footballMaxMatches,
                 onSelected = onFootballMaxMatches,
             )
             Button(onClick = onRefreshWidgets, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.Refresh, null)
                 Spacer(Modifier.width(8.dp))
-                Text("تحديث الطقس والمباريات")
+                Text("Refresh weather and matches")
             }
         }
     }
@@ -1157,32 +1268,32 @@ private fun ActiveServerCard(
     val tv = rememberTvScale()
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else tv.panelPadding), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SectionHeader("الحساب النشط")
+            SectionHeader("Active account")
             ServerInfoRows(server)
             Button(onClick = onRefresh, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.Refresh, null)
                 Spacer(Modifier.width(8.dp))
-                Text("تحديث المكتبة")
+                Text("Refresh library")
             }
             OutlinedButton(onClick = onTestConnection, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.NetworkCheck, null)
                 Spacer(Modifier.width(8.dp))
-                Text("اختبار الاتصال بالسيرفر")
+                Text("Test server connection")
             }
             OutlinedButton(onClick = onClearWatchHistory, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.DeleteSweep, null)
                 Spacer(Modifier.width(8.dp))
-                Text("مسح سجل المشاهدة")
+                Text("Clear watch history")
             }
             OutlinedButton(onClick = onClearEpgCache, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.Tv, null)
                 Spacer(Modifier.width(8.dp))
-                Text("مسح ذاكرة دليل البرامج")
+                Text("Clear EPG cache")
             }
             OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.DeleteSweep, null)
                 Spacer(Modifier.width(8.dp))
-                Text("تسجيل خروج الحساب الحالي")
+                Text("Log out current account")
             }
         }
     }
@@ -1194,19 +1305,19 @@ private fun LockedSettingsCard(isTv: Boolean = false, onUnlock: (String) -> Unit
     var pin by remember { mutableStateOf("") }
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SectionHeader("قفل الإعدادات")
-            Text("أدخل رمز الرقابة الأبوية للوصول إلى الإعدادات وأدوات الصيانة.", color = Color.White, style = MaterialTheme.typography.bodyLarge)
+            SectionHeader("Settings lock")
+            Text("Enter the parental control PIN to access settings and maintenance tools.", color = Color.White, style = MaterialTheme.typography.bodyLarge)
             OutlinedTextField(
                 value = pin,
                 onValueChange = { pin = it.filter(Char::isDigit).take(8) },
-                label = { Text("الرمز") },
+                label = { Text("PIN") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(onClick = { onUnlock(pin) }, enabled = pin.length >= 4, modifier = Modifier.fillMaxWidth()) {
-                Text("فتح الإعدادات")
+                Text("Unlock settings")
             }
         }
     }
@@ -1228,27 +1339,27 @@ private fun PinSettingsCard(
     var removePin by remember { mutableStateOf("") }
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SectionHeader("رمز الرقابة الأبوية")
+            SectionHeader("Parental control PIN")
             if (!hasPin) {
-                PinField("رمز جديد", newPin) { newPin = it }
+                PinField("New PIN", newPin) { newPin = it }
                 Button(onClick = { onSetPin(newPin) }, enabled = newPin.length >= 4, modifier = Modifier.fillMaxWidth()) {
-                    Text("حفظ الرمز")
+                    Text("Save PIN")
                 }
             } else {
-                Text("الإعدادات محمية برمز مخزَّن بأمان؛ لا يُعرض الرمز نفسه بعد الحفظ.", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                PinField("الرمز الحالي", currentPin) { currentPin = it }
-                PinField("رمز جديد", nextPin) { nextPin = it }
+                Text("Settings are protected by a securely stored PIN; the PIN is not shown after saving.", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                PinField("Current PIN", currentPin) { currentPin = it }
+                PinField("New PIN", nextPin) { nextPin = it }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { onChangePin(currentPin, nextPin) }, enabled = currentPin.length >= 4 && nextPin.length >= 4, modifier = Modifier.weight(1f)) {
-                        Text("تغيير الرمز")
+                        Text("Change PIN")
                     }
                     OutlinedButton(onClick = onLock, modifier = Modifier.weight(1f)) {
-                        Text("قفل الآن")
+                        Text("Lock now")
                     }
                 }
-                PinField("أكد الرمز الحالي للإزالة", removePin) { removePin = it }
+                PinField("Confirm current PIN to remove", removePin) { removePin = it }
                 OutlinedButton(onClick = { onRemovePin(removePin) }, enabled = removePin.length >= 4, modifier = Modifier.fillMaxWidth()) {
-                    Text("إزالة الرمز")
+                    Text("Remove PIN")
                 }
             }
         }
@@ -1273,12 +1384,12 @@ private fun PinField(label: String, value: String, onValueChange: (String) -> Un
 private fun DiagnosticsCard(isTv: Boolean = false) {
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SectionHeader("التشخيص")
-            DiagnosticsRow("إصدار التطبيق", BuildConfig.VERSION_NAME)
-            DiagnosticsRow("أندرويد", Build.VERSION.RELEASE ?: "—")
-            DiagnosticsRow("الجهاز", "${Build.MANUFACTURER} ${Build.MODEL}")
+            SectionHeader("Diagnostics")
+            DiagnosticsRow("App version", BuildConfig.VERSION_NAME)
+            DiagnosticsRow("Android", Build.VERSION.RELEASE ?: "—")
+            DiagnosticsRow("Device", "${Build.MANUFACTURER} ${Build.MODEL}")
             DiagnosticsRow("SDK", Build.VERSION.SDK_INT.toString())
-            DiagnosticsRow("قاعدة البيانات", "Room v5")
+            DiagnosticsRow("Database", "Room v5")
         }
     }
     if (isTv) content() else GlassPanel(radius = rememberTvScale().cardRadius) { content() }
@@ -1306,12 +1417,12 @@ private fun AboutCard(isTv: Boolean = false) {
                 }
             }
             Text(
-                "تطبيق MoPlayer Pro مصمم لتشغيل مصادر المستخدم أو المصادر المرخصة فقط، مع دعم Xtream وM3U وM3U8 وXMLTV وربط الأجهزة عبر QR.",
+                "MoPlayer Pro is designed to play user-provided or licensed sources only, with Xtream, M3U, M3U8, XMLTV, and QR device linking support.",
                 color = Color(0xCCE3BC78),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            DiagnosticsRow("الدعم", "www.moalfarras.space")
-            DiagnosticsRow("الإصدار", BuildConfig.VERSION_NAME)
+            DiagnosticsRow("Support", "www.moalfarras.space")
+            DiagnosticsRow("Version", BuildConfig.VERSION_NAME)
             DiagnosticsRow("Companion", "QR login, remote commands, continue watching sync")
             DiagnosticsRow("Cast", "Google Cast / Android chooser fallback")
         }
@@ -1338,12 +1449,12 @@ private fun ServerList(
     val visuals = LocalMoVisuals.current
     if (servers.isEmpty()) {
         GlassPanel(radius = tv.cardRadius) {
-            Text("لا توجد حسابات محفوظة", color = Color(0xB8E3BC78), modifier = Modifier.padding(16.dp))
+            Text("No saved accounts", color = Color(0xB8E3BC78), modifier = Modifier.padding(16.dp))
         }
         return
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp)) {
-        items(servers, key = { it.id }) { server ->
+    Column(verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp)) {
+        servers.forEach { server ->
             GlassPanel(radius = (12 * tv.factor).dp, highlighted = server.id == activeServerId) {
                 Row(
                     Modifier
@@ -1361,24 +1472,22 @@ private fun ServerList(
                             maxLines = 1,
                         )
                     }
-                    Text(
-                        if (server.id == activeServerId) "نشط" else "استخدام",
-                        color = visuals.accent,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape((8 * tv.factor).dp))
-                            .clickable { onActivateServer(server.id) }
-                            .padding(horizontal = (12 * tv.factor).dp, vertical = (8 * tv.factor).dp),
-                    )
-                    Text(
-                        "حذف",
-                        color = Color(0xFFFF6680),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape((8 * tv.factor).dp))
-                            .clickable { onDeleteServer(server.id) }
-                            .padding(horizontal = (12 * tv.factor).dp, vertical = (8 * tv.factor).dp),
-                    )
+                    FocusGlow(cornerRadius = (10 * tv.factor).dp, onClick = { onActivateServer(server.id) }) {
+                        Text(
+                            if (server.id == activeServerId) "Active" else "Use",
+                            color = visuals.accent,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(horizontal = (12 * tv.factor).dp, vertical = (8 * tv.factor).dp),
+                        )
+                    }
+                    FocusGlow(cornerRadius = (10 * tv.factor).dp, onClick = { onDeleteServer(server.id) }) {
+                        Text(
+                            "Delete",
+                            color = Color(0xFFFF6680),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(horizontal = (12 * tv.factor).dp, vertical = (8 * tv.factor).dp),
+                        )
+                    }
                 }
             }
         }
@@ -1401,16 +1510,16 @@ private fun SectionHeader(title: String) {
 private fun SortOptionRow(selected: SortOption, compact: Boolean, onSort: (SortOption) -> Unit) {
     val visuals = LocalMoVisuals.current
     val tv = rememberTvScale()
-    SectionHeader("الفرز الافتراضي")
+    SectionHeader("Default sorting")
     Row(horizontalArrangement = Arrangement.spacedBy((if (compact) 8 else (10 * tv.factor).toInt()).dp)) {
         listOf(
-            SortOption.SERVER_ORDER to "ترتيب السيرفر",
-            SortOption.LATEST_ADDED to "الأحدث إضافة",
-            SortOption.TITLE_ASC to "أ–ي",
-            SortOption.TITLE_DESC to "ي–أ",
-            SortOption.RECENTLY_WATCHED to "آخر مشاهدة",
-            SortOption.FAVORITES_FIRST to "المفضلة أولاً",
-            SortOption.RATING to "التقييم",
+            SortOption.SERVER_ORDER to "Server order",
+            SortOption.LATEST_ADDED to "Latest added",
+            SortOption.TITLE_ASC to "A-Z",
+            SortOption.TITLE_DESC to "Z-A",
+            SortOption.RECENTLY_WATCHED to "Recently watched",
+            SortOption.FAVORITES_FIRST to "Favorites first",
+            SortOption.RATING to "Rating",
         ).forEach { (value, label) ->
             if (compact && (value == SortOption.RECENTLY_WATCHED || value == SortOption.FAVORITES_FIRST || value == SortOption.RATING)) return@forEach
             val isSelected = selected == value
@@ -1435,29 +1544,29 @@ private fun ServerInfoRows(server: ServerProfile) {
     val valueColor = Color.White
     val visuals = LocalMoVisuals.current
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        ServerInfoRow("المضيف", server.host.ifBlank { server.baseUrl.maskHost() }, labelColor, valueColor)
-        ServerInfoRow("المستخدم", server.username.maskUsername(), labelColor, valueColor)
-        ServerInfoRow("نوع التسجيل", when (server.kind) { LoginKind.XTREAM -> "Xtream Codes"; LoginKind.M3U -> "M3U / M3U8" }, labelColor, valueColor)
-        ServerInfoRow("الحالة", server.accountStatus.ifBlank { "نشط" }, labelColor, if (server.accountStatus.lowercase().contains("active") || server.accountStatus.isBlank()) Color(0xFF7CFFB2) else Color(0xFFFF6B6B))
+        ServerInfoRow("Host", server.host.ifBlank { server.baseUrl.maskHost() }, labelColor, valueColor)
+        ServerInfoRow("User", server.username.maskUsername(), labelColor, valueColor)
+        ServerInfoRow("Login type", when (server.kind) { LoginKind.XTREAM -> "Xtream Codes"; LoginKind.M3U -> "M3U / M3U8" }, labelColor, valueColor)
+        ServerInfoRow("Status", server.accountStatus.ifBlank { "Active" }, labelColor, if (server.accountStatus.lowercase().contains("active") || server.accountStatus.isBlank()) Color(0xFF7CFFB2) else Color(0xFFFF6B6B))
         if (server.maxConnections > 0) {
-            ServerInfoRow("الاتصالات", "${server.activeConnections}/${server.maxConnections}", labelColor, valueColor)
+            ServerInfoRow("Connections", "${server.activeConnections}/${server.maxConnections}", labelColor, valueColor)
         }
         if (server.expiryDate > 0) {
             val daysLeft = ((server.expiryDate - System.currentTimeMillis()) / 86_400_000L).coerceAtLeast(0)
             val expiryColor = when { daysLeft <= 3 -> Color(0xFFFF6B6B); daysLeft <= 14 -> Color(0xFFFFD166); else -> Color(0xFF7CFFB2) }
-            ServerInfoRow("الانتهاء", "${server.expiryDate.formatTimestamp()}  ($daysLeft يوم)", labelColor, expiryColor)
+            ServerInfoRow("Expires", "${server.expiryDate.formatTimestamp()}  ($daysLeft days)", labelColor, expiryColor)
         }
         if (server.createdAt > 0) {
-            ServerInfoRow("تاريخ التسجيل", server.createdAt.formatTimestamp(), labelColor, valueColor)
+            ServerInfoRow("Created", server.createdAt.formatTimestamp(), labelColor, valueColor)
         }
         if (server.lastSyncAt > 0) {
-            ServerInfoRow("آخر مزامنة", server.lastSyncAt.formatTimestamp(), labelColor, valueColor)
+            ServerInfoRow("Last sync", server.lastSyncAt.formatTimestamp(), labelColor, valueColor)
         }
         if (server.timezone.isNotBlank()) {
-            ServerInfoRow("المنطقة الزمنية", server.timezone, labelColor, valueColor)
+            ServerInfoRow("Time zone", server.timezone, labelColor, valueColor)
         }
         if (server.allowedOutputFormats.isNotEmpty()) {
-            ServerInfoRow("الصيغ المدعومة", server.allowedOutputFormats.joinToString(" • ") { it.uppercase() }, labelColor, visuals.accent)
+            ServerInfoRow("Supported formats", server.allowedOutputFormats.joinToString(" • ") { it.uppercase() }, labelColor, visuals.accent)
         }
         if (server.serverMessage.isNotBlank()) {
             Spacer(Modifier.height(4.dp))
@@ -1511,6 +1620,13 @@ private fun SettingSwitch(title: String, value: Boolean, icon: androidx.compose.
     }
 }
 
+private fun PerformanceMode.label(): String = when (this) {
+    PerformanceMode.AUTO -> "Auto"
+    PerformanceMode.PERFORMANCE -> "Performance"
+    PerformanceMode.BALANCED -> "Balanced"
+    PerformanceMode.QUALITY -> "Quality"
+}
+
 @Composable
 fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
     val visuals = LocalMoVisuals.current
@@ -1545,13 +1661,13 @@ fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        "مغادرة التطبيق؟",
+                        "Exit app?",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        "هل أنت متأكد أنك تريد الخروج من MoPlayer Pro؟",
+                        "Are you sure you want to exit MoPlayer Pro?",
                         color = Color(0xCCFFFFFF),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
@@ -1567,14 +1683,14 @@ fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
                     FocusGlow(modifier = Modifier.weight(1f).height(50.dp), cornerRadius = 14.dp, onClick = onDismiss) {
                         GlassPanel(radius = 14.dp) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("إلغاء", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text("Cancel", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             }
                         }
                     }
                     FocusGlow(modifier = Modifier.weight(1f).height(50.dp), cornerRadius = 14.dp, onClick = onExit) {
                         GlassPanel(radius = 14.dp, highlighted = true, glow = visuals.accent) {
                             Box(Modifier.fillMaxSize().background(visuals.accent), contentAlignment = Alignment.Center) {
-                                Text("خروج", color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                                Text("Exit", color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                             }
                         }
                     }

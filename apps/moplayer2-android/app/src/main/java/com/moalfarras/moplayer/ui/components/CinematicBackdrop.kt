@@ -45,15 +45,16 @@ fun CinematicBackdrop(
     modifier: Modifier = Modifier,
     imageContentDescription: String? = null,
     showParticles: Boolean = true,
+    imageSize: Size = Size(1920, 1080),
 ) {
     val visuals = LocalMoVisuals.current
     val context = LocalContext.current
-    val imageRequest = remember(backdropUrl) {
+    val imageRequest = remember(backdropUrl, imageSize) {
         if (backdropUrl.isNullOrBlank()) null
         else {
             ImageRequest.Builder(context)
                 .data(backdropUrl)
-                .size(Size(3840, 2160))
+                .size(imageSize)
                 .build()
         }
     }

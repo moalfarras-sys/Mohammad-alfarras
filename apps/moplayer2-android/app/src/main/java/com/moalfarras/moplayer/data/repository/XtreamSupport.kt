@@ -347,7 +347,13 @@ internal object XtreamSupport {
     ): Triple<MediaItem, List<SeasonEntity>, List<MediaItem>> {
         val info = root.objectOrNull("info") ?: JsonObject(emptyMap())
         val seasons = root.arrayOrNull("seasons").orEmpty()
-        val episodes = root.objectOrNull("episodes") ?: JsonObject(emptyMap())
+        val episodeGroups = when (val value = root["episodes"]) {
+            is JsonObject -> value.entries.mapNotNull { (seasonKey, element) ->
+                (element as? JsonArray)?.let { seasonKey to it }
+            }
+            is JsonArray -> listOf("1" to value)
+            else -> emptyList()
+        }
         val now = System.currentTimeMillis()
         val enrichedSeries = current.copy(
             title = info.string("name").ifBlank { current.title },
@@ -361,23 +367,8 @@ internal object XtreamSupport {
             releaseDate = info.string("releaseDate").ifBlank { current.releaseDate },
             rawJson = json.encodeToString(JsonElement.serializer(), root),
         )
-        val seasonEntities = seasons.mapNotNull { element ->
-            val obj = element.jsonObject
-            val seasonNumber = obj.int("season_number")
-            if (seasonNumber <= 0) null else SeasonEntity(
-                serverId = serverId,
-                seriesId = current.seriesId.ifBlank { current.id },
-                seasonNumber = seasonNumber,
-                name = obj.string("name").ifBlank { "Season $seasonNumber" },
-                cover = obj.string("cover"),
-                airDate = obj.string("air_date"),
-                plot = obj.string("overview"),
-                rawJson = json.encodeToString(JsonElement.serializer(), element),
-                updatedAt = now,
-            )
-        }
-        val episodeItems = episodes.entries.flatMap { (seasonKey, value) ->
-            value.jsonArray.mapIndexedNotNull { index, element ->
+        val episodeItems = episodeGroups.flatMap { (seasonKey, value) ->
+            value.mapIndexedNotNull { index, element ->
                 val obj = element.jsonObject
                 val episodeInfo = obj.objectOrNull("info") ?: JsonObject(emptyMap())
                 val episodeId = obj.string("id")
@@ -418,6 +409,40 @@ internal object XtreamSupport {
                     )
                 }
             }
+        }
+        val explicitSeasonEntities = seasons.mapNotNull { element ->
+            val obj = element.jsonObject
+            val seasonNumber = obj.int("season_number")
+            if (seasonNumber <= 0) null else SeasonEntity(
+                serverId = serverId,
+                seriesId = current.seriesId.ifBlank { current.id },
+                seasonNumber = seasonNumber,
+                name = obj.string("name").ifBlank { "Season $seasonNumber" },
+                cover = obj.string("cover"),
+                airDate = obj.string("air_date"),
+                plot = obj.string("overview"),
+                rawJson = json.encodeToString(JsonElement.serializer(), element),
+                updatedAt = now,
+            )
+        }
+        val seasonEntities = explicitSeasonEntities.ifEmpty {
+            episodeItems
+                .map { it.seasonNumber.coerceAtLeast(1) }
+                .distinct()
+                .sorted()
+                .map { seasonNumber ->
+                    SeasonEntity(
+                        serverId = serverId,
+                        seriesId = current.seriesId.ifBlank { current.id },
+                        seasonNumber = seasonNumber,
+                        name = "Season $seasonNumber",
+                        cover = enrichedSeries.posterUrl,
+                        airDate = "",
+                        plot = "",
+                        rawJson = """{"season_number":$seasonNumber,"source":"episodes"}""",
+                        updatedAt = now,
+                    )
+                }
         }
         return Triple(enrichedSeries, seasonEntities, episodeItems)
     }

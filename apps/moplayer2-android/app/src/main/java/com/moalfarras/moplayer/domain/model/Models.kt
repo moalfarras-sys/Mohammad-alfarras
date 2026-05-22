@@ -14,7 +14,9 @@ enum class ThemePreset { CINEMATIC_AUTO, CITY, CALM }
 
 enum class MotionLevel { LOW, BALANCED, RICH }
 
-enum class AccentMode { DYNAMIC, CUSTOM }
+enum class PerformanceMode { AUTO, PERFORMANCE, BALANCED, QUALITY }
+
+enum class AccentMode { CUSTOM }
 
 enum class WeatherMode { AUTO_IP, CITY, MANUAL }
 
@@ -88,13 +90,16 @@ data class MediaItem(
 )
 
 data class WeatherSnapshot(
-    val city: String = "TV Room",
-    val condition: String = "Clear",
-    val temperatureC: Double = 21.0,
+    val city: String = "",
+    val condition: String = "",
+    val temperatureC: Double = Double.NaN,
     val iconUrl: String = "",
     val timeZoneId: String = java.time.ZoneId.systemDefault().id,
     val isManual: Boolean = false,
-)
+) {
+    val hasRealWeather: Boolean
+        get() = !isManual && city.isNotBlank() && condition.isNotBlank() && !temperatureC.isNaN()
+}
 
 data class FootballMatch(
     val league: String,
@@ -102,16 +107,21 @@ data class FootballMatch(
     val away: String,
     val score: String,
     val minute: String,
+    val isLive: Boolean = false,
+    val homeBadge: String = "",
+    val awayBadge: String = "",
+    val newsMessage: String = "",
 )
 
 data class AppSettings(
     val previewEnabled: Boolean = true,
     val accentColor: Long = 0xFF4DA3FF,
-    val accentMode: AccentMode = AccentMode.DYNAMIC,
+    val accentMode: AccentMode = AccentMode.CUSTOM,
     val backgroundMode: BackgroundMode = BackgroundMode.AUTO,
     val customBackgroundUrl: String = "",
     val themePreset: ThemePreset = ThemePreset.CINEMATIC_AUTO,
     val motionLevel: MotionLevel = MotionLevel.BALANCED,
+    val performanceMode: PerformanceMode = PerformanceMode.AUTO,
     val showWeatherWidget: Boolean = true,
     val showClockWidget: Boolean = true,
     val showFootballWidget: Boolean = true,
@@ -123,12 +133,14 @@ data class AppSettings(
     val defaultSort: SortOption = SortOption.SERVER_ORDER,
     val parentalControlsEnabled: Boolean = false,
     val hasParentalPin: Boolean = false,
-    val autoPlayLastLive: Boolean = true,
+    val autoPlayLastLive: Boolean = false,
     val hideEmptyCategories: Boolean = false,
     val hideChannelsWithoutLogo: Boolean = false,
     val searchHistory: List<String> = emptyList(),
     val languageTag: String = "system",
     val lastSection: String = "HOME",
+    val lastFocusState: String = "",
+    val lastCategoryState: String = "",
     val libraryMode: LibraryMode = LibraryMode.MERGED,
 )
 

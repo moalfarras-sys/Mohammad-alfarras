@@ -41,7 +41,13 @@ sealed class UpdateInstallResult {
 }
 
 class UpdateRepository(private val context: Context) {
+    private var cachedInfo: AppUpdateInfo? = null
+    private var cachedAtMs: Long = 0L
+
     suspend fun fetchUpdateInfo(): AppUpdateInfo = withContext(Dispatchers.IO) {
+        cachedInfo
+            ?.takeIf { System.currentTimeMillis() - cachedAtMs < UPDATE_CACHE_MS }
+            ?.let { return@withContext it }
         runCatching {
             val body = fetchConfigBody()
             val root = JSONObject(body)
@@ -63,8 +69,11 @@ class UpdateRepository(private val context: Context) {
                     ?: config.optString("releaseNotes", ""),
                 weatherBackgroundUrl = config.optString("weatherBackgroundUrl", ""),
                 weatherBackgroundMode = config.optString("weatherBackgroundMode", "auto"),
-            )
-        }.getOrElse { AppUpdateInfo() }
+            ).also {
+                cachedInfo = it
+                cachedAtMs = System.currentTimeMillis()
+            }
+        }.getOrElse { cachedInfo ?: AppUpdateInfo() }
     }
 
     suspend fun downloadAndOpenInstaller(
@@ -112,6 +121,8 @@ class UpdateRepository(private val context: Context) {
                     connectTimeout = 8_000
                     readTimeout = 8_000
                     setRequestProperty("Accept", "application/json")
+                    setRequestProperty("Cache-Control", "no-cache")
+                    useCaches = false
                 }
                 return try {
                     val stream = if (connection.responseCode in 200..299) {
@@ -194,6 +205,7 @@ class UpdateRepository(private val context: Context) {
     companion object {
         private const val UPDATE_FILE_NAME = "moplayer-pro-latest.apk"
         private const val APK_MIME_TYPE = "application/vnd.android.package-archive"
+        private const val UPDATE_CACHE_MS = 15 * 60 * 1000L
     }
 }
 

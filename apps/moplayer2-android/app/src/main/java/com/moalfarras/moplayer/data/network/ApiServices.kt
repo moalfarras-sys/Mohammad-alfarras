@@ -97,11 +97,32 @@ interface WeatherService {
     ): WeatherResponseDto
 }
 
-interface FootballService {
-    @GET("fixtures")
-    suspend fun fixtures(
-        @Query("live") live: String = "all",
-    ): FootballResponseDto
+interface WebWeatherService {
+    @GET
+    suspend fun weather(
+        @Url url: String,
+    ): WebWeatherDto
+}
+
+/** Free, key-less football data (TheSportsDB public test key "3"). */
+interface SportsDbService {
+    @GET("eventsday.php")
+    suspend fun eventsDay(
+        @Query("d") date: String,
+        @Query("s") sport: String = "Soccer",
+    ): SportsDbEventsDto
+
+    @GET("eventsnextleague.php")
+    suspend fun nextLeague(
+        @Query("id") leagueId: String,
+    ): SportsDbEventsDto
+}
+
+interface WebFootballService {
+    @GET
+    suspend fun football(
+        @Url url: String,
+    ): WebFootballResponseDto
 }
 
 interface SupabaseService {
@@ -199,7 +220,7 @@ interface SupabaseService {
 
 @Serializable
 data class IpApiResponse(
-    val city: String = "غرفة الجلوس",
+    val city: String = "",
     val lat: Double = 0.0,
     val lon: Double = 0.0,
     val timezone: String = java.time.ZoneId.systemDefault().id,
@@ -207,7 +228,7 @@ data class IpApiResponse(
 
 @Serializable
 data class OpenMeteoCurrent(
-    val temperature_2m: Double = 20.0,
+    val temperature_2m: Double? = null,
     val weather_code: Int = 0
 )
 
@@ -219,6 +240,14 @@ data class OpenMeteoResponse(
 interface FreeWeatherService {
     @GET("http://ip-api.com/json/")
     suspend fun getIpLocation(): IpApiResponse
+
+    @GET("https://geocoding-api.open-meteo.com/v1/search")
+    suspend fun geocodeCity(
+        @Query("name") name: String,
+        @Query("count") count: Int = 1,
+        @Query("language") language: String = "en",
+        @Query("format") format: String = "json",
+    ): OpenMeteoGeocodingResponse
 
     @GET("https://api.open-meteo.com/v1/forecast")
     suspend fun getWeather(

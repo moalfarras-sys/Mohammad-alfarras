@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -37,12 +39,15 @@ import androidx.compose.ui.window.Dialog
 import com.moalfarras.moplayerpro.R
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
+import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.FootballMatch
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.MotionLevel
+import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.domain.model.ThemePreset
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
 import com.moalfarras.moplayer.ui.components.*
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.theme.*
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -59,7 +64,9 @@ fun HomeScreen(
     latestMovies: List<MediaItem>,
     latestSeries: List<MediaItem>,
     settings: AppSettings,
+    performancePolicy: PerformancePolicy,
     restoreFocusItem: MediaItem?,
+    allowInitialContentFocus: Boolean,
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
@@ -67,11 +74,20 @@ fun HomeScreen(
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
     val hasContent = continueWatching.isNotEmpty() ||
         recentLive.isNotEmpty() ||
         latestLive.isNotEmpty() ||
         latestMovies.isNotEmpty() ||
         latestSeries.isNotEmpty()
+    val firstFocusableHomeLane = when {
+        continueWatching.isNotEmpty() -> "continue"
+        recentLive.isNotEmpty() -> "recentLive"
+        latestLive.isNotEmpty() -> "latestLive"
+        latestMovies.isNotEmpty() -> "latestMovies"
+        latestSeries.isNotEmpty() -> "latestSeries"
+        else -> ""
+    }
     val allContent = remember(continueWatching, recentLive, latestLive, latestMovies, latestSeries) {
         (continueWatching + recentLive + latestLive + latestMovies + latestSeries)
             .distinctBy { "${it.type}:${it.serverId}:${it.id}" }
@@ -81,9 +97,11 @@ fun HomeScreen(
     var aiInput by remember { mutableStateOf("") }
     var surpriseSeed by remember { mutableIntStateOf(0) }
     var aiTvAction by remember { mutableIntStateOf(0) }
+    var aiMode by remember { mutableStateOf(AiSuggestionMode.SURPRISE) }
     fun askAi(message: String) {
         val clean = message.trim()
         if (clean.isNotBlank()) {
+            aiMode = aiModeFor(clean)
             aiChat = aiChat + AiChatMessage(clean, true) + AiChatMessage(aiReply(clean, allContent, football), false)
         }
     }
@@ -109,21 +127,34 @@ fun HomeScreen(
         MotionLevel.BALANCED -> 0.96f
         MotionLevel.RICH -> 1f
     }
-    val footballMatches = remember(football, settings.footballMaxMatches, settings.showFootballWidget) {
-        if (settings.showFootballWidget) football.take(settings.footballMaxMatches.coerceIn(1, 8)) else emptyList()
+    val footballMatches = remember(football, settings.footballMaxMatches, settings.showFootballWidget, performancePolicy.enableWidgets) {
+        if (settings.showFootballWidget && performancePolicy.enableWidgets) {
+            football.take(settings.footballMaxMatches.coerceIn(1, 8))
+        } else {
+            emptyList()
+        }
     }
     val wrappedOnFocus: (MediaItem) -> Unit = { item ->
-        focusedBackdrop = backdropUrlFrom(item)
+        if (performancePolicy.enableFocusBackdropUpdates) {
+            focusedBackdrop = backdropUrlFrom(item)
+        }
         onFocus(item)
+    }
+    val homeRecentLive = remember(recentLive, performancePolicy.maxVideoHeight) {
+        recentLive.homeLiveOrder(performancePolicy.maxVideoHeight)
+    }
+    val homeLatestLive = remember(latestLive, performancePolicy.maxVideoHeight) {
+        latestLive.homeLiveOrder(performancePolicy.maxVideoHeight)
     }
 
     // Breathing animation for subtle ambient pulse
     val infiniteTransition = rememberInfiniteTransition(label = "home")
-    val breathe by infiniteTransition.animateFloat(
+    val animatedBreathe by infiniteTransition.animateFloat(
         initialValue = 0.92f, targetValue = 1.0f,
         animationSpec = infiniteRepeatable(tween(4000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "breathe",
     )
+    val breathe = if (performancePolicy.reduceMotion) 1f else animatedBreathe
 
     // ═══════════════════════════════════════════════════════════════════
     // MOBILE / PHONE LAYOUT
@@ -159,9 +190,12 @@ fun HomeScreen(
         }
         Box(Modifier.fillMaxSize()) {
             AtmosphericSkyGradient(timeZoneId = weather.timeZoneId)
-            CinematicBackdrop(selectedBackdrop, showParticles = settings.motionLevel != MotionLevel.LOW, modifier = Modifier.graphicsLayer { alpha = backdropAlpha })
-            AtmosphericWeatherEffectsOverlay(weather = weather, accent = accent, motionLevel = settings.motionLevel)
-
+            CinematicBackdrop(
+                selectedBackdrop,
+                showParticles = performancePolicy.enableParticles && settings.motionLevel != MotionLevel.LOW,
+                imageSize = performancePolicy.backdropImageSize,
+                modifier = Modifier.graphicsLayer { alpha = backdropAlpha },
+            )
             LazyColumn(
                 state = mobileListState,
                 modifier = Modifier
@@ -184,36 +218,36 @@ fun HomeScreen(
                                 .widthIn(max = if (tv.isLowHeightLandscape) 96.dp else 120.dp),
                         )
                         if (tv.isLowHeightLandscape) {
-                            AiHomeButton("المساعد الذكي", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth(0.50f)) { showAiAssistant = true }
+                            AiHomeButton("Smart assistant", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth(0.50f)) { showAiAssistant = true }
                         }
-                        if (settings.showWeatherWidget || settings.showClockWidget) {
+                        if (performancePolicy.enableWidgets && (settings.showClockWidget || (settings.showWeatherWidget && weather.hasRealWeather))) {
                             MobileWeatherChip(weather, visuals, mobileClock, settings.showWeatherWidget, settings.showClockWidget)
                         }
                     }
                 }
                 if (!tv.isLowHeightLandscape) item {
-                    AiHomeButton("المساعد الذكي", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth()) { showAiAssistant = true }
+                    AiHomeButton("Smart assistant", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth()) { showAiAssistant = true }
                 }
                 if (!hasContent) {
                     item {
                         EmptyState(
-                            title = "المكتبة فارغة",
-                            message = "أضف حساب Xtream أو قائمة M3U، أو حدّث السيرفر من الإعدادات.",
+                            title = "Library is empty",
+                            message = "Add an Xtream account or M3U playlist, or refresh the server from Settings.",
                             modifier = Modifier.fillMaxWidth().height(220.dp),
                         )
                     }
                 }
                 if (continueWatching.isNotEmpty()) {
-                    item { MediaLane("متابعة المشاهدة", continueWatching, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+                item { MediaLane("Continue watching", continueWatching, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue") }
                 }
-                if (latestLive.isNotEmpty()) {
-                    item { MediaLane("أحدث القنوات", latestLive, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+            if (homeLatestLive.isNotEmpty()) {
+                item { MediaLane("Latest channels", homeLatestLive, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestLive") }
                 }
                 if (latestMovies.isNotEmpty()) {
-                    item { MediaLane("أحدث الأفلام", latestMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+                item { MediaLane("Latest movies", latestMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies") }
                 }
                 if (latestSeries.isNotEmpty()) {
-                    item { MediaLane("أحدث المسلسلات", latestSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+                item { MediaLane("Latest series", latestSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries") }
                 }
             }
             if (showAiAssistant) {
@@ -224,6 +258,7 @@ fun HomeScreen(
                     chat = aiChat,
                     input = aiInput,
                     compact = tv.isCompact || tv.isLowHeightLandscape,
+                    mode = aiMode,
                     onInput = { aiInput = it },
                     onSend = {
                         val message = aiInput.trim()
@@ -233,6 +268,11 @@ fun HomeScreen(
                         }
                     },
                     onQuickQuestion = ::askAi,
+                    onMode = { mode ->
+                        aiMode = mode
+                        surpriseSeed++
+                        aiChat = aiChat + AiChatMessage(mode.prompt, true) + AiChatMessage(aiReply(mode.prompt, allContent, football), false)
+                    },
                     onPlay = onPlay,
                     onClose = { showAiAssistant = false },
                     modifier = Modifier.align(Alignment.Center),
@@ -281,19 +321,21 @@ fun HomeScreen(
                 if (!showAiAssistant || !tv.isTv || event.type != KeyEventType.KeyUp) return@onPreviewKeyEvent false
                 when (event.key) {
                     Key.DirectionDown, Key.DirectionRight -> {
-                        aiTvAction = (aiTvAction + 1) % 4
+                        aiTvAction = (aiTvAction + 1) % 6
                         true
                     }
                     Key.DirectionUp, Key.DirectionLeft -> {
-                        aiTvAction = (aiTvAction + 3) % 4
+                        aiTvAction = (aiTvAction + 5) % 6
                         true
                     }
                     Key.Enter, Key.DirectionCenter -> {
                         when (aiTvAction) {
-                            0 -> aiPicks(allContent, surpriseSeed).firstOrNull()?.let(onPlay)
-                            1 -> askAi("اقترح أفلام جديدة")
-                            2 -> askAi("اقترح مسلسلات جديدة")
-                            else -> showAiAssistant = false
+                            0 -> aiPicks(allContent, football, surpriseSeed, AiSuggestionMode.SURPRISE).firstOrNull()?.let(onPlay)
+                            1 -> askAi(AiSuggestionMode.MOVIES.prompt)
+                            2 -> askAi(AiSuggestionMode.SERIES.prompt)
+                            3 -> askAi(AiSuggestionMode.LIVE.prompt)
+                            4 -> askAi(AiSuggestionMode.SPORTS.prompt)
+                            else -> askAi(AiSuggestionMode.CONTINUE.prompt)
                         }
                         true
                     }
@@ -306,9 +348,12 @@ fun HomeScreen(
             },
     ) {
         AtmosphericSkyGradient(timeZoneId = weather.timeZoneId)
-        CinematicBackdrop(selectedBackdrop, showParticles = settings.motionLevel != MotionLevel.LOW, modifier = Modifier.graphicsLayer { alpha = backdropAlpha })
-        AtmosphericWeatherEffectsOverlay(weather = weather, accent = accent, motionLevel = settings.motionLevel)
-
+        CinematicBackdrop(
+            selectedBackdrop,
+            showParticles = performancePolicy.enableParticles && settings.motionLevel != MotionLevel.LOW,
+            imageSize = performancePolicy.backdropImageSize,
+            modifier = Modifier.graphicsLayer { alpha = backdropAlpha },
+        )
         LazyColumn(
             state = tvListState,
             verticalArrangement = Arrangement.spacedBy(tv.laneSpacing),
@@ -353,9 +398,9 @@ fun HomeScreen(
                             )
                         }
 
-                        // Premium tagline
+                        // Product label kept neutral and readable on TV.
                         Text(
-                            "PREMIUM IPTV",
+                            "IPTV",
                             color = visuals.accent.copy(alpha = 0.7f),
                             fontSize = (10 * tv.factor).sp,
                             fontWeight = FontWeight.Bold,
@@ -363,9 +408,10 @@ fun HomeScreen(
                         )
 
                         AiHomeButton(
-                            label = "المساعد الذكي",
+                            label = "Smart assistant",
                             icon = Icons.Rounded.AutoAwesome,
-                            modifier = Modifier.fillMaxWidth(0.88f),
+                            modifier = Modifier
+                                .fillMaxWidth(0.88f),
                         ) {
                             aiTvAction = 0
                             showAiAssistant = true
@@ -378,21 +424,21 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp, Alignment.End),
                         verticalAlignment = Alignment.Top,
                     ) {
-                        // Weather + Clock widget keeps the premium treatment in combined and single-widget modes.
-                        if (settings.showWeatherWidget || settings.showClockWidget) {
+                        if (performancePolicy.enableWidgets && (settings.showClockWidget || (settings.showWeatherWidget && weather.hasRealWeather))) {
                             WeatherClockWidget(
                                 weather = weather,
                                 showWeather = settings.showWeatherWidget,
                                 showClock = settings.showClockWidget,
-                                modifier = Modifier.wrapContentWidth(),
+                                animate = !performancePolicy.reduceMotion,
+                                modifier = Modifier.widthIn(max = (520 * tv.factor).dp),
                             )
                         }
 
-                        // Football ticker (if matches available)
                         if (footballMatches.isNotEmpty()) {
                             FootballTickerWidget(
                                 matches = footballMatches,
-                                modifier = Modifier.wrapContentWidth(),
+                                animate = !performancePolicy.reduceMotion,
+                                modifier = Modifier.widthIn(max = (620 * tv.factor).dp),
                             )
                         }
                     }
@@ -403,26 +449,26 @@ fun HomeScreen(
             if (!hasContent) {
                 item {
                     EmptyState(
-                        title = "المكتبة فارغة",
-                        message = "أضف حساب Xtream أو قائمة M3U، أو حدّث السيرفر من الإعدادات.",
+                        title = "Library is empty",
+                        message = "Add an Xtream account or M3U playlist, or refresh the server from Settings.",
                         modifier = Modifier.fillMaxWidth().height((260 * tv.factor).dp),
                     )
                 }
             }
             if (continueWatching.isNotEmpty()) {
-                item { MediaLane("متابعة المشاهدة", continueWatching, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+                item { MediaLane("Continue watching", continueWatching, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue") }
             }
-            if (recentLive.isNotEmpty()) {
-                item { MediaLane("قنواتي الأخيرة", recentLive, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+            if (homeRecentLive.isNotEmpty()) {
+                item { MediaLane("Recent channels", homeRecentLive, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "recentLive") }
             }
-            if (latestLive.isNotEmpty()) {
-                item { MediaLane("أحدث القنوات المضافة", latestLive, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+            if (homeLatestLive.isNotEmpty()) {
+                item { MediaLane("Newly added channels", homeLatestLive, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestLive") }
             }
             if (latestMovies.isNotEmpty()) {
-                item { MediaLane("أحدث الأفلام المضافة", latestMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+                item { MediaLane("Newly added movies", latestMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies") }
             }
             if (latestSeries.isNotEmpty()) {
-                item { MediaLane("أحدث المسلسلات المضافة", latestSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem) }
+                item { MediaLane("Newly added series", latestSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries") }
             }
         }
         if (showAiAssistant) {
@@ -434,6 +480,7 @@ fun HomeScreen(
                 input = aiInput,
                 compact = false,
                 selectedTvAction = aiTvAction,
+                mode = aiMode,
                 onInput = { aiInput = it },
                 onSend = {
                     val message = aiInput.trim()
@@ -443,6 +490,11 @@ fun HomeScreen(
                     }
                 },
                 onQuickQuestion = ::askAi,
+                onMode = { mode ->
+                    aiMode = mode
+                    surpriseSeed++
+                    aiChat = aiChat + AiChatMessage(mode.prompt, true) + AiChatMessage(aiReply(mode.prompt, allContent, football), false)
+                },
                 onPlay = onPlay,
                 onClose = { showAiAssistant = false },
                 modifier = Modifier
@@ -458,6 +510,8 @@ fun HomeScreen(
 // ──────────────────────────────────────────────────────────────────────
 @Composable
 private fun MobileWeatherChip(weather: WeatherSnapshot, visuals: MoVisuals, clock: String, showWeather: Boolean = true, showClock: Boolean = true) {
+    val hasWeather = showWeather && weather.hasRealWeather
+    if (!hasWeather && !showClock) return
     GlassPanel(radius = 16.dp, blur = 10.dp) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
@@ -465,35 +519,39 @@ private fun MobileWeatherChip(weather: WeatherSnapshot, visuals: MoVisuals, cloc
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Mini weather condition indicator
-            Box(
-                Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(
-                            listOf(
-                                weatherConditionColor(weather.condition).copy(alpha = 0.4f),
-                                Color.Transparent,
+            if (hasWeather) {
+                Box(
+                    Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(
+                                    weatherConditionColor(weather.condition).copy(alpha = 0.4f),
+                                    Color.Transparent,
+                                ),
                             ),
                         ),
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    weatherConditionEmoji(weather.condition),
-                    fontSize = 18.sp,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        weatherConditionEmoji(weather.condition),
+                        fontSize = 18.sp,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(clock, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
-                Text(
-                    "${weather.temperatureC.toInt()}°  ${weather.city}",
-                    color = visuals.accent,
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1,
-                    fontWeight = FontWeight.Bold,
-                )
+                if (showClock) Text(clock, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                if (hasWeather) {
+                    Text(
+                        "${weather.temperatureC.toInt()}°  ${weather.city}",
+                        color = visuals.accent,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
@@ -512,6 +570,8 @@ private fun CompactWidgetCard(
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val hasWeather = showWeather && weather.hasRealWeather
+    if (!hasWeather && !showClock) return
     FocusGlow(modifier = modifier, cornerRadius = (18 * tv.factor).dp, onClick = {}) {
         GlassPanel(radius = (18 * tv.factor).dp, highlighted = true) {
             Row(
@@ -523,7 +583,7 @@ private fun CompactWidgetCard(
                     Icon(Icons.Rounded.Schedule, null, tint = visuals.accent, modifier = Modifier.size((24 * tv.factor).dp))
                     Text(clock, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
                 }
-                if (showWeather) {
+                if (hasWeather) {
                     Text(weatherConditionEmoji(weather.condition), fontSize = (22 * tv.factor).sp)
                     Text(
                         "${weather.temperatureC.toInt()}°  ${weather.city}",
@@ -576,6 +636,15 @@ private fun weatherConditionColor(condition: String): Color {
 
 private data class AiChatMessage(val text: String, val mine: Boolean)
 
+private enum class AiSuggestionMode(val prompt: String) {
+    MOVIES("Suggest new movies"),
+    SERIES("Suggest new series"),
+    LIVE("Suggest live channels"),
+    SPORTS("Show sports and football"),
+    CONTINUE("Continue watching"),
+    SURPRISE("Surprise me"),
+}
+
 @Composable
 private fun AiHomeButton(
     label: String,
@@ -608,9 +677,11 @@ private fun AiAssistantPanel(
     input: String,
     compact: Boolean,
     selectedTvAction: Int = 0,
+    mode: AiSuggestionMode,
     onInput: (String) -> Unit,
     onSend: () -> Unit,
     onQuickQuestion: (String) -> Unit,
+    onMode: (AiSuggestionMode) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -618,11 +689,11 @@ private fun AiAssistantPanel(
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     val s = if (tv.isTv) 1f else tv.factor
-    val picks = remember(allContent, football, seed) { aiPicks(allContent, seed) }
-    val latestMovies = remember(allContent) { latestOfType(allContent, com.moalfarras.moplayer.domain.model.ContentType.MOVIE) }
+    val picks = remember(allContent, football, seed, mode) { aiPicks(allContent, football, seed, mode) }
+    val latestMovies = remember(allContent) { latestOfType(allContent, ContentType.MOVIE) }
     val latestSeries = remember(allContent) {
         allContent
-            .filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.SERIES || it.type == com.moalfarras.moplayer.domain.model.ContentType.EPISODE }
+            .filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
             .sortedByDescending { it.addedAt.takeIf { added -> added > 0 } ?: it.lastModifiedAt }
             .take(3)
     }
@@ -633,8 +704,11 @@ private fun AiAssistantPanel(
                 latestMoviesCount = latestMovies.size,
                 latestSeriesCount = latestSeries.size,
                 selectedAction = selectedTvAction,
-                onMovie = { onQuickQuestion("اقترح أفلام جديدة") },
-                onSeries = { onQuickQuestion("اقترح مسلسلات جديدة") },
+                onMovie = { onMode(AiSuggestionMode.MOVIES) },
+                onSeries = { onMode(AiSuggestionMode.SERIES) },
+                onLive = { onMode(AiSuggestionMode.LIVE) },
+                onSports = { onMode(AiSuggestionMode.SPORTS) },
+                onContinue = { onMode(AiSuggestionMode.CONTINUE) },
                 onSurprise = { picks.firstOrNull()?.let(onPlay) },
                 onClose = onClose,
             )
@@ -655,41 +729,49 @@ private fun AiAssistantPanel(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size((22 * s).dp))
                     Column {
-                        Text("Mo AI المساعد", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
-                        Text("اقتراحات · شات · ذكاء اصطناعي", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
+                        Text("Mo AI Assistant", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
+                        Text("Suggestions · Chat · AI", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
                     }
                 }
                 IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, null, tint = Color.White) }
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AiInfoPill("الأفلام", latestMovies.size.toString(), Modifier.weight(1f))
-                AiInfoPill("المسلسلات", latestSeries.size.toString(), Modifier.weight(1f))
-                AiInfoPill("الكل", allContent.size.toString(), Modifier.weight(1f))
+                AiInfoPill("Movies", latestMovies.size.toString(), Modifier.weight(1f))
+                AiInfoPill("Series", latestSeries.size.toString(), Modifier.weight(1f))
+                AiInfoPill("All", allContent.size.toString(), Modifier.weight(1f))
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AiQuickButton("أفلام جديدة", Icons.Rounded.Movie, Modifier.weight(1f)) { onQuickQuestion("اقترح أفلام جديدة") }
-                AiQuickButton("مسلسلات", Icons.Rounded.VideoLibrary, Modifier.weight(1f)) { onQuickQuestion("اقترح مسلسلات جديدة") }
-                AiQuickButton("فاجئني", Icons.Rounded.Casino, Modifier.weight(1f)) { picks.firstOrNull()?.let(onPlay) }
+                AiQuickButton("Movies", Icons.Rounded.Movie, Modifier.weight(1f)) { onMode(AiSuggestionMode.MOVIES) }
+                AiQuickButton("Series", Icons.Rounded.VideoLibrary, Modifier.weight(1f)) { onMode(AiSuggestionMode.SERIES) }
+                AiQuickButton("Live", Icons.Rounded.LiveTv, Modifier.weight(1f)) { onMode(AiSuggestionMode.LIVE) }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AiQuickButton("Sports", Icons.Rounded.SportsSoccer, Modifier.weight(1f)) { onMode(AiSuggestionMode.SPORTS) }
+                AiQuickButton("Continue", Icons.Rounded.History, Modifier.weight(1f)) { onMode(AiSuggestionMode.CONTINUE) }
+                AiQuickButton("Surprise", Icons.Rounded.Casino, Modifier.weight(1f)) {
+                    onMode(AiSuggestionMode.SURPRISE)
+                    picks.firstOrNull()?.let(onPlay)
+                }
             }
 
-            Text("اقتراحات ذكية", color = visuals.accent, fontWeight = FontWeight.Bold, fontSize = (12 * s).sp)
+            Text("Smart suggestions · ${mode.name.lowercase().replaceFirstChar { it.uppercase() }}", color = visuals.accent, fontWeight = FontWeight.Bold, fontSize = (12 * s).sp)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 picks.take(if (tv.isTv || compact) 2 else 3).forEach { item -> AiSuggestionRow(item = item, onPlay = onPlay) }
             }
 
             val infoLine = when {
-                latestMovies.isNotEmpty() && latestSeries.isNotEmpty() -> "جديد: ${latestMovies.first().title} · ${latestSeries.first().title}"
-                latestMovies.isNotEmpty() -> "أحدث فيلم: ${latestMovies.first().title}"
-                latestSeries.isNotEmpty() -> "أحدث مسلسل: ${latestSeries.first().title}"
-                else -> "MoPlayer Pro يدعم قوائمك ومكتبة السيرفر الخاصة بك."
+                latestMovies.isNotEmpty() && latestSeries.isNotEmpty() -> "New: ${latestMovies.first().title} · ${latestSeries.first().title}"
+                latestMovies.isNotEmpty() -> "Latest movie: ${latestMovies.first().title}"
+                latestSeries.isNotEmpty() -> "Latest series: ${latestSeries.first().title}"
+                else -> "MoPlayer Pro supports your playlists and private server library."
             }
             Text(infoLine, color = Color(0xB8FFFFFF), fontSize = (11 * s).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
 
             if (football.isNotEmpty()) {
                 Text(
-                    "مباريات اليوم: " + football.take(2).joinToString(" · ") { "${it.home} ضد ${it.away}" },
+                    "Today's matches: " + football.take(2).joinToString(" · ") { "${it.home} vs ${it.away}" },
                     color = Color(0xCCE3BC78),
                     fontSize = (11 * s).sp,
                     maxLines = 1,
@@ -737,7 +819,7 @@ private fun AiAssistantPanel(
                     OutlinedTextField(
                         value = input,
                         onValueChange = onInput,
-                        placeholder = { Text("اسأل عن فيلم أو مسلسل...") },
+                        placeholder = { Text("Ask about a movie or series...") },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         leadingIcon = { Icon(Icons.Rounded.Mic, null, tint = visuals.accent) },
@@ -748,7 +830,7 @@ private fun AiAssistantPanel(
                             unfocusedTextColor = Color.White,
                         ),
                     )
-                    Button(onClick = onSend, enabled = input.isNotBlank()) { Icon(Icons.Rounded.Send, null) }
+                    Button(onClick = onSend, enabled = input.isNotBlank()) { Icon(Icons.AutoMirrored.Rounded.Send, null) }
                 }
             }
         }
@@ -763,6 +845,9 @@ private fun AiTvAssistantPanel(
     selectedAction: Int,
     onMovie: () -> Unit,
     onSeries: () -> Unit,
+    onLive: () -> Unit,
+    onSports: () -> Unit,
+    onContinue: () -> Unit,
     onSurprise: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -776,8 +861,8 @@ private fun AiTvAssistantPanel(
 
     GlassPanel(
         modifier = modifier
-            .width(300.dp)
-            .height(245.dp)
+            .width(330.dp)
+            .height(310.dp)
             .onPreviewKeyEvent { event ->
                 if (event.type == KeyEventType.KeyUp && (event.key == Key.Back || event.key == Key.Escape)) {
                     onClose()
@@ -798,13 +883,13 @@ private fun AiTvAssistantPanel(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size(22.dp))
-                    Text("مساعد ذكي", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                    Text("Smart assistant", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
-                AiIconButton(Icons.Rounded.Close, "إغلاق", onClose)
+                AiIconButton(Icons.Rounded.Close, "Close", onClose)
             }
 
             Text(
-                picks.firstOrNull()?.title ?: "اختر أمراً بالريموت",
+                picks.firstOrNull()?.title ?: "Choose an action with the remote",
                 color = Color(0xDDFFFFFF),
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -812,7 +897,7 @@ private fun AiTvAssistantPanel(
             )
 
             AiRemoteActionButton(
-                label = "فاجئني",
+                label = "Surprise me",
                 icon = Icons.Rounded.Casino,
                 selected = selectedAction == 0,
                 modifier = Modifier.fillMaxWidth().focusRequester(firstFocus),
@@ -820,16 +905,21 @@ private fun AiTvAssistantPanel(
             )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AiRemoteActionButton("أفلام $latestMoviesCount", Icons.Rounded.Movie, selectedAction == 1, Modifier.weight(1f), onMovie)
-                AiRemoteActionButton("مسلسلات $latestSeriesCount", Icons.Rounded.VideoLibrary, selectedAction == 2, Modifier.weight(1f), onSeries)
+                AiRemoteActionButton("Movies $latestMoviesCount", Icons.Rounded.Movie, selectedAction == 1, Modifier.weight(1f), onMovie)
+                AiRemoteActionButton("Series $latestSeriesCount", Icons.Rounded.VideoLibrary, selectedAction == 2, Modifier.weight(1f), onSeries)
+            }
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AiRemoteActionButton("Live", Icons.Rounded.LiveTv, selectedAction == 3, Modifier.weight(1f), onLive)
+                AiRemoteActionButton("Sports", Icons.Rounded.SportsSoccer, selectedAction == 4, Modifier.weight(1f), onSports)
             }
 
             AiRemoteActionButton(
-                label = "إغلاق",
-                icon = Icons.Rounded.KeyboardReturn,
-                selected = selectedAction == 3,
+                label = "Continue",
+                icon = Icons.Rounded.History,
+                selected = selectedAction == 5,
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onClose,
+                onClick = onContinue,
             )
         }
     }
@@ -937,13 +1027,31 @@ private fun AiQuickButton(
 }
 
 private fun freeAiIntro(content: List<MediaItem>, football: List<FootballMatch>): String {
-    val matchLine = if (football.isNotEmpty()) " وعندي مباريات اليوم كمان." else "."
-    return "أهلاً، أنا Mo AI مجاني داخل التطبيق. أقرأ مكتبتك محلياً وأقترح لك من ${content.size} عنصر$matchLine"
+    val matchLine = if (football.isNotEmpty()) " I can also show today's matches." else "."
+    return "Hi, I am Mo AI inside the app. I read your local library and can suggest from ${content.size} items.$matchLine"
 }
 
-private fun aiPicks(content: List<MediaItem>, seed: Int): List<MediaItem> {
+private fun aiPicks(content: List<MediaItem>, football: List<FootballMatch>, seed: Int, mode: AiSuggestionMode): List<MediaItem> {
     if (content.isEmpty()) return emptyList()
-    val boosted = content.sortedWith(
+    val pool = when (mode) {
+        AiSuggestionMode.MOVIES -> content.filter { it.type == ContentType.MOVIE }
+        AiSuggestionMode.SERIES -> content.filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
+        AiSuggestionMode.LIVE -> content.filter { it.type == ContentType.LIVE }
+        AiSuggestionMode.SPORTS -> content.filter {
+            val text = "${it.title} ${it.categoryName} ${it.genre}".lowercase()
+            text.contains("sport") || text.contains("football") || text.contains("bein") || text.contains("رياض")
+        }.ifEmpty {
+            football.flatMap { match ->
+                content.filter { item ->
+                    val text = "${item.title} ${item.categoryName}".lowercase()
+                    text.contains(match.home.lowercase()) || text.contains(match.away.lowercase()) || text.contains("sport")
+                }
+            }
+        }
+        AiSuggestionMode.CONTINUE -> content.filter { it.lastPlayedAt > 0 || it.watchPositionMs > 0 }
+        AiSuggestionMode.SURPRISE -> content
+    }.ifEmpty { content }
+    val boosted = pool.sortedWith(
         compareByDescending<MediaItem> { it.rating.toDoubleOrNull() ?: 0.0 }
             .thenByDescending { it.lastPlayedAt }
             .thenByDescending { it.addedAt.takeIf { added -> added > 0 } ?: it.lastModifiedAt },
@@ -952,7 +1060,7 @@ private fun aiPicks(content: List<MediaItem>, seed: Int): List<MediaItem> {
     return (boosted.drop(offset) + boosted.take(offset)).take(6)
 }
 
-private fun latestOfType(content: List<MediaItem>, type: com.moalfarras.moplayer.domain.model.ContentType): List<MediaItem> =
+private fun latestOfType(content: List<MediaItem>, type: ContentType): List<MediaItem> =
     content
         .filter { it.type == type }
         .sortedByDescending { it.addedAt.takeIf { added -> added > 0 } ?: it.lastModifiedAt }
@@ -960,33 +1068,45 @@ private fun latestOfType(content: List<MediaItem>, type: com.moalfarras.moplayer
 
 private fun aiReply(message: String, content: List<MediaItem>, football: List<FootballMatch>): String {
     val query = message.lowercase()
-    if (query.contains("مبار") || query.contains("match") || query.contains("football")) {
-        return if (football.isEmpty()) "ما عندي مباريات ظاهرة الآن. جرّب ابحث عن قنوات رياضة أو قل: فاجئني." else
-            "أهم مباريات اليوم: " + football.take(3).joinToString(" • ") { "${it.home} ضد ${it.away} ${it.score}" }
+    if (query.contains("match") || query.contains("football")) {
+        return if (football.isEmpty()) "No matches are visible right now. Try sports channels or say: surprise me." else
+            "Today's top matches: " + football.take(3).joinToString(" • ") { "${it.home} vs ${it.away} ${it.score}" }
     }
     val pool = when {
-        query.contains("فيلم") || query.contains("movie") -> content.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.MOVIE }
-        query.contains("مسلسل") || query.contains("series") -> content.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.SERIES || it.type == com.moalfarras.moplayer.domain.model.ContentType.EPISODE }
-        query.contains("قناة") || query.contains("channel") || query.contains("مباشر") -> content.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE }
+        query.contains("movie") -> content.filter { it.type == ContentType.MOVIE }
+        query.contains("series") -> content.filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
+        query.contains("channel") || query.contains("live") -> content.filter { it.type == ContentType.LIVE }
         else -> content
     }
     val best = pool.firstOrNull { it.title.contains(message, ignoreCase = true) }
         ?: pool.maxByOrNull { (it.rating.toDoubleOrNull() ?: 0.0) + if (it.lastPlayedAt > 0) 1.0 else 0.0 }
-    return if (best == null) "ما لقيت شيء واضح الآن. جرّب: فيلم، مسلسل، قناة رياضة، أو فاجئني." else "أقترح عليك: ${best.title}. ${aiReason(best)}"
+    return if (best == null) "I could not find a clear match. Try: movie, series, sports channel, or surprise me." else "I suggest: ${best.title}. ${aiReason(best)}"
+}
+
+private fun aiModeFor(message: String): AiSuggestionMode {
+    val query = message.lowercase()
+    return when {
+        query.contains("movie") || query.contains("film") -> AiSuggestionMode.MOVIES
+        query.contains("series") || query.contains("episode") -> AiSuggestionMode.SERIES
+        query.contains("live") || query.contains("channel") -> AiSuggestionMode.LIVE
+        query.contains("sport") || query.contains("match") || query.contains("football") -> AiSuggestionMode.SPORTS
+        query.contains("continue") || query.contains("watching") -> AiSuggestionMode.CONTINUE
+        else -> AiSuggestionMode.SURPRISE
+    }
 }
 
 private fun aiReason(item: MediaItem): String = when {
-    item.rating.isNotBlank() -> "اختيار ذكي حسب التقييم ${item.rating}"
-    item.lastPlayedAt > 0 -> "مناسب لأنك شاهدت شيئاً قريباً منه"
-    item.categoryName.isNotBlank() -> "من تصنيف ${item.categoryName}"
-    else -> "اقتراح من ترتيب السيرفر"
+    item.rating.isNotBlank() -> "Smart pick based on rating ${item.rating}"
+    item.lastPlayedAt > 0 -> "Good match because you watched something similar recently"
+    item.categoryName.isNotBlank() -> "From ${item.categoryName}"
+    else -> "Suggested from the server order"
 }
 
 private fun typeIcon(item: MediaItem): androidx.compose.ui.graphics.vector.ImageVector = when (item.type) {
-    com.moalfarras.moplayer.domain.model.ContentType.LIVE -> Icons.Rounded.LiveTv
-    com.moalfarras.moplayer.domain.model.ContentType.MOVIE -> Icons.Rounded.Movie
-    com.moalfarras.moplayer.domain.model.ContentType.SERIES,
-    com.moalfarras.moplayer.domain.model.ContentType.EPISODE -> Icons.Rounded.VideoLibrary
+    ContentType.LIVE -> Icons.Rounded.LiveTv
+    ContentType.MOVIE -> Icons.Rounded.Movie
+    ContentType.SERIES,
+    ContentType.EPISODE -> Icons.Rounded.VideoLibrary
 }
 
 private fun homeRestoreIndex(
@@ -1007,6 +1127,20 @@ private fun homeRestoreIndex(
 
 private fun MediaItem.matchesHomeFocus(target: MediaItem): Boolean =
     id == target.id && type == target.type && serverId == target.serverId
+
+private fun List<MediaItem>.homeLiveOrder(maxVideoHeight: Int): List<MediaItem> {
+    if (maxVideoHeight >= 2160 || size <= 1) return this
+    return sortedWith(
+        compareBy<MediaItem> { it.title.isLikely4kChannel() }
+            .thenBy { it.serverOrder }
+            .thenBy { it.title.lowercase() },
+    )
+}
+
+private fun String.isLikely4kChannel(): Boolean {
+    val value = uppercase()
+    return "4K" in value || "UHD" in value || "2160" in value
+}
 
 private fun String.toZoneId(): ZoneId =
     runCatching { ZoneId.of(this) }.getOrDefault(ZoneId.systemDefault())

@@ -63,6 +63,10 @@ class IptvRepository(
     val servers: Flow<List<ServerProfile>> = database.serverDao().observeServers().map { list -> list.map { it.toDomain() } }
     val activeServer: Flow<ServerProfile?> = database.serverDao().observeActiveServer().map { it?.toDomain() }
 
+    suspend fun hasSavedServer(): Boolean = withContext(Dispatchers.IO) {
+        database.serverDao().countServers() > 0
+    }
+
     fun categories(
         serverId: Long,
         type: ContentType,
@@ -169,6 +173,12 @@ class IptvRepository(
 
     suspend fun get(serverId: Long, id: String, type: ContentType): MediaItem? =
         database.mediaDao().get(serverId, id, type)?.toDomain()
+
+    suspend fun findMedia(serverId: Long, id: String, type: ContentType): MediaItem? {
+        val direct = database.mediaDao().get(serverId, id, type)?.toDomain()
+        if (direct != null) return direct
+        return if (serverId == 0L) database.mediaDao().getAnyServer(id, type)?.toDomain() else null
+    }
 
     suspend fun refreshSeriesDetails(server: ServerProfile, series: MediaItem) {
         if (server.kind != LoginKind.XTREAM || series.seriesId.isBlank()) return
@@ -412,25 +422,56 @@ class IptvRepository(
         }
     }
 
+    suspend fun hasLocalLibrary(serverId: Long): Boolean = withContext(Dispatchers.IO) {
+        database.mediaDao().countForServer(serverId) > 0
+    }
+
     fun loginM3u(name: String, playlistUrl: String, epgUrl: String = ""): Flow<LoadProgress> = flow {
-        val extracted = XtreamSupport.extractCredentialsFromPlaylistUrl(playlistUrl)
-        if (extracted != null) {
+        val playlistCandidates = httpUrlCandidates(playlistUrl)
+        val xtreamCandidates = playlistCandidates
+            .mapNotNull { XtreamSupport.extractCredentialsFromPlaylistUrl(it) }
+            .distinctBy { "${it.baseUrl.ensureTrailingSlash()}|${it.username}" }
+        var lastFailure: Throwable? = null
+        var preferredFailure: Throwable? = null
+
+        xtreamCandidates.forEachIndexed { index, extracted ->
             val xtreamResult = runCatching {
                 syncXtream(
                     name = name.ifBlank { XtreamSupport.hostLabel(extracted.baseUrl).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() } },
                     credentials = extracted,
                     sourceLabel = "xtream",
-                    playlistUrl = playlistUrl,
+                    playlistUrl = extracted.playlistUrl.ifBlank { playlistCandidates.first() },
                 ) { emit(it) }
             }
             if (xtreamResult.isSuccess) {
                 emit(LoadProgress("Ready", 100, 100))
                 return@flow
             }
-            emit(LoadProgress("Xtream unavailable, using playlist fallback", 8, 100))
+            lastFailure = xtreamResult.exceptionOrNull()
+            preferredFailure = preferredFailure(preferredFailure, lastFailure)
+            deleteEmptyServer(sourceKey("xtream", "${extracted.baseUrl.ensureTrailingSlash()}|${extracted.username}"))
+            if (index == xtreamCandidates.lastIndex) {
+                emit(LoadProgress("Xtream unavailable, using playlist fallback", 8, 100))
+            }
         }
-        syncM3u(name, playlistUrl, epgUrl = epgUrl) { emit(it) }
-        emit(LoadProgress("Ready", 100, 100))
+
+        playlistCandidates.forEachIndexed { index, candidate ->
+            val m3uResult = runCatching {
+                syncM3u(name, candidate, epgUrl = epgUrl) { emit(it) }
+            }
+            if (m3uResult.isSuccess) {
+                emit(LoadProgress("Ready", 100, 100))
+                return@flow
+            }
+            lastFailure = m3uResult.exceptionOrNull()
+            preferredFailure = preferredFailure(preferredFailure, lastFailure)
+            deleteEmptyServer(sourceKey("m3u", candidate))
+            if (index < playlistCandidates.lastIndex) {
+                emit(LoadProgress("Trying alternate HTTP/HTTPS playlist URL", 10, 100))
+            }
+        }
+
+        throw preferredFailure ?: lastFailure ?: IllegalStateException("M3U login failed")
     }
 
     fun loginM3uText(name: String, sourceName: String, playlistText: String): Flow<LoadProgress> = flow {
@@ -444,26 +485,118 @@ class IptvRepository(
     }
 
     fun loginXtream(name: String, baseUrl: String, username: String, password: String): Flow<LoadProgress> = flow {
-        syncXtream(
-            name = name.ifBlank { XtreamSupport.hostLabel(baseUrl).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() } },
-            credentials = XtreamCredentials(baseUrl.ensureTrailingSlash(), username, password),
-            sourceLabel = "xtream",
-        ) { emit(it) }
-        emit(LoadProgress("Ready", 100, 100))
+        var lastFailure: Throwable? = null
+        val candidates = httpUrlCandidates(baseUrl, trailingSlash = true)
+        candidates.forEachIndexed { index, candidate ->
+            val result = runCatching {
+                syncXtream(
+                    name = name.ifBlank { XtreamSupport.hostLabel(candidate).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() } },
+                    credentials = XtreamCredentials(candidate.ensureTrailingSlash(), username, password),
+                    sourceLabel = "xtream",
+                ) { emit(it) }
+            }
+            if (result.isSuccess) {
+                emit(LoadProgress("Ready", 100, 100))
+                return@flow
+            }
+            lastFailure = result.exceptionOrNull()
+            deleteEmptyServer(sourceKey("xtream", "${candidate.ensureTrailingSlash()}|$username"))
+            if (index < candidates.lastIndex) {
+                emit(LoadProgress("Trying alternate HTTP/HTTPS server URL", 8, 100))
+            }
+        }
+        throw lastFailure ?: IllegalStateException("Xtream login failed")
+    }
+
+    suspend fun registerXtreamSource(name: String, baseUrl: String, username: String, password: String, playlistUrl: String = ""): ServerProfile {
+        val normalizedBase = httpUrlCandidates(baseUrl, trailingSlash = true).first().ensureTrailingSlash()
+        val key = sourceKey("xtream", "$normalizedBase|$username")
+        val existing = withContext(Dispatchers.IO) { database.serverDao().getServerBySourceKey(key)?.toDomain() }
+        val server = ServerProfile(
+            id = existing?.id ?: 0,
+            name = name.ifBlank { XtreamSupport.hostLabel(normalizedBase).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() } },
+            kind = LoginKind.XTREAM,
+            baseUrl = normalizedBase,
+            username = username,
+            password = password,
+            playlistUrl = playlistUrl,
+            createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+            lastSyncAt = existing?.lastSyncAt ?: 0,
+            host = XtreamSupport.hostLabel(normalizedBase),
+            lastSyncSource = "activation",
+            sourceKey = key,
+        )
+        val serverId = upsertServer(server)
+        return database.serverDao().getServer(serverId)?.toDomain() ?: server.copy(id = serverId)
     }
 
     fun refreshServer(server: ServerProfile): Flow<LoadProgress> = flow {
         if (server.kind == LoginKind.XTREAM) {
-            syncXtream(
-                name = server.name,
-                credentials = XtreamCredentials(server.baseUrl, server.username, server.password, server.playlistUrl),
-                sourceLabel = "refresh",
-                existingServerId = server.id,
-            ) { emit(it) }
+            var lastFailure: Throwable? = null
+            val candidates = httpUrlCandidates(server.baseUrl, trailingSlash = true)
+            candidates.forEachIndexed { index, candidate ->
+                val result = runCatching {
+                    syncXtream(
+                        name = server.name,
+                        credentials = XtreamCredentials(candidate.ensureTrailingSlash(), server.username, server.password, server.playlistUrl),
+                        sourceLabel = "refresh",
+                        existingServerId = server.id,
+                    ) { emit(it) }
+                }
+                if (result.isSuccess) {
+                    emit(LoadProgress("Ready", 100, 100))
+                    return@flow
+                }
+                lastFailure = result.exceptionOrNull()
+                if (index < candidates.lastIndex) {
+                    emit(LoadProgress("Trying alternate HTTP/HTTPS server URL", 8, 100))
+                }
+            }
+            throw lastFailure ?: IllegalStateException("Server refresh failed")
         } else {
-            syncM3u(server.name, server.playlistUrl, existingServerId = server.id, epgUrl = server.epgUrl) { emit(it) }
+            var lastFailure: Throwable? = null
+            val candidates = httpUrlCandidates(server.playlistUrl)
+            candidates.forEachIndexed { index, candidate ->
+                val result = runCatching {
+                    syncM3u(server.name, candidate, existingServerId = server.id, epgUrl = server.epgUrl) { emit(it) }
+                }
+                if (result.isSuccess) {
+                    emit(LoadProgress("Ready", 100, 100))
+                    return@flow
+                }
+                lastFailure = result.exceptionOrNull()
+                if (index < candidates.lastIndex) {
+                    emit(LoadProgress("Trying alternate HTTP/HTTPS playlist URL", 10, 100))
+                }
+            }
+            throw lastFailure ?: IllegalStateException("Playlist refresh failed")
         }
-        emit(LoadProgress("Ready", 100, 100))
+    }
+
+    fun refreshServerFast(server: ServerProfile): Flow<LoadProgress> = flow {
+        if (server.kind != LoginKind.XTREAM) {
+            refreshServer(server).collect { emit(it) }
+            return@flow
+        }
+        var lastFailure: Throwable? = null
+        val candidates = httpUrlCandidates(server.baseUrl, trailingSlash = true)
+        candidates.forEachIndexed { index, candidate ->
+            val result = runCatching {
+                syncXtreamIncremental(
+                    server = server.copy(baseUrl = candidate.ensureTrailingSlash()),
+                    sourceLabel = "background-refresh",
+                ) { emit(it) }
+            }
+            if (result.isSuccess) {
+                emit(LoadProgress("Ready", 100, 100))
+                return@flow
+            }
+            lastFailure = result.exceptionOrNull()
+            if (index < candidates.lastIndex) {
+                emit(LoadProgress("Trying alternate HTTP/HTTPS server URL", 8, 100))
+            }
+        }
+        throw lastFailure ?: IllegalStateException("Background server refresh failed")
     }
 
     fun loginActivationCode(code: String): Flow<LoadProgress> = flow {
@@ -532,43 +665,6 @@ class IptvRepository(
             status = DeviceActivationStatus.WAITING,
             publicDeviceId = publicDeviceId,
             sourcePullToken = sourcePullToken,
-        )
-    }
-
-    private suspend fun createLegacyDeviceActivation(deviceName: String): DeviceActivationSession {
-        val service = supabaseService ?: error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY.")
-        val expiresAt = System.currentTimeMillis() + 10 * 60 * 1000L
-        val deviceCode = secureToken(32)
-        val userCode = shortUserCode()
-        val verificationUrl = BuildConfig.ACTIVATION_URL.substringBefore('?')
-        val separator = if ('?' in verificationUrl) '&' else '?'
-        val completeUrl = "$verificationUrl${separator}device_code=$deviceCode&user_code=$userCode"
-        val body = DeviceActivationInsertDto(
-            deviceCode = deviceCode,
-            userCode = userCode,
-            verificationUrl = verificationUrl,
-            verificationUrlComplete = completeUrl,
-            deviceName = deviceName.ifBlank { "Android TV" },
-            deviceLabel = deviceName.ifBlank { "Android TV" },
-            appVersion = BuildConfig.VERSION_NAME,
-            expiresAt = Instant.ofEpochMilli(expiresAt).toString(),
-            pollIntervalSeconds = 5,
-        )
-        val row = withContext(Dispatchers.IO) {
-            service.createDeviceActivation(
-                anonKey = BuildConfig.SUPABASE_ANON_KEY,
-                bearer = supabaseBearer,
-                body = body,
-            ).firstOrNull()
-        } ?: error("Activation backend did not return a device code")
-        return DeviceActivationSession(
-            deviceCode = row.deviceCode.ifBlank { deviceCode },
-            userCode = row.userCode.ifBlank { userCode },
-            verificationUrl = row.verificationUrl.ifBlank { verificationUrl },
-            verificationUrlComplete = row.verificationUrlComplete.ifBlank { completeUrl },
-            expiresAt = row.expiresAt.parseInstantOr(expiresAt),
-            intervalSeconds = row.pollIntervalSeconds.coerceAtLeast(3),
-            status = DeviceActivationStatus.WAITING,
         )
     }
 
@@ -673,6 +769,18 @@ class IptvRepository(
         progress: suspend (LoadProgress) -> Unit,
     ) {
         progress(LoadProgress("Connecting to M3U server", 0, 100))
+        progress(LoadProgress("Downloading playlist", 18, 100))
+        val parsedPreview = withContext(Dispatchers.IO) {
+            playlistService.getText(playlistUrl).use { body ->
+                progress(LoadProgress("Parsing channels and VOD", 48, 100))
+                body.charStream().buffered().useLines { lines ->
+                    parser.parse(existingServerId, lines)
+                }
+            }
+        }
+        require(parsedPreview.media.any { it.type != ContentType.SERIES || it.streamUrl.isNotBlank() }) {
+            "No playable items were found in this M3U playlist"
+        }
         val server = ServerProfile(
             id = existingServerId,
             name = name.ifBlank { playlistUrl.hostLabel() },
@@ -685,10 +793,7 @@ class IptvRepository(
             sourceKey = sourceKey("m3u", playlistUrl),
         )
         val serverId = upsertServer(server)
-        progress(LoadProgress("Downloading playlist", 18, 100))
-        val body = withContext(Dispatchers.IO) { playlistService.getText(playlistUrl).safeString() }
-        progress(LoadProgress("Parsing channels and VOD", 48, 100))
-        val parsed = withContext(Dispatchers.Default) { parser.parse(serverId, body) }
+        val parsed = parsedPreview.withServerId(serverId)
         progress(LoadProgress("Loading XMLTV guide", 62, 100))
         val epgPrograms = if (epgUrl.isNotBlank()) {
             runCatching {
@@ -740,6 +845,23 @@ class IptvRepository(
             )
         }
     }
+
+    private suspend fun deleteEmptyServer(sourceKey: String) = withContext(Dispatchers.IO) {
+        val server = database.serverDao().getServerBySourceKey(sourceKey) ?: return@withContext
+        if (database.mediaDao().countForServer(server.id) == 0) {
+            database.serverDao().delete(server.id)
+        }
+    }
+
+    private fun com.moalfarras.moplayer.data.parser.ParsedPlaylist.withServerId(serverId: Long): com.moalfarras.moplayer.data.parser.ParsedPlaylist =
+        if (categories.all { it.serverId == serverId } && media.all { it.serverId == serverId }) {
+            this
+        } else {
+            com.moalfarras.moplayer.data.parser.ParsedPlaylist(
+                categories = categories.map { it.copy(serverId = serverId) },
+                media = media.map { it.copy(serverId = serverId) },
+            )
+        }
 
     private suspend fun syncM3uText(
         name: String,
@@ -862,6 +984,165 @@ class IptvRepository(
         }
     }
 
+    private suspend fun syncXtreamIncremental(
+        server: ServerProfile,
+        sourceLabel: String,
+        progress: suspend (LoadProgress) -> Unit,
+    ) {
+        val credentials = XtreamCredentials(
+            baseUrl = server.baseUrl.ensureTrailingSlash(),
+            username = server.username,
+            password = server.password,
+            playlistUrl = server.playlistUrl,
+        )
+        progress(LoadProgress("Connecting to IPTV server", 0, 100))
+        val api = xtreamFactory(credentials.baseUrl)
+        val startedAt = System.currentTimeMillis()
+        val accountSnapshot = runCatching {
+            XtreamSupport.parseAccountSnapshot(
+                json = json,
+                serverId = server.id,
+                root = playerApiObject(api, credentials.username, credentials.password),
+                updatedAt = startedAt,
+            )
+        }.getOrElse { throwable ->
+            throw IllegalStateException(XtreamSupport.sanitizeError(throwable.message, server.host.ifBlank { XtreamSupport.hostLabel(server.baseUrl) }))
+        }
+
+        database.serverDao().updateRuntimeInfo(
+            serverId = server.id,
+            lastSyncAt = startedAt,
+            accountStatus = accountSnapshot.accountInfo?.status.orEmpty(),
+            expiryDate = accountSnapshot.accountInfo?.expiryDate ?: 0,
+            activeConnections = accountSnapshot.accountInfo?.activeConnections ?: 0,
+            maxConnections = accountSnapshot.accountInfo?.maxConnections ?: 0,
+            allowedOutputFormats = accountSnapshot.accountInfo?.allowedOutputFormats.orEmpty(),
+            timezone = accountSnapshot.serverInfo?.timezone.orEmpty(),
+            serverMessage = accountSnapshot.serverInfo?.message.orEmpty(),
+            lastSyncSource = sourceLabel,
+            epgUrl = "",
+            sourceKey = sourceKey("xtream", "${credentials.baseUrl}|${credentials.username}"),
+        )
+
+        syncXtreamSection(
+            serverId = server.id,
+            credentials = credentials,
+            api = api,
+            accountSnapshot = accountSnapshot,
+            type = ContentType.LIVE,
+            categoryAction = "get_live_categories",
+            streamAction = "get_live_streams",
+            progressPhase = "Loading live channels",
+            progressValue = 18,
+            progress = progress,
+        ) { categories, array ->
+            XtreamSupport.parseLiveStreams(
+                json = json,
+                serverId = server.id,
+                credentials = credentials,
+                allowedFormats = accountSnapshot.allowedOutputFormats,
+                categories = categories.associate { it.id to it.name },
+                array = array,
+            )
+        }.also { emitCounts ->
+            progress(LoadProgress("Saved ${emitCounts.second} live channels", 42, 100))
+        }
+
+        syncXtreamSection(
+            serverId = server.id,
+            credentials = credentials,
+            api = api,
+            accountSnapshot = accountSnapshot,
+            type = ContentType.MOVIE,
+            categoryAction = "get_vod_categories",
+            streamAction = "get_vod_streams",
+            progressPhase = "Loading movies",
+            progressValue = 48,
+            progress = progress,
+        ) { categories, array ->
+            XtreamSupport.parseVodStreams(
+                json = json,
+                serverId = server.id,
+                credentials = credentials,
+                categories = categories.associate { it.id to it.name },
+                array = array,
+            )
+        }.also { emitCounts ->
+            progress(LoadProgress("Saved ${emitCounts.second} movies", 70, 100))
+        }
+
+        syncXtreamSection(
+            serverId = server.id,
+            credentials = credentials,
+            api = api,
+            accountSnapshot = accountSnapshot,
+            type = ContentType.SERIES,
+            categoryAction = "get_series_categories",
+            streamAction = "get_series",
+            progressPhase = "Loading series",
+            progressValue = 76,
+            progress = progress,
+        ) { categories, array ->
+            XtreamSupport.parseSeries(
+                json = json,
+                serverId = server.id,
+                categories = categories.associate { it.id to it.name },
+                array = array,
+            )
+        }.also { emitCounts ->
+            progress(LoadProgress("Saved ${emitCounts.second} series", 96, 100))
+        }
+    }
+
+    private suspend fun syncXtreamSection(
+        serverId: Long,
+        credentials: XtreamCredentials,
+        api: XtreamService,
+        accountSnapshot: XtreamAccountSnapshot,
+        type: ContentType,
+        categoryAction: String,
+        streamAction: String,
+        progressPhase: String,
+        progressValue: Int,
+        progress: suspend (LoadProgress) -> Unit,
+        parseItems: (List<Category>, JsonArray) -> List<MediaItem>,
+    ): Pair<Int, Int> {
+        val (categories, items) = coroutineScope {
+            val categoriesDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to categoryAction)) }
+            val streamsDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to streamAction)) }
+            val parsedCategories = XtreamSupport.parseCategories(json, serverId, type, categoriesDeferred.await())
+            parsedCategories to parseItems(parsedCategories, streamsDeferred.await())
+        }
+        val now = System.currentTimeMillis()
+        val currentState = withContext(Dispatchers.IO) { database.syncStateDao().get(serverId) }
+        val syncState = com.moalfarras.moplayer.data.db.SyncStateEntity(
+            serverId = serverId,
+            source = "xtream",
+            status = "ready",
+            lastSyncAt = now,
+            liveSyncedAt = if (type == ContentType.LIVE) now else currentState?.liveSyncedAt ?: 0,
+            vodSyncedAt = if (type == ContentType.MOVIE) now else currentState?.vodSyncedAt ?: 0,
+            seriesSyncedAt = if (type == ContentType.SERIES) now else currentState?.seriesSyncedAt ?: 0,
+            epgSyncedAt = currentState?.epgSyncedAt ?: 0,
+            lastError = "",
+            rawJson = """{"phase":"$progressPhase","categories":${categories.size},"media":${items.size}}""",
+            updatedAt = now,
+        )
+        progress(LoadProgress(progressPhase, progressValue, 100))
+        withContext(Dispatchers.IO) {
+            database.replaceServerContentTypes(
+                serverId = serverId,
+                types = listOf(type),
+                categories = categories.map { it.toEntity() },
+                media = items.map { it.toEntity() },
+                accountInfo = accountSnapshot.accountInfo,
+                serverInfo = accountSnapshot.serverInfo,
+                syncState = syncState,
+            )
+        }
+        return categories.size to items.size
+    }
+
     private suspend fun loadXtream(
         serverId: Long,
         credentials: XtreamCredentials,
@@ -939,13 +1220,15 @@ class IptvRepository(
     }
 
     private suspend fun upsertServer(server: ServerProfile): Long = withContext(Dispatchers.IO) {
-        database.serverDao().upsert(
-            server.toEntity().copy(
-                createdAt = server.createdAt.takeIf { it > 0 } ?: System.currentTimeMillis(),
-                host = server.host.ifBlank { XtreamSupport.hostLabel(server.baseUrl.ifBlank { server.playlistUrl }) },
-                sourceKey = server.sourceKey.ifBlank { sourceKey(server.kind.name.lowercase(Locale.US), server.baseUrl.ifBlank { server.playlistUrl }) },
-            ),
+        val entity = server.toEntity().copy(
+            createdAt = server.createdAt.takeIf { it > 0 } ?: System.currentTimeMillis(),
+            host = server.host.ifBlank { XtreamSupport.hostLabel(server.baseUrl.ifBlank { server.playlistUrl }) },
+            sourceKey = server.sourceKey.ifBlank { sourceKey(server.kind.name.lowercase(Locale.US), server.baseUrl.ifBlank { server.playlistUrl }) },
         )
+        val generatedId = database.serverDao().upsert(
+            entity,
+        )
+        server.id.takeIf { it > 0 } ?: generatedId
     }
 
     private suspend fun pushWatchProgress(item: MediaItem, positionMs: Long, durationMs: Long) {
@@ -1008,6 +1291,40 @@ class IptvRepository(
     }
 
     private fun String.ensureTrailingSlash(): String = if (endsWith('/')) this else "$this/"
+
+    private fun httpUrlCandidates(raw: String, trailingSlash: Boolean = false): List<String> {
+        val normalized = raw.trim()
+        if (normalized.isBlank()) return emptyList()
+        val withScheme = if (normalized.startsWith("http://", ignoreCase = true) || normalized.startsWith("https://", ignoreCase = true)) {
+            normalized
+        } else {
+            "http://${normalized.trimStart('/')}"
+        }
+        val alternate = when {
+            withScheme.startsWith("http://", ignoreCase = true) -> withScheme.replaceFirst("http://", "https://", ignoreCase = true)
+            withScheme.startsWith("https://", ignoreCase = true) -> withScheme.replaceFirst("https://", "http://", ignoreCase = true)
+            else -> withScheme
+        }
+        return listOf(withScheme, alternate)
+            .map { if (trailingSlash) it.ensureTrailingSlash() else it }
+            .distinct()
+    }
+
+    private fun preferredFailure(current: Throwable?, next: Throwable?): Throwable? {
+        if (next == null) return current
+        if (current == null) return next
+        val nextMessage = next.message.orEmpty()
+        val currentMessage = current.message.orEmpty()
+        val nextIsTls = nextMessage.contains("handshake", ignoreCase = true) ||
+            nextMessage.contains("ssl", ignoreCase = true)
+        val currentIsTls = currentMessage.contains("handshake", ignoreCase = true) ||
+            currentMessage.contains("ssl", ignoreCase = true)
+        return when {
+            currentIsTls && !nextIsTls -> next
+            !currentIsTls && nextIsTls -> current
+            else -> next
+        }
+    }
 
     private fun String.hostLabel(): String = runCatching {
         java.net.URI(this).host?.removePrefix("www.") ?: this

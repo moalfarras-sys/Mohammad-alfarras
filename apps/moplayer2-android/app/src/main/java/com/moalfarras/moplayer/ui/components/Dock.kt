@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.ui.AppSection
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 
@@ -41,14 +42,15 @@ fun BottomDock(
 ) {
     val tv = rememberTvScale()
     val scrollState = rememberScrollState()
+    val s = LocalStrings.current
     val items = listOf(
-        DockItem(AppSection.SEARCH, "بحث", Icons.Rounded.Search),
-        DockItem(AppSection.HOME, "الرئيسية", Icons.Rounded.Home),
-        DockItem(AppSection.LIVE, "بث مباشر", Icons.Rounded.LiveTv),
-        DockItem(AppSection.MOVIES, "أفلام", Icons.Rounded.Movie),
-        DockItem(AppSection.SERIES, "مسلسلات", Icons.Rounded.VideoLibrary),
-        DockItem(AppSection.FAVORITES, "مفضلتي", Icons.Rounded.Favorite),
-        DockItem(AppSection.SETTINGS, "الإعدادات", Icons.Rounded.Settings),
+        DockItem(AppSection.SEARCH, s.navSearch, Icons.Rounded.Search),
+        DockItem(AppSection.HOME, s.navHome, Icons.Rounded.Home),
+        DockItem(AppSection.LIVE, s.navLive, Icons.Rounded.LiveTv),
+        DockItem(AppSection.MOVIES, s.navMovies, Icons.Rounded.Movie),
+        DockItem(AppSection.SERIES, s.navSeries, Icons.Rounded.VideoLibrary),
+        DockItem(AppSection.FAVORITES, s.navFavorites, Icons.Rounded.Favorite),
+        DockItem(AppSection.SETTINGS, s.navSettings, Icons.Rounded.Settings),
     )
 
     val frSearch = remember { FocusRequester() }

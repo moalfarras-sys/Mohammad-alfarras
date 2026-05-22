@@ -56,8 +56,8 @@ android {
         applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 7
-        versionName = "2.1.3"
+        versionCode = 17
+        versionName = "2.2.9"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')
@@ -68,7 +68,6 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"${secretPropertyAny("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "EXPO_PUBLIC_SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secretPropertyAny("SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY", "EXPO_PUBLIC_SUPABASE_KEY")}\"")
         buildConfigField("String", "WEATHER_API_KEY", "\"${secretProperty("WEATHER_API_KEY")}\"")
-        buildConfigField("String", "FOOTBALL_API_KEY", "\"${secretPropertyAny("FOOTBALL_API_KEY", "API_FOOTBALL_KEY", "RAPIDAPI_FOOTBALL_KEY")}\"")
         buildConfigField("String", "ACTIVATION_URL", "\"$activationUrl\"")
         val webApiBaseUrl = secretProperty("WEB_API_BASE_URL").ifBlank { "https://moalfarras.space" }
         val appProductSlug = secretProperty("APP_PRODUCT_SLUG").ifBlank { "moplayer2" }
@@ -177,14 +176,14 @@ dependencies {
     implementation("androidx.tv:tv-material:1.1.0-rc01")
     implementation("androidx.leanback:leanback:1.2.0")
 
-    implementation("androidx.media3:media3-exoplayer:1.10.0")
-    implementation("androidx.media3:media3-exoplayer-hls:1.10.0")
-    implementation("androidx.media3:media3-exoplayer-dash:1.10.0")
-    implementation("androidx.media3:media3-exoplayer-smoothstreaming:1.10.0")
-    implementation("androidx.media3:media3-exoplayer-rtsp:1.10.0")
-    implementation("androidx.media3:media3-ui:1.10.0")
-    implementation("androidx.media3:media3-session:1.10.0")
-    implementation("androidx.media3:media3-datasource-okhttp:1.10.0")
+    implementation("androidx.media3:media3-exoplayer:1.10.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.10.1")
+    implementation("androidx.media3:media3-exoplayer-dash:1.10.1")
+    implementation("androidx.media3:media3-exoplayer-smoothstreaming:1.10.1")
+    implementation("androidx.media3:media3-exoplayer-rtsp:1.10.1")
+    implementation("androidx.media3:media3-ui:1.10.1")
+    implementation("androidx.media3:media3-session:1.10.1")
+    implementation("androidx.media3:media3-datasource-okhttp:1.10.1")
     implementation("org.videolan.android:libvlc-all:3.6.2")
     implementation("com.google.android.gms:play-services-cast-framework:22.1.0")
 

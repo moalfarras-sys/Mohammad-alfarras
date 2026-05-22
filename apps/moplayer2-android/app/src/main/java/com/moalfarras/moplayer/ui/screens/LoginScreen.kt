@@ -30,8 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
@@ -39,6 +46,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -71,6 +79,26 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 private enum class LoginMode { CHOOSE, M3U, XTREAM, ACTIVATION }
+
+/**
+ * D-pad navigation for focused text fields/tabs. A focused Compose text field otherwise
+ * swallows DPAD_UP/DOWN, trapping remote focus on the field (Sign-in becomes unreachable).
+ * Intercepts up/down to move focus vertically; left/right stay for in-field cursor movement.
+ */
+@Composable
+private fun rememberVerticalFocusNav(): (KeyEvent) -> Boolean {
+    val focusManager = LocalFocusManager.current
+    return remember(focusManager) {
+        { event: KeyEvent ->
+            if (event.type != KeyEventType.KeyDown) false
+            else when (event.key) {
+                Key.DirectionDown -> focusManager.moveFocus(FocusDirection.Down)
+                Key.DirectionUp -> focusManager.moveFocus(FocusDirection.Up)
+                else -> false
+            }
+        }
+    }
+}
 
 @Composable
 private fun LoginBackdropLayer(settings: AppSettings) {
@@ -743,8 +771,10 @@ private fun ModeTab(text: String, selected: Boolean, tv: TvScale, focusRequester
     val bg by animateColorAsState(
         if (selected || focused) accent.copy(alpha = 0.22f) else Color.Transparent, label = "tab-bg"
     )
+    val navKeys = rememberVerticalFocusNav()
     Box(
         modifier = Modifier
+            .onPreviewKeyEvent(navKeys)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(999.dp))
             .background(bg)
@@ -778,10 +808,12 @@ private fun GlassTextField(
         if (focused) 1.025f else 1f,
         spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium), label = "field-scale"
     )
+    val navKeys = rememberVerticalFocusNav()
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .onPreviewKeyEvent(navKeys)
             .height((56 * tv.factor).dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(if (focused) 24.dp else 0.dp, RoundedCornerShape(999.dp), clip = false,
@@ -859,10 +891,12 @@ private fun GlassPasswordField(
         if (focused) 1.025f else 1f,
         spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium), label = "pw-scale",
     )
+    val navKeys = rememberVerticalFocusNav()
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .onPreviewKeyEvent(navKeys)
             .height((56 * tv.factor).dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(if (focused) 24.dp else 0.dp, RoundedCornerShape(999.dp), clip = false,

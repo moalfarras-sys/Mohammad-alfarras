@@ -176,6 +176,26 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
   const activateHref = `/${locale}/activate?product=moplayer2`;
   const size = formatBytes(primaryAsset?.file_size_bytes);
   const downloaderCode = ecosystem.runtimeConfig?.downloaderCode || "4608937";
+  const productName = ecosystem.product.product_name || c.heroTitle;
+  const heroBadge = isAr ? c.badge : ecosystem.product.hero_badge || c.badge;
+  const heroTitle = isAr ? c.heroTitle : productName;
+  const heroSub = isAr ? c.heroSub : ecosystem.product.tagline || c.heroSub;
+  const heroBody = isAr ? c.heroBody : ecosystem.product.long_description || ecosystem.product.short_description || c.heroBody;
+  const heroImage = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-pro-hero.webp");
+  const logoImage = normalizePublicImagePath(ecosystem.product.logo_path || "/images/moplayer-icon-512.png");
+  const galleryScreenshots = ecosystem.screenshots.length
+    ? ecosystem.screenshots.map((shot, index) => ({
+        id: shot.id,
+        src: normalizePublicImagePath(shot.image_path),
+        alt: shot.alt_text || shot.title || `${productName} screenshot`,
+        label: shot.title || `${productName} ${index + 1}`,
+      }))
+    : mp2Screenshots.map((shot) => ({ ...shot, src: normalizePublicImagePath(shot.src) }));
+  const featureList = isAr
+    ? c.features
+    : ecosystem.product.feature_highlights.length
+      ? ecosystem.product.feature_highlights.map((item) => ({ icon: item.icon || "tv", title: item.title, body: item.body }))
+      : c.features;
 
   return (
     <main className="mp2-page" dir={isAr ? "rtl" : "ltr"}>
@@ -184,11 +204,11 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
         <div className="mp2-hero-content">
           <span className="mp2-badge">
             <Sparkles className="h-4 w-4" />
-            {isAr ? c.badge : ecosystem.product.hero_badge || c.badge}
+            {heroBadge}
           </span>
-          <h1>{c.heroTitle}</h1>
-          <p className="mp2-hero-sub">{c.heroSub}</p>
-          <p className="mp2-hero-body">{c.heroBody}</p>
+          <h1>{heroTitle}</h1>
+          <p className="mp2-hero-sub">{heroSub}</p>
+          <p className="mp2-hero-body">{heroBody}</p>
           <div className="mp2-actions">
             {downloadHref ? (
               <a href={downloadHref} className="mp2-btn mp2-btn-primary">
@@ -206,14 +226,21 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           <div className="mp2-hero-glow" />
           <div className="mp2-hero-frame">
             <Image
-              src={normalizePublicImagePath("/images/moplayer-pro-hero.webp")}
-              alt={isAr ? "تجربة MoPlayer Pro Android TV" : "MoPlayer Pro Android TV experience"}
+              src={heroImage}
+              alt={isAr ? "تجربة MoPlayer Pro Android TV" : `${productName} Android TV experience`}
               fill
               sizes="(max-width: 900px) 92vw, 620px"
               className="mp2-hero-img"
               loading="eager"
               preload
             />
+          </div>
+          <div className="mp2-admin-brand-card">
+            <Image src={logoImage} alt="" width={44} height={44} />
+            <span>
+              <strong>{productName}</strong>
+              <small>{isAr ? "صورها من لوحة الأدمن" : "Images controlled from admin"}</small>
+            </span>
           </div>
         </div>
       </section>
@@ -267,7 +294,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           <p>{c.featuresSub}</p>
         </div>
         <div className="mp2-feature-grid">
-          {c.features.map((f) => {
+          {featureList.map((f) => {
             const Icon = featureIcons[f.icon] ?? CheckCircle2;
             return (
               <article key={f.title} className="mp2-feature-card">
@@ -288,10 +315,10 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
           <p>{c.gallerySub}</p>
         </div>
         <div className="mp2-gallery">
-          {mp2Screenshots.map((shot, i) => (
+          {galleryScreenshots.slice(0, 6).map((shot, i) => (
             <figure key={shot.id} className={i === 0 ? "mp2-gallery-wide" : ""}>
               <Image
-                src={normalizePublicImagePath(shot.src)}
+                src={shot.src}
                 alt={shot.alt}
                 fill
                 sizes={i === 0 ? "(max-width: 900px) 92vw, 58vw" : "(max-width: 900px) 92vw, 28vw"}

@@ -40,6 +40,16 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
         }
     }
 
+    enum class BackgroundBehavior(val storageValue: Int) {
+        STATIC(0),
+        FOLLOW_PREVIEW(1);
+
+        companion object {
+            fun fromStorage(value: Int): BackgroundBehavior =
+                entries.firstOrNull { it.storageValue == value } ?: FOLLOW_PREVIEW
+        }
+    }
+
     data class PosterMetrics(
         val widthDp: Int,
         val heightDp: Int,
@@ -50,6 +60,7 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
     companion object {
         private val POSTER_SIZE_KEY = intPreferencesKey("poster_size")
         private val LAYOUT_STYLE_KEY = intPreferencesKey("layout_style")
+        private val BACKGROUND_BEHAVIOR_KEY = intPreferencesKey("background_behavior")
         private val ANIMATIONS_ENABLED_KEY = booleanPreferencesKey("animations_enabled")
         private val PLAYER_AUTO_HIDE_SECONDS_KEY = intPreferencesKey("player_auto_hide_seconds")
 
@@ -66,6 +77,10 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
 
     val animationsEnabled: Flow<Boolean> = context.tvUiDataStore.data.map { prefs ->
         prefs[ANIMATIONS_ENABLED_KEY] ?: true
+    }
+
+    val backgroundBehavior: Flow<BackgroundBehavior> = context.tvUiDataStore.data.map { prefs ->
+        BackgroundBehavior.fromStorage(prefs[BACKGROUND_BEHAVIOR_KEY] ?: BackgroundBehavior.FOLLOW_PREVIEW.storageValue)
     }
 
     val playerAutoHideSeconds: Flow<Int> = context.tvUiDataStore.data.map { prefs ->
@@ -90,6 +105,12 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
         }
     }
 
+    suspend fun setBackgroundBehavior(behavior: BackgroundBehavior) {
+        context.tvUiDataStore.edit { prefs ->
+            prefs[BACKGROUND_BEHAVIOR_KEY] = behavior.storageValue
+        }
+    }
+
     suspend fun setPlayerAutoHideSeconds(seconds: Int) {
         context.tvUiDataStore.edit { prefs ->
             prefs[PLAYER_AUTO_HIDE_SECONDS_KEY] = seconds.coerceIn(3, 5)
@@ -98,9 +119,9 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
 
     fun posterMetrics(size: PosterSize): PosterMetrics {
         return when (size) {
-            PosterSize.SMALL -> PosterMetrics(widthDp = 76, heightDp = 114, contentHeightDp = 144, titleTextSp = 9.5f)
-            PosterSize.MEDIUM -> PosterMetrics(widthDp = 88, heightDp = 132, contentHeightDp = 164, titleTextSp = 10f)
-            PosterSize.LARGE -> PosterMetrics(widthDp = 100, heightDp = 150, contentHeightDp = 184, titleTextSp = 10.5f)
+            PosterSize.SMALL -> PosterMetrics(widthDp = 78, heightDp = 117, contentHeightDp = 160, titleTextSp = 9.2f)
+            PosterSize.MEDIUM -> PosterMetrics(widthDp = 90, heightDp = 135, contentHeightDp = 180, titleTextSp = 9.7f)
+            PosterSize.LARGE -> PosterMetrics(widthDp = 104, heightDp = 156, contentHeightDp = 204, titleTextSp = 10.2f)
         }
     }
 }

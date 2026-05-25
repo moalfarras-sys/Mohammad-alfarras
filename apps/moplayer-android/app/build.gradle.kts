@@ -48,15 +48,15 @@ val sideloadAbis = mutableListOf("armeabi-v7a", "arm64-v8a").apply {
 
 android {
     namespace = "com.mo.moplayer"
-    compileSdk = 35
+    compileSdk = 36
     flavorDimensions += "distribution"
 
     defaultConfig {
         applicationId = "com.mo.moplayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 9
-        versionName = "2.2.3"
+        versionCode = 14
+        versionName = "2.2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -221,6 +221,8 @@ dependencies {
     implementation(libs.media3.session)
     implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.exoplayer.smoothstreaming)
+    implementation(libs.media3.exoplayer.rtsp)
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.media3.cast)
 

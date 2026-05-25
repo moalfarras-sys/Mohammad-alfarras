@@ -1019,6 +1019,9 @@ class MainViewModel(
                 .onSuccess { config ->
                     settingsRepo.applyRemoteConfig(config)
                     val nextSettings = uiState.value.settings.copy(
+                        accentColor = parseRemoteAccent(config.accentColor) ?: uiState.value.settings.accentColor,
+                        backgroundMode = if (config.backgroundUrl.isNotBlank()) BackgroundMode.CUSTOM_URL else uiState.value.settings.backgroundMode,
+                        customBackgroundUrl = config.backgroundUrl.takeIf { it.isNotBlank() } ?: uiState.value.settings.customBackgroundUrl,
                         showWeatherWidget = config.weatherEnabled,
                         showFootballWidget = config.footballEnabled,
                         weatherMode = if (config.weatherCity.isNotBlank()) WeatherMode.CITY else uiState.value.settings.weatherMode,
@@ -1029,6 +1032,14 @@ class MainViewModel(
                     football.value = widgets.football(nextSettings)
                 }
         }
+    }
+
+    private fun parseRemoteAccent(value: String): Long? {
+        val clean = value.trim()
+        if (!Regex("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$").matches(clean)) return null
+        val raw = clean.removePrefix("#")
+        val argb = if (raw.length == 6) "FF$raw" else raw
+        return runCatching { argb.toULong(16).toLong() }.getOrNull()
     }
 
     private fun refreshEpgSilently() {

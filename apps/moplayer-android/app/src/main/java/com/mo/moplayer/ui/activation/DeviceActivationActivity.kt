@@ -57,10 +57,18 @@ class DeviceActivationActivity : AppCompatActivity() {
 
         binding.tvActivationStatus.setText(R.string.activation_creating)
         binding.tvActivationBody.setText(R.string.activation_creating_body)
+        setAddSourceEnabled(false)
         createActivationCode()
 
         binding.btnCheckStatus.setOnClickListener { checkActivationStatus(scheduleNext = false) }
-        binding.btnAddSource.setOnClickListener { openAddSource(finishOnly = false) }
+        binding.btnAddSource.setOnClickListener {
+            if (activationPrefs.getString("activation_status", null) == "activated") {
+                openAddSource(finishOnly = false)
+            } else {
+                Toast.makeText(this, R.string.activation_pending, Toast.LENGTH_SHORT).show()
+                binding.btnCheckStatus.requestFocus()
+            }
+        }
         binding.btnCheckStatus.requestFocus()
 
         addRemoteFeedback(binding.btnCheckStatus)
@@ -75,6 +83,12 @@ class DeviceActivationActivity : AppCompatActivity() {
                 .setDuration(150)
                 .start()
         }
+    }
+
+    private fun setAddSourceEnabled(enabled: Boolean) {
+        binding.btnAddSource.isEnabled = enabled
+        binding.btnAddSource.isFocusable = enabled
+        binding.btnAddSource.alpha = if (enabled) 1f else 0.45f
     }
 
     private fun createActivationCode() {
@@ -108,6 +122,7 @@ class DeviceActivationActivity : AppCompatActivity() {
                     .apply()
                 binding.tvActivationStatus.setText(R.string.activation_waiting)
                 binding.tvActivationBody.text = getString(R.string.activation_waiting_body_runtime, deviceCode)
+                setAddSourceEnabled(false)
                 schedulePolling()
             } else {
                 deviceCode = getLocalFallbackCode()
@@ -116,6 +131,7 @@ class DeviceActivationActivity : AppCompatActivity() {
                 binding.ivQrCode.alpha = 0.22f
                 binding.tvActivationStatus.setText(R.string.activation_service_unavailable)
                 binding.tvActivationBody.setText(R.string.activation_service_unavailable_body)
+                setAddSourceEnabled(false)
             }
         }
     }
@@ -149,6 +165,7 @@ class DeviceActivationActivity : AppCompatActivity() {
                     activationPrefs.edit().putString("activation_status", "waiting").apply()
                     binding.tvActivationStatus.setText(R.string.activation_pending)
                     binding.tvActivationBody.text = getString(R.string.activation_waiting_body_runtime, deviceCode)
+                    setAddSourceEnabled(false)
                     if (scheduleNext) schedulePolling()
                 }
                 "expired" -> {
@@ -156,6 +173,7 @@ class DeviceActivationActivity : AppCompatActivity() {
                     activationPrefs.edit().putString("activation_status", "expired").apply()
                     binding.tvActivationStatus.setText(R.string.activation_expired)
                     binding.tvActivationBody.setText(R.string.activation_expired_body)
+                    setAddSourceEnabled(false)
                 }
                 else -> {
                     binding.tvActivationStatus.setText(R.string.activation_backend_waiting)
@@ -231,6 +249,7 @@ class DeviceActivationActivity : AppCompatActivity() {
 
         binding.tvActivationStatus.setText(R.string.activation_activated)
         binding.tvActivationBody.setText(R.string.activation_activated_body)
+        setAddSourceEnabled(true)
         binding.btnAddSource.requestFocus()
 
         pollHandler.postDelayed({

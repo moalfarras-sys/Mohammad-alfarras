@@ -52,9 +52,11 @@ function verifyHashedPassword(password: string, hash: string): boolean {
 }
 
 function sessionSecret(): string {
-  return String(
-    process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || "local-admin-secret",
-  );
+  const secret = String(process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || "");
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("ADMIN_SESSION_SECRET is required in production.");
+  }
+  return secret || "local-admin-secret";
 }
 
 function encodeSessionEmail(email: string): string {

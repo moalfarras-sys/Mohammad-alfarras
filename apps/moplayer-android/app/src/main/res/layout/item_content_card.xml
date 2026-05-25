@@ -43,7 +43,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/ic_content_placeholder"
+                    android:src="@drawable/logo"
                     tools:ignore="ContentDescription" />
 
                 <!-- Bottom gradient for title readability -->
@@ -143,18 +143,19 @@
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="4dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:ellipsize="end"
             android:gravity="start"
-            android:maxLines="2"
+            android:maxLines="3"
             android:minLines="1"
+            android:includeFontPadding="false"
             android:textColor="@color/cinematic_text_primary"
             android:textSize="@dimen/card_title_size"
             android:fontFamily="sans-serif-medium"
-            android:lineSpacingMultiplier="1.04"
-            android:alpha="0.92"
+            android:lineSpacingMultiplier="1.06"
+            android:alpha="0.96"
             tools:text="Movie Title Here" />
     </LinearLayout>
 </FrameLayout>

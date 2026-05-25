@@ -12,6 +12,10 @@ import android.util.Log
 import android.graphics.Rect
 import android.view.KeyEvent
 import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -45,6 +49,7 @@ import com.mo.moplayer.ui.settings.SettingsActivity
 import com.mo.moplayer.util.BackgroundManager
 import com.mo.moplayer.util.CrashGuard
 import com.mo.moplayer.util.DevicePerformance
+import com.mo.moplayer.util.ParentalLockManager
 import com.mo.moplayer.util.SmartRefreshManager
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
@@ -53,6 +58,7 @@ import com.mo.moplayer.ui.common.background.BackgroundVisualMode
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.widget.ImageView
+import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -64,6 +70,7 @@ import com.mo.moplayer.data.update.UpdateRepository
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.Job
+import java.text.SimpleDateFormat
 
 @AndroidEntryPoint
 class HomeActivity : BaseTvActivity() {
@@ -93,6 +100,9 @@ class HomeActivity : BaseTvActivity() {
 
     @Inject
     lateinit var appRemoteConfigService: AppRemoteConfigService
+
+    @Inject
+    lateinit var parentalLockManager: ParentalLockManager
     
     private lateinit var contentAdapter: ContentRowAdapter
     private val clockHandler = Handler(Looper.getMainLooper())
@@ -115,6 +125,9 @@ class HomeActivity : BaseTvActivity() {
     private var silentRefreshStarted = false
     private var updateCheckStarted = false
     private var appRemoteConfig = AppRemoteConfig()
+    private var homeCityWallpaperSelected = false
+    private var cityWallpaperRefreshInFlight = false
+    private var backgroundBehavior = com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.FOLLOW_PREVIEW
     
     private var currentDockIndex = 0
     private val dockItems by lazy {
@@ -141,6 +154,7 @@ class HomeActivity : BaseTvActivity() {
         setupSurpriseMe()
         setupFocusMap()
         prepareDeferredStartupState()
+        observeHomeCityWallpaper()
         applyRemoteConfig()
         observeViewModel()
         
@@ -169,8 +183,14 @@ class HomeActivity : BaseTvActivity() {
 
     override fun getWeatherOverlayView() = binding.weatherOverlay
 
+    override fun getBackgroundWallpaperView() = binding.ivHomeCityWallpaper
+
+    override fun getBackgroundScrimView() = binding.homeWallpaperScrim
+
     override fun getBackgroundVisualMode(): BackgroundVisualMode =
-        if (deferHeavyVisuals) BackgroundVisualMode.REDUCED_MOTION else BackgroundVisualMode.WEATHER_REACTIVE
+        if (deferHeavyVisuals) BackgroundVisualMode.REDUCED_MOTION
+        else if (homeCityWallpaperSelected) BackgroundVisualMode.CITY_WALLPAPER_LOGIN
+        else BackgroundVisualMode.WEATHER_REACTIVE
     
     override fun applyThemeToViews(color: Int) {
         super.applyThemeToViews(color)
@@ -203,13 +223,78 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun prepareDeferredStartupState() {
-        binding.widgetStrip.alpha = 0f
+        binding.topSignalBar.alpha = 0f
         binding.weatherWidget.visibility = View.INVISIBLE
         binding.footballWidget.visibility = View.INVISIBLE
+        binding.serverExpiryWidget.visibility = View.VISIBLE
         binding.flipClockContainer.visibility = View.INVISIBLE
         binding.weatherOverlay.visibility = View.INVISIBLE
         binding.animatedBackground.setAnimationEnabled(false)
         binding.weatherOverlay.pauseAnimation()
+    }
+
+    private fun observeHomeCityWallpaper() {
+        lifecycleScope.launch {
+            combine(
+                backgroundManager.currentTheme,
+                backgroundManager.cityWallpaperState
+            ) { theme, state -> theme to state }
+            .collect { (theme, state) ->
+                homeCityWallpaperSelected = theme == BackgroundManager.THEME_CITY_WALLPAPER
+                renderHomeCityWallpaper(state)
+                if (homeCityWallpaperSelected && !hasUsableCityWallpaper(state)) {
+                    refreshHomeCityWallpaper()
+                }
+            }
+        }
+    }
+
+    private fun renderHomeCityWallpaper(state: BackgroundManager.CityWallpaperState?) {
+        if (!homeCityWallpaperSelected) {
+            binding.ivHomeCityWallpaper.setImageDrawable(null)
+            binding.ivHomeCityWallpaper.tag = null
+            binding.ivHomeCityWallpaper.visibility = View.GONE
+            binding.homeWallpaperScrim.visibility = View.GONE
+            return
+        }
+
+        val imagePath = state?.imagePath
+        if (imagePath.isNullOrBlank() || !java.io.File(imagePath).exists()) {
+            binding.ivHomeCityWallpaper.setImageDrawable(null)
+            binding.ivHomeCityWallpaper.tag = null
+            binding.ivHomeCityWallpaper.alpha = 0f
+            binding.ivHomeCityWallpaper.visibility = View.GONE
+            binding.homeWallpaperScrim.visibility = View.GONE
+            return
+        }
+
+        binding.ivHomeCityWallpaper.alpha = 1f
+        binding.ivHomeCityWallpaper.visibility = View.VISIBLE
+        binding.homeWallpaperScrim.visibility = View.VISIBLE
+        binding.animatedBackground.alpha = 0f
+        binding.animatedBackground.setAnimationEnabled(false)
+        binding.animatedBackground.pauseAnimation()
+        if (binding.ivHomeCityWallpaper.tag != imagePath) {
+            binding.ivHomeCityWallpaper.tag = imagePath
+            Glide.with(this@HomeActivity)
+                .load(java.io.File(imagePath))
+                .centerCrop()
+                .into(binding.ivHomeCityWallpaper)
+        }
+    }
+
+    private fun hasUsableCityWallpaper(state: BackgroundManager.CityWallpaperState?): Boolean {
+        val imagePath = state?.imagePath
+        return !imagePath.isNullOrBlank() && java.io.File(imagePath).exists()
+    }
+
+    private fun refreshHomeCityWallpaper() {
+        if (cityWallpaperRefreshInFlight) return
+        cityWallpaperRefreshInFlight = true
+        lifecycleScope.launch {
+            runCatching { backgroundManager.refreshCityWallpaper(force = false) }
+            cityWallpaperRefreshInFlight = false
+        }
     }
 
     private fun scheduleDeferredStartup() {
@@ -256,7 +341,7 @@ class HomeActivity : BaseTvActivity() {
                 .start()
         }
 
-        binding.widgetStrip.animate()
+        binding.topSignalBar.animate()
             .alpha(1f)
             .setDuration(260L)
             .start()
@@ -322,10 +407,19 @@ class HomeActivity : BaseTvActivity() {
 
         deferHeavyVisuals = false
 
-        binding.weatherOverlay.visibility = View.VISIBLE
-        binding.animatedBackground.setAnimationEnabled(true)
-        binding.animatedBackground.resumeAnimation()
-        binding.weatherOverlay.startAnimation()
+        if (homeCityWallpaperSelected) {
+            binding.animatedBackground.setAnimationEnabled(false)
+            binding.animatedBackground.pauseAnimation()
+        } else {
+            binding.animatedBackground.setAnimationEnabled(true)
+            binding.animatedBackground.resumeAnimation()
+        }
+        binding.weatherOverlay.visibility = if (homeCityWallpaperSelected) View.GONE else View.VISIBLE
+        if (homeCityWallpaperSelected) {
+            binding.weatherOverlay.pauseAnimation()
+        } else {
+            binding.weatherOverlay.startAnimation()
+        }
         applyThemeToViews(themeManager.currentAccentColor.value)
     }
 
@@ -355,16 +449,30 @@ class HomeActivity : BaseTvActivity() {
         val notes = info.releaseNotes.ifBlank {
             getString(R.string.update_available_message, info.latestVersionName)
         }
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.update_available_title, info.latestVersionName))
-            .setMessage(notes)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_app_update, null)
+        dialogView.findViewById<TextView>(R.id.tvUpdateTitle).text =
+            getString(R.string.update_available_title, info.latestVersionName)
+        dialogView.findViewById<TextView>(R.id.tvUpdateMessage).text = notes
+        dialogView.findViewById<TextView>(R.id.tvUpdateVersion).text =
+            getString(R.string.update_version_compare, info.currentVersionCode, info.latestVersionCode)
+        val laterButton = dialogView.findViewById<Button>(R.id.btnUpdateLater)
+        val updateButton = dialogView.findViewById<Button>(R.id.btnUpdateNow)
+        laterButton.visibility = if (info.forceUpdate) View.GONE else View.VISIBLE
+
+        val dialog = AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setView(dialogView)
             .setCancelable(!info.forceUpdate)
-            .setPositiveButton(R.string.update_now) { dialog, _ ->
+            .create()
+        dialog.setOnShowListener {
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            laterButton.setOnClickListener { dialog.dismiss() }
+            updateButton.setOnClickListener {
                 dialog.dismiss()
                 startUpdateDownload(repo, info)
             }
-            .apply { if (!info.forceUpdate) setNegativeButton(R.string.update_later, null) }
-            .show()
+            updateButton.requestFocus()
+        }
+        dialog.show()
     }
 
     private fun startUpdateDownload(repo: UpdateRepository, info: AppUpdateInfo) {
@@ -625,6 +733,14 @@ class HomeActivity : BaseTvActivity() {
                 contentAdapter.updateUiPreferences(posterSize, animationsEnabled)
             }
         }
+        lifecycleScope.launch {
+            tvUiPreferences.backgroundBehavior.collect { behavior ->
+                backgroundBehavior = behavior
+                if (behavior == com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.STATIC) {
+                    hidePreviewBackdrop()
+                }
+            }
+        }
     }
     
     private fun setupSurpriseMe() {
@@ -664,37 +780,41 @@ class HomeActivity : BaseTvActivity() {
                 animateDockItem(v, hasFocus)
                 if (hasFocus) {
                     currentDockIndex = index
+                    updateDockSelection(0)
                 }
             }
         }
     }
 
     private fun focusableHomeWidgets(): List<View> =
-        listOf(binding.weatherWidget, binding.footballWidget, binding.flipClockContainer)
+        listOf(binding.weatherWidget, binding.footballWidget, binding.serverExpiryWidget, binding.flipClockContainer)
             .filter { it.visibility == View.VISIBLE && it.isFocusable && it.id != View.NO_ID }
 
     private fun firstFocusableHomeWidget(): View? = focusableHomeWidgets().firstOrNull()
 
     private fun setupFocusMap() {
-        val topStrip = listOf(
-            binding.btnSurprise,
-            binding.btnSearch
+        val actionStrip = listOf(
+            binding.btnSearch,
+            binding.btnSurprise
         ).filter { it.visibility == View.VISIBLE && it.id != View.NO_ID }
 
         val widgetStripViews = focusableHomeWidgets()
 
-        val topBarDownTarget = widgetStripViews.firstOrNull() ?: binding.rvContent
-        FocusMapRegistry.mapHorizontalStrip(
-            views = topStrip,
-            wrap = false,
-            downTarget = topBarDownTarget
-        )
-
         FocusMapRegistry.mapHorizontalStrip(
             views = widgetStripViews,
             wrap = false,
-            downTarget = binding.rvContent
+            downTarget = actionStrip.firstOrNull() ?: binding.newContentBadge,
+            upTarget = null
         )
+
+        FocusMapRegistry.mapHorizontalStrip(
+            views = actionStrip,
+            wrap = true,
+            downTarget = binding.newContentBadge,
+            upTarget = widgetStripViews.firstOrNull()
+        )
+        binding.btnSearch.nextFocusUpId = binding.weatherWidget.id
+        binding.btnSurprise.nextFocusUpId = binding.footballWidget.id
 
         FocusMapRegistry.mapHorizontalStrip(
             views = dockItems,
@@ -703,7 +823,11 @@ class HomeActivity : BaseTvActivity() {
         )
 
         binding.rvContent.nextFocusUpId =
-            widgetStripViews.firstOrNull()?.id ?: binding.btnSearch.id
+            if (binding.newContentBadge.visibility == View.VISIBLE) {
+                binding.newContentBadge.id
+            } else {
+                actionStrip.firstOrNull()?.id ?: widgetStripViews.firstOrNull()?.id ?: binding.topBar.id
+            }
         binding.rvContent.nextFocusDownId = binding.dockHome.id
     }
 
@@ -749,7 +873,7 @@ class HomeActivity : BaseTvActivity() {
             val shouldShiftToContent = focused == null ||
                 dockItems.any { it == focused } ||
                 isViewInParent(focused, binding.topBar) ||
-                isViewInParent(focused, binding.widgetStrip)
+                isViewInParent(focused, binding.topSignalBar)
 
             if (shouldShiftToContent && requestPrimaryContentFocus()) {
                 initialContentFocusApplied = true
@@ -1058,6 +1182,11 @@ class HomeActivity : BaseTvActivity() {
             homeRowsLoading = isLoading
             renderHomeEmptyState()
         }
+
+        viewModel.activeServerLiveData.observe(this) { server ->
+            binding.serverExpiryWidget.text = buildServerExpiryText(server)
+            binding.serverExpiryWidget.visibility = View.VISIBLE
+        }
         
         lifecycleScope.launch {
             viewModel.surpriseEvent.collect { item ->
@@ -1078,6 +1207,24 @@ class HomeActivity : BaseTvActivity() {
                 renderDashboardStatus(state)
             }
         }
+    }
+
+    private fun buildServerExpiryText(server: com.mo.moplayer.data.local.entity.ServerEntity?): String {
+        if (server == null) return getString(R.string.home_subscription_no_source)
+        val expiry = server.expirationDate?.takeIf { it.isNotBlank() }?.let { raw ->
+            getString(R.string.home_subscription_last_day, formatProviderDate(raw))
+        }
+        return expiry ?: getString(R.string.home_subscription_active)
+    }
+
+    private fun formatProviderDate(value: String): String {
+        val trimmed = value.trim()
+        val epoch = trimmed.toLongOrNull()
+        if (epoch != null && epoch > 0) {
+            val millis = if (epoch < 10_000_000_000L) epoch * 1000L else epoch
+            return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(millis))
+        }
+        return trimmed.take(16)
     }
 
     private fun renderHomeEmptyState() {
@@ -1159,6 +1306,17 @@ class HomeActivity : BaseTvActivity() {
     }
     
     private fun handleItemClick(item: ContentItem) {
+        lifecycleScope.launch {
+            val server = repository.getActiveServerSync()
+            if (server != null && parentalLockManager.isContentBlocked(server.id, parentalContentType(item), parentalContentId(item))) {
+                Toast.makeText(this@HomeActivity, R.string.parental_content_blocked, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            handleAllowedItemClick(item)
+        }
+    }
+
+    private fun handleAllowedItemClick(item: ContentItem) {
         item.favoriteId?.let { favoriteId ->
             handleFavoriteHomeItem(favoriteId, item)
             return
@@ -1224,6 +1382,16 @@ class HomeActivity : BaseTvActivity() {
             }
         }
     }
+
+    private fun parentalContentType(item: ContentItem): String = when (item.type) {
+        ContentType.MOVIE -> "movie"
+        ContentType.SERIES -> "series"
+        ContentType.CHANNEL -> "channel"
+        ContentType.EPISODE -> "series"
+    }
+
+    private fun parentalContentId(item: ContentItem): String =
+        if (item.type == ContentType.EPISODE) item.seriesId ?: item.id else item.id
 
     private fun playMovieFromCatalog(item: ContentItem) {
         lifecycleScope.launch {
@@ -1336,6 +1504,9 @@ class HomeActivity : BaseTvActivity() {
                 ContentType.MOVIE -> {
                     val movie = repository.getMovieById(item.id)
                     val isFavorite = repository.isFavorite(server.id, item.id).first()
+                    val contentType = parentalContentType(item)
+                    val contentId = parentalContentId(item)
+                    val isBlocked = parentalLockManager.isContentBlocked(server.id, contentType, contentId)
                     ContentMenuHelper(this@HomeActivity).showContentMenu(
                         title = item.title,
                         thumbnailUrl = item.posterUrl,
@@ -1363,12 +1534,19 @@ class HomeActivity : BaseTvActivity() {
                             val intent = Intent(this@HomeActivity, com.mo.moplayer.ui.movies.MovieDetailActivity::class.java)
                             intent.putExtra(com.mo.moplayer.ui.movies.MovieDetailActivity.EXTRA_MOVIE_ID, item.id)
                             startActivity(intent)
+                        },
+                        isBlocked = isBlocked,
+                        onToggleBlocked = {
+                            toggleParentalBlock(server.id, contentType, contentId, item.title, isBlocked)
                         }
                     )
                 }
                 ContentType.SERIES -> {
                     val series = repository.getSeriesById(item.id)
                     val isFavorite = repository.isFavorite(server.id, item.id).first()
+                    val contentType = parentalContentType(item)
+                    val contentId = parentalContentId(item)
+                    val isBlocked = parentalLockManager.isContentBlocked(server.id, contentType, contentId)
                     ContentMenuHelper(this@HomeActivity).showContentMenu(
                         title = item.title,
                         thumbnailUrl = item.posterUrl,
@@ -1391,11 +1569,18 @@ class HomeActivity : BaseTvActivity() {
                                 )
                             }
                         },
-                        onInfo = { handleItemClick(item) }
+                        onInfo = { handleItemClick(item) },
+                        isBlocked = isBlocked,
+                        onToggleBlocked = {
+                            toggleParentalBlock(server.id, contentType, contentId, item.title, isBlocked)
+                        }
                     )
                 }
                 ContentType.CHANNEL -> {
                     val isFavorite = repository.isFavorite(server.id, item.id).first()
+                    val contentType = parentalContentType(item)
+                    val contentId = parentalContentId(item)
+                    val isBlocked = parentalLockManager.isContentBlocked(server.id, contentType, contentId)
                     ContentMenuHelper(this@HomeActivity).showContentMenu(
                         title = item.title,
                         thumbnailUrl = item.posterUrl,
@@ -1412,13 +1597,20 @@ class HomeActivity : BaseTvActivity() {
                                 )
                             }
                         },
-                        onInfo = { handleItemClick(item) }
+                        onInfo = { handleItemClick(item) },
+                        isBlocked = isBlocked,
+                        onToggleBlocked = {
+                            toggleParentalBlock(server.id, contentType, contentId, item.title, isBlocked)
+                        }
                     )
                 }
                 ContentType.EPISODE -> {
                     val seriesId = item.seriesId ?: item.id
                     val series = repository.getSeriesById(seriesId)
                     val isFavorite = repository.isFavorite(server.id, seriesId).first()
+                    val contentType = parentalContentType(item)
+                    val contentId = parentalContentId(item)
+                    val isBlocked = parentalLockManager.isContentBlocked(server.id, contentType, contentId)
                     ContentMenuHelper(this@HomeActivity).showContentMenu(
                         title = item.title,
                         thumbnailUrl = item.posterUrl,
@@ -1436,26 +1628,52 @@ class HomeActivity : BaseTvActivity() {
                                 )
                             }
                         },
-                        onInfo = { handleItemClick(item) }
+                        onInfo = { handleItemClick(item) },
+                        isBlocked = isBlocked,
+                        onToggleBlocked = {
+                            toggleParentalBlock(server.id, contentType, contentId, item.title, isBlocked)
+                        }
                     )
                 }
             }
+        }
+    }
+
+    private fun toggleParentalBlock(
+        serverId: Long,
+        contentType: String,
+        contentId: String,
+        title: String,
+        currentlyBlocked: Boolean
+    ) {
+        lifecycleScope.launch {
+            parentalLockManager.setContentBlocked(serverId, contentType, contentId, !currentlyBlocked)
+            val message = if (currentlyBlocked) {
+                getString(R.string.parental_content_unblocked_toast, title)
+            } else {
+                getString(R.string.parental_content_blocked_toast, title)
+            }
+            Toast.makeText(this@HomeActivity, message, Toast.LENGTH_SHORT).show()
         }
     }
     
     private var currentBackdropUrl: String? = null
     
     private fun showPreviewBackdrop(item: ContentItem) {
+        if (backgroundBehavior == com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.STATIC) {
+            return
+        }
         val backdropUrl = item.posterUrl
         if (backdropUrl.isNullOrEmpty() || backdropUrl == currentBackdropUrl) return
         
         currentBackdropUrl = backdropUrl
         
-        // Fade out animated background
-        binding.animatedBackground.animate()
-            .alpha(0.15f)
-            .setDuration(400)
-            .start()
+        if (!homeCityWallpaperSelected) {
+            binding.animatedBackground.animate()
+                .alpha(0.15f)
+                .setDuration(400)
+                .start()
+        }
 
         // Fade weather overlay to avoid obscuring poster preview
         binding.weatherOverlay.animate()
@@ -1510,10 +1728,14 @@ class HomeActivity : BaseTvActivity() {
         pendingPreviewItem = null
         currentBackdropUrl = null
         
-        binding.animatedBackground.animate()
-            .alpha(1f)
-            .setDuration(400)
-            .start()
+        if (!homeCityWallpaperSelected) {
+            binding.animatedBackground.animate()
+                .alpha(1f)
+                .setDuration(400)
+                .start()
+        } else {
+            binding.animatedBackground.alpha = 0f
+        }
 
         binding.weatherOverlay.animate()
             .alpha(1f)
@@ -1560,13 +1782,26 @@ class HomeActivity : BaseTvActivity() {
         }
         return false
     }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN &&
+            (event.keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+        ) {
+            if (handleTvKeyEvent(event.keyCode, event)) {
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
     
     private fun handleUpKey(): Boolean {
         val currentFocusView = currentFocus
 
         if (currentFocusView == null) {
-            ensureHomeFocus()
-            return true
+            return binding.btnSearch.requestFocus() || requestPrimaryContentFocus() || binding.dockHome.requestFocus()
         }
 
         if (isViewInParent(currentFocusView, binding.rvContent)) {
@@ -1574,21 +1809,27 @@ class HomeActivity : BaseTvActivity() {
                 Log.d("HomeFocusPerf", "focusRoute=content_to_previous_row")
                 return true
             }
-            Log.d("HomeFocusPerf", "focusRoute=content_to_widgets")
-            firstFocusableHomeWidget()?.let {
-                if (it.requestFocus()) return true
+            if (binding.newContentBadge.visibility == View.VISIBLE && binding.newContentBadge.requestFocus()) {
+                Log.d("HomeFocusPerf", "focusRoute=content_to_notifications")
+                return true
             }
+            Log.d("HomeFocusPerf", "focusRoute=content_to_actions")
             return binding.btnSearch.requestFocus()
         }
 
-        if (isViewInParent(currentFocusView, binding.widgetStrip)) {
+        if (currentFocusView == binding.newContentBadge) {
+            Log.d("HomeFocusPerf", "focusRoute=notifications_to_actions")
+            return binding.btnSearch.requestFocus()
+        }
+
+        if (isViewInParent(currentFocusView, binding.topSignalBar)) {
             Log.d("HomeFocusPerf", "focusRoute=widgets_to_topbar")
             return binding.btnSearch.requestFocus()
         }
 
         if (dockItems.any { it == currentFocusView }) {
-            Log.d("HomeFocusPerf", "focusRoute=dock_to_content")
-            return requestPrimaryContentFocus()
+            Log.d("HomeFocusPerf", "focusRoute=dock_to_content_or_actions")
+            return requestPrimaryContentFocus() || binding.btnSearch.requestFocus()
         }
 
         return false
@@ -1609,16 +1850,21 @@ class HomeActivity : BaseTvActivity() {
         }
 
         if (isViewInParent(currentFocusView, binding.topBar)) {
-            Log.d("HomeFocusPerf", "focusRoute=topbar_to_widgets")
-            firstFocusableHomeWidget()?.let {
-                if (it.requestFocus()) return true
+            Log.d("HomeFocusPerf", "focusRoute=topbar_to_notifications")
+            if (binding.newContentBadge.visibility == View.VISIBLE && binding.newContentBadge.requestFocus()) {
+                return true
             }
-            return requestPrimaryContentFocus()
+            return requestPrimaryContentFocus() || binding.dockHome.requestFocus()
         }
 
-        if (isViewInParent(currentFocusView, binding.widgetStrip)) {
-            Log.d("HomeFocusPerf", "focusRoute=widgets_to_content")
-            return requestPrimaryContentFocus()
+        if (isViewInParent(currentFocusView, binding.topSignalBar)) {
+            Log.d("HomeFocusPerf", "focusRoute=widgets_to_topbar")
+            return binding.btnSearch.requestFocus()
+        }
+
+        if (currentFocusView == binding.newContentBadge) {
+            Log.d("HomeFocusPerf", "focusRoute=notification_to_content")
+            return requestPrimaryContentFocus() || binding.dockHome.requestFocus()
         }
 
         if (isViewInParent(currentFocusView, binding.rvContent)) {

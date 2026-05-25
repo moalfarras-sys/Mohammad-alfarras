@@ -70,8 +70,8 @@ constructor(
         isFocusableInTouchMode = true
         isClickable = true
         (this as ViewGroup).descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-        setBackgroundResource(R.drawable.bg_widget_football_premium)
-        setPadding(2, 2, 2, 2)
+        background = null
+        setPadding(0, 0, 0, 0)
 
         ivHomeLogo = findViewById(R.id.ivHomeLogo)
         ivAwayLogo = findViewById(R.id.ivAwayLogo)
@@ -118,9 +118,7 @@ constructor(
         progressBar.indeterminateTintList = android.content.res.ColorStateList.valueOf(color)
         findViewById<android.widget.ImageView>(R.id.ivFootballIcon)?.colorFilter =
             PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-        if (hasFocus()) {
-            background = createWidgetBackground(color, focused = true)
-        }
+        if (hasFocus()) background = createWidgetBackground(color, focused = true)
     }
 
     fun initialize(footballService: FootballService) {
@@ -143,7 +141,7 @@ constructor(
                 onSuccess = { data ->
                     if (data != null) {
                         renderState(WidgetUiState.Ready(data))
-                        startPeriodicRefresh()
+                        if (data.isLive) startPeriodicRefresh() else stopPeriodicRefresh()
                     } else {
                         val msg = if (footballService?.hasApiKey() == false) {
                             context.getString(R.string.football_widget_error)
@@ -298,7 +296,7 @@ constructor(
     private fun animateFocus(hasFocus: Boolean) {
         val targetScale = if (hasFocus) 1.05f else 1.0f
         val targetElevation = if (hasFocus) 14f else 4f
-        background = createWidgetBackground(accentColor, focused = hasFocus)
+        background = if (hasFocus) createWidgetBackground(accentColor, focused = true) else null
         animate()
             .scaleX(targetScale)
             .scaleY(targetScale)

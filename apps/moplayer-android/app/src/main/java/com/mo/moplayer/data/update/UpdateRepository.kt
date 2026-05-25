@@ -70,7 +70,8 @@ class UpdateRepository(private val context: Context) {
                     ?: config.optString("checksumSha256", ""),
                 releaseNotes = update?.optString("releaseNotes")
                     ?: config.optString("releaseNotes", ""),
-                forceUpdate = config.optBoolean("forceUpdate", false),
+                forceUpdate = update?.optBoolean("forceUpdate")
+                    ?: config.optBoolean("forceUpdate", false),
             ).also {
                 cachedInfo = it
                 cachedAtMs = System.currentTimeMillis()
@@ -82,11 +83,6 @@ class UpdateRepository(private val context: Context) {
         info: AppUpdateInfo,
         onProgress: (Int) -> Unit,
     ): UpdateInstallResult = withContext(Dispatchers.IO) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
-            openInstallPermissionSettings()
-            return@withContext UpdateInstallResult.InstallPermissionRequired
-        }
-
         val file = updateFile()
         file.parentFile?.mkdirs()
         if (file.exists()) file.delete()
@@ -173,6 +169,10 @@ class UpdateRepository(private val context: Context) {
 
     private fun openInstaller(file: File): UpdateInstallResult {
         if (!file.exists()) return UpdateInstallResult.Failed("Downloaded APK was not found")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+            openInstallPermissionSettings()
+            return UpdateInstallResult.InstallPermissionRequired
+        }
         val uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, APK_MIME_TYPE)

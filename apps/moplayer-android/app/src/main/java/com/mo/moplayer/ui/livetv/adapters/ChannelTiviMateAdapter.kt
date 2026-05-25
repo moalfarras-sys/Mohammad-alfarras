@@ -227,9 +227,10 @@ class ChannelTiviMateAdapter(
                     Glide.with(binding.root.context)
                         .load(channel.streamIcon)
                         .thumbnail(0.1f) // Load low-res version first
-                        .override(104, 76)
+                    .override(96, 72)
                         .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache everything
                         .dontAnimate() // Skip crossfade for better performance
+                    .dontTransform()
                         .placeholder(R.drawable.ic_placeholder_channel)
                         .error(R.drawable.ic_placeholder_channel)
                         .centerInside()

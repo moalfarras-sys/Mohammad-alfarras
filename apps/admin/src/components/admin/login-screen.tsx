@@ -15,7 +15,29 @@ export function LoginScreen({ message, initialEmail }: { message?: string; initi
         <div className="absolute bottom-[-80px] end-[-40px] h-80 w-80 rounded-full bg-[rgba(99,102,241,0.18)] blur-3xl" />
       </div>
 
-      <div className="relative z-10 grid w-full max-w-5xl gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="login-grid relative z-10 grid w-full max-w-5xl gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="glass login-mobile-hero relative overflow-hidden rounded-[26px] p-5 lg:hidden">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--line-strong)] bg-[var(--accent-soft)] text-xs font-black text-[var(--accent)]">
+              MF
+            </span>
+            <span>
+              <span className="block text-[10px] font-black uppercase tracking-[0.24em] text-[var(--accent)]">Moalfarras OS</span>
+              <span className="block text-sm font-black text-[var(--text-1)]">{t({ en: "Admin web app", ar: "تطبيق الإدارة" })}</span>
+            </span>
+          </div>
+          <h1 className="text-2xl font-black leading-tight text-[var(--text-1)]">
+            {t({ en: "Website, apps, AI, and messages in one control center.", ar: "الموقع، التطبيقات، AI، والرسائل في مركز تحكم واحد." })}
+          </h1>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[t({ en: "Website", ar: "الموقع" }), "MoPlayer", "Pro"].map((item) => (
+              <span key={item} className="rounded-2xl border border-[var(--line)] bg-white/[0.03] px-3 py-2 text-center text-[11px] font-black text-[var(--text-2)]">
+                {item}
+              </span>
+            ))}
+          </div>
+        </section>
+
         {/* Brand side */}
         <section className="glass relative hidden flex-col justify-between overflow-hidden rounded-[28px] p-9 lg:flex">
           <div className="flex items-center gap-3">

@@ -3,10 +3,26 @@
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/liquid_radius_l" />
-            <solid android:color="#2617263F" />
+            <gradient
+                android:angle="315"
+                android:startColor="#5A0E4E68"
+                android:centerColor="#46305A72"
+                android:endColor="#4A081C2F" />
             <stroke
-                android:width="@dimen/liquid_focus_stroke"
-                android:color="@color/cinematic_focus_soft" />
+                android:width="3dp"
+                android:color="#E8DDFBFF" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/liquid_radius_l" />
+            <gradient
+                android:angle="315"
+                android:startColor="#3022B8D4"
+                android:endColor="#2514475C" />
+            <stroke
+                android:width="2dp"
+                android:color="#8A63D7EA" />
         </shape>
     </item>
     <item>
@@ -14,11 +30,11 @@
             <corners android:radius="@dimen/liquid_radius_l" />
             <gradient
                 android:angle="315"
-                android:startColor="#140E1A32"
-                android:endColor="#2213243E" />
+                android:startColor="#3A071427"
+                android:endColor="#4D081726" />
             <stroke
                 android:width="1dp"
-                android:color="@color/liquid_glass_border" />
+                android:color="#2F8FB6CC" />
         </shape>
     </item>
 </selector>

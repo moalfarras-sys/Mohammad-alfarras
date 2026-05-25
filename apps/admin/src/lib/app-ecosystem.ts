@@ -26,7 +26,7 @@ import type {
 const now = new Date().toISOString();
 const moplayerDownloadBase = "/api/app/releases";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/moplayer-2.2.3/download`,
+  universal: `${moplayerDownloadBase}/moplayer-2.2.8/download`,
 };
 const localSettings = new Map<string, unknown>();
 
@@ -234,8 +234,8 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   enabled: true,
   maintenanceMode: false,
   forceUpdate: false,
-  minimumVersionCode: 9,
-  latestVersionName: "2.2.3",
+  minimumVersionCode: 14,
+  latestVersionName: "2.2.8",
   downloaderCode: "2418397",
   message: "",
   accentColor: "#00e5ff",
@@ -251,25 +251,25 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",
   update: {
-    latestVersionName: "2.2.3",
-    latestVersionCode: 9,
+    latestVersionName: "2.2.8",
+    latestVersionCode: 14,
     downloadUrl: "/api/app/download/latest?product=moplayer",
-    apkSizeBytes: 52344371,
-    checksumSha256: "f5810e2c9cb08e8cc6a01e1459e5d6ed224f759475fd05294b3f7772e48ec86a",
+    apkSizeBytes: 52733656,
+    checksumSha256: "7fa973bc0f0432b89883abd9ec02b09fe3daa6c3d864a85045908ed180ba2b31",
     releaseNotes:
-      "MoPlayer Classic 2.2.3 publishes the latest universal Android TV APK with the current admin-controlled update flow and stable Classic download channel.",
+      "MoPlayer Classic 2.2.8 polishes Android TV Live TV visuals, remote navigation, Weather Lab controls, shared city wallpapers, poster fallbacks, and old-device playback stability.",
   },
 };
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-moplayer-2-2-3",
+    id: "release-moplayer-2-2-8",
     product_slug: "moplayer",
-    slug: "moplayer-2.2.3",
-    version_name: "2.2.3",
-    version_code: 9,
+    slug: "moplayer-2.2.8",
+    version_name: "2.2.8",
+    version_code: 14,
     release_notes:
-      "MoPlayer Classic 2.2.3 publishes the latest universal Android TV APK with the current admin-controlled update flow and stable Classic download channel.",
+      "MoPlayer Classic 2.2.8 polishes Android TV Live TV visuals, remote navigation, Weather Lab controls, shared city wallpapers, poster fallbacks, and old-device playback stability.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -277,8 +277,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-moplayer-2-2-3-universal",
-        release_id: "release-moplayer-2-2-3",
+        id: "asset-moplayer-2-2-8-universal",
+        release_id: "release-moplayer-2-2-8",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -286,8 +286,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52344371,
-        checksum_sha256: "f5810e2c9cb08e8cc6a01e1459e5d6ed224f759475fd05294b3f7772e48ec86a",
+        file_size_bytes: 52733656,
+        checksum_sha256: "7fa973bc0f0432b89883abd9ec02b09fe3daa6c3d864a85045908ed180ba2b31",
         is_primary: true,
         created_at: now,
       },
@@ -308,6 +308,7 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
       "MoPlayer Pro is the new Android and Android TV app line, managed separately while staying inside the same Moalfarras website and admin system.",
     long_description:
       "MoPlayer Pro keeps the same Supabase, admin, and domain foundation but has its own product content, APK releases, visual assets, FAQs, support, and runtime settings.",
+    package_name: "com.moalfarras.moplayerpro",
     default_download_label: "Download MoPlayer Pro APK",
     feature_highlights: [
       { title: "Separate product line", body: "Independent records for releases, screenshots, FAQs, and support.", icon: "box" },
@@ -392,23 +393,23 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-2-7",
+      id: "release-moplayer2-v2-5-2",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.2.7-full",
-      version_name: "2.2.7",
-      version_code: 15,
+      slug: "moplayer2-v2.5.2-full",
+      version_name: "2.5.2",
+      version_code: 40,
       release_notes:
-        "MoPlayer Pro 2.2.7 strengthens Live playback with smarter Media3/VLC auto-routing, starts MPEG-TS/TS live streams on the more compatible internal VLC engine, and lets Stable mode switch live playback to the VLC path without reinstalling.",
+        "MoPlayer Pro 2.5.2 speeds up live channel zapping, supports remote fast-forward and rewind keys, and avoids expensive category scans so groups and cached episodes open faster.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-2-7-universal",
-          release_id: "release-moplayer2-v2-2-7",
+          id: "asset-moplayer2-v2-5-2-universal",
+          release_id: "release-moplayer2-v2-5-2",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
-          external_url: "https://ckefrnalgnbuaxsuufyx.supabase.co/storage/v1/object/public/app-releases/moplayer2/2.2.7/moplayer2-2.2.7-universal.apk",
-          file_size_bytes: 49175687,
-          checksum_sha256: "20615c00e1a9ad907329fb9c20147f6248d5b9bf60a356a20cd4d9f598ee12f1",
+          external_url: "/downloads/moplayer2/app-release.apk",
+          file_size_bytes: 49242152,
+          checksum_sha256: "8254be6d2872e964158a8c5f001569d7d271a24893672dd2c328262a91784b02",
         },
       ],
     },
@@ -419,12 +420,16 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
   moplayer: fallbackRuntimeConfig,
   moplayer2: {
     ...fallbackRuntimeConfig,
-    minimumVersionCode: 10,
-    latestVersionName: "2.2.7",
-    latestVersionCode: 15,
+    minimumVersionCode: 40,
+    latestVersionName: "2.5.2",
+    latestVersionCode: 40,
     downloaderCode: "4608937",
+    appName: "MoPlayer Pro",
+    packageName: "com.moalfarras.moplayerpro",
     logoUrl: "/images/moplayer-icon-512.png",
     backgroundUrl: "/images/moplayer-tv-banner-final.png",
+    syncIntervalMinutes: 60,
+    sourceProtocolFallback: true,
     supportUrl: "https://moalfarras.space/en/support",
     footballProviderMode: "auto",
     footballLeagueIds: [39, 140, 135, 78, 61, 2, 3, 848, 1, 15],
@@ -432,6 +437,15 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
     footballNewsMessage: "",
     allowFootballFallback: false,
     allowWeatherFallback: false,
+    update: {
+      latestVersionName: "2.5.2",
+      latestVersionCode: 40,
+      downloadUrl: "/api/app/download/latest?product=moplayer2",
+      apkSizeBytes: 49242152,
+      checksumSha256: "8254be6d2872e964158a8c5f001569d7d271a24893672dd2c328262a91784b02",
+      releaseNotes:
+        "MoPlayer Pro 2.5.2 speeds up live channel zapping, supports remote fast-forward and rewind keys, and avoids expensive category scans so groups and cached episodes open faster.",
+    },
   },
 };
 
@@ -618,7 +632,6 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
     return readLegacyAppSettings(slug);
   }
 }
-
 export async function readAdminAppData(productSlug = "moplayer") {
   const slug = resolveManagedAppSlug(productSlug);
   const ecosystem = await readAppEcosystem(productSlug);

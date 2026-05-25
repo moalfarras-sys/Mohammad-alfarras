@@ -19,6 +19,8 @@ import android.util.AttributeSet
 import android.view.Choreographer
 import android.view.View
 import com.mo.moplayer.util.BackgroundManager
+import com.mo.moplayer.util.DevicePerformance
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,10 +72,13 @@ class AnimatedBackground @JvmOverloads constructor(
     
     // Cached shaders
     private var cachedBackgroundShader: Shader? = null
+    private val bitmapSourceRect = Rect()
+    private val bitmapDestRect = Rect()
     
     // FPS throttling
     private var targetFrameTime = 33L
     private var lastFrameTime = 0L
+    private var staticFrameRendered = false
     
     // Choreographer for smooth animations
     private val frameCallback = object : Choreographer.FrameCallback {
@@ -143,11 +148,20 @@ class AnimatedBackground @JvmOverloads constructor(
 
     init {
         setLayerType(LAYER_TYPE_NONE, null)
+        val tier = DevicePerformance.tier(context)
+        tvOptimizationMode = tier != DevicePerformance.Tier.HIGH
+        cinematicMode = tier == DevicePerformance.Tier.HIGH
+        targetFrameTime = when (tier) {
+            DevicePerformance.Tier.LOW -> 120L
+            DevicePerformance.Tier.MEDIUM -> 48L
+            DevicePerformance.Tier.HIGH -> 33L
+        }
     }
 
     private fun updateBufferConfig(w: Int = width, h: Int = height) {
         val pixels = w.toLong() * h.toLong()
         bufferScale = when {
+            !shouldAnimate || DevicePerformance.isLow(context) -> 0.5f
             tvOptimizationMode && pixels >= 3_500_000L -> 0.5f
             tvOptimizationMode && pixels >= 2_000_000L -> 0.66f
             else -> 1f
@@ -160,18 +174,28 @@ class AnimatedBackground @JvmOverloads constructor(
         this.currentTheme = normalizeTheme(currentTheme)
         setParticleColor(particleColor)
         
-        if (this.currentTheme == BackgroundManager.THEME_CUSTOM_IMAGE && !customImagePath.isNullOrEmpty()) {
-            savedImagePath = customImagePath
-            loadCustomImageFromFile(customImagePath)
-        } else {
-            initializeTheme(this.currentTheme)
+        val cityWallpaperPath = File(context.filesDir, BackgroundManager.CITY_BG_FILENAME).absolutePath
+        when {
+            this.currentTheme == BackgroundManager.THEME_CUSTOM_IMAGE && !customImagePath.isNullOrEmpty() -> {
+                savedImagePath = customImagePath
+                loadCustomImageFromFile(customImagePath)
+            }
+            this.currentTheme == BackgroundManager.THEME_CITY_WALLPAPER && File(cityWallpaperPath).exists() -> {
+                savedImagePath = cityWallpaperPath
+                loadCustomImageFromFile(cityWallpaperPath, blurAmount = 0)
+            }
+            else -> initializeTheme(this.currentTheme)
         }
         updateBufferConfig()
     }
 
     fun setCinematicMode(enabled: Boolean) {
         cinematicMode = enabled
-        targetFrameTime = if (enabled) 40L else 33L
+        targetFrameTime = when (DevicePerformance.tier(context)) {
+            DevicePerformance.Tier.LOW -> 120L
+            DevicePerformance.Tier.MEDIUM -> 48L
+            DevicePerformance.Tier.HIGH -> if (enabled) 40L else 33L
+        }
         updateBufferConfig()
         initializeTheme(currentTheme)
         invalidate()
@@ -187,6 +211,7 @@ class AnimatedBackground @JvmOverloads constructor(
             2 -> BackgroundManager.THEME_GALAXY
             3 -> BackgroundManager.THEME_NEBULA
             4, 10 -> BackgroundManager.THEME_CUSTOM_IMAGE
+            11 -> BackgroundManager.THEME_CITY_WALLPAPER
             in 5..9 -> BackgroundManager.THEME_STARFIELD  // Map old themes to starfield
             else -> BackgroundManager.THEME_SOLID
         }
@@ -196,8 +221,29 @@ class AnimatedBackground @JvmOverloads constructor(
         val normalizedTheme = normalizeTheme(theme)
         if (currentTheme != normalizedTheme) {
             currentTheme = normalizedTheme
-            initializeTheme(normalizedTheme)
+            if (normalizedTheme == BackgroundManager.THEME_CITY_WALLPAPER) {
+                val cityWallpaperPath = File(context.filesDir, BackgroundManager.CITY_BG_FILENAME).absolutePath
+                if (File(cityWallpaperPath).exists()) {
+                    loadCustomImageFromFile(cityWallpaperPath, blurAmount = 0)
+                } else {
+                    initializeTheme(normalizedTheme)
+                }
+            } else {
+                initializeTheme(normalizedTheme)
+            }
             invalidate()
+        }
+    }
+
+    fun reloadCityWallpaperIfAvailable(): Boolean {
+        val cityWallpaperPath = File(context.filesDir, BackgroundManager.CITY_BG_FILENAME).absolutePath
+        return if (File(cityWallpaperPath).exists()) {
+            savedImagePath = cityWallpaperPath
+            currentTheme = BackgroundManager.THEME_CITY_WALLPAPER
+            loadCustomImageFromFile(cityWallpaperPath, blurAmount = 0)
+            true
+        } else {
+            false
         }
     }
     
@@ -213,6 +259,7 @@ class AnimatedBackground @JvmOverloads constructor(
             BackgroundManager.THEME_STARFIELD -> initStarfield()
             BackgroundManager.THEME_GALAXY -> initGalaxy()
             BackgroundManager.THEME_NEBULA -> initNebula()
+            BackgroundManager.THEME_CITY_WALLPAPER -> { /* Image loaded from shared city wallpaper file when available. */ }
         }
     }
     
@@ -246,7 +293,7 @@ class AnimatedBackground @JvmOverloads constructor(
     // Custom Image Support
     fun setCustomImage(bitmap: Bitmap?, blurAmount: Int = 8) {
         customBitmap?.recycle()
-        blurredBitmap?.recycle()
+        if (blurredBitmap !== customBitmap) blurredBitmap?.recycle()
         
         if (bitmap != null) {
             customBitmap = bitmap
@@ -265,7 +312,7 @@ class AnimatedBackground @JvmOverloads constructor(
     fun loadCustomImageFromFile(filePath: String, blurAmount: Int = 8) {
         scope.launch(Dispatchers.IO) {
             try {
-                val bitmap = BitmapFactory.decodeFile(filePath)
+                val bitmap = decodeSampledBitmap(filePath)
                 if (bitmap != null) {
                     val scaledBitmap = scaleBitmapToFit(bitmap)
                     launch(Dispatchers.Main) {
@@ -280,6 +327,30 @@ class AnimatedBackground @JvmOverloads constructor(
             }
         }
     }
+
+    private fun decodeSampledBitmap(filePath: String): Bitmap? {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(filePath, options)
+        if (options.outWidth <= 0 || options.outHeight <= 0) return null
+
+        val maxDimension = when (DevicePerformance.tier(context)) {
+            DevicePerformance.Tier.LOW -> 960
+            DevicePerformance.Tier.MEDIUM -> 1440
+            DevicePerformance.Tier.HIGH -> 1920
+        }
+        var sampleSize = 1
+        while ((options.outWidth / sampleSize) > maxDimension || (options.outHeight / sampleSize) > maxDimension) {
+            sampleSize *= 2
+        }
+
+        return BitmapFactory.decodeFile(
+            filePath,
+            BitmapFactory.Options().apply {
+                inSampleSize = sampleSize
+                inPreferredConfig = if (DevicePerformance.isLow(context)) Bitmap.Config.RGB_565 else Bitmap.Config.ARGB_8888
+            }
+        )
+    }
     
     private fun scaleBitmapToFit(bitmap: Bitmap): Bitmap {
         if (viewWidth <= 0 || viewHeight <= 0) return bitmap
@@ -287,12 +358,19 @@ class AnimatedBackground @JvmOverloads constructor(
         val scaleX = viewWidth / bitmap.width
         val scaleY = viewHeight / bitmap.height
         val scale = maxOf(scaleX, scaleY)
+        val maxTarget = when (DevicePerformance.tier(context)) {
+            DevicePerformance.Tier.LOW -> 960f
+            DevicePerformance.Tier.MEDIUM -> 1440f
+            DevicePerformance.Tier.HIGH -> 1920f
+        }
+        val memoryScale = minOf(1f, maxTarget / maxOf(bitmap.width, bitmap.height).toFloat())
+        val targetScale = minOf(scale, memoryScale).coerceAtLeast(0.1f)
         
-        return if (scale != 1f) {
+        return if (targetScale != 1f) {
             Bitmap.createScaledBitmap(
                 bitmap,
-                (bitmap.width * scale).toInt(),
-                (bitmap.height * scale).toInt(),
+                (bitmap.width * targetScale).toInt().coerceAtLeast(1),
+                (bitmap.height * targetScale).toInt().coerceAtLeast(1),
                 true
             )
         } else {
@@ -302,6 +380,7 @@ class AnimatedBackground @JvmOverloads constructor(
     
     @Suppress("DEPRECATION")
     private fun blurBitmap(bitmap: Bitmap, radius: Int): Bitmap {
+        if (DevicePerformance.isLow(context)) return bitmap
         val safeRadius = radius.coerceIn(1, 12).toFloat()
         
         return try {
@@ -412,6 +491,11 @@ class AnimatedBackground @JvmOverloads constructor(
     
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (!shouldAnimate && staticFrameRendered && offscreenBitmap != null && currentTheme != BackgroundManager.THEME_CUSTOM_IMAGE) {
+            bitmapDestRect.set(0, 0, width, height)
+            canvas.drawBitmap(offscreenBitmap!!, null, bitmapDestRect, null)
+            return
+        }
         
         // Create or recreate offscreen buffer if needed
         if (useOffscreenBuffer && currentTheme != BackgroundManager.THEME_SOLID) {
@@ -453,6 +537,7 @@ class AnimatedBackground @JvmOverloads constructor(
             BackgroundManager.THEME_GALAXY -> drawGalaxy(drawCanvas)
             BackgroundManager.THEME_NEBULA -> drawNebula(drawCanvas)
             BackgroundManager.THEME_CUSTOM_IMAGE -> drawCustomImage(drawCanvas)
+            BackgroundManager.THEME_CITY_WALLPAPER -> if (blurredBitmap != null) drawCustomImage(drawCanvas) else drawSolid(drawCanvas)
             else -> drawSolid(drawCanvas)
         }
         
@@ -461,8 +546,10 @@ class AnimatedBackground @JvmOverloads constructor(
         }
 
         if (offscreenBitmap != null && drawCanvas != canvas) {
-            canvas.drawBitmap(offscreenBitmap!!, null, Rect(0, 0, width, height), null)
+            bitmapDestRect.set(0, 0, width, height)
+            canvas.drawBitmap(offscreenBitmap!!, null, bitmapDestRect, null)
         }
+        staticFrameRendered = !shouldAnimate
     }
     
     private fun drawSolid(canvas: Canvas) {
@@ -542,10 +629,19 @@ class AnimatedBackground @JvmOverloads constructor(
     
     private fun drawCustomImage(canvas: Canvas) {
         blurredBitmap?.let { bitmap ->
-            val srcLeft = (bitmap.width - viewWidth) / 2
-            val srcTop = (bitmap.height - viewHeight) / 2
-            
-            canvas.drawBitmap(bitmap, -srcLeft, -srcTop, imagePaint)
+            val viewRatio = if (viewHeight > 0f) viewWidth / viewHeight else 16f / 9f
+            val bitmapRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+            if (bitmapRatio > viewRatio) {
+                val srcWidth = (bitmap.height * viewRatio).toInt().coerceAtLeast(1)
+                val left = ((bitmap.width - srcWidth) / 2).coerceAtLeast(0)
+                bitmapSourceRect.set(left, 0, left + srcWidth, bitmap.height)
+            } else {
+                val srcHeight = (bitmap.width / viewRatio).toInt().coerceAtLeast(1)
+                val top = ((bitmap.height - srcHeight) / 2).coerceAtLeast(0)
+                bitmapSourceRect.set(0, top, bitmap.width, top + srcHeight)
+            }
+            bitmapDestRect.set(0, 0, viewWidth.toInt(), viewHeight.toInt())
+            canvas.drawBitmap(bitmap, bitmapSourceRect, bitmapDestRect, imagePaint)
         }
         
         backgroundPaint.shader = LinearGradient(
@@ -674,11 +770,14 @@ class AnimatedBackground @JvmOverloads constructor(
     
     fun setAnimationEnabled(enabled: Boolean) {
         shouldAnimate = enabled
+        staticFrameRendered = false
+        updateBufferConfig()
         if (!enabled && animationRunning) {
             pauseAnimation()
         } else if (enabled && !animationRunning) {
             resumeAnimation()
         }
+        invalidate()
     }
     
     override fun onAttachedToWindow() {

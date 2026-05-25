@@ -3,7 +3,9 @@ package com.mo.moplayer.util
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.graphics.Color
+import android.media.ExifInterface
 import com.mo.moplayer.data.background.CityWallpaperService
 import com.mo.moplayer.data.location.IpLocationService
 import androidx.datastore.core.DataStore
@@ -69,6 +71,7 @@ class BackgroundManager @Inject constructor(
         const val THEME_GALAXY = 2          // Spiral galaxy with nebula
         const val THEME_NEBULA = 3          // Colorful space nebula
         const val THEME_CUSTOM_IMAGE = 4    // Custom user image
+        const val THEME_CITY_WALLPAPER = 11 // Auto city wallpaper from free image sources
         
         // Legacy theme constants (mapped to space themes for backwards compatibility)
         @Deprecated("Use THEME_STARFIELD instead", ReplaceWith("THEME_STARFIELD"))
@@ -91,8 +94,8 @@ class BackgroundManager @Inject constructor(
         val DEFAULT_GLOW_COLOR = Color.parseColor("#1A00E5FF")
 
         private const val CUSTOM_BG_FILENAME = "custom_background.jpg"
-        private const val CITY_BG_FILENAME = "city_background.jpg"
-        private const val CITY_WALLPAPER_CACHE_MS = 24 * 60 * 60 * 1000L
+        const val CITY_BG_FILENAME = "city_background.jpg"
+        private const val CITY_WALLPAPER_CACHE_MS = 6 * 60 * 60 * 1000L
     }
 
     val currentTheme: Flow<Int> = context.dataStore.data.map { prefs ->
@@ -141,12 +144,13 @@ class BackgroundManager @Inject constructor(
      */
     private fun normalizeTheme(theme: Int): Int {
         return when (theme) {
-            0 -> THEME_GALAXY
+            0 -> THEME_SOLID
             1 -> THEME_STARFIELD
             2 -> THEME_GALAXY
             3 -> THEME_NEBULA
             4, 10 -> THEME_CUSTOM_IMAGE  // Support old THEME_CUSTOM_IMAGE value (10)
-            in 5..9 -> THEME_STARFIELD   // Map old themes to starfield
+            11 -> THEME_CITY_WALLPAPER
+            in 5..9 -> THEME_STARFIELD   // Map old legacy themes to starfield
             else -> THEME_GALAXY
         }
     }
@@ -185,6 +189,11 @@ class BackgroundManager @Inject constructor(
         context.dataStore.edit { prefs ->
             prefs[AUTO_CITY_WALLPAPER_ENABLED_KEY] = enabled
             prefs[CITY_WALLPAPER_STATUS_KEY] = if (enabled) "pending" else "disabled"
+            if (enabled) {
+                prefs[BACKGROUND_THEME_KEY] = THEME_CITY_WALLPAPER
+            } else if (normalizeTheme(prefs[BACKGROUND_THEME_KEY] ?: THEME_GALAXY) == THEME_CITY_WALLPAPER) {
+                prefs[BACKGROUND_THEME_KEY] = THEME_GALAXY
+            }
         }
     }
 
@@ -222,7 +231,7 @@ class BackgroundManager @Inject constructor(
             val file = File(imagePath)
             if (!file.exists()) return@withContext false
             
-            val bitmap = BitmapFactory.decodeFile(imagePath)
+            val bitmap = decodeBackgroundBitmap(imagePath)
             if (bitmap != null) {
                 saveCustomImage(bitmap)
                 
@@ -244,8 +253,7 @@ class BackgroundManager @Inject constructor(
     private fun saveCustomImage(bitmap: Bitmap) {
         val file = getCustomImageFile()
         FileOutputStream(file).use { out ->
-            // Scale down if too large
-            val maxSize = 1920
+            val maxSize = preferredBackgroundMaxSize()
             val scaledBitmap = if (bitmap.width > maxSize || bitmap.height > maxSize) {
                 val scale = maxSize.toFloat() / maxOf(bitmap.width, bitmap.height)
                 Bitmap.createScaledBitmap(
@@ -257,7 +265,7 @@ class BackgroundManager @Inject constructor(
             } else {
                 bitmap
             }
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+            scaledBitmap.compress(Bitmap.CompressFormat.WEBP, if (DevicePerformance.isLow(context)) 78 else 86, out)
             if (scaledBitmap != bitmap) {
                 scaledBitmap.recycle()
             }
@@ -316,7 +324,12 @@ class BackgroundManager @Inject constructor(
             }
 
             val location = locationService.fetchLocation(forceRefresh = force).getOrElse { throw it }
-            val wallpaperResult = cityWallpaperService.fetchCityWallpaper(location.city, location.country).getOrElse { throw it }
+            val rotationSlot = now / CITY_WALLPAPER_CACHE_MS
+            val wallpaperResult = cityWallpaperService.fetchCityWallpaper(
+                city = location.city,
+                country = location.country,
+                rotationSlot = rotationSlot
+            ).getOrElse { throw it }
             saveCityWallpaper(wallpaperResult.bitmap)
             wallpaperResult.bitmap.recycle()
 
@@ -385,7 +398,7 @@ class BackgroundManager @Inject constructor(
     private fun saveCityWallpaper(bitmap: Bitmap) {
         val file = getCityWallpaperFile()
         FileOutputStream(file).use { out ->
-            val maxSize = 1920
+            val maxSize = preferredBackgroundMaxSize()
             val scaledBitmap = if (bitmap.width > maxSize || bitmap.height > maxSize) {
                 val scale = maxSize.toFloat() / maxOf(bitmap.width, bitmap.height)
                 Bitmap.createScaledBitmap(
@@ -397,10 +410,52 @@ class BackgroundManager @Inject constructor(
             } else {
                 bitmap
             }
-            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 88, out)
+            scaledBitmap.compress(Bitmap.CompressFormat.WEBP, if (DevicePerformance.isLow(context)) 80 else 88, out)
             if (scaledBitmap != bitmap) {
                 scaledBitmap.recycle()
             }
+        }
+    }
+
+    private fun preferredBackgroundMaxSize(): Int {
+        return when (DevicePerformance.tier(context)) {
+            DevicePerformance.Tier.LOW -> 960
+            DevicePerformance.Tier.MEDIUM -> 1440
+            DevicePerformance.Tier.HIGH -> 1920
+        }
+    }
+
+    private fun decodeBackgroundBitmap(path: String): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        val maxSize = preferredBackgroundMaxSize()
+        var sampleSize = 1
+        while ((bounds.outWidth / sampleSize) > maxSize || (bounds.outHeight / sampleSize) > maxSize) {
+            sampleSize *= 2
+        }
+
+        val decoded = BitmapFactory.decodeFile(
+            path,
+            BitmapFactory.Options().apply {
+                inSampleSize = sampleSize
+                inPreferredConfig = if (DevicePerformance.isLow(context)) Bitmap.Config.RGB_565 else Bitmap.Config.ARGB_8888
+            }
+        ) ?: return null
+
+        val rotation = runCatching {
+            when (ExifInterface(path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                else -> 0f
+            }
+        }.getOrDefault(0f)
+        if (rotation == 0f) return decoded
+
+        return Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, Matrix().apply { postRotate(rotation) }, true).also {
+            decoded.recycle()
         }
     }
 
@@ -411,6 +466,7 @@ class BackgroundManager @Inject constructor(
             THEME_GALAXY -> "Galaxy"
             THEME_NEBULA -> "Nebula"
             THEME_CUSTOM_IMAGE -> "Custom Image"
+            THEME_CITY_WALLPAPER -> "City Wallpaper"
             else -> "Solid Black"
         }
     }
@@ -424,6 +480,7 @@ class BackgroundManager @Inject constructor(
             THEME_STARFIELD to "Starfield",
             THEME_GALAXY to "Galaxy",
             THEME_NEBULA to "Nebula",
+            THEME_CITY_WALLPAPER to "City Wallpaper",
             THEME_CUSTOM_IMAGE to "Custom Image"
         )
     }

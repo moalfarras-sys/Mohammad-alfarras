@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Deep space glass background with opacity -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#B3040A1C" /> <!-- 70% opacity deep blue/black -->
-            <corners android:radius="24dp" />
-            <stroke android:width="1dp" android:color="#3300E5FF" />
+            <gradient
+                android:angle="315"
+                android:startColor="#F2050B17"
+                android:centerColor="#E7071528"
+                android:endColor="#F0030710" />
+            <corners android:radius="26dp" />
+            <stroke android:width="1dp" android:color="#385E86A6" />
         </shape>
     </item>
-    <!-- Subtle top highlight for 3D glass edge effect -->
     <item android:top="1dp" android:left="1dp" android:right="1dp" android:bottom="4dp">
         <shape android:shape="rectangle">
             <corners android:radius="23dp" />
-            <stroke android:width="1dp" android:color="#1AFFFFFF" />
+            <stroke android:width="1dp" android:color="#18FFFFFF" />
+        </shape>
+    </item>
+    <item android:left="18dp" android:right="18dp" android:top="1dp">
+        <shape android:shape="rectangle">
+            <size android:height="1dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="#0000E5FF"
+                android:centerColor="#4A2BB8D6"
+                android:endColor="#0000E5FF" />
         </shape>
     </item>
 </layer-list>

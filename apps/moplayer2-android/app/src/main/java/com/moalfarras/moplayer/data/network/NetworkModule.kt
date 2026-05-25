@@ -45,7 +45,7 @@ object NetworkModule {
     val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
 
     val sportsDbService: SportsDbService by lazy {
-        retrofit("https://www.thesportsdb.com/api/v1/json/3/").create(SportsDbService::class.java)
+        retrofit("https://www.thesportsdb.com/api/v1/json/123/").create(SportsDbService::class.java)
     }
     val webFootballService: WebFootballService by lazy { retrofit("https://example.com/").create(WebFootballService::class.java) }
 

@@ -27,6 +27,7 @@ class ParentalLockManager @Inject constructor(
         private val PIN_HASH_KEY = stringPreferencesKey("pin_hash")
         private val PARENTAL_ENABLED_KEY = booleanPreferencesKey("parental_enabled")
         private val ADULT_CONTENT_LOCKED_KEY = booleanPreferencesKey("adult_content_locked")
+        private val BLOCKED_CONTENT_KEY = stringPreferencesKey("blocked_content")
         
         private const val DEFAULT_PIN = "0000"
     }
@@ -88,6 +89,52 @@ class ParentalLockManager @Inject constructor(
         context.parentalDataStore.edit { prefs ->
             prefs[ADULT_CONTENT_LOCKED_KEY] = locked
         }
+    }
+
+    suspend fun isContentBlocked(serverId: Long, contentType: String, contentId: String): Boolean {
+        return blockedSet().contains(blockKey(serverId, contentType, contentId))
+    }
+
+    suspend fun setContentBlocked(
+        serverId: Long,
+        contentType: String,
+        contentId: String,
+        blocked: Boolean
+    ) {
+        val key = blockKey(serverId, contentType, contentId)
+        context.parentalDataStore.edit { prefs ->
+            val next = prefs[BLOCKED_CONTENT_KEY]
+                .orEmpty()
+                .split("|")
+                .filter { it.isNotBlank() }
+                .toMutableSet()
+            if (blocked) {
+                next.add(key)
+            } else {
+                next.remove(key)
+            }
+            prefs[BLOCKED_CONTENT_KEY] = next.sorted().joinToString("|")
+        }
+    }
+
+    suspend fun blockedContentCount(serverId: Long? = null): Int {
+        return blockedSet().count { item ->
+            serverId == null || item.startsWith("${serverId}:")
+        }
+    }
+
+    private suspend fun blockedSet(): Set<String> {
+        return context.parentalDataStore.data.first()[BLOCKED_CONTENT_KEY]
+            .orEmpty()
+            .split("|")
+            .filter { it.isNotBlank() }
+            .toSet()
+    }
+
+    private fun blockKey(serverId: Long, contentType: String, contentId: String): String {
+        val normalizedType = contentType.lowercase().trim()
+        val normalizedId = contentId.replace("|", "").replace(":", "_").trim()
+        return "$serverId:$normalizedType:$normalizedId"
     }
 
     private fun hashPin(pin: String): String {

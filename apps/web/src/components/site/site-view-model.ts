@@ -64,6 +64,20 @@ export type SiteGalleryItem = {
   ratio: "portrait" | "wide" | "square";
 };
 
+export type SiteOffer = {
+  id: string;
+  isActive: boolean;
+  placement: "home" | "services" | "apps" | "contact" | "all";
+  style: "banner" | "cards" | "strip";
+  title: string;
+  body: string;
+  badge: string;
+  ctaLabel: string;
+  ctaHref: string;
+  image: string;
+  sortOrder: number;
+};
+
 export type SiteProfile = {
   name: string;
   subtitle: string;
@@ -95,6 +109,7 @@ export type SiteViewModel = {
   profile: SiteProfile;
   projects: SiteProject[];
   services: SiteService[];
+  offers: SiteOffer[];
   experience: SiteExperience[];
   certifications: SiteCertification[];
   contact: {

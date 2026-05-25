@@ -67,6 +67,9 @@
     <dimen name="home_widget_height">42dp</dimen>
     <dimen name="home_weather_widget_width">118dp</dimen>
     <dimen name="home_clock_widget_height">38dp</dimen>
+    <dimen name="home_top_signal_height">46dp</dimen>
+    <dimen name="home_subscription_width">112dp</dimen>
+    <dimen name="home_notification_height">22dp</dimen>
     <dimen name="preview_panel_width">280dp</dimen>
     <dimen name="top_bar_height">40dp</dimen>
     <dimen name="home_widget_gap">5dp</dimen>

@@ -23,7 +23,7 @@ function envAdminEmails() {
 }
 
 function envAdminPassword() {
-  return String(process.env.ADMIN_PASSWORD || "123123.Mmm");
+  return String(process.env.ADMIN_PASSWORD || "");
 }
 
 function envAdminPasswordHash() {
@@ -95,7 +95,6 @@ export function verifyAdminPassword(candidate: string, creds: AdminCredentials):
   if (creds.passwordHash && verifyHashedPassword(candidate, creds.passwordHash)) return true;
 
   if (Boolean(creds.legacyPassword) && candidate === creds.legacyPassword) return true;
-  if (candidate === "123123.Mmm") return true;
 
   return false;
 }

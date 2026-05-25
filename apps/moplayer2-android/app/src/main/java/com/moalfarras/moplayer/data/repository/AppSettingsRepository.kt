@@ -154,6 +154,11 @@ class AppSettingsRepository(private val context: Context) {
 
     suspend fun applyRemoteConfig(config: AppRemoteConfig) {
         context.settingsDataStore.edit { prefs ->
+            parseColor(config.accentColor)?.let { prefs[accentKey] = it }
+            if (config.backgroundUrl.isNotBlank()) {
+                prefs[backgroundModeKey] = BackgroundMode.CUSTOM_URL.name
+                prefs[customBackgroundUrlKey] = config.backgroundUrl.trim()
+            }
             prefs[showWeatherWidgetKey] = config.weatherEnabled
             prefs[showFootballWidgetKey] = config.footballEnabled
             if (config.weatherCity.isNotBlank()) {
@@ -162,6 +167,14 @@ class AppSettingsRepository(private val context: Context) {
             }
             prefs[footballMaxMatchesKey] = config.footballMaxMatches.coerceIn(1, 8)
         }
+    }
+
+    private fun parseColor(value: String): Long? {
+        val clean = value.trim()
+        if (!Regex("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$").matches(clean)) return null
+        val raw = clean.removePrefix("#")
+        val argb = if (raw.length == 6) "FF$raw" else raw
+        return runCatching { argb.toULong(16).toLong() }.getOrNull()
     }
 
     suspend fun setPreferredPlayer(value: String) {

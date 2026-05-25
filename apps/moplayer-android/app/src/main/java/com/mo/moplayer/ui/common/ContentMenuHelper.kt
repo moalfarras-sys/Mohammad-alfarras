@@ -50,7 +50,9 @@ class ContentMenuHelper(private val context: Context) {
         onInfo: (() -> Unit)? = null,
         onTrailer: (() -> Unit)? = null,
         onShare: (() -> Unit)? = null,
-        onChoosePlayer: (() -> Unit)? = null
+        onChoosePlayer: (() -> Unit)? = null,
+        isBlocked: Boolean = false,
+        onToggleBlocked: (() -> Unit)? = null
     ) {
         val dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -171,6 +173,24 @@ class ContentMenuHelper(private val context: Context) {
                     id = "choose_player",
                     title = context.getString(R.string.menu_choose_player),
                     icon = R.drawable.ic_settings,
+                    action = {
+                        dialog.dismiss()
+                        it()
+                    }
+                )
+            )
+        }
+
+        onToggleBlocked?.let {
+            menuItems.add(
+                ContentMenuItem(
+                    id = "parental_block",
+                    title = if (isBlocked) {
+                        context.getString(R.string.menu_unblock_parental)
+                    } else {
+                        context.getString(R.string.menu_block_parental)
+                    },
+                    icon = R.drawable.ic_lock,
                     action = {
                         dialog.dismiss()
                         it()

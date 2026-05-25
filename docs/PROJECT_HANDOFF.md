@@ -83,6 +83,8 @@ Use the Supabase MCP plugin or Supabase CLI for project inspection, advisors, lo
 
 Public client keys may be exposed to the browser. Secret keys and service role keys must only be used server-side.
 
+Local migration history is expected to include the admin/AI/automation migrations through `20260524033521_widget_provider_secret_storage.sql`.
+
 ## Vercel
 
 Expected domains:
@@ -115,3 +117,21 @@ Key routes:
 - `/api/app/download/latest?product=moplayer2`
 
 Keep classic MoPlayer (`moplayer`) and MoPlayer Pro (`moplayer2`) release channels separate.
+
+## 2026-05-25 Admin/Web Release Notes
+
+- Admin was simplified into a clean operations panel: website, offers, app runtime/releases/images/content, and AI inbox.
+- Removed email center from the active admin navigation and hid activation/device/license/source/support management from the app pages so the visible admin surface stays focused on launch-ready essentials.
+- Added website offers management in Website Control. Offers can be placed on home, services, apps, contact, or all main pages with banner/card/strip layouts.
+- MoPlayer Pro public page now reads hero/logo/banner/gallery data from admin-managed app product and screenshot records instead of only hardcoded preview images.
+- Added an internal admin helper widget that explains where to change images, offers, app runtime, releases, and AI items.
+- Added field help popovers and larger mobile-friendly form controls for clearer Arabic-first admin use.
+- Latest MoPlayer Pro APK currently present at `apps/web/public/downloads/moplayer2/app-release.apk`:
+  - size: `49242152` bytes
+  - SHA-256: `8254be6d2872e964158a8c5f001569d7d271a24893672dd2c328262a91784b02`
+
+Verification completed before deployment:
+
+```powershell
+npm run verify:production
+```

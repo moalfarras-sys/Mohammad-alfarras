@@ -661,6 +661,36 @@ function homeHighlightIcons(index: number) {
   return [Code2, Cpu, Film, Truck][index] ?? Compass;
 }
 
+function OffersSection({ model, placement }: { model: SiteViewModel; placement: SiteViewModel["offers"][number]["placement"] }) {
+  const offers = model.offers.filter((offer) => offer.placement === placement || offer.placement === "all");
+  if (!offers.length) return null;
+
+  return (
+    <section className="fresh-section site-offers-section" data-placement={placement}>
+      <div className={offers.some((offer) => offer.style === "cards") ? "site-offers-grid" : "site-offers-stack"}>
+        {offers.map((offer) => (
+          <article key={offer.id} className={`site-offer site-offer-${offer.style}`}>
+            <div className="site-offer-copy">
+              {offer.badge ? <span className="fresh-eyebrow">{offer.badge}</span> : null}
+              <h2>{offer.title}</h2>
+              <p>{offer.body}</p>
+              {offer.ctaLabel ? (
+                <Link href={offer.ctaHref} className="fresh-button fresh-button-primary">
+                  {offer.ctaLabel}
+                  <ArrowUpRight size={16} />
+                </Link>
+              ) : null}
+            </div>
+            <div className="site-offer-media">
+              <Image src={offer.image} alt={offer.title} fill sizes="(max-width: 900px) 92vw, 420px" className="fresh-image" />
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // Kept temporarily as a fallback reference while the Digital OS v2 homepage is reviewed.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function HomePage({ model }: { model: SiteViewModel }) {
@@ -924,6 +954,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
           })}
         </div>
       </section>
+
+      <OffersSection model={model} placement="home" />
 
       <section className="fresh-section os-home-explore-section">
         <div className="os-home-explore-grid os-entry-grid">
@@ -1252,6 +1284,8 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
+      <OffersSection model={model} placement="services" />
+
       <section className="fresh-section services-process-section">
         <div>
           <p className="fresh-eyebrow">{isAr ? "طريقة العمل" : "How we work"}</p>
@@ -1295,7 +1329,12 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
 }
 
 function AppsPage({ model }: { model: SiteViewModel }) {
-  return <AppsShowcasePage locale={model.locale} />;
+  return (
+    <>
+      <AppsShowcasePage locale={model.locale} />
+      <OffersSection model={model} placement="apps" />
+    </>
+  );
 }
 
 function YoutubePage({ model }: { model: SiteViewModel }) {
@@ -1477,7 +1516,12 @@ function CvPage({ model }: { model: SiteViewModel }) {
 }
 
 function ContactPage({ model }: { model: SiteViewModel }) {
-  return <ContactHubPage locale={model.locale} content={model.t.contact} />;
+  return (
+    <>
+      <ContactHubPage locale={model.locale} content={model.t.contact} />
+      <OffersSection model={model} placement="contact" />
+    </>
+  );
 }
 
 function AboutPage({ model }: { model: SiteViewModel }) {

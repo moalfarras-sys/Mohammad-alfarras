@@ -20,11 +20,11 @@
     
     <!-- Cards - Extra large for 4K/1080p -->
     <dimen name="card_margin">6dp</dimen>
-    <dimen name="card_poster_width">116dp</dimen>
-    <dimen name="card_poster_height">174dp</dimen>
-    <dimen name="card_content_height">208dp</dimen>
-    <dimen name="content_row_items_height">236dp</dimen>
-    <dimen name="card_title_size">10.5sp</dimen>
+    <dimen name="card_poster_width">110dp</dimen>
+    <dimen name="card_poster_height">165dp</dimen>
+    <dimen name="card_content_height">214dp</dimen>
+    <dimen name="content_row_items_height">238dp</dimen>
+    <dimen name="card_title_size">10sp</dimen>
     <dimen name="dock_height">62dp</dimen>
     <dimen name="dock_icon_size">24dp</dimen>
     <dimen name="dock_label_size">9sp</dimen>
@@ -32,12 +32,16 @@
     <dimen name="dock_bottom_margin">16dp</dimen>
     <dimen name="dock_corner_radius">30dp</dimen>
     <dimen name="home_top_action_size">40dp</dimen>
+    <dimen name="home_action_rail_height">44dp</dimen>
     <dimen name="home_brand_logo_size">34dp</dimen>
     <dimen name="home_brand_title_size">20sp</dimen>
     <dimen name="home_brand_tagline_size">8.5sp</dimen>
     <dimen name="home_widget_height">52dp</dimen>
     <dimen name="home_weather_widget_width">150dp</dimen>
     <dimen name="home_clock_widget_height">46dp</dimen>
+    <dimen name="home_top_signal_height">56dp</dimen>
+    <dimen name="home_subscription_width">190dp</dimen>
+    <dimen name="home_notification_height">28dp</dimen>
     <dimen name="top_bar_height">50dp</dimen>
     <dimen name="home_widget_gap">8dp</dimen>
     <dimen name="preview_panel_width">480dp</dimen>

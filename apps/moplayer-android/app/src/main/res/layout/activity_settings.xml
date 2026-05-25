@@ -71,9 +71,14 @@
             <!-- Version Info -->
             <TextView
                 android:id="@+id/tvVersion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
                 android:layout_marginTop="@dimen/spacing_lg"
+                android:background="@drawable/selector_card_focus"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:nextFocusRight="@id/settingsContent"
+                android:paddingHorizontal="@dimen/spacing_sm"
                 android:textColor="@color/htc_text_tertiary"
                 android:textSize="12sp"
                 tools:text="MoPlayer v1.0.0" />
@@ -221,6 +226,90 @@
 
                     </LinearLayout>
 
+                    <!-- Quick App Update -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:background="@drawable/bg_cinematic_surface"
+                        android:orientation="vertical"
+                        android:padding="@dimen/settings_card_padding">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_app_update_title"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvServerAppUpdateStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:text="@string/settings_app_update_checking"
+                            android:textColor="@color/moplayer_orange"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvServerAppUpdateNotes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:text="@string/settings_app_update_desc"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="12sp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_md"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnServerCheckAppUpdate"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/settings_button_height"
+                                android:layout_weight="1"
+                                android:background="@drawable/selector_cinematic_button"
+                                android:drawableStart="@drawable/ic_refresh"
+                                android:drawablePadding="6dp"
+                                android:focusable="true"
+                                android:nextFocusLeft="@id/rvCategories"
+                                android:nextFocusRight="@id/btnServerOpenAppDownload"
+                                android:nextFocusDown="@id/btnRefreshServer"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:text="@string/settings_app_update_install"
+                                android:textAllCaps="false"
+                                android:textColor="@color/cinematic_text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/btnServerOpenAppDownload"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/settings_button_height"
+                                android:layout_marginStart="@dimen/spacing_md"
+                                android:layout_weight="1"
+                                android:background="@drawable/selector_cinematic_button"
+                                android:drawableStart="@drawable/ic_external"
+                                android:drawablePadding="6dp"
+                                android:focusable="true"
+                                android:nextFocusLeft="@id/btnServerCheckAppUpdate"
+                                android:nextFocusDown="@id/btnDeleteServer"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:text="@string/settings_app_update_open_link"
+                                android:textAllCaps="false"
+                                android:textColor="@color/cinematic_text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                     <!-- Server Actions -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -276,6 +365,15 @@
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_8"
+                        android:text="Manage active IPTV sources, refresh content, and install app updates from moalfarras.space."
+                        android:textColor="@color/htc_text_secondary"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="2dp" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvServers"
@@ -345,6 +443,15 @@
                         android:textColor="@color/htc_text_primary"
                         android:textSize="@dimen/settings_section_title_size"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_8"
+                        android:text="Tune playback for smooth live zapping, weak Android TV boxes, and external player fallback."
+                        android:textColor="@color/htc_text_secondary"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="2dp" />
 
                     <!-- Player Selection -->
                     <LinearLayout
@@ -734,6 +841,18 @@
 
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/tvParentalBlockedSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_md"
+                    android:background="@drawable/bg_settings_stat_tile"
+                    android:padding="@dimen/settings_card_padding"
+                    android:text="@string/parental_blocked_count"
+                    android:textColor="@color/htc_text_secondary"
+                    android:textSize="13sp"
+                    tools:text="Blocked items on this server: 3" />
+
             </LinearLayout>
 
             <!-- Interface Settings Panel -->
@@ -757,19 +876,28 @@
                         android:textSize="@dimen/settings_section_title_size"
                         android:textStyle="bold" />
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_8"
+                        android:text="Choose a cinematic background, city wallpaper, local image, accent color, and TV layout behavior."
+                        android:textColor="@color/htc_text_secondary"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="2dp" />
+
                     <!-- Background Theme -->
                     <LinearLayout
                         android:id="@+id/optionBackground"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:layout_marginTop="@dimen/spacing_md"
                         android:background="@drawable/selector_card_focus"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
-                        android:nextFocusDown="@id/optionAnimationToggle">
+                        android:nextFocusDown="@id/btnUseCityWallpaperTop">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -796,6 +924,38 @@
 
                     </LinearLayout>
 
+                    <Button
+                        android:id="@+id/btnUseCityWallpaperTop"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/settings_button_height"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/bg_button_primary"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionBackground"
+                        android:nextFocusDown="@id/btnOpenWeatherLabTop"
+                        android:text="@string/settings_use_city_wallpaper"
+                        android:textAllCaps="false"
+                        android:textColor="@color/cinematic_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnOpenWeatherLabTop"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/settings_button_height"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/bg_button_secondary"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/btnUseCityWallpaperTop"
+                        android:nextFocusDown="@id/optionAnimationToggle"
+                        android:text="@string/settings_weather_lab_title"
+                        android:textAllCaps="false"
+                        android:textColor="@color/cinematic_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
                     <!-- Animation Enable/Disable Toggle -->
                     <LinearLayout
                         android:id="@+id/optionAnimationToggle"
@@ -808,8 +968,8 @@
                         android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
-                        android:nextFocusUp="@id/optionBackground"
-                        android:nextFocusDown="@id/colorChipGreen">
+                        android:nextFocusUp="@id/btnOpenWeatherLabTop"
+                        android:nextFocusDown="@id/optionBackgroundBehavior">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -842,6 +1002,50 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/optionBackgroundBehavior"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionAnimationToggle"
+                        android:nextFocusDown="@id/optionPosterSize"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/settings_card_padding">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_background_behavior_title"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvBackgroundBehaviorValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Follow poster preview" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:id="@+id/optionPosterSize"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -852,7 +1056,7 @@
                         android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
-                        android:nextFocusUp="@id/optionAnimationToggle"
+                        android:nextFocusUp="@id/optionBackgroundBehavior"
                         android:nextFocusDown="@id/optionLayoutStyle">
 
                         <LinearLayout
@@ -921,9 +1125,12 @@
 
                     <!-- App Accent Color Section -->
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xl"
+                        android:background="@drawable/bg_settings_stat_tile"
+                        android:paddingHorizontal="@dimen/spacing_md"
+                        android:paddingVertical="@dimen/spacing_sm"
                         android:text="App Accent Color"
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
@@ -1046,9 +1253,12 @@
 
                     <!-- Custom Background Image Section -->
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xl"
+                        android:background="@drawable/bg_settings_stat_tile"
+                        android:paddingHorizontal="@dimen/spacing_md"
+                        android:paddingVertical="@dimen/spacing_sm"
                         android:text="Custom Background Image"
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
@@ -1177,6 +1387,22 @@
 
                     </LinearLayout>
 
+                    <Button
+                        android:id="@+id/btnUseCityWallpaper"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/settings_button_height"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:background="@drawable/bg_button_primary"
+                        android:focusable="true"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionAutoCityWallpaper"
+                        android:nextFocusDown="@id/optionLanguage"
+                        android:text="@string/settings_use_city_wallpaper"
+                        android:textAllCaps="false"
+                        android:textColor="@color/cinematic_text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
                     <TextView
                         android:id="@+id/tvCityWallpaperStatus"
                         android:layout_width="wrap_content"
@@ -1268,7 +1494,7 @@
                         android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
-                        android:nextFocusDown="@id/switchWeatherEnabled">
+                        android:nextFocusDown="@id/optionWeatherLab">
 
                         <TextView
                             android:layout_width="0dp"
@@ -1293,7 +1519,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xl"
-                        android:text="@string/settings_weather_title"
+                        android:text="@string/settings_weather_management_title"
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -1302,9 +1528,53 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Automatic weather with 3D effects based on your IP location"
+                        android:text="@string/settings_weather_management_desc"
                         android:textColor="@color/htc_text_tertiary"
                         android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:id="@+id/optionWeatherLab"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:nextFocusLeft="@id/rvCategories"
+                        android:nextFocusUp="@id/optionFootballWidget"
+                        android:nextFocusDown="@id/optionWeatherEnabled"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/settings_card_padding">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_weather_lab_title"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/settings_weather_lab_desc"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+                    </LinearLayout>
 
                     <!-- Weather Enable/Disable Switch -->
                     <LinearLayout
@@ -1317,14 +1587,14 @@
                         android:orientation="horizontal"
                         android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
-                        android:nextFocusUp="@id/optionFootballWidget"
+                        android:nextFocusUp="@id/optionWeatherLab"
                         android:nextFocusDown="@id/optionWeatherEffectsQuality">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Enable Weather Widget"
+                            android:text="@string/settings_weather_enable_widget"
                             android:textColor="@color/htc_text_primary"
                             android:textSize="16sp" />
 
@@ -1605,6 +1875,90 @@
                             android:textColor="@color/htc_text_secondary"
                             android:textSize="16sp" />
 
+                    </LinearLayout>
+
+                    <!-- In-app Update -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_lg"
+                        android:background="@drawable/bg_cinematic_surface"
+                        android:orientation="vertical"
+                        android:padding="@dimen/settings_card_padding">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_app_update_title"
+                            android:textColor="@color/htc_text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvAppUpdateStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_sm"
+                            android:text="@string/settings_app_update_checking"
+                            android:textColor="@color/moplayer_orange"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvAppUpdateNotes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:text="@string/settings_app_update_desc"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="12sp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_md"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnCheckAppUpdate"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/settings_button_height"
+                                android:layout_weight="1"
+                                android:background="@drawable/selector_cinematic_button"
+                                android:drawableStart="@drawable/ic_refresh"
+                                android:drawablePadding="6dp"
+                                android:focusable="true"
+                                android:nextFocusLeft="@id/rvCategories"
+                                android:nextFocusRight="@id/btnOpenAppDownload"
+                                android:nextFocusDown="@id/btnWhatsApp"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:text="@string/settings_app_update_install"
+                                android:textAllCaps="false"
+                                android:textColor="@color/cinematic_text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <Button
+                                android:id="@+id/btnOpenAppDownload"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/settings_button_height"
+                                android:layout_marginStart="@dimen/spacing_md"
+                                android:layout_weight="1"
+                                android:background="@drawable/selector_cinematic_button"
+                                android:drawableStart="@drawable/ic_external"
+                                android:drawablePadding="6dp"
+                                android:focusable="true"
+                                android:nextFocusLeft="@id/btnCheckAppUpdate"
+                                android:nextFocusDown="@id/btnWebsite"
+                                android:paddingHorizontal="@dimen/spacing_md"
+                                android:text="@string/settings_app_update_open_link"
+                                android:textAllCaps="false"
+                                android:textColor="@color/cinematic_text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <!-- Marketing Text -->

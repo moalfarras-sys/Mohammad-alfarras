@@ -39,9 +39,12 @@ object DevicePerformance {
 
         // Older Fire TV sticks (AFTM/AFTT/AFTSSS...) are reliably weak; bias them down.
         val fireStickLowEnd = isAmazonFireDevice() && totalGb < 2.0
+        val legacyAndroidTv = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 &&
+            (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK) ==
+            android.content.res.Configuration.UI_MODE_TYPE_TELEVISION
 
         return when {
-            fireStickLowEnd || totalGb < 1.6 || cores <= 2 -> Tier.LOW
+            legacyAndroidTv || fireStickLowEnd || totalGb < 1.6 || cores <= 2 -> Tier.LOW
             totalGb < 3.0 || cores <= 4 -> Tier.MEDIUM
             else -> Tier.HIGH
         }

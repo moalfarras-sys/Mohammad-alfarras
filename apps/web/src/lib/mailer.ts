@@ -1,6 +1,7 @@
 import "server-only";
 
 import nodemailer, { type Transporter } from "nodemailer";
+import { cinematicEmailHtml } from "@/lib/email-template";
 
 export type MailInput = {
   to: string;
@@ -96,6 +97,37 @@ export async function sendTransactionalMail(input: MailInput): Promise<boolean> 
   } catch {
     return false;
   }
+}
+
+export async function sendAutomationAlert(input: {
+  title: string;
+  message: string;
+  route: string;
+  severity?: "warning" | "danger";
+  details?: Record<string, string>;
+}) {
+  const to = ownerInbox();
+  if (!to) return false;
+  const rows: Array<[string, string]> = [
+    ["Route", input.route],
+    ["Severity", input.severity ?? "warning"],
+    ["Time", new Date().toISOString()],
+    ...Object.entries(input.details ?? {}),
+  ];
+  return sendTransactionalMail({
+    to,
+    subject: `Moalfarras automation alert: ${input.title}`,
+    text: `${input.title}\n${input.message}\n${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}`,
+    html: cinematicEmailHtml({
+      direction: "ltr",
+      eyebrow: "Automation alert",
+      title: input.title,
+      intro: "The website detected an automation issue that needs review.",
+      rows,
+      body: input.message,
+      tone: input.severity === "danger" ? "danger" : "warning",
+    }),
+  });
 }
 
 function escapeHtml(s: string) {

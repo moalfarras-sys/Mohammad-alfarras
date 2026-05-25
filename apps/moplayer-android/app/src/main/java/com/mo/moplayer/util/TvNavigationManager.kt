@@ -65,7 +65,7 @@ object TvNavigationManager {
         val viewId = prefs.getInt("$KEY_PREFIX_FOCUS$screenId", View.NO_ID)
         if (viewId != View.NO_ID) {
             val view = rootView.findViewById<View>(viewId)
-            if (view != null && view.isFocusable) {
+            if (view != null && view.isFocusable && view.isShown && view.isEnabled) {
                 val requested = view.requestFocus()
                 Log.d(TAG, "Restored focus for $screenId to id=$viewId success=$requested")
                 return requested
@@ -118,7 +118,7 @@ object TvNavigationManager {
     fun findFirstFocusableView(container: ViewGroup): View? {
         for (i in 0 until container.childCount) {
             val child = container.getChildAt(i)
-            if (child.isFocusable && child.visibility == View.VISIBLE) {
+            if (child.isFocusable && child.visibility == View.VISIBLE && child.isShown && child.isEnabled) {
                 return child
             }
             if (child is ViewGroup) {
@@ -156,7 +156,7 @@ object TvNavigationManager {
      * Handle global key events that should work across all screens
      * If rootView is provided, manager can attempt to recover missing focus.
      */
-    fun handleGlobalKeyEvent(keyCode: Int, event: KeyEvent, rootView: View? = null): Boolean {
+    fun handleGlobalKeyEvent(keyCode: Int, event: KeyEvent, rootView: View? = null, screenId: String? = null): Boolean {
         // If a DPAD key arrives but nothing is focused, try to restore initial focus
         try {
             if ((keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
@@ -165,8 +165,9 @@ object TvNavigationManager {
                 val focused = rootView.findFocus()
                 if (focused == null) {
                     if (rootView is ViewGroup) {
-                        requestInitialFocus(rootView.javaClass.simpleName, rootView)
-                        Log.d(TAG, "Recovered focus on DPAD key for view ${rootView.javaClass.simpleName}")
+                        val id = screenId ?: rootView.javaClass.simpleName
+                        requestInitialFocus(id, rootView)
+                        Log.d(TAG, "Recovered focus on DPAD key for $id")
                         return true
                     }
                 }

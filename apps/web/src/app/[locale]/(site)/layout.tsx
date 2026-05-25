@@ -6,6 +6,7 @@ import { DigitalOsClientEffects } from "@/components/layout/digital-os-client-ef
 import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
+import { SiteAssistantWidget } from "@/components/site/site-assistant-widget";
 import { getNavigation } from "@/content/navigation";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
@@ -210,6 +211,7 @@ export default async function SiteLayout({
 
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
         <main>{children}</main>
+        <SiteAssistantWidget locale={locale} />
         <CookieBanner locale={locale} />
         <SiteFooter
           locale={locale}

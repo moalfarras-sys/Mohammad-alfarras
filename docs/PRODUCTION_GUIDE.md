@@ -47,7 +47,7 @@ ckefrnalgnbuaxsuufyx
 Required migrations are in `supabase/migrations`. Production is expected to include migrations through:
 
 ```text
-018_release_artifact_metadata_sync.sql
+20260524033521_widget_provider_secret_storage.sql
 ```
 
 Use the Supabase service key only in server-side environments and local ignored files. Do not commit it.
@@ -158,6 +158,14 @@ Before deploy:
 - `/api/app/download/latest?product=moplayer`
 - `/api/app/download/latest?product=moplayer2`
 - Admin product switcher for releases, activation requests, devices, source queues, runtime config, and support.
+
+Current visible admin surface is intentionally simplified for production operation:
+
+- Website content, media, pages/SEO, services/projects, offers, and maintenance.
+- MoPlayer/MoPlayer Pro runtime, releases, product content, FAQ, and visual assets.
+- AI inbox and assistant/automation route health.
+
+Activation/device/license/source/support records may still exist in the database and API layer, but they are not part of the simplified visible admin workflow unless re-enabled deliberately.
 
 After deploy:
 

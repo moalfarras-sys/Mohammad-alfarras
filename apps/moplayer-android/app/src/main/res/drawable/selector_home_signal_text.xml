@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#22FFFFFF" />
+            <stroke
+                android:width="1.4dp"
+                android:color="@color/moplayer_orange_light" />
+            <corners android:radius="18dp" />
+            <padding
+                android:left="8dp"
+                android:top="3dp"
+                android:right="8dp"
+                android:bottom="3dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="18dp" />
+            <padding
+                android:left="8dp"
+                android:top="3dp"
+                android:right="8dp"
+                android:bottom="3dp" />
+        </shape>
+    </item>
+</selector>

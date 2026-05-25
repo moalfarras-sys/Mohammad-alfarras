@@ -6,7 +6,31 @@
     android:layout_height="match_parent"
     android:background="@color/cinematic_bg_base">
 
-    <!-- Netflix-style Backdrop Preview (behind content) -->
+    <!-- Animated Background (shows when no city wallpaper is selected) -->
+    <com.mo.moplayer.ui.widgets.AnimatedBackground
+        android:id="@+id/animatedBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- City wallpaper base layer. It stays stable below preview/poster ambience. -->
+    <ImageView
+        android:id="@+id/ivHomeCityWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        tools:ignore="ContentDescription" />
+
+    <View
+        android:id="@+id/homeWallpaperScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.55"
+        android:background="@drawable/bg_login_wallpaper_scrim"
+        android:visibility="gone" />
+
+    <!-- Poster preview ambience appears above the base wallpaper only while browsing content. -->
     <FrameLayout
         android:id="@+id/previewContainer"
         android:layout_width="match_parent"
@@ -20,7 +44,6 @@
             android:scaleType="centerCrop"
             tools:ignore="ContentDescription" />
 
-        <!-- Gradient Overlay for readability -->
         <View
             android:id="@+id/previewGradient"
             android:layout_width="match_parent"
@@ -29,12 +52,6 @@
             android:background="@drawable/bg_preview_gradient" />
 
     </FrameLayout>
-
-    <!-- Animated Background (shows when no preview) -->
-    <com.mo.moplayer.ui.widgets.AnimatedBackground
-        android:id="@+id/animatedBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
     <!-- Full-Screen Weather Overlay (particles and effects) -->
     <com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
@@ -51,134 +68,19 @@
         android:orientation="vertical">
 
         <!-- ═══════════════════════════════════════════
-             TOP BAR — Clean minimal with logo + actions
+             TOP SIGNALS — weather, match, subscription, clock
              ═══════════════════════════════════════════ -->
         <LinearLayout
-            android:id="@+id/topBar"
+            android:id="@+id/topSignalBar"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/top_bar_height"
+            android:layout_height="@dimen/home_top_signal_height"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingHorizontal="@dimen/screen_margin_horizontal"
-            android:paddingTop="@dimen/spacing_8">
-
-            <!-- Logo + Brand -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="@dimen/home_brand_logo_size"
-                    android:layout_height="@dimen/home_brand_logo_size"
-                    android:contentDescription="@string/cd_logo"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/moplayer_brand_logo_new" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="MoPlayer"
-                        android:textColor="@color/cinematic_text_primary"
-                        android:textSize="@dimen/home_brand_title_size"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:alpha="0.55"
-                        android:text="Premium TV"
-                        android:textColor="@color/moplayer_orange_light"
-                        android:textSize="@dimen/home_brand_tagline_size"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <!-- Surprise Me Button -->
-            <ImageButton
-                android:id="@+id/btnSurprise"
-                android:layout_width="@dimen/home_top_action_size"
-                android:layout_height="@dimen/home_top_action_size"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/selector_tv_button"
-                android:contentDescription="@string/surprise_me"
-                android:focusable="true"
-                android:tag="accent_icon"
-                android:src="@drawable/ic_shuffle"
-                android:nextFocusLeft="@id/btnSurprise"
-                android:nextFocusRight="@id/btnSearch"
-                android:nextFocusDown="@id/footballWidget"
-                app:tint="@color/moplayer_orange" />
-
-            <!-- Search Button -->
-            <ImageButton
-                android:id="@+id/btnSearch"
-                android:layout_width="@dimen/home_top_action_size"
-                android:layout_height="@dimen/home_top_action_size"
-                android:background="@drawable/selector_tv_button"
-                android:contentDescription="@string/search"
-                android:focusable="true"
-                android:tag="accent_icon"
-                android:src="@drawable/ic_search"
-                android:nextFocusLeft="@id/btnSurprise"
-                android:nextFocusRight="@id/btnSearch"
-                android:nextFocusDown="@id/weatherWidget" />
-
-            <!-- New Content Badge -->
-            <TextView
-                android:id="@+id/newContentBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/spacing_12"
-                android:alpha="0"
-                android:background="@drawable/bg_new_content_badge"
-                android:drawablePadding="@dimen/spacing_4"
-                android:gravity="center"
-                android:paddingHorizontal="@dimen/spacing_12"
-                android:paddingVertical="@dimen/spacing_8"
-                android:textColor="@color/cinematic_text_primary"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
-                android:visibility="gone"
-                tools:alpha="1"
-                tools:text="+5 new"
-                tools:visibility="visible" />
-
-        </LinearLayout>
-
-        <!-- ═══════════════════════════════════════════
-             WIDGET STRIP — Full-width premium widgets
-             ═══════════════════════════════════════════ -->
-        <LinearLayout
-            android:id="@+id/widgetStrip"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="@dimen/screen_margin_horizontal"
-            android:paddingTop="2dp"
-            android:paddingBottom="4dp"
+            android:paddingTop="@dimen/spacing_4"
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <!-- Weather Widget 3D — Larger and prominent -->
             <com.mo.moplayer.ui.widgets.Weather3DWidget
                 android:id="@+id/weatherWidget"
                 android:layout_width="@dimen/home_weather_widget_width"
@@ -187,10 +89,8 @@
                 android:focusable="true"
                 android:nextFocusLeft="@id/weatherWidget"
                 android:nextFocusRight="@id/footballWidget"
-                android:nextFocusUp="@id/btnSurprise"
-                android:nextFocusDown="@id/rvContent" />
+                android:nextFocusDown="@id/btnSearch" />
 
-            <!-- Football Match Widget — Larger and prominent -->
             <com.mo.moplayer.ui.widgets.FootballMatchWidget
                 android:id="@+id/footballWidget"
                 android:layout_width="0dp"
@@ -200,49 +100,171 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusLeft="@id/weatherWidget"
-                android:nextFocusRight="@id/flipClockContainer"
-                android:nextFocusUp="@id/btnSearch"
-                android:nextFocusDown="@id/rvContent" />
+                android:nextFocusRight="@id/serverExpiryWidget"
+                android:nextFocusDown="@id/btnSurprise" />
 
-            <!-- Flip Clock Widget — Modern glass clock -->
+            <TextView
+                android:id="@+id/serverExpiryWidget"
+                android:layout_width="@dimen/home_subscription_width"
+                android:layout_height="@dimen/home_widget_height"
+                android:layout_marginStart="@dimen/home_widget_gap"
+                android:background="@drawable/selector_home_signal_text"
+                android:clickable="true"
+                android:ellipsize="end"
+                android:focusable="true"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:maxLines="2"
+                android:nextFocusLeft="@id/footballWidget"
+                android:nextFocusRight="@id/flipClockContainer"
+                android:nextFocusDown="@id/btnSearch"
+                android:textColor="@color/cinematic_text_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Expires\n2026-06-01" />
+
             <FrameLayout
                 android:id="@+id/flipClockContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/home_clock_widget_height"
                 android:layout_marginStart="@dimen/home_widget_gap"
+                android:background="@drawable/selector_home_signal_text"
+                android:clickable="true"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusLeft="@id/footballWidget"
+                android:nextFocusLeft="@id/serverExpiryWidget"
                 android:nextFocusRight="@id/flipClockContainer"
-                android:nextFocusUp="@id/btnSearch"
-                android:nextFocusDown="@id/rvContent"
+                android:nextFocusDown="@id/btnSurprise"
                 android:foregroundGravity="center">
 
                 <include
                     android:id="@+id/flipClock"
                     layout="@layout/widget_flip_clock"
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
                     android:layout_gravity="center" />
             </FrameLayout>
-
         </LinearLayout>
+
+        <!-- Brand + remote-friendly actions -->
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/top_bar_height"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/screen_margin_horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/home_brand_logo_size"
+                android:layout_height="@dimen/home_brand_logo_size"
+                android:contentDescription="@string/cd_logo"
+                android:scaleType="fitCenter"
+                android:src="@drawable/moplayer_brand_logo_new" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MoPlayer"
+                    android:textColor="@color/cinematic_text_primary"
+                    android:textSize="@dimen/home_brand_title_size"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.55"
+                    android:text="Premium TV"
+                    android:textColor="@color/moplayer_orange_light"
+                    android:textSize="@dimen/home_brand_tagline_size"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnSearch"
+                android:layout_width="@dimen/home_top_action_size"
+                android:layout_height="@dimen/home_top_action_size"
+                android:layout_marginStart="18dp"
+                android:background="@drawable/selector_tv_button"
+                android:contentDescription="@string/search"
+                android:focusable="true"
+                android:tag="accent_icon"
+                android:src="@drawable/ic_search"
+                android:nextFocusLeft="@id/btnSurprise"
+                android:nextFocusRight="@id/btnSurprise"
+                android:nextFocusUp="@id/weatherWidget"
+                android:nextFocusDown="@id/newContentBadge" />
+
+            <ImageButton
+                android:id="@+id/btnSurprise"
+                android:layout_width="@dimen/home_top_action_size"
+                android:layout_height="@dimen/home_top_action_size"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/selector_tv_button"
+                android:contentDescription="@string/surprise_me"
+                android:focusable="true"
+                android:tag="accent_icon"
+                android:src="@drawable/ic_shuffle"
+                android:nextFocusLeft="@id/btnSearch"
+                android:nextFocusRight="@id/btnSearch"
+                android:nextFocusUp="@id/footballWidget"
+                android:nextFocusDown="@id/newContentBadge"
+                app:tint="@color/moplayer_orange" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- Notifications under brand/actions. -->
+        <TextView
+            android:id="@+id/newContentBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/home_notification_height"
+            android:layout_marginStart="@dimen/screen_margin_horizontal"
+            android:alpha="0"
+            android:background="@android:color/transparent"
+            android:drawablePadding="@dimen/spacing_4"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="0dp"
+            android:paddingVertical="0dp"
+            android:textColor="@color/moplayer_orange_light"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="gone"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnSearch"
+            android:nextFocusDown="@id/rvContent"
+            tools:alpha="1"
+            tools:text="+5 new"
+            tools:visibility="visible" />
 
         <!-- ═══════════════════════════════════════════
              PREVIEW INFO PANEL — Shows on content focus
              ═══════════════════════════════════════════ -->
         <LinearLayout
             android:id="@+id/previewInfoPanel"
-            android:layout_width="@dimen/preview_panel_width"
+            android:layout_width="320dp"
             android:layout_height="wrap_content"
             android:alpha="0"
-            android:background="@drawable/bg_premium_clean_panel"
             android:layout_gravity="end"
             android:layout_marginStart="@dimen/screen_margin_horizontal"
             android:layout_marginEnd="@dimen/screen_margin_horizontal"
+            android:gravity="end"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="14dp"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
             android:visibility="gone"
             tools:alpha="1"
             tools:visibility="visible">
@@ -253,12 +275,17 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
+                android:gravity="end"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="22sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0"
                 android:lineSpacingMultiplier="1.05"
+                android:shadowColor="#CC000000"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="8"
                 tools:text="The Dark Knight" />
 
             <LinearLayout
@@ -321,10 +348,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_12"
-                    android:background="@drawable/bg_type_badge"
-                    android:paddingHorizontal="@dimen/spacing_8"
-                    android:paddingVertical="2dp"
-                    android:textColor="@color/cinematic_text_primary"
+                    android:background="@android:color/transparent"
+                    android:paddingHorizontal="0dp"
+                    android:paddingVertical="0dp"
+                    android:textColor="@color/moplayer_orange"
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium"
@@ -411,7 +438,7 @@
             android:clipChildren="false"
             android:paddingTop="4dp"
             android:paddingBottom="@dimen/spacing_16"
-            android:nextFocusUp="@id/weatherWidget"
+            android:nextFocusUp="@id/btnSearch"
             android:nextFocusDown="@id/dockHome"
             android:descendantFocusability="afterDescendants"
             tools:listitem="@layout/item_content_row" />
@@ -428,11 +455,11 @@
         android:layout_gravity="bottom"
         android:layout_marginHorizontal="@dimen/dock_horizontal_margin"
         android:layout_marginBottom="@dimen/dock_bottom_margin"
-        android:background="@drawable/bg_cinematic_dock"
-        android:elevation="@dimen/spacing_8"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/spacing_8"
+        android:paddingHorizontal="0dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 

@@ -201,6 +201,7 @@
         android:paddingStart="@dimen/player_edge_padding"
         android:paddingEnd="@dimen/player_edge_padding"
         android:paddingBottom="22dp"
+        android:background="@drawable/bg_player_bottom_bar"
         android:visibility="gone"
         tools:visibility="visible">
 
@@ -477,9 +478,11 @@
 
     <FrameLayout
         android:id="@+id/loadingOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="156dp"
+        android:layout_height="156dp"
         android:layout_gravity="center"
+        android:background="@drawable/bg_dialog_premium"
+        android:padding="28dp"
         android:visibility="gone">
 
         <ProgressBar
@@ -490,7 +493,7 @@
 
     <LinearLayout
         android:id="@+id/errorOverlay"
-        android:layout_width="wrap_content"
+        android:layout_width="420dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:background="@drawable/bg_dialog_premium"
@@ -508,9 +511,11 @@
 
         <TextView
             android:id="@+id/tvErrorMessage"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
             android:textColor="@color/cinematic_text_primary"
             android:textSize="16sp"
             tools:text="Playback failed." />

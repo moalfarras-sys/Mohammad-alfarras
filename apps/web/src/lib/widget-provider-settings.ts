@@ -36,7 +36,7 @@ export async function readWidgetProviderSettings(): Promise<WidgetProviderSettin
   try {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
-      .from("app_settings")
+      .from("app_private_settings")
       .select("value")
       .eq("key", WIDGET_PROVIDER_SETTINGS_KEY)
       .maybeSingle();

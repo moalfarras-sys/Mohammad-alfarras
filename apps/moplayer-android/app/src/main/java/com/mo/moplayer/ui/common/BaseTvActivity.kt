@@ -133,6 +133,13 @@ abstract class BaseTvActivity : BaseThemedActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            getFocusRootView()?.let { root ->
+                if (TvNavigationManager.handleGlobalKeyEvent(event.keyCode, event, root, screenId)) {
+                    return true
+                }
+            }
+        }
         if (TvNavigationManager.enableKeyLogging) {
             Log.d(TAG, "dispatchKeyEvent key=${event.keyCode} action=${event.action}")
         }

@@ -120,15 +120,15 @@ class ContentItemAdapter(
             if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.ivPoster.context)) {
                 Glide.with(binding.ivPoster.context).clear(binding.ivPoster)
             }
-            binding.ivPoster.setImageDrawable(null)
+            showLogoFallback()
 
             if (!item.posterUrl.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.root.context)) {
                 Glide.with(binding.root.context)
                     .load(item.posterUrl)
                     .override(336, 504)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.ic_content_placeholder)
-                    .error(R.drawable.ic_content_placeholder)
+                    .placeholder(R.drawable.logo)
+                    .error(R.drawable.logo)
                     .centerCrop()
                     .addListener(object : RequestListener<Drawable> {
                         override fun onResourceReady(
@@ -138,6 +138,9 @@ class ContentItemAdapter(
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
+                            binding.ivPoster.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                            binding.ivPoster.setPadding(0, 0, 0, 0)
+                            binding.ivPoster.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                             return bindingAdapterPosition != position
                         }
                         override fun onLoadFailed(
@@ -147,12 +150,13 @@ class ContentItemAdapter(
                             isFirstResource: Boolean
                         ): Boolean {
                             android.util.Log.d("ContentThumb", "poster_load_failed id=${item.id}")
-                            return false
+                            showLogoFallback()
+                            return true
                         }
                     })
                     .into(binding.ivPoster)
             } else {
-                binding.ivPoster.setImageResource(R.drawable.ic_content_placeholder)
+                showLogoFallback()
             }
 
             binding.tvYear.visibility = View.GONE
@@ -223,6 +227,13 @@ class ContentItemAdapter(
                 }
                 animateFocus(hasFocus)
             }
+        }
+
+        private fun showLogoFallback() {
+            binding.ivPoster.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+            binding.ivPoster.setPadding(18, 18, 18, 18)
+            binding.ivPoster.setBackgroundColor(android.graphics.Color.parseColor("#061226"))
+            binding.ivPoster.setImageResource(R.drawable.logo)
         }
 
         private fun animateFocus(hasFocus: Boolean) {

@@ -47,6 +47,7 @@ import com.mo.moplayer.ui.common.ExitHelper
 import com.mo.moplayer.ui.common.design.TvCinematicTokens
 import com.mo.moplayer.util.BackgroundManager
 import com.mo.moplayer.util.CrashGuard
+import com.mo.moplayer.util.DevicePerformance
 import com.mo.moplayer.util.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -218,7 +219,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun applyRemoteConfigState(config: AppRemoteConfig) {
-        remoteWeatherEnabled = config.weatherEnabled
+        remoteWeatherEnabled = config.weatherEnabled && !shouldUseReducedLoginVisuals()
         binding.weatherWidget.visibility = if (remoteWeatherEnabled) View.VISIBLE else View.GONE
         parseRemoteAccentColor(config.accentColor)?.let { accentColor ->
             binding.htcAnimatedBackground.setParticleColor(accentColor)
@@ -301,11 +302,16 @@ class LoginActivity : AppCompatActivity() {
         }
         
         
-        // Initialize Weather Widget
-        binding.weatherWidget.initialize(weatherService)
-        binding.weatherWidget.isFocusable = false
-        binding.weatherWidget.isFocusableInTouchMode = false
-        binding.weatherWidget.isClickable = false
+        // Initialize Weather Widget only on capable devices; the old TV emulator shows
+        // continuous render jank when this compact widget keeps repainting.
+        if (reducedVisuals) {
+            binding.weatherWidget.visibility = View.GONE
+        } else {
+            binding.weatherWidget.initialize(weatherService)
+            binding.weatherWidget.isFocusable = false
+            binding.weatherWidget.isFocusableInTouchMode = false
+            binding.weatherWidget.isClickable = false
+        }
         
         // Setup Full Screen Weather Effects
         setupWeatherOverlay()
@@ -316,17 +322,23 @@ class LoginActivity : AppCompatActivity() {
             backgroundManager.cityWallpaperState.collect { state ->
                 val imagePath = state?.imagePath
                 val shouldShowWallpaper =
-                    !imagePath.isNullOrBlank() && !state.isFallback && backgroundManager.autoCityWallpaperEnabled.first()
+                    !imagePath.isNullOrBlank() &&
+                        java.io.File(imagePath).exists() &&
+                        backgroundManager.autoCityWallpaperEnabled.first()
 
                 if (shouldShowWallpaper) {
                     binding.ivLoginCityWallpaper.visibility = View.VISIBLE
                     binding.viewLoginWallpaperScrim.visibility = View.VISIBLE
-                    Glide.with(this@LoginActivity)
-                        .load(java.io.File(imagePath))
-                        .centerCrop()
-                        .into(binding.ivLoginCityWallpaper)
+                    if (binding.ivLoginCityWallpaper.tag != imagePath) {
+                        binding.ivLoginCityWallpaper.tag = imagePath
+                        Glide.with(this@LoginActivity)
+                            .load(java.io.File(imagePath))
+                            .centerCrop()
+                            .into(binding.ivLoginCityWallpaper)
+                    }
                 } else {
                     binding.ivLoginCityWallpaper.setImageDrawable(null)
+                    binding.ivLoginCityWallpaper.tag = null
                     binding.ivLoginCityWallpaper.visibility = View.GONE
                     binding.viewLoginWallpaperScrim.visibility = View.GONE
                 }
@@ -349,9 +361,9 @@ class LoginActivity : AppCompatActivity() {
             ) { enabled, quality, reduceMotion, disableLightning, weatherData ->
                 WeatherOverlayState(enabled, quality, reduceMotion, disableLightning, weatherData)
             }.collect { (enabled, quality, reduceMotion, disableLightning, weatherData) ->
-                val weatherVisible = enabled && remoteWeatherEnabled
-                binding.weatherWidget.visibility = if (weatherVisible) android.view.View.VISIBLE else android.view.View.GONE
                 val reducedVisuals = shouldUseReducedLoginVisuals()
+                val weatherVisible = enabled && remoteWeatherEnabled && !reducedVisuals
+                binding.weatherWidget.visibility = if (weatherVisible) android.view.View.VISIBLE else android.view.View.GONE
                 binding.weatherOverlay.visibility = when {
                     reducedVisuals -> android.view.View.GONE
                     !weatherVisible -> android.view.View.GONE
@@ -952,6 +964,18 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startEntranceAnimations() {
+        if (shouldUseReducedLoginVisuals()) {
+            binding.imgLogoClean.alpha = 1f
+            binding.imgLogoClean.scaleX = 1f
+            binding.imgLogoClean.scaleY = 1f
+            binding.imgLogoClean.translationX = 0f
+            binding.loginCardClean.alpha = 1f
+            binding.loginCardClean.translationX = 0f
+            binding.tvDeveloperCreditClean.alpha = 0.6f
+            binding.tvDeveloperCreditClean.translationY = 0f
+            return
+        }
+
         // 1. Logo Entrance with Slide, Scale, and Fade
         binding.imgLogoClean.alpha = 0f
         binding.imgLogoClean.scaleX = 0.85f
@@ -1344,6 +1368,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun animateButtonPress(view: View) {
+        if (shouldUseReducedLoginVisuals()) return
         view.animate()
             .scaleX(0.97f)
             .scaleY(0.97f)
@@ -1360,6 +1385,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun animateErrorShake() {
+        if (shouldUseReducedLoginVisuals()) return
         val shakeAnim = AnimationUtils.loadAnimation(this, R.anim.anim_shake_error)
         binding.tvErrorClean.startAnimation(shakeAnim)
     }
@@ -1416,7 +1442,9 @@ class LoginActivity : AppCompatActivity() {
 
     private fun shouldUseReducedLoginVisuals(): Boolean {
         val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
-        return activityManager?.isLowRamDevice == true || CrashGuard.shouldUseSafeMode(this)
+        return activityManager?.isLowRamDevice == true ||
+            DevicePerformance.isLow(this) ||
+            CrashGuard.shouldUseSafeMode(this)
     }
 
     @Deprecated("Deprecated in Java")

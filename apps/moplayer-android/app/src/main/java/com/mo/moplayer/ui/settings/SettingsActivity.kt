@@ -29,6 +29,9 @@ import com.mo.moplayer.util.PlayerPreferences
 import com.mo.moplayer.util.SmartRefreshManager
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.data.football.FootballService
+import com.mo.moplayer.data.update.AppUpdateInfo
+import com.mo.moplayer.data.update.UpdateInstallResult
+import com.mo.moplayer.data.update.UpdateRepository
 import com.mo.moplayer.data.weather.WeatherService
 import dagger.hilt.android.AndroidEntryPoint
 import android.app.AlertDialog
@@ -38,6 +41,7 @@ import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SwitchCompat
 import com.mo.moplayer.ui.common.utils.FocusMapRegistry
 import kotlinx.coroutines.Dispatchers
@@ -88,6 +92,8 @@ class SettingsActivity : BaseTvActivity() {
     private var lastPanelFocusId = mutableMapOf<SettingsPanel, Int>()
     private val panelRoots: MutableMap<SettingsPanel, View> = mutableMapOf()
     private var serverRefreshInFlight = false
+    private var updateInfo: AppUpdateInfo? = null
+    private var updateDownloadInFlight = false
     private val accentChipViews = mutableMapOf<View, Pair<ThemeManager.AppThemeId, ThemeManager.AccentId>>()
 
     private enum class SettingsPanel {
@@ -109,12 +115,19 @@ class SettingsActivity : BaseTvActivity() {
         setupPanelRegistry()
         setupCategoryRailFocus()
         setupSettingsInteractionPolish()
+        setupSettingsBackNavigation()
         observeViewModel()
 
         // Show server panel by default
         showPanel(SettingsPanel.SERVER)
-        binding.animatedBackground.pauseAnimation()
-        binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 240L)
+        if (backgroundManager.hasCityWallpaper()) {
+            binding.animatedBackground.setCurrentTheme(BackgroundManager.THEME_CITY_WALLPAPER)
+        } else {
+            binding.animatedBackground.pauseAnimation()
+        }
+        if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)) {
+            binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 240L)
+        }
     }
     
     override fun getAnimatedBackground() = binding.animatedBackground
@@ -158,7 +171,10 @@ class SettingsActivity : BaseTvActivity() {
             getString(R.string.about_version) + "\n\n" + getString(R.string.crash_guard_last_crash_short, crashSummary)
         }
 
-        // Hidden: long-press version to open Weather Debug/Preview.
+        // TV-accessible: version opens the Weather Lab because it was previously hidden behind long-press.
+        binding.tvVersion.setOnClickListener {
+            showWeatherDebugDialog()
+        }
         binding.tvVersion.setOnLongClickListener {
             showWeatherDebugDialog()
             true
@@ -184,6 +200,14 @@ class SettingsActivity : BaseTvActivity() {
             }
             FocusMapRegistry.mapVerticalChain(items)
         }
+    }
+
+    private fun setupSettingsBackNavigation() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                closeSettingsFromRemote()
+            }
+        })
     }
 
     private fun setupServerPanel() {
@@ -516,6 +540,15 @@ class SettingsActivity : BaseTvActivity() {
         lifecycleScope.launch {
             binding.switchParentalEnabled.isChecked = parentalLockManager.isParentalEnabled.first()
             binding.switchLockAdult.isChecked = parentalLockManager.isAdultContentLocked.first()
+            refreshParentalBlockedSummary()
+        }
+    }
+
+    private fun refreshParentalBlockedSummary() {
+        lifecycleScope.launch {
+            val serverId = viewModel.activeServer.value?.id
+            val count = parentalLockManager.blockedContentCount(serverId)
+            binding.tvParentalBlockedSummary.text = getString(R.string.parental_blocked_count, count)
         }
     }
 
@@ -567,9 +600,14 @@ class SettingsActivity : BaseTvActivity() {
         
         binding.switchAnimationEnabled.setOnCheckedChangeListener { _, isChecked ->
             lifecycleScope.launch {
-                tvUiPreferences.setAnimationsEnabled(isChecked)
-                backgroundManager.setAnimationEnabled(isChecked)
-                binding.animatedBackground.setAnimationEnabled(isChecked)
+                val allowed = isChecked && com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this@SettingsActivity)
+                tvUiPreferences.setAnimationsEnabled(allowed)
+                backgroundManager.setAnimationEnabled(allowed)
+                binding.animatedBackground.setAnimationEnabled(allowed)
+                if (!allowed && isChecked) {
+                    binding.switchAnimationEnabled.isChecked = false
+                    Toast.makeText(this@SettingsActivity, "Animations reduced automatically for this device.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -585,12 +623,27 @@ class SettingsActivity : BaseTvActivity() {
             }
         }
 
+        lifecycleScope.launch {
+            tvUiPreferences.backgroundBehavior.collect { behavior ->
+                binding.tvBackgroundBehaviorValue.text = when (behavior) {
+                    com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.STATIC ->
+                        getString(R.string.settings_background_behavior_static)
+                    com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.FOLLOW_PREVIEW ->
+                        getString(R.string.settings_background_behavior_follow_preview)
+                }
+            }
+        }
+
         binding.optionPosterSize.setOnClickListener {
             showPosterSizeDialog()
         }
 
         binding.optionLayoutStyle.setOnClickListener {
             showLayoutStyleDialog()
+        }
+
+        binding.optionBackgroundBehavior.setOnClickListener {
+            showBackgroundBehaviorDialog()
         }
 
         // Setup color chip click handlers
@@ -631,6 +684,29 @@ class SettingsActivity : BaseTvActivity() {
 
         binding.optionAutoCityWallpaper.setOnClickListener {
             binding.switchAutoCityWallpaper.toggle()
+        }
+        val useCityWallpaperClick = View.OnClickListener {
+            lifecycleScope.launch {
+                backgroundManager.setAutoCityWallpaperEnabled(true)
+                backgroundManager.setTheme(BackgroundManager.THEME_CITY_WALLPAPER)
+                binding.switchAutoCityWallpaper.isChecked = true
+                binding.tvBackgroundValue.text = backgroundManager.getThemeName(BackgroundManager.THEME_CITY_WALLPAPER)
+                binding.tvCityWallpaperStatus.setText(R.string.settings_weather_status_updating)
+                val result = backgroundManager.refreshCityWallpaper(force = true)
+                if (result.isSuccess) {
+                    binding.animatedBackground.reloadCityWallpaperIfAvailable()
+                }
+                binding.tvCityWallpaperStatus.text = result.fold(
+                    onSuccess = { state -> getString(R.string.settings_city_wallpaper_status_ready, state.cityName, state.source) },
+                    onFailure = { error -> getString(R.string.settings_update_failed, error.message ?: "") }
+                )
+                applyBackgroundSelectionImmediately(BackgroundManager.THEME_CITY_WALLPAPER)
+            }
+        }
+        binding.btnUseCityWallpaperTop.setOnClickListener(useCityWallpaperClick)
+        binding.btnUseCityWallpaper.setOnClickListener(useCityWallpaperClick)
+        binding.btnOpenWeatherLabTop.setOnClickListener {
+            showWeatherDebugDialog()
         }
 
         binding.switchAutoCityWallpaper.setOnCheckedChangeListener { _, isChecked ->
@@ -717,6 +793,10 @@ class SettingsActivity : BaseTvActivity() {
             binding.switchWeatherEnabled.toggle()
         }
 
+        binding.optionWeatherLab.setOnClickListener {
+            showWeatherDebugDialog()
+        }
+
         binding.optionWeatherEffectsQuality.setOnClickListener {
             binding.spinnerWeatherEffectsQuality.performClick()
         }
@@ -766,6 +846,13 @@ class SettingsActivity : BaseTvActivity() {
                         backgroundManager.setTheme(selected.first)
                         binding.tvBackgroundValue.text = selected.second
                         applyBackgroundSelectionImmediately(selected.first)
+                        if (selected.first == BackgroundManager.THEME_CITY_WALLPAPER) {
+                            backgroundManager.setAutoCityWallpaperEnabled(true)
+                            binding.switchAutoCityWallpaper.isChecked = true
+                            if (backgroundManager.refreshCityWallpaper(force = true).isSuccess) {
+                                binding.animatedBackground.reloadCityWallpaperIfAvailable()
+                            }
+                        }
                     }
                     d.dismiss()
                 }
@@ -784,7 +871,8 @@ class SettingsActivity : BaseTvActivity() {
             background.setCustomImage(null)
             background.setCurrentTheme(theme)
         }
-        val enabled = binding.switchAnimationEnabled.isChecked
+        val enabled = binding.switchAnimationEnabled.isChecked &&
+            com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)
         background.setAnimationEnabled(enabled)
         if (enabled) background.resumeAnimation() else background.pauseAnimation()
     }
@@ -813,9 +901,14 @@ class SettingsActivity : BaseTvActivity() {
 
         val tvPrecipLabel = dialogView.findViewById<TextView>(R.id.tvPrecipLabel)
         val seekPrecip = dialogView.findViewById<SeekBar>(R.id.seekPrecip)
+        val btnReset = dialogView.findViewById<android.widget.Button>(R.id.btnWeatherDebugReset)
+        val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnWeatherDebugCancel)
+        val btnApply = dialogView.findViewById<android.widget.Button>(R.id.btnWeatherDebugApply)
 
         val categories = WeatherService.WeatherCategory.entries.map { it.name }
-        spinnerCategory.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
+        spinnerCategory.adapter = ArrayAdapter(this, R.layout.item_spinner_compact, categories).apply {
+            setDropDownViewResource(R.layout.item_spinner_dropdown_premium)
+        }
 
         fun updateLabels() {
             val tempC = seekTemp.progress - 40
@@ -839,6 +932,20 @@ class SettingsActivity : BaseTvActivity() {
         seekHumidity.setOnSeekBarChangeListener(listener)
         seekCloud.setOnSeekBarChangeListener(listener)
         seekPrecip.setOnSeekBarChangeListener(listener)
+        mapWeatherDebugFocus(
+            switchEnabled,
+            spinnerCategory,
+            switchIsDay,
+            seekTemp,
+            seekWind,
+            seekWindDir,
+            seekHumidity,
+            seekCloud,
+            seekPrecip,
+            btnReset,
+            btnCancel,
+            btnApply
+        )
 
         // Prefill from current active weather (cached or debug), and current debug enable state.
         lifecycleScope.launch {
@@ -861,65 +968,88 @@ class SettingsActivity : BaseTvActivity() {
             updateLabels()
         }
 
-        val dialog = AlertDialog.Builder(this, R.style.AlertDialogTheme)
-            .setView(dialogView)
-            .setPositiveButton(R.string.weather_debug_apply, null)
-            .setNeutralButton(R.string.weather_debug_reset, null)
-            .setNegativeButton(R.string.cancel, null)
-            .create()
+        fun applyWeatherDebug(dialog: AlertDialog) {
+            lifecycleScope.launch {
+                val enabled = switchEnabled.isChecked
+                if (!enabled) {
+                    weatherService.setWeatherDebugEnabled(false)
+                    Toast.makeText(this@SettingsActivity, getString(R.string.weather_debug_disabled), Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                    return@launch
+                }
 
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                lifecycleScope.launch {
-                    val enabled = switchEnabled.isChecked
-                    if (!enabled) {
-                        weatherService.setWeatherDebugEnabled(false)
-                        Toast.makeText(this@SettingsActivity, getString(R.string.weather_debug_disabled), Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                        return@launch
-                    }
+                val categoryName = spinnerCategory.selectedItem as String
+                val category = runCatching { WeatherService.WeatherCategory.valueOf(categoryName) }
+                    .getOrDefault(WeatherService.WeatherCategory.CLEAR)
 
-                    val categoryName = spinnerCategory.selectedItem as String
-                    val category = runCatching { WeatherService.WeatherCategory.valueOf(categoryName) }
-                        .getOrDefault(WeatherService.WeatherCategory.CLEAR)
+                val tempC = seekTemp.progress - 40
+                val windKph = seekWind.progress.toDouble()
+                val windDegree = seekWindDir.progress
+                val humidity = seekHumidity.progress
+                val cloud = seekCloud.progress
+                val precipMm = seekPrecip.progress / 10.0
 
-                    val tempC = seekTemp.progress - 40
-                    val windKph = seekWind.progress.toDouble()
-                    val windDegree = seekWindDir.progress
-                    val humidity = seekHumidity.progress
-                    val cloud = seekCloud.progress
-                    val precipMm = seekPrecip.progress / 10.0
-
-                    weatherService.applyWeatherDebugOverride(
-                        WeatherService.WeatherDebugOverride(
-                            category = category,
-                            isDay = switchIsDay.isChecked,
-                            temperature = tempC,
-                            feelsLike = tempC, // keep simple; UI shows same unless you want separate slider
-                            humidity = humidity,
-                            windSpeedKph = windKph,
-                            windDegree = windDegree,
-                            gustSpeedKph = (windKph * 1.4).coerceAtMost(160.0),
-                            precipMm = precipMm,
-                            cloud = cloud
-                        )
+                weatherService.applyWeatherDebugOverride(
+                    WeatherService.WeatherDebugOverride(
+                        category = category,
+                        isDay = switchIsDay.isChecked,
+                        temperature = tempC,
+                        feelsLike = tempC,
+                        humidity = humidity,
+                        windSpeedKph = windKph,
+                        windDegree = windDegree,
+                        gustSpeedKph = (windKph * 1.4).coerceAtMost(160.0),
+                        precipMm = precipMm,
+                        cloud = cloud
                     )
+                )
 
-                    Toast.makeText(this@SettingsActivity, getString(R.string.weather_debug_applied), Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                }
-            }
-
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-                lifecycleScope.launch {
-                    weatherService.clearWeatherDebugOverride()
-                    Toast.makeText(this@SettingsActivity, getString(R.string.weather_debug_reset_done), Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                }
+                Toast.makeText(this@SettingsActivity, getString(R.string.weather_debug_applied), Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
             }
         }
 
+        fun resetWeatherDebug(dialog: AlertDialog) {
+            lifecycleScope.launch {
+                weatherService.clearWeatherDebugOverride()
+                Toast.makeText(this@SettingsActivity, getString(R.string.weather_debug_reset_done), Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setView(dialogView)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            dialog.window?.setLayout(
+                (resources.displayMetrics.widthPixels * 0.78f).toInt(),
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            btnApply.setOnClickListener { applyWeatherDebug(dialog) }
+            btnReset.setOnClickListener { resetWeatherDebug(dialog) }
+            btnCancel.setOnClickListener { dialog.dismiss() }
+            switchEnabled.requestFocus()
+        }
+
         dialog.show()
+    }
+
+    private fun mapWeatherDebugFocus(vararg views: View) {
+        views.forEachIndexed { index, view ->
+            view.isFocusable = true
+            view.isFocusableInTouchMode = false
+            view.nextFocusUpId = views.getOrNull(index - 1)?.id ?: view.id
+            view.nextFocusDownId = views.getOrNull(index + 1)?.id ?: view.id
+            view.setOnFocusChangeListener { focusedView, hasFocus ->
+                focusedView.animate()
+                    .scaleX(if (hasFocus) 1.015f else 1f)
+                    .scaleY(if (hasFocus) 1.015f else 1f)
+                    .setDuration(120L)
+                    .start()
+            }
+        }
     }
     
     private fun updateDetectedLocation() {
@@ -1270,6 +1400,23 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun setupAboutPanel() {
+        val updateRepo = UpdateRepository(this)
+        binding.btnCheckAppUpdate.setOnClickListener {
+            checkLatestAppUpdate(updateRepo, manual = true)
+        }
+        binding.btnServerCheckAppUpdate.setOnClickListener {
+            checkLatestAppUpdate(updateRepo, manual = true)
+        }
+        binding.btnOpenAppDownload.setOnClickListener {
+            val info = updateInfo ?: AppUpdateInfo()
+            updateRepo.openDownloadInBrowser(info)
+        }
+        binding.btnServerOpenAppDownload.setOnClickListener {
+            val info = updateInfo ?: AppUpdateInfo()
+            updateRepo.openDownloadInBrowser(info)
+        }
+        checkLatestAppUpdate(updateRepo, manual = false)
+
         // WhatsApp button
         binding.btnWhatsApp?.setOnClickListener {
             openWhatsApp()
@@ -1282,6 +1429,73 @@ class SettingsActivity : BaseTvActivity() {
 
         binding.btnWebsite?.setOnClickListener {
             openWebsite("https://moalfarras.space/apps/moplayer")
+        }
+    }
+
+    private fun checkLatestAppUpdate(repo: UpdateRepository, manual: Boolean) {
+        if (updateDownloadInFlight) return
+        binding.tvAppUpdateStatus.setText(R.string.settings_app_update_checking)
+        lifecycleScope.launch {
+            val info = repo.fetchUpdateInfo()
+            updateInfo = info
+            val statusText = if (info.updateAvailable) {
+                getString(R.string.settings_app_update_available, info.latestVersionName, info.latestVersionCode)
+            } else {
+                getString(R.string.settings_app_update_current, info.latestVersionName)
+            }
+            binding.tvAppUpdateStatus.text = statusText
+            binding.tvServerAppUpdateStatus.text = statusText
+            val notes = info.releaseNotes.ifBlank { info.downloadUrl }
+            binding.tvAppUpdateNotes.text = notes
+            binding.tvServerAppUpdateNotes.text = notes
+            val buttonText = if (info.updateAvailable) {
+                getString(R.string.settings_app_update_install)
+            } else {
+                getString(R.string.settings_app_update_reinstall)
+            }
+            binding.btnCheckAppUpdate.text = buttonText
+            binding.btnServerCheckAppUpdate.text = buttonText
+            if (manual) {
+                startSettingsUpdateDownload(repo, info)
+            }
+        }
+    }
+
+    private fun startSettingsUpdateDownload(repo: UpdateRepository, info: AppUpdateInfo) {
+        if (updateDownloadInFlight) return
+        updateDownloadInFlight = true
+        binding.btnCheckAppUpdate.isEnabled = false
+        binding.btnServerCheckAppUpdate.isEnabled = false
+        binding.tvAppUpdateStatus.setText(R.string.update_downloading)
+        binding.tvServerAppUpdateStatus.setText(R.string.update_downloading)
+        lifecycleScope.launch {
+            val result = repo.downloadAndOpenInstaller(info) { progress ->
+                runOnUiThread {
+                    val progressText = getString(R.string.settings_app_update_progress, progress)
+                    binding.tvAppUpdateStatus.text = progressText
+                    binding.tvServerAppUpdateStatus.text = progressText
+                }
+            }
+            updateDownloadInFlight = false
+            binding.btnCheckAppUpdate.isEnabled = true
+            binding.btnServerCheckAppUpdate.isEnabled = true
+            when (result) {
+                UpdateInstallResult.InstallerOpened -> {
+                    binding.tvAppUpdateStatus.setText(R.string.settings_app_update_installer_opened)
+                    binding.tvServerAppUpdateStatus.setText(R.string.settings_app_update_installer_opened)
+                }
+                UpdateInstallResult.InstallPermissionRequired -> {
+                    binding.tvAppUpdateStatus.setText(R.string.update_permission_required)
+                    binding.tvServerAppUpdateStatus.setText(R.string.update_permission_required)
+                    Toast.makeText(this@SettingsActivity, R.string.update_permission_required, Toast.LENGTH_LONG).show()
+                }
+                is UpdateInstallResult.Failed -> {
+                    val errorText = getString(R.string.update_failed, result.message)
+                    binding.tvAppUpdateStatus.text = errorText
+                    binding.tvServerAppUpdateStatus.text = errorText
+                    Toast.makeText(this@SettingsActivity, getString(R.string.update_failed, result.message), Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
     
@@ -1453,13 +1667,7 @@ class SettingsActivity : BaseTvActivity() {
         }
         
         // Otherwise, focus on first element in panel
-        val firstFocusable = when (panel) {
-            SettingsPanel.SERVER -> binding.btnRefreshServer
-            SettingsPanel.PLAYER -> binding.optionPlayerSelection
-            SettingsPanel.PARENTAL -> binding.optionParentalEnabled
-            SettingsPanel.INTERFACE -> binding.optionBackground
-            SettingsPanel.ABOUT -> binding.btnWhatsApp
-        }
+        val firstFocusable = getPanelPreferredFirstFocusable(panel)
         firstFocusable?.requestFocus()
     }
 
@@ -1501,13 +1709,15 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun getPanelPreferredFirstFocusable(panel: SettingsPanel): View? {
-        return when (panel) {
+        val preferred = when (panel) {
             SettingsPanel.SERVER -> binding.btnRefreshServer
             SettingsPanel.PLAYER -> binding.optionPlayerSelection
             SettingsPanel.PARENTAL -> binding.optionParentalEnabled
             SettingsPanel.INTERFACE -> binding.optionBackground
             SettingsPanel.ABOUT -> binding.btnWhatsApp
         }
+        if (preferred.visibility == View.VISIBLE && preferred.isEnabled && preferred.isFocusable) return preferred
+        return collectVisibleFocusableViews(getCurrentPanelView()).firstOrNull { it.isEnabled }
     }
 
     private fun collectVisibleFocusableViews(root: View): List<View> {
@@ -1712,9 +1922,7 @@ class SettingsActivity : BaseTvActivity() {
         if (event?.action != KeyEvent.ACTION_DOWN) return false
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP,
-            KeyEvent.KEYCODE_DPAD_DOWN,
-            KeyEvent.KEYCODE_DPAD_LEFT,
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (currentFocus == null) {
                     restorePanelFocus(currentPanel, getCurrentPanelView())
                     return true
@@ -1743,12 +1951,23 @@ class SettingsActivity : BaseTvActivity() {
                     }
                     return true
                 }
-                if (maybeHandleExitOnBack()) return true
-                finish()
+                closeSettingsFromRemote()
                 return true
             }
         }
         return false
+    }
+
+    private fun closeSettingsFromRemote() {
+        if (!isTaskRoot) {
+            finish()
+            return
+        }
+        val intent = Intent(this, com.mo.moplayer.ui.home.HomeActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        startActivity(intent)
+        finish()
     }
     
     private fun handleLeftKey(): Boolean {
@@ -1906,6 +2125,30 @@ class SettingsActivity : BaseTvActivity() {
         }
     }
 
+    private fun showBackgroundBehaviorDialog() {
+        val labels = arrayOf(
+            getString(R.string.settings_background_behavior_static),
+            getString(R.string.settings_background_behavior_follow_preview)
+        )
+        val values = com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.entries.toTypedArray()
+        lifecycleScope.launch {
+            val current = tvUiPreferences.backgroundBehavior.first()
+            val currentIndex = values.indexOf(current).coerceAtLeast(0)
+            val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
+                .setTitle(R.string.settings_background_behavior_title)
+                .setSingleChoiceItems(labels, currentIndex) { d, which ->
+                    lifecycleScope.launch {
+                        tvUiPreferences.setBackgroundBehavior(values[which])
+                    }
+                    d.dismiss()
+                }
+                .setNegativeButton(R.string.cancel) { d, _ -> d.dismiss() }
+                .create()
+            dialog.setOnShowListener { applyDialogListFocusStyle(dialog) }
+            dialog.show()
+        }
+    }
+
     private fun updateAllAccentChipVisuals(selectedAccent: ThemeManager.AccentId) {
         accentChipViews.forEach { (view, selection) ->
             updateAccentChipVisual(view, selection.second, view.hasFocus(), selection.second == selectedAccent)
@@ -1957,7 +2200,14 @@ class SettingsActivity : BaseTvActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.animatedBackground.resumeAnimation()
+        if (backgroundManager.hasCityWallpaper()) {
+            binding.animatedBackground.setCurrentTheme(BackgroundManager.THEME_CITY_WALLPAPER)
+            binding.animatedBackground.pauseAnimation()
+        } else if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)) {
+            binding.animatedBackground.resumeAnimation()
+        } else {
+            binding.animatedBackground.pauseAnimation()
+        }
     }
 
     override fun onPause() {

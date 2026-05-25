@@ -129,7 +129,24 @@ class IpLocationService @Inject constructor(
             Result.success(locationData)
         } catch (e: Exception) {
             e.printStackTrace()
-            Result.failure(e)
+            val fallback = LocationData(
+                latitude = 52.52,
+                longitude = 13.405,
+                city = "Berlin",
+                country = "Germany",
+                region = "Berlin",
+                timezone = "Europe/Berlin"
+            )
+            context.locationDataStore.edit { prefs ->
+                prefs[LATITUDE_PREF] = fallback.latitude
+                prefs[LONGITUDE_PREF] = fallback.longitude
+                prefs[CITY_PREF] = fallback.city
+                prefs[COUNTRY_PREF] = fallback.country
+                prefs[REGION_PREF] = fallback.region
+                prefs[TIMEZONE_PREF] = fallback.timezone
+                prefs[LAST_UPDATE_PREF] = System.currentTimeMillis().toString()
+            }
+            Result.success(fallback)
         }
     }
     

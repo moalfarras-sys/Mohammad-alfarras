@@ -7,16 +7,15 @@
     android:orientation="horizontal"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:paddingVertical="4dp"
-    android:paddingHorizontal="6dp"
-    android:background="@drawable/bg_widget_clock_premium">
+    android:paddingVertical="0dp"
+    android:paddingHorizontal="0dp"
+    android:background="@android:color/transparent">
 
     <!-- Hour Digit 1 -->
     <FrameLayout
         android:layout_width="@dimen/flip_clock_digit_width"
         android:layout_height="@dimen/flip_clock_digit_height"
-        android:background="@drawable/bg_flip_digit_premium"
-        android:elevation="4dp">
+        android:background="@android:color/transparent">
 
         <TextView
             android:id="@+id/tvHour1"
@@ -37,8 +36,7 @@
         android:layout_width="@dimen/flip_clock_digit_width"
         android:layout_height="@dimen/flip_clock_digit_height"
         android:layout_marginStart="@dimen/spacing_2"
-        android:background="@drawable/bg_flip_digit_premium"
-        android:elevation="4dp">
+        android:background="@android:color/transparent">
 
         <TextView
             android:id="@+id/tvHour2"
@@ -70,8 +68,7 @@
     <FrameLayout
         android:layout_width="@dimen/flip_clock_digit_width"
         android:layout_height="@dimen/flip_clock_digit_height"
-        android:background="@drawable/bg_flip_digit_premium"
-        android:elevation="4dp">
+        android:background="@android:color/transparent">
 
         <TextView
             android:id="@+id/tvMinute1"
@@ -92,8 +89,7 @@
         android:layout_width="@dimen/flip_clock_digit_width"
         android:layout_height="@dimen/flip_clock_digit_height"
         android:layout_marginStart="@dimen/spacing_2"
-        android:background="@drawable/bg_flip_digit_premium"
-        android:elevation="4dp">
+        android:background="@android:color/transparent">
 
         <TextView
             android:id="@+id/tvMinute2"

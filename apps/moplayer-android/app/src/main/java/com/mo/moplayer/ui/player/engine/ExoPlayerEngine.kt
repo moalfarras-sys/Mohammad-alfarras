@@ -6,6 +6,8 @@ import android.view.TextureView
 import android.view.View
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.LiveConfiguration
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
@@ -17,6 +19,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
+import com.mo.moplayer.util.DevicePerformance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,12 +51,14 @@ class ExoPlayerEngine(
         setParameters(buildUponParameters().setAllowVideoMixedDecoderSupportAdaptiveness(true))
     }
 
+    private val performanceTier = DevicePerformance.tier(appContext)
+
     private val loadControl: LoadControl = DefaultLoadControl.Builder()
         .setBufferDurationsMs(
-            if (isLive) 1500 else 5000,   // minBufferMs
-            if (isLive) 5000 else 50000,  // maxBufferMs
-            if (isLive) 1000 else 2500,   // bufferForPlaybackMs
-            if (isLive) 2000 else 5000    // bufferForPlaybackAfterRebufferMs
+            if (isLive) liveMinBufferMs() else vodMinBufferMs(),
+            if (isLive) liveMaxBufferMs() else 50_000,
+            if (isLive) livePlaybackBufferMs() else 2_500,
+            if (isLive) liveRebufferMs() else 5_000
         )
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
@@ -65,6 +70,9 @@ class ExoPlayerEngine(
         .setSeekForwardIncrementMs(10_000)
         .build()
         .apply {
+            if (isLive) {
+                setPlaybackSpeed(1.0f)
+            }
             addListener(PlayerListener())
         }
 
@@ -88,9 +96,7 @@ class ExoPlayerEngine(
         val lower = url.lowercase()
         return lower.startsWith("http://") ||
             lower.startsWith("https://") ||
-            lower.startsWith("rtmp://") ||
-            lower.startsWith("udp://") ||
-            lower.startsWith("rtp://") ||
+            lower.startsWith("rtsp://") ||
             lower.startsWith("file://")
     }
 
@@ -110,7 +116,28 @@ class ExoPlayerEngine(
     }
 
     override fun play(url: String, title: String, startPositionMs: Long) {
-        val mediaItem = MediaItem.fromUri(url)
+        val lower = url.lowercase()
+        val builder = MediaItem.Builder().setUri(url)
+        when {
+            lower.contains(".m3u8") || lower.contains("type=m3u") -> builder.setMimeType(MimeTypes.APPLICATION_M3U8)
+            lower.contains(".mpd") -> builder.setMimeType(MimeTypes.APPLICATION_MPD)
+            lower.contains(".ism") || (lower.contains("manifest") && lower.contains("smooth")) ->
+                builder.setMimeType(MimeTypes.APPLICATION_SS)
+            lower.startsWith("rtsp://") -> builder.setMimeType(MimeTypes.APPLICATION_RTSP)
+            lower.endsWith(".ts") || lower.contains("output=ts") -> builder.setMimeType(MimeTypes.VIDEO_MP2T)
+        }
+        if (isLive) {
+            builder.setLiveConfiguration(
+                LiveConfiguration.Builder()
+                    .setTargetOffsetMs(liveTargetOffsetMs())
+                    .setMinOffsetMs(1_000)
+                    .setMaxOffsetMs(liveMaxBufferMs().toLong())
+                    .setMinPlaybackSpeed(0.97f)
+                    .setMaxPlaybackSpeed(1.03f)
+                    .build()
+            )
+        }
+        val mediaItem = builder.build()
         exoPlayer.setMediaItem(mediaItem, startPositionMs.coerceAtLeast(0))
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
@@ -193,8 +220,7 @@ class ExoPlayerEngine(
             PlayerEngine.ScaleMode.CENTER_CROP -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             PlayerEngine.ScaleMode.ORIGINAL -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
         }
-        // If a PlayerView wrapper exists, set it there; otherwise this is a no-op.
-        // The caller (PlayerActivity) can also apply the mode to its own surface layout.
+        (attachedView as? PlayerView)?.resizeMode = resizeMode
     }
 
     override val audioTracks: List<PlayerEngine.TrackInfo>
@@ -217,6 +243,42 @@ class ExoPlayerEngine(
             }
         }
         return list
+    }
+
+    private fun liveMinBufferMs(): Int = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> 2_500
+        DevicePerformance.Tier.MEDIUM -> 2_000
+        DevicePerformance.Tier.HIGH -> 1_500
+    }
+
+    private fun liveMaxBufferMs(): Int = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> 9_000
+        DevicePerformance.Tier.MEDIUM -> 7_000
+        DevicePerformance.Tier.HIGH -> 5_000
+    }
+
+    private fun livePlaybackBufferMs(): Int = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> 1_400
+        DevicePerformance.Tier.MEDIUM -> 1_100
+        DevicePerformance.Tier.HIGH -> 800
+    }
+
+    private fun liveRebufferMs(): Int = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> 2_500
+        DevicePerformance.Tier.MEDIUM -> 2_000
+        DevicePerformance.Tier.HIGH -> 1_500
+    }
+
+    private fun liveTargetOffsetMs(): Long = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> 4_500L
+        DevicePerformance.Tier.MEDIUM -> 3_500L
+        DevicePerformance.Tier.HIGH -> 2_500L
+    }
+
+    private fun vodMinBufferMs(): Int = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> 8_000
+        DevicePerformance.Tier.MEDIUM -> 6_000
+        DevicePerformance.Tier.HIGH -> 5_000
     }
 
     override fun addCallback(callback: PlayerEngine.Callback) {

@@ -29,6 +29,7 @@ import com.mo.moplayer.databinding.ActivityLiveTvBinding
 import com.mo.moplayer.ui.common.BaseTvActivity
 import com.mo.moplayer.ui.common.ContentMenuDetails
 import com.mo.moplayer.ui.common.ContentMenuHelper
+import com.mo.moplayer.util.DevicePerformance
 import com.mo.moplayer.util.PlayerLauncher
 import com.mo.moplayer.ui.livetv.adapters.ChannelTiviMateAdapter
 import com.mo.moplayer.ui.livetv.adapters.GroupAdapter
@@ -118,8 +119,11 @@ class LiveTvActivity : BaseTvActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        performanceTier = DevicePerformance.tier(this)
         binding = ActivityLiveTvBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.vlcVideoLayout.visibility = View.GONE
+        binding.liveIdleBackdrop.visibility = View.VISIBLE
 
         initAnimations()
         setupGroupList()
@@ -147,7 +151,9 @@ class LiveTvActivity : BaseTvActivity() {
         vlcBufferMs = playerPreferences.bufferSize.first()
         vlcHardwareAccelerationEnabled = playerPreferences.hardwareAcceleration.first()
         vlcPlaybackProfile = playerPreferences.playbackProfile.first()
-        isPreviewEnabled = playerPreferences.livePreviewEnabled.first() && !api24SafePlayerMode
+        isPreviewEnabled = playerPreferences.livePreviewEnabled.first() &&
+            !api24SafePlayerMode &&
+            performanceTier != DevicePerformance.Tier.LOW
     }
 
     private fun initAnimations() {
@@ -228,6 +234,7 @@ class LiveTvActivity : BaseTvActivity() {
     private var lastChannelSwitchStartedAtMs = 0L
     private var decoderFallbackCount = 0
     private var channelSwitchCount = 0
+    private lateinit var performanceTier: DevicePerformance.Tier
 
     private var mainViewsAttached = false
     private var previewViewsAttached = false
@@ -254,8 +261,7 @@ class LiveTvActivity : BaseTvActivity() {
 
             // Avoid aggressive thread counts on emulator.
             val cpuCores = Runtime.getRuntime().availableProcessors()
-            val dynamicThreadCount =
-                    if (isEmulator) cpuCores.coerceIn(2, 4) else (cpuCores * 2).coerceIn(6, 16)
+            val dynamicThreadCount = adaptiveDecoderThreads(cpuCores, isEmulator)
 
             val codecOption =
                     if (vlcHardwareAccelerationEnabled) {
@@ -405,6 +411,8 @@ class LiveTvActivity : BaseTvActivity() {
                             when (event.type) {
                                 MediaPlayer.Event.Playing -> {
                                     hasStartedPlayback = true
+                                    binding.vlcVideoLayout.visibility = View.VISIBLE
+                                    binding.liveIdleBackdrop.visibility = View.GONE
                                     setLoadingOverlayVisible(false)
                                     binding.networkErrorView.hide()
                                     retryCount = 0
@@ -598,7 +606,7 @@ class LiveTvActivity : BaseTvActivity() {
      * default)
      */
     private fun startVideoPreview(channel: ChannelEntity) {
-        if (!isPreviewEnabled) {
+        if (!isPreviewEnabled || performanceTier == DevicePerformance.Tier.LOW) {
             stopVideoPreview()
             return
         }
@@ -801,21 +809,58 @@ class LiveTvActivity : BaseTvActivity() {
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
 
+        val tierAdjustedBase = (vlcBufferMs * DevicePerformance.bufferMultiplier(this)).toInt()
         return when {
-            capabilities == null -> vlcBufferMs * 2 // No connection info, use maximum buffer
+            capabilities == null -> tierAdjustedBase * 2 // No connection info, use maximum buffer
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ->
-                    vlcBufferMs // Best connection
+                    tierAdjustedBase // Best connection
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ->
-                    vlcBufferMs // Good connection
+                    tierAdjustedBase // Good connection
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
                 // Check for metered connection (mobile data)
                 if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)) {
-                    (vlcBufferMs * 1.25).toInt() // Unlimited mobile, slight increase
+                    (tierAdjustedBase * 1.25).toInt() // Unlimited mobile, slight increase
                 } else {
-                    (vlcBufferMs * 1.5).toInt() // Metered mobile, increase buffer
+                    (tierAdjustedBase * 1.5).toInt() // Metered mobile, increase buffer
                 }
             }
-            else -> vlcBufferMs * 2 // Unknown connection, use maximum buffer
+            else -> tierAdjustedBase * 2 // Unknown connection, use maximum buffer
+        }
+    }
+
+    private fun adaptiveDecoderThreads(cpuCores: Int, isEmulator: Boolean): Int {
+        return when {
+            isEmulator -> cpuCores.coerceIn(2, 4)
+            performanceTier == DevicePerformance.Tier.LOW -> cpuCores.coerceIn(2, 4)
+            performanceTier == DevicePerformance.Tier.MEDIUM -> (cpuCores + 2).coerceIn(4, 8)
+            else -> (cpuCores * 2).coerceIn(8, 16)
+        }
+    }
+
+    private fun stableLiveCachingMs(baseMs: Int, isEmulator: Boolean): Int {
+        return when {
+            isEmulator -> baseMs.coerceIn(1_500, 4_500)
+            api24SafePlayerMode -> baseMs.coerceIn(5_500, 10_000)
+            performanceTier == DevicePerformance.Tier.LOW -> baseMs.coerceIn(4_500, 9_000)
+            performanceTier == DevicePerformance.Tier.MEDIUM -> baseMs.coerceIn(3_500, 8_000)
+            else -> baseMs.coerceIn(2_500, 7_000)
+        }
+    }
+
+    private fun playbackSkipOptions(): Pair<Int, Int> {
+        return when {
+            performanceTier == DevicePerformance.Tier.LOW -> 1 to 1
+            vlcPlaybackProfile == PlayerPreferences.PLAYBACK_PROFILE_QUALITY -> -1 to -1
+            vlcPlaybackProfile == PlayerPreferences.PLAYBACK_PROFILE_PERFORMANCE -> 1 to 1
+            else -> 0 to 0
+        }
+    }
+
+    private fun prefetchBufferBytes(isEmulator: Boolean): Int {
+        return when {
+            isEmulator || performanceTier == DevicePerformance.Tier.LOW -> 2_097_152
+            performanceTier == DevicePerformance.Tier.MEDIUM -> 4_194_304
+            else -> 6_291_456
         }
     }
 
@@ -871,10 +916,7 @@ class LiveTvActivity : BaseTvActivity() {
                                     {
                                         if (channelAdapter.itemCount > 0) {
                                             binding.rvChannels.scrollToPosition(0)
-                                            binding.rvChannels
-                                                    .findViewHolderForAdapterPosition(0)
-                                                    ?.itemView
-                                                    ?.requestFocus()
+                                            focusRecyclerChild(binding.rvChannels, 0, R.id.channelContainer)
                                         }
                                     },
                                     150
@@ -1092,7 +1134,7 @@ class LiveTvActivity : BaseTvActivity() {
 
             if (overlayVisible && !binding.rvGroups.hasFocus() && !binding.rvChannels.hasFocus()) {
                 binding.rvGroups.post {
-                    binding.rvGroups.getChildAt(0)?.requestFocus()
+                    focusRecyclerChild(binding.rvGroups, 0, R.id.groupContainer)
                 }
             }
         }
@@ -1122,7 +1164,7 @@ class LiveTvActivity : BaseTvActivity() {
                 val safeIdx = (viewModel.filteredChannelIndex.value ?: 0).coerceIn(0, channels.lastIndex)
                 binding.rvChannels.post {
                     binding.rvChannels.scrollToPosition(safeIdx)
-                    binding.rvChannels.findViewHolderForAdapterPosition(safeIdx)?.itemView?.requestFocus()
+                    focusRecyclerChild(binding.rvChannels, safeIdx, R.id.channelContainer)
                 }
             }
         }
@@ -1199,6 +1241,7 @@ class LiveTvActivity : BaseTvActivity() {
             lastChannelSwitchStartedAtMs = SystemClock.uptimeMillis()
             currentChannel = channel
             binding.loadingOverlay.visibility = View.VISIBLE
+            binding.liveIdleBackdrop.visibility = View.VISIBLE
             hasStartedPlayback = false
             binding.networkErrorView.hide()
 
@@ -1232,35 +1275,31 @@ class LiveTvActivity : BaseTvActivity() {
             val isEmulator = isRunningOnEmulator()
             // Dynamic thread count for 4K/8K performance
             val cpuCores = Runtime.getRuntime().availableProcessors()
-            val dynamicThreads =
-                    if (isEmulator) cpuCores.coerceIn(2, 4) else (cpuCores * 2).coerceIn(6, 16)
+            val dynamicThreads = adaptiveDecoderThreads(cpuCores, isEmulator)
 
             // Use adaptive buffering based on network type for smooth 4K/8K streaming
             val adaptiveBuffer = getAdaptiveBufferMs()
-            val cachingMs =
-                    if (isEmulator) adaptiveBuffer.coerceIn(1200, 4500)
-                    else adaptiveBuffer.coerceIn(2500, 12000)
+            val cachingMs = stableLiveCachingMs(adaptiveBuffer, isEmulator)
             media.addOption(":network-caching=$cachingMs")
             media.addOption(":live-caching=$cachingMs")
             media.addOption(":file-caching=$cachingMs")
 
-            // 4K/8K quality support options with dynamic threading
             media.addOption(":avcodec-fast")
             if (vlcHardwareAccelerationEnabled) {
                 media.addOption(":avcodec-hw=any") // Use hardware decoder when available
             }
-            media.addOption(":avcodec-threads=$dynamicThreads") // Dynamic threads for 4K/8K
+            media.addOption(":avcodec-threads=$dynamicThreads")
 
-            // Quality preservation options for high-resolution streams
-            media.addOption(":avcodec-skip-frame=0") // Don't skip frames for quality
-            media.addOption(":avcodec-skip-idct=0") // Don't skip IDCT for quality
+            val (skipFrame, skipIdct) = playbackSkipOptions()
+            media.addOption(":avcodec-skip-frame=$skipFrame")
+            media.addOption(":avcodec-skip-idct=$skipIdct")
 
             // Enhanced live stream options for smoother 4K/8K playback
             media.addOption(":clock-jitter=0") // Tolerant clock jitter
             media.addOption(":clock-synchro=0") // Tolerant sync for IPTV
             media.addOption(":no-audio-time-stretch") // Avoid audio pitch issues
             media.addOption(":http-reconnect") // Auto reconnect on HTTP streams
-            media.addOption(if (isEmulator) ":prefetch-buffer-size=2097152" else ":prefetch-buffer-size=6291456")
+            media.addOption(":prefetch-buffer-size=${prefetchBufferBytes(isEmulator)}")
 
             attachMainViewsIfNeeded()
             if (requestToken != activePlayRequestToken) {
@@ -1269,6 +1308,7 @@ class LiveTvActivity : BaseTvActivity() {
             }
             mediaPlayer?.media = media
             media.release()
+            binding.vlcVideoLayout.visibility = View.VISIBLE
             mediaPlayer?.play()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1492,10 +1532,7 @@ class LiveTvActivity : BaseTvActivity() {
                                 ?: 0
                     }
             binding.rvGroups.scrollToPosition(categoryIndex)
-            binding.rvGroups
-                    .findViewHolderForAdapterPosition(categoryIndex)
-                    ?.itemView
-                    ?.requestFocus()
+            focusRecyclerChild(binding.rvGroups, categoryIndex, R.id.groupContainer)
         }
 
         // Scroll channel list to current channel within the *filtered* list (not global index)
@@ -1525,6 +1562,23 @@ class LiveTvActivity : BaseTvActivity() {
         // Animate out
         binding.fullScreenOverlay.startAnimation(slideOutAnimation)
         binding.darkOverlay.startAnimation(fadeOutAnimation)
+        binding.root.requestFocus()
+    }
+
+    private fun focusRecyclerChild(
+        recyclerView: androidx.recyclerview.widget.RecyclerView,
+        position: Int,
+        focusableChildId: Int
+    ): Boolean {
+        val holder = recyclerView.findViewHolderForAdapterPosition(position)
+        val target = holder?.itemView?.findViewById<View>(focusableChildId) ?: holder?.itemView
+        return if (target != null && target.isShown && target.isFocusable) {
+            target.requestFocus()
+            true
+        } else {
+            recyclerView.requestFocus()
+            false
+        }
     }
 
     private fun resetOverlayTimeout() {

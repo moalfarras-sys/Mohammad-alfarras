@@ -45,7 +45,6 @@ import {
   Accordion,
   BarChart,
   CopyButton,
-  DonutChart,
   EmptyState,
   Field,
   PageHeader,
@@ -54,6 +53,7 @@ import {
   StatusBadge,
   TextAreaField,
   Toggle,
+  HelpTip,
 } from "@/components/admin/ui";
 import { UpdatedToast } from "@/components/admin/updated-toast";
 import { resolveAdminAssetUrl } from "@/lib/asset-url";
@@ -89,11 +89,11 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
   const { product, faqs, screenshots, releases, supportRequests, devices, activationRequests, licenses, providerSources, runtimeConfig } = data;
   const runtime = runtimeConfig as RuntimeExtras;
   const basePath = slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
+  const runtimeBackgroundUrl = runtimeConfig.backgroundUrl ? resolveAdminAssetUrl(runtimeConfig.backgroundUrl) : "";
 
   const waiting = activationRequests.filter((r) => r.status === "waiting").length;
   const openSupport = supportRequests.filter((r) => r.status === "new").length;
-  const activeLicenses = licenses.filter((l) => l.status === "active").length;
-  const activePercent = devices.length ? Math.round((data.metrics.activeLast24h / devices.length) * 100) : 0;
+  const latestRelease = [...releases].sort((a, b) => b.version_code - a.version_code)[0];
 
   const filteredDevices = devices.filter((d) => {
     const q = deviceQuery.trim().toLowerCase();
@@ -109,27 +109,15 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
     return `${webBaseUrl}/en/activate?${params.toString()}`;
   };
 
-  const deviceSegments = [
-    { label: t({ en: "Active", ar: "نشطة" }), value: devices.filter((d) => d.status === "active").length, color: C.success },
-    { label: t({ en: "Pending", ar: "معلّقة" }), value: devices.filter((d) => d.status === "pending").length, color: C.warning },
-    { label: t({ en: "Blocked", ar: "محظورة" }), value: devices.filter((d) => d.status === "blocked" || d.status === "revoked").length, color: C.danger },
-  ];
-  const activationSegments = [
-    { label: t({ en: "Waiting", ar: "بالانتظار" }), value: activationRequests.filter((a) => a.status === "waiting").length, color: C.warning },
-    { label: t({ en: "Activated", ar: "مُفعّلة" }), value: activationRequests.filter((a) => a.status === "activated").length, color: C.success },
-    { label: t({ en: "Expired", ar: "منتهية" }), value: activationRequests.filter((a) => a.status === "expired").length, color: C.slate },
-    { label: t({ en: "Failed", ar: "فاشلة" }), value: activationRequests.filter((a) => a.status === "failed").length, color: C.danger },
-  ];
-
   return (
     <>
       <UpdatedToast code={updated} />
       <PageHeader
-        eyebrow={t({ en: "App ecosystem control", ar: "تحكم منظومة التطبيق" })}
+        eyebrow={slug === "moplayer2" ? "moplayer2" : "moplayer"}
         title={product.product_name}
         subtitle={t({
-          en: "Runtime switches, releases, activations, devices, content, and support — all for this app.",
-          ar: "مفاتيح التشغيل، الإصدارات، التفعيلات، الأجهزة، المحتوى، والدعم — كلها لهذا التطبيق.",
+          en: "Everything here is for this app only: runtime, releases, images, public page content, FAQ, and basic app settings.",
+          ar: "كل شيء هنا يخص هذا التطبيق فقط: التشغيل، الإصدارات، الصور، محتوى صفحة الموقع، الأسئلة، والإعدادات الأساسية.",
         })}
         icon={slug === "moplayer2" ? <ShieldCheck className="h-7 w-7" /> : <Smartphone className="h-7 w-7" />}
         actions={
@@ -140,34 +128,112 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         }
       />
 
-      {/* Stats */}
-      <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <StatCard label={t({ en: "Devices", ar: "أجهزة" })} value={devices.length} icon={<Smartphone className="h-5 w-5" />} href={`${basePath}#devices`} />
-        <StatCard label={t({ en: "Licenses", ar: "تراخيص" })} value={activeLicenses} icon={<ShieldCheck className="h-5 w-5" />} tone="success" href={`${basePath}#devices`} />
-        <StatCard label={t({ en: "Waiting", ar: "بانتظار" })} value={waiting} icon={<Key className="h-5 w-5" />} tone="warning" href={`${basePath}#activations`} />
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label={t({ en: "Releases", ar: "إصدارات" })} value={releases.length} icon={<Box className="h-5 w-5" />} tone="violet" href={`${basePath}#releases`} />
-        <StatCard label={t({ en: "Assets", ar: "صور" })} value={screenshots.length} icon={<ImageIconLucide className="h-5 w-5" />} href={`${basePath}#visual-assets`} />
-        <StatCard label={t({ en: "Support", ar: "دعم" })} value={openSupport} icon={<Inbox className="h-5 w-5" />} tone="danger" href={`${basePath}#support-inbox`} />
+        <StatCard label={t({ en: "Images", ar: "صور" })} value={screenshots.length} icon={<ImageIconLucide className="h-5 w-5" />} href={`${basePath}#visual-assets`} />
+        <StatCard label={t({ en: "FAQ", ar: "أسئلة" })} value={faqs.length} icon={<HelpCircle className="h-5 w-5" />} tone="success" />
+        <StatCard label={t({ en: "Runtime", ar: "التشغيل" })} value={runtimeConfig.enabled ? t({ en: "On", ar: "يعمل" }) : t({ en: "Off", ar: "متوقف" })} icon={<SlidersHorizontal className="h-5 w-5" />} tone="warning" href={`${basePath}#runtime`} />
       </section>
 
       <section className="grid gap-3 md:grid-cols-4">
-        <StatCard label={t({ en: "Active now", ar: "نشط الآن" })} value={data.metrics.activeNow} icon={<Smartphone className="h-5 w-5" />} tone="success" />
-        <StatCard label={t({ en: "Active 24h", ar: "نشط 24 ساعة" })} value={`${activePercent}%`} icon={<ShieldCheck className="h-5 w-5" />} />
-        <StatCard label={t({ en: "Expired stale", ar: "منتهية قديمة" })} value={data.metrics.expiredWaitingActivations} icon={<Key className="h-5 w-5" />} tone="warning" />
-        <StatCard label={t({ en: "Activation success", ar: "نجاح التفعيل" })} value={`${data.metrics.activationSuccessRate}%`} icon={<LayoutGrid className="h-5 w-5" />} tone="violet" />
+        <AppGuide
+          title={t({ en: "This app only", ar: "هذا التطبيق فقط" })}
+          body={t({
+            en: slug === "moplayer2" ? "Changes here use moplayer2 and do not touch Classic." : "Changes here use moplayer and do not touch Pro.",
+            ar: slug === "moplayer2" ? "التعديلات هنا تستخدم moplayer2 ولا تلمس كلاسيك." : "التعديلات هنا تستخدم moplayer ولا تلمس برو.",
+          })}
+        />
+        <AppGuide
+          title={t({ en: "Need to change app colors?", ar: "تريد تغيير ألوان التطبيق؟" })}
+          body={t({ en: "Open Runtime and change Accent color, logo URL, and background URL.", ar: "افتح إعدادات التشغيل وغيّر اللون المميز ورابط الشعار والخلفية." })}
+        />
+        <AppGuide
+          title={t({ en: "Need to replace page images?", ar: "تريد تبديل صور صفحة التطبيق؟" })}
+          body={t({ en: "Open Product content. Logo, hero, TV banner, and gallery images now feed the public website.", ar: "افتح محتوى المنتج. الشعار وصورة البطل وبانر التلفاز وصور المعرض تظهر الآن في الموقع." })}
+        />
+        <AppGuide
+          title={t({ en: "Need a clean setup?", ar: "تريد إعداداً نظيفاً؟" })}
+          body={t({ en: "Use only Runtime, Releases, Product content, FAQ, and Visual assets.", ar: "استخدم فقط التشغيل، الإصدارات، المحتوى، الأسئلة، والصور." })}
+        />
       </section>
 
-      {/* Overview charts */}
-      <Accordion title={t({ en: "Overview", ar: "نظرة عامة" })} description={t({ en: "Live signals for this app", ar: "مؤشرات حية لهذا التطبيق" })} icon={<LayoutGrid className="h-5 w-5" />} defaultOpen>
+      <section className="grid gap-3 lg:grid-cols-4">
+        <ControlHubCard
+          href={`${basePath}#runtime`}
+          title={t({ en: "1. App running", ar: "1. تشغيل التطبيق" })}
+          status={runtimeConfig.maintenanceMode ? t({ en: "Maintenance", ar: "صيانة" }) : runtimeConfig.enabled ? t({ en: "Online", ar: "يعمل" }) : t({ en: "Offline", ar: "متوقف" })}
+          body={t({
+            en: "Turn the app on/off, maintenance, force update, color, logo, background, weather, and football widgets.",
+            ar: "شغّل أو أوقف التطبيق، الصيانة، إجبار التحديث، اللون، الشعار، الخلفية، الطقس، والمباريات.",
+          })}
+        />
+        <ControlHubCard
+          href={`${basePath}#releases`}
+          title={t({ en: "2. APK releases", ar: "2. إصدارات APK" })}
+          status={latestRelease ? `${latestRelease.version_name} · ${latestRelease.version_code}` : t({ en: "No release", ar: "لا إصدار" })}
+          body={t({
+            en: "Upload the correct APK for this app only. Download links and version checks use these records.",
+            ar: "ارفع APK الخاص بهذا التطبيق فقط. روابط التحميل وفحص النسخة تعتمد على هذه السجلات.",
+          })}
+        />
+        <ControlHubCard
+          href={`${basePath}#product-content`}
+          title={t({ en: "3. Public page", ar: "3. صفحة الموقع" })}
+          status={t({ en: "Content", ar: "محتوى" })}
+          body={t({
+            en: "Edit the title, description, logo, hero image, TV banner, and public copy.",
+            ar: "عدّل العنوان، الوصف، الشعار، صورة البطل، بانر التلفاز، والنصوص.",
+          })}
+        />
+        <ControlHubCard
+          href={`${basePath}#product-content`}
+          title={t({ en: "4. Images and page", ar: "4. الصور والصفحة" })}
+          status={`${screenshots.length} ${t({ en: "assets", ar: "صور" })}`}
+          body={t({
+            en: "Replace logo, hero, TV banner, screenshots, public text, FAQ, and support copy. These affect the public app page.",
+            ar: "بدّل الشعار، صورة البطل، بانر التلفاز، اللقطات، النصوص، الأسئلة، والدعم. هذه تظهر في صفحة التطبيق العامة.",
+          })}
+        />
+      </section>
+
+      <section className="glass fade-up rounded-[24px] p-5">
+        <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--accent)]">{t({ en: "Public image map", ar: "خريطة صور الموقع" })}</p>
+            <h2 className="mt-1 text-xl font-black text-[var(--text-1)]">{t({ en: "These are the images users see on the website", ar: "هذه الصور التي يراها المستخدم في الموقع" })}</h2>
+            <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">
+              {t({
+                en: "Change them in Product content, then save. Gallery screenshots are managed in Visual assets.",
+                ar: "غيّرها في محتوى المنتج ثم احفظ. صور المعرض تُدار من قسم الصور والمعرض.",
+              })}
+            </p>
+          </div>
+          <Link href={`${webBaseUrl}/en/apps/${slug}`} target="_blank" className="btn btn-sm">
+            <ExternalLink className="h-4 w-4" />
+            {t({ en: "Preview public page", ar: "معاينة الصفحة" })}
+          </Link>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <ImageMapCard
+            title={t({ en: "Logo", ar: "الشعار" })}
+            body={t({ en: "Brand card and app identity.", ar: "بطاقة الهوية وهوية التطبيق." })}
+            src={product.logo_path}
+          />
+          <ImageMapCard
+            title={t({ en: "Hero image", ar: "صورة البطل" })}
+            body={t({ en: "Main first-screen product visual.", ar: "الصورة الرئيسية في أول شاشة." })}
+            src={product.hero_image_path}
+          />
+          <ImageMapCard
+            title={t({ en: "TV banner", ar: "بانر التلفاز" })}
+            body={t({ en: "Fallback and TV-style preview.", ar: "احتياطي ومعاينة تلفزيونية." })}
+            src={product.tv_banner_path}
+          />
+        </div>
+      </section>
+
+      <Accordion title={t({ en: "Overview", ar: "نظرة عامة" })} description={t({ en: "Simple launch readiness", ar: "جاهزية تشغيل بسيطة" })} icon={<LayoutGrid className="h-5 w-5" />} defaultOpen>
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-5">
-            <h4 className="mb-4 text-sm font-black text-[var(--text-1)]">{t({ en: "Devices", ar: "الأجهزة" })}</h4>
-            <DonutChart segments={deviceSegments} centerValue={devices.length} centerLabel={t({ en: "Total", ar: "الإجمالي" })} />
-          </div>
-          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-5">
-            <h4 className="mb-4 text-sm font-black text-[var(--text-1)]">{t({ en: "Activations", ar: "التفعيلات" })}</h4>
-            <DonutChart segments={activationSegments} centerValue={activationRequests.length} centerLabel={t({ en: "Total", ar: "الإجمالي" })} />
-          </div>
           <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-5 lg:col-span-2">
             <h4 className="mb-4 text-sm font-black text-[var(--text-1)]">{t({ en: "Releases by version code", ar: "الإصدارات حسب الكود" })}</h4>
             <BarChart data={[...releases].sort((a, b) => a.version_code - b.version_code).slice(-8).map((r) => ({ label: r.version_name, value: r.version_code }))} />
@@ -177,26 +243,33 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
 
       {/* Runtime */}
       <Accordion id="runtime" title={t({ en: "Runtime configuration", ar: "إعدادات التشغيل" })} description={t({ en: "Switches the app reads on sync", ar: "مفاتيح يقرأها التطبيق عند المزامنة" })} icon={<SlidersHorizontal className="h-5 w-5" />} tone="accent" count={runtimeConfig.enabled ? t({ en: "ON", ar: "يعمل" }) : t({ en: "OFF", ar: "متوقف" })} defaultOpen>
+        <SectionHelp
+          title={t({ en: "What the app reads", ar: "ماذا يقرأ التطبيق؟" })}
+          body={t({
+            en: "These values are sent by the public app config API. Maintenance and force update are app-level switches, not website switches.",
+            ar: "هذه القيم يرسلها API إعدادات التطبيق. الصيانة وإجبار التحديث تخص التطبيق فقط، وليست إعدادات الموقع.",
+          })}
+        />
         <form action={saveRuntimeConfigAction} className="grid gap-5 lg:grid-cols-2">
           <input type="hidden" name="product_slug" value={slug} />
           <div className="grid gap-3 lg:col-span-2 md:grid-cols-2">
-            <Toggle name="enabled" label={t({ en: "Master switch", ar: "المفتاح الرئيسي" })} description={t({ en: "App online for users", ar: "التطبيق متاح للمستخدمين" })} checked={runtimeConfig.enabled} />
-            <Toggle name="maintenanceMode" label={t({ en: "Maintenance mode", ar: "وضع الصيانة" })} description={t({ en: "Show downtime state", ar: "إظهار حالة التوقف" })} checked={runtimeConfig.maintenanceMode} />
-            <Toggle name="forceUpdate" label={t({ en: "Force update", ar: "إجبار التحديث" })} description={t({ en: "Require newest build", ar: "إلزام أحدث إصدار" })} checked={runtimeConfig.forceUpdate} />
-            <Toggle name="weather" label={t({ en: "Weather widget", ar: "أداة الطقس" })} description={t({ en: "Enable weather module", ar: "تفعيل الطقس" })} checked={runtimeConfig.widgets.weather} />
-            <Toggle name="football" label={t({ en: "Football widget", ar: "أداة المباريات" })} description={t({ en: "Enable match widgets", ar: "تفعيل المباريات" })} checked={runtimeConfig.widgets.football} />
-            <Toggle name="sourceProtocolFallback" label={t({ en: "Source fallback", ar: "احتياطي المصدر" })} description={t({ en: "Protocol fallback for sources", ar: "احتياطي بروتوكول المصادر" })} checked={runtime.sourceProtocolFallback ?? true} />
+            <Toggle name="enabled" label={t({ en: "Master switch", ar: "المفتاح الرئيسي" })} description={t({ en: "When OFF, the app shows an offline message to every user.", ar: "عند الإيقاف يظهر التطبيق رسالة غير متاح لكل المستخدمين." })} checked={runtimeConfig.enabled} />
+            <Toggle name="maintenanceMode" label={t({ en: "Maintenance mode", ar: "وضع الصيانة" })} description={t({ en: "Tells users the app is being updated. Keeps installs, hides playback.", ar: "يخبر المستخدمين أن التطبيق قيد التحديث. لا يحذف شيئاً، يخفي التشغيل فقط." })} checked={runtimeConfig.maintenanceMode} />
+            <Toggle name="forceUpdate" label={t({ en: "Force update", ar: "إجبار التحديث" })} description={t({ en: "Blocks old versions until users install the latest build.", ar: "يمنع الإصدارات القديمة حتى يثبت المستخدم الإصدار الأحدث." })} checked={runtimeConfig.forceUpdate} />
+            <Toggle name="weather" label={t({ en: "Weather widget", ar: "أداة الطقس" })} description={t({ en: "Shows a live weather card on the app home.", ar: "تعرض بطاقة الطقس على الشاشة الرئيسية للتطبيق." })} checked={runtimeConfig.widgets.weather} />
+            <Toggle name="football" label={t({ en: "Football widget", ar: "أداة المباريات" })} description={t({ en: "Shows live match results and upcoming fixtures.", ar: "تعرض نتائج المباريات الحية والمواعيد القادمة." })} checked={runtimeConfig.widgets.football} />
+            <Toggle name="sourceProtocolFallback" label={t({ en: "Source fallback", ar: "احتياطي المصدر" })} description={t({ en: "If primary source protocol fails, switch automatically. Recommended ON.", ar: "إذا فشل بروتوكول المصدر الأساسي، يتم التحويل تلقائياً. يُفضل تفعيله." })} checked={runtime.sourceProtocolFallback ?? true} />
           </div>
 
-          <Field label={t({ en: "Min version code", ar: "أدنى كود إصدار" })} name="minimumVersionCode" type="number" defaultValue={String(runtimeConfig.minimumVersionCode)} />
-          <Field label={t({ en: "Latest build name", ar: "اسم أحدث إصدار" })} name="latestVersionName" defaultValue={runtimeConfig.latestVersionName} />
-          <Field label={t({ en: "Latest version code", ar: "كود أحدث إصدار" })} name="latestVersionCode" type="number" defaultValue={String(runtimeNumber(runtime.latestVersionCode ?? runtime.update?.latestVersionCode, runtimeConfig.minimumVersionCode))} />
-          <Field label={t({ en: "Downloader code", ar: "رمز Downloader" })} name="downloaderCode" defaultValue={runtime.downloaderCode ?? (slug === "moplayer2" ? "4608937" : "2418397")} placeholder={slug === "moplayer2" ? "4608937" : "2418397"} />
-          <Field label={t({ en: "Sync interval (min)", ar: "فاصل المزامنة (دقيقة)" })} name="syncIntervalMinutes" type="number" defaultValue={String(runtimeNumber(runtime.syncIntervalMinutes, 120))} />
+          <Field label={t({ en: "Min version code", ar: "أدنى كود إصدار" })} name="minimumVersionCode" type="number" defaultValue={String(runtimeConfig.minimumVersionCode)} help={t({ en: "The oldest app version allowed to run. Anything older is asked to update.", ar: "أقدم نسخة من التطبيق مسموح لها بالعمل. أي نسخة أقدم سيُطلب منها التحديث." })} />
+          <Field label={t({ en: "Latest build name", ar: "اسم أحدث إصدار" })} name="latestVersionName" defaultValue={runtimeConfig.latestVersionName} help={t({ en: "Human-readable version like 2.2.3. Shown to users in update prompts.", ar: "رقم النسخة المقروء مثل 2.2.3. يظهر للمستخدم في طلب التحديث." })} />
+          <Field label={t({ en: "Latest version code", ar: "كود أحدث إصدار" })} name="latestVersionCode" type="number" defaultValue={String(runtimeNumber(runtime.latestVersionCode ?? runtime.update?.latestVersionCode, runtimeConfig.minimumVersionCode))} help={t({ en: "Integer that grows each release. The app uses this to compare versions.", ar: "رقم صحيح يكبر مع كل إصدار. يستخدمه التطبيق لمقارنة النسخ." })} />
+          <Field label={t({ en: "Downloader code", ar: "رمز Downloader" })} name="downloaderCode" defaultValue={runtime.downloaderCode ?? (slug === "moplayer2" ? "4608937" : "2418397")} placeholder={slug === "moplayer2" ? "4608937" : "2418397"} help={t({ en: "The numeric code shown for installing the APK via Downloader on TVs.", ar: "الرقم الذي يستخدمه المستخدم على تطبيق Downloader للتلفاز." })} />
+          <Field label={t({ en: "Sync interval (min)", ar: "فاصل المزامنة (دقيقة)" })} name="syncIntervalMinutes" type="number" defaultValue={String(runtimeNumber(runtime.syncIntervalMinutes, 120))} help={t({ en: "How often the app re-reads this configuration. 120 = every 2 hours.", ar: "كل كم دقيقة يعيد التطبيق قراءة هذه الإعدادات. 120 = كل ساعتين." })} />
           <ColorField label={t({ en: "Accent color", ar: "لون مميز" })} name="accentColor" defaultValue={runtimeConfig.accentColor || "#22d3ee"} />
-          <Field label={t({ en: "App name override", ar: "اسم التطبيق" })} name="appName" defaultValue={runtime.appName ?? product.product_name} />
-          <Field label={t({ en: "Package name", ar: "اسم الحزمة" })} name="packageName" defaultValue={runtime.packageName ?? product.package_name} />
-          <Field label={t({ en: "Weather city", ar: "مدينة الطقس" })} name="weatherCity" defaultValue={runtime.widgets.weatherCity ?? ""} placeholder="Berlin" />
+          <Field label={t({ en: "App name override", ar: "اسم التطبيق" })} name="appName" defaultValue={runtime.appName ?? product.product_name} help={t({ en: "Display name shown inside the app header. Leave empty to use the product name.", ar: "اسم العرض داخل التطبيق. اتركه فارغاً لاستخدام اسم المنتج." })} />
+          <Field label={t({ en: "Package name", ar: "اسم الحزمة" })} name="packageName" defaultValue={runtime.packageName ?? product.package_name} help={t({ en: "Android package identifier, e.g. com.mo.moplayer. Do not change unless rebuilding.", ar: "معرّف الحزمة في أندرويد، مثل com.mo.moplayer. لا تغيّره إلا عند إعادة البناء." })} />
+          <Field label={t({ en: "Weather city", ar: "مدينة الطقس" })} name="weatherCity" defaultValue={runtime.widgets.weatherCity ?? ""} placeholder="Berlin" help={t({ en: "Default city if the device cannot detect location. English name preferred.", ar: "المدينة الافتراضية إذا تعذّر تحديد الموقع. يُفضل الاسم الإنجليزي." })} />
           <Field label={t({ en: "Football max matches", ar: "أقصى عدد مباريات" })} name="footballMaxMatches" type="number" defaultValue={String(runtimeNumber(runtime.widgets.footballMaxMatches, 8))} />
           <SelectField
             label={t({ en: "Football provider mode", ar: "وضع مزود المباريات" })}
@@ -250,8 +323,8 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
             <div
               className="mt-3 overflow-hidden rounded-3xl border border-[var(--line-strong)] p-5"
               style={{
-                background: runtimeConfig.backgroundUrl
-                  ? `linear-gradient(135deg, rgba(6,10,24,.84), rgba(15,23,42,.78)), url(${runtimeConfig.backgroundUrl}) center/cover`
+                background: runtimeBackgroundUrl
+                  ? `linear-gradient(135deg, rgba(6,10,24,.84), rgba(15,23,42,.78)), url("${runtimeBackgroundUrl}") center/cover`
                   : `radial-gradient(circle at top, ${runtimeConfig.accentColor || "#22d3ee"}33, transparent 55%), #060a18`,
               }}
             >
@@ -290,6 +363,13 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
 
       {/* Releases */}
       <Accordion id="releases" title={t({ en: "Releases", ar: "الإصدارات" })} description={t({ en: "Upload and manage APK builds", ar: "رفع وإدارة ملفات APK" })} icon={<UploadCloud className="h-5 w-5" />} count={releases.length}>
+        <SectionHelp
+          title={t({ en: "Release rule", ar: "قاعدة الإصدارات" })}
+          body={t({
+            en: "Upload only the APK for this app. Classic and Pro downloads stay separate through product slug and release records.",
+            ar: "ارفع APK الخاص بهذا التطبيق فقط. تحميل كلاسيك وبرو يبقى منفصلاً عبر slug وسجل الإصدار.",
+          })}
+        />
         <form action={saveReleaseAction} className="mb-6 grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
           <input type="hidden" name="product_slug" value={slug} />
           <Field label={t({ en: "Release slug", ar: "معرّف الإصدار" })} name="slug" placeholder="moplayer-v2-1-0" required />
@@ -354,8 +434,15 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         </div>
       </Accordion>
 
-      {/* Activations */}
       <Accordion id="activations" title={t({ en: "Activation requests", ar: "طلبات التفعيل" })} description={t({ en: "Only waiting/failed requests older than 24 hours are cleaned. Activated records stay until you delete them.", ar: "يتم تنظيف المعلقة/الفاشلة الأقدم من 24 ساعة فقط. السجلات المفعّلة تبقى حتى تحذفها أنت." })} icon={<Key className="h-5 w-5" />} count={waiting}>
+        <SectionHelp
+          title={t({ en: "No QR needed", ar: "لا تحتاج QR" })}
+          body={t({
+            en: "Activation is a short code/link flow. Waiting codes expire; activated device history stays visible for review.",
+            ar: "التفعيل يعمل بكود أو رابط قصير. الأكواد المعلقة تنتهي، وسجل الأجهزة المفعلة يبقى للمراجعة.",
+          })}
+          tone="warning"
+        />
         <form action={cleanupStaleActivationsAction} className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--warning-soft)] p-4">
           <input type="hidden" name="product_slug" value={slug} />
           <p className="text-sm font-bold text-[var(--text-2)]">
@@ -405,8 +492,14 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         </div>
       </Accordion>
 
-      {/* Devices + licenses */}
       <Accordion id="devices" title={t({ en: "Devices & licenses", ar: "الأجهزة والتراخيص" })} description={t({ en: "Search the fleet and review access", ar: "ابحث في الأجهزة وراجع الوصول" })} icon={<Smartphone className="h-5 w-5" />} count={devices.length}>
+        <SectionHelp
+          title={t({ en: "How to read this", ar: "كيف تقرأ هذا القسم؟" })}
+          body={t({
+            en: "A device appears when it talks to activation/config flows. Online numbers are based on last seen time, not a permanent live connection.",
+            ar: "يظهر الجهاز عندما يتواصل مع التفعيل أو الإعدادات. أرقام الاتصال تعتمد على آخر ظهور، وليست اتصالاً مباشراً دائماً.",
+          })}
+        />
         <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-white/[0.02] p-3">
           <Search className="h-4 w-4 text-[var(--accent)]" />
           <input value={deviceQuery} onChange={(e) => setDeviceQuery(e.target.value)} placeholder={t({ en: "Search devices...", ar: "ابحث في الأجهزة..." })} className="h-9 flex-1 bg-transparent text-sm text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]" />
@@ -468,8 +561,14 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         </div>
       </Accordion>
 
-      {/* Sources */}
       <Accordion id="sources" title={t({ en: "Website source delivery", ar: "تسليم مصادر الموقع" })} description={t({ en: "Xtream/M3U source handoff status", ar: "حالة تسليم مصادر Xtream/M3U" })} icon={<UploadCloud className="h-5 w-5" />} count={providerSources.length}>
+        <SectionHelp
+          title={t({ en: "Source status only", ar: "حالة المصدر فقط" })}
+          body={t({
+            en: "This screen shows whether a source handoff was received, fetched, imported, failed, or revoked. It does not show private source passwords.",
+            ar: "هذه الشاشة تعرض هل وصل المصدر أو تم سحبه أو استيراده أو فشل أو ألغي. لا تعرض كلمات مرور المصادر الخاصة.",
+          })}
+        />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {providerSources.map((item) => (
             <div key={item.id} className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
@@ -501,8 +600,15 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
       </Accordion>
 
       {/* Content */}
-      <Accordion title={t({ en: "Product content", ar: "محتوى المنتج" })} description={t({ en: "Public story, metadata, and steps", ar: "القصة العامة والبيانات والخطوات" })} icon={<FileText className="h-5 w-5" />}>
-        <form action={saveProductAction} className="grid gap-4 lg:grid-cols-2">
+      <Accordion id="product-content" title={t({ en: "Product content", ar: "محتوى المنتج" })} description={t({ en: "Public story, metadata, and steps", ar: "القصة العامة والبيانات والخطوات" })} icon={<FileText className="h-5 w-5" />} defaultOpen>
+        <SectionHelp
+          title={t({ en: "Public app page", ar: "صفحة التطبيق العامة" })}
+          body={t({
+            en: "Use this when you want to change what users see on the app page. Logo appears in the small brand card. Hero image is the big first-screen visual. TV banner is used as a fallback and TV preview. Gallery images are managed in Visual assets below. Upload a replacement, save content, then open the public page to check it.",
+            ar: "استخدم هذا القسم عندما تريد تغيير ما يراه المستخدم في صفحة التطبيق. الشعار يظهر في بطاقة الهوية الصغيرة. صورة البطل هي الصورة الكبيرة في أول الشاشة. بانر التلفاز يستخدم كصورة احتياطية ومعاينة تلفزيونية. صور المعرض تُدار من قسم الصور بالأسفل. ارفع صورة بديلة، احفظ المحتوى، ثم افتح الصفحة العامة لتتأكد.",
+          })}
+        />
+        <form action={saveProductAction} className="grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
           <input type="hidden" name="product_slug" value={slug} />
           <Field label={t({ en: "Product name", ar: "اسم المنتج" })} name="product_name" defaultValue={product.product_name} required />
           <Field label={t({ en: "Hero badge", ar: "شارة" })} name="hero_badge" defaultValue={product.hero_badge} />
@@ -515,9 +621,11 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
           <Field label={t({ en: "Play Store URL", ar: "رابط المتجر" })} name="play_store_url" defaultValue={product.play_store_url ?? ""} />
           <Field label={t({ en: "Min SDK", ar: "أدنى SDK" })} name="android_min_sdk" type="number" defaultValue={String(product.android_min_sdk)} />
           <Field label={t({ en: "Target SDK", ar: "SDK المستهدف" })} name="android_target_sdk" type="number" defaultValue={String(product.android_target_sdk)} />
-          <Field label={t({ en: "Logo path", ar: "مسار الشعار" })} name="logo_path" defaultValue={product.logo_path ?? ""} />
-          <Field label={t({ en: "Hero image path", ar: "مسار صورة البطل" })} name="hero_image_path" defaultValue={product.hero_image_path ?? ""} />
-          <Field label={t({ en: "TV banner path", ar: "مسار بانر التلفاز" })} name="tv_banner_path" defaultValue={product.tv_banner_path ?? ""} />
+          <div className="lg:col-span-2 grid gap-4 md:grid-cols-3">
+            <ProductImageField label={t({ en: "Logo image", ar: "صورة الشعار" })} hint={t({ en: "Shown in the public hero brand card and app identity.", ar: "تظهر في بطاقة الهوية أعلى صفحة التطبيق." })} pathName="logo_path" fileName="logo_file" defaultValue={product.logo_path ?? ""} />
+            <ProductImageField label={t({ en: "Hero image", ar: "صورة البطل" })} hint={t({ en: "Main image on the first screen of the public app page.", ar: "الصورة الرئيسية في أول شاشة من صفحة التطبيق." })} pathName="hero_image_path" fileName="hero_file" defaultValue={product.hero_image_path ?? ""} />
+            <ProductImageField label={t({ en: "TV banner", ar: "بانر التلفاز" })} hint={t({ en: "Fallback hero/banner image and TV preview image.", ar: "صورة احتياطية للواجهة وبانر التلفاز." })} pathName="tv_banner_path" fileName="tv_banner_file" defaultValue={product.tv_banner_path ?? ""} />
+          </div>
           <label className="switch">
             <span><strong>{t({ en: "Android TV ready", ar: "جاهز للتلفاز" })}</strong></span>
             <input type="checkbox" name="android_tv_ready" defaultChecked={product.android_tv_ready} />
@@ -573,7 +681,14 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
       </Accordion>
 
       {/* Visual assets */}
-      <Accordion id="visual-assets" title={t({ en: "Visual assets", ar: "الصور والمعرض" })} description={t({ en: "Screenshots, TV banners, gallery", ar: "لقطات، بانرات، معرض" })} icon={<ImageIconLucide className="h-5 w-5" />} count={screenshots.length}>
+      <Accordion id="visual-assets" title={t({ en: "Visual assets", ar: "الصور والمعرض" })} description={t({ en: "Screenshots, TV banners, gallery", ar: "لقطات، بانرات، معرض" })} icon={<ImageIconLucide className="h-5 w-5" />} count={screenshots.length} defaultOpen>
+        <SectionHelp
+          title={t({ en: "Add a new gallery section", ar: "إضافة قسم جديد مع صورة" })}
+          body={t({
+            en: "No path is needed. Add a title, choose phone/TV/landscape, upload the image, and save. Existing images can be replaced directly below.",
+            ar: "لا تحتاج لمس أي مسار. اكتب عنواناً، اختر نوع العرض، ارفع الصورة، واحفظ. الصور الموجودة يمكن استبدالها مباشرة من الأسفل.",
+          })}
+        />
         <form action={saveScreenshotAction} className="mb-6 grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
           <input type="hidden" name="product_slug" value={slug} />
           <Field label={t({ en: "Asset title", ar: "عنوان الصورة" })} name="title" required />
@@ -586,7 +701,12 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
               <option value="landscape">landscape</option>
             </select>
           </label>
-          <Field label={t({ en: "Public path override", ar: "مسار عام (اختياري)" })} name="image_path" placeholder="/images/..." />
+          <details className="rounded-2xl border border-[var(--line)] bg-black/15 p-3">
+            <summary className="cursor-pointer text-xs font-black text-[var(--accent)]">{t({ en: "Advanced path only if needed", ar: "مسار متقدم عند الحاجة فقط" })}</summary>
+            <div className="mt-3">
+              <Field label={t({ en: "Public path override", ar: "مسار عام (اختياري)" })} name="image_path" placeholder="/images/..." />
+            </div>
+          </details>
           <label className="field lg:col-span-2">
             <span>{t({ en: "Upload image", ar: "رفع صورة" })}</span>
             <input type="file" name="file" accept="image/*" />
@@ -602,14 +722,33 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
                 <SafeImage src={item.image_path} alt={item.title} className="h-full w-full object-cover" />
                 <span className="absolute top-2 start-2 badge">{item.device_frame}</span>
               </div>
-              <div className="flex items-center justify-between p-3">
-                <p className="truncate text-xs font-black text-[var(--text-1)]">{item.title}</p>
-                <form action={deleteScreenshotAction}>
+              <div className="space-y-3 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="truncate text-xs font-black text-[var(--text-1)]">{item.title}</p>
+                  <form action={deleteScreenshotAction}>
+                    <input type="hidden" name="id" value={item.id} />
+                    <input type="hidden" name="product_slug" value={slug} />
+                    <button type="submit" className="text-[var(--danger)] opacity-70 transition hover:opacity-100" aria-label="Delete asset">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </form>
+                </div>
+                <form action={saveScreenshotAction} className="grid gap-2" encType="multipart/form-data">
                   <input type="hidden" name="id" value={item.id} />
                   <input type="hidden" name="product_slug" value={slug} />
-                  <button type="submit" className="text-[var(--danger)] opacity-70 transition hover:opacity-100" aria-label="Delete asset">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <input type="hidden" name="title" value={item.title} />
+                  <input type="hidden" name="sort_order" value={String(item.sort_order)} />
+                  <input type="hidden" name="device_frame" value={item.device_frame} />
+                  <input type="hidden" name="image_path" value={item.image_path} />
+                  <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-3 py-2">
+                    <span>
+                      <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Replace this image", ar: "استبدال هذه الصورة" })}</span>
+                      <span className="mt-0.5 block text-[10px] text-[var(--text-3)]">{t({ en: "Choose file, then save.", ar: "اختر ملفاً ثم احفظ." })}</span>
+                    </span>
+                    <UploadCloud className="h-4 w-4 text-[var(--accent)]" />
+                    <input type="file" name="file" accept="image/*" className="sr-only" />
+                  </label>
+                  <button type="submit" className="btn btn-sm btn-primary">{t({ en: "Save replacement", ar: "حفظ الاستبدال" })}</button>
                 </form>
               </div>
             </div>
@@ -618,8 +757,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         </div>
       </Accordion>
 
-      {/* Support inbox */}
-      <Accordion id="support-inbox" title={t({ en: "Support inbox", ar: "صندوق الدعم" })} description={t({ en: "User requests — reply and resolve", ar: "طلبات المستخدمين — رد وحل" })} icon={<Inbox className="h-5 w-5" />} count={openSupport} defaultOpen>
+      <Accordion id="support-inbox" title={t({ en: "Support inbox", ar: "صندوق الدعم" })} description={t({ en: "User requests — reply and resolve", ar: "طلبات المستخدمين — رد وحل" })} icon={<Inbox className="h-5 w-5" />} count={openSupport}>
         <div className="space-y-3">
           {supportRequests.map((item) => (
             <div key={item.id} className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
@@ -663,8 +801,148 @@ function Row({ k, v }: { k: string; v: string }) {
   );
 }
 
-function ColorField({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
-  const [value, setValue] = useState(String(props.defaultValue ?? "#22d3ee"));
+function AppGuide({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-[20px] border border-[var(--line)] bg-[linear-gradient(135deg,rgba(34,211,238,0.08),rgba(99,102,241,0.04))] p-4">
+      <p className="text-sm font-black text-[var(--text-1)]">{title}</p>
+      <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{body}</p>
+    </div>
+  );
+}
+
+function SectionHelp({ title, body, tone = "default" }: { title: string; body: string; tone?: "default" | "warning" }) {
+  return (
+    <div
+      className={[
+        "mb-5 rounded-2xl border p-4",
+        tone === "warning"
+          ? "border-[rgba(251,191,36,0.32)] bg-[rgba(251,191,36,0.08)]"
+          : "border-[var(--line-strong)] bg-[linear-gradient(135deg,rgba(34,211,238,0.08),rgba(99,102,241,0.045))]",
+      ].join(" ")}
+    >
+      <p className="text-sm font-black text-[var(--text-1)]">{title}</p>
+      <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{body}</p>
+    </div>
+  );
+}
+
+function ControlHubCard({ href, title, status, body }: { href: string; title: string; status: string; body: string }) {
+  const { t } = useLocale();
+
+  return (
+    <Link
+      href={href}
+      className="group rounded-[22px] border border-[var(--line-strong)] bg-[linear-gradient(135deg,rgba(34,211,238,0.1),rgba(99,102,241,0.05))] p-4 transition hover:-translate-y-0.5 hover:border-[var(--accent)]"
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <p className="text-sm font-black text-[var(--text-1)]">{title}</p>
+        <span className="badge max-w-[50%] truncate text-[var(--accent)]">{status}</span>
+      </div>
+      <p className="text-xs leading-6 text-[var(--text-3)]">{body}</p>
+      <span className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.18em] text-[var(--accent)] transition group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+        {t({ en: "Open section", ar: "فتح القسم" })}
+      </span>
+    </Link>
+  );
+}
+
+function ImageMapCard({ title, body, src }: { title: string; body: string; src?: string | null }) {
+  const imageSrc = src ? resolveAdminAssetUrl(src) : "";
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/[0.02]">
+      <div className="aspect-video bg-black/25">
+        {imageSrc ? <SafeImage src={imageSrc} alt={title} className="h-full w-full object-contain p-3" /> : <ImagePlaceholder label={title} />}
+      </div>
+      <div className="p-3">
+        <p className="text-sm font-black text-[var(--text-1)]">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-[var(--text-3)]">{body}</p>
+        <p className="mt-2 truncate font-mono text-[10px] text-[var(--text-3)]">{src || "No image set"}</p>
+      </div>
+    </div>
+  );
+}
+
+function ProductImageField({
+  label,
+  hint,
+  pathName,
+  fileName,
+  defaultValue,
+}: {
+  label: string;
+  hint: string;
+  pathName: string;
+  fileName: string;
+  defaultValue: string;
+}) {
+  const { t } = useLocale();
+  const [value, setValue] = useState(defaultValue);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [pendingName, setPendingName] = useState<string | null>(null);
+  const previewSrc = pendingPreview ?? value;
+
+  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setPendingPreview(null);
+      setPendingName(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPendingPreview(typeof reader.result === "string" ? reader.result : null);
+      setPendingName(file.name);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div className="rounded-2xl border border-[var(--line-strong)] bg-white/[0.02] p-3">
+      <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-black/25">
+        <div className="aspect-video">
+          {previewSrc ? (
+            pendingPreview ? (
+              <img src={pendingPreview} alt={label} className="h-full w-full object-contain p-3" />
+            ) : (
+              <SafeImage src={previewSrc} alt={label} className="h-full w-full object-contain p-3" />
+            )
+          ) : (
+            <ImagePlaceholder label={label} />
+          )}
+        </div>
+      </div>
+      <label className="field mt-3">
+        <span>{label}</span>
+        <input type="hidden" name={pathName} value={value} />
+      </label>
+      <p className="mt-2 text-[11px] font-bold leading-5 text-[var(--text-3)]">{hint}</p>
+      <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
+        <span>
+          <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">
+            {pendingName ? t({ en: "Ready to upload", ar: "جاهزة للرفع" }) : t({ en: "Upload replacement", ar: "رفع بديل" })}
+            <HelpTip text={t({ en: "Choose a new image file. It replaces this image after you save content. Then open the public page preview to check it.", ar: "اختر ملف صورة جديد. سيتم استبدال هذه الصورة بعد حفظ المحتوى. بعدها افتح معاينة الصفحة العامة للتأكد." })} />
+          </span>
+          <span className="mt-1 block truncate text-xs text-[var(--text-3)]">
+            {pendingName ? pendingName : t({ en: "Choose a file, then save content.", ar: "اختر ملفاً ثم احفظ المحتوى." })}
+          </span>
+        </span>
+        <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
+        <input type="file" name={fileName} accept="image/*" className="sr-only" onChange={handleFile} />
+      </label>
+      <details className="mt-3 rounded-2xl border border-[var(--line)] bg-black/15 p-3">
+        <summary className="cursor-pointer text-[10px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">
+          {t({ en: "Advanced path", ar: "المسار المتقدم" })}
+          <HelpTip text={t({ en: "Use only if you already know an image URL or public path.", ar: "استخدمه فقط إذا كنت تعرف رابط الصورة أو مسارها." })} />
+        </summary>
+        <input value={value} onChange={(event) => setValue(event.target.value)} placeholder="/images/..." className="input mt-3 font-mono text-xs" />
+      </details>
+    </div>
+  );
+}
+
+function ColorField({ label, defaultValue, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+  const [value, setValue] = useState(String(defaultValue ?? "#22d3ee"));
 
   return (
     <label className="field">
@@ -688,15 +966,19 @@ function SafeImage({ src, alt, className }: { src: string; alt: string; classNam
   const status = useVerifiedImage(imageSrc);
 
   if (status !== "loaded") {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_55%),rgba(15,23,42,0.72)] p-5 text-center">
-        <ImageIconLucide className="h-7 w-7 text-[var(--accent)]" />
-        <p className="text-xs font-black text-[var(--text-1)]">{alt}</p>
-      </div>
-    );
+    return <ImagePlaceholder label={alt} />;
   }
 
   return <img src={imageSrc} alt={alt} className={className} />;
+}
+
+function ImagePlaceholder({ label }: { label: string }) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_55%),rgba(15,23,42,0.72)] p-5 text-center">
+      <ImageIconLucide className="h-7 w-7 text-[var(--accent)]" />
+      <p className="text-xs font-black text-[var(--text-1)]">{label}</p>
+    </div>
+  );
 }
 
 function useVerifiedImage(src: string) {

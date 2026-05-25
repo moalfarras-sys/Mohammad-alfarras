@@ -104,7 +104,7 @@ interface WebWeatherService {
     ): WebWeatherDto
 }
 
-/** Free, key-less football data (TheSportsDB public test key "3"). */
+/** Free, key-less football data (TheSportsDB public key "123"). */
 interface SportsDbService {
     @GET("eventsday.php")
     suspend fun eventsDay(

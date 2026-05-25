@@ -7,7 +7,9 @@ const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
 const SPORTMONKS_RESULTS_ROUND_ID = process.env.SPORTMONKS_RESULTS_ROUND_ID;
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.RAPIDAPI_FOOTBALL_KEY;
 const API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io";
+const THE_SPORTS_DB_BASE_URL = "https://www.thesportsdb.com/api/v1/json/123";
 const TOP_LEAGUE_IDS = [39, 140, 135, 78, 61];
+const THE_SPORTS_DB_TOP_LEAGUE_IDS = ["4328", "4335", "4332", "4331", "4334", "4480"];
 
 type FootballRuntimeConfig = {
   providerMode: "auto" | "paid" | "free" | "off";
@@ -84,6 +86,21 @@ type ApiFootballFixture = {
     away?: { name?: string; logo?: string };
   };
   goals?: { home?: number | null; away?: number | null };
+};
+
+type SportsDbEvent = {
+  idEvent?: string;
+  strLeague?: string;
+  strHomeTeam?: string;
+  strAwayTeam?: string;
+  intHomeScore?: string | null;
+  intAwayScore?: string | null;
+  strTimestamp?: string | null;
+  dateEvent?: string | null;
+  strStatus?: string;
+  strProgress?: string;
+  strHomeTeamBadge?: string;
+  strAwayTeamBadge?: string;
 };
 
 const defaultFootballConfig: FootballRuntimeConfig = {
@@ -250,6 +267,18 @@ async function fetchApiFootball(path: string) {
   return response.json();
 }
 
+async function fetchTheSportsDb(path: string) {
+  const response = await fetch(`${THE_SPORTS_DB_BASE_URL}${path}`, {
+    next: { revalidate: 300 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`thesportsdb_${response.status}`);
+  }
+
+  return response.json();
+}
+
 function isoDate(offsetDays = 0) {
   const date = new Date();
   date.setUTCDate(date.getUTCDate() + offsetDays);
@@ -260,6 +289,118 @@ function apiFootballSeason() {
   const now = new Date();
   const year = now.getUTCFullYear();
   return now.getUTCMonth() >= 6 ? year : year - 1;
+}
+
+function parseSportsDbGoals(value: string | null | undefined) {
+  if (value == null || value.trim() === "") return null;
+  const goals = Number(value);
+  return Number.isFinite(goals) ? goals : null;
+}
+
+function sportsDbStatusLabel(event: SportsDbEvent) {
+  const status = (event.strStatus ?? "").trim();
+  const progress = (event.strProgress ?? "").trim();
+  if (progress && progress !== "0") return progress.endsWith("'") ? progress : `${progress}'`;
+  if (/finished|ft|aet|pen/i.test(status)) return "FT";
+  if (/not started|ns|scheduled/i.test(status) || !status) return "NS";
+  return status.toUpperCase();
+}
+
+function sportsDbIsLive(event: SportsDbEvent) {
+  const status = (event.strStatus ?? "").toLowerCase();
+  const progress = (event.strProgress ?? "").trim();
+  if (/finished|not started|postp|cancel|ft|ns/.test(status)) return false;
+  return (progress !== "" && progress !== "0") || /live|1h|2h|ht|half|et/.test(status);
+}
+
+function cleanSportsDbText(value: string | undefined) {
+  const text = (value ?? "").trim();
+  return text.includes("�") ? "" : text;
+}
+
+function mapSportsDbEvent(event: SportsDbEvent, config: FootballRuntimeConfig): Match | null {
+  const homeTeam = cleanSportsDbText(event.strHomeTeam);
+  const awayTeam = cleanSportsDbText(event.strAwayTeam);
+  if (!homeTeam || !awayTeam) return null;
+  const date = event.strTimestamp || (event.dateEvent ? `${event.dateEvent}T00:00:00Z` : new Date().toISOString());
+  const leagueName = cleanSportsDbText(event.strLeague) || "Football";
+  const homeGoals = parseSportsDbGoals(event.intHomeScore);
+  const awayGoals = parseSportsDbGoals(event.intAwayScore);
+  return {
+    id: Number(event.idEvent) || Math.floor(Math.random() * 1_000_000_000),
+    date,
+    status: sportsDbIsLive(event) ? "LIVE" : sportsDbStatusLabel(event),
+    elapsed: parseSportsDbGoals(event.strProgress),
+    league: leagueName,
+    leagueLogo: "",
+    homeTeam,
+    homeLogo: event.strHomeTeamBadge ?? "",
+    awayTeam,
+    awayLogo: event.strAwayTeamBadge ?? "",
+    homeGoals,
+    awayGoals,
+    priority: competitionPriority(leagueName, undefined, config),
+  };
+}
+
+async function getTheSportsDbMatches(config: FootballRuntimeConfig) {
+  const [previousPayload, todayPayload, nextPayload] = await Promise.all([
+    fetchTheSportsDb(`/eventsday.php?d=${isoDate(-1)}&s=Soccer`),
+    fetchTheSportsDb(`/eventsday.php?d=${isoDate(0)}&s=Soccer`),
+    fetchTheSportsDb(`/eventsday.php?d=${isoDate(1)}&s=Soccer`),
+  ]);
+
+  const previousDay = ((previousPayload.events ?? []) as SportsDbEvent[])
+    .map((item) => mapSportsDbEvent(item, config))
+    .filter((match): match is Match => Boolean(match))
+    .filter((match) => isPriorityMatch(match, config))
+    .slice(0, 10);
+  const today = ((todayPayload.events ?? []) as SportsDbEvent[])
+    .map((item) => mapSportsDbEvent(item, config))
+    .filter((match): match is Match => Boolean(match))
+    .filter((match) => isPriorityMatch(match, config))
+    .slice(0, 12);
+  const nextDay = ((nextPayload.events ?? []) as SportsDbEvent[])
+    .map((item) => mapSportsDbEvent(item, config))
+    .filter((match): match is Match => Boolean(match))
+    .filter((match) => isPriorityMatch(match, config))
+    .slice(0, 10);
+
+  let matches = [...previousDay, ...today, ...nextDay];
+
+  if (matches.length === 0) {
+    const leaguePayloads = await Promise.allSettled(
+      THE_SPORTS_DB_TOP_LEAGUE_IDS.map((leagueId) => fetchTheSportsDb(`/eventsnextleague.php?id=${leagueId}`)),
+    );
+    matches = leaguePayloads
+      .flatMap((result) => result.status === "fulfilled" ? ((result.value.events ?? []) as SportsDbEvent[]) : [])
+      .map((item) => mapSportsDbEvent(item, config))
+      .filter((match): match is Match => Boolean(match))
+      .filter((match) => isPriorityMatch(match, config));
+  }
+
+  matches = matches
+    .sort((a, b) => Number(b.status === "LIVE") - Number(a.status === "LIVE") || b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, config.maxMatches);
+
+  if (matches.length === 0) return null;
+
+  const recentResults = [...previousDay, ...today].filter((match) => match.homeGoals !== null && match.awayGoals !== null).slice(0, 12);
+  const upcomingFixtures = [...today, ...nextDay, ...matches].filter((match) => match.homeGoals === null || match.awayGoals === null).slice(0, 8);
+
+  return {
+    primaryMatch: stripPriority(matches[0]),
+    matches: matches.map(stripPriority),
+    previousDay: previousDay.map(stripPriority),
+    today: today.map(stripPriority),
+    nextDay: nextDay.map(stripPriority),
+    importantMatches: matches.slice(0, 16).map(stripPriority),
+    recentResults: recentResults.map(stripPriority),
+    upcomingFixtures: upcomingFixtures.map(stripPriority),
+    source: "thesportsdb",
+    mode: matches.some((match) => match.status === "LIVE") ? "live" : "results_upcoming",
+    newsMessage: config.newsMessage,
+  };
 }
 
 async function getApiFootballMatches(config: FootballRuntimeConfig) {
@@ -364,6 +505,8 @@ export async function GET() {
       if (config.providerMode === "paid") throw new Error("paid_provider_required");
       const fallback = await getApiFootballMatches(config);
       if (fallback) return NextResponse.json(fallback);
+      const freeFallback = await getTheSportsDbMatches(config);
+      if (freeFallback) return NextResponse.json(freeFallback);
     } catch {
       // Fall through to a clear empty state below.
     }
@@ -434,6 +577,8 @@ export async function GET() {
       if (config.providerMode === "paid") throw new Error("paid_provider_required");
       const fallback = await getApiFootballMatches(config);
       if (fallback) return NextResponse.json(fallback);
+      const freeFallback = await getTheSportsDbMatches(config);
+      if (freeFallback) return NextResponse.json(freeFallback);
     } catch {
       // Return the provider error below.
     }

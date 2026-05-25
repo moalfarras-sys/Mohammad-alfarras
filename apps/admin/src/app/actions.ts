@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { requireAdminRole, signInAdmin, signOutAdmin } from "@/lib/admin-auth";
 import { resolveManagedAppSlug, type ManagedAppSlug } from "@moalfarras/shared/app-products";
+import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import {
   cleanupStaleActivationRequests,
   deleteAppFaq,
@@ -37,6 +38,13 @@ import {
   updateWebsiteMessageStatus,
   uploadWebsiteMedia,
 } from "@/lib/website-cms";
+import {
+  deleteAiConversation,
+  deleteAiFeedback,
+  deleteAssistantEvent,
+  updateAiConversationStatus,
+  updateAutomationEventStatus,
+} from "@/lib/ai-ops";
 import type { WebsiteMediaAsset } from "@/lib/website-cms";
 
 function appRoute(slug: ManagedAppSlug) {
@@ -169,6 +177,30 @@ export async function logoutAdminAction() {
 export async function saveProductAction(formData: FormData) {
   await requireAdminRole("editor");
   const productSlug = formProductSlug(formData);
+  let logoPath = String(formData.get("logo_path") ?? "").trim();
+  let heroImagePath = String(formData.get("hero_image_path") ?? "").trim();
+  let tvBannerPath = String(formData.get("tv_banner_path") ?? "").trim();
+
+  const uploadProductImage = async (key: string) => {
+    const file = formData.get(key);
+    if (!(file instanceof File) || file.size === 0) return null;
+    validateWebsiteImageFile(file);
+    const uploaded = await uploadAppScreenshot({
+      filename: file.name,
+      contentType: file.type || "image/png",
+      bytes: new Uint8Array(await file.arrayBuffer()),
+    });
+    return uploaded.publicUrl;
+  };
+
+  try {
+    logoPath = (await uploadProductImage("logo_file")) ?? logoPath;
+    heroImagePath = (await uploadProductImage("hero_file")) ?? heroImagePath;
+    tvBannerPath = (await uploadProductImage("tv_banner_file")) ?? tvBannerPath;
+  } catch (error) {
+    appRedirect(uploadFailureCode(error), productSlug);
+  }
+
   await saveAppProduct({
     slug: productSlug,
     product_name: String(formData.get("product_name") ?? ""),
@@ -187,9 +219,9 @@ export async function saveProductAction(formData: FormData) {
     android_tv_ready: formData.get("android_tv_ready") === "on",
     default_download_label: String(formData.get("default_download_label") ?? "Download APK"),
     changelog_intro: String(formData.get("changelog_intro") ?? ""),
-    logo_path: String(formData.get("logo_path") ?? "").trim() || null,
-    hero_image_path: String(formData.get("hero_image_path") ?? "").trim() || null,
-    tv_banner_path: String(formData.get("tv_banner_path") ?? "").trim() || null,
+    logo_path: logoPath || null,
+    hero_image_path: heroImagePath || null,
+    tv_banner_path: tvBannerPath || null,
     feature_highlights: parseStructuredLines(String(formData.get("feature_highlights") ?? "")).map((item, index) => ({
       ...item,
       icon: ["tv", "zap", "shield", "box"][index % 4],
@@ -805,6 +837,64 @@ export async function saveWebsiteContactAction(formData: FormData) {
   redirect("/website?updated=website_contact");
 }
 
+export async function saveWebsiteOffersAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const supabase = createSupabaseAdminClient();
+  const current = await supabase.from("site_settings").select("value_json").eq("key", "site_offers").maybeSingle();
+  const existing = (current.data?.value_json && typeof current.data.value_json === "object" ? current.data.value_json : {}) as {
+    items?: Array<Record<string, unknown>>;
+  };
+  const items = Array.isArray(existing.items) ? [...existing.items] : [];
+  const rawIndex = String(formData.get("existing_index") ?? "").trim();
+  const index = rawIndex === "" ? -1 : Number(rawIndex);
+  let offerImage = "";
+  const selectedMediaId = String(formData.get("image_media_id") ?? "").trim();
+  if (selectedMediaId) {
+    const asset = await supabase.from("media_assets").select("path").eq("id", selectedMediaId).maybeSingle();
+    offerImage = String(asset.data?.path ?? "");
+  }
+  try {
+    const uploaded = await maybeUploadBrandMedia(formData, "offer_file", "website-offer");
+    if (uploaded?.path) offerImage = uploaded.path;
+  } catch (error) {
+    redirect(`/website?updated=${uploadFailureCode(error)}#offers`);
+  }
+  const previous = index >= 0 ? items[index] ?? {} : {};
+  const offer = {
+    id: String(formData.get("id") ?? "").trim() || String(previous.id ?? "") || crypto.randomUUID(),
+    isActive: formData.get("is_active") === "on",
+    placement: String(formData.get("placement") ?? "home"),
+    style: String(formData.get("style") ?? "banner"),
+    sortOrder: Number(formData.get("sort_order") ?? index + 1),
+    badge: {
+      ar: String(formData.get("badge_ar") ?? "").trim(),
+      en: String(formData.get("badge_en") ?? "").trim(),
+    },
+    title: {
+      ar: String(formData.get("title_ar") ?? "").trim(),
+      en: String(formData.get("title_en") ?? "").trim(),
+    },
+    body: {
+      ar: String(formData.get("body_ar") ?? "").trim(),
+      en: String(formData.get("body_en") ?? "").trim(),
+    },
+    ctaLabel: {
+      ar: String(formData.get("cta_ar") ?? "").trim(),
+      en: String(formData.get("cta_en") ?? "").trim(),
+    },
+    ctaHref: String(formData.get("cta_href") ?? "/contact").trim() || "/contact",
+    image: offerImage || String(previous.image ?? "/images/hero_tech.png"),
+  };
+  if (index >= 0) {
+    items[index] = offer;
+  } else {
+    items.push(offer);
+  }
+  await mergeSiteSetting("site_offers", { items, updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/website?updated=website_offer#offers");
+}
+
 /* ───────────────────────── Email replies to users ───────────────────────── */
 
 export async function sendUserEmailAction(formData: FormData) {
@@ -863,6 +953,59 @@ export async function deleteWebsiteMessageAction(formData: FormData) {
   await deleteWebsiteMessage(id);
   revalidateAll();
   redirect("/website?updated=message_deleted");
+}
+
+/* ───────────────────────── AI operations ───────────────────────── */
+
+export async function updateAiConversationStatusAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "reviewed");
+  if (!id || !["open", "reviewed", "archived"].includes(status)) {
+    redirect("/ai?updated=ai_invalid");
+  }
+  await updateAiConversationStatus(id, status as "open" | "reviewed" | "archived");
+  revalidateAll();
+  redirect("/ai?updated=ai_conversation");
+}
+
+export async function deleteAiConversationAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) redirect("/ai?updated=ai_invalid");
+  await deleteAiConversation(id);
+  revalidateAll();
+  redirect("/ai?updated=ai_deleted");
+}
+
+export async function deleteAiFeedbackAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) redirect("/ai?updated=ai_invalid");
+  await deleteAiFeedback(id);
+  revalidateAll();
+  redirect("/ai?updated=feedback_deleted");
+}
+
+export async function updateAutomationEventStatusAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "reviewed");
+  if (!id || !["new", "reviewed", "archived", "failed"].includes(status)) {
+    redirect("/ai?updated=automation_invalid");
+  }
+  await updateAutomationEventStatus(id, status as "new" | "reviewed" | "archived" | "failed");
+  revalidateAll();
+  redirect("/ai?updated=automation_event");
+}
+
+export async function deleteAssistantEventAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const key = String(formData.get("key") ?? "").trim();
+  if (!key) redirect("/ai?updated=ai_invalid");
+  await deleteAssistantEvent(key);
+  revalidateAll();
+  redirect("/ai?updated=assistant_event_deleted");
 }
 
 function brandedEmailHtml({ eyebrow, title, body, footer }: { eyebrow: string; title: string; body: string; footer: string }) {

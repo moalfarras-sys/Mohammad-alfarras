@@ -5,6 +5,7 @@ import android.net.Uri
 import android.view.SurfaceView
 import android.view.TextureView
 import android.view.View
+import com.mo.moplayer.util.DevicePerformance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,6 +32,7 @@ class VlcPlayerEngine(
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     private val callbacks = mutableListOf<PlayerEngine.Callback>()
+    private val performanceTier = DevicePerformance.tier(appContext)
 
     private var libVLC: LibVLC? = null
     private var mediaPlayer: MediaPlayer? = null
@@ -114,11 +116,7 @@ class VlcPlayerEngine(
         media.setHWDecoderEnabled(hardwareAccelerationEnabled, false)
 
         val adaptiveBuffer = getAdaptiveBufferMs()
-        val cachingMs = if (api24Safe) {
-            if (isLive) adaptiveBuffer.coerceAtLeast(6500) else adaptiveBuffer.coerceAtLeast(3500)
-        } else {
-            if (isLive) adaptiveBuffer.coerceAtLeast(4000) else adaptiveBuffer.coerceAtLeast(2000)
-        }
+        val cachingMs = stableCachingMs(adaptiveBuffer)
         media.addOption(":network-caching=$cachingMs")
         media.addOption(":aout=android_audiotrack")
         media.addOption(":no-spdif")
@@ -129,6 +127,7 @@ class VlcPlayerEngine(
         }
 
         player.media = media
+        media.release()
         player.play()
     }
 
@@ -219,13 +218,13 @@ class VlcPlayerEngine(
     }
 
     private fun initVlc() {
-        val cachingMs = if (api24Safe) {
-            bufferMs.coerceAtLeast(if (isLive) 6500 else 3500)
-        } else {
-            bufferMs.coerceAtLeast(500)
-        }
+        val cachingMs = stableCachingMs(bufferMs)
         val cpuCores = Runtime.getRuntime().availableProcessors()
-        val threadCount = (cpuCores * 2).coerceIn(8, 16)
+        val threadCount = when (performanceTier) {
+            DevicePerformance.Tier.LOW -> cpuCores.coerceIn(2, 4)
+            DevicePerformance.Tier.MEDIUM -> (cpuCores + 2).coerceIn(4, 8)
+            DevicePerformance.Tier.HIGH -> (cpuCores * 2).coerceIn(8, 16)
+        }
         val codecOpt = if (hardwareAccelerationEnabled) {
             if (api24Safe) "--codec=mediacodec_jni,all" else "--codec=mediacodec_ndk,mediacodec_jni,all"
         } else "--codec=all"
@@ -299,6 +298,7 @@ class VlcPlayerEngine(
         when (event.type) {
             MediaPlayer.Event.Playing -> {
                 hasStartedPlayback = true
+                callbacks.forEach { it.onVideoSizeChanged(16, 9) }
                 callbacks.forEach { it.onIsPlayingChanged(true) }
                 refreshTracks()
             }
@@ -349,6 +349,23 @@ class VlcPlayerEngine(
             caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) -> bufferMs
             caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) -> (bufferMs * 1.5).toInt()
             else -> bufferMs * 2
+        }
+    }
+
+    private fun stableCachingMs(baseMs: Int): Int {
+        return if (isLive) {
+            when {
+                api24Safe -> baseMs.coerceIn(5_500, 10_000)
+                performanceTier == DevicePerformance.Tier.LOW -> baseMs.coerceIn(4_500, 9_000)
+                performanceTier == DevicePerformance.Tier.MEDIUM -> baseMs.coerceIn(3_500, 8_000)
+                else -> baseMs.coerceIn(2_500, 7_000)
+            }
+        } else {
+            when (performanceTier) {
+                DevicePerformance.Tier.LOW -> baseMs.coerceIn(5_000, 18_000)
+                DevicePerformance.Tier.MEDIUM -> baseMs.coerceIn(3_500, 16_000)
+                DevicePerformance.Tier.HIGH -> baseMs.coerceIn(2_000, 20_000)
+            }
         }
     }
 }

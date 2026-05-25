@@ -68,12 +68,13 @@ class SettingsCategoryAdapter(
 
         private fun animateFocus(view: View, hasFocus: Boolean) {
             val translationX = if (hasFocus) 8f else 0f
-            val scale = if (hasFocus) 1.02f else 1f
+            val scale = if (hasFocus) 1.04f else 1f
+            view.elevation = if (hasFocus) 12f else 0f
             view.animate()
                 .translationX(translationX)
                 .scaleX(scale)
                 .scaleY(scale)
-                .setDuration(150)
+                .setDuration(120)
                 .start()
         }
     }

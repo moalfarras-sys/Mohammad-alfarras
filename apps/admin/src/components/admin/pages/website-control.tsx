@@ -12,6 +12,7 @@ import {
   deleteWebsiteServiceAction,
   saveWebsiteBrandAction,
   saveWebsiteContactAction,
+  saveWebsiteOffersAction,
   saveSiteStatusAction,
   saveWebsiteThemeAction,
   saveWebsiteHeroAction,
@@ -25,6 +26,7 @@ import {
 import { useLocale } from "@/components/admin/locale-provider";
 import { ReplyComposer } from "@/components/admin/reply-composer";
 import { Accordion, EmptyState, PageHeader, StatCard, Toggle } from "@/components/admin/ui";
+import { HelpTip } from "@/components/admin/ui";
 import { UpdatedToast } from "@/components/admin/updated-toast";
 import { resolveAdminAssetUrl } from "@/lib/asset-url";
 import type { WebsiteCmsData, WebsiteSetting } from "@/lib/website-cms";
@@ -305,6 +307,22 @@ type ContactContent = {
   ar?: { eyebrow?: string; title?: string; body?: string; directTitle?: string; directBody?: string; primaryCta?: string; chips?: string[] };
   en?: { eyebrow?: string; title?: string; body?: string; directTitle?: string; directBody?: string; primaryCta?: string; chips?: string[] };
 };
+type OffersContent = {
+  items?: WebsiteOffer[];
+};
+type WebsiteOffer = {
+  id?: string;
+  isActive?: boolean;
+  placement?: "home" | "services" | "apps" | "contact" | "all";
+  style?: "banner" | "cards" | "strip";
+  sortOrder?: number;
+  badge?: { ar?: string; en?: string };
+  title?: { ar?: string; en?: string };
+  body?: { ar?: string; en?: string };
+  ctaLabel?: { ar?: string; en?: string };
+  ctaHref?: string;
+  image?: string;
+};
 
 function lines(items?: string[]) {
   return (items ?? []).join("\n");
@@ -321,6 +339,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
   const brand = setting<BrandAssets>(data.settings, "brand_assets", {});
   const theme = setting<SiteTheme>(data.settings, "site_theme", {});
   const contact = setting<ContactContent>(data.settings, "contact_page_content", contactFallback);
+  const offers = setting<OffersContent>(data.settings, "site_offers", { items: [] });
   const homeHeroAr = { ...homeFallback.ar?.hero, ...(home.ar?.hero ?? {}) };
   const homeHeroEn = { ...homeFallback.en?.hero, ...(home.en?.hero ?? {}) };
   const homeServicesAr = { ...homeFallback.ar?.services, ...(home.ar?.services ?? {}) };
@@ -338,8 +357,8 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         eyebrow={t({ en: "Supabase website CMS", ar: "إدارة محتوى الموقع" })}
         title={t({ en: "Website Control", ar: "إدارة الموقع" })}
         subtitle={t({
-          en: "Edit homepage copy, services, images, projects, and reply to visitor messages.",
-          ar: "حرّر نصوص الصفحة الرئيسية والخدمات والصور والمشاريع، ورد على رسائل الزوار.",
+          en: "The public website is controlled here only: words, images, colors, SEO, services, projects, maintenance, and visitor messages.",
+          ar: "الموقع العام يتحكم به من هنا فقط: النصوص، الصور، الألوان، الفهرسة، الخدمات، المشاريع، الصيانة، ورسائل الزوار.",
         })}
         icon={<Globe className="h-7 w-7" />}
         actions={
@@ -355,6 +374,29 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         <StatCard label={t({ en: "Services", ar: "خدمات" })} value={`${activeServices}/${data.services.length}`} icon={<Settings2 className="h-5 w-5" />} href="/website#services" />
         <StatCard label={t({ en: "Media", ar: "صور" })} value={data.mediaAssets.length} icon={<ImageIcon className="h-5 w-5" />} tone="violet" href="/website#media" />
         <StatCard label={t({ en: "Projects", ar: "مشاريع" })} value={`${activeProjects}/${data.projects.length}`} icon={<Briefcase className="h-5 w-5" />} tone="success" href="/website#projects" />
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-3">
+        <QuickJump
+          href="/website#brand"
+          title={t({ en: "Change logo, colors, and main images", ar: "تبديل الشعار والألوان والصور الرئيسية" })}
+          body={t({ en: "Use Brand first when you want the whole website to feel different.", ar: "ابدأ من الهوية عندما تريد تغيير شكل الموقع كله." })}
+        />
+        <QuickJump
+          href="/website#media"
+          title={t({ en: "Upload a new image once", ar: "ارفع صورة جديدة مرة واحدة" })}
+          body={t({ en: "Then choose it in pages, services, projects, logo, or contact hero.", ar: "ثم اخترها في الصفحات أو الخدمات أو المشاريع أو الشعار أو صورة التواصل." })}
+        />
+        <QuickJump
+          href="/website#maintenance"
+          title={t({ en: "Put site in maintenance", ar: "تشغيل صيانة الموقع" })}
+          body={t({ en: "Use only when visitors should temporarily see a maintenance message.", ar: "استخدمها فقط عندما تريد أن يرى الزوار رسالة صيانة مؤقتة." })}
+        />
+        <QuickJump
+          href="/website#offers"
+          title={t({ en: "Create website offers", ar: "إدارة عروض الموقع" })}
+          body={t({ en: "Choose where an offer appears and whether it is banner, cards, or strip.", ar: "اختر أين يظهر العرض وهل يكون بانر أو بطاقات أو شريط." })}
+        />
       </section>
 
       <section className="grid gap-3 md:grid-cols-3">
@@ -378,11 +420,11 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
       <section className="grid gap-3 md:grid-cols-3">
         <GuideCard
           title={t({ en: "Need to replace a site image?", ar: "تريد تبديل صورة بالموقع؟" })}
-          body={t({ en: "Upload it in Media library, then choose it in Brand, Pages, Services, or Projects.", ar: "ارفعها من مكتبة الصور، ثم اخترها في الهوية أو الصفحات أو الخدمات أو المشاريع." })}
+          body={t({ en: "Upload the image once in Media library. After that, select it from the image chooser in the exact section you want.", ar: "ارفع الصورة مرة واحدة في مكتبة الصور. بعدها اخترها من مكان الصورة داخل القسم المطلوب." })}
         />
         <GuideCard
           title={t({ en: "Need to edit page titles?", ar: "تريد تعديل عناوين الصفحات؟" })}
-          body={t({ en: "Open Pages & SEO. Every page has Arabic/English title, SEO text, and social image.", ar: "افتح الصفحات و SEO. كل صفحة فيها عنوان عربي/إنجليزي ونص SEO وصورة مشاركة." })}
+          body={t({ en: "Open Pages & SEO. This controls what visitors see in Google and when the page is shared.", ar: "افتح الصفحات و SEO. هذا يتحكم بما يظهر في Google وعند مشاركة الصفحة." })}
         />
         <GuideCard
           title={t({ en: "Need to handle a request?", ar: "تريد معالجة طلب؟" })}
@@ -397,6 +439,13 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         icon={<ImageIcon className="h-5 w-5" />}
         defaultOpen
       >
+        <SectionHelp
+          title={t({ en: "What this changes", ar: "ماذا يغيّر هذا القسم؟" })}
+          body={t({
+            en: "Logo and profile images affect the whole site. Contact hero affects the contact page. Colors affect the public website palette.",
+            ar: "الشعار والصورة الشخصية تؤثر على الموقع كله. صورة التواصل تخص صفحة التواصل. الألوان تغيّر شكل الموقع العام.",
+          })}
+        />
         <form action={saveWebsiteBrandAction} className="grid gap-4 lg:grid-cols-2">
           <Inp label={t({ en: "Arabic site name", ar: "اسم الموقع عربي" })} name="site_name_ar" defaultValue={brand.siteName?.ar ?? "محمد الفراس"} />
           <Inp label={t({ en: "English site name", ar: "اسم الموقع إنجليزي" })} name="site_name_en" defaultValue={brand.siteName?.en ?? "Mohammad Alfarras"} />
@@ -451,6 +500,14 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         count={status.maintenance ? t({ en: "MAINTENANCE", ar: "صيانة" }) : t({ en: "LIVE", ar: "يعمل" })}
         defaultOpen={Boolean(status.maintenance)}
       >
+        <SectionHelp
+          title={t({ en: "Use carefully", ar: "استخدمها بحذر" })}
+          body={t({
+            en: "Maintenance hides the public website behind a friendly message. It does not delete content and does not affect the admin panel.",
+            ar: "وضع الصيانة يخفي الموقع العام خلف رسالة واضحة. لا يحذف أي محتوى ولا يؤثر على لوحة الأدمن.",
+          })}
+          tone="warning"
+        />
         <form action={saveSiteStatusAction} className="grid gap-4">
           <Toggle
             name="maintenance"
@@ -474,6 +531,13 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         icon={<FileText className="h-5 w-5" />}
         defaultOpen
       >
+        <SectionHelp
+          title={t({ en: "This is the first screen", ar: "هذه أول شاشة" })}
+          body={t({
+            en: "Write simple visitor-facing text. Avoid technical words. The buttons should tell the visitor exactly what to do next.",
+            ar: "اكتب كلاماً بسيطاً للزائر. تجنب الكلمات التقنية. الأزرار لازم تقول للزائر ماذا يفعل بعدها.",
+          })}
+        />
         <form action={saveWebsiteHeroAction} className="grid gap-4 lg:grid-cols-2">
           <Area label={t({ en: "Arabic headline", ar: "العنوان (عربي)" })} name="hero_ar_headline" defaultValue={nonEmpty(homeHeroAr.title, homeFallback.ar?.hero?.title)} />
           <Area label={t({ en: "English headline", ar: "العنوان (إنجليزي)" })} name="hero_en_headline" defaultValue={nonEmpty(homeHeroEn.title, homeFallback.en?.hero?.title)} />
@@ -497,6 +561,13 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         icon={<Settings2 className="h-5 w-5" />}
         count={data.services.length}
       >
+        <SectionHelp
+          title={t({ en: "How services work", ar: "كيف تعمل الخدمات؟" })}
+          body={t({
+            en: "Each service card can have its own image, title, description, bullets, order, and visible/hidden state.",
+            ar: "كل بطاقة خدمة لها صورة وعنوان ووصف ونقاط وترتيب وحالة ظهور أو إخفاء.",
+          })}
+        />
         <form action={saveWebsiteServicesAction} className="grid gap-4 lg:grid-cols-2">
           <Inp label={t({ en: "Arabic title", ar: "العنوان (عربي)" })} name="services_ar_title" defaultValue={nonEmpty(homeServicesAr.title, homeFallback.ar?.services?.title)} />
           <Inp label={t({ en: "English title", ar: "العنوان (إنجليزي)" })} name="services_en_title" defaultValue={nonEmpty(homeServicesEn.title, homeFallback.en?.services?.title)} />
@@ -642,6 +713,58 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         </form>
       </Accordion>
 
+      <Accordion
+        id="offers"
+        title={t({ en: "Website offers", ar: "عروض الموقع" })}
+        description={t({ en: "Promos you can place on home, services, apps, contact, or everywhere.", ar: "عروض تظهر في الرئيسية أو الخدمات أو التطبيقات أو التواصل أو كل الموقع." })}
+        icon={<UploadCloud className="h-5 w-5" />}
+        count={offers.items?.filter((item) => item.isActive !== false).length ?? 0}
+        defaultOpen
+      >
+        <SectionHelp
+          title={t({ en: "How offers work", ar: "كيف تعمل العروض؟" })}
+          body={t({
+            en: "Use this only for real promotions. First choose the page where visitors should see it, then choose the shape: banner for a big hero offer, card for compact sections, strip for a small reminder. Upload one clear image, write short text, then save. Turn Show offer off to hide it without deleting.",
+            ar: "استخدم هذا القسم للعروض الحقيقية فقط. أولاً اختر الصفحة التي سيظهر فيها العرض، ثم اختر الشكل: بانر لعرض كبير، بطاقة لقسم متوسط، شريط لتذكير صغير. ارفع صورة واضحة، اكتب نصاً قصيراً، ثم احفظ. لإخفاء العرض أطفئ إظهار العرض بدون حذفه.",
+          })}
+        />
+        <details className="mb-5 rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4" open>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+            <span>
+              <span className="block text-sm font-black text-[var(--text-1)]">{t({ en: "Add a new offer", ar: "إضافة عرض جديد" })}</span>
+              <span className="mt-1 block text-xs text-[var(--text-3)]">{t({ en: "Create a lightweight promotion with image and button.", ar: "أنشئ عرضاً خفيفاً مع صورة وزر." })}</span>
+            </span>
+            <span className="btn btn-sm">{t({ en: "Create", ar: "إنشاء" })}</span>
+          </summary>
+          <OfferForm assets={data.mediaAssets} />
+        </details>
+        <div className="grid gap-3">
+          {(offers.items ?? []).map((offer, index) => (
+            <details key={offer.id || index} className="rounded-3xl border border-[var(--line)] bg-white/[0.025] p-4">
+              <summary className="cursor-pointer list-none">
+                <div className="grid gap-3 md:grid-cols-[150px_1fr_auto] md:items-center">
+                  <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-black/20">
+                    {offer.image ? <SafeImage src={offer.image} alt={offer.title?.en || offer.title?.ar || "Offer"} className="aspect-video h-full w-full object-cover" /> : <ImageFallback label="Offer" />}
+                  </div>
+                  <div>
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      <span className="badge">{offer.isActive === false ? t({ en: "Hidden", ar: "مخفي" }) : t({ en: "Active", ar: "ظاهر" })}</span>
+                      <span className="badge">{offer.placement || "home"}</span>
+                      <span className="badge">{offer.style || "banner"}</span>
+                    </div>
+                    <p className="text-sm font-black text-[var(--text-1)]">{offer.title?.ar || offer.title?.en || offer.id}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-[var(--text-3)]">{offer.body?.ar || offer.body?.en}</p>
+                  </div>
+                  <span className="btn btn-sm">{t({ en: "Edit", ar: "تعديل" })}</span>
+                </div>
+              </summary>
+              <OfferForm offer={offer} assets={data.mediaAssets} index={index} />
+            </details>
+          ))}
+          {!(offers.items ?? []).length ? <EmptyState icon={<UploadCloud className="h-5 w-5" />} title={t({ en: "No offers yet", ar: "لا توجد عروض بعد" })} body={t({ en: "Add your first offer above.", ar: "أضف أول عرض من الأعلى." })} /> : null}
+        </div>
+      </Accordion>
+
       {/* Media library */}
       <Accordion
         id="media"
@@ -650,6 +773,13 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         icon={<ImageIcon className="h-5 w-5" />}
         count={data.mediaAssets.length}
       >
+        <SectionHelp
+          title={t({ en: "Before uploading", ar: "قبل الرفع" })}
+          body={t({
+            en: "Use clear names and alt text. The image can then be reused across the website without uploading again.",
+            ar: "استخدم اسماً ووصفاً واضحين. بعدها يمكن استخدام الصورة في أكثر من مكان بدون رفعها مرة ثانية.",
+          })}
+        />
         <form action={uploadWebsiteMediaAction} className="mb-6 grid gap-4 lg:grid-cols-3" encType="multipart/form-data">
           <Inp label={t({ en: "Arabic alt text", ar: "وصف الصورة (عربي)" })} name="alt_ar" />
           <Inp label={t({ en: "English alt text", ar: "وصف الصورة (إنجليزي)" })} name="alt_en" />
@@ -696,6 +826,13 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         icon={<FileText className="h-5 w-5" />}
         count={data.pages.length}
       >
+        <SectionHelp
+          title={t({ en: "SEO in plain words", ar: "SEO بكلام بسيط" })}
+          body={t({
+            en: "Page title is the visitor name. SEO title and description are what Google and sharing previews read. The social image appears when the link is shared.",
+            ar: "عنوان الصفحة هو اسمها للزائر. عنوان ووصف SEO تقرأهم Google ومعاينة المشاركة. صورة المشاركة تظهر عند إرسال الرابط.",
+          })}
+        />
         <details className="mb-4 rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
             <span>
@@ -1042,19 +1179,19 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
   );
 }
 
-function Inp({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+function Inp({ label, help, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; help?: string }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <span>{label}{help ? <HelpTip text={help} /> : null}</span>
       <input {...props} />
     </label>
   );
 }
 
-function Area({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
+function Area({ label, help, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; help?: string }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <span>{label}{help ? <HelpTip text={help} /> : null}</span>
       <textarea {...props} />
     </label>
   );
@@ -1063,6 +1200,22 @@ function Area({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElem
 function GuideCard({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-2xl border border-[var(--line)] bg-[linear-gradient(135deg,rgba(34,211,238,0.08),rgba(99,102,241,0.05))] p-4">
+      <p className="text-sm font-black text-[var(--text-1)]">{title}</p>
+      <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{body}</p>
+    </div>
+  );
+}
+
+function SectionHelp({ title, body, tone = "default" }: { title: string; body: string; tone?: "default" | "warning" }) {
+  return (
+    <div
+      className={[
+        "mb-5 rounded-2xl border p-4",
+        tone === "warning"
+          ? "border-[rgba(251,191,36,0.32)] bg-[rgba(251,191,36,0.08)]"
+          : "border-[var(--line-strong)] bg-[linear-gradient(135deg,rgba(34,211,238,0.08),rgba(99,102,241,0.045))]",
+      ].join(" ")}
+    >
       <p className="text-sm font-black text-[var(--text-1)]">{title}</p>
       <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{body}</p>
     </div>
@@ -1086,6 +1239,68 @@ function QuickJump({ href, title, body }: { href: string; title: string; body: s
   );
 }
 
+function OfferForm({ offer, assets, index }: { offer?: WebsiteOffer; assets: WebsiteCmsData["mediaAssets"]; index?: number }) {
+  const { t } = useLocale();
+  const imageId = offer?.image ? assets.find((asset) => asset.path === offer.image)?.id ?? "" : "";
+
+  return (
+    <form action={saveWebsiteOffersAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-3" encType="multipart/form-data">
+      <input type="hidden" name="existing_index" value={index ?? ""} />
+      <input type="hidden" name="id" value={offer?.id ?? ""} />
+      <Inp label={t({ en: "Sort order", ar: "الترتيب" })} name="sort_order" type="number" defaultValue={String(offer?.sortOrder ?? (index ?? 0) + 1)} />
+      <label className="field">
+        <span>{t({ en: "Where should it appear?", ar: "أين يظهر؟" })}</span>
+        <select name="placement" defaultValue={offer?.placement ?? "home"}>
+          <option value="home">{t({ en: "Home page", ar: "الرئيسية" })}</option>
+          <option value="services">{t({ en: "Services page", ar: "الخدمات" })}</option>
+          <option value="apps">{t({ en: "Apps page", ar: "التطبيقات" })}</option>
+          <option value="contact">{t({ en: "Contact page", ar: "التواصل" })}</option>
+          <option value="all">{t({ en: "Every main page", ar: "كل الصفحات الرئيسية" })}</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>{t({ en: "Display style", ar: "شكل العرض" })}</span>
+        <select name="style" defaultValue={offer?.style ?? "banner"}>
+          <option value="banner">{t({ en: "Big banner", ar: "بانر كبير" })}</option>
+          <option value="cards">{t({ en: "Card", ar: "بطاقة" })}</option>
+          <option value="strip">{t({ en: "Small strip", ar: "شريط صغير" })}</option>
+        </select>
+      </label>
+      <Inp label={t({ en: "Arabic badge", ar: "شارة عربي" })} name="badge_ar" defaultValue={offer?.badge?.ar ?? "عرض خاص"} />
+      <Inp label={t({ en: "English badge", ar: "شارة إنجليزي" })} name="badge_en" defaultValue={offer?.badge?.en ?? "Special offer"} />
+      <label className="switch">
+        <span>
+          <strong>{t({ en: "Show offer", ar: "إظهار العرض" })}</strong>
+          <small>{t({ en: "Turn off to hide without deleting.", ar: "أطفئه لإخفاء العرض بدون حذف." })}</small>
+        </span>
+        <input type="checkbox" name="is_active" defaultChecked={offer?.isActive !== false} />
+        <i aria-hidden />
+      </label>
+      <Inp label={t({ en: "Arabic title", ar: "عنوان عربي" })} name="title_ar" defaultValue={offer?.title?.ar ?? ""} required />
+      <Inp label={t({ en: "English title", ar: "عنوان إنجليزي" })} name="title_en" defaultValue={offer?.title?.en ?? ""} />
+      <Inp label={t({ en: "Button link", ar: "رابط الزر" })} name="cta_href" defaultValue={offer?.ctaHref ?? "/contact"} />
+      <Area label={t({ en: "Arabic text", ar: "نص عربي" })} name="body_ar" defaultValue={offer?.body?.ar ?? ""} />
+      <Area label={t({ en: "English text", ar: "نص إنجليزي" })} name="body_en" defaultValue={offer?.body?.en ?? ""} />
+      <div className="grid gap-3">
+        <Inp label={t({ en: "Arabic button", ar: "زر عربي" })} name="cta_ar" defaultValue={offer?.ctaLabel?.ar ?? "اطلب العرض"} />
+        <Inp label={t({ en: "English button", ar: "زر إنجليزي" })} name="cta_en" defaultValue={offer?.ctaLabel?.en ?? "Get offer"} />
+      </div>
+      <div className="lg:col-span-2">
+        <MediaSelect label={t({ en: "Offer image from library", ar: "صورة العرض من المكتبة" })} name="image_media_id" assets={assets} value={imageId} fallbackPath={offer?.image} />
+      </div>
+      <label className="mt-1 flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-black/20 px-4 py-3">
+        <span>
+          <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-[var(--accent)]">{t({ en: "Upload offer image", ar: "رفع صورة العرض" })}</span>
+          <span className="mt-1 block text-xs text-[var(--text-3)]">{t({ en: "Optional direct image upload.", ar: "رفع مباشر اختياري." })}</span>
+        </span>
+        <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
+        <input type="file" name="offer_file" accept="image/*" className="sr-only" />
+      </label>
+      <button type="submit" className="btn btn-primary lg:col-span-3">{t({ en: "Save offer", ar: "حفظ العرض" })}</button>
+    </form>
+  );
+}
+
 function MediaSelect({
   label,
   name,
@@ -1099,6 +1314,7 @@ function MediaSelect({
   value?: string | null;
   fallbackPath?: string;
 }) {
+  const { t } = useLocale();
   const [selectedId, setSelectedId] = useState(value ?? "");
   const selected = assets.find((asset) => asset.id === selectedId);
   const previewSrc = selected?.path || fallbackPath || "";
@@ -1108,7 +1324,7 @@ function MediaSelect({
       <label className="field">
         <span>{label}</span>
         <select name={name} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="input">
-          <option value="">Use fallback path</option>
+          <option value="">{t({ en: "Keep current fallback image", ar: "استخدم الصورة الاحتياطية الحالية" })}</option>
           {assets.map((asset) => (
             <option key={asset.id} value={asset.id}>
               {asset.id} · {asset.type}
@@ -1124,7 +1340,7 @@ function MediaSelect({
       {selected ? (
         <p className="mt-2 truncate text-[10px] font-bold text-[var(--text-3)]">{selected.path}</p>
       ) : (
-        <p className="mt-2 text-[10px] font-bold text-[var(--text-3)]">Upload an image, then choose it here.</p>
+        <p className="mt-2 text-[10px] font-bold text-[var(--text-3)]">{t({ en: "Upload an image first, then choose it here.", ar: "ارفع صورة أولاً ثم اخترها من هنا." })}</p>
       )}
     </div>
   );

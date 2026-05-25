@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="2dp"
-    android:layout_marginHorizontal="3dp"
+    android:layout_marginVertical="3dp"
+    android:layout_marginHorizontal="4dp"
     android:clipChildren="false"
     android:clipToPadding="false">
 
@@ -23,20 +23,20 @@
         android:id="@+id/groupContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="54dp"
+        android:minHeight="60dp"
         android:background="@drawable/bg_liquid_glass_card"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="9dp"
-        android:paddingVertical="6dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
 
         <!-- Group Icon Container -->
         <FrameLayout
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginEnd="8dp">
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginEnd="10dp">
 
             <View
                 android:id="@+id/iconBackground"
@@ -46,8 +46,8 @@
 
             <ImageView
                 android:id="@+id/ivGroupIcon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_live_tv"
                 app:tint="@color/htc_text_primary"
@@ -72,7 +72,7 @@
                 android:maxLines="2"
                 android:textDirection="locale"
                 android:textColor="@color/liquid_text_primary"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:lineSpacingMultiplier="1.1"
                 tools:text="Sports" />
@@ -84,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/liquid_text_tertiary"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 tools:text="125 قناة" />
 
         </LinearLayout>
@@ -98,7 +98,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:layout_marginVertical="4dp"
-        android:background="@color/liquid_accent_primary"
+        android:background="#D037D5FF"
         android:visibility="gone" />
 
     <!-- Focus Border -->

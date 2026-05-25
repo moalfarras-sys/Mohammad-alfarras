@@ -6,11 +6,54 @@
     android:layout_height="match_parent"
     android:background="@color/liquid_bg_base">
 
+    <View
+        android:id="@+id/liveAmbientBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_live_cinematic_base" />
+
     <!-- VLC Player Surface (Full Screen Background) -->
     <org.videolan.libvlc.util.VLCVideoLayout
         android:id="@+id/vlcVideoLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" />
+
+    <LinearLayout
+        android:id="@+id/liveIdleBackdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="48dp">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:alpha="0.76"
+            android:src="@drawable/logo"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/live_tv_channel_list"
+            android:textColor="@color/cinematic_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="520dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/live_tv_hint"
+            android:textColor="@color/cinematic_text_secondary"
+            android:textSize="14sp" />
+    </LinearLayout>
 
     <!-- Dark Overlay (80% black when overlay visible) -->
         <View
@@ -40,9 +83,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="28"
-            android:layout_marginStart="14dp"
-            android:layout_marginTop="14dp"
-            android:layout_marginBottom="14dp"
+            android:layout_marginStart="18dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="18dp"
             android:background="@drawable/bg_panel_floating_glass"
             android:orientation="vertical"
             android:paddingTop="16dp">
@@ -52,7 +95,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="14dp"
+                android:paddingHorizontal="18dp"
                 android:paddingBottom="12dp">
 
                 <ImageView
@@ -117,8 +160,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="54"
-            android:layout_marginTop="14dp"
-            android:layout_marginBottom="14dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="18dp"
             android:background="@drawable/bg_panel_floating_glass"
             android:orientation="vertical"
             android:paddingTop="16dp">
@@ -128,7 +171,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="20dp"
                 android:paddingBottom="12dp">
 
                 <!-- Accent Bar -->
@@ -207,9 +250,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="18"
-            android:layout_marginTop="14dp"
-            android:layout_marginEnd="14dp"
-            android:layout_marginBottom="14dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginBottom="18dp"
             android:background="@drawable/bg_panel_floating_glass"
             android:orientation="vertical"
             android:padding="16dp">

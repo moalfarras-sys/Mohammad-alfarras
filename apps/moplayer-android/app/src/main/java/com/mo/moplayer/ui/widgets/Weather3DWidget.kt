@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -66,6 +67,7 @@ class Weather3DWidget @JvmOverloads constructor(
     private var widgetState: WidgetUiState<WeatherService.WeatherData> = WidgetUiState.Loading
     private var weatherCollectJob: Job? = null
     private var lastGoodData: WeatherService.WeatherData? = null
+    private var focusAccentColor: Int = Color.parseColor("#00E5FF")
     
     init {
         LayoutInflater.from(context).inflate(R.layout.widget_weather_3d, this, true)
@@ -75,8 +77,8 @@ class Weather3DWidget @JvmOverloads constructor(
         isFocusableInTouchMode = true
         isClickable = true
         (this as ViewGroup).descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-        setBackgroundResource(R.drawable.bg_widget_weather_premium)
-        setPadding(2, 2, 2, 2)
+        background = null
+        setPadding(0, 0, 0, 0)
         
         tvTemperature = findViewById(R.id.tvTemperature)
         tvTemperatureShadow = findViewById(R.id.tvTemperatureShadow)
@@ -299,6 +301,7 @@ class Weather3DWidget @JvmOverloads constructor(
             WeatherService.WeatherCategory.SNOWY -> Color.rgb(230, 240, 255)
             WeatherService.WeatherCategory.FOGGY -> Color.rgb(190, 190, 190)
         }
+        focusAccentColor = glowColor
         
         iconGlow.background?.colorFilter = PorterDuffColorFilter(glowColor, PorterDuff.Mode.SRC_IN)
         
@@ -359,6 +362,7 @@ class Weather3DWidget @JvmOverloads constructor(
     private fun animateFocus(hasFocus: Boolean) {
         val targetScale = if (hasFocus) 1.06f else 1.0f
         val targetElevation = if (hasFocus) 14f else 4f
+        background = if (hasFocus) createFocusBackground(focusAccentColor) else null
         animate()
             .scaleX(targetScale)
             .scaleY(targetScale)
@@ -374,6 +378,20 @@ class Weather3DWidget @JvmOverloads constructor(
             .setDuration(200)
             .start()
     }
+
+    private fun createFocusBackground(color: Int): GradientDrawable =
+        GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(
+                Color.argb(54, Color.red(color), Color.green(color), Color.blue(color)),
+                Color.argb(150, 4, 14, 32)
+            )
+        ).apply {
+            cornerRadius = dp(18f)
+            setStroke(dp(1.8f).toInt(), Color.argb(225, Color.red(color), Color.green(color), Color.blue(color)))
+        }
+
+    private fun dp(value: Float): Float = value * resources.displayMetrics.density
 
     private fun formatRelativeUpdateTime(updatedAtEpochMs: Long): CharSequence {
         if (updatedAtEpochMs <= 0L) return ""

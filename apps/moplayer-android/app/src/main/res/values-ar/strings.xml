@@ -73,6 +73,7 @@
     <string name="live_tv_channel_list">قائمة القنوات</string>
     <string name="live_tv_categories">الأقسام</string>
     <string name="live_tv_press_ok">اضغط OK للقنوات</string>
+    <string name="live_tv_hint">اضغط OK لفتح متصفح القنوات، واستخدم أعلى وأسفل للتنقل بين القنوات، وزر الرجوع للعودة.</string>
     
     
     <string name="football_widget_live">مباشر</string>
@@ -171,6 +172,9 @@
     <string name="source_expiry_format">ينتهي: %1$s</string>
     <string name="source_connections_format">الاتصالات: %1$d/%2$d</string>
     <string name="source_max_connections_format">أقصى اتصالات: %1$d</string>
+    <string name="home_subscription_last_day">آخر يوم\n%1$s</string>
+    <string name="home_subscription_active">السيرفر\nنشط</string>
+    <string name="home_subscription_no_source">السيرفر\nلا يوجد مصدر</string>
     <string name="settings_player">إعدادات المشغل</string>
     <string name="settings_player_default_quality">الجودة الافتراضية</string>
     <string name="settings_player_buffer_size">حجم التخزين المؤقت</string>
@@ -286,8 +290,8 @@
     <string name="weather_widget_content_description">طقس %1$s، %2$d درجة، %3$s، المحسوس %4$d درجة، الرطوبة %5$d بالمئة، الرياح %6$.0f كيلومتر في الساعة</string>
 
     
-    <string name="weather_debug_title">اختبار الطقس</string>
-    <string name="weather_debug_desc">فرض حالة طقس لأي تجربة الواجهة والتأثيرات. اضغط مطولاً على رقم الإصدار لفتحها.</string>
+    <string name="weather_debug_title">مختبر الطقس</string>
+    <string name="weather_debug_desc">افرض أي حالة طقس لاختبار ودجت الرئيسية، نافذة التفاصيل، ومؤثرات الخلفية.</string>
     <string name="weather_debug_enable">تفعيل وضع الاختبار</string>
     <string name="weather_debug_category">الحالة</string>
     <string name="weather_debug_day">نهار</string>
@@ -319,6 +323,12 @@
     <string name="menu_details">عرض التفاصيل</string>
     <string name="menu_trailer">مشاهدة الإعلان</string>
     <string name="menu_share">مشاركة</string>
+    <string name="menu_block_parental">حجب بكلمة سر الأهل</string>
+    <string name="menu_unblock_parental">إلغاء الحجب الأبوي</string>
+    <string name="parental_content_blocked">محجوب بالرقابة الأبوية</string>
+    <string name="parental_content_blocked_toast">تم حجب %1$s على هذا السيرفر</string>
+    <string name="parental_content_unblocked_toast">تم إلغاء حجب %1$s</string>
+    <string name="parental_blocked_count">العناصر المحجوبة على هذا السيرفر: %1$d</string>
     <string name="long_press_hint">اضغط مطولاً على زر OK للمزيد</string>
     <string name="menu_title">الخيارات</string>
 
@@ -358,6 +368,11 @@
 
     <string name="settings_weather_title">ودجت الطقس</string>
     <string name="settings_weather_description">إعداد الطقس ليظهر على الشاشة الرئيسية</string>
+    <string name="settings_weather_management_title">إدارة الطقس</string>
+    <string name="settings_weather_management_desc">تحكم بودجت الطقس، مصدر الموقع، المؤثرات، وتجربة حالات الطقس من الريموت.</string>
+    <string name="settings_weather_lab_title">فتح مختبر الطقس</string>
+    <string name="settings_weather_lab_desc">جرّب الشمس والمطر والعاصفة والثلج والرياح والغيوم والليل/النهار بجهاز التحكم.</string>
+    <string name="settings_weather_enable_widget">تفعيل ودجت الطقس</string>
     <string name="settings_weather_api_key_hint">مفتاح API لـ OpenWeatherMap</string>
     <string name="settings_weather_city_hint">اسم المدينة (مثال: London, Berlin)</string>
     <string name="settings_weather_api_key_empty">يرجى إدخال مفتاح API</string>
@@ -376,6 +391,9 @@
     <string name="settings_weather_disable_lightning_desc">إخفاء وميض البرق أثناء العواصف</string>
 
     <string name="settings_animation_enabled">حركة الخلفية</string>
+    <string name="settings_background_behavior_title">طريقة عرض الخلفية</string>
+    <string name="settings_background_behavior_static">ثيم ثابت فقط</string>
+    <string name="settings_background_behavior_follow_preview">تتبع معاينة البوستر</string>
     <string name="theme_starfield">نجوم</string>
     <string name="theme_galaxy">مجرة</string>
     <string name="theme_nebula">سديم</string>
@@ -414,6 +432,7 @@
 
     <string name="settings_weather_detected_location">الموقع المكتشف</string>
     <string name="settings_weather_refresh_location">تحديث الموقع والطقس</string>
+    <string name="settings_use_city_wallpaper">استخدم خلفية المدينة الآن</string>
     <string name="settings_pin_enter_title">أدخل الرمز السري</string>
 
     <string name="activation_tab">التفعيل</string>
@@ -622,11 +641,24 @@
     <string name="live_tv_empty_subtitle">جرّب فئة أخرى أو حدّث المصدر النشط من الإعدادات.</string>
 
     <!-- التحديث داخل التطبيق -->
+    <string name="update_available_eyebrow">تحديث التطبيق</string>
     <string name="update_available_title">تحديث متوفر — %1$s</string>
     <string name="update_available_message">نسخة جديدة (%1$s) جاهزة للتثبيت.</string>
+    <string name="update_version_compare">المثبت %1$d · الأحدث %2$d</string>
     <string name="update_now">حدّث الآن</string>
     <string name="update_later">لاحقاً</string>
     <string name="update_downloading">جارٍ تنزيل التحديث…</string>
     <string name="update_permission_required">اسمح بتثبيت التطبيقات ثم أعد المحاولة.</string>
     <string name="update_failed">فشل التحديث: %1$s</string>
+    <string name="settings_app_update_title">تحديث التطبيق</string>
+    <string name="settings_app_update_desc">يقرأ أحدث APK من لوحة التحكم في الموقع ويفتح مثبّت Android.</string>
+    <string name="settings_app_update_checking">جارٍ فحص أحدث نسخة…</string>
+    <string name="settings_app_update_available">الأحدث: %1$s (%2$d)</string>
+    <string name="settings_app_update_current">أنت على أحدث نسخة منشورة: %1$s</string>
+    <string name="settings_app_update_install">تثبيت أحدث نسخة</string>
+    <string name="settings_app_update_reinstall">تحميل النسخة الحالية</string>
+    <string name="settings_app_update_open_link">فتح رابط التحميل</string>
+    <string name="settings_app_update_progress">جارٍ تنزيل التحديث… %1$d%%</string>
+    <string name="settings_app_update_installer_opened">تم فتح المثبّت. أكمل التحديث من Android.</string>
+    <string name="settings_app_update_latest_toast">لا توجد نسخة أحدث منشورة بعد.</string>
 </resources>

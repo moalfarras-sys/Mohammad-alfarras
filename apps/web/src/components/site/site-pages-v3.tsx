@@ -124,6 +124,53 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
   return repairMojibakeDeep(active.length ? active : fallback);
 }
 
+type OffersSetting = {
+  items?: Array<{
+    id?: string;
+    isActive?: boolean;
+    placement?: string;
+    style?: string;
+    sortOrder?: number;
+    badge?: { ar?: string; en?: string };
+    title?: { ar?: string; en?: string };
+    body?: { ar?: string; en?: string };
+    ctaLabel?: { ar?: string; en?: string };
+    ctaHref?: string;
+    image?: string;
+  }>;
+};
+
+function getOffers(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["offers"] {
+  const setting = getSiteSetting<OffersSetting>(snapshot, "site_offers", { items: [] });
+  const items = Array.isArray(setting.items) ? setting.items : [];
+  const allowedPlacement = new Set(["home", "services", "apps", "contact", "all"]);
+  const allowedStyle = new Set(["banner", "cards", "strip"]);
+
+  return repairMojibakeDeep(
+    items
+      .filter((item) => item.isActive !== false)
+      .map((item, index) => {
+        const placement = allowedPlacement.has(String(item.placement)) ? String(item.placement) : "home";
+        const style = allowedStyle.has(String(item.style)) ? String(item.style) : "banner";
+        return {
+          id: item.id || `offer-${index + 1}`,
+          isActive: item.isActive !== false,
+          placement: placement as SiteViewModel["offers"][number]["placement"],
+          style: style as SiteViewModel["offers"][number]["style"],
+          title: locale === "ar" ? item.title?.ar || item.title?.en || "" : item.title?.en || item.title?.ar || "",
+          body: locale === "ar" ? item.body?.ar || item.body?.en || "" : item.body?.en || item.body?.ar || "",
+          badge: locale === "ar" ? item.badge?.ar || item.badge?.en || "" : item.badge?.en || item.badge?.ar || "",
+          ctaLabel: locale === "ar" ? item.ctaLabel?.ar || item.ctaLabel?.en || "" : item.ctaLabel?.en || item.ctaLabel?.ar || "",
+          ctaHref: safeImageSrc(item.ctaHref, `/${locale}/contact`),
+          image: safeImageSrc(item.image, "/images/hero_tech.png"),
+          sortOrder: Number(item.sortOrder ?? index + 1),
+        };
+      })
+      .filter((item) => item.title || item.body)
+      .sort((a, b) => a.sortOrder - b.sortOrder),
+  );
+}
+
 function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
   return repairMojibakeDeep({
     id: "moplayer-fallback",
@@ -483,6 +530,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     profile: getProfile(snapshot, locale),
     projects: getProjects(snapshot, locale),
     services: getServices(snapshot, locale),
+    offers: getOffers(snapshot, locale),
     experience: getExperience(snapshot, locale, locale === "ar" ? "الآن" : "Now"),
     certifications: getCertifications(snapshot, locale),
     contact: getContact(snapshot, locale),

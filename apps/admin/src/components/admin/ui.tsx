@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
-import { Check, ChevronDown, Copy } from "lucide-react";
+import { Check, ChevronDown, Copy, HelpCircle } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 
@@ -115,19 +115,49 @@ export function EmptyState({ icon, title, body }: { icon: ReactNode; title: stri
 
 /* ───────────────────────── Inputs ───────────────────────── */
 
-export function Field({ label, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+export function HelpTip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="help-tip">
+      <button
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen((value) => !value);
+        }}
+        aria-label="Field help"
+        aria-expanded={open}
+      >
+        <HelpCircle className="h-3.5 w-3.5" />
+      </button>
+      {open ? <span className="help-tip-popover">{text}</span> : null}
+    </span>
+  );
+}
+
+function FieldLabel({ label, help }: { label: string; help?: string }) {
+  return (
+    <span>
+      {label}
+      {help ? <HelpTip text={help} /> : null}
+    </span>
+  );
+}
+
+export function Field({ label, help, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; help?: string }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <FieldLabel label={label} help={help} />
       <input {...props} />
     </label>
   );
 }
 
-export function TextAreaField({ label, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
+export function TextAreaField({ label, help, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; help?: string }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <FieldLabel label={label} help={help} />
       <textarea {...props} />
     </label>
   );
@@ -135,12 +165,13 @@ export function TextAreaField({ label, ...props }: TextareaHTMLAttributes<HTMLTe
 
 export function SelectField({
   label,
+  help,
   options,
   ...props
-}: SelectHTMLAttributes<HTMLSelectElement> & { label: string; options: Array<{ value: string; label: string }> }) {
+}: SelectHTMLAttributes<HTMLSelectElement> & { label: string; help?: string; options: Array<{ value: string; label: string }> }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <FieldLabel label={label} help={help} />
       <select {...props}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>

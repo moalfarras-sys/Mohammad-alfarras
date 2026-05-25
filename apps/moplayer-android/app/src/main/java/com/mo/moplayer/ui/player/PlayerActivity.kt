@@ -33,6 +33,7 @@ import com.mo.moplayer.service.PlaybackService
 import com.mo.moplayer.ui.common.BaseTvActivity
 import com.mo.moplayer.ui.player.engine.PlayerEngine
 import com.mo.moplayer.ui.player.engine.PlayerEngineManager
+import com.mo.moplayer.util.DevicePerformance
 import com.mo.moplayer.util.LivePlaybackRetryPolicy
 import com.mo.moplayer.util.NativeVlcLoader
 import com.mo.moplayer.util.TvRecommendationHelper
@@ -146,9 +147,11 @@ class PlayerActivity : BaseTvActivity() {
     private var engineManager: PlayerEngineManager? = null
     private var broadcastBridge: PlayerBroadcastBridge? = null
     private var useExoPlayerPrimary = false
+    private lateinit var performanceTier: DevicePerformance.Tier
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        performanceTier = DevicePerformance.tier(this)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -185,9 +188,9 @@ class PlayerActivity : BaseTvActivity() {
                 return@launch
             }
 
-            // Determine if ExoPlayer should be primary
             val playerType = playerPreferences.getPlayerType()
-            useExoPlayerPrimary = (playerType == com.mo.moplayer.util.PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER)
+            useExoPlayerPrimary = playerType == com.mo.moplayer.util.PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
             if (streamUrl.isEmpty()) {
                 Toast.makeText(this@PlayerActivity, getString(R.string.player_no_stream_url), Toast.LENGTH_SHORT).show()
@@ -460,9 +463,8 @@ class PlayerActivity : BaseTvActivity() {
             vlcBufferMs.coerceAtLeast(500)
         }
         
-        // Dynamic thread count based on device CPU cores for optimal 4K/8K performance
         val cpuCores = Runtime.getRuntime().availableProcessors()
-        val dynamicThreadCount = (cpuCores * 2).coerceIn(8, 16)  // 8-16 threads for 4K/8K
+        val dynamicThreadCount = adaptiveDecoderThreads(cpuCores)
         
         val hardwareEnabledForThisDevice = vlcHardwareAccelerationEnabled
         val codecOption = if (hardwareEnabledForThisDevice) {
@@ -538,7 +540,7 @@ class PlayerActivity : BaseTvActivity() {
                 avcodecSkipFrameOpt,
                 avcodecSkipIdctOpt,
                 "--avcodec-fast",
-                "--avcodec-threads=$dynamicThreadCount",  // Dynamic threads for 4K/8K
+                "--avcodec-threads=$dynamicThreadCount",
                 "--androidwindow-chroma=RV32"
             ))
         )
@@ -720,16 +722,12 @@ class PlayerActivity : BaseTvActivity() {
             
             // Dynamic thread count for 4K/8K performance
             val cpuCores = Runtime.getRuntime().availableProcessors()
-            val dynamicThreads = (cpuCores * 2).coerceIn(8, 16)
+            val dynamicThreads = adaptiveDecoderThreads(cpuCores)
             
             // Use adaptive buffering based on network type
             val adaptiveBuffer = getAdaptiveBufferMs()
             // Increased minimum buffer for 4K/8K streams
-            val cachingMs = if (api24SafePlayerMode) {
-                if (isLiveStream) adaptiveBuffer.coerceAtLeast(6500) else adaptiveBuffer.coerceAtLeast(3500)
-            } else {
-                if (isLiveStream) adaptiveBuffer.coerceAtLeast(4000) else adaptiveBuffer.coerceAtLeast(2000)
-            }
+            val cachingMs = stableVlcCachingMs(adaptiveBuffer)
             media.addOption(":network-caching=$cachingMs")
             media.addOption(":aout=android_audiotrack")
             media.addOption(":no-spdif")
@@ -742,7 +740,7 @@ class PlayerActivity : BaseTvActivity() {
                 media.addOption(":live-caching=$cachingMs")
                 media.addOption(":file-caching=$cachingMs")
                 media.addOption(":avcodec-fast")
-                media.addOption(":avcodec-threads=$dynamicThreads")  // Dynamic threads for 4K/8K
+                media.addOption(":avcodec-threads=$dynamicThreads")
                 if (hardwareEnabledForThisDevice) {
                     media.addOption(":avcodec-hw=any")  // Use hardware decoder when available
                 }
@@ -751,13 +749,13 @@ class PlayerActivity : BaseTvActivity() {
                 media.addOption(":clock-synchro=0")
                 // Enhanced live stream options for smoother 4K/8K playback
                 media.addOption(":no-audio-time-stretch") // Avoid audio pitch issues
-                media.addOption(":sout-mux-caching=5000") // Output muxing cache
-                media.addOption(":prefetch-buffer-size=8388608") // 8MB prefetch buffer for 4K/8K
+                media.addOption(":sout-mux-caching=${if (performanceTier == DevicePerformance.Tier.LOW) 2500 else 5000}")
+                media.addOption(":prefetch-buffer-size=${if (performanceTier == DevicePerformance.Tier.LOW) 2097152 else 8388608}")
                 media.addOption(":http-reconnect") // Auto reconnect on HTTP streams
             } else {
                 // VOD content options with 4K/8K support
                 media.addOption(":file-caching=$cachingMs")
-                media.addOption(":avcodec-threads=$dynamicThreads")  // Dynamic threads for 4K/8K VOD
+                media.addOption(":avcodec-threads=$dynamicThreads")
             }
             
             // Set start position if resuming
@@ -965,6 +963,25 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun showAudioTrackSheet() {
+        engineManager?.let { manager ->
+            val tracks = manager.audioTracks
+            if (tracks.isEmpty()) {
+                Toast.makeText(this, getString(R.string.player_audio_track_format, "Default"), Toast.LENGTH_SHORT).show()
+                return
+            }
+            showOptionSheet("Audio Tracks", tracks.mapIndexed { index, track ->
+                OptionItem(
+                    label = track.label,
+                    selected = index == currentAudioTrack
+                ) {
+                    currentAudioTrack = index
+                    manager.setAudioTrack(index)
+                    hideOptionSheet()
+                    resetControlsTimeout()
+                }
+            })
+            return
+        }
         val tracks = mediaPlayer?.audioTracks.orEmpty()
         if (tracks.isEmpty()) {
             Toast.makeText(this, getString(R.string.player_audio_track_format, "Default"), Toast.LENGTH_SHORT).show()
@@ -984,6 +1001,16 @@ class PlayerActivity : BaseTvActivity() {
 
     private var currentAudioTrack = 0
     private fun cycleAudioTrack() {
+        engineManager?.let { manager ->
+            val tracks = manager.audioTracks
+            if (tracks.isNotEmpty()) {
+                currentAudioTrack = (currentAudioTrack + 1) % tracks.size
+                manager.setAudioTrack(currentAudioTrack)
+                Toast.makeText(this, getString(R.string.player_audio_track_format, tracks[currentAudioTrack].label), Toast.LENGTH_SHORT).show()
+            }
+            resetControlsTimeout()
+            return
+        }
         val tracks = mediaPlayer?.audioTracks ?: return
         if (tracks.isNotEmpty()) {
             currentAudioTrack = (currentAudioTrack + 1) % tracks.size
@@ -994,6 +1021,33 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun showSubtitleSheet() {
+        engineManager?.let { manager ->
+            val tracks = manager.subtitleTracks
+            val subtitleItems = mutableListOf(
+                OptionItem(
+                    label = getString(R.string.player_subtitles_off),
+                    selected = currentSubtitleTrack < 0
+                ) {
+                    currentSubtitleTrack = -1
+                    manager.setSubtitleTrack(-1)
+                    hideOptionSheet()
+                    resetControlsTimeout()
+                }
+            )
+            subtitleItems += tracks.mapIndexed { index, track ->
+                OptionItem(
+                    label = track.label,
+                    selected = currentSubtitleTrack == index
+                ) {
+                    currentSubtitleTrack = index
+                    manager.setSubtitleTrack(index)
+                    hideOptionSheet()
+                    resetControlsTimeout()
+                }
+            }
+            showOptionSheet("Subtitles", subtitleItems)
+            return
+        }
         val tracks = mediaPlayer?.spuTracks.orEmpty()
         val subtitleItems = mutableListOf(
             OptionItem(
@@ -1020,6 +1074,22 @@ class PlayerActivity : BaseTvActivity() {
 
     private var currentSubtitleTrack = -1
     private fun cycleSubtitleTrack() {
+        engineManager?.let { manager ->
+            val tracks = manager.subtitleTracks
+            if (tracks.isNotEmpty()) {
+                currentSubtitleTrack = (currentSubtitleTrack + 1) % (tracks.size + 1)
+                if (currentSubtitleTrack == tracks.size) {
+                    currentSubtitleTrack = -1
+                    manager.setSubtitleTrack(-1)
+                    Toast.makeText(this, getString(R.string.player_subtitles_off), Toast.LENGTH_SHORT).show()
+                } else {
+                    manager.setSubtitleTrack(currentSubtitleTrack)
+                    Toast.makeText(this, getString(R.string.player_subtitles_track_format, tracks[currentSubtitleTrack].label), Toast.LENGTH_SHORT).show()
+                }
+            }
+            resetControlsTimeout()
+            return
+        }
         val tracks = mediaPlayer?.spuTracks ?: return
         if (tracks.isNotEmpty()) {
             currentSubtitleTrack = (currentSubtitleTrack + 1) % (tracks.size + 1)
@@ -1038,7 +1108,13 @@ class PlayerActivity : BaseTvActivity() {
     private val aspectRatios = arrayOf("16:9", "4:3", "16:10", "2.21:1", "original")
     private fun cycleAspectRatio() {
         aspectRatioIndex = (aspectRatioIndex + 1) % aspectRatios.size
-        mediaPlayer?.aspectRatio = aspectRatios[aspectRatioIndex]
+        val mode = when (aspectRatioIndex) {
+            0 -> com.mo.moplayer.ui.player.engine.PlayerEngine.ScaleMode.FIT
+            1 -> com.mo.moplayer.ui.player.engine.PlayerEngine.ScaleMode.FILL
+            2 -> com.mo.moplayer.ui.player.engine.PlayerEngine.ScaleMode.CENTER_CROP
+            else -> com.mo.moplayer.ui.player.engine.PlayerEngine.ScaleMode.ORIGINAL
+        }
+        engineManager?.engine?.setScaleMode(mode) ?: run { mediaPlayer?.aspectRatio = aspectRatios[aspectRatioIndex] }
         Toast.makeText(this, getString(R.string.player_aspect_format, aspectRatios[aspectRatioIndex]), Toast.LENGTH_SHORT).show()
         resetControlsTimeout()
     }
@@ -1050,7 +1126,7 @@ class PlayerActivity : BaseTvActivity() {
     private fun cyclePlaybackSpeed() {
         currentSpeedIndex = (currentSpeedIndex + 1) % playbackSpeeds.size
         val speed = playbackSpeeds[currentSpeedIndex]
-        mediaPlayer?.rate = speed
+        engineManager?.setSpeed(speed) ?: run { mediaPlayer?.rate = speed }
         Toast.makeText(this, getString(R.string.player_speed_format, playbackSpeedLabels[currentSpeedIndex]), Toast.LENGTH_SHORT).show()
         resetControlsTimeout()
     }
@@ -1464,6 +1540,38 @@ class PlayerActivity : BaseTvActivity() {
                 }
             }
             else -> vlcBufferMs * 2 // Unknown connection, use maximum buffer
+        }
+    }
+
+    private fun isExoFriendlyStream(url: String): Boolean {
+        val lower = url.lowercase(Locale.US)
+        return lower.startsWith("http://") || lower.startsWith("https://") ||
+            lower.contains(".m3u8") || lower.contains("output=m3u8") ||
+            lower.contains(".mpd") || lower.endsWith(".ts") || lower.contains("output=ts")
+    }
+
+    private fun adaptiveDecoderThreads(cpuCores: Int): Int {
+        return when (performanceTier) {
+            DevicePerformance.Tier.LOW -> cpuCores.coerceIn(2, 4)
+            DevicePerformance.Tier.MEDIUM -> (cpuCores + 2).coerceIn(4, 8)
+            DevicePerformance.Tier.HIGH -> (cpuCores * 2).coerceIn(8, 16)
+        }
+    }
+
+    private fun stableVlcCachingMs(baseMs: Int): Int {
+        return if (isLiveStream) {
+            when {
+                api24SafePlayerMode -> baseMs.coerceIn(5_500, 10_000)
+                performanceTier == DevicePerformance.Tier.LOW -> baseMs.coerceIn(4_500, 9_000)
+                performanceTier == DevicePerformance.Tier.MEDIUM -> baseMs.coerceIn(3_500, 8_000)
+                else -> baseMs.coerceIn(2_500, 7_000)
+            }
+        } else {
+            when (performanceTier) {
+                DevicePerformance.Tier.LOW -> baseMs.coerceIn(5_000, 18_000)
+                DevicePerformance.Tier.MEDIUM -> baseMs.coerceIn(3_500, 16_000)
+                DevicePerformance.Tier.HIGH -> baseMs.coerceIn(2_000, 20_000)
+            }
         }
     }
     

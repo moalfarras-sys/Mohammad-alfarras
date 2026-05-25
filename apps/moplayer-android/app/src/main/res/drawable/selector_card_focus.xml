@@ -4,10 +4,10 @@
     <item android:state_focused="true">
         <layer-list>
             <item
-                android:left="-8dp"
-                android:top="-8dp"
-                android:right="-8dp"
-                android:bottom="-8dp">
+                android:left="-5dp"
+                android:top="-5dp"
+                android:right="-5dp"
+                android:bottom="-5dp">
                 <shape android:shape="rectangle">
                     <corners android:radius="@dimen/card_corner_radius" />
                     <gradient
@@ -15,7 +15,7 @@
                         android:gradientRadius="150dp"
                         android:centerX="0.5"
                         android:centerY="0.5"
-                        android:startColor="@color/moplayer_orange_glow"
+                        android:startColor="#8837D5FF"
                         android:centerColor="@color/moplayer_orange_subtle"
                         android:endColor="#00000000" />
                 </shape>
@@ -26,9 +26,9 @@
                     <corners android:radius="@dimen/card_corner_radius" />
                     <gradient
                         android:angle="315"
-                        android:startColor="#20FFFFFF"
-                        android:centerColor="#1800E5FF"
-                        android:endColor="#1038BDF8" />
+                        android:startColor="#4037D5FF"
+                        android:centerColor="#301C4B78"
+                        android:endColor="#26102044" />
                 </shape>
             </item>
             
@@ -36,8 +36,8 @@
                 <shape android:shape="rectangle">
                     <corners android:radius="@dimen/card_corner_radius" />
                     <stroke
-                        android:width="@dimen/focus_border_width"
-                        android:color="@color/cinematic_focus_soft" />
+                        android:width="3dp"
+                        android:color="#F2FFFFFF" />
                 </shape>
             </item>
             

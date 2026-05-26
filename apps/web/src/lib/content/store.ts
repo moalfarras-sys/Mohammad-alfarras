@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 import { createSupabaseAdminClient, createSupabaseDataClient, getSupabaseEnv, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { deleteWhere, hasDatabaseUrl, updateWhere, upsertRow } from "@/lib/server-db";
@@ -285,7 +286,7 @@ async function readSnapshotFromSupabase(): Promise<CmsSnapshot | null> {
 }
 
 async function readSnapshotUncached(): Promise<CmsSnapshot> {
-  const remote = await readSnapshotFromSupabase();
+  const remote = await readRemoteSnapshotCached();
   const hasRemoteContent = Boolean(
     remote &&
       (remote.pages.length ||
@@ -301,6 +302,15 @@ async function readSnapshotUncached(): Promise<CmsSnapshot> {
 }
 
 export const readSnapshot = cache(readSnapshotUncached);
+
+const readRemoteSnapshotCached = unstable_cache(
+  readSnapshotFromSupabase,
+  ["cms-snapshot-v2"],
+  {
+    revalidate: 30,
+    tags: ["cms-snapshot"],
+  },
+);
 
 export async function readPage(locale: Locale, slug: string): Promise<PageView | null> {
   const snapshot = await readSnapshot();

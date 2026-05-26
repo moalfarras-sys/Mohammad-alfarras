@@ -32,13 +32,18 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import com.moalfarras.moplayer.domain.model.MotionLevel
 
 /**
- * Time-of-day sky gradient only (no weather FX). Sits under the backdrop image.
+ * Time-of-day sky gradient + drifting aurora mesh. Sits under the backdrop image.
+ *
+ * The mesh blends a few large, slow-moving accent blobs (gold / ember / amber) over
+ * the deep noir base for a modern "aurora glass" wallpaper without a photo.
  */
 @Composable
 fun AtmosphericSkyGradient(
     modifier: Modifier = Modifier,
     timeZoneId: String = ZoneId.systemDefault().id,
+    animate: Boolean = true,
 ) {
+    val visuals = LocalMoVisuals.current
     val zoneId = remember(timeZoneId) { timeZoneId.toZoneId() }
     var now by remember(zoneId) { mutableStateOf(ZonedDateTime.now(zoneId)) }
     LaunchedEffect(zoneId) {
@@ -49,12 +54,62 @@ fun AtmosphericSkyGradient(
     }
     val hour = now.hour + now.minute / 60f
     val tod = timeOfDay(hour)
+
+    val transition = rememberInfiniteTransition(label = "aurora")
+    val rawDrift by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * PI.toFloat(),
+        animationSpec = infiniteRepeatable(tween(46_000, easing = LinearEasing)),
+        label = "aurora-drift",
+    )
+    val drift = if (animate) rawDrift else 0f
+
     Box(
-        modifier = modifier.fillMaxSize().background(
-            Brush.verticalGradient(
-                colors = listOf(tod.skyTop, tod.skyMid, tod.skyBottom, tod.horizon),
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(tod.skyTop, tod.skyMid, tod.skyBottom, tod.horizon),
+                ),
             ),
-        ),
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawAuroraMesh(size.width, size.height, drift, tod.isDay, visuals)
+        }
+    }
+}
+
+private fun DrawScope.drawAuroraMesh(
+    w: Float,
+    h: Float,
+    drift: Float,
+    isDay: Boolean,
+    visuals: com.moalfarras.moplayer.ui.theme.MoVisuals,
+) {
+    val intensity = if (isDay) 1f else 0.72f
+    drawAuroraBlob(
+        Offset(w * (0.22f + 0.06f * cos(drift)), h * (0.18f + 0.05f * sin(drift))),
+        w * 0.58f, visuals.accent.copy(alpha = 0.16f * intensity),
+    )
+    drawAuroraBlob(
+        Offset(w * (0.84f + 0.05f * cos(drift + 1.7f)), h * (0.80f + 0.05f * sin(drift + 1.7f))),
+        w * 0.52f, visuals.accentB.copy(alpha = 0.13f * intensity),
+    )
+    drawAuroraBlob(
+        Offset(w * (0.64f + 0.07f * cos(drift + 3.1f)), h * (0.36f + 0.06f * sin(drift + 3.1f))),
+        w * 0.44f, visuals.accentWarm.copy(alpha = 0.10f * intensity),
+    )
+    drawAuroraBlob(
+        Offset(w * (0.30f + 0.05f * cos(drift + 4.6f)), h * (0.78f + 0.05f * sin(drift + 4.6f))),
+        w * 0.46f, Color(0xFF3A2A6A).copy(alpha = 0.09f * intensity),
+    )
+}
+
+private fun DrawScope.drawAuroraBlob(center: Offset, radius: Float, color: Color) {
+    drawCircle(
+        brush = Brush.radialGradient(listOf(color, Color.Transparent), center = center, radius = radius),
+        radius = radius,
+        center = center,
     )
 }
 

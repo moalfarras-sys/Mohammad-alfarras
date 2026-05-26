@@ -159,7 +159,7 @@ private const val LIVE_STALL_RECOVERY_LIMIT = 3
 private const val LIBVLC_LIVE_CACHE_MS = 6_000
 private const val LIBVLC_FILE_CACHE_MS = 2_500
 
-enum class LiveQualityMode { AUTO, BEST, STABLE }
+enum class LiveQualityMode { AUTO, BEST, ULTRA, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
 
 @kotlin.OptIn(ExperimentalFoundationApi::class)
@@ -498,7 +498,9 @@ fun PlayerScreen(
             val now = System.currentTimeMillis()
             if (now - lastLiveSwitchAt < 250L) return
             lastLiveSwitchAt = now
-            liveSwitchLocked = false
+            liveSwitchLocked = true
+            isBuffering = true
+            playbackError = null
         }
         if (!isLive && exoPlayer.duration > 0) {
             onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
@@ -1219,8 +1221,11 @@ private fun LiveZapOverlay(
                         LiveQualityModeButton("Auto", qualityMode == LiveQualityMode.AUTO, accent) {
                             onQualityMode(LiveQualityMode.AUTO)
                         }
-                        LiveQualityModeButton("Best", qualityMode == LiveQualityMode.BEST, accent) {
+                        LiveQualityModeButton("4K", qualityMode == LiveQualityMode.BEST, accent) {
                             onQualityMode(LiveQualityMode.BEST)
+                        }
+                        LiveQualityModeButton("8K", qualityMode == LiveQualityMode.ULTRA, accent) {
+                            onQualityMode(LiveQualityMode.ULTRA)
                         }
                         LiveQualityModeButton("Stable", qualityMode == LiveQualityMode.STABLE, accent) {
                             onQualityMode(LiveQualityMode.STABLE)
@@ -1464,6 +1469,11 @@ private fun PlayerRoutePicker(
     onDismiss: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
+    val autoFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(120)
+        runCatching { autoFocus.requestFocus() }
+    }
     Dialog(onDismissRequest = onDismiss) {
         GlassPanel(
             modifier = Modifier.fillMaxWidth(),
@@ -1500,7 +1510,7 @@ private fun PlayerRoutePicker(
                     Button(
                         onClick = { onSelect("auto") },
                         colors = ButtonDefaults.buttonColors(containerColor = visuals.accent, contentColor = Color.Black),
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).focusRequester(autoFocus),
                     ) {
                         Text("Auto")
                     }
@@ -1539,6 +1549,11 @@ private fun ExternalLaunchScreen(
     onPickAnother: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val retryFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(120)
+        runCatching { retryFocus.requestFocus() }
+    }
     Box(
         Modifier
             .fillMaxSize()
@@ -1554,7 +1569,7 @@ private fun ExternalLaunchScreen(
                 Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                 Text(message, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyLarge)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = onRetrySame) { Text("Retry") }
+                    Button(onClick = onRetrySame, modifier = Modifier.focusRequester(retryFocus)) { Text("Retry") }
                     OutlinedButton(onClick = onUseMedia3) { Text("Use Media3") }
                     OutlinedButton(onClick = onPickAnother) { Text("Choose another") }
                     OutlinedButton(onClick = onBack) { Text("Back") }
@@ -1690,6 +1705,7 @@ private fun LibVlcPlayerView(
             activeSession = false
             mediaPlayer.setEventListener(null)
             runCatching { mediaPlayer.stop() }
+            runCatching { mediaPlayer.detachViews() }
             runCatching { mediaPlayer.media = null }
         }
     }
@@ -1807,6 +1823,17 @@ private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVi
             .setForceHighestSupportedBitrate(false)
             .setMaxVideoSize(maxWidth, maxVideoHeight.coerceAtMost(2160))
             .setMaxVideoBitrate(liveSafeMaxBitrate(maxVideoHeight.coerceAtMost(2160)))
+        LiveQualityMode.ULTRA -> {
+            val ultraHeight = liveUltraMaxVideoHeight(maxVideoHeight)
+            val ultraWidth = when {
+                ultraHeight <= 2160 -> 3840
+                else -> 7680
+            }
+            builder
+                .setForceHighestSupportedBitrate(false)
+                .setMaxVideoSize(ultraWidth, ultraHeight)
+                .setMaxVideoBitrate(liveSafeMaxBitrate(ultraHeight))
+        }
         LiveQualityMode.STABLE -> builder
             .setForceHighestSupportedBitrate(false)
             .setMaxVideoSize(maxWidth.coerceAtMost(1280), maxVideoHeight.coerceAtMost(720))
@@ -1833,13 +1860,22 @@ private fun liveSafeMaxVideoHeight(policyHeight: Int): Int = when {
     Build.VERSION.SDK_INT < 26 -> policyHeight.coerceAtMost(720)
     policyHeight <= 720 -> 720
     policyHeight <= 1080 -> 1080
-    else -> 1080
+    policyHeight <= 2160 -> 2160
+    else -> 4320
 }
 
 private fun liveSafeMaxBitrate(videoHeight: Int): Int = when {
     videoHeight <= 720 -> 2_500_000
     videoHeight <= 1080 -> 5_500_000
-    else -> 12_000_000
+    videoHeight <= 2160 -> 18_000_000
+    else -> 45_000_000
+}
+
+private fun liveUltraMaxVideoHeight(policyHeight: Int): Int = when {
+    Build.VERSION.SDK_INT < 26 -> 720
+    policyHeight <= 1080 -> 1080
+    policyHeight <= 2160 -> 2160
+    else -> 4320
 }
 
 private fun Int.floorMod(size: Int): Int = ((this % size) + size) % size

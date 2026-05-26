@@ -62,6 +62,7 @@ import com.moalfarras.moplayerpro.R
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import com.moalfarras.moplayer.domain.model.AppSettings
+import com.moalfarras.moplayer.domain.model.BackgroundMode
 import com.moalfarras.moplayer.domain.model.DeviceActivationSession
 import com.moalfarras.moplayer.domain.model.DeviceActivationStatus
 import com.moalfarras.moplayer.domain.model.LoadProgress
@@ -106,10 +107,15 @@ private fun LoginBackdropLayer(settings: AppSettings) {
     val backdropUrl = remember(
         settings.backgroundMode,
         settings.customBackgroundUrl,
-        settings.themePreset,
         epochDay,
     ) {
-        resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
+        when (settings.backgroundMode) {
+            BackgroundMode.AUTO,
+            BackgroundMode.CUSTOM_URL,
+            BackgroundMode.CITY_ROTATION -> resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
+            BackgroundMode.DYNAMIC_CONTENT -> resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
+            BackgroundMode.NONE -> null
+        }
     }
     Box(Modifier.fillMaxSize()) {
         if (backdropUrl != null) {
@@ -131,15 +137,27 @@ private fun LoginBackdropLayer(settings: AppSettings) {
                     .background(
                         Brush.verticalGradient(
                             colorStops = arrayOf(
-                                0f to Color(0x18050403),
-                                0.35f to Color.Transparent,
-                                0.72f to Color(0x28050403),
-                                1f to Color(0x55050403),
+                                0f to Color(0x64050403),
+                                0.30f to Color(0x52050403),
+                                0.72f to Color(0x76050403),
+                                1f to Color(0x9A050403),
                             ),
                         ),
                     ),
             )
-            AnimatedLoginBackground(Modifier.graphicsLayer { alpha = 0.07f })
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color(0xC0050403),
+                                Color(0x55050403),
+                                Color(0xC0050403),
+                            ),
+                        ),
+                    ),
+            )
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF050403)))
             AnimatedLoginBackground()
@@ -315,7 +333,7 @@ private fun LoginGlassCard(
     }
     GlassPanel(
         modifier = if (tv.isTv) {
-            Modifier.width((560 * tv.factor).dp)
+            Modifier.width((660 * tv.factor).dp)
         } else {
             Modifier.fillMaxWidth().padding(horizontal = tv.contentPadding)
         },
@@ -352,6 +370,9 @@ private fun LoginGlassCard(
                 fontWeight = if (isChooseMode) FontWeight.Bold else FontWeight.Medium,
                 textAlign = TextAlign.Center,
             )
+            if (isChooseMode) {
+                ServerPromiseStrip(tv = tv)
+            }
 
             if (isChooseMode) {
                 LoginMethodChooser(tv = tv, firstFocus = initialFocus, onMode = onMode)
@@ -413,6 +434,83 @@ private fun LoginGlassCard(
             if (loading != null) FluidLoadingBar(loading, tv)
             if (error   != null) ErrorGlassCard(error, tv)
             if (fileMessage != null) ErrorGlassCard(fileMessage, tv)
+            if (isChooseMode) {
+                Text(
+                    "Your server is cached on this device. Hourly smart refresh updates account, EPG and metadata without forcing a full reload.",
+                    color = Color(0xB8F1CC83),
+                    fontSize = (12 * tv.factor).sp,
+                    lineHeight = (16 * tv.factor).sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = (8 * tv.factor).dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ServerPromiseStrip(tv: TvScale) {
+    val visuals = LocalMoVisuals.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
+    ) {
+        ServerPromiseChip(
+            label = "Local cache",
+            icon = Icons.Rounded.Storage,
+            tv = tv,
+            modifier = Modifier.weight(1f),
+        )
+        ServerPromiseChip(
+            label = "Smart refresh",
+            icon = Icons.Rounded.Sync,
+            tv = tv,
+            modifier = Modifier.weight(1f),
+        )
+        ServerPromiseChip(
+            label = "Fast startup",
+            icon = Icons.Rounded.Bolt,
+            tv = tv,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun ServerPromiseChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tv: TvScale,
+    modifier: Modifier = Modifier,
+) {
+    val visuals = LocalMoVisuals.current
+    Surface(
+        modifier = modifier.height((38 * tv.factor).dp),
+        shape = RoundedCornerShape(999.dp),
+        color = Color(0xC31A1510),
+        border = BorderStroke(1.dp, visuals.accent.copy(alpha = 0.32f)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = (12 * tv.factor).dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = visuals.accent,
+                modifier = Modifier.size((16 * tv.factor).dp),
+            )
+            Spacer(Modifier.width((6 * tv.factor).dp))
+            Text(
+                label,
+                color = Color(0xFFEFE1C4),
+                fontSize = (11 * tv.factor).sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
         }
     }
 }
@@ -421,24 +519,24 @@ private fun LoginGlassCard(
 private fun LoginMethodChooser(tv: TvScale, firstFocus: FocusRequester, onMode: (LoginMode) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
+        verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
     ) {
         LoginMethodCard(
             title = "M3U",
-            subtitle = "Playlist link or local M3U/M3U8 file",
+            subtitle = "Link or file, saved locally with optional EPG",
             icon = Icons.AutoMirrored.Rounded.PlaylistPlay,
             tv = tv,
             modifier = Modifier.focusRequester(firstFocus),
         ) { onMode(LoginMode.M3U) }
         LoginMethodCard(
             title = "Xtream",
-            subtitle = "Server URL, username and password",
+            subtitle = "Full local cache, subscription and expiry info",
             icon = Icons.Rounded.Dns,
             tv = tv,
         ) { onMode(LoginMode.XTREAM) }
         LoginMethodCard(
             title = "QR Code",
-            subtitle = "Link this TV from moalfarras.space",
+            subtitle = "Temporary code, then sync this TV securely",
             icon = Icons.Rounded.QrCode2,
             tv = tv,
         ) { onMode(LoginMode.ACTIVATION) }
@@ -465,7 +563,7 @@ private fun LoginMethodCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height((102 * tv.factor).dp)
+            .height((96 * tv.factor).dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .shadow(
                 if (focused) 34.dp else 10.dp,
@@ -486,13 +584,13 @@ private fun LoginMethodCard(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = (22 * tv.factor).dp),
+                .padding(horizontal = (20 * tv.factor).dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy((18 * tv.factor).dp),
+            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
         ) {
             Box(
                 modifier = Modifier
-                    .size((56 * tv.factor).dp)
+                    .size((54 * tv.factor).dp)
                     .clip(RoundedCornerShape((18 * tv.factor).dp))
                     .background(if (focused) visuals.accent.copy(alpha = 0.28f) else Color(0x332A2723)),
                 contentAlignment = Alignment.Center,
@@ -501,7 +599,13 @@ private fun LoginMethodCard(
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy((4 * tv.factor).dp)) {
                 Text(title, color = Color.White, fontSize = (20 * tv.factor).sp, fontWeight = FontWeight.ExtraBold)
-                Text(subtitle, color = Color(0xDDE3BC78), fontSize = (12 * tv.factor).sp, maxLines = 2)
+                Text(
+                    subtitle,
+                    color = Color(0xEDE3BC78),
+                    fontSize = (13 * tv.factor).sp,
+                    lineHeight = (17 * tv.factor).sp,
+                    maxLines = 2,
+                )
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = Color(0xCCE3BC78), modifier = Modifier.size((28 * tv.factor).dp))
         }

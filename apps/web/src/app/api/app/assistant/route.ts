@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { answerSiteAssistant, normalizeLocale, normalizeMessage } from "@/lib/ai-assistant";
+import { rateLimit } from "@/lib/request-guard";
 
 export async function POST(request: Request) {
   try {
+    const limited = await rateLimit({ request, bucket: "app-assistant", limit: 40, windowSeconds: 60 });
+    if (limited) return limited;
+
     const body = (await request.json()) as { locale?: string; message?: unknown; history?: Array<{ role?: string; content?: string }> };
     const locale = normalizeLocale(body.locale);
     const message = normalizeMessage(body.message);

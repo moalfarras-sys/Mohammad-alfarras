@@ -3,7 +3,6 @@ package com.moalfarras.moplayer.ui.components
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -11,42 +10,36 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import coil3.compose.AsyncImage
-import com.moalfarras.moplayerpro.R
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
-import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * WeatherClockWidget — 2026 Ultra-Premium HTC Sense-inspired 3D Widget.
+ * WeatherClockWidget — modern "liquid glass" clock + weather pane.
  *
- * Features:
- * - Mechanical Glassmorphism Flip Clock digits
- * - Overflowing Volumetric Weather Orb
- * - Dynamic Sun/Moon/Storm ambient lighting
- * - Cinematic shadows and reflections
- * - Smooth 60fps continuous weather animations
+ * - Hand-drawn animated weather glyph (sun rays / rain / snow / storm / fog / clouds).
+ * - Live ticking clock with a breathing colon and a date line.
+ * - Condition-tinted depth + soft glow, refined typographic hierarchy.
  */
 @Composable
 fun WeatherClockWidget(
@@ -62,19 +55,6 @@ fun WeatherClockWidget(
     val hasClock = showClock
     if (!hasWeather && !hasClock) return
 
-    val transition = rememberInfiniteTransition(label = "weather-widget")
-    val pulse by transition.animateFloat(
-        0.85f, 1.15f,
-        infiniteRepeatable(tween(3000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulse",
-    )
-    val drift by transition.animateFloat(
-        0f, 2f * PI.toFloat(),
-        infiniteRepeatable(tween(14_000, easing = LinearEasing)),
-        label = "drift",
-    )
-    val effectivePulse = if (animate) pulse else 1f
-    val effectiveDrift = if (animate) drift else 0f
     val conditionColor = weatherOrbColor(condition)
     val zoneId = remember(weather.timeZoneId) { weather.timeZoneId.toZoneId() }
     var clock by remember(zoneId) { mutableStateOf(ZonedDateTime.now(zoneId)) }
@@ -86,294 +66,334 @@ fun WeatherClockWidget(
     }
     val hourText = clock.format(DateTimeFormatter.ofPattern("HH"))
     val minuteText = clock.format(DateTimeFormatter.ofPattern("mm"))
+    val dateText = remember(clock.dayOfYear) {
+        clock.format(DateTimeFormatter.ofPattern("EEE · d MMM", Locale.getDefault()))
+    }
+
+    // Breathing colon driven only when motion is enabled.
+    val transition = rememberInfiniteTransition(label = "weather-clock")
+    val rawColon by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.2f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "colon",
+    )
+    val colonAlpha = if (animate) rawColon else 1f
 
     FocusGlow(
-        modifier = modifier.padding((12 * tv.factor).dp), // Padding allows weather orb to overflow!
-        cornerRadius = (24 * tv.factor).dp,
+        modifier = modifier,
+        cornerRadius = (22 * tv.factor).dp,
         focusable = false,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            // ── Base Glass Panel ──────────────────────────────────
-            GlassPanel(
-                radius = (24 * tv.factor).dp,
-                blur = 28.dp,
-                glow = conditionColor.copy(alpha = 0.15f * effectivePulse),
+        GlassPanel(
+            radius = (22 * tv.factor).dp,
+            blur = 16.dp,
+            glow = conditionColor.copy(alpha = 0.12f),
+        ) {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = (18 * tv.factor).dp,
+                    vertical = (13 * tv.factor).dp,
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
             ) {
-                Box {
-                    if (hasWeather) {
-                        WeatherSceneLayer(
-                            condition = condition,
-                            color = conditionColor,
-                            drift = effectiveDrift,
-                            pulse = effectivePulse,
-                            animate = animate,
-                            modifier = Modifier.matchParentSize(),
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.padding(
-                            start = (24 * tv.factor).dp,
-                            end = ((if (hasWeather) 72f else 24f) * tv.factor).dp, // Extra space for the oversized weather orb
-                            top = (20 * tv.factor).dp,
-                            bottom = (20 * tv.factor).dp,
-                        ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy((24 * tv.factor).dp),
-                    ) {
-                        if (hasClock) {
-                            // HTC Sense-inspired flip clock, updated every second.
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)
-                            ) {
-                                FlipDigitCard(hourText, tv.factor)
-                                Text(
-                                    ":",
-                                    color = Color(0x99FFFFFF),
-                                    fontSize = (32 * tv.factor).sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.offset(y = (-2 * tv.factor).dp)
-                                )
-                                FlipDigitCard(minuteText, tv.factor)
-                            }
-                        }
+                if (hasClock) ClockPane(hourText, minuteText, dateText, colonAlpha, tv.factor)
 
-                        if (hasWeather) {
-                            // 2. Weather Typography (Temp & Details)
-                            Column(
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(
-                                        "${weather.temperatureC.toInt()}°",
-                                        color = Color.White,
-                                        fontSize = (46 * tv.factor).sp,
-                                        fontWeight = FontWeight.Light,
-                                        letterSpacing = 0.sp,
-                                        style = androidx.compose.ui.text.TextStyle(
-                                            shadow = androidx.compose.ui.graphics.Shadow(
-                                                color = Color(0x88000000), blurRadius = 16f
-                                            )
-                                        )
-                                    )
-                                    Column(modifier = Modifier.padding(bottom = (8 * tv.factor).dp)) {
-                                        Text(
-                                            weather.city,
-                                            color = Color(0xFFE3BC78),
-                                            fontSize = (15 * tv.factor).sp,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.widthIn(max = (120 * tv.factor).dp),
-                                        )
-                                        Text(
-                                            weatherConditionLabel(condition),
-                                            color = conditionColor,
-                                            fontSize = (13 * tv.factor).sp,
-                                            fontWeight = FontWeight.Medium,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.widthIn(max = (120 * tv.factor).dp),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (hasWeather) {
-                // ── Oversized Volumetric Weather Orb (Overflowing) ──
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .offset(x = (20 * tv.factor).dp, y = (-15 * tv.factor).dp) // Peeking out
-                        .size((110 * tv.factor).dp) // Much larger than before!
-                        .graphicsLayer {
-                            // Subtle 3D floating animation
-                            translationY = sin(effectiveDrift) * 8f
-                            scaleX = 1f + (effectivePulse - 1f) * 0.1f
-                            scaleY = 1f + (effectivePulse - 1f) * 0.1f
-                        }
-                ) {
-                // Orb Shadow/Glow (Cinematic lighting)
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .drawBehind {
-                            drawCircle(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(
-                                        conditionColor.copy(alpha = 0.5f * effectivePulse),
-                                        conditionColor.copy(alpha = 0.1f * effectivePulse),
-                                        Color.Transparent
-                                    )
+                if (hasClock && hasWeather) {
+                    Box(
+                        Modifier
+                            .height((46 * tv.factor).dp)
+                            .width(1.dp)
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, Color.White.copy(alpha = 0.16f), Color.Transparent),
                                 ),
-                                radius = size.minDimension * 0.7f
-                            )
-                        }
-                )
+                            ),
+                    )
+                }
 
-                // Photorealistic 3D generated weather icon, with online icon when provider supplies it.
-                val iconRes = when {
-                    condition.contains("thunder") || condition.contains("storm") -> R.drawable.ic_weather_storm
-                    condition.contains("snow") || condition.contains("blizzard") || condition.contains("sleet") || condition.contains("ice") -> R.drawable.ic_weather_snow
-                    condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> R.drawable.ic_weather_rain
-                    condition.contains("fog") || condition.contains("mist") || condition.contains("haze") -> R.drawable.ic_weather_fog
-                    condition.contains("partly") || condition.contains("partial") -> R.drawable.ic_weather_partly
-                    condition.contains("cloud") || condition.contains("overcast") -> R.drawable.ic_weather_cloud
-                    else -> R.drawable.ic_weather_sun
-                }
-                
-                    if (weather.iconUrl.isNotBlank()) {
-                        AsyncImage(
-                            model = weather.iconUrl.toWeatherIconUrl(),
-                            contentDescription = condition,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit,
-                            error = painterResource(id = iconRes),
-                            placeholder = painterResource(id = iconRes),
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = iconRes),
-                            contentDescription = condition,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                }
+                if (hasWeather) WeatherPane(weather, condition, conditionColor, animate, tv.factor)
             }
         }
     }
 }
 
-// ────────────────────────────────────────────────────────────────────────
-// 3D Glass Flip Clock Digit
-// ────────────────────────────────────────────────────────────────────────
-
 @Composable
-private fun FlipDigitCard(digit: String, factor: Float) {
-    Box(
-        modifier = Modifier
-            .size((56 * factor).dp, (68 * factor).dp)
-            .clip(RoundedCornerShape((10 * factor).dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0x40FFFFFF), Color(0x05FFFFFF))
-                )
+private fun ClockPane(hour: String, minute: String, date: String, colonAlpha: Float, factor: Float) {
+    Column(verticalArrangement = Arrangement.spacedBy((2 * factor).dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                hour,
+                color = Color.White,
+                fontSize = (30 * factor).sp,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
             )
-            .border(
-                (1.5f).dp,
-                Brush.verticalGradient(listOf(Color(0x60FFFFFF), Color.Transparent)),
-                RoundedCornerShape((10 * factor).dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        // Upper half shadow (simulates the curved card)
-        Box(
-            Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x30000000))))
-        )
-
+            Text(
+                ":",
+                color = Color.White.copy(alpha = colonAlpha),
+                fontSize = (28 * factor).sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.padding(horizontal = (1 * factor).dp),
+            )
+            Text(
+                minute,
+                color = Color.White,
+                fontSize = (30 * factor).sp,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+            )
+        }
         Text(
-            text = digit,
-            color = Color.White,
-            fontSize = (42 * factor).sp,
-            fontWeight = FontWeight.ExtraBold,
-            style = androidx.compose.ui.text.TextStyle(
-                shadow = androidx.compose.ui.graphics.Shadow(
-                    color = Color(0x99000000),
-                    offset = Offset(0f, 6f),
-                    blurRadius = 12f
-                )
-            ),
-            modifier = Modifier.offset(y = (-2 * factor).dp)
-        )
-
-        // Middle Split Line (The classic HTC Sense mechanical gap)
-        Box(
-            Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth()
-                .height((2 * factor).dp)
-                .background(Color(0xBB000000))
-        )
-        // Split line highlight
-        Box(
-            Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth()
-                .offset(y = (1 * factor).dp)
-                .height((1 * factor).dp)
-                .background(Color(0x33FFFFFF))
+            date,
+            color = Color(0x99FFFFFF),
+            fontSize = (10 * factor).sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.4.sp,
+            maxLines = 1,
         )
     }
 }
 
 @Composable
-private fun WeatherSceneLayer(
+private fun WeatherPane(
+    weather: WeatherSnapshot,
     condition: String,
     color: Color,
-    drift: Float,
-    pulse: Float,
     animate: Boolean,
-    modifier: Modifier = Modifier,
+    factor: Float,
 ) {
-    Canvas(modifier = modifier.clip(RoundedCornerShape(24.dp))) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy((12 * factor).dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size((52 * factor).dp)
+                .clip(RoundedCornerShape((17 * factor).dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(color.copy(alpha = 0.22f), color.copy(alpha = 0.06f)),
+                    ),
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            WeatherGlyph(condition, color, animate, Modifier.fillMaxSize(0.78f))
+        }
+        Column(verticalArrangement = Arrangement.spacedBy((1 * factor).dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Text(
+                    "${weather.temperatureC.toInt()}",
+                    color = Color.White,
+                    fontSize = (30 * factor).sp,
+                    fontWeight = FontWeight.Black,
+                    maxLines = 1,
+                )
+                Text(
+                    "°",
+                    color = color,
+                    fontSize = (20 * factor).sp,
+                    fontWeight = FontWeight.Black,
+                )
+            }
+            Text(
+                weather.city,
+                color = Color(0xFFF1CC83),
+                fontSize = (12 * factor).sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = (118 * factor).dp),
+            )
+            Text(
+                weatherConditionLabel(condition),
+                color = color.copy(alpha = 0.92f),
+                fontSize = (10 * factor).sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = (118 * factor).dp),
+            )
+        }
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Animated, hand-drawn weather glyph
+// ────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun WeatherGlyph(condition: String, color: Color, animate: Boolean, modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "glyph")
+    val rawSpin by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(18_000, easing = LinearEasing)),
+        label = "spin",
+    )
+    val rawFall by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)),
+        label = "fall",
+    )
+    val rawFlash by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(2400, easing = LinearEasing)),
+        label = "flash",
+    )
+    val spin = if (animate) rawSpin else 0f
+    val fall = if (animate) rawFall else 0f
+    val flash = if (animate) rawFlash else 0f
+
+    Canvas(modifier) {
         val w = size.width
         val h = size.height
         when {
-            condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> {
-                repeat(14) { index ->
-                    val x = ((index * 47f) + if (animate) drift * 34f else 0f) % w
-                    val y = ((index * 23f) + if (animate) drift * 18f else 0f) % h
-                    drawLine(
-                        color = color.copy(alpha = 0.10f),
-                        start = Offset(x, y),
-                        end = Offset(x - 12f, y + 28f),
-                        strokeWidth = 2f,
-                        cap = StrokeCap.Round,
-                    )
-                }
-            }
-            condition.contains("snow") || condition.contains("blizzard") || condition.contains("sleet") -> {
-                repeat(16) { index ->
-                    val x = ((index * 53f) + if (animate) drift * 14f else 0f) % w
-                    val y = ((index * 31f) + if (animate) drift * 20f else 0f) % h
-                    drawCircle(color.copy(alpha = 0.16f), radius = 2.2f + (index % 3), center = Offset(x, y))
-                }
-            }
-            else -> {
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colors = listOf(color.copy(alpha = 0.16f * pulse), Color.Transparent),
-                        center = Offset(w * 0.82f, h * 0.12f),
-                        radius = h * 0.9f,
-                    ),
-                )
-                repeat(6) { index ->
-                    val angle = drift + index * (PI.toFloat() / 3f)
-                    drawLine(
-                        color = color.copy(alpha = 0.10f),
-                        start = Offset(w * 0.82f, h * 0.12f),
-                        end = Offset(w * 0.82f + cos(angle) * w * 0.35f, h * 0.12f + sin(angle) * h * 0.55f),
-                        strokeWidth = 2f,
-                        cap = StrokeCap.Round,
-                    )
-                }
-            }
+            condition.contains("thunder") || condition.contains("storm") -> drawStormGlyph(w, h, color, fall, flash)
+            condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> drawRainGlyph(w, h, color, fall)
+            condition.contains("snow") || condition.contains("blizzard") || condition.contains("sleet") || condition.contains("ice") -> drawSnowGlyph(w, h, color, fall)
+            condition.contains("fog") || condition.contains("mist") || condition.contains("haze") -> drawFogGlyph(w, h, color, fall)
+            condition.contains("partly") || condition.contains("partial") -> drawPartlyGlyph(w, h, color, spin)
+            condition.contains("cloud") || condition.contains("overcast") -> drawCloudGlyph(w, h, Offset(w * 0.5f, h * 0.52f), 1f, color)
+            else -> drawSunGlyph(w, h, color, spin)
         }
     }
 }
 
-// ────────────────────────────────────────────────────────────────────────
-// Cinematic Weather Graphics
-// ────────────────────────────────────────────────────────────────────────
+private fun DrawScope.drawSunGlyph(w: Float, h: Float, color: Color, spin: Float) {
+    val cx = w * 0.5f
+    val cy = h * 0.5f
+    val core = w * 0.20f
+    drawCircle(
+        brush = Brush.radialGradient(
+            listOf(Color.White, color, color.copy(alpha = 0.85f)),
+            center = Offset(cx, cy),
+            radius = core * 1.4f,
+        ),
+        radius = core,
+        center = Offset(cx, cy),
+    )
+    rotate(spin, Offset(cx, cy)) {
+        repeat(8) { i ->
+            val a = i * (PI.toFloat() / 4f)
+            val inner = core * 1.55f
+            val outer = core * 2.35f
+            drawLine(
+                color = color,
+                start = Offset(cx + cos(a) * inner, cy + sin(a) * inner),
+                end = Offset(cx + cos(a) * outer, cy + sin(a) * outer),
+                strokeWidth = w * 0.055f,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+}
+
+private fun DrawScope.drawCloudGlyph(w: Float, h: Float, center: Offset, scale: Float, color: Color) {
+    val cloud = Color.White.copy(alpha = 0.92f)
+    val r = w * 0.16f * scale
+    val cx = center.x
+    val cy = center.y
+    drawCircle(cloud, radius = r, center = Offset(cx - r * 1.15f, cy))
+    drawCircle(cloud, radius = r * 1.35f, center = Offset(cx, cy - r * 0.35f))
+    drawCircle(cloud, radius = r, center = Offset(cx + r * 1.2f, cy))
+    drawRoundRect(
+        color = cloud,
+        topLeft = Offset(cx - r * 2.0f, cy),
+        size = Size(r * 4.0f, r * 1.25f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(r, r),
+    )
+    // Soft underglow tint
+    drawCircle(color.copy(alpha = 0.18f), radius = r * 2.1f, center = Offset(cx, cy))
+}
+
+private fun DrawScope.drawRainGlyph(w: Float, h: Float, color: Color, fall: Float) {
+    drawCloudGlyph(w, h, Offset(w * 0.5f, h * 0.42f), 0.92f, color)
+    val drop = Color(0xFF8FB6FF)
+    repeat(3) { i ->
+        val x = w * (0.34f + i * 0.16f)
+        val baseY = h * 0.6f
+        val y = baseY + ((fall + i * 0.33f) % 1f) * h * 0.28f
+        drawLine(
+            color = drop.copy(alpha = 0.9f),
+            start = Offset(x, y),
+            end = Offset(x - w * 0.04f, y + h * 0.12f),
+            strokeWidth = w * 0.045f,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+private fun DrawScope.drawSnowGlyph(w: Float, h: Float, color: Color, fall: Float) {
+    drawCloudGlyph(w, h, Offset(w * 0.5f, h * 0.42f), 0.92f, color)
+    repeat(3) { i ->
+        val x = w * (0.34f + i * 0.16f)
+        val baseY = h * 0.62f
+        val y = baseY + ((fall + i * 0.33f) % 1f) * h * 0.26f
+        drawCircle(Color.White, radius = w * 0.035f, center = Offset(x, y))
+    }
+}
+
+private fun DrawScope.drawStormGlyph(w: Float, h: Float, color: Color, fall: Float, flash: Float) {
+    drawCloudGlyph(w, h, Offset(w * 0.5f, h * 0.4f), 0.92f, color)
+    val bolt = Path().apply {
+        moveTo(w * 0.52f, h * 0.55f)
+        lineTo(w * 0.40f, h * 0.78f)
+        lineTo(w * 0.50f, h * 0.78f)
+        lineTo(w * 0.44f, h * 0.96f)
+        lineTo(w * 0.64f, h * 0.70f)
+        lineTo(w * 0.53f, h * 0.70f)
+        lineTo(w * 0.60f, h * 0.55f)
+        close()
+    }
+    val pulse = 0.55f + 0.45f * (0.5f + 0.5f * sin(flash * 2f * PI.toFloat()))
+    drawPath(bolt, color = Color(0xFFFFD166).copy(alpha = pulse))
+    drawPath(bolt, color = Color(0x66FFE9A8), style = Stroke(width = w * 0.02f, join = StrokeJoin.Round))
+}
+
+private fun DrawScope.drawFogGlyph(w: Float, h: Float, color: Color, fall: Float) {
+    drawCloudGlyph(w, h, Offset(w * 0.5f, h * 0.34f), 0.78f, color)
+    val line = Color.White.copy(alpha = 0.7f)
+    repeat(3) { i ->
+        val y = h * (0.6f + i * 0.13f)
+        val shift = sin((fall * 2f * PI.toFloat()) + i) * w * 0.06f
+        drawLine(
+            color = line,
+            start = Offset(w * 0.22f + shift, y),
+            end = Offset(w * 0.78f + shift, y),
+            strokeWidth = w * 0.045f,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+private fun DrawScope.drawPartlyGlyph(w: Float, h: Float, color: Color, spin: Float) {
+    val cx = w * 0.36f
+    val cy = h * 0.36f
+    val core = w * 0.13f
+    drawCircle(
+        brush = Brush.radialGradient(listOf(Color.White, color), center = Offset(cx, cy), radius = core * 1.4f),
+        radius = core,
+        center = Offset(cx, cy),
+    )
+    rotate(spin, Offset(cx, cy)) {
+        repeat(8) { i ->
+            val a = i * (PI.toFloat() / 4f)
+            drawLine(
+                color = color,
+                start = Offset(cx + cos(a) * core * 1.5f, cy + sin(a) * core * 1.5f),
+                end = Offset(cx + cos(a) * core * 2.2f, cy + sin(a) * core * 2.2f),
+                strokeWidth = w * 0.04f,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+    drawCloudGlyph(w, h, Offset(w * 0.56f, h * 0.6f), 0.9f, color)
+}
+
 // ────────────────────────────────────────────────────────────────────────
 // Helpers
 // ────────────────────────────────────────────────────────────────────────
@@ -403,9 +423,3 @@ private fun weatherConditionLabel(condition: String): String {
 
 private fun String.toZoneId(): ZoneId =
     runCatching { ZoneId.of(this) }.getOrDefault(ZoneId.systemDefault())
-
-private fun String.toWeatherIconUrl(): String = when {
-    startsWith("//") -> "https:$this"
-    startsWith("http://") -> replaceFirst("http://", "https://")
-    else -> this
-}

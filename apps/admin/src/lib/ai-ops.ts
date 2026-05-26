@@ -57,10 +57,49 @@ export type AssistantEventRow = {
   } | null;
 };
 
+export type AutomationInboxRow = {
+  id: string;
+  event_id: string | null;
+  run_id: string | null;
+  product_slug: string | null;
+  title: string;
+  body: string;
+  severity: string | null;
+  status: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type AutomationRunRow = {
+  id: string;
+  event_id: string | null;
+  workflow_key: string;
+  workflow_name: string | null;
+  status: string | null;
+  n8n_execution_id: string | null;
+  error_message: string | null;
+  started_at: string;
+  finished_at: string | null;
+};
+
+export type AutomationRuleRow = {
+  id: string;
+  key: string;
+  label: string;
+  description: string | null;
+  enabled: boolean | null;
+  workflow_key: string;
+  event_types: string[] | null;
+  updated_at: string | null;
+};
+
 export type AiOpsData = {
   conversations: AiConversationRow[];
   feedback: AiFeedbackRow[];
   automationEvents: AutomationEventRow[];
+  automationInbox: AutomationInboxRow[];
+  automationRuns: AutomationRunRow[];
+  automationRules: AutomationRuleRow[];
   assistantEvents: AssistantEventRow[];
   settings: {
     enabled?: boolean;
@@ -73,7 +112,7 @@ export type AiOpsData = {
 
 export async function readAiOpsData(): Promise<AiOpsData> {
   const supabase = createSupabaseAdminClient();
-  const [conversationsRes, messagesRes, feedbackRes, automationRes, eventsRes, settingsRes] = await Promise.all([
+  const [conversationsRes, messagesRes, feedbackRes, automationRes, inboxRes, runsRes, rulesRes, eventsRes, settingsRes] = await Promise.all([
     supabase
       .from("ai_conversations")
       .select("id,locale,channel,page_path,status,intent,summary,lead_score,created_at,updated_at,visitor_email")
@@ -93,6 +132,21 @@ export async function readAiOpsData(): Promise<AiOpsData> {
       .from("automation_events")
       .select("id,event_type,source,product_slug,subject_type,subject_id,priority,status,error_message,created_at,sent_at,processed_at")
       .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
+      .from("automation_inbox")
+      .select("id,event_id,run_id,product_slug,title,body,severity,status,created_by,created_at")
+      .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
+      .from("automation_runs")
+      .select("id,event_id,workflow_key,workflow_name,status,n8n_execution_id,error_message,started_at,finished_at")
+      .order("started_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("automation_rules")
+      .select("id,key,label,description,enabled,workflow_key,event_types,updated_at")
+      .order("key", { ascending: true })
       .limit(40),
     supabase
       .from("app_settings")
@@ -129,6 +183,9 @@ export async function readAiOpsData(): Promise<AiOpsData> {
     })),
     feedback: (feedbackRes.data ?? []) as AiFeedbackRow[],
     automationEvents: (automationRes.data ?? []) as AutomationEventRow[],
+    automationInbox: (inboxRes.data ?? []) as AutomationInboxRow[],
+    automationRuns: (runsRes.data ?? []) as AutomationRunRow[],
+    automationRules: (rulesRes.data ?? []) as AutomationRuleRow[],
     assistantEvents: (eventsRes.data ?? []) as AssistantEventRow[],
     settings: (settingsRes.data ?? null) as AiOpsData["settings"],
   };
@@ -159,9 +216,24 @@ export async function deleteAiFeedback(id: string) {
   if (error) throw error;
 }
 
-export async function updateAutomationEventStatus(id: string, status: "new" | "reviewed" | "archived" | "failed") {
+export async function updateAutomationEventStatus(id: string, status: "queued" | "sent" | "processed" | "failed" | "ignored") {
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from("automation_events").update({ status }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateAutomationInboxStatus(id: string, status: "new" | "reviewing" | "approved" | "resolved" | "archived") {
+  const supabase = createSupabaseAdminClient();
+  const payload: Record<string, string> = { status };
+  if (status === "resolved") payload.resolved_at = new Date().toISOString();
+  if (status === "reviewing" || status === "approved") payload.reviewed_at = new Date().toISOString();
+  const { error } = await supabase.from("automation_inbox").update(payload).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateAutomationRuleEnabled(id: string, enabled: boolean) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("automation_rules").update({ enabled, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) throw error;
 }
 

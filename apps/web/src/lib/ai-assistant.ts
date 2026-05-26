@@ -1,6 +1,7 @@
-import { createHash, randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
+import { serverHmac } from "@/lib/request-guard";
 
 export type AssistantMessage = {
   role: "user" | "assistant" | "system";
@@ -353,7 +354,7 @@ export async function writeAssistantEvent(input: {
 }
 
 export function hashAssistantOtpCode(email: string, code: string) {
-  return createHash("sha256").update(`${email.trim().toLowerCase()}:${code.trim()}`).digest("hex");
+  return serverHmac(`${email.trim().toLowerCase()}:${code.trim()}`, "ASSISTANT_OTP_SECRET");
 }
 
 export { conversationUuid };

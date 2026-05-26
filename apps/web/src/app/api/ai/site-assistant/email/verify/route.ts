@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { hashAssistantOtpCode } from "@/lib/ai-assistant";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "assistant-otp-verify", limit: 10, windowSeconds: 10 * 60 });
+  if (limited) return limited;
+
   const body = (await request.json().catch(() => ({}))) as { conversationId?: string; email?: string; code?: string };
   const conversationId = String(body.conversationId ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();

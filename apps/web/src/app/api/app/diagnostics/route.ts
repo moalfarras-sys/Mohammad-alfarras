@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { readBoundedJson } from "@/lib/automation-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export async function GET() {
@@ -16,6 +17,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const limited = await rateLimit({ request, bucket: "app-diagnostics", limit: 20, windowSeconds: 10 * 60 });
+    if (limited) return limited;
+
     const body = await readBoundedJson(request);
     const publicDeviceId = String(body.public_device_id ?? body.publicDeviceId ?? "").trim().slice(0, 80);
     const message = String(body.customer_message ?? body.message ?? "").trim().slice(0, 2000);

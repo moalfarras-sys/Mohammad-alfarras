@@ -21,9 +21,9 @@ import com.moalfarras.moplayerpro.R
 // PREMIUM FIERY GLASS — Warm Luxury Gold & Ember Palette
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Primary accent — adapts to poster palette or defaults to luminous Champagne Gold */
+/** Primary gold accent. */
 val GlassChampagne = Color(0xFFF1CC83)
-/** Secondary accent — Fiery Orange */
+/** Default brand accent — Fiery Orange. */
 val FieryOrange    = Color(0xFFFF9248)
 /** Tertiary accent — Warm Amber */
 val WarmAmber      = Color(0xFFFFC078)
@@ -45,6 +45,17 @@ val MoTextPrimary = Color(0xFFFBF9F4)
 val MoTextMuted   = Color(0xFFC3B7A6)
 val MoLiveRed     = Color(0xFFFF3B4D)
 val MoSuccess     = Color(0xFF7FD98A)
+
+data class AccentPreset(val value: Long, val color: Color, val label: String)
+
+val MoAccentPresets = listOf(
+    AccentPreset(0xFFFF9248L, FieryOrange, "Orange"),
+    AccentPreset(0xFFF1CC83L, GlassChampagne, "Gold"),
+    AccentPreset(0xFFFF3B4DL, MoLiveRed, "Red"),
+    AccentPreset(0xFF34D399L, Color(0xFF34D399), "Green"),
+    AccentPreset(0xFF4DA3FFL, Color(0xFF4DA3FF), "Blue"),
+    AccentPreset(0xFF9B6BFFL, Color(0xFF9B6BFF), "Purple"),
+)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DESIGN SYSTEM TOKENS — Spacing, Elevation, Radius, Motion

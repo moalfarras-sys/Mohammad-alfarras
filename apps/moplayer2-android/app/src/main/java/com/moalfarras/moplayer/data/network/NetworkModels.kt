@@ -275,7 +275,17 @@ data class WebActivationStatusDto(
 data class WebActivationSourceDto(
     val status: String = "",
     val message: String = "",
+    val sourceId: String = "",
     val source: WebProviderSourceDto? = null,
+)
+
+@Serializable
+data class WebActivationSourceAckRequestDto(
+    val publicDeviceId: String,
+    val token: String,
+    val sourceId: String,
+    val status: String,
+    val message: String = "",
 )
 
 @Serializable

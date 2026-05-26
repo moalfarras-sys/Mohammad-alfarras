@@ -326,6 +326,11 @@ private fun RefreshStatusChip(progress: LoadProgress, modifier: Modifier = Modif
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
             )
+            Text(
+                text = "Saved library stays playable while this smart refresh runs.",
+                color = Color(0xB8E3BC78),
+                style = MaterialTheme.typography.labelSmall,
+            )
             if (progress.total > 0) {
                 Text(
                     text = "${progress.loaded} / ${progress.total}",
@@ -368,6 +373,11 @@ private fun SyncOverlay(progress: LoadProgress) {
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Caching the server on this device for faster startup and smooth browsing.",
+                    color = Color(0xB8E3BC78),
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 if (progress.total > 0) {
                     Text(

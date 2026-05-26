@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "assistant-feedback", limit: 20, windowSeconds: 60 });
+  if (limited) return limited;
+
   const body = (await request.json().catch(() => ({}))) as {
     conversationId?: string;
     messageId?: string;

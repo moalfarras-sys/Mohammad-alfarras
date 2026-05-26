@@ -16,6 +16,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
+import java.security.MessageDigest
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -102,6 +103,14 @@ class UpdateRepository(private val context: Context) {
         val downloadId = manager.enqueue(request)
         val result = waitForDownload(manager, downloadId, onProgress)
         if (result !is UpdateInstallResult.InstallerOpened) return@withContext result
+        val expectedChecksum = info.checksumSha256.trim().lowercase()
+        if (expectedChecksum.isNotBlank()) {
+            val actualChecksum = file.sha256()
+            if (!actualChecksum.equals(expectedChecksum, ignoreCase = true)) {
+                file.delete()
+                return@withContext UpdateInstallResult.Failed("Downloaded APK failed SHA-256 verification")
+            }
+        }
         openInstaller(file)
     }
 
@@ -197,6 +206,19 @@ class UpdateRepository(private val context: Context) {
 
     private fun updateFile(): File =
         File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), UPDATE_FILE_NAME)
+
+    private fun File.sha256(): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        inputStream().use { input ->
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            while (true) {
+                val read = input.read(buffer)
+                if (read <= 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     private fun absolutize(url: String): String =
         if (url.startsWith("http://") || url.startsWith("https://")) url

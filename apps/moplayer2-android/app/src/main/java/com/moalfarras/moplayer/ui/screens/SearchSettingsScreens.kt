@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -100,6 +101,7 @@ import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
+import com.moalfarras.moplayer.ui.theme.MoAccentPresets
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -441,7 +443,6 @@ fun SettingsScreen(
                             onRemovePin = onRemoveParentalPin,
                         )
                     }
-                    item { DiagnosticsCard() }
                     item { AboutCard(isTv = false) }
                 } else {
                     item { LockedSettingsCard(onUnlock = onUnlockSettings) }
@@ -552,6 +553,15 @@ private fun TvSettingsLayout(
     val tv = rememberTvScale()
     var selectedPane by rememberSaveable { mutableIntStateOf(0) }
     val unlocked = !settings.hasParentalPin || settingsUnlocked
+    val firstPaneFocus = remember { FocusRequester() }
+    val paneListState = rememberLazyListState()
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(120)
+        runCatching { firstPaneFocus.requestFocus() }
+    }
+    LaunchedEffect(selectedPane, unlocked) {
+        paneListState.scrollToItem(0)
+    }
     Row(modifier.focusGroup(), horizontalArrangement = Arrangement.spacedBy((24 * tv.factor).dp)) {
         Column(
             modifier = Modifier.fillMaxHeight().weight(0.24f).padding(top = (12 * tv.factor).dp).focusGroup(),
@@ -559,15 +569,14 @@ private fun TvSettingsLayout(
         ) {
             SettingsHeader()
             Spacer(Modifier.height((16 * tv.factor).dp))
-            SettingsPaneButton("Appearance", Icons.Rounded.Palette, selectedPane == 0) { selectedPane = 0 }
-            SettingsPaneButton("Player and Display", Icons.Rounded.Tv, selectedPane == 1) { selectedPane = 1 }
-            SettingsPaneButton("Live TV", Icons.Rounded.Settings, selectedPane == 2) { selectedPane = 2 }
+            SettingsPaneButton("Look & Home", Icons.Rounded.Palette, selectedPane == 0, focusRequester = firstPaneFocus) { selectedPane = 0 }
+            SettingsPaneButton("Playback", Icons.Rounded.Tv, selectedPane == 1) { selectedPane = 1 }
+            SettingsPaneButton("Live TV", Icons.Rounded.LiveTv, selectedPane == 2) { selectedPane = 2 }
             SettingsPaneButton("Accounts", Icons.Rounded.AccountCircle, selectedPane == 3) { selectedPane = 3 }
-            SettingsPaneButton("Storage and History", Icons.Rounded.DeleteSweep, selectedPane == 4) { selectedPane = 4 }
-            SettingsPaneButton("Parental Control", Icons.Rounded.Warning, selectedPane == 5) { selectedPane = 5 }
-            SettingsPaneButton("Diagnostics", Icons.Rounded.History, selectedPane == 6) { selectedPane = 6 }
+            SettingsPaneButton("Storage", Icons.Rounded.DeleteSweep, selectedPane == 4) { selectedPane = 4 }
+            SettingsPaneButton("Family lock", Icons.Rounded.Lock, selectedPane == 5) { selectedPane = 5 }
             Spacer(Modifier.weight(1f))
-            SettingsPaneButton("About", Icons.Rounded.Info, selectedPane == 7) { selectedPane = 7 }
+            SettingsPaneButton("About", Icons.Rounded.Info, selectedPane == 6) { selectedPane = 6 }
         }
 
         GlassPanel(
@@ -576,12 +585,14 @@ private fun TvSettingsLayout(
             blur = 24.dp,
         ) {
             LazyColumn(
-                Modifier.fillMaxSize().padding((32 * tv.factor).dp).focusGroup(),
+                state = paneListState,
+                modifier = Modifier.fillMaxSize().padding((32 * tv.factor).dp).focusGroup(),
                 verticalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
             ) {
                 if (!unlocked) {
                     item { LockedSettingsCard(isTv = true, onUnlock = onUnlockSettings) }
                 } else {
+                    item { SettingsPaneHero(selectedPane, activeServer, settings, performancePolicy) }
                     when (selectedPane) {
                         0 -> item {
                             AppearanceSettingsCard(
@@ -636,20 +647,24 @@ private fun TvSettingsLayout(
                                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                     SectionHeader("Storage management")
                                     activeServer?.let {
-                                        FocusGlow(cornerRadius = 12.dp, onClick = onClearWatchHistory) {
-                                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Rounded.DeleteSweep, null, tint = LocalMoVisuals.current.accent, modifier = Modifier.size(22.dp))
-                                                Text("Clear watch history", color = Color.White, style = MaterialTheme.typography.bodyLarge)
-                                            }
-                                        }
-                                        FocusGlow(cornerRadius = 12.dp, onClick = onClearEpgCache) {
-                                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Rounded.Tv, null, tint = LocalMoVisuals.current.accent, modifier = Modifier.size(22.dp))
-                                                Text("Clear EPG cache", color = Color.White, style = MaterialTheme.typography.bodyLarge)
-                                            }
-                                        }
+                                        SettingsActionCard(
+                                            icon = Icons.Rounded.DeleteSweep,
+                                            title = "Clear watch history",
+                                            message = "Remove local continue-watching positions. Your account and playlists stay saved.",
+                                            onClick = onClearWatchHistory,
+                                        )
+                                        SettingsActionCard(
+                                            icon = Icons.Rounded.Tv,
+                                            title = "Clear EPG cache",
+                                            message = "Refresh guide data when channels show old or missing program info.",
+                                            onClick = onClearEpgCache,
+                                        )
                                     } ?: run {
-                                        Text("No active account to clear.", color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodyMedium)
+                        EmptySettingsMessage(
+                            icon = Icons.Rounded.Storage,
+                            title = "Nothing to clean yet",
+                            message = "Add or activate an account first. Local cache controls will appear here.",
+                        )
                                     }
                                 }
                             }
@@ -661,10 +676,136 @@ private fun TvSettingsLayout(
                                 PinSettingsCard(settings.hasParentalPin, isTv = true, onLockSettings, onSetParentalPin, onChangeParentalPin, onRemoveParentalPin)
                             }
                         }
-                        6 -> item { DiagnosticsCard(isTv = true) }
-                        7 -> item { AboutCard(isTv = true) }
+                        6 -> item { AboutCard(isTv = true) }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsPaneHero(
+    selectedPane: Int,
+    activeServer: ServerProfile?,
+    settings: AppSettings,
+    performancePolicy: PerformancePolicy,
+) {
+    val tv = rememberTvScale()
+    val visuals = LocalMoVisuals.current
+    val (icon, title, subtitle) = when (selectedPane) {
+        0 -> Triple(Icons.Rounded.Palette, "Look & Home", "Backgrounds, colors, widgets, and TV performance.")
+        1 -> Triple(Icons.Rounded.PlayCircle, "Playback", "Player choice, sorting, updates, and smooth display behavior.")
+        2 -> Triple(Icons.Rounded.LiveTv, "Live TV", "Channel previews, auto-play, and cleaner live categories.")
+        3 -> Triple(Icons.Rounded.AccountCircle, "Accounts", activeServer?.let { "${it.name} is active" } ?: "Connect or switch saved accounts.")
+        4 -> Triple(Icons.Rounded.Storage, "Storage", "Clear local history and EPG cache without touching your account.")
+        5 -> Triple(Icons.Rounded.Lock, "Family lock", if (settings.hasParentalPin) "PIN protection is enabled." else "Create a PIN to protect settings and content filters.")
+        else -> Triple(Icons.Rounded.Info, "About", "Version, support, and product information.")
+    }
+    GlassPanel(
+        modifier = Modifier.fillMaxWidth(),
+        radius = (22 * tv.factor).dp,
+        blur = 18.dp,
+        highlighted = true,
+        glow = visuals.accent.copy(alpha = 0.13f),
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = (20 * tv.factor).dp, vertical = (16 * tv.factor).dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
+        ) {
+            Box(
+                Modifier
+                    .size((50 * tv.factor).dp)
+                    .clip(RoundedCornerShape((16 * tv.factor).dp))
+                    .background(visuals.accent.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, null, tint = visuals.accent, modifier = Modifier.size((26 * tv.factor).dp))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (23 * tv.factor).sp)
+                Text(subtitle, color = Color(0xCCFFFFFF), fontSize = (13 * tv.factor).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = visuals.accent.copy(alpha = 0.14f),
+            ) {
+                Text(
+                    performancePolicy.mode.label(),
+                    color = visuals.accent,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = (12 * tv.factor).sp,
+                    modifier = Modifier.padding(horizontal = (12 * tv.factor).dp, vertical = (7 * tv.factor).dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsActionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    message: String,
+    onClick: () -> Unit,
+) {
+    val tv = rememberTvScale()
+    val visuals = LocalMoVisuals.current
+    FocusGlow(
+        modifier = Modifier.fillMaxWidth().height((86 * tv.factor).dp),
+        cornerRadius = (18 * tv.factor).dp,
+        onClick = onClick,
+    ) {
+        GlassPanel(radius = (18 * tv.factor).dp, highlighted = true, glow = visuals.accent.copy(alpha = 0.08f)) {
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = (18 * tv.factor).dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
+            ) {
+                Box(
+                    Modifier
+                        .size((44 * tv.factor).dp)
+                        .clip(RoundedCornerShape((14 * tv.factor).dp))
+                        .background(visuals.accent.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(icon, null, tint = visuals.accent, modifier = Modifier.size((24 * tv.factor).dp))
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (16 * tv.factor).sp)
+                    Text(message, color = Color(0xB8FFFFFF), fontSize = (12 * tv.factor).sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                Icon(Icons.Rounded.ChevronRight, null, tint = Color(0x99FFFFFF), modifier = Modifier.size((24 * tv.factor).dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptySettingsMessage(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    message: String,
+) {
+    val tv = rememberTvScale()
+    val visuals = LocalMoVisuals.current
+    GlassPanel(radius = (18 * tv.factor).dp, highlighted = true, glow = visuals.accent.copy(alpha = 0.08f)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding((18 * tv.factor).dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
+        ) {
+            Icon(icon, null, tint = visuals.accent, modifier = Modifier.size((30 * tv.factor).dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (16 * tv.factor).sp)
+                Text(message, color = Color(0xB8FFFFFF), fontSize = (13 * tv.factor).sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
     }
@@ -675,26 +816,43 @@ private fun SettingsPaneButton(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     selected: Boolean,
+    focusRequester: FocusRequester? = null,
     onClick: () -> Unit,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     FocusGlow(
-        modifier = Modifier.fillMaxWidth().height((48 * tv.factor).dp),
-        cornerRadius = (12 * tv.factor).dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height((56 * tv.factor).dp)
+            .let { if (focusRequester != null) it.focusRequester(focusRequester) else it },
+        cornerRadius = (16 * tv.factor).dp,
         onClick = onClick,
     ) {
         Row(
             Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape((12 * tv.factor).dp))
-                .background(if (selected) visuals.accent.copy(alpha = 0.20f) else Color.Transparent)
-                .padding(horizontal = (12 * tv.factor).dp),
+                .clip(RoundedCornerShape((16 * tv.factor).dp))
+                .background(
+                    if (selected) {
+                        Brush.horizontalGradient(listOf(visuals.accent.copy(alpha = 0.34f), visuals.accent.copy(alpha = 0.10f)))
+                    } else {
+                        Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                    },
+                )
+                .padding(horizontal = (14 * tv.factor).dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
+            horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
         ) {
-            Icon(icon, null, tint = if (selected) visuals.accent else Color(0xCCFFFFFF), modifier = Modifier.size((20 * tv.factor).dp))
-            Text(title, color = Color.White, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(icon, null, tint = if (selected) Color.White else Color(0xCCFFFFFF), modifier = Modifier.size((22 * tv.factor).dp))
+            Text(
+                title,
+                color = Color.White,
+                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold,
+                fontSize = (14 * tv.factor).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -829,7 +987,7 @@ private fun UpdateSettingsPanel(
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("MoPlayer Pro Update", color = Color.White, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold))
                     Text(
-                        "Current ${info.currentVersionName} (${info.currentVersionCode})  •  Latest ${info.latestVersionName} (${info.latestVersionCode})",
+                        "Current ${info.currentVersionName}  •  Latest ${info.latestVersionName}",
                         color = Color(0xB3FFFFFF),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 2,
@@ -855,10 +1013,7 @@ private fun UpdateSettingsPanel(
             if (progress in 1..99) {
                 Text("Downloading $progress%", color = Color.White, style = MaterialTheme.typography.labelMedium)
             }
-            val details = listOfNotNull(
-                info.apkSizeBytes?.let { "Size ${formatBytes(it)}" },
-                info.checksumSha256.takeIf { it.isNotBlank() }?.let { "SHA-256 ${it.take(12)}..." },
-            ).joinToString("  •  ")
+            val details = info.apkSizeBytes?.let { "Download size ${formatBytes(it)}" }.orEmpty()
             if (details.isNotBlank()) {
                 Text(details, color = Color(0x80FFFFFF), style = MaterialTheme.typography.bodySmall)
             }
@@ -895,18 +1050,6 @@ private fun updateStatusFor(info: AppUpdateInfo): String =
     } else {
         "App is up to date"
     }
-
-private fun openLatestAppDownload(context: Context) {
-    val baseUrl = BuildConfig.WEB_API_BASE_URL.trim().ifBlank { "https://moalfarras.space" }.trimEnd('/')
-    val downloadUrl = "$baseUrl/api/app/download/latest?product=moplayer2"
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    runCatching { context.startActivity(intent) }
-        .onFailure {
-            Toast.makeText(context, "Could not open the update link right now.", Toast.LENGTH_LONG).show()
-        }
-}
 
 @Composable
 private fun LibraryModeCard(
@@ -1045,9 +1188,10 @@ private fun AppearanceSettingsCard(
 
             AppearanceLabeledChoiceRow(
                 title = "Background image source",
-                hint = "\"From theme\" follows the theme above. \"Daily city\" forces a new city image each day.",
+                hint = "Auto shows a daily city image based on your detected or selected city. Dynamic uses movie/series art after login.",
                 items = listOf(
-                    BackgroundMode.AUTO to "From theme",
+                    BackgroundMode.AUTO to "Auto city",
+                    BackgroundMode.DYNAMIC_CONTENT to "Dynamic poster",
                     BackgroundMode.CITY_ROTATION to "Daily city",
                     BackgroundMode.CUSTOM_URL to "URL",
                     BackgroundMode.NONE to "No image",
@@ -1088,11 +1232,11 @@ private fun AppearanceSettingsCard(
             SectionHeader("Performance")
             AppearanceSubsection(
                 title = "Automatic device profile",
-                description = "${devicePerformanceInfo.summary}: ${devicePerformanceInfo.memoryClassMb} MB RAM class, ${devicePerformanceInfo.cpuCores} CPU cores, Android ${devicePerformanceInfo.sdkInt}. Effective mode: ${performancePolicy.mode.label()}.",
+                description = "The app automatically balances image quality, motion, and player load for this device. Current profile: ${performancePolicy.mode.label()} up to ${performancePolicy.maxVideoHeight}p.",
             )
             AppearanceLabeledChoiceRow(
                 title = "Performance mode",
-                hint = "Auto keeps old devices light and leaves premium visuals on stronger devices.",
+                hint = "Auto chooses the best safe quality for the device. Performance targets 720p, Balanced 1080p, and Quality unlocks 4K/8K when the TV and stream support it.",
                 items = listOf(
                     PerformanceMode.AUTO to "Auto",
                     PerformanceMode.PERFORMANCE to "Performance",
@@ -1104,7 +1248,7 @@ private fun AppearanceSettingsCard(
             )
             if (devicePerformanceInfo.tier == DevicePerformanceTier.LOW || performancePolicy.isPerformance) {
                 Text(
-                    "Heavy particles, large images, previews, widgets, and autoplay are reduced for smoother TV navigation.",
+                    "Some heavy effects are reduced to keep remote navigation and playback smooth.",
                     color = Color.White.copy(alpha = 0.70f),
                     fontSize = 12.sp,
                 )
@@ -1116,27 +1260,37 @@ private fun AppearanceSettingsCard(
                 description = "Choose one fixed accent color for the whole app.",
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                listOf(
-                    0xFFE3BC78L to Color(0xFFE3BC78),
-                    0xFF4DA3FFL to Color(0xFF4DA3FF),
-                    0xFF2EE6A6L to Color(0xFF2EE6A6),
-                    0xFFFF5E6CL to Color(0xFFFF5E6C),
-                    0xFF9B6BFFL to Color(0xFF9B6BFF),
-                    0xFF62E8FFL to Color(0xFF62E8FF),
-                ).forEach { (value, color) ->
-                    val selected = settings.accentColor == value
-                    FocusGlow(cornerRadius = 14.dp, onClick = { onAccentColor(value) }) {
-                        Box(
-                            Modifier
-                                .size(if (isTv) 42.dp else 36.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(color)
-                                .then(
-                                    if (selected) Modifier.background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
-                                    else Modifier
+                MoAccentPresets.forEach { preset ->
+                    val selected = settings.accentColor == preset.value
+                    FocusGlow(cornerRadius = 16.dp, onClick = { onAccentColor(preset.value) }) {
+                        GlassPanel(radius = 16.dp, highlighted = selected, glow = preset.color.copy(alpha = if (selected) 0.34f else 0.10f)) {
+                            Column(
+                                modifier = Modifier
+                                    .width(if (isTv) 86.dp else 64.dp)
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Box(
+                                    Modifier
+                                        .size(if (isTv) 38.dp else 32.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(
+                                            Brush.radialGradient(
+                                                listOf(Color.White.copy(alpha = 0.55f), preset.color, preset.color.copy(alpha = 0.66f)),
+                                            ),
+                                        )
+                                        .border(1.dp, Color.White.copy(alpha = if (selected) 0.70f else 0.20f), RoundedCornerShape(14.dp)),
                                 )
-                                .padding(2.dp),
-                        )
+                                Text(
+                                    preset.label,
+                                    color = if (selected) preset.color else Color.White.copy(alpha = 0.82f),
+                                    fontSize = (10 * tv.factor).sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -1273,8 +1427,13 @@ private fun ActiveServerCard(
             Button(onClick = onRefresh, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.Refresh, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Refresh library")
+                Text("Update library now")
             }
+            Text(
+                "Smart background checks keep account status fresh. Use this when channels, movies, or series changed on the provider.",
+                color = Color(0x99FFFFFF),
+                style = MaterialTheme.typography.bodySmall,
+            )
             OutlinedButton(onClick = onTestConnection, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.NetworkCheck, null)
                 Spacer(Modifier.width(8.dp))
@@ -1293,7 +1452,7 @@ private fun ActiveServerCard(
             OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Rounded.DeleteSweep, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Log out current account")
+                Text("Remove from this device")
             }
         }
     }
@@ -1378,21 +1537,6 @@ private fun PinField(label: String, value: String, onValueChange: (String) -> Un
         visualTransformation = PasswordVisualTransformation(),
         modifier = Modifier.fillMaxWidth(),
     )
-}
-
-@Composable
-private fun DiagnosticsCard(isTv: Boolean = false) {
-    val content = @Composable {
-        Column(Modifier.padding(if (isTv) 0.dp else 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SectionHeader("Diagnostics")
-            DiagnosticsRow("App version", BuildConfig.VERSION_NAME)
-            DiagnosticsRow("Android", Build.VERSION.RELEASE ?: "—")
-            DiagnosticsRow("Device", "${Build.MANUFACTURER} ${Build.MODEL}")
-            DiagnosticsRow("SDK", Build.VERSION.SDK_INT.toString())
-            DiagnosticsRow("Database", "Room v5")
-        }
-    }
-    if (isTv) content() else GlassPanel(radius = rememberTvScale().cardRadius) { content() }
 }
 
 @Composable
@@ -1591,22 +1735,35 @@ private fun ServerInfoRow(label: String, value: String, labelColor: Color, value
 @Composable
 private fun SettingSwitch(title: String, value: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, onValue: (Boolean) -> Unit) {
     val tv = rememberTvScale()
-    val accent = LocalMoVisuals.current.accent
+    val visuals = LocalMoVisuals.current
+    val accent = visuals.accent
     FocusGlow(
-        modifier = Modifier.fillMaxWidth().height((56 * tv.factor).dp),
-        cornerRadius = (12 * tv.factor).dp,
+        modifier = Modifier.fillMaxWidth().height((64 * tv.factor).dp),
+        cornerRadius = (16 * tv.factor).dp,
         onClick = { onValue(!value) },
     ) {
         Row(
-            Modifier.fillMaxSize().padding(horizontal = (16 * tv.factor).dp),
+            Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape((16 * tv.factor).dp))
+                .background(if (value) accent.copy(alpha = 0.10f) else visuals.surfaceHigh.copy(alpha = 0.32f))
+                .padding(horizontal = (18 * tv.factor).dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (icon != null) {
-                    Icon(icon, contentDescription = null, tint = if (value) accent else Color(0x99FFFFFF), modifier = Modifier.size(24.dp))
+                    Box(
+                        Modifier
+                            .size((34 * tv.factor).dp)
+                            .clip(RoundedCornerShape((12 * tv.factor).dp))
+                            .background(if (value) accent.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.06f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(icon, contentDescription = null, tint = if (value) accent else Color(0xB8FFFFFF), modifier = Modifier.size((19 * tv.factor).dp))
+                    }
                 }
-                Text(title, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                Text(title, color = Color.White, fontSize = (16 * tv.factor).sp, fontWeight = FontWeight.Bold)
             }
             Switch(
                 checked = value,
@@ -1631,6 +1788,11 @@ private fun PerformanceMode.label(): String = when (this) {
 fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
     val visuals = LocalMoVisuals.current
     val tv = rememberTvScale()
+    val cancelFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(120)
+        runCatching { cancelFocus.requestFocus() }
+    }
     Dialog(onDismissRequest = onDismiss) {
         GlassPanel(
             modifier = Modifier.width(if (tv.isTv) 400.dp else 360.dp),
@@ -1680,7 +1842,7 @@ fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    FocusGlow(modifier = Modifier.weight(1f).height(50.dp), cornerRadius = 14.dp, onClick = onDismiss) {
+                    FocusGlow(modifier = Modifier.weight(1f).height(50.dp), cornerRadius = 14.dp, focusRequester = cancelFocus, onClick = onDismiss) {
                         GlassPanel(radius = 14.dp) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text("Cancel", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)

@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 
 import { conversationUuid, hashAssistantOtpCode } from "@/lib/ai-assistant";
 import { sendTransactionalMail } from "@/lib/mailer";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "assistant-otp-request", limit: 5, windowSeconds: 10 * 60 });
+  if (limited) return limited;
+
   const body = (await request.json().catch(() => ({}))) as { conversationId?: string; email?: string; locale?: string };
   const email = String(body.email ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

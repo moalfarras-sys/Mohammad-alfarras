@@ -26,13 +26,27 @@ class AppRemoteConfigService {
                 backgroundUrl = config.optString("backgroundUrl", ""),
                 supportUrl = config.optString("supportUrl", "https://moalfarras.space/en/support"),
                 privacyUrl = config.optString("privacyUrl", "https://moalfarras.space/privacy"),
-                syncIntervalMinutes = config.optInt("syncIntervalMinutes", 120).coerceIn(15, 360),
+                syncIntervalMinutes = config.optInt("syncIntervalMinutes", 60).coerceIn(15, 360),
                 sourceProtocolFallback = config.optBoolean("sourceProtocolFallback", true),
                 footballProviderMode = config.optString("footballProviderMode", "auto").ifBlank { "auto" },
                 weatherEnabled = config.optJSONObject("widgets")?.optBoolean("weather", true) ?: true,
                 footballEnabled = config.optJSONObject("widgets")?.optBoolean("football", true) ?: true,
                 weatherCity = config.optJSONObject("widgets")?.optString("weatherCity", "Berlin")?.ifBlank { "Berlin" } ?: "Berlin",
                 footballMaxMatches = config.optJSONObject("widgets")?.optInt("footballMaxMatches", 8)?.coerceIn(1, 20) ?: 8,
+                homeNotificationMode = run {
+                    val home = config.optJSONObject("homeNotification")
+                    val nested = home?.optString("mode", "").orEmpty().trim()
+                    val legacy = config.optJSONObject("worldCup")?.optString("mode", "").orEmpty().trim()
+                    when {
+                        nested.isNotBlank() -> nested
+                        legacy.isNotBlank() -> legacy
+                        else -> config.optString("homeNotificationMode", config.optString("worldCupMode", "auto")).ifBlank { "auto" }
+                    }
+                },
+                homeNotificationType = config.optJSONObject("homeNotification")?.optString("type", "world_cup_2026")?.ifBlank { "world_cup_2026" } ?: "world_cup_2026",
+                homeNotificationTitle = config.optJSONObject("homeNotification")?.optString("title", "").orEmpty(),
+                homeNotificationMessage = config.optJSONObject("homeNotification")?.optString("message", "").orEmpty(),
+                homeNotificationTargetDate = config.optJSONObject("homeNotification")?.optString("startDate", "") ?: "",
             )
         }.getOrElse {
             AppRemoteConfig()
@@ -81,11 +95,16 @@ data class AppRemoteConfig(
     val backgroundUrl: String = "",
     val supportUrl: String = "https://moalfarras.space/en/support",
     val privacyUrl: String = "https://moalfarras.space/privacy",
-    val syncIntervalMinutes: Int = 120,
+    val syncIntervalMinutes: Int = 60,
     val sourceProtocolFallback: Boolean = true,
     val footballProviderMode: String = "auto",
     val weatherEnabled: Boolean = true,
     val footballEnabled: Boolean = true,
     val weatherCity: String = "Berlin",
     val footballMaxMatches: Int = 8,
+    val homeNotificationMode: String = "auto",
+    val homeNotificationType: String = "world_cup_2026",
+    val homeNotificationTitle: String = "",
+    val homeNotificationMessage: String = "",
+    val homeNotificationTargetDate: String = "",
 )

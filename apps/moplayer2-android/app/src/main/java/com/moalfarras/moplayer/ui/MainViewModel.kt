@@ -307,15 +307,7 @@ class MainViewModel(
     }
 
     fun handleIncomingPlaylistUrl(url: String) {
-        loginJob?.cancel()
-        loginJob = viewModelScope.launch {
-            if (iptv.hasSavedServer()) {
-                internal.update { it.copy(section = AppSection.HOME, loading = null, error = null) }
-                saveLastSection(AppSection.HOME)
-                return@launch
-            }
-            loginM3u("Imported IPTV", url)
-        }
+        loginM3u("Imported IPTV", url)
     }
 
     fun selectCategory(category: Category) {
@@ -487,13 +479,33 @@ class MainViewModel(
         loginJob?.cancel()
         loginJob = viewModelScope.launch {
             runCatching {
-                iptv.loginM3u(name, url, epgUrl).collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
+                iptv.registerXtreamFromPlaylistUrl(name, url)?.let { server ->
+                    internal.update {
+                        it.copy(
+                            loading = null,
+                            section = AppSection.HOME,
+                            error = null,
+                            notice = "Server saved locally. Loading live, movies and series in the background.",
+                        )
+                    }
+                    saveLastSection(AppSection.HOME)
+                    startBackgroundLibraryRefresh(server)
+                    return@runCatching
+                }
+                internal.update { it.copy(loading = LoadProgress("Saving playlist on this device", 15, 100), error = null) }
+                val server = iptv.registerM3uSource(name, url, epgUrl)
+                internal.update {
+                    it.copy(
+                        loading = null,
+                        section = AppSection.HOME,
+                        error = null,
+                        notice = "Playlist saved locally. Loading channels and VOD in the background.",
+                    )
+                }
+                saveLastSection(AppSection.HOME)
+                startBackgroundLibraryRefresh(server)
             }.onFailure { throwable ->
                 internal.update { it.copy(error = throwable.message ?: "M3U login failed", loading = null) }
-            }.onSuccess {
-                internal.update { it.copy(loading = null, section = AppSection.HOME) }
-                saveLastSection(AppSection.HOME)
-                refreshEpgSilently()
             }
         }
     }
@@ -516,13 +528,20 @@ class MainViewModel(
         loginJob?.cancel()
         loginJob = viewModelScope.launch {
             runCatching {
-                iptv.loginXtream(name, baseUrl, username, password).collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
+                internal.update { it.copy(loading = LoadProgress("Saving server on this device", 15, 100), error = null) }
+                val server = iptv.registerXtreamSource(name, baseUrl, username, password)
+                internal.update {
+                    it.copy(
+                        loading = null,
+                        section = AppSection.HOME,
+                        error = null,
+                        notice = "Server saved locally. Loading live, movies and series in the background.",
+                    )
+                }
+                saveLastSection(AppSection.HOME)
+                startBackgroundLibraryRefresh(server)
             }.onFailure { throwable ->
                 internal.update { it.copy(error = throwable.message ?: "Xtream login failed", loading = null) }
-            }.onSuccess {
-                internal.update { it.copy(loading = null, section = AppSection.HOME) }
-                saveLastSection(AppSection.HOME)
-                refreshEpgSilently()
             }
         }
     }
@@ -635,19 +654,43 @@ class MainViewModel(
                             )
                         }
                         saveLastSection(AppSection.HOME)
+                        acknowledgeActivatedProfile(profile, imported = true)
                         startBackgroundLibraryRefresh(server)
                     }
                     com.moalfarras.moplayer.domain.model.LoginKind.M3U -> {
-                        iptv.loginM3u(profile.name, profile.playlistUrl, profile.epgUrl)
-                            .collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
-                        internal.update { it.copy(loading = null, section = AppSection.HOME, activationSession = null) }
+                        internal.update { it.copy(loading = LoadProgress("Saving playlist on this device", 20, 100), error = null) }
+                        val server = iptv.registerXtreamFromPlaylistUrl(profile.name, profile.playlistUrl)
+                            ?: iptv.registerM3uSource(profile.name, profile.playlistUrl, profile.epgUrl)
+                        internal.update {
+                            it.copy(
+                                loading = null,
+                                section = AppSection.HOME,
+                                activationSession = null,
+                                notice = "Source saved on this device. Loading full library in the background.",
+                            )
+                        }
                         saveLastSection(AppSection.HOME)
-                        refreshEpgSilently()
+                        acknowledgeActivatedProfile(profile, imported = true)
+                        startBackgroundLibraryRefresh(server)
                     }
                 }
             }.onFailure { throwable ->
+                acknowledgeActivatedProfile(profile, imported = false, message = activationErrorMessage(throwable, "Import failed"))
                 internal.update { it.copy(error = activationErrorMessage(throwable, "Activated, but account sync failed. Try again later."), loading = null) }
             }
+        }
+    }
+
+    private fun acknowledgeActivatedProfile(profile: ActivatedProfile, imported: Boolean, message: String = "") {
+        if (profile.sourceId.isBlank()) return
+        viewModelScope.launch {
+            iptv.acknowledgeWebActivationSource(
+                publicDeviceId = profile.publicDeviceId,
+                token = profile.sourcePullToken,
+                sourceId = profile.sourceId,
+                imported = imported,
+                message = message,
+            )
         }
     }
 
@@ -656,15 +699,13 @@ class MainViewModel(
         backgroundSyncJob = viewModelScope.launch {
             runCatching {
                 iptv.refreshServerFast(server).collect { progress ->
-                    if (progress.loaded == 0 || progress.loaded >= progress.total) {
-                        internal.update { it.copy(backgroundRefresh = progress, error = null) }
-                    }
+                    internal.update { it.copy(backgroundRefresh = progress, error = null) }
                 }
             }.onFailure { throwable ->
                 internal.update {
                     it.copy(
                         backgroundRefresh = null,
-                        error = throwable.message ?: "Background library sync failed",
+                        notice = backgroundRefreshMessage(throwable),
                     )
                 }
             }.onSuccess {
@@ -672,7 +713,7 @@ class MainViewModel(
                     it.copy(
                         backgroundRefresh = null,
                         error = null,
-                        notice = "Library saved on this device",
+                        notice = "Library saved locally. Future starts open from cache.",
                     )
                 }
                 refreshEpgSilently()
@@ -684,7 +725,7 @@ class MainViewModel(
         if (checkedStartupRefresh) return
         checkedStartupRefresh = true
         val ageMs = System.currentTimeMillis() - server.lastSyncAt
-        if (server.lastSyncAt <= 0 || ageMs > 6 * 60 * 60 * 1000L) {
+        if (server.lastSyncAt <= 0 || ageMs > SMART_REFRESH_INTERVAL_MS) {
             startBackgroundLibraryRefresh(server)
         }
     }
@@ -1019,9 +1060,6 @@ class MainViewModel(
                 .onSuccess { config ->
                     settingsRepo.applyRemoteConfig(config)
                     val nextSettings = uiState.value.settings.copy(
-                        accentColor = parseRemoteAccent(config.accentColor) ?: uiState.value.settings.accentColor,
-                        backgroundMode = if (config.backgroundUrl.isNotBlank()) BackgroundMode.CUSTOM_URL else uiState.value.settings.backgroundMode,
-                        customBackgroundUrl = config.backgroundUrl.takeIf { it.isNotBlank() } ?: uiState.value.settings.customBackgroundUrl,
                         showWeatherWidget = config.weatherEnabled,
                         showFootballWidget = config.footballEnabled,
                         weatherMode = if (config.weatherCity.isNotBlank()) WeatherMode.CITY else uiState.value.settings.weatherMode,
@@ -1032,14 +1070,6 @@ class MainViewModel(
                     football.value = widgets.football(nextSettings)
                 }
         }
-    }
-
-    private fun parseRemoteAccent(value: String): Long? {
-        val clean = value.trim()
-        if (!Regex("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$").matches(clean)) return null
-        val raw = clean.removePrefix("#")
-        val argb = if (raw.length == 6) "FF$raw" else raw
-        return runCatching { argb.toULong(16).toLong() }.getOrNull()
     }
 
     private fun refreshEpgSilently() {
@@ -1102,6 +1132,16 @@ class MainViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = MainViewModel(iptv, settingsRepo, widgets, remoteConfigService) as T
+    }
+}
+
+private fun backgroundRefreshMessage(throwable: Throwable): String {
+    val raw = throwable.message.orEmpty()
+    return when {
+        raw.contains("handshake", ignoreCase = true) || raw.contains("ssl", ignoreCase = true) ->
+            "Server is saved locally. Secure HTTPS refresh failed; the app will keep using the working source."
+        raw.isBlank() -> "Server is saved locally. Background refresh will retry later."
+        else -> "Server is saved locally. Background refresh will retry later."
     }
 }
 
@@ -1203,3 +1243,5 @@ private fun String.urlEncode(): String =
 
 private fun String.urlDecode(): String =
     runCatching { URLDecoder.decode(this, StandardCharsets.UTF_8.name()) }.getOrDefault(this)
+
+private const val SMART_REFRESH_INTERVAL_MS = 60 * 60 * 1000L

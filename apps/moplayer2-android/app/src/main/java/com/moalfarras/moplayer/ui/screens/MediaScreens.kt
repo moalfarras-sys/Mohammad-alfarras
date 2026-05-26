@@ -422,7 +422,7 @@ private fun PagingChannelList(
         LazyColumn(Modifier.fillMaxSize(), state = listState, verticalArrangement = Arrangement.spacedBy((7 * tv.factor).dp)) {
             items(
                 count = items.itemCount,
-                key = items.itemKey { it.id }
+                key = items.itemKey { mediaKey(it) }
             ) { index ->
                 items[index]?.let { item ->
                     val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
@@ -486,7 +486,7 @@ private fun PosterGrid(
         ) {
             items(
                 count = items.itemCount,
-                key = items.itemKey { it.id }
+                key = items.itemKey { mediaKey(it) }
             ) { index ->
                 items[index]?.let { item ->
                     val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
@@ -540,7 +540,7 @@ private fun RestoringEpisodeList(
             state = listState,
             verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
         ) {
-            items(episodes, key = { "${it.seasonNumber}-${it.episodeNumber}-${it.id}" }) { episode ->
+            items(episodes, key = { "${it.seasonNumber}-${it.episodeNumber}-${mediaKey(it)}" }) { episode ->
                 val focusRequester = remember(episode.id, episode.seasonNumber, episode.episodeNumber) { FocusRequester() }
                 val shouldRestore = episode.sameMedia(restoreFocusItem)
                 LaunchedEffect(shouldRestore, restoreIndex, restoredOnce) {
@@ -742,31 +742,34 @@ private fun CategoryChip(name: String, selected: Boolean, factor: Float, onFocus
 @Composable
 private fun CategoryPill(name: String, selected: Boolean, onClick: () -> Unit) {
     val visuals = LocalMoVisuals.current
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .then(
-                if (selected) Modifier.drawBehind {
-                    drawCircle(
-                        brush = Brush.radialGradient(listOf(visuals.accent.copy(alpha = 0.2f), Color.Transparent)),
-                        radius = size.maxDimension,
-                    )
-                } else Modifier
+    FocusGlow(cornerRadius = 999.dp, onClick = onClick) {
+        Box(
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .then(
+                    if (selected) Modifier.drawBehind {
+                        drawCircle(
+                            brush = Brush.radialGradient(listOf(visuals.accent.copy(alpha = 0.2f), Color.Transparent)),
+                            radius = size.maxDimension,
+                        )
+                    } else Modifier
+                )
+                .background(if (selected) visuals.accent.copy(alpha = 0.24f) else Color(0x44241914))
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                name,
+                color = if (selected) Color.White else Color(0xCCE3BC78),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            .background(if (selected) visuals.accent.copy(alpha = 0.24f) else Color(0x44241914))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            name,
-            color = if (selected) Color.White else Color(0xCCE3BC78),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        }
     }
 }
+
+private fun mediaKey(item: MediaItem): String = "${item.type}:${item.serverId}:${item.id}"
 
 @Composable
 private fun HeaderRow(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
@@ -796,8 +799,11 @@ fun PreviewPane(
                 }
                 return@Box
             }
-            if (previewEnabled && performancePolicy?.enablePreviewPane != false) {
-                AsyncImage(item.backdropUrl.ifBlank { item.posterUrl }, item.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+            val previewArt = item.backdropUrl.ifBlank {
+                if (item.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE) "" else item.posterUrl
+            }
+            if (previewEnabled && performancePolicy?.enablePreviewPane != false && previewArt.isNotBlank()) {
+                AsyncImage(previewArt, item.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(visuals.accent.copy(alpha = 0.22f), Color(0xFF101827)))))
             }

@@ -19,7 +19,7 @@ interface PlaylistService {
 interface XtreamService {
     @GET("player_api.php")
     suspend fun rawPlayerApi(
-        @QueryMap(encoded = true) query: Map<String, String>,
+        @QueryMap query: Map<String, String>,
     ): ResponseBody
 
     @GET("player_api.php")
@@ -104,7 +104,7 @@ interface WebWeatherService {
     ): WebWeatherDto
 }
 
-/** Free, key-less football data (TheSportsDB public key "123"). */
+/** Free, key-less football data (TheSportsDB public test key "3"). */
 interface SportsDbService {
     @GET("eventsday.php")
     suspend fun eventsDay(
@@ -141,6 +141,12 @@ interface SupabaseService {
     suspend fun webDeviceActivationSource(
         @Url url: String,
     ): WebActivationSourceDto
+
+    @POST
+    suspend fun webDeviceActivationSourceAck(
+        @Url url: String,
+        @Body body: WebActivationSourceAckRequestDto,
+    ): ResponseBody
 
     @GET("rest/v1/aecodes")
     suspend fun activationCode(

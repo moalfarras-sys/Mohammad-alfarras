@@ -19,7 +19,9 @@ import {
   deleteAiFeedbackAction,
   deleteAssistantEventAction,
   updateAiConversationStatusAction,
+  updateAutomationInboxStatusAction,
   updateAutomationEventStatusAction,
+  updateAutomationRuleEnabledAction,
 } from "@/app/actions";
 import { useLocale } from "@/components/admin/locale-provider";
 import { Accordion, PageHeader, StatCard } from "@/components/admin/ui";
@@ -43,6 +45,33 @@ type AiOpsViewData = {
     error_message: string | null;
     created_at: string;
   }>;
+  automationInbox: Array<{
+    id: string;
+    title: string;
+    body: string;
+    product_slug: string | null;
+    severity: string | null;
+    status: string | null;
+    created_by: string | null;
+    created_at: string;
+  }>;
+  automationRuns: Array<{
+    id: string;
+    workflow_key: string;
+    workflow_name: string | null;
+    status: string | null;
+    n8n_execution_id: string | null;
+    error_message: string | null;
+    started_at: string;
+  }>;
+  automationRules: Array<{
+    id: string;
+    key: string;
+    label: string;
+    enabled: boolean | null;
+    workflow_key: string;
+    event_types: string[] | null;
+  }>;
   feedback: Array<{ id: string; rating: string | null; comment: string | null; created_at: string }>;
   assistantEvents: Array<{
     key: string;
@@ -64,7 +93,9 @@ export function AiOperationsView({
   const { t } = useLocale();
   const openConversations = ops.conversations.filter((item) => item.status !== "archived").length;
   const archivedConversations = ops.conversations.filter((item) => item.status === "archived").length;
-  const failedAutomation = ops.automationEvents.filter((item) => item.status === "failed" || item.error_message).length;
+  const failedAutomation =
+    ops.automationEvents.filter((item) => item.status === "failed" || item.error_message).length +
+    ops.automationInbox.filter((item) => item.severity === "critical").length;
   const temporaryEvents = ops.assistantEvents.length;
 
   return (
@@ -119,10 +150,7 @@ export function AiOperationsView({
         <ActionTile
           icon={<MessageSquareText className="h-5 w-5" />}
           title={t({ en: "Reply path", ar: "مسار الرد" })}
-          body={t({
-            en: "Useful requests should move to Website messages or Support. AI does not send private promises by itself.",
-            ar: "الطلبات المفيدة تُنقل إلى رسائل الموقع أو الدعم. المساعد لا يرسل وعوداً خاصة من تلقاء نفسه.",
-          })}
+          body={t({ en: "Useful requests move into review. AI can draft, but an admin controls final replies.", ar: "الطلبات المفيدة تدخل للمراجعة. الذكاء يقترح، والأدمن يقرر الرد النهائي." })}
         />
         <ActionTile
           icon={<Archive className="h-5 w-5" />}
@@ -237,6 +265,43 @@ export function AiOperationsView({
                   ar: "ستظهر أحداث الأتمتة هنا فور استقبال الموقع لها.",
                 })}
               />
+            ) : null}
+          </div>
+        </Accordion>
+
+        <Accordion
+          id="automation-inbox"
+          title={t({ en: "Automation inbox", ar: "صندوق الأتمتة" })}
+          description={t({ en: "n8n callbacks, failed jobs, and reviewable system notices.", ar: "ردود n8n والأخطاء والتنبيهات القابلة للمراجعة." })}
+          icon={<Inbox className="h-5 w-5" />}
+          count={ops.automationInbox.length}
+        >
+          <div className="grid gap-3">
+            {ops.automationInbox.map((item) => (
+              <InboxCard key={item.id} item={item} />
+            ))}
+            {!ops.automationInbox.length ? (
+              <EmptyPanel title={t({ en: "No automation inbox items", ar: "لا عناصر في صندوق الأتمتة" })} body={t({ en: "Callbacks and failed automations will appear here.", ar: "ستظهر ردود الأتمتة والأخطاء هنا." })} />
+            ) : null}
+          </div>
+        </Accordion>
+
+        <Accordion
+          id="automation-runs"
+          title={t({ en: "Runs and rules", ar: "التشغيل والقواعد" })}
+          description={t({ en: "Workflow run history and enabled automation rules.", ar: "سجل التشغيل وقواعد الأتمتة المفعلة." })}
+          icon={<Route className="h-5 w-5" />}
+          count={ops.automationRuns.length + ops.automationRules.length}
+        >
+          <div className="grid gap-3">
+            {ops.automationRules.map((rule) => (
+              <RuleCard key={rule.id} rule={rule} />
+            ))}
+            {ops.automationRuns.slice(0, 12).map((run) => (
+              <RunCard key={run.id} run={run} />
+            ))}
+            {!ops.automationRuns.length && !ops.automationRules.length ? (
+              <EmptyPanel title={t({ en: "No workflow data", ar: "لا توجد بيانات تشغيل" })} body={t({ en: "n8n runs and automation rules will appear here.", ar: "ستظهر عمليات n8n والقواعد هنا." })} />
             ) : null}
           </div>
         </Accordion>
@@ -379,8 +444,95 @@ function EventCard({
       <p className="text-sm font-black text-[var(--text-1)]">{event.event_type || t({ en: "Automation event", ar: "حدث أتمتة" })}</p>
       <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{event.error_message || event.source || new Date(event.created_at).toLocaleString("en-GB")}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <StatusForm id={event.id} action={updateAutomationEventStatusAction} statuses={["new", "reviewed", "archived", "failed"]} current={event.status || "new"} />
+        <StatusForm id={event.id} action={updateAutomationEventStatusAction} statuses={["queued", "sent", "processed", "failed", "ignored"]} current={event.status || "queued"} />
       </div>
+    </article>
+  );
+}
+
+function InboxCard({
+  item,
+}: {
+  item: {
+    id: string;
+    title: string;
+    body: string;
+    product_slug: string | null;
+    severity: string | null;
+    status: string | null;
+    created_by: string | null;
+    created_at: string;
+  };
+}) {
+  return (
+    <article className="rounded-2xl border border-[var(--line)] bg-white/[0.025] p-4">
+      <div className="mb-2 flex flex-wrap gap-2">
+        <span className="badge">{item.status || "new"}</span>
+        <span className="badge">{item.severity || "info"}</span>
+        {item.product_slug ? <span className="badge">{item.product_slug}</span> : null}
+      </div>
+      <p className="text-sm font-black text-[var(--text-1)]">{item.title}</p>
+      <p className="mt-1 line-clamp-3 text-xs leading-6 text-[var(--text-3)]">{item.body || item.created_by || new Date(item.created_at).toLocaleString("en-GB")}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <StatusForm id={item.id} action={updateAutomationInboxStatusAction} statuses={["new", "reviewing", "approved", "resolved", "archived"]} current={item.status || "new"} />
+      </div>
+    </article>
+  );
+}
+
+function RunCard({
+  run,
+}: {
+  run: {
+    id: string;
+    workflow_key: string;
+    workflow_name: string | null;
+    status: string | null;
+    n8n_execution_id: string | null;
+    error_message: string | null;
+    started_at: string;
+  };
+}) {
+  return (
+    <article className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+      <div className="mb-2 flex flex-wrap gap-2">
+        <span className="badge">{run.status || "started"}</span>
+        {run.n8n_execution_id ? <span className="badge">n8n</span> : null}
+      </div>
+      <p className="text-sm font-black text-[var(--text-1)]">{run.workflow_name || run.workflow_key}</p>
+      <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{run.error_message || new Date(run.started_at).toLocaleString("en-GB")}</p>
+    </article>
+  );
+}
+
+function RuleCard({
+  rule,
+}: {
+  rule: {
+    id: string;
+    key: string;
+    label: string;
+    enabled: boolean | null;
+    workflow_key: string;
+    event_types: string[] | null;
+  };
+}) {
+  const { t } = useLocale();
+  return (
+    <article className="rounded-2xl border border-[var(--line)] bg-white/[0.025] p-4">
+      <div className="mb-2 flex flex-wrap gap-2">
+        <span className="badge">{rule.enabled ? "enabled" : "disabled"}</span>
+        <span className="badge">{rule.workflow_key}</span>
+      </div>
+      <p className="text-sm font-black text-[var(--text-1)]">{rule.label || rule.key}</p>
+      <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{rule.event_types?.join(", ") || rule.key}</p>
+      <form action={updateAutomationRuleEnabledAction} className="mt-3">
+        <input type="hidden" name="id" value={rule.id} />
+        <input type="hidden" name="enabled" value={rule.enabled ? "false" : "true"} />
+        <button type="submit" className="btn btn-sm">
+          {rule.enabled ? t({ en: "Disable", ar: "تعطيل" }) : t({ en: "Enable", ar: "تفعيل" })}
+        </button>
+      </form>
     </article>
   );
 }

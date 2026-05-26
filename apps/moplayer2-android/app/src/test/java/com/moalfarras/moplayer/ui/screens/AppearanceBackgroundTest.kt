@@ -2,7 +2,6 @@ package com.moalfarras.moplayer.ui.screens
 
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
-import com.moalfarras.moplayer.domain.model.ThemePreset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -12,16 +11,13 @@ import org.junit.Test
 
 class AppearanceBackgroundTest {
     @Test
-    fun autoModeKeepsContentBackdropUnlessCityThemeSelected() {
+    fun autoModeUsesDailyCityBackdropByDefault() {
         val contentUrl = "https://cdn.example.com/poster.jpg"
 
-        assertEquals(
-            contentUrl,
-            resolveHomeBackdropUrl(AppSettings(), contentUrl, epochDay = 10),
-        )
+        val autoBackdrop = resolveHomeBackdropUrl(AppSettings(), contentUrl, epochDay = 10)
 
-        val cityTheme = AppSettings(themePreset = ThemePreset.CITY)
-        assertNotEquals(contentUrl, resolveHomeBackdropUrl(cityTheme, contentUrl, epochDay = 10))
+        assertNotEquals(contentUrl, autoBackdrop)
+        assertEquals(cityBackgroundUrlForDay(10), autoBackdrop)
     }
 
     @Test

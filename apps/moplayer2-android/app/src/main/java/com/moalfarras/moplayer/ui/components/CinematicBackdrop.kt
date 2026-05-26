@@ -22,7 +22,9 @@ fun backdropUrlFrom(vararg items: MediaItem?): String? {
     for (item in items) {
         if (item == null) continue
         item.backdropUrl.takeIf { it.isNotBlank() }?.let { return it }
-        item.posterUrl.takeIf { it.isNotBlank() }?.let { return it }
+        if (item.type != com.moalfarras.moplayer.domain.model.ContentType.LIVE) {
+            item.posterUrl.takeIf { it.isNotBlank() }?.let { return it }
+        }
     }
     return null
 }

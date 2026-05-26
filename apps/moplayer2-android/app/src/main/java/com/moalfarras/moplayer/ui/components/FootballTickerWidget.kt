@@ -1,12 +1,10 @@
 package com.moalfarras.moplayer.ui.components
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,7 +14,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,13 +27,11 @@ import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 
 /**
- * FootballTickerWidget — Premium live sports glass card.
+ * FootballTickerWidget — modern live-sports broadcast card.
  *
- * Features:
- * - Live pulse indicator with breathing glow
- * - Score with animated accent
- * - Compact inline layout for TV sidebar
- * - Glass panel with conditional glow (live vs finished)
+ * - Genuine animated LIVE pulse (breathing dot + halo).
+ * - Hero score capsule with a live accent glow.
+ * - League chip + status pill, crest rings, and a live match-minute progress bar.
  */
 @Composable
 fun FootballTickerWidget(
@@ -47,130 +44,129 @@ fun FootballTickerWidget(
     val match = matches.firstOrNull() ?: return
 
     val isLive = match.isLive
-
-    val transition = rememberInfiniteTransition(label = "football")
-    val livePulse by transition.animateFloat(
-        0.4f, 1.0f,
-        infiniteRepeatable(tween(1200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "live-pulse",
-    )
-    val glowAlpha by transition.animateFloat(
-        0.08f, 0.18f,
-        infiniteRepeatable(tween(2400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "glow",
-    )
-    val effectiveLivePulse = if (animate) livePulse else 0.7f
-    val effectiveGlowAlpha = if (animate) glowAlpha else 0.08f
-
+    val isFinished = match.minute.contains("FT", ignoreCase = true)
     val liveColor = Color(0xFFFF3B4D)
     val finishedColor = Color(0xFF8BD88B)
-    val statusColor = if (isLive) liveColor else if (match.minute.contains("FT", ignoreCase = true)) finishedColor else Color(0xFFAABBCC)
+
+    // Real, motion-aware live pulse.
+    val transition = rememberInfiniteTransition(label = "ticker")
+    val rawPulse by transition.animateFloat(
+        initialValue = 0.45f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "pulse",
+    )
+    val pulse = if (animate && isLive) rawPulse else 0.85f
+
+    val progress = remember(match.minute, isLive) { matchProgress(match.minute, isLive) }
 
     GlassPanel(
         modifier = modifier,
-        radius = (24 * tv.factor).dp,
-        blur = 18.dp,
-        glow = if (isLive) liveColor.copy(alpha = effectiveGlowAlpha) else Color.Transparent,
+        radius = (18 * tv.factor).dp,
+        blur = 12.dp,
+        glow = if (isLive) liveColor.copy(alpha = 0.10f + 0.06f * pulse) else Color.Transparent,
     ) {
         Column(
             modifier = Modifier.padding(
-                horizontal = (18 * tv.factor).dp,
-                vertical = (14 * tv.factor).dp,
+                horizontal = (14 * tv.factor).dp,
+                vertical = (11 * tv.factor).dp,
             ),
             verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
         ) {
-            // ── League + Live Indicator ──────────────────────────────
+            // ── League + status pill ─────────────────────────────────
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
             ) {
-                // Live pulse dot
-                if (isLive) {
-                    Box(
-                        Modifier
-                            .size((10 * tv.factor).dp)
-                            .drawBehind {
-                                // Outer glow
-                                drawCircle(
-                                    liveColor.copy(alpha = 0.3f * effectiveLivePulse),
-                                    radius = size.minDimension * 1.5f,
-                                )
-                                // Core dot
-                                drawCircle(liveColor.copy(alpha = effectiveLivePulse))
-                            },
-                    )
-                }
-
                 Text(
-                    match.league,
-                    color = Color(0xCCE3BC78),
-                    fontSize = (12 * tv.factor).sp,
+                    match.league.uppercase(),
+                    color = Color(0xCCF1CC83),
+                    fontSize = (10 * tv.factor).sp,
                     fontWeight = FontWeight.ExtraBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    letterSpacing = 0.5.sp,
+                    letterSpacing = 0.8.sp,
                     modifier = Modifier.weight(1f, fill = false),
                 )
-
                 Spacer(Modifier.weight(1f))
-
-                // Match minute / status badge
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(statusColor.copy(alpha = 0.18f))
-                        .padding(horizontal = (8 * tv.factor).dp, vertical = (3 * tv.factor).dp),
-                ) {
-                    Text(
-                        match.minute.ifBlank { "—" },
-                        color = statusColor,
-                        fontSize = (10 * tv.factor).sp,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                }
+                StatusPill(
+                    isLive = isLive,
+                    isFinished = isFinished,
+                    minute = match.minute,
+                    pulse = pulse,
+                    liveColor = liveColor,
+                    finishedColor = finishedColor,
+                    factor = tv.factor,
+                )
             }
 
+            // ── Teams + hero score ───────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
+                horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
             ) {
-                TeamBadge(
+                TeamSide(
                     name = match.home,
                     badgeUrl = match.homeBadge,
                     alignEnd = false,
+                    accent = visuals.accent,
                     modifier = Modifier.weight(1f),
                 )
-                ScoreBadge(
-                    score = match.score.ifBlank { "vs" },
+                ScoreHero(
+                    score = match.score.ifBlank { "VS" },
                     isLive = isLive,
-                    pulse = effectiveLivePulse,
+                    pulse = pulse,
                     accent = visuals.accent,
+                    factor = tv.factor,
                 )
-                TeamBadge(
+                TeamSide(
                     name = match.away,
                     badgeUrl = match.awayBadge,
                     alignEnd = true,
+                    accent = visuals.accent,
                     modifier = Modifier.weight(1f),
                 )
             }
 
-            // ── Additional Matches Count (if more than 1) ────────────
+            // ── Live match-minute progress ───────────────────────────
+            if (isLive && progress != null) {
+                LiveProgressBar(progress = progress, pulse = pulse, color = liveColor, factor = tv.factor)
+            }
+
+            // ── More matches / news footer ───────────────────────────
             if (matches.size > 1) {
-                Text(
-                    "+${matches.size - 1} more matches",
-                    color = Color(0xCCE3BC78),
-                    fontSize = (11 * tv.factor).sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy((5 * tv.factor).dp),
+                ) {
+                    val dots = matches.size.coerceAtMost(5)
+                    repeat(dots) { i ->
+                        Box(
+                            Modifier
+                                .size((if (i == 0) 6 else 5).times(tv.factor).dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (i == 0) visuals.accent
+                                    else Color.White.copy(alpha = 0.28f),
+                                ),
+                        )
+                    }
+                    if (matches.size > dots) {
+                        Text(
+                            "+${matches.size - dots}",
+                            color = Color(0xCCF1CC83),
+                            fontSize = (9 * tv.factor).sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
             }
             if (match.newsMessage.isNotBlank()) {
                 Text(
                     match.newsMessage,
                     color = Color(0xB3FFFFFF),
-                    fontSize = (10 * tv.factor).sp,
+                    fontSize = (9 * tv.factor).sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -181,26 +177,81 @@ fun FootballTickerWidget(
 }
 
 @Composable
-private fun TeamBadge(name: String, badgeUrl: String, alignEnd: Boolean, modifier: Modifier = Modifier) {
-    val tv = rememberTvScale()
+private fun StatusPill(
+    isLive: Boolean,
+    isFinished: Boolean,
+    minute: String,
+    pulse: Float,
+    liveColor: Color,
+    finishedColor: Color,
+    factor: Float,
+) {
+    val tint = when {
+        isLive -> liveColor
+        isFinished -> finishedColor
+        else -> Color(0xFFAABBCC)
+    }
+    val label = when {
+        isLive -> "LIVE${if (minute.isNotBlank()) "  ${minute.trim()}" else ""}"
+        isFinished -> "FT"
+        else -> minute.ifBlank { "SOON" }
+    }
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(tint.copy(alpha = 0.16f))
+            .padding(horizontal = (8 * factor).dp, vertical = (3 * factor).dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy((5 * factor).dp),
+    ) {
+        if (isLive) {
+            Box(
+                Modifier
+                    .size((7 * factor).dp)
+                    .drawBehind {
+                        drawCircle(tint.copy(alpha = 0.35f * pulse), radius = size.minDimension * 1.4f)
+                        drawCircle(tint.copy(alpha = pulse))
+                    },
+            )
+        }
+        Text(
+            label,
+            color = tint,
+            fontSize = (9 * factor).sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.5.sp,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun TeamSide(
+    name: String,
+    badgeUrl: String,
+    alignEnd: Boolean,
+    accent: Color,
+    modifier: Modifier = Modifier,
+) {
+    val factor = rememberTvScale().factor
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp, if (alignEnd) Alignment.End else Alignment.Start),
+        horizontalArrangement = Arrangement.spacedBy((8 * factor).dp, if (alignEnd) Alignment.End else Alignment.Start),
     ) {
-        if (alignEnd) TeamName(name, TextAlign.End, Modifier.weight(1f))
-        TeamCrest(name = name, badgeUrl = badgeUrl)
-        if (!alignEnd) TeamName(name, TextAlign.Start, Modifier.weight(1f))
+        if (alignEnd) TeamName(name, TextAlign.End, Modifier.weight(1f, fill = false))
+        TeamCrest(name = name, badgeUrl = badgeUrl, accent = accent)
+        if (!alignEnd) TeamName(name, TextAlign.Start, Modifier.weight(1f, fill = false))
     }
 }
 
 @Composable
 private fun TeamName(name: String, align: TextAlign, modifier: Modifier = Modifier) {
-    val tv = rememberTvScale()
+    val factor = rememberTvScale().factor
     Text(
         name,
         color = Color.White,
-        fontSize = (13 * tv.factor).sp,
+        fontSize = (12 * factor).sp,
         fontWeight = FontWeight.ExtraBold,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -210,8 +261,8 @@ private fun TeamName(name: String, align: TextAlign, modifier: Modifier = Modifi
 }
 
 @Composable
-private fun TeamCrest(name: String, badgeUrl: String) {
-    val tv = rememberTvScale()
+private fun TeamCrest(name: String, badgeUrl: String, accent: Color) {
+    val factor = rememberTvScale().factor
     val initials = remember(name) {
         name.split(' ', '-', '_')
             .filter { it.isNotBlank() }
@@ -221,47 +272,99 @@ private fun TeamCrest(name: String, badgeUrl: String) {
     }
     Box(
         modifier = Modifier
-            .size((42 * tv.factor).dp)
+            .size((36 * factor).dp)
             .clip(CircleShape)
-            .background(Brush.radialGradient(listOf(Color(0x33FFFFFF), Color(0x11000000))))
+            .background(Brush.radialGradient(listOf(Color(0x33FFFFFF), Color(0x0A000000))))
             .drawBehind {
-                drawCircle(Color.White.copy(alpha = 0.16f), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.2f))
+                drawCircle(
+                    brush = Brush.sweepGradient(
+                        listOf(
+                            accent.copy(alpha = 0.0f),
+                            accent.copy(alpha = 0.55f),
+                            Color.White.copy(alpha = 0.30f),
+                            accent.copy(alpha = 0.0f),
+                        ),
+                    ),
+                    style = Stroke(width = 1.4f * factor),
+                )
             },
         contentAlignment = Alignment.Center,
     ) {
         if (badgeUrl.isNotBlank()) {
-            AsyncImage(model = badgeUrl, contentDescription = name, modifier = Modifier.fillMaxSize(0.72f))
+            AsyncImage(model = badgeUrl, contentDescription = name, modifier = Modifier.fillMaxSize(0.7f))
         } else {
-            Text(initials, color = Color.White, fontSize = (12 * tv.factor).sp, fontWeight = FontWeight.Black)
+            Text(initials, color = Color.White, fontSize = (11 * factor).sp, fontWeight = FontWeight.Black)
         }
     }
 }
 
 @Composable
-private fun ScoreBadge(score: String, isLive: Boolean, pulse: Float, accent: Color) {
-    val tv = rememberTvScale()
+private fun ScoreHero(score: String, isLive: Boolean, pulse: Float, accent: Color, factor: Float) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape((18 * tv.factor).dp))
-            .background(Color(0xAA080A0F))
-            .padding(horizontal = (14 * tv.factor).dp, vertical = (10 * tv.factor).dp)
+            .clip(RoundedCornerShape((13 * factor).dp))
+            .background(
+                Brush.verticalGradient(listOf(Color(0xCC0A0C12), Color(0xAA05060A))),
+            )
             .drawBehind {
                 if (isLive) {
                     drawCircle(
-                        brush = Brush.radialGradient(listOf(accent.copy(alpha = 0.22f * pulse), Color.Transparent)),
-                        radius = size.maxDimension,
+                        brush = Brush.radialGradient(
+                            listOf(accent.copy(alpha = 0.30f * pulse), Color.Transparent),
+                        ),
+                        radius = size.maxDimension * 0.9f,
                     )
                 }
-            },
+            }
+            .padding(horizontal = (12 * factor).dp, vertical = (7 * factor).dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             score,
             color = Color.White,
-            fontSize = (20 * tv.factor).sp,
+            fontSize = (18 * factor).sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 1.5.sp,
             maxLines = 1,
         )
     }
+}
+
+@Composable
+private fun LiveProgressBar(progress: Float, pulse: Float, color: Color, factor: Float) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height((3.5f * factor).dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color.White.copy(alpha = 0.12f))
+            .drawBehind {
+                val w = size.width * progress.coerceIn(0f, 1f)
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        listOf(color.copy(alpha = 0.85f), Color(0xFFFFC078)),
+                    ),
+                    start = Offset(0f, size.height / 2f),
+                    end = Offset(w, size.height / 2f),
+                    strokeWidth = size.height,
+                    cap = StrokeCap.Round,
+                )
+                // Glowing playhead
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.85f * pulse),
+                    radius = size.height * 0.9f,
+                    center = Offset(w.coerceIn(size.height, size.width - size.height), size.height / 2f),
+                )
+            },
+    )
+}
+
+/** Best-effort 0..1 progress from a match-minute label ("67'", "90+2'", "HT", "FT"). */
+private fun matchProgress(minute: String, isLive: Boolean): Float? {
+    val m = minute.trim().uppercase()
+    if (m.contains("FT") || m.contains("FULL")) return 1f
+    if (m.contains("HT") || m.contains("HALF")) return 0.5f
+    if (!isLive) return null
+    val num = Regex("\\d+").find(m)?.value?.toIntOrNull() ?: return null
+    return (num / 90f).coerceIn(0.02f, 1f)
 }

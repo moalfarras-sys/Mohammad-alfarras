@@ -3,9 +3,13 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 import { answerSiteAssistant, normalizeLocale, normalizeMessages, persistAssistantExchange } from "@/lib/ai-assistant";
+import { rateLimit } from "@/lib/request-guard";
 
 export async function POST(request: Request) {
   try {
+    const limited = await rateLimit({ request, bucket: "site-assistant", limit: 30, windowSeconds: 60 });
+    if (limited) return limited;
+
     const body = (await request.json()) as { conversationId?: string; locale?: string; messages?: unknown; pagePath?: string };
     const locale = normalizeLocale(body.locale);
     const messages = normalizeMessages(body.messages);
@@ -25,6 +29,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       conversationId: persisted.conversationId,
+      traceId: persisted.conversationId,
       stored: persisted.stored,
       reply: result.reply,
       provider: result.provider,

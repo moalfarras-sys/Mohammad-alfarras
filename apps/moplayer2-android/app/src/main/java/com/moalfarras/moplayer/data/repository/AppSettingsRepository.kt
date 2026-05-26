@@ -31,6 +31,7 @@ class AppSettingsRepository(private val context: Context) {
     private val accentModeKey = stringPreferencesKey("accent_mode")
     private val backgroundModeKey = stringPreferencesKey("background_mode")
     private val customBackgroundUrlKey = stringPreferencesKey("custom_background_url")
+    private val remoteBackgroundUrlKey = stringPreferencesKey("remote_background_url")
     private val themePresetKey = stringPreferencesKey("theme_preset")
     private val motionLevelKey = stringPreferencesKey("motion_level")
     private val performanceModeKey = stringPreferencesKey("performance_mode")
@@ -55,6 +56,12 @@ class AppSettingsRepository(private val context: Context) {
     private val lastFocusStateKey = stringPreferencesKey("last_focus_state")
     private val lastCategoryStateKey = stringPreferencesKey("last_category_state")
     private val libraryModeKey = stringPreferencesKey("library_mode")
+    private val homeNotificationModeKey = stringPreferencesKey("home_notification_mode")
+    private val homeNotificationTypeKey = stringPreferencesKey("home_notification_type")
+    private val homeNotificationTitleKey = stringPreferencesKey("home_notification_title")
+    private val homeNotificationMessageKey = stringPreferencesKey("home_notification_message")
+    private val homeNotificationTargetDateKey = stringPreferencesKey("home_notification_target_date")
+    private val legacyWorldCupModeKey = stringPreferencesKey("world_cup_mode")
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
         val storedPlayer = prefs[playerKey] ?: "auto"
@@ -62,10 +69,11 @@ class AppSettingsRepository(private val context: Context) {
         val storedLibraryMode = prefs[libraryModeKey] ?: LibraryMode.MERGED.name
         AppSettings(
             previewEnabled = prefs[previewKey] ?: true,
-            accentColor = prefs[accentKey] ?: 0xFF4DA3FF,
+            accentColor = prefs[accentKey] ?: 0xFFFF9248,
             accentMode = AccentMode.CUSTOM,
             backgroundMode = prefs[backgroundModeKey].toEnum(BackgroundMode.AUTO),
             customBackgroundUrl = prefs[customBackgroundUrlKey].orEmpty(),
+            remoteBackgroundUrl = prefs[remoteBackgroundUrlKey].orEmpty(),
             themePreset = prefs[themePresetKey].toEnum(ThemePreset.CINEMATIC_AUTO),
             motionLevel = prefs[motionLevelKey].toEnum(MotionLevel.BALANCED),
             performanceMode = prefs[performanceModeKey].toEnum(PerformanceMode.AUTO),
@@ -89,6 +97,11 @@ class AppSettingsRepository(private val context: Context) {
             lastFocusState = prefs[lastFocusStateKey].orEmpty(),
             lastCategoryState = prefs[lastCategoryStateKey].orEmpty(),
             libraryMode = runCatching { LibraryMode.valueOf(storedLibraryMode) }.getOrDefault(LibraryMode.MERGED),
+            homeNotificationMode = prefs[homeNotificationModeKey] ?: prefs[legacyWorldCupModeKey] ?: "auto",
+            homeNotificationType = prefs[homeNotificationTypeKey] ?: "world_cup_2026",
+            homeNotificationTitle = prefs[homeNotificationTitleKey].orEmpty(),
+            homeNotificationMessage = prefs[homeNotificationMessageKey].orEmpty(),
+            homeNotificationTargetDate = prefs[homeNotificationTargetDateKey].orEmpty(),
         )
     }
 
@@ -154,11 +167,6 @@ class AppSettingsRepository(private val context: Context) {
 
     suspend fun applyRemoteConfig(config: AppRemoteConfig) {
         context.settingsDataStore.edit { prefs ->
-            parseColor(config.accentColor)?.let { prefs[accentKey] = it }
-            if (config.backgroundUrl.isNotBlank()) {
-                prefs[backgroundModeKey] = BackgroundMode.CUSTOM_URL.name
-                prefs[customBackgroundUrlKey] = config.backgroundUrl.trim()
-            }
             prefs[showWeatherWidgetKey] = config.weatherEnabled
             prefs[showFootballWidgetKey] = config.footballEnabled
             if (config.weatherCity.isNotBlank()) {
@@ -166,15 +174,13 @@ class AppSettingsRepository(private val context: Context) {
                 prefs[weatherModeKey] = WeatherMode.CITY.name
             }
             prefs[footballMaxMatchesKey] = config.footballMaxMatches.coerceIn(1, 8)
+            prefs[homeNotificationModeKey] = config.homeNotificationMode.ifBlank { "auto" }
+            prefs[homeNotificationTypeKey] = config.homeNotificationType.ifBlank { "world_cup_2026" }
+            prefs[homeNotificationTitleKey] = config.homeNotificationTitle.trim().take(80)
+            prefs[homeNotificationMessageKey] = config.homeNotificationMessage.trim().take(160)
+            prefs[homeNotificationTargetDateKey] = config.homeNotificationTargetDate.trim().take(10)
+            prefs[remoteBackgroundUrlKey] = config.backgroundUrl.trim()
         }
-    }
-
-    private fun parseColor(value: String): Long? {
-        val clean = value.trim()
-        if (!Regex("^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$").matches(clean)) return null
-        val raw = clean.removePrefix("#")
-        val argb = if (raw.length == 6) "FF$raw" else raw
-        return runCatching { argb.toULong(16).toLong() }.getOrNull()
     }
 
     suspend fun setPreferredPlayer(value: String) {

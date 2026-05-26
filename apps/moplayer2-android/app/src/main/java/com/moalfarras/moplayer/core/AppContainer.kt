@@ -21,6 +21,7 @@ class AppContainer(context: Context) {
 
     init {
         scheduleEpgRefresh(appContext)
+        scheduleLibraryRefresh(appContext)
     }
 
     val settingsRepository = AppSettingsRepository(appContext)
@@ -51,7 +52,7 @@ object AppGraph {
 }
 
 private fun scheduleEpgRefresh(context: Context) {
-    val request = PeriodicWorkRequestBuilder<EpgRefreshWorker>(12, TimeUnit.HOURS)
+    val request = PeriodicWorkRequestBuilder<EpgRefreshWorker>(1, TimeUnit.HOURS)
         .setConstraints(
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -61,6 +62,22 @@ private fun scheduleEpgRefresh(context: Context) {
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         "epg-refresh",
+        ExistingPeriodicWorkPolicy.KEEP,
+        request,
+    )
+}
+
+private fun scheduleLibraryRefresh(context: Context) {
+    val request = PeriodicWorkRequestBuilder<LibraryRefreshWorker>(1, TimeUnit.HOURS)
+        .setConstraints(
+            Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build(),
+        )
+        .build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "library-refresh",
         ExistingPeriodicWorkPolicy.KEEP,
         request,
     )

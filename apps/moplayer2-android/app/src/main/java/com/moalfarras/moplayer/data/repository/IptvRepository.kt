@@ -16,6 +16,7 @@ import com.moalfarras.moplayer.data.network.NetworkModule
 import com.moalfarras.moplayer.data.network.DeviceActivationInsertDto
 import com.moalfarras.moplayer.data.network.DeviceActivationUpdateDto
 import com.moalfarras.moplayer.data.network.WebActivationCreateRequestDto
+import com.moalfarras.moplayer.data.network.WebActivationSourceAckRequestDto
 import com.moalfarras.moplayer.data.network.WebProviderSourceDto
 import com.moalfarras.moplayer.data.network.WatchProgressDto
 import com.moalfarras.moplayer.data.parser.M3uParser
@@ -42,6 +43,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import okhttp3.ResponseBody
 import java.net.URLEncoder
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.nio.charset.StandardCharsets
 import java.time.Instant
@@ -302,6 +304,29 @@ class IptvRepository(
         }
     }
 
+    suspend fun acknowledgeWebActivationSource(
+        publicDeviceId: String,
+        token: String,
+        sourceId: String,
+        imported: Boolean,
+        message: String = "",
+    ) {
+        val service = supabaseService ?: return
+        if (publicDeviceId.isBlank() || token.isBlank() || sourceId.isBlank()) return
+        withContext(Dispatchers.IO) {
+            service.webDeviceActivationSourceAck(
+                url = activationApiUrl("source/ack"),
+                body = WebActivationSourceAckRequestDto(
+                    publicDeviceId = publicDeviceId,
+                    token = token,
+                    sourceId = sourceId,
+                    status = if (imported) "imported" else "failed",
+                    message = message.take(500),
+                ),
+            ).close()
+        }
+    }
+
     suspend fun lastWatchedLive(serverId: Long): MediaItem? =
         database.mediaDao().lastPlayedLive(serverId)?.toDomain()
 
@@ -530,6 +555,44 @@ class IptvRepository(
         return database.serverDao().getServer(serverId)?.toDomain() ?: server.copy(id = serverId)
     }
 
+    suspend fun registerXtreamFromPlaylistUrl(name: String, playlistUrl: String): ServerProfile? {
+        val candidates = httpUrlCandidates(playlistUrl)
+            .mapNotNull { XtreamSupport.extractCredentialsFromPlaylistUrl(it) }
+            .distinctBy { "${it.baseUrl.ensureTrailingSlash()}|${it.username}" }
+        val credentials = candidates.firstOrNull() ?: return null
+        return registerXtreamSource(
+            name = name.ifBlank {
+                XtreamSupport.hostLabel(credentials.baseUrl)
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() }
+            },
+            baseUrl = credentials.baseUrl,
+            username = credentials.username,
+            password = credentials.password,
+            playlistUrl = credentials.playlistUrl.ifBlank { playlistUrl },
+        )
+    }
+
+    suspend fun registerM3uSource(name: String, playlistUrl: String, epgUrl: String = ""): ServerProfile {
+        val normalizedUrl = httpUrlCandidates(playlistUrl).first()
+        val key = sourceKey("m3u", normalizedUrl)
+        val existing = withContext(Dispatchers.IO) { database.serverDao().getServerBySourceKey(key)?.toDomain() }
+        val server = ServerProfile(
+            id = existing?.id ?: 0,
+            name = name.ifBlank { normalizedUrl.hostLabel() },
+            kind = LoginKind.M3U,
+            baseUrl = normalizedUrl.hostLabel(),
+            playlistUrl = normalizedUrl,
+            createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+            lastSyncAt = existing?.lastSyncAt ?: 0,
+            host = XtreamSupport.hostLabel(normalizedUrl),
+            lastSyncSource = "m3u",
+            epgUrl = epgUrl.trim(),
+            sourceKey = key,
+        )
+        val serverId = upsertServer(server)
+        return database.serverDao().getServer(serverId)?.toDomain() ?: server.copy(id = serverId)
+    }
+
     fun refreshServer(server: ServerProfile): Flow<LoadProgress> = flow {
         if (server.kind == LoginKind.XTREAM) {
             var lastFailure: Throwable? = null
@@ -597,6 +660,32 @@ class IptvRepository(
             }
         }
         throw lastFailure ?: IllegalStateException("Background server refresh failed")
+    }
+
+    fun refreshServerAccountOnly(server: ServerProfile): Flow<LoadProgress> = flow {
+        if (server.kind != LoginKind.XTREAM) {
+            emit(LoadProgress("Local playlist is saved", 100, 100))
+            return@flow
+        }
+        var lastFailure: Throwable? = null
+        val candidates = httpUrlCandidates(server.baseUrl, trailingSlash = true)
+        candidates.forEachIndexed { index, candidate ->
+            val result = runCatching {
+                syncXtreamAccountOnly(
+                    server = server.copy(baseUrl = candidate.ensureTrailingSlash()),
+                    sourceLabel = "account-refresh",
+                ) { emit(it) }
+            }
+            if (result.isSuccess) {
+                emit(LoadProgress("Account updated", 100, 100))
+                return@flow
+            }
+            lastFailure = result.exceptionOrNull()
+            if (index < candidates.lastIndex) {
+                emit(LoadProgress("Trying alternate HTTP/HTTPS server URL", 20, 100))
+            }
+        }
+        throw lastFailure ?: IllegalStateException("Account refresh failed")
     }
 
     fun loginActivationCode(code: String): Flow<LoadProgress> = flow {
@@ -699,7 +788,11 @@ class IptvRepository(
                             ),
                         )
                     }
-                    val profile = sourceResponse.source?.toActivatedProfile()
+                    val profile = sourceResponse.source?.toActivatedProfile(
+                        sourceId = sourceResponse.sourceId,
+                        publicDeviceId = session.publicDeviceId,
+                        sourcePullToken = session.sourcePullToken,
+                    )
                     if (profile != null) {
                         session.copy(status = DeviceActivationStatus.ACTIVATED) to profile
                     } else {
@@ -770,17 +863,6 @@ class IptvRepository(
     ) {
         progress(LoadProgress("Connecting to M3U server", 0, 100))
         progress(LoadProgress("Downloading playlist", 18, 100))
-        val parsedPreview = withContext(Dispatchers.IO) {
-            playlistService.getText(playlistUrl).use { body ->
-                progress(LoadProgress("Parsing channels and VOD", 48, 100))
-                body.charStream().buffered().useLines { lines ->
-                    parser.parse(existingServerId, lines)
-                }
-            }
-        }
-        require(parsedPreview.media.any { it.type != ContentType.SERIES || it.streamUrl.isNotBlank() }) {
-            "No playable items were found in this M3U playlist"
-        }
         val server = ServerProfile(
             id = existingServerId,
             name = name.ifBlank { playlistUrl.hostLabel() },
@@ -793,6 +875,35 @@ class IptvRepository(
             sourceKey = sourceKey("m3u", playlistUrl),
         )
         val serverId = upsertServer(server)
+        var playlistHash = ""
+        var playlistUnchanged = false
+        progress(LoadProgress("Parsing channels and VOD", 48, 100))
+        val parsedPreviewResult = withContext(Dispatchers.IO) {
+            playlistService.getText(playlistUrl).use { body ->
+                val text = body.string()
+                playlistHash = text.sha256()
+                val currentState = database.syncStateDao().get(serverId)
+                if (currentState?.rawJson?.contains("\"playlistHash\":\"$playlistHash\"") == true) {
+                    val now = System.currentTimeMillis()
+                    database.serverDao().touch(serverId, now)
+                    database.syncStateDao().upsert(currentState.copy(lastSyncAt = now, updatedAt = now))
+                    playlistUnchanged = true
+                    null
+                } else {
+                    text.lineSequence().let { lines ->
+                        parser.parse(serverId, lines)
+                    }
+                }
+            }
+        }
+        if (playlistUnchanged) {
+            progress(LoadProgress("Playlist unchanged - using local cache", 100, 100))
+            return
+        }
+        val parsedPreview = parsedPreviewResult ?: return
+        require(parsedPreview.media.any { it.type != ContentType.SERIES || it.streamUrl.isNotBlank() }) {
+            "No playable items were found in this M3U playlist"
+        }
         val parsed = parsedPreview.withServerId(serverId)
         progress(LoadProgress("Loading XMLTV guide", 62, 100))
         val epgPrograms = if (epgUrl.isNotBlank()) {
@@ -815,7 +926,7 @@ class IptvRepository(
             seriesSyncedAt = now,
             epgSyncedAt = if (epgPrograms.isNotEmpty()) now else 0,
             lastError = "",
-            rawJson = """{"source":"m3u","epg":${epgPrograms.size}}""",
+            rawJson = """{"source":"m3u","playlistHash":"$playlistHash","items":${parsed.media.size},"epg":${epgPrograms.size}}""",
             updatedAt = now,
         )
         progress(LoadProgress("Optimizing local library", 78, 100))
@@ -1094,6 +1205,50 @@ class IptvRepository(
         }
     }
 
+    private suspend fun syncXtreamAccountOnly(
+        server: ServerProfile,
+        sourceLabel: String,
+        progress: suspend (LoadProgress) -> Unit,
+    ) {
+        val credentials = XtreamCredentials(
+            baseUrl = server.baseUrl.ensureTrailingSlash(),
+            username = server.username,
+            password = server.password,
+            playlistUrl = server.playlistUrl,
+        )
+        progress(LoadProgress("Checking account and subscription", 10, 100))
+        val api = xtreamFactory(credentials.baseUrl)
+        val updatedAt = System.currentTimeMillis()
+        val accountSnapshot = runCatching {
+            XtreamSupport.parseAccountSnapshot(
+                json = json,
+                serverId = server.id,
+                root = playerApiObject(api, credentials.username, credentials.password),
+                updatedAt = updatedAt,
+            )
+        }.getOrElse { throwable ->
+            throw IllegalStateException(XtreamSupport.sanitizeError(throwable.message, server.host.ifBlank { XtreamSupport.hostLabel(server.baseUrl) }))
+        }
+
+        withContext(Dispatchers.IO) {
+            database.serverDao().updateRuntimeInfo(
+                serverId = server.id,
+                lastSyncAt = updatedAt,
+                accountStatus = accountSnapshot.accountInfo?.status.orEmpty(),
+                expiryDate = accountSnapshot.accountInfo?.expiryDate ?: 0,
+                activeConnections = accountSnapshot.accountInfo?.activeConnections ?: 0,
+                maxConnections = accountSnapshot.accountInfo?.maxConnections ?: 0,
+                allowedOutputFormats = accountSnapshot.accountInfo?.allowedOutputFormats.orEmpty(),
+                timezone = accountSnapshot.serverInfo?.timezone.orEmpty(),
+                serverMessage = accountSnapshot.serverInfo?.message.orEmpty(),
+                lastSyncSource = sourceLabel,
+                epgUrl = server.epgUrl,
+                sourceKey = server.sourceKey.ifBlank { sourceKey("xtream", "${credentials.baseUrl}|${credentials.username}") },
+            )
+        }
+        progress(LoadProgress("Subscription info updated", 100, 100))
+    }
+
     private suspend fun syncXtreamSection(
         serverId: Long,
         credentials: XtreamCredentials,
@@ -1301,7 +1456,7 @@ class IptvRepository(
             "http://${normalized.trimStart('/')}"
         }
         val alternate = when {
-            withScheme.startsWith("http://", ignoreCase = true) -> withScheme.replaceFirst("http://", "https://", ignoreCase = true)
+            withScheme.startsWith("http://", ignoreCase = true) && !withScheme.contains(":80/") -> withScheme.replaceFirst("http://", "https://", ignoreCase = true)
             withScheme.startsWith("https://", ignoreCase = true) -> withScheme.replaceFirst("https://", "http://", ignoreCase = true)
             else -> withScheme
         }
@@ -1345,6 +1500,11 @@ private fun sourceKey(kind: String, value: String): String {
     val digest = java.security.MessageDigest.getInstance("SHA-1")
         .digest("$kind:${value.trim().lowercase(Locale.US)}".toByteArray(StandardCharsets.UTF_8))
     return "$kind:${digest.joinToString("") { "%02x".format(it) }}"
+}
+
+private fun String.sha256(): String {
+    val digest = MessageDigest.getInstance("SHA-256").digest(toByteArray(StandardCharsets.UTF_8))
+    return digest.joinToString("") { "%02x".format(it) }
 }
 
 private fun shortUserCode(): String {
@@ -1423,7 +1583,11 @@ private fun com.moalfarras.moplayer.data.network.DeviceActivationDto.toActivated
     }
 }
 
-private fun WebProviderSourceDto.toActivatedProfile(): ActivatedProfile? {
+private fun WebProviderSourceDto.toActivatedProfile(
+    sourceId: String = "",
+    publicDeviceId: String = "",
+    sourcePullToken: String = "",
+): ActivatedProfile? {
     return when (type.lowercase(Locale.US)) {
         "xtream", "xstream" -> {
             if (serverUrl.isBlank() || username.isBlank() || password.isBlank()) null else ActivatedProfile(
@@ -1434,6 +1598,9 @@ private fun WebProviderSourceDto.toActivatedProfile(): ActivatedProfile? {
                 password = password,
                 playlistUrl = playlistUrl,
                 epgUrl = epgUrl,
+                sourceId = sourceId,
+                publicDeviceId = publicDeviceId,
+                sourcePullToken = sourcePullToken,
             )
         }
         "m3u", "m3u8" -> {
@@ -1443,6 +1610,9 @@ private fun WebProviderSourceDto.toActivatedProfile(): ActivatedProfile? {
                 kind = LoginKind.M3U,
                 playlistUrl = source,
                 epgUrl = epgUrl,
+                sourceId = sourceId,
+                publicDeviceId = publicDeviceId,
+                sourcePullToken = sourcePullToken,
             )
         }
         else -> null

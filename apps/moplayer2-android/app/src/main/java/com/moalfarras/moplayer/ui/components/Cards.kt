@@ -38,8 +38,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -47,7 +49,11 @@ import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
+import com.moalfarras.moplayerpro.R
 import kotlinx.coroutines.delay
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalFoundationApi::class)
 private val LaneBringIntoViewSpec = object : BringIntoViewSpec {
@@ -75,13 +81,15 @@ fun MediaPoster(
     onFavorite: (MediaItem) -> Unit = {},
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null,
+    posterWidth: Dp? = null,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     val qualityBadge = remember(item.title, item.streamUrl) { item.qualityBadge() }
+    val width = posterWidth ?: tv.posterWidth
     FocusGlow(
         modifier = modifier
-            .width(tv.posterWidth)
+            .width(width)
             .aspectRatio(0.68f),
         cornerRadius = tv.cardRadius,
         focusRequester = focusRequester,
@@ -125,12 +133,21 @@ fun MediaPoster(
                             RoundedCornerShape(tv.cardRadius - 6.dp),
                         ),
                 ) {
-                    AsyncImage(
-                        model = item.posterUrl.ifBlank { item.backdropUrl },
-                        contentDescription = item.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                    val posterModel = item.posterUrl.ifBlank { item.backdropUrl }
+                    if (posterModel.isBlank()) {
+                        PosterFallback(
+                            title = item.title,
+                            type = item.type,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        AsyncImage(
+                            model = posterModel,
+                            contentDescription = item.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                     // Cinematic gradient overlay on poster
                     Box(
                         Modifier.fillMaxSize().background(
@@ -279,6 +296,15 @@ fun MediaPoster(
                             )
                         }
                     }
+                    item.addedAtLabel()?.let { addedLabel ->
+                        Text(
+                            "Added $addedLabel",
+                            color = Color(0xB8FFFFFF),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     Text(
                         item.title,
                         color = Color.White,
@@ -315,6 +341,73 @@ fun MediaPoster(
     }
 }
 
+@Composable
+private fun PosterFallback(title: String, type: ContentType, modifier: Modifier = Modifier) {
+    val visuals = LocalMoVisuals.current
+    Box(
+        modifier.background(
+            Brush.radialGradient(
+                listOf(
+                    visuals.accent.copy(alpha = 0.34f),
+                    visuals.surfaceHigh.copy(alpha = 0.96f),
+                    Color(0xFF090705),
+                ),
+            ),
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.70f)
+                    .aspectRatio(1.35f)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                visuals.accent.copy(alpha = 0.22f),
+                                Color(0x33131110),
+                            ),
+                        ),
+                    )
+                    .border(0.8.dp, visuals.accent.copy(alpha = 0.42f), RoundedCornerShape(18.dp))
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(R.drawable.ic_splash_logo),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            Text(
+                "MoPlayer Pro",
+                color = Color.White.copy(alpha = 0.80f),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold),
+                maxLines = 1,
+            )
+            Text(
+                when (type) {
+                    ContentType.LIVE -> "LIVE"
+                    ContentType.MOVIE -> "MOVIE"
+                    ContentType.SERIES, ContentType.EPISODE -> "SERIES"
+                },
+                color = visuals.accent,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold),
+            )
+            Text(
+                title,
+                color = Color.White.copy(alpha = 0.72f),
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 10.dp),
+            )
+        }
+    }
+}
+
 private fun MediaItem.qualityBadge(): String {
     val value = "$title $streamUrl".uppercase()
     return when {
@@ -324,6 +417,14 @@ private fun MediaItem.qualityBadge(): String {
         type == ContentType.LIVE -> "LIVE"
         else -> ""
     }
+}
+
+private val mediaDateFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("MMM d").withZone(ZoneId.systemDefault())
+
+private fun MediaItem.addedAtLabel(): String? {
+    val timestamp = addedAt.takeIf { it > 0 } ?: lastModifiedAt.takeIf { it > 0 } ?: return null
+    return runCatching { mediaDateFormatter.format(Instant.ofEpochMilli(timestamp)) }.getOrNull()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -392,14 +493,29 @@ fun ChannelRow(
                         )
                     }
                 }
-                Text(
-                    item.title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        item.title,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    val meta = buildList {
+                        if (item.serverOrder != Int.MAX_VALUE) add("#${item.serverOrder}")
+                        item.addedAtLabel()?.let { add("Added $it") }
+                        if (item.categoryName.isNotBlank()) add(item.categoryName)
+                    }.joinToString(" • ")
+                    if (meta.isNotBlank()) {
+                        Text(
+                            meta,
+                            color = Color(0x80FFFFFF),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
                 if (item.type == ContentType.LIVE && item.catchup.isNotBlank()) {
                     Box(
                         Modifier
@@ -470,16 +586,22 @@ fun MediaLane(
     modifier: Modifier = Modifier,
     restoreFocusTarget: MediaItem? = null,
     autoFocusFirstItem: Boolean = false,
+    maxItems: Int = Int.MAX_VALUE,
+    compact: Boolean = false,
+    showTitle: Boolean = true,
+    posterWidthOverride: Dp? = null,
 ) {
     val tv = rememberTvScale()
-    if (items.isEmpty()) return
+    val visibleItems = remember(items, maxItems) { items.take(maxItems.coerceAtLeast(1)) }
+    if (visibleItems.isEmpty()) return
     val rowState = rememberLazyListState()
+    val posterWidth = posterWidthOverride ?: if (compact && tv.isTv) (112 * tv.factor).dp else null
     val focusKey = remember(restoreFocusTarget?.id, restoreFocusTarget?.type, restoreFocusTarget?.serverId) {
         restoreFocusTarget?.let { "${it.type}:${it.serverId}:${it.id}" } ?: "first"
     }
     var requestedFocusOnce by remember(focusKey, autoFocusFirstItem) { mutableStateOf(false) }
-    val restoreIndex = remember(restoreFocusTarget, items) {
-        restoreFocusTarget?.let { target -> items.indexOfFirst { target.matchesLaneFocus(it) }.takeIf { it >= 0 } }
+    val restoreIndex = remember(restoreFocusTarget, visibleItems) {
+        restoreFocusTarget?.let { target -> visibleItems.indexOfFirst { target.matchesLaneFocus(it) }.takeIf { it >= 0 } }
     }
     val initialFocusIndex = restoreIndex ?: if (autoFocusFirstItem) 0 else null
     LaunchedEffect(initialFocusIndex, focusKey) {
@@ -487,19 +609,21 @@ fun MediaLane(
             rowState.scrollToItem(index)
         }
     }
-    Column(modifier, verticalArrangement = Arrangement.spacedBy((12 * tv.factor).dp)) {
-        GlassSectionTitle(title)
+    Column(modifier, verticalArrangement = Arrangement.spacedBy((9 * tv.factor).dp)) {
+        if (showTitle) {
+            GlassSectionTitle(title)
+        }
         CompositionLocalProvider(LocalBringIntoViewSpec provides LaneBringIntoViewSpec) {
             LazyRow(
                 state = rowState,
-                horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
+                horizontalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
                 modifier = Modifier.focusGroup(),
             ) {
-                items(items, key = { "${it.type}-${it.serverId}-${it.id}" }) { item ->
+                items(visibleItems, key = { "${it.type}-${it.serverId}-${it.id}" }) { item ->
                     val rowFocus = remember(item.id, item.type, item.serverId) { FocusRequester() }
                     val shouldRequestInitialFocus = when {
                         restoreIndex != null -> restoreFocusTarget.matchesLaneFocus(item)
-                        autoFocusFirstItem -> items.firstOrNull()?.matchesLaneFocus(item) == true
+                        autoFocusFirstItem -> visibleItems.firstOrNull()?.matchesLaneFocus(item) == true
                         else -> false
                     }
                     LaunchedEffect(shouldRequestInitialFocus, initialFocusIndex, focusKey) {
@@ -509,7 +633,7 @@ fun MediaLane(
                             runCatching { rowFocus.requestFocus() }
                         }
                     }
-                    MediaPoster(item, onFocus, onClick, onFavorite, focusRequester = rowFocus)
+                    MediaPoster(item, onFocus, onClick, onFavorite, focusRequester = rowFocus, posterWidth = posterWidth)
                 }
             }
         }

@@ -290,24 +290,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-2",
+      id: "release-moplayer2-v2-5-3",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.2-full",
-      version_name: "2.5.2",
-      version_code: 40,
+      slug: "moplayer2-v2.5.3-full",
+      version_name: "2.5.3",
+      version_code: 41,
       release_notes:
-        "MoPlayer Pro 2.5.2 speeds up live channel zapping, supports remote fast-forward and rewind keys, and avoids expensive category scans so groups and cached episodes open faster.",
+        "MoPlayer Pro 2.5.3 restores the approved premium TV home experience, adds polished color presets, improves poster fallbacks, strengthens smart server refresh, and keeps playback on the latest Media3 path.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-2-universal",
-          release_id: "release-moplayer2-v2-5-2",
+          id: "asset-moplayer2-v2-5-3-universal",
+          release_id: "release-moplayer2-v2-5-3",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49242152,
-          checksum_sha256: "8254be6d2872e964158a8c5f001569d7d271a24893672dd2c328262a91784b02",
+          file_size_bytes: 49205653,
+          checksum_sha256: "adfcebbc0bc3beaa2aaa4a01d89c2e74fa850077d4d6133a751092521fb32828",
         },
       ],
     },

@@ -43,7 +43,9 @@ import {
   deleteAiFeedback,
   deleteAssistantEvent,
   updateAiConversationStatus,
+  updateAutomationInboxStatus,
   updateAutomationEventStatus,
+  updateAutomationRuleEnabled,
 } from "@/lib/ai-ops";
 import type { WebsiteMediaAsset } from "@/lib/website-cms";
 
@@ -991,12 +993,34 @@ export async function updateAutomationEventStatusAction(formData: FormData) {
   await requireAdminRole("editor");
   const id = String(formData.get("id") ?? "").trim();
   const status = String(formData.get("status") ?? "reviewed");
-  if (!id || !["new", "reviewed", "archived", "failed"].includes(status)) {
+  if (!id || !["queued", "sent", "processed", "failed", "ignored"].includes(status)) {
     redirect("/ai?updated=automation_invalid");
   }
-  await updateAutomationEventStatus(id, status as "new" | "reviewed" | "archived" | "failed");
+  await updateAutomationEventStatus(id, status as "queued" | "sent" | "processed" | "failed" | "ignored");
   revalidateAll();
   redirect("/ai?updated=automation_event");
+}
+
+export async function updateAutomationInboxStatusAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "reviewed");
+  if (!id || !["new", "reviewing", "approved", "resolved", "archived"].includes(status)) {
+    redirect("/ai?updated=automation_invalid");
+  }
+  await updateAutomationInboxStatus(id, status as "new" | "reviewing" | "approved" | "resolved" | "archived");
+  revalidateAll();
+  redirect("/ai?updated=automation_inbox");
+}
+
+export async function updateAutomationRuleEnabledAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const id = String(formData.get("id") ?? "").trim();
+  const enabled = String(formData.get("enabled") ?? "") === "true";
+  if (!id) redirect("/ai?updated=automation_invalid");
+  await updateAutomationRuleEnabled(id, enabled);
+  revalidateAll();
+  redirect("/ai?updated=automation_rule");
 }
 
 export async function deleteAssistantEventAction(formData: FormData) {

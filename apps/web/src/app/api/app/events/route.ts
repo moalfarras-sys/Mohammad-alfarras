@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { readBoundedJson } from "@/lib/automation-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export async function POST(request: Request) {
   try {
+    const limited = await rateLimit({ request, bucket: "app-events", limit: 80, windowSeconds: 60 });
+    if (limited) return limited;
+
     const body = await readBoundedJson(request);
     let stored = false;
     if (hasSupabasePublicEnv()) {

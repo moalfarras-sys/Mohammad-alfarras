@@ -8,7 +8,7 @@ enum class SortOption { SERVER_ORDER, LATEST_ADDED, TITLE_ASC, TITLE_DESC, RECEN
 
 enum class LibraryMode { ACTIVE_SOURCE, MERGED }
 
-enum class BackgroundMode { AUTO, CITY_ROTATION, CUSTOM_URL, NONE }
+enum class BackgroundMode { AUTO, DYNAMIC_CONTENT, CITY_ROTATION, CUSTOM_URL, NONE }
 
 enum class ThemePreset { CINEMATIC_AUTO, CITY, CALM }
 
@@ -115,10 +115,11 @@ data class FootballMatch(
 
 data class AppSettings(
     val previewEnabled: Boolean = true,
-    val accentColor: Long = 0xFF4DA3FF,
+    val accentColor: Long = 0xFFFF9248,
     val accentMode: AccentMode = AccentMode.CUSTOM,
     val backgroundMode: BackgroundMode = BackgroundMode.AUTO,
     val customBackgroundUrl: String = "",
+    val remoteBackgroundUrl: String = "",
     val themePreset: ThemePreset = ThemePreset.CINEMATIC_AUTO,
     val motionLevel: MotionLevel = MotionLevel.BALANCED,
     val performanceMode: PerformanceMode = PerformanceMode.AUTO,
@@ -142,6 +143,13 @@ data class AppSettings(
     val lastFocusState: String = "",
     val lastCategoryState: String = "",
     val libraryMode: LibraryMode = LibraryMode.MERGED,
+    /** Home notification: "auto" | "on" | "off" — admin-overridable via remote config. */
+    val homeNotificationMode: String = "auto",
+    val homeNotificationType: String = "world_cup_2026",
+    val homeNotificationTitle: String = "",
+    val homeNotificationMessage: String = "",
+    /** Optional yyyy-MM-dd target for a repurposable countdown (defaults to the World Cup schedule). */
+    val homeNotificationTargetDate: String = "",
 )
 
 data class EpgEntry(
@@ -196,4 +204,7 @@ data class ActivatedProfile(
     val password: String = "",
     val playlistUrl: String = "",
     val epgUrl: String = "",
+    val sourceId: String = "",
+    val publicDeviceId: String = "",
+    val sourcePullToken: String = "",
 )

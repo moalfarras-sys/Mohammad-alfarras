@@ -59,6 +59,22 @@ function revalidateAll() {
   revalidatePath("/website");
   revalidatePath("/moplayer");
   revalidatePath("/moplayer-pro");
+  void revalidatePublicCms();
+}
+
+async function revalidatePublicCms() {
+  const secret = process.env.CMS_REVALIDATE_SECRET || process.env.AUTOMATION_API_KEY || process.env.ADMIN_SESSION_SECRET;
+  if (!secret) return;
+  const baseUrl = (process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space").replace(/\/$/, "");
+  try {
+    await fetch(`${baseUrl}/api/admin/revalidate-cms`, {
+      method: "POST",
+      headers: { "x-cms-revalidate-secret": secret },
+      cache: "no-store",
+    });
+  } catch {
+    // Admin saves should not fail if public cache invalidation is temporarily unavailable.
+  }
 }
 
 function parseSimpleLines(value: string) {

@@ -191,7 +191,7 @@ export async function readAiOpsData(): Promise<AiOpsData> {
   };
 }
 
-export async function updateAiConversationStatus(id: string, status: "open" | "reviewed" | "archived") {
+export async function updateAiConversationStatus(id: string, status: "open" | "lead" | "support" | "closed" | "archived") {
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase
     .from("ai_conversations")

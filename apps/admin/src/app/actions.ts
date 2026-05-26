@@ -962,11 +962,11 @@ export async function deleteWebsiteMessageAction(formData: FormData) {
 export async function updateAiConversationStatusAction(formData: FormData) {
   await requireAdminRole("editor");
   const id = String(formData.get("id") ?? "").trim();
-  const status = String(formData.get("status") ?? "reviewed");
-  if (!id || !["open", "reviewed", "archived"].includes(status)) {
+  const status = String(formData.get("status") ?? "closed");
+  if (!id || !["open", "lead", "support", "closed", "archived"].includes(status)) {
     redirect("/ai?updated=ai_invalid");
   }
-  await updateAiConversationStatus(id, status as "open" | "reviewed" | "archived");
+  await updateAiConversationStatus(id, status as "open" | "lead" | "support" | "closed" | "archived");
   revalidateAll();
   redirect("/ai?updated=ai_conversation");
 }
@@ -992,7 +992,7 @@ export async function deleteAiFeedbackAction(formData: FormData) {
 export async function updateAutomationEventStatusAction(formData: FormData) {
   await requireAdminRole("editor");
   const id = String(formData.get("id") ?? "").trim();
-  const status = String(formData.get("status") ?? "reviewed");
+  const status = String(formData.get("status") ?? "processed");
   if (!id || !["queued", "sent", "processed", "failed", "ignored"].includes(status)) {
     redirect("/ai?updated=automation_invalid");
   }
@@ -1004,7 +1004,7 @@ export async function updateAutomationEventStatusAction(formData: FormData) {
 export async function updateAutomationInboxStatusAction(formData: FormData) {
   await requireAdminRole("editor");
   const id = String(formData.get("id") ?? "").trim();
-  const status = String(formData.get("status") ?? "reviewed");
+  const status = String(formData.get("status") ?? "reviewing");
   if (!id || !["new", "reviewing", "approved", "resolved", "archived"].includes(status)) {
     redirect("/ai?updated=automation_invalid");
   }

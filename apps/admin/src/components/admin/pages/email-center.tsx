@@ -23,7 +23,7 @@ export function EmailCenter({ data, smtpReady }: { data: EmailInboxData; smtpRea
   const total = data.websiteMessages.length + data.appMessages.length + data.aiConversations.length;
   const done = data.websiteMessages.filter((message) => message.status === "replied" || message.status === "resolved" || message.status === "archived").length
     + data.appMessages.filter((message) => message.status === "resolved" || message.status === "archived").length
-    + data.aiConversations.filter((conversation) => conversation.status === "reviewed" || conversation.status === "archived").length;
+    + data.aiConversations.filter((conversation) => conversation.status === "closed" || conversation.status === "archived").length;
 
   return (
     <>
@@ -136,7 +136,7 @@ export function EmailCenter({ data, smtpReady }: { data: EmailInboxData; smtpRea
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {conversation.visitor_email ? <ReplyComposer to={conversation.visitor_email} defaultSubject={t({ en: "Re: your AI question", ar: "رد على سؤالك مع AI" })} redirectTo="/email" /> : null}
-              <StatusForm id={conversation.id} action={updateAiConversationStatusAction} statuses={["open", "reviewed", "archived"]} current={conversation.status || "open"} />
+              <StatusForm id={conversation.id} action={updateAiConversationStatusAction} statuses={["open", "lead", "support", "closed", "archived"]} current={conversation.status || "open"} />
               <form action={deleteAiConversationAction}>
                 <input type="hidden" name="id" value={conversation.id} />
                 <button type="submit" className="btn btn-sm btn-danger">

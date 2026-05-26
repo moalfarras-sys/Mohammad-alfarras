@@ -91,8 +91,8 @@ export function AiOperationsView({
   webBase: string;
 }) {
   const { t } = useLocale();
-  const openConversations = ops.conversations.filter((item) => item.status !== "archived").length;
-  const archivedConversations = ops.conversations.filter((item) => item.status === "archived").length;
+  const openConversations = ops.conversations.filter((item) => item.status !== "archived" && item.status !== "closed").length;
+  const archivedConversations = ops.conversations.filter((item) => item.status === "archived" || item.status === "closed").length;
   const failedAutomation =
     ops.automationEvents.filter((item) => item.status === "failed" || item.error_message).length +
     ops.automationInbox.filter((item) => item.severity === "critical").length;
@@ -398,7 +398,7 @@ function ConversationCard({ conversation }: { conversation: AiConversationRow })
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <StatusForm id={conversation.id} action={updateAiConversationStatusAction} statuses={["open", "reviewed", "archived"]} current={conversation.status || "open"} />
+          <StatusForm id={conversation.id} action={updateAiConversationStatusAction} statuses={["open", "lead", "support", "closed", "archived"]} current={conversation.status || "open"} />
           <DeleteForm id={conversation.id} action={deleteAiConversationAction} label={t({ en: "Delete chat", ar: "حذف المحادثة" })} />
         </div>
       </div>

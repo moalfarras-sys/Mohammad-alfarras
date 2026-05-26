@@ -504,15 +504,18 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const brandMedia = resolveBrandAssetPaths(snapshot);
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
+  const pageSlug = slug || "home";
+  const needsLiveYoutube = pageSlug === "youtube" || pageSlug === "cv";
+  const needsLiveWeather = false;
+  const needsLiveMatches = false;
 
   const [videos, liveYoutube, liveWeather, liveMatches] = await Promise.all([
     readVideos(),
-    getLiveYoutubeData(typeof youtube.channel_id === "string" ? youtube.channel_id : undefined),
-    getLiveWeather(),
-    getLiveMatches(),
+    needsLiveYoutube ? getLiveYoutubeData(typeof youtube.channel_id === "string" ? youtube.channel_id : undefined) : Promise.resolve(null),
+    needsLiveWeather ? getLiveWeather() : Promise.resolve(null),
+    needsLiveMatches ? getLiveMatches() : Promise.resolve([]),
   ]);
 
-  const pageSlug = slug || "home";
   const cvPresentation = buildCvPresentationModel(snapshot, locale);
   const brandedDownload =
     pdfRegistry.active.branded === "uploaded" && pdfRegistry.uploads.branded?.url

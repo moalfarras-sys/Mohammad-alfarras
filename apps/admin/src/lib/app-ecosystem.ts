@@ -19,12 +19,14 @@ import type {
   AppScreenshot,
   AppRuntimeConfig,
   DeviceProviderSourceQueue,
+  WidgetProviderSettingsStatus,
   AppStepItem,
   AppSupportRequest,
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
 const moplayerDownloadBase = "/api/app/releases";
+const widgetProviderSettingsKey = "moplayer_widget_provider_settings";
 const moplayerDownloadUrls = {
   universal: `${moplayerDownloadBase}/moplayer-2.2.8/download`,
 };
@@ -62,6 +64,12 @@ function parseStepsList(value: unknown, fallback: AppStepItem[]): AppStepItem[] 
 function parseStringList(value: unknown, fallback: string[]): string[] {
   if (!Array.isArray(value)) return fallback;
   const items = value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  return items.length ? items : fallback;
+}
+
+function parseNumberList(value: unknown, fallback: number[]): number[] {
+  const raw = Array.isArray(value) ? value : typeof value === "string" ? value.split(/[,\s]+/) : [];
+  const items = raw.map((item) => Number(item)).filter((item) => Number.isFinite(item) && item > 0);
   return items.length ? items : fallback;
 }
 
@@ -248,6 +256,21 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
     footballNewsMessage: "",
     allowFootballFallback: false,
     allowWeatherFallback: false,
+  homeNotification: {
+    mode: "auto",
+    type: "world_cup_2026",
+    title: "",
+    message: "",
+    startDate: "",
+  },
+  campaignWidgets: {
+    worldCup: true,
+    liveSports: true,
+    announcement: true,
+    promoTitle: "",
+    promoMessage: "",
+    promoUrl: "",
+  },
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",
   update: {
@@ -303,11 +326,11 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
     slug: "moplayer2",
     product_name: "MoPlayer Pro",
     hero_badge: "Next Android TV Media Experience",
-    tagline: "The Pro MoPlayer generation with its own releases, page, and admin control.",
+    tagline: "Premium Android TV media playback with QR activation and receiver-style Live IPTV controls.",
     short_description:
-      "MoPlayer Pro is the new Android and Android TV app line, managed separately while staying inside the same Moalfarras website and admin system.",
+      "MoPlayer Pro is the new Android and Android TV app line in the Moalfarras ecosystem, separated from the classic MoPlayer release channel.",
     long_description:
-      "MoPlayer Pro keeps the same Supabase, admin, and domain foundation but has its own product content, APK releases, visual assets, FAQs, support, and runtime settings.",
+      "MoPlayer Pro keeps the same domain, admin, and Supabase foundation while giving the new app its own public page, screenshots, releases, FAQs, support queue, runtime controls, and QR activation flow.",
     package_name: "com.moalfarras.moplayerpro",
     default_download_label: "Download MoPlayer Pro APK",
     feature_highlights: [
@@ -332,48 +355,19 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
       "Designed for Android TV and remote-first navigation",
     ],
     changelog_intro: "MoPlayer Pro releases are tracked separately from classic MoPlayer.",
-    logo_path: "/images/moplayer-icon-512.png",
-    hero_image_path: "/images/moplayer-tv-hero.png",
-    tv_banner_path: "/images/moplayer-tv-banner-final.png",
+    logo_path: "/images/moplayer-pro-hero.webp",
+    hero_image_path: "/images/moplayer-pro-hero.webp",
+    tv_banner_path: "/images/moplayer-pro-home.webp",
   },
 };
 
 const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
   moplayer: fallbackScreenshots,
   moplayer2: [
-    {
-      id: "moplayer2-screen-1",
-      product_slug: "moplayer2",
-      title: "MoPlayer Pro TV Room",
-      alt_text: "MoPlayer Pro TV presentation",
-      image_path: "/images/moplayer2-tv-room.png",
-      device_frame: "tv",
-      sort_order: 1,
-      is_featured: true,
-      created_at: now,
-    },
-    {
-      id: "moplayer2-screen-2",
-      product_slug: "moplayer2",
-      title: "MoPlayer Pro App Screens",
-      alt_text: "MoPlayer Pro multi-screen layout",
-      image_path: "/images/moplayer2-app-screens.png",
-      device_frame: "tv",
-      sort_order: 2,
-      is_featured: false,
-      created_at: now,
-    },
-    {
-      id: "moplayer2-screen-3",
-      product_slug: "moplayer2",
-      title: "MoPlayer Pro Home Screen",
-      alt_text: "MoPlayer Pro main UI",
-      image_path: "/images/moplayer2-home-screen.png",
-      device_frame: "tv",
-      sort_order: 3,
-      is_featured: false,
-      created_at: now,
-    },
+    { id: "moplayer2-screen-1", product_slug: "moplayer2", title: "Home Screen", alt_text: "MoPlayer Pro warm gold home screen with widgets and content rows", image_path: "/images/moplayer-pro-home.webp", device_frame: "tv", sort_order: 1, is_featured: true, created_at: now },
+    { id: "moplayer2-screen-2", product_slug: "moplayer2", title: "Activation Flow", alt_text: "MoPlayer Pro QR activation and website pairing flow", image_path: "/images/moplayer-pro-activation.webp", device_frame: "tv", sort_order: 2, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-3", product_slug: "moplayer2", title: "Player Controls", alt_text: "MoPlayer Pro warm glass player controls and channel list", image_path: "/images/moplayer-pro-player.webp", device_frame: "tv", sort_order: 3, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-4", product_slug: "moplayer2", title: "TV and Phone", alt_text: "MoPlayer Pro product preview on TV and phone", image_path: "/images/moplayer-pro-hero.webp", device_frame: "tv", sort_order: 4, is_featured: false, created_at: now },
   ],
 };
 
@@ -426,8 +420,8 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
     downloaderCode: "4608937",
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",
-    logoUrl: "/images/moplayer-icon-512.png",
-    backgroundUrl: "/images/moplayer-tv-banner-final.png",
+    logoUrl: "/images/moplayer-pro-hero.webp",
+    backgroundUrl: "/images/moplayer-pro-home.webp",
     syncIntervalMinutes: 60,
     sourceProtocolFallback: true,
     supportUrl: "https://moalfarras.space/en/support",
@@ -437,6 +431,23 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
     footballNewsMessage: "",
     allowFootballFallback: false,
     allowWeatherFallback: false,
+    homeNotification: {
+      mode: "auto",
+      type: "world_cup_2026",
+      title: "World Cup 2026 is coming",
+      message: "MoPlayer Pro is ready for live football nights, match widgets, and cinematic TV browsing.",
+      startDate: "2026-06-11",
+      ctaLabel: "Open football hub",
+      ctaUrl: "/football",
+    },
+    campaignWidgets: {
+      worldCup: true,
+      liveSports: true,
+      announcement: true,
+      promoTitle: "MoPlayer Pro live season",
+      promoMessage: "Weather, football, posters, and premium TV surfaces are controlled from Admin.",
+      promoUrl: "https://moalfarras.space/en/apps/moplayer2",
+    },
     update: {
       latestVersionName: "2.5.3",
       latestVersionCode: 41,
@@ -458,6 +469,44 @@ function fallbackFor(productSlug: string) {
     releases: fallbackReleasesBySlug[slug],
     runtimeConfig: fallbackRuntimeConfigBySlug[slug],
   };
+}
+
+const fallbackWidgetProviderSettings: WidgetProviderSettingsStatus = {
+  weatherApiConfigured: Boolean(process.env.WEATHER_API_KEY),
+  sportmonksConfigured: Boolean(process.env.SPORTMONKS_TOKEN),
+  apiFootballConfigured: Boolean(process.env.API_FOOTBALL_KEY),
+  rapidApiFootballConfigured: Boolean(process.env.RAPIDAPI_FOOTBALL_KEY),
+  defaultWeatherCity: "Berlin",
+  sportmonksResultsRoundId: process.env.SPORTMONKS_RESULTS_ROUND_ID,
+  footballLeagueIds: [39, 140, 135, 78, 61],
+  footballMaxMatches: 8,
+  footballMinPriority: 70,
+};
+
+async function readWidgetProviderSettingsStatus(): Promise<WidgetProviderSettingsStatus> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase
+      .from("app_private_settings")
+      .select("value")
+      .eq("key", widgetProviderSettingsKey)
+      .maybeSingle();
+    if (error) throw error;
+    const value = data?.value && typeof data.value === "object" ? (data.value as Record<string, unknown>) : {};
+    return {
+      weatherApiConfigured: Boolean(String(value.weatherApiKey ?? process.env.WEATHER_API_KEY ?? "").trim()),
+      sportmonksConfigured: Boolean(String(value.sportmonksToken ?? process.env.SPORTMONKS_TOKEN ?? "").trim()),
+      apiFootballConfigured: Boolean(String(value.apiFootballKey ?? process.env.API_FOOTBALL_KEY ?? "").trim()),
+      rapidApiFootballConfigured: Boolean(String(value.rapidApiFootballKey ?? process.env.RAPIDAPI_FOOTBALL_KEY ?? "").trim()),
+      defaultWeatherCity: String(value.defaultWeatherCity ?? fallbackWidgetProviderSettings.defaultWeatherCity).trim() || fallbackWidgetProviderSettings.defaultWeatherCity,
+      sportmonksResultsRoundId: String(value.sportmonksResultsRoundId ?? process.env.SPORTMONKS_RESULTS_ROUND_ID ?? "").trim() || undefined,
+      footballLeagueIds: parseNumberList(value.footballLeagueIds, fallbackWidgetProviderSettings.footballLeagueIds),
+      footballMaxMatches: Math.min(20, Math.max(1, Number(value.footballMaxMatches ?? fallbackWidgetProviderSettings.footballMaxMatches) || fallbackWidgetProviderSettings.footballMaxMatches)),
+      footballMinPriority: Math.min(100, Math.max(0, Number(value.footballMinPriority ?? fallbackWidgetProviderSettings.footballMinPriority) || fallbackWidgetProviderSettings.footballMinPriority)),
+    };
+  } catch {
+    return fallbackWidgetProviderSettings;
+  }
 }
 
 function asSiteSettingValue<T>(value: T): Record<string, unknown> {
@@ -503,7 +552,7 @@ async function upsertSiteSetting(key: string, value: Record<string, unknown>): P
 function normalizeProduct(row: Partial<AppProduct> | null | undefined, productSlug = "moplayer"): AppProduct {
   const fallback = fallbackFor(productSlug).product;
   if (!row) return fallback;
-  return {
+  const merged = {
     ...fallback,
     ...row,
     feature_highlights: parseFeatureList(row.feature_highlights, fallback.feature_highlights),
@@ -511,6 +560,80 @@ function normalizeProduct(row: Partial<AppProduct> | null | undefined, productSl
     install_steps: parseStepsList(row.install_steps, fallback.install_steps),
     compatibility_notes: parseStringList(row.compatibility_notes, fallback.compatibility_notes),
     legal_notes: parseStringList(row.legal_notes, fallback.legal_notes),
+  };
+  if (resolveManagedAppSlug(productSlug) === "moplayer2") {
+    return {
+      ...merged,
+      logo_path: normalizeProAssetPath(merged.logo_path, fallback.logo_path),
+      hero_image_path: normalizeProAssetPath(merged.hero_image_path, fallback.hero_image_path),
+      tv_banner_path: normalizeProAssetPath(merged.tv_banner_path, fallback.tv_banner_path),
+    };
+  }
+  return merged;
+}
+
+function normalizeProAssetPath(value: string | null | undefined, fallback: string | null) {
+  const path = String(value ?? "").trim();
+  if (!path) return fallback;
+  const classicOnly = [
+    "/images/moplayer-icon-512.png",
+    "/images/moplayer-brand-logo-final.png",
+    "/images/moplayer-tv-banner.png",
+    "/images/moplayer-tv-banner-final.png",
+    "/images/moplayer-tv-hero.png",
+    "/images/moplayer-hero-3d-final.png",
+    "/images/moplayer-app-cover.jpeg",
+  ];
+  return classicOnly.includes(path) ? fallback : path;
+}
+
+function normalizeScreenshots(items: AppScreenshot[], productSlug: string): AppScreenshot[] {
+  const slug = resolveManagedAppSlug(productSlug);
+  if (slug !== "moplayer2") return items;
+  const classicOnly = ["/images/moplayer-tv-banner.png", "/images/moplayer-tv-banner-final.png", "/images/moplayer_ui_now_playing.png", "/images/moplayer_ui_playlist.png"];
+  const filtered = items.filter((item) => !classicOnly.includes(item.image_path));
+  return filtered.length ? filtered : fallbackFor(slug).screenshots;
+}
+
+function normalizeRuntimeConfig(input: Partial<AppRuntimeConfig> | null | undefined, productSlug: string): AppRuntimeConfig {
+  const slug = resolveManagedAppSlug(productSlug);
+  const fallback = fallbackFor(slug).runtimeConfig;
+  const savedConfig = input ?? {};
+  const merged: AppRuntimeConfig = {
+    ...fallback,
+    ...savedConfig,
+    widgets: {
+      ...fallback.widgets,
+      ...(savedConfig.widgets ?? {}),
+    },
+    homeNotification: {
+      ...(fallback.homeNotification ?? {}),
+      ...(savedConfig.homeNotification ?? {}),
+    },
+    campaignWidgets: {
+      ...(fallback.campaignWidgets ?? {}),
+      ...(savedConfig.campaignWidgets ?? {}),
+    },
+    update: {
+      ...(fallback.update ?? {}),
+      ...(savedConfig.update ?? {}),
+    },
+  };
+  if (slug === "moplayer2") {
+    return {
+      ...merged,
+      logoUrl: normalizeProAssetPath(merged.logoUrl, fallback.logoUrl) ?? fallback.logoUrl,
+      backgroundUrl: normalizeProAssetPath(merged.backgroundUrl, fallback.backgroundUrl) ?? fallback.backgroundUrl,
+    };
+  }
+  return merged;
+}
+
+function normalizeAppEcosystemData(data: AppEcosystemData, productSlug: string): AppEcosystemData {
+  return {
+    ...data,
+    product: normalizeProduct(data.product, productSlug),
+    screenshots: normalizeScreenshots(data.screenshots, productSlug),
   };
 }
 
@@ -567,12 +690,12 @@ async function readLegacyAppSettings(productSlug = "moplayer"): Promise<AppEcosy
     readSiteSetting(`${prefix}_releases`, asSiteSettingValue(fallback.releases)),
   ]);
 
-  return {
+  return normalizeAppEcosystemData({
     product: normalizeProduct(product as Partial<AppProduct>, slug),
     screenshots: (Array.isArray(screenshots) ? screenshots : fallback.screenshots) as AppScreenshot[],
     faqs: (Array.isArray(faqs) ? faqs : fallback.faqs) as AppFaq[],
     releases: (Array.isArray(releases) ? releases : fallback.releases) as AppRelease[],
-  };
+  }, slug);
 }
 
 export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEcosystemData> {
@@ -612,7 +735,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
       }
     }
 
-    const data = {
+    const data = normalizeAppEcosystemData({
       product: normalizeProduct(productRes.data as Partial<AppProduct> | null, slug),
       screenshots:
         (screenshotsRes.data as AppScreenshot[] | null)?.length
@@ -620,7 +743,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
           : fallback.screenshots,
       faqs: (faqRes.data as AppFaq[] | null)?.length ? ((faqRes.data as AppFaq[]) ?? []) : fallback.faqs,
       releases: releases.map((row) => normalizeRelease(row, assetsMap.get(row.id) ?? [])),
-    };
+    }, slug);
 
     if (!data.releases.length) {
       const legacy = await readLegacyAppSettings(slug);
@@ -674,18 +797,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
       }))
       .filter((license) => license.public_device_id ? scopedDeviceIds.has(license.public_device_id) : true);
     const savedConfig = (settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {};
-    runtimeConfig = {
-      ...fallbackFor(slug).runtimeConfig,
-      ...savedConfig,
-      widgets: {
-        ...fallbackFor(slug).runtimeConfig.widgets,
-        ...(savedConfig.widgets ?? {}),
-      },
-      update: {
-        ...(fallbackFor(slug).runtimeConfig.update ?? {}),
-        ...(savedConfig.update ?? {}),
-      },
-    };
+    runtimeConfig = normalizeRuntimeConfig(savedConfig, slug);
     providerSources = ((sourceRows as Array<{ value: unknown }> | null) ?? [])
       .map((row) => row.value as Partial<DeviceProviderSourceQueue>)
       .filter((row): row is DeviceProviderSourceQueue =>
@@ -737,6 +849,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
     licenses,
     providerSources,
     runtimeConfig,
+    widgetProviderSettings: await readWidgetProviderSettingsStatus(),
     metrics: calculateOperationalMetrics(devices, activationRequests),
   };
 }
@@ -750,6 +863,14 @@ export async function saveRuntimeConfig(input: AppRuntimeConfig, productSlug = "
       ...fallbackFor(slug).runtimeConfig.widgets,
       ...(input.widgets ?? {}),
     },
+    homeNotification: {
+      ...(fallbackFor(slug).runtimeConfig.homeNotification ?? {}),
+      ...(input.homeNotification ?? {}),
+    },
+    campaignWidgets: {
+      ...(fallbackFor(slug).runtimeConfig.campaignWidgets ?? {}),
+      ...(input.campaignWidgets ?? {}),
+    },
     update: {
       ...(fallbackFor(slug).runtimeConfig.update ?? {}),
       ...(input.update ?? {}),
@@ -762,6 +883,49 @@ export async function saveRuntimeConfig(input: AppRuntimeConfig, productSlug = "
       key: getManagedApp(slug).runtimeConfigKey,
       value: payload,
       description: `Public ${getManagedApp(slug).name} runtime configuration consumed by Android and admin.`,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+  if (error) throw error;
+}
+
+export async function saveWidgetProviderSettings(input: {
+  weatherApiKey?: string;
+  sportmonksToken?: string;
+  apiFootballKey?: string;
+  rapidApiFootballKey?: string;
+  defaultWeatherCity?: string;
+  sportmonksResultsRoundId?: string;
+  footballLeagueIds?: number[];
+  footballMaxMatches?: number;
+  footballMinPriority?: number;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const { data } = await supabase
+    .from("app_private_settings")
+    .select("value")
+    .eq("key", widgetProviderSettingsKey)
+    .maybeSingle();
+  const current = data?.value && typeof data.value === "object" ? (data.value as Record<string, unknown>) : {};
+  const payload = {
+    ...current,
+    ...(input.weatherApiKey ? { weatherApiKey: input.weatherApiKey } : {}),
+    ...(input.sportmonksToken ? { sportmonksToken: input.sportmonksToken } : {}),
+    ...(input.apiFootballKey ? { apiFootballKey: input.apiFootballKey } : {}),
+    ...(input.rapidApiFootballKey ? { rapidApiFootballKey: input.rapidApiFootballKey } : {}),
+    ...(input.defaultWeatherCity ? { defaultWeatherCity: input.defaultWeatherCity } : {}),
+    ...(input.sportmonksResultsRoundId ? { sportmonksResultsRoundId: input.sportmonksResultsRoundId } : {}),
+    ...(input.footballLeagueIds?.length ? { footballLeagueIds: input.footballLeagueIds } : {}),
+    ...(input.footballMaxMatches ? { footballMaxMatches: Math.min(20, Math.max(1, input.footballMaxMatches)) } : {}),
+    ...(input.footballMinPriority !== undefined ? { footballMinPriority: Math.min(100, Math.max(0, input.footballMinPriority)) } : {}),
+  };
+
+  const { error } = await supabase.from("app_private_settings").upsert(
+    {
+      key: widgetProviderSettingsKey,
+      value: payload,
+      description: "Server-only widget provider credentials and tuning values for weather and football integrations.",
       updated_at: new Date().toISOString(),
     },
     { onConflict: "key" },

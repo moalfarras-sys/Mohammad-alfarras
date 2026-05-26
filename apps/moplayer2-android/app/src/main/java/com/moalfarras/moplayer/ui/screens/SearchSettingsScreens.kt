@@ -111,6 +111,7 @@ fun SearchScreen(
     query: String,
     history: List<String>,
     resultsFlow: Flow<PagingData<MediaItem>>,
+    restoreFocusItem: MediaItem?,
     onQuery: (String) -> Unit,
     onClearHistory: () -> Unit,
     onFocus: (MediaItem) -> Unit,
@@ -123,9 +124,18 @@ fun SearchScreen(
     val results = resultsFlow.collectAsLazyPagingItems()
     val resultsState = rememberLazyListState()
     val searchFocusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(120)
-        runCatching { searchFocusRequester.requestFocus() }
+    var restoredResultOnce by remember(restoreFocusItem?.id, restoreFocusItem?.type, restoreFocusItem?.serverId, query) { mutableStateOf(false) }
+    val restoreIndex = remember(results.itemCount, restoreFocusItem) {
+        restoreFocusItem?.let { target -> (0 until results.itemCount).firstOrNull { results.peek(it).sameMedia(target) } }
+    }
+    LaunchedEffect(restoreIndex, query) {
+        if (restoreIndex != null && !restoredResultOnce) {
+            resultsState.scrollToItem(restoreIndex)
+            restoredResultOnce = true
+        } else if (query.isBlank()) {
+            kotlinx.coroutines.delay(120)
+            runCatching { searchFocusRequester.requestFocus() }
+        }
     }
 
     val voiceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -307,13 +317,28 @@ fun SearchScreen(
             ) {
                 items(results.itemCount, key = { index -> results[index]?.let { "${it.type}-${it.id}" } ?: "search-$index" }) { index ->
                     results[index]?.let { item ->
-                        ChannelRow(item, onFocus, onPlay, onFavorite)
+                        val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
+                        val shouldRestore = item.sameMedia(restoreFocusItem)
+                        LaunchedEffect(shouldRestore, restoreIndex, restoredResultOnce) {
+                            if (shouldRestore && restoreIndex != null && restoredResultOnce) {
+                                kotlinx.coroutines.delay(120)
+                                runCatching { focusRequester.requestFocus() }
+                            }
+                        }
+                        ChannelRow(item, onFocus, onPlay, onFavorite, focusRequester = focusRequester)
                     }
                 }
             }
         }
     }
 }
+
+private fun MediaItem?.sameMedia(other: MediaItem?): Boolean =
+    this != null &&
+        other != null &&
+        id == other.id &&
+        type == other.type &&
+        serverId == other.serverId
 
 @Composable
 fun SettingsScreen(
@@ -1232,7 +1257,7 @@ private fun AppearanceSettingsCard(
             SectionHeader("Performance")
             AppearanceSubsection(
                 title = "Automatic device profile",
-                description = "The app automatically balances image quality, motion, and player load for this device. Current profile: ${performancePolicy.mode.label()} up to ${performancePolicy.maxVideoHeight}p.",
+                description = "Detected display: ${devicePerformanceInfo.displayQualityLabel} (${devicePerformanceInfo.displayMaxWidth}x${devicePerformanceInfo.displayMaxHeight}). Current profile: ${performancePolicy.mode.label()} up to ${performancePolicy.maxVideoHeight}p.",
             )
             AppearanceLabeledChoiceRow(
                 title = "Performance mode",

@@ -345,7 +345,7 @@ function asSiteSettingValue<T>(value: T): Record<string, unknown> {
 function normalizeProduct(row: Partial<AppProduct> | null | undefined, productSlug = "moplayer"): AppProduct {
   const fallback = fallbackFor(productSlug).product;
   if (!row) return fallback;
-  return {
+  const merged = {
     ...fallback,
     ...row,
     feature_highlights: parseFeatureList(row.feature_highlights, fallback.feature_highlights),
@@ -353,6 +353,46 @@ function normalizeProduct(row: Partial<AppProduct> | null | undefined, productSl
     install_steps: parseStepsList(row.install_steps, fallback.install_steps),
     compatibility_notes: parseStringList(row.compatibility_notes, fallback.compatibility_notes),
     legal_notes: parseStringList(row.legal_notes, fallback.legal_notes),
+  };
+  if (resolveManagedAppSlug(productSlug) === "moplayer2") {
+    return {
+      ...merged,
+      logo_path: normalizeProAssetPath(merged.logo_path, fallback.logo_path),
+      hero_image_path: normalizeProAssetPath(merged.hero_image_path, fallback.hero_image_path),
+      tv_banner_path: normalizeProAssetPath(merged.tv_banner_path, fallback.tv_banner_path),
+    };
+  }
+  return merged;
+}
+
+function normalizeProAssetPath(value: string | null | undefined, fallback: string | null) {
+  const path = String(value ?? "").trim();
+  if (!path) return fallback;
+  const classicOnly = [
+    "/images/moplayer-icon-512.png",
+    "/images/moplayer-brand-logo-final.png",
+    "/images/moplayer-tv-banner.png",
+    "/images/moplayer-tv-banner-final.png",
+    "/images/moplayer-tv-hero.png",
+    "/images/moplayer-hero-3d-final.png",
+    "/images/moplayer-app-cover.jpeg",
+  ];
+  return classicOnly.includes(path) ? fallback : path;
+}
+
+function normalizeScreenshots(items: AppScreenshot[], productSlug: string): AppScreenshot[] {
+  const slug = resolveManagedAppSlug(productSlug);
+  if (slug !== "moplayer2") return items;
+  const classicOnly = ["/images/moplayer-tv-banner.png", "/images/moplayer-tv-banner-final.png", "/images/moplayer_ui_now_playing.png", "/images/moplayer_ui_playlist.png"];
+  const filtered = items.filter((item) => !classicOnly.includes(item.image_path));
+  return filtered.length ? filtered : fallbackFor(slug).screenshots;
+}
+
+function normalizeAppEcosystemData(data: AppEcosystemData, productSlug: string): AppEcosystemData {
+  return {
+    ...data,
+    product: normalizeProduct(data.product, productSlug),
+    screenshots: normalizeScreenshots(data.screenshots, productSlug),
   };
 }
 
@@ -409,13 +449,13 @@ async function readLegacyAppSettings(productSlug = "moplayer"): Promise<AppEcosy
     readSiteSetting(`${prefix}_releases`, asSiteSettingValue(fallback.releases)),
   ]);
 
-  return {
+  return normalizeAppEcosystemData({
     product: normalizeProduct(product as Partial<AppProduct>, slug),
     screenshots: (Array.isArray(screenshots) ? screenshots : fallback.screenshots) as AppScreenshot[],
     faqs: (Array.isArray(faqs) ? faqs : fallback.faqs) as AppFaq[],
     releases: (Array.isArray(releases) ? releases : fallback.releases) as AppRelease[],
     runtimeConfig: runtimeConfigSummary(null, slug),
-  };
+  }, slug);
 }
 
 export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEcosystemData> {
@@ -457,7 +497,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
       }
     }
 
-    const data = {
+    const data = normalizeAppEcosystemData({
       product: normalizeProduct(productRes.data as Partial<AppProduct> | null, slug),
       screenshots:
         (screenshotsRes.data as AppScreenshot[] | null)?.length
@@ -466,7 +506,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
       faqs: (faqRes.data as AppFaq[] | null)?.length ? ((faqRes.data as AppFaq[]) ?? []) : fallback.faqs,
       releases: releases.map((row) => normalizeRelease(row, assetsMap.get(row.id) ?? [])),
       runtimeConfig: runtimeConfigSummary(settingsRes.data?.value, slug),
-    };
+    }, slug);
 
     if (!data.releases.length) {
       const legacy = await readLegacyAppSettings(slug);

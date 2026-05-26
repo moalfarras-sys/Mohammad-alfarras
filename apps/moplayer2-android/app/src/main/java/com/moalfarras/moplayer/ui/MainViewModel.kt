@@ -66,6 +66,7 @@ data class UiState(
     val seriesDetailsLoading: Boolean = false,
     val playingItem: MediaItem? = null,
     val searchQuery: String = "",
+    val committedSearchQuery: String = "",
     val showExitDialog: Boolean = false,
     val notice: String? = null,
     val settingsUnlocked: Boolean = false,
@@ -90,6 +91,7 @@ class MainViewModel(
     private var lastFocusUpdateAt = 0L
     private var lastFocusKey = ""
     private var lastPersistedNavigationKey = ""
+    private var searchCommitJob: Job? = null
 
     private val lastFocusedBySection = mutableMapOf<AppSection, MediaItem?>()
     private val lastCategoryBySection = mutableMapOf<AppSection, String>()
@@ -231,10 +233,11 @@ class MainViewModel(
 
     val searchResults: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
         val server = state.activeServer
-        if (server == null || state.searchQuery.isBlank()) {
+        val query = state.committedSearchQuery.trim()
+        if (server == null || query.length < 2) {
             flowOf(PagingData.empty())
         } else {
-            iptv.search(state.libraryServerId(server.id), state.searchQuery.trim()).map { pagingData ->
+            iptv.search(state.libraryServerId(server.id), query).map { pagingData ->
                 pagingData.filter { item ->
                     val isParental = state.settings.parentalControlsEnabled &&
                         adultKeywords.any {
@@ -748,8 +751,25 @@ class MainViewModel(
             internal.update { it.copy(searchQuery = query) }
         }
         saveLastSection(AppSection.SEARCH)
-        if (query.isNotBlank()) {
-            viewModelScope.launch { settingsRepo.addSearchHistory(query) }
+        val normalized = query.trim()
+        searchCommitJob?.cancel()
+        if (normalized.length >= 2) {
+            searchCommitJob = viewModelScope.launch {
+                delay(180)
+                internal.update { state ->
+                    if (state.section == AppSection.SEARCH && state.searchQuery.trim() == normalized) {
+                        state.copy(committedSearchQuery = normalized)
+                    } else {
+                        state
+                    }
+                }
+                delay(370)
+                if (internal.value.searchQuery.trim() == normalized) {
+                    settingsRepo.addSearchHistory(normalized)
+                }
+            }
+        } else {
+            internal.update { it.copy(committedSearchQuery = "") }
         }
     }
 

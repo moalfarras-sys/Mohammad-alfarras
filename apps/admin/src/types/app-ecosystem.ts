@@ -201,6 +201,23 @@ export type AppRuntimeConfig = {
   allowWeatherFallback?: boolean;
   weatherBackgroundMode?: string;
   weatherBackgroundUrl?: string;
+  homeNotification?: {
+    mode?: "auto" | "on" | "off";
+    type?: string;
+    title?: string;
+    message?: string;
+    startDate?: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  };
+  campaignWidgets?: {
+    worldCup?: boolean;
+    liveSports?: boolean;
+    announcement?: boolean;
+    promoTitle?: string;
+    promoMessage?: string;
+    promoUrl?: string;
+  };
   widgets: {
     weather: boolean;
     football: boolean;
@@ -226,6 +243,18 @@ export type AppEcosystemData = {
   releases: AppRelease[];
 };
 
+export type WidgetProviderSettingsStatus = {
+  weatherApiConfigured: boolean;
+  sportmonksConfigured: boolean;
+  apiFootballConfigured: boolean;
+  rapidApiFootballConfigured: boolean;
+  defaultWeatherCity: string;
+  sportmonksResultsRoundId?: string;
+  footballLeagueIds: number[];
+  footballMaxMatches: number;
+  footballMinPriority: number;
+};
+
 export type AdminAppData = AppEcosystemData & {
   supportRequests: AppSupportRequest[];
   devices: AppDevice[];
@@ -233,5 +262,6 @@ export type AdminAppData = AppEcosystemData & {
   licenses: AppLicense[];
   providerSources: DeviceProviderSourceQueue[];
   runtimeConfig: AppRuntimeConfig;
+  widgetProviderSettings: WidgetProviderSettingsStatus;
   metrics: AppOperationalMetrics;
 };

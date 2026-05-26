@@ -145,6 +145,9 @@ fun MediaPoster(
                             model = posterModel,
                             contentDescription = item.title,
                             contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.ic_splash_logo),
+                            error = painterResource(R.drawable.ic_splash_logo),
+                            fallback = painterResource(R.drawable.ic_splash_logo),
                             modifier = Modifier.fillMaxSize(),
                         )
                     }

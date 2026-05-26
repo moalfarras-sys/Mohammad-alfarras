@@ -33,6 +33,7 @@ import {
   saveProductAction,
   saveReleaseAction,
   saveRuntimeConfigAction,
+  saveWidgetProviderSettingsAction,
   saveScreenshotAction,
   updateActivationStatusAction,
   updateDeviceStatusAction,
@@ -86,7 +87,7 @@ function runtimeNumber(value: unknown, fallback: number) {
 export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data: AdminAppData; updated?: string }) {
   const { t } = useLocale();
   const [deviceQuery, setDeviceQuery] = useState("");
-  const { product, faqs, screenshots, releases, supportRequests, devices, activationRequests, licenses, providerSources, runtimeConfig } = data;
+  const { product, faqs, screenshots, releases, supportRequests, devices, activationRequests, licenses, providerSources, runtimeConfig, widgetProviderSettings } = data;
   const runtime = runtimeConfig as RuntimeExtras;
   const basePath = slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
   const runtimeBackgroundUrl = runtimeConfig.backgroundUrl ? resolveAdminAssetUrl(runtimeConfig.backgroundUrl) : "";
@@ -300,6 +301,49 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
             defaultValue={runtime.footballNewsMessage ?? ""}
             placeholder={t({ en: "Shown as a short note in supported clients.", ar: "تظهر كملاحظة قصيرة في التطبيقات الداعمة." })}
           />
+          <div className="rounded-2xl border border-[var(--line-strong)] bg-[radial-gradient(circle_at_top_left,rgba(251,146,60,0.16),transparent_45%),rgba(255,255,255,0.03)] p-4 lg:col-span-2">
+            <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">{t({ en: "Home campaign", ar: "حملة الشاشة الرئيسية" })}</p>
+                <h4 className="mt-1 text-lg font-black text-[var(--text-1)]">{t({ en: "World Cup / announcement overlay", ar: "إعلان كأس العالم / التنبيه العائم" })}</h4>
+                <p className="mt-1 text-xs font-bold leading-5 text-[var(--text-3)]">
+                  {t({
+                    en: "MoPlayer Pro already reads this from the config API, so changes here appear after the app syncs runtime settings.",
+                    ar: "MoPlayer Pro يقرأ هذه القيم من API الإعدادات، لذلك تظهر التغييرات بعد مزامنة التطبيق.",
+                  })}
+                </p>
+              </div>
+              <span className="rounded-full border border-orange-300/25 bg-orange-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-orange-200">
+                {t({ en: "Pro ready", ar: "جاهز للبرو" })}
+              </span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <SelectField
+                label={t({ en: "Notification mode", ar: "وضع التنبيه" })}
+                name="homeNotificationMode"
+                defaultValue={runtime.homeNotification?.mode ?? "auto"}
+                options={[
+                  { value: "auto", label: t({ en: "Auto", ar: "تلقائي" }) },
+                  { value: "on", label: t({ en: "Always show", ar: "تشغيل دائم" }) },
+                  { value: "off", label: t({ en: "Hidden", ar: "إخفاء" }) },
+                ]}
+              />
+              <Field label={t({ en: "Campaign type", ar: "نوع الحملة" })} name="homeNotificationType" defaultValue={runtime.homeNotification?.type ?? "world_cup_2026"} />
+              <Field label={t({ en: "Overlay title", ar: "عنوان التنبيه" })} name="homeNotificationTitle" defaultValue={runtime.homeNotification?.title ?? ""} />
+              <Field label={t({ en: "Countdown start date", ar: "تاريخ البداية" })} name="homeNotificationStartDate" type="date" defaultValue={runtime.homeNotification?.startDate ?? ""} />
+              <TextAreaField label={t({ en: "Overlay message", ar: "نص التنبيه" })} name="homeNotificationMessage" defaultValue={runtime.homeNotification?.message ?? ""} />
+              <div className="grid gap-4">
+                <Field label={t({ en: "CTA label", ar: "نص الزر" })} name="homeNotificationCtaLabel" defaultValue={runtime.homeNotification?.ctaLabel ?? ""} />
+                <Field label={t({ en: "CTA URL", ar: "رابط الزر" })} name="homeNotificationCtaUrl" defaultValue={runtime.homeNotification?.ctaUrl ?? ""} />
+              </div>
+              <Toggle name="campaignWorldCup" label={t({ en: "World Cup widget", ar: "أداة كأس العالم" })} checked={runtime.campaignWidgets?.worldCup ?? true} />
+              <Toggle name="campaignLiveSports" label={t({ en: "Live sports widget", ar: "أداة الرياضة المباشرة" })} checked={runtime.campaignWidgets?.liveSports ?? true} />
+              <Toggle name="campaignAnnouncement" label={t({ en: "Announcement widget", ar: "أداة الإعلان" })} checked={runtime.campaignWidgets?.announcement ?? true} />
+              <Field label={t({ en: "Promo title", ar: "عنوان العرض" })} name="campaignPromoTitle" defaultValue={runtime.campaignWidgets?.promoTitle ?? ""} />
+              <TextAreaField label={t({ en: "Promo message", ar: "نص العرض" })} name="campaignPromoMessage" defaultValue={runtime.campaignWidgets?.promoMessage ?? ""} />
+              <Field label={t({ en: "Promo URL", ar: "رابط العرض" })} name="campaignPromoUrl" defaultValue={runtime.campaignWidgets?.promoUrl ?? ""} />
+            </div>
+          </div>
           <Toggle
             name="allowFootballFallback"
             label={t({ en: "Allow curated football fallback", ar: "السماح ببديل مباريات منسق" })}
@@ -357,6 +401,44 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
 
           <div className="lg:col-span-2">
             <button type="submit" className="btn btn-primary">{t({ en: "Save & sync runtime", ar: "حفظ ومزامنة" })}</button>
+          </div>
+        </form>
+      </Accordion>
+
+      <Accordion
+        id="widget-providers"
+        title={t({ en: "Private widget providers", ar: "مزودات الويجت الخاصة" })}
+        description={t({ en: "Server-only keys for weather and football. Saved values are never sent to apps.", ar: "مفاتيح خادم فقط للطقس والمباريات. القيم المحفوظة لا تُرسل للتطبيقات." })}
+        icon={<Key className="h-5 w-5" />}
+        tone="accent"
+        count={widgetProviderSettings.sportmonksConfigured || widgetProviderSettings.weatherApiConfigured ? t({ en: "Configured", ar: "مضبوطة" }) : t({ en: "Needs keys", ar: "تحتاج مفاتيح" })}
+      >
+        <SectionHelp
+          title={t({ en: "Safe key rule", ar: "قاعدة المفاتيح الآمنة" })}
+          body={t({
+            en: "Paste new provider keys only when you want to replace them. Existing secrets are preserved and shown here only as configured/not configured.",
+            ar: "الصق المفاتيح الجديدة فقط عند الرغبة باستبدالها. الأسرار الحالية تبقى محفوظة وتظهر هنا كحالة فقط بدون كشفها.",
+          })}
+        />
+        <form action={saveWidgetProviderSettingsAction} className="grid gap-5 lg:grid-cols-2">
+          <input type="hidden" name="product_slug" value={slug} />
+          <div className="grid gap-3 lg:col-span-2 md:grid-cols-4">
+            <ProviderStatus label="Weather API" active={widgetProviderSettings.weatherApiConfigured} />
+            <ProviderStatus label="SportMonks" active={widgetProviderSettings.sportmonksConfigured} />
+            <ProviderStatus label="API-Football" active={widgetProviderSettings.apiFootballConfigured} />
+            <ProviderStatus label="RapidAPI Football" active={widgetProviderSettings.rapidApiFootballConfigured} />
+          </div>
+          <Field label={t({ en: "Weather API key", ar: "مفتاح Weather API" })} name="weatherApiKey" type="password" placeholder={widgetProviderSettings.weatherApiConfigured ? "•••••••• configured" : "Paste new key"} autoComplete="off" />
+          <Field label={t({ en: "SportMonks token", ar: "مفتاح SportMonks" })} name="sportmonksToken" type="password" placeholder={widgetProviderSettings.sportmonksConfigured ? "•••••••• configured" : "Paste new token"} autoComplete="off" />
+          <Field label={t({ en: "API-Football key", ar: "مفتاح API-Football" })} name="apiFootballKey" type="password" placeholder={widgetProviderSettings.apiFootballConfigured ? "•••••••• configured" : "Paste new key"} autoComplete="off" />
+          <Field label={t({ en: "RapidAPI Football key", ar: "مفتاح RapidAPI Football" })} name="rapidApiFootballKey" type="password" placeholder={widgetProviderSettings.rapidApiFootballConfigured ? "•••••••• configured" : "Paste new key"} autoComplete="off" />
+          <Field label={t({ en: "Default weather city", ar: "مدينة الطقس الافتراضية" })} name="defaultWeatherCity" defaultValue={widgetProviderSettings.defaultWeatherCity} />
+          <Field label={t({ en: "SportMonks results round", ar: "جولة نتائج SportMonks" })} name="sportmonksResultsRoundId" defaultValue={widgetProviderSettings.sportmonksResultsRoundId ?? ""} />
+          <Field label={t({ en: "Provider league IDs", ar: "بطولات المزود" })} name="providerFootballLeagueIds" defaultValue={widgetProviderSettings.footballLeagueIds.join(", ")} />
+          <Field label={t({ en: "Provider max matches", ar: "أقصى مباريات للمزود" })} name="providerFootballMaxMatches" type="number" defaultValue={String(widgetProviderSettings.footballMaxMatches)} />
+          <Field label={t({ en: "Minimum priority", ar: "أقل أولوية" })} name="providerFootballMinPriority" type="number" defaultValue={String(widgetProviderSettings.footballMinPriority)} />
+          <div className="lg:col-span-2">
+            <button type="submit" className="btn btn-primary">{t({ en: "Save private provider settings", ar: "حفظ إعدادات المزود الخاصة" })}</button>
           </div>
         </form>
       </Accordion>
@@ -958,6 +1040,21 @@ function ColorField({ label, defaultValue, ...props }: React.InputHTMLAttributes
         <input name={props.name} value={value} onChange={(event) => setValue(event.target.value)} className="input flex-1 font-mono" />
       </div>
     </label>
+  );
+}
+
+function ProviderStatus({ label, active }: { label: string; active: boolean }) {
+  const { t } = useLocale();
+  return (
+    <div className={cn(
+      "rounded-2xl border p-4",
+      active ? "border-emerald-300/25 bg-emerald-400/10" : "border-amber-300/25 bg-amber-400/10",
+    )}>
+      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-3)]">{label}</p>
+      <p className={cn("mt-1 text-sm font-black", active ? "text-emerald-200" : "text-amber-200")}>
+        {active ? t({ en: "Configured", ar: "مضبوط" }) : t({ en: "Missing", ar: "غير موجود" })}
+      </p>
+    </div>
   );
 }
 

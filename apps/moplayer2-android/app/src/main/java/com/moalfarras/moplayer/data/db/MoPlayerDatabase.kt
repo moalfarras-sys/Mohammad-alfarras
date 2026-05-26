@@ -232,8 +232,25 @@ interface MediaDao {
     @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC")
     fun observeRecentlyPlayedPaging(serverId: Long, type: ContentType): PagingSource<Int, MediaEntity>
 
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND title LIKE :query ESCAPE '\\' ORDER BY CASE WHEN lastPlayedAt > 0 THEN 0 ELSE 1 END, serverId ASC, title COLLATE NOCASE")
-    fun searchPaging(serverId: Long, query: String): PagingSource<Int, MediaEntity>
+    @Query(
+        """
+        SELECT * FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId)
+            AND (
+                title LIKE :containsQuery ESCAPE '\'
+                OR categoryName LIKE :containsQuery ESCAPE '\'
+                OR tvgId LIKE :containsQuery ESCAPE '\'
+            )
+        ORDER BY
+            CASE WHEN title LIKE :prefixQuery ESCAPE '\' THEN 0 ELSE 1 END,
+            CASE type WHEN 'LIVE' THEN 0 WHEN 'MOVIE' THEN 1 WHEN 'SERIES' THEN 2 WHEN 'EPISODE' THEN 3 ELSE 4 END,
+            CASE WHEN lastPlayedAt > 0 THEN 0 ELSE 1 END,
+            serverId ASC,
+            serverOrder ASC,
+            title COLLATE NOCASE
+        """
+    )
+    fun searchPaging(serverId: Long, containsQuery: String, prefixQuery: String): PagingSource<Int, MediaEntity>
 
     @Query("SELECT * FROM media WHERE serverId = :serverId AND type = 'LIVE' AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC LIMIT 1")
     suspend fun lastPlayedLive(serverId: Long): MediaEntity?

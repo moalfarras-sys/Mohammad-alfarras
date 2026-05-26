@@ -156,7 +156,7 @@ private const val LIVE_TARGET_OFFSET_MS = 12_000L
 private const val LIVE_MIN_OFFSET_MS = 8_000L
 private const val LIVE_MAX_OFFSET_MS = 30_000L
 private const val LIVE_STALL_RECOVERY_LIMIT = 3
-private const val LIBVLC_LIVE_CACHE_MS = 6_000
+private const val LIBVLC_LIVE_CACHE_MS = 1_800
 private const val LIBVLC_FILE_CACHE_MS = 2_500
 
 enum class LiveQualityMode { AUTO, BEST, ULTRA, STABLE }
@@ -179,7 +179,7 @@ private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
 
 private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: PerformancePolicy? = null): InternalPlaybackEngine {
     val uri = request.uri.lowercase(Locale.US)
-    if (uri.startsWith("rtsp://")) return InternalPlaybackEngine.LIBVLC
+    if (uri.startsWith("rtsp://") && isLibVlcSafeOnThisDevice()) return InternalPlaybackEngine.LIBVLC
     return when (request.mimeType) {
         MimeTypes.APPLICATION_M3U8,
         MimeTypes.APPLICATION_MPD,
@@ -251,6 +251,7 @@ fun PlayerScreen(
     var liveSwitchLocked by remember(item.id) { mutableStateOf(false) }
     var lastLiveSwitchAt by remember { mutableLongStateOf(0L) }
     var liveLastPlayingAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
+    var liveReadyWithoutVideoAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
     var liveConsecutiveFailures by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     var triedMedia3ForLive by remember(item.id, streamRequest.uri) {
         mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.MEDIA3)
@@ -331,6 +332,7 @@ fun PlayerScreen(
                 isBuffering = state == Player.STATE_BUFFERING || state == Player.STATE_IDLE
                 if (state == Player.STATE_READY) {
                     liveLastPlayingAt = System.currentTimeMillis()
+                    liveReadyWithoutVideoAt = if (isLive) System.currentTimeMillis() else 0L
                     liveConsecutiveFailures = 0
                     liveSwitchLocked = false
                     playbackError = null
@@ -338,7 +340,7 @@ fun PlayerScreen(
             },
             onPlayerError = { error ->
                 liveSwitchLocked = false
-                if (isLive && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
+                if (isLive && isLibVlcSafeOnThisDevice() && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
                     triedLibVlcForLive = true
                     forceLibVlcForLive = true
                     playbackError = null
@@ -378,6 +380,9 @@ fun PlayerScreen(
             currentPosition = exoPlayer.currentPosition.coerceAtLeast(0)
             duration = exoPlayer.duration.coerceAtLeast(duration)
             playbackSignal = playbackSignal(exoPlayer.videoFormat, performanceStatus)
+            if (isLive && exoPlayer.videoFormat != null) {
+                liveReadyWithoutVideoAt = 0L
+            }
             if (showControls && isPlaying && System.currentTimeMillis() - lastInteraction > if (isLive) 3200 else 5000) {
                 showControls = false
             }
@@ -432,7 +437,7 @@ fun PlayerScreen(
 
     LaunchedEffect(liveSwitchLocked, item.id, streamRequest.uri) {
         if (liveSwitchLocked) {
-            delay(3_500)
+            delay(1_200)
             liveSwitchLocked = false
         }
     }
@@ -446,9 +451,9 @@ fun PlayerScreen(
 
     LaunchedEffect(isLive, isBuffering, playbackError, item.id, streamRequest.uri, useLibVlc, liveConsecutiveFailures) {
         if (!isLive || !isBuffering || playbackError != null) return@LaunchedEffect
-        delay(if (performancePolicy.isPerformance) 16_000 else 22_000)
+        delay(if (performancePolicy.isPerformance) 6_000 else 8_000)
         if (isBuffering && playbackError == null) {
-            if (isLive && !useLibVlc && !triedLibVlcForLive) {
+            if (isLive && !useLibVlc && isLibVlcSafeOnThisDevice() && !triedLibVlcForLive) {
                 triedLibVlcForLive = true
                 internalEngine = InternalPlaybackEngine.LIBVLC
             } else if (useLibVlc && liveConsecutiveFailures < LIVE_STALL_RECOVERY_LIMIT) {
@@ -463,6 +468,16 @@ fun PlayerScreen(
                 isBuffering = false
                 playbackError = "The stream is unstable or taking too long to recover. Try again or switch quality/player."
             }
+        }
+    }
+
+    LaunchedEffect(isLive, liveReadyWithoutVideoAt, item.id, streamRequest.uri, useLibVlc) {
+        if (!isLive || useLibVlc || liveReadyWithoutVideoAt <= 0L) return@LaunchedEffect
+        delay(5_000)
+        if (liveReadyWithoutVideoAt > 0L && playbackError == null) {
+            playbackError = "This channel opened but did not deliver a video frame. Try the next channel or use another quality/player."
+            isBuffering = false
+            liveSwitchLocked = false
         }
     }
 
@@ -493,10 +508,10 @@ fun PlayerScreen(
     }
 
     fun switchTo(target: AppMediaItem?) {
-        if (target == null || target.id == item.id || liveSwitchLocked) return
+        if (target == null || target.samePlayable(item) || liveSwitchLocked) return
         if (target.type == ContentType.LIVE) {
             val now = System.currentTimeMillis()
-            if (now - lastLiveSwitchAt < 250L) return
+            if (now - lastLiveSwitchAt < 160L) return
             lastLiveSwitchAt = now
             liveSwitchLocked = true
             isBuffering = true
@@ -554,7 +569,9 @@ fun PlayerScreen(
         }
     }
 
-    val currentIndex = remember(item.id, relatedItems) { relatedItems.indexOfFirst { it.id == item.id && it.type == item.type } }
+    val currentIndex = remember(item.id, item.type, item.serverId, relatedItems) {
+        relatedItems.indexOfFirst { it.samePlayable(item) }
+    }
     val previousItem = liveZapTargetIndex(currentIndex, -1, relatedItems.size)?.let(relatedItems::get)
     val nextItem = liveZapTargetIndex(currentIndex, 1, relatedItems.size)?.let(relatedItems::get)
     val liveZapCategories = remember(relatedItems) { relatedItems.toLiveZapCategories() }
@@ -567,8 +584,8 @@ fun PlayerScreen(
         }
         filtered.ifEmpty { relatedItems }
     }
-    val displayedCurrentIndex = remember(item.id, item.categoryId, displayedLiveZapItems) {
-        displayedLiveZapItems.indexOfFirst { it.id == item.id && it.serverId == item.serverId && it.type == item.type }
+    val displayedCurrentIndex = remember(item.id, item.type, item.serverId, item.categoryId, displayedLiveZapItems) {
+        displayedLiveZapItems.indexOfFirst { it.samePlayable(item) }
     }
     var liveZapIndex by remember(item.id, liveZapCategoryId, displayedLiveZapItems.size) {
         mutableIntStateOf(displayedCurrentIndex.coerceAtLeast(0))
@@ -630,7 +647,7 @@ fun PlayerScreen(
                         Key.Enter, Key.DirectionCenter -> {
                             if (showLiveZap) {
                                 displayedLiveZapItems.getOrNull(liveZapIndex)?.let { selected ->
-                                    if (selected.id != item.id || selected.serverId != item.serverId) switchTo(selected)
+                                    if (!selected.samePlayable(item)) switchTo(selected)
                                 }
                                 showLiveZap = false
                                 showMiniInfo = true
@@ -800,14 +817,16 @@ fun PlayerScreen(
                                 Spacer(Modifier.width(4.dp))
                                 Text(strings.retry, color = Color.Black, fontSize = 13.sp)
                             }
-                            OutlinedButton(onClick = { route = "vlc" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("VLC", fontSize = 12.sp) }
+                            if (isLibVlcSafeOnThisDevice()) {
+                                OutlinedButton(onClick = { route = "vlc" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("VLC", fontSize = 12.sp) }
+                            }
                             if (isLive) {
                                 OutlinedButton(
                                     onClick = {
                                         playbackError = null
                                         isBuffering = true
                                         route = "auto"
-                                        internalEngine = InternalPlaybackEngine.LIBVLC
+                                        internalEngine = if (isLibVlcSafeOnThisDevice()) InternalPlaybackEngine.LIBVLC else InternalPlaybackEngine.MEDIA3
                                     },
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                 ) { Text("Internal", fontSize = 12.sp) }
@@ -1845,6 +1864,7 @@ private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVi
 private fun playbackSignal(format: Format?, fallback: String = ""): String {
     if (format == null) return fallback
     val quality = when {
+        format.width >= 7680 || format.height >= 4320 -> "8K"
         format.width >= 3840 || format.height >= 2160 -> "4K"
         format.width >= 1920 || format.height >= 1080 -> "FHD"
         format.width >= 1280 || format.height >= 720 -> "HD"
@@ -1877,6 +1897,15 @@ private fun liveUltraMaxVideoHeight(policyHeight: Int): Int = when {
     policyHeight <= 2160 -> 2160
     else -> 4320
 }
+
+private fun isLibVlcSafeOnThisDevice(): Boolean {
+    // LibVLC 3.6 native x86 crashes on Android TV API 25 emulator with TS live streams.
+    // Real TV devices are ARM; keep VLC fallback there and avoid fatal native crashes on x86 QA devices.
+    return Build.SUPPORTED_ABIS.none { it.equals("x86", ignoreCase = true) || it.equals("x86_64", ignoreCase = true) }
+}
+
+private fun AppMediaItem.samePlayable(other: AppMediaItem): Boolean =
+    id == other.id && type == other.type && serverId == other.serverId
 
 private fun Int.floorMod(size: Int): Int = ((this % size) + size) % size
 
@@ -1918,14 +1947,14 @@ private fun buildPlayer(
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
     // Receiver-style live: still quick, but enough buffer for real-world IPTV jitter.
-    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 10_000 else 12_000)
-    val liveMaxBufferMs = if (performancePolicy.isPerformance) 36_000 else 60_000
+    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 4_000 else 6_000)
+    val liveMaxBufferMs = if (performancePolicy.isPerformance) 18_000 else 30_000
     val liveLoadControl = DefaultLoadControl.Builder()
         .setBufferDurationsMs(
             liveMinBufferMs,
             liveMaxBufferMs,
-            if (performancePolicy.isPerformance) 3_000 else 4_000,
-            if (performancePolicy.isPerformance) 7_000 else 9_000,
+            if (performancePolicy.isPerformance) 650 else 900,
+            if (performancePolicy.isPerformance) 1_500 else 2_200,
         )
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
@@ -1959,6 +1988,7 @@ private fun buildPlayer(
             .setAllowVideoMixedMimeTypeAdaptiveness(true)
             .setAllowAudioMixedMimeTypeAdaptiveness(true)
             .setMaxVideoSize(liveVideoWidth, liveVideoHeight)
+            .setExceedVideoConstraintsIfNecessary(false)
         if (performancePolicy.isPerformance || isLive) {
             builder
                 .setPreferredVideoMimeTypes(MimeTypes.VIDEO_H264, MimeTypes.VIDEO_H265, MimeTypes.VIDEO_MP4V)

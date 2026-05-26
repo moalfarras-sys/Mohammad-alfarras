@@ -168,7 +168,14 @@ class IptvRepository(
 
     fun search(serverId: Long, query: String): Flow<PagingData<MediaItem>> = Pager(
         config = PagingConfig(pageSize = 50, enablePlaceholders = false),
-        pagingSourceFactory = { database.mediaDao().searchPaging(serverId, "%${query.trim()}%") },
+        pagingSourceFactory = {
+            val normalized = query.trim().escapeLike()
+            database.mediaDao().searchPaging(
+                serverId = serverId,
+                containsQuery = "%$normalized%",
+                prefixQuery = "$normalized%",
+            )
+        },
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
@@ -1552,6 +1559,16 @@ private fun String.withQueryParameter(key: String, value: String): String {
 
 private fun String.urlEncode(): String =
     URLEncoder.encode(this, StandardCharsets.UTF_8.name())
+
+private fun String.escapeLike(): String =
+    buildString(length) {
+        for (char in this@escapeLike) {
+            when (char) {
+                '\\', '%', '_' -> append('\\').append(char)
+                else -> append(char)
+            }
+        }
+    }
 
 private fun String.parseInstantOr(fallback: Long): Long =
     runCatching { Instant.parse(this).toEpochMilli() }.getOrDefault(fallback)

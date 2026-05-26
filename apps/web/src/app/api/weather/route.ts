@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
 
-const API_KEY = process.env.WEATHER_API_KEY;
+import { readWidgetProviderSettings } from "@/lib/widget-provider-settings";
+
 const DEFAULT_CITY = "Berlin";
 
 export async function GET(request: Request) {
-  if (!API_KEY) {
+  const settings = await readWidgetProviderSettings();
+  const apiKey = settings.weatherApiKey;
+  if (!apiKey) {
     return NextResponse.json({ error: "not_configured" }, { status: 200 });
   }
 
   const { searchParams } = new URL(request.url);
-  const city = searchParams.get("city") || DEFAULT_CITY;
+  const city = searchParams.get("city") || settings.defaultWeatherCity || DEFAULT_CITY;
 
   try {
     const res = await fetch(
-      `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${encodeURIComponent(city)}&aqi=no`,
+      `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(city)}&aqi=no`,
       { next: { revalidate: 600 } },
     );
 

@@ -16,6 +16,7 @@ import {
   saveAppProduct,
   saveAppRelease,
   saveRuntimeConfig,
+  saveWidgetProviderSettings,
   saveAppScreenshot,
   updateActivationRequestStatus,
   updateDeviceStatus,
@@ -440,6 +441,14 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   const footballLeagueIds = optionalNumberList(formData, "footballLeagueIds");
   const footballLeagueKeywords = optionalLineList(formData, "footballLeagueKeywords");
   const footballNewsMessage = String(formData.get("footballNewsMessage") ?? "").trim();
+  const homeNotificationTitle = String(formData.get("homeNotificationTitle") ?? "").trim();
+  const homeNotificationMessage = String(formData.get("homeNotificationMessage") ?? "").trim();
+  const homeNotificationStartDate = String(formData.get("homeNotificationStartDate") ?? "").trim();
+  const homeNotificationCtaLabel = String(formData.get("homeNotificationCtaLabel") ?? "").trim();
+  const homeNotificationCtaUrl = String(formData.get("homeNotificationCtaUrl") ?? "").trim();
+  const campaignPromoTitle = String(formData.get("campaignPromoTitle") ?? "").trim();
+  const campaignPromoMessage = String(formData.get("campaignPromoMessage") ?? "").trim();
+  const campaignPromoUrl = String(formData.get("campaignPromoUrl") ?? "").trim();
   const updateDownloadUrl = String(formData.get("updateDownloadUrl") ?? "").trim();
   const updateChecksumSha256 = String(formData.get("updateChecksumSha256") ?? "").trim();
   const updateReleaseNotes = String(formData.get("updateReleaseNotes") ?? "").trim();
@@ -468,6 +477,23 @@ export async function saveRuntimeConfigAction(formData: FormData) {
       allowWeatherFallback: formData.get("allowWeatherFallback") === "on",
       weatherBackgroundMode: String(formData.get("weatherBackgroundMode") ?? "").trim() || undefined,
       weatherBackgroundUrl: String(formData.get("weatherBackgroundUrl") ?? "").trim() || undefined,
+      homeNotification: {
+        mode: String(formData.get("homeNotificationMode") ?? "auto") as "auto" | "on" | "off",
+        type: String(formData.get("homeNotificationType") ?? "world_cup_2026").trim() || "world_cup_2026",
+        ...(homeNotificationTitle ? { title: homeNotificationTitle } : {}),
+        ...(homeNotificationMessage ? { message: homeNotificationMessage } : {}),
+        ...(homeNotificationStartDate ? { startDate: homeNotificationStartDate } : {}),
+        ...(homeNotificationCtaLabel ? { ctaLabel: homeNotificationCtaLabel } : {}),
+        ...(homeNotificationCtaUrl ? { ctaUrl: homeNotificationCtaUrl } : {}),
+      },
+      campaignWidgets: {
+        worldCup: formData.get("campaignWorldCup") === "on",
+        liveSports: formData.get("campaignLiveSports") === "on",
+        announcement: formData.get("campaignAnnouncement") === "on",
+        ...(campaignPromoTitle ? { promoTitle: campaignPromoTitle } : {}),
+        ...(campaignPromoMessage ? { promoMessage: campaignPromoMessage } : {}),
+        ...(campaignPromoUrl ? { promoUrl: campaignPromoUrl } : {}),
+      },
       widgets: {
         weather: formData.get("weather") === "on",
         football: formData.get("football") === "on",
@@ -489,6 +515,24 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   );
   revalidateAll();
   appRedirect("runtime_config", productSlug);
+}
+
+export async function saveWidgetProviderSettingsAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const productSlug = formProductSlug(formData);
+  await saveWidgetProviderSettings({
+    weatherApiKey: String(formData.get("weatherApiKey") ?? "").trim() || undefined,
+    sportmonksToken: String(formData.get("sportmonksToken") ?? "").trim() || undefined,
+    apiFootballKey: String(formData.get("apiFootballKey") ?? "").trim() || undefined,
+    rapidApiFootballKey: String(formData.get("rapidApiFootballKey") ?? "").trim() || undefined,
+    defaultWeatherCity: String(formData.get("defaultWeatherCity") ?? "").trim() || undefined,
+    sportmonksResultsRoundId: String(formData.get("sportmonksResultsRoundId") ?? "").trim() || undefined,
+    footballLeagueIds: optionalNumberList(formData, "providerFootballLeagueIds"),
+    footballMaxMatches: optionalNumber(formData, "providerFootballMaxMatches"),
+    footballMinPriority: optionalNumber(formData, "providerFootballMinPriority"),
+  });
+  revalidateAll();
+  appRedirect("widget_providers", productSlug);
 }
 
 /* ───────────────────────── Website ───────────────────────── */

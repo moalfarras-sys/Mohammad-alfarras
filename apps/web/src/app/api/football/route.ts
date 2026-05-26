@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
+import { readWidgetProviderSettings } from "@/lib/widget-provider-settings";
 
-const SPORTMONKS_TOKEN = process.env.SPORTMONKS_TOKEN;
 const SPORTMONKS_BASE_URL = "https://api.sportmonks.com/v3/football";
-const SPORTMONKS_RESULTS_ROUND_ID = process.env.SPORTMONKS_RESULTS_ROUND_ID;
-const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY || process.env.RAPIDAPI_FOOTBALL_KEY;
 const API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io";
 const THE_SPORTS_DB_BASE_URL = "https://www.thesportsdb.com/api/v1/json/123";
 const TOP_LEAGUE_IDS = [39, 140, 135, 78, 61];
@@ -17,6 +15,10 @@ type FootballRuntimeConfig = {
   priorityKeywords: string[];
   newsMessage: string;
   maxMatches: number;
+  sportmonksToken?: string;
+  sportmonksResultsRoundId?: string;
+  apiFootballKey?: string;
+  minPriority: number;
 };
 
 type SportMonksParticipant = {
@@ -109,6 +111,10 @@ const defaultFootballConfig: FootballRuntimeConfig = {
   priorityKeywords: ["world cup", "fifa", "champions league", "europa", "premier", "la liga", "serie a", "bundesliga", "ligue 1"],
   newsMessage: "",
   maxMatches: 20,
+  sportmonksToken: process.env.SPORTMONKS_TOKEN,
+  sportmonksResultsRoundId: process.env.SPORTMONKS_RESULTS_ROUND_ID,
+  apiFootballKey: process.env.API_FOOTBALL_KEY || process.env.RAPIDAPI_FOOTBALL_KEY,
+  minPriority: 70,
 };
 
 function competitionPriority(leagueName: string, leagueId: number | undefined, config: FootballRuntimeConfig) {
@@ -168,7 +174,7 @@ function inferElapsed(fixture: SportMonksFixture) {
 
 function isPriorityMatch(match: Match, config: FootballRuntimeConfig) {
   const league = match.league.toLowerCase();
-  return match.priority >= 70 || config.priorityKeywords.some((keyword) => league.includes(keyword.toLowerCase()));
+  return match.priority >= config.minPriority || config.priorityKeywords.some((keyword) => league.includes(keyword.toLowerCase()));
 }
 
 function mapFixture(fixture: SportMonksFixture, config: FootballRuntimeConfig): Match {
@@ -213,7 +219,14 @@ function mapApiFootballFixture(item: ApiFootballFixture, config: FootballRuntime
 }
 
 async function readFootballRuntimeConfig(): Promise<FootballRuntimeConfig> {
-  if (!hasSupabasePublicEnv()) return defaultFootballConfig;
+  const providerSettings = await readWidgetProviderSettings();
+  const providerOverlay = {
+    sportmonksToken: providerSettings.sportmonksToken,
+    sportmonksResultsRoundId: providerSettings.sportmonksResultsRoundId,
+    apiFootballKey: providerSettings.apiFootballKey || providerSettings.rapidApiFootballKey,
+    minPriority: providerSettings.footballMinPriority,
+  };
+  if (!hasSupabasePublicEnv()) return { ...defaultFootballConfig, ...providerOverlay };
   try {
     const supabase = createSupabaseDataClient();
     const { data } = await supabase.from("app_settings").select("value").eq("key", "moplayer2_public_config").maybeSingle();
@@ -235,15 +248,16 @@ async function readFootballRuntimeConfig(): Promise<FootballRuntimeConfig> {
       priorityKeywords: priorityKeywords.length ? priorityKeywords : defaultFootballConfig.priorityKeywords,
       newsMessage: String(value.footballNewsMessage ?? "").trim(),
       maxMatches: Number.isFinite(maxMatches) ? Math.min(Math.max(maxMatches, 1), 20) : defaultFootballConfig.maxMatches,
+      ...providerOverlay,
     };
   } catch {
-    return defaultFootballConfig;
+    return { ...defaultFootballConfig, ...providerOverlay };
   }
 }
 
-async function fetchSportMonks(path: string) {
+async function fetchSportMonks(path: string, token: string) {
   const separator = path.includes("?") ? "&" : "?";
-  const response = await fetch(`${SPORTMONKS_BASE_URL}${path}${separator}api_token=${SPORTMONKS_TOKEN}`, {
+  const response = await fetch(`${SPORTMONKS_BASE_URL}${path}${separator}api_token=${token}`, {
     next: { revalidate: 90 },
   });
 
@@ -254,9 +268,9 @@ async function fetchSportMonks(path: string) {
   return response.json();
 }
 
-async function fetchApiFootball(path: string) {
+async function fetchApiFootball(path: string, apiKey: string) {
   const response = await fetch(`${API_FOOTBALL_BASE_URL}${path}`, {
-    headers: { "x-apisports-key": API_FOOTBALL_KEY ?? "" },
+    headers: { "x-apisports-key": apiKey },
     next: { revalidate: 120 },
   });
 
@@ -404,17 +418,18 @@ async function getTheSportsDbMatches(config: FootballRuntimeConfig) {
 }
 
 async function getApiFootballMatches(config: FootballRuntimeConfig) {
-  if (!API_FOOTBALL_KEY) return null;
+  const apiFootballKey = config.apiFootballKey;
+  if (!apiFootballKey) return null;
 
-  const livePayload = await fetchApiFootball("/fixtures?live=all");
+  const livePayload = await fetchApiFootball("/fixtures?live=all", apiFootballKey);
   const liveMatches = ((livePayload.response ?? []) as ApiFootballFixture[])
     .map((item) => mapApiFootballFixture(item, config))
     .filter((match) => isPriorityMatch(match, config));
 
   const [previousPayload, todayPayload, nextPayload] = await Promise.all([
-    fetchApiFootball(`/fixtures?date=${isoDate(-1)}`),
-    fetchApiFootball(`/fixtures?date=${isoDate(0)}`),
-    fetchApiFootball(`/fixtures?date=${isoDate(1)}`),
+    fetchApiFootball(`/fixtures?date=${isoDate(-1)}`, apiFootballKey),
+    fetchApiFootball(`/fixtures?date=${isoDate(0)}`, apiFootballKey),
+    fetchApiFootball(`/fixtures?date=${isoDate(1)}`, apiFootballKey),
   ]);
 
   const previousDay = ((previousPayload.response ?? []) as ApiFootballFixture[])
@@ -449,8 +464,8 @@ async function getApiFootballMatches(config: FootballRuntimeConfig) {
     const season = apiFootballSeason();
     const leaguePayloads = await Promise.allSettled(
       TOP_LEAGUE_IDS.flatMap((leagueId) => [
-        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&last=3`),
-        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&next=3`),
+        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&last=3`, apiFootballKey),
+        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&next=3`, apiFootballKey),
       ]),
     );
     const leagueFixtures = leaguePayloads.flatMap((result) =>
@@ -500,7 +515,7 @@ export async function GET() {
     return NextResponse.json({ primaryMatch: null, matches: [], recentResults: [], upcomingFixtures: [], source: "disabled", newsMessage: config.newsMessage });
   }
 
-  if (!SPORTMONKS_TOKEN || config.providerMode === "free") {
+  if (!config.sportmonksToken || config.providerMode === "free") {
     try {
       if (config.providerMode === "paid") throw new Error("paid_provider_required");
       const fallback = await getApiFootballMatches(config);
@@ -524,14 +539,16 @@ export async function GET() {
   try {
     const livePayload = await fetchSportMonks(
       "/livescores/inplay?include=participants;scores;periods;league.country;round",
+      config.sportmonksToken,
     );
 
     const liveMatches = ((livePayload.data ?? []) as SportMonksFixture[]).map((fixture) => mapFixture(fixture, config)).filter((match) => isPriorityMatch(match, config));
 
     let fallbackMatches: Match[] = [];
-    if (liveMatches.length === 0 && SPORTMONKS_RESULTS_ROUND_ID) {
+    if (liveMatches.length === 0 && config.sportmonksResultsRoundId) {
       const resultsPayload = await fetchSportMonks(
-        `/rounds/${SPORTMONKS_RESULTS_ROUND_ID}?include=fixtures.participants;fixtures.scores;league.country`,
+        `/rounds/${config.sportmonksResultsRoundId}?include=fixtures.participants;fixtures.scores;league.country`,
+        config.sportmonksToken,
       );
       fallbackMatches = (((resultsPayload.data?.fixtures ?? []) as SportMonksFixture[]) || [])
         .map((fixture) => mapFixture(fixture, config))

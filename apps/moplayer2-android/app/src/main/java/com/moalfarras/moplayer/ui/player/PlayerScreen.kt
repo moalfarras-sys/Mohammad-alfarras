@@ -287,6 +287,8 @@ fun PlayerScreen(
     var forceLibVlcForLive by remember(item.id, streamRequest.uri) {
         mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.LIBVLC)
     }
+    var triedLibVlcForVod by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    var forceLibVlcForVod by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var triedCompatibleLiveAlternative by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var resolvedLiveRequest by remember(item.id, streamRequest.uri) { mutableStateOf<StreamRequest?>(null) }
     var liveRedirectResolved by remember(item.id, streamRequest.uri) {
@@ -398,7 +400,10 @@ fun PlayerScreen(
         return true
     }
 
-    val useLibVlc = route == "auto" && (internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForLive)
+    val useLibVlc = route == "auto" && when {
+        isLive -> internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForLive
+        else -> internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForVod
+    }
     val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, liveRedirectResolved, useLibVlc, performancePolicy.mode) {
         buildPlayer(
             context = context,
@@ -451,6 +456,18 @@ fun PlayerScreen(
                     forceLibVlcForLive = true
                     playbackError = null
                     isBuffering = true
+                    internalEngine = InternalPlaybackEngine.LIBVLC
+                    return@buildPlayer
+                }
+                if (!isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForVod) {
+                    triedLibVlcForVod = true
+                    forceLibVlcForVod = true
+                    route = "auto"
+                    playbackError = null
+                    isBuffering = true
+                    vodFirstFrameRendered = false
+                    vodReadyAt = 0L
+                    vodOpeningGuard = true
                     internalEngine = InternalPlaybackEngine.LIBVLC
                     return@buildPlayer
                 }
@@ -591,8 +608,18 @@ fun PlayerScreen(
         if (isLive || vodFirstFrameRendered || vodReadyAt <= 0L) return@LaunchedEffect
         delay(8_000)
         if (vodReadyAt > 0L && !vodFirstFrameRendered && playbackError == null) {
-            playbackError = "The video connected but could not render any frames. Try again, switch quality, or use an external player."
-            isBuffering = false
+            if (isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForVod) {
+                triedLibVlcForVod = true
+                forceLibVlcForVod = true
+                route = "auto"
+                internalEngine = InternalPlaybackEngine.LIBVLC
+                isBuffering = true
+                vodReadyAt = 0L
+                vodOpeningGuard = true
+            } else {
+                playbackError = "The video connected but could not render any frames. Try again, switch quality, or use an external player."
+                isBuffering = false
+            }
         }
     }
 
@@ -688,6 +715,10 @@ fun PlayerScreen(
 
     fun seekVodBy(deltaMs: Long, labelSeconds: Int) {
         if (isLive) return
+        if (useLibVlc) {
+            wakeControls()
+            return
+        }
         // Accelerate consecutive seeks: holding LEFT/RIGHT or hammering FF/RW jumps farther.
         // Streak resets after 700ms of idle. Multipliers: 1x → 2x → 4x → 8x (capped).
         val now = System.currentTimeMillis()
@@ -712,6 +743,11 @@ fun PlayerScreen(
 
     fun toggleVodPlayPause() {
         if (isLive) return
+        if (useLibVlc) {
+            libVlcPlayPauseNonce++
+            wakeControls()
+            return
+        }
         if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
         wakeControls()
     }
@@ -732,6 +768,9 @@ fun PlayerScreen(
             triedMedia3ForLive = !useLibVlc
             triedLibVlcForLive = useLibVlc
             forceLibVlcForLive = useLibVlc
+        } else {
+            triedLibVlcForVod = useLibVlc
+            forceLibVlcForVod = useLibVlc
         }
         if (useLibVlc) {
             libVlcRetryNonce++
@@ -1024,23 +1063,29 @@ fun PlayerScreen(
                 resizeMode = resizeModes[resizeIndex],
                 retryNonce = libVlcRetryNonce,
                 onBuffering = { buffering ->
-                    isBuffering = buffering || (isLive && !liveFirstFrameRendered)
+                    isBuffering = buffering || (if (isLive) !liveFirstFrameRendered else !vodFirstFrameRendered)
                 },
                 onPlaying = {
                     isPlaying = true
-                    isBuffering = !liveFirstFrameRendered
+                    isBuffering = if (isLive) !liveFirstFrameRendered else !vodFirstFrameRendered
                     liveLastPlayingAt = System.currentTimeMillis()
                     liveConsecutiveFailures = 0
                     liveSwitchLocked = false
                     playbackError = null
-                    playbackSignal = "VLC · Live"
+                    playbackSignal = if (isLive) "VLC - Live" else "VLC - Video"
                 },
                 onVideoOutput = {
-                    liveFirstFrameRendered = true
-                    liveReadyWithoutVideoAt = 0L
+                    if (isLive) {
+                        liveFirstFrameRendered = true
+                        liveReadyWithoutVideoAt = 0L
+                    } else {
+                        vodFirstFrameRendered = true
+                        vodReadyAt = 0L
+                        vodOpeningGuard = false
+                    }
                     isBuffering = false
                     playbackError = null
-                    playbackSignal = "VLC Â· Live"
+                    playbackSignal = if (isLive) "VLC - Live" else "VLC - Video"
                 },
                 onPaused = { isPlaying = false },
                 onError = ::handleLibVlcLiveError,
@@ -2724,6 +2769,7 @@ internal fun shouldFallbackToLibVlc(error: PlaybackException): Boolean {
 
 internal fun shouldFallbackToLibVlc(errorCode: Int, cause: Throwable?): Boolean {
     return cause is ParserException ||
+        cause is UnrecognizedInputFormatException ||
         errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
         errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ||
         errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||

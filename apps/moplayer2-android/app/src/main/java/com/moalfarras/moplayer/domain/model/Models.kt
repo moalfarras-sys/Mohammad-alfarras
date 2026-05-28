@@ -142,7 +142,7 @@ data class AppSettings(
     val lastSection: String = "HOME",
     val lastFocusState: String = "",
     val lastCategoryState: String = "",
-    val libraryMode: LibraryMode = LibraryMode.MERGED,
+    val libraryMode: LibraryMode = LibraryMode.ACTIVE_SOURCE,
     /** Home notification: "auto" | "on" | "off" — admin-overridable via remote config. */
     val homeNotificationMode: String = "auto",
     val homeNotificationType: String = "world_cup_2026",

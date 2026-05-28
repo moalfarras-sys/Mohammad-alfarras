@@ -66,7 +66,7 @@ class AppSettingsRepository(private val context: Context) {
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
         val storedPlayer = prefs[playerKey] ?: "auto"
         val storedSort = prefs[sortKey] ?: SortOption.SERVER_ORDER.name
-        val storedLibraryMode = prefs[libraryModeKey] ?: LibraryMode.MERGED.name
+        val storedLibraryMode = prefs[libraryModeKey] ?: LibraryMode.ACTIVE_SOURCE.name
         AppSettings(
             previewEnabled = prefs[previewKey] ?: true,
             accentColor = prefs[accentKey] ?: 0xFFFF9248,
@@ -96,7 +96,7 @@ class AppSettingsRepository(private val context: Context) {
             lastSection = prefs[lastSectionKey] ?: "HOME",
             lastFocusState = prefs[lastFocusStateKey].orEmpty(),
             lastCategoryState = prefs[lastCategoryStateKey].orEmpty(),
-            libraryMode = runCatching { LibraryMode.valueOf(storedLibraryMode) }.getOrDefault(LibraryMode.MERGED),
+            libraryMode = runCatching { LibraryMode.valueOf(storedLibraryMode) }.getOrDefault(LibraryMode.ACTIVE_SOURCE),
             homeNotificationMode = prefs[homeNotificationModeKey] ?: prefs[legacyWorldCupModeKey] ?: "auto",
             homeNotificationType = prefs[homeNotificationTypeKey] ?: "world_cup_2026",
             homeNotificationTitle = prefs[homeNotificationTitleKey].orEmpty(),

@@ -1089,8 +1089,8 @@ private fun LibraryModeCard(
             SectionHeader("Library mode")
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 listOf(
-                    LibraryMode.MERGED to "All playlists",
                     LibraryMode.ACTIVE_SOURCE to "Active account",
+                    LibraryMode.MERGED to "All playlists",
                 ).forEach { (mode, label) ->
                     val active = selected == mode
                     FocusGlow(cornerRadius = 12.dp, onClick = { onLibraryMode(mode) }, modifier = Modifier.weight(1f)) {

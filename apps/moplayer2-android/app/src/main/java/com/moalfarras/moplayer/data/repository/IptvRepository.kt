@@ -69,6 +69,10 @@ class IptvRepository(
         database.serverDao().countServers() > 0
     }
 
+    suspend fun server(serverId: Long): ServerProfile? = withContext(Dispatchers.IO) {
+        database.serverDao().getServer(serverId)?.toDomain()
+    }
+
     fun categories(
         serverId: Long,
         type: ContentType,

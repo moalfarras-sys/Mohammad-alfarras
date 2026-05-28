@@ -251,12 +251,11 @@ class MainViewModel(
     }
 
     val seriesEpisodes: kotlinx.coroutines.flow.Flow<List<MediaItem>> = uiState.flatMapLatest { state ->
-        val server = state.activeServer
         val series = state.seriesDetail
-        if (server == null || series == null || series.seriesId.isBlank()) {
+        if (series == null || series.seriesId.isBlank()) {
             flowOf(emptyList())
         } else {
-            iptv.episodes(server.id, series.seriesId)
+            iptv.episodes(series.serverId, series.seriesId)
         }
     }
 
@@ -356,6 +355,7 @@ class MainViewModel(
                         )
                     }
                     saveLastSection(AppSection.HOME)
+                    settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
                     startBackgroundLibraryRefresh(server)
                     return@runCatching
                 }
@@ -559,6 +559,7 @@ class MainViewModel(
                     )
                 }
                 saveLastSection(AppSection.HOME)
+                settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
                 startBackgroundLibraryRefresh(server)
             }.onFailure { throwable ->
                 internal.update { it.copy(error = throwable.message ?: "M3U login failed", loading = null) }
@@ -576,6 +577,7 @@ class MainViewModel(
             }.onSuccess {
                 internal.update { it.copy(loading = null, section = AppSection.HOME) }
                 saveLastSection(AppSection.HOME)
+                settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
             }
         }
     }
@@ -595,6 +597,7 @@ class MainViewModel(
                     )
                 }
                 saveLastSection(AppSection.HOME)
+                settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
                 startBackgroundLibraryRefresh(server)
             }.onFailure { throwable ->
                 internal.update { it.copy(error = throwable.message ?: "Xtream login failed", loading = null) }
@@ -708,6 +711,7 @@ class MainViewModel(
                             )
                         }
                         saveLastSection(AppSection.HOME)
+                        settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
                         acknowledgeActivatedProfile(profile, imported = true)
                         startBackgroundLibraryRefresh(server)
                     }
@@ -724,6 +728,7 @@ class MainViewModel(
                             )
                         }
                         saveLastSection(AppSection.HOME)
+                        settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
                         acknowledgeActivatedProfile(profile, imported = true)
                         startBackgroundLibraryRefresh(server)
                     }
@@ -1013,6 +1018,7 @@ class MainViewModel(
     fun activateServer(serverId: Long) {
         viewModelScope.launch {
             iptv.activateServer(serverId)
+            settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
             internal.update { it.copy(notice = "Account activated") }
         }
     }
@@ -1092,9 +1098,19 @@ class MainViewModel(
             )
         }
         saveLastSection(AppSection.SERIES)
-        val activeServer = uiState.value.activeServer ?: return
         viewModelScope.launch {
-            runCatching { iptv.refreshSeriesDetails(activeServer, item) }
+            val seriesServer = iptv.server(item.serverId) ?: uiState.value.activeServer
+            if (seriesServer == null) {
+                internal.update { state ->
+                    if (state.seriesDetail.matchesMedia(item)) {
+                        state.copy(seriesDetailsLoading = false, error = "Series source is no longer available")
+                    } else {
+                        state
+                    }
+                }
+                return@launch
+            }
+            runCatching { iptv.refreshSeriesDetails(seriesServer, item) }
                 .onSuccess {
                     internal.update { state ->
                         if (state.seriesDetail.matchesMedia(item)) state.copy(seriesDetailsLoading = false) else state

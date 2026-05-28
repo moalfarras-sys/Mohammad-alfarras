@@ -65,6 +65,28 @@ class M3uParserTest {
     }
 
     @Test
+    fun keepsArabicMoviesAndSeriesOutOfLiveGroups() {
+        val playlist = """
+            #EXTM3U
+            #EXTINF:-1 tvg-name="قناة إخبارية" group-title="أخبار",قناة إخبارية
+            http://example.test/live/news.ts
+            #EXTINF:-1 tvg-name="فيلم تجريبي" group-title="أفلام عربية",فيلم تجريبي
+            http://example.test/movie/100.mp4
+            #EXTINF:-1 tvg-name="مسلسل تجريبي الموسم 1 الحلقة 1" group-title="مسلسلات عربية",مسلسل تجريبي الموسم 1 الحلقة 1
+            http://example.test/series/200.mkv
+        """.trimIndent()
+
+        val parsed = parser.parse(serverId = 10, text = playlist)
+
+        assertEquals(1, parsed.media.count { it.type == ContentType.LIVE })
+        assertEquals(1, parsed.media.count { it.type == ContentType.MOVIE })
+        assertEquals(1, parsed.media.count { it.type == ContentType.SERIES })
+        assertEquals(1, parsed.media.count { it.type == ContentType.EPISODE })
+        assertTrue(parsed.categories.any { it.name == "أفلام عربية" && it.type == ContentType.MOVIE })
+        assertTrue(parsed.categories.any { it.name == "مسلسلات عربية" && it.type == ContentType.SERIES })
+    }
+
+    @Test
     fun parsesLargePlaylistWithoutDroppingItems() {
         val playlist = buildString {
             appendLine("#EXTM3U")

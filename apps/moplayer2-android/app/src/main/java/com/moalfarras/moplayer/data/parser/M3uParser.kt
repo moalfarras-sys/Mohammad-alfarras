@@ -3,8 +3,8 @@ package com.moalfarras.moplayer.data.parser
 import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
-import java.security.MessageDigest
 import java.net.URLEncoder
+import java.security.MessageDigest
 import java.util.Locale
 
 data class ParsedPlaylist(
@@ -19,6 +19,8 @@ class M3uParser {
         Regex("""(?i)(.*?)\s+([0-9]{1,2})x([0-9]{1,3})\b"""),
         Regex("""(?i)(.*?)\s+(?:episode|ep|حلقة|الحلقة)\s*([0-9]{1,3})\b"""),
     )
+    private val seriesTokens = listOf("series", "serie", "tv show", "مسلسل", "مسلسلات")
+    private val movieTokens = listOf("movie", "movies", "vod", "film", "films", "cinema", "فيلم", "افلام", "أفلام", "سينما")
 
     fun parse(serverId: Long, text: String): ParsedPlaylist {
         return parse(serverId, text.lineSequence())
@@ -97,14 +99,14 @@ class M3uParser {
                                         title = cleanSeriesName.ifBlank { title },
                                         streamUrl = "",
                                         posterUrl = info.logo,
-                                    description = info.description.ifBlank { "Series $cleanSeriesName" },
-                                    rating = info.rating,
+                                        description = info.description.ifBlank { "Series $cleanSeriesName" },
+                                        rating = info.rating,
                                         addedAt = 0,
                                         addedAtUnknown = true,
-                                    serverOrder = info.sortOrder ?: media.size,
+                                        serverOrder = info.sortOrder ?: media.size,
                                         seriesId = seriesId,
-                                    genre = info.genre,
-                                    releaseDate = info.releaseDate,
+                                        genre = info.genre,
+                                        releaseDate = info.releaseDate,
                                         rawJson = info.rawJson,
                                     )
                                     seriesMap[seriesId] = parentSeries
@@ -188,10 +190,17 @@ class M3uParser {
     }
 
     private fun inferType(info: ExtInfo, url: String): ContentType {
-        val value = "${info.group} ${info.title} $url".lowercase(Locale.US)
+        val path = url.substringBefore('|').lowercase(Locale.US)
+        val group = info.group.lowercase(Locale.US)
+        val title = info.title.lowercase(Locale.US)
         return when {
-            "/series/" in value || "series" in value || "مسلسل" in value || "مسلسلات" in value -> ContentType.SERIES
-            "/movie/" in value || "movie" in value || "vod" in value || "film" in value || "فيلم" in value || "افلام" in value || "أفلام" in value -> ContentType.MOVIE
+            "/series/" in path ||
+                group.containsAny(seriesTokens) ||
+                episodePatterns.any { it.find(info.title) != null } -> ContentType.SERIES
+            "/movie/" in path ||
+                "/vod/" in path ||
+                group.containsAny(movieTokens) ||
+                (group.isBlank() && title.containsAny(movieTokens)) -> ContentType.MOVIE
             else -> ContentType.LIVE
         }
     }
@@ -227,6 +236,9 @@ class M3uParser {
 
 private fun Map<String, String>.firstValue(vararg keys: String): String =
     keys.firstNotNullOfOrNull { key -> this[key.lowercase(Locale.US)]?.takeIf { it.isNotBlank() } }.orEmpty()
+
+private fun String.containsAny(tokens: List<String>): Boolean =
+    tokens.any { token -> contains(token, ignoreCase = true) }
 
 private fun parseDurationSeconds(raw: String): Long {
     val value = raw.trim()

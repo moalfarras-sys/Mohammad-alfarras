@@ -275,6 +275,38 @@ class MainViewModel(
         applyRemoteRuntimeConfig()
         refreshWidgets()
         viewModelScope.launch {
+            combine(uiState, liveCategories, movieCategories, seriesCategories) { state, live, movies, series ->
+                val categoryIds = when (state.section) {
+                    AppSection.LIVE -> live.mapTo(mutableSetOf()) { it.id }
+                    AppSection.MOVIES -> movies.mapTo(mutableSetOf()) { it.id }
+                    AppSection.SERIES -> series.mapTo(mutableSetOf()) { it.id }
+                    else -> emptySet()
+                }
+                state.section to (state.selectedCategoryId to categoryIds)
+            }.collect { (section, selection) ->
+                val (selectedCategoryId, categoryIds) = selection
+                if (section in listOf(AppSection.LIVE, AppSection.MOVIES, AppSection.SERIES) &&
+                    selectedCategoryId.isNotBlank() &&
+                    categoryIds.isNotEmpty() &&
+                    selectedCategoryId !in categoryIds
+                ) {
+                    lastCategoryBySection[section] = ""
+                    persistNavigation(section, null, "")
+                    internal.update { current ->
+                        if (current.section == section && current.selectedCategoryId == selectedCategoryId) {
+                            current.copy(
+                                selectedCategoryId = "",
+                                focusedItem = null,
+                                restoreFocusItem = null,
+                            )
+                        } else {
+                            current
+                        }
+                    }
+                }
+            }
+        }
+        viewModelScope.launch {
             uiState.collect { state ->
                 if (state.activeServer != null && !restoredLastSection) {
                     restoredLastSection = true
@@ -310,7 +342,28 @@ class MainViewModel(
     }
 
     fun handleIncomingPlaylistUrl(url: String) {
-        loginM3u("Imported IPTV", url)
+        loginJob?.cancel()
+        loginJob = viewModelScope.launch {
+            runCatching {
+                internal.update { it.copy(loading = LoadProgress("Detecting IPTV source", 8, 100), error = null) }
+                iptv.registerXtreamFromPlaylistUrl("Imported IPTV", url)?.let { server ->
+                    internal.update {
+                        it.copy(
+                            loading = null,
+                            section = AppSection.HOME,
+                            error = null,
+                            notice = "Source detected and saved locally. Loading full library in the background.",
+                        )
+                    }
+                    saveLastSection(AppSection.HOME)
+                    startBackgroundLibraryRefresh(server)
+                    return@runCatching
+                }
+                loginM3u("Imported IPTV", url)
+            }.onFailure { throwable ->
+                internal.update { it.copy(error = throwable.message ?: "Could not import this source", loading = null) }
+            }
+        }
     }
 
     fun selectCategory(category: Category) {
@@ -386,7 +439,7 @@ class MainViewModel(
                 }
             }
             else -> viewModelScope.launch {
-                val syncedItem = runCatching { iptv.syncWatchProgressFromCloud(item) }.getOrDefault(item)
+                val syncedItem = item
                 internal.update { current ->
                     val returnSection = if (current.section == AppSection.PLAYER) {
                         current.returnSection.playerReturnSection()
@@ -553,13 +606,11 @@ class MainViewModel(
         loginJob?.cancel()
         loginJob = viewModelScope.launch {
             runCatching {
-                iptv.loginActivationCode(code).collect { progress -> internal.update { it.copy(loading = progress, error = null) } }
+                internal.update { it.copy(loading = LoadProgress("Checking activation code", 5, 100), error = null) }
+                val profile = iptv.resolveActivationProfile(code)
+                startActivatedProfileLogin(profile, cancelExisting = false)
             }.onFailure { throwable ->
                 internal.update { it.copy(error = activationErrorMessage(throwable, "Could not activate this device. Check the code and try again."), loading = null) }
-            }.onSuccess {
-                internal.update { it.copy(loading = null, section = AppSection.HOME) }
-                saveLastSection(AppSection.HOME)
-                refreshEpgSilently()
             }
         }
     }
@@ -634,8 +685,8 @@ class MainViewModel(
         }
     }
 
-    private fun startActivatedProfileLogin(profile: ActivatedProfile) {
-        loginJob?.cancel()
+    private fun startActivatedProfileLogin(profile: ActivatedProfile, cancelExisting: Boolean = true) {
+        if (cancelExisting) loginJob?.cancel()
         loginJob = viewModelScope.launch {
             runCatching {
                 when (profile.kind) {
@@ -728,7 +779,9 @@ class MainViewModel(
         if (checkedStartupRefresh) return
         checkedStartupRefresh = true
         val ageMs = System.currentTimeMillis() - server.lastSyncAt
-        if (server.lastSyncAt <= 0 || ageMs > SMART_REFRESH_INTERVAL_MS) {
+        if (server.lastSyncAt <= 0) {
+            startBackgroundLibraryRefresh(server)
+        } else if (ageMs > SMART_REFRESH_INTERVAL_MS) {
             startBackgroundLibraryRefresh(server)
         }
     }

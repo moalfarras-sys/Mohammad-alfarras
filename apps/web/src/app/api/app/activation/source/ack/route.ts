@@ -57,7 +57,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "Device token was not accepted." }, { status: 401 });
   }
 
-  const now = new Date().toISOString();
   const key = deviceSourceQueueSettingKey(publicDeviceId);
   const { data: queueData, error: queueReadError } = await supabase
     .from("app_settings")
@@ -74,22 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "Pending source was not found." }, { status: 404 });
   }
 
-  const { error } = await supabase.from("app_settings").upsert(
-    {
-      key,
-      value: {
-        ...queue,
-        status,
-        importedAt: status === "imported" ? now : undefined,
-        failedAt: status === "failed" ? now : undefined,
-        failureMessage: status === "failed" ? String(body.message ?? "Import failed").slice(0, 500) : undefined,
-        updatedAt: now,
-      },
-      description: "Server-only encrypted one-device provider source queue.",
-      updated_at: now,
-    },
-    { onConflict: "key" },
-  );
+  const { error } = await supabase.from("app_settings").delete().eq("key", key);
 
   if (error) {
     return NextResponse.json({ ok: false, message: "Could not acknowledge source import." }, { status: 500 });

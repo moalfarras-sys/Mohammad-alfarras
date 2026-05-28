@@ -47,5 +47,10 @@ export async function GET() {
     ready: true,
     retentionDays: 7,
     provider: process.env.AI_ASSISTANT_PROVIDER || (process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : "local"),
+    providers: {
+      openai: Boolean(process.env.OPENAI_API_KEY),
+      gemini: Boolean(process.env.GEMINI_API_KEY),
+      anthropic: Boolean(process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY),
+    },
   });
 }

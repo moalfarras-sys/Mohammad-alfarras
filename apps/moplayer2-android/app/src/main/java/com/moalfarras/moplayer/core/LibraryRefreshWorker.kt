@@ -16,7 +16,7 @@ class LibraryRefreshWorker(
         if (server.lastSyncAt > 0 && ageMs < SMART_REFRESH_INTERVAL_MS) return Result.success()
 
         return runCatching {
-            graph.iptvRepository.refreshServerAccountOnly(server).first { progress ->
+            graph.iptvRepository.refreshServerFast(server).first { progress ->
                 progress.loaded >= progress.total
             }
             Result.success()

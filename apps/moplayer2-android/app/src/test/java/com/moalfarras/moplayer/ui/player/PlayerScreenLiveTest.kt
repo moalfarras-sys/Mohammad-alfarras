@@ -46,6 +46,32 @@ class PlayerScreenLiveTest {
     }
 
     @Test
+    fun redirectedLiveTsToHlsUsesFinalPlaylistMimeType() {
+        val original = parseStreamRequest("https://example.com/live/1.ts")
+        val resolved = redirectedStreamRequest(
+            request = original,
+            finalUri = "https://cdn.example.com/live/1/playlist.m3u8?token=abc",
+            contentType = "application/vnd.apple.mpegurl; charset=utf-8",
+        )
+
+        assertEquals("https://cdn.example.com/live/1/playlist.m3u8?token=abc", resolved.uri)
+        assertEquals(MimeTypes.APPLICATION_M3U8, resolved.mimeType)
+    }
+
+    @Test
+    fun redirectedLiveTsKeepsTransportStreamMimeTypeForTokenizedTs() {
+        val original = parseStreamRequest("https://example.com/live/1.ts")
+        val resolved = redirectedStreamRequest(
+            request = original,
+            finalUri = "https://cdn.example.com/live/1.ts?token=abc",
+            contentType = "video/mp2t",
+        )
+
+        assertEquals("https://example.com/live/1.ts", resolved.uri)
+        assertEquals(MimeTypes.VIDEO_MP2T, resolved.mimeType)
+    }
+
+    @Test
     fun malformedLiveErrorsCanFallbackToLibVlc() {
         assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, null))
     }
@@ -63,5 +89,13 @@ class PlayerScreenLiveTest {
 
         assertTrue(message.contains("Live stream"))
         assertTrue(message.contains("Try again"))
+    }
+
+    @Test
+    fun liveNoVideoFrameMessageExplainsSmartRetry() {
+        val message = liveNoVideoFrameMessage()
+
+        assertTrue(message.contains("did not render video"))
+        assertTrue(message.contains("retried"))
     }
 }

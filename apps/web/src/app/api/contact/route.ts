@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   }
 
   const requestId = crypto.randomUUID();
-  const subject = payload.subject || `${t.subject} — ${payload.name}`;
+  const subject = payload.subject || `${t.subject} - ${payload.name}`;
   const messageForStorage = [
     `[Project type: ${payload.projectType}]`,
     `[Budget range: ${payload.budgetRange}]`,
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     intro: `${payload.name} <${payload.email}>`,
     rows: [
       ["Request", requestId],
-      ["WhatsApp", payload.whatsapp || "—"],
+      ["WhatsApp", payload.whatsapp || "-"],
       ["Project type", payload.projectType],
       ["Budget", payload.budgetRange],
       ["Timeline", payload.timeline],

@@ -3,6 +3,7 @@ package com.moalfarras.moplayer
 import android.os.Bundle
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -77,9 +78,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        // Belt-and-braces against TV idle/screensaver: FLAG_KEEP_SCREEN_ON guarantees the
+        // display stays awake for the entire app session (not just during playback), and
+        // FLAG_TURN_SCREEN_ON wakes the TV if the activity is started while the panel is off.
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
         super.onCreate(savedInstanceState)
         setContent { MoPlayerApp(viewModel = viewModel, finishApp = ::finish) }
         handleIncomingPlaylist(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Re-assert FLAG_KEEP_SCREEN_ON in case any other component cleared it during the
+        // app lifecycle (e.g. external player intent return, system dialogs).
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     override fun onNewIntent(intent: Intent) {

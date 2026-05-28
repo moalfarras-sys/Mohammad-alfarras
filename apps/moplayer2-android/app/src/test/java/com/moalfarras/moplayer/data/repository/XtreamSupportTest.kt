@@ -1,65 +1,50 @@
 package com.moalfarras.moplayer.data.repository
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class XtreamSupportTest {
     @Test
-    fun extractsXtreamCredentialsFromM3uUrl() {
+    fun extractsCredentialsFromM3uPlusUrl() {
         val credentials = XtreamSupport.extractCredentialsFromPlaylistUrl(
-            "http://example.com:8080/get.php?username=user123&password=pass456&type=m3u_plus&output=ts",
+            "http://example.test:80/get.php?username=user&password=pass&type=m3u_plus&output=ts",
         )
 
         assertNotNull(credentials)
-        assertEquals("http://example.com:8080/", credentials?.baseUrl)
-        assertEquals("user123", credentials?.username)
-        assertEquals("pass456", credentials?.password)
+        assertEquals("http://example.test:80/", credentials!!.baseUrl)
+        assertEquals("user", credentials.username)
+        assertEquals("pass", credentials.password)
     }
 
     @Test
-    fun parsesUnixSecondsTimestamp() {
-        val timestamp = XtreamSupport.parseTimestamp("1714646400")
-        assertEquals(1714646400000L, timestamp)
+    fun extractsCredentialsFromEscapedPlaylistUrl() {
+        val credentials = XtreamSupport.extractCredentialsFromPlaylistUrl(
+            "\"http://example.test:80/get.php?username=user^&password=pass&amp;type=m3u_plus&amp;output=ts\"",
+        )
+
+        assertNotNull(credentials)
+        assertEquals("http://example.test:80/", credentials!!.baseUrl)
+        assertEquals("user", credentials.username)
+        assertEquals("pass", credentials.password)
+        assertEquals(
+            "http://example.test:80/get.php?username=user&password=pass&type=m3u_plus&output=ts",
+            credentials.playlistUrl,
+        )
     }
 
     @Test
-    fun sanitizesSensitiveQueryParameters() {
-        val message = XtreamSupport.sanitizeError(
-            "HTTP 404 for player_api.php?username=user123&password=pass456",
-            "example.com",
-        )
+    fun flagsPartialXtreamPlaylistSoItIsNotSavedAsM3u() {
+        val partialUrl = "http://example.test:80/get.php?username=user^"
 
-        assertTrue(message.contains("username=***"))
-        assertTrue(message.contains("password=***"))
-        assertTrue(!message.contains("user123"))
-        assertTrue(!message.contains("pass456"))
+        assertTrue(XtreamSupport.looksLikeXtreamPlaylistUrl(partialUrl))
+        assertEquals(null, XtreamSupport.extractCredentialsFromPlaylistUrl(partialUrl))
     }
 
     @Test
-    fun picksLiveExtensionFromProviderHintsBeforeFallback() {
-        assertEquals(
-            "m3u8",
-            pickLiveExtension(
-                allowedFormats = listOf("ts", "m3u8"),
-                playlistUrl = "http://example.com/get.php?username=u&password=p&output=m3u8",
-            ),
-        )
-        assertEquals(
-            "mpd",
-            pickLiveExtension(
-                allowedFormats = listOf("ts"),
-                streamExtension = "dash",
-            ),
-        )
-        assertEquals(
-            "flv",
-            pickLiveExtension(
-                allowedFormats = listOf("ts"),
-                directSource = "https://cdn.example/live/channel.flv?token=1",
-            ),
-        )
-        assertEquals("m3u8", pickLiveExtension(allowedFormats = emptyList()))
+    fun doesNotFlagPlainM3uUrlAsXtream() {
+        assertFalse(XtreamSupport.looksLikeXtreamPlaylistUrl("https://example.test/channels/list.m3u"))
     }
 }

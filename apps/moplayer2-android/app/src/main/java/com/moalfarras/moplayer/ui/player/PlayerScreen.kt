@@ -1,12 +1,19 @@
 package com.moalfarras.moplayer.ui.player
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.content.pm.PackageManager
+import android.os.PowerManager
+import android.view.LayoutInflater
+import android.view.KeyEvent as AndroidKeyEvent
+import android.view.TextureView
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
@@ -17,6 +24,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
@@ -66,8 +74,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import com.moalfarras.moplayer.ui.components.GlassPanel
@@ -93,6 +99,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
@@ -103,6 +110,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.viewinterop.AndroidView
 import com.moalfarras.moplayer.core.PerformancePolicy
+import com.moalfarras.moplayerpro.R
 import androidx.media3.common.C
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
@@ -116,10 +124,14 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultLivePlaybackSpeedControl
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
+import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.UnrecognizedInputFormatException
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
+import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -138,10 +150,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 import org.videolan.libvlc.LibVLC
 import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
-import org.videolan.libvlc.util.VLCVideoLayout
 import android.os.Build
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -152,12 +164,12 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 private val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
-private const val LIVE_TARGET_OFFSET_MS = 12_000L
-private const val LIVE_MIN_OFFSET_MS = 8_000L
-private const val LIVE_MAX_OFFSET_MS = 30_000L
-private const val LIVE_STALL_RECOVERY_LIMIT = 3
-private const val LIBVLC_LIVE_CACHE_MS = 1_800
-private const val LIBVLC_FILE_CACHE_MS = 2_500
+private const val LIVE_TARGET_OFFSET_MS = 10_000L
+private const val LIVE_MIN_OFFSET_MS = 6_000L
+private const val LIVE_MAX_OFFSET_MS = 25_000L
+private const val LIVE_STALL_RECOVERY_LIMIT = 4
+private const val LIBVLC_LIVE_CACHE_MS = 900
+private const val LIBVLC_FILE_CACHE_MS = 2_000
 
 enum class LiveQualityMode { AUTO, BEST, ULTRA, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
@@ -179,7 +191,12 @@ private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
 
 private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: PerformancePolicy? = null): InternalPlaybackEngine {
     val uri = request.uri.lowercase(Locale.US)
+    // Both LibVLC branches require x86-unsafe build; on x86 emulators (and rare Atom boxes)
+    // we always fall through to Media3 to avoid the AWindow surface-attach crash.
     if (uri.startsWith("rtsp://") && isLibVlcSafeOnThisDevice()) return InternalPlaybackEngine.LIBVLC
+    if (Build.VERSION.SDK_INT < 26 && request.uri.hasLiveTsHint() && isLibVlcSafeOnThisDevice()) {
+        return InternalPlaybackEngine.LIBVLC
+    }
     return when (request.mimeType) {
         MimeTypes.APPLICATION_M3U8,
         MimeTypes.APPLICATION_MPD,
@@ -240,6 +257,8 @@ fun PlayerScreen(
     var playbackError by remember { mutableStateOf<String?>(null) }
     var lastInteraction by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var seekJump by remember { mutableIntStateOf(0) }
+    var lastSeekAt by remember { mutableLongStateOf(0L) }
+    var seekStreak by remember { mutableIntStateOf(0) }
     var resizeIndex by remember { mutableIntStateOf(0) }
     var favoriteMarked by remember(item.id, item.type) { mutableStateOf(item.isFavorite) }
     var liveQualityMode by remember(performancePolicy.mode) {
@@ -252,6 +271,12 @@ fun PlayerScreen(
     var lastLiveSwitchAt by remember { mutableLongStateOf(0L) }
     var liveLastPlayingAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
     var liveReadyWithoutVideoAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
+    var liveFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    var liveOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    // VOD black screen watchdog: track when VOD reaches READY but hasn't rendered first frame
+    var vodReadyAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
+    var vodFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    var vodOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var liveConsecutiveFailures by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     var triedMedia3ForLive by remember(item.id, streamRequest.uri) {
         mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.MEDIA3)
@@ -262,7 +287,22 @@ fun PlayerScreen(
     var forceLibVlcForLive by remember(item.id, streamRequest.uri) {
         mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.LIBVLC)
     }
+    var triedCompatibleLiveAlternative by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    var resolvedLiveRequest by remember(item.id, streamRequest.uri) { mutableStateOf<StreamRequest?>(null) }
+    var liveRedirectResolved by remember(item.id, streamRequest.uri) {
+        mutableStateOf(!isLive || !streamRequest.uri.hasLiveTsHint())
+    }
+    var forceHlsForLiveRedirect by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    val playbackRequest = remember(streamRequest, resolvedLiveRequest, liveRedirectResolved, forceHlsForLiveRedirect, forceLibVlcForLive, isLive) {
+        val keepOriginalForImmediateVlc = isLive && forceLibVlcForLive && !forceHlsForLiveRedirect
+        val resolved = if (liveRedirectResolved && !keepOriginalForImmediateVlc) resolvedLiveRequest ?: streamRequest else streamRequest
+        if (forceHlsForLiveRedirect) resolved.copy(mimeType = MimeTypes.APPLICATION_M3U8) else resolved
+    }
+    val liveStallRecoveryLimit = remember(performancePolicy.mode) {
+        if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 1 else LIVE_STALL_RECOVERY_LIMIT
+    }
     val playerFocusRequester = remember { FocusRequester() }
+    val playPauseFocusRequester = remember { FocusRequester() }
     val performanceStatus = remember(performancePolicy.mode, internalEngine, route, isLive) {
         if (performancePolicy.isPerformance) {
             val engine = if (route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC) "VLC live" else "Media3 stable"
@@ -288,6 +328,31 @@ fun PlayerScreen(
             onBack(0, 0)
         } else {
             launchMessage = externalResult.message
+        }
+    }
+
+    LaunchedEffect(item.id, streamRequest.uri, isLive) {
+        if (!isLive || !streamRequest.uri.hasLiveTsHint()) {
+            resolvedLiveRequest = streamRequest
+            liveRedirectResolved = true
+            return@LaunchedEffect
+        }
+        liveRedirectResolved = false
+        resolvedLiveRequest = null
+        resolvedLiveRequest = resolveLiveRedirectRequest(streamRequest)
+        liveRedirectResolved = true
+    }
+
+    LaunchedEffect(isLive, liveRedirectResolved, playbackRequest.uri, playbackRequest.mimeType) {
+        if (isLive &&
+            liveRedirectResolved &&
+            Build.VERSION.SDK_INT < 26 &&
+            playbackRequest.mimeType == MimeTypes.APPLICATION_M3U8 &&
+            route == "auto"
+        ) {
+            forceLibVlcForLive = true
+            internalEngine = InternalPlaybackEngine.LIBVLC
+            triedLibVlcForLive = true
         }
     }
 
@@ -319,11 +384,25 @@ fun PlayerScreen(
         return
     }
 
+    fun switchToCompatibleAlternative(reason: String): Boolean {
+        if (!isLive || triedCompatibleLiveAlternative || liveSwitchLocked) return false
+        val alternative = relatedItems.bestCompatibleLiveAlternative(item, performancePolicy.maxVideoHeight) ?: return false
+        triedCompatibleLiveAlternative = true
+        liveSwitchLocked = true
+        playbackError = null
+        isBuffering = true
+        liveFirstFrameRendered = false
+        liveReadyWithoutVideoAt = 0L
+        playbackSignal = reason
+        onPlayItem(alternative)
+        return true
+    }
+
     val useLibVlc = route == "auto" && (internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForLive)
-    val exoPlayer = remember(item.id, streamRequest.uri, useLibVlc, performancePolicy.mode) {
+    val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, liveRedirectResolved, useLibVlc, performancePolicy.mode) {
         buildPlayer(
             context = context,
-            request = streamRequest,
+            request = playbackRequest,
             item = item,
             isLive = isLive,
             performancePolicy = performancePolicy,
@@ -336,11 +415,38 @@ fun PlayerScreen(
                     liveConsecutiveFailures = 0
                     liveSwitchLocked = false
                     playbackError = null
+                    // VOD watchdog: mark ready time if first frame hasn't rendered yet
+                    if (!isLive && !vodFirstFrameRendered && vodReadyAt == 0L) {
+                        vodReadyAt = System.currentTimeMillis()
+                    }
                 }
+            },
+            onRenderedFirstFrame = {
+                liveFirstFrameRendered = true
+                liveReadyWithoutVideoAt = 0L
+                // VOD watchdog: first frame arrived, clear watchdog
+                vodFirstFrameRendered = true
+                vodReadyAt = 0L
+                vodOpeningGuard = false
             },
             onPlayerError = { error ->
                 liveSwitchLocked = false
-                if (isLive && isLibVlcSafeOnThisDevice() && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
+                if (isLive &&
+                    streamRequest.uri.hasLiveTsHint() &&
+                    !forceHlsForLiveRedirect &&
+                    error.cause is UnrecognizedInputFormatException
+                ) {
+                    forceHlsForLiveRedirect = true
+                    playbackError = null
+                    isBuffering = true
+                    liveFirstFrameRendered = false
+                    liveReadyWithoutVideoAt = 0L
+                    return@buildPlayer
+                }
+                if (isLive && switchToCompatibleAlternative("Switching to a safer quality")) {
+                    return@buildPlayer
+                }
+                if (isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
                     triedLibVlcForLive = true
                     forceLibVlcForLive = true
                     playbackError = null
@@ -348,7 +454,7 @@ fun PlayerScreen(
                     internalEngine = InternalPlaybackEngine.LIBVLC
                     return@buildPlayer
                 }
-                playbackError = explainPlaybackError(context, error, streamRequest.uri, isLive)
+                playbackError = explainPlaybackError(context, error, playbackRequest.uri, isLive)
                 PlaybackTelemetryStore.record(
                     PlaybackTelemetrySnapshot(
                         mediaId = item.id,
@@ -362,7 +468,7 @@ fun PlayerScreen(
             onDurationChanged = { latestDuration ->
                 duration = latestDuration.coerceAtLeast(1L)
             },
-            startPlayback = !useLibVlc,
+            startPlayback = !useLibVlc && liveRedirectResolved,
         )
     }
 
@@ -375,15 +481,51 @@ fun PlayerScreen(
         }
     }
 
+    // MediaSession: wire the player to the platform media controller so hardware media
+    // keys (TV remote play/pause/next/prev/FF/RW, Bluetooth headphones, watch controls)
+    // are routed correctly even when this activity isn't focused.
+    DisposableEffect(exoPlayer, item.id) {
+        val session = runCatching {
+            androidx.media3.session.MediaSession.Builder(context, exoPlayer)
+                .setId("MoPlayerPro-${item.id}-${System.currentTimeMillis()}")
+                .build()
+        }.getOrNull()
+        onDispose {
+            runCatching { session?.release() }
+        }
+    }
+
+    // Reinforce screen-on/wake while the player is on screen so TV boxes never go to sleep
+    // mid-stream, even on Lifecycle.ON_STOP false alarms or screensaver triggers.
+    DisposableEffect(item.id) {
+        val activity = context.findActivity()
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        val wakeLock = powerManager
+            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MoPlayerPro::Playback")
+            ?.apply {
+                setReferenceCounted(false)
+                runCatching { acquire(6 * 60 * 60 * 1000L) } // safety cap: 6h per session
+            }
+        onDispose {
+            runCatching { if (wakeLock?.isHeld == true) wakeLock.release() }
+            // Leave the activity-level KEEP_SCREEN_ON flag in place; it is already requested
+            // at MainActivity start and other screens benefit from it as well.
+        }
+    }
+
     LaunchedEffect(exoPlayer, item.id) {
         while (true) {
             currentPosition = exoPlayer.currentPosition.coerceAtLeast(0)
             duration = exoPlayer.duration.coerceAtLeast(duration)
             playbackSignal = playbackSignal(exoPlayer.videoFormat, performanceStatus)
-            if (isLive && exoPlayer.videoFormat != null) {
-                liveReadyWithoutVideoAt = 0L
-            }
-            if (showControls && isPlaying && System.currentTimeMillis() - lastInteraction > if (isLive) 3200 else 5000) {
+            // Auto-hide only when the video is actively playing AND the player engine confirms
+            // playback (so a stale isPlaying=true racing with onIsPlayingChanged won't hide
+            // controls during a pause). Give the user more time on TVs since D-pad is slower.
+            val engineReportsPlaying = runCatching { exoPlayer.isPlaying }.getOrDefault(isPlaying)
+            val effectivelyPlaying = isPlaying && engineReportsPlaying
+            val autoHideMs = if (isLive) 4_000L else 8_000L
+            if (showControls && effectivelyPlaying && System.currentTimeMillis() - lastInteraction > autoHideMs) {
                 showControls = false
             }
             delay(400)
@@ -403,15 +545,22 @@ fun PlayerScreen(
         var resumeMedia3OnStart = false
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_STOP -> {
-                    resumeMedia3OnStart = !useLibVlc && exoPlayer.playWhenReady
+                Lifecycle.Event.ON_PAUSE -> {
                     if (!useLibVlc) {
                         exoPlayer.playWhenReady = false
                         exoPlayer.pause()
                     }
                 }
+                Lifecycle.Event.ON_STOP -> {
+                    resumeMedia3OnStart = !useLibVlc && exoPlayer.playWhenReady
+                    if (!useLibVlc) {
+                        exoPlayer.playWhenReady = false
+                        exoPlayer.stop()
+                    }
+                }
                 Lifecycle.Event.ON_START -> {
                     if (resumeMedia3OnStart && !useLibVlc) {
+                        exoPlayer.prepare()
                         exoPlayer.playWhenReady = true
                         exoPlayer.play()
                     }
@@ -428,10 +577,49 @@ fun PlayerScreen(
         runCatching { playerFocusRequester.requestFocus() }
     }
 
+    // When VOD controls appear, push focus to Play/Pause button. Use a tiny delay so the
+    // button is composed first, but small enough that the user never sees an unfocused row.
+    LaunchedEffect(showControls, item.id) {
+        if (showControls && !isLive) {
+            delay(40)
+            runCatching { playPauseFocusRequester.requestFocus() }
+        }
+    }
+
+    // VOD black screen watchdog: if READY for 8s but no first frame, show error
+    LaunchedEffect(vodReadyAt, vodFirstFrameRendered, item.id, streamRequest.uri) {
+        if (isLive || vodFirstFrameRendered || vodReadyAt <= 0L) return@LaunchedEffect
+        delay(8_000)
+        if (vodReadyAt > 0L && !vodFirstFrameRendered && playbackError == null) {
+            playbackError = "The video connected but could not render any frames. Try again, switch quality, or use an external player."
+            isBuffering = false
+        }
+    }
+
     LaunchedEffect(useLibVlc, exoPlayer) {
         if (useLibVlc) {
             exoPlayer.pause()
             exoPlayer.stop()
+        }
+    }
+
+    LaunchedEffect(isLive, playbackRequest.uri, item.id) {
+        if (isLive) {
+            liveOpeningGuard = true
+            delay(10_000)
+            liveOpeningGuard = false
+        } else {
+            liveOpeningGuard = false
+        }
+    }
+
+    LaunchedEffect(isLive, playbackRequest.uri, item.id) {
+        if (!isLive) {
+            vodOpeningGuard = true
+            delay(7_000)
+            vodOpeningGuard = false
+        } else {
+            vodOpeningGuard = false
         }
     }
 
@@ -451,33 +639,45 @@ fun PlayerScreen(
 
     LaunchedEffect(isLive, isBuffering, playbackError, item.id, streamRequest.uri, useLibVlc, liveConsecutiveFailures) {
         if (!isLive || !isBuffering || playbackError != null) return@LaunchedEffect
-        delay(if (performancePolicy.isPerformance) 6_000 else 8_000)
+        delay(if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 3_500 else 5_000)
         if (isBuffering && playbackError == null) {
-            if (isLive && !useLibVlc && isLibVlcSafeOnThisDevice() && !triedLibVlcForLive) {
+            if (isLive && !useLibVlc && isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForLive) {
                 triedLibVlcForLive = true
                 internalEngine = InternalPlaybackEngine.LIBVLC
-            } else if (useLibVlc && liveConsecutiveFailures < LIVE_STALL_RECOVERY_LIMIT) {
+            } else if (useLibVlc && liveConsecutiveFailures < liveStallRecoveryLimit) {
                 liveConsecutiveFailures += 1
                 libVlcRetryNonce++
-            } else if (!useLibVlc && liveConsecutiveFailures < LIVE_STALL_RECOVERY_LIMIT) {
+            } else if (!useLibVlc && liveConsecutiveFailures < liveStallRecoveryLimit) {
                 liveConsecutiveFailures += 1
                 exoPlayer.seekToDefaultPosition()
                 exoPlayer.prepare()
                 exoPlayer.play()
             } else {
                 isBuffering = false
-                playbackError = "The stream is unstable or taking too long to recover. Try again or switch quality/player."
+                if (!switchToCompatibleAlternative("Switching to a safer quality")) {
+                    playbackError = "The stream is unstable or taking too long to recover. Try again or switch quality/player."
+                }
             }
         }
     }
 
-    LaunchedEffect(isLive, liveReadyWithoutVideoAt, item.id, streamRequest.uri, useLibVlc) {
+    LaunchedEffect(isLive, liveReadyWithoutVideoAt, liveFirstFrameRendered, item.id, streamRequest.uri, useLibVlc) {
         if (!isLive || useLibVlc || liveReadyWithoutVideoAt <= 0L) return@LaunchedEffect
         delay(5_000)
-        if (liveReadyWithoutVideoAt > 0L && playbackError == null) {
-            playbackError = "This channel opened but did not deliver a video frame. Try the next channel or use another quality/player."
-            isBuffering = false
-            liveSwitchLocked = false
+        if (liveReadyWithoutVideoAt > 0L && !liveFirstFrameRendered && playbackError == null) {
+            if (isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForLive) {
+                triedLibVlcForLive = true
+                forceLibVlcForLive = true
+                internalEngine = InternalPlaybackEngine.LIBVLC
+                isBuffering = true
+                liveSwitchLocked = false
+            } else {
+                isBuffering = false
+                liveSwitchLocked = false
+                if (!switchToCompatibleAlternative("Switching to a safer quality")) {
+                    playbackError = liveNoVideoFrameMessage()
+                }
+            }
         }
     }
 
@@ -486,12 +686,48 @@ fun PlayerScreen(
         lastInteraction = System.currentTimeMillis()
     }
 
+    fun seekVodBy(deltaMs: Long, labelSeconds: Int) {
+        if (isLive) return
+        // Accelerate consecutive seeks: holding LEFT/RIGHT or hammering FF/RW jumps farther.
+        // Streak resets after 700ms of idle. Multipliers: 1x → 2x → 4x → 8x (capped).
+        val now = System.currentTimeMillis()
+        val sameDirection = (deltaMs > 0) == (labelSeconds > 0)
+        seekStreak = if (sameDirection && now - lastSeekAt < 700L) (seekStreak + 1).coerceAtMost(3) else 0
+        lastSeekAt = now
+        val multiplier = 1 shl seekStreak  // 1, 2, 4, 8
+        val effectiveDelta = deltaMs * multiplier
+        val effectiveLabel = labelSeconds * multiplier
+        val knownDuration = exoPlayer.duration.takeIf { it > 0 } ?: duration.takeIf { it > 0 } ?: C.TIME_UNSET
+        val current = exoPlayer.currentPosition.coerceAtLeast(0L)
+        val target = if (knownDuration != C.TIME_UNSET) {
+            (current + effectiveDelta).coerceIn(0L, knownDuration)
+        } else {
+            (current + effectiveDelta).coerceAtLeast(0L)
+        }
+        exoPlayer.seekTo(target)
+        currentPosition = target
+        seekJump = effectiveLabel
+        wakeControls()
+    }
+
+    fun toggleVodPlayPause() {
+        if (isLive) return
+        if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+        wakeControls()
+    }
+
     fun retryPlayback() {
         playbackError = null
         launchMessage = null
         isBuffering = true
+        forceHlsForLiveRedirect = false
+        liveFirstFrameRendered = false
+        liveReadyWithoutVideoAt = 0L
         liveConsecutiveFailures = 0
         liveSwitchLocked = false
+        // Reset VOD watchdog on retry
+        vodReadyAt = 0L
+        vodFirstFrameRendered = false
         if (isLive) {
             triedMedia3ForLive = !useLibVlc
             triedLibVlcForLive = useLibVlc
@@ -502,7 +738,7 @@ fun PlayerScreen(
             return
         }
         exoPlayer.stop()
-        exoPlayer.setMediaItem(buildPlayableMediaItem(streamRequest, item, isLive), if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
+        exoPlayer.setMediaItem(buildPlayableMediaItem(playbackRequest, item, isLive), if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
     }
@@ -515,6 +751,8 @@ fun PlayerScreen(
             lastLiveSwitchAt = now
             liveSwitchLocked = true
             isBuffering = true
+            liveFirstFrameRendered = false
+            liveReadyWithoutVideoAt = 0L
             playbackError = null
         }
         if (!isLive && exoPlayer.duration > 0) {
@@ -537,7 +775,9 @@ fun PlayerScreen(
 
         if (recentlyPlaying && liveConsecutiveFailures > 3) {
             isBuffering = false
-            playbackError = livePlaybackFailureMessage()
+            if (!switchToCompatibleAlternative("Switching to a safer quality")) {
+                playbackError = livePlaybackFailureMessage()
+            }
             return
         }
 
@@ -557,7 +797,9 @@ fun PlayerScreen(
         }
 
         isBuffering = false
-        playbackError = message
+        if (!switchToCompatibleAlternative("Switching to a safer quality")) {
+            playbackError = message
+        }
     }
 
     BackHandler {
@@ -601,6 +843,12 @@ fun PlayerScreen(
 
     LaunchedEffect(exoPlayer, liveQualityMode, performancePolicy.mode) {
         if (isLive) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
+    }
+
+    LaunchedEffect(isLive, item.id, item.title, performancePolicy.maxVideoHeight, relatedItems) {
+        if (isLive && item.liveQualityRank() > liveMaxAllowedRank(performancePolicy.maxVideoHeight)) {
+            switchToCompatibleAlternative("Auto quality")
+        }
     }
 
     LaunchedEffect(showMiniInfo, item.id) {
@@ -686,48 +934,84 @@ fun PlayerScreen(
 
                     // ── VOD: Standard player remote ──────────────────────
                     else -> {
-                        // If controls are hidden, first key shows them (except back)
+                        val nativeKey = event.key.nativeKeyCode
+                        val isFastForwardKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+                        val isRewindKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_REWIND
+                        val isNextKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_NEXT
+                        val isPreviousKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS
+
                         if (!showControls) {
                             when (event.key) {
                                 Key.Back, Key.Escape -> {
                                     onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
                                     return@onPreviewKeyEvent true
                                 }
+                                Key.Enter, Key.DirectionCenter, Key.NumPadEnter, Key.Spacebar,
                                 Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause -> {
-                                    if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
-                                    wakeControls()
+                                    toggleVodPlayPause()
                                     return@onPreviewKeyEvent true
                                 }
                                 Key.DirectionLeft -> {
-                                    exoPlayer.seekBack(); seekJump = -10; wakeControls()
+                                    seekVodBy(-10_000L, -10)
                                     return@onPreviewKeyEvent true
                                 }
                                 Key.DirectionRight -> {
-                                    exoPlayer.seekForward(); seekJump = 10; wakeControls()
+                                    seekVodBy(10_000L, 10)
                                     return@onPreviewKeyEvent true
                                 }
                                 else -> {
-                                    // Any other key: just show controls
-                                    wakeControls()
+                                    when {
+                                        isFastForwardKey -> seekVodBy(30_000L, 30)
+                                        isRewindKey -> seekVodBy(-30_000L, -30)
+                                        isNextKey && nextItem != null -> switchTo(nextItem)
+                                        isPreviousKey && previousItem != null -> switchTo(previousItem)
+                                        else -> wakeControls()
+                                    }
+                                    lastInteraction = System.currentTimeMillis()
                                     return@onPreviewKeyEvent true
                                 }
                             }
                         }
-                        // Controls are visible — let D-pad navigate to buttons
+                        // Controls ARE visible — pass D-pad navigation through to Compose focus
+                        // so the user can move focus left/right between buttons (Play, Audio,
+                        // Subtitles, Quality, etc.). Dedicated -10/+10 buttons + media FF/RW
+                        // keys handle seeking.
                         when (event.key) {
                             Key.Back, Key.Escape -> { showControls = false; true }
                             Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause -> {
-                                if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
-                                lastInteraction = System.currentTimeMillis()
+                                toggleVodPlayPause()
                                 true
                             }
-                            // Let Compose focus system handle D-pad when controls visible
-                            Key.DirectionLeft, Key.DirectionRight, Key.DirectionUp, Key.DirectionDown,
-                            Key.Enter, Key.DirectionCenter, Key.Spacebar -> {
+                            Key.DirectionLeft, Key.DirectionRight,
+                            Key.DirectionUp, Key.DirectionDown,
+                            Key.Enter, Key.DirectionCenter, Key.NumPadEnter, Key.Spacebar -> {
                                 lastInteraction = System.currentTimeMillis()
-                                false // pass through to focus system
+                                false // CRITICAL: pass through so FocusGlow/Button handles it
                             }
-                            else -> false
+                            else -> {
+                                when {
+                                    isFastForwardKey -> {
+                                        seekVodBy(30_000L, 30)
+                                        true
+                                    }
+                                    isRewindKey -> {
+                                        seekVodBy(-30_000L, -30)
+                                        true
+                                    }
+                                    isNextKey && nextItem != null -> {
+                                        switchTo(nextItem)
+                                        true
+                                    }
+                                    isPreviousKey && previousItem != null -> {
+                                        switchTo(previousItem)
+                                        true
+                                    }
+                                    else -> {
+                                        lastInteraction = System.currentTimeMillis()
+                                        false
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -735,19 +1019,28 @@ fun PlayerScreen(
     ) {
         if (useLibVlc) {
             LibVlcPlayerView(
-                request = streamRequest,
+                request = playbackRequest,
                 title = item.title,
                 resizeMode = resizeModes[resizeIndex],
                 retryNonce = libVlcRetryNonce,
-                onBuffering = { isBuffering = it },
+                onBuffering = { buffering ->
+                    isBuffering = buffering || (isLive && !liveFirstFrameRendered)
+                },
                 onPlaying = {
                     isPlaying = true
-                    isBuffering = false
+                    isBuffering = !liveFirstFrameRendered
                     liveLastPlayingAt = System.currentTimeMillis()
                     liveConsecutiveFailures = 0
                     liveSwitchLocked = false
                     playbackError = null
                     playbackSignal = "VLC · Live"
+                },
+                onVideoOutput = {
+                    liveFirstFrameRendered = true
+                    liveReadyWithoutVideoAt = 0L
+                    isBuffering = false
+                    playbackError = null
+                    playbackSignal = "VLC Â· Live"
                 },
                 onPaused = { isPlaying = false },
                 onError = ::handleLibVlcLiveError,
@@ -755,9 +1048,15 @@ fun PlayerScreen(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
+            val useTextureView = Build.VERSION.SDK_INT < 26 || performancePolicy.isPerformance
             AndroidView(
                 factory = {
-                    PlayerView(it).apply {
+                    val playerView = if (useTextureView) {
+                        LayoutInflater.from(it).inflate(R.layout.view_player_texture, null) as PlayerView
+                    } else {
+                        PlayerView(it)
+                    }
+                    playerView.apply {
                         player = exoPlayer
                         useController = false
                         resizeMode = resizeModes[resizeIndex]
@@ -769,7 +1068,7 @@ fun PlayerScreen(
             )
         }
 
-        if (isBuffering && playbackError == null && (!isLive || System.currentTimeMillis() - lastLiveSwitchAt > 900L)) {
+        if ((isBuffering || liveOpeningGuard || vodOpeningGuard) && playbackError == null && (!isLive || System.currentTimeMillis() - lastLiveSwitchAt > 900L)) {
             GlassPanel(
                 radius = 999.dp,
                 blur = 16.dp,
@@ -817,7 +1116,7 @@ fun PlayerScreen(
                                 Spacer(Modifier.width(4.dp))
                                 Text(strings.retry, color = Color.Black, fontSize = 13.sp)
                             }
-                            if (isLibVlcSafeOnThisDevice()) {
+                            if (isLibVlcSafeForRequest(playbackRequest)) {
                                 OutlinedButton(onClick = { route = "vlc" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("VLC", fontSize = 12.sp) }
                             }
                             if (isLive) {
@@ -826,7 +1125,7 @@ fun PlayerScreen(
                                         playbackError = null
                                         isBuffering = true
                                         route = "auto"
-                                        internalEngine = if (isLibVlcSafeOnThisDevice()) InternalPlaybackEngine.LIBVLC else InternalPlaybackEngine.MEDIA3
+                                        internalEngine = if (isLibVlcSafeForRequest(playbackRequest)) InternalPlaybackEngine.LIBVLC else InternalPlaybackEngine.MEDIA3
                                     },
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                 ) { Text("Internal", fontSize = 12.sp) }
@@ -885,7 +1184,7 @@ fun PlayerScreen(
         }
 
         AnimatedVisibility(
-            visible = showControls && !isLive && !performancePolicy.isPerformance,
+            visible = showControls && !isLive,
             enter = fadeIn(tween(250)),
             exit = fadeOut(tween(400)),
             modifier = Modifier.fillMaxSize(),
@@ -962,30 +1261,54 @@ fun PlayerScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    // Seek Bar (VOD only)
+                    // Seek Bar (VOD only) — read-only progress; seek via -10/+10 buttons or media FF/RW
                     if (!isLive) {
                         GlassPanel(radius = 999.dp, blur = 16.dp, modifier = Modifier.fillMaxWidth()) {
+                            val progress = if (duration > 0) {
+                                (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+                            } else {
+                                0f
+                            }
                             Row(
-                                Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
+                                Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                             ) {
                                 Text(formatTime(currentPosition), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Slider(
-                                    value = if (duration > 0) (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f) else 0f,
-                                    onValueChange = { pct ->
-                                        wakeControls()
-                                        val newPosition = (pct * duration).toLong()
-                                        exoPlayer.seekTo(newPosition)
-                                        currentPosition = newPosition
-                                    },
-                                    modifier = Modifier.weight(1f).height(32.dp),
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = accent,
-                                        activeTrackColor = accent,
-                                        inactiveTrackColor = Color(0x33FFFFFF),
-                                    ),
-                                )
+                                Box(
+                                    Modifier
+                                        .weight(1f)
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(999.dp))
+                                        .background(Color(0x33FFFFFF)),
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth(progress)
+                                            .fillMaxHeight()
+                                            .clip(RoundedCornerShape(999.dp))
+                                            .background(
+                                                Brush.horizontalGradient(
+                                                    listOf(accent.copy(alpha = 0.78f), accent),
+                                                ),
+                                            ),
+                                    )
+                                    // Thumb dot at the current playback position
+                                    Box(
+                                        Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(progress),
+                                        contentAlignment = Alignment.CenterEnd,
+                                    ) {
+                                        Box(
+                                            Modifier
+                                                .size(14.dp)
+                                                .clip(RoundedCornerShape(999.dp))
+                                                .background(Color.White)
+                                                .border(2.dp, accent, RoundedCornerShape(999.dp)),
+                                        )
+                                    }
+                                }
                                 Text(formatTime(duration), color = Color(0x99FFFFFF), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -1012,33 +1335,34 @@ fun PlayerScreen(
                                     Spacer(Modifier.width(10.dp))
                                 } else if (!isLive) {
                                     ControlButton(Icons.Rounded.Replay10, "-10", accent) {
-                                        exoPlayer.seekBack(); seekJump = -10; wakeControls()
+                                        seekVodBy(-10_000L, -10)
                                     }
                                     Spacer(Modifier.width(8.dp))
                                 }
 
                                 Button(
                                     onClick = {
-                                        if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
-                                        wakeControls()
+                                        toggleVodPlayPause()
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = accent),
-                                    shape = RoundedCornerShape(14.dp),
-                                    modifier = Modifier.height(44.dp),
-                                    contentPadding = PaddingValues(horizontal = 18.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    modifier = Modifier
+                                        .height(52.dp)
+                                        .focusRequester(playPauseFocusRequester),
+                                    contentPadding = PaddingValues(horizontal = 22.dp),
                                 ) {
                                     Icon(
                                         if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                                        null, tint = Color.Black, modifier = Modifier.size(24.dp),
+                                        null, tint = Color.Black, modifier = Modifier.size(28.dp),
                                     )
-                                    Spacer(Modifier.width(6.dp))
+                                    Spacer(Modifier.width(8.dp))
                                     Text(
                                         if (isPlaying) "Pause" else "Play",
-                                        color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp,
+                                        color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp,
                                     )
                                 }
 
-                                Spacer(Modifier.width(8.dp))
+                                Spacer(Modifier.width(10.dp))
 
                                 // Favorite button
                                 Button(
@@ -1046,20 +1370,20 @@ fun PlayerScreen(
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = if (favoriteMarked) accent.copy(alpha = 0.2f) else Color(0x22FFFFFF),
                                     ),
-                                    shape = RoundedCornerShape(14.dp),
-                                    modifier = Modifier.height(44.dp),
-                                    contentPadding = PaddingValues(horizontal = 12.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    modifier = Modifier.height(52.dp),
+                                    contentPadding = PaddingValues(horizontal = 14.dp),
                                 ) {
-                                    Icon(Icons.Rounded.Favorite, null, tint = if (favoriteMarked) accent else Color.White, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Rounded.Favorite, null, tint = if (favoriteMarked) accent else Color.White, modifier = Modifier.size(22.dp))
                                 }
 
                                 if (isLive && nextItem != null) {
                                     Spacer(Modifier.width(10.dp))
                                     ControlButton(Icons.Rounded.SkipNext, "Next", accent) { switchTo(nextItem) }
                                 } else if (!isLive) {
-                                    Spacer(Modifier.width(8.dp))
+                                    Spacer(Modifier.width(10.dp))
                                     ControlButton(Icons.Rounded.Forward10, "+10", accent) {
-                                        exoPlayer.seekForward(); seekJump = 10; wakeControls()
+                                        seekVodBy(10_000L, 10)
                                     }
                                 }
                             }
@@ -1092,7 +1416,7 @@ fun PlayerScreen(
                                     SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, "Open external", accent) { route = null }
                                 }
                                 Text(
-                                    if (isLive) "▲▼ Change channels  •  OK Show/Hide" else "◄► Seek  •  Back Hide",
+                                    if (isLive) "▲▼ Channel  •  OK Guide  •  Back Hide" else "◄► Focus  •  OK Select  •  Back Hide",
                                     color = Color(0x77FFFFFF),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium,
@@ -1106,7 +1430,7 @@ fun PlayerScreen(
 
         // ── Seek Jump Indicator — floating pill ─────────────────────
         AnimatedVisibility(
-            visible = seekJump != 0 && !performancePolicy.isPerformance,
+            visible = seekJump != 0,
             enter = fadeIn(tween(100)),
             exit = fadeOut(tween(300)),
             modifier = Modifier.align(Alignment.Center),
@@ -1612,16 +1936,17 @@ private fun ControlButton(
     ) {
         GlassPanel(
             radius = 18.dp,
-            blur = 10.dp,
-            highlighted = false,
+            blur = 12.dp,
+            highlighted = true,
+            glow = accent.copy(alpha = 0.10f),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(icon, null, tint = accent, modifier = Modifier.size(22.dp))
-                Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
+                Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
             }
         }
     }
@@ -1635,17 +1960,19 @@ private fun SmallControlButton(
     onClick: () -> Unit,
 ) {
     FocusGlow(
-        cornerRadius = 12.dp,
+        cornerRadius = 14.dp,
         onClick = onClick,
-        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)),
+        modifier = Modifier.size(46.dp).clip(RoundedCornerShape(14.dp)),
     ) {
         GlassPanel(
-            radius = 12.dp,
-            blur = 8.dp,
+            radius = 14.dp,
+            blur = 10.dp,
+            highlighted = true,
+            glow = accent.copy(alpha = 0.06f),
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, label, tint = accent, modifier = Modifier.size(18.dp))
+            Icon(icon, label, tint = accent, modifier = Modifier.size(22.dp))
         }
     }
 }
@@ -1658,6 +1985,7 @@ private fun LibVlcPlayerView(
     retryNonce: Int,
     onBuffering: (Boolean) -> Unit,
     onPlaying: () -> Unit,
+    onVideoOutput: () -> Unit,
     onPaused: () -> Unit,
     onError: (String) -> Unit,
     playPauseNonce: Int,
@@ -1677,10 +2005,30 @@ private fun LibVlcPlayerView(
     val libVlc = remember { LibVLC(context, vlcOptions) }
     val mediaPlayer = remember { MediaPlayer(libVlc) }
     val uiScope = rememberCoroutineScope()
+    var videoTexture by remember { mutableStateOf<TextureView?>(null) }
 
-    DisposableEffect(request.uri, retryNonce) {
+    DisposableEffect(videoTexture, request.uri, retryNonce) {
+        val attachedTexture = videoTexture ?: return@DisposableEffect onDispose { }
         var activeSession = true
         onBuffering(true)
+        // Guard against IllegalStateException("Can't set view when already attached") on some
+        // devices (notably the x86 Android TV emulator): the AWindow keeps its previous
+        // surface state across recompositions, so we must detach and clear the view before
+        // attaching the new texture. Wrap in runCatching so a transient surface mismatch
+        // surfaces as a recoverable error instead of crashing the whole app.
+        val vlcOut = mediaPlayer.vlcVout
+        val attachOutcome = runCatching {
+            runCatching { vlcOut.detachViews() }
+            runCatching { mediaPlayer.detachViews() }
+            vlcOut.setVideoView(attachedTexture)
+            vlcOut.attachViews()
+        }
+        if (attachOutcome.isFailure) {
+            onError(livePlaybackFailureMessage())
+            return@DisposableEffect onDispose {
+                runCatching { mediaPlayer.detachViews() }
+            }
+        }
         val media = Media(libVlc, Uri.parse(request.uri)).apply {
             setHWDecoderEnabled(true, false)
             addOption(":network-caching=$LIBVLC_LIVE_CACHE_MS")
@@ -1703,6 +2051,9 @@ private fun LibVlcPlayerView(
             when (event.type) {
                 MediaPlayer.Event.Buffering -> uiScope.launchMainIfActive({ activeSession }) { onBuffering(event.buffering < 100f) }
                 MediaPlayer.Event.Playing -> uiScope.launchMainIfActive({ activeSession }) { onPlaying() }
+                MediaPlayer.Event.Vout -> if (event.voutCount > 0) {
+                    uiScope.launchMainIfActive({ activeSession }) { onVideoOutput() }
+                }
                 MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped -> uiScope.launchMainIfActive({ activeSession }) { onPaused() }
                 MediaPlayer.Event.EndReached -> {
                     uiScope.launchMainIfActive({ activeSession }) {
@@ -1733,9 +2084,14 @@ private fun LibVlcPlayerView(
         var resumeOnStart = false
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    runCatching { mediaPlayer.pause() }
+                    onPaused()
+                }
                 Lifecycle.Event.ON_STOP -> {
                     resumeOnStart = mediaPlayer.isPlaying
-                    runCatching { mediaPlayer.pause() }
+                    runCatching { mediaPlayer.stop() }
+                    onPaused()
                 }
                 Lifecycle.Event.ON_START -> {
                     if (resumeOnStart) runCatching { mediaPlayer.play() }
@@ -1765,9 +2121,10 @@ private fun LibVlcPlayerView(
 
     AndroidView(
         factory = { viewContext ->
-            VLCVideoLayout(viewContext).apply {
+            TextureView(viewContext).apply {
                 keepScreenOn = true
-                mediaPlayer.attachViews(this, null, false, false)
+                isOpaque = true
+                post { videoTexture = this }
             }
         },
         update = { layout ->
@@ -1899,13 +2256,114 @@ private fun liveUltraMaxVideoHeight(policyHeight: Int): Int = when {
 }
 
 private fun isLibVlcSafeOnThisDevice(): Boolean {
-    // LibVLC 3.6 native x86 crashes on Android TV API 25 emulator with TS live streams.
-    // Real TV devices are ARM; keep VLC fallback there and avoid fatal native crashes on x86 QA devices.
-    return Build.SUPPORTED_ABIS.none { it.equals("x86", ignoreCase = true) || it.equals("x86_64", ignoreCase = true) }
+    return Build.SUPPORTED_ABIS.none { abi ->
+        abi.equals("x86", ignoreCase = true) || abi.equals("x86_64", ignoreCase = true)
+    }
+}
+
+private fun isLibVlcSafeForRequest(request: StreamRequest): Boolean {
+    // Hard-disable LibVLC on x86/x86_64 (emulator + niche Atom boxes): the AWindow surface
+    // attach path is fragile there and produces "Can't set view when already attached" on
+    // recomposition, crashing the app. Real TV hardware is arm/arm64, so this only affects
+    // QA emulators — Media3 handles HLS/TS perfectly on x86 anyway.
+    if (!isLibVlcSafeOnThisDevice()) return false
+    return request.mimeType == MimeTypes.APPLICATION_M3U8 || request.uri.hasLiveTsHint()
 }
 
 private fun AppMediaItem.samePlayable(other: AppMediaItem): Boolean =
     id == other.id && type == other.type && serverId == other.serverId
+
+private fun List<AppMediaItem>.bestCompatibleLiveAlternative(
+    current: AppMediaItem,
+    maxVideoHeight: Int,
+): AppMediaItem? {
+    if (current.type != ContentType.LIVE) return null
+    val allowedRank = liveMaxAllowedRank(maxVideoHeight)
+    val currentBase = current.liveBaseTitle()
+    return asSequence()
+        .filter { candidate ->
+            candidate.type == ContentType.LIVE &&
+                !candidate.samePlayable(current) &&
+                candidate.serverId == current.serverId &&
+                candidate.categoryId == current.categoryId &&
+                candidate.liveBaseTitle() == currentBase &&
+                candidate.liveQualityRank() <= allowedRank
+        }
+        .sortedWith(
+            compareByDescending<AppMediaItem> { it.liveQualityRank() }
+                .thenBy { it.serverOrder }
+                .thenBy { it.title.lowercase(Locale.US) },
+        )
+        .firstOrNull()
+        ?: asSequence()
+            .filter { candidate ->
+                candidate.type == ContentType.LIVE &&
+                    !candidate.samePlayable(current) &&
+                    candidate.serverId == current.serverId &&
+                    candidate.liveBaseTitle() == currentBase &&
+                    candidate.liveQualityRank() <= allowedRank
+            }
+            .sortedWith(
+                compareByDescending<AppMediaItem> { it.liveQualityRank() }
+                    .thenBy { it.serverOrder }
+                    .thenBy { it.title.lowercase(Locale.US) },
+            )
+            .firstOrNull()
+        ?: asSequence()
+            .filter { candidate ->
+                candidate.type == ContentType.LIVE &&
+                    !candidate.samePlayable(current) &&
+                    candidate.serverId == current.serverId &&
+                    candidate.categoryId == current.categoryId &&
+                    candidate.liveQualityRank() <= allowedRank
+            }
+            .sortedWith(
+                compareBy<AppMediaItem> { if (it.serverOrder > current.serverOrder) 0 else 1 }
+                    .thenBy { kotlin.math.abs(it.serverOrder - current.serverOrder) }
+                    .thenByDescending { it.liveQualityRank() }
+                    .thenBy { it.title.lowercase(Locale.US) },
+            )
+            .firstOrNull()
+        ?: asSequence()
+            .filter { candidate ->
+                candidate.type == ContentType.LIVE &&
+                    !candidate.samePlayable(current) &&
+                    candidate.serverId == current.serverId &&
+                    candidate.liveQualityRank() <= allowedRank
+            }
+            .sortedWith(
+                compareBy<AppMediaItem> { if (it.serverOrder > current.serverOrder) 0 else 1 }
+                    .thenBy { kotlin.math.abs(it.serverOrder - current.serverOrder) }
+                    .thenByDescending { it.liveQualityRank() }
+                    .thenBy { it.title.lowercase(Locale.US) },
+            )
+            .firstOrNull()
+}
+
+private fun liveMaxAllowedRank(maxVideoHeight: Int): Int = when {
+    maxVideoHeight < 720 -> 1
+    maxVideoHeight < 1080 -> 2
+    maxVideoHeight < 2160 -> 3
+    else -> 4
+}
+
+private fun AppMediaItem.liveQualityRank(): Int {
+    val value = "${title} ${categoryName} ${containerExtension}".uppercase(Locale.US)
+    return when {
+        "8K" in value || "4320" in value -> 5
+        "4K" in value || "UHD" in value || "2160" in value -> 4
+        "FHD" in value || "FULL HD" in value || "1080" in value -> 3
+        "HD" in value || "720" in value -> 2
+        "SD" in value || "480" in value || "360" in value -> 1
+        else -> 2
+    }
+}
+
+private fun AppMediaItem.liveBaseTitle(): String =
+    title.uppercase(Locale.US)
+        .replace(Regex("\\b(8K|4K|UHD|FHD|FULL\\s*HD|HD|SD|2160P?|1080P?|720P?|576P?|480P?|360P?)\\b"), " ")
+        .replace(Regex("[^A-Z0-9]+"), " ")
+        .trim()
 
 private fun Int.floorMod(size: Int): Int = ((this % size) + size) % size
 
@@ -1940,21 +2398,22 @@ private fun buildPlayer(
     isLive: Boolean,
     onIsPlayingChanged: (Boolean) -> Unit,
     onPlaybackStateChanged: (Int) -> Unit,
+    onRenderedFirstFrame: () -> Unit,
     onPlayerError: (PlaybackException) -> Unit,
     onDurationChanged: (Long) -> Unit,
     startPlayback: Boolean = true,
     performancePolicy: PerformancePolicy,
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
-    // Receiver-style live: still quick, but enough buffer for real-world IPTV jitter.
-    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 4_000 else 6_000)
-    val liveMaxBufferMs = if (performancePolicy.isPerformance) 18_000 else 30_000
+    // Receiver-style live: quick startup with enough buffer for real-world IPTV jitter.
+    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 3_000 else 5_000)
+    val liveMaxBufferMs = if (performancePolicy.isPerformance) 15_000 else 25_000
     val liveLoadControl = DefaultLoadControl.Builder()
         .setBufferDurationsMs(
             liveMinBufferMs,
             liveMaxBufferMs,
-            if (performancePolicy.isPerformance) 650 else 900,
-            if (performancePolicy.isPerformance) 1_500 else 2_200,
+            if (performancePolicy.isPerformance) 400 else 600,
+            if (performancePolicy.isPerformance) 1_200 else 1_800,
         )
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
@@ -1988,11 +2447,11 @@ private fun buildPlayer(
             .setAllowVideoMixedMimeTypeAdaptiveness(true)
             .setAllowAudioMixedMimeTypeAdaptiveness(true)
             .setMaxVideoSize(liveVideoWidth, liveVideoHeight)
-            .setExceedVideoConstraintsIfNecessary(false)
+            .setExceedVideoConstraintsIfNecessary(!isLive)
         if (performancePolicy.isPerformance || isLive) {
             builder
                 .setPreferredVideoMimeTypes(MimeTypes.VIDEO_H264, MimeTypes.VIDEO_H265, MimeTypes.VIDEO_MP4V)
-                .setMaxVideoBitrate(if (isLive) liveSafeMaxBitrate(liveVideoHeight) else 2_500_000)
+                .setMaxVideoBitrate(if (isLive) liveSafeMaxBitrate(liveVideoHeight) else 8_000_000)
         }
         parameters = builder.build()
     }
@@ -2025,8 +2484,11 @@ private fun buildPlayer(
         .setSeekBackIncrementMs(10_000)
         .build()
         .apply {
+            // Keep CPU + Wi-Fi awake while playing so the TV/box does not idle to sleep.
+            setWakeMode(C.WAKE_MODE_NETWORK)
             addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) = onIsPlayingChanged(isPlaying)
+                override fun onRenderedFirstFrame() = onRenderedFirstFrame()
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     onPlaybackStateChanged(playbackState)
                     if (this@apply.duration > 0) onDurationChanged(this@apply.duration)
@@ -2057,7 +2519,22 @@ private fun buildPlayer(
             })
             if (startPlayback) {
                 val mediaItem = buildPlayableMediaItem(request, item, isLive)
-                setMediaItem(mediaItem, if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
+                if (!isRtsp && request.mimeType == MimeTypes.APPLICATION_M3U8) {
+                    val tsFlags = DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
+                        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
+                    val hlsMediaSource = HlsMediaSource.Factory(httpFactory)
+                        .setAllowChunklessPreparation(false)
+                        .setExtractorFactory(DefaultHlsExtractorFactory(tsFlags, true))
+                        .setLoadErrorHandlingPolicy(errorHandlingPolicy)
+                        .createMediaSource(mediaItem)
+                    if (isLive) {
+                        setMediaSource(hlsMediaSource)
+                    } else {
+                        setMediaSource(hlsMediaSource, item.watchPositionMs.coerceAtLeast(0))
+                    }
+                } else {
+                    setMediaItem(mediaItem, if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
+                }
                 playWhenReady = true
                 prepare()
             }
@@ -2092,6 +2569,60 @@ internal data class StreamRequest(
     val headers: Map<String, String>,
     val mimeType: String?,
 )
+
+private suspend fun resolveLiveRedirectRequest(request: StreamRequest): StreamRequest = withContext(Dispatchers.IO) {
+    runCatching {
+        val probe = Request.Builder()
+            .url(request.uri)
+            .get()
+            .header("User-Agent", request.headers["User-Agent"] ?: APP_USER_AGENT)
+            .header("Accept", "*/*")
+            .header("Range", request.headers["Range"] ?: "bytes=0-1024")
+            .apply {
+                request.headers.forEach { (key, value) ->
+                    if (!key.equals("Range", ignoreCase = true) && !key.equals("User-Agent", ignoreCase = true)) {
+                        header(key, value)
+                    }
+                }
+            }
+            .build()
+        NetworkModule.okHttp
+            .newBuilder()
+            .readTimeout(4, TimeUnit.SECONDS)
+            .callTimeout(6, TimeUnit.SECONDS)
+            .build()
+            .newCall(probe)
+            .execute()
+            .use { response ->
+                redirectedStreamRequest(
+                    request = request,
+                    finalUri = response.request.url.toString(),
+                    contentType = response.header("Content-Type").orEmpty(),
+                )
+            }
+    }.getOrDefault(request)
+}
+
+internal fun redirectedStreamRequest(request: StreamRequest, finalUri: String, contentType: String): StreamRequest {
+    val normalizedType = contentType.substringBefore(';').trim().lowercase(Locale.US)
+    val redirectedMimeType = when {
+        normalizedType.contains("mpegurl") || normalizedType.contains("m3u8") -> MimeTypes.APPLICATION_M3U8
+        normalizedType.contains("dash+xml") || normalizedType.contains("mpd") -> MimeTypes.APPLICATION_MPD
+        normalizedType.contains("mp2t") || normalizedType.contains("mpegts") -> MimeTypes.VIDEO_MP2T
+        normalizedType.contains("mp4") -> MimeTypes.VIDEO_MP4
+        else -> inferMimeType(finalUri)
+    }
+    val resolvedUri = when (redirectedMimeType) {
+        MimeTypes.APPLICATION_M3U8,
+        MimeTypes.APPLICATION_MPD,
+        MimeTypes.APPLICATION_SS -> finalUri.ifBlank { request.uri }
+        else -> request.uri
+    }
+    return request.copy(
+        uri = resolvedUri,
+        mimeType = redirectedMimeType ?: request.mimeType,
+    )
+}
 
 private data class ExternalLaunchResult(
     val success: Boolean,
@@ -2208,6 +2739,9 @@ internal fun livePlaybackFailureMessage(): String =
 internal fun liveFallbackCannotOpenMessage(): String =
     "The internal fallback player could not open this channel. The source may be blocked, expired, or require a different player."
 
+internal fun liveNoVideoFrameMessage(): String =
+    "The channel connected but did not render video. The app retried the smart player; try another quality or channel if this source is unstable."
+
 private fun explainPlaybackError(
     context: Context,
     error: PlaybackException,
@@ -2292,6 +2826,12 @@ private fun openExternalPlayer(
             else -> "Could not open the requested external player."
         },
     )
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 private fun Context.hasInternetConnection(): Boolean {

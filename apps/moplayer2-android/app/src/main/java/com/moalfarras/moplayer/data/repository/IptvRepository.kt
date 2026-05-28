@@ -259,7 +259,6 @@ class IptvRepository(
             else -> positionMs.coerceAtMost(safeDuration)
         }
         database.mediaDao().updateWatch(item.serverId, item.id, item.type, normalizedPosition, safeDuration, System.currentTimeMillis())
-        pushWatchProgress(item, normalizedPosition, safeDuration)
     }
 
     suspend fun syncWatchProgressFromCloud(item: MediaItem): MediaItem {
@@ -487,6 +486,10 @@ class IptvRepository(
             }
         }
 
+        if (xtreamCandidates.isEmpty() && playlistCandidates.any { XtreamSupport.looksLikeXtreamPlaylistUrl(it) }) {
+            throw IllegalArgumentException("Xtream playlist link is missing username or password")
+        }
+
         playlistCandidates.forEachIndexed { index, candidate ->
             val m3uResult = runCatching {
                 syncM3u(name, candidate, epgUrl = epgUrl) { emit(it) }
@@ -564,7 +567,9 @@ class IptvRepository(
 
     suspend fun registerXtreamFromPlaylistUrl(name: String, playlistUrl: String): ServerProfile? {
         val candidates = httpUrlCandidates(playlistUrl)
-            .mapNotNull { XtreamSupport.extractCredentialsFromPlaylistUrl(it) }
+            .mapNotNull { candidate ->
+                XtreamSupport.extractActivationSource(candidate) ?: XtreamSupport.extractCredentialsFromPlaylistUrl(candidate)
+            }
             .distinctBy { "${it.baseUrl.ensureTrailingSlash()}|${it.username}" }
         val credentials = candidates.firstOrNull() ?: return null
         return registerXtreamSource(
@@ -581,6 +586,9 @@ class IptvRepository(
 
     suspend fun registerM3uSource(name: String, playlistUrl: String, epgUrl: String = ""): ServerProfile {
         val normalizedUrl = httpUrlCandidates(playlistUrl).first()
+        require(!XtreamSupport.looksLikeXtreamPlaylistUrl(normalizedUrl)) {
+            "Xtream playlist link is missing username or password"
+        }
         val key = sourceKey("m3u", normalizedUrl)
         val existing = withContext(Dispatchers.IO) { database.serverDao().getServerBySourceKey(key)?.toDomain() }
         val server = ServerProfile(
@@ -696,18 +704,8 @@ class IptvRepository(
     }
 
     fun loginActivationCode(code: String): Flow<LoadProgress> = flow {
-        val service = supabaseService ?: error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to gradle.properties.")
         val cleanCode = code.trim().uppercase(Locale.US)
-        emit(LoadProgress("Checking activation code", 5, 100))
-        val rows = withContext(Dispatchers.IO) {
-            service.activationCode(
-                anonKey = BuildConfig.SUPABASE_ANON_KEY,
-                bearer = supabaseBearer,
-                codeEq = "eq.$cleanCode",
-            )
-        }
-        val activation = rows.firstOrNull() ?: error("Activation code not found")
-        if (activation.revoked) error("Activation code is revoked")
+        val activation = resolveActivationCode(code)
         emit(LoadProgress("Activation accepted", 20, 100))
         when (activation.serverType.lowercase(Locale.US)) {
             "xtream", "xstream" -> {
@@ -726,6 +724,26 @@ class IptvRepository(
                 ).collect { emit(it) }
             }
         }
+    }
+
+    suspend fun resolveActivationProfile(code: String): ActivatedProfile {
+        val activation = resolveActivationCode(code)
+        return activation.toActivatedProfile() ?: error("Activation is missing server details")
+    }
+
+    private suspend fun resolveActivationCode(code: String): com.moalfarras.moplayer.data.network.ActivationCodeDto {
+        val service = supabaseService ?: error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to gradle.properties.")
+        val cleanCode = code.trim().uppercase(Locale.US)
+        val rows = withContext(Dispatchers.IO) {
+            service.activationCode(
+                anonKey = BuildConfig.SUPABASE_ANON_KEY,
+                bearer = supabaseBearer,
+                codeEq = "eq.$cleanCode",
+            )
+        }
+        val activation = rows.firstOrNull() ?: error("Activation code not found")
+        if (activation.revoked) error("Activation code is revoked")
+        return activation
     }
 
     suspend fun createDeviceActivation(deviceName: String): DeviceActivationSession {
@@ -1162,8 +1180,8 @@ class IptvRepository(
                 categories = categories.associate { it.id to it.name },
                 array = array,
             )
-        }.also { emitCounts ->
-            progress(LoadProgress("Saved ${emitCounts.second} live channels", 42, 100))
+        }.also { counts ->
+            progress(LoadProgress("Saved ${counts.second} live channels", 42, 100))
         }
 
         syncXtreamSection(
@@ -1185,8 +1203,8 @@ class IptvRepository(
                 categories = categories.associate { it.id to it.name },
                 array = array,
             )
-        }.also { emitCounts ->
-            progress(LoadProgress("Saved ${emitCounts.second} movies", 70, 100))
+        }.also { counts ->
+            progress(LoadProgress("Saved ${counts.second} movies", 70, 100))
         }
 
         syncXtreamSection(
@@ -1207,8 +1225,8 @@ class IptvRepository(
                 categories = categories.associate { it.id to it.name },
                 array = array,
             )
-        }.also { emitCounts ->
-            progress(LoadProgress("Saved ${emitCounts.second} series", 96, 100))
+        }.also { counts ->
+            progress(LoadProgress("Saved ${counts.second} series", 96, 100))
         }
     }
 
@@ -1303,6 +1321,73 @@ class IptvRepository(
             )
         }
         return categories.size to items.size
+    }
+
+    private data class XtreamSectionResult(
+        val type: ContentType,
+        val progressPhase: String,
+        val progressValue: Int,
+        val categories: List<Category>,
+        val items: List<MediaItem>,
+    )
+
+    private suspend fun loadXtreamSection(
+        serverId: Long,
+        credentials: XtreamCredentials,
+        api: XtreamService,
+        type: ContentType,
+        categoryAction: String,
+        streamAction: String,
+        progressPhase: String,
+        progressValue: Int,
+        parseItems: (List<Category>, JsonArray) -> List<MediaItem>,
+    ): XtreamSectionResult = coroutineScope {
+        val categoriesDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to categoryAction)) }
+        val streamsDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to streamAction)) }
+        val categories = XtreamSupport.parseCategories(json, serverId, type, categoriesDeferred.await())
+        XtreamSectionResult(
+            type = type,
+            progressPhase = progressPhase,
+            progressValue = progressValue,
+            categories = categories,
+            items = parseItems(categories, streamsDeferred.await()),
+        )
+    }
+
+    private suspend fun saveXtreamSection(
+        serverId: Long,
+        accountSnapshot: XtreamAccountSnapshot,
+        result: XtreamSectionResult,
+        progress: suspend (LoadProgress) -> Unit,
+    ): Pair<Int, Int> {
+        val now = System.currentTimeMillis()
+        val currentState = withContext(Dispatchers.IO) { database.syncStateDao().get(serverId) }
+        val syncState = com.moalfarras.moplayer.data.db.SyncStateEntity(
+            serverId = serverId,
+            source = "xtream",
+            status = "ready",
+            lastSyncAt = now,
+            liveSyncedAt = if (result.type == ContentType.LIVE) now else currentState?.liveSyncedAt ?: 0,
+            vodSyncedAt = if (result.type == ContentType.MOVIE) now else currentState?.vodSyncedAt ?: 0,
+            seriesSyncedAt = if (result.type == ContentType.SERIES) now else currentState?.seriesSyncedAt ?: 0,
+            epgSyncedAt = currentState?.epgSyncedAt ?: 0,
+            lastError = "",
+            rawJson = """{"phase":"${result.progressPhase}","categories":${result.categories.size},"media":${result.items.size}}""",
+            updatedAt = now,
+        )
+        progress(LoadProgress(result.progressPhase, result.progressValue, 100))
+        withContext(Dispatchers.IO) {
+            database.replaceServerContentTypes(
+                serverId = serverId,
+                types = listOf(result.type),
+                categories = result.categories.map { it.toEntity() },
+                media = result.items.map { it.toEntity() },
+                accountInfo = accountSnapshot.accountInfo,
+                serverInfo = accountSnapshot.serverInfo,
+                syncState = syncState,
+            )
+        }
+        return result.categories.size to result.items.size
     }
 
     private suspend fun loadXtream(
@@ -1574,6 +1659,33 @@ private fun String.parseInstantOr(fallback: Long): Long =
     runCatching { Instant.parse(this).toEpochMilli() }.getOrDefault(fallback)
 
 private fun com.moalfarras.moplayer.data.network.DeviceActivationDto.toActivatedProfile(): ActivatedProfile? {
+    val type = serverType.lowercase(Locale.US)
+    return when (type) {
+        "xtream", "xstream" -> {
+            if (baseUrl.isBlank() || username.isBlank() || password.isBlank()) null else ActivatedProfile(
+                name = serverName.ifBlank { XtreamSupport.hostLabel(baseUrl) },
+                kind = LoginKind.XTREAM,
+                baseUrl = baseUrl,
+                username = username,
+                password = password,
+                playlistUrl = playlistUrl,
+                epgUrl = epgUrl,
+            )
+        }
+        "m3u", "m3u8" -> {
+            val source = playlistUrl.ifBlank { baseUrl }
+            if (source.isBlank()) null else ActivatedProfile(
+                name = serverName.ifBlank { XtreamSupport.hostLabel(source) },
+                kind = LoginKind.M3U,
+                playlistUrl = source,
+                epgUrl = epgUrl,
+            )
+        }
+        else -> null
+    }
+}
+
+private fun com.moalfarras.moplayer.data.network.ActivationCodeDto.toActivatedProfile(): ActivatedProfile? {
     val type = serverType.lowercase(Locale.US)
     return when (type) {
         "xtream", "xstream" -> {

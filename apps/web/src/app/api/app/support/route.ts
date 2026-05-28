@@ -37,19 +37,19 @@ export async function POST(request: Request) {
     if (isSmtpConfigured() && to) {
       await sendMail({
         to,
-        subject: `New ${productSlug} support request — ${payload.name}`,
+        subject: `New ${productSlug} support request - ${payload.name}`,
         replyTo: payload.email,
         text: `${payload.name} <${payload.email}>\nProduct: ${productSlug}\nRequest: ${requestId}\n\n${payload.message}`,
-      html: supportEmailHtml({
-        direction: payload.locale === "ar" ? "rtl" : "ltr",
-        accent: productSlug === "moplayer2" ? "#f5c66b" : "#22d3ee",
-        eyebrow: "App support request",
-        title: `${productSlug} support`,
-        intro: `${payload.name} <${payload.email}>`,
-        requestId,
-        productSlug,
-        body: payload.message,
-      }),
+        html: supportEmailHtml({
+          direction: payload.locale === "ar" ? "rtl" : "ltr",
+          accent: productSlug === "moplayer2" ? "#f5c66b" : "#22d3ee",
+          eyebrow: "App support request",
+          title: `${productSlug} support`,
+          intro: `${payload.name} <${payload.email}>`,
+          requestId,
+          productSlug,
+          body: payload.message,
+        }),
       });
     }
 
@@ -110,23 +110,27 @@ function supportEmailHtml({
   body: string;
 }) {
   return `<!doctype html>
-<html>
-  <body style="margin:0;background:#f1f5f9;padding:24px;font-family:Arial,Helvetica,sans-serif;color:#0f172a;direction:${direction}">
+<html lang="${direction === "rtl" ? "ar" : "en"}" dir="${direction}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body style="margin:0;background:#f8fafc;padding:18px 10px;font-family:Arial,Tahoma,Helvetica,sans-serif;color:#0f172a;direction:${direction};text-align:${direction === "rtl" ? "right" : "left"}">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;margin:0 auto;border-collapse:collapse">
       <tr>
-        <td style="border:1px solid #cbd5e1;border-radius:28px;overflow:hidden;background:#ffffff;box-shadow:0 18px 50px rgba(15,23,42,.14)">
-          <div style="padding:28px;background:linear-gradient(135deg,#ecfeff,#eef2ff 62%,#ffffff)">
-            <p style="margin:0 0 12px;color:${accent};font-size:12px;font-weight:900;letter-spacing:.18em;text-transform:uppercase">${escapeHtml(eyebrow)}</p>
-            <h1 style="margin:0;color:#0f172a;font-size:30px;line-height:1.2;letter-spacing:-.03em">${escapeHtml(title)}</h1>
+        <td style="border:1px solid #cbd5e1;border-radius:18px;overflow:hidden;background:#ffffff;box-shadow:0 12px 32px rgba(15,23,42,.10)">
+          <div style="padding:24px;background:#ffffff;border-bottom:1px solid #e2e8f0">
+            <p style="display:inline-block;margin:0 0 12px;border-radius:999px;background:#eff6ff;padding:7px 11px;color:${accent};font-size:12px;font-weight:900">${escapeHtml(eyebrow)}</p>
+            <h1 style="margin:0;color:#0f172a;font-size:28px;line-height:1.3;font-weight:900">${escapeHtml(title)}</h1>
             <p style="margin:14px 0 0;color:#334155;font-size:16px;line-height:1.75">${escapeHtml(intro)}</p>
           </div>
-          <div style="padding:28px">
-            <div style="display:block;border-radius:20px;background:#f8fafc;border:1px solid #dbeafe;padding:18px;margin-bottom:18px">
-              <p style="margin:0 0 8px;color:#64748b;font-size:13px;font-weight:700">Request</p>
-              <p style="margin:0;color:#0f172a;font-size:16px;font-weight:900">${escapeHtml(requestId)}</p>
+          <div style="padding:24px">
+            <div style="display:block;border-radius:16px;background:#f8fafc;border:1px solid #cbd5e1;padding:16px;margin-bottom:16px">
+              <p style="margin:0 0 8px;color:#475569;font-size:13px;font-weight:700">Request</p>
+              <p style="margin:0;color:#0f172a;font-size:15px;font-weight:900;word-break:break-word">${escapeHtml(requestId)}</p>
               <p style="margin:12px 0 0;color:#64748b;font-size:13px">Product: <strong style="color:${accent}">${escapeHtml(productSlug)}</strong></p>
             </div>
-            <div style="border-radius:22px;background:#ffffff;border:1px solid #cbd5e1;padding:22px;color:#0f172a;font-size:16px;line-height:1.85">
+            <div style="border-radius:16px;background:#ffffff;border:1px solid #cbd5e1;padding:20px;color:#0f172a;font-size:17px;line-height:1.9;font-weight:700">
               ${escapeHtml(body).replace(/\n/g, "<br/>")}
             </div>
             <p style="margin:22px 0 0;color:#64748b;font-size:13px;line-height:1.65">

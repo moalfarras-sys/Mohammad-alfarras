@@ -61,6 +61,14 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // Keep the TV screen awake for the entire app lifetime — IPTV users browse for
+        // long periods between selections and the TV idle timer must never interrupt
+        // them. FLAG_TURN_SCREEN_ON wakes the panel if the activity is brought up
+        // while the display is asleep (e.g. from a notification deep link).
+        window.addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
         super.onCreate(savedInstanceState)
         setupBackPressHandler()
     }

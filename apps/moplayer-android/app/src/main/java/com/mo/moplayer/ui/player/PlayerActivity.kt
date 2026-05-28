@@ -13,11 +13,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import android.util.Rational
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.SeekBar
@@ -94,8 +96,13 @@ class PlayerActivity : BaseTvActivity() {
     private var seeking = false
     private var lastFocusedViewId: Int = View.NO_ID
 
-    private val SEEK_AMOUNT = 10000L // 10 seconds
-    private var controlsTimeoutMs = 4000L
+    private val SEEK_AMOUNT = 10000L // 10 seconds base; accelerates on consecutive seeks
+    private var controlsTimeoutMs = 8000L
+    // Consecutive-seek accelerator: hammering FF/RW or holding D-pad doubles the jump
+    // each step (10s → 20s → 40s → 80s, then caps). Streak resets after 700ms of idle.
+    private var seekStreak = 0
+    private var lastSeekAt = 0L
+    private var lastSeekForward = true
 
     private var streamUrl: String = ""
     private var title: String = ""
@@ -149,8 +156,20 @@ class PlayerActivity : BaseTvActivity() {
     private var useExoPlayerPrimary = false
     private lateinit var performanceTier: DevicePerformance.Tier
 
+    // Keep TV awake while a stream is on screen. FLAG_KEEP_SCREEN_ON alone is not enough
+    // on some TV boxes that aggressively idle the SoC; pair it with a PARTIAL_WAKE_LOCK
+    // for the playback lifecycle.
+    private var playbackWakeLock: PowerManager.WakeLock? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // TV must never sleep while a movie/series/channel is on screen. Set this BEFORE
+        // setContentView so the flag is honored from the first frame.
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
+        acquirePlaybackWakeLock()
         performanceTier = DevicePerformance.tier(this)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -937,26 +956,41 @@ class PlayerActivity : BaseTvActivity() {
         resetControlsTimeout()
     }
 
+    private fun nextSeekAmount(forward: Boolean): Long {
+        val now = SystemClock.uptimeMillis()
+        seekStreak = if (forward == lastSeekForward && now - lastSeekAt < 700L) {
+            (seekStreak + 1).coerceAtMost(3)
+        } else {
+            0
+        }
+        lastSeekAt = now
+        lastSeekForward = forward
+        val multiplier = 1L shl seekStreak  // 1, 2, 4, 8
+        return SEEK_AMOUNT * multiplier
+    }
+
     private fun seekForward() {
+        val amount = nextSeekAmount(forward = true)
         val manager = engineManager
         if (manager != null) {
-            manager.seekBy(SEEK_AMOUNT)
+            manager.seekBy(amount)
         } else {
             val currentTime = mediaPlayer?.time ?: 0
             val duration = mediaPlayer?.length ?: 0
-            val newTime = if (duration > 0) (currentTime + SEEK_AMOUNT).coerceAtMost(duration) else currentTime + SEEK_AMOUNT
+            val newTime = if (duration > 0) (currentTime + amount).coerceAtMost(duration) else currentTime + amount
             mediaPlayer?.time = newTime
         }
         resetControlsTimeout()
     }
 
     private fun seekBackward() {
+        val amount = nextSeekAmount(forward = false)
         val manager = engineManager
         if (manager != null) {
-            manager.seekBy(-SEEK_AMOUNT)
+            manager.seekBy(-amount)
         } else {
             val currentTime = mediaPlayer?.time ?: 0
-            val newTime = (currentTime - SEEK_AMOUNT).coerceAtLeast(0)
+            val newTime = (currentTime - amount).coerceAtLeast(0)
             mediaPlayer?.time = newTime
         }
         resetControlsTimeout()
@@ -1803,10 +1837,30 @@ class PlayerActivity : BaseTvActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Re-assert screen-on guarantees in case the system or another component
+        // cleared the flag while we were in the background.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        acquirePlaybackWakeLock()
         attachPlaybackEngineView()
         if (engineManager == null && mediaPlayer != null && binding.vlcVideoLayout.visibility == View.VISIBLE) {
             runCatching { mediaPlayer?.attachViews(binding.vlcVideoLayout, null, false, false) }
         }
+    }
+
+    private fun acquirePlaybackWakeLock() {
+        if (playbackWakeLock?.isHeld == true) return
+        runCatching {
+            val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return@runCatching
+            val lock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MoPlayer::Playback")
+            lock.setReferenceCounted(false)
+            lock.acquire(6 * 60 * 60 * 1000L) // safety cap: 6 hours per session
+            playbackWakeLock = lock
+        }
+    }
+
+    private fun releasePlaybackWakeLock() {
+        runCatching { if (playbackWakeLock?.isHeld == true) playbackWakeLock?.release() }
+        playbackWakeLock = null
     }
 
     override fun onPause() {
@@ -1845,6 +1899,7 @@ class PlayerActivity : BaseTvActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        releasePlaybackWakeLock()
         saveCurrentProgress()
 
         // Stop the foreground playback service so notification disappears

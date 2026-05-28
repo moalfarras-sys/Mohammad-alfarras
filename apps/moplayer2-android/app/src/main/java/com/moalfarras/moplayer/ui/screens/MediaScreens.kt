@@ -799,9 +799,7 @@ fun PreviewPane(
                 }
                 return@Box
             }
-            val previewArt = item.backdropUrl.ifBlank {
-                if (item.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE) "" else item.posterUrl
-            }
+            val previewArt = item.backdropUrl.ifBlank { item.posterUrl }
             if (previewEnabled && performancePolicy?.enablePreviewPane != false && previewArt.isNotBlank()) {
                 AsyncImage(previewArt, item.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {

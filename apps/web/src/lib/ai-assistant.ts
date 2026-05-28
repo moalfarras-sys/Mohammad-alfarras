@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 
-import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { serverHmac } from "@/lib/request-guard";
+import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export type AssistantMessage = {
   role: "user" | "assistant" | "system";
@@ -20,7 +20,7 @@ export type PersistedAssistantMessage = {
 type ProviderResult = {
   fallback: boolean;
   model?: string;
-  provider: "gemini" | "openai" | "local";
+  provider: "anthropic" | "gemini" | "openai" | "local";
   reply: string;
 };
 
@@ -30,9 +30,9 @@ const assistantEventTtlDays = 7;
 
 const siteContext = {
   ar:
-    "أنت المساعد الذكي لموقع محمد الفراس. أجب بالعربية الواضحة وباختصار مفيد. ساعد الزائر في فهم خدمات تصميم وتطوير الويب، MoPlayer وMoPlayer Pro، صفحات التفعيل والدعم، قناة يوتيوب، السيرة الذاتية، وطرق التواصل. استخدم فقط نطاق moalfarras.space. روابط مهمة: MoPlayer Pro: https://moalfarras.space/ar/apps/moplayer2 أو /en/apps/moplayer2، التفعيل: https://moalfarras.space/ar/activate?product=moplayer2 أو /en/activate?product=moplayer2، الدعم: /ar/support أو /en/support، التواصل: /ar/contact أو /en/contact. لا تستخدم mohammadalfarras.com ولا تخترع أسعارا أو وعودا. إذا احتاج الزائر عملا مخصصا، وجهه إلى صفحة التواصل.",
+    "أنت المساعد الذكي لموقع محمد الفراس. أجب بالعربية الواضحة وباختصار مفيد، وكن محاورا فعليا: اسأل سؤال متابعة واحدا عندما تحتاج تفاصيل أكثر، واجمع اسم العميل وبريده عند وجود مشكلة أو طلب مشروع. ساعد الزائر في فهم خدمات تصميم وتطوير الويب، MoPlayer وMoPlayer Pro، صفحات التفعيل والدعم، قناة يوتيوب، السيرة الذاتية، وطرق التواصل. استخدم فقط نطاق moalfarras.space. روابط مهمة: MoPlayer Pro: https://moalfarras.space/ar/apps/moplayer2 أو /en/apps/moplayer2، التفعيل: https://moalfarras.space/ar/activate?product=moplayer2 أو /en/activate?product=moplayer2، الدعم: /ar/support أو /en/support، التواصل: /ar/contact أو /en/contact. لا تستخدم mohammadalfarras.com. لا تقل إن MoPlayer Pro مجاني أو مدفوع أو لا يملك نسخة تجريبية إلا إذا كان ذلك ظاهرا في نص الموقع أمامك. لا تخترع أسعارا أو وعودا. عند السؤال عن تحديث التطبيق، وجه المستخدم لصفحة التطبيق أو رابط التحميل الرسمي واطلب منه رقم النسخة المثبتة. إذا احتاج الزائر عملا مخصصا، وجهه إلى صفحة التواصل.",
   en:
-    "You are the smart assistant for Mohammad Alfarras' website. Answer clearly and concisely. Help visitors understand web design and development services, MoPlayer and MoPlayer Pro, activation and support pages, YouTube, CV, and contact options. Use only the moalfarras.space domain. Important routes: MoPlayer Pro: https://moalfarras.space/en/apps/moplayer2 or /ar/apps/moplayer2, activation: https://moalfarras.space/en/activate?product=moplayer2 or /ar/activate?product=moplayer2, support: /en/support or /ar/support, contact: /en/contact or /ar/contact. Never use mohammadalfarras.com. Do not invent prices or commitments. If the visitor needs custom work, point them to the contact page.",
+    "You are the smart assistant for Mohammad Alfarras' website. Answer clearly and concisely. Be conversational: ask one useful follow-up question when details are missing, and collect the visitor's name and email for support issues or project leads. Help visitors understand web design and development services, MoPlayer and MoPlayer Pro, activation and support pages, YouTube, CV, and contact options. Use only the moalfarras.space domain. Important routes: MoPlayer Pro: https://moalfarras.space/en/apps/moplayer2 or /ar/apps/moplayer2, activation: https://moalfarras.space/en/activate?product=moplayer2 or /ar/activate?product=moplayer2, support: /en/support or /ar/support, contact: /en/contact or /ar/contact. Never use mohammadalfarras.com. Do not say MoPlayer Pro is paid, free, or has no trial unless that is visible in the site copy. Do not invent prices or commitments. For app update questions, point to the official app page or download route and ask for the installed version number. If the visitor needs custom work, point them to the contact page.",
 } satisfies Record<AssistantLocale, string>;
 
 export function normalizeLocale(value: unknown): AssistantLocale {
@@ -80,13 +80,34 @@ function localReply(messages: AssistantMessage[], locale: AssistantLocale): Prov
   const last = [...messages].reverse().find((message) => message.role === "user")?.content.toLowerCase() ?? "";
   const isAr = locale === "ar";
 
-  if (last.includes("moplayer2") || last.includes("pro") || last.includes("برو")) {
+  const isUpdateQuestion =
+    last.includes("update") ||
+    last.includes("latest") ||
+    last.includes("version") ||
+    last.includes("old") ||
+    last.includes("download") ||
+    last.includes("تحديث") ||
+    last.includes("أحدث") ||
+    last.includes("نسخة") ||
+    last.includes("قديم");
+
+  if ((last.includes("moplayer") || last.includes("برو")) && isUpdateQuestion) {
+    return {
+      fallback: false,
+      provider: "local",
+      reply: isAr
+        ? "نعم، إذا كانت النسخة المثبتة قديمة فافتح صفحة التطبيق الرسمية وحمل أحدث إصدار من زر التحميل. MoPlayer Pro صفحته: https://moalfarras.space/ar/apps/moplayer2 ويستخدم داخليا product=moplayer2 في روابط التحديث. أرسل رقم النسخة المثبتة ونوع الجهاز إذا لم يظهر التحديث."
+        : "Yes. If your installed version is old, open the official app page and use the download button for the latest release. MoPlayer Pro is at https://moalfarras.space/en/apps/moplayer2 and uses product=moplayer2 internally for update APIs. Send your installed version and device type if the update does not appear.",
+    };
+  }
+
+  if (last.includes("moplayer2") || last.includes("moplayer") || last.includes("pro") || last.includes("برو")) {
     return {
       fallback: true,
       provider: "local",
       reply: isAr
-        ? "MoPlayer Pro يستخدم slug ثابت اسمه moplayer2 في الروابط والـ API. صفحته العامة هي /ar/apps/moplayer2 أو /en/apps/moplayer2. للتفعيل استخدم /activate?product=moplayer2 مع كود الجهاز."
-        : "MoPlayer Pro keeps the internal slug moplayer2 for URLs and APIs. Its public page is /en/apps/moplayer2, and activation uses /activate?product=moplayer2 with the device code.",
+        ? "MoPlayer Pro يستخدم slug ثابت اسمه moplayer2 في الروابط والـ API. إذا كانت نسختك قديمة افتح https://moalfarras.space/ar/apps/moplayer2 وحمل أحدث إصدار من زر التحميل. للتفعيل استخدم /activate?product=moplayer2 مع كود الجهاز. إذا ظهر خطأ أرسل نوع الجهاز ورقم النسخة ونص الخطأ."
+        : "MoPlayer Pro keeps the internal slug moplayer2 for URLs and APIs. If your installed version is old, open https://moalfarras.space/en/apps/moplayer2 and use the download button for the latest release. Activation uses /activate?product=moplayer2 with the device code. If an error appears, send the device type, app version, and exact error text.",
     };
   }
 
@@ -95,8 +116,26 @@ function localReply(messages: AssistantMessage[], locale: AssistantLocale): Prov
       fallback: true,
       provider: "local",
       reply: isAr
-        ? "للتفعيل افتح صفحة التفعيل، أدخل كود الجهاز، ثم أرسل بيانات المصدر من الموقع. إذا كان المنتج Pro تأكد أن الرابط يحتوي product=moplayer2."
-        : "To activate, open the activation page, enter the device code, then send the source details from the website. For Pro, make sure the URL includes product=moplayer2.",
+        ? "للتفعيل افتح صفحة التفعيل، أدخل كود الجهاز، ثم أرسل بيانات المصدر من الموقع. إذا كان المنتج Pro تأكد أن الرابط يحتوي product=moplayer2. أرسل لي كود الجهاز أو وصف الخطأ حتى أوجهك للخطوة الصحيحة."
+        : "To activate, open the activation page, enter the device code, then send the source details from the website. For Pro, make sure the URL includes product=moplayer2. Send the device code or error text so I can guide the next step.",
+    };
+  }
+
+  if (
+    last.includes("iptv") ||
+    last.includes("website") ||
+    last.includes("site") ||
+    last.includes("project") ||
+    last.includes("موقع") ||
+    last.includes("مشروع") ||
+    last.includes("تطبيق")
+  ) {
+    return {
+      fallback: true,
+      provider: "local",
+      reply: isAr
+        ? "أكيد. لنبدأ بذكاء: أحتاج منك 4 أشياء حتى أرتب الطلب وأرسله للدعم بشكل واضح: نوع المشروع، الجمهور المستهدف، أهم 3 ميزات تريدها، والبريد أو واتساب للتواصل. إذا كان المشروع IPTV أو تطبيق بث، اذكر أيضا هل تحتاج صفحة تحميل، تفعيل أكواد، لوحة أدمن، أو مساعد داخل التطبيق."
+        : "Absolutely. To shape this properly, I need four details: project type, target users, the top 3 features you want, and an email or WhatsApp contact. If this is an IPTV or streaming app project, also mention whether you need a download page, activation codes, admin dashboard, or in-app assistant.",
     };
   }
 
@@ -112,6 +151,14 @@ function localReply(messages: AssistantMessage[], locale: AssistantLocale): Prov
 function groundedReply(messages: AssistantMessage[], locale: AssistantLocale): ProviderResult | null {
   const last = [...messages].reverse().find((message) => message.role === "user")?.content.toLowerCase() ?? "";
   const isAr = locale === "ar";
+  const asksProject =
+    last.includes("iptv") ||
+    last.includes("website") ||
+    last.includes("site") ||
+    last.includes("project") ||
+    last.includes("موقع") ||
+    last.includes("مشروع") ||
+    last.includes("تطبيق");
   const asksActivation =
     last.includes("activate") ||
     last.includes("activation") ||
@@ -122,15 +169,62 @@ function groundedReply(messages: AssistantMessage[], locale: AssistantLocale): P
     last.includes("فعل") ||
     last.includes("الكود") ||
     last.includes("رمز");
-  const asksPro = last.includes("moplayer pro") || last.includes("moplayer2") || last.includes("pro") || last.includes("برو");
+  const asksPro = last.includes("moplayer") || last.includes("moplayer2") || last.includes("pro") || last.includes("برو");
+  const asksUpdate =
+    last.includes("update") ||
+    last.includes("latest") ||
+    last.includes("version") ||
+    last.includes("old") ||
+    last.includes("download") ||
+    last.includes("تحديث") ||
+    last.includes("أحدث") ||
+    last.includes("نسخة") ||
+    last.includes("قديم");
+  const asksProblem =
+    last.includes("error") ||
+    last.includes("issue") ||
+    last.includes("problem") ||
+    last.includes("خطأ") ||
+    last.includes("مشكلة") ||
+    last.includes("تشغيل");
+
+  if (asksProject && !asksPro) {
+    return {
+      fallback: false,
+      provider: "local",
+      reply: isAr
+        ? "أكيد. لبناء مساعد ذكي لموقع أو تطبيق IPTV، أول خطوة هي جمع البيانات التي يحتاجها الدعم: نوع المشروع، الجمهور المستهدف، أهم 3 ميزات، البريد أو واتساب، وهل تحتاج صفحة تحميل أو تفعيل أكواد أو لوحة أدمن. أرسل هذه التفاصيل وسأرتبها لك كطلب واضح."
+        : "Absolutely. For an IPTV website or app assistant, the first step is collecting the support-ready details: project type, target audience, top 3 features, email or WhatsApp, and whether you need a download page, activation codes, or admin dashboard. Send those details and I will structure the request clearly.",
+    };
+  }
+
+  if (asksPro && asksUpdate) {
+    return {
+      fallback: false,
+      provider: "local",
+      reply: isAr
+        ? "نعم، إذا كانت النسخة المثبتة قديمة فافتح صفحة MoPlayer Pro الرسمية: https://moalfarras.space/ar/apps/moplayer2 ثم حمل أحدث إصدار من زر التحميل. التطبيق يعتمد داخليا على product=moplayer2 في روابط التحديث والـ API. أرسل لي رقم النسخة المثبتة عندك ونوع الجهاز إذا لم يظهر التحديث."
+        : "Yes. If your installed version is old, open the official MoPlayer Pro page at https://moalfarras.space/en/apps/moplayer2 and use the download button for the latest release. The app update APIs use product=moplayer2 internally. Send me your installed version number and device type if the update does not appear.",
+    };
+  }
+
+  if (asksPro && asksProblem) {
+    return {
+      fallback: false,
+      provider: "local",
+      reply: isAr
+        ? "لمشكلة في MoPlayer Pro افتح صفحة الدعم https://moalfarras.space/ar/support واكتب: نوع الجهاز، رقم النسخة، نص الخطأ، وهل المشكلة في التفعيل أم تشغيل القنوات. إذا كان عندك كود جهاز أرسله أيضا حتى نراجع الطلب بسرعة."
+        : "For a MoPlayer Pro issue, open https://moalfarras.space/en/support and include the device type, app version, exact error text, and whether the issue is activation or playback. If you have a device code, include it so support can review it faster.",
+    };
+  }
 
   if (asksActivation && asksPro) {
     return {
       fallback: false,
       provider: "local",
       reply: isAr
-        ? "لتفعيل MoPlayer Pro افتح https://moalfarras.space/ar/activate?product=moplayer2 أو https://moalfarras.space/en/activate?product=moplayer2، أدخل كود الجهاز، ثم أرسل بيانات المصدر من صفحة التفعيل. مهم: المنتج يبقى داخليا باسم moplayer2 في الروابط والـ API."
-        : "To activate MoPlayer Pro, open https://moalfarras.space/en/activate?product=moplayer2 or https://moalfarras.space/ar/activate?product=moplayer2, enter the device code, then send the source details from the activation page. Important: the internal product slug stays moplayer2 in URLs and APIs.",
+        ? "لتفعيل MoPlayer Pro افتح https://moalfarras.space/ar/activate?product=moplayer2 أو https://moalfarras.space/en/activate?product=moplayer2، أدخل كود الجهاز، ثم أرسل بيانات المصدر من صفحة التفعيل. مهم: المنتج يبقى داخليا باسم moplayer2 في الروابط والـ API. إذا ظهر خطأ، أرسل نص الخطأ وكود الجهاز."
+        : "To activate MoPlayer Pro, open https://moalfarras.space/en/activate?product=moplayer2 or https://moalfarras.space/ar/activate?product=moplayer2, enter the device code, then send the source details from the activation page. Important: the internal product slug stays moplayer2 in URLs and APIs. If you see an error, send the error text and device code.",
     };
   }
 
@@ -139,8 +233,8 @@ function groundedReply(messages: AssistantMessage[], locale: AssistantLocale): P
       fallback: false,
       provider: "local",
       reply: isAr
-        ? "صفحة الدعم هي https://moalfarras.space/ar/support ويمكنك أيضا استخدام https://moalfarras.space/ar/contact للتواصل المباشر."
-        : "The support page is https://moalfarras.space/en/support. You can also use https://moalfarras.space/en/contact for direct contact.",
+        ? "صفحة الدعم هي https://moalfarras.space/ar/support ويمكنك أيضا استخدام https://moalfarras.space/ar/contact للتواصل المباشر. اكتب اسم التطبيق ونوع الجهاز ونص الخطأ حتى نحل المشكلة أسرع."
+        : "The support page is https://moalfarras.space/en/support. You can also use https://moalfarras.space/en/contact for direct contact. Include the app name, device type, and exact error text so we can solve it faster.",
     };
   }
 
@@ -212,6 +306,40 @@ async function callGemini(messages: AssistantMessage[], locale: AssistantLocale)
   return reply ? { fallback: false, model, provider: "gemini", reply } : null;
 }
 
+function anthropicBaseUrl() {
+  return (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").replace(/\/+$/, "");
+}
+
+async function callAnthropic(messages: AssistantMessage[], locale: AssistantLocale): Promise<ProviderResult | null> {
+  const apiKey = process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+
+  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5-20250929";
+  const res = await fetch(`${anthropicBaseUrl()}/v1/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "anthropic-version": "2023-06-01",
+      "x-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      model,
+      system: siteContext[locale],
+      max_tokens: 700,
+      temperature: 0.4,
+      messages: messages
+        .filter((message) => message.role !== "system")
+        .map((message) => ({ role: message.role === "assistant" ? "assistant" : "user", content: message.content })),
+    }),
+  });
+
+  if (!res.ok) return null;
+  const data = (await res.json()) as { content?: Array<{ text?: string; type?: string }> };
+  const reply = data.content?.map((part) => part.text ?? "").join("").trim();
+  return reply ? { fallback: false, model, provider: "anthropic", reply } : null;
+}
+
 export async function answerSiteAssistant(messages: AssistantMessage[], locale: AssistantLocale): Promise<ProviderResult> {
   const grounded = groundedReply(messages, locale);
   if (grounded) return grounded;
@@ -219,10 +347,12 @@ export async function answerSiteAssistant(messages: AssistantMessage[], locale: 
   const preferred = (process.env.AI_ASSISTANT_PROVIDER || "").toLowerCase();
   const providers =
     preferred === "openai"
-      ? [callOpenAI, callGemini]
+      ? [callOpenAI, callGemini, callAnthropic]
       : preferred === "gemini"
-        ? [callGemini, callOpenAI]
-        : [callGemini, callOpenAI];
+        ? [callGemini, callOpenAI, callAnthropic]
+        : preferred === "anthropic" || preferred === "claude"
+          ? [callAnthropic, callOpenAI, callGemini]
+          : [callOpenAI, callGemini, callAnthropic];
 
   for (const provider of providers) {
     try {

@@ -264,6 +264,9 @@ interface MediaDao {
     @Query("SELECT id, type, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt FROM media WHERE serverId = :serverId")
     suspend fun playbackState(serverId: Long): List<MediaStateSnapshot>
 
+    @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId AND type IN (:types)")
+    suspend fun countForServerTypes(serverId: Long, types: List<ContentType>): Int
+
     @Upsert
     suspend fun upsertAll(items: List<MediaEntity>)
 
@@ -455,19 +458,24 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         val normalizedTypes = types.distinct()
         if (normalizedTypes.isEmpty()) return@withTransaction
 
-        val playbackState = mediaDao().playbackState(serverId).associateBy { "${it.type.name}:${it.id}" }
-        val mergedMedia = media.map { item ->
-            val key = "${item.type.name}:${item.id}"
-            val previous = playbackState[key]
-            if (previous == null) {
-                item
-            } else {
-                item.copy(
-                    isFavorite = previous.isFavorite,
-                    watchPositionMs = previous.watchPositionMs,
-                    watchDurationMs = previous.watchDurationMs,
-                    lastPlayedAt = previous.lastPlayedAt,
-                )
+        val hasExistingPlaybackState = mediaDao().countForServerTypes(serverId, normalizedTypes) > 0
+        val mergedMedia = if (!hasExistingPlaybackState) {
+            media
+        } else {
+            val playbackState = mediaDao().playbackState(serverId).associateBy { "${it.type.name}:${it.id}" }
+            media.map { item ->
+                val key = "${item.type.name}:${item.id}"
+                val previous = playbackState[key]
+                if (previous == null) {
+                    item
+                } else {
+                    item.copy(
+                        isFavorite = previous.isFavorite,
+                        watchPositionMs = previous.watchPositionMs,
+                        watchDurationMs = previous.watchDurationMs,
+                        lastPlayedAt = previous.lastPlayedAt,
+                    )
+                }
             }
         }
 

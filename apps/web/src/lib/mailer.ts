@@ -67,6 +67,9 @@ export async function sendMail(input: MailInput): Promise<boolean> {
       text: input.text,
       html: input.html,
       replyTo: input.replyTo,
+      headers: {
+        "Content-Language": /[\u0600-\u06ff]/.test(`${input.subject}\n${input.text}`) ? "ar" : "en",
+      },
     });
     return true;
   } catch {

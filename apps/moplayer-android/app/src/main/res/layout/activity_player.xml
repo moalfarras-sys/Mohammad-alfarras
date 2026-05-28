@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:background="@android:color/black"
+    android:keepScreenOn="true">
 
     <!-- ExoPlayer SurfaceView (primary engine) -->
     <androidx.media3.ui.PlayerView
@@ -12,6 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
+        android:keepScreenOn="true"
         app:use_controller="false"
         app:surface_type="surface_view" />
 
@@ -20,6 +22,7 @@
         android:id="@+id/vlcVideoLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:keepScreenOn="true"
         android:visibility="visible" />
 
     <View

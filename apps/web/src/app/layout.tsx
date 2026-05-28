@@ -6,7 +6,7 @@ import { siteFontClassName } from "@/lib/fonts";
 
 import "./globals.css";
 
-const siteUrl = "https://moalfarras.space";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "") || "https://moalfarras.space";
 const siteName = "Mohammad Alfarras Digital OS";
 const defaultDescription =
   "Germany-based builder turning logistics discipline into clear web systems, Android TV products (MoPlayer), and Arabic technical storytelling.";

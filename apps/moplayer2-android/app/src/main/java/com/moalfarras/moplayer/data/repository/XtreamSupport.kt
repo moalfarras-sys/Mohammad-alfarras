@@ -62,13 +62,16 @@ internal data class XtreamSyncPayload(
 
 internal object XtreamSupport {
     fun extractCredentialsFromPlaylistUrl(url: String): XtreamCredentials? = runCatching {
-        val uri = URI(url.trim())
+        val cleanedUrl = cleanSourceUrl(url)
+        val uri = URI(cleanedUrl)
         val params = uri.rawQuery
+            ?.replace(";", "&")
             ?.split('&')
             ?.mapNotNull { part ->
                 val pieces = part.split('=', limit = 2)
                 if (pieces.size == 2) {
-                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()) to URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
+                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()).lowercase(Locale.US) to
+                        URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
                 } else {
                     null
                 }
@@ -85,10 +88,58 @@ internal object XtreamSupport {
                 baseUrl = "${uri.scheme}://${uri.host}$port/",
                 username = username,
                 password = password,
-                playlistUrl = url,
+                playlistUrl = cleanedUrl,
             )
         }
     }.getOrNull()
+
+    fun extractActivationSource(url: String): XtreamCredentials? = runCatching {
+        val cleanedUrl = cleanSourceUrl(url)
+        val uri = URI(cleanedUrl)
+        val params = uri.rawQuery
+            ?.replace(";", "&")
+            ?.split('&')
+            ?.mapNotNull { part ->
+                val pieces = part.split('=', limit = 2)
+                if (pieces.size == 2) {
+                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()).lowercase(Locale.US) to
+                        URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
+                } else {
+                    null
+                }
+            }
+            ?.toMap()
+            .orEmpty()
+        val baseUrl = params["server"].orEmpty().ifBlank { params["url"].orEmpty() }
+        val username = params["username"].orEmpty()
+        val password = params["password"].orEmpty()
+        if (baseUrl.isBlank() || username.isBlank() || password.isBlank()) {
+            null
+        } else {
+            val normalizedBase = when {
+                baseUrl.startsWith("http://", ignoreCase = true) || baseUrl.startsWith("https://", ignoreCase = true) -> baseUrl
+                else -> "http://$baseUrl"
+            }
+            XtreamCredentials(
+                baseUrl = normalizedBase.trimEnd('/') + "/",
+                username = username,
+                password = password,
+                playlistUrl = cleanedUrl,
+            )
+        }
+    }.getOrNull()
+
+    private fun cleanSourceUrl(url: String): String = url
+        .trim()
+        .trim('"', '\'')
+        .replace("&amp;", "&", ignoreCase = true)
+        .replace("^&", "&")
+
+    fun looksLikeXtreamPlaylistUrl(url: String): Boolean {
+        val cleanedUrl = cleanSourceUrl(url).lowercase(Locale.US)
+        return cleanedUrl.contains("/get.php") &&
+            (cleanedUrl.contains("username=") || cleanedUrl.contains("password=") || cleanedUrl.contains("type=m3u"))
+    }
 
     fun parseAccountSnapshot(
         json: Json,

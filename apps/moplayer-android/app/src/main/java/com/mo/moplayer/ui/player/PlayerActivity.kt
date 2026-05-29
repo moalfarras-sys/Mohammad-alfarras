@@ -139,6 +139,7 @@ class PlayerActivity : BaseTvActivity() {
     private val LIVE_MAX_RETRIES = LivePlaybackRetryPolicy.DEFAULT_MAX_RETRIES
     private var lastRetryTime = 0L
     private val RETRY_BACKOFF_MS = LivePlaybackRetryPolicy.DEFAULT_BASE_DELAY_MS
+    private var liveRetryScheduled = false
     private var useHttpFallbackForApi24Stream = false
     private var activePlaybackToken = 0L
     
@@ -583,6 +584,8 @@ class PlayerActivity : BaseTvActivity() {
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
                                 startProgressUpdate()
                                 liveRetryCount = 0
+                                liveRetryScheduled = false
+                                LivePlaybackRetryPolicy.onSuccess()
                             }
                             MediaPlayer.Event.Paused -> {
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_play)
@@ -655,7 +658,12 @@ class PlayerActivity : BaseTvActivity() {
         binding.btnSpeed.setOnClickListener { cyclePlaybackSpeed() }
         binding.btnExternalPlayer.setOnClickListener { showExternalPlayerDialog() }
 
-        binding.btnRetry.setOnClickListener { restartCurrentStream() }
+        binding.btnRetry.setOnClickListener {
+            liveRetryCount = 0
+            liveRetryScheduled = false
+            LivePlaybackRetryPolicy.reset()
+            restartCurrentStream()
+        }
         binding.optionSheet.setOnClickListener { hideOptionSheet() }
         binding.channelDrawer.setOnClickListener { hideChannelDrawer() }
 
@@ -712,6 +720,7 @@ class PlayerActivity : BaseTvActivity() {
     private fun playStream() {
         try {
             val requestToken = ++activePlaybackToken
+            liveRetryScheduled = false
             setLoadingOverlayVisible(true)
             hasStartedPlayback = false
             binding.errorOverlay.visibility = View.GONE
@@ -883,8 +892,12 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun handleLiveStreamError() {
+        if (liveRetryScheduled) return
+
         if (LivePlaybackRetryPolicy.canRetry(liveRetryCount, LIVE_MAX_RETRIES)) {
             liveRetryCount++
+            liveRetryScheduled = true
+            LivePlaybackRetryPolicy.onFailure(LIVE_MAX_RETRIES)
             setLoadingOverlayVisible(true)
             binding.errorOverlay.visibility = View.GONE
 
@@ -894,6 +907,7 @@ class PlayerActivity : BaseTvActivity() {
             
             val retryToken = activePlaybackToken
             handler.postDelayed({
+                liveRetryScheduled = false
                 if (retryToken != activePlaybackToken || isFinishing || isDestroyed) {
                     return@postDelayed
                 }
@@ -907,9 +921,15 @@ class PlayerActivity : BaseTvActivity() {
                 }
             }, delay)
         } else {
+            liveRetryScheduled = false
             setLoadingOverlayVisible(false)
-            showPlaybackError(getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES))
-            Toast.makeText(this, getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES), Toast.LENGTH_LONG).show()
+            val message = if (LivePlaybackRetryPolicy.isCircuitOpen) {
+                LivePlaybackRetryPolicy.circuitBlockReason()
+            } else {
+                getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES)
+            }
+            showPlaybackError(message)
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             liveRetryCount = 0 // Reset for manual retry
         }
     }
@@ -1412,6 +1432,10 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun switchToChannel(channel: ChannelEntity) {
+        LivePlaybackRetryPolicy.reset()
+        liveRetryCount = 0
+        liveRetryScheduled = false
+        useHttpFallbackForApi24Stream = false
         contentId = channel.channelId
         streamUrl = channel.streamUrl
         title = channel.name

@@ -228,6 +228,7 @@ class LiveTvActivity : BaseTvActivity() {
     private var retryCount = 0
     private val MAX_RETRIES = LivePlaybackRetryPolicy.DEFAULT_MAX_RETRIES
     private val RETRY_BACKOFF_MS = LivePlaybackRetryPolicy.DEFAULT_BASE_DELAY_MS
+    private var retryScheduled = false
     private var currentChannel: ChannelEntity? = null
     private var activePlayRequestToken = 0L
     private var activePlaybackToken = 0L
@@ -416,6 +417,8 @@ class LiveTvActivity : BaseTvActivity() {
                                     setLoadingOverlayVisible(false)
                                     binding.networkErrorView.hide()
                                     retryCount = 0
+                                    retryScheduled = false
+                                    LivePlaybackRetryPolicy.onSuccess()
                                     val startupMs =
                                             SystemClock.uptimeMillis() -
                                                     lastChannelSwitchStartedAtMs
@@ -481,9 +484,13 @@ class LiveTvActivity : BaseTvActivity() {
     }
 
     private fun handleStreamError() {
+        if (retryScheduled) return
+
         val failedToken = activePlaybackToken
         if (LivePlaybackRetryPolicy.canRetry(retryCount, MAX_RETRIES) && currentChannel != null) {
             retryCount++
+            retryScheduled = true
+            LivePlaybackRetryPolicy.onFailure(MAX_RETRIES)
             decoderFallbackCount++
 
             val delay = LivePlaybackRetryPolicy.nextDelayMs(retryCount, RETRY_BACKOFF_MS)
@@ -495,6 +502,7 @@ class LiveTvActivity : BaseTvActivity() {
 
             handler.postDelayed(
                     {
+                        retryScheduled = false
                         if (failedToken != activePlaybackToken || isFinishing || isDestroying) {
                             return@postDelayed
                         }
@@ -509,7 +517,13 @@ class LiveTvActivity : BaseTvActivity() {
                     delay
             )
         } else {
-            showError(getString(R.string.error_stream_failed))
+            val message = if (LivePlaybackRetryPolicy.isCircuitOpen) {
+                LivePlaybackRetryPolicy.circuitBlockReason()
+            } else {
+                getString(R.string.error_stream_failed)
+            }
+            showError(message)
+            retryScheduled = false
             retryCount = 0 // Reset for next channel
         }
     }
@@ -775,6 +789,8 @@ class LiveTvActivity : BaseTvActivity() {
                     override fun onRetryClicked() {
                         currentChannel?.let {
                             retryCount = 0
+                            retryScheduled = false
+                            LivePlaybackRetryPolicy.reset()
                             playChannel(it)
                         } ?: viewModel.retry()
                     }
@@ -1234,6 +1250,8 @@ class LiveTvActivity : BaseTvActivity() {
         try {
             if (channel.channelId != currentChannel?.channelId) {
                 retryCount = 0
+                retryScheduled = false
+                LivePlaybackRetryPolicy.reset()
             }
             val requestToken = ++activePlayRequestToken
             activePlaybackToken = requestToken

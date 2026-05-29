@@ -88,6 +88,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.key
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -171,6 +172,7 @@ private const val LIVE_MIN_OFFSET_MS = 6_000L
 private const val LIVE_MAX_OFFSET_MS = 25_000L
 private const val LIVE_STALL_RECOVERY_LIMIT = 4
 private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 4
+private const val MEDIA3_SURFACE_RETRY_LIMIT = 2
 private const val LIBVLC_LIVE_CACHE_MS = 900
 private const val LIBVLC_FILE_CACHE_MS = 2_000
 
@@ -276,6 +278,7 @@ fun PlayerScreen(
     var liveReadyWithoutVideoAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
     var liveFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var liveOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
+    var media3SurfaceAttempt by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     // VOD black screen watchdog: track when VOD reaches READY but hasn't rendered first frame
     var vodReadyAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
     var vodFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
@@ -423,7 +426,22 @@ fun PlayerScreen(
         isLive -> internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForLive
         else -> internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForVod
     }
-    val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, liveRedirectResolved, useLibVlc, performancePolicy.mode) {
+
+    fun retryMedia3WithAlternateSurface(reason: String): Boolean {
+        if (!isLive || useLibVlc || media3SurfaceAttempt >= MEDIA3_SURFACE_RETRY_LIMIT) return false
+        media3SurfaceAttempt += 1
+        playbackError = null
+        isBuffering = true
+        liveOpeningGuard = true
+        liveFirstFrameRendered = false
+        liveReadyWithoutVideoAt = 0L
+        liveConsecutiveFailures = 0
+        liveSwitchLocked = false
+        playbackSignal = "$reason ${media3SurfaceAttempt}/$MEDIA3_SURFACE_RETRY_LIMIT"
+        return true
+    }
+
+    val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, liveRedirectResolved, useLibVlc, performancePolicy.mode, media3SurfaceAttempt) {
         buildPlayer(
             context = context,
             request = playbackRequest,
@@ -467,6 +485,9 @@ fun PlayerScreen(
                     isBuffering = true
                     liveFirstFrameRendered = false
                     liveReadyWithoutVideoAt = 0L
+                    return@buildPlayer
+                }
+                if (isLive && retryMedia3WithAlternateSurface("Switching video surface")) {
                     return@buildPlayer
                 }
                 if (isLive && switchToCompatibleAlternative("Switching to a safer quality")) {
@@ -651,7 +672,7 @@ fun PlayerScreen(
         }
     }
 
-    LaunchedEffect(isLive, playbackRequest.uri, item.id) {
+    LaunchedEffect(isLive, playbackRequest.uri, item.id, media3SurfaceAttempt) {
         if (isLive) {
             liveOpeningGuard = true
             delay(10_000)
@@ -685,7 +706,7 @@ fun PlayerScreen(
         }
     }
 
-    LaunchedEffect(isLive, isBuffering, playbackError, item.id, streamRequest.uri, useLibVlc, liveConsecutiveFailures) {
+    LaunchedEffect(isLive, isBuffering, playbackError, item.id, streamRequest.uri, useLibVlc, liveConsecutiveFailures, media3SurfaceAttempt, exoPlayer) {
         if (!isLive || !isBuffering || playbackError != null) return@LaunchedEffect
         delay(if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 3_500 else 5_000)
         if (isBuffering && playbackError == null) {
@@ -695,11 +716,15 @@ fun PlayerScreen(
             } else if (useLibVlc && liveConsecutiveFailures < liveStallRecoveryLimit) {
                 liveConsecutiveFailures += 1
                 libVlcRetryNonce++
+            } else if (!useLibVlc && retryMedia3WithAlternateSurface("Switching video surface")) {
+                return@LaunchedEffect
             } else if (!useLibVlc && liveConsecutiveFailures < liveStallRecoveryLimit) {
                 liveConsecutiveFailures += 1
-                exoPlayer.seekToDefaultPosition()
-                exoPlayer.prepare()
-                exoPlayer.play()
+                runCatching {
+                    exoPlayer.seekToDefaultPosition()
+                    exoPlayer.prepare()
+                    exoPlayer.play()
+                }
             } else {
                 isBuffering = false
                 if (!switchToCompatibleAlternative("Switching to a safer quality")) {
@@ -709,11 +734,13 @@ fun PlayerScreen(
         }
     }
 
-    LaunchedEffect(isLive, liveReadyWithoutVideoAt, liveFirstFrameRendered, item.id, streamRequest.uri, useLibVlc) {
+    LaunchedEffect(isLive, liveReadyWithoutVideoAt, liveFirstFrameRendered, item.id, streamRequest.uri, useLibVlc, media3SurfaceAttempt, exoPlayer) {
         if (!isLive || useLibVlc || liveReadyWithoutVideoAt <= 0L) return@LaunchedEffect
         delay(5_000)
         if (liveReadyWithoutVideoAt > 0L && !liveFirstFrameRendered && playbackError == null) {
-            if (isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForLive) {
+            if (retryMedia3WithAlternateSurface("Switching video surface")) {
+                return@LaunchedEffect
+            } else if (isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForLive) {
                 triedLibVlcForLive = true
                 forceLibVlcForLive = true
                 internalEngine = InternalPlaybackEngine.LIBVLC
@@ -783,6 +810,7 @@ fun PlayerScreen(
         liveConsecutiveFailures = 0
         liveAutoRecoveryAttempts = 0
         liveAutoRecoveryVisited = emptySet()
+        media3SurfaceAttempt = 0
         liveSwitchLocked = false
         // Reset VOD watchdog on retry
         vodReadyAt = 0L
@@ -1122,27 +1150,36 @@ fun PlayerScreen(
                 sdkInt = Build.VERSION.SDK_INT,
                 isPerformanceMode = performancePolicy.isPerformance,
                 supportedAbis = Build.SUPPORTED_ABIS,
+                surfaceAttempt = media3SurfaceAttempt,
             )
-            AndroidView(
-                factory = {
-                    val playerView = if (useTextureView) {
-                        LayoutInflater.from(it).inflate(R.layout.view_player_texture, null) as PlayerView
-                    } else {
-                        PlayerView(it)
-                    }
-                    playerView.apply {
-                        player = exoPlayer
-                        useController = false
-                        resizeMode = resizeModes[resizeIndex]
-                        if (Build.VERSION.SDK_INT >= 34) {
-                            setEnableComposeSurfaceSyncWorkaround(true)
+            key(useTextureView, media3SurfaceAttempt) {
+                AndroidView(
+                    factory = {
+                        val playerView = if (useTextureView) {
+                            LayoutInflater.from(it).inflate(R.layout.view_player_texture, null) as PlayerView
+                        } else {
+                            PlayerView(it)
                         }
-                        keepScreenOn = true
-                    }
-                },
-                update = { it.resizeMode = resizeModes[resizeIndex] },
-                modifier = Modifier.fillMaxSize(),
-            )
+                        playerView.apply {
+                            useController = false
+                            resizeMode = resizeModes[resizeIndex]
+                            setKeepContentOnPlayerReset(true)
+                            setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+                            setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                            if (Build.VERSION.SDK_INT >= 34) {
+                                setEnableComposeSurfaceSyncWorkaround(true)
+                            }
+                            keepScreenOn = true
+                            player = exoPlayer
+                        }
+                    },
+                    update = {
+                        it.resizeMode = resizeModes[resizeIndex]
+                        it.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
 
         if ((isBuffering || liveOpeningGuard || vodOpeningGuard) && playbackError == null && (!isLive || System.currentTimeMillis() - lastLiveSwitchAt > 900L)) {
@@ -2350,11 +2387,13 @@ internal fun shouldUseTextureViewForMedia3(
     sdkInt: Int,
     isPerformanceMode: Boolean,
     supportedAbis: Array<String>,
+    surfaceAttempt: Int = 0,
 ): Boolean {
     val isX86 = supportedAbis.any { abi ->
         abi.equals("x86", ignoreCase = true) || abi.equals("x86_64", ignoreCase = true)
     }
-    return sdkInt < 26 || isX86
+    val preferredTextureView = sdkInt < 26 || isX86
+    return if (surfaceAttempt % 2 == 0) preferredTextureView else !preferredTextureView
 }
 
 internal fun shouldForceAsyncCodecQueueing(sdkInt: Int): Boolean =

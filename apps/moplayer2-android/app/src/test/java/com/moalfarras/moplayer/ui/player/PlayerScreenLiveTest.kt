@@ -160,6 +160,37 @@ class PlayerScreenLiveTest {
     }
 
     @Test
+    fun media3SurfaceRetryTogglesSurfaceTypeForBlackScreenRecovery() {
+        assertEquals(
+            true,
+            shouldUseTextureViewForMedia3(
+                sdkInt = 36,
+                isPerformanceMode = false,
+                supportedAbis = arrayOf("x86_64"),
+                surfaceAttempt = 0,
+            ),
+        )
+        assertEquals(
+            false,
+            shouldUseTextureViewForMedia3(
+                sdkInt = 36,
+                isPerformanceMode = false,
+                supportedAbis = arrayOf("x86_64"),
+                surfaceAttempt = 1,
+            ),
+        )
+        assertEquals(
+            true,
+            shouldUseTextureViewForMedia3(
+                sdkInt = 36,
+                isPerformanceMode = false,
+                supportedAbis = arrayOf("x86_64"),
+                surfaceAttempt = 2,
+            ),
+        )
+    }
+
+    @Test
     fun media3KeepsSurfaceViewForModernArmQualityPlayback() {
         assertEquals(
             false,

@@ -30,7 +30,11 @@ class PlayerScreenLiveTest {
         assertEquals(MimeTypes.VIDEO_MP4, inferMimeType("https://example.com/movie.mp4"))
         assertEquals(MimeTypes.VIDEO_MATROSKA, inferMimeType("https://example.com/movie.mkv"))
         assertEquals(MimeTypes.VIDEO_WEBM, inferMimeType("https://example.com/movie.webm"))
-        assertEquals("video/x-flv", inferMimeType("https://example.com/live/legacy.flv"))
+        assertEquals(MimeTypes.VIDEO_QUICK_TIME, inferMimeType("https://example.com/movie.mov"))
+        assertEquals(MimeTypes.VIDEO_AVI, inferMimeType("https://example.com/legacy.avi"))
+        assertEquals(MimeTypes.VIDEO_FLV, inferMimeType("https://example.com/live/legacy.flv"))
+        assertEquals(MimeTypes.VIDEO_MPEG, inferMimeType("https://example.com/archive.mpg"))
+        assertEquals(MimeTypes.VIDEO_PS, inferMimeType("https://example.com/dvd.vob"))
         assertNull(inferMimeType("rtsp://example.com/live/1"))
     }
 
@@ -90,8 +94,18 @@ class PlayerScreenLiveTest {
         assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/live/1.m3u8")))
         assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/movie.mkv")))
         assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/legacy.flv")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/archive.avi")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/file.wmv")))
         assertTrue(isVlcFriendlyContainer(parseStreamRequest("rtsp://example.com/live/1")))
         assertTrue(isVlcFriendlyContainer(parseStreamRequest("rtmp://example.com/live/1")))
+    }
+
+    @Test
+    fun legacyContainersStartWithVlcForFasterFallback() {
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/legacy.flv")))
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/archive.avi")))
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/dvd.vob")))
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("rtmp://example.com/live/1")))
     }
 
     @Test

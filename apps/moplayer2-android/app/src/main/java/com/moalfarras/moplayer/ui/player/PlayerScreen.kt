@@ -204,6 +204,9 @@ private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
 }
 
 private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: PerformancePolicy? = null): InternalPlaybackEngine {
+    if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice()) {
+        return InternalPlaybackEngine.LIBVLC
+    }
     val uri = request.uri.lowercase(Locale.US)
     // Both LibVLC branches require x86-unsafe build; on x86 emulators (and rare Atom boxes)
     // we always fall through to Media3 to avoid the AWindow surface-attach crash.
@@ -218,6 +221,15 @@ private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: P
         else -> InternalPlaybackEngine.MEDIA3
     }
 }
+
+private fun preferredAutoEngine(request: StreamRequest, isLive: Boolean, performancePolicy: PerformancePolicy): InternalPlaybackEngine =
+    if (isLive) {
+        preferredLiveAutoEngine(request, performancePolicy)
+    } else if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice()) {
+        InternalPlaybackEngine.LIBVLC
+    } else {
+        InternalPlaybackEngine.MEDIA3
+    }
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -238,10 +250,10 @@ fun PlayerScreen(
     val isLive = item.type == ContentType.LIVE
     val streamRequest = remember(item.streamUrl) { parseStreamRequest(item.streamUrl) }
     val canCast = remember(streamRequest.uri) { canLaunchCast(context, streamRequest.uri) }
-    val normalizedPreferred = remember(preferredPlayer, performancePolicy.mode) {
+    val normalizedPreferred = remember(preferredPlayer, performancePolicy.mode, streamRequest.uri, streamRequest.mimeType, isLive) {
         when (preferredPlayer) {
             "internal" -> "auto"
-            "media3" -> if (isLive && performancePolicy.isPerformance) "auto" else "media3"
+            "media3" -> if ((isLive && performancePolicy.isPerformance) || shouldStartWithLibVlc(streamRequest)) "auto" else "media3"
             else -> preferredPlayer.ifBlank { "media3" }
         }
     }
@@ -257,7 +269,7 @@ fun PlayerScreen(
         )
     }
     var internalEngine by remember(item.id, route, streamRequest.uri, performancePolicy.mode) {
-        mutableStateOf(if (isLive && route == "auto") preferredLiveAutoEngine(streamRequest, performancePolicy) else InternalPlaybackEngine.MEDIA3)
+        mutableStateOf(if (route == "auto") preferredAutoEngine(streamRequest, isLive, performancePolicy) else InternalPlaybackEngine.MEDIA3)
     }
     var launchMessage by remember(item.id) { mutableStateOf<String?>(null) }
     var externalLaunchNonce by remember(item.id) { mutableIntStateOf(0) }
@@ -2506,9 +2518,14 @@ internal fun isVlcFriendlyContainer(request: StreamRequest): Boolean {
             MimeTypes.APPLICATION_SS,
             MimeTypes.VIDEO_MP2T,
             MimeTypes.VIDEO_MP4,
+            MimeTypes.VIDEO_QUICK_TIME,
             MimeTypes.VIDEO_MATROSKA,
             MimeTypes.VIDEO_WEBM,
-            "video/x-flv",
+            MimeTypes.VIDEO_FLV,
+            MimeTypes.VIDEO_OGG,
+            MimeTypes.VIDEO_AVI,
+            MimeTypes.VIDEO_MPEG,
+            MimeTypes.VIDEO_PS,
         ) ||
         request.uri.hasLiveTsHint() ||
         lowerUri.endsWith(".avi") ||
@@ -2517,7 +2534,34 @@ internal fun isVlcFriendlyContainer(request: StreamRequest): Boolean {
         lowerUri.endsWith(".3gp") ||
         lowerUri.endsWith(".3g2") ||
         lowerUri.endsWith(".ogv") ||
-        lowerUri.endsWith(".ogg")
+        lowerUri.endsWith(".ogg") ||
+        lowerUri.endsWith(".mpg") ||
+        lowerUri.endsWith(".mpeg") ||
+        lowerUri.endsWith(".vob") ||
+        lowerUri.endsWith(".asf") ||
+        lowerUri.endsWith(".wmv") ||
+        lowerUri.endsWith(".divx")
+}
+
+internal fun shouldStartWithLibVlc(request: StreamRequest): Boolean {
+    val lowerUri = request.uri.lowercase(Locale.US).substringBefore('?')
+    return request.uri.startsWith("rtmp://", ignoreCase = true) ||
+        request.mimeType in setOf(
+            MimeTypes.VIDEO_FLV,
+            MimeTypes.VIDEO_AVI,
+            MimeTypes.VIDEO_MPEG,
+            MimeTypes.VIDEO_PS,
+            MimeTypes.VIDEO_OGG,
+        ) ||
+        lowerUri.endsWith(".avi") ||
+        lowerUri.endsWith(".flv") ||
+        lowerUri.endsWith(".f4v") ||
+        lowerUri.endsWith(".mpg") ||
+        lowerUri.endsWith(".mpeg") ||
+        lowerUri.endsWith(".vob") ||
+        lowerUri.endsWith(".asf") ||
+        lowerUri.endsWith(".wmv") ||
+        lowerUri.endsWith(".divx")
 }
 
 private fun AppMediaItem.samePlayable(other: AppMediaItem): Boolean =
@@ -2816,7 +2860,7 @@ private fun buildPlayer(
                 val mediaItem = buildPlayableMediaItem(request, item, isLive, liveProfile)
                 if (!isRtsp && request.mimeType == MimeTypes.APPLICATION_M3U8) {
                     val hlsMediaSource = HlsMediaSource.Factory(httpFactory)
-                        .setAllowChunklessPreparation(false)
+                        .setAllowChunklessPreparation(true)
                         .setExtractorFactory(DefaultHlsExtractorFactory(tsExtractorFlags, true))
                         .setLoadErrorHandlingPolicy(errorHandlingPolicy)
                         .createMediaSource(mediaItem)
@@ -2908,6 +2952,11 @@ internal fun redirectedStreamRequest(request: StreamRequest, finalUri: String, c
         normalizedType.contains("dash+xml") || normalizedType.contains("mpd") -> MimeTypes.APPLICATION_MPD
         normalizedType.contains("mp2t") || normalizedType.contains("mpegts") -> MimeTypes.VIDEO_MP2T
         normalizedType.contains("mp4") -> MimeTypes.VIDEO_MP4
+        normalizedType.contains("matroska") -> MimeTypes.VIDEO_MATROSKA
+        normalizedType.contains("webm") -> MimeTypes.VIDEO_WEBM
+        normalizedType.contains("x-flv") || normalizedType.contains("flv") -> MimeTypes.VIDEO_FLV
+        normalizedType.contains("x-msvideo") || normalizedType.contains("avi") -> MimeTypes.VIDEO_AVI
+        normalizedType.contains("mpeg") -> MimeTypes.VIDEO_MPEG
         else -> inferMimeType(finalUri)
     }
     val resolvedUri = when (redirectedMimeType) {
@@ -2991,12 +3040,15 @@ internal fun inferMimeType(url: String): String? {
         normalized.contains(".mpd") || outputHint == "mpd" || outputHint == "dash" -> MimeTypes.APPLICATION_MPD
         normalized.contains(".ism") || normalized.contains("manifest") || outputHint == "ism" || outputHint == "smoothstreaming" -> MimeTypes.APPLICATION_SS
         normalized.endsWith(".ts") || normalized.endsWith(".m2ts") || outputHint == "ts" || outputHint == "mpegts" -> MimeTypes.VIDEO_MP2T
-        normalized.endsWith(".mp4") || normalized.endsWith(".m4v") || normalized.endsWith(".mov") -> MimeTypes.VIDEO_MP4
+        normalized.endsWith(".mp4") || normalized.endsWith(".m4v") -> MimeTypes.VIDEO_MP4
+        normalized.endsWith(".mov") -> MimeTypes.VIDEO_QUICK_TIME
         normalized.endsWith(".mkv") -> MimeTypes.VIDEO_MATROSKA
         normalized.endsWith(".webm") -> MimeTypes.VIDEO_WEBM
-        normalized.endsWith(".avi") -> MimeTypes.VIDEO_MP4
-        normalized.endsWith(".flv") || normalized.endsWith(".f4v") -> "video/x-flv"
-        normalized.endsWith(".ogg") || normalized.endsWith(".ogv") -> "video/ogg"
+        normalized.endsWith(".avi") -> MimeTypes.VIDEO_AVI
+        normalized.endsWith(".flv") || normalized.endsWith(".f4v") -> MimeTypes.VIDEO_FLV
+        normalized.endsWith(".ogg") || normalized.endsWith(".ogv") -> MimeTypes.VIDEO_OGG
+        normalized.endsWith(".mpg") || normalized.endsWith(".mpeg") -> MimeTypes.VIDEO_MPEG
+        normalized.endsWith(".vob") -> MimeTypes.VIDEO_PS
         normalized.endsWith(".3gp") || normalized.endsWith(".3g2") -> "video/3gpp"
         else -> null
     }

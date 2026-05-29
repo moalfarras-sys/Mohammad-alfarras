@@ -96,10 +96,10 @@ class PlayerActivity : BaseTvActivity() {
     private var seeking = false
     private var lastFocusedViewId: Int = View.NO_ID
 
-    private val SEEK_AMOUNT = 10000L // 10 seconds base; accelerates on consecutive seeks
+    private val SEEK_AMOUNT = 30000L // 30 seconds base; accelerates on consecutive seeks
     private var controlsTimeoutMs = 8000L
     // Consecutive-seek accelerator: hammering FF/RW or holding D-pad doubles the jump
-    // each step (10s → 20s → 40s → 80s, then caps). Streak resets after 700ms of idle.
+    // each step (30s -> 60s -> 120s -> 240s, then caps). Streak resets after 700ms of idle.
     private var seekStreak = 0
     private var lastSeekAt = 0L
     private var lastSeekForward = true
@@ -254,8 +254,9 @@ class PlayerActivity : BaseTvActivity() {
                         finish()
                     }
                     override fun onSeekRequested(forward: Boolean, amountMs: Long) {
-                        if (forward) seekForward() else seekBackward()
+                        seekBy(if (forward) amountMs else -amountMs)
                     }
+                    override fun onSeekToRequested(positionMs: Long) { seekToPosition(positionMs) }
                     override fun onNextChannelRequested() { playAdjacentChannel(1) }
                     override fun onPreviousChannelRequested() { playAdjacentChannel(-1) }
                     override fun onShowControlsRequested() { showControls() }
@@ -359,6 +360,7 @@ class PlayerActivity : BaseTvActivity() {
     private fun saveCurrentProgress() {
         val currentPosition = currentPlaybackPositionMs()
         val duration = currentPlaybackDurationMs()
+        syncPlaybackServiceState(currentPosition, duration)
         
         // Only save if we have valid content and have played for at least 5 seconds
         if (contentId.isNotEmpty() && currentPosition > 5000 && duration > 0) {
@@ -396,6 +398,20 @@ class PlayerActivity : BaseTvActivity() {
                 }
             }
         }
+    }
+
+    private fun syncPlaybackServiceState(
+        positionMs: Long = currentPlaybackPositionMs(),
+        durationMs: Long = currentPlaybackDurationMs()
+    ) {
+        PlaybackService.updateState(
+            context = this,
+            title = title,
+            isLive = isLiveStream,
+            isPlaying = isPlaybackActive(),
+            positionMs = positionMs,
+            durationMs = durationMs
+        )
     }
 
     /**
@@ -973,6 +989,7 @@ class PlayerActivity : BaseTvActivity() {
         } else {
             mediaPlayer?.play()
         }
+        syncPlaybackServiceState()
         resetControlsTimeout()
     }
 
@@ -989,31 +1006,35 @@ class PlayerActivity : BaseTvActivity() {
         return SEEK_AMOUNT * multiplier
     }
 
-    private fun seekForward() {
-        val amount = nextSeekAmount(forward = true)
+    private fun seekBy(amount: Long) {
         val manager = engineManager
         if (manager != null) {
             manager.seekBy(amount)
         } else {
             val currentTime = mediaPlayer?.time ?: 0
             val duration = mediaPlayer?.length ?: 0
-            val newTime = if (duration > 0) (currentTime + amount).coerceAtMost(duration) else currentTime + amount
+            val targetTime = currentTime + amount
+            val newTime = if (duration > 0) targetTime.coerceIn(0, duration) else targetTime.coerceAtLeast(0)
             mediaPlayer?.time = newTime
         }
+        syncPlaybackServiceState()
         resetControlsTimeout()
     }
 
-    private fun seekBackward() {
-        val amount = nextSeekAmount(forward = false)
-        val manager = engineManager
-        if (manager != null) {
-            manager.seekBy(-amount)
-        } else {
-            val currentTime = mediaPlayer?.time ?: 0
-            val newTime = (currentTime - amount).coerceAtLeast(0)
-            mediaPlayer?.time = newTime
-        }
+    private fun seekToPosition(positionMs: Long) {
+        val duration = currentPlaybackDurationMs()
+        val target = if (duration > 0) positionMs.coerceIn(0, duration) else positionMs.coerceAtLeast(0)
+        engineManager?.seekTo(target) ?: run { mediaPlayer?.time = target }
+        syncPlaybackServiceState(target, duration)
         resetControlsTimeout()
+    }
+
+    private fun seekForward() {
+        seekBy(nextSeekAmount(forward = true))
+    }
+
+    private fun seekBackward() {
+        seekBy(-nextSeekAmount(forward = false))
     }
 
     private fun showAudioTrackSheet() {
@@ -1824,6 +1845,7 @@ class PlayerActivity : BaseTvActivity() {
     private fun handleLeftKey(): Boolean {
         if (!controlsVisible) {
             showControls()
+            seekBackward()
             return true
         }
         
@@ -1846,6 +1868,7 @@ class PlayerActivity : BaseTvActivity() {
     private fun handleRightKey(): Boolean {
         if (!controlsVisible) {
             showControls()
+            seekForward()
             return true
         }
         

@@ -189,13 +189,13 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-moplayer-2-2-8",
+    id: "release-moplayer-2-2-9",
     product_slug: "moplayer",
-    slug: "moplayer-2.2.8",
-    version_name: "2.2.8",
-    version_code: 14,
+    slug: "moplayer-2.2.9",
+    version_name: "2.2.9",
+    version_code: 15,
     release_notes:
-      "MoPlayer Classic 2.2.8 polishes Android TV Live TV visuals, remote navigation, Weather Lab controls, shared city wallpapers, poster fallbacks, and old-device playback stability.",
+      "MoPlayer Classic 2.2.9 improves smart provider refresh, Android TV remote media controls, faster seek steps, resume state syncing, and playback stability for live, movies, and series.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -203,8 +203,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-moplayer-2-2-8-universal",
-        release_id: "release-moplayer-2-2-8",
+        id: "asset-moplayer-2-2-9-universal",
+        release_id: "release-moplayer-2-2-9",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -212,8 +212,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52733740,
-        checksum_sha256: "c661c67a33cda85d524a133da0f8213898602970057b05a9f28a7365230a80ae",
+        file_size_bytes: 52735732,
+        checksum_sha256: "47d726b4eabfeeec6a40bb94809c548e9ed40c51f18177e3d2b9eb17aef18f3b",
         is_primary: true,
         created_at: now,
       },

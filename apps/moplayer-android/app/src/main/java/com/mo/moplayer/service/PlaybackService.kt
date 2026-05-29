@@ -42,6 +42,10 @@ class PlaybackService : Service() {
         private const val ACTION_PREV = "com.mo.moplayer.ACTION_PREV"
         private const val ACTION_FORWARD = "com.mo.moplayer.ACTION_FORWARD"
         private const val ACTION_REWIND = "com.mo.moplayer.ACTION_REWIND"
+        private const val ACTION_UPDATE_STATE = "com.mo.moplayer.ACTION_UPDATE_STATE"
+        private const val EXTRA_IS_PLAYING = "is_playing"
+        private const val EXTRA_POSITION_MS = "position_ms"
+        private const val EXTRA_DURATION_MS = "duration_ms"
 
         fun start(context: Context, title: String, isLive: Boolean) {
             val intent = Intent(context, PlaybackService::class.java).apply {
@@ -58,6 +62,29 @@ class PlaybackService : Service() {
         fun stop(context: Context) {
             context.stopService(Intent(context, PlaybackService::class.java))
         }
+
+        fun updateState(
+            context: Context,
+            title: String,
+            isLive: Boolean,
+            isPlaying: Boolean,
+            positionMs: Long,
+            durationMs: Long
+        ) {
+            val intent = Intent(context, PlaybackService::class.java).apply {
+                action = ACTION_UPDATE_STATE
+                putExtra("title", title)
+                putExtra("isLive", isLive)
+                putExtra(EXTRA_IS_PLAYING, isPlaying)
+                putExtra(EXTRA_POSITION_MS, positionMs)
+                putExtra(EXTRA_DURATION_MS, durationMs)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
     }
 
     private var mediaSession: MediaSessionCompat? = null
@@ -66,6 +93,9 @@ class PlaybackService : Service() {
     private var currentTitle: String = ""
     private var isLive: Boolean = false
     private var engine: PlayerEngine? = null
+    private var sessionState: Int = PlaybackStateCompat.STATE_PLAYING
+    private var sessionPositionMs: Long = 0L
+    private var sessionDurationMs: Long = -1L
 
     private val callback = object : PlayerEngine.Callback {
         override fun onPlaybackStateChanged(state: Int) {
@@ -97,6 +127,18 @@ class PlaybackService : Service() {
         }
 
         when (intent?.action) {
+            ACTION_UPDATE_STATE -> {
+                sessionState = if (intent.getBooleanExtra(EXTRA_IS_PLAYING, true)) {
+                    PlaybackStateCompat.STATE_PLAYING
+                } else {
+                    PlaybackStateCompat.STATE_PAUSED
+                }
+                sessionPositionMs = intent.getLongExtra(EXTRA_POSITION_MS, sessionPositionMs)
+                sessionDurationMs = intent.getLongExtra(EXTRA_DURATION_MS, sessionDurationMs)
+                updateMediaSession(sessionState)
+                updateNotification()
+                return START_STICKY
+            }
             ACTION_PLAY_PAUSE -> sendControl(PlayerBroadcastBridge.CONTROL_TYPE_PLAY_PAUSE)
             ACTION_STOP -> {
                 sendControl(PlayerBroadcastBridge.CONTROL_TYPE_STOP)
@@ -108,7 +150,7 @@ class PlaybackService : Service() {
             ACTION_REWIND -> sendControl(PlayerBroadcastBridge.CONTROL_TYPE_REWIND)
         }
 
-        updateMediaSession(if (engine?.isPlaying == false) PlaybackStateCompat.STATE_PAUSED else PlaybackStateCompat.STATE_PLAYING)
+        updateMediaSession(if (engine?.isPlaying == false) PlaybackStateCompat.STATE_PAUSED else sessionState)
         return START_STICKY
     }
 
@@ -168,6 +210,10 @@ class PlaybackService : Service() {
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_REWIND)
                 }
 
+                override fun onSeekTo(pos: Long) {
+                    sendSeekTo(pos)
+                }
+
                 override fun onSkipToNext() {
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_NEXT)
                 }
@@ -181,9 +227,10 @@ class PlaybackService : Service() {
     }
 
     private fun updateMediaSession(state: Int) {
+        sessionState = state
         mediaSession?.setPlaybackState(
             PlaybackStateCompat.Builder()
-                .setState(state, engine?.currentPositionMs ?: 0, 1f)
+                .setState(state, engine?.currentPositionMs ?: sessionPositionMs, 1f)
                 .setActions(
                     PlaybackStateCompat.ACTION_PLAY or
                         PlaybackStateCompat.ACTION_PAUSE or
@@ -191,6 +238,7 @@ class PlaybackService : Service() {
                         PlaybackStateCompat.ACTION_STOP or
                         PlaybackStateCompat.ACTION_FAST_FORWARD or
                         PlaybackStateCompat.ACTION_REWIND or
+                        PlaybackStateCompat.ACTION_SEEK_TO or
                         PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
                         PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
                 )
@@ -200,7 +248,7 @@ class PlaybackService : Service() {
             MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentTitle)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, engine?.durationMs ?: -1)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, engine?.durationMs ?: sessionDurationMs)
                 .build()
         )
     }
@@ -277,7 +325,7 @@ class PlaybackService : Service() {
             Intent(this, HomeActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_SINGLE_TOP },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        val isPlaying = engine?.isPlaying != false
+        val isPlaying = engine?.isPlaying ?: (sessionState == PlaybackStateCompat.STATE_PLAYING)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(currentTitle.ifBlank { getString(R.string.app_name) })
@@ -322,6 +370,14 @@ class PlaybackService : Service() {
         sendBroadcast(Intent(PlayerBroadcastBridge.ACTION_MEDIA_CONTROL).apply {
             setPackage(packageName)
             putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_TYPE, controlType)
+        })
+    }
+
+    private fun sendSeekTo(positionMs: Long) {
+        sendBroadcast(Intent(PlayerBroadcastBridge.ACTION_MEDIA_CONTROL).apply {
+            setPackage(packageName)
+            putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_TYPE, PlayerBroadcastBridge.CONTROL_TYPE_SEEK_TO)
+            putExtra(PlayerBroadcastBridge.EXTRA_SEEK_POSITION_MS, positionMs)
         })
     }
 }

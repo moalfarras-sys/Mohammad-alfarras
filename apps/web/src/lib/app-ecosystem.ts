@@ -290,24 +290,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-7",
+      id: "release-moplayer2-v2-5-8",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.7-full",
-      version_name: "2.5.7",
-      version_code: 45,
+      slug: "moplayer2-v2.5.8-full",
+      version_name: "2.5.8",
+      version_code: 46,
       release_notes:
-        "MoPlayer Pro 2.5.7 refreshes full IPTV libraries in the background, restores live/movie/series category content reliably, improves live preview art, and shortens weak-device live recovery so failed channels do not sit on a black loading screen.",
+        "MoPlayer Pro 2.5.8 upgrades live playback with faster adaptive startup, stronger black-screen recovery, broader Media3/VLC format fallback, and safer handling for legacy IPTV and VOD containers.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-7-universal",
-          release_id: "release-moplayer2-v2-5-7",
+          id: "asset-moplayer2-v2-5-8-universal",
+          release_id: "release-moplayer2-v2-5-8",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49238100,
-          checksum_sha256: "56103e2d0cd7fc0ab0836980659d4629c599f690488b7a868c9ac5918a261ff7",
+          file_size_bytes: 49247965,
+          checksum_sha256: "0cf5ca0324b4d2c703c2d553ad2bf04b453a53c69c19ab8ea8ed26132f6a6678",
         },
       ],
     },

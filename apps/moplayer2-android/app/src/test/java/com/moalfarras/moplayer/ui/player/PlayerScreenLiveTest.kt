@@ -2,6 +2,8 @@ package com.moalfarras.moplayer.ui.player
 
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
+import com.moalfarras.moplayer.domain.model.ContentType
+import com.moalfarras.moplayer.domain.model.MediaItem
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -96,6 +98,99 @@ class PlayerScreenLiveTest {
         val message = liveNoVideoFrameMessage()
 
         assertTrue(message.contains("did not render video"))
-        assertTrue(message.contains("retried"))
+        assertTrue(message.contains("safer live qualities"))
+    }
+
+    @Test
+    fun liveQualityRankUsesChannelTitleBeforeCategoryLabel() {
+        val item = liveItem(
+            id = "1",
+            title = "BEIN SPORTS 1 HD",
+            categoryName = "BEIN SPORT FHD",
+        )
+
+        assertEquals(2, item.liveQualityRank())
+    }
+
+    @Test
+    fun liveBaseTitleStripsEventAndQualityNoise() {
+        val event = liveItem(id = "1", title = "BEIN SPORTS 4 FHD Event")
+        val stable = liveItem(id = "2", title = "BEIN SPORTS 4 HD")
+
+        assertEquals(stable.liveBaseTitle(), event.liveBaseTitle())
+    }
+
+    @Test
+    fun compatibleLiveAlternativePrefersSaferLowerQualityAndAvoidsVisitedItems() {
+        val current = liveItem(id = "current", title = "BEIN SPORTS 4 FHD Event", serverOrder = 10)
+        val hd = liveItem(id = "hd", title = "BEIN SPORTS 4 HD", serverOrder = 11)
+        val sd = liveItem(id = "sd", title = "BEIN SPORTS 4 SD", serverOrder = 12)
+        val other = liveItem(id = "other", title = "BEIN SPORTS 5 SD", serverOrder = 13)
+
+        val first = listOf(current, hd, sd, other).bestCompatibleLiveAlternative(
+            current = current,
+            maxVideoHeight = 720,
+        )
+        val second = listOf(current, hd, sd, other).bestCompatibleLiveAlternative(
+            current = current,
+            maxVideoHeight = 720,
+            excludedKeys = setOf("1:sd:http://example.test/live/sd.ts"),
+        )
+
+        assertEquals("sd", first?.id)
+        assertEquals("hd", second?.id)
+    }
+
+    @Test
+    fun media3UsesTextureViewOnLegacyPerformanceAndX86Devices() {
+        assertTrue(
+            shouldUseTextureViewForMedia3(
+                sdkInt = 25,
+                isPerformanceMode = false,
+                supportedAbis = arrayOf("arm64-v8a"),
+            ),
+        )
+        assertTrue(
+            shouldUseTextureViewForMedia3(
+                sdkInt = 36,
+                isPerformanceMode = true,
+                supportedAbis = arrayOf("arm64-v8a"),
+            ),
+        )
+        assertTrue(
+            shouldUseTextureViewForMedia3(
+                sdkInt = 36,
+                isPerformanceMode = false,
+                supportedAbis = arrayOf("x86_64"),
+            ),
+        )
+    }
+
+    @Test
+    fun media3KeepsSurfaceViewForModernArmQualityPlayback() {
+        assertEquals(
+            false,
+            shouldUseTextureViewForMedia3(
+                sdkInt = 36,
+                isPerformanceMode = false,
+                supportedAbis = arrayOf("arm64-v8a"),
+            ),
+        )
     }
 }
+
+private fun liveItem(
+    id: String,
+    title: String,
+    categoryName: String = "BEIN SPORT FHD",
+    serverOrder: Int = 0,
+): MediaItem = MediaItem(
+    id = id,
+    serverId = 1,
+    type = ContentType.LIVE,
+    categoryId = "bein",
+    categoryName = categoryName,
+    title = title,
+    streamUrl = "http://example.test/live/$id.ts",
+    serverOrder = serverOrder,
+)

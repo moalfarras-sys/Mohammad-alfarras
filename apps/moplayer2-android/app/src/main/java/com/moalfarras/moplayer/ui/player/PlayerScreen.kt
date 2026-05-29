@@ -168,6 +168,7 @@ private const val LIVE_TARGET_OFFSET_MS = 10_000L
 private const val LIVE_MIN_OFFSET_MS = 6_000L
 private const val LIVE_MAX_OFFSET_MS = 25_000L
 private const val LIVE_STALL_RECOVERY_LIMIT = 4
+private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 4
 private const val LIBVLC_LIVE_CACHE_MS = 900
 private const val LIBVLC_FILE_CACHE_MS = 2_000
 
@@ -278,6 +279,8 @@ fun PlayerScreen(
     var vodFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var vodOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var liveConsecutiveFailures by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
+    var liveAutoRecoveryAttempts by remember { mutableIntStateOf(0) }
+    var liveAutoRecoveryVisited by remember { mutableStateOf<Set<String>>(emptySet()) }
     var triedMedia3ForLive by remember(item.id, streamRequest.uri) {
         mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.MEDIA3)
     }
@@ -388,14 +391,28 @@ fun PlayerScreen(
 
     fun switchToCompatibleAlternative(reason: String): Boolean {
         if (!isLive || triedCompatibleLiveAlternative || liveSwitchLocked) return false
-        val alternative = relatedItems.bestCompatibleLiveAlternative(item, performancePolicy.maxVideoHeight) ?: return false
+        val visited = liveAutoRecoveryVisited + item.liveRecoveryKey()
+        if (liveAutoRecoveryAttempts >= LIVE_AUTO_RECOVERY_SWITCH_LIMIT) {
+            liveAutoRecoveryVisited = visited
+            return false
+        }
+        val alternative = relatedItems.bestCompatibleLiveAlternative(
+            current = item,
+            maxVideoHeight = performancePolicy.maxVideoHeight,
+            excludedKeys = visited,
+        ) ?: run {
+            liveAutoRecoveryVisited = visited
+            return false
+        }
+        liveAutoRecoveryAttempts += 1
+        liveAutoRecoveryVisited = visited + alternative.liveRecoveryKey()
         triedCompatibleLiveAlternative = true
         liveSwitchLocked = true
         playbackError = null
         isBuffering = true
         liveFirstFrameRendered = false
         liveReadyWithoutVideoAt = 0L
-        playbackSignal = reason
+        playbackSignal = "$reason $liveAutoRecoveryAttempts/$LIVE_AUTO_RECOVERY_SWITCH_LIMIT"
         onPlayItem(alternative)
         return true
     }
@@ -429,6 +446,8 @@ fun PlayerScreen(
             onRenderedFirstFrame = {
                 liveFirstFrameRendered = true
                 liveReadyWithoutVideoAt = 0L
+                liveAutoRecoveryAttempts = 0
+                liveAutoRecoveryVisited = emptySet()
                 // VOD watchdog: first frame arrived, clear watchdog
                 vodFirstFrameRendered = true
                 vodReadyAt = 0L
@@ -760,6 +779,8 @@ fun PlayerScreen(
         liveFirstFrameRendered = false
         liveReadyWithoutVideoAt = 0L
         liveConsecutiveFailures = 0
+        liveAutoRecoveryAttempts = 0
+        liveAutoRecoveryVisited = emptySet()
         liveSwitchLocked = false
         // Reset VOD watchdog on retry
         vodReadyAt = 0L
@@ -792,6 +813,8 @@ fun PlayerScreen(
             isBuffering = true
             liveFirstFrameRendered = false
             liveReadyWithoutVideoAt = 0L
+            liveAutoRecoveryAttempts = 0
+            liveAutoRecoveryVisited = emptySet()
             playbackError = null
         }
         if (!isLive && exoPlayer.duration > 0) {
@@ -1093,7 +1116,11 @@ fun PlayerScreen(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            val useTextureView = Build.VERSION.SDK_INT < 26 || performancePolicy.isPerformance
+            val useTextureView = shouldUseTextureViewForMedia3(
+                sdkInt = Build.VERSION.SDK_INT,
+                isPerformanceMode = performancePolicy.isPerformance,
+                supportedAbis = Build.SUPPORTED_ABIS,
+            )
             AndroidView(
                 factory = {
                     val playerView = if (useTextureView) {
@@ -2306,6 +2333,17 @@ private fun isLibVlcSafeOnThisDevice(): Boolean {
     }
 }
 
+internal fun shouldUseTextureViewForMedia3(
+    sdkInt: Int,
+    isPerformanceMode: Boolean,
+    supportedAbis: Array<String>,
+): Boolean {
+    val isX86 = supportedAbis.any { abi ->
+        abi.equals("x86", ignoreCase = true) || abi.equals("x86_64", ignoreCase = true)
+    }
+    return sdkInt < 26 || isPerformanceMode || isX86
+}
+
 private fun isLibVlcSafeForRequest(request: StreamRequest): Boolean {
     // Hard-disable LibVLC on x86/x86_64 (emulator + niche Atom boxes): the AWindow surface
     // attach path is fragile there and produces "Can't set view when already attached" on
@@ -2318,9 +2356,10 @@ private fun isLibVlcSafeForRequest(request: StreamRequest): Boolean {
 private fun AppMediaItem.samePlayable(other: AppMediaItem): Boolean =
     id == other.id && type == other.type && serverId == other.serverId
 
-private fun List<AppMediaItem>.bestCompatibleLiveAlternative(
+internal fun List<AppMediaItem>.bestCompatibleLiveAlternative(
     current: AppMediaItem,
     maxVideoHeight: Int,
+    excludedKeys: Set<String> = emptySet(),
 ): AppMediaItem? {
     if (current.type != ContentType.LIVE) return null
     val allowedRank = liveMaxAllowedRank(maxVideoHeight)
@@ -2329,13 +2368,14 @@ private fun List<AppMediaItem>.bestCompatibleLiveAlternative(
         .filter { candidate ->
             candidate.type == ContentType.LIVE &&
                 !candidate.samePlayable(current) &&
+                candidate.liveRecoveryKey() !in excludedKeys &&
                 candidate.serverId == current.serverId &&
                 candidate.categoryId == current.categoryId &&
                 candidate.liveBaseTitle() == currentBase &&
                 candidate.liveQualityRank() <= allowedRank
         }
         .sortedWith(
-            compareByDescending<AppMediaItem> { it.liveQualityRank() }
+            compareBy<AppMediaItem> { it.liveQualityRank() }
                 .thenBy { it.serverOrder }
                 .thenBy { it.title.lowercase(Locale.US) },
         )
@@ -2344,12 +2384,13 @@ private fun List<AppMediaItem>.bestCompatibleLiveAlternative(
             .filter { candidate ->
                 candidate.type == ContentType.LIVE &&
                     !candidate.samePlayable(current) &&
+                    candidate.liveRecoveryKey() !in excludedKeys &&
                     candidate.serverId == current.serverId &&
                     candidate.liveBaseTitle() == currentBase &&
                     candidate.liveQualityRank() <= allowedRank
             }
             .sortedWith(
-                compareByDescending<AppMediaItem> { it.liveQualityRank() }
+                compareBy<AppMediaItem> { it.liveQualityRank() }
                     .thenBy { it.serverOrder }
                     .thenBy { it.title.lowercase(Locale.US) },
             )
@@ -2358,14 +2399,15 @@ private fun List<AppMediaItem>.bestCompatibleLiveAlternative(
             .filter { candidate ->
                 candidate.type == ContentType.LIVE &&
                     !candidate.samePlayable(current) &&
+                    candidate.liveRecoveryKey() !in excludedKeys &&
                     candidate.serverId == current.serverId &&
                     candidate.categoryId == current.categoryId &&
                     candidate.liveQualityRank() <= allowedRank
             }
             .sortedWith(
-                compareBy<AppMediaItem> { if (it.serverOrder > current.serverOrder) 0 else 1 }
+                compareBy<AppMediaItem> { it.liveQualityRank() }
+                    .thenBy { if (it.serverOrder > current.serverOrder) 0 else 1 }
                     .thenBy { kotlin.math.abs(it.serverOrder - current.serverOrder) }
-                    .thenByDescending { it.liveQualityRank() }
                     .thenBy { it.title.lowercase(Locale.US) },
             )
             .firstOrNull()
@@ -2373,13 +2415,14 @@ private fun List<AppMediaItem>.bestCompatibleLiveAlternative(
             .filter { candidate ->
                 candidate.type == ContentType.LIVE &&
                     !candidate.samePlayable(current) &&
+                    candidate.liveRecoveryKey() !in excludedKeys &&
                     candidate.serverId == current.serverId &&
                     candidate.liveQualityRank() <= allowedRank
             }
             .sortedWith(
-                compareBy<AppMediaItem> { if (it.serverOrder > current.serverOrder) 0 else 1 }
+                compareBy<AppMediaItem> { it.liveQualityRank() }
+                    .thenBy { if (it.serverOrder > current.serverOrder) 0 else 1 }
                     .thenBy { kotlin.math.abs(it.serverOrder - current.serverOrder) }
-                    .thenByDescending { it.liveQualityRank() }
                     .thenBy { it.title.lowercase(Locale.US) },
             )
             .firstOrNull()
@@ -2392,23 +2435,32 @@ private fun liveMaxAllowedRank(maxVideoHeight: Int): Int = when {
     else -> 4
 }
 
-private fun AppMediaItem.liveQualityRank(): Int {
-    val value = "${title} ${categoryName} ${containerExtension}".uppercase(Locale.US)
+internal fun AppMediaItem.liveQualityRank(): Int =
+    liveQualityRankFromText("$title $containerExtension")
+        ?: liveQualityRankFromText(categoryName)
+        ?: 2
+
+internal fun AppMediaItem.liveBaseTitle(): String =
+    title.uppercase(Locale.US)
+        .replace(Regex("\\b(8K|4K|UHD|FHD|FULL\\s*HD|HD|SD|2160P?|1080P?|720P?|576P?|480P?|360P?)\\b"), " ")
+        .replace(Regex("\\b(EVENT|BACKUP|ALT|VIP|HEVC|H265|H264|50FPS|60FPS)\\b"), " ")
+        .replace(Regex("[^A-Z0-9]+"), " ")
+        .trim()
+
+private fun AppMediaItem.liveRecoveryKey(): String =
+    "${serverId}:${id}:${streamUrl.substringBefore('?')}"
+
+private fun liveQualityRankFromText(raw: String): Int? {
+    val value = raw.uppercase(Locale.US)
     return when {
         "8K" in value || "4320" in value -> 5
         "4K" in value || "UHD" in value || "2160" in value -> 4
         "FHD" in value || "FULL HD" in value || "1080" in value -> 3
-        "HD" in value || "720" in value -> 2
-        "SD" in value || "480" in value || "360" in value -> 1
-        else -> 2
+        Regex("""\bHD\b""").containsMatchIn(value) || "720" in value -> 2
+        Regex("""\bSD\b""").containsMatchIn(value) || "480" in value || "360" in value -> 1
+        else -> null
     }
 }
-
-private fun AppMediaItem.liveBaseTitle(): String =
-    title.uppercase(Locale.US)
-        .replace(Regex("\\b(8K|4K|UHD|FHD|FULL\\s*HD|HD|SD|2160P?|1080P?|720P?|576P?|480P?|360P?)\\b"), " ")
-        .replace(Regex("[^A-Z0-9]+"), " ")
-        .trim()
 
 private fun Int.floorMod(size: Int): Int = ((this % size) + size) % size
 
@@ -2786,7 +2838,7 @@ internal fun liveFallbackCannotOpenMessage(): String =
     "The internal fallback player could not open this channel. The source may be blocked, expired, or require a different player."
 
 internal fun liveNoVideoFrameMessage(): String =
-    "The channel connected but did not render video. The app retried the smart player; try another quality or channel if this source is unstable."
+    "The channel connected but did not render video. MoPlayer Pro tried safer live qualities; open another quality/channel or use the fallback player if this source is unstable."
 
 private fun explainPlaybackError(
     context: Context,

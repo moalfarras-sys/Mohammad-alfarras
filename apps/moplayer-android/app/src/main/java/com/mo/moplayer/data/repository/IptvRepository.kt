@@ -529,26 +529,32 @@ class IptvRepository @Inject constructor(
 
             val requests: List<String?> = if (categoryIds.isEmpty()) listOf(null) else categoryIds
             for (categoryId in requests) {
-                val response = xtreamApi.getVodStreams(apiUrl, username, password, categoryId = categoryId)
-                if (!response.isSuccessful) {
-                    if (firstError == null) firstError = "HTTP ${response.code()}"
-                    continue
-                }
+                try {
+                    val response = xtreamApi.getVodStreams(apiUrl, username, password, categoryId = categoryId)
+                    if (!response.isSuccessful) {
+                        if (firstError == null) firstError = "HTTP ${response.code()}"
+                        continue
+                    }
 
-                successfulRequests += 1
-                val dtos = response.body().orEmpty()
-                inserted += insertMovieDtos(server, dtos)
+                    successfulRequests += 1
+                    val dtos = response.body().orEmpty()
+                    inserted += insertMovieDtos(server, dtos)
 
-                // Some panels ignore category_id and return the complete list. Insert it once and stop.
-                if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
-                    break
+                    // Some panels ignore category_id and return the complete list. Insert it once and stop.
+                    if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
+                        break
+                    }
+                } catch (e: Exception) {
+                    if (firstError == null) firstError = e.message ?: e.javaClass.simpleName
                 }
             }
 
+            val existingCount = movieDao.getMovieCount(server.id)
             val result = when {
-                successfulRequests == 0 -> Resource.Error("Failed to fetch movies: ${firstError ?: "no successful response"}")
                 inserted > 0 -> Resource.Success(inserted)
-                else -> Resource.Success(movieDao.getMovieCount(server.id))
+                existingCount > 0 -> Resource.Success(existingCount)
+                successfulRequests == 0 -> Resource.Error("Failed to fetch movies: ${firstError ?: "no successful response"}")
+                else -> Resource.Error("Failed to fetch movies: ${firstError ?: "empty response"}")
             }
             if (result is Resource.Success && (result.data ?: 0) > 0) {
                 upsertSyncState(server.id, status = "SUCCESS", error = null, durationMs = 0L)
@@ -663,26 +669,32 @@ class IptvRepository @Inject constructor(
 
             val requests: List<String?> = if (categoryIds.isEmpty()) listOf(null) else categoryIds
             for (categoryId in requests) {
-                val response = xtreamApi.getSeries(apiUrl, username, password, categoryId = categoryId)
-                if (!response.isSuccessful) {
-                    if (firstError == null) firstError = "HTTP ${response.code()}"
-                    continue
-                }
+                try {
+                    val response = xtreamApi.getSeries(apiUrl, username, password, categoryId = categoryId)
+                    if (!response.isSuccessful) {
+                        if (firstError == null) firstError = "HTTP ${response.code()}"
+                        continue
+                    }
 
-                successfulRequests += 1
-                val dtos = response.body().orEmpty()
-                inserted += insertSeriesDtos(server, dtos)
+                    successfulRequests += 1
+                    val dtos = response.body().orEmpty()
+                    inserted += insertSeriesDtos(server, dtos)
 
-                // Some panels ignore category_id and return the complete list. Insert it once and stop.
-                if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
-                    break
+                    // Some panels ignore category_id and return the complete list. Insert it once and stop.
+                    if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
+                        break
+                    }
+                } catch (e: Exception) {
+                    if (firstError == null) firstError = e.message ?: e.javaClass.simpleName
                 }
             }
 
+            val existingCount = seriesDao.getSeriesCount(server.id)
             val result = when {
-                successfulRequests == 0 -> Resource.Error("Failed to fetch series: ${firstError ?: "no successful response"}")
                 inserted > 0 -> Resource.Success(inserted)
-                else -> Resource.Success(seriesDao.getSeriesCount(server.id))
+                existingCount > 0 -> Resource.Success(existingCount)
+                successfulRequests == 0 -> Resource.Error("Failed to fetch series: ${firstError ?: "no successful response"}")
+                else -> Resource.Error("Failed to fetch series: ${firstError ?: "empty response"}")
             }
             if (result is Resource.Success && (result.data ?: 0) > 0) {
                 upsertSyncState(server.id, status = "SUCCESS", error = null, durationMs = 0L)
@@ -934,8 +946,21 @@ class IptvRepository @Inject constructor(
                 }
             }
 
-            val existing = serverSyncStateDao.getState(server.id) ?: ServerSyncStateEntity(serverId = server.id)
-            serverSyncStateDao.upsert(existing.copy(totalEpgItems = totalEpgCount))
+            val existing = serverSyncStateDao.getState(server.id)
+            serverSyncStateDao.upsert(
+                ServerSyncStateEntity(
+                    serverId = server.id,
+                    lastSyncAt = existing?.lastSyncAt ?: System.currentTimeMillis(),
+                    lastStatus = existing?.lastStatus ?: "SUCCESS",
+                    lastError = existing?.lastError,
+                    totalChannels = channelDao.getChannelCount(server.id),
+                    totalMovies = movieDao.getMovieCount(server.id),
+                    totalSeries = seriesDao.getSeriesCount(server.id),
+                    totalCategories = categoryDao.getCategoryCount(server.id),
+                    totalEpgItems = totalEpgCount,
+                    lastDurationMs = existing?.lastDurationMs ?: 0L
+                )
+            )
             
             Resource.Success(totalEpgCount)
         } catch (e: Exception) {

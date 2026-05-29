@@ -129,7 +129,7 @@ class SettingsActivity : BaseTvActivity() {
             binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 240L)
         }
     }
-    
+
     override fun getAnimatedBackground() = binding.animatedBackground
 
     private fun setupCategories() {
@@ -2200,6 +2200,7 @@ class SettingsActivity : BaseTvActivity() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.reloadServerInfo()
         if (backgroundManager.hasCityWallpaper()) {
             binding.animatedBackground.setCurrentTheme(BackgroundManager.THEME_CITY_WALLPAPER)
             binding.animatedBackground.pauseAnimation()

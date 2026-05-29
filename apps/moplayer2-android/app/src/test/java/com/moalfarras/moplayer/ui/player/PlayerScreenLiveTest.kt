@@ -142,18 +142,11 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun media3UsesTextureViewOnLegacyPerformanceAndX86Devices() {
+    fun media3UsesTextureViewOnlyOnLegacyAndX86Devices() {
         assertTrue(
             shouldUseTextureViewForMedia3(
                 sdkInt = 25,
                 isPerformanceMode = false,
-                supportedAbis = arrayOf("arm64-v8a"),
-            ),
-        )
-        assertTrue(
-            shouldUseTextureViewForMedia3(
-                sdkInt = 36,
-                isPerformanceMode = true,
                 supportedAbis = arrayOf("arm64-v8a"),
             ),
         )
@@ -172,10 +165,37 @@ class PlayerScreenLiveTest {
             false,
             shouldUseTextureViewForMedia3(
                 sdkInt = 36,
-                isPerformanceMode = false,
+                isPerformanceMode = true,
                 supportedAbis = arrayOf("arm64-v8a"),
             ),
         )
+    }
+
+    @Test
+    fun liveDoesNotDowngrade4kUnlessPerformanceModeNeedsIt() {
+        assertEquals(false, shouldAutoDowngradeLiveQuality(false, itemQualityRank = 4, maxVideoHeight = 1080))
+        assertEquals(true, shouldAutoDowngradeLiveQuality(true, itemQualityRank = 4, maxVideoHeight = 1080))
+    }
+
+    @Test
+    fun liveBitrateCapsAllowHighBitrate4kSports() {
+        assertTrue(liveSafeMaxBitrate(2160) >= 45_000_000)
+        assertTrue(liveSafeMaxBitrate(1080) >= 10_000_000)
+    }
+
+    @Test
+    fun liveTsExtractorFlagsSupportMessyIptvTransportStreams() {
+        val flags = liveTsExtractorFlags()
+
+        assertTrue(flags and androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES != 0)
+        assertTrue(flags and androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS != 0)
+    }
+
+    @Test
+    fun asyncCodecQueueingTargetsProblematicLegacyMediaCodecApis() {
+        assertEquals(true, shouldForceAsyncCodecQueueing(23))
+        assertEquals(true, shouldForceAsyncCodecQueueing(30))
+        assertEquals(false, shouldForceAsyncCodecQueueing(31))
     }
 }
 

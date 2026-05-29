@@ -123,6 +123,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultLivePlaybackSpeedControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
 import androidx.media3.exoplayer.hls.HlsMediaSource
@@ -131,6 +132,7 @@ import androidx.media3.exoplayer.source.UnrecognizedInputFormatException
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
+import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -907,8 +909,8 @@ fun PlayerScreen(
         if (isLive) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
     }
 
-    LaunchedEffect(isLive, item.id, item.title, performancePolicy.maxVideoHeight, relatedItems) {
-        if (isLive && item.liveQualityRank() > liveMaxAllowedRank(performancePolicy.maxVideoHeight)) {
+    LaunchedEffect(isLive, item.id, item.title, performancePolicy.mode, performancePolicy.maxVideoHeight, relatedItems) {
+        if (isLive && shouldAutoDowngradeLiveQuality(performancePolicy.isPerformance, item.liveQualityRank(), performancePolicy.maxVideoHeight)) {
             switchToCompatibleAlternative("Auto quality")
         }
     }
@@ -1132,6 +1134,9 @@ fun PlayerScreen(
                         player = exoPlayer
                         useController = false
                         resizeMode = resizeModes[resizeIndex]
+                        if (Build.VERSION.SDK_INT >= 34) {
+                            setEnableComposeSurfaceSyncWorkaround(true)
+                        }
                         keepScreenOn = true
                     }
                 },
@@ -2248,7 +2253,12 @@ private fun CoroutineScope.launchMainIfActive(isActiveSession: () -> Boolean, bl
 }
 
 private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVideoHeight: Int = 2160) {
-    val builder = player.trackSelectionParameters.buildUpon()
+    val defaultSelectorBuilder = (player.trackSelectionParameters as? DefaultTrackSelector.Parameters)
+        ?.buildUpon()
+        ?.setExceedVideoConstraintsIfNecessary(true)
+        ?.setExceedAudioConstraintsIfNecessary(true)
+        ?.setExceedRendererCapabilitiesIfNecessary(true)
+    val builder = defaultSelectorBuilder ?: player.trackSelectionParameters.buildUpon()
     val maxWidth = when {
         maxVideoHeight <= 720 -> 1280
         maxVideoHeight <= 1080 -> 1920
@@ -2267,10 +2277,14 @@ private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVi
             .setForceHighestSupportedBitrate(false)
             .setMaxVideoSize(liveCapWidth, liveCapHeight)
             .setMaxVideoBitrate(liveSafeMaxBitrate(liveCapHeight))
-        LiveQualityMode.BEST -> builder
-            .setForceHighestSupportedBitrate(false)
-            .setMaxVideoSize(maxWidth, maxVideoHeight.coerceAtMost(2160))
-            .setMaxVideoBitrate(liveSafeMaxBitrate(maxVideoHeight.coerceAtMost(2160)))
+        LiveQualityMode.BEST -> {
+            val bestHeight = if (Build.VERSION.SDK_INT < 26) maxVideoHeight.coerceAtMost(1080) else maxOf(maxVideoHeight, 2160).coerceAtMost(2160)
+            val bestWidth = if (bestHeight <= 1080) 1920 else 3840
+            builder
+                .setForceHighestSupportedBitrate(false)
+                .setMaxVideoSize(bestWidth, bestHeight)
+                .setMaxVideoBitrate(liveSafeMaxBitrate(bestHeight))
+        }
         LiveQualityMode.ULTRA -> {
             val ultraHeight = liveUltraMaxVideoHeight(maxVideoHeight)
             val ultraWidth = when {
@@ -2313,18 +2327,17 @@ private fun liveSafeMaxVideoHeight(policyHeight: Int): Int = when {
     else -> 4320
 }
 
-private fun liveSafeMaxBitrate(videoHeight: Int): Int = when {
-    videoHeight <= 720 -> 2_500_000
-    videoHeight <= 1080 -> 5_500_000
-    videoHeight <= 2160 -> 18_000_000
-    else -> 45_000_000
+internal fun liveSafeMaxBitrate(videoHeight: Int): Int = when {
+    videoHeight <= 720 -> 6_000_000
+    videoHeight <= 1080 -> 12_000_000
+    videoHeight <= 2160 -> 50_000_000
+    else -> 120_000_000
 }
 
 private fun liveUltraMaxVideoHeight(policyHeight: Int): Int = when {
     Build.VERSION.SDK_INT < 26 -> 720
-    policyHeight <= 1080 -> 1080
-    policyHeight <= 2160 -> 2160
-    else -> 4320
+    Build.VERSION.SDK_INT < 29 -> maxOf(policyHeight, 2160).coerceAtMost(2160)
+    else -> maxOf(policyHeight, 4320).coerceAtMost(4320)
 }
 
 private fun isLibVlcSafeOnThisDevice(): Boolean {
@@ -2341,8 +2354,22 @@ internal fun shouldUseTextureViewForMedia3(
     val isX86 = supportedAbis.any { abi ->
         abi.equals("x86", ignoreCase = true) || abi.equals("x86_64", ignoreCase = true)
     }
-    return sdkInt < 26 || isPerformanceMode || isX86
+    return sdkInt < 26 || isX86
 }
+
+internal fun shouldForceAsyncCodecQueueing(sdkInt: Int): Boolean =
+    sdkInt in 23..30
+
+internal fun liveTsExtractorFlags(): Int =
+    DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
+        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
+
+internal fun shouldAutoDowngradeLiveQuality(
+    isPerformanceMode: Boolean,
+    itemQualityRank: Int,
+    maxVideoHeight: Int,
+): Boolean =
+    isPerformanceMode && itemQualityRank > liveMaxAllowedRank(maxVideoHeight)
 
 private fun isLibVlcSafeForRequest(request: StreamRequest): Boolean {
     // Hard-disable LibVLC on x86/x86_64 (emulator + niche Atom boxes): the AWindow surface
@@ -2503,14 +2530,14 @@ private fun buildPlayer(
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
     // Receiver-style live: quick startup with enough buffer for real-world IPTV jitter.
-    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 3_000 else 5_000)
-    val liveMaxBufferMs = if (performancePolicy.isPerformance) 15_000 else 25_000
+    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 4_000 else 8_000)
+    val liveMaxBufferMs = if (performancePolicy.isPerformance) 22_000 else 45_000
     val liveLoadControl = DefaultLoadControl.Builder()
         .setBufferDurationsMs(
             liveMinBufferMs,
             liveMaxBufferMs,
-            if (performancePolicy.isPerformance) 400 else 600,
-            if (performancePolicy.isPerformance) 1_200 else 1_800,
+            if (performancePolicy.isPerformance) 800 else 1_400,
+            if (performancePolicy.isPerformance) 1_800 else 3_000,
         )
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
@@ -2523,13 +2550,20 @@ private fun buildPlayer(
     val httpFactory = OkHttpDataSource.Factory(NetworkModule.okHttp)
         .setUserAgent(request.headers["User-Agent"] ?: APP_USER_AGENT)
         .setDefaultRequestProperties(requestHeaders)
+    val tsExtractorFlags = liveTsExtractorFlags()
+    val extractorsFactory = DefaultExtractorsFactory()
+        .setTsExtractorFlags(tsExtractorFlags)
     val mediaSourceFactory = if (isRtsp) {
-        DefaultMediaSourceFactory(context)
+        DefaultMediaSourceFactory(context, extractorsFactory)
     } else {
-        DefaultMediaSourceFactory(httpFactory)
+        DefaultMediaSourceFactory(httpFactory, extractorsFactory)
     }
     if (isLive) {
         mediaSourceFactory.setLiveTargetOffsetMs(LIVE_TARGET_OFFSET_MS)
+        mediaSourceFactory.setLiveMinOffsetMs(LIVE_MIN_OFFSET_MS)
+        mediaSourceFactory.setLiveMaxOffsetMs(LIVE_MAX_OFFSET_MS)
+        mediaSourceFactory.setLiveMinSpeed(0.97f)
+        mediaSourceFactory.setLiveMaxSpeed(1.04f)
     }
     val liveVideoHeight = if (isLive) liveSafeMaxVideoHeight(performancePolicy.maxVideoHeight) else performancePolicy.maxVideoHeight
     val liveVideoWidth = when {
@@ -2544,7 +2578,9 @@ private fun buildPlayer(
             .setAllowVideoMixedMimeTypeAdaptiveness(true)
             .setAllowAudioMixedMimeTypeAdaptiveness(true)
             .setMaxVideoSize(liveVideoWidth, liveVideoHeight)
-            .setExceedVideoConstraintsIfNecessary(!isLive)
+            .setExceedVideoConstraintsIfNecessary(true)
+            .setExceedAudioConstraintsIfNecessary(true)
+            .setExceedRendererCapabilitiesIfNecessary(true)
         if (performancePolicy.isPerformance || isLive) {
             builder
                 .setPreferredVideoMimeTypes(MimeTypes.VIDEO_H264, MimeTypes.VIDEO_H265, MimeTypes.VIDEO_MP4V)
@@ -2559,7 +2595,14 @@ private fun buildPlayer(
         }
         override fun getMinimumLoadableRetryCount(dataType: Int): Int = if (isLive) 12 else 5
     }
-    return ExoPlayer.Builder(context)
+    val renderersFactory = DefaultRenderersFactory(context)
+        .setEnableDecoderFallback(true)
+        .setEnableAudioOutputPlaybackParameters(true)
+        .setAllowedVideoJoiningTimeMs(if (isLive) 7_000L else 5_000L)
+    if (shouldForceAsyncCodecQueueing(Build.VERSION.SDK_INT)) {
+        renderersFactory.forceEnableMediaCodecAsynchronousQueueing()
+    }
+    return ExoPlayer.Builder(context, renderersFactory)
         .setTrackSelector(trackSelector)
         .setLoadControl(if (isLive) liveLoadControl else vodLoadControl)
         .setLivePlaybackSpeedControl(
@@ -2583,6 +2626,7 @@ private fun buildPlayer(
         .apply {
             // Keep CPU + Wi-Fi awake while playing so the TV/box does not idle to sleep.
             setWakeMode(C.WAKE_MODE_NETWORK)
+            setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
             addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) = onIsPlayingChanged(isPlaying)
                 override fun onRenderedFirstFrame() = onRenderedFirstFrame()
@@ -2617,11 +2661,9 @@ private fun buildPlayer(
             if (startPlayback) {
                 val mediaItem = buildPlayableMediaItem(request, item, isLive)
                 if (!isRtsp && request.mimeType == MimeTypes.APPLICATION_M3U8) {
-                    val tsFlags = DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
-                        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
                     val hlsMediaSource = HlsMediaSource.Factory(httpFactory)
                         .setAllowChunklessPreparation(false)
-                        .setExtractorFactory(DefaultHlsExtractorFactory(tsFlags, true))
+                        .setExtractorFactory(DefaultHlsExtractorFactory(tsExtractorFlags, true))
                         .setLoadErrorHandlingPolicy(errorHandlingPolicy)
                         .createMediaSource(mediaItem)
                     if (isLive) {

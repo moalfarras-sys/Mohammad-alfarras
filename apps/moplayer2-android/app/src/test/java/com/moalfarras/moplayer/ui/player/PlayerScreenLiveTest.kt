@@ -86,6 +86,15 @@ class PlayerScreenLiveTest {
     }
 
     @Test
+    fun vlcFallbackCoversCommonIptvAndVodContainers() {
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/live/1.m3u8")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/movie.mkv")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://example.com/legacy.flv")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("rtsp://example.com/live/1")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("rtmp://example.com/live/1")))
+    }
+
+    @Test
     fun liveFailureMessageIsReadableEnglish() {
         val message = livePlaybackFailureMessage()
 
@@ -212,6 +221,34 @@ class PlayerScreenLiveTest {
     fun liveBitrateCapsAllowHighBitrate4kSports() {
         assertTrue(liveSafeMaxBitrate(2160) >= 45_000_000)
         assertTrue(liveSafeMaxBitrate(1080) >= 10_000_000)
+    }
+
+    @Test
+    fun livePlaybackProfileStartsFastInPerformanceMode() {
+        val profile = livePlaybackProfile(
+            isPerformanceMode = true,
+            policyLiveBufferMs = 6_000,
+            maxVideoHeight = 720,
+            sdkInt = 36,
+        )
+
+        assertTrue(profile.bufferForPlaybackMs <= 700)
+        assertTrue(profile.targetOffsetMs <= 6_000L)
+        assertTrue(profile.maxBufferMs <= 20_000)
+    }
+
+    @Test
+    fun livePlaybackProfileKeepsRoomFor4kQualityMode() {
+        val profile = livePlaybackProfile(
+            isPerformanceMode = false,
+            policyLiveBufferMs = 10_000,
+            maxVideoHeight = 2160,
+            sdkInt = 36,
+        )
+
+        assertTrue(profile.maxBufferMs >= 40_000)
+        assertTrue(profile.targetOffsetMs >= 8_000L)
+        assertTrue(profile.maxOffsetMs >= 24_000L)
     }
 
     @Test

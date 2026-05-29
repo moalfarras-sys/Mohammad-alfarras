@@ -167,9 +167,6 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 private val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
-private const val LIVE_TARGET_OFFSET_MS = 10_000L
-private const val LIVE_MIN_OFFSET_MS = 6_000L
-private const val LIVE_MAX_OFFSET_MS = 25_000L
 private const val LIVE_STALL_RECOVERY_LIMIT = 4
 private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 4
 private const val MEDIA3_SURFACE_RETRY_LIMIT = 2
@@ -178,6 +175,18 @@ private const val LIBVLC_FILE_CACHE_MS = 2_000
 
 enum class LiveQualityMode { AUTO, BEST, ULTRA, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
+
+internal data class LivePlaybackProfile(
+    val minBufferMs: Int,
+    val maxBufferMs: Int,
+    val bufferForPlaybackMs: Int,
+    val bufferForPlaybackAfterRebufferMs: Int,
+    val targetOffsetMs: Long,
+    val minOffsetMs: Long,
+    val maxOffsetMs: Long,
+    val minPlaybackSpeed: Float,
+    val maxPlaybackSpeed: Float,
+)
 
 @kotlin.OptIn(ExperimentalFoundationApi::class)
 private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
@@ -269,7 +278,7 @@ fun PlayerScreen(
     var liveQualityMode by remember(performancePolicy.mode) {
         mutableStateOf(if (performancePolicy.isPerformance) LiveQualityMode.STABLE else LiveQualityMode.AUTO)
     }
-    var playbackSignal by remember { mutableStateOf("") }
+    var playbackSignal by remember(item.id, isLive) { mutableStateOf(if (isLive) "Smart Auto" else "") }
     var libVlcRetryNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     var libVlcPlayPauseNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
     var liveSwitchLocked by remember(item.id) { mutableStateOf(false) }
@@ -316,7 +325,7 @@ fun PlayerScreen(
     val performanceStatus = remember(performancePolicy.mode, internalEngine, route, isLive) {
         if (performancePolicy.isPerformance) {
             val engine = if (route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC) "VLC live" else "Media3 stable"
-            "Performance mode · $engine · ${performancePolicy.maxVideoHeight}p cap"
+            "Performance mode | $engine | ${performancePolicy.maxVideoHeight}p cap"
         } else {
             ""
         }
@@ -577,7 +586,8 @@ fun PlayerScreen(
         while (true) {
             currentPosition = exoPlayer.currentPosition.coerceAtLeast(0)
             duration = exoPlayer.duration.coerceAtLeast(duration)
-            playbackSignal = playbackSignal(exoPlayer.videoFormat, performanceStatus)
+            val signalFallback = if (isLive) performanceStatus.ifBlank { "Smart Auto" } else performanceStatus
+            playbackSignal = playbackSignal(exoPlayer.videoFormat, signalFallback)
             // Auto-hide only when the video is actively playing AND the player engine confirms
             // playback (so a stale isPlaying=true racing with onIsPlayingChanged won't hide
             // controls during a pause). Give the user more time on TVs since D-pad is slower.
@@ -828,7 +838,19 @@ fun PlayerScreen(
             return
         }
         exoPlayer.stop()
-        exoPlayer.setMediaItem(buildPlayableMediaItem(playbackRequest, item, isLive), if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
+        exoPlayer.setMediaItem(
+            buildPlayableMediaItem(
+                playbackRequest,
+                item,
+                isLive,
+                livePlaybackProfile(
+                    isPerformanceMode = performancePolicy.isPerformance,
+                    policyLiveBufferMs = performancePolicy.liveBufferMs,
+                    maxVideoHeight = performancePolicy.maxVideoHeight,
+                ),
+            ),
+            if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0),
+        )
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
     }
@@ -1675,7 +1697,7 @@ private fun LiveZapOverlay(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        LiveQualityModeButton("Auto", qualityMode == LiveQualityMode.AUTO, accent) {
+                        LiveQualityModeButton("Smart", qualityMode == LiveQualityMode.AUTO, accent) {
                             onQualityMode(LiveQualityMode.AUTO)
                         }
                         LiveQualityModeButton("4K", qualityMode == LiveQualityMode.BEST, accent) {
@@ -1688,6 +1710,17 @@ private fun LiveZapOverlay(
                             onQualityMode(LiveQualityMode.STABLE)
                         }
                         LiveQualityModeButton("Tracks", false, accent, onVideo)
+                    }
+
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        LiveQualityModeButton("Audio", false, accent, onAudio)
+                        LiveQualityModeButton("Subs", false, accent, onSubtitles)
+                        LiveQualityModeButton("Ratio", false, accent, onResize)
+                        LiveQualityModeButton("Open", false, accent, onExternal)
                     }
 
                     if (items.isEmpty()) {
@@ -1721,7 +1754,7 @@ private fun LiveZapOverlay(
                     }
 
                     Text(
-                        "OK Play  •  ▲▼ Navigate  •  ◄► Groups  •  Back Close",
+                        "OK Play | D-pad Zap/Groups | Back Close",
                         color = Color(0x99FFFFFF),
                         fontSize = 11.sp,
                         maxLines = 1,
@@ -2353,7 +2386,7 @@ private fun playbackSignal(format: Format?, fallback: String = ""): String {
     }
     val hdr = if (format.colorInfo != null) "HDR" else ""
     val codec = format.sampleMimeType?.substringAfter("video/")?.uppercase(Locale.US).orEmpty()
-    return listOf(quality, hdr, codec, fallback).filter { it.isNotBlank() }.joinToString(" · ")
+    return listOf(quality, hdr, codec, fallback).filter { it.isNotBlank() }.joinToString(" | ")
 }
 
 private fun liveSafeMaxVideoHeight(policyHeight: Int): Int = when {
@@ -2369,6 +2402,50 @@ internal fun liveSafeMaxBitrate(videoHeight: Int): Int = when {
     videoHeight <= 1080 -> 12_000_000
     videoHeight <= 2160 -> 50_000_000
     else -> 120_000_000
+}
+
+internal fun livePlaybackProfile(
+    isPerformanceMode: Boolean,
+    policyLiveBufferMs: Int,
+    maxVideoHeight: Int,
+    sdkInt: Int = Build.VERSION.SDK_INT,
+): LivePlaybackProfile {
+    val legacyOrLowPower = isPerformanceMode || sdkInt < 26
+    return when {
+        legacyOrLowPower -> LivePlaybackProfile(
+            minBufferMs = policyLiveBufferMs.coerceIn(3_500, 6_000),
+            maxBufferMs = 18_000,
+            bufferForPlaybackMs = 500,
+            bufferForPlaybackAfterRebufferMs = 1_200,
+            targetOffsetMs = 5_500L,
+            minOffsetMs = 3_000L,
+            maxOffsetMs = 16_000L,
+            minPlaybackSpeed = 0.96f,
+            maxPlaybackSpeed = 1.06f,
+        )
+        maxVideoHeight >= 2160 -> LivePlaybackProfile(
+            minBufferMs = policyLiveBufferMs.coerceIn(7_000, 10_000),
+            maxBufferMs = 45_000,
+            bufferForPlaybackMs = 900,
+            bufferForPlaybackAfterRebufferMs = 2_400,
+            targetOffsetMs = 8_500L,
+            minOffsetMs = 5_000L,
+            maxOffsetMs = 25_000L,
+            minPlaybackSpeed = 0.97f,
+            maxPlaybackSpeed = 1.04f,
+        )
+        else -> LivePlaybackProfile(
+            minBufferMs = policyLiveBufferMs.coerceIn(5_000, 8_000),
+            maxBufferMs = 30_000,
+            bufferForPlaybackMs = 650,
+            bufferForPlaybackAfterRebufferMs = 1_800,
+            targetOffsetMs = 7_000L,
+            minOffsetMs = 4_000L,
+            maxOffsetMs = 20_000L,
+            minPlaybackSpeed = 0.97f,
+            maxPlaybackSpeed = 1.05f,
+        )
+    }
 }
 
 private fun liveUltraMaxVideoHeight(policyHeight: Int): Int = when {
@@ -2416,7 +2493,31 @@ private fun isLibVlcSafeForRequest(request: StreamRequest): Boolean {
     // recomposition, crashing the app. Real TV hardware is arm/arm64, so this only affects
     // QA emulators — Media3 handles HLS/TS perfectly on x86 anyway.
     if (!isLibVlcSafeOnThisDevice()) return false
-    return request.mimeType == MimeTypes.APPLICATION_M3U8 || request.uri.hasLiveTsHint()
+    return isVlcFriendlyContainer(request)
+}
+
+internal fun isVlcFriendlyContainer(request: StreamRequest): Boolean {
+    val lowerUri = request.uri.lowercase(Locale.US).substringBefore('?')
+    return request.uri.startsWith("rtsp://", ignoreCase = true) ||
+        request.uri.startsWith("rtmp://", ignoreCase = true) ||
+        request.mimeType in setOf(
+            MimeTypes.APPLICATION_M3U8,
+            MimeTypes.APPLICATION_MPD,
+            MimeTypes.APPLICATION_SS,
+            MimeTypes.VIDEO_MP2T,
+            MimeTypes.VIDEO_MP4,
+            MimeTypes.VIDEO_MATROSKA,
+            MimeTypes.VIDEO_WEBM,
+            "video/x-flv",
+        ) ||
+        request.uri.hasLiveTsHint() ||
+        lowerUri.endsWith(".avi") ||
+        lowerUri.endsWith(".mov") ||
+        lowerUri.endsWith(".m4v") ||
+        lowerUri.endsWith(".3gp") ||
+        lowerUri.endsWith(".3g2") ||
+        lowerUri.endsWith(".ogv") ||
+        lowerUri.endsWith(".ogg")
 }
 
 private fun AppMediaItem.samePlayable(other: AppMediaItem): Boolean =
@@ -2569,14 +2670,17 @@ private fun buildPlayer(
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
     // Receiver-style live: quick startup with enough buffer for real-world IPTV jitter.
-    val liveMinBufferMs = performancePolicy.liveBufferMs.coerceAtLeast(if (performancePolicy.isPerformance) 4_000 else 8_000)
-    val liveMaxBufferMs = if (performancePolicy.isPerformance) 22_000 else 45_000
+    val liveProfile = livePlaybackProfile(
+        isPerformanceMode = performancePolicy.isPerformance,
+        policyLiveBufferMs = performancePolicy.liveBufferMs,
+        maxVideoHeight = performancePolicy.maxVideoHeight,
+    )
     val liveLoadControl = DefaultLoadControl.Builder()
         .setBufferDurationsMs(
-            liveMinBufferMs,
-            liveMaxBufferMs,
-            if (performancePolicy.isPerformance) 800 else 1_400,
-            if (performancePolicy.isPerformance) 1_800 else 3_000,
+            liveProfile.minBufferMs,
+            liveProfile.maxBufferMs,
+            liveProfile.bufferForPlaybackMs,
+            liveProfile.bufferForPlaybackAfterRebufferMs,
         )
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
@@ -2598,11 +2702,11 @@ private fun buildPlayer(
         DefaultMediaSourceFactory(httpFactory, extractorsFactory)
     }
     if (isLive) {
-        mediaSourceFactory.setLiveTargetOffsetMs(LIVE_TARGET_OFFSET_MS)
-        mediaSourceFactory.setLiveMinOffsetMs(LIVE_MIN_OFFSET_MS)
-        mediaSourceFactory.setLiveMaxOffsetMs(LIVE_MAX_OFFSET_MS)
-        mediaSourceFactory.setLiveMinSpeed(0.97f)
-        mediaSourceFactory.setLiveMaxSpeed(1.04f)
+        mediaSourceFactory.setLiveTargetOffsetMs(liveProfile.targetOffsetMs)
+        mediaSourceFactory.setLiveMinOffsetMs(liveProfile.minOffsetMs)
+        mediaSourceFactory.setLiveMaxOffsetMs(liveProfile.maxOffsetMs)
+        mediaSourceFactory.setLiveMinSpeed(liveProfile.minPlaybackSpeed)
+        mediaSourceFactory.setLiveMaxSpeed(liveProfile.maxPlaybackSpeed)
     }
     val liveVideoHeight = if (isLive) liveSafeMaxVideoHeight(performancePolicy.maxVideoHeight) else performancePolicy.maxVideoHeight
     val liveVideoWidth = when {
@@ -2614,15 +2718,26 @@ private fun buildPlayer(
     val trackSelector = DefaultTrackSelector(context).apply {
         val builder = buildUponParameters()
             .setForceHighestSupportedBitrate(false)
+            .setAllowVideoNonSeamlessAdaptiveness(true)
             .setAllowVideoMixedMimeTypeAdaptiveness(true)
+            .setAllowVideoMixedDecoderSupportAdaptiveness(true)
             .setAllowAudioMixedMimeTypeAdaptiveness(true)
+            .setAllowAudioMixedSampleRateAdaptiveness(true)
+            .setAllowAudioMixedChannelCountAdaptiveness(true)
+            .setAllowAudioMixedDecoderSupportAdaptiveness(true)
             .setMaxVideoSize(liveVideoWidth, liveVideoHeight)
             .setExceedVideoConstraintsIfNecessary(true)
             .setExceedAudioConstraintsIfNecessary(true)
             .setExceedRendererCapabilitiesIfNecessary(true)
         if (performancePolicy.isPerformance || isLive) {
             builder
-                .setPreferredVideoMimeTypes(MimeTypes.VIDEO_H264, MimeTypes.VIDEO_H265, MimeTypes.VIDEO_MP4V)
+                .setPreferredVideoMimeTypes(
+                    MimeTypes.VIDEO_H264,
+                    MimeTypes.VIDEO_H265,
+                    MimeTypes.VIDEO_AV1,
+                    MimeTypes.VIDEO_VP9,
+                    MimeTypes.VIDEO_MP4V,
+                )
                 .setMaxVideoBitrate(if (isLive) liveSafeMaxBitrate(liveVideoHeight) else 8_000_000)
         }
         parameters = builder.build()
@@ -2646,9 +2761,9 @@ private fun buildPlayer(
         .setLoadControl(if (isLive) liveLoadControl else vodLoadControl)
         .setLivePlaybackSpeedControl(
             DefaultLivePlaybackSpeedControl.Builder()
-                .setFallbackMinPlaybackSpeed(0.97f)
-                .setFallbackMaxPlaybackSpeed(1.04f)
-                .setTargetLiveOffsetIncrementOnRebufferMs(5_000)
+                .setFallbackMinPlaybackSpeed(liveProfile.minPlaybackSpeed)
+                .setFallbackMaxPlaybackSpeed(liveProfile.maxPlaybackSpeed)
+                .setTargetLiveOffsetIncrementOnRebufferMs((liveProfile.maxOffsetMs - liveProfile.targetOffsetMs).coerceAtLeast(3_000L))
                 .build(),
         )
         .setAudioAttributes(
@@ -2698,7 +2813,7 @@ private fun buildPlayer(
                 }
             })
             if (startPlayback) {
-                val mediaItem = buildPlayableMediaItem(request, item, isLive)
+                val mediaItem = buildPlayableMediaItem(request, item, isLive, liveProfile)
                 if (!isRtsp && request.mimeType == MimeTypes.APPLICATION_M3U8) {
                     val hlsMediaSource = HlsMediaSource.Factory(httpFactory)
                         .setAllowChunklessPreparation(false)
@@ -2719,14 +2834,19 @@ private fun buildPlayer(
         }
 }
 
-private fun buildPlayableMediaItem(request: StreamRequest, item: AppMediaItem, isLive: Boolean): MediaItem {
+private fun buildPlayableMediaItem(
+    request: StreamRequest,
+    item: AppMediaItem,
+    isLive: Boolean,
+    liveProfile: LivePlaybackProfile,
+): MediaItem {
     val liveConfiguration = if (isLive) {
         MediaItem.LiveConfiguration.Builder()
-            .setTargetOffsetMs(LIVE_TARGET_OFFSET_MS)
-            .setMinOffsetMs(LIVE_MIN_OFFSET_MS)
-            .setMaxOffsetMs(LIVE_MAX_OFFSET_MS)
-            .setMinPlaybackSpeed(0.97f)
-            .setMaxPlaybackSpeed(1.04f)
+            .setTargetOffsetMs(liveProfile.targetOffsetMs)
+            .setMinOffsetMs(liveProfile.minOffsetMs)
+            .setMaxOffsetMs(liveProfile.maxOffsetMs)
+            .setMinPlaybackSpeed(liveProfile.minPlaybackSpeed)
+            .setMaxPlaybackSpeed(liveProfile.maxPlaybackSpeed)
             .build()
     } else {
         null

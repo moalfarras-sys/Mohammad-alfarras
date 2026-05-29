@@ -3,6 +3,7 @@ package com.moalfarras.moplayer.data.parser
 import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
+import com.moalfarras.moplayer.data.repository.normalizeImageUrl
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.Locale
@@ -98,7 +99,7 @@ class M3uParser {
                                         categoryName = info.group,
                                         title = cleanSeriesName.ifBlank { title },
                                         streamUrl = "",
-                                        posterUrl = info.logo,
+                                        posterUrl = info.logo.normalizeImageUrl(),
                                         description = info.description.ifBlank { "Series $cleanSeriesName" },
                                         rating = info.rating,
                                         addedAt = 0,
@@ -125,7 +126,7 @@ class M3uParser {
                             categoryName = info.group,
                             title = title,
                             streamUrl = streamUrl,
-                            posterUrl = info.logo,
+                            posterUrl = info.logo.normalizeImageUrl(),
                             description = info.description.ifBlank {
                                 if (type == ContentType.EPISODE) "Season $seasonNum - Episode $episodeNum" else title
                             },
@@ -175,7 +176,7 @@ class M3uParser {
         return ExtInfo(
             title = title.ifBlank { attrs["tvg-name"].orEmpty() },
             tvgId = attrs["tvg-id"].orEmpty(),
-            logo = attrs["tvg-logo"].orEmpty(),
+            logo = attrs["tvg-logo"].orEmpty().normalizeImageUrl(),
             group = attrs["group-title"].orEmpty(),
             catchup = catchup,
             headers = headers,

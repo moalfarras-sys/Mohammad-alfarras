@@ -54,6 +54,7 @@ class IptvRepository(
     private val playlistService: PlaylistService,
     private val xtreamFactory: (String) -> XtreamService,
     private val supabaseService: SupabaseService?,
+    private val webApiService: SupabaseService,
     private val parser: M3uParser,
 ) {
     private val json = NetworkModule.json
@@ -321,10 +322,9 @@ class IptvRepository(
         imported: Boolean,
         message: String = "",
     ) {
-        val service = supabaseService ?: return
         if (publicDeviceId.isBlank() || token.isBlank() || sourceId.isBlank()) return
         withContext(Dispatchers.IO) {
-            service.webDeviceActivationSourceAck(
+            webApiService.webDeviceActivationSourceAck(
                 url = activationApiUrl("source/ack"),
                 body = WebActivationSourceAckRequestDto(
                     publicDeviceId = publicDeviceId,
@@ -751,11 +751,10 @@ class IptvRepository(
     }
 
     suspend fun createDeviceActivation(deviceName: String): DeviceActivationSession {
-        val service = supabaseService ?: error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY.")
         val publicDeviceId = publicDeviceId()
         val sourcePullToken = secureToken(32)
         val webResponse = withContext(Dispatchers.IO) {
-            service.createWebDeviceActivation(
+            webApiService.createWebDeviceActivation(
                 url = activationApiUrl("create"),
                 body = WebActivationCreateRequestDto(
                     publicDeviceId = publicDeviceId,
@@ -787,13 +786,12 @@ class IptvRepository(
     }
 
     suspend fun pollDeviceActivation(session: DeviceActivationSession): Pair<DeviceActivationSession, ActivatedProfile?> {
-        val service = supabaseService ?: error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY.")
         if (System.currentTimeMillis() >= session.expiresAt) {
             return session.copy(status = DeviceActivationStatus.EXPIRED, error = "Activation code expired") to null
         }
         if (session.publicDeviceId.isNotBlank() && session.sourcePullToken.isNotBlank()) {
             val statusResponse = withContext(Dispatchers.IO) {
-                service.webDeviceActivationStatus(
+                webApiService.webDeviceActivationStatus(
                     activationApiUrl(
                         "status",
                         mapOf(
@@ -806,7 +804,7 @@ class IptvRepository(
             return when (statusResponse.status.lowercase(Locale.US)) {
                 "activated" -> {
                     val sourceResponse = withContext(Dispatchers.IO) {
-                        service.webDeviceActivationSource(
+                        webApiService.webDeviceActivationSource(
                             activationApiUrl(
                                 "source",
                                 mapOf(
@@ -844,6 +842,7 @@ class IptvRepository(
             }
         }
 
+        val service = supabaseService ?: error("Legacy activation requires SUPABASE_URL and SUPABASE_ANON_KEY.")
         val row = withContext(Dispatchers.IO) {
             service.deviceActivation(
                 anonKey = BuildConfig.SUPABASE_ANON_KEY,

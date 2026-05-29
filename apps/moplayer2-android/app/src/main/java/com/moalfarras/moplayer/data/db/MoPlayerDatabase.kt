@@ -388,7 +388,7 @@ interface SyncStateDao {
         EpgProgramEntity::class,
         SyncStateEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(MoConverters::class)
@@ -495,7 +495,7 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         fun get(context: Context): MoPlayerDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(context, MoPlayerDatabase::class.java, "moplayer.db")
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
                     .build()
                     .also { instance = it }
@@ -661,6 +661,33 @@ abstract class MoPlayerDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE servers ADD COLUMN epgUrl TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE servers ADD COLUMN sourceKey TEXT NOT NULL DEFAULT ''")
                 db.execSQL("UPDATE servers SET sourceKey = 'server:' || id WHERE sourceKey = ''")
+            }
+        }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM categories")
+                db.execSQL("DELETE FROM media")
+                db.execSQL("DELETE FROM account_info")
+                db.execSQL("DELETE FROM server_info")
+                db.execSQL("DELETE FROM vod_details")
+                db.execSQL("DELETE FROM seasons")
+                db.execSQL("DELETE FROM epg_programs")
+                db.execSQL("DELETE FROM sync_state")
+                db.execSQL(
+                    """
+                    UPDATE servers SET
+                        lastSyncAt = 0,
+                        accountStatus = '',
+                        expiryDate = 0,
+                        activeConnections = 0,
+                        maxConnections = 0,
+                        allowedOutputFormats = '',
+                        timezone = '',
+                        serverMessage = '',
+                        lastSyncSource = 'upgrade-cache-reset'
+                    """.trimIndent(),
+                )
             }
         }
     }

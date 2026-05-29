@@ -31,6 +31,7 @@ class AppContainer(context: Context) {
         playlistService = NetworkModule.playlistService,
         xtreamFactory = NetworkModule::xtream,
         supabaseService = NetworkModule.supabaseService,
+        webApiService = NetworkModule.webApiService,
         parser = M3uParser(),
     )
     val widgetRepository = WidgetRepository(

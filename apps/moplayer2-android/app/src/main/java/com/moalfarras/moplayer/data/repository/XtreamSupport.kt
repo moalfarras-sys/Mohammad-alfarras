@@ -15,6 +15,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
@@ -247,7 +248,7 @@ internal object XtreamSupport {
                 streamUrl = directSource.ifBlank {
                     "${credentials.baseUrl}live/${credentials.username}/${credentials.password}/$streamId.$output"
                 },
-                posterUrl = obj.string("stream_icon"),
+                posterUrl = obj.imageUrl("stream_icon"),
                 description = obj.string("plot"),
                 addedAt = addedAt,
                 lastModifiedAt = lastModifiedAt,
@@ -288,8 +289,8 @@ internal object XtreamSupport {
                 streamUrl = directSource.ifBlank {
                     "${credentials.baseUrl}movie/${credentials.username}/${credentials.password}/$streamId.$extension"
                 },
-                posterUrl = obj.string("stream_icon").ifBlank { obj.string("cover") },
-                backdropUrl = obj.stringOrJoin("backdrop_path"),
+                posterUrl = obj.imageUrl("stream_icon").ifBlank { obj.imageUrl("cover") },
+                backdropUrl = obj.imageUrlOrJoin("backdrop_path"),
                 description = obj.string("plot"),
                 rating = obj.string("rating").ifBlank { obj.string("rating_5based") },
                 durationSecs = obj.long("duration_secs"),
@@ -329,8 +330,8 @@ internal object XtreamSupport {
                 categoryName = categories[categoryId].orEmpty(),
                 title = obj.string("name"),
                 streamUrl = "",
-                posterUrl = obj.string("cover"),
-                backdropUrl = obj.stringOrJoin("backdrop_path"),
+                posterUrl = obj.imageUrl("cover"),
+                backdropUrl = obj.imageUrlOrJoin("backdrop_path"),
                 description = obj.string("plot"),
                 rating = obj.string("rating").ifBlank { obj.string("rating_5based") },
                 addedAt = addedAt,
@@ -355,8 +356,8 @@ internal object XtreamSupport {
     ): Pair<MediaItem, VodDetailsEntity> {
         val info = root.objectOrNull("info") ?: JsonObject(emptyMap())
         val movieData = root.objectOrNull("movie_data") ?: JsonObject(emptyMap())
-        val movieImage = info.string("movie_image").ifBlank { current.posterUrl }
-        val backdrop = info.stringOrJoin("backdrop_path").ifBlank { current.backdropUrl }
+        val movieImage = info.imageUrl("movie_image").ifBlank { current.posterUrl }
+        val backdrop = info.imageUrlOrJoin("backdrop_path").ifBlank { current.backdropUrl }
         val plot = info.string("plot").ifBlank { movieData.string("plot").ifBlank { current.description } }
         val rating = info.string("rating").ifBlank { movieData.string("rating").ifBlank { current.rating } }
         val enriched = current.copy(
@@ -410,8 +411,8 @@ internal object XtreamSupport {
             title = info.string("name").ifBlank { current.title },
             description = info.string("plot").ifBlank { current.description },
             rating = info.string("rating").ifBlank { current.rating },
-            posterUrl = info.string("cover_big").ifBlank { info.string("cover").ifBlank { current.posterUrl } },
-            backdropUrl = info.stringOrJoin("backdrop_path").ifBlank { current.backdropUrl },
+            posterUrl = info.imageUrl("cover_big").ifBlank { info.imageUrl("cover").ifBlank { current.posterUrl } },
+            backdropUrl = info.imageUrlOrJoin("backdrop_path").ifBlank { current.backdropUrl },
             cast = info.stringOrJoin("cast").ifBlank { current.cast },
             director = info.stringOrJoin("director").ifBlank { current.director },
             genre = info.stringOrJoin("genre").ifBlank { current.genre },
@@ -439,7 +440,7 @@ internal object XtreamSupport {
                         categoryName = current.categoryName,
                         title = obj.string("title").ifBlank { "Episode $episodeNumber" },
                         streamUrl = "${credentials.baseUrl}series/${credentials.username}/${credentials.password}/$episodeId.$extension",
-                        posterUrl = episodeInfo.string("cover_big").ifBlank { episodeInfo.string("movie_image").ifBlank { enrichedSeries.posterUrl } },
+                        posterUrl = episodeInfo.imageUrl("cover_big").ifBlank { episodeInfo.imageUrl("movie_image").ifBlank { enrichedSeries.posterUrl } },
                         backdropUrl = enrichedSeries.backdropUrl,
                         description = episodeInfo.string("plot"),
                         rating = episodeInfo.string("rating").ifBlank { enrichedSeries.rating },
@@ -643,6 +644,8 @@ private fun EpgProgramEntity.toEntry(): EpgEntry = EpgEntry(
 
 private fun JsonObject.string(name: String): String = this[name]?.contentOrNull().orEmpty()
 
+private fun JsonObject.imageUrl(name: String): String = string(name).normalizeImageUrl()
+
 private fun JsonObject.int(name: String): Int = string(name).toIntOrNull() ?: this[name]?.jsonPrimitive?.intOrNull ?: 0
 
 private fun JsonObject.long(name: String): Long = string(name).toLongOrNull() ?: this[name]?.jsonPrimitive?.longOrNull ?: 0L
@@ -662,10 +665,37 @@ private fun JsonObject.stringOrJoin(name: String): String = when (val value = th
     else -> ""
 }
 
+private fun JsonObject.imageUrlOrJoin(name: String): String = when (val value = this[name]) {
+    is JsonArray -> value.mapNotNull { it.contentOrNull()?.normalizeImageUrl()?.takeIf(String::isNotBlank) }.firstOrNull().orEmpty()
+    is JsonPrimitive -> value.contentOrNull().orEmpty().normalizeImageUrl()
+    else -> ""
+}
+
 private fun JsonElement?.contentOrNull(): String? = when (this) {
-    is JsonPrimitive -> toString().trim().trim('"')
+    null, JsonNull -> null
+    is JsonPrimitive -> content.trim().takeUnless { it.isNullLikeToken() }
     else -> null
 }
+
+internal fun String.normalizeImageUrl(): String {
+    val clean = trim()
+        .trim('"', '\'')
+        .replace("&amp;", "&", ignoreCase = true)
+    if (clean.isBlank() || clean.isNullLikeToken()) return ""
+    return when {
+        clean.startsWith("//") -> "https:$clean"
+        clean.startsWith("http://", ignoreCase = true) || clean.startsWith("https://", ignoreCase = true) -> clean
+        else -> ""
+    }
+}
+
+private fun String.isNullLikeToken(): Boolean =
+    equals("null", ignoreCase = true) ||
+        equals("undefined", ignoreCase = true) ||
+        equals("n/a", ignoreCase = true) ||
+        equals("na", ignoreCase = true) ||
+        equals("none", ignoreCase = true) ||
+        equals("[]")
 
 internal fun pickLiveExtension(
     allowedFormats: List<String>,

@@ -18,9 +18,9 @@ object NetworkModule {
     val okHttp: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .connectTimeout(12, TimeUnit.SECONDS)
-            .readTimeout(90, TimeUnit.SECONDS)
-            .writeTimeout(90, TimeUnit.SECONDS)
-            .callTimeout(120, TimeUnit.SECONDS)
+            .readTimeout(5, TimeUnit.MINUTES)
+            .writeTimeout(5, TimeUnit.MINUTES)
+            .callTimeout(10, TimeUnit.MINUTES)
             .retryOnConnectionFailure(true)
             .build()
     }
@@ -43,6 +43,9 @@ object NetworkModule {
     val weatherService: WeatherService by lazy { retrofit("https://api.weatherapi.com/").create(WeatherService::class.java) }
     val webWeatherService: WebWeatherService by lazy { retrofit("https://example.com/").create(WebWeatherService::class.java) }
     val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
+    val webApiService: SupabaseService by lazy {
+        retrofit(WebApiEndpoint.primaryBaseUrl.ifBlank { "https://moalfarras.space" }).create(SupabaseService::class.java)
+    }
 
     val sportsDbService: SportsDbService by lazy {
         retrofit("https://www.thesportsdb.com/api/v1/json/3/").create(SportsDbService::class.java)

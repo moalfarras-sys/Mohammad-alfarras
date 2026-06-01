@@ -363,15 +363,23 @@ fun PlayerScreen(
     }
 
     LaunchedEffect(item.id, streamRequest.uri, isLive) {
-        if (!isLive || !streamRequest.uri.hasLiveTsHint()) {
-            resolvedLiveRequest = streamRequest
-            liveRedirectResolved = true
-            return@LaunchedEffect
-        }
-        liveRedirectResolved = false
-        resolvedLiveRequest = null
-        resolvedLiveRequest = resolveLiveRedirectRequest(streamRequest)
+        // Start live playback INSTANTLY with the direct stream. Almost every IPTV live URL is
+        // a direct MPEG-TS that Media3 plays natively, so blocking startup on an HTTP probe
+        // just adds dead time before the first frame (the slow "Opening channel..."). We mark
+        // the request resolved up front and probe in the background, swapping the source only
+        // if the server actually redirects a ".ts" URL to a real HLS/DASH manifest (rare).
+        resolvedLiveRequest = streamRequest
         liveRedirectResolved = true
+        if (!isLive || !streamRequest.uri.hasLiveTsHint()) return@LaunchedEffect
+        val probed = resolveLiveRedirectRequest(streamRequest)
+        if (probed.uri != streamRequest.uri && (
+                probed.mimeType == MimeTypes.APPLICATION_M3U8 ||
+                    probed.mimeType == MimeTypes.APPLICATION_MPD ||
+                    probed.mimeType == MimeTypes.APPLICATION_SS
+                )
+        ) {
+            resolvedLiveRequest = probed
+        }
     }
 
     LaunchedEffect(isLive, liveRedirectResolved, playbackRequest.uri, playbackRequest.mimeType) {
@@ -2165,9 +2173,29 @@ private fun LibVlcPlayerView(
     val mediaPlayer = remember { MediaPlayer(libVlc) }
     val uiScope = rememberCoroutineScope()
     var videoTexture by remember { mutableStateOf<TextureView?>(null) }
+    // Single source of truth for native teardown. Once the player/libVlc are released, no other
+    // effect may call into them again — a use-after-free on the LibVLC native objects is a hard
+    // SIGSEGV that runCatching cannot catch and takes the whole app down.
+    val released = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+
+    // Registered FIRST so it disposes LAST: every other effect's onDispose (stop/detach) runs
+    // while the native player is still alive, and only then do we release it exactly once.
+    DisposableEffect(Unit) {
+        onDispose {
+            if (released.compareAndSet(false, true)) {
+                runCatching { mediaPlayer.setEventListener(null) }
+                runCatching { mediaPlayer.stop() }
+                runCatching { mediaPlayer.detachViews() }
+                runCatching { mediaPlayer.media = null }
+                runCatching { mediaPlayer.release() }
+                runCatching { libVlc.release() }
+            }
+        }
+    }
 
     DisposableEffect(videoTexture, request.uri, retryNonce) {
         val attachedTexture = videoTexture ?: return@DisposableEffect onDispose { }
+        if (released.get()) return@DisposableEffect onDispose { }
         var activeSession = true
         onBuffering(true)
         // Guard against IllegalStateException("Can't set view when already attached") on some
@@ -2232,23 +2260,26 @@ private fun LibVlcPlayerView(
 
         onDispose {
             activeSession = false
-            mediaPlayer.setEventListener(null)
-            runCatching { mediaPlayer.stop() }
-            runCatching { mediaPlayer.detachViews() }
-            runCatching { mediaPlayer.media = null }
+            if (!released.get()) {
+                runCatching { mediaPlayer.setEventListener(null) }
+                runCatching { mediaPlayer.stop() }
+                runCatching { mediaPlayer.detachViews() }
+                runCatching { mediaPlayer.media = null }
+            }
         }
     }
 
     DisposableEffect(lifecycleOwner, mediaPlayer) {
         var resumeOnStart = false
         val observer = LifecycleEventObserver { _, event ->
+            if (released.get()) return@LifecycleEventObserver
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
                     runCatching { mediaPlayer.pause() }
                     onPaused()
                 }
                 Lifecycle.Event.ON_STOP -> {
-                    resumeOnStart = mediaPlayer.isPlaying
+                    resumeOnStart = runCatching { mediaPlayer.isPlaying }.getOrDefault(false)
                     runCatching { mediaPlayer.stop() }
                     onPaused()
                 }
@@ -2265,16 +2296,9 @@ private fun LibVlcPlayerView(
 
     LaunchedEffect(playPauseNonce) {
         if (playPauseNonce == 0) return@LaunchedEffect
+        if (released.get()) return@LaunchedEffect
         runCatching {
             if (mediaPlayer.isPlaying) mediaPlayer.pause() else mediaPlayer.play()
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            runCatching { mediaPlayer.detachViews() }
-            runCatching { mediaPlayer.release() }
-            runCatching { libVlc.release() }
         }
     }
 

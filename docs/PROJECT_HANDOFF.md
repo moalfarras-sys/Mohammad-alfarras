@@ -127,9 +127,10 @@ Keep classic MoPlayer (`moplayer`) and MoPlayer Pro (`moplayer2`) release channe
 - Added an internal admin helper widget that explains where to change images, offers, app runtime, releases, and AI items.
 - Added field help popovers and larger mobile-friendly form controls for clearer Arabic-first admin use.
 - Latest MoPlayer Pro APK currently present at `apps/web/public/downloads/moplayer2/app-release.apk`:
-  - version: `2.5.9` (`versionCode` 47)
-  - size: `49251129` bytes
-  - SHA-256: `b1eadf0cbba9567748f6421d84c5de84172f9f155dba2543eb9ec06a52e01b02`
+  - version: `2.5.10` (`versionCode` 48)
+  - size: `49251400` bytes
+  - SHA-256: `fe35dab63d05266a719cd35521c1cbefb5ed45268795d878ae2da1c0ca0a70d1`
+  - notes: faster live MPEG-TS startup plus hardened LibVLC teardown during fallback playback and lifecycle changes.
 
 Verification completed before deployment:
 

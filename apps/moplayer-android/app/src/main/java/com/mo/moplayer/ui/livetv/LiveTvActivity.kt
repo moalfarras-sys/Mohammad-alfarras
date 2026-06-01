@@ -1517,6 +1517,9 @@ class LiveTvActivity : BaseTvActivity() {
         }
     }
 
+    private fun isOverlayInteractive(): Boolean =
+            overlayVisible || binding.fullScreenOverlay.visibility == View.VISIBLE
+
     private fun showOverlay() {
         overlayVisible = true
         binding.tvHint.visibility = View.GONE
@@ -1740,7 +1743,7 @@ class LiveTvActivity : BaseTvActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_MENU -> {
-                if (overlayVisible && currentChannel != null) {
+                if (isOverlayInteractive() && currentChannel != null) {
                     currentChannel?.let { channel -> showContextMenu(channel) }
                     return true
                 } else {
@@ -1751,7 +1754,7 @@ class LiveTvActivity : BaseTvActivity() {
                 }
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                if (!overlayVisible) {
+                if (!isOverlayInteractive()) {
                     toggleOverlay()
                     return true
                 }
@@ -1760,7 +1763,7 @@ class LiveTvActivity : BaseTvActivity() {
                 // When overlay is visible, let the focused item handle the click
             }
             KeyEvent.KEYCODE_DPAD_UP -> {
-                if (!overlayVisible) {
+                if (!isOverlayInteractive()) {
                     viewModel.previousChannel()
                     showChannelInfoBriefly()
                     return true
@@ -1770,7 +1773,7 @@ class LiveTvActivity : BaseTvActivity() {
                 }
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (!overlayVisible) {
+                if (!isOverlayInteractive()) {
                     viewModel.nextChannel()
                     showChannelInfoBriefly()
                     return true
@@ -1780,7 +1783,7 @@ class LiveTvActivity : BaseTvActivity() {
                 }
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (overlayVisible) {
+                if (isOverlayInteractive()) {
                     resetOverlayTimeout()
                     if (isFocusInside(binding.rvChannels)) {
                         return focusSelectedGroup()
@@ -1789,7 +1792,7 @@ class LiveTvActivity : BaseTvActivity() {
                 }
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                if (overlayVisible) {
+                if (isOverlayInteractive()) {
                     resetOverlayTimeout()
                     if (isFocusInside(binding.rvGroups)) {
                         return focusChannelAt(0)
@@ -1808,7 +1811,7 @@ class LiveTvActivity : BaseTvActivity() {
                 return true
             }
             KeyEvent.KEYCODE_BACK -> {
-                if (overlayVisible) {
+                if (isOverlayInteractive()) {
                     // Check if focus is on channels list - go back to groups
                     if (binding.rvChannels.hasFocus()) {
                         // Move focus to groups - find the selected group
@@ -1867,7 +1870,7 @@ class LiveTvActivity : BaseTvActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN && overlayVisible) {
+        if (event.action == KeyEvent.ACTION_DOWN && isOverlayInteractive()) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
                     if (!isFocusInside(binding.rvChannels)) {

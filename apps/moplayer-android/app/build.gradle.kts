@@ -55,8 +55,8 @@ android {
         applicationId = "com.mo.moplayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 17
-        versionName = "2.2.11"
+        versionCode = 18
+        versionName = "2.2.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

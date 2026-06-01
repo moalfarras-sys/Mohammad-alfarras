@@ -10,7 +10,7 @@ Both native clients live under `apps/`.
 - Android application ID: `com.mo.moplayer`
 - Release task: `assembleSideloadRelease`
 - Published APK folder: `apps/web/public/downloads/moplayer`
-- Current published APK: `2.2.11` (`versionCode` 17), `52745848` bytes, SHA-256 `4ca6dff273ef3fb56d92b2100c205d08d8fe30d765d7156af426892df7925613`
+- Current published APK: `2.2.12` (`versionCode` 18), `52746532` bytes, SHA-256 `67b0fa3b55ca05e1ff7ea380b91c47d46d32748325669cb557a1b85487c305f7`
 
 Classic QR links must use:
 

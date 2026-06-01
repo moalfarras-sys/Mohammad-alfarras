@@ -189,13 +189,13 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-moplayer-2-2-11",
+    id: "release-moplayer-2-2-12",
     product_slug: "moplayer",
-    slug: "moplayer-2.2.11",
-    version_name: "2.2.11",
-    version_code: 17,
+    slug: "moplayer-2.2.12",
+    version_name: "2.2.12",
+    version_code: 18,
     release_notes:
-      "MoPlayer Classic 2.2.11 hardens self-updates with correct force-update parsing plus APK size and SHA verification, while keeping the 2.2.10 image, subscription, and Live TV focus fixes.",
+      "MoPlayer Classic 2.2.12 repairs Live TV remote focus when the overlay is visible and refreshes stale server sync counters so movies, series, channels, categories, posters, and subscription data stay accurate.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -203,8 +203,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-moplayer-2-2-11-universal",
-        release_id: "release-moplayer-2-2-11",
+        id: "asset-moplayer-2-2-12-universal",
+        release_id: "release-moplayer-2-2-12",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -212,8 +212,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52745848,
-        checksum_sha256: "4ca6dff273ef3fb56d92b2100c205d08d8fe30d765d7156af426892df7925613",
+        file_size_bytes: 52746532,
+        checksum_sha256: "67b0fa3b55ca05e1ff7ea380b91c47d46d32748325669cb557a1b85487c305f7",
         is_primary: true,
         created_at: now,
       },

@@ -1336,7 +1336,28 @@ class IptvRepository @Inject constructor(
     }
 
     suspend fun getServerSyncState(serverId: Long): ServerSyncStateEntity? = withContext(Dispatchers.IO) {
-        serverSyncStateDao.getState(serverId)
+        val state = serverSyncStateDao.getState(serverId) ?: return@withContext null
+        val channels = channelDao.getChannelCount(serverId)
+        val movies = movieDao.getMovieCount(serverId)
+        val series = seriesDao.getSeriesCount(serverId)
+        val categories = categoryDao.getCategoryCount(serverId)
+        if (
+            state.totalChannels == channels &&
+                state.totalMovies == movies &&
+                state.totalSeries == series &&
+                state.totalCategories == categories
+        ) {
+            return@withContext state
+        }
+
+        val repaired = state.copy(
+            totalChannels = channels,
+            totalMovies = movies,
+            totalSeries = series,
+            totalCategories = categories
+        )
+        serverSyncStateDao.upsert(repaired)
+        repaired
     }
 
     private suspend fun rebuildSearchIndex(serverId: Long) {

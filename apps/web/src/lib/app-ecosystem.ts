@@ -290,24 +290,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-10",
+      id: "release-moplayer2-v2-5-11",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.10-full",
-      version_name: "2.5.10",
-      version_code: 48,
+      slug: "moplayer2-v2.5.11-full",
+      version_name: "2.5.11",
+      version_code: 49,
       release_notes:
-        "MoPlayer Pro 2.5.10 starts live MPEG-TS channels faster, keeps manifest redirect probing in the background, and hardens LibVLC teardown to avoid native crashes during fallback playback and lifecycle changes.",
+        "MoPlayer Pro 2.5.11 improves TV keyboard sign-in, keeps Series category selection valid during section changes, shortens unstable live-channel fallback, and was QA-tested against a real Xtream server for library sync, VOD, and episodic playback.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-10-universal",
-          release_id: "release-moplayer2-v2-5-10",
+          id: "asset-moplayer2-v2-5-11-universal",
+          release_id: "release-moplayer2-v2-5-11",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49251400,
-          checksum_sha256: "fe35dab63d05266a719cd35521c1cbefb5ed45268795d878ae2da1c0ca0a70d1",
+          file_size_bytes: 49252567,
+          checksum_sha256: "45ca5708f6e7cc6543ff0330bddb05c9ed516d2316241c2d48838ba62fe2e0c1",
         },
       ],
     },

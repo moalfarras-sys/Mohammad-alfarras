@@ -138,10 +138,11 @@ Classic Android TV work was verified on a local Android TV API 24 x86 emulator n
 - Added an internal admin helper widget that explains where to change images, offers, app runtime, releases, and AI items.
 - Added field help popovers and larger mobile-friendly form controls for clearer Arabic-first admin use.
 - Latest MoPlayer Pro APK currently present at `apps/web/public/downloads/moplayer2/app-release.apk`:
-  - version: `2.5.10` (`versionCode` 48)
-  - size: `49251400` bytes
-  - SHA-256: `fe35dab63d05266a719cd35521c1cbefb5ed45268795d878ae2da1c0ca0a70d1`
-  - notes: faster live MPEG-TS startup plus hardened LibVLC teardown during fallback playback and lifecycle changes.
+  - version: `2.5.11` (`versionCode` 49)
+  - size: `49252567` bytes
+  - SHA-256: `45ca5708f6e7cc6543ff0330bddb05c9ed516d2316241c2d48838ba62fe2e0c1`
+  - notes: TV keyboard sign-in submit polish, valid Series category recovery, shorter unstable live fallback, and real Xtream QA for library sync, VOD, and episodic playback.
+- Production deploy completed on 2026-06-01 for `moalfarras.space` and `admin.moalfarras.space`; production config, latest release, download redirect, and hosted APK hash all resolve to MoPlayer Pro `2.5.11`.
 
 Verification completed before deployment:
 

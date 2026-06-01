@@ -156,7 +156,20 @@ class MainViewModel(
         } ?: flowOf(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val selectedMedia: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
+    val selectedMedia: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = combine(
+        uiState,
+        liveCategories,
+        movieCategories,
+        seriesCategories,
+    ) { state, live, movies, series ->
+        val categoryIds = when (state.section) {
+            AppSection.LIVE -> live.mapTo(mutableSetOf()) { it.id }
+            AppSection.MOVIES -> movies.mapTo(mutableSetOf()) { it.id }
+            AppSection.SERIES -> series.mapTo(mutableSetOf()) { it.id }
+            else -> emptySet()
+        }
+        state to categoryIds
+    }.flatMapLatest { (state, categoryIds) ->
         val server = state.activeServer ?: return@flatMapLatest flowOf(PagingData.empty())
         val type = when (state.section) {
             AppSection.LIVE -> ContentType.LIVE
@@ -165,10 +178,13 @@ class MainViewModel(
             else -> ContentType.MOVIE
         }
         val hideNoLogo = type == ContentType.LIVE && state.settings.hideChannelsWithoutLogo
-        val source = if (state.selectedCategoryId.isBlank()) {
+        val selectedCategoryId = state.selectedCategoryId.takeIf { category ->
+            category.isBlank() || category in categoryIds
+        }.orEmpty()
+        val source = if (selectedCategoryId.isBlank()) {
             iptv.mediaByType(state.libraryServerId(server.id), type, state.settings.defaultSort, hideNoLogo)
         } else {
-            iptv.mediaByCategory(state.libraryServerId(server.id), type, state.selectedCategoryId, state.settings.defaultSort, hideNoLogo)
+            iptv.mediaByCategory(state.libraryServerId(server.id), type, selectedCategoryId, state.settings.defaultSort, hideNoLogo)
         }
         source.map { pagingData ->
             pagingData.filter { item ->
@@ -324,13 +340,19 @@ class MainViewModel(
         persistSnapshot(cur.section, cur.focusedItem, cur.selectedCategoryId)
         val requirePin = section == AppSection.SETTINGS && uiState.value.settings.hasParentalPin
         val (restoredFocus, restoredCategory) = loadSnapshot(section)
+        val validRestoredCategory = restoredCategory.takeIf { category ->
+            category.isBlank() || category in categoryIdsForSection(section)
+        }.orEmpty()
+        val validRestoredFocus = restoredFocus?.takeIf { focus ->
+            validRestoredCategory.isBlank() || focus.categoryId == validRestoredCategory
+        }
         internal.update {
             it.copy(
                 section = section,
                 returnSection = section,
-                focusedItem = restoredFocus,
-                restoreFocusItem = restoredFocus,
-                selectedCategoryId = restoredCategory,
+                focusedItem = validRestoredFocus,
+                restoreFocusItem = validRestoredFocus,
+                selectedCategoryId = validRestoredCategory,
                 dockFocusSection = null,
                 error = null,
                 settingsUnlocked = if (section == AppSection.SETTINGS) !requirePin else it.settingsUnlocked,
@@ -1211,6 +1233,13 @@ class MainViewModel(
                 }
             }
         }
+    }
+
+    private fun categoryIdsForSection(section: AppSection): Set<String> = when (section) {
+        AppSection.LIVE -> liveCategories.value.mapTo(mutableSetOf()) { it.id }
+        AppSection.MOVIES -> movieCategories.value.mapTo(mutableSetOf()) { it.id }
+        AppSection.SERIES -> seriesCategories.value.mapTo(mutableSetOf()) { it.id }
+        else -> emptySet()
     }
 
     class Factory(

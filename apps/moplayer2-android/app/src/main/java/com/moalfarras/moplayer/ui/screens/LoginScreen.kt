@@ -14,6 +14,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -50,6 +51,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -409,8 +411,8 @@ private fun LoginGlassCard(
                     GlassTextField(name, onName, s.loginName,        tv, Icons.Rounded.Person)
                     GlassTextField(url,  onUrl,  s.loginServerUrl, tv, Icons.Rounded.Public, KeyboardType.Uri)
                     GlassTextField(user, onUser, s.loginUser,         tv, Icons.Rounded.Person)
-                    GlassPasswordField(pass, onPass, s.loginPassword, tv)
-                    GlassActionButton(s.loginEnter, Icons.Rounded.RocketLaunch, loading == null && url.isNotBlank() && user.isNotBlank(), tv, submitXtream)
+                    GlassPasswordField(pass, onPass, s.loginPassword, tv, submitXtream)
+                    GlassActionButton(s.loginEnter, Icons.Rounded.RocketLaunch, loading == null && url.isNotBlank() && user.isNotBlank() && pass.isNotBlank(), tv, submitXtream)
                 }
                 LoginMode.ACTIVATION -> {
                     GlassTextField(
@@ -982,7 +984,7 @@ private fun GlassTextField(
 
 @Composable
 private fun GlassPasswordField(
-    value: String, onValue: (String) -> Unit, label: String, tv: TvScale,
+    value: String, onValue: (String) -> Unit, label: String, tv: TvScale, onSubmit: (() -> Unit)? = null,
 ) {
     var visible by remember { mutableStateOf(false) }
     val interaction = remember { MutableInteractionSource() }
@@ -995,7 +997,19 @@ private fun GlassPasswordField(
         if (focused) 1.025f else 1f,
         spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium), label = "pw-scale",
     )
-    val navKeys = rememberVerticalFocusNav()
+    val verticalNavKeys = rememberVerticalFocusNav()
+    val navKeys = remember(verticalNavKeys, onSubmit) {
+        { event: KeyEvent ->
+            if (event.type == KeyEventType.KeyDown &&
+                (event.key == Key.Enter || event.key == Key.DirectionCenter)
+            ) {
+                onSubmit?.invoke()
+                onSubmit != null
+            } else {
+                verticalNavKeys(event)
+            }
+        }
+    }
 
     Surface(
         modifier = Modifier
@@ -1032,7 +1046,13 @@ private fun GlassPasswordField(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     interactionSource = interaction,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = if (onSubmit != null) ImeAction.Done else ImeAction.Default,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { onSubmit?.invoke() },
+                    ),
                     visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
                     textStyle = TextStyle(
                         color = visuals.textPrimary,
@@ -1065,6 +1085,18 @@ private fun GlassPasswordField(
                     contentDescription = if (visible) s.loginHidePassword else s.loginShowPassword,
                     tint = if (focused) accent else Color(0xAAE3BC78),
                 )
+            }
+            if (onSubmit != null) {
+                IconButton(
+                    onClick = onSubmit,
+                    enabled = value.isNotBlank(),
+                ) {
+                    Icon(
+                        Icons.Rounded.RocketLaunch,
+                        contentDescription = s.loginEnter,
+                        tint = if (value.isNotBlank()) accent else Color(0x66E3BC78),
+                    )
+                }
             }
         }
     }

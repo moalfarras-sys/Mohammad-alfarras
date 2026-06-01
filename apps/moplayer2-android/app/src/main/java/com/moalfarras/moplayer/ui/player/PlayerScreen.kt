@@ -168,7 +168,7 @@ import java.util.concurrent.TimeUnit
 
 private val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
 private const val LIVE_STALL_RECOVERY_LIMIT = 4
-private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 4
+private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 2
 private const val MEDIA3_SURFACE_RETRY_LIMIT = 2
 private const val LIBVLC_LIVE_CACHE_MS = 900
 private const val LIBVLC_FILE_CACHE_MS = 2_000

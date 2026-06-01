@@ -118,6 +118,17 @@ Key routes:
 
 Keep classic MoPlayer (`moplayer`) and MoPlayer Pro (`moplayer2`) release channels separate.
 
+## 2026-06-01 MoPlayer Classic QA Notes
+
+Classic Android TV work was verified on a local Android TV API 24 x86 emulator named `MoPlayer_Classic_API24_TV_720p`.
+
+- Use JDK 17 for Classic Gradle commands. In this Windows workspace, a temporary Temurin JDK was used from `%TEMP%\codex-temurin17\jdk-17.0.19+10`.
+- `npm run verify:android:classic` passed after the Classic fixes.
+- `apps/moplayer-android/gradlew.bat assembleSideloadDebug -PincludeX86Abis=true` produced and installed `apps/moplayer-android/build-output/app/outputs/apk/sideload/debug/app-sideload-x86-debug.apk`.
+- Manual QA imported an M3U playlist from `http://10.0.2.2:8765/test.m3u` served from a local Python HTTP server and played `https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8` in Live TV.
+- Verified paths: login method selection on 720p TV, M3U URL import, Home source-ready state, dock focus from Home to Live, Live category-to-channel focus, HLS playback startup, and logcat crash scan.
+- `apps/moplayer-android/local.properties` is intentionally untracked and may contain a stale SDK path on this machine; Gradle can still build when `JAVA_HOME` and Android SDK env/path are set correctly.
+
 ## 2026-05-25 Admin/Web Release Notes
 
 - Admin was simplified into a clean operations panel: website, offers, app runtime/releases/images/content, and AI inbox.

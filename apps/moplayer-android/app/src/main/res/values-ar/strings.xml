@@ -447,6 +447,10 @@
     <string name="login_choice_m3u">إضافة M3U</string>
     <string name="home_empty_title">نظام التلفزيون جاهز</string>
     <string name="home_empty_subtitle">أضف محتوى أو حدّث المصدر النشط لملء لوحة التحكم.</string>
+    <string name="home_empty_eyebrow">متصل بنظام التلفزيون</string>
+    <string name="home_source_ready_title">المصدر جاهز</string>
+    <string name="home_source_ready_subtitle">افتح Live أو Movies أو Series من الشريط. المحمّل: %1$d مباشر، %2$d أفلام، %3$d مسلسلات.</string>
+    <string name="home_source_ready_pending_subtitle">افتح Live أو Movies أو Series من الشريط. المصدر: %1$s.</string>
     <string name="source_status_label_format">%1$s - %2$s</string>
     <string name="login_choice_m3u_subtitle">رابط playlist أو ملف M3U من الجهاز.</string>
     <string name="activation_title">تفعيل MoPlayer</string>

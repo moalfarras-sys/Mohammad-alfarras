@@ -142,6 +142,7 @@ class PlayerActivity : BaseTvActivity() {
     private var liveRetryScheduled = false
     private var useHttpFallbackForApi24Stream = false
     private var activePlaybackToken = 0L
+    private var isDestroying = false
     
     // PIP (Picture-in-Picture) support
     private var isInPipMode = false
@@ -494,7 +495,7 @@ class PlayerActivity : BaseTvActivity() {
 
         // Multi-strategy initialization for x86 emulator compatibility
         val cachingMs = if (api24SafePlayerMode) {
-            vlcBufferMs.coerceAtLeast(if (isLiveStream) 6500 else 3500)
+            vlcBufferMs.coerceAtLeast(if (isLiveStream) 3500 else 3000)
         } else {
             vlcBufferMs.coerceAtLeast(500)
         }
@@ -592,6 +593,7 @@ class PlayerActivity : BaseTvActivity() {
 
                 mediaPlayer?.setEventListener { event ->
                     runOnUiThread {
+                        if (isDestroying || isFinishing || isDestroyed) return@runOnUiThread
                         when (event.type) {
                             MediaPlayer.Event.Playing -> {
                                 hasStartedPlayback = true
@@ -856,11 +858,12 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun livePlaybackUrl(url: String, attempt: Int): String {
         val cleanUrl = url.trim()
+        if (attempt == 0) return cleanUrl
         return when {
             hasLiveExtension(cleanUrl, "m3u8") ->
-                if (attempt % 2 == 0) replaceLiveExtension(cleanUrl, "ts") else cleanUrl
+                if (attempt % 2 == 1) replaceLiveExtension(cleanUrl, "ts") else cleanUrl
             hasLiveExtension(cleanUrl, "ts") ->
-                if (attempt % 2 == 0) cleanUrl else replaceLiveExtension(cleanUrl, "m3u8")
+                if (attempt % 2 == 1) replaceLiveExtension(cleanUrl, "m3u8") else cleanUrl
             else -> cleanUrl
         }
     }
@@ -1946,6 +1949,7 @@ class PlayerActivity : BaseTvActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isDestroying = true
         releasePlaybackWakeLock()
         saveCurrentProgress()
 

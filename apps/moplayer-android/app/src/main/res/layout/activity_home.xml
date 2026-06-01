@@ -395,34 +395,37 @@
             tools:visibility="visible">
 
             <TextView
+                android:id="@+id/tvHomeEmptyEyebrow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0"
-                android:text="CONNECTED TO DIGITAL OS"
+                android:text="@string/home_empty_eyebrow"
                 android:textColor="@color/moplayer_orange"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tvHomeEmptyTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:includeFontPadding="false"
-                android:text="Your media space is ready."
+                android:text="@string/home_empty_title"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="30sp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tvHomeEmptySubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:lineSpacingMultiplier="1.25"
-                android:text="Add an Xtream or M3U source from Settings, or send it from moalfarras.space activation. The app stays connected to the Control Center for updates and widgets."
+                android:text="@string/home_empty_subtitle"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="15sp" />
 

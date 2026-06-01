@@ -136,7 +136,7 @@
 
     <dimen name="login_clean_margin_horizontal">32dp</dimen>
     <dimen name="login_clean_margin_bottom">20dp</dimen>
-    <dimen name="login_clean_width_max">260dp</dimen>
+    <dimen name="login_clean_width_max">300dp</dimen>
     <dimen name="login_clean_padding_horizontal">14dp</dimen>
     <dimen name="login_clean_padding_top">12dp</dimen>
     <dimen name="login_clean_padding_bottom">12dp</dimen>
@@ -147,17 +147,17 @@
     <dimen name="login_clean_subtitle_margin_top">6dp</dimen>
     <dimen name="login_clean_subtitle_text_size">8.5sp</dimen>
     <dimen name="login_clean_choice_panel_margin_top">10dp</dimen>
-    <dimen name="login_clean_choice_primary_height">44dp</dimen>
-    <dimen name="login_clean_choice_height">42dp</dimen>
+    <dimen name="login_clean_choice_primary_height">58dp</dimen>
+    <dimen name="login_clean_choice_height">52dp</dimen>
     <dimen name="login_clean_choice_gap">6dp</dimen>
     <dimen name="login_clean_choice_padding_horizontal">10dp</dimen>
     <dimen name="login_clean_choice_padding_vertical">6dp</dimen>
     <dimen name="login_clean_action_icon_badge_size">28dp</dimen>
     <dimen name="login_clean_action_icon_size">14dp</dimen>
     <dimen name="login_clean_action_text_margin_start">10dp</dimen>
-    <dimen name="login_clean_action_title_size">11.5sp</dimen>
-    <dimen name="login_clean_action_title_secondary_size">11sp</dimen>
-    <dimen name="login_clean_action_subtitle_size">7.5sp</dimen>
+    <dimen name="login_clean_action_title_size">12.5sp</dimen>
+    <dimen name="login_clean_action_title_secondary_size">12sp</dimen>
+    <dimen name="login_clean_action_subtitle_size">8sp</dimen>
     <dimen name="login_clean_action_chip_height">20dp</dimen>
     <dimen name="login_clean_tabs_height">36dp</dimen>
     <dimen name="login_clean_field_height">40dp</dimen>

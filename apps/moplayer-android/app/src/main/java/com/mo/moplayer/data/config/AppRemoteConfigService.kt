@@ -59,7 +59,7 @@ class AppRemoteConfigService @Inject constructor(
 
     private fun fetchConfigBody(): String {
         var lastError: Throwable? = null
-        com.mo.moplayer.util.WebApiEndpoint.candidateUrls("/api/app/config").forEach { urlString ->
+        com.mo.moplayer.util.WebApiEndpoint.candidateUrls("/api/app/config?product=moplayer").forEach { urlString ->
             try {
                 val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"

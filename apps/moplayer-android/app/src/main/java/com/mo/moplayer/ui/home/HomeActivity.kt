@@ -116,6 +116,7 @@ class HomeActivity : BaseTvActivity() {
     private var homeRowsLoading = true
     private var newContentObserverJob: Job? = null
     private var initialContentFocusApplied = false
+    private var homeEmptyDockFocusApplied = false
     private var lastFocusedContentRowIndex = 0
     private var lastFocusedContentCenterX = -1
     private var chromeInitialized = false
@@ -127,6 +128,7 @@ class HomeActivity : BaseTvActivity() {
     private var appRemoteConfig = AppRemoteConfig()
     private var homeCityWallpaperSelected = false
     private var cityWallpaperRefreshInFlight = false
+    private var activeSourceName: String? = null
     private var backgroundBehavior = com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.FOLLOW_PREVIEW
     
     private var currentDockIndex = 0
@@ -780,7 +782,7 @@ class HomeActivity : BaseTvActivity() {
                 animateDockItem(v, hasFocus)
                 if (hasFocus) {
                     currentDockIndex = index
-                    updateDockSelection(0)
+                    updateDockSelection(index)
                 }
             }
         }
@@ -1184,8 +1186,12 @@ class HomeActivity : BaseTvActivity() {
         }
 
         viewModel.activeServerLiveData.observe(this) { server ->
+            activeSourceName = server?.name
             binding.serverExpiryWidget.text = buildServerExpiryText(server)
             binding.serverExpiryWidget.visibility = View.VISIBLE
+            if (homeRowsEmpty && !homeRowsLoading) {
+                renderHomeEmptyCopy(viewModel.dashboardState.value)
+            }
         }
         
         lifecycleScope.launch {
@@ -1231,18 +1237,83 @@ class HomeActivity : BaseTvActivity() {
         val showEmpty = homeRowsEmpty && !homeRowsLoading
         binding.homeEmptyState.isVisible = showEmpty
         binding.rvContent.isVisible = !showEmpty
+        if (showEmpty) {
+            val state = viewModel.dashboardState.value
+            renderHomeEmptyCopy(state)
+            renderDashboardStatus(state)
+            maybeFocusDockForEmptyHome()
+        } else {
+            homeEmptyDockFocusApplied = false
+        }
     }
 
-    private fun renderDashboardStatus(state: HomeDashboardState) {
-        val hasSource = !state.sourceName.isNullOrBlank()
-        // binding.dashboardStatusStrip.isVisible = hasSource
+    private fun maybeFocusDockForEmptyHome() {
+        if (homeEmptyDockFocusApplied) return
+        val focused = currentFocus
+        val shouldMoveToDock = focused == null ||
+            isViewInParent(focused, binding.topSignalBar) ||
+            focused == binding.homeEmptyState
+        if (!shouldMoveToDock) return
+
+        binding.dockHome.post {
+            if (binding.homeEmptyState.isVisible && binding.dockHome.requestFocus()) {
+                homeEmptyDockFocusApplied = true
+            }
+        }
+    }
+
+    private fun renderHomeEmptyCopy(state: HomeDashboardState) {
+        val sourceName = state.sourceName?.takeIf { it.isNotBlank() } ?: activeSourceName
+        val hasSource = !sourceName.isNullOrBlank()
         if (!hasSource) {
+            binding.tvHomeEmptyTitle.setText(R.string.home_empty_title)
+            binding.tvHomeEmptySubtitle.setText(R.string.home_empty_subtitle)
             return
         }
 
-        // The current dashboard layout renders source health in the top status card.
-        // Keep collecting the state here so future layout bindings can be wired without
-        // touching repository or sync behavior.
+        val hasAnyContent = state.liveCount > 0 || state.movieCount > 0 || state.seriesCount > 0
+        binding.tvHomeEmptyTitle.setText(R.string.home_source_ready_title)
+        binding.tvHomeEmptySubtitle.text = if (hasAnyContent) {
+            getString(
+                R.string.home_source_ready_subtitle,
+                state.liveCount,
+                state.movieCount,
+                state.seriesCount
+            )
+        } else {
+            getString(R.string.home_source_ready_pending_subtitle, sourceName.orEmpty())
+        }
+    }
+
+    private fun renderDashboardStatus(state: HomeDashboardState) {
+        val sourceName = state.sourceName?.takeIf { it.isNotBlank() } ?: activeSourceName
+        val hasSource = !sourceName.isNullOrBlank()
+        // binding.dashboardStatusStrip.isVisible = hasSource
+        if (!hasSource) {
+            binding.tvPreviewTitle.setText(R.string.home_empty_title)
+            binding.tvPreviewDescription.setText(R.string.home_empty_subtitle)
+            binding.tvPreviewDescription.isVisible = true
+            return
+        }
+
+        val hasAnyContent = state.liveCount > 0 || state.movieCount > 0 || state.seriesCount > 0
+        if (homeRowsEmpty && hasAnyContent) {
+            binding.tvPreviewTitle.setText(R.string.home_source_ready_title)
+            binding.tvPreviewDescription.text = getString(
+                R.string.home_source_ready_subtitle,
+                state.liveCount,
+                state.movieCount,
+                state.seriesCount
+            )
+            binding.tvPreviewDescription.isVisible = true
+        } else if (homeRowsEmpty) {
+            binding.tvPreviewTitle.setText(R.string.home_source_ready_title)
+            binding.tvPreviewDescription.text = getString(
+                R.string.home_source_ready_pending_subtitle,
+                sourceName.orEmpty()
+            )
+            binding.tvPreviewDescription.isVisible = true
+        }
     }
     
     private fun observeNewContent() {

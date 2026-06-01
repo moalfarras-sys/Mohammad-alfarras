@@ -28,6 +28,8 @@
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_vertical"
+        android:nextFocusLeft="@id/groupContainer"
+        android:nextFocusRight="@id/rvChannels"
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp">

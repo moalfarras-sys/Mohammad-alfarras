@@ -28,12 +28,16 @@
     <string name="activation_entry_button">Open activation screen</string>
     <string name="activation_entry_button_done">Activated - add a source</string>
     <string name="login_choice_activation">Activate via website</string>
-    <string name="login_choice_activation_subtitle">Pair this TV using a secure code from moalfarras.space</string>
+    <string name="login_choice_activation_subtitle">Pair by QR or secure code</string>
     <string name="login_choice_xtream">Add Xtream source</string>
     <string name="login_choice_xtream_subtitle">Server URL, username, and password</string>
     <string name="login_choice_m3u">Add M3U playlist</string>
     <string name="home_empty_title">Your TV OS is ready</string>
     <string name="home_empty_subtitle">Add content or refresh the active source to fill the dashboard.</string>
+    <string name="home_empty_eyebrow">CONNECTED TO DIGITAL OS</string>
+    <string name="home_source_ready_title">Your source is ready</string>
+    <string name="home_source_ready_subtitle">Open Live, Movies, or Series from the dock. Loaded: %1$d live, %2$d movies, %3$d series.</string>
+    <string name="home_source_ready_pending_subtitle">Open Live, Movies, or Series from the dock. Source: %1$s.</string>
     <string name="source_status_label_format">%1$s - %2$s</string>
     <string name="login_choice_m3u_subtitle">Playlist URL or local M3U file</string>
     <string name="login_back_to_methods">Back to methods</string>

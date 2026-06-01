@@ -1343,11 +1343,12 @@ class LiveTvActivity : BaseTvActivity() {
 
     private fun livePlaybackUrl(url: String, attempt: Int): String {
         val cleanUrl = url.trim()
+        if (attempt == 0) return cleanUrl
         return when {
             hasLiveExtension(cleanUrl, "m3u8") ->
-                    if (attempt % 2 == 0) replaceLiveExtension(cleanUrl, "ts") else cleanUrl
+                    if (attempt % 2 == 1) replaceLiveExtension(cleanUrl, "ts") else cleanUrl
             hasLiveExtension(cleanUrl, "ts") ->
-                    if (attempt % 2 == 0) cleanUrl else replaceLiveExtension(cleanUrl, "m3u8")
+                    if (attempt % 2 == 1) replaceLiveExtension(cleanUrl, "m3u8") else cleanUrl
             else -> cleanUrl
         }
     }

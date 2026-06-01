@@ -120,13 +120,15 @@ Classic:
 
 ```powershell
 cd apps/moplayer-android
-.\gradlew.bat assembleSideloadRelease -PincludeX86Abis=true
+.\gradlew.bat assembleSideloadRelease
 ```
 
 Copy the production download into `apps/web/public/downloads/moplayer`:
 
 - `app-sideload-universal-release.apk`
 
+Use `-PincludeX86Abis=true` only for emulator/debug QA builds. Production Classic
+downloads should stay ARM-only unless a release entry explicitly needs x86.
 ABI split APKs are release-script outputs only. Do not commit them unless a
 release entry explicitly needs separate ABI downloads.
 

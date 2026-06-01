@@ -283,6 +283,9 @@
     <string name="source_connections_format">Connections: %1$d/%2$d</string>
     <string name="source_max_connections_format">Max connections: %1$d</string>
     <string name="home_subscription_last_day">Last day\n%1$s</string>
+    <string name="home_subscription_hours_left">%1$d hours left\n%2$s</string>
+    <string name="home_subscription_days_left">%1$d days left\n%2$s</string>
+    <string name="home_subscription_expired">Expired\n%1$s</string>
     <string name="home_subscription_active">Server\nActive</string>
     <string name="home_subscription_no_source">Server\nNo source</string>
     <string name="settings_player">Player Settings</string>

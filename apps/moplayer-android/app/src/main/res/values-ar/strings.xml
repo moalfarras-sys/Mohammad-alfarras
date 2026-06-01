@@ -173,6 +173,9 @@
     <string name="source_connections_format">الاتصالات: %1$d/%2$d</string>
     <string name="source_max_connections_format">أقصى اتصالات: %1$d</string>
     <string name="home_subscription_last_day">آخر يوم\n%1$s</string>
+    <string name="home_subscription_hours_left">%1$d ساعة متبقية\n%2$s</string>
+    <string name="home_subscription_days_left">%1$d يوم متبقي\n%2$s</string>
+    <string name="home_subscription_expired">منتهي\n%1$s</string>
     <string name="home_subscription_active">السيرفر\nنشط</string>
     <string name="home_subscription_no_source">السيرفر\nلا يوجد مصدر</string>
     <string name="settings_player">إعدادات المشغل</string>

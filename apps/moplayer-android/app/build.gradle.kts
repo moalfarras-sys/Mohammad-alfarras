@@ -55,8 +55,8 @@ android {
         applicationId = "com.mo.moplayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 15
-        versionName = "2.2.9"
+        versionCode = 17
+        versionName = "2.2.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -207,6 +207,7 @@ dependencies {
 
     // Image Loading
     implementation(libs.glide)
+    implementation(libs.glide.okhttp3.integration)
     ksp(libs.glide.compiler)
 
     // Lottie Animation
@@ -251,6 +252,7 @@ dependencies {
 
     // Testing
     testImplementation(libs.junit)
+    testImplementation(libs.json)
     testImplementation("io.mockk:mockk:1.13.13")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

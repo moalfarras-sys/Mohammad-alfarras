@@ -1,11 +1,13 @@
 # Root
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDE / local
 .cursor/
 .idea/
 .vscode/
+**/.claude/settings.local.json
 
 # Environment / secrets
 .env*
@@ -63,6 +65,7 @@ _backups/
 **/window_dump*.xml
 **/home_*.png
 **/login_*.png
+**/screen_*.png
 **/tmp_*.png
 **/moplayer_database_copy
 

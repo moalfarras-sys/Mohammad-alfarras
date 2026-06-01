@@ -1218,16 +1218,37 @@ class HomeActivity : BaseTvActivity() {
     private fun buildServerExpiryText(server: com.mo.moplayer.data.local.entity.ServerEntity?): String {
         if (server == null) return getString(R.string.home_subscription_no_source)
         val expiry = server.expirationDate?.takeIf { it.isNotBlank() }?.let { raw ->
-            getString(R.string.home_subscription_last_day, formatProviderDate(raw))
+            val expiryMillis = parseProviderDateMillis(raw)
+            val expiryDate = formatProviderDate(raw)
+            if (expiryMillis == null) {
+                getString(R.string.home_subscription_last_day, expiryDate)
+            } else {
+                val remainingMs = expiryMillis - System.currentTimeMillis()
+                when {
+                    remainingMs <= 0L -> getString(R.string.home_subscription_expired, expiryDate)
+                    remainingMs < 48L * 60L * 60L * 1000L -> {
+                        val hoursLeft = kotlin.math.max(1L, remainingMs / (60L * 60L * 1000L))
+                        getString(R.string.home_subscription_hours_left, hoursLeft, expiryDate)
+                    }
+                    else -> {
+                        val daysLeft = kotlin.math.max(1L, remainingMs / (24L * 60L * 60L * 1000L))
+                        getString(R.string.home_subscription_days_left, daysLeft, expiryDate)
+                    }
+                }
+            }
         }
         return expiry ?: getString(R.string.home_subscription_active)
     }
 
+    private fun parseProviderDateMillis(value: String): Long? {
+        val epoch = value.trim().toLongOrNull()?.takeIf { it > 0 } ?: return null
+        return if (epoch < 10_000_000_000L) epoch * 1000L else epoch
+    }
+
     private fun formatProviderDate(value: String): String {
         val trimmed = value.trim()
-        val epoch = trimmed.toLongOrNull()
-        if (epoch != null && epoch > 0) {
-            val millis = if (epoch < 10_000_000_000L) epoch * 1000L else epoch
+        val millis = parseProviderDateMillis(trimmed)
+        if (millis != null) {
             return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(millis))
         }
         return trimmed.take(16)

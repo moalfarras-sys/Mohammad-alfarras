@@ -5,6 +5,7 @@ ksp = "2.0.21-1.0.28"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
+json = "20260522"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
@@ -87,6 +88,7 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 # Image Loading
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 glide-compiler = { group = "com.github.bumptech.glide", name = "ksp", version.ref = "glide" }
+glide-okhttp3-integration = { group = "com.github.bumptech.glide", name = "okhttp3-integration", version.ref = "glide" }
 
 # Lottie Animation
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
@@ -125,6 +127,7 @@ zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+json = { group = "org.json", name = "json", version.ref = "json" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 

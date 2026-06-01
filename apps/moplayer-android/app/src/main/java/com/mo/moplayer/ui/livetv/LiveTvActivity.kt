@@ -1600,6 +1600,88 @@ class LiveTvActivity : BaseTvActivity() {
         }
     }
 
+    private fun focusChannelAt(position: Int): Boolean {
+        if (channelAdapter.itemCount <= 0) return false
+        val safePosition = position.coerceIn(0, channelAdapter.itemCount - 1)
+
+        binding.rvChannels.scrollToPosition(safePosition)
+        if (focusRecyclerChild(binding.rvChannels, safePosition, R.id.channelContainer)) {
+            return true
+        }
+
+        binding.rvChannels.post {
+            if (!focusRecyclerChild(binding.rvChannels, safePosition, R.id.channelContainer)) {
+                binding.rvChannels.postDelayed(
+                        { focusRecyclerChild(binding.rvChannels, safePosition, R.id.channelContainer) },
+                        80
+                )
+            }
+        }
+        return true
+    }
+
+    private fun focusSelectedGroup(): Boolean {
+        val selectedCategoryId = viewModel.selectedCategory.value
+        val categoryIndex =
+                if (selectedCategoryId == null) {
+                    0
+                } else {
+                    viewModel.categories.value
+                            ?.indexOfFirst { it.categoryId == selectedCategoryId }
+                            ?.takeIf { it >= 0 }
+                            ?: 0
+                }
+
+        binding.rvGroups.scrollToPosition(categoryIndex)
+        if (focusRecyclerChild(binding.rvGroups, categoryIndex, R.id.groupContainer)) {
+            return true
+        }
+
+        binding.rvGroups.post {
+            focusRecyclerChild(binding.rvGroups, categoryIndex, R.id.groupContainer)
+        }
+        return true
+    }
+
+    private fun isFocusInside(parent: ViewGroup): Boolean {
+        var view: View? = currentFocus ?: return false
+        while (view != null) {
+            if (view == parent) return true
+            view = view.parent as? View
+        }
+        return false
+    }
+
+    private fun focusedChannelPosition(): Int {
+        val focused = currentFocus ?: return androidx.recyclerview.widget.RecyclerView.NO_POSITION
+        return binding.rvChannels.findContainingViewHolder(focused)?.bindingAdapterPosition
+                ?: androidx.recyclerview.widget.RecyclerView.NO_POSITION
+    }
+
+    private fun selectChannelAt(position: Int): Boolean {
+        val channels = viewModel.filteredChannels.value.orEmpty()
+        if (channels.isEmpty()) return false
+        val channel = channels.getOrNull(position.coerceIn(0, channels.lastIndex)) ?: return false
+
+        stopAudioPreview()
+        playbackArmed = true
+        viewModel.selectChannel(channel)
+        hideOverlay()
+        return true
+    }
+
+    private fun selectFocusedChannel(): Boolean {
+        if (!isFocusInside(binding.rvChannels)) return false
+        val channels = viewModel.filteredChannels.value.orEmpty()
+        if (channels.isEmpty()) return false
+
+        val position =
+                focusedChannelPosition()
+                        .takeIf { it in channels.indices }
+                        ?: (viewModel.filteredChannelIndex.value ?: 0).coerceIn(0, channels.lastIndex)
+        return selectChannelAt(position)
+    }
+
     private fun resetOverlayTimeout() {
         handler.removeCallbacks(hideOverlayRunnable)
         if (overlayAutoHideEnabled) {
@@ -1673,8 +1755,9 @@ class LiveTvActivity : BaseTvActivity() {
                     toggleOverlay()
                     return true
                 }
-                // When overlay is visible, let the focused item handle the click
                 resetOverlayTimeout()
+                if (selectFocusedChannel()) return true
+                // When overlay is visible, let the focused item handle the click
             }
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (!overlayVisible) {
@@ -1699,12 +1782,18 @@ class LiveTvActivity : BaseTvActivity() {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (overlayVisible) {
                     resetOverlayTimeout()
+                    if (isFocusInside(binding.rvChannels)) {
+                        return focusSelectedGroup()
+                    }
                     // Don't consume - let focus system handle panel navigation
                 }
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (overlayVisible) {
                     resetOverlayTimeout()
+                    if (isFocusInside(binding.rvGroups)) {
+                        return focusChannelAt(0)
+                    }
                     // Don't consume - let focus system handle panel navigation
                 }
             }
@@ -1775,6 +1864,35 @@ class LiveTvActivity : BaseTvActivity() {
         if (!overlayVisible) {
             binding.channelInfoBar.visibility = View.GONE
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN && overlayVisible) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                    if (!isFocusInside(binding.rvChannels)) {
+                        resetOverlayTimeout()
+                        return focusChannelAt(0)
+                    }
+                }
+                KeyEvent.KEYCODE_DPAD_LEFT -> {
+                    if (isFocusInside(binding.rvChannels)) {
+                        resetOverlayTimeout()
+                        return focusSelectedGroup()
+                    }
+                }
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                    if (currentFocus == null && channelAdapter.itemCount > 0) {
+                        resetOverlayTimeout()
+                        return selectChannelAt(
+                                (viewModel.filteredChannelIndex.value ?: 0)
+                                        .coerceAtLeast(0)
+                        )
+                    }
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onResume() {

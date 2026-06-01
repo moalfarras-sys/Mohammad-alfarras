@@ -53,6 +53,7 @@ import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.FootballMatch
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.MotionLevel
+import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.domain.model.ThemePreset
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
@@ -74,6 +75,7 @@ fun HomeScreen(
     latestLive: List<MediaItem>,
     latestMovies: List<MediaItem>,
     latestSeries: List<MediaItem>,
+    activeServer: ServerProfile?,
     settings: AppSettings,
     performancePolicy: PerformancePolicy,
     restoreFocusItem: MediaItem?,
@@ -444,6 +446,7 @@ fun HomeScreen(
                 match = topFootballMatches.firstOrNull(),
                 phase = homeNotificationPhase,
                 notificationTitle = settings.homeNotificationTitle,
+                activeServer = activeServer,
                 showWeather = settings.showWeatherWidget,
                 showClock = settings.showClockWidget,
                 showWidgets = performancePolicy.enableWidgets,
@@ -495,6 +498,7 @@ private fun HomeHero(
     match: FootballMatch?,
     phase: HomeNotificationPhase,
     notificationTitle: String,
+    activeServer: ServerProfile?,
     showWeather: Boolean,
     showClock: Boolean,
     showWidgets: Boolean,
@@ -546,6 +550,7 @@ private fun HomeHero(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.widthIn(max = (720 * tv.factor).dp),
                         )
+                        AccountSummaryLine(activeServer, isArabic)
                     }
                 }
                 if (showWidgets) {
@@ -591,6 +596,33 @@ private fun heroKicker(item: MediaItem?, isArabic: Boolean): String = when (item
     ContentType.SERIES, ContentType.EPISODE -> if (isArabic) "مسلسل" else "SERIES"
     ContentType.LIVE -> if (isArabic) "بث مباشر" else "LIVE TV"
     else -> if (isArabic) "متابعة المشاهدة" else "CONTINUE WATCHING"
+}
+
+@Composable
+private fun AccountSummaryLine(server: ServerProfile?, isArabic: Boolean) {
+    if (server == null || (server.expiryDate <= 0 && server.maxConnections <= 0 && server.accountStatus.isBlank())) return
+    val now = remember { System.currentTimeMillis() }
+    val daysLeft = if (server.expiryDate > 0) ((server.expiryDate - now) / 86_400_000L).coerceAtLeast(0) else null
+    val expiry = server.expiryDate.takeIf { it > 0 }?.let {
+        DateTimeFormatter.ofPattern("yyyy-MM-dd").format(java.time.Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))
+    }
+    val pieces = buildList {
+        add(server.accountStatus.ifBlank { if (isArabic) "نشط" else "Active" })
+        if (expiry != null && daysLeft != null) {
+            add(if (isArabic) "ينتهي $expiry - $daysLeft يوم" else "Expires $expiry - $daysLeft days")
+        }
+        if (server.maxConnections > 0) {
+            add(if (isArabic) "الاتصالات ${server.activeConnections}/${server.maxConnections}" else "Connections ${server.activeConnections}/${server.maxConnections}")
+        }
+    }
+    Text(
+        pieces.joinToString("  |  "),
+        color = Color(0xFFE3BC78),
+        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.widthIn(max = 720.dp),
+    )
 }
 
 @Composable

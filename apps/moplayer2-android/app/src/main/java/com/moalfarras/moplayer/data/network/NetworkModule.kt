@@ -6,7 +6,11 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 object NetworkModule {
     val json: Json = Json {
@@ -29,6 +33,26 @@ object NetworkModule {
         okHttp.newBuilder()
             .readTimeout(5, TimeUnit.MINUTES)
             .callTimeout(10, TimeUnit.MINUTES)
+            .build()
+    }
+
+    val imageOkHttp: OkHttpClient by lazy {
+        // Scoped to public poster/logo images. Some Android TV 7.x devices ship stale CA stores
+        // and fail modern CDN/Vercel chains even when normal playback and APIs work.
+        val trustManager = object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
+            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
+            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+        }
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, arrayOf(trustManager), SecureRandom())
+        }
+        okHttp.newBuilder()
+            .sslSocketFactory(sslContext.socketFactory, trustManager)
+            .hostnameVerifier { _, _ -> true }
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(45, TimeUnit.SECONDS)
+            .callTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 

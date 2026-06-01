@@ -1,7 +1,10 @@
 package com.moalfarras.moplayer.ui.components
 
+import android.graphics.BitmapFactory
+import android.util.LruCache
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.snap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,6 +32,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +41,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,13 +50,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import com.moalfarras.moplayerpro.BuildConfig
+import com.moalfarras.moplayer.data.network.NetworkModule
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import com.moalfarras.moplayerpro.R
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import okhttp3.Request
+import java.net.URLEncoder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -133,7 +144,7 @@ fun MediaPoster(
                             RoundedCornerShape(tv.cardRadius - 6.dp),
                         ),
                 ) {
-                    val posterModel = item.posterUrl.ifBlank { item.backdropUrl }
+                    val posterModel = item.posterUrl.ifBlank { item.backdropUrl }.optimizedPosterUrl()
                     if (posterModel.isBlank()) {
                         PosterFallback(
                             title = item.title,
@@ -141,13 +152,10 @@ fun MediaPoster(
                             modifier = Modifier.fillMaxSize(),
                         )
                     } else {
-                        AsyncImage(
-                            model = posterModel,
+                        RemotePosterImage(
+                            url = posterModel,
                             contentDescription = item.title,
                             contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.ic_splash_logo),
-                            error = painterResource(R.drawable.ic_splash_logo),
-                            fallback = painterResource(R.drawable.ic_splash_logo),
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -481,9 +489,9 @@ fun ChannelRow(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (item.posterUrl.isNotBlank()) {
-                        AsyncImage(
-                            item.posterUrl,
-                            null,
+                        RemotePosterImage(
+                            url = item.posterUrl.optimizedPosterUrl(),
+                            contentDescription = null,
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.fillMaxSize().padding(4.dp),
                         )
@@ -573,6 +581,62 @@ fun ChannelRow(
             }
         }
     }
+}
+
+private val PosterMemoryCache = LruCache<String, ImageBitmap>(96)
+
+@Composable
+private fun RemotePosterImage(
+    url: String,
+    contentDescription: String?,
+    contentScale: ContentScale,
+    modifier: Modifier = Modifier,
+) {
+    val model = remember(url) { url.optimizedPosterUrl() }
+    val fallback = painterResource(R.drawable.ic_splash_logo)
+    val image by produceState<ImageBitmap?>(initialValue = PosterMemoryCache.get(model), model) {
+        if (model.isBlank() || value != null) return@produceState
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                val request = Request.Builder()
+                    .url(model)
+                    .header("Accept", "image/jpeg,image/png,image/*;q=0.8,*/*;q=0.5")
+                    .header("User-Agent", "MoPlayerPro/${BuildConfig.VERSION_NAME} AndroidTV")
+                    .build()
+                NetworkModule.imageOkHttp.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@runCatching null
+                    val bytes = response.body.bytes()
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+                }
+            }.getOrNull()?.also { bitmap -> PosterMemoryCache.put(model, bitmap) }
+        }
+    }
+    val bitmap = image
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap,
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            modifier = modifier,
+        )
+    } else {
+        Image(
+            painter = fallback,
+            contentDescription = contentDescription,
+            contentScale = ContentScale.Fit,
+            modifier = modifier,
+        )
+    }
+}
+
+private fun String.optimizedPosterUrl(): String {
+    val normalized = trim()
+        .replace("/w600_and_h900_bestv2/", "/w500/")
+        .replace("/w780/", "/w500/")
+    if (!normalized.startsWith("http://", ignoreCase = true) && !normalized.startsWith("https://", ignoreCase = true)) return normalized
+    val base = BuildConfig.WEB_API_BASE_URL.trimEnd('/').ifBlank { "https://moalfarras.space" }
+    if (normalized.startsWith(base, ignoreCase = true)) return normalized
+    return "$base/api/app/image?url=${URLEncoder.encode(normalized, Charsets.UTF_8.name())}"
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -16,20 +16,21 @@ import java.util.concurrent.TimeUnit
 class MoPlayerApplication : Application(), SingletonImageLoader.Factory {
 
     override fun newImageLoader(context: Context): ImageLoader {
-        val client: OkHttpClient = NetworkModule.okHttp.newBuilder()
+        val client: OkHttpClient = NetworkModule.imageOkHttp.newBuilder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val req = chain.request()
-                if (!req.header("User-Agent").isNullOrBlank()) {
-                    chain.proceed(req)
-                } else {
-                    chain.proceed(
-                        req.newBuilder()
-                            .header("User-Agent", IMAGE_USER_AGENT)
-                            .build(),
-                    )
+                val builder = req.newBuilder()
+                    .header("Accept", "image/jpeg,image/png,image/*;q=0.8,*/*;q=0.5")
+                    .header("Accept-Language", "en-US,en;q=0.9,ar;q=0.8")
+                if (req.header("User-Agent").isNullOrBlank()) {
+                    builder.header("User-Agent", IMAGE_USER_AGENT)
                 }
+                if (req.url.host.equals("image.tmdb.org", ignoreCase = true)) {
+                    builder.header("Referer", "https://www.themoviedb.org/")
+                }
+                chain.proceed(builder.build())
             }
             .build()
         return ImageLoader.Builder(context)

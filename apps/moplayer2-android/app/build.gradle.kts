@@ -56,8 +56,8 @@ android {
         applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 49
-        versionName = "2.5.11"
+        versionCode = 50
+        versionName = "2.5.12"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')

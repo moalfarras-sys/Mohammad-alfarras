@@ -84,6 +84,7 @@ fun HomeScreen(
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
     accent: Color,
+    syncing: Boolean = false,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -155,14 +156,20 @@ fun HomeScreen(
         onFocus(item)
     }
 
-    // Breathing animation for subtle ambient pulse
-    val infiniteTransition = rememberInfiniteTransition(label = "home")
-    val animatedBreathe by infiniteTransition.animateFloat(
-        initialValue = 0.92f, targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(tween(4000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "breathe",
-    )
-    val breathe = if (performancePolicy.reduceMotion) 1f else animatedBreathe
+    // Breathing animation for subtle ambient pulse. Skip the infinite transition entirely
+    // in reduce-motion mode so the home screen can reach idle instead of repainting every
+    // frame forever (previously the transition kept running even though its value was ignored).
+    val breathe = if (performancePolicy.reduceMotion) {
+        1f
+    } else {
+        val infiniteTransition = rememberInfiniteTransition(label = "home")
+        val animatedBreathe by infiniteTransition.animateFloat(
+            initialValue = 0.92f, targetValue = 1.0f,
+            animationSpec = infiniteRepeatable(tween(4000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "breathe",
+        )
+        animatedBreathe
+    }
 
     // Home notifications are remote-configurable; World Cup 2026 is the first built-in campaign.
     val homeNotificationPhase = rememberHomeNotificationPhase(settings.homeNotificationMode, settings.homeNotificationType, settings.homeNotificationTargetDate)
@@ -251,8 +258,8 @@ fun HomeScreen(
                 if (!hasContent) {
                     item {
                         EmptyState(
-                            title = "Library is empty",
-                            message = "Add an Xtream account or M3U playlist, or refresh the server from Settings.",
+                            title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
+                            message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
                             modifier = Modifier.fillMaxWidth().height(220.dp),
                         )
                     }
@@ -395,7 +402,7 @@ fun HomeScreen(
         ) {
             // Fast assistant — sits right above Continue watching for easy remote reach.
             item {
-                HomeAssistantButton {
+                HomeAssistantButton(reduceMotion = performancePolicy.reduceMotion) {
                     aiTvAction = 0
                     showAiAssistant = true
                 }
@@ -404,8 +411,8 @@ fun HomeScreen(
             if (!hasContent) {
                 item {
                     EmptyState(
-                        title = "Library is empty",
-                        message = "Add an Xtream account or M3U playlist, or refresh the server from Settings.",
+                        title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
+                        message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
                         modifier = Modifier.fillMaxWidth().height((260 * tv.factor).dp),
                     )
                 }
@@ -626,17 +633,24 @@ private fun AccountSummaryLine(server: ServerProfile?, isArabic: Boolean) {
 }
 
 @Composable
-private fun HomeAssistantButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun HomeAssistantButton(modifier: Modifier = Modifier, reduceMotion: Boolean = false, onClick: () -> Unit) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val transition = rememberInfiniteTransition(label = "assistant-sheen")
-    val sparkle by transition.animateFloat(
-        initialValue = 0.55f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "sparkle",
-    )
+    // Gate the sheen so the assistant button stops pinning the home screen at ~36fps when
+    // motion is reduced; the static value keeps the same restful glow.
+    val sparkle = if (reduceMotion) {
+        0.85f
+    } else {
+        val transition = rememberInfiniteTransition(label = "assistant-sheen")
+        val raw by transition.animateFloat(
+            initialValue = 0.55f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "sparkle",
+        )
+        raw
+    }
     FocusGlow(
         modifier = modifier.height((58 * tv.factor).dp).widthIn(max = (340 * tv.factor).dp),
         cornerRadius = (18 * tv.factor).dp,
@@ -694,14 +708,16 @@ private fun HomeAssistantButton(modifier: Modifier = Modifier, onClick: () -> Un
 @Composable
 private fun HeroMatchStrip(match: FootballMatch, accent: Color, animate: Boolean, isArabic: Boolean) {
     val tv = rememberTvScale()
-    val pulseTransition = rememberInfiniteTransition(label = "hero-match")
-    val rawPulse by pulseTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulse",
-    )
-    val pulse = if (animate && match.isLive) rawPulse else 0.85f
+    val pulse = if (animate && match.isLive) {
+        val pulseTransition = rememberInfiniteTransition(label = "hero-match")
+        val rawPulse by pulseTransition.animateFloat(
+            initialValue = 0.4f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "pulse",
+        )
+        rawPulse
+    } else 0.85f
     val liveColor = Color(0xFFFF4D5E)
     Row(
         Modifier.fillMaxWidth(),
@@ -881,14 +897,16 @@ private fun HeroCountdown(
     val tv = rememberTvScale()
     val gold = Color(0xFFF1CC83)
     val liveColor = Color(0xFFFF4D5E)
-    val transition = rememberInfiniteTransition(label = "wc-hero")
-    val rawPulse by transition.animateFloat(
-        initialValue = 0.45f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(950, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "wc-pulse",
-    )
-    val pulse = if (animate) rawPulse else 0.85f
+    val pulse = if (animate) {
+        val transition = rememberInfiniteTransition(label = "wc-hero")
+        val rawPulse by transition.animateFloat(
+            initialValue = 0.45f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(950, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "wc-pulse",
+        )
+        rawPulse
+    } else 0.85f
     val label = titleOverride.ifBlank { if (isArabic) "كأس العالم 2026" else "World Cup 2026" }
     Row(
         verticalAlignment = Alignment.CenterVertically,

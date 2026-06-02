@@ -55,14 +55,20 @@ fun AtmosphericSkyGradient(
     val hour = now.hour + now.minute / 60f
     val tod = timeOfDay(hour)
 
-    val transition = rememberInfiniteTransition(label = "aurora")
-    val rawDrift by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f * PI.toFloat(),
-        animationSpec = infiniteRepeatable(tween(46_000, easing = LinearEasing)),
-        label = "aurora-drift",
-    )
-    val drift = if (animate) rawDrift else 0f
+    // Only spin up the drift transition when motion is enabled; otherwise the aurora kept
+    // invalidating the whole backdrop every frame even though the drift value was pinned to 0.
+    val drift = if (animate) {
+        val transition = rememberInfiniteTransition(label = "aurora")
+        val rawDrift by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 2f * PI.toFloat(),
+            animationSpec = infiniteRepeatable(tween(46_000, easing = LinearEasing)),
+            label = "aurora-drift",
+        )
+        rawDrift
+    } else {
+        0f
+    }
 
     Box(
         modifier = modifier

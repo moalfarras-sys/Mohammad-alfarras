@@ -225,28 +225,33 @@ private fun WeatherPane(
 
 @Composable
 fun WeatherGlyph(condition: String, color: Color, animate: Boolean, modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "glyph")
-    val rawSpin by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(18_000, easing = LinearEasing)),
-        label = "spin",
-    )
-    val rawFall by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)),
-        label = "fall",
-    )
-    val rawFlash by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(2400, easing = LinearEasing)),
-        label = "flash",
-    )
-    val spin = if (animate) rawSpin else 0f
-    val fall = if (animate) rawFall else 0f
-    val flash = if (animate) rawFlash else 0f
+    // Skip the spinning/falling/flashing transitions entirely when motion is off so the
+    // glyph stops driving frames (before, the three transitions kept running even though
+    // their values were forced to 0, which kept the home screen awake).
+    val (spin, fall, flash) = if (animate) {
+        val transition = rememberInfiniteTransition(label = "glyph")
+        val rawSpin by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(tween(18_000, easing = LinearEasing)),
+            label = "spin",
+        )
+        val rawFall by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)),
+            label = "fall",
+        )
+        val rawFlash by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(2400, easing = LinearEasing)),
+            label = "flash",
+        )
+        Triple(rawSpin, rawFall, rawFlash)
+    } else {
+        Triple(0f, 0f, 0f)
+    }
 
     Canvas(modifier) {
         val w = size.width

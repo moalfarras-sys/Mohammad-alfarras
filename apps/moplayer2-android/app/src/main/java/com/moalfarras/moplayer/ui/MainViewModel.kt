@@ -9,6 +9,7 @@ import com.moalfarras.moplayer.data.repository.IptvRepository
 import com.moalfarras.moplayer.data.repository.WidgetRepository
 import com.moalfarras.moplayer.domain.model.AccentMode
 import com.moalfarras.moplayer.domain.model.AppSettings
+import com.moalfarras.moplayer.domain.model.subscriptionInactive
 import com.moalfarras.moplayer.domain.model.BackgroundMode
 import com.moalfarras.moplayer.domain.model.ActivatedProfile
 import com.moalfarras.moplayer.domain.model.Category
@@ -73,6 +74,11 @@ data class UiState(
     val activationSession: DeviceActivationSession? = null,
     val dockFocusSection: AppSection? = null,
     val backgroundRefresh: LoadProgress? = null,
+    val subscriptionExpired: Boolean = false,
+    val subscriptionExpiredDismissedKey: String = "",
+    /** False until the stored servers/settings have been read once, so the UI can show a splash
+     *  instead of flashing the sign-in screen on cold start while an account is already saved. */
+    val initialized: Boolean = false,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -123,7 +129,18 @@ class MainViewModel(
         iptv.servers,
         settingsRepo.settings,
     ) { state, active, servers, settings ->
-        state.copy(activeServer = active, servers = servers, settings = settings)
+        val inactive = active?.subscriptionInactive() == true
+        // Show the expired prompt whenever the active account is inactive, unless the user
+        // already dismissed it for this exact account (so a different/renewed account re-arms it).
+        val dismissedForThis = active != null && active.sourceKey.isNotBlank() &&
+            active.sourceKey == state.subscriptionExpiredDismissedKey
+        state.copy(
+            activeServer = active,
+            servers = servers,
+            settings = settings,
+            subscriptionExpired = inactive && !dismissedForThis,
+            initialized = true,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
     val weather = MutableStateFlow(WeatherSnapshot())
@@ -1035,6 +1052,18 @@ class MainViewModel(
             internal.update { it.copy(notice = "Account removed", section = AppSection.HOME, settingsUnlocked = false) }
             settingsRepo.setLastSection(AppSection.HOME.name)
         }
+    }
+
+    /** Dismiss the expired-subscription prompt for the current account (cache stays browsable). */
+    fun dismissSubscriptionExpired() {
+        val key = uiState.value.activeServer?.sourceKey.orEmpty()
+        internal.update { it.copy(subscriptionExpiredDismissedKey = key, subscriptionExpired = false) }
+    }
+
+    /** Remove the expired account and return to the sign-in screen so a new subscription can be added. */
+    fun startNewSubscriptionSignIn() {
+        internal.update { it.copy(subscriptionExpired = false) }
+        logoutActiveServer()
     }
 
     fun activateServer(serverId: Long) {

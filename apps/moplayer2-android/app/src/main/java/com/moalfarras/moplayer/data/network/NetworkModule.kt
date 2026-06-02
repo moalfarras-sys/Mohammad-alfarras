@@ -22,17 +22,24 @@ object NetworkModule {
     val okHttp: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .connectTimeout(12, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.MINUTES)
-            .writeTimeout(5, TimeUnit.MINUTES)
-            .callTimeout(10, TimeUnit.MINUTES)
+            // readTimeout is the max gap between bytes, not the total transfer time, so a
+            // healthy multi-MB Xtream sync or video segment keeps flowing without tripping
+            // it. Capping it at 45s means a server that connects then stalls fails fast and
+            // hands control back to the retry/fallback logic instead of freezing for minutes.
+            .readTimeout(45, TimeUnit.SECONDS)
+            .writeTimeout(45, TimeUnit.SECONDS)
+            // Backstop for the whole call (large library syncs can legitimately run long).
+            .callTimeout(8, TimeUnit.MINUTES)
             .retryOnConnectionFailure(true)
             .build()
     }
 
     private val playlistOkHttp: OkHttpClient by lazy {
         okHttp.newBuilder()
-            .readTimeout(5, TimeUnit.MINUTES)
-            .callTimeout(10, TimeUnit.MINUTES)
+            // M3U playlists stream as one large text body; allow a slightly longer stall
+            // window than the API client while still bailing out well before the old 5 min.
+            .readTimeout(90, TimeUnit.SECONDS)
+            .callTimeout(8, TimeUnit.MINUTES)
             .build()
     }
 

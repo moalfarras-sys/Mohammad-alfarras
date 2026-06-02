@@ -290,24 +290,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-12",
+      id: "release-moplayer2-v2-5-13",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.12-full",
-      version_name: "2.5.12",
-      version_code: 50,
+      slug: "moplayer2-v2.5.13-full",
+      version_name: "2.5.13",
+      version_code: 51,
       release_notes:
-        "MoPlayer Pro 2.5.12 restores posters/logos on older Android TV devices with a server-side image proxy and scoped legacy image TLS handling, and surfaces subscription expiry and connection limits on Home.",
+        "MoPlayer Pro 2.5.13 is a major performance and reliability update: idle-screen redraws are eliminated and recomposition is optimized for smoother Android TV browsing; huge libraries sync faster using about half the peak memory; live channels fail over faster; and an expired subscription now shows a clear localized notice while keeping your cached library instead of wiping it, plus a proper loading state instead of a false empty screen.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-12-universal",
-          release_id: "release-moplayer2-v2-5-12",
+          id: "asset-moplayer2-v2-5-13-universal",
+          release_id: "release-moplayer2-v2-5-13",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49253817,
-          checksum_sha256: "1e8d9bd4ee4cae45a6164269dd102fc7905479285e01ecb44f661f45910374d5",
+          file_size_bytes: 49256351,
+          checksum_sha256: "31e5648b5841182394f3b9bad96f779bdf475a014072ff1f18caf59b0e9af249",
         },
       ],
     },

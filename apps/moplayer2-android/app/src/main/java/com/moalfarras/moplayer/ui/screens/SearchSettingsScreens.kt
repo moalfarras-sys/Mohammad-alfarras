@@ -1887,6 +1887,78 @@ fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
     }
 }
 
+@Composable
+fun SubscriptionExpiredDialog(onNewSignIn: () -> Unit, onDismiss: () -> Unit) {
+    val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
+    val tv = rememberTvScale()
+    val renewFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(120)
+        runCatching { renewFocus.requestFocus() }
+    }
+    Dialog(onDismissRequest = onDismiss) {
+        GlassPanel(
+            modifier = Modifier.width(if (tv.isTv) 460.dp else 360.dp),
+            radius = 28.dp,
+            blur = 24.dp,
+            highlighted = true,
+            glow = Color(0x88FF4400),
+        ) {
+            Column(
+                Modifier.padding(32.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(Brush.radialGradient(listOf(Color(0x55FF5252), Color.Transparent))),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Rounded.ErrorOutline,
+                        contentDescription = null,
+                        tint = Color(0xFFFF6B6B),
+                        modifier = Modifier.size(46.dp),
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        strings.subscriptionExpiredTitle,
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        strings.subscriptionExpiredBody,
+                        color = Color(0xCCFFFFFF),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    FocusGlow(modifier = Modifier.weight(1f).height(52.dp), cornerRadius = 14.dp, onClick = onDismiss) {
+                        GlassPanel(radius = 14.dp) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(strings.subscriptionExpiredDismiss, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            }
+                        }
+                    }
+                    FocusGlow(modifier = Modifier.weight(1.3f).height(52.dp), cornerRadius = 14.dp, focusRequester = renewFocus, onClick = onNewSignIn) {
+                        GlassPanel(radius = 14.dp, highlighted = true, glow = visuals.accent) {
+                            Box(Modifier.fillMaxSize().background(visuals.accent), contentAlignment = Alignment.Center) {
+                                Text(strings.subscriptionExpiredRenew, color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 private fun String.maskUsername(): String {
     if (isBlank()) return "-"
     if (length <= 2) return "*".repeat(length)

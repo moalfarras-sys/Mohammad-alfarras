@@ -118,6 +118,143 @@ Key routes:
 
 Keep classic MoPlayer (`moplayer`) and MoPlayer Pro (`moplayer2`) release channels separate.
 
+## 2026-06-02 MoPlayer Pro Performance Pass
+
+Investigated the "very slow / not smooth / freezes" reports for MoPlayer Pro on a local
+Android TV API 24 x86 emulator (the running `emulator-5554`). Baseline `dumpsys gfxinfo`
+showed **100% janky frames** while browsing Live TV, and an idle screen (no input) was still
+rendering ~40 fps continuously — the app never settled.
+
+Root causes and fixes (all scoped to `apps/moplayer2-android`):
+
+- **Ungated infinite animations were the main culprit.** Several `rememberInfiniteTransition`
+  blocks were created unconditionally and only gated their *value* (e.g. `if (animate) raw else 0f`).
+  The transition kept posting a frame every vsync forever, so the whole screen repainted ~40×/s
+  even at rest. Fixed by only constructing the transition when motion is enabled in:
+  `ui/screens/MediaScreens.kt` (live receiver pulse), `ui/screens/HomeScreen.kt` (home breathe,
+  assistant sheen, hero-match pulse, World Cup countdown pulse), `ui/components/WeatherClockWidget.kt`
+  (weather glyph spin/fall/flash), and `ui/components/AtmosphericBackground.kt` (aurora drift).
+- **Performance policy is now TV-aware** (`core/Adaptive.kt`): on a television that is not a
+  high-end box, `BALANCED`/`AUTO` now sets `reduceMotion=true` and disables the ambient particle
+  canvas + focus-driven backdrop reloads. Phones, tablets, and high-end TV boxes are unchanged.
+- **Network stalls no longer freeze the app for minutes** (`data/network/NetworkModule.kt`):
+  the shared OkHttp read timeout dropped from 5 min to 45s (90s for M3U playlists) and the call
+  timeout from 10 min to 8 min. `readTimeout` is the gap between bytes, so healthy large library
+  syncs and video segments are unaffected; only a server that connects then stalls now fails fast.
+- **Live channels recover faster from dead streams** (`ui/player/PlayerScreen.kt`): Media3 live
+  segment retries reduced from 12 (~55s of frozen video) to 6 (~18s) before the app-level
+  alternative-quality / LibVLC fallback takes over.
+
+Verified results on the same emulator (idle frame count is GPU-independent, so it is the clean
+before/after signal):
+
+- Live TV idle: **210 → 11 frames / 5s**. Home idle: **218 → 6 frames / 6s** (app now reaches rest).
+- `npm run verify:android:pro` (`testDebugUnitTest`): **44 tests, 0 failures**.
+- `assembleRelease -PincludeX86Abis=true` succeeds (R8 + lintVital pass), so the changes ship cleanly.
+- No new permissions, no crashes in logcat, all home/live widgets still render (motion just rests).
+
+Notes for the next machine: `apps/moplayer2-android/local.properties` had a stale `sdk.dir`
+(`C:\Users\Moalfarras\...`); corrected to the real SDK path for this box. That file stays
+untracked. Version was left at `2.5.12` (`versionCode` 50) — bump and rebuild a signed release
+only on an explicit publish request.
+
+### Subscription expiry + library robustness (same pass)
+
+A separate emulator account had expired mid-session, and a background refresh against the
+expired panel had wiped the whole cached library — the app showed an empty Home with a stale
+"add an account" message and no explanation. Fixes:
+
+- **A refresh that returns nothing can no longer erase a cached library** (`data/db/MoPlayerDatabase.kt`):
+  `replaceServerContent`/`replaceServerContentTypes` now skip the destructive delete when the
+  incoming media list is empty but content already exists, and just refresh account/status. This
+  protects every login type (Xtream full + incremental, M3U) from an expired/erroring panel.
+- **Expired subscriptions are surfaced clearly** (`domain/model/Models.kt` `subscriptionInactive`,
+  `ui/MainViewModel.kt`, `ui/screens/SearchSettingsScreens.kt` `SubscriptionExpiredDialog`,
+  `MainActivity.kt`, `ui/i18n/Strings.kt`): when the active account reports Expired/Banned/Disabled
+  (or a past expiry date), a localized (EN/AR) "Subscription expired" dialog appears over the kept
+  cache with **New sign-in** (removes the account → login screen for a fresh subscription) and
+  **Later** (dismiss per-account, keep browsing the cache).
+- **Home no longer says "Library is empty" while the first sync is still running**
+  (`ui/screens/HomeScreen.kt` + `Strings.kt`): the empty card now shows a localized
+  "Loading your library…" while a sync is in flight, and an accurate "refresh / sign in with
+  another source" message otherwise.
+
+Verified end-to-end on the emulator with a real provider M3U-plus URL (entered through the on-screen
+keyboard via `adb input tap` + `input text`):
+
+- Library synced **12,489 live + 19,903 movies + 10,396 series + 235 categories (~42.8k items) in ~24s**;
+  Home shelves, Live categories, channel logos, and EPG all rendered.
+- Stream URLs resolve to valid HLS manifests (confirmed reachable from the host with real `.ts`
+  segments). Live playback errors on this API-24 **x86** emulator are the software decoder failing on
+  real HEVC/high-bitrate broadcast feeds (LibVLC is intentionally disabled on x86), not an app fault —
+  the new fast-fail surfaces Retry/Internal/MX/External quickly instead of a ~55s freeze.
+- Simulated an expired account → the localized dialog appeared over the preserved library and
+  **New sign-in** routed back to the login screen.
+- `testDebugUnitTest`: **49 tests, 0 failures** (added `ServerProfileSubscriptionTest`). Signed
+  `assembleRelease` passes R8 + lintVital.
+
+### Recomposition + huge-panel pass (same day)
+
+Pushing toward "best-in-class on huge panels":
+
+- **`@Immutable` on the hot domain models** (`domain/model/Models.kt`: `MediaItem`, `Category`,
+  `AppSettings`, `WeatherSnapshot`, `FootballMatch`, `ServerProfile`, `EpgEntry`, `LiveEpgSnapshot`;
+  `core/Adaptive.kt`: `PerformancePolicy`, `DevicePerformanceInfo`). These are already all-`val`
+  data classes recreated fresh from Room/DataStore, so the annotation is safe and lets Compose skip
+  recomposition of the lazy grids/shelves when their inputs are unchanged.
+- **Streaming JSON for the Xtream sync** (`data/repository/IptvRepository.kt` `rawPlayerElement`):
+  the `get_*_streams` responses are now parsed straight off the network buffer with
+  `Json.decodeFromStream` instead of materializing the whole multi-MB body as a `String` first,
+  roughly halving peak memory during the big live/VOD/series fetches on low-RAM boxes.
+
+Re-verified on the emulator against the real provider: full library re-synced through the streaming
+parser (**12,489 live + 19,903 movies + 10,396 series**) with no `SerializationException`; Home,
+Movies, and a Series detail (JUJUTSU KAISEN → **3 seasons / 59 episodes** via `get_series_info`,
+with poster + Arabic description) all rendered with no crash. All login methods (M3U, Xtream, QR
+activation) converge on the same `startBackgroundLibraryRefresh` → Xtream sync, so metadata
+(expiry, posters, ratings, descriptions, seasons/episodes) is fetched regardless of entry point;
+pure non-Xtream M3U playlists are still limited to whatever the playlist itself carries.
+
+Still open (intentionally not done this pass): a generated **Baseline Profile** (needs a
+macrobenchmark module + a profileable run — the single biggest remaining cold-start win), reusing
+one `ExoPlayer` instance across live channel zaps instead of rebuilding (faster zapping, but it
+touches the carefully-tested Media3/LibVLC fallback so it needs its own QA), and removing the
+~450 lines of dead atmospheric-weather/widget code (R8 already strips it, so source-clarity only).
+
+### Cold-start polish from the real-device test tour
+
+A "play as a user" pass (data persists across force-stop/restart: the 12,489/19,903/10,396 + 59
+episodes and the active account all reload from Room, no re-sync) surfaced two short-lived but
+jarring flashes, both fixed and included in the released build:
+
+- **No more sign-in flash on cold start** (`MainViewModel` `initialized` flag + `MainActivity`):
+  the router now shows a brief themed splash spinner until the saved servers/settings are read from
+  disk, instead of flashing the sign-in screen for a fraction of a second before Home loads.
+- **No more "Library is empty" flash on Movies/Series** (`ui/screens/MediaScreens.kt` `PosterGrid`):
+  the grid now shows the localized "Loading your library…" copy while paging's first load is in
+  flight, and only the real empty/refresh message once it settles.
+
+### Released MoPlayer Pro 2.5.13 to production
+
+Bumped `apps/moplayer2-android/app/build.gradle.kts` to `versionName 2.5.13` / `versionCode 51`
+and built a signed `assembleRelease` universal APK. `apksigner` confirmed the new APK carries the
+**same signing certificate** as the live 2.5.12 (`97dad776…`), so it installs as an update.
+
+- APK: `49256351` bytes, SHA-256 `31e5648b5841182394f3b9bad96f779bdf475a014072ff1f18caf59b0e9af249`.
+- Published through the same Supabase-backed path the admin uses (no Vercel token was needed because
+  `/api/app/*` reads the database live): uploaded the APK to the public `app-releases` storage bucket
+  (`moplayer2/app-release-2.5.13.apk`), inserted an `app_releases` row
+  (`6258f0df-3baf-470d-ad7a-e1f0d4cdb8aa`, `is_published=true`, newest `published_at`) and an
+  `app_release_assets` row pointing at the public storage URL. Both inserts are additive — the old
+  2.5.12 rows are untouched, so a rollback is just flipping the new row's `is_published` to false.
+- Verified live: `…/api/app/releases/latest?product=moplayer2` and `…/api/app/config?product=moplayer2`
+  now report `2.5.13 / 51`, and `…/api/app/download/latest?product=moplayer2` follows through to the
+  storage APK (HTTP 200, `49256351` bytes, `application/vnd.android.package-archive`).
+- Also refreshed the version-controlled mirrors (the `app-ecosystem.ts` static fallback, the static
+  `apps/web/public/downloads/moplayer2/app-release.apk`, and `docs/android-projects.md`). Those only
+  matter on the next `apps/web` Vercel deploy / when the DB has no published row, so they are not
+  required for users to receive 2.5.13 — the DB+storage publish above is what is live.
+
 ## 2026-06-01 MoPlayer Classic QA Notes
 
 Classic Android TV work was verified on a local Android TV API 24 x86 emulator named `MoPlayer_Classic_API24_TV_720p`.

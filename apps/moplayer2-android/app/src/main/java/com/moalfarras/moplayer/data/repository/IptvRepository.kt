@@ -39,8 +39,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromStream
 import okhttp3.ResponseBody
 import java.net.URLEncoder
 import java.security.MessageDigest
@@ -1507,6 +1510,14 @@ class IptvRepository(
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun rawPlayerElement(api: XtreamService, query: Map<String, String>): JsonElement =
+        withContext(Dispatchers.IO) {
+            // Stream the parse straight off the network buffer instead of materializing the whole
+            // (potentially tens-of-MB) response as a String first — keeps peak memory low on huge panels.
+            api.rawPlayerApi(query).use { body -> json.decodeFromStream<JsonElement>(body.byteStream()) }
+        }
+
     private suspend fun playerApiObject(
         api: XtreamService,
         username: String,
@@ -1518,7 +1529,7 @@ class IptvRepository(
             put("password", password)
             putAll(extra)
         }
-        val element = withContext(Dispatchers.IO) { json.parseToJsonElement(api.rawPlayerApi(query).safeString()) }
+        val element = rawPlayerElement(api, query)
         return element as? JsonObject ?: error("Unexpected server response")
     }
 
@@ -1533,7 +1544,7 @@ class IptvRepository(
             put("password", password)
             putAll(extra)
         }
-        val element = withContext(Dispatchers.IO) { json.parseToJsonElement(api.rawPlayerApi(query).safeString()) }
+        val element = rawPlayerElement(api, query)
         return element as? JsonArray ?: when (element) {
             is JsonObject -> element["data"] as? JsonArray ?: JsonArray(emptyList())
             else -> JsonArray(emptyList())

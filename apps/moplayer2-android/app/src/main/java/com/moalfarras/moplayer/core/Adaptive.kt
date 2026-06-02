@@ -8,6 +8,7 @@ import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.core.view.DisplayCompat
 import androidx.compose.ui.platform.LocalConfiguration
@@ -22,6 +23,7 @@ enum class DevicePerformanceTier {
     HIGH,
 }
 
+@Immutable
 data class DevicePerformanceInfo(
     val tier: DevicePerformanceTier,
     val isLowRam: Boolean,
@@ -47,6 +49,7 @@ data class DevicePerformanceInfo(
     }
 }
 
+@Immutable
 data class PerformancePolicy(
     val mode: PerformanceMode,
     val tier: DevicePerformanceTier,
@@ -147,6 +150,12 @@ object Adaptive {
             displayCap >= 1080 -> 1080
             else -> 720
         }
+        // On a television that is not a high-end box, continuous decorative motion
+        // (ambient particle canvas, aurora drift, focus-driven backdrop reloads) is the
+        // dominant source of dropped frames on the 10-foot UI: it forces a full-screen
+        // redraw every frame even while idle. Calm it so channel browsing and playback
+        // stay smooth. Phones, tablets, and high-end TV boxes keep the full motion.
+        val tvCalmMotion = info.isTv && info.tier != DevicePerformanceTier.HIGH
         return when (mode) {
             PerformanceMode.PERFORMANCE -> PerformancePolicy(
                 mode = mode,
@@ -166,10 +175,10 @@ object Adaptive {
             PerformanceMode.BALANCED, PerformanceMode.AUTO -> PerformancePolicy(
                 mode = PerformanceMode.BALANCED,
                 tier = info.tier,
-                reduceMotion = false,
-                enableParticles = settings.motionLevel != com.moalfarras.moplayer.domain.model.MotionLevel.LOW,
-                enableWeatherEffects = settings.motionLevel != com.moalfarras.moplayer.domain.model.MotionLevel.LOW,
-                enableFocusBackdropUpdates = true,
+                reduceMotion = tvCalmMotion,
+                enableParticles = !tvCalmMotion && settings.motionLevel != com.moalfarras.moplayer.domain.model.MotionLevel.LOW,
+                enableWeatherEffects = !tvCalmMotion && settings.motionLevel != com.moalfarras.moplayer.domain.model.MotionLevel.LOW,
+                enableFocusBackdropUpdates = !tvCalmMotion,
                 enablePreviewPane = settings.previewEnabled,
                 enableWidgets = true,
                 enableAutoPlayLastLive = settings.autoPlayLastLive,

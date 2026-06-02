@@ -154,7 +154,7 @@ fun LiveScreen(
                 CategoryRail("Live TV", categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
                 GlassPanel(Modifier.fillMaxHeight().weight(0.60f), radius = tv.cardRadius, blur = 18.dp) {
                     Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp)) {
-                        ReceiverHeader(current, focusedEpg)
+                        ReceiverHeader(current, focusedEpg, performancePolicy.reduceMotion)
                         PagingChannelList(channels, restoreFocusItem ?: current, onFocus, onPlay, onFavorite)
                     }
                 }
@@ -461,7 +461,15 @@ private fun PosterGrid(
 ) {
     val tv = rememberTvScale()
     if (items.itemCount == 0) {
-        EmptyState("Library is empty", "Sync the server or choose another category.", modifier)
+        // Distinguish the first paging load from a genuinely empty category so the grid never
+        // flashes a misleading "empty" card while the cached library is still being read.
+        val s = com.moalfarras.moplayer.ui.i18n.LocalStrings.current
+        val loading = items.loadState.refresh is androidx.paging.LoadState.Loading
+        EmptyState(
+            title = if (loading) s.homeLibraryLoadingTitle else s.homeLibraryEmptyTitle,
+            message = if (loading) s.homeLibraryLoadingBody else s.homeLibraryEmptyBody,
+            modifier = modifier,
+        )
         return
     }
     val gridState = rememberLazyGridState()
@@ -564,15 +572,23 @@ private fun RestoringEpisodeList(
 }
 
 @Composable
-private fun ReceiverHeader(item: MediaItem?, liveEpg: LiveEpgSnapshot) {
+private fun ReceiverHeader(item: MediaItem?, liveEpg: LiveEpgSnapshot, reduceMotion: Boolean = false) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
-    val transition = rememberInfiniteTransition(label = "live-header")
-    val livePulse by transition.animateFloat(
-        initialValue = 0.4f, targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "live-pulse",
-    )
+    // Only run the continuous "LIVE" pulse when motion is allowed. On calm-motion TVs this
+    // lets the whole browse screen reach idle (zero redraws) instead of repainting every
+    // vsync just to blink a dot, which is what kept the receiver screen from ever settling.
+    val livePulse = if (reduceMotion) {
+        1f
+    } else {
+        val transition = rememberInfiniteTransition(label = "live-header")
+        val pulse by transition.animateFloat(
+            initialValue = 0.4f, targetValue = 1.0f,
+            animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "live-pulse",
+        )
+        pulse
+    }
     val current = liveEpg.current
     val next = liveEpg.next
     val nowMs = System.currentTimeMillis()

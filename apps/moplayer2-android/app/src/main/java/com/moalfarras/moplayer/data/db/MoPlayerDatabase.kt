@@ -412,6 +412,17 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         syncState: SyncStateEntity?,
         epgPrograms: List<EpgProgramEntity>,
     ) = withTransaction {
+        // Robustness guard: a server whose subscription expired (or whose panel briefly errors)
+        // returns empty stream lists. Never let that empty response delete a library we already
+        // cached — keep the existing content and only refresh account/server/sync status so the
+        // viewer still sees their channels plus an accurate "expired / renew" state.
+        if (media.isEmpty() && mediaDao().countForServer(serverId) > 0) {
+            if (accountInfo != null) accountInfoDao().upsert(accountInfo)
+            if (serverInfo != null) serverInfoDao().upsert(serverInfo)
+            if (syncState != null) syncStateDao().upsert(syncState)
+            serverDao().touch(serverId, System.currentTimeMillis())
+            return@withTransaction
+        }
         val playbackState = mediaDao().playbackState(serverId).associateBy { "${it.type.name}:${it.id}" }
         val mergedMedia = media.map { item ->
             val key = "${item.type.name}:${item.id}"
@@ -458,7 +469,18 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         val normalizedTypes = types.distinct()
         if (normalizedTypes.isEmpty()) return@withTransaction
 
-        val hasExistingPlaybackState = mediaDao().countForServerTypes(serverId, normalizedTypes) > 0
+        val existingForTypes = mediaDao().countForServerTypes(serverId, normalizedTypes)
+        // Same robustness guard as replaceServerContent, scoped to the section being refreshed:
+        // an empty result for a type that already has cached content means an expired/erroring
+        // panel, so keep the cache instead of blanking the section.
+        if (media.isEmpty() && existingForTypes > 0) {
+            if (accountInfo != null) accountInfoDao().upsert(accountInfo)
+            if (serverInfo != null) serverInfoDao().upsert(serverInfo)
+            if (syncState != null) syncStateDao().upsert(syncState)
+            serverDao().touch(serverId, System.currentTimeMillis())
+            return@withTransaction
+        }
+        val hasExistingPlaybackState = existingForTypes > 0
         val mergedMedia = if (!hasExistingPlaybackState) {
             media
         } else {

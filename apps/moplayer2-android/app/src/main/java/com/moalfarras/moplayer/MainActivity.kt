@@ -57,6 +57,7 @@ import com.moalfarras.moplayer.ui.components.BottomDock
 import com.moalfarras.moplayer.ui.components.GlassPanel
 import com.moalfarras.moplayer.ui.player.PlayerScreen
 import com.moalfarras.moplayer.ui.screens.ExitDialog
+import com.moalfarras.moplayer.ui.screens.SubscriptionExpiredDialog
 import com.moalfarras.moplayer.ui.screens.FavoritesScreen
 import com.moalfarras.moplayer.ui.screens.HomeScreen
 import com.moalfarras.moplayer.ui.screens.LiveScreen
@@ -184,6 +185,18 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
             requestBack()
         }
         when {
+            !state.initialized -> {
+                // Brief splash while the saved account/library is read from disk, so a logged-in
+                // user never sees the sign-in screen flash on cold start.
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF0A0908)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = accent)
+                }
+            }
             state.activeServer == null -> {
                 Box(
                     Modifier
@@ -250,7 +263,7 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                             },
                     ) {
                         when (state.section) {
-                            AppSection.HOME -> HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent)
+                            AppSection.HOME -> HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null)
                             AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, focusedLiveEpg, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.MOVIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_movies), movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.SERIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_series), seriesCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
@@ -295,6 +308,12 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                         }
                         if (state.showExitDialog) {
                             ExitDialog(onDismiss = { viewModel.setExitDialog(false) }, onExit = finishApp)
+                        }
+                        if (state.subscriptionExpired) {
+                            SubscriptionExpiredDialog(
+                                onNewSignIn = viewModel::startNewSubscriptionSignIn,
+                                onDismiss = viewModel::dismissSubscriptionExpired,
+                            )
                         }
                         state.loading?.let { progress ->
                             SyncOverlay(progress = progress)

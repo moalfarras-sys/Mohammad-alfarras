@@ -1,5 +1,7 @@
 package com.moalfarras.moplayer.domain.model
 
+import androidx.compose.runtime.Immutable
+
 enum class LoginKind { M3U, XTREAM }
 
 enum class ContentType { LIVE, MOVIE, SERIES, EPISODE }
@@ -22,6 +24,7 @@ enum class WeatherMode { AUTO_IP, CITY, MANUAL }
 
 enum class ManualWeatherEffect { SUNNY, CLOUDY, RAIN, STORM, SNOW, FOG }
 
+@Immutable
 data class ServerProfile(
     val id: Long = 0,
     val name: String,
@@ -45,6 +48,25 @@ data class ServerProfile(
     val sourceKey: String = "",
 )
 
+/**
+ * True when the provider reports this account is no longer usable (expired, banned, or
+ * disabled). The panel's own status string is the authoritative signal; a past expiry date
+ * is a secondary check. M3U/file sources (no status, no expiry) are never flagged.
+ */
+fun ServerProfile.subscriptionInactive(nowMs: Long = System.currentTimeMillis()): Boolean {
+    val status = accountStatus.trim()
+    if (status.equals("Expired", ignoreCase = true) ||
+        status.equals("Banned", ignoreCase = true) ||
+        status.equals("Disabled", ignoreCase = true)
+    ) {
+        return true
+    }
+    if (expiryDate <= 0L) return false
+    val expiryMs = if (expiryDate < 100_000_000_000L) expiryDate * 1000L else expiryDate
+    return expiryMs < nowMs
+}
+
+@Immutable
 data class Category(
     val id: String,
     val serverId: Long,
@@ -55,6 +77,7 @@ data class Category(
     val rawJson: String = "",
 )
 
+@Immutable
 data class MediaItem(
     val id: String,
     val serverId: Long,
@@ -89,6 +112,7 @@ data class MediaItem(
     val rawJson: String = "",
 )
 
+@Immutable
 data class WeatherSnapshot(
     val city: String = "",
     val condition: String = "",
@@ -101,6 +125,7 @@ data class WeatherSnapshot(
         get() = !isManual && city.isNotBlank() && condition.isNotBlank() && !temperatureC.isNaN()
 }
 
+@Immutable
 data class FootballMatch(
     val league: String,
     val home: String,
@@ -113,6 +138,7 @@ data class FootballMatch(
     val newsMessage: String = "",
 )
 
+@Immutable
 data class AppSettings(
     val previewEnabled: Boolean = true,
     val accentColor: Long = 0xFFFF9248,
@@ -152,6 +178,7 @@ data class AppSettings(
     val homeNotificationTargetDate: String = "",
 )
 
+@Immutable
 data class EpgEntry(
     val title: String,
     val description: String = "",
@@ -160,6 +187,7 @@ data class EpgEntry(
     val category: String = "",
 )
 
+@Immutable
 data class LiveEpgSnapshot(
     val current: EpgEntry? = null,
     val next: EpgEntry? = null,

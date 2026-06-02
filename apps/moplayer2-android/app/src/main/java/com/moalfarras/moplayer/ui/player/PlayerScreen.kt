@@ -2813,9 +2813,13 @@ private fun buildPlayer(
     val errorHandlingPolicy = object : DefaultLoadErrorHandlingPolicy() {
         override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
             val attempt = loadErrorInfo.errorCount.coerceAtLeast(1)
-            return if (isLive) (attempt * 1_000L).coerceAtMost(5_000L) else (attempt * 1_500L).coerceAtMost(6_000L)
+            return if (isLive) (attempt * 1_000L).coerceAtMost(4_000L) else (attempt * 1_500L).coerceAtMost(6_000L)
         }
-        override fun getMinimumLoadableRetryCount(dataType: Int): Int = if (isLive) 12 else 5
+        // Live: 6 segment retries (~18s worst case) is enough to ride out an encoder
+        // restart or brief CDN gap, but surfaces a truly dead stream fast so the app-level
+        // recovery (alternative quality / LibVLC fallback) can take over instead of the
+        // viewer staring at a frozen channel for nearly a minute (old value was 12 ≈ 55s).
+        override fun getMinimumLoadableRetryCount(dataType: Int): Int = if (isLive) 6 else 5
     }
     val renderersFactory = DefaultRenderersFactory(context)
         .setEnableDecoderFallback(true)

@@ -26,7 +26,7 @@ https://moalfarras.space/activate?code=MO-XXXX
 - Android application ID: `com.moalfarras.moplayerpro`
 - Release task: `assembleRelease`
 - Published APK: `apps/web/public/downloads/moplayer2/app-release.apk`
-- Current published APK: `2.5.12` (`versionCode` 50), `49253817` bytes, SHA-256 `1e8d9bd4ee4cae45a6164269dd102fc7905479285e01ecb44f661f45910374d5`
+- Current published APK: `2.5.13` (`versionCode` 51), `49256351` bytes, SHA-256 `31e5648b5841182394f3b9bad96f779bdf475a014072ff1f18caf59b0e9af249`
 
 Pro QR links must use:
 

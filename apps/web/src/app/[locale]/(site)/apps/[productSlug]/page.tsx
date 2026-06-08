@@ -32,12 +32,12 @@ export async function generateMetadata({
   const { locale, productSlug } = await params;
   if (!isLocale(locale) || !isManagedAppSlug(productSlug)) return {};
   const ecosystem = await readAppEcosystem(productSlug);
-  const title = `${ecosystem.product.product_name} | Mohammad Alfarras Apps`;
+  const title = `${ecosystem.product.product_name} | Mohammad Alfarras`;
   const description = ecosystem.product.short_description;
   const image = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-hero-3d-final.png");
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: `${SITE_URL}/${locale}/apps/${productSlug}`,

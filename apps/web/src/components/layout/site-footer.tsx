@@ -89,7 +89,7 @@ export function SiteFooter({
           </div>
 
           <div className="fresh-footer-bottom">
-            <p>{`Copyright ${year} ${brandName}`}</p>
+            <p>{`© ${year} ${brandName}`}</p>
             <Link href={`/${locale}/privacy`}>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
             <a href="#top" className="fresh-footer-top" aria-label={isAr ? "العودة للأعلى" : "Back to top"}>
               <ArrowUp size={16} />

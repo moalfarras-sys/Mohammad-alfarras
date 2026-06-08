@@ -7,6 +7,7 @@ import {
   isValidPublicDeviceId,
   normalizePublicDeviceId,
   normalizeSourcePullToken,
+  providerSourceQueueExpired,
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
@@ -52,12 +53,17 @@ export async function POST(request: Request) {
   if (deviceError) {
     return NextResponse.json({ ok: false, message: "Device lookup failed." }, { status: 500 });
   }
-  const authValue = (auth?.value ?? {}) as { publicDeviceId?: string; sourcePullTokenHash?: string };
+  const authValue = (auth?.value ?? {}) as { publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string };
   if (authValue.publicDeviceId !== publicDeviceId || authValue.sourcePullTokenHash !== hashSourcePullToken(token)) {
     return NextResponse.json({ ok: false, message: "Device token was not accepted." }, { status: 401 });
   }
 
   const key = deviceSourceQueueSettingKey(publicDeviceId);
+  const authKey = deviceSourceAuthSettingKey(publicDeviceId);
+  if (authValue.expiresAt && new Date(authValue.expiresAt).getTime() <= Date.now()) {
+    await supabase.from("app_settings").delete().in("key", [key, authKey]);
+    return NextResponse.json({ ok: true, status, alreadyCleared: true });
+  }
   const { data: queueData, error: queueReadError } = await supabase
     .from("app_settings")
     .select("value")
@@ -70,10 +76,16 @@ export async function POST(request: Request) {
 
   const queue = readQueueValue(queueData?.value);
   if (!queue || queue.publicDeviceId !== publicDeviceId || queue.id !== sourceId) {
-    return NextResponse.json({ ok: false, message: "Pending source was not found." }, { status: 404 });
+    await supabase.from("app_settings").delete().eq("key", authKey);
+    return NextResponse.json({ ok: true, status, alreadyCleared: true });
   }
 
-  const { error } = await supabase.from("app_settings").delete().eq("key", key);
+  if (providerSourceQueueExpired(queue)) {
+    await supabase.from("app_settings").delete().in("key", [key, authKey]);
+    return NextResponse.json({ ok: true, status, alreadyCleared: true });
+  }
+
+  const { error } = await supabase.from("app_settings").delete().in("key", [key, authKey]);
 
   if (error) {
     return NextResponse.json({ ok: false, message: "Could not acknowledge source import." }, { status: 500 });

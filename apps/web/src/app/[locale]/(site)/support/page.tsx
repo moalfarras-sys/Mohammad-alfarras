@@ -14,17 +14,37 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) return {};
   const loc = locale as Locale;
   const copy = supportCopy[loc];
+  const fullTitle = `${copy.eyebrow} | MoPlayer | ${loc === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}`;
+  const canonical = `${SITE_URL}/${loc}/support`;
+  const image = `${SITE_URL}/images/moplayer-hero-3d-final.png`;
 
   return {
-    title: `${copy.eyebrow} | MoPlayer | Mohammad Alfarras`,
+    title: { absolute: fullTitle },
     description: copy.intro,
     alternates: {
-      canonical: `${SITE_URL}/${loc}/support`,
+      canonical,
       languages: {
         ar: `${SITE_URL}/ar/support`,
         en: `${SITE_URL}/en/support`,
         "x-default": `${SITE_URL}/en/support`,
       },
+    },
+    openGraph: {
+      title: fullTitle,
+      description: copy.intro,
+      url: canonical,
+      type: "website",
+      locale: loc === "ar" ? "ar_SA" : "en_US",
+      siteName: "Mohammad Alfarras | محمد الفراس",
+      images: [{ url: image, width: 1600, height: 900, alt: fullTitle }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: "@Moalfarras",
+      creator: "@Moalfarras",
+      title: fullTitle,
+      description: copy.intro,
+      images: [image],
     },
   };
 }

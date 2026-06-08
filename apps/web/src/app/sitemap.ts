@@ -28,13 +28,11 @@ const localizedRoutes: RouteDef[] = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
   const snapshot = await readSnapshot();
 
   const localized = (["ar", "en"] as const).flatMap((locale) =>
     localizedRoutes.map<MetadataRoute.Sitemap[number]>((route) => ({
       url: `${BASE}/${locale}${route.path}`,
-      lastModified: now,
       changeFrequency: route.changeFrequency,
       priority: route.priority,
       alternates: {
@@ -51,13 +49,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((project) => project.is_active && project.slug)
     .map((project) => ({
       slug: project.slug,
-      updatedAt: project.updated_at ? new Date(project.updated_at) : now,
+      updatedAt: project.updated_at ? new Date(project.updated_at) : undefined,
     }));
 
   const localizedProjects = (["ar", "en"] as const).flatMap((locale) =>
     projectRoutes.map<MetadataRoute.Sitemap[number]>((project) => ({
       url: `${BASE}/${locale}/work/${project.slug}`,
-      lastModified: project.updatedAt,
+      ...(project.updatedAt && !Number.isNaN(project.updatedAt.getTime())
+        ? { lastModified: project.updatedAt }
+        : {}),
       changeFrequency: "monthly",
       priority: 0.82,
       alternates: {
@@ -70,11 +70,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
-  const canonical: MetadataRoute.Sitemap = [
-    { url: `${BASE}/app`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
-    { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE}/support`, lastModified: now, changeFrequency: "monthly", priority: 0.35 },
-  ];
-
-  return [...localized, ...localizedProjects, ...canonical];
+  return [...localized, ...localizedProjects];
 }

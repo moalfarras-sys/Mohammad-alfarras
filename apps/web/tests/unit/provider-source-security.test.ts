@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  fetchedProviderSourceReceiptExpiresAt,
   normalizeProviderSource,
+  pendingProviderSourceExpiresAt,
   providerSourceQueueBelongsToProduct,
+  providerSourceQueueExpired,
   testProviderSource,
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
@@ -71,6 +74,16 @@ describe("providerSourceQueueBelongsToProduct", () => {
 
     expect(providerSourceQueueBelongsToProduct(proQueue, "moplayer2")).toBe(true);
     expect(providerSourceQueueBelongsToProduct(proQueue, "moplayer")).toBe(false);
+  });
+
+  it("expires QR handoff queues instead of treating them as permanent source storage", () => {
+    const now = Date.parse("2026-05-08T00:00:00.000Z");
+    const pendingExpiry = pendingProviderSourceExpiresAt(now);
+    const fetchedExpiry = fetchedProviderSourceReceiptExpiresAt(now);
+
+    expect(providerSourceQueueExpired({ ...baseQueue, expiresAt: pendingExpiry }, now + 1)).toBe(false);
+    expect(providerSourceQueueExpired({ ...baseQueue, expiresAt: pendingExpiry }, Date.parse(pendingExpiry))).toBe(true);
+    expect(Date.parse(fetchedExpiry) - now).toBeLessThan(Date.parse(pendingExpiry) - now);
   });
 });
 

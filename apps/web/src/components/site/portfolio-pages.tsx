@@ -2,7 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Download, Mail } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Bot,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  Mail,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { cvPageCopy } from "@/content/cv";
@@ -37,7 +46,11 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
           <p>{t.body}</p>
           <div className="fresh-actions">
             {model.downloads.branded ? (
-              <a href={model.downloads.branded} download className="fresh-button fresh-button-primary">
+              <a
+                href={model.downloads.branded}
+                download
+                className="fresh-button fresh-button-primary"
+              >
                 <Download className="h-4 w-4" />
                 {t.downloadDesigned}
               </a>
@@ -56,7 +69,14 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
           </div>
         </div>
         <div className="fresh-portrait">
-          <Image src={model.portraitImage || "/images/portrait.jpg"} alt={model.profile.name} fill sizes="(max-width: 1024px) 92vw, 420px" className="fresh-image object-top" priority />
+          <Image
+            src={model.portraitImage || "/images/portrait.jpg"}
+            alt={model.profile.name}
+            fill
+            sizes="(max-width: 1024px) 92vw, 420px"
+            className="fresh-image object-top"
+            priority
+          />
           <div>
             <strong>{model.profile.name}</strong>
             <span>{model.profile.subtitle}</span>
@@ -92,7 +112,13 @@ export function PortfolioPrivacyPage({ locale }: { locale: string }) {
   );
 }
 
-export function PortfolioProjectPage({ model, projectId }: { model: SiteViewModel; projectId: string }) {
+export function PortfolioProjectPage({
+  model,
+  projectId,
+}: {
+  model: SiteViewModel;
+  projectId: string;
+}) {
   const t = repairMojibakeDeep(caseStudyCopy[model.locale]);
   const ar = isArabic(model.locale);
   const project = model.projects.find((item) => item.id === projectId || item.slug === projectId);
@@ -114,9 +140,28 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
     );
   }
 
+  const projectIndex = model.projects.findIndex((item) => item.id === project.id);
+  const previousProject = projectIndex > 0 ? model.projects[projectIndex - 1] : null;
+  const nextProject =
+    projectIndex < model.projects.length - 1 ? model.projects[projectIndex + 1] : null;
+  const projectHrefIsExternal = project.href?.startsWith("http") ?? false;
+  const projectTitle = project.title;
+  const narrative = [
+    { number: "01", label: t.challenge, body: project.challenge },
+    { number: "02", label: t.solution, body: project.solution },
+    { number: "03", label: t.result, body: project.result },
+  ];
+
+  function openProjectAssistant() {
+    const prompt = ar
+      ? `اشرح لي دراسة حالة ${projectTitle} وساعدني أفهم المشكلة والقرار والنتيجة.`
+      : `Walk me through the ${projectTitle} case study and explain the problem, decision, and outcome.`;
+    window.dispatchEvent(new CustomEvent("mo-ai:open", { detail: { prompt } }));
+  }
+
   return (
     <PageShell locale={model.locale}>
-      <section className="fresh-hero">
+      <section className="fresh-hero case-study-hero">
         <div className="fresh-hero-copy">
           <Link href={`/${model.locale}/work`} className="fresh-link fresh-link-top">
             <ArrowLeft className="h-4 w-4" />
@@ -127,8 +172,17 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
           <p>{project.description}</p>
           <div className="fresh-actions">
             {project.href ? (
-              <a href={project.href} target="_blank" rel="noreferrer" className="fresh-button fresh-button-primary">
-                <ArrowUpRight className="h-4 w-4" />
+              <a
+                href={project.href}
+                target={projectHrefIsExternal ? "_blank" : undefined}
+                rel={projectHrefIsExternal ? "noreferrer" : undefined}
+                className="fresh-button fresh-button-primary"
+              >
+                {projectHrefIsExternal ? (
+                  <ExternalLink className="h-4 w-4" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4" />
+                )}
                 {project.ctaLabel}
               </a>
             ) : null}
@@ -136,23 +190,57 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
               <Mail className="h-4 w-4" />
               {ar ? "ابدأ مشروعا مشابها" : "Start a similar project"}
             </Link>
+            <button type="button" className="fresh-button" onClick={openProjectAssistant}>
+              <Bot className="h-4 w-4" />
+              {ar ? "اسأل Mo Ai" : "Ask Mo Ai"}
+            </button>
           </div>
         </div>
         <div className="fresh-project-hero-media">
-          <Image src={project.image} alt={project.title} fill sizes="(max-width: 1024px) 92vw, 520px" className="fresh-image" priority />
+          <Image
+            src={project.image}
+            alt={project.title}
+            fill
+            sizes="(max-width: 1024px) 92vw, 520px"
+            className="fresh-image"
+            priority
+          />
         </div>
       </section>
 
-      <section className="fresh-section">
-        <div className="fresh-grid fresh-grid-3">
-          {[
-            [t.challenge, project.challenge],
-            [t.solution, project.solution],
-            [t.result, project.result],
-          ].map(([label, body]) => (
-            <article key={label} className="fresh-card fresh-card-quiet">
-              <p className="fresh-eyebrow">{label}</p>
-              <p>{body}</p>
+      {project.metrics.length > 0 ? (
+        <section
+          className="case-study-proof-strip"
+          aria-label={ar ? "مؤشرات المشروع" : "Project signals"}
+        >
+          {project.metrics.slice(0, 4).map((metric) => (
+            <div key={`${metric.label}-${metric.value}`}>
+              <strong>{metric.value}</strong>
+              <span>{metric.label}</span>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
+      <section className="fresh-section case-study-story">
+        <div className="fresh-section-head">
+          <p className="fresh-eyebrow">{ar ? "من الفكرة إلى النتيجة" : "From brief to outcome"}</p>
+          <h2>{ar ? "ما الذي تغيّر فعلياً؟" : "What actually changed?"}</h2>
+          <p>
+            {ar
+              ? "دراسة الحالة هنا تشرح التفكير والتنفيذ، لا تكتفي بعرض لقطة جميلة."
+              : "This case study explains the thinking and execution, not only the final screens."}
+          </p>
+        </div>
+        <div className="case-study-story-list">
+          {narrative.map((item) => (
+            <article key={item.number}>
+              <span className="case-study-story-number">{item.number}</span>
+              <div>
+                <p className="fresh-eyebrow">{item.label}</p>
+                <h3>{item.body}</h3>
+              </div>
+              <CheckCircle2 aria-hidden="true" />
             </article>
           ))}
         </div>
@@ -161,15 +249,9 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
       <section className="fresh-section">
         <div className="fresh-project-detail-grid">
           <aside className="fresh-card">
-            <p className="fresh-eyebrow">{ar ? "الإشارات" : "Signals"}</p>
-            <div className="fresh-list fresh-list-compact">
-              {project.metrics.map((metric) => (
-                <article key={`${metric.label}-${metric.value}`}>
-                  <strong>{metric.value}</strong>
-                  <span>{metric.label}</span>
-                </article>
-              ))}
-            </div>
+            <p className="fresh-eyebrow">{ar ? "ملخص التنفيذ" : "Delivery summary"}</p>
+            <h3>{project.summary}</h3>
+            <p>{project.description}</p>
           </aside>
           <aside className="fresh-card">
             <p className="fresh-eyebrow">{ar ? "التركيز" : "Focus"}</p>
@@ -187,12 +269,52 @@ export function PortfolioProjectPage({ model, projectId }: { model: SiteViewMode
           <div className="fresh-project-grid">
             {project.gallery.map((image, index) => (
               <div key={`${image}-${index}`} className="fresh-project-media fresh-gallery-tile">
-                <Image src={image} alt={`${project.title} ${index + 1}`} fill sizes="(max-width: 1024px) 92vw, 520px" className="fresh-image" />
+                <Image
+                  src={image}
+                  alt={`${project.title} ${index + 1}`}
+                  fill
+                  sizes="(max-width: 1024px) 92vw, 520px"
+                  className="fresh-image"
+                />
               </div>
             ))}
           </div>
         </section>
       ) : null}
+
+      <nav
+        className="case-study-navigator"
+        aria-label={ar ? "التنقل بين المشاريع" : "Project navigation"}
+      >
+        {previousProject ? (
+          <Link href={`/${model.locale}/work/${previousProject.slug}`}>
+            <ArrowLeft size={18} />
+            <span>
+              <small>{ar ? "المشروع السابق" : "Previous project"}</small>
+              <strong>{previousProject.title}</strong>
+            </span>
+          </Link>
+        ) : (
+          <span />
+        )}
+        {nextProject ? (
+          <Link href={`/${model.locale}/work/${nextProject.slug}`}>
+            <span>
+              <small>{ar ? "المشروع التالي" : "Next project"}</small>
+              <strong>{nextProject.title}</strong>
+            </span>
+            <ArrowRight size={18} />
+          </Link>
+        ) : (
+          <Link href={`/${model.locale}/work`}>
+            <span>
+              <small>{ar ? "اكتشف المزيد" : "Explore more"}</small>
+              <strong>{ar ? "كل الأعمال" : "All work"}</strong>
+            </span>
+            <ArrowRight size={18} />
+          </Link>
+        )}
+      </nav>
     </PageShell>
   );
 }

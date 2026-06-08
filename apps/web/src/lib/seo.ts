@@ -5,6 +5,18 @@ import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 const BASE_URL = "https://moalfarras.space";
+const BRAND = "Mohammad Alfarras";
+
+/**
+ * Title strings come from several sources (curated copy below, the CMS, Supabase).
+ * Some already contain the brand, some don't. The root layout also applies a
+ * `%s | Mohammad Alfarras` template. To avoid a doubled brand ("CV | Mohammad
+ * Alfarras | Mohammad Alfarras") or a mixed AR/EN brand, we resolve the brand
+ * exactly once here and emit an absolute title so the template never re-applies.
+ */
+function ensureBrandOnce(title: string): string {
+  return /mohammad\s*alfarras|محمد\s*الفراس/i.test(title) ? title : `${title} | ${BRAND}`;
+}
 
 const seoCopy = {
   ar: {
@@ -142,8 +154,13 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   const localeTag = locale === "ar" ? "ar_SA" : "en_US";
   const altLocaleTag = locale === "ar" ? "en_US" : "ar_SA";
 
+  // One resolved title shared across <title>, og:title, and twitter:title so the
+  // page never shows three different titles (and never a doubled brand).
+  const resolvedTitle = ensureBrandOnce(copy.title);
+  const resolvedOgDescription = "ogDescription" in copy ? copy.ogDescription : copy.description;
+
   return {
-    title: copy.title,
+    title: { absolute: resolvedTitle },
     description: copy.description,
     metadataBase: new URL(BASE_URL),
     alternates: {
@@ -151,7 +168,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       languages: {
         ar: `${BASE_URL}${altAr}`,
         en: `${BASE_URL}${altEn}`,
-        "x-default": `${BASE_URL}/en`,
+        "x-default": `${BASE_URL}${altEn}`,
       },
     },
     openGraph: {
@@ -159,15 +176,15 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       locale: localeTag,
       alternateLocale: [altLocaleTag],
       url: `${BASE_URL}${localizedPath}`,
-      title: "ogTitle" in copy ? copy.ogTitle : copy.title,
-      description: "ogDescription" in copy ? copy.ogDescription : copy.description,
+      title: resolvedTitle,
+      description: resolvedOgDescription,
       siteName: "Mohammad Alfarras | محمد الفراس",
       images: [
         {
           url: absoluteImageUrl(copy.image),
           width: 1200,
           height: 630,
-          alt: copy.title,
+          alt: resolvedTitle,
         },
       ],
     },
@@ -175,9 +192,9 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       card: "summary_large_image",
       site: "@Moalfarras",
       creator: "@Moalfarras",
-      title: copy.title,
-      description: copy.description,
-      images: [{ url: absoluteImageUrl(copy.image), alt: copy.title }],
+      title: resolvedTitle,
+      description: resolvedOgDescription,
+      images: [{ url: absoluteImageUrl(copy.image), alt: resolvedTitle }],
     },
     keywords: repairMojibakeDeep(keywordMap[normalized] ?? keywordMap.home),
   };

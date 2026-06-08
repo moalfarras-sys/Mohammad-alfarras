@@ -25,6 +25,17 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
+  const locale = localeFromPathname(pathname);
+
+  if (locale && (pathname === `/${locale}/admin` || pathname.startsWith(`/${locale}/admin/`))) {
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space";
+    const destination = new URL(
+      pathname === `/${locale}/admin` || pathname === `/${locale}/admin/` ? "/" : "/website",
+      adminUrl,
+    );
+    return NextResponse.redirect(destination, 308);
+  }
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -50,13 +61,6 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/support/")
   ) {
     return NextResponse.next();
-  }
-
-  const locale = localeFromPathname(pathname);
-
-  if (locale && (pathname === `/${locale}/admin` || pathname === `/${locale}/admin/`)) {
-    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space";
-    return NextResponse.redirect(adminUrl, 308);
   }
 
   if (!locale) {

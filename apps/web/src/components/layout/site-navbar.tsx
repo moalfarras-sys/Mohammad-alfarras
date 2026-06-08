@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Bot, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, PlayCircle, Send, Sun, UserRound, Wrench } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, PlayCircle, Send, Sun, UserRound, Wrench } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,7 +20,6 @@ const dockIcons = {
   work: BriefcaseBusiness,
   services: Wrench,
   apps: MonitorPlay,
-  ai: Bot,
   youtube: PlayCircle,
   cv: UserRound,
   contact: Send,
@@ -52,7 +51,7 @@ export function SiteNavbar({
   const nextLocale = locale === "ar" ? "en" : "ar";
   const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${nextLocale}`;
   const isAr = locale === "ar";
-  const mobileDockLinks = links.filter((item) => item.id !== "ai");
+  const mobileDockLinks = links;
   const ctaLabel = isAr ? "ابدأ مشروعك" : "Start Project";
   const dockLabel = isAr ? "التنقل السريع" : "Quick navigation";
 

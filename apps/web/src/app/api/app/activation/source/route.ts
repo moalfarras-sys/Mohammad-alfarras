@@ -7,12 +7,15 @@ import {
   deviceSourceAuthSettingKey,
   deviceSourceQueueSettingKey,
   encryptProviderSource,
+  fetchedProviderSourceReceiptExpiresAt,
   hashSourcePullToken,
   isValidPublicDeviceId,
   normalizePublicDeviceId,
   normalizeProviderSource,
   normalizeSourcePullToken,
+  pendingProviderSourceExpiresAt,
   providerSourceQueueBelongsToProduct,
+  providerSourceQueueExpired,
   publicProviderSource,
   type ProviderSourceQueueValue,
   testProviderSource,
@@ -45,14 +48,19 @@ async function activatedDeviceByCode(code: string, productSlug: string) {
 async function verifiedDeviceByToken(publicDeviceId: string, token: string) {
   const supabase = createSupabaseAdminClient();
   const tokenHash = hashSourcePullToken(token);
+  const authKey = deviceSourceAuthSettingKey(publicDeviceId);
   const { data, error } = await supabase
     .from("app_settings")
     .select("value")
-    .eq("key", deviceSourceAuthSettingKey(publicDeviceId))
+    .eq("key", authKey)
     .maybeSingle();
 
   if (error) return { error: "Device lookup failed." };
-  const value = (data?.value ?? {}) as { publicDeviceId?: string; sourcePullTokenHash?: string };
+  const value = (data?.value ?? {}) as { publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string };
+  if (value.expiresAt && new Date(value.expiresAt).getTime() <= Date.now()) {
+    await supabase.from("app_settings").delete().in("key", [authKey, deviceSourceQueueSettingKey(publicDeviceId)]);
+    return { error: "Device token expired. Create a new QR activation.", status: 410 };
+  }
   if (value.publicDeviceId !== publicDeviceId || value.sourcePullTokenHash !== tokenHash) {
     return { error: "Device token was not accepted.", status: 401 };
   }
@@ -64,7 +72,6 @@ function readQueueValue(value: unknown): ProviderSourceQueueValue | null {
   if (
     typeof candidate.id !== "string" ||
     typeof candidate.publicDeviceId !== "string" ||
-    typeof candidate.encryptedPayload !== "string" ||
     (candidate.sourceType !== "xtream" && candidate.sourceType !== "m3u")
   ) {
     return null;
@@ -114,6 +121,7 @@ export async function POST(request: Request) {
       lastTestMessage: test.message,
       createdAt: now,
       updatedAt: now,
+      expiresAt: pendingProviderSourceExpiresAt(),
     };
 
     const { error } = await supabase.from("app_settings").upsert(
@@ -181,30 +189,56 @@ export async function GET(request: Request) {
     !queue ||
     queue.publicDeviceId !== publicDeviceId ||
     !providerSourceQueueBelongsToProduct(queue, productSlug) ||
-    !["pending", "fetched"].includes(queue.status)
+    queue.status !== "pending"
   ) {
     return json({ status: "empty" });
   }
 
+  const key = deviceSourceQueueSettingKey(publicDeviceId);
+  if (providerSourceQueueExpired(queue)) {
+    await supabase.from("app_settings").delete().in("key", [key, deviceSourceAuthSettingKey(publicDeviceId)]);
+    return json({ status: "empty", message: "Pending source expired. Create a new QR activation." });
+  }
+
+  if (!queue.encryptedPayload) {
+    await supabase.from("app_settings").delete().in("key", [key, deviceSourceAuthSettingKey(publicDeviceId)]);
+    return json({ status: "empty" });
+  }
+
+  let source;
+  try {
+    source = publicProviderSource(decryptProviderSource(queue.encryptedPayload));
+  } catch {
+    await supabase.from("app_settings").delete().in("key", [key, deviceSourceAuthSettingKey(publicDeviceId)]);
+    return json({ status: "error", message: "Pending source could not be read. Create a new QR activation." }, { status: 500 });
+  }
+
   const now = new Date().toISOString();
-  await supabase.from("app_settings").upsert(
+  const receiptQueue = { ...queue };
+  delete receiptQueue.encryptedPayload;
+  const { error: receiptError } = await supabase.from("app_settings").upsert(
     {
-      key: deviceSourceQueueSettingKey(publicDeviceId),
+      key,
       value: {
-        ...queue,
+        ...receiptQueue,
         status: "fetched",
         pulledAt: now,
         updatedAt: now,
+        expiresAt: fetchedProviderSourceReceiptExpiresAt(),
       },
-      description: "Server-only encrypted one-device provider source queue.",
+      description: "Short-lived provider source delivery receipt. Sensitive source payload is removed after first fetch.",
       updated_at: now,
     },
     { onConflict: "key" },
   );
 
+  if (receiptError) {
+    return json({ status: "error", message: "Could not clear pending source after fetch." }, { status: 500 });
+  }
+
   return json({
     status: "source_available",
     sourceId: queue.id,
-    source: publicProviderSource(decryptProviderSource(queue.encryptedPayload)),
+    source,
   });
 }

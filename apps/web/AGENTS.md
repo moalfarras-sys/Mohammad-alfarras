@@ -18,13 +18,15 @@ This folder is the public Next.js app for `https://moalfarras.space`. It is not 
 - Activation UI in `src/components/app/moplayer-activation-page.tsx`.
 - Public app APIs under `src/app/api/app`.
 - APK download routing and release download endpoints.
-- Public website CMS routes, SEO, sitemap, manifest, PWA assets.
+- Public website rendering, SEO, sitemap, manifest, PWA assets, and app-facing APIs.
+- Legacy `/en/admin/*` and `/ar/admin/*` redirects to the unified admin app. Do not add public-site admin UI here.
 
 ## Critical Product Rules
 
 - Keep `moplayer` and `moplayer2` separate.
 - Public text can say **MoPlayer Pro**, but APIs, URLs, release metadata, and Android integration use `moplayer2`.
 - Do not change activation payloads without checking both Android apps and admin.
+- Provider sources are one-time QR handoff payloads. Do not make Supabase a permanent source/server store; clear encrypted source data after first device fetch and keep only short-lived non-sensitive receipts.
 - Do not remove APKs or public images unless release metadata and all page references are updated.
 
 ## Where To Edit
@@ -61,6 +63,7 @@ Check `/en`, `/ar`, `/en/apps/moplayer2`, `/ar/apps/moplayer2`, `/activate?produ
 ## Do Not Do
 
 - Do not move admin-only operations into the public app unless intentionally merging products.
+- Do not create localized admin pages under `src/app/[locale]/admin`; those URLs belong to the external admin redirect.
 - Do not expose Supabase service role keys or provider source secrets to the browser.
 - Do not add dependencies without checking current docs and explaining why the existing stack is insufficient.
 - Do not treat this as a marketing-only site; Android activation and app runtime depend on it.

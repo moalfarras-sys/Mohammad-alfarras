@@ -9,12 +9,12 @@ const SITE_URL = "https://moalfarras.space";
 
 const meta = {
   en: {
-    title: "Activate MoPlayer | moalfarras.space",
+    title: "Activate MoPlayer | Mohammad Alfarras",
     description:
       "Pair MoPlayer on Android TV with moalfarras.space using a short private device code and website activation flow.",
   },
   ar: {
-    title: "تفعيل MoPlayer | moalfarras.space",
+    title: "تفعيل MoPlayer | محمد الفراس",
     description: "اربط MoPlayer على Android TV مع moalfarras.space باستخدام كود جهاز قصير وخاص.",
   },
 } as const;
@@ -34,20 +34,22 @@ export async function generateMetadata({
   const copy =
     isPro && locale === "ar"
       ? {
-          title: "تفعيل MoPlayer Pro | moalfarras.space",
+          title: "تفعيل MoPlayer Pro | محمد الفراس",
           description: "أكد كود التلفاز وأرسل مصدر M3U أو Xtream إلى MoPlayer Pro.",
         }
       : isPro
         ? {
-            title: "Activate MoPlayer Pro | moalfarras.space",
+            title: "Activate MoPlayer Pro | Mohammad Alfarras",
             description: "Confirm your TV code and send an M3U or Xtream source to MoPlayer Pro.",
           }
         : meta[locale];
   const suffix = isPro ? "?product=moplayer2" : "";
   const canonical = `${SITE_URL}/${locale}/activate${suffix}`;
 
+  const image = "/images/moplayer-activation-flow.webp";
+
   return {
-    title: copy.title,
+    title: { absolute: copy.title },
     description: copy.description,
     alternates: {
       canonical,
@@ -63,7 +65,16 @@ export async function generateMetadata({
       url: canonical,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
-      images: [{ url: "/images/moplayer-activation-flow.webp", width: 1600, height: 900, alt: copy.title }],
+      siteName: "Mohammad Alfarras | محمد الفراس",
+      images: [{ url: image, width: 1600, height: 900, alt: copy.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: "@Moalfarras",
+      creator: "@Moalfarras",
+      title: copy.title,
+      description: copy.description,
+      images: [image],
     },
   };
 }

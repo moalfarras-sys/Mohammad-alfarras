@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { readSiteSetting, upsertSiteSetting } from "@/lib/content/store";
 import { hasDatabaseUrl, queryRows } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
@@ -189,13 +187,13 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-moplayer-2-2-12",
+    id: "release-moplayer-2-2-16",
     product_slug: "moplayer",
-    slug: "moplayer-2.2.12",
-    version_name: "2.2.12",
-    version_code: 18,
+    slug: "moplayer-2.2.16",
+    version_name: "2.2.16",
+    version_code: 22,
     release_notes:
-      "MoPlayer Classic 2.2.12 repairs Live TV remote focus when the overlay is visible and refreshes stale server sync counters so movies, series, channels, categories, posters, and subscription data stay accurate.",
+      "MoPlayer Classic 2.2.16 keeps the 2.2.15 speed and football-data fixes, removes the duplicate Home watch-history row, and keeps only the working Continue watching row with resume progress.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -203,8 +201,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-moplayer-2-2-12-universal",
-        release_id: "release-moplayer-2-2-12",
+        id: "asset-moplayer-2-2-16-universal",
+        release_id: "release-moplayer-2-2-16",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -212,8 +210,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52746532,
-        checksum_sha256: "67b0fa3b55ca05e1ff7ea380b91c47d46d32748325669cb557a1b85487c305f7",
+        file_size_bytes: 52792635,
+        checksum_sha256: "79701639678373dda3b44c07347c22bd799975767a2eb260943c50609f1f9a0d",
         is_primary: true,
         created_at: now,
       },
@@ -290,24 +288,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-13",
+      id: "release-moplayer2-v2-5-20",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.13-full",
-      version_name: "2.5.13",
-      version_code: 51,
+      slug: "moplayer2-v2.5.20-full",
+      version_name: "2.5.20",
+      version_code: 58,
       release_notes:
-        "MoPlayer Pro 2.5.13 is a major performance and reliability update: idle-screen redraws are eliminated and recomposition is optimized for smoother Android TV browsing; huge libraries sync faster using about half the peak memory; live channels fail over faster; and an expired subscription now shows a clear localized notice while keeping your cached library instead of wiping it, plus a proper loading state instead of a false empty screen.",
+        "MoPlayer Pro 2.5.20 hardens live and series playback for large Xtream panels: slow get_series_info calls retry with a longer Xtream API timeout, episodes use direct_source and normalized container extensions when available, Xtream VOD/episodes try compatible containers before fallback, and weak-device live playback switches recovery paths faster when video does not render.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-13-universal",
-          release_id: "release-moplayer2-v2-5-13",
+          id: "asset-moplayer2-v2-5-20-universal",
+          release_id: "release-moplayer2-v2-5-20",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49256351,
-          checksum_sha256: "31e5648b5841182394f3b9bad96f779bdf475a014072ff1f18caf59b0e9af249",
+          file_size_bytes: 49260800,
+          checksum_sha256: "477beee677797ae489ec6afce71fe369a31f020ecb18fd3d12ec0d4192907a0f",
         },
       ],
     },
@@ -522,269 +520,6 @@ export async function readManagedAppEcosystems(): Promise<AppEcosystemData[]> {
   return Promise.all(managedApps.map((app) => readAppEcosystem(app.slug)));
 }
 
-export async function readAdminAppData(productSlug = "moplayer") {
-  const ecosystem = await readAppEcosystem(productSlug);
-  let supportRequests: AppSupportRequest[] = [];
-
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { data } = await supabase
-      .from("app_support_requests")
-      .select("*")
-      .eq("product_slug", productSlug)
-      .order("created_at", { ascending: false })
-      .limit(50);
-    supportRequests = (data as AppSupportRequest[] | null) ?? [];
-  } catch {
-    if (hasDatabaseUrl()) {
-      const result = await queryRows<{
-        id: string;
-        name: string;
-        email: string;
-        message: string;
-        subject: string;
-        created_at: string;
-      }>(
-        `select id, name, email, message, subject, created_at
-         from contact_messages
-         where subject ilike 'MoPlayer support%'
-         order by created_at desc
-         limit 50`,
-      ).catch(() => null);
-
-      supportRequests =
-        result?.rows.map((row) => ({
-          id: row.id,
-          product_slug: productSlug,
-          name: row.name,
-          email: row.email,
-          message: row.message,
-          status: row.subject.includes("[resolved]") ? "resolved" : "new",
-          created_at: row.created_at,
-        })) ?? [];
-    }
-
-    if (!supportRequests.length) {
-      const current = await readSiteSetting("moplayer_app_support_requests", asSiteSettingValue(fallbackSupportRequests));
-      supportRequests = (Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)
-        .filter((item) => item.product_slug === productSlug)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 50);
-    }
-  }
-
-  return {
-    ...ecosystem,
-    supportRequests,
-  };
-}
-
-export async function saveAppProduct(input: Partial<AppProduct> & { slug: string }) {
-  const fallback = fallbackFor(input.slug).product;
-  const payload = {
-    ...fallback,
-    ...input,
-    slug: resolveManagedAppSlug(input.slug),
-    updated_at: new Date().toISOString(),
-  };
-
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_products").upsert(payload, { onConflict: "slug" });
-    if (error) throw error;
-  } catch {
-    await upsertSiteSetting(`${payload.slug}_app_product`, asSiteSettingValue(payload));
-  }
-}
-
-export async function saveAppFaq(input: Partial<AppFaq> & { product_slug: string; question: string; answer: string; sort_order: number }) {
-  const payload = {
-    id: input.id ?? crypto.randomUUID(),
-    product_slug: input.product_slug,
-    question: input.question,
-    answer: input.answer,
-    sort_order: input.sort_order,
-    created_at: now,
-  };
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_faqs").upsert(payload, { onConflict: "id" });
-    if (error) throw error;
-  } catch {
-    const fallback = fallbackFor(payload.product_slug);
-    const current = await readSiteSetting(`${resolveManagedAppSlug(payload.product_slug)}_app_faqs`, asSiteSettingValue(fallback.faqs));
-    const next = [...(Array.isArray(current) ? (current as AppFaq[]) : fallback.faqs).filter((item) => item.id !== payload.id), payload].sort(
-      (a, b) => a.sort_order - b.sort_order,
-    );
-    await upsertSiteSetting(`${resolveManagedAppSlug(payload.product_slug)}_app_faqs`, asSiteSettingValue(next));
-  }
-}
-
-export async function deleteAppFaq(id: string) {
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_faqs").delete().eq("id", id);
-    if (error) throw error;
-  } catch {
-    const current = await readSiteSetting("moplayer_app_faqs", asSiteSettingValue(fallbackFaqs));
-    const next = (Array.isArray(current) ? (current as AppFaq[]) : fallbackFaqs).filter((item) => item.id !== id);
-    await upsertSiteSetting("moplayer_app_faqs", asSiteSettingValue(next));
-  }
-}
-
-async function ensureBucket(bucket: string, isPublic: boolean) {
-  const supabase = createSupabaseAdminClient();
-  await supabase.storage.createBucket(bucket, { public: isPublic }).catch(() => null);
-}
-
-export async function uploadAppScreenshot(params: {
-  filename: string;
-  contentType: string;
-  bytes: Uint8Array;
-}) {
-  const bucket = "app-media";
-  await ensureBucket(bucket, true);
-  const supabase = createSupabaseAdminClient();
-  const storagePath = `screenshots/${Date.now()}-${params.filename.replace(/\s+/g, "-")}`;
-  const blob = new Blob([Buffer.from(params.bytes)], { type: params.contentType || "application/octet-stream" });
-  const { error } = await supabase.storage.from(bucket).upload(storagePath, blob, {
-    cacheControl: "3600",
-    contentType: params.contentType || "application/octet-stream",
-    upsert: false,
-  });
-  if (error) throw new Error(error.message);
-  const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
-  return {
-    bucket,
-    storagePath,
-    publicUrl: data.publicUrl,
-  };
-}
-
-export async function saveAppScreenshot(input: Partial<AppScreenshot> & { product_slug: string; title: string; alt_text: string; image_path: string; sort_order: number }) {
-  const payload = {
-    id: input.id ?? crypto.randomUUID(),
-    product_slug: input.product_slug,
-    title: input.title,
-    alt_text: input.alt_text,
-    image_path: input.image_path,
-    device_frame: input.device_frame ?? "phone",
-    sort_order: input.sort_order,
-    is_featured: Boolean(input.is_featured),
-    created_at: now,
-  };
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_screenshots").upsert(payload, { onConflict: "id" });
-    if (error) throw error;
-  } catch {
-    const fallback = fallbackFor(payload.product_slug);
-    const current = await readSiteSetting(`${resolveManagedAppSlug(payload.product_slug)}_app_screenshots`, asSiteSettingValue(fallback.screenshots));
-    const next = [...(Array.isArray(current) ? (current as AppScreenshot[]) : fallback.screenshots).filter((item) => item.id !== payload.id), payload].sort(
-      (a, b) => a.sort_order - b.sort_order,
-    );
-    await upsertSiteSetting(`${resolveManagedAppSlug(payload.product_slug)}_app_screenshots`, asSiteSettingValue(next));
-  }
-}
-
-export async function deleteAppScreenshot(id: string) {
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_screenshots").delete().eq("id", id);
-    if (error) throw error;
-  } catch {
-    const current = await readSiteSetting("moplayer_app_screenshots", asSiteSettingValue(fallbackScreenshots));
-    const next = (Array.isArray(current) ? (current as AppScreenshot[]) : fallbackScreenshots).filter((item) => item.id !== id);
-    await upsertSiteSetting("moplayer_app_screenshots", asSiteSettingValue(next));
-  }
-}
-
-export async function saveAppRelease(input: Partial<AppRelease> & { product_slug: string; slug: string; version_name: string; version_code: number; release_notes: string; compatibility_notes: string; published_at: string }) {
-  const payload = {
-    id: input.id ?? crypto.randomUUID(),
-    product_slug: input.product_slug,
-    slug: input.slug,
-    version_name: input.version_name,
-    version_code: input.version_code,
-    release_notes: input.release_notes,
-    compatibility_notes: input.compatibility_notes,
-    published_at: input.published_at,
-    is_published: input.is_published ?? true,
-    created_at: input.created_at ?? now,
-    updated_at: new Date().toISOString(),
-  };
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_releases").upsert(payload, { onConflict: "slug" });
-    if (error) throw error;
-  } catch {
-    const fallback = fallbackFor(payload.product_slug);
-    const current = await readSiteSetting(`${resolveManagedAppSlug(payload.product_slug)}_app_releases`, asSiteSettingValue(fallback.releases));
-    const next = [
-      ...(Array.isArray(current) ? (current as AppRelease[]) : fallback.releases).filter((item) => item.slug !== payload.slug),
-      { ...payload, assets: input.assets ?? [] },
-    ].sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-    await upsertSiteSetting(`${resolveManagedAppSlug(payload.product_slug)}_app_releases`, asSiteSettingValue(next));
-  }
-  return payload.id;
-}
-
-export async function deleteAppRelease(id: string) {
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_releases").delete().eq("id", id);
-    if (error) throw error;
-  } catch {
-    const current = await readSiteSetting("moplayer_app_releases", asSiteSettingValue(fallbackReleases));
-    const next = (Array.isArray(current) ? (current as AppRelease[]) : fallbackReleases).filter((item) => item.id !== id);
-    await upsertSiteSetting("moplayer_app_releases", asSiteSettingValue(next));
-  }
-}
-
-export async function uploadReleaseAsset(params: {
-  filename: string;
-  contentType: string;
-  bytes: Uint8Array;
-  releaseId: string;
-  versionName: string;
-  abi: string | null;
-  isPrimary: boolean;
-}) {
-  const bucket = "app-downloads";
-  await ensureBucket(bucket, false);
-  const supabase = createSupabaseAdminClient();
-  const storagePath = `${params.versionName}/${Date.now()}-${params.filename.replace(/\s+/g, "-")}`;
-  const blob = new Blob([Buffer.from(params.bytes)], { type: params.contentType || "application/vnd.android.package-archive" });
-
-  const upload = await supabase.storage.from(bucket).upload(storagePath, blob, {
-    cacheControl: "3600",
-    contentType: params.contentType || "application/vnd.android.package-archive",
-    upsert: false,
-  });
-  if (upload.error) throw new Error(upload.error.message);
-
-  const checksum = createHash("sha256").update(Buffer.from(params.bytes)).digest("hex");
-  const assetPayload = {
-    id: crypto.randomUUID(),
-    release_id: params.releaseId,
-    asset_type: "apk",
-    label: params.isPrimary ? "Recommended APK" : `${params.abi ?? "APK"} build`,
-    abi: params.abi,
-    storage_bucket: bucket,
-    storage_path: storagePath,
-    external_url: null,
-    mime_type: params.contentType || "application/vnd.android.package-archive",
-    file_size_bytes: params.bytes.byteLength,
-    checksum_sha256: checksum,
-    is_primary: params.isPrimary,
-    created_at: now,
-  };
-
-  const { error } = await supabase.from("app_release_assets").insert(assetPayload);
-  if (error) throw new Error(error.message);
-  return assetPayload;
-}
-
 export async function saveSupportRequest(input: { product_slug: string; name: string; email: string; message: string }) {
   const requestId = crypto.randomUUID();
   const fallbackPayload: AppSupportRequest = {
@@ -828,29 +563,6 @@ export async function saveSupportRequest(input: { product_slug: string; name: st
     const next = [fallbackPayload, ...(Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)].slice(0, 100);
     await upsertSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(next));
     return requestId;
-  }
-}
-
-export async function updateSupportRequestStatus(id: string, status: AppSupportRequest["status"]) {
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.from("app_support_requests").update({ status }).eq("id", id);
-    if (error) throw error;
-  } catch {
-    if (hasDatabaseUrl()) {
-      const updated = await queryRows(`update contact_messages set subject = $1 where id = $2`, [status === "resolved" ? "MoPlayer support [resolved]" : "MoPlayer support", id])
-        .then(() => true)
-        .catch(() => false);
-      if (updated) {
-        return;
-      }
-    }
-
-    const current = await readSiteSetting("moplayer_app_support_requests", asSiteSettingValue(fallbackSupportRequests));
-    const next = (Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests).map((item) =>
-      item.id === id ? { ...item, status } : item,
-    );
-    await upsertSiteSetting("moplayer_app_support_requests", asSiteSettingValue(next));
   }
 }
 

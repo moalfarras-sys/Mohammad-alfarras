@@ -65,15 +65,17 @@ export async function POST(request: Request) {
   }
 
   if (sourcePullTokenHash) {
+    const sourceAuthExpiresAt = new Date(Date.now() + 45 * 60 * 1000).toISOString();
     const { error: authError } = await supabase.from("app_settings").upsert(
       {
         key: deviceSourceAuthSettingKey(publicDeviceId),
         value: {
           publicDeviceId,
           sourcePullTokenHash,
+          expiresAt: sourceAuthExpiresAt,
           updatedAt: now,
         },
-        description: "Server-only MoPlayer device source sync token hash.",
+        description: "Short-lived MoPlayer QR source handoff token hash. Cleared after source import acknowledgement.",
         updated_at: now,
       },
       { onConflict: "key" },

@@ -1,10 +1,14 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
+const adminAppUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space";
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@moalfarras/shared"],
   async redirects() {
     return [
+      { source: "/:locale(en|ar)/admin", destination: adminAppUrl, permanent: true },
+      { source: "/:locale(en|ar)/admin/:path*", destination: `${adminAppUrl}/website`, permanent: true },
       { source: "/:locale(en|ar)/projects", destination: "/:locale/work", permanent: true },
       { source: "/:locale(en|ar)/projects/:slug*", destination: "/:locale/work/:slug*", permanent: true },
     ];

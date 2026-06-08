@@ -31,13 +31,14 @@ export type ProviderSourceQueueValue = {
   publicDeviceId: string;
   sourceType: ProviderSourceType;
   displayName: string;
-  encryptedPayload: string;
+  encryptedPayload?: string;
   encryptionVersion: "aes-256-gcm:v1";
   status: ProviderSourceQueueStatus;
   lastTestStatus: "success" | "failed";
   lastTestMessage: string;
   createdAt: string;
   updatedAt: string;
+  expiresAt?: string;
   pulledAt?: string;
   importedAt?: string;
   failedAt?: string;
@@ -47,6 +48,8 @@ export type ProviderSourceQueueValue = {
 
 const ENCRYPTION_PREFIX = "aes-256-gcm:v1";
 const MAX_TEST_BYTES = 192 * 1024;
+const PENDING_SOURCE_TTL_MS = 20 * 60 * 1000;
+const FETCHED_SOURCE_RECEIPT_TTL_MS = 5 * 60 * 1000;
 
 function serverSecret() {
   const value = process.env.MOPLAYER_PROVIDER_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -189,6 +192,19 @@ export function providerSourceQueueBelongsToProduct(
 ) {
   const queueProduct = queue?.productSlug ?? "moplayer";
   return queueProduct === productSlug;
+}
+
+export function pendingProviderSourceExpiresAt(now = Date.now()) {
+  return new Date(now + PENDING_SOURCE_TTL_MS).toISOString();
+}
+
+export function fetchedProviderSourceReceiptExpiresAt(now = Date.now()) {
+  return new Date(now + FETCHED_SOURCE_RECEIPT_TTL_MS).toISOString();
+}
+
+export function providerSourceQueueExpired(queue: Partial<ProviderSourceQueueValue> | null | undefined, now = Date.now()) {
+  if (!queue?.expiresAt) return false;
+  return new Date(queue.expiresAt).getTime() <= now;
 }
 
 export function normalizeSourcePullToken(value: unknown) {

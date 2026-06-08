@@ -32,7 +32,7 @@ test("key inner pages render redesigned surfaces", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /YouTube|creator/i })).toBeVisible();
 
   await page.goto("/en/contact");
-  await expect(page.getByRole("heading", { name: /Tell me what you want to build/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Tell me about your project/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /continue/i })).toBeVisible();
 });
 

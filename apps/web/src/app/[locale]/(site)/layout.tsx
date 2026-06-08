@@ -114,17 +114,6 @@ function buildFooterQuickFacts(locale: "ar" | "en", yt: YoutubeMetricsSetting) {
       { label: "\u0627\u0644\u0645\u0646\u062a\u062c", value: "MoPlayer" },
     ];
   }
-  if (String(locale) === "__legacy_ar_fallback__") {
-    return [
-      { label: "مقيم في", value: "ألمانيا" },
-      { label: "الجذور", value: "الحسكة، سوريا" },
-      { label: "اللغات", value: "العربية / الألمانية / الإنجليزية" },
-      { label: "يوتيوب", value: `+${arViewsCore} مشاهدة على يوتيوب` },
-      { label: "المشتركون", value: formatYoutubeSubsLabel(yt.subscribers) },
-      { label: "الفيديوهات", value: String(videoCount) },
-      { label: "المنتج", value: "MoPlayer" },
-    ];
-  }
   return [
     { label: "Based in", value: "Germany" },
     { label: "Roots", value: "Al-Hasakah, Syria" },
@@ -209,8 +198,15 @@ export default async function SiteLayout({
         <div className="noise-overlay" />
         <DigitalOsClientEffects />
 
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-black focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        >
+          {locale === "ar" ? "تخطَّ إلى المحتوى" : "Skip to content"}
+        </a>
+
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <SiteAssistantWidget locale={locale} />
         <CookieBanner locale={locale} />
         <SiteFooter

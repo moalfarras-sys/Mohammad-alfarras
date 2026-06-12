@@ -84,9 +84,9 @@ Each major workspace has its own local guide. If you open only one folder in an 
 - Activation UI: `apps/web/src/components/app/moplayer-activation-page.tsx`.
 - Activation APIs: `apps/web/src/app/api/app/activation/*`.
 - App config/download APIs: `apps/web/src/app/api/app/config/route.ts`, `apps/web/src/app/api/app/download/latest/route.ts`, `apps/web/src/app/api/app/releases/*`.
-- Admin dashboard shell: `apps/admin/src/components/admin/admin-os.tsx`.
-- Admin app/release operations: `apps/admin/src/components/admin/app-admin-dashboard.tsx`, `apps/admin/src/lib/app-ecosystem.ts`, `apps/admin/src/app/actions.ts`.
-- Website CMS/admin content: `apps/admin/src/components/admin/website-admin-dashboard.tsx`, `apps/admin/src/lib/website-cms.ts`.
+- Admin dashboard shell/navigation: `apps/admin/src/components/admin/admin-shell.tsx`.
+- Admin app/release operations: `apps/admin/src/components/admin/pages/app-control.tsx`, `apps/admin/src/lib/app-ecosystem.ts`, `apps/admin/src/app/actions.ts`.
+- Website CMS/admin content: `apps/admin/src/components/admin/pages/website-control.tsx`, `apps/admin/src/lib/website-cms.ts`.
 - Classic player stability: `apps/moplayer-android/app/src/main/java/com/mo/moplayer/ui/player`, `apps/moplayer-android/app/src/main/java/com/mo/moplayer/ui/livetv`.
 - Pro player stability: `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/player`.
 - Shared slug behavior: `packages/shared/src/app-products.ts`.
@@ -136,7 +136,9 @@ If a check cannot run locally, say exactly which check failed or was skipped and
 ## Change Discipline
 
 - Keep edits inside the owning app/package whenever possible.
-- If changing duplicated ecosystem logic in `apps/web/src/lib/app-ecosystem.ts`, check whether `apps/admin/src/lib/app-ecosystem.ts` also needs the same product data.
+- `apps/web` must not contain public admin UI. Legacy `/en/admin/*` and `/ar/admin/*` routes redirect to `admin.moalfarras.space`; admin UI lives only in `apps/admin`.
+- Provider/server credentials are QR handoff only. Do not store Xtream/M3U server URLs, usernames, passwords, playlist URLs, or EPG URLs permanently in Supabase. The app must fetch a fresh QR-delivered source once, save it locally, and then disconnect/ack so only non-sensitive status can remain briefly.
+- If changing duplicated ecosystem fallback logic in `apps/web/src/lib/app-ecosystem.ts`, check whether `apps/admin/src/lib/app-ecosystem.ts` also needs the same product data.
 - Prefer shared helpers in `packages/shared` over copy-pasting slug/product logic.
 - For Android live playback, protect against stale retry callbacks, null players, lifecycle pauses, and channel zapping races.
 - For UI work, verify desktop and mobile visually when pages or layout changed.

@@ -106,6 +106,58 @@ data class MediaEntity(
     val updatedAt: Long,
 )
 
+data class MediaListRow(
+    val id: String,
+    val serverId: Long,
+    val type: ContentType,
+    val categoryId: String,
+    val categoryName: String,
+    val title: String,
+    val streamUrl: String,
+    val posterUrl: String,
+    val backdropUrl: String,
+    val description: String,
+    val rating: String,
+    val durationSecs: Long,
+    val addedAt: Long,
+    val lastModifiedAt: Long,
+    val addedAtUnknown: Boolean,
+    val serverOrder: Int,
+    val containerExtension: String,
+    val seriesId: String,
+    val seasonNumber: Int,
+    val episodeNumber: Int,
+    val isFavorite: Boolean,
+    val watchPositionMs: Long,
+    val watchDurationMs: Long,
+    val lastPlayedAt: Long,
+    val tvgId: String,
+    val catchup: String,
+    val genre: String,
+    val releaseDate: String,
+)
+
+@Entity(
+    tableName = "media_search",
+    primaryKeys = ["serverId", "type", "id"],
+    indices = [
+        Index(value = ["serverId", "type"]),
+        Index(value = ["serverId", "title"]),
+        Index(value = ["serverId", "categoryName"]),
+        Index(value = ["serverId", "tvgId"]),
+    ],
+)
+data class MediaSearchEntity(
+    val serverId: Long,
+    val type: ContentType,
+    val id: String,
+    val title: String,
+    val categoryName: String,
+    val tvgId: String,
+    val genre: String,
+    val searchText: String,
+)
+
 @Entity(
     tableName = "account_info",
     primaryKeys = ["serverId"],

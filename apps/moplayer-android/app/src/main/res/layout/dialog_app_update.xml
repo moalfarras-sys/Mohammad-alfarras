@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="520dp"
+    android:layout_width="540dp"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_dialog_premium"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:orientation="vertical"
-    android:padding="28dp">
+    android:padding="30dp">
 
     <TextView
         android:id="@+id/tvUpdateEyebrow"
@@ -15,10 +15,11 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_quality_badge_premium"
         android:fontFamily="sans-serif-medium"
-        android:paddingHorizontal="12dp"
+        android:letterSpacing="0.08"
+        android:paddingHorizontal="13dp"
         android:paddingVertical="5dp"
         android:text="@string/update_available_eyebrow"
-        android:textColor="@color/moplayer_orange_light"
+        android:textColor="@color/cinematic_cyan"
         android:textSize="11sp"
         android:textStyle="bold" />
 
@@ -26,49 +27,81 @@
         android:id="@+id/tvUpdateTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="sans-serif-medium"
         android:lineSpacingExtra="2dp"
         android:textColor="@color/cinematic_text_primary"
-        android:textSize="22sp"
+        android:textSize="23sp"
         android:textStyle="bold"
-        tools:text="Update available - 2.2.7" />
+        tools:text="Update available · 2.2.13" />
 
     <TextView
         android:id="@+id/tvUpdateVersion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textColor="@color/moplayer_orange_light"
+        android:textColor="@color/cinematic_cyan"
         android:textSize="13sp"
         android:textStyle="bold"
-        tools:text="Installed 12 - Latest 13" />
+        tools:text="Installed 12 · Latest 13" />
 
     <TextView
         android:id="@+id/tvUpdateMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="16dp"
         android:lineSpacingExtra="3dp"
         android:maxLines="6"
         android:textColor="@color/cinematic_text_secondary"
         android:textSize="14sp"
-        tools:text="MoPlayer Classic update improves Settings, backgrounds, and playback stability." />
+        tools:text="This update improves Settings, backgrounds, and playback stability." />
 
+    <!-- Download progress (revealed once the user starts the update) -->
     <LinearLayout
+        android:id="@+id/updateProgressContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="22dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ProgressBar
+            android:id="@+id/updateProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="40"
+            android:progressDrawable="@drawable/bg_player_seekbar" />
+
+        <TextView
+            android:id="@+id/tvUpdateProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/cinematic_cyan"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Downloading update… 40%" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/updateButtonRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
         android:gravity="end|center_vertical"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnUpdateLater"
-            android:layout_width="132dp"
-            android:layout_height="48dp"
+            android:layout_width="136dp"
+            android:layout_height="50dp"
             android:background="@drawable/bg_button_secondary"
             android:focusable="true"
             android:nextFocusRight="@id/btnUpdateNow"
+            android:stateListAnimator="@animator/player_focus_pop"
             android:text="@string/update_later"
             android:textAllCaps="false"
             android:textColor="@color/cinematic_text_primary"
@@ -77,12 +110,13 @@
 
         <Button
             android:id="@+id/btnUpdateNow"
-            android:layout_width="160dp"
-            android:layout_height="48dp"
+            android:layout_width="166dp"
+            android:layout_height="50dp"
             android:layout_marginStart="12dp"
             android:background="@drawable/bg_button_play"
             android:focusable="true"
             android:nextFocusLeft="@id/btnUpdateLater"
+            android:stateListAnimator="@animator/player_focus_pop"
             android:text="@string/update_now"
             android:textAllCaps="false"
             android:textColor="@color/htc_pure_black"

@@ -31,7 +31,8 @@ This folder is the public Next.js app for `https://moalfarras.space`. It is not 
 
 ## Where To Edit
 
-- Product pages: `src/components/app/moplayer-landing.tsx`, `src/components/app/moplayer2-landing.tsx`, `src/lib/app-ecosystem.ts`.
+- Product hub and pages: `src/components/app/moplayer-product-hub.tsx`, `src/components/app/moplayer-landing.tsx`, `src/components/app/moplayer2-landing.tsx`, `src/lib/app-ecosystem.ts`.
+- `/{locale}/apps/moplayer` is the MoPlayer product-family hub. Classic details live at `/{locale}/apps/moplayer/classic`; do not overwrite the hub with Classic-only content.
 - Activation UI: `src/components/app/moplayer-activation-page.tsx`.
 - Activation APIs: `src/app/api/app/activation/*`.
 - Runtime config: `src/app/api/app/config/route.ts`.

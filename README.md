@@ -6,6 +6,7 @@ Production monorepo for:
 - Admin control center: `https://admin.moalfarras.space`
 - MoPlayer Classic Android TV app: internal slug `moplayer`
 - MoPlayer Pro Android app: internal slug `moplayer2`
+- MoPlayer Pro Windows PC app: public desktop client for `moplayer2`
 
 The public name is **MoPlayer Pro**. Keep the `moplayer2` slug in code, URLs, API payloads, and database rows for compatibility.
 
@@ -16,6 +17,7 @@ apps/web                 Next.js public site, activation APIs, APK downloads
 apps/admin               Next.js admin control center
 apps/moplayer-android    MoPlayer Classic Android TV app
 apps/moplayer2-android   MoPlayer Pro Android app
+apps/moplayer-pro-windows Electron Windows desktop app for MoPlayer Pro
 apps/moplayer-dashboard  Optional Vite dashboard
 packages/shared          Shared product metadata and helpers
 packages/db              Shared database helpers
@@ -31,6 +33,8 @@ docs/PRODUCTION_GUIDE.md Production operations guide
 | Admin | `moalfarras-admin` | `apps/admin` | `admin.moalfarras.space` |
 
 `www.moalfarras.space` is supported and redirects to `moalfarras.space` while preserving the path and query string.
+
+There is one active admin: `apps/admin` on `admin.moalfarras.space`. Legacy public-site admin URLs such as `/en/admin/*` and `/ar/admin/*` redirect to that admin app and should not be rebuilt inside `apps/web`.
 
 ## Activation Routes
 
@@ -51,6 +55,8 @@ https://moalfarras.space/en/activate?product=moplayer2
 ```
 
 Activation APIs must always preserve product separation with `productSlug` or `product_slug`.
+
+Provider/source data is a one-time QR handoff only. Supabase must not be used as permanent Xtream/M3U server storage: the website queues an encrypted source for the fresh QR session, the app fetches it once, saves it locally, then the API clears the source payload and temporary pull token.
 
 ## Required Local Env
 
@@ -96,6 +102,14 @@ apps/moplayer-android/gradlew.bat testSideloadDebugUnitTest
 apps/moplayer2-android/gradlew.bat testDebugUnitTest
 ```
 
+Windows PC:
+
+```powershell
+npm run verify:windows
+npm run dist:windows
+npm --prefix apps/moplayer-pro-windows run qa:screens
+```
+
 Release APKs:
 
 ```powershell
@@ -113,6 +127,7 @@ Start here:
 - [Agent Guide](AGENTS.md)
 - [Development Workflow](docs/DEVELOPMENT_WORKFLOW.md)
 - [Project Handoff](docs/PROJECT_HANDOFF.md)
+- [Current Project State](docs/CURRENT_PROJECT_STATE.md)
 - [Production Guide](docs/PRODUCTION_GUIDE.md)
 - [Deployment Notes](docs/deployment.md)
 - [Android Projects](docs/android-projects.md)

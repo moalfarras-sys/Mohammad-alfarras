@@ -57,10 +57,10 @@ data class ContentChangeSummary(
     
     fun toDisplayString(): String {
         val parts = mutableListOf<String>()
-        if (newChannels > 0) parts.add("$newChannels قناة")
-        if (newMovies > 0) parts.add("$newMovies فيلم")
-        if (newSeries > 0) parts.add("$newSeries مسلسل")
-        return if (parts.isEmpty()) "" else parts.joinToString(" • ")
+        if (newChannels > 0) parts.add("$newChannels channels")
+        if (newMovies > 0) parts.add("$newMovies movies")
+        if (newSeries > 0) parts.add("$newSeries series")
+        return if (parts.isEmpty()) "" else parts.joinToString(" | ")
     }
     
     companion object {

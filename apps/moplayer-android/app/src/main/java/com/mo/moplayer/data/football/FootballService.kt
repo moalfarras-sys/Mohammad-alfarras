@@ -181,13 +181,16 @@ class FootballService @Inject constructor(
         val today = parseProxyMatchArray(root.optJSONArray("today") ?: JSONArray())
         val nextDay = parseProxyMatchArray(root.optJSONArray("nextDay") ?: JSONArray())
         val important = parseProxyMatchArray(root.optJSONArray("importantMatches") ?: JSONArray())
+        val worldCup = parseProxyMatchArray(root.optJSONArray("worldCupMatches") ?: JSONArray())
 
         return FootballData(
             matches = matches.sortedWith(compareBy({ !it.isLive }, { it.timestamp })),
             previousDay = previousDay,
             today = today,
             nextDay = nextDay,
-            importantMatches = important
+            importantMatches = (important + worldCup).distinctBy { match ->
+                "${match.leagueName}|${match.fixtureDate}|${match.homeTeam}|${match.awayTeam}"
+            }
         )
     }
 
@@ -207,10 +210,21 @@ class FootballService @Inject constructor(
                     homeScore = item.optIntNullable("homeGoals") ?: 0,
                     awayScore = item.optIntNullable("awayGoals") ?: 0,
                     statusShort = item.optString("status").takeIf { it.isNotBlank() },
-                    statusLong = item.optString("status").takeIf { it.isNotBlank() },
-                    elapsed = item.optIntNullable("elapsed") ?: 0,
+                    statusLong = item.optString("statusLong")
+                        .takeIf { it.isNotBlank() }
+                        ?: item.optString("status").takeIf { it.isNotBlank() },
+                    elapsed = item.optIntNullable("elapsed") ?: item.optIntNullable("minute") ?: 0,
                     timestamp = parseIsoTimestampSeconds(item.optString("date")),
-                    fixtureDate = item.optString("date").takeIf { it.isNotBlank() }
+                    venueName = item.optString("venueName")
+                        .takeIf { it.isNotBlank() }
+                        ?: item.optString("venue").takeIf { it.isNotBlank() },
+                    venueCity = item.optString("venueCity")
+                        .takeIf { it.isNotBlank() }
+                        ?: item.optString("city").takeIf { it.isNotBlank() },
+                    fixtureDate = item.optString("date").takeIf { it.isNotBlank() },
+                    referee = item.optString("referee").takeIf { it.isNotBlank() },
+                    halftimeHome = item.optIntNullable("halftimeHome"),
+                    halftimeAway = item.optIntNullable("halftimeAway")
                 )
             )
         }
@@ -274,7 +288,10 @@ class FootballService @Inject constructor(
     private fun parseIsoTimestampSeconds(value: String): Long {
         if (value.isBlank()) return 0L
         return try {
-            val normalized = value.replace("Z", "+0000").replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
+            val withSeconds = value
+                .replace(Regex("T(\\d{2}:\\d{2})(Z|[+-]\\d{2}:\\d{2})$"), "T$1:00$2")
+                .replace(Regex("T(\\d{2}:\\d{2})$"), "T$1:00Z")
+            val normalized = withSeconds.replace("Z", "+0000").replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US).parse(normalized)?.time?.div(1000L) ?: 0L
         } catch (_: Exception) {
             0L

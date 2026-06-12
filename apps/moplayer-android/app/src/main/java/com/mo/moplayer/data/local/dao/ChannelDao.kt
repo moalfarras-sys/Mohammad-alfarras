@@ -27,6 +27,9 @@ interface ChannelDao {
     
     @Query("SELECT * FROM channels WHERE serverId = :serverId ORDER BY addedAt DESC LIMIT :limit")
     fun getRecentlyAddedChannels(serverId: Long, limit: Int = 30): Flow<List<ChannelEntity>>
+
+    @Query("SELECT * FROM channels WHERE serverId = :serverId ORDER BY channelId LIMIT :limit OFFSET :offset")
+    suspend fun getChannelsPage(serverId: Long, limit: Int, offset: Int): List<ChannelEntity>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChannels(channels: List<ChannelEntity>)
@@ -45,4 +48,11 @@ interface ChannelDao {
 
     @Query("SELECT COUNT(*) FROM channels WHERE serverId = :serverId AND categoryId = :categoryId")
     suspend fun getChannelCountByCategory(serverId: Long, categoryId: String): Int
+
+    // --- Stale-content pruning support ---
+    @Query("SELECT channelId FROM channels WHERE serverId = :serverId")
+    suspend fun getChannelIds(serverId: Long): List<String>
+
+    @Query("DELETE FROM channels WHERE channelId IN (:channelIds)")
+    suspend fun deleteChannelsByIds(channelIds: List<String>)
 }

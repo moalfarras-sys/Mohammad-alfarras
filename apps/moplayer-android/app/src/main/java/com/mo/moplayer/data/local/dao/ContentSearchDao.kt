@@ -18,6 +18,9 @@ interface ContentSearchDao {
     @Query("DELETE FROM content_search_index WHERE serverId = :serverId AND contentType = :contentType")
     suspend fun deleteByType(serverId: Long, contentType: String)
 
+    @Query("DELETE FROM content_search_index WHERE serverId = :serverId AND contentId IN (:contentIds)")
+    suspend fun deleteByContentIds(serverId: Long, contentIds: List<String>)
+
     @Query(
         """
         SELECT * FROM content_search_index

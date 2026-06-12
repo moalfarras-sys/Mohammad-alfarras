@@ -63,8 +63,11 @@ object DevicePerformance {
     /** Extra cinematic layers (nebula/glow passes) are reserved for high tier. */
     fun allowCinematicEffects(context: Context): Boolean = tier(context) == Tier.HIGH
 
-    /** Network-backed home widgets (weather, football ticker) are skipped on weak devices. */
-    fun allowRichHomeWidgets(context: Context): Boolean = tier(context) != Tier.LOW
+    /** Home widgets should stay available on every TV; weak devices use lightweight rendering. */
+    fun allowRichHomeWidgets(context: Context): Boolean = true
+
+    /** Avoid Lottie, oversized animation passes, and rapid widget refreshes on weak TVs. */
+    fun useLightweightHomeWidgets(context: Context): Boolean = tier(context) == Tier.LOW
 
     /**
      * Buffer multiplier for the player: weak devices get larger buffers to ride

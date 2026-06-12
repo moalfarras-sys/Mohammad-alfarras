@@ -25,6 +25,7 @@ This folder is the MoPlayer Pro Android/Android TV app. It is not an independent
 - Keep slug `moplayer2` in API calls, database rows, release metadata, and BuildConfig.
 - UI may say **MoPlayer Pro**; code paths must not switch to `moplayer-pro` unless shared slug mapping supports it.
 - Do not share Classic package names, release assets, or activation assumptions.
+- Do not load provider/server credentials directly from Supabase tables. Pro source import must go through a fresh website QR handoff, save the source locally, acknowledge it, and then rely on local app storage plus the provider server.
 - Do not add permissions unless the feature actually needs them and runtime request behavior is handled.
 
 ## Where To Edit

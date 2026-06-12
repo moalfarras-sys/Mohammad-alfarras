@@ -117,6 +117,18 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
+                <ImageButton
+                    android:id="@+id/btnOpenGuide"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/selector_tv_button"
+                    android:contentDescription="@string/epg_guide_open"
+                    android:focusable="true"
+                    android:nextFocusDown="@id/rvGroups"
+                    android:nextFocusRight="@id/rvChannels"
+                    android:src="@drawable/ic_guide"
+                    app:tint="@color/liquid_accent_primary" />
+
             </LinearLayout>
 
             <!-- Divider -->
@@ -137,7 +149,7 @@
                 android:descendantFocusability="afterDescendants"
                 android:nextFocusRight="@id/rvChannels"
                 android:nextFocusLeft="@id/rvGroups"
-                android:nextFocusUp="@id/rvGroups"
+                android:nextFocusUp="@id/btnOpenGuide"
                 android:nextFocusDown="@id/rvGroups"
                 android:paddingVertical="8dp"
                 android:paddingHorizontal="6dp"

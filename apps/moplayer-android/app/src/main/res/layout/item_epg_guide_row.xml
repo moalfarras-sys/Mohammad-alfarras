@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/epgRowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/epg_row_height"
+    android:background="@drawable/bg_epg_row_focus"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <!-- Channel column -->
+    <LinearLayout
+        android:layout_width="@dimen/epg_channel_col_width"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="8dp">
+
+        <TextView
+            android:id="@+id/tvChannelNumber"
+            android:layout_width="34dp"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_channel_number_tivi"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:textColor="@color/liquid_accent_primary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="125" />
+
+        <ImageView
+            android:id="@+id/ivChannelLogo"
+            android:layout_width="40dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_placeholder_channel"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/tvChannelName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
+            android:textColor="@color/liquid_text_primary"
+            android:textSize="13sp"
+            tools:text="Discovery Channel HD" />
+
+    </LinearLayout>
+
+    <!-- Program strip (Canvas-drawn) -->
+    <com.mo.moplayer.ui.epg.EpgProgramRowView
+        android:id="@+id/programStrip"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+</LinearLayout>

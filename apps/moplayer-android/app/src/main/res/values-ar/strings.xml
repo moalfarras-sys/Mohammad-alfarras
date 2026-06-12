@@ -86,7 +86,7 @@
     <string name="football_widget_no_match_subtitle">ستظهر المباراة القادمة هنا عند توفرها</string>
     <string name="football_widget_error_state">ويجت المباريات غير متاح</string>
     <string name="football_widget_error_subtitle">اضغط للمحاولة مجددًا بدون إيقاف التطبيق</string>
-    <string name="football_widget_error">يُطلب مفتاح API</string>
+    <string name="football_widget_error">بيانات المباريات غير متاحة</string>
     <string name="settings_football_widget_title">ويجت المباريات</string>
     <string name="settings_football_widget_desc">عرض مباراة مباشرة أو مباراة اليوم من الدوريات الكبرى في الشاشة الرئيسية</string>
     <string name="settings_football_widget_enable">تفعيل ويجت المباريات</string>
@@ -178,6 +178,13 @@
     <string name="home_subscription_expired">منتهي\n%1$s</string>
     <string name="home_subscription_active">السيرفر\nنشط</string>
     <string name="home_subscription_no_source">السيرفر\nلا يوجد مصدر</string>
+    <!-- رسائل انتهاء الاشتراك الواضحة -->
+    <string name="subscription_expired_title">انتهى الاشتراك</string>
+    <string name="subscription_expired_message">اشتراكك لم يعد فعّالاً، لذلك لا يستطيع السيرفر تشغيل محتوى جديد. جدّد اشتراكك ثم سجّل الدخول من جديد للمتابعة.</string>
+    <string name="subscription_expired_on">انتهى بتاريخ %1$s</string>
+    <string name="subscription_expired_new_signin">تسجيل دخول جديد</string>
+    <string name="subscription_expired_later">لاحقاً</string>
+    <string name="player_subscription_expired">انتهى اشتراكك، لذلك لا يمكن التشغيل من هذا السيرفر حالياً. جدّد الاشتراك وسجّل الدخول من جديد لمتابعة المشاهدة.</string>
     <string name="settings_player">إعدادات المشغل</string>
     <string name="settings_player_default_quality">الجودة الافتراضية</string>
     <string name="settings_player_buffer_size">حجم التخزين المؤقت</string>
@@ -655,6 +662,7 @@
     <string name="update_now">حدّث الآن</string>
     <string name="update_later">لاحقاً</string>
     <string name="update_downloading">جارٍ تنزيل التحديث…</string>
+    <string name="update_downloading_percent">جارٍ تنزيل التحديث… %1$d%%</string>
     <string name="update_permission_required">اسمح بتثبيت التطبيقات ثم أعد المحاولة.</string>
     <string name="update_failed">فشل التحديث: %1$s</string>
     <string name="settings_app_update_title">تحديث التطبيق</string>
@@ -668,4 +676,20 @@
     <string name="settings_app_update_progress">جارٍ تنزيل التحديث… %1$d%%</string>
     <string name="settings_app_update_installer_opened">تم فتح المثبّت. أكمل التحديث من Android.</string>
     <string name="settings_app_update_latest_toast">لا توجد نسخة أحدث منشورة بعد.</string>
+
+    <!-- دليل البرامج الكامل -->
+    <string name="epg_guide_title">دليل البرامج</string>
+    <string name="epg_guide_open">الدليل</string>
+    <string name="epg_prev_day">اليوم السابق</string>
+    <string name="epg_next_day">اليوم التالي</string>
+    <string name="epg_jump_now">الآن</string>
+    <string name="epg_today">اليوم</string>
+    <string name="epg_no_information">لا توجد معلومات</string>
+    <string name="epg_no_program">لم يتم اختيار برنامج</string>
+    <string name="epg_empty">لا توجد قنوات للعرض</string>
+    <string name="epg_guide_hint">OK للمشاهدة · ◀▶ الوقت · ▲▼ القناة</string>
+    <string name="epg_reminder_set">تم ضبط تذكير: %1$s</string>
+    <string name="epg_catchup_open">جارٍ فتح الإعادة…</string>
+    <string name="epg_catchup_unavailable">الإعادة غير متاحة لهذه القناة</string>
+    <string name="epg_channels_count">%1$d قناة</string>
 </resources>

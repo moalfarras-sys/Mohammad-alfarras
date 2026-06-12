@@ -2,6 +2,7 @@ package com.mo.moplayer.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.mo.moplayer.BuildConfig
@@ -78,10 +79,11 @@ object AppModule {
             MoPlayerDatabase::class.java,
             MoPlayerDatabase.DATABASE_NAME
         )
-            // WARNING: fallbackToDestructiveMigration() causes data loss on schema version change.
-            // When upgrading MoPlayerDatabase version, add explicit Migration objects instead:
-            // .addMigrations(MIGRATION_4_5)
-            .fallbackToDestructiveMigration()
+            .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            .addMigrations(MoPlayerDatabase.MIGRATION_5_6)
+            // Legacy schemas before v5 did not ship schema files in this project. Preserve all
+            // current v5 installs; only very old unknown schemas can fall back destructively.
+            .fallbackToDestructiveMigrationFrom(1, 2, 3, 4)
             .build()
     }
     

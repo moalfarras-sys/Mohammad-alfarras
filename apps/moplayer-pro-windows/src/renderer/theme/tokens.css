@@ -1,0 +1,119 @@
+/* MoPlayer Pro — Premium Glass Orange Design System */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Surfaces ── */
+  --bg-deep: #020203;
+  --bg-base: #060608;
+  --bg-elevated: #0e0e12;
+  --bg-graphite: #16161c;
+  --bg-charcoal: #1c1c24;
+  --bg: var(--bg-base);
+  --surface: var(--bg-elevated);
+  --surface-high: var(--bg-graphite);
+
+  /* ── Glass ── */
+  --glass: rgba(14, 12, 16, 0.62);
+  --glass-mid: rgba(12, 10, 14, 0.74);
+  --glass-strong: rgba(6, 5, 8, 0.88);
+  --glass-border: rgba(255, 107, 44, 0.14);
+  --glass-border-strong: rgba(255, 146, 72, 0.38);
+  --glass-border-subtle: rgba(255, 255, 255, 0.06);
+  --glass-border-elite: rgba(255, 176, 96, 0.52);
+  --frosted: rgba(255, 255, 255, 0.04);
+  --frosted-hover: rgba(255, 107, 44, 0.08);
+
+  /* ── Accent — Orange / Amber / Copper ── */
+  --accent: #ff6b2c;
+  --accent-b: #ff9248;
+  --accent-c: #ffb347;
+  --accent-copper: #e8a04a;
+  --accent-deep: #e85a1a;
+  --ember: #ff5c6c;
+  --live: #ff3b4d;
+  --green: #6ee7a0;
+  --glow: rgba(255, 107, 44, 0.55);
+  --glow-soft: rgba(255, 107, 44, 0.12);
+  --glow-strong: rgba(255, 146, 72, 0.28);
+  --neon-orange: 0 0 24px rgba(255, 107, 44, 0.45), 0 0 48px rgba(255, 107, 44, 0.15);
+
+  /* ── Text ── */
+  --text: #faf9f7;
+  --text-secondary: #c4bcb4;
+  --muted: #a8a098;
+  --quiet: #6e6860;
+
+  /* ── Lines (legacy aliases) ── */
+  --line: var(--glass-border);
+  --line-strong: var(--glass-border-strong);
+
+  /* ── Gradients ── */
+  --gradient-orange: linear-gradient(135deg, var(--accent) 0%, var(--accent-b) 52%, var(--accent-c) 100%);
+  --gradient-orange-subtle: linear-gradient(135deg, rgba(255, 107, 44, 0.2), rgba(255, 146, 72, 0.06));
+  --gradient-copper: linear-gradient(135deg, var(--accent-copper) 0%, var(--accent-b) 100%);
+  --gradient-cinematic: radial-gradient(ellipse at 50% -10%, rgba(255, 107, 44, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 90%, rgba(232, 160, 74, 0.08) 0%, transparent 45%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-base) 42%, #0c0a0e 100%);
+  --gradient-glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, transparent 40%, rgba(255, 107, 44, 0.05) 100%);
+  --gradient-sidebar: linear-gradient(180deg, rgba(8, 7, 10, 0.95) 0%, rgba(6, 5, 8, 0.98) 100%);
+
+  /* ── Blur ── */
+  --blur-sm: 12px;
+  --blur-md: 20px;
+  --blur-lg: 28px;
+  --blur-xl: 40px;
+
+  /* ── Shadows ── */
+  --shadow-card: 0 20px 56px rgba(0, 0, 0, 0.52);
+  --shadow-card-hover: 0 28px 72px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(255, 107, 44, 0.1);
+  --shadow-glass-depth: 0 24px 80px rgba(0, 0, 0, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-glow: 0 0 40px var(--glow-soft), 0 12px 32px rgba(0, 0, 0, 0.38);
+  --shadow-button: 0 10px 28px rgba(255, 107, 44, 0.36);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* ── Radius ── */
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
+
+  /* ── Spacing ── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* ── Typography ── */
+  --font-display: "MoManrope", "MoCairo", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --text-xs: 0.68rem;
+  --text-sm: 0.78rem;
+  --text-base: 0.875rem;
+  --text-lg: 1.05rem;
+  --text-xl: 1.35rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+
+  /* ── Layout ── */
+  --titlebar-h: 42px;
+  --sidebar-w: 224px;
+  --sidebar-w-compact: 72px;
+  --content-pad: 1.35rem;
+  --bottom-pad: 1.5rem;
+
+  --dock-h: 58px;
+  --dock-row-h: 82px;
+  --dock-space: 0.8rem;
+
+  /* ── Motion ── */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.44, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 240ms;
+  --duration-slow: 420ms;
+}

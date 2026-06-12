@@ -4,7 +4,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  Activity,
   Box,
+  Bug,
   ExternalLink,
   FileText,
   HelpCircle,
@@ -37,6 +39,7 @@ import {
   saveScreenshotAction,
   updateActivationStatusAction,
   updateDeviceStatusAction,
+  updateDiagnosticReportStatusAction,
   updateProviderSourceAction,
   updateSupportRequestAction,
 } from "@/app/actions";
@@ -87,13 +90,28 @@ function runtimeNumber(value: unknown, fallback: number) {
 export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data: AdminAppData; updated?: string }) {
   const { t } = useLocale();
   const [deviceQuery, setDeviceQuery] = useState("");
-  const { product, faqs, screenshots, releases, supportRequests, devices, activationRequests, licenses, providerSources, runtimeConfig, widgetProviderSettings } = data;
+  const {
+    product,
+    faqs,
+    screenshots,
+    releases,
+    supportRequests,
+    devices,
+    activationRequests,
+    licenses,
+    providerSources,
+    deviceEvents,
+    diagnostics,
+    runtimeConfig,
+    widgetProviderSettings,
+  } = data;
   const runtime = runtimeConfig as RuntimeExtras;
   const basePath = slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
   const runtimeBackgroundUrl = runtimeConfig.backgroundUrl ? resolveAdminAssetUrl(runtimeConfig.backgroundUrl) : "";
 
   const waiting = activationRequests.filter((r) => r.status === "waiting").length;
   const openSupport = supportRequests.filter((r) => r.status === "new").length;
+  const openDiagnostics = diagnostics.filter((item) => !["resolved", "archived"].includes(item.status)).length;
   const latestRelease = [...releases].sort((a, b) => b.version_code - a.version_code)[0];
 
   const filteredDevices = devices.filter((d) => {
@@ -122,10 +140,23 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         })}
         icon={slug === "moplayer2" ? <ShieldCheck className="h-7 w-7" /> : <Smartphone className="h-7 w-7" />}
         actions={
-          <Link href={`${webBaseUrl}/en/apps/${slug}`} target="_blank" className="btn btn-sm">
-            <ExternalLink className="h-4 w-4" />
-            {t({ en: "Public page", ar: "الصفحة العامة" })}
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`${webBaseUrl}/en/apps/${slug}`} target="_blank" className="btn btn-sm">
+              <ExternalLink className="h-4 w-4" />
+              {t({ en: slug === "moplayer" ? "Product hub" : "Public page", ar: slug === "moplayer" ? "بوابة المنتجات" : "الصفحة العامة" })}
+            </Link>
+            {slug === "moplayer" ? (
+              <Link href={`${webBaseUrl}/en/apps/moplayer/classic`} target="_blank" className="btn btn-sm">
+                <ExternalLink className="h-4 w-4" />
+                {t({ en: "Classic page", ar: "صفحة Classic" })}
+              </Link>
+            ) : (
+              <Link href={`${webBaseUrl}/api/app/download/latest?product=moplayer2&platform=windows`} target="_blank" className="btn btn-sm">
+                <Download className="h-4 w-4" />
+                {t({ en: "Windows setup", ar: "مثبت Windows" })}
+              </Link>
+            )}
+          </div>
         }
       />
 
@@ -134,6 +165,8 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
         <StatCard label={t({ en: "Images", ar: "صور" })} value={screenshots.length} icon={<ImageIconLucide className="h-5 w-5" />} href={`${basePath}#visual-assets`} />
         <StatCard label={t({ en: "FAQ", ar: "أسئلة" })} value={faqs.length} icon={<HelpCircle className="h-5 w-5" />} tone="success" />
         <StatCard label={t({ en: "Runtime", ar: "التشغيل" })} value={runtimeConfig.enabled ? t({ en: "On", ar: "يعمل" }) : t({ en: "Off", ar: "متوقف" })} icon={<SlidersHorizontal className="h-5 w-5" />} tone="warning" href={`${basePath}#runtime`} />
+        <StatCard label={t({ en: "Diagnostics", ar: "تشخيص" })} value={openDiagnostics} icon={<Bug className="h-5 w-5" />} tone="warning" href={`${basePath}#telemetry`} />
+        <StatCard label={t({ en: "Events", ar: "أحداث" })} value={deviceEvents.length} icon={<Activity className="h-5 w-5" />} tone="violet" href={`${basePath}#telemetry`} />
       </section>
 
       <section className="grid gap-3 md:grid-cols-4">
@@ -678,6 +711,88 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
             </div>
           ))}
           {!providerSources.length ? <div className="sm:col-span-2 lg:col-span-3"><EmptyState icon={<UploadCloud className="h-5 w-5" />} title={t({ en: "No sources delivered yet", ar: "لا مصادر مُسلّمة بعد" })} /></div> : null}
+        </div>
+      </Accordion>
+
+      <Accordion id="telemetry" title={t({ en: "Diagnostics and device events", ar: "التشخيص وأحداث الأجهزة" })} description={t({ en: "Real app reports grouped by this product", ar: "تقارير حقيقية من التطبيق لهذا المنتج" })} icon={<Activity className="h-5 w-5" />} count={openDiagnostics + deviceEvents.length}>
+        <SectionHelp
+          title={t({ en: "Operational signal", ar: "إشارة تشغيلية" })}
+          body={t({
+            en: "Diagnostics come from /api/app/diagnostics. Device events come from /api/app/events. They help connect Android behavior to admin decisions without exposing source credentials.",
+            ar: "التشخيصات تصل من /api/app/diagnostics، وأحداث الأجهزة من /api/app/events. الهدف ربط سلوك تطبيق Android بقرارات الأدمن بدون كشف بيانات المصادر.",
+          })}
+        />
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">{t({ en: "Open diagnostics", ar: "تشخيصات مفتوحة" })}</p>
+            <p className="tnum mt-1 text-2xl font-black text-[var(--warning)]">{openDiagnostics}</p>
+          </div>
+          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">{t({ en: "Recent events", ar: "أحداث حديثة" })}</p>
+            <p className="tnum mt-1 text-2xl font-black text-[var(--accent)]">{deviceEvents.length}</p>
+          </div>
+          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">{t({ en: "Reported devices", ar: "أجهزة أرسلت تقارير" })}</p>
+            <p className="tnum mt-1 text-2xl font-black text-[var(--success)]">{new Set([...diagnostics.map((item) => item.public_device_id), ...deviceEvents.map((item) => item.public_device_id)]).size}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Bug className="h-4 w-4 text-[var(--warning)]" />
+              <h3 className="text-sm font-black text-[var(--text-1)]">{t({ en: "Diagnostic reports", ar: "تقارير التشخيص" })}</h3>
+            </div>
+            {diagnostics.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <StatusBadge status={item.status} />
+                      <span className="badge">{item.severity}</span>
+                      <span className="badge">{item.category}</span>
+                      <span className="text-[10px] font-bold text-[var(--text-3)]">{new Date(item.created_at).toLocaleString("en-GB")}</span>
+                    </div>
+                    <p className="truncate font-mono text-xs font-black text-[var(--text-1)]">{item.public_device_id}</p>
+                    <p className="mt-1 text-xs text-[var(--text-3)]">v{item.app_version || "?"}{item.app_version_code ? ` / ${item.app_version_code}` : ""}</p>
+                    <p className="mt-3 text-sm leading-6 text-[var(--text-2)]">{item.customer_message}</p>
+                    {item.customer_email ? <p className="mt-2 text-xs font-bold text-[var(--accent)]">{item.customer_email}</p> : null}
+                  </div>
+                  <form action={updateDiagnosticReportStatusAction} className="flex shrink-0 items-center gap-2">
+                    <input type="hidden" name="id" value={item.id} />
+                    <input type="hidden" name="product_slug" value={slug} />
+                    <select name="status" defaultValue={item.status} className="input h-9 w-auto">
+                      <option value="new">{t({ en: "new", ar: "جديد" })}</option>
+                      <option value="reviewing">{t({ en: "reviewing", ar: "قيد المراجعة" })}</option>
+                      <option value="resolved">{t({ en: "resolved", ar: "محلول" })}</option>
+                      <option value="archived">{t({ en: "archived", ar: "مؤرشف" })}</option>
+                    </select>
+                    <button type="submit" className="btn btn-sm">{t({ en: "Save", ar: "حفظ" })}</button>
+                  </form>
+                </div>
+              </div>
+            ))}
+            {!diagnostics.length ? <EmptyState icon={<Bug className="h-5 w-5" />} title={t({ en: "No diagnostic reports", ar: "لا توجد تقارير تشخيص" })} /> : null}
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-[var(--accent)]" />
+              <h3 className="text-sm font-black text-[var(--text-1)]">{t({ en: "Recent device events", ar: "آخر أحداث الأجهزة" })}</h3>
+            </div>
+            {deviceEvents.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <span className="badge">{item.event_type}</span>
+                  <span className="text-[10px] font-bold text-[var(--text-3)]">{new Date(item.created_at).toLocaleString("en-GB")}</span>
+                </div>
+                <p className="truncate font-mono text-xs font-black text-[var(--text-1)]">{item.public_device_id}</p>
+                <p className="mt-1 text-xs text-[var(--text-3)]">v{item.app_version || "?"}</p>
+              </div>
+            ))}
+            {!deviceEvents.length ? <EmptyState icon={<Activity className="h-5 w-5" />} title={t({ en: "No app events yet", ar: "لا توجد أحداث بعد" })} /> : null}
+          </div>
         </div>
       </Accordion>
 

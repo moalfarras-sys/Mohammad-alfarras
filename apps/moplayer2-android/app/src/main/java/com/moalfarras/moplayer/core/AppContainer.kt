@@ -1,6 +1,7 @@
 package com.moalfarras.moplayer.core
 
 import android.content.Context
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -53,12 +54,15 @@ object AppGraph {
 }
 
 private fun scheduleEpgRefresh(context: Context) {
-    val request = PeriodicWorkRequestBuilder<EpgRefreshWorker>(1, TimeUnit.HOURS)
+    val request = PeriodicWorkRequestBuilder<EpgRefreshWorker>(1, TimeUnit.HOURS, 20, TimeUnit.MINUTES)
         .setConstraints(
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .setRequiresStorageNotLow(true)
                 .build(),
         )
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -69,12 +73,15 @@ private fun scheduleEpgRefresh(context: Context) {
 }
 
 private fun scheduleLibraryRefresh(context: Context) {
-    val request = PeriodicWorkRequestBuilder<LibraryRefreshWorker>(1, TimeUnit.HOURS)
+    val request = PeriodicWorkRequestBuilder<LibraryRefreshWorker>(1, TimeUnit.HOURS, 25, TimeUnit.MINUTES)
         .setConstraints(
             Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .setRequiresStorageNotLow(true)
                 .build(),
         )
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(

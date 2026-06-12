@@ -10,7 +10,7 @@ Both native clients live under `apps/`.
 - Android application ID: `com.mo.moplayer`
 - Release task: `assembleSideloadRelease`
 - Published APK folder: `apps/web/public/downloads/moplayer`
-- Current published APK: `2.2.12` (`versionCode` 18), `52746532` bytes, SHA-256 `67b0fa3b55ca05e1ff7ea380b91c47d46d32748325669cb557a1b85487c305f7`
+- Current published APK: `2.2.16` (`versionCode` 22), `52790603` bytes, SHA-256 `5e51b5e9e6ed7c46d172f3f97a5bf3201b41cefd7e27fdd59f3ef4e3b899f895`
 
 Classic QR links must use:
 
@@ -26,7 +26,7 @@ https://moalfarras.space/activate?code=MO-XXXX
 - Android application ID: `com.moalfarras.moplayerpro`
 - Release task: `assembleRelease`
 - Published APK: `apps/web/public/downloads/moplayer2/app-release.apk`
-- Current published APK: `2.5.13` (`versionCode` 51), `49256351` bytes, SHA-256 `31e5648b5841182394f3b9bad96f779bdf475a014072ff1f18caf59b0e9af249`
+- Current published APK: `2.5.20` (`versionCode` 58), `49271867` bytes, SHA-256 `728fe89e4ed4b89845482716faba9811dc8123365d13469e904d7cc5d44d8f91`
 
 Pro QR links must use:
 

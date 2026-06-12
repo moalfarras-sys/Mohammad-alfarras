@@ -31,19 +31,29 @@ export async function generateMetadata({
 
   const { product = "" } = await searchParams;
   const isPro = product === "moplayer2";
-  const copy =
-    isPro && locale === "ar"
+  const isPc = product === "moplayer-pc";
+  const copy = isPc
+    ? locale === "ar"
+      ? {
+          title: "تفعيل MoPlayer PC | محمد الفراس",
+          description: "أكد كود الكمبيوتر وأرسل مصدرك الخاص إلى MoPlayer PC بأمان.",
+        }
+      : {
+          title: "Activate MoPlayer PC | Mohammad Alfarras",
+          description: "Confirm your PC code and securely send your private source to MoPlayer PC.",
+        }
+    : isPro && locale === "ar"
       ? {
           title: "تفعيل MoPlayer Pro | محمد الفراس",
-          description: "أكد كود التلفاز وأرسل مصدر M3U أو Xtream إلى MoPlayer Pro.",
+          description: "أكد كود التلفاز وأرسل مصدرك الخاص إلى MoPlayer Pro بأمان.",
         }
       : isPro
         ? {
             title: "Activate MoPlayer Pro | Mohammad Alfarras",
-            description: "Confirm your TV code and send an M3U or Xtream source to MoPlayer Pro.",
+            description: "Confirm your TV code and securely send your private source to MoPlayer Pro.",
           }
         : meta[locale];
-  const suffix = isPro ? "?product=moplayer2" : "";
+  const suffix = isPc ? "?product=moplayer-pc" : isPro ? "?product=moplayer2" : "";
   const canonical = `${SITE_URL}/${locale}/activate${suffix}`;
 
   const image = "/images/moplayer-activation-flow.webp";
@@ -94,7 +104,7 @@ export default async function ActivateRoute({
     <MoPlayerActivationPage
       locale={locale as Locale}
       initialCode={code || device_code}
-      productSlug={product === "moplayer2" ? "moplayer2" : "moplayer"}
+      productSlug={product === "moplayer-pc" ? "moplayer-pc" : product === "moplayer2" ? "moplayer2" : "moplayer"}
     />
   );
 }

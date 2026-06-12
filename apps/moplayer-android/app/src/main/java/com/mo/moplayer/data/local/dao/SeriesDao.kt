@@ -38,6 +38,9 @@ interface SeriesDao {
     
     @Query("SELECT * FROM series WHERE serverId = :serverId AND rating IS NOT NULL ORDER BY rating DESC LIMIT :limit")
     fun getTopRatedSeries(serverId: Long, limit: Int = 30): Flow<List<SeriesEntity>>
+
+    @Query("SELECT * FROM series WHERE serverId = :serverId ORDER BY seriesId LIMIT :limit OFFSET :offset")
+    suspend fun getSeriesPage(serverId: Long, limit: Int, offset: Int): List<SeriesEntity>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSeries(series: List<SeriesEntity>)
@@ -94,4 +97,14 @@ interface SeriesDao {
     
     @Query("DELETE FROM episodes WHERE seriesId = :seriesId")
     suspend fun deleteEpisodes(seriesId: String)
+
+    // --- Stale-content pruning support ---
+    @Query("SELECT seriesId FROM series WHERE serverId = :serverId")
+    suspend fun getSeriesIds(serverId: Long): List<String>
+
+    @Query("DELETE FROM series WHERE seriesId IN (:seriesIds)")
+    suspend fun deleteSeriesByIds(seriesIds: List<String>)
+
+    @Query("DELETE FROM episodes WHERE seriesId IN (:seriesIds)")
+    suspend fun deleteEpisodesBySeriesIds(seriesIds: List<String>)
 }

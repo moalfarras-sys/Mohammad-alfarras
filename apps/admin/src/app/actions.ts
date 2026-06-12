@@ -20,6 +20,7 @@ import {
   saveAppScreenshot,
   updateActivationRequestStatus,
   updateDeviceStatus,
+  updateDiagnosticReportStatus,
   updateProviderSourceStatus,
   updateSupportRequestStatus,
   upsertDeviceLicense,
@@ -443,6 +444,19 @@ export async function updateProviderSourceAction(formData: FormData) {
   await updateProviderSourceStatus(id, status);
   revalidateAll();
   appRedirect("source", productSlug);
+}
+
+export async function updateDiagnosticReportStatusAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const productSlug = formProductSlug(formData);
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "reviewing");
+  if (!id || !["new", "reviewing", "resolved", "archived"].includes(status)) {
+    throw new Error("Diagnostic report status is invalid.");
+  }
+  await updateDiagnosticReportStatus(id, status as "new" | "reviewing" | "resolved" | "archived");
+  revalidateAll();
+  appRedirect("diagnostic", productSlug);
 }
 
 /* ───────────────────────── Runtime ───────────────────────── */

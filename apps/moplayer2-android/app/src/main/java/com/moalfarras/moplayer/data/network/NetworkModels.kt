@@ -184,63 +184,6 @@ data class OpenMeteoGeocodingResult(
 )
 
 @Serializable
-data class ActivationCodeDto(
-    val code: String = "",
-    @SerialName("server_name") val serverName: String = "",
-    @SerialName("server_type") val serverType: String = "m3u",
-    @SerialName("base_url") val baseUrl: String = "",
-    val username: String = "",
-    val password: String = "",
-    @SerialName("playlist_url") val playlistUrl: String = "",
-    @SerialName("epg_url") val epgUrl: String = "",
-    @SerialName("expires_at") val expiresAt: String? = null,
-    val revoked: Boolean = false,
-)
-
-@Serializable
-data class DeviceActivationInsertDto(
-    @SerialName("device_code") val deviceCode: String,
-    @SerialName("user_code") val userCode: String,
-    @SerialName("verification_url") val verificationUrl: String,
-    @SerialName("verification_url_complete") val verificationUrlComplete: String,
-    @SerialName("device_name") val deviceName: String,
-    @SerialName("device_label") val deviceLabel: String,
-    @SerialName("app_version") val appVersion: String,
-    val status: String = "pending",
-    @SerialName("expires_at") val expiresAt: String,
-    @SerialName("poll_interval_seconds") val pollIntervalSeconds: Int = 5,
-)
-
-@Serializable
-data class DeviceActivationUpdateDto(
-    val status: String,
-)
-
-@Serializable
-data class DeviceActivationDto(
-    @SerialName("device_code") val deviceCode: String = "",
-    @SerialName("user_code") val userCode: String = "",
-    @SerialName("verification_url") val verificationUrl: String = "",
-    @SerialName("verification_url_complete") val verificationUrlComplete: String = "",
-    @SerialName("device_name") val deviceName: String = "",
-    @SerialName("device_label") val deviceLabel: String = "",
-    @SerialName("app_version") val appVersion: String = "",
-    val status: String = "pending",
-    @SerialName("server_name") val serverName: String = "",
-    @SerialName("server_type") val serverType: String = "",
-    @SerialName("base_url") val baseUrl: String = "",
-    val username: String = "",
-    val password: String = "",
-    @SerialName("playlist_url") val playlistUrl: String = "",
-    @SerialName("epg_url") val epgUrl: String = "",
-    @SerialName("expires_at") val expiresAt: String = "",
-    @SerialName("activated_at") val activatedAt: String? = null,
-    @SerialName("consumed_at") val consumedAt: String? = null,
-    @SerialName("poll_interval_seconds") val pollIntervalSeconds: Int = 5,
-    @SerialName("error_message") val errorMessage: String = "",
-)
-
-@Serializable
 data class WebActivationCreateRequestDto(
     val publicDeviceId: String,
     val deviceName: String,

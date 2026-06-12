@@ -8,8 +8,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
 import coil3.BitmapImage
-import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
+import coil3.size.Size
 import com.moalfarras.moplayer.domain.model.MediaItem
 
 @Composable
@@ -22,7 +23,14 @@ fun rememberDynamicAccent(item: MediaItem?): Color {
             return@produceState
         }
         runCatching {
-            val result = ImageLoader(context).execute(ImageRequest.Builder(context).data(source).build())
+            val result = SingletonImageLoader.get(context).execute(
+                ImageRequest.Builder(context)
+                    .data(source)
+                    .size(Size(96, 96))
+                    .memoryCacheKey("accent:$source")
+                    .diskCacheKey(source)
+                    .build(),
+            )
             val bitmap = (result.image as? BitmapImage)?.bitmap
             if (bitmap != null) {
                 value = bitmap.toWarmAccentColor()

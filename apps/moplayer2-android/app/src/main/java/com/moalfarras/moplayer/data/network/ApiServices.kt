@@ -148,41 +148,6 @@ interface SupabaseService {
         @Body body: WebActivationSourceAckRequestDto,
     ): ResponseBody
 
-    @GET("rest/v1/aecodes")
-    suspend fun activationCode(
-        @Header("apikey") anonKey: String,
-        @Header("Authorization") bearer: String?,
-        @Query("code") codeEq: String,
-        @Query("select") select: String = "*",
-        @Query("limit") limit: Int = 1,
-    ): List<ActivationCodeDto>
-
-    @POST("rest/v1/device_activation_codes")
-    suspend fun createDeviceActivation(
-        @Header("apikey") anonKey: String,
-        @Header("Authorization") bearer: String?,
-        @Header("Prefer") prefer: String = "return=representation",
-        @Body body: DeviceActivationInsertDto,
-    ): List<DeviceActivationDto>
-
-    @GET("rest/v1/device_activation_codes")
-    suspend fun deviceActivation(
-        @Header("apikey") anonKey: String,
-        @Header("Authorization") bearer: String?,
-        @Query("device_code") deviceCodeEq: String,
-        @Query("select") select: String = "*",
-        @Query("limit") limit: Int = 1,
-    ): List<DeviceActivationDto>
-
-    @PATCH("rest/v1/device_activation_codes")
-    suspend fun updateDeviceActivationStatus(
-        @Header("apikey") anonKey: String,
-        @Header("Authorization") bearer: String?,
-        @Header("Prefer") prefer: String = "return=minimal",
-        @Query("device_code") deviceCodeEq: String,
-        @Body body: DeviceActivationUpdateDto,
-    ): ResponseBody
-
     @POST("rest/v1/watch_progress")
     suspend fun upsertWatchProgress(
         @Header("apikey") anonKey: String,

@@ -76,6 +76,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.moalfarras.moplayerpro.BuildConfig
 import com.moalfarras.moplayer.data.repository.AppUpdateInfo
 import com.moalfarras.moplayer.data.repository.UpdateInstallResult
@@ -315,7 +317,11 @@ fun SearchScreen(
                 verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
                 modifier = Modifier.focusGroup(),
             ) {
-                items(results.itemCount, key = { index -> results[index]?.let { "${it.type}-${it.id}" } ?: "search-$index" }) { index ->
+                items(
+                    count = results.itemCount,
+                    key = results.itemKey { "${it.type}-${it.serverId}-${it.id}" },
+                    contentType = results.itemContentType { it.type },
+                ) { index ->
                     results[index]?.let { item ->
                         val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
                         val shouldRestore = item.sameMedia(restoreFocusItem)

@@ -7,26 +7,26 @@ export const appsPageCopy = {
     eyebrow: "Apps and products",
     title: "MoPlayer is the flagship Android TV product inside this ecosystem.",
     body:
-      "The Apps section is built around a real product surface: activation, release metadata, APK download, Android TV positioning, support, privacy, and bilingual documentation.",
+      "The Apps section is built around real product journeys: activation, official downloads, TV positioning, support, privacy, and bilingual guidance.",
     openProduct: "Open MoPlayer",
     viewCase: "Read case study",
     download: "Download APK",
     flagship: "Flagship product",
     philosophy: "Product discipline",
-    specs: "Release facts",
+    specs: "Release details",
     otherTitle: "Connected surfaces",
   },
   ar: {
     eyebrow: "التطبيقات والمنتجات",
     title: "MoPlayer هو منتج Android TV الرئيسي داخل هذه المنظومة.",
     body:
-      "قسم التطبيقات مبني حول سطح منتج حقيقي: تفعيل، بيانات إصدار، تنزيل APK، تموضع Android TV، دعم، خصوصية، وتوثيق عربي/إنجليزي.",
+      "قسم التطبيقات مبني حول رحلات منتج حقيقية: تفعيل، تحميلات رسمية، تجربة التلفزيون، دعم، خصوصية، وإرشاد عربي/إنجليزي.",
     openProduct: "افتح MoPlayer",
     viewCase: "اقرأ دراسة الحالة",
     download: "تنزيل APK",
     flagship: "المنتج الرئيسي",
     philosophy: "انضباط المنتج",
-    specs: "حقائق الإصدار",
+    specs: "تفاصيل الإصدار",
     otherTitle: "أسطح مرتبطة",
   },
 } satisfies Localized<Record<string, string>>;
@@ -45,10 +45,10 @@ export const moPlayerCopy = {
       version: "Version",
       versionCode: "Version code",
       size: "Primary APK",
-      minSdk: "Minimum SDK",
-      targetSdk: "Target SDK",
-      abi: "Architecture",
-      checksum: "SHA-256",
+      minSdk: "Minimum Android",
+      targetSdk: "Optimized for",
+      abi: "Device support",
+      checksum: "File check",
       tv: "Android TV",
     },
     featuresEyebrow: "Product decisions",
@@ -60,7 +60,7 @@ export const moPlayerCopy = {
       },
       {
         title: "Official release path",
-        body: "APK download, version data, checksum, support, privacy, and disclaimers stay inside moalfarras.space.",
+        body: "Download, version details, support, privacy, and legal clarity stay inside moalfarras.space.",
       },
       {
         title: "Legal source clarity",
@@ -85,7 +85,7 @@ export const moPlayerCopy = {
     installSteps: [
       {
         title: "Download the APK",
-        body: "Use the latest release link from this page. Choose the build that matches your device architecture when options are shown.",
+        body: "Use the latest official download link from this page. If more than one option appears, choose the one recommended for your device.",
       },
       {
         title: "Allow installation from this source",
@@ -136,10 +136,10 @@ export const moPlayerCopy = {
       version: "الإصدار",
       versionCode: "رقم الإصدار",
       size: "ملف APK الأساسي",
-      minSdk: "الحد الأدنى SDK",
-      targetSdk: "الهدف SDK",
-      abi: "المعمارية",
-      checksum: "SHA-256",
+      minSdk: "أقل إصدار Android",
+      targetSdk: "محسّن لـ",
+      abi: "دعم الأجهزة",
+      checksum: "فحص الملف",
       tv: "Android TV",
     },
     featuresEyebrow: "قرارات المنتج",
@@ -151,7 +151,7 @@ export const moPlayerCopy = {
       },
       {
         title: "مسار إصدار رسمي",
-        body: "تنزيل APK، بيانات النسخة، checksum، الدعم، الخصوصية، والتنبيه القانوني تبقى داخل moalfarras.space.",
+        body: "التحميل، تفاصيل النسخة، الدعم، الخصوصية، والتنبيه القانوني تبقى داخل moalfarras.space.",
       },
       {
         title: "وضوح قانوني للمصادر",
@@ -176,7 +176,7 @@ export const moPlayerCopy = {
     installSteps: [
       {
         title: "نزّل ملف APK",
-        body: "استخدم رابط آخر إصدار من هذه الصفحة. اختر النسخة المناسبة لمعمارية جهازك عندما تظهر أكثر من نسخة.",
+        body: "استخدم رابط آخر إصدار رسمي من هذه الصفحة. إذا ظهرت أكثر من نسخة، اختر الخيار الموصى به لجهازك.",
       },
       {
         title: "اسمح بالتثبيت من هذا المصدر",

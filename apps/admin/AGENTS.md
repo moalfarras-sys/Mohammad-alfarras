@@ -23,13 +23,16 @@ This folder is the admin Next.js app for `https://admin.moalfarras.space`. It is
 - Keep `moplayer` and `moplayer2` separate in every admin operation.
 - Do not change product slugs in admin without updating public web APIs and Android clients.
 - Do not expose secrets in client components.
+- Source delivery controls may show status only. Do not add UI or actions that persist or reveal Xtream/M3U server URLs, usernames, passwords, playlist URLs, or EPG URLs in Supabase.
 - Do not assume `/settings`, `/media`, `/pages`, `/pdfs`, `/cv`, or `/projects` are separate top-level admin routes on the admin domain; the current admin app is primarily a single control-center surface.
 
 ## Where To Edit
 
-- Admin shell/navigation: `src/components/admin/admin-os.tsx`.
-- App operations: `src/components/admin/app-admin-dashboard.tsx`, `src/lib/app-ecosystem.ts`, `src/app/actions.ts`.
-- Website CMS: `src/components/admin/website-admin-dashboard.tsx`, `src/lib/website-cms.ts`.
+- Admin shell/navigation: `src/components/admin/admin-shell.tsx`.
+- App operations: `src/components/admin/pages/app-control.tsx`, `src/lib/app-ecosystem.ts`, `src/app/actions.ts`.
+- Website CMS: `src/components/admin/pages/website-control.tsx`, `src/lib/website-cms.ts`.
+- Email center: `src/components/admin/pages/email-center.tsx`, `src/lib/email-center.ts`.
+- AI and automation: `src/components/admin/pages/ai-operations.tsx`, `src/lib/ai-ops.ts`.
 - Auth/session behavior: `src/lib/auth.ts`, `src/lib/admin-auth.ts`.
 - Shared product behavior: prefer editing `../../packages/shared/src/app-products.ts`.
 
@@ -58,4 +61,5 @@ Check `/`, login rendering, and authenticated dashboard flows if valid local cre
 - Do not copy public website components into admin unless there is a clear shared abstraction.
 - Do not change release/download paths without checking `../web` API routes.
 - Do not bypass server-side auth for convenience.
+- Do not reintroduce localized public-site admin routes. `/en/admin/*` and `/ar/admin/*` are legacy URLs and should redirect to this app.
 - Do not commit `.env.local`, Vercel files, generated builds, or media dumps.

@@ -56,11 +56,13 @@ constructor(
     private var currentMatchData: LiveMatchData? = null
     private var widgetState: WidgetUiState<LiveMatchData> = WidgetUiState.Loading
     private var accentColor: Int = Color.parseColor("#00E5FF")
+    private var lowPowerMode: Boolean = false
 
     var onMatchClick: ((LiveMatchData) -> Unit)? = null
 
     companion object {
         private const val REFRESH_INTERVAL_MS = 45_000L
+        private const val LOW_POWER_REFRESH_INTERVAL_MS = 120_000L
     }
 
     init {
@@ -121,6 +123,16 @@ constructor(
         if (hasFocus()) background = createWidgetBackground(color, focused = true)
     }
 
+    fun setLowPowerMode(enabled: Boolean) {
+        lowPowerMode = enabled
+        if (enabled) {
+            scaleX = 1f
+            scaleY = 1f
+            translationY = 0f
+            elevation = 2f
+        }
+    }
+
     fun initialize(footballService: FootballService) {
         this.footballService = footballService
     }
@@ -178,11 +190,14 @@ constructor(
         refreshRunnable = object : Runnable {
             override fun run() {
                 refresh(forceRefresh = true)
-                handler.postDelayed(this, REFRESH_INTERVAL_MS)
+                handler.postDelayed(this, refreshIntervalMs())
             }
         }
-        refreshRunnable?.let { handler.postDelayed(it, REFRESH_INTERVAL_MS) }
+        refreshRunnable?.let { handler.postDelayed(it, refreshIntervalMs()) }
     }
+
+    private fun refreshIntervalMs(): Long =
+        if (lowPowerMode) LOW_POWER_REFRESH_INTERVAL_MS else REFRESH_INTERVAL_MS
 
     private fun stopPeriodicRefresh() {
         refreshRunnable?.let { handler.removeCallbacks(it) }
@@ -206,7 +221,10 @@ constructor(
             tvLiveBadge.visibility = View.GONE
         }
 
-        if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(context)) {
+        if (lowPowerMode) {
+            ivHomeLogo.setImageResource(R.drawable.ic_football)
+            ivAwayLogo.setImageResource(R.drawable.ic_football)
+        } else if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(context)) {
             com.bumptech.glide.Glide.with(context)
                 .load(data.homeLogo)
                 .placeholder(R.drawable.ic_football)
@@ -294,16 +312,26 @@ constructor(
     }
 
     private fun animateFocus(hasFocus: Boolean) {
-        val targetScale = if (hasFocus) 1.05f else 1.0f
-        val targetElevation = if (hasFocus) 14f else 4f
+        val targetScale = if (hasFocus) {
+            if (lowPowerMode) 1.02f else 1.05f
+        } else {
+            1.0f
+        }
+        val targetElevation = if (hasFocus) {
+            if (lowPowerMode) 8f else 14f
+        } else {
+            if (lowPowerMode) 2f else 4f
+        }
         background = if (hasFocus) createWidgetBackground(accentColor, focused = true) else null
-        animate()
+        val animator = animate()
             .scaleX(targetScale)
             .scaleY(targetScale)
             .translationY(if (hasFocus) -3f else 0f)
-            .setDuration(200)
-            .setInterpolator(OvershootInterpolator(1.4f))
-            .start()
+            .setDuration(if (lowPowerMode) 110L else 200L)
+        if (!lowPowerMode) {
+            animator.setInterpolator(OvershootInterpolator(1.4f))
+        }
+        animator.start()
         elevation = targetElevation
     }
 

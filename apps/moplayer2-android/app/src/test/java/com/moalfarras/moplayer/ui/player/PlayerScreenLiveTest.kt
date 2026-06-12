@@ -21,6 +21,7 @@ class PlayerScreenLiveTest {
     @Test
     fun inferMimeTypeCoversCommonIptvFormats() {
         assertEquals(MimeTypes.APPLICATION_M3U8, inferMimeType("https://example.com/live/index.m3u8?token=1"))
+        assertEquals(MimeTypes.APPLICATION_M3U8, inferMimeType("https://example.com/live/index.m3u"))
         assertEquals(MimeTypes.APPLICATION_M3U8, inferMimeType("https://example.com/get.php?username=u&password=p&output=m3u8"))
         assertEquals(MimeTypes.APPLICATION_MPD, inferMimeType("https://example.com/manifest.mpd"))
         assertEquals(MimeTypes.APPLICATION_MPD, inferMimeType("https://example.com/stream?id=1&format=dash"))
@@ -87,6 +88,53 @@ class PlayerScreenLiveTest {
         assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
         assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, null))
         assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
+    }
+
+    @Test
+    fun vodFallbackRetriesXtreamEpisodeExtensions() {
+        val item = MediaItem(
+            id = "77",
+            serverId = 1,
+            type = ContentType.EPISODE,
+            categoryId = "series",
+            title = "Episode",
+            streamUrl = "http://example.test/series/u/p/77.mp4",
+            containerExtension = "mp4",
+            seriesId = "10",
+            seasonNumber = 1,
+            episodeNumber = 1,
+        )
+        val requests = vodFallbackRequests(parseStreamRequest(item.streamUrl), item)
+
+        assertEquals("http://example.test/series/u/p/77.mkv", requests.first().uri)
+        assertTrue(requests.any { it.uri.endsWith("/77.ts") })
+        assertTrue(requests.any { it.mimeType == MimeTypes.APPLICATION_M3U8 })
+    }
+
+    @Test
+    fun vodFallbackSkipsAlreadyAttemptedUris() {
+        val item = MediaItem(
+            id = "88",
+            serverId = 1,
+            type = ContentType.MOVIE,
+            categoryId = "movies",
+            title = "Movie",
+            streamUrl = "http://example.test/movie/u/p/88.mp4",
+            containerExtension = "mp4",
+        )
+        val base = parseStreamRequest(item.streamUrl)
+        val first = nextVodFallbackRequest(base, base, item, attemptedUris = emptySet())
+        val second = nextVodFallbackRequest(base, first!!, item, attemptedUris = setOf(base.uri, first.uri))
+
+        assertEquals("http://example.test/movie/u/p/88.mkv", first.uri)
+        assertEquals("http://example.test/movie/u/p/88.avi", second?.uri)
+    }
+
+    @Test
+    fun vodStreamFallbackOnlyHandlesContainerOrHttpShapeErrors() {
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null))
+        assertEquals(false, shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
     }
 
     @Test
@@ -249,6 +297,13 @@ class PlayerScreenLiveTest {
         assertTrue(profile.bufferForPlaybackMs <= 700)
         assertTrue(profile.targetOffsetMs <= 6_000L)
         assertTrue(profile.maxBufferMs <= 20_000)
+    }
+
+    @Test
+    fun noVideoWatchdogsAreFastOnWeakDevices() {
+        assertTrue(liveNoVideoWatchdogDelayMs(isPerformanceMode = true, sdkInt = 36) <= 2_500)
+        assertTrue(liveNoVideoWatchdogDelayMs(isPerformanceMode = false, sdkInt = 25) <= 2_500)
+        assertTrue(vodNoVideoWatchdogDelayMs(isPerformanceMode = true, sdkInt = 36) <= 3_800)
     }
 
     @Test

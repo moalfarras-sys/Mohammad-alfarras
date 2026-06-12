@@ -109,6 +109,7 @@ export type AppSupportRequest = {
 export type AppDevice = {
   id: string;
   public_device_id: string;
+  product_slug?: string | null;
   name: string | null;
   platform: string;
   device_type: string;
@@ -171,10 +172,38 @@ export type DeviceProviderSourceQueue = {
   lastTestMessage?: string;
   createdAt: string;
   updatedAt: string;
+  expiresAt?: string;
   pulledAt?: string;
   importedAt?: string;
   failedAt?: string;
   failureMessage?: string;
+};
+
+export type AppDeviceEvent = {
+  id: string;
+  product_slug: string;
+  public_device_id: string;
+  event_type: string;
+  app_version: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type AppDiagnosticReport = {
+  id: string;
+  product_slug: string;
+  public_device_id: string;
+  app_version: string | null;
+  app_version_code: number | null;
+  locale: "ar" | "en" | string;
+  category: string;
+  severity: string;
+  status: "new" | "reviewing" | "resolved" | "archived" | string;
+  customer_email: string | null;
+  customer_message: string;
+  diagnostic_payload: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 };
 
 export type AppRuntimeConfig = {
@@ -261,6 +290,8 @@ export type AdminAppData = AppEcosystemData & {
   activationRequests: ActivationRequest[];
   licenses: AppLicense[];
   providerSources: DeviceProviderSourceQueue[];
+  deviceEvents: AppDeviceEvent[];
+  diagnostics: AppDiagnosticReport[];
   runtimeConfig: AppRuntimeConfig;
   widgetProviderSettings: WidgetProviderSettingsStatus;
   metrics: AppOperationalMetrics;

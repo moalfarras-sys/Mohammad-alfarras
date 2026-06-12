@@ -137,10 +137,15 @@ class LoginActivity : AppCompatActivity() {
     private var animationTime = 0f
     @Volatile
     private var startupResolved = false
+    // True when the user explicitly opened sign-in to add/replace a source (e.g. "New sign-in"
+    // after a subscription expired, or "Add source" in Settings). In that case we must NOT
+    // auto-bounce back to Home just because a (now-expired) session still exists.
+    private var stayForSetup = false
     private var remoteWeatherEnabled = true
     private val websiteSourceHandler = Handler(Looper.getMainLooper())
     private var websiteSourcePollAttempts = 0
     private var pendingWebsiteSourceId: String? = null
+    private val websiteSourceDeliveryWindowMs = 20 * 60 * 1000L
     private val focusIconAnimators = WeakHashMap<View, AnimatorSet>()
     private val websiteSourceRunnable = object : Runnable {
         override fun run() {
@@ -153,6 +158,12 @@ class LoginActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition { !startupResolved }
+        // Sign-in can sit idle while the user types credentials or waits to scan a QR
+        // code from a phone. Keep the TV panel awake so it never dims mid-setup.
+        window.addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
         window.setBackgroundDrawableResource(R.color.cinematic_bg_base)
 
         lifecycleScope.launch {
@@ -163,6 +174,7 @@ class LoginActivity : AppCompatActivity() {
             val shouldStayForSetup =
                 intent?.getBooleanExtra(EXTRA_ACTIVATION_COMPLETED, false) == true ||
                     intent?.getBooleanExtra("add_new_server", false) == true
+            stayForSetup = shouldStayForSetup
 
             if (hasSavedSession && !safeMode && !shouldStayForSetup) {
                 startupResolved = true
@@ -204,6 +216,8 @@ class LoginActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        stayForSetup = intent.getBooleanExtra(EXTRA_ACTIVATION_COMPLETED, false) ||
+            intent.getBooleanExtra("add_new_server", false)
         if (::binding.isInitialized) {
             applySavedActivationState()
             handleActivationCompletedIntent(intent)
@@ -711,16 +725,26 @@ class LoginActivity : AppCompatActivity() {
         binding.etServerUrlClean.postDelayed({
             binding.etServerUrlClean.requestFocus()
         }, 180)
-        startWebsiteSourcePolling()
+        startWebsiteSourcePollingIfActivated()
         intent.removeExtra(EXTRA_ACTIVATION_COMPLETED)
     }
 
     private fun startWebsiteSourcePollingIfActivated() {
         val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
         val isActivated = activationPrefs.getString("activation_status", null) == "activated"
-        if (isActivated) {
+        if (isActivated && isWebsiteSourceDeliveryWindowOpen(activationPrefs)) {
             startWebsiteSourcePolling()
+        } else {
+            websiteSourceHandler.removeCallbacks(websiteSourceRunnable)
         }
+    }
+
+    private fun isWebsiteSourceDeliveryWindowOpen(activationPrefs: android.content.SharedPreferences): Boolean {
+        val activatedAt = activationPrefs.getLong("activated_at", 0L)
+        val completedAt = activationPrefs.getLong("source_delivery_done_at", 0L)
+        if (activatedAt <= 0L || completedAt >= activatedAt) return false
+        val age = System.currentTimeMillis() - activatedAt
+        return age in 0..websiteSourceDeliveryWindowMs
     }
 
     private fun startWebsiteSourcePolling() {
@@ -733,6 +757,10 @@ class LoginActivity : AppCompatActivity() {
         if (websiteSourcePollAttempts < 45 && pendingWebsiteSourceId == null) {
             websiteSourceHandler.postDelayed(websiteSourceRunnable, 4_000)
         } else if (pendingWebsiteSourceId == null && ::binding.isInitialized) {
+            getSharedPreferences("activation", MODE_PRIVATE)
+                .edit()
+                .putLong("source_delivery_done_at", System.currentTimeMillis())
+                .apply()
             binding.tvErrorClean.text = getString(R.string.website_source_wait_timeout)
             binding.tvErrorClean.isVisible = true
         }
@@ -740,6 +768,10 @@ class LoginActivity : AppCompatActivity() {
 
     private fun checkWebsiteDeliveredSource(scheduleNext: Boolean) {
         val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+        if (!isWebsiteSourceDeliveryWindowOpen(activationPrefs)) {
+            websiteSourceHandler.removeCallbacks(websiteSourceRunnable)
+            return
+        }
         val publicDeviceId = activationPrefs.getString("public_device_id", null).orEmpty()
         val sourcePullToken = getOrCreateSourcePullToken()
         if (publicDeviceId.isBlank() || sourcePullToken.isBlank() || pendingWebsiteSourceId != null) return
@@ -821,6 +853,9 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
             pendingWebsiteSourceId = null
+            activationPrefs.edit()
+                .putLong("source_delivery_done_at", System.currentTimeMillis())
+                .apply()
             onDone?.invoke()
         }
     }
@@ -1143,7 +1178,9 @@ class LoginActivity : AppCompatActivity() {
                     binding.tvErrorClean.isVisible = false
                 }
                 is LoginViewModel.LoginState.AlreadyLoggedIn -> {
-                    navigateToHome()
+                    // Don't bounce back to Home when the user explicitly came to add/replace a
+                    // source (e.g. "New sign-in" after expiry) — keep them on the sign-in form.
+                    if (!stayForSetup) navigateToHome()
                 }
                 is LoginViewModel.LoginState.Success -> {
                     Toast.makeText(this, R.string.login_success, Toast.LENGTH_SHORT).show()

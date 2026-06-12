@@ -186,7 +186,7 @@ class M3uParser {
             releaseDate = releaseDate,
             durationSecs = durationSecs,
             sortOrder = sortOrder,
-            rawJson = attrs.entries.joinToString(prefix = "{", postfix = "}") { (key, value) -> "\"$key\":\"${value.escapeJson()}\"" },
+            rawJson = "",
         )
     }
 
@@ -315,6 +315,3 @@ private fun normalizeHeaderName(key: String): String = when (key.trim().lowercas
 
 private fun String.encodeHeaderToken(): String =
     URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")
-
-private fun String.escapeJson(): String =
-    replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r")

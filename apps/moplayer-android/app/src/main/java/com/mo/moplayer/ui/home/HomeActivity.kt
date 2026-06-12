@@ -324,23 +324,29 @@ class HomeActivity : BaseTvActivity() {
         setupClock()
         setupWeather()
         setupFootballWidget()
+        applyHomeWidgetPerformanceMode()
 
-        val richWidgetsAllowed = DevicePerformance.allowRichHomeWidgets(this)
         val visibleChrome = listOfNotNull(
-            binding.weatherWidget.takeIf { appRemoteConfig.weatherEnabled && richWidgetsAllowed },
-            binding.footballWidget.takeIf { appRemoteConfig.footballEnabled && richWidgetsAllowed },
+            binding.weatherWidget.takeIf { appRemoteConfig.weatherEnabled },
+            binding.footballWidget.takeIf { appRemoteConfig.footballEnabled },
             binding.flipClockContainer
         )
+        val lightweightWidgets = DevicePerformance.useLightweightHomeWidgets(this)
         visibleChrome.forEach { view ->
             view.visibility = View.VISIBLE
-            view.alpha = 0f
-            view.translationY = -8f
-            view.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setDuration(260L)
-                .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-                .start()
+            if (lightweightWidgets) {
+                view.alpha = 1f
+                view.translationY = 0f
+            } else {
+                view.alpha = 0f
+                view.translationY = -8f
+                view.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(260L)
+                    .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
+                    .start()
+            }
         }
 
         binding.topSignalBar.animate()
@@ -363,9 +369,8 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun applyRemoteConfigState() {
-        val richWidgetsAllowed = DevicePerformance.allowRichHomeWidgets(this)
-        binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled && richWidgetsAllowed) View.VISIBLE else View.GONE
-        binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled && richWidgetsAllowed) View.VISIBLE else View.GONE
+        binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled) View.VISIBLE else View.GONE
+        binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
 
         val message = when {
             !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { "MoPlayer is temporarily unavailable." }
@@ -383,6 +388,12 @@ class HomeActivity : BaseTvActivity() {
             binding.tvPreviewDescription.isVisible = true
         }
         binding.root.post { setupFocusMap() }
+    }
+
+    private fun applyHomeWidgetPerformanceMode() {
+        val lightweightWidgets = DevicePerformance.useLightweightHomeWidgets(this)
+        binding.weatherWidget.setLowPowerMode(lightweightWidgets)
+        binding.footballWidget.setLowPowerMode(lightweightWidgets)
     }
 
     private fun parseRemoteAccentColor(value: String): Int? {
@@ -433,6 +444,7 @@ class HomeActivity : BaseTvActivity() {
         if (silentRefreshStarted) return
         silentRefreshStarted = true
         smartRefreshManager.startForegroundRefresh(lifecycleScope)
+        viewModel.refreshSubscriptionOnce()
         checkForAppUpdate()
     }
 
@@ -459,6 +471,10 @@ class HomeActivity : BaseTvActivity() {
             getString(R.string.update_version_compare, info.currentVersionCode, info.latestVersionCode)
         val laterButton = dialogView.findViewById<Button>(R.id.btnUpdateLater)
         val updateButton = dialogView.findViewById<Button>(R.id.btnUpdateNow)
+        val buttonRow = dialogView.findViewById<View>(R.id.updateButtonRow)
+        val progressContainer = dialogView.findViewById<View>(R.id.updateProgressContainer)
+        val progressBar = dialogView.findViewById<android.widget.ProgressBar>(R.id.updateProgressBar)
+        val progressText = dialogView.findViewById<TextView>(R.id.tvUpdateProgress)
         laterButton.visibility = if (info.forceUpdate) View.GONE else View.VISIBLE
 
         val dialog = AlertDialog.Builder(this, R.style.AlertDialogTheme)
@@ -469,18 +485,36 @@ class HomeActivity : BaseTvActivity() {
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             laterButton.setOnClickListener { dialog.dismiss() }
             updateButton.setOnClickListener {
-                dialog.dismiss()
-                startUpdateDownload(repo, info)
+                // Download in place with live progress instead of closing the dialog and leaving
+                // the user staring at a frozen screen during a ~50 MB download.
+                buttonRow.visibility = View.GONE
+                progressContainer.visibility = View.VISIBLE
+                progressBar.progress = 0
+                progressText.setText(R.string.update_downloading)
+                dialog.setCancelable(false)
+                startUpdateDownload(repo, info, dialog, progressBar, progressText)
             }
             updateButton.requestFocus()
         }
         dialog.show()
     }
 
-    private fun startUpdateDownload(repo: UpdateRepository, info: AppUpdateInfo) {
-        android.widget.Toast.makeText(this, R.string.update_downloading, android.widget.Toast.LENGTH_SHORT).show()
+    private fun startUpdateDownload(
+        repo: UpdateRepository,
+        info: AppUpdateInfo,
+        dialog: AlertDialog,
+        progressBar: android.widget.ProgressBar,
+        progressText: TextView
+    ) {
         lifecycleScope.launch {
-            when (val result = repo.downloadAndOpenInstaller(info) { }) {
+            val result = repo.downloadAndOpenInstaller(info) { pct ->
+                runOnUiThread {
+                    progressBar.progress = pct
+                    progressText.text = getString(R.string.update_downloading_percent, pct)
+                }
+            }
+            if (dialog.isShowing) dialog.dismiss()
+            when (result) {
                 is UpdateInstallResult.InstallPermissionRequired ->
                     android.widget.Toast.makeText(this@HomeActivity, R.string.update_permission_required, android.widget.Toast.LENGTH_LONG).show()
                 is UpdateInstallResult.Failed ->
@@ -588,6 +622,8 @@ class HomeActivity : BaseTvActivity() {
             }.collect { (enabled, quality, reduceMotion, disableLightning, weatherData) ->
                 // Visibility: hide both when disabled; hide overlay only when quality OFF
                 val weatherVisible = enabled && appRemoteConfig.weatherEnabled
+                val effectsAllowed = !DevicePerformance.useLightweightHomeWidgets(this@HomeActivity) &&
+                    !CrashGuard.shouldUseSafeMode(this@HomeActivity)
                 binding.weatherWidget.visibility = if (weatherVisible) View.VISIBLE else View.GONE
                 if (weatherWidgetWasVisible != weatherVisible) {
                     weatherWidgetWasVisible = weatherVisible
@@ -595,8 +631,12 @@ class HomeActivity : BaseTvActivity() {
                 }
                 binding.weatherOverlay.visibility = when {
                     !weatherVisible -> View.GONE
+                    !effectsAllowed -> View.GONE
                     quality == WeatherService.EFFECT_QUALITY_OFF -> View.GONE
                     else -> View.VISIBLE
+                }
+                if (!effectsAllowed) {
+                    binding.weatherOverlay.pauseAnimation()
                 }
                 // Update overlay settings (quality, reduce motion, lightning)
                 binding.weatherOverlay.setEffectSettings(
@@ -1189,6 +1229,7 @@ class HomeActivity : BaseTvActivity() {
             activeSourceName = server?.name
             binding.serverExpiryWidget.text = buildServerExpiryText(server)
             binding.serverExpiryWidget.visibility = View.VISIBLE
+            maybeShowSubscriptionExpiredDialog(server)
             if (homeRowsEmpty && !homeRowsLoading) {
                 renderHomeEmptyCopy(viewModel.dashboardState.value)
             }
@@ -1240,18 +1281,61 @@ class HomeActivity : BaseTvActivity() {
         return expiry ?: getString(R.string.home_subscription_active)
     }
 
-    private fun parseProviderDateMillis(value: String): Long? {
-        val epoch = value.trim().toLongOrNull()?.takeIf { it > 0 } ?: return null
-        return if (epoch < 10_000_000_000L) epoch * 1000L else epoch
+    private fun parseProviderDateMillis(value: String): Long? =
+        com.mo.moplayer.util.ProviderSubscription.parseProviderDateMillis(value)
+
+    private fun formatProviderDate(value: String): String =
+        com.mo.moplayer.util.ProviderSubscription.formatProviderDate(value)
+
+    // Show the clear "subscription expired" dialog at most once per active source per session.
+    private var subscriptionExpiredShownForServerId: Long? = null
+    private var subscriptionExpiredDialog: android.app.AlertDialog? = null
+
+    /**
+     * When the active source's subscription is out of days (or the panel reports it
+     * expired/banned/disabled), surface a clear, blocking message over the kept library
+     * instead of letting the user hit silent playback failures. Offered actions:
+     * sign in with a renewed/new source, or keep browsing the cache for now.
+     */
+    private fun maybeShowSubscriptionExpiredDialog(server: com.mo.moplayer.data.local.entity.ServerEntity?) {
+        server ?: return
+        val info = com.mo.moplayer.util.ProviderSubscription.infoFor(server)
+        if (!info.isExpired) {
+            // Subscription is healthy again (e.g. renewed) — allow the dialog to show next time.
+            if (subscriptionExpiredShownForServerId == server.id) {
+                subscriptionExpiredShownForServerId = null
+            }
+            return
+        }
+        if (subscriptionExpiredShownForServerId == server.id) return
+        if (subscriptionExpiredDialog?.isShowing == true) return
+        if (isFinishing || isDestroyed) return
+        subscriptionExpiredShownForServerId = server.id
+
+        val dateLine = info.expiryLabel?.let { getString(R.string.subscription_expired_on, it) }
+        val message = listOfNotNull(getString(R.string.subscription_expired_message), dateLine)
+            .joinToString("\n\n")
+
+        subscriptionExpiredDialog = android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle(R.string.subscription_expired_title)
+            .setMessage(message)
+            .setCancelable(true)
+            .setPositiveButton(R.string.subscription_expired_new_signin) { d, _ ->
+                d.dismiss()
+                openLoginForNewSource()
+            }
+            .setNegativeButton(R.string.subscription_expired_later) { d, _ -> d.dismiss() }
+            .setOnDismissListener { subscriptionExpiredDialog = null }
+            .create()
+        subscriptionExpiredDialog?.show()
     }
 
-    private fun formatProviderDate(value: String): String {
-        val trimmed = value.trim()
-        val millis = parseProviderDateMillis(trimmed)
-        if (millis != null) {
-            return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(millis))
+    private fun openLoginForNewSource() {
+        val intent = Intent(this, com.mo.moplayer.ui.login.LoginActivity::class.java).apply {
+            putExtra("add_new_server", true)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
-        return trimmed.take(16)
+        startActivity(intent)
     }
 
     private fun renderHomeEmptyState() {
@@ -2044,6 +2128,8 @@ class HomeActivity : BaseTvActivity() {
         weatherDetailsJob = null
         clockHandler.removeCallbacks(clockRunnable)
         weatherUpdateHandler.removeCallbacks(weatherUpdateRunnable)
+        subscriptionExpiredDialog?.dismiss()
+        subscriptionExpiredDialog = null
     }
 
     enum class DockItem {

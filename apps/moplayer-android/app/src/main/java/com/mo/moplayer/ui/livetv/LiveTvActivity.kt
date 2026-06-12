@@ -130,6 +130,7 @@ class LiveTvActivity : BaseTvActivity() {
         setupChannelList()
         setupTouchSupport()
         startClockUpdate()
+        binding.btnOpenGuide.setOnClickListener { launchGuide() }
 
         // Check for direct channel navigation
         intent.getStringExtra(EXTRA_CHANNEL_ID)?.let { channelId ->
@@ -1740,8 +1741,16 @@ class LiveTvActivity : BaseTvActivity() {
         channelInputTimeout?.let { handler.postDelayed(it, CHANNEL_INPUT_TIMEOUT) }
     }
 
+    private fun launchGuide() {
+        startActivity(Intent(this, com.mo.moplayer.ui.epg.EpgGuideActivity::class.java))
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
+            KeyEvent.KEYCODE_GUIDE, KeyEvent.KEYCODE_PROG_GREEN -> {
+                launchGuide()
+                return true
+            }
             KeyEvent.KEYCODE_MENU -> {
                 if (isOverlayInteractive() && currentChannel != null) {
                     currentChannel?.let { channel -> showContextMenu(channel) }

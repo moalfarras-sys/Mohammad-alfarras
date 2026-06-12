@@ -4,14 +4,18 @@ import android.content.Context
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.room.withTransaction
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mo.moplayer.data.local.dao.*
+import com.mo.moplayer.data.local.MoPlayerDatabase
 import com.mo.moplayer.data.local.entity.*
 import com.mo.moplayer.data.parser.M3uParser
 import com.mo.moplayer.data.remote.api.XtreamApi
 import com.mo.moplayer.data.remote.dto.AuthResponse
+import com.mo.moplayer.data.remote.dto.EpisodeDto
+import com.mo.moplayer.data.remote.dto.SeriesInfoResponse
 import com.mo.moplayer.data.remote.dto.SeriesDto
 import com.mo.moplayer.data.remote.dto.VodStreamDto
 import com.mo.moplayer.data.util.ImageUrlNormalizer
@@ -29,6 +33,11 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class CachedSeriesDetails(
+    val series: SeriesEntity,
+    val episodes: List<EpisodeEntity>
+)
+
 @Singleton
 class IptvRepository @Inject constructor(
     private val xtreamApi: XtreamApi,
@@ -43,14 +52,47 @@ class IptvRepository @Inject constructor(
     private val serverSyncStateDao: ServerSyncStateDao,
     private val contentSearchDao: ContentSearchDao,
     private val m3uParser: M3uParser,
+    private val database: MoPlayerDatabase,
     private val credentialManager: CredentialManager
 ) {
     companion object {
         private const val M3U_IMPORT_BATCH_SIZE = 400
         private const val API_IMPORT_BATCH_SIZE = 500
+        private const val SEARCH_REBUILD_PAGE_SIZE = 800
     }
 
     internal fun normalizeImageUrl(raw: String?): String? = ImageUrlNormalizer.normalize(raw)
+
+    private fun contentSearchEntity(
+        serverId: Long,
+        contentType: String,
+        contentId: String,
+        title: String,
+        subtitle: String?,
+        posterUrl: String?
+    ): ContentSearchEntity {
+        val uniqueId = "$serverId:$contentType:$contentId"
+        return ContentSearchEntity(
+            rowId = stableSearchRowId(uniqueId),
+            uniqueId = uniqueId,
+            serverId = serverId,
+            contentId = contentId,
+            contentType = contentType,
+            title = title,
+            subtitle = subtitle,
+            posterUrl = normalizeImageUrl(posterUrl)
+        )
+    }
+
+    private fun stableSearchRowId(value: String): Long {
+        var hash = -3750763034362895579L // FNV-1a 64-bit offset basis as signed Long.
+        value.toByteArray(Charsets.UTF_8).forEach { byte ->
+            hash = hash xor (byte.toLong() and 0xffL)
+            hash *= 1099511628211L
+        }
+        val positive = hash and Long.MAX_VALUE
+        return if (positive == 0L) 1L else positive
+    }
     
     // Server operations
     fun getActiveServer(): Flow<ServerEntity?> = serverDao.getActiveServerFlow()
@@ -125,6 +167,48 @@ class IptvRepository @Inject constructor(
         serverDao.deactivateAllServers()
         serverDao.activateServer(serverId)
     }
+
+    /**
+     * Re-authenticate the active Xtream source and refresh its stored subscription window
+     * (expiry date, account status, connection counts). Content sync alone never re-auths, so
+     * without this a RENEWED account would stay stuck showing "expired", and a lapsed one would
+     * never start warning. Failures are swallowed so a transient network blip never corrupts the
+     * cached values. Returns true if the stored info was refreshed.
+     */
+    suspend fun refreshActiveServerSubscription(): Boolean = withContext(Dispatchers.IO) {
+        val server = serverDao.getActiveServer() ?: return@withContext false
+        if (!server.serverType.equals("xtream", ignoreCase = true) || server.serverUrl.isBlank()) {
+            return@withContext false
+        }
+        val (username, password) = resolveCredentials(server)
+        if (username.isBlank()) return@withContext false
+        when (val auth = authenticateXtream(server.serverUrl, username, password)) {
+            is Resource.Success -> {
+                val info = auth.data
+                if (info?.userInfo?.auth == 1) {
+                    val preferred = existingPreferredOutputFormat(server.serverInfo)
+                    serverDao.updateServer(
+                        server.copy(
+                            serverInfo = buildServerInfoJson(info, preferred),
+                            expirationDate = info.userInfo?.expDate ?: server.expirationDate,
+                            maxConnections = info.userInfo?.maxConnections?.toIntOrNull() ?: server.maxConnections,
+                            activeConnections = info.userInfo?.activeConnections?.toIntOrNull() ?: server.activeConnections
+                        )
+                    )
+                    true
+                } else false
+            }
+            else -> false
+        }
+    }
+
+    private fun existingPreferredOutputFormat(serverInfo: String?): String? {
+        val json = serverInfo?.takeIf { it.isNotBlank() } ?: return null
+        return runCatching {
+            com.google.gson.JsonParser.parseString(json).asJsonObject
+                .get("preferred_output_format")?.asString?.takeIf { it.isNotBlank() }
+        }.getOrNull()
+    }
     
     suspend fun deleteServer(serverId: Long) = withContext(Dispatchers.IO) {
         contentSearchDao.deleteByServer(serverId)
@@ -161,6 +245,9 @@ class IptvRepository @Inject constructor(
             upsertSyncState(server.id, status = "RUNNING", error = null, durationMs = 0L)
 
             try {
+                // Refresh subscription window first so a renewed/lapsed account is reflected
+                // (content sync alone never re-authenticates).
+                runCatching { refreshActiveServerSubscription() }
                 when (syncMode) {
                     SyncMode.FULL -> {
                         requireSyncSuccess("categories", fetchAndSaveCategories(server))
@@ -188,6 +275,7 @@ class IptvRepository @Inject constructor(
                     error = null,
                     durationMs = duration
                 )
+                compactSearchIndexIfNeeded(server.id, state)
                 Resource.Success(state)
             } catch (e: Exception) {
                 val duration = System.currentTimeMillis() - startedAt
@@ -427,10 +515,12 @@ class IptvRepository @Inject constructor(
                 val buffer = ArrayList<ChannelEntity>(batchSize)
                 val searchBuffer = ArrayList<ContentSearchEntity>(batchSize)
                 var inserted = 0
+                val seenIds = HashSet<String>(dtos.size)
 
                 for (dto in dtos) {
                     val streamId = dto.streamId ?: continue
                     val channelId = "${server.id}_$streamId"
+                    seenIds.add(channelId)
                     val name = dto.name ?: "Unknown"
                     val categoryId = dto.categoryId?.let { "${server.id}_live_$it" }
                     buffer.add(
@@ -452,20 +542,21 @@ class IptvRepository @Inject constructor(
                         )
                     )
                     searchBuffer.add(
-                        ContentSearchEntity(
-                            uniqueId = "${server.id}:channel:$channelId",
+                        contentSearchEntity(
                             serverId = server.id,
-                            contentId = channelId,
                             contentType = "channel",
+                            contentId = channelId,
                             title = name,
                             subtitle = categoryId,
-                            posterUrl = normalizeImageUrl(dto.streamIcon)
+                            posterUrl = dto.streamIcon
                         )
                     )
 
                     if (buffer.size >= batchSize) {
-                        channelDao.insertChannels(buffer)
-                        contentSearchDao.upsertAll(searchBuffer)
+                        database.withTransaction {
+                            channelDao.insertChannels(buffer)
+                            contentSearchDao.upsertAll(searchBuffer)
+                        }
                         inserted += buffer.size
                         buffer.clear()
                         searchBuffer.clear()
@@ -473,9 +564,19 @@ class IptvRepository @Inject constructor(
                 }
 
                 if (buffer.isNotEmpty()) {
-                    channelDao.insertChannels(buffer)
-                    contentSearchDao.upsertAll(searchBuffer)
+                    database.withTransaction {
+                        channelDao.insertChannels(buffer)
+                        contentSearchDao.upsertAll(searchBuffer)
+                    }
                     inserted += buffer.size
+                }
+
+                // The live-streams endpoint returns the full catalogue in one response, so any
+                // local channel missing from it has been removed upstream. Safe to prune here
+                // because we already returned early on an empty/failed response above.
+                pruneStaleContent(channelDao.getChannelIds(server.id), seenIds, "channels") { stale ->
+                    channelDao.deleteChannelsByIds(stale)
+                    contentSearchDao.deleteByContentIds(server.id, stale)
                 }
 
                 Resource.Success(inserted)
@@ -486,7 +587,40 @@ class IptvRepository @Inject constructor(
             Resource.Error("Error fetching channels: ${e.message}")
         }
     }
-    
+
+    /**
+     * Remove locally cached items whose ids are no longer present on the server, so the library
+     * stays in sync as content is taken down — without ever wiping a healthy cache.
+     *
+     * Callers must only invoke this after a *complete, successful* fetch of the content type
+     * (a non-empty response for channels; all category requests succeeding for VOD/series).
+     * A safety net additionally refuses to delete more than half of a sizeable catalogue in a
+     * single pass, so a truncated-but-"successful" provider response can never empty the library.
+     */
+    private suspend fun pruneStaleContent(
+        existingIds: List<String>,
+        seenIds: Set<String>,
+        label: String,
+        delete: suspend (List<String>) -> Unit
+    ) {
+        if (seenIds.isEmpty() || existingIds.isEmpty()) return
+        val stale = existingIds.filterNot { seenIds.contains(it) }
+        if (stale.isEmpty()) return
+        if (existingIds.size > 200 && stale.size > existingIds.size / 2) {
+            android.util.Log.w(
+                "IptvRepository",
+                "Skipping $label prune: ${stale.size}/${existingIds.size} look stale (suspicious truncation)"
+            )
+            return
+        }
+        stale.chunked(400).forEach { chunk ->
+            database.withTransaction {
+                delete(chunk)
+            }
+        }
+        android.util.Log.d("IptvRepository", "Pruned ${stale.size} stale $label")
+    }
+
     // Movies
     fun getAllMovies(serverId: Long): Flow<List<MovieEntity>> = movieDao.getAllMovies(serverId)
     
@@ -526,6 +660,7 @@ class IptvRepository @Inject constructor(
             var inserted = 0
             var successfulRequests = 0
             var firstError: String? = null
+            val seenIds = HashSet<String>()
 
             val requests: List<String?> = if (categoryIds.isEmpty()) listOf(null) else categoryIds
             for (categoryId in requests) {
@@ -539,6 +674,7 @@ class IptvRepository @Inject constructor(
                     successfulRequests += 1
                     val dtos = response.body().orEmpty()
                     inserted += insertMovieDtos(server, dtos)
+                    dtos.forEach { d -> d.streamId?.let { seenIds.add("${server.id}_$it") } }
 
                     // Some panels ignore category_id and return the complete list. Insert it once and stop.
                     if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
@@ -546,6 +682,15 @@ class IptvRepository @Inject constructor(
                     }
                 } catch (e: Exception) {
                     if (firstError == null) firstError = e.message ?: e.javaClass.simpleName
+                }
+            }
+
+            // Only prune when every category request succeeded; a partial failure would make a
+            // present-but-unfetched movie look "removed" and wrongly delete it.
+            if (firstError == null && successfulRequests > 0 && seenIds.isNotEmpty()) {
+                pruneStaleContent(movieDao.getMovieIds(server.id), seenIds, "movies") { stale ->
+                    movieDao.deleteMoviesByIds(stale)
+                    contentSearchDao.deleteByContentIds(server.id, stale)
                 }
             }
 
@@ -574,8 +719,10 @@ class IptvRepository @Inject constructor(
 
         suspend fun flush() {
             if (buffer.isEmpty()) return
-            movieDao.insertMovies(buffer)
-            contentSearchDao.upsertAll(searchBuffer)
+            database.withTransaction {
+                movieDao.insertMovies(buffer)
+                contentSearchDao.upsertAll(searchBuffer)
+            }
             inserted += buffer.size
             buffer.clear()
             searchBuffer.clear()
@@ -603,14 +750,13 @@ class IptvRepository @Inject constructor(
                 )
             )
             searchBuffer.add(
-                ContentSearchEntity(
-                    uniqueId = "${server.id}:movie:$movieId",
+                contentSearchEntity(
                     serverId = server.id,
-                    contentId = movieId,
                     contentType = "movie",
+                    contentId = movieId,
                     title = name,
                     subtitle = categoryId,
-                    posterUrl = normalizeImageUrl(dto.streamIcon)
+                    posterUrl = dto.streamIcon
                 )
             )
 
@@ -666,6 +812,7 @@ class IptvRepository @Inject constructor(
             var inserted = 0
             var successfulRequests = 0
             var firstError: String? = null
+            val seenIds = HashSet<String>()
 
             val requests: List<String?> = if (categoryIds.isEmpty()) listOf(null) else categoryIds
             for (categoryId in requests) {
@@ -679,6 +826,7 @@ class IptvRepository @Inject constructor(
                     successfulRequests += 1
                     val dtos = response.body().orEmpty()
                     inserted += insertSeriesDtos(server, dtos)
+                    dtos.forEach { d -> d.seriesId?.let { seenIds.add("${server.id}_$it") } }
 
                     // Some panels ignore category_id and return the complete list. Insert it once and stop.
                     if (categoryId != null && responseLooksUnfiltered(dtos, categoryId) && dtos.size > API_IMPORT_BATCH_SIZE) {
@@ -686,6 +834,15 @@ class IptvRepository @Inject constructor(
                     }
                 } catch (e: Exception) {
                     if (firstError == null) firstError = e.message ?: e.javaClass.simpleName
+                }
+            }
+
+            // Only prune when every category request succeeded (see movies above for why).
+            if (firstError == null && successfulRequests > 0 && seenIds.isNotEmpty()) {
+                pruneStaleContent(seriesDao.getSeriesIds(server.id), seenIds, "series") { stale ->
+                    seriesDao.deleteEpisodesBySeriesIds(stale)
+                    seriesDao.deleteSeriesByIds(stale)
+                    contentSearchDao.deleteByContentIds(server.id, stale)
                 }
             }
 
@@ -714,8 +871,10 @@ class IptvRepository @Inject constructor(
 
         suspend fun flush() {
             if (buffer.isEmpty()) return
-            seriesDao.insertSeries(buffer)
-            contentSearchDao.upsertAll(searchBuffer)
+            database.withTransaction {
+                seriesDao.insertSeries(buffer)
+                contentSearchDao.upsertAll(searchBuffer)
+            }
             inserted += buffer.size
             buffer.clear()
             searchBuffer.clear()
@@ -748,14 +907,13 @@ class IptvRepository @Inject constructor(
                 )
             )
             searchBuffer.add(
-                ContentSearchEntity(
-                    uniqueId = "${server.id}:series:$localSeriesId",
+                contentSearchEntity(
                     serverId = server.id,
-                    contentId = localSeriesId,
                     contentType = "series",
+                    contentId = localSeriesId,
                     title = name,
                     subtitle = categoryId,
-                    posterUrl = normalizeImageUrl(dto.cover)
+                    posterUrl = dto.cover
                 )
             )
 
@@ -796,7 +954,7 @@ class IptvRepository @Inject constructor(
     suspend fun getSeriesInfo(
         server: ServerEntity,
         seriesId: Int
-    ): Resource<com.mo.moplayer.data.remote.dto.SeriesInfoResponse> = withContext(Dispatchers.IO) {
+    ): Resource<SeriesInfoResponse> = withContext(Dispatchers.IO) {
         try {
             val apiUrl = buildApiUrl(server.serverUrl)
             val (username, password) = resolveCredentials(server)
@@ -814,6 +972,146 @@ class IptvRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Resource.Error("Error: ${e.message}")
+        }
+    }
+
+    suspend fun refreshMovieDetails(movie: MovieEntity): Resource<MovieEntity> = withContext(Dispatchers.IO) {
+        try {
+            val server = serverDao.getServerById(movie.serverId)
+                ?: return@withContext Resource.Error("Server not found")
+            if (!server.serverType.equals("xtream", ignoreCase = true)) {
+                return@withContext Resource.Success(movie)
+            }
+
+            val apiUrl = buildApiUrl(server.serverUrl)
+            val (username, password) = resolveCredentials(server)
+            val response = xtreamApi.getVodInfo(apiUrl, username, password, vodId = movie.streamId)
+            if (!response.isSuccessful) {
+                return@withContext Resource.Error("Failed to fetch movie details: ${response.code()}")
+            }
+
+            val body = response.body() ?: return@withContext Resource.Success(movie)
+            val info = body.info
+            val movieData = body.movieData
+            val streamId = movieData?.streamId ?: movie.streamId
+            val extension = firstNonBlank(movieData?.containerExtension, movie.containerExtension)
+            val directSource = movieData?.directSource?.takeIf { it.isNotBlank() }
+            val releaseDate = firstNonBlank(info?.releaseDate, info?.releaseDateAlt, movie.releaseDate)
+            val poster = normalizeImageUrl(firstNonBlank(info?.movieImage, movie.streamIcon)) ?: movie.streamIcon
+            val backdrop = normalizeImageUrl(info?.backdropPath?.firstOrNull()) ?: movie.backdrop
+
+            val enriched = movie.copy(
+                streamId = streamId,
+                name = firstNonBlank(info?.name, movieData?.name, movie.name) ?: movie.name,
+                streamUrl = directSource ?: buildStreamUrl(server, streamId, "movie", extension),
+                containerExtension = extension,
+                streamIcon = poster,
+                categoryId = movieData?.categoryId?.takeIf { it.isNotBlank() }?.let { "${server.id}_movie_$it" }
+                    ?: movie.categoryId,
+                rating = parseRating(info?.rating) ?: movie.rating,
+                plot = firstNonBlank(info?.plot, movie.plot),
+                cast = firstNonBlank(info?.cast, movie.cast),
+                director = firstNonBlank(info?.director, movie.director),
+                genre = firstNonBlank(info?.genre, movie.genre),
+                releaseDate = releaseDate,
+                year = movie.year ?: releaseDate?.takeIf { it.length >= 4 }?.take(4),
+                duration = firstNonBlank(info?.duration, movie.duration),
+                durationSeconds = info?.durationSecs ?: movie.durationSeconds,
+                backdrop = backdrop,
+                youtubeTrailer = firstNonBlank(info?.youtubeTrailer, movie.youtubeTrailer),
+                tmdbId = info?.tmdbId ?: movie.tmdbId,
+                addedTimestamp = movieData?.added?.takeIf { it.isNotBlank() }?.let { parseTimestamp(it) }
+                    ?: movie.addedTimestamp
+            )
+
+            movieDao.updateMovie(enriched)
+            contentSearchDao.upsertAll(
+                listOf(
+                    contentSearchEntity(
+                        serverId = server.id,
+                        contentType = "movie",
+                        contentId = enriched.movieId,
+                        title = enriched.name,
+                        subtitle = enriched.categoryId,
+                        posterUrl = enriched.streamIcon
+                    )
+                )
+            )
+            Resource.Success(enriched)
+        } catch (e: Exception) {
+            Resource.Error("Error fetching movie details: ${e.message}")
+        }
+    }
+
+    suspend fun refreshSeriesDetails(
+        series: SeriesEntity,
+        force: Boolean = false
+    ): Resource<CachedSeriesDetails> = withContext(Dispatchers.IO) {
+        try {
+            val cachedEpisodes = seriesDao.getEpisodes(series.seriesId).first()
+            val server = serverDao.getServerById(series.serverId)
+                ?: return@withContext Resource.Error("Server not found")
+            if (!server.serverType.equals("xtream", ignoreCase = true)) {
+                return@withContext Resource.Success(CachedSeriesDetails(series, cachedEpisodes))
+            }
+            if (!force && cachedEpisodes.isNotEmpty() && hasUsefulSeriesDetails(series)) {
+                return@withContext Resource.Success(CachedSeriesDetails(series, cachedEpisodes))
+            }
+
+            when (val result = getSeriesInfo(server, series.originalSeriesId)) {
+                is Resource.Success -> {
+                    val response = result.data ?: return@withContext Resource.Success(
+                        CachedSeriesDetails(series, cachedEpisodes)
+                    )
+                    val info = response.info
+                    val releaseDate = firstNonBlank(info?.releaseDate, info?.releaseDateAlt, series.releaseDate)
+                    val enriched = series.copy(
+                        name = firstNonBlank(info?.name, series.name) ?: series.name,
+                        cover = normalizeImageUrl(firstNonBlank(info?.cover, series.cover)) ?: series.cover,
+                        plot = firstNonBlank(info?.plot, series.plot),
+                        cast = firstNonBlank(info?.cast, series.cast),
+                        director = firstNonBlank(info?.director, series.director),
+                        genre = firstNonBlank(info?.genre, series.genre),
+                        releaseDate = releaseDate,
+                        lastModified = series.lastModified,
+                        rating = info?.rating5Based ?: parseRating(info?.rating) ?: series.rating,
+                        backdrop = normalizeImageUrl(info?.backdropPath?.firstOrNull()) ?: series.backdrop,
+                        youtubeTrailer = firstNonBlank(info?.youtubeTrailer, series.youtubeTrailer),
+                        tmdbId = info?.tmdbId ?: series.tmdbId
+                    )
+
+                    val episodes = buildEpisodeEntities(server, enriched, response.episodes, cachedEpisodes)
+                    seriesDao.updateSeries(enriched)
+                    if (episodes.isNotEmpty()) {
+                        seriesDao.deleteEpisodes(enriched.seriesId)
+                        episodes.chunked(API_IMPORT_BATCH_SIZE).forEach { seriesDao.insertEpisodes(it) }
+                    }
+                    contentSearchDao.upsertAll(
+                        listOf(
+                            contentSearchEntity(
+                                serverId = server.id,
+                                contentType = "series",
+                                contentId = enriched.seriesId,
+                                title = enriched.name,
+                                subtitle = enriched.categoryId,
+                                posterUrl = enriched.cover
+                            )
+                        )
+                    )
+
+                    Resource.Success(CachedSeriesDetails(enriched, episodes.ifEmpty { cachedEpisodes }))
+                }
+                is Resource.Error -> {
+                    if (cachedEpisodes.isNotEmpty()) {
+                        Resource.Success(CachedSeriesDetails(series, cachedEpisodes))
+                    } else {
+                        Resource.Error(result.message ?: "Failed to fetch series details")
+                    }
+                }
+                is Resource.Loading -> Resource.Loading()
+            }
+        } catch (e: Exception) {
+            Resource.Error("Error fetching series details: ${e.message}")
         }
     }
     
@@ -863,6 +1161,45 @@ class IptvRepository @Inject constructor(
     
     suspend fun getEpgForDay(streamId: Int, serverId: Long, dayStart: Long, dayEnd: Long): List<EpgEntity> {
         return epgDao.getEpgForDay(streamId, serverId, dayStart, dayEnd)
+    }
+
+    /**
+     * EPG for a set of channels across a visible window, grouped by streamId.
+     * Backs the full program-guide grid. SQLite caps a single statement at ~999 bound
+     * args, so we chunk the streamId list and merge the results.
+     */
+    suspend fun getEpgWindowForChannels(
+        serverId: Long,
+        streamIds: List<Int>,
+        windowStart: Long,
+        windowEnd: Long
+    ): Map<Int, List<EpgEntity>> = withContext(Dispatchers.IO) {
+        if (streamIds.isEmpty()) return@withContext emptyMap()
+        val out = HashMap<Int, MutableList<EpgEntity>>(streamIds.size)
+        streamIds.distinct().chunked(900).forEach { chunk ->
+            epgDao.getEpgForChannelsInWindow(serverId, chunk, windowStart, windowEnd).forEach { entity ->
+                out.getOrPut(entity.streamId) { mutableListOf() }.add(entity)
+            }
+        }
+        out
+    }
+
+    /**
+     * Which of the given channels already hold EPG inside the window — so the guide can
+     * fetch only the ones that are missing it.
+     */
+    suspend fun getChannelsWithEpgInWindow(
+        serverId: Long,
+        streamIds: List<Int>,
+        windowStart: Long,
+        windowEnd: Long
+    ): Set<Int> = withContext(Dispatchers.IO) {
+        if (streamIds.isEmpty()) return@withContext emptySet()
+        val have = HashSet<Int>(streamIds.size)
+        streamIds.distinct().chunked(900).forEach { chunk ->
+            have.addAll(epgDao.getChannelsWithEpgInWindow(serverId, chunk, windowStart, windowEnd))
+        }
+        have
     }
     
     suspend fun hasEpgData(streamId: Int, serverId: Long): Boolean {
@@ -1047,6 +1384,35 @@ class IptvRepository @Inject constructor(
             var liveCount = 0
             var movieCount = 0
 
+            suspend fun flushPendingImport() {
+                if (
+                    pendingCategories.isEmpty() &&
+                    pendingChannels.isEmpty() &&
+                    pendingMovies.isEmpty() &&
+                    pendingSearchItems.isEmpty()
+                ) {
+                    return
+                }
+                database.withTransaction {
+                    if (pendingCategories.isNotEmpty()) {
+                        categoryDao.insertCategories(pendingCategories)
+                    }
+                    if (pendingChannels.isNotEmpty()) {
+                        channelDao.insertChannels(pendingChannels)
+                    }
+                    if (pendingMovies.isNotEmpty()) {
+                        movieDao.insertMovies(pendingMovies)
+                    }
+                    if (pendingSearchItems.isNotEmpty()) {
+                        contentSearchDao.upsertAll(pendingSearchItems)
+                    }
+                }
+                pendingCategories.clear()
+                pendingChannels.clear()
+                pendingMovies.clear()
+                pendingSearchItems.clear()
+            }
+
             val summary = inputStream.use { stream ->
                 m3uParser.parseStreaming(stream) { item ->
                     importedItems += 1
@@ -1065,11 +1431,6 @@ class IptvRepository @Inject constructor(
                         )
                         categoryOrderMap[categoryKey] = categoryOrderMap.size
                         id
-                    }
-
-                    if (pendingCategories.size >= M3U_IMPORT_BATCH_SIZE) {
-                        categoryDao.insertCategories(pendingCategories.toList())
-                        pendingCategories.clear()
                     }
 
                     if (item.isLive) {
@@ -1092,14 +1453,13 @@ class IptvRepository @Inject constructor(
                             customOrder = streamIndex
                         )
                         pendingChannels += channel
-                        pendingSearchItems += ContentSearchEntity(
-                            uniqueId = "$serverId:channel:${channel.channelId}",
+                        pendingSearchItems += contentSearchEntity(
                             serverId = serverId,
-                            contentId = channel.channelId,
                             contentType = "channel",
+                            contentId = channel.channelId,
                             title = channel.name,
                             subtitle = channel.categoryId,
-                            posterUrl = normalizeImageUrl(channel.streamIcon)
+                            posterUrl = channel.streamIcon
                         )
                     } else {
                         movieCount += 1
@@ -1119,28 +1479,23 @@ class IptvRepository @Inject constructor(
                                 categoryName.contains("xxx", ignoreCase = true)
                         )
                         pendingMovies += movie
-                        pendingSearchItems += ContentSearchEntity(
-                            uniqueId = "$serverId:movie:${movie.movieId}",
+                        pendingSearchItems += contentSearchEntity(
                             serverId = serverId,
-                            contentId = movie.movieId,
                             contentType = "movie",
+                            contentId = movie.movieId,
                             title = movie.name,
                             subtitle = movie.categoryId,
-                            posterUrl = normalizeImageUrl(movie.streamIcon)
+                            posterUrl = movie.streamIcon
                         )
                     }
 
-                    if (pendingChannels.size >= M3U_IMPORT_BATCH_SIZE) {
-                        channelDao.insertChannels(pendingChannels.toList())
-                        pendingChannels.clear()
-                    }
-                    if (pendingMovies.size >= M3U_IMPORT_BATCH_SIZE) {
-                        movieDao.insertMovies(pendingMovies.toList())
-                        pendingMovies.clear()
-                    }
-                    if (pendingSearchItems.size >= M3U_IMPORT_BATCH_SIZE) {
-                        contentSearchDao.upsertAll(pendingSearchItems.toList())
-                        pendingSearchItems.clear()
+                    if (
+                        pendingCategories.size >= M3U_IMPORT_BATCH_SIZE ||
+                        pendingChannels.size >= M3U_IMPORT_BATCH_SIZE ||
+                        pendingMovies.size >= M3U_IMPORT_BATCH_SIZE ||
+                        pendingSearchItems.size >= M3U_IMPORT_BATCH_SIZE
+                    ) {
+                        flushPendingImport()
                     }
 
                     streamIndex += 1
@@ -1154,18 +1509,7 @@ class IptvRepository @Inject constructor(
                 )
             }
 
-            if (pendingCategories.isNotEmpty()) {
-                categoryDao.insertCategories(pendingCategories.toList())
-            }
-            if (pendingChannels.isNotEmpty()) {
-                channelDao.insertChannels(pendingChannels.toList())
-            }
-            if (pendingMovies.isNotEmpty()) {
-                movieDao.insertMovies(pendingMovies.toList())
-            }
-            if (pendingSearchItems.isNotEmpty()) {
-                contentSearchDao.upsertAll(pendingSearchItems.toList())
-            }
+            flushPendingImport()
 
             serverSyncStateDao.upsert(
                 ServerSyncStateEntity(
@@ -1213,47 +1557,45 @@ class IptvRepository @Inject constructor(
             .toSet()
         val liveCategories = m3uCategories(liveCategoryNames, serverId, "live")
         val movieCategories = m3uCategories(movieCategoryNames, serverId, "movie")
-        categoryDao.insertCategories(liveCategories + movieCategories)
-
         val liveCategoryMap = liveCategories.associate { it.name to it.categoryId }
         val movieCategoryMap = movieCategories.associate { it.name to it.categoryId }
         val channels = m3uParser.toChannelEntities(parseResult.items, serverId, liveCategoryMap)
-        channelDao.insertChannels(channels)
-
         val movies = m3uParser.toMovieEntities(parseResult.items, serverId, movieCategoryMap)
-        movieDao.insertMovies(movies)
-
-        contentSearchDao.deleteByServer(serverId)
         val searchItems = buildList {
             addAll(
                 channels.map {
-                    ContentSearchEntity(
-                        uniqueId = "$serverId:channel:${it.channelId}",
+                    contentSearchEntity(
                         serverId = serverId,
-                        contentId = it.channelId,
                         contentType = "channel",
+                        contentId = it.channelId,
                         title = it.name,
                         subtitle = it.categoryId,
-                        posterUrl = normalizeImageUrl(it.streamIcon)
+                        posterUrl = it.streamIcon
                     )
                 }
             )
             addAll(
                 movies.map {
-                    ContentSearchEntity(
-                        uniqueId = "$serverId:movie:${it.movieId}",
+                    contentSearchEntity(
                         serverId = serverId,
-                        contentId = it.movieId,
                         contentType = "movie",
+                        contentId = it.movieId,
                         title = it.name,
                         subtitle = it.categoryId,
-                        posterUrl = normalizeImageUrl(it.streamIcon)
+                        posterUrl = it.streamIcon
                     )
                 }
             )
         }
-        if (searchItems.isNotEmpty()) {
-            contentSearchDao.upsertAll(searchItems)
+
+        database.withTransaction {
+            categoryDao.insertCategories(liveCategories + movieCategories)
+            channelDao.insertChannels(channels)
+            movieDao.insertMovies(movies)
+            contentSearchDao.deleteByServer(serverId)
+            searchItems.chunked(API_IMPORT_BATCH_SIZE).forEach { chunk ->
+                contentSearchDao.upsertAll(chunk)
+            }
         }
 
         serverSyncStateDao.upsert(
@@ -1360,57 +1702,88 @@ class IptvRepository @Inject constructor(
         repaired
     }
 
+    private suspend fun compactSearchIndexIfNeeded(serverId: Long, state: ServerSyncStateEntity) {
+        val expectedRows = state.totalChannels + state.totalMovies + state.totalSeries
+        if (expectedRows <= 0) return
+
+        val actualRows = contentSearchDao.countByServer(serverId)
+        val allowedOverage = maxOf(1_000, expectedRows / 5)
+        if (actualRows == 0 || actualRows > expectedRows + allowedOverage) {
+            android.util.Log.d(
+                "IptvRepository",
+                "Rebuilding bloated search index: actual=$actualRows expected=$expectedRows"
+            )
+            rebuildSearchIndex(serverId)
+        }
+    }
+
     private suspend fun rebuildSearchIndex(serverId: Long) {
-        contentSearchDao.deleteByServer(serverId)
-
-        val channels = channelDao.getAllChannels(serverId).first()
-        val movies = movieDao.getAllMovies(serverId).first()
-        val series = seriesDao.getAllSeries(serverId).first()
-
-        val indexRows = buildList {
-            addAll(
-                channels.map {
-                    ContentSearchEntity(
-                        uniqueId = "$serverId:channel:${it.channelId}",
-                        serverId = serverId,
-                        contentId = it.channelId,
-                        contentType = "channel",
-                        title = it.name,
-                        subtitle = it.categoryId,
-                        posterUrl = normalizeImageUrl(it.streamIcon)
-                    )
-                }
-            )
-            addAll(
-                movies.map {
-                    ContentSearchEntity(
-                        uniqueId = "$serverId:movie:${it.movieId}",
-                        serverId = serverId,
-                        contentId = it.movieId,
-                        contentType = "movie",
-                        title = it.name,
-                        subtitle = it.categoryId,
-                        posterUrl = normalizeImageUrl(it.streamIcon)
-                    )
-                }
-            )
-            addAll(
-                series.map {
-                    ContentSearchEntity(
-                        uniqueId = "$serverId:series:${it.seriesId}",
-                        serverId = serverId,
-                        contentId = it.seriesId,
-                        contentType = "series",
-                        title = it.name,
-                        subtitle = it.categoryId,
-                        posterUrl = normalizeImageUrl(it.cover)
-                    )
-                }
-            )
+        database.withTransaction {
+            contentSearchDao.deleteByServer(serverId)
         }
 
-        if (indexRows.isNotEmpty()) {
-            contentSearchDao.upsertAll(indexRows)
+        suspend fun flush(rows: List<ContentSearchEntity>) {
+            if (rows.isEmpty()) return
+            database.withTransaction {
+                contentSearchDao.upsertAll(rows)
+            }
+        }
+
+        var offset = 0
+        while (true) {
+            val page = channelDao.getChannelsPage(serverId, SEARCH_REBUILD_PAGE_SIZE, offset)
+            if (page.isEmpty()) break
+            flush(
+                page.map {
+                    contentSearchEntity(
+                        serverId = serverId,
+                        contentType = "channel",
+                        contentId = it.channelId,
+                        title = it.name,
+                        subtitle = it.categoryId,
+                        posterUrl = it.streamIcon
+                    )
+                }
+            )
+            offset += page.size
+        }
+
+        offset = 0
+        while (true) {
+            val page = movieDao.getMoviesPage(serverId, SEARCH_REBUILD_PAGE_SIZE, offset)
+            if (page.isEmpty()) break
+            flush(
+                page.map {
+                    contentSearchEntity(
+                        serverId = serverId,
+                        contentType = "movie",
+                        contentId = it.movieId,
+                        title = it.name,
+                        subtitle = it.categoryId,
+                        posterUrl = it.streamIcon
+                    )
+                }
+            )
+            offset += page.size
+        }
+
+        offset = 0
+        while (true) {
+            val page = seriesDao.getSeriesPage(serverId, SEARCH_REBUILD_PAGE_SIZE, offset)
+            if (page.isEmpty()) break
+            flush(
+                page.map {
+                    contentSearchEntity(
+                        serverId = serverId,
+                        contentType = "series",
+                        contentId = it.seriesId,
+                        title = it.name,
+                        subtitle = it.categoryId,
+                        posterUrl = it.cover
+                    )
+                }
+            )
+            offset += page.size
         }
     }
 
@@ -1543,10 +1916,10 @@ class IptvRepository @Inject constructor(
             }
             .orEmpty()
         return when {
-            "mpegts" in allowed || "ts" in allowed -> "mpegts"
             "m3u8" in allowed -> "m3u8"
+            "mpegts" in allowed || "ts" in allowed -> "mpegts"
             "rtmp" in allowed -> "rtmp"
-            else -> "mpegts"
+            else -> "m3u8"
         }
     }
 
@@ -1566,6 +1939,11 @@ class IptvRepository @Inject constructor(
             authResponse?.serverInfo?.let { info ->
                 addProperty("server_protocol", info.serverProtocol ?: "")
                 addProperty("server_timezone", info.timezone ?: "")
+            }
+            // Persist the panel account status so an expired/banned/disabled account can be
+            // surfaced clearly even when the expiry date alone is ambiguous.
+            authResponse?.userInfo?.status?.takeIf { it.isNotBlank() }?.let {
+                addProperty(com.mo.moplayer.util.ProviderSubscription.SERVER_INFO_STATUS_KEY, it)
             }
         }.toString()
     }
@@ -1591,6 +1969,64 @@ class IptvRepository @Inject constructor(
             )
         }
     }
+
+    private fun buildEpisodeEntities(
+        server: ServerEntity,
+        series: SeriesEntity,
+        episodeGroups: Map<String, List<EpisodeDto>>?,
+        cachedEpisodes: List<EpisodeEntity>
+    ): List<EpisodeEntity> {
+        if (episodeGroups.isNullOrEmpty()) return emptyList()
+        val cachedByStreamId = cachedEpisodes.associateBy { it.streamId }
+
+        return episodeGroups.entries
+            .sortedBy { it.key.toIntOrNull() ?: Int.MAX_VALUE }
+            .flatMap { (seasonKey, episodes) ->
+                val fallbackSeason = seasonKey.toIntOrNull() ?: 1
+                episodes.mapIndexedNotNull { index, dto ->
+                    val streamId = dto.id?.toIntOrNull() ?: return@mapIndexedNotNull null
+                    val seasonNumber = dto.season?.takeIf { it > 0 } ?: fallbackSeason
+                    val episodeNumber = dto.episodeNum?.takeIf { it > 0 } ?: (index + 1)
+                    val extension = dto.containerExtension?.takeIf { it.isNotBlank() } ?: "mp4"
+                    val existing = cachedByStreamId[streamId]
+                    EpisodeEntity(
+                        episodeId = "${series.seriesId}_$streamId",
+                        seriesId = series.seriesId,
+                        seasonNumber = seasonNumber,
+                        episodeNumber = episodeNumber,
+                        title = firstNonBlank(dto.title, "Episode $episodeNumber"),
+                        streamId = streamId,
+                        streamUrl = dto.directSource?.takeIf { it.isNotBlank() }
+                            ?: buildStreamUrl(server, streamId, "series", extension),
+                        containerExtension = extension,
+                        plot = dto.info?.plot,
+                        duration = dto.info?.duration,
+                        durationSeconds = dto.info?.durationSecs,
+                        releaseDate = dto.info?.releaseDate,
+                        cover = normalizeImageUrl(firstNonBlank(dto.info?.movieImage, series.cover)),
+                        lastWatchedPosition = existing?.lastWatchedPosition ?: 0L,
+                        lastWatchedAt = existing?.lastWatchedAt
+                    )
+                }
+            }
+            .sortedWith(compareBy<EpisodeEntity> { it.seasonNumber }.thenBy { it.episodeNumber })
+    }
+
+    private fun hasUsefulSeriesDetails(series: SeriesEntity): Boolean =
+        !series.plot.isNullOrBlank() ||
+            !series.backdrop.isNullOrBlank() ||
+            !series.genre.isNullOrBlank() ||
+            series.rating != null
+
+    private fun parseRating(value: String?): Double? =
+        value
+            ?.trim()
+            ?.replace(',', '.')
+            ?.takeIf { it.isNotBlank() }
+            ?.toDoubleOrNull()
+
+    private fun firstNonBlank(vararg values: String?): String? =
+        values.firstOrNull { !it.isNullOrBlank() }?.trim()
     
     private fun parseTimestamp(timestamp: String?): Long {
         if (timestamp.isNullOrEmpty()) return System.currentTimeMillis()

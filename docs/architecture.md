@@ -27,7 +27,21 @@ flowchart LR
   admin --> supabase
 ```
 
-`apps/web` owns public pages, APK downloads, activation APIs, release APIs, and website CMS routes. `apps/admin` owns the separate admin subdomain and product operations UI.
+`apps/web` owns public pages, APK downloads, activation APIs, release APIs, app config, support intake, diagnostics/events intake, and public rendering. `apps/admin` owns the separate admin subdomain, website CMS controls, product operations UI, releases, runtime config, activation/device/license/source workflows, support inbox, email, AI, and automation controls.
+
+Legacy localized admin URLs on the public domain (`/en/admin/*` and `/ar/admin/*`) are not real admin surfaces anymore. They redirect to `admin.moalfarras.space` (`/website` for old CMS subpaths) so there is one operational admin.
+
+## Source Handoff Boundary
+
+Provider server data has a hard boundary:
+
+1. Android creates a QR activation through `apps/web`.
+2. The website can attach one Xtream/M3U source to that fresh activation.
+3. Supabase holds the encrypted source only while pending.
+4. The Android app fetches it once, saves it locally, and acknowledges import.
+5. The web API clears the source receipt and temporary pull-token hash.
+
+After that, browsing and playback use the Android app's local Room/shared-preference state and the provider server directly. Supabase may still provide runtime config, maintenance messages, releases, widgets, telemetry, diagnostics, and non-sensitive status receipts, but it must not become a provider/server credential store.
 
 ## Product Boundary
 

@@ -1,0 +1,104 @@
+{
+  "name": "moplayer-pc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MoPlayer Pro Windows desktop app",
+  "author": "Mohammad Alfarras",
+  "main": "dist-electron/main/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "lint": "tsc --noEmit",
+    "build:renderer": "vite build",
+    "clean:electron": "node scripts/clean-electron.mjs",
+    "build:electron": "npm run clean:electron && tsc -p tsconfig.electron.json",
+    "build": "npm run typecheck && npm run build:renderer && npm run build:electron",
+    "prepare:logo-mark": "node scripts/prepare-logo-mark.mjs",
+    "prepare:icon": "npm run prepare:logo-mark && node scripts/prepare-icon.mjs",
+    "prepare:installer-art": "node scripts/prepare-installer-art.mjs",
+    "clean:release": "node scripts/clean-release.mjs",
+    "package:windows": "node scripts/package-windows.mjs",
+    "dist": "npm run build && npm run prepare:icon && npm run prepare:installer-art && npm run package:windows && npm run release:meta",
+    "start": "electron .",
+    "smoke": "node scripts/smoke.mjs",
+    "qa:screens": "node scripts/qa-screens.mjs",
+    "release:meta": "node scripts/write-release-meta.mjs"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "hls.js": "^1.6.16",
+    "lucide-react": "^1.17.0",
+    "mpegts.js": "^1.8.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.2",
+    "electron": "42.4.0",
+    "electron-builder": "^26.15.2",
+    "png-to-ico": "^3.0.1",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.34.5",
+    "typescript": "^5",
+    "vite": "^8.0.16"
+  },
+  "build": {
+    "appId": "space.moalfarras.moplayerpro.windows",
+    "productName": "MoPlayer PC",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "build/**/*"
+    ],
+    "extraMetadata": {
+      "main": "dist-electron/main/main.js"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "MoPlayer-PC-Setup.exe",
+      "include": "installer.nsh",
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MoPlayer PC",
+      "uninstallDisplayName": "MoPlayer PC",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "MoPlayer-PC-Portable.exe"
+    }
+  }
+}

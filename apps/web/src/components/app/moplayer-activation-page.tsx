@@ -30,123 +30,123 @@ const copy = {
   en: {
     back: "Back to MoPlayer",
     backPro: "Back to MoPlayer Pro",
-    pageTitle: "Activate your TV",
-    pageSubtitle: "Two simple steps and {product} is ready on your television.",
+    pageTitle: "Activate your device",
+    pageSubtitle: "Two simple steps and {product} is ready on your screen.",
     step: "Step",
     of: "of",
     stepConfirm: "Confirm code",
-    stepSource: "Add subscription",
+    stepSource: "Add source",
     // Step 1
-    step1Title: "Confirm your TV code",
-    step1Lead: "Open {product} on your television. A code starting with MO- appears on screen — type the four characters here.",
+    step1Title: "Confirm your device code",
+    step1Lead: "Open {product} on your device. A code starting with MO- appears on screen — type the four characters here.",
     fromQr: "Code detected automatically from the QR scan.",
-    codeLabel: "TV code",
-    confirm: "Confirm TV",
+    codeLabel: "Device code",
+    confirm: "Confirm device",
     confirming: "Checking…",
     recheck: "Check again",
     // Step 2
-    step2Title: "Add your subscription",
-    step2Lead: "Enter your IPTV details. We send them securely straight to your TV — no typing on the television.",
+    step2Title: "Add your private source",
+    step2Lead: "Enter your source details. We send them securely straight to your device — no typing on the television.",
     step2Locked: "Confirm your TV in step 1 to unlock this step.",
-    typeLabel: "Subscription type",
-    xtream: "Xtream Codes",
-    xtreamDesc: "Username, password and portal URL",
-    m3u: "M3U link",
-    m3uDesc: "A single M3U playlist link",
-    serverName: "Subscription name",
-    serverNamePlaceholder: "My IPTV",
-    portalUrl: "Portal URL",
+    typeLabel: "Source type",
+    xtream: "Provider account",
+    xtreamDesc: "Server link, username and password",
+    m3u: "Playlist link",
+    m3uDesc: "A single private playlist link",
+    serverName: "Source name",
+    serverNamePlaceholder: "My source",
+    portalUrl: "Server link",
     portalPlaceholder: "http://example.com:8080",
     username: "Username",
     password: "Password",
-    playlistUrl: "M3U URL",
+    playlistUrl: "Playlist URL",
     playlistPlaceholder: "https://example.com/playlist.m3u8",
     epgUrl: "EPG guide URL (optional)",
     test: "Test connection",
     testing: "Testing…",
-    send: "Send to TV",
+    send: "Send to device",
     sending: "Sending…",
     // Done
     doneTitle: "Done — your TV is ready",
-    doneBody: "Channels will appear on {product} in a few moments. You can close this page.",
-    sendAnother: "Send another subscription",
-    secure: "Secure: your subscription is encrypted and delivered only to your paired device via moalfarras.space.",
+    doneBody: "Your source will appear on {product} in a few moments. You can close this page.",
+    sendAnother: "Send another source",
+    secure: "Secure: your source is encrypted and delivered only to your paired device via moalfarras.space.",
     needHelp: "Need help?",
     support: "Open support",
     // Statuses [title, helper]
-    waiting: ["Waiting for your code", "Type the four characters exactly as shown on the TV after MO-."],
-    invalid: ["Check the code", "Enter the four characters shown on your TV right now — the code can change."],
-    pending: ["Almost there", "We found your code. Tap “Confirm TV” to finish pairing."],
-    activated: ["TV confirmed", "Great — continue to step 2 and add your subscription."],
-    expired: ["Code expired", "Generate a fresh code on the TV, then enter it again."],
+    waiting: ["Waiting for your code", "Type the four characters exactly as shown on the device after MO-."],
+    invalid: ["Check the code", "Enter the four characters shown on your device right now — the code can change."],
+    pending: ["Almost there", "We found your code. Tap “Confirm device” to finish pairing."],
+    activated: ["Device confirmed", "Great — continue to step 2 and add your source."],
+    expired: ["Code expired", "Generate a fresh code on the device, then enter it again."],
     backend: ["Connection issue", "Something went wrong for a moment. Check your internet and try again."],
     // Source results
     testOk: "Connection works. You can send it now.",
     testFail: "Connection failed. Double-check the details and try again.",
     testUnavailable: "Could not test right now. Try again in a moment.",
     sendOk: "Sent. Import starts automatically on the TV.",
-    sendFail: "Could not send the subscription.",
+    sendFail: "Could not send the source.",
     sendUnavailable: "Could not send right now. Try again in a moment.",
   },
   ar: {
     back: "العودة إلى MoPlayer",
     backPro: "العودة إلى MoPlayer Pro",
-    pageTitle: "فعِّل تلفزيونك",
-    pageSubtitle: "خطوتان بسيطتان ويصبح {product} جاهزاً على التلفزيون.",
+    pageTitle: "فعِّل جهازك",
+    pageSubtitle: "خطوتان بسيطتان ويصبح {product} جاهزاً على شاشتك.",
     step: "الخطوة",
     of: "من",
     stepConfirm: "تأكيد الكود",
-    stepSource: "إضافة الاشتراك",
+    stepSource: "إضافة المصدر",
     // Step 1
-    step1Title: "أكِّد كود التلفزيون",
-    step1Lead: "افتح {product} على التلفزيون. سيظهر كود يبدأ بـ MO- على الشاشة — أدخل الرموز الأربعة هنا.",
+    step1Title: "أكِّد كود الجهاز",
+    step1Lead: "افتح {product} على جهازك. سيظهر كود يبدأ بـ MO- على الشاشة — أدخل الرموز الأربعة هنا.",
     fromQr: "تم جلب الكود تلقائياً من مسح رمز QR.",
-    codeLabel: "كود التلفزيون",
-    confirm: "أكِّد التلفزيون",
+    codeLabel: "كود الجهاز",
+    confirm: "أكِّد الجهاز",
     confirming: "جارٍ التحقق…",
     recheck: "إعادة الفحص",
     // Step 2
-    step2Title: "أضف اشتراكك",
-    step2Lead: "أدخل بيانات اشتراك IPTV وسنرسلها بأمان مباشرة إلى تلفزيونك — بدون أي كتابة على التلفزيون.",
+    step2Title: "أضف مصدرك الخاص",
+    step2Lead: "أدخل بيانات المصدر وسنرسلها بأمان مباشرة إلى جهازك — بدون أي كتابة على التلفزيون.",
     step2Locked: "أكمل تأكيد التلفزيون في الخطوة 1 لفتح هذه الخطوة.",
-    typeLabel: "نوع الاشتراك",
-    xtream: "Xtream Codes",
-    xtreamDesc: "مستخدم وكلمة مرور ورابط بوابة",
-    m3u: "رابط M3U",
-    m3uDesc: "رابط تشغيل M3U واحد",
-    serverName: "اسم الاشتراك",
-    serverNamePlaceholder: "اشتراكي",
-    portalUrl: "رابط البوابة (Portal)",
+    typeLabel: "نوع المصدر",
+    xtream: "حساب المزود",
+    xtreamDesc: "رابط الخادم واسم المستخدم وكلمة المرور",
+    m3u: "رابط قائمة",
+    m3uDesc: "رابط قائمة خاص واحد",
+    serverName: "اسم المصدر",
+    serverNamePlaceholder: "مصدري",
+    portalUrl: "رابط الخادم",
     portalPlaceholder: "http://example.com:8080",
     username: "اسم المستخدم",
     password: "كلمة المرور",
-    playlistUrl: "رابط M3U",
+    playlistUrl: "رابط القائمة",
     playlistPlaceholder: "https://example.com/playlist.m3u8",
     epgUrl: "رابط دليل القنوات EPG (اختياري)",
     test: "اختبار الاتصال",
     testing: "جارٍ الاختبار…",
-    send: "إرسال إلى التلفزيون",
+    send: "إرسال إلى الجهاز",
     sending: "جارٍ الإرسال…",
     // Done
     doneTitle: "تم — تلفزيونك جاهز",
-    doneBody: "ستظهر القنوات على {product} خلال لحظات. يمكنك إغلاق هذه الصفحة.",
-    sendAnother: "إرسال اشتراك آخر",
-    secure: "آمن: يُرسَل اشتراكك مشفّراً إلى جهازك المرتبط فقط عبر moalfarras.space.",
+    doneBody: "سيظهر مصدرك على {product} خلال لحظات. يمكنك إغلاق هذه الصفحة.",
+    sendAnother: "إرسال مصدر آخر",
+    secure: "آمن: يُرسَل مصدرك مشفّراً إلى جهازك المرتبط فقط عبر moalfarras.space.",
     needHelp: "تحتاج مساعدة؟",
     support: "افتح الدعم",
     // Statuses [title, helper]
-    waiting: ["بانتظار الكود", "أدخل الرموز الأربعة كما تظهر على التلفزيون بعد MO- تماماً."],
-    invalid: ["تأكد من الكود", "أدخل الرموز الأربعة الظاهرة على تلفزيونك الآن — قد يتغير الكود."],
-    pending: ["اقتربت من النهاية", "وجدنا كودك. اضغط «أكِّد التلفزيون» لإكمال الربط."],
-    activated: ["تم تأكيد التلفزيون", "رائع — تابع إلى الخطوة 2 وأضف اشتراكك."],
-    expired: ["انتهت صلاحية الكود", "أنشئ كوداً جديداً على التلفزيون ثم أدخله مرة أخرى."],
+    waiting: ["بانتظار الكود", "أدخل الرموز الأربعة كما تظهر على الجهاز بعد MO- تماماً."],
+    invalid: ["تأكد من الكود", "أدخل الرموز الأربعة الظاهرة على جهازك الآن — قد يتغير الكود."],
+    pending: ["اقتربت من النهاية", "وجدنا كودك. اضغط «أكِّد الجهاز» لإكمال الربط."],
+    activated: ["تم تأكيد الجهاز", "رائع — تابع إلى الخطوة 2 وأضف مصدرك."],
+    expired: ["انتهت صلاحية الكود", "أنشئ كوداً جديداً على الجهاز ثم أدخله مرة أخرى."],
     backend: ["مشكلة في الاتصال", "حدث خطأ مؤقت. تحقق من الإنترنت وحاول مرة أخرى."],
     // Source results
     testOk: "الاتصال يعمل. يمكنك الإرسال الآن.",
     testFail: "فشل الاتصال. راجع البيانات وحاول مرة أخرى.",
     testUnavailable: "تعذّر الاختبار حالياً. حاول بعد قليل.",
     sendOk: "تم الإرسال. يبدأ الاستيراد تلقائياً على التلفزيون.",
-    sendFail: "تعذّر إرسال الاشتراك.",
+    sendFail: "تعذّر إرسال المصدر.",
     sendUnavailable: "تعذّر الإرسال حالياً. حاول بعد قليل.",
   },
 } as const;
@@ -186,12 +186,13 @@ export function MoPlayerActivationPage({
 }: {
   locale: Locale;
   initialCode?: string;
-  productSlug?: "moplayer" | "moplayer2";
+  productSlug?: "moplayer" | "moplayer2" | "moplayer-pc";
 }) {
   const isAr = locale === "ar";
   const isPro = productSlug === "moplayer2";
+  const isPc = productSlug === "moplayer-pc";
   const t = repairMojibakeDeep(copy[locale]);
-  const productName = isPro ? "MoPlayer Pro" : "MoPlayer";
+  const productName = isPc ? "MoPlayer PC" : isPro ? "MoPlayer Pro" : "MoPlayer";
   const fill = (value: string) => value.replace(/\{product\}/g, productName);
 
   const [code, setCode] = useState(() => normalizeCode(initialCode));
@@ -278,7 +279,7 @@ export function MoPlayerActivationPage({
       const response = await fetch("/api/app/activation/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, productSlug, deviceName: isPro ? "MoPlayer Pro TV" : "MoPlayer TV" }),
+        body: JSON.stringify({ code: `MO-${code}`, productSlug, deviceName: isPc ? "MoPlayer PC" : isPro ? "MoPlayer Pro TV" : "MoPlayer TV" }),
       });
       const payload = (await response.json().catch(() => null)) as StatusPayload | null;
       if (response.ok && payload?.status === "activated") {
@@ -369,12 +370,12 @@ export function MoPlayerActivationPage({
   const steps = [t.stepConfirm, t.stepSource];
 
   return (
-    <main className={cn("mo-act", isPro && "mo-act-pro")} dir={isAr ? "rtl" : "ltr"}>
+    <main className={cn("mo-act", isPro && "mo-act-pro", isPc && "mo-act-pc")} dir={isAr ? "rtl" : "ltr"}>
       <div className="mo-act-aura" aria-hidden />
       <div className="mo-act-shell">
-        <Link href={withLocale(locale, isPro ? "apps/moplayer2" : "apps/moplayer")} className="mo-act-back">
+        <Link href={withLocale(locale, isPc ? "apps/moplayer-pc" : isPro ? "apps/moplayer2" : "apps/moplayer")} className="mo-act-back">
           <BackArrow className="h-4 w-4" />
-          {isPro ? t.backPro : t.back}
+          {isPc ? (isAr ? "العودة إلى MoPlayer PC" : "Back to MoPlayer PC") : isPro ? t.backPro : t.back}
         </Link>
 
         <header className="mo-act-head">

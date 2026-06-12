@@ -1,33 +1,67 @@
-# Admin flows — اليوم والتوسع المقترح
+# Admin Flow
 
-This repo ships a **unified control center** at `apps/admin` (`admin.moalfarras.space`): one shell (`AdminOS`) with **MoPlayer operations** + deep link to **Website CMS** on the main site (`/{locale}/admin/*`).
+## Current Decision
 
-## ما يتوفر اليوم (عملي)
+There is one active admin surface:
 
-| المنطقة | الوصف |
-| --- | --- |
-| التطبيقات / المنتج | إدارة محتوى MoPlayer: إصدارات، صور، أسئلة شائعة، طلبات دعم، أجهزة، تفعيل، تراخيص، مصادر إعداد، إعدادات وقت التشغيل |
-| الموقع / CMS | نصوص وصفحات ومشاريع ووسائط وإعدادات الموقع عبر CMS على `apps/web` (واجهة `/[locale]/admin`) |
-| المستخدمون والصلاحيات | جزئي: أدوار `admin` / `editor` عبر Supabase وجداول `app_admin_roles`؛ ليس ERP كامل للمستخدمين |
-| PDF / Word / إيميل | **جزء كبير من الخادم على الموقع**: مثل `/api/cv-pdf`، `/api/cv-docx`، `/api/contact` — وليس كلها من واجهة أدمن موحّدة فقط |
-| التخزين للصور والشعارات | عبر **Supabase Storage** + أصول الموقع و `media_assets` / إعدادات الموقع حسب المخطط |
+- `apps/admin`
+- Production domain: `https://admin.moalfarras.space`
+- Local dev: `npm --prefix apps/admin run dev -- --hostname 127.0.0.1 --port 3001`
 
-## القائمة التي طلبتها — حالة التغطية
+The public app `apps/web` no longer contains localized admin UI. Legacy URLs on the public domain redirect out:
 
-| المتطلب | الحالة في المشروع الحالي |
-| --- | --- |
-| إدارة المستخدمين | جزئي (أدمن المنتج) — توسعة لاحقة تحتاج جداول وواجهات |
-| إدارة الطلبات / الفواتير / العقود / العروض / الاشتراكات | غير مبني كـ ERP بعد — يحتاج نموذج بيانات + APIs + شاشات |
-| تغيير الأسعار / حالة الدفع | يعتمد على تكامل دفع (Stripe/Moyasar/…) وجداول فوترة |
-| توليد PDF/Word من الأدمن | ممكن بربط مسارات API الحالية أو نقل منطق لحزمة مشتركة |
-| إرسال إيميلات من الأدمن | البنية الحالية: Resend/اتصال عبر APIs — قد تُضاف إجراءات صريحة في الأدمن |
-| تعديل النصوص والقوالب | يغطيها CMS للموقع؛ قوالب أوسع تحتاج محرر قوالب مخصص |
-| Logs أخطاء | يُنصح بربط Sentry أو سجلات Vercel خارج الشفرة — غير مضمن مركزياً هنا |
-| إدارة الصلاحيات | RBAC أوضح على الجداول والـ RLS في Supabase |
+- `/admin` -> `https://admin.moalfarras.space`
+- `/en/admin` and `/ar/admin` -> `https://admin.moalfarras.space`
+- `/en/admin/*` and `/ar/admin/*` -> `https://admin.moalfarras.space/website`
 
-**الخلاصة:** الأدمن الحالي قوي لمنظومة الموقع + MoPlayer؛ تحويله إلى لوحة تشغيل كاملة (طلبات، فواتير، مدفوعات، عقود) مشروع **منتج إضافي** فوق نفس PostgreSQL/Supabase.
+This keeps `moalfarras.space` as the public site and app API gateway, and `admin.moalfarras.space` as the only operational control center.
 
-## قاعدة البيانات
+## What Admin Owns
 
-- **PostgreSQL** عبر **Supabase**؛ المخطط مُدار بملفات SQL في [`../supabase/migrations`](../supabase/migrations).
-- إضافة **Prisma أو Drizzle** اختيارية لاحقاً إذا احتجت ORM موحداً بجانب عميل Supabase.
+`apps/admin` owns:
+
+- Admin login/session and roles.
+- Website CMS controls: brand, services, offers, pages/SEO, projects, media, contact messages.
+- MoPlayer Classic (`moplayer`) operations.
+- MoPlayer Pro (`moplayer2`) operations.
+- Runtime config, releases, APK assets, product content, FAQs, screenshots.
+- Activations, devices, licenses, encrypted source-delivery status.
+- App support inbox and email replies.
+- App diagnostics and device events.
+- AI conversations, feedback, automation events/inbox/rules/runs.
+
+## What Public Web Owns
+
+`apps/web` owns:
+
+- Localized public pages under `src/app/[locale]/(site)`.
+- Public MoPlayer product pages.
+- Activation UI.
+- App-facing APIs under `src/app/api/app`.
+- Download routing and release download endpoints.
+- Public support/contact intake.
+- Diagnostics/events intake from Android.
+- SEO, sitemap, robots, manifest, and public assets.
+
+Do not add admin-only screens back to `apps/web`.
+
+## Product Boundaries
+
+- `moplayer` = MoPlayer Classic, package `com.mo.moplayer`.
+- `moplayer2` = MoPlayer Pro, package `com.moalfarras.moplayerpro`.
+- Public copy can say "MoPlayer Pro"; slugs, URLs, DB rows, and Android payloads must keep `moplayer2`.
+
+## Verification
+
+Before deploy:
+
+```powershell
+npm run verify:web
+npm run verify:admin
+```
+
+For Android-facing changes:
+
+```powershell
+npm run verify:android
+```

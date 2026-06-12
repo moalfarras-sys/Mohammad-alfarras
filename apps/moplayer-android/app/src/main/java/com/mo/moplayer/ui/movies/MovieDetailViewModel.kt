@@ -8,6 +8,7 @@ import com.mo.moplayer.data.local.dao.MovieDao
 import com.mo.moplayer.data.local.entity.MovieEntity
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.repository.WatchHistoryRepository
+import com.mo.moplayer.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -47,6 +48,13 @@ class MovieDetailViewModel @Inject constructor(
 
                 if (movieData != null) {
                     currentServerId = movieData.serverId
+
+                    when (val refreshed = iptvRepository.refreshMovieDetails(movieData)) {
+                        is Resource.Success -> {
+                            refreshed.data?.let { _movie.value = it }
+                        }
+                        else -> Unit
+                    }
 
                     // Check favorite status
                     val favoriteStatus = iptvRepository.isFavorite(currentServerId, movieId).first()

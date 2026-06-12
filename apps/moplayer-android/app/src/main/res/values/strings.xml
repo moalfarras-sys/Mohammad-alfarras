@@ -153,7 +153,7 @@
     <string name="football_widget_no_match_subtitle">Upcoming match appears here when available</string>
     <string name="football_widget_error_state">Match widget unavailable</string>
     <string name="football_widget_error_subtitle">Tap to retry without interrupting MoPlayer</string>
-    <string name="football_widget_error">API key required</string>
+    <string name="football_widget_error">Match data unavailable</string>
     <string name="settings_football_widget_title">Football Widget</string>
     <string name="settings_football_widget_desc">Show live or today\'s match from major leagues on the home screen</string>
     <string name="settings_football_widget_enable">Enable Football Widget</string>
@@ -288,6 +288,13 @@
     <string name="home_subscription_expired">Expired\n%1$s</string>
     <string name="home_subscription_active">Server\nActive</string>
     <string name="home_subscription_no_source">Server\nNo source</string>
+    <!-- Clear subscription-expired messaging -->
+    <string name="subscription_expired_title">Subscription expired</string>
+    <string name="subscription_expired_message">Your subscription is no longer active, so the server can\'t stream new content. Renew your subscription, then sign in again to continue.</string>
+    <string name="subscription_expired_on">Expired on %1$s</string>
+    <string name="subscription_expired_new_signin">New sign-in</string>
+    <string name="subscription_expired_later">Later</string>
+    <string name="player_subscription_expired">Your subscription has expired, so this server can\'t play right now. Renew it and sign in again to continue watching.</string>
     <string name="settings_player">Player Settings</string>
     <string name="settings_player_default_quality">Default Quality</string>
     <string name="settings_player_buffer_size">Buffer Size</string>
@@ -681,6 +688,7 @@
     <string name="update_now">Update now</string>
     <string name="update_later">Later</string>
     <string name="update_downloading">Downloading update…</string>
+    <string name="update_downloading_percent">Downloading update… %1$d%%</string>
     <string name="update_permission_required">Allow installing apps, then try again.</string>
     <string name="update_failed">Update failed: %1$s</string>
     <string name="settings_app_update_title">App update</string>
@@ -694,4 +702,20 @@
     <string name="settings_app_update_progress">Downloading update… %1$d%%</string>
     <string name="settings_app_update_installer_opened">Installer opened. Complete the update from Android.</string>
     <string name="settings_app_update_latest_toast">No newer version is published yet.</string>
+
+    <!-- EPG full program guide -->
+    <string name="epg_guide_title">Program Guide</string>
+    <string name="epg_guide_open">Guide</string>
+    <string name="epg_prev_day">Previous day</string>
+    <string name="epg_next_day">Next day</string>
+    <string name="epg_jump_now">Now</string>
+    <string name="epg_today">Today</string>
+    <string name="epg_no_information">No information</string>
+    <string name="epg_no_program">No program selected</string>
+    <string name="epg_empty">No channels to show</string>
+    <string name="epg_guide_hint">OK watch · ◀▶ time · ▲▼ channel</string>
+    <string name="epg_reminder_set">Reminder set: %1$s</string>
+    <string name="epg_catchup_open">Opening catch-up…</string>
+    <string name="epg_catchup_unavailable">Catch-up isn\'t available for this channel</string>
+    <string name="epg_channels_count">%1$d channels</string>
 </resources>

@@ -48,6 +48,13 @@ class DeviceActivationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         super.onCreate(savedInstanceState)
+        // Activation waits on the user scanning a QR code with their phone, which can
+        // take a while. Keep the TV awake so the code never disappears behind a dimmed
+        // or sleeping screen.
+        window.addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
         binding = ActivityDeviceActivationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -119,6 +126,7 @@ class DeviceActivationActivity : AppCompatActivity() {
                     .putString("public_device_code", deviceCode)
                     .putLong("public_device_code_created_at", System.currentTimeMillis())
                     .putString("activation_status", "waiting")
+                    .remove("source_delivery_done_at")
                     .apply()
                 binding.tvActivationStatus.setText(R.string.activation_waiting)
                 binding.tvActivationBody.text = getString(R.string.activation_waiting_body_runtime, deviceCode)
@@ -245,6 +253,7 @@ class DeviceActivationActivity : AppCompatActivity() {
             .putString("activation_status", "activated")
             .putString("activated_device_code", deviceCode)
             .putLong("activated_at", System.currentTimeMillis())
+            .remove("source_delivery_done_at")
             .apply()
 
         binding.tvActivationStatus.setText(R.string.activation_activated)

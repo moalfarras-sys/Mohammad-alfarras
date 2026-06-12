@@ -10,6 +10,7 @@
     "build:web": "npm --prefix apps/web run build",
     "build:admin": "npm --prefix apps/admin run build",
     "build:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",
+    "build:windows": "npm --prefix apps/moplayer-pro-windows run build",
     "build": "npm run build:web && npm run build:admin && npm run build:moplayer-dashboard",
     "test": "npm --prefix apps/web test",
     "test:web": "npm --prefix apps/web test",
@@ -20,6 +21,7 @@
     "verify:android:pro": "cd apps/moplayer2-android && gradlew.bat testDebugUnitTest",
     "verify:android": "npm run verify:android:classic && npm run verify:android:pro",
     "verify:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",
+    "verify:windows": "npm --prefix apps/moplayer-pro-windows run typecheck && npm --prefix apps/moplayer-pro-windows run lint && npm --prefix apps/moplayer-pro-windows run build",
     "verify:production": "npm run verify:web && npm run verify:admin && npm run verify:moplayer-dashboard && npm run verify:android",
     "verify": "npm run verify:web && npm run verify:admin && npm run verify:moplayer-dashboard",
     "release:moplayer": "node scripts/release/moplayer-local.mjs",
@@ -29,7 +31,9 @@
     "lint:admin": "npm --prefix apps/admin run lint",
     "dev:web": "npm --prefix apps/web run dev",
     "dev:admin": "npm --prefix apps/admin run dev",
-    "dev:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run dev"
+    "dev:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run dev",
+    "dev:windows": "npm --prefix apps/moplayer-pro-windows run dev",
+    "dist:windows": "npm --prefix apps/moplayer-pro-windows run dist"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",

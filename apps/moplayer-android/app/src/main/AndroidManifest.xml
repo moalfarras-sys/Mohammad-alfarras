@@ -145,6 +145,14 @@
             android:screenOrientation="landscape"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
 
+        <!-- EPG Program Guide (full multi-channel grid) -->
+        <activity
+            android:name=".ui.epg.EpgGuideActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
+
         <!-- Movies Activity -->
         <activity
             android:name=".ui.movies.MoviesActivity"

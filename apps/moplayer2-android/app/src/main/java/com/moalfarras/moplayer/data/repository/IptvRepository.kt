@@ -9,12 +9,11 @@ import com.moalfarras.moplayerpro.BuildConfig
 import com.moalfarras.moplayer.data.db.MoPlayerDatabase
 import com.moalfarras.moplayer.data.db.toDomain
 import com.moalfarras.moplayer.data.db.toEntity
+import com.moalfarras.moplayer.data.db.toSearchEntity
 import com.moalfarras.moplayer.data.network.PlaylistService
 import com.moalfarras.moplayer.data.network.SupabaseService
 import com.moalfarras.moplayer.data.network.XtreamService
 import com.moalfarras.moplayer.data.network.NetworkModule
-import com.moalfarras.moplayer.data.network.DeviceActivationInsertDto
-import com.moalfarras.moplayer.data.network.DeviceActivationUpdateDto
 import com.moalfarras.moplayer.data.network.WebActivationCreateRequestDto
 import com.moalfarras.moplayer.data.network.WebActivationSourceAckRequestDto
 import com.moalfarras.moplayer.data.network.WebProviderSourceDto
@@ -31,10 +30,12 @@ import com.moalfarras.moplayer.domain.model.LoginKind
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.domain.model.SortOption
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -45,12 +46,38 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromStream
 import okhttp3.ResponseBody
+import java.io.InterruptedIOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.Locale
+
+internal const val LIBRARY_BROWSE_PAGE_SIZE = 120
+internal const val LIBRARY_SHELF_PAGE_SIZE = 72
+internal const val LIBRARY_SEARCH_PAGE_SIZE = 96
+internal const val SERIES_DETAIL_WRITE_BATCH_SIZE = 1_000
+
+private const val LIBRARY_PAGING_MAX_PAGES = 10
+private const val SERIES_DETAIL_FETCH_ATTEMPTS = 2
+private const val SERIES_DETAIL_RETRY_DELAY_MS = 450L
+
+internal fun largeLibraryPagingConfig(
+    pageSize: Int = LIBRARY_BROWSE_PAGE_SIZE,
+    maxPages: Int = LIBRARY_PAGING_MAX_PAGES,
+): PagingConfig {
+    val safePageSize = pageSize.coerceAtLeast(30)
+    return PagingConfig(
+        pageSize = safePageSize,
+        prefetchDistance = safePageSize,
+        initialLoadSize = safePageSize * 3,
+        maxSize = safePageSize * maxPages.coerceAtLeast(3),
+        enablePlaceholders = false,
+    )
+}
 
 class IptvRepository(
     private val database: MoPlayerDatabase,
@@ -98,7 +125,7 @@ class IptvRepository(
         sortOption: SortOption = SortOption.SERVER_ORDER,
         hideNoLogo: Boolean = false,
     ): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(),
         pagingSourceFactory = {
             database.mediaDao().observeByCategoryPaging(serverId, type, categoryId, sortOption.name, hideNoLogo)
         }
@@ -112,7 +139,7 @@ class IptvRepository(
         sortOption: SortOption = SortOption.SERVER_ORDER,
         hideNoLogo: Boolean = false,
     ): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(),
         pagingSourceFactory = { database.mediaDao().observeByTypePaging(serverId, type, sortOption.name, hideNoLogo) }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
@@ -129,28 +156,28 @@ class IptvRepository(
             .map { list -> list.map { entity -> entity.toDomain() } }
 
     fun latestLive(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE),
         pagingSourceFactory = { database.mediaDao().observeLatestPaging(serverId, listOf(ContentType.LIVE)) }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
 
     fun latestMovies(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE),
         pagingSourceFactory = { database.mediaDao().observeLatestPaging(serverId, listOf(ContentType.MOVIE)) }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
 
     fun latestSeries(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE),
         pagingSourceFactory = { database.mediaDao().observeLatestPaging(serverId, listOf(ContentType.SERIES)) }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
 
     fun favorites(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(),
         pagingSourceFactory = { database.mediaDao().observeFavoritesPaging(serverId) }
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
@@ -161,21 +188,21 @@ class IptvRepository(
         database.mediaDao().observeEpisodes(serverId, seriesId).map { it.map { entity -> entity.toDomain() } }
 
     fun continueWatching(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 30, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE, maxPages = 8),
         pagingSourceFactory = { database.mediaDao().observeContinueWatchingPaging(serverId) },
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
 
     fun recentlyPlayed(serverId: Long, type: ContentType): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 30, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE, maxPages = 8),
         pagingSourceFactory = { database.mediaDao().observeRecentlyPlayedPaging(serverId, type) },
     ).flow.map { pagingData ->
         pagingData.map { entity -> entity.toDomain() }
     }
 
     fun search(serverId: Long, query: String): Flow<PagingData<MediaItem>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+        config = largeLibraryPagingConfig(LIBRARY_SEARCH_PAGE_SIZE, maxPages = 8),
         pagingSourceFactory = {
             val normalized = query.trim().escapeLike()
             database.mediaDao().searchPaging(
@@ -198,7 +225,13 @@ class IptvRepository(
     }
 
     suspend fun refreshSeriesDetails(server: ServerProfile, series: MediaItem) {
-        if (server.kind != LoginKind.XTREAM || series.seriesId.isBlank()) return
+        if (server.kind != LoginKind.XTREAM) return
+        val seriesId = series.seriesId.ifBlank { series.id }
+        if (seriesId.isBlank()) return
+        val cachedEpisodes = withContext(Dispatchers.IO) {
+            database.mediaDao().episodeCount(server.id, seriesId)
+        }
+        if (cachedEpisodes > 0) return
         val credentials = XtreamCredentials(
             baseUrl = server.baseUrl.ensureTrailingSlash(),
             username = server.username,
@@ -207,28 +240,24 @@ class IptvRepository(
         )
         val api = xtreamFactory(credentials.baseUrl)
         val response = runCatching {
-            playerApiObject(
-                api,
-                credentials.username,
-                credentials.password,
-                mapOf("action" to "get_series_info", "series_id" to series.seriesId),
-            )
-        }.recoverCatching {
-            playerApiObject(
-                api,
-                credentials.username,
-                credentials.password,
-                mapOf("action" to "get_series_info", "series" to series.seriesId),
-            )
+            fetchSeriesInfoObject(api, credentials.username, credentials.password, seriesId)
         }.getOrElse { throwable ->
             throw IllegalStateException(XtreamSupport.sanitizeError(throwable.message, server.host.ifBlank { XtreamSupport.hostLabel(server.baseUrl) }))
         }
         val (enrichedSeries, seasons, episodeItems) = XtreamSupport.enrichSeries(json, server.id, credentials, series, response)
         withContext(Dispatchers.IO) {
-            database.mediaDao().upsertAll(listOf(enrichedSeries.toEntity()))
-            database.seasonDao().deleteForSeries(server.id, enrichedSeries.seriesId.ifBlank { enrichedSeries.id })
-            if (seasons.isNotEmpty()) database.seasonDao().insertAll(seasons)
-            episodeItems.chunked(300).forEach { chunk -> database.mediaDao().upsertAll(chunk.map(MediaItem::toEntity)) }
+            database.withTransaction {
+                val enrichedEntity = enrichedSeries.toEntity()
+                database.mediaDao().upsertAll(listOf(enrichedEntity))
+                database.mediaSearchDao().insertAll(listOf(enrichedEntity.toSearchEntity()))
+                database.seasonDao().deleteForSeries(server.id, enrichedSeries.seriesId.ifBlank { seriesId })
+                if (seasons.isNotEmpty()) database.seasonDao().insertAll(seasons)
+                episodeItems.chunked(SERIES_DETAIL_WRITE_BATCH_SIZE).forEach { chunk ->
+                    val entities = chunk.map(MediaItem::toEntity)
+                    database.mediaDao().upsertAll(entities)
+                    database.mediaSearchDao().insertAll(entities.map { it.toSearchEntity() })
+                }
+            }
         }
     }
 
@@ -243,8 +272,12 @@ class IptvRepository(
         )
         val (enriched, details) = XtreamSupport.enrichVod(json, server.id, movie, response)
         withContext(Dispatchers.IO) {
-            database.vodDetailsDao().upsert(details)
-            database.mediaDao().upsertAll(listOf(enriched.toEntity()))
+            database.withTransaction {
+                val enrichedEntity = enriched.toEntity()
+                database.vodDetailsDao().upsert(details)
+                database.mediaDao().upsertAll(listOf(enrichedEntity))
+                database.mediaSearchDao().insertAll(listOf(enrichedEntity.toSearchEntity()))
+            }
         }
         return enriched
     }
@@ -417,6 +450,7 @@ class IptvRepository(
     suspend fun deleteServer(serverId: Long) = withContext(Dispatchers.IO) {
         database.categoryDao().deleteForServer(serverId)
         database.mediaDao().deleteForServer(serverId)
+        database.mediaSearchDao().deleteForServer(serverId)
         database.accountInfoDao().deleteForServer(serverId)
         database.serverInfoDao().deleteForServer(serverId)
         database.vodDetailsDao().deleteForServer(serverId)
@@ -462,6 +496,30 @@ class IptvRepository(
 
     suspend fun hasLocalLibrary(serverId: Long): Boolean = withContext(Dispatchers.IO) {
         database.mediaDao().countForServer(serverId) > 0
+    }
+
+    suspend fun needsLibraryRefresh(server: ServerProfile, staleAfterMs: Long): Boolean = withContext(Dispatchers.IO) {
+        if (server.id <= 0) return@withContext true
+        if (database.mediaDao().countForServer(server.id) <= 0) return@withContext true
+        val syncState = database.syncStateDao().get(server.id)
+        val now = System.currentTimeMillis()
+        val stale = server.lastSyncAt <= 0 || now - server.lastSyncAt > staleAfterMs
+        if (syncState == null) return@withContext true
+        if (stale || syncState.lastSyncAt <= 0) return@withContext true
+        if (server.kind != LoginKind.XTREAM) return@withContext false
+        if (syncState.liveSyncedAt <= 0 || syncState.vodSyncedAt <= 0 || syncState.seriesSyncedAt <= 0) {
+            return@withContext true
+        }
+        listOf(ContentType.LIVE, ContentType.MOVIE, ContentType.SERIES).any { type ->
+            database.categoryDao().countForServerType(server.id, type) > 0 &&
+                database.mediaDao().countForServerType(server.id, type) <= 0
+        }
+    }
+
+    suspend fun needsFullEpgRefresh(server: ServerProfile, staleAfterMs: Long): Boolean = withContext(Dispatchers.IO) {
+        if (server.id <= 0 || server.kind != LoginKind.XTREAM) return@withContext false
+        val lastEpgSync = database.syncStateDao().get(server.id)?.epgSyncedAt ?: 0L
+        lastEpgSync <= 0L || System.currentTimeMillis() - lastEpgSync > staleAfterMs
     }
 
     fun loginM3u(name: String, playlistUrl: String, epgUrl: String = ""): Flow<LoadProgress> = flow {
@@ -711,46 +769,12 @@ class IptvRepository(
     }
 
     fun loginActivationCode(code: String): Flow<LoadProgress> = flow {
-        val cleanCode = code.trim().uppercase(Locale.US)
-        val activation = resolveActivationCode(code)
-        emit(LoadProgress("Activation accepted", 20, 100))
-        when (activation.serverType.lowercase(Locale.US)) {
-            "xtream", "xstream" -> {
-                loginXtream(
-                    name = activation.serverName.ifBlank { cleanCode },
-                    baseUrl = activation.baseUrl,
-                    username = activation.username,
-                    password = activation.password,
-                ).collect { emit(it) }
-            }
-            else -> {
-                loginM3u(
-                    name = activation.serverName.ifBlank { cleanCode },
-                    playlistUrl = activation.playlistUrl.ifBlank { activation.baseUrl },
-                    epgUrl = activation.epgUrl,
-                ).collect { emit(it) }
-            }
-        }
+        emit(LoadProgress("Use the QR activation screen", 0, 100))
+        error("Server import is only available from a fresh moalfarras.space QR activation.")
     }
 
     suspend fun resolveActivationProfile(code: String): ActivatedProfile {
-        val activation = resolveActivationCode(code)
-        return activation.toActivatedProfile() ?: error("Activation is missing server details")
-    }
-
-    private suspend fun resolveActivationCode(code: String): com.moalfarras.moplayer.data.network.ActivationCodeDto {
-        val service = supabaseService ?: error("Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY to gradle.properties.")
-        val cleanCode = code.trim().uppercase(Locale.US)
-        val rows = withContext(Dispatchers.IO) {
-            service.activationCode(
-                anonKey = BuildConfig.SUPABASE_ANON_KEY,
-                bearer = supabaseBearer,
-                codeEq = "eq.$cleanCode",
-            )
-        }
-        val activation = rows.firstOrNull() ?: error("Activation code not found")
-        if (activation.revoked) error("Activation code is revoked")
-        return activation
+        error("Server import is only available from a fresh moalfarras.space QR activation.")
     }
 
     suspend fun createDeviceActivation(deviceName: String): DeviceActivationSession {
@@ -845,44 +869,10 @@ class IptvRepository(
             }
         }
 
-        val service = supabaseService ?: error("Legacy activation requires SUPABASE_URL and SUPABASE_ANON_KEY.")
-        val row = withContext(Dispatchers.IO) {
-            service.deviceActivation(
-                anonKey = BuildConfig.SUPABASE_ANON_KEY,
-                bearer = supabaseBearer,
-                deviceCodeEq = "eq.${session.deviceCode}",
-            ).firstOrNull()
-        } ?: return session.copy(status = DeviceActivationStatus.ERROR, error = "Activation code was not found") to null
-
-        val status = row.status.lowercase(Locale.US)
-        return when (status) {
-            "activated" -> {
-                val profile = row.toActivatedProfile()
-                if (profile == null) {
-                    session.copy(status = DeviceActivationStatus.ERROR, error = row.errorMessage.ifBlank { "Activation is missing server details" }) to null
-                } else {
-                    runCatching {
-                        withContext(Dispatchers.IO) {
-                            service.updateDeviceActivationStatus(
-                                anonKey = BuildConfig.SUPABASE_ANON_KEY,
-                                bearer = supabaseBearer,
-                                deviceCodeEq = "eq.${session.deviceCode}",
-                                body = DeviceActivationUpdateDto(status = "consumed"),
-                            ).close()
-                        }
-                    }
-                    session.copy(status = DeviceActivationStatus.ACTIVATED) to profile
-                }
-            }
-            "expired" -> session.copy(status = DeviceActivationStatus.EXPIRED, error = "Activation code expired") to null
-            "error" -> session.copy(status = DeviceActivationStatus.ERROR, error = row.errorMessage.ifBlank { "Activation failed" }) to null
-            "consumed" -> session.copy(status = DeviceActivationStatus.ERROR, error = "Activation code was already used") to null
-            else -> session.copy(
-                status = DeviceActivationStatus.WAITING,
-                intervalSeconds = row.pollIntervalSeconds.coerceAtLeast(3),
-                expiresAt = row.expiresAt.parseInstantOr(session.expiresAt),
-            ) to null
-        }
+        return session.copy(
+            status = DeviceActivationStatus.ERROR,
+            error = "Refresh the QR code. Server details are delivered only through the website handoff.",
+        ) to null
     }
 
     private suspend fun syncM3u(
@@ -1153,7 +1143,11 @@ class IptvRepository(
 
         database.serverDao().updateRuntimeInfo(
             serverId = server.id,
-            lastSyncAt = startedAt,
+            // Do not mark the whole library fresh until live, VOD, and series sections finish.
+            // Low-end boxes can kill the app after account fetch but before content inserts; keeping
+            // lastSyncAt unchanged lets startup/WorkManager retry instead of treating a partial cache
+            // as complete.
+            lastSyncAt = server.lastSyncAt,
             accountStatus = accountSnapshot.accountInfo?.status.orEmpty(),
             expiryDate = accountSnapshot.accountInfo?.expiryDate ?: 0,
             activeConnections = accountSnapshot.accountInfo?.activeConnections ?: 0,
@@ -1299,6 +1293,7 @@ class IptvRepository(
             val parsedCategories = XtreamSupport.parseCategories(json, serverId, type, categoriesDeferred.await())
             parsedCategories to parseItems(parsedCategories, streamsDeferred.await())
         }
+        ensureXtreamSectionIsComplete(type, categories, items)
         val now = System.currentTimeMillis()
         val currentState = withContext(Dispatchers.IO) { database.syncStateDao().get(serverId) }
         val syncState = com.moalfarras.moplayer.data.db.SyncStateEntity(
@@ -1351,12 +1346,14 @@ class IptvRepository(
         val categoriesDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to categoryAction)) }
         val streamsDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to streamAction)) }
         val categories = XtreamSupport.parseCategories(json, serverId, type, categoriesDeferred.await())
+        val items = parseItems(categories, streamsDeferred.await())
+        ensureXtreamSectionIsComplete(type, categories, items)
         XtreamSectionResult(
             type = type,
             progressPhase = progressPhase,
             progressValue = progressValue,
             categories = categories,
-            items = parseItems(categories, streamsDeferred.await()),
+            items = items,
         )
     }
 
@@ -1440,6 +1437,9 @@ class IptvRepository(
             categories = seriesCategories.associate { it.id to it.name },
             array = seriesDeferred.await(),
         )
+        ensureXtreamSectionIsComplete(ContentType.LIVE, liveCategories, liveItems)
+        ensureXtreamSectionIsComplete(ContentType.MOVIE, vodCategories, vodItems)
+        ensureXtreamSectionIsComplete(ContentType.SERIES, seriesCategories, seriesItems)
         val allCategories = buildList {
             addAll(liveCategories)
             addAll(vodCategories)
@@ -1469,6 +1469,23 @@ class IptvRepository(
                 updatedAt = System.currentTimeMillis(),
             ),
             epgPrograms = emptyList(),
+        )
+    }
+
+    private fun ensureXtreamSectionIsComplete(
+        type: ContentType,
+        categories: List<Category>,
+        items: List<MediaItem>,
+    ) {
+        if (categories.isEmpty() || items.isNotEmpty()) return
+        val label = when (type) {
+            ContentType.LIVE -> "live"
+            ContentType.MOVIE -> "movie"
+            ContentType.SERIES -> "series"
+            ContentType.EPISODE -> "episode"
+        }
+        throw IllegalStateException(
+            "IPTV server returned ${categories.size} $label groups but no playable items. Cached library was kept and refresh will retry.",
         )
     }
 
@@ -1551,6 +1568,34 @@ class IptvRepository(
         }
     }
 
+    private suspend fun fetchSeriesInfoObject(
+        api: XtreamService,
+        username: String,
+        password: String,
+        seriesId: String,
+    ): JsonObject {
+        val queries = listOf(
+            mapOf("action" to "get_series_info", "series_id" to seriesId),
+            mapOf("action" to "get_series_info", "series" to seriesId),
+        )
+        var lastFailure: Throwable? = null
+        for (query in queries) {
+            for (attempt in 0 until SERIES_DETAIL_FETCH_ATTEMPTS) {
+                try {
+                    return playerApiObject(api, username, password, query)
+                } catch (throwable: Throwable) {
+                    if (throwable is CancellationException) throw throwable
+                    lastFailure = preferredFailure(lastFailure, throwable)
+                    if (!throwable.isRetryableXtreamDetailFailure() || attempt == SERIES_DETAIL_FETCH_ATTEMPTS - 1) {
+                        break
+                    }
+                    delay(SERIES_DETAIL_RETRY_DELAY_MS * (attempt + 1))
+                }
+            }
+        }
+        throw lastFailure ?: IllegalStateException("Series details unavailable")
+    }
+
     private fun String.ensureTrailingSlash(): String = if (endsWith('/')) this else "$this/"
 
     private fun httpUrlCandidates(raw: String, trailingSlash: Boolean = false): List<String> {
@@ -1592,6 +1637,19 @@ class IptvRepository(
     }.getOrElse { this }.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() }
 
     private fun ResponseBody.safeString(): String = use { it.string() }
+}
+
+private fun Throwable.isRetryableXtreamDetailFailure(): Boolean {
+    var current: Throwable? = this
+    while (current != null) {
+        if (current is SocketTimeoutException || current is ConnectException || current is InterruptedIOException) {
+            return true
+        }
+        current = current.cause
+    }
+    val clean = message.orEmpty()
+    return clean.contains("timeout", ignoreCase = true) ||
+        clean.contains("failed to connect", ignoreCase = true)
 }
 
 private val secureRandom = SecureRandom()
@@ -1671,60 +1729,6 @@ private fun String.escapeLike(): String =
 
 private fun String.parseInstantOr(fallback: Long): Long =
     runCatching { Instant.parse(this).toEpochMilli() }.getOrDefault(fallback)
-
-private fun com.moalfarras.moplayer.data.network.DeviceActivationDto.toActivatedProfile(): ActivatedProfile? {
-    val type = serverType.lowercase(Locale.US)
-    return when (type) {
-        "xtream", "xstream" -> {
-            if (baseUrl.isBlank() || username.isBlank() || password.isBlank()) null else ActivatedProfile(
-                name = serverName.ifBlank { XtreamSupport.hostLabel(baseUrl) },
-                kind = LoginKind.XTREAM,
-                baseUrl = baseUrl,
-                username = username,
-                password = password,
-                playlistUrl = playlistUrl,
-                epgUrl = epgUrl,
-            )
-        }
-        "m3u", "m3u8" -> {
-            val source = playlistUrl.ifBlank { baseUrl }
-            if (source.isBlank()) null else ActivatedProfile(
-                name = serverName.ifBlank { XtreamSupport.hostLabel(source) },
-                kind = LoginKind.M3U,
-                playlistUrl = source,
-                epgUrl = epgUrl,
-            )
-        }
-        else -> null
-    }
-}
-
-private fun com.moalfarras.moplayer.data.network.ActivationCodeDto.toActivatedProfile(): ActivatedProfile? {
-    val type = serverType.lowercase(Locale.US)
-    return when (type) {
-        "xtream", "xstream" -> {
-            if (baseUrl.isBlank() || username.isBlank() || password.isBlank()) null else ActivatedProfile(
-                name = serverName.ifBlank { XtreamSupport.hostLabel(baseUrl) },
-                kind = LoginKind.XTREAM,
-                baseUrl = baseUrl,
-                username = username,
-                password = password,
-                playlistUrl = playlistUrl,
-                epgUrl = epgUrl,
-            )
-        }
-        "m3u", "m3u8" -> {
-            val source = playlistUrl.ifBlank { baseUrl }
-            if (source.isBlank()) null else ActivatedProfile(
-                name = serverName.ifBlank { XtreamSupport.hostLabel(source) },
-                kind = LoginKind.M3U,
-                playlistUrl = source,
-                epgUrl = epgUrl,
-            )
-        }
-        else -> null
-    }
-}
 
 private fun WebProviderSourceDto.toActivatedProfile(
     sourceId: String = "",

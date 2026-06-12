@@ -1,7 +1,9 @@
 package com.mo.moplayer.data.local
 
 import androidx.room.Database
+import androidx.room.migration.Migration
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.mo.moplayer.data.local.dao.*
 import com.mo.moplayer.data.local.entity.*
 
@@ -19,7 +21,7 @@ import com.mo.moplayer.data.local.entity.*
         ServerSyncStateEntity::class,
         ContentSearchEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class MoPlayerDatabase : RoomDatabase() {
@@ -37,5 +39,12 @@ abstract class MoPlayerDatabase : RoomDatabase() {
     
     companion object {
         const val DATABASE_NAME = "moplayer_database"
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Schema unchanged. This version bump gives current installs a non-destructive
+                // migration path so app updates keep the cached library and watch state.
+            }
+        }
     }
 }

@@ -42,6 +42,16 @@ class ProviderSourceUrlParserTest {
     }
 
     @Test
+    fun `parses hls preferred output format from get php url`() {
+        val parsed = ProviderSourceUrlParser.parseXtream(
+            "http://provider.test/get.php?username=demo&password=secret&type=m3u_plus&output=m3u8"
+        )
+
+        assertNotNull(parsed)
+        assertEquals("m3u8", parsed!!.preferredOutputFormat)
+    }
+
+    @Test
     fun `parses player api xtream url`() {
         val parsed = ProviderSourceUrlParser.parseXtream(
             "http://provider.test/player_api.php?username=demo&password=secret"

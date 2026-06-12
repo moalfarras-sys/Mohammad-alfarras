@@ -115,9 +115,43 @@ interface EpgDao {
      * Check if we have EPG data for a channel
      */
     @Query("""
-        SELECT COUNT(*) > 0 FROM epg_listings 
+        SELECT COUNT(*) > 0 FROM epg_listings
         WHERE streamId = :streamId AND serverId = :serverId
         AND endTime > :currentTime
     """)
     suspend fun hasEpgData(streamId: Int, serverId: Long, currentTime: Long = System.currentTimeMillis()): Boolean
+
+    /**
+     * Full program guide query: every program for a set of channels that overlaps the
+     * visible window [windowStart, windowEnd). Used by the EPG grid so we read EPG for
+     * the whole on-screen channel set in a single indexed scan instead of per-channel.
+     */
+    @Query("""
+        SELECT * FROM epg_listings
+        WHERE serverId = :serverId AND streamId IN (:streamIds)
+        AND endTime > :windowStart AND startTime < :windowEnd
+        ORDER BY streamId ASC, startTime ASC
+    """)
+    suspend fun getEpgForChannelsInWindow(
+        serverId: Long,
+        streamIds: List<Int>,
+        windowStart: Long,
+        windowEnd: Long
+    ): List<EpgEntity>
+
+    /**
+     * Which of the given channels already have at least one program covering the window.
+     * Lets the guide fetch EPG only for channels that are actually missing it.
+     */
+    @Query("""
+        SELECT DISTINCT streamId FROM epg_listings
+        WHERE serverId = :serverId AND streamId IN (:streamIds)
+        AND endTime > :windowStart AND startTime < :windowEnd
+    """)
+    suspend fun getChannelsWithEpgInWindow(
+        serverId: Long,
+        streamIds: List<Int>,
+        windowStart: Long,
+        windowEnd: Long
+    ): List<Int>
 }

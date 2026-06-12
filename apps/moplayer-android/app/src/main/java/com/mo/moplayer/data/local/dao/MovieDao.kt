@@ -37,6 +37,9 @@ interface MovieDao {
     
     @Query("SELECT * FROM movies WHERE serverId = :serverId AND lastWatchedAt IS NOT NULL ORDER BY lastWatchedAt DESC LIMIT :limit")
     fun getContinueWatchingMovies(serverId: Long, limit: Int = 20): Flow<List<MovieEntity>>
+
+    @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY movieId LIMIT :limit OFFSET :offset")
+    suspend fun getMoviesPage(serverId: Long, limit: Int, offset: Int): List<MovieEntity>
     
     @Query("SELECT * FROM movies WHERE serverId = :serverId AND rating IS NOT NULL ORDER BY rating DESC LIMIT :limit")
     fun getTopRatedMovies(serverId: Long, limit: Int = 30): Flow<List<MovieEntity>>
@@ -73,4 +76,11 @@ interface MovieDao {
 
     @Query("SELECT * FROM movies WHERE serverId = :serverId ORDER BY RANDOM() LIMIT 1")
     suspend fun getRandomMovie(serverId: Long): MovieEntity?
+
+    // --- Stale-content pruning support ---
+    @Query("SELECT movieId FROM movies WHERE serverId = :serverId")
+    suspend fun getMovieIds(serverId: Long): List<String>
+
+    @Query("DELETE FROM movies WHERE movieId IN (:movieIds)")
+    suspend fun deleteMoviesByIds(movieIds: List<String>)
 }

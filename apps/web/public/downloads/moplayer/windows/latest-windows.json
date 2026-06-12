@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "platform": "windows",
+  "file": "MoPlayer-PC-Setup.exe",
+  "portableFile": "MoPlayer-PC-Portable.exe",
+  "downloadUrl": "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pc-v1.0.0/MoPlayer-PC-Setup.exe",
+  "portableDownloadUrl": "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pc-v1.0.0/MoPlayer-PC-Portable.exe",
+  "fileSizeBytes": 115190759,
+  "portableFileSizeBytes": 114972853,
+  "sha256": "a7816198ff6508abc7bb27b1626145492b033ebb836ba78c5048f35bf661abb9",
+  "portableSha256": "12fc877bb1e07656ae151a185589a00199eacf5a3e0144242e44fa6c7b1fa400",
+  "releaseDate": "2026-06-12",
+  "systemRequirements": "Windows 10 / Windows 11 x64",
+  "notes": "MoPlayer PC for Windows. Installer and portable builds are hosted on GitHub Releases; the website download API redirects there.",
+  "productSlug": "moplayer2"
+}

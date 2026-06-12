@@ -112,7 +112,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         val statusLine = buildString {
             data.statusLong?.let { append(it) }
             data.minute?.let { min ->
-                if (isNotEmpty()) append(" · ")
+                if (isNotEmpty()) append(" - ")
                 append("$min'")
             }
             if (isEmpty()) data.statusShort?.let { append(it) }
@@ -213,7 +213,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
                         timeZone = TimeZone.getDefault()
                     }
             val date = input.parse(isoDate) ?: return null
-            SimpleDateFormat("EEE, d MMM yyyy · HH:mm", Locale.getDefault()).format(date)
+            SimpleDateFormat("EEE, d MMM yyyy - HH:mm", Locale.getDefault()).format(date)
         } catch (_: Exception) {
             null
         }

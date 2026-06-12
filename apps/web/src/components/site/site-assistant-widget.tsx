@@ -86,6 +86,7 @@ export function SiteAssistantWidget({ locale }: { locale: Locale }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const conversationId = useMemo(() => crypto.randomUUID(), []);
+  const hiddenOnFocusedFlow = Boolean(pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"));
 
   useEffect(() => {
     try {
@@ -145,6 +146,8 @@ export function SiteAssistantWidget({ locale }: { locale: Locale }) {
       setLoading(false);
     }
   }
+
+  if (hiddenOnFocusedFlow) return null;
 
   return (
     <aside

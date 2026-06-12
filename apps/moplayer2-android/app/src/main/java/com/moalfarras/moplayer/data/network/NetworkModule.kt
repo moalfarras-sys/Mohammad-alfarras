@@ -34,6 +34,25 @@ object NetworkModule {
             .build()
     }
 
+    val playbackOkHttp: OkHttpClient by lazy {
+        okHttp.newBuilder()
+            // Real IPTV panels and CDN edges sometimes take a little longer to accept the
+            // socket on weak Wi-Fi. Keep playback finite, but do not fail an otherwise
+            // playable stream at the same 12s API threshold shown in user error reports.
+            .connectTimeout(14, TimeUnit.SECONDS)
+            .build()
+    }
+
+    private val xtreamOkHttp: OkHttpClient by lazy {
+        okHttp.newBuilder()
+            // Huge Xtream panels often answer get_series_info slower than bulk library calls.
+            // This keeps the UI from failing at exactly 12s while read/call caps still prevent
+            // a dead panel from blocking the app for minutes.
+            .connectTimeout(22, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+
     private val playlistOkHttp: OkHttpClient by lazy {
         okHttp.newBuilder()
             // M3U playlists stream as one large text body; allow a slightly longer stall
@@ -83,7 +102,7 @@ object NetworkModule {
     }
     val webFootballService: WebFootballService by lazy { retrofit("https://example.com/").create(WebFootballService::class.java) }
 
-    fun xtream(baseUrl: String): XtreamService = retrofit(baseUrl).create(XtreamService::class.java)
+    fun xtream(baseUrl: String): XtreamService = retrofit(baseUrl, xtreamOkHttp).create(XtreamService::class.java)
 
     val supabaseService: SupabaseService? by lazy {
         if (BuildConfig.SUPABASE_URL.isBlank() || BuildConfig.SUPABASE_ANON_KEY.isBlank()) {

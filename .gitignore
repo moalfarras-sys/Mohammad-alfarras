@@ -51,6 +51,8 @@ moplayer_database_copy.db
 # Large universal MoPlayer APK is published through release metadata / external hosting,
 # not bundled into Vercel public output.
 apps/web/public/downloads/moplayer/app-sideload-universal-release.apk
+apps/web/public/downloads/moplayer/windows/*.exe
+apps/web/public/downloads/moplayer/windows/*.blockmap
 
 # One-off local scripts (password tests / ad-hoc edits) — do not commit
 /check_hash.js
@@ -91,3 +93,18 @@ apps/moplayer-android/docker-compose.yml
 apps/moplayer2-android/docker-compose.yml
 
 .vercel
+
+# MoPlayer Pro Windows local build artifacts
+apps/moplayer-pro-windows/dist/
+apps/moplayer-pro-windows/dist-electron/
+apps/moplayer-pro-windows/release/
+apps/moplayer-pro-windows/release-*/
+apps/moplayer-pro-windows/qa-screenshots/
+apps/moplayer-pro-windows/build/icon.ico
+apps/moplayer-pro-windows/build/icon.png
+apps/moplayer-pro-windows/build/installerSidebar.bmp
+apps/moplayer-pro-windows/build/installerHeader.bmp
+apps/moplayer-pro-windows/build/*-preview.png
+apps/moplayer-pro-windows/build/license.txt
+!apps/moplayer-pro-windows/build/
+!apps/moplayer-pro-windows/build/icon.svg

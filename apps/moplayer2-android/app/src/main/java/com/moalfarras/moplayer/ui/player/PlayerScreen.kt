@@ -172,6 +172,10 @@ private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 2
 private const val MEDIA3_SURFACE_RETRY_LIMIT = 2
 private const val LIBVLC_LIVE_CACHE_MS = 900
 private const val LIBVLC_FILE_CACHE_MS = 2_000
+private const val LIVE_NO_VIDEO_FAST_MS = 2_200L
+private const val LIVE_NO_VIDEO_DEFAULT_MS = 3_200L
+private const val VOD_NO_VIDEO_FAST_MS = 3_500L
+private const val VOD_NO_VIDEO_DEFAULT_MS = 5_000L
 
 enum class LiveQualityMode { AUTO, BEST, ULTRA, STABLE }
 private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
@@ -211,7 +215,10 @@ private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: P
     // Both LibVLC branches require x86-unsafe build; on x86 emulators (and rare Atom boxes)
     // we always fall through to Media3 to avoid the AWindow surface-attach crash.
     if (uri.startsWith("rtsp://") && isLibVlcSafeOnThisDevice()) return InternalPlaybackEngine.LIBVLC
-    if (Build.VERSION.SDK_INT < 26 && request.uri.hasLiveTsHint() && isLibVlcSafeOnThisDevice()) {
+    if ((performancePolicy?.isPerformance == true || Build.VERSION.SDK_INT < 26) &&
+        (request.uri.hasLiveTsHint() || request.mimeType == MimeTypes.VIDEO_MP2T) &&
+        isLibVlcSafeOnThisDevice()
+    ) {
         return InternalPlaybackEngine.LIBVLC
     }
     return when (request.mimeType) {
@@ -320,14 +327,20 @@ fun PlayerScreen(
     var forceLibVlcForVod by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var triedCompatibleLiveAlternative by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var resolvedLiveRequest by remember(item.id, streamRequest.uri) { mutableStateOf<StreamRequest?>(null) }
+    var vodFallbackRequest by remember(item.id, streamRequest.uri) { mutableStateOf<StreamRequest?>(null) }
+    var vodFallbackVisitedUris by remember(item.id, streamRequest.uri) { mutableStateOf<Set<String>>(emptySet()) }
     var liveRedirectResolved by remember(item.id, streamRequest.uri) {
         mutableStateOf(!isLive || !streamRequest.uri.hasLiveTsHint())
     }
     var forceHlsForLiveRedirect by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    val playbackRequest = remember(streamRequest, resolvedLiveRequest, liveRedirectResolved, forceHlsForLiveRedirect, forceLibVlcForLive, isLive) {
-        val keepOriginalForImmediateVlc = isLive && forceLibVlcForLive && !forceHlsForLiveRedirect
-        val resolved = if (liveRedirectResolved && !keepOriginalForImmediateVlc) resolvedLiveRequest ?: streamRequest else streamRequest
-        if (forceHlsForLiveRedirect) resolved.copy(mimeType = MimeTypes.APPLICATION_M3U8) else resolved
+    val playbackRequest = remember(streamRequest, resolvedLiveRequest, liveRedirectResolved, forceHlsForLiveRedirect, forceLibVlcForLive, vodFallbackRequest, isLive) {
+        if (!isLive) {
+            vodFallbackRequest ?: streamRequest
+        } else {
+            val keepOriginalForImmediateVlc = forceLibVlcForLive && !forceHlsForLiveRedirect
+            val resolved = if (liveRedirectResolved && !keepOriginalForImmediateVlc) resolvedLiveRequest ?: streamRequest else streamRequest
+            if (forceHlsForLiveRedirect) resolved.copy(mimeType = MimeTypes.APPLICATION_M3U8) else resolved
+        }
     }
     val liveStallRecoveryLimit = remember(performancePolicy.mode) {
         if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 1 else LIVE_STALL_RECOVERY_LIMIT
@@ -470,6 +483,26 @@ fun PlayerScreen(
         return true
     }
 
+    fun switchToVodFallbackStream(error: PlaybackException): Boolean {
+        if (isLive || useLibVlc || !shouldTryVodStreamFallback(error)) return false
+        val visited = vodFallbackVisitedUris + playbackRequest.uri
+        val alternative = nextVodFallbackRequest(
+            baseRequest = streamRequest,
+            currentRequest = playbackRequest,
+            item = item,
+            attemptedUris = visited,
+        ) ?: return false
+        vodFallbackVisitedUris = visited + alternative.uri
+        vodFallbackRequest = alternative
+        playbackError = null
+        isBuffering = true
+        vodFirstFrameRendered = false
+        vodReadyAt = 0L
+        vodOpeningGuard = true
+        playbackSignal = "Trying ${alternative.uri.playableExtensionLabel()} source"
+        return true
+    }
+
     val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, liveRedirectResolved, useLibVlc, performancePolicy.mode, media3SurfaceAttempt) {
         buildPlayer(
             context = context,
@@ -516,6 +549,19 @@ fun PlayerScreen(
                     liveReadyWithoutVideoAt = 0L
                     return@buildPlayer
                 }
+                if (isLive &&
+                    (performancePolicy.isPerformance || playbackRequest.uri.hasLiveTsHint()) &&
+                    isLibVlcSafeForRequest(playbackRequest) &&
+                    shouldFallbackToLibVlc(error) &&
+                    !triedLibVlcForLive
+                ) {
+                    triedLibVlcForLive = true
+                    forceLibVlcForLive = true
+                    playbackError = null
+                    isBuffering = true
+                    internalEngine = InternalPlaybackEngine.LIBVLC
+                    return@buildPlayer
+                }
                 if (isLive && retryMedia3WithAlternateSurface("Switching video surface")) {
                     return@buildPlayer
                 }
@@ -528,6 +574,9 @@ fun PlayerScreen(
                     playbackError = null
                     isBuffering = true
                     internalEngine = InternalPlaybackEngine.LIBVLC
+                    return@buildPlayer
+                }
+                if (!isLive && switchToVodFallbackStream(error)) {
                     return@buildPlayer
                 }
                 if (!isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForVod) {
@@ -675,10 +724,10 @@ fun PlayerScreen(
         }
     }
 
-    // VOD black screen watchdog: if READY for 8s but no first frame, show error
+    // VOD black screen watchdog: if READY but no first frame, switch engines quickly.
     LaunchedEffect(vodReadyAt, vodFirstFrameRendered, item.id, streamRequest.uri) {
         if (isLive || vodFirstFrameRendered || vodReadyAt <= 0L) return@LaunchedEffect
-        delay(8_000)
+        delay(vodNoVideoWatchdogDelayMs(performancePolicy.isPerformance))
         if (vodReadyAt > 0L && !vodFirstFrameRendered && playbackError == null) {
             if (isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForVod) {
                 triedLibVlcForVod = true
@@ -766,9 +815,15 @@ fun PlayerScreen(
 
     LaunchedEffect(isLive, liveReadyWithoutVideoAt, liveFirstFrameRendered, item.id, streamRequest.uri, useLibVlc, media3SurfaceAttempt, exoPlayer) {
         if (!isLive || useLibVlc || liveReadyWithoutVideoAt <= 0L) return@LaunchedEffect
-        delay(5_000)
+        delay(liveNoVideoWatchdogDelayMs(performancePolicy.isPerformance))
         if (liveReadyWithoutVideoAt > 0L && !liveFirstFrameRendered && playbackError == null) {
-            if (retryMedia3WithAlternateSurface("Switching video surface")) {
+            if ((performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) && isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForLive) {
+                triedLibVlcForLive = true
+                forceLibVlcForLive = true
+                internalEngine = InternalPlaybackEngine.LIBVLC
+                isBuffering = true
+                liveSwitchLocked = false
+            } else if (retryMedia3WithAlternateSurface("Switching video surface")) {
                 return@LaunchedEffect
             } else if (isLibVlcSafeForRequest(playbackRequest) && !triedLibVlcForLive) {
                 triedLibVlcForLive = true
@@ -842,6 +897,8 @@ fun PlayerScreen(
         liveAutoRecoveryVisited = emptySet()
         media3SurfaceAttempt = 0
         liveSwitchLocked = false
+        vodFallbackRequest = null
+        vodFallbackVisitedUris = emptySet()
         // Reset VOD watchdog on retry
         vodReadyAt = 0L
         vodFirstFrameRendered = false
@@ -2758,7 +2815,7 @@ private fun buildPlayer(
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
     val requestHeaders = request.headers.filterKeys { !it.equals("User-Agent", ignoreCase = true) }
-    val httpFactory = OkHttpDataSource.Factory(NetworkModule.okHttp)
+    val httpFactory = OkHttpDataSource.Factory(NetworkModule.playbackOkHttp)
         .setUserAgent(request.headers["User-Agent"] ?: APP_USER_AGENT)
         .setDefaultRequestProperties(requestHeaders)
     val tsExtractorFlags = liveTsExtractorFlags()
@@ -2940,6 +2997,59 @@ internal data class StreamRequest(
     val mimeType: String?,
 )
 
+internal fun liveNoVideoWatchdogDelayMs(isPerformanceMode: Boolean, sdkInt: Int = Build.VERSION.SDK_INT): Long =
+    if (isPerformanceMode || sdkInt < 26) LIVE_NO_VIDEO_FAST_MS else LIVE_NO_VIDEO_DEFAULT_MS
+
+internal fun vodNoVideoWatchdogDelayMs(isPerformanceMode: Boolean, sdkInt: Int = Build.VERSION.SDK_INT): Long =
+    if (isPerformanceMode || sdkInt < 26) VOD_NO_VIDEO_FAST_MS else VOD_NO_VIDEO_DEFAULT_MS
+
+internal fun shouldTryVodStreamFallback(error: PlaybackException): Boolean =
+    shouldTryVodStreamFallback(error.errorCode, error.cause)
+
+internal fun shouldTryVodStreamFallback(errorCode: Int, cause: Throwable?): Boolean {
+    var current = cause
+    while (current != null) {
+        if (current is ParserException || current is UnrecognizedInputFormatException) return true
+        current = current.cause
+    }
+    return errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
+        errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
+        errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED
+}
+
+internal fun vodFallbackRequests(baseRequest: StreamRequest, item: AppMediaItem): List<StreamRequest> {
+    if (item.type != ContentType.MOVIE && item.type != ContentType.EPISODE) return emptyList()
+    if (!baseRequest.uri.isXtreamVodEndpoint()) return emptyList()
+    val currentExtension = baseRequest.uri.mediaPathExtension()
+    val candidates = buildList {
+        add(item.containerExtension)
+        add(currentExtension)
+        if (item.type == ContentType.EPISODE) {
+            addAll(listOf("mkv", "mp4", "avi", "ts", "m3u8", "webm", "mov"))
+        } else {
+            addAll(listOf("mp4", "mkv", "avi", "mov", "webm", "ts", "m3u8"))
+        }
+    }
+        .map { it.normalizePlayableExtension() }
+        .filter { it.isNotBlank() && it != currentExtension }
+        .distinct()
+
+    return candidates
+        .mapNotNull { extension -> baseRequest.withReplacedPathExtension(extension) }
+        .distinctBy { it.uri }
+}
+
+internal fun nextVodFallbackRequest(
+    baseRequest: StreamRequest,
+    currentRequest: StreamRequest,
+    item: AppMediaItem,
+    attemptedUris: Set<String>,
+): StreamRequest? {
+    val visited = attemptedUris + currentRequest.uri
+    return vodFallbackRequests(baseRequest, item)
+        .firstOrNull { candidate -> candidate.uri !in visited }
+}
+
 private suspend fun resolveLiveRedirectRequest(request: StreamRequest): StreamRequest = withContext(Dispatchers.IO) {
     runCatching {
         val probe = Request.Builder()
@@ -2956,7 +3066,7 @@ private suspend fun resolveLiveRedirectRequest(request: StreamRequest): StreamRe
                 }
             }
             .build()
-        NetworkModule.okHttp
+        NetworkModule.playbackOkHttp
             .newBuilder()
             .readTimeout(4, TimeUnit.SECONDS)
             .callTimeout(6, TimeUnit.SECONDS)
@@ -3052,6 +3162,50 @@ internal fun normalizeStreamHeaders(headers: Map<String, String>): Map<String, S
     return normalized
 }
 
+private fun String.isXtreamVodEndpoint(): Boolean {
+    val path = substringBefore('|').substringBefore('?').substringBefore('#').lowercase(Locale.US)
+    return "/series/" in path || "/movie/" in path
+}
+
+private fun String.mediaPathExtension(): String {
+    val path = substringBefore('|').substringBefore('?').substringBefore('#')
+    val lastSegment = path.substringAfterLast('/')
+    return lastSegment.substringAfterLast('.', "").normalizePlayableExtension()
+}
+
+private fun StreamRequest.withReplacedPathExtension(extension: String): StreamRequest? {
+    val cleanExtension = extension.normalizePlayableExtension()
+    if (cleanExtension.isBlank()) return null
+    val splitAt = uri.indexOfAny(charArrayOf('?', '#')).let { index -> if (index >= 0) index else uri.length }
+    val path = uri.substring(0, splitAt)
+    val suffix = uri.substring(splitAt)
+    val slash = path.lastIndexOf('/')
+    val dot = path.lastIndexOf('.')
+    if (dot <= slash || dot >= path.lastIndex) return null
+    val nextUri = path.substring(0, dot + 1) + cleanExtension + suffix
+    if (nextUri == uri) return null
+    return copy(uri = nextUri, mimeType = inferMimeType(nextUri))
+}
+
+private fun String.normalizePlayableExtension(): String = trim()
+    .trimStart('.')
+    .lowercase(Locale.US)
+    .let { value ->
+        when (value) {
+            "hls", "m3u", "m3u8" -> "m3u8"
+            "mpegts", "mpeg-ts", "ts" -> "ts"
+            "dash", "mpd" -> "mpd"
+            "smooth", "ism" -> "ism"
+            "matroska" -> "mkv"
+            "quicktime" -> "mov"
+            "mp4", "m4v", "mkv", "webm", "flv", "avi", "mov", "mpg", "mpeg", "vob", "3gp", "3g2" -> value
+            else -> ""
+        }
+    }
+
+private fun String.playableExtensionLabel(): String =
+    mediaPathExtension().ifBlank { "alternate" }.uppercase(Locale.US)
+
 internal fun inferMimeType(url: String): String? {
     val normalizedFull = url.lowercase(Locale.US)
     val normalized = normalizedFull.substringBefore('?')
@@ -3064,7 +3218,7 @@ internal fun inferMimeType(url: String): String? {
         .orEmpty()
     return when {
         normalized.startsWith("rtsp://") -> null
-        normalized.contains(".m3u8") || outputHint == "m3u8" -> MimeTypes.APPLICATION_M3U8
+        normalized.contains(".m3u8") || normalized.endsWith(".m3u") || outputHint == "m3u8" -> MimeTypes.APPLICATION_M3U8
         normalized.contains(".mpd") || outputHint == "mpd" || outputHint == "dash" -> MimeTypes.APPLICATION_MPD
         normalized.contains(".ism") || normalized.contains("manifest") || outputHint == "ism" || outputHint == "smoothstreaming" -> MimeTypes.APPLICATION_SS
         normalized.endsWith(".ts") || normalized.endsWith(".m2ts") || outputHint == "ts" || outputHint == "mpegts" -> MimeTypes.VIDEO_MP2T

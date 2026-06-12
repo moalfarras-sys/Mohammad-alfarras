@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.domain.model.Category
@@ -325,7 +326,7 @@ fun SeriesDetailsScreen(
                         horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        items(seasons, key = { it }) { season ->
+                        items(seasons, key = { it }, contentType = { "season" }) { season ->
                             val isSelected = selectedSeason == season
                             FocusGlow(
                                 cornerRadius = (18 * tv.factor).dp,
@@ -422,7 +423,8 @@ private fun PagingChannelList(
         LazyColumn(Modifier.fillMaxSize(), state = listState, verticalArrangement = Arrangement.spacedBy((7 * tv.factor).dp)) {
             items(
                 count = items.itemCount,
-                key = items.itemKey { mediaKey(it) }
+                key = items.itemKey { mediaKey(it) },
+                contentType = items.itemContentType { it.type },
             ) { index ->
                 items[index]?.let { item ->
                     val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
@@ -494,7 +496,8 @@ private fun PosterGrid(
         ) {
             items(
                 count = items.itemCount,
-                key = items.itemKey { mediaKey(it) }
+                key = items.itemKey { mediaKey(it) },
+                contentType = items.itemContentType { it.type },
             ) { index ->
                 items[index]?.let { item ->
                     val focusRequester = remember(item.id, item.type, item.serverId) { FocusRequester() }
@@ -548,7 +551,11 @@ private fun RestoringEpisodeList(
             state = listState,
             verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
         ) {
-            items(episodes, key = { "${it.seasonNumber}-${it.episodeNumber}-${mediaKey(it)}" }) { episode ->
+            items(
+                episodes,
+                key = { "${it.seasonNumber}-${it.episodeNumber}-${mediaKey(it)}" },
+                contentType = { "episode" },
+            ) { episode ->
                 val focusRequester = remember(episode.id, episode.seasonNumber, episode.episodeNumber) { FocusRequester() }
                 val shouldRestore = episode.sameMedia(restoreFocusItem)
                 LaunchedEffect(shouldRestore, restoreIndex, restoredOnce) {
@@ -690,7 +697,11 @@ fun CategoryRail(
                     item {
                         CategoryChip("All", selectedCategoryId.isBlank(), tv.factor, onClick = onAllCategories)
                     }
-                    items(categories.size, key = { categories[it].id }) { index ->
+                    items(
+                        categories.size,
+                        key = { categories[it].id },
+                        contentType = { "category" },
+                    ) { index ->
                         val cat = categories[index]
                         CategoryChip(
                             cat.name,
@@ -728,7 +739,7 @@ private fun CategoryPills(
         modifier = Modifier.focusGroup(),
     ) {
         item { CategoryPill("All", selectedCategoryId.isBlank(), onAllCategories) }
-        items(categories, key = { it.id }) { cat ->
+        items(categories, key = { it.id }, contentType = { "category" }) { cat ->
             CategoryPill(cat.name, selectedCategoryId == cat.id) { onCategory(cat) }
         }
     }

@@ -53,13 +53,26 @@ class HomeViewModel @Inject constructor(
     private val _newContentAvailable = MutableSharedFlow<ContentChangeSummary>()
     val newContentAvailable: SharedFlow<ContentChangeSummary> = _newContentAvailable.asSharedFlow()
     private var contentObserverJob: Job? = null
+    private var subscriptionRefreshed = false
+
+    /**
+     * Re-authenticate the active source once per app session so a renewed (or newly lapsed)
+     * subscription is reflected immediately on Home — the active-server Room flow then refreshes
+     * the expiry chip and the expired dialog automatically. Lightweight and failure-safe.
+     */
+    fun refreshSubscriptionOnce() {
+        if (subscriptionRefreshed) return
+        subscriptionRefreshed = true
+        viewModelScope.launch {
+            runCatching { repository.refreshActiveServerSubscription() }
+        }
+    }
     private val rowCache = linkedMapOf<String, ContentRow>()
     private val rowOrder = listOf(
         "continue_watching",
         "recent_movies",
         "recent_series",
-        "favorites",
-        "recent_history"
+        "favorites"
     )
     
     init {
@@ -92,7 +105,6 @@ class HomeViewModel @Inject constructor(
                 contentObserverJob = launch {
                     val pendingSections = mutableSetOf(
                         "continue_watching",
-                        "recent_history",
                         "favorites",
                         "recent_movies",
                         "recent_series"
@@ -114,27 +126,6 @@ class HomeViewModel @Inject constructor(
                                     } else null
                                 )
                                 pendingSections.remove("continue_watching")
-                                if (pendingSections.isEmpty()) setLoading(false)
-                            }
-                    }
-
-                    launch {
-                        watchHistoryRepository.getRecentHistoryFlow(20)
-                            .distinctUntilChangedBy { rows -> rows.map { it.id } }
-                            .collect { recentHistory ->
-                                val recentOnly = recentHistory.filterNot { it.isContinueWatchingCandidate() }
-                                updateRow(
-                                    key = "recent_history",
-                                    row = if (recentOnly.isNotEmpty()) {
-                                        ContentRow(
-                                            id = "recent_history",
-                                            title = context.getString(R.string.section_recently_watched),
-                                            items = recentOnly.map { it.toContentItem() },
-                                            type = ContentRowType.CONTINUE_WATCHING
-                                        )
-                                    } else null
-                                )
-                                pendingSections.remove("recent_history")
                                 if (pendingSections.isEmpty()) setLoading(false)
                             }
                     }
@@ -346,11 +337,6 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    private fun WatchHistoryEntity.isContinueWatchingCandidate(): Boolean {
-        if (durationMs <= 0L || completed) return false
-        val ratio = positionMs.toFloat() / durationMs.toFloat()
-        return ratio > 0.05f && ratio < 0.95f
-    }
 }
 
 // Data classes for UI

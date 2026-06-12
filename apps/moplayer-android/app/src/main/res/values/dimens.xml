@@ -347,4 +347,11 @@
     <dimen name="player_bottom_button_size">44dp</dimen>
     <dimen name="player_sheet_width">336dp</dimen>
     <dimen name="player_drawer_width">360dp</dimen>
+
+    <!-- EPG full program guide grid -->
+    <dimen name="epg_channel_col_width">176dp</dimen>
+    <dimen name="epg_row_height">62dp</dimen>
+    <dimen name="epg_ruler_height">30dp</dimen>
+    <dimen name="epg_header_height">52dp</dimen>
+    <dimen name="epg_details_height">96dp</dimen>
 </resources>

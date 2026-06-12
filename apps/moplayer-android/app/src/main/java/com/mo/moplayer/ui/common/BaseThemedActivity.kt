@@ -228,56 +228,14 @@ abstract class BaseThemedActivity : AppCompatActivity() {
      * Called when theme color changes. Override to apply colors to custom views.
      */
     protected open fun onThemeColorChanged(color: Int) {
-        // Apply to animated background
-        getAnimatedBackground()?.setParticleColor(color)
-        CinematicBackgroundController.bindWeatherOverlay(
-            mode = getBackgroundVisualMode(),
-            weatherOverlay = getWeatherOverlayView(),
-            accentColor = color
-        )
-        
-        // Apply to progress bars
-        applyColorToProgressBars(window.decorView as ViewGroup, color)
-        
-        // Apply to all buttons
-        applyThemedButtonsToView(window.decorView as ViewGroup)
-        
-        // Apply to focus elements
-        applyDynamicFocusBorders(window.decorView as ViewGroup, color)
-        
-        // Apply to icons and text
-        applyColorToAccentElements(window.decorView as ViewGroup, color)
-        
-        // Allow subclasses to apply additional theming
-        applyThemeToViews(color)
+        applyAccentColor(color)
     }
-    
+
     /**
      * Applies theme immediately when broadcast event is received
      */
     private fun applyThemeImmediately(color: Int) {
-        // Apply to animated background
-        getAnimatedBackground()?.setParticleColor(color)
-        CinematicBackgroundController.bindWeatherOverlay(
-            mode = getBackgroundVisualMode(),
-            weatherOverlay = getWeatherOverlayView(),
-            accentColor = color
-        )
-        
-        // Apply to progress bars
-        applyColorToProgressBars(window.decorView as ViewGroup, color)
-        
-        // Apply to all buttons
-        applyThemedButtonsToView(window.decorView as ViewGroup)
-        
-        // Apply to focus elements
-        applyDynamicFocusBorders(window.decorView as ViewGroup, color)
-        
-        // Apply to icons and text
-        applyColorToAccentElements(window.decorView as ViewGroup, color)
-        
-        // Allow subclasses to apply additional theming
-        applyThemeToViews(color)
+        applyAccentColor(color)
     }
 
     /**
@@ -347,90 +305,78 @@ abstract class BaseThemedActivity : AppCompatActivity() {
         view.setBackgroundColor(color)
     }
 
+    // Last accent color whose full view-tree walk was applied; guards against redundant work.
+    private var lastAppliedAccentColor: Int? = null
+
     /**
-     * Recursively find and apply themed backgrounds to all buttons
+     * Apply the accent color across the current screen.
+     *
+     * The recursive view-tree walk is the expensive part. Previously this was FOUR separate full
+     * traversals per theme event, and the focus-border pass called `getIdentifier()` (a reflection
+     * lookup) three times for EVERY view. This version does a single traversal, resolves the three
+     * focus ids once up front, and skips the walk entirely when the accent is unchanged — so theme
+     * application and screen resumes no longer hitch on large layouts.
      */
-    private fun applyThemedButtonsToView(viewGroup: ViewGroup) {
-        for (i in 0 until viewGroup.childCount) {
-            val child = viewGroup.getChildAt(i)
-            when (child) {
-                is Button, is AppCompatButton -> {
-                    // Keep cinematic base styling fixed. Only dynamic-accent buttons opt in explicitly.
-                    if (child.tag == "dynamic_button") {
-                        child.background = buttonStyleHelper.createThemedButtonBackground(this)
-                    }
-                }
-                is ViewGroup -> applyThemedButtonsToView(child)
+    private fun applyAccentColor(color: Int) {
+        getAnimatedBackground()?.setParticleColor(color)
+        CinematicBackgroundController.bindWeatherOverlay(
+            mode = getBackgroundVisualMode(),
+            weatherOverlay = getWeatherOverlayView(),
+            accentColor = color
+        )
+        if (color != lastAppliedAccentColor) {
+            lastAppliedAccentColor = color
+            (window.decorView as? ViewGroup)?.let { root ->
+                applyAccentTreeWalk(
+                    root,
+                    color,
+                    resources.getIdentifier("focusBorder", "id", packageName),
+                    resources.getIdentifier("focusGlow", "id", packageName),
+                    resources.getIdentifier("glowIndicator", "id", packageName)
+                )
             }
         }
+        // Subclasses may apply additional, view-specific theming (cheap).
+        applyThemeToViews(color)
     }
-    
-    /**
-     * Recursively find and apply color to all progress bars
-     */
-    private fun applyColorToProgressBars(viewGroup: ViewGroup, color: Int) {
+
+    /** Single-pass accent application: progress tints, opt-in buttons, focus borders, accent tags. */
+    private fun applyAccentTreeWalk(
+        viewGroup: ViewGroup,
+        color: Int,
+        focusBorderId: Int,
+        focusGlowId: Int,
+        glowIndicatorId: Int
+    ) {
         for (i in 0 until viewGroup.childCount) {
             val child = viewGroup.getChildAt(i)
-            when (child) {
-                is ProgressBar -> {
-                    child.indeterminateTintList = android.content.res.ColorStateList.valueOf(color)
-                    child.progressTintList = android.content.res.ColorStateList.valueOf(color)
-                }
-                is ViewGroup -> applyColorToProgressBars(child, color)
+
+            if (child is ProgressBar) {
+                val tint = ColorStateList.valueOf(color)
+                child.indeterminateTintList = tint
+                child.progressTintList = tint
             }
-        }
-    }
-    
-    /**
-     * Recursively find and apply dynamic focus borders to views
-     */
-    private fun applyDynamicFocusBorders(viewGroup: ViewGroup, color: Int) {
-        for (i in 0 until viewGroup.childCount) {
-            val child = viewGroup.getChildAt(i)
-            
-            // Apply to views with specific IDs that need focus borders
-            when (child.id) {
-                resources.getIdentifier("focusBorder", "id", packageName) -> {
-                    child.background = FocusStyleHelper.createFocusBorder(color)
-                }
-                resources.getIdentifier("focusGlow", "id", packageName) -> {
-                    child.background = FocusStyleHelper.createFocusGlow(color)
-                }
-                resources.getIdentifier("glowIndicator", "id", packageName) -> {
-                    child.background = FocusStyleHelper.createDockGlowIndicator(color)
-                }
-            }
-            
-            // Recursively process child views
-            if (child is ViewGroup) {
-                applyDynamicFocusBorders(child, color)
-            }
-        }
-    }
-    
-    /**
-     * Recursively find and apply accent color to text and icons
-     */
-    private fun applyColorToAccentElements(viewGroup: ViewGroup, color: Int) {
-        for (i in 0 until viewGroup.childCount) {
-            val child = viewGroup.getChildAt(i)
-            
-            // Apply to views with accent tags
-            if (child.tag == "accent_text" && child is TextView) {
-                child.setTextColor(color)
-            } else if (child.tag == "accent_icon" && child is ImageView) {
-                child.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
-            } else if (child.tag == "accent_background") {
-                child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(58))
-            } else if (child.tag == "accent_surface") {
-                child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(34))
-            } else if (child.tag == "accent_button") {
+
+            if ((child is Button || child is AppCompatButton) && child.tag == "dynamic_button") {
                 child.background = buttonStyleHelper.createThemedButtonBackground(this)
             }
-            
-            // Recursively process child views
+
+            when (child.id) {
+                focusBorderId -> if (focusBorderId != 0) child.background = FocusStyleHelper.createFocusBorder(color)
+                focusGlowId -> if (focusGlowId != 0) child.background = FocusStyleHelper.createFocusGlow(color)
+                glowIndicatorId -> if (glowIndicatorId != 0) child.background = FocusStyleHelper.createDockGlowIndicator(color)
+            }
+
+            when (child.tag) {
+                "accent_text" -> if (child is TextView) child.setTextColor(color)
+                "accent_icon" -> if (child is ImageView) child.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
+                "accent_background" -> child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(58))
+                "accent_surface" -> child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(34))
+                "accent_button" -> child.background = buttonStyleHelper.createThemedButtonBackground(this)
+            }
+
             if (child is ViewGroup) {
-                applyColorToAccentElements(child, color)
+                applyAccentTreeWalk(child, color, focusBorderId, focusGlowId, glowIndicatorId)
             }
         }
     }

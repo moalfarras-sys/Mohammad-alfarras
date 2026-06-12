@@ -104,7 +104,7 @@ private fun rememberVerticalFocusNav(): (KeyEvent) -> Boolean {
 }
 
 @Composable
-private fun LoginBackdropLayer(settings: AppSettings) {
+private fun LoginBackdropLayer(settings: AppSettings, reduceMotion: Boolean = false) {
     val epochDay = LocalDate.now().toEpochDay()
     val backdropUrl = remember(
         settings.backgroundMode,
@@ -162,7 +162,9 @@ private fun LoginBackdropLayer(settings: AppSettings) {
             )
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF050403)))
-            AnimatedLoginBackground()
+            if (!reduceMotion) {
+                AnimatedLoginBackground()
+            }
         }
     }
 }
@@ -173,6 +175,7 @@ fun LoginScreen(
     loading: LoadProgress?,
     error: String?,
     activationSession: DeviceActivationSession?,
+    reduceMotion: Boolean = false,
     onM3u: (String, String, String) -> Unit,
     onM3uFile: (String, String, String) -> Unit,
     onXtream: (String, String, String, String) -> Unit,
@@ -225,6 +228,7 @@ fun LoginScreen(
             loading = loading,
             error = error,
             fileMessage = fileMessage,
+            reduceMotion = reduceMotion,
             onMode = { mode = it },
             onName = { name = it },
             onM3u = { m3u = it },
@@ -242,7 +246,7 @@ fun LoginScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        LoginBackdropLayer(settings)
+        LoginBackdropLayer(settings, reduceMotion = reduceMotion)
 
         // Top status bar
         Row(
@@ -261,7 +265,8 @@ fun LoginScreen(
             LoginGlassCard(
                 mode = mode, name = name, m3u = m3u, url = url, user = user, pass = pass, activationCode = activationCode,
                 epgUrl = epgUrl,
-                loading = loading, error = error, fileMessage = fileMessage, activationSession = activationSession, tv = tv,
+                loading = loading, error = error, fileMessage = fileMessage, activationSession = activationSession,
+                reduceMotion = reduceMotion, tv = tv,
                 onMode = { mode = it }, onName = { name = it }, onM3u = { m3u = it }, onEpgUrl = { epgUrl = it },
                 onUrl = { url = it }, onUser = { user = it }, onPass = { pass = it },
                 onActivationCode = { activationCode = it.uppercase().filter { char -> char.isLetterOrDigit() || char == '-' }.take(18) },
@@ -319,6 +324,7 @@ private fun LoginGlassCard(
     mode: LoginMode, name: String, m3u: String, url: String, user: String, pass: String, activationCode: String,
     epgUrl: String,
     loading: LoadProgress?, error: String?, fileMessage: String?, activationSession: DeviceActivationSession?,
+    reduceMotion: Boolean,
     tv: TvScale,
     onMode: (LoginMode) -> Unit,
     onName: (String) -> Unit, onM3u: (String) -> Unit, onEpgUrl: (String) -> Unit, onUrl: (String) -> Unit,
@@ -352,7 +358,7 @@ private fun LoginGlassCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(((if (isActivationMode || isChooseMode) 10 else 14) * tv.factor).dp),
         ) {
-            PulsingLogo(tv, loading != null, compact = isActivationMode || isChooseMode)
+            PulsingLogo(tv, loading != null, compact = isActivationMode || isChooseMode, reduceMotion = reduceMotion)
             Text(
                 "MoPlayer Pro",
                 color = Color.White,
@@ -433,7 +439,7 @@ private fun LoginGlassCard(
                 LoginMode.CHOOSE -> Unit
             }
 
-            if (loading != null) FluidLoadingBar(loading, tv)
+            if (loading != null) FluidLoadingBar(loading, tv, reduceMotion = reduceMotion)
             if (error   != null) ErrorGlassCard(error, tv)
             if (fileMessage != null) ErrorGlassCard(fileMessage, tv)
             if (isChooseMode) {
@@ -628,6 +634,7 @@ private fun CompactLoginScreen(
     loading: LoadProgress?,
     error: String?,
     fileMessage: String?,
+    reduceMotion: Boolean,
     onMode: (LoginMode) -> Unit,
     onName: (String) -> Unit,
     onM3u: (String) -> Unit,
@@ -729,7 +736,7 @@ private fun CompactLoginScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        LoginBackdropLayer(settings)
+        LoginBackdropLayer(settings, reduceMotion = reduceMotion)
         Box(
             Modifier
                 .fillMaxSize()
@@ -1203,13 +1210,18 @@ private fun GlassLoginPanel(
 }
 
 @Composable
-private fun PulsingLogo(tv: TvScale, active: Boolean, compact: Boolean = false) {
-    val transition = rememberInfiniteTransition(label = "logo-pulse")
-    val pulse by transition.animateFloat(
-        initialValue = 0.88f, targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulse",
-    )
+private fun PulsingLogo(tv: TvScale, active: Boolean, compact: Boolean = false, reduceMotion: Boolean = false) {
+    val pulse = if (!active || reduceMotion) {
+        1f
+    } else {
+        val transition = rememberInfiniteTransition(label = "logo-pulse")
+        val animatedPulse by transition.animateFloat(
+            initialValue = 0.88f, targetValue = 1.08f,
+            animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "pulse",
+        )
+        animatedPulse
+    }
     val accent = LocalMoVisuals.current.accent
     val accentB = LocalMoVisuals.current.accentB
     val boxSize = if (compact) 96 else 140
@@ -1234,13 +1246,18 @@ private fun PulsingLogo(tv: TvScale, active: Boolean, compact: Boolean = false) 
 }
 
 @Composable
-private fun FluidLoadingBar(progress: LoadProgress, tv: TvScale) {
-    val transition = rememberInfiniteTransition(label = "fluid-loading")
-    val wave by transition.animateFloat(
-        0f, 1f,
-        infiniteRepeatable(tween(1600, easing = LinearEasing)),
-        label = "wave",
-    )
+private fun FluidLoadingBar(progress: LoadProgress, tv: TvScale, reduceMotion: Boolean = false) {
+    val wave = if (reduceMotion) {
+        0.5f
+    } else {
+        val transition = rememberInfiniteTransition(label = "fluid-loading")
+        val animatedWave by transition.animateFloat(
+            0f, 1f,
+            infiniteRepeatable(tween(1600, easing = LinearEasing)),
+            label = "wave",
+        )
+        animatedWave
+    }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp)) {
         Text(progress.phase, color = Color(0xCCE3BC78), fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.SemiBold)
         val accent = LocalMoVisuals.current.accent

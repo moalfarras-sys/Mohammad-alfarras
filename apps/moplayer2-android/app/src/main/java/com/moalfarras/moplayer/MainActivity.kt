@@ -208,6 +208,7 @@ private fun MoPlayerApp(viewModel: MainViewModel, finishApp: () -> Unit) {
                         loading = state.loading,
                         error = state.error,
                         activationSession = state.activationSession,
+                        reduceMotion = performancePolicy.reduceMotion,
                         onM3u = viewModel::loginM3u,
                         onM3uFile = viewModel::loginM3uText,
                         onXtream = viewModel::loginXtream,

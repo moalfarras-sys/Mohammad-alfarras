@@ -1,5 +1,6 @@
 package com.moalfarras.moplayer.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,7 @@ import com.moalfarras.moplayer.domain.model.FootballMatch
 import com.moalfarras.moplayer.domain.model.LiveEpgSnapshot
 import com.moalfarras.moplayer.domain.model.LibraryMode
 import com.moalfarras.moplayer.domain.model.LoadProgress
+import com.moalfarras.moplayer.domain.model.LoginKind
 import com.moalfarras.moplayer.domain.model.ManualWeatherEffect
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.MotionLevel
@@ -36,6 +38,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -76,9 +79,47 @@ data class UiState(
     val backgroundRefresh: LoadProgress? = null,
     val subscriptionExpired: Boolean = false,
     val subscriptionExpiredDismissedKey: String = "",
+    val appControlBlocked: Boolean = false,
     /** False until the stored servers/settings have been read once, so the UI can show a splash
      *  instead of flashing the sign-in screen on cold start while an account is already saved. */
     val initialized: Boolean = false,
+)
+
+private data class CategoryQueryKey(
+    val serverId: Long,
+    val type: ContentType,
+    val hideEmpty: Boolean,
+    val hideNoLogo: Boolean,
+    val parentalControlsEnabled: Boolean,
+)
+
+private data class SelectedMediaQueryKey(
+    val serverId: Long,
+    val type: ContentType,
+    val selectedCategoryId: String,
+    val sortOption: SortOption,
+    val hideNoLogo: Boolean,
+    val parentalControlsEnabled: Boolean,
+)
+
+private data class LiveZapQueryKey(
+    val serverId: Long,
+    val selectedCategoryId: String,
+    val sortOption: SortOption,
+    val hideNoLogo: Boolean,
+    val parentalControlsEnabled: Boolean,
+)
+
+private data class SearchQueryKey(
+    val serverId: Long,
+    val query: String,
+    val parentalControlsEnabled: Boolean,
+    val hideChannelsWithoutLogo: Boolean,
+)
+
+private data class FocusedLiveEpgQuery(
+    val server: ServerProfile,
+    val item: MediaItem,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -92,8 +133,10 @@ class MainViewModel(
     private var loginJob: Job? = null
     private var activationJob: Job? = null
     private var backgroundSyncJob: Job? = null
+    private var seriesPrefetchJob: Job? = null
+    private var seriesPrefetchKey = ""
     private var restoredLastSection = false
-    private var checkedStartupRefresh = false
+    private var startupRefreshKey = ""
     private var lastFocusUpdateAt = 0L
     private var lastFocusKey = ""
     private var lastPersistedNavigationKey = ""
@@ -146,32 +189,78 @@ class MainViewModel(
     val weather = MutableStateFlow(WeatherSnapshot())
     val football = MutableStateFlow<List<FootballMatch>>(emptyList())
 
-    val liveCategories = uiState.flatMapLatest { state ->
-        state.activeServer?.let { server ->
-            iptv.categories(
-                state.libraryServerId(server.id),
-                ContentType.LIVE,
-                hideEmpty = state.settings.hideEmptyCategories,
-                hideNoLogo = state.settings.hideChannelsWithoutLogo,
-            ).map { categories ->
-                categories.filterParentalCategories(state.settings.parentalControlsEnabled)
+    private val activeLibraryServerId = uiState
+        .map { state -> state.activeServer?.let { state.libraryServerId(it.id) } }
+        .distinctUntilChanged()
+
+    val liveCategories = uiState
+        .map { state ->
+            state.activeServer?.let { server ->
+                CategoryQueryKey(
+                    serverId = state.libraryServerId(server.id),
+                    type = ContentType.LIVE,
+                    hideEmpty = state.settings.hideEmptyCategories,
+                    hideNoLogo = state.settings.hideChannelsWithoutLogo,
+                    parentalControlsEnabled = state.settings.parentalControlsEnabled,
+                )
             }
-        } ?: flowOf(emptyList())
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) {
+                flowOf(emptyList())
+            } else {
+                iptv.categories(key.serverId, key.type, hideEmpty = key.hideEmpty, hideNoLogo = key.hideNoLogo)
+                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled) }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val movieCategories = uiState.flatMapLatest { state ->
-        state.activeServer?.let {
-            iptv.categories(state.libraryServerId(it.id), ContentType.MOVIE, hideEmpty = state.settings.hideEmptyCategories)
-                .map { list -> list.filterParentalCategories(state.settings.parentalControlsEnabled) }
-        } ?: flowOf(emptyList())
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val movieCategories = uiState
+        .map { state ->
+            state.activeServer?.let { server ->
+                CategoryQueryKey(
+                    serverId = state.libraryServerId(server.id),
+                    type = ContentType.MOVIE,
+                    hideEmpty = state.settings.hideEmptyCategories,
+                    hideNoLogo = false,
+                    parentalControlsEnabled = state.settings.parentalControlsEnabled,
+                )
+            }
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) {
+                flowOf(emptyList())
+            } else {
+                iptv.categories(key.serverId, key.type, hideEmpty = key.hideEmpty, hideNoLogo = key.hideNoLogo)
+                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled) }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val seriesCategories = uiState.flatMapLatest { state ->
-        state.activeServer?.let {
-            iptv.categories(state.libraryServerId(it.id), ContentType.SERIES, hideEmpty = state.settings.hideEmptyCategories)
-                .map { list -> list.filterParentalCategories(state.settings.parentalControlsEnabled) }
-        } ?: flowOf(emptyList())
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val seriesCategories = uiState
+        .map { state ->
+            state.activeServer?.let { server ->
+                CategoryQueryKey(
+                    serverId = state.libraryServerId(server.id),
+                    type = ContentType.SERIES,
+                    hideEmpty = state.settings.hideEmptyCategories,
+                    hideNoLogo = false,
+                    parentalControlsEnabled = state.settings.parentalControlsEnabled,
+                )
+            }
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) {
+                flowOf(emptyList())
+            } else {
+                iptv.categories(key.serverId, key.type, hideEmpty = key.hideEmpty, hideNoLogo = key.hideNoLogo)
+                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled) }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val selectedMedia: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = combine(
         uiState,
@@ -179,129 +268,174 @@ class MainViewModel(
         movieCategories,
         seriesCategories,
     ) { state, live, movies, series ->
-        val categoryIds = when (state.section) {
+        val browsingSection = state.mediaBrowsingSection()
+        val type = browsingSection.mediaContentType() ?: return@combine null
+        val server = state.activeServer ?: return@combine null
+        val categoryIds = when (browsingSection) {
             AppSection.LIVE -> live.mapTo(mutableSetOf()) { it.id }
             AppSection.MOVIES -> movies.mapTo(mutableSetOf()) { it.id }
             AppSection.SERIES -> series.mapTo(mutableSetOf()) { it.id }
             else -> emptySet()
         }
-        state to categoryIds
-    }.flatMapLatest { (state, categoryIds) ->
-        val server = state.activeServer ?: return@flatMapLatest flowOf(PagingData.empty())
-        val type = when (state.section) {
-            AppSection.LIVE -> ContentType.LIVE
-            AppSection.MOVIES -> ContentType.MOVIE
-            AppSection.SERIES -> ContentType.SERIES
-            else -> ContentType.MOVIE
-        }
-        val hideNoLogo = type == ContentType.LIVE && state.settings.hideChannelsWithoutLogo
         val selectedCategoryId = state.selectedCategoryId.takeIf { category ->
             category.isBlank() || category in categoryIds
         }.orEmpty()
-        val source = if (selectedCategoryId.isBlank()) {
-            iptv.mediaByType(state.libraryServerId(server.id), type, state.settings.defaultSort, hideNoLogo)
-        } else {
-            iptv.mediaByCategory(state.libraryServerId(server.id), type, selectedCategoryId, state.settings.defaultSort, hideNoLogo)
-        }
-        source.map { pagingData ->
-            pagingData.filter { item ->
-                val isParental = state.settings.parentalControlsEnabled && 
-                    adultKeywords.any {
-                        "${item.title} ${item.description} ${item.categoryName} ${item.categoryId}".contains(it, ignoreCase = true)
-                    }
-                val hiddenLogo = hideNoLogo && item.posterUrl.isBlank()
-                !isParental && !hiddenLogo
-            }
-        }.cachedIn(viewModelScope)
-    }
-
-
-    val latestMovies: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        state.activeServer?.let { iptv.latestMovies(state.libraryServerId(it.id)) }.let { it ?: flowOf(PagingData.empty()) }.cachedIn(viewModelScope)
-    }
-
-    val latestLive: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        state.activeServer?.let { iptv.latestLive(state.libraryServerId(it.id)) }.let { it ?: flowOf(PagingData.empty()) }.cachedIn(viewModelScope)
-    }
-
-    val liveZapItems: StateFlow<List<MediaItem>> = uiState.flatMapLatest { state ->
-        val server = state.activeServer ?: return@flatMapLatest flowOf(emptyList())
-        iptv.liveZapItems(
+        SelectedMediaQueryKey(
             serverId = state.libraryServerId(server.id),
-            categoryId = state.selectedCategoryId.takeIf { state.section == AppSection.LIVE }.orEmpty(),
+            type = type,
+            selectedCategoryId = selectedCategoryId,
             sortOption = state.settings.defaultSort,
-            hideNoLogo = state.settings.hideChannelsWithoutLogo,
-        ).map { items ->
-            items.filter { item ->
-                val isParental = state.settings.parentalControlsEnabled &&
-                    adultKeywords.any {
-                        "${item.title} ${item.description} ${item.categoryName} ${item.categoryId}".contains(it, ignoreCase = true)
+            hideNoLogo = type == ContentType.LIVE && state.settings.hideChannelsWithoutLogo,
+            parentalControlsEnabled = state.settings.parentalControlsEnabled,
+        )
+    }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) {
+                flowOf(PagingData.empty())
+            } else {
+                val source = if (key.selectedCategoryId.isBlank()) {
+                    iptv.mediaByType(key.serverId, key.type, key.sortOption, key.hideNoLogo)
+                } else {
+                    iptv.mediaByCategory(key.serverId, key.type, key.selectedCategoryId, key.sortOption, key.hideNoLogo)
+                }
+                source.map { pagingData ->
+                    pagingData.filter { item ->
+                        val isParental = key.parentalControlsEnabled &&
+                            adultKeywords.any {
+                                "${item.title} ${item.description} ${item.categoryName} ${item.categoryId}".contains(it, ignoreCase = true)
+                            }
+                        val hiddenLogo = key.hideNoLogo && item.posterUrl.isBlank()
+                        !isParental && !hiddenLogo
                     }
-                !isParental
+                }
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        .cachedIn(viewModelScope)
 
-    val latestSeries: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        state.activeServer?.let { iptv.latestSeries(state.libraryServerId(it.id)) }.let { it ?: flowOf(PagingData.empty()) }.cachedIn(viewModelScope)
-    }
+    val latestMovies: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = activeLibraryServerId
+        .flatMapLatest { serverId -> serverId?.let { iptv.latestMovies(it) } ?: flowOf(PagingData.empty()) }
+        .cachedIn(viewModelScope)
 
-    val favorites: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        state.activeServer?.let { iptv.favorites(state.libraryServerId(it.id)) }.let { it ?: flowOf(PagingData.empty()) }.cachedIn(viewModelScope)
-    }
+    val latestLive: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = activeLibraryServerId
+        .flatMapLatest { serverId -> serverId?.let { iptv.latestLive(it) } ?: flowOf(PagingData.empty()) }
+        .cachedIn(viewModelScope)
 
-
-    val continueWatching: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        val server = state.activeServer
-        if (server == null) flowOf(PagingData.empty()) 
-        else iptv.continueWatching(state.libraryServerId(server.id)).cachedIn(viewModelScope)
-    }
-
-    val recentLive: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        val server = state.activeServer
-        if (server == null) flowOf(PagingData.empty()) 
-        else iptv.recentlyPlayed(state.libraryServerId(server.id), ContentType.LIVE).cachedIn(viewModelScope)
-    }
-
-
-    val searchResults: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState.flatMapLatest { state ->
-        val server = state.activeServer
-        val query = state.committedSearchQuery.trim()
-        if (server == null || query.length < 2) {
-            flowOf(PagingData.empty())
-        } else {
-            iptv.search(state.libraryServerId(server.id), query).map { pagingData ->
-                pagingData.filter { item ->
-                    val isParental = state.settings.parentalControlsEnabled &&
-                        adultKeywords.any {
-                            "${item.title} ${item.description} ${item.categoryName} ${item.categoryId}".contains(it, ignoreCase = true)
-                        }
-                    val hiddenLogo = state.settings.hideChannelsWithoutLogo && item.type == ContentType.LIVE && item.posterUrl.isBlank()
-                    !isParental && !hiddenLogo
+    val liveZapItems: StateFlow<List<MediaItem>> = uiState
+        .map { state ->
+            state.activeServer?.let { server ->
+                LiveZapQueryKey(
+                    serverId = state.libraryServerId(server.id),
+                    selectedCategoryId = state.selectedCategoryId.takeIf { state.section == AppSection.LIVE }.orEmpty(),
+                    sortOption = state.settings.defaultSort,
+                    hideNoLogo = state.settings.hideChannelsWithoutLogo,
+                    parentalControlsEnabled = state.settings.parentalControlsEnabled,
+                )
+            }
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) {
+                flowOf(emptyList())
+            } else {
+                iptv.liveZapItems(
+                    serverId = key.serverId,
+                    categoryId = key.selectedCategoryId,
+                    sortOption = key.sortOption,
+                    hideNoLogo = key.hideNoLogo,
+                ).map { items ->
+                    items.filter { item ->
+                        val isParental = key.parentalControlsEnabled &&
+                            adultKeywords.any {
+                                "${item.title} ${item.description} ${item.categoryName} ${item.categoryId}".contains(it, ignoreCase = true)
+                            }
+                        !isParental
+                    }
                 }
-            }.cachedIn(viewModelScope)
+            }
         }
-    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val seriesEpisodes: kotlinx.coroutines.flow.Flow<List<MediaItem>> = uiState.flatMapLatest { state ->
-        val series = state.seriesDetail
-        if (series == null || series.seriesId.isBlank()) {
-            flowOf(emptyList())
-        } else {
-            iptv.episodes(series.serverId, series.seriesId)
+    val latestSeries: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = activeLibraryServerId
+        .flatMapLatest { serverId -> serverId?.let { iptv.latestSeries(it) } ?: flowOf(PagingData.empty()) }
+        .cachedIn(viewModelScope)
+
+    val favorites: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = activeLibraryServerId
+        .flatMapLatest { serverId -> serverId?.let { iptv.favorites(it) } ?: flowOf(PagingData.empty()) }
+        .cachedIn(viewModelScope)
+
+    val continueWatching: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = activeLibraryServerId
+        .flatMapLatest { serverId -> serverId?.let { iptv.continueWatching(it) } ?: flowOf(PagingData.empty()) }
+        .cachedIn(viewModelScope)
+
+    val recentLive: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = activeLibraryServerId
+        .flatMapLatest { serverId -> serverId?.let { iptv.recentlyPlayed(it, ContentType.LIVE) } ?: flowOf(PagingData.empty()) }
+        .cachedIn(viewModelScope)
+
+    val searchResults: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<MediaItem>> = uiState
+        .map { state ->
+            val server = state.activeServer
+            val query = state.committedSearchQuery.trim()
+            if (server == null || query.length < 2) {
+                null
+            } else {
+                SearchQueryKey(
+                    serverId = state.libraryServerId(server.id),
+                    query = query,
+                    parentalControlsEnabled = state.settings.parentalControlsEnabled,
+                    hideChannelsWithoutLogo = state.settings.hideChannelsWithoutLogo,
+                )
+            }
         }
-    }
-
-
-    val focusedLiveEpg = uiState.flatMapLatest { state ->
-        val server = state.activeServer
-        val item = state.focusedItem
-        if (server == null || item == null || item.type != ContentType.LIVE) {
-            flowOf(LiveEpgSnapshot())
-        } else {
-            kotlinx.coroutines.flow.flow { emit(iptv.liveEpg(server, item)) }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) {
+                flowOf(PagingData.empty())
+            } else {
+                iptv.search(key.serverId, key.query).map { pagingData ->
+                    pagingData.filter { item ->
+                        val isParental = key.parentalControlsEnabled &&
+                            adultKeywords.any {
+                                "${item.title} ${item.description} ${item.categoryName} ${item.categoryId}".contains(it, ignoreCase = true)
+                            }
+                        val hiddenLogo = key.hideChannelsWithoutLogo && item.type == ContentType.LIVE && item.posterUrl.isBlank()
+                        !isParental && !hiddenLogo
+                    }
+                }
+            }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveEpgSnapshot())
+        .cachedIn(viewModelScope)
+
+    val seriesEpisodes: kotlinx.coroutines.flow.Flow<List<MediaItem>> = uiState
+        .map { state ->
+            state.seriesDetail
+                ?.takeIf { it.seriesId.isNotBlank() }
+                ?.let { it.serverId to it.seriesId }
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { key ->
+            if (key == null) flowOf(emptyList()) else iptv.episodes(key.first, key.second)
+        }
+
+    val focusedLiveEpg = uiState
+        .map { state ->
+            val server = state.activeServer
+            val item = state.focusedItem
+            if (server == null || item == null || item.type != ContentType.LIVE) {
+                null
+            } else {
+                FocusedLiveEpgQuery(server, item)
+            }
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { query ->
+            if (query == null) {
+                flowOf(LiveEpgSnapshot())
+            } else {
+                kotlinx.coroutines.flow.flow { emit(iptv.liveEpg(query.server, query.item)) }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveEpgSnapshot())
 
     init {
         applyRemoteRuntimeConfig()
@@ -340,11 +474,12 @@ class MainViewModel(
         }
         viewModelScope.launch {
             uiState.collect { state ->
-                if (state.activeServer != null && !restoredLastSection) {
-                    restoredLastSection = true
-                    restorePersistentNavigation(state)
-                    maybeStartStartupRefresh(state.activeServer)
-                    return@collect
+                state.activeServer?.let { server ->
+                    if (!restoredLastSection) {
+                        restoredLastSection = true
+                        restorePersistentNavigation(state)
+                    }
+                    maybeStartStartupRefresh(server)
                 }
 
                 // Restore browsing state only. Live playback must always be started by the user.
@@ -459,12 +594,46 @@ class MainViewModel(
                 dockFocusSection = if (item != null) null else it.dockFocusSection,
             )
         }
+        scheduleSeriesDetailsPrefetch(item)
+    }
+
+    private fun scheduleSeriesDetailsPrefetch(item: MediaItem?) {
+        val seriesItem = item?.takeIf { it.type == ContentType.SERIES }
+        if (seriesItem == null) {
+            seriesPrefetchKey = ""
+            seriesPrefetchJob?.cancel()
+            seriesPrefetchJob = null
+            return
+        }
+        val key = "${seriesItem.serverId}:${seriesItem.seriesId.ifBlank { seriesItem.id }}"
+        if (key.isBlank()) return
+        if (key == seriesPrefetchKey && seriesPrefetchJob?.isActive == true) return
+        seriesPrefetchKey = key
+        seriesPrefetchJob?.cancel()
+        seriesPrefetchJob = viewModelScope.launch {
+            delay(SERIES_DETAIL_PREFETCH_DELAY_MS)
+            val focused = internal.value.focusedItem
+            if (!focused.matchesMedia(seriesItem)) return@launch
+            val server = iptv.server(seriesItem.serverId)
+                ?: uiState.value.activeServer?.takeIf { active -> active.id == seriesItem.serverId }
+                ?: return@launch
+            if (server.kind != LoginKind.XTREAM) return@launch
+            runCatching { iptv.refreshSeriesDetails(server, seriesItem) }
+        }
     }
 
     fun play(item: MediaItem) {
+        if (uiState.value.appControlBlocked) {
+            showNotice(uiState.value.error ?: "MoPlayer Pro is temporarily unavailable.")
+            return
+        }
         viewModelScope.launch { iptv.notePlaybackStart(item) }
         when (item.type) {
-            ContentType.SERIES -> openSeries(item)
+            ContentType.SERIES -> {
+                seriesPrefetchJob?.cancel()
+                seriesPrefetchJob = null
+                openSeries(item)
+            }
             ContentType.LIVE -> {
                 internal.update { current ->
                     val returnSection = if (current.section == AppSection.PLAYER) {
@@ -584,6 +753,7 @@ class MainViewModel(
                         )
                     }
                     saveLastSection(AppSection.HOME)
+                    settingsRepo.setLibraryMode(LibraryMode.ACTIVE_SOURCE)
                     startBackgroundLibraryRefresh(server)
                     return@runCatching
                 }
@@ -662,33 +832,14 @@ class MainViewModel(
         activationJob = viewModelScope.launch {
             runCatching { iptv.createDeviceActivation(deviceName) }
                 .onFailure { throwable ->
-                    if (!BuildConfig.DEBUG) {
-                        internal.update {
-                            it.copy(
-                                activationSession = null,
-                                error = activationErrorMessage(throwable, "Could not create a QR code. Check moalfarras.space/Supabase configuration."),
-                            )
-                        }
-                        return@onFailure
-                    }
-                    // Debug fallback keeps previews usable without a live backend.
-                    val mockCode = "MOPRO-${(1000..9999).random()}"
-                    val mockSession = DeviceActivationSession(
-                        deviceCode = mockCode,
-                        userCode = mockCode,
-                        verificationUrl = BuildConfig.ACTIVATION_URL,
-                        verificationUrlComplete = "${BuildConfig.ACTIVATION_URL}${if ('?' in BuildConfig.ACTIVATION_URL) '&' else '?'}code=$mockCode",
-                        expiresAt = System.currentTimeMillis() + 600000L,
-                        intervalSeconds = 5,
-                        status = DeviceActivationStatus.WAITING,
-                        publicDeviceId = "",
-                        sourcePullToken = "",
-                        error = "Offline Mode - Presentation Only"
-                    )
+                    Log.w("MoPlayerActivation", "Could not create website QR activation", throwable)
                     internal.update {
                         it.copy(
-                            activationSession = mockSession,
-                            error = null,
+                            activationSession = null,
+                            error = activationErrorMessage(
+                                throwable,
+                                "Could not create a real website QR code. Check moalfarras.space/Supabase configuration.",
+                            ),
                         )
                     }
                 }
@@ -820,13 +971,16 @@ class MainViewModel(
     }
 
     private fun maybeStartStartupRefresh(server: ServerProfile) {
-        if (checkedStartupRefresh) return
-        checkedStartupRefresh = true
-        val ageMs = System.currentTimeMillis() - server.lastSyncAt
-        if (server.lastSyncAt <= 0) {
-            startBackgroundLibraryRefresh(server)
-        } else if (ageMs > SMART_REFRESH_INTERVAL_MS) {
-            startBackgroundLibraryRefresh(server)
+        val key = server.sourceKey.ifBlank { server.id.toString() }
+        if (key.isBlank() || key == startupRefreshKey) return
+        startupRefreshKey = key
+        viewModelScope.launch {
+            val needsRefresh = runCatching {
+                iptv.needsLibraryRefresh(server, SMART_REFRESH_INTERVAL_MS)
+            }.getOrDefault(server.lastSyncAt <= 0)
+            if (needsRefresh) {
+                startBackgroundLibraryRefresh(server)
+            }
         }
     }
 
@@ -1208,6 +1362,31 @@ class MainViewModel(
                     )
                     weather.value = widgets.weather(nextSettings)
                     football.value = widgets.football(nextSettings)
+                    val blockingMessage = when {
+                        !config.enabled -> config.message.ifBlank { "MoPlayer Pro is temporarily unavailable." }
+                        config.maintenanceMode -> config.message.ifBlank { "MoPlayer Pro is in maintenance mode." }
+                        config.forceUpdate && BuildConfig.VERSION_CODE < config.minimumVersionCode ->
+                            config.message.ifBlank { "A required MoPlayer Pro update is available." }
+                        else -> ""
+                    }
+                    internal.update { current ->
+                        if (blockingMessage.isNotBlank()) {
+                            current.copy(
+                                appControlBlocked = true,
+                                error = blockingMessage,
+                                notice = null,
+                                loading = null,
+                                playingItem = null,
+                                section = if (current.section == AppSection.PLAYER) current.returnSection.playerReturnSection() else current.section,
+                            )
+                        } else {
+                            current.copy(
+                                appControlBlocked = false,
+                                error = if (current.appControlBlocked) null else current.error,
+                                notice = config.message.takeIf { it.isNotBlank() } ?: current.notice,
+                            )
+                        }
+                    }
                 }
         }
     }
@@ -1336,6 +1515,16 @@ private fun AppSection.playerReturnSection(): AppSection = when (this) {
     else -> this
 }
 
+private fun AppSection.mediaContentType(): ContentType? = when (this) {
+    AppSection.LIVE -> ContentType.LIVE
+    AppSection.MOVIES -> ContentType.MOVIE
+    AppSection.SERIES -> ContentType.SERIES
+    else -> null
+}
+
+private fun UiState.mediaBrowsingSection(): AppSection =
+    if (section == AppSection.PLAYER) returnSection.playerReturnSection() else section
+
 private fun UiState.libraryServerId(activeId: Long): Long =
     if (settings.libraryMode == LibraryMode.MERGED) 0L else activeId
 
@@ -1392,3 +1581,4 @@ private fun String.urlDecode(): String =
     runCatching { URLDecoder.decode(this, StandardCharsets.UTF_8.name()) }.getOrDefault(this)
 
 private const val SMART_REFRESH_INTERVAL_MS = 60 * 60 * 1000L
+private const val SERIES_DETAIL_PREFETCH_DELAY_MS = 380L

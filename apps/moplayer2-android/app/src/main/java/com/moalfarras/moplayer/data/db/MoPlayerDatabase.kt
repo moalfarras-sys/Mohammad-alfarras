@@ -37,10 +37,10 @@ data class MediaStateSnapshot(
 
 @Dao
 interface ServerDao {
-    @Query("SELECT * FROM servers ORDER BY lastSyncAt DESC, createdAt DESC")
+    @Query("SELECT * FROM servers ORDER BY CASE WHEN lastSyncAt > 0 THEN lastSyncAt ELSE createdAt END DESC, createdAt DESC, id DESC")
     fun observeServers(): Flow<List<ServerEntity>>
 
-    @Query("SELECT * FROM servers ORDER BY lastSyncAt DESC, createdAt DESC LIMIT 1")
+    @Query("SELECT * FROM servers ORDER BY CASE WHEN lastSyncAt > 0 THEN lastSyncAt ELSE createdAt END DESC, createdAt DESC, id DESC LIMIT 1")
     fun observeActiveServer(): Flow<ServerEntity?>
 
     @Query("SELECT COUNT(*) FROM servers")
@@ -49,7 +49,7 @@ interface ServerDao {
     @Query("SELECT * FROM servers WHERE id = :id")
     suspend fun getServer(id: Long): ServerEntity?
 
-    @Query("SELECT * FROM servers WHERE sourceKey = :sourceKey ORDER BY lastSyncAt DESC, createdAt DESC LIMIT 1")
+    @Query("SELECT * FROM servers WHERE sourceKey = :sourceKey ORDER BY CASE WHEN lastSyncAt > 0 THEN lastSyncAt ELSE createdAt END DESC, createdAt DESC, id DESC LIMIT 1")
     suspend fun getServerBySourceKey(sourceKey: String): ServerEntity?
 
     @Upsert
@@ -127,13 +127,21 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE serverId = :serverId AND type IN (:types)")
     suspend fun deleteForServerTypes(serverId: Long, types: List<ContentType>)
+
+    @Query("SELECT COUNT(*) FROM categories WHERE serverId = :serverId AND type = :type")
+    suspend fun countForServerType(serverId: Long, type: ContentType): Int
 }
 
 @Dao
 interface MediaDao {
     @Query(
         """
-        SELECT * FROM media
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
         WHERE (:serverId <= 0 OR serverId = :serverId)
             AND type = :type
             AND (:hideNoLogo = 0 OR posterUrl != '')
@@ -154,14 +162,30 @@ interface MediaDao {
         type: ContentType,
         sortOption: String,
         hideNoLogo: Boolean,
-    ): androidx.paging.PagingSource<Int, MediaEntity>
-
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type ORDER BY serverId, serverOrder, title COLLATE NOCASE")
-    fun pagingByType(serverId: Long, type: ContentType): PagingSource<Int, MediaEntity>
+    ): androidx.paging.PagingSource<Int, MediaListRow>
 
     @Query(
         """
-        SELECT * FROM media
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type
+        ORDER BY serverId, serverOrder, title COLLATE NOCASE
+        """
+    )
+    fun pagingByType(serverId: Long, type: ContentType): PagingSource<Int, MediaListRow>
+
+    @Query(
+        """
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
         WHERE (:serverId <= 0 OR serverId = :serverId)
             AND type = 'LIVE'
             AND (:categoryId = '' OR categoryId = :categoryId)
@@ -184,14 +208,19 @@ interface MediaDao {
         categoryId: String,
         sortOption: String,
         hideNoLogo: Boolean,
-    ): Flow<List<MediaEntity>>
+    ): Flow<List<MediaListRow>>
 
     @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND categoryId = :categoryId ORDER BY serverId, serverOrder, title COLLATE NOCASE LIMIT 1000")
     fun observeByCategory(serverId: Long, type: ContentType, categoryId: String): Flow<List<MediaEntity>>
 
     @Query(
         """
-        SELECT * FROM media
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
         WHERE (:serverId <= 0 OR serverId = :serverId)
             AND type = :type
             AND categoryId = :categoryId
@@ -214,43 +243,103 @@ interface MediaDao {
         categoryId: String,
         sortOption: String,
         hideNoLogo: Boolean,
-    ): androidx.paging.PagingSource<Int, MediaEntity>
+    ): androidx.paging.PagingSource<Int, MediaListRow>
 
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type IN (:types) ORDER BY CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END DESC, serverId ASC, serverOrder ASC")
-    fun observeLatestPaging(serverId: Long, types: List<ContentType>): androidx.paging.PagingSource<Int, MediaEntity>
+    @Query(
+        """
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId) AND type IN (:types)
+        ORDER BY CASE WHEN addedAt > 0 THEN addedAt ELSE lastModifiedAt END DESC, serverId ASC, serverOrder ASC
+        """
+    )
+    fun observeLatestPaging(serverId: Long, types: List<ContentType>): androidx.paging.PagingSource<Int, MediaListRow>
 
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND isFavorite = 1 ORDER BY updatedAt DESC")
-    fun observeFavoritesPaging(serverId: Long): androidx.paging.PagingSource<Int, MediaEntity>
+    @Query(
+        """
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId) AND isFavorite = 1
+        ORDER BY updatedAt DESC
+        """
+    )
+    fun observeFavoritesPaging(serverId: Long): androidx.paging.PagingSource<Int, MediaListRow>
 
 
     @Query("SELECT * FROM media WHERE serverId = :serverId AND seriesId = :seriesId AND type = 'EPISODE' ORDER BY seasonNumber, episodeNumber, title")
     fun observeEpisodes(serverId: Long, seriesId: String): Flow<List<MediaEntity>>
 
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type != 'LIVE' AND watchPositionMs > 0 AND watchDurationMs > 0 ORDER BY lastPlayedAt DESC, updatedAt DESC")
-    fun observeContinueWatchingPaging(serverId: Long): PagingSource<Int, MediaEntity>
-
-    @Query("SELECT * FROM media WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC")
-    fun observeRecentlyPlayedPaging(serverId: Long, type: ContentType): PagingSource<Int, MediaEntity>
+    @Query(
+        """
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId) AND type != 'LIVE' AND watchPositionMs > 0 AND watchDurationMs > 0
+        ORDER BY lastPlayedAt DESC, updatedAt DESC
+        """
+    )
+    fun observeContinueWatchingPaging(serverId: Long): PagingSource<Int, MediaListRow>
 
     @Query(
         """
-        SELECT * FROM media
-        WHERE (:serverId <= 0 OR serverId = :serverId)
-            AND (
-                title LIKE :containsQuery ESCAPE '\'
-                OR categoryName LIKE :containsQuery ESCAPE '\'
-                OR tvgId LIKE :containsQuery ESCAPE '\'
-            )
-        ORDER BY
-            CASE WHEN title LIKE :prefixQuery ESCAPE '\' THEN 0 ELSE 1 END,
-            CASE type WHEN 'LIVE' THEN 0 WHEN 'MOVIE' THEN 1 WHEN 'SERIES' THEN 2 WHEN 'EPISODE' THEN 3 ELSE 4 END,
-            CASE WHEN lastPlayedAt > 0 THEN 0 ELSE 1 END,
-            serverId ASC,
-            serverOrder ASC,
-            title COLLATE NOCASE
+        SELECT id, serverId, type, categoryId, categoryName, title, streamUrl, posterUrl,
+            backdropUrl, description, rating, durationSecs, addedAt, lastModifiedAt,
+            addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
+            episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
+            tvgId, catchup, genre, releaseDate
+        FROM media
+        WHERE (:serverId <= 0 OR serverId = :serverId) AND type = :type AND lastPlayedAt > 0
+        ORDER BY lastPlayedAt DESC
         """
     )
-    fun searchPaging(serverId: Long, containsQuery: String, prefixQuery: String): PagingSource<Int, MediaEntity>
+    fun observeRecentlyPlayedPaging(serverId: Long, type: ContentType): PagingSource<Int, MediaListRow>
+
+    @Query(
+        """
+        SELECT media.id AS id, media.serverId AS serverId, media.type AS type,
+            media.categoryId AS categoryId, media.categoryName AS categoryName,
+            media.title AS title, media.streamUrl AS streamUrl, media.posterUrl AS posterUrl,
+            media.backdropUrl AS backdropUrl, media.description AS description,
+            media.rating AS rating, media.durationSecs AS durationSecs, media.addedAt AS addedAt,
+            media.lastModifiedAt AS lastModifiedAt, media.addedAtUnknown AS addedAtUnknown,
+            media.serverOrder AS serverOrder, media.containerExtension AS containerExtension,
+            media.seriesId AS seriesId, media.seasonNumber AS seasonNumber,
+            media.episodeNumber AS episodeNumber, media.isFavorite AS isFavorite,
+            media.watchPositionMs AS watchPositionMs, media.watchDurationMs AS watchDurationMs,
+            media.lastPlayedAt AS lastPlayedAt, media.tvgId AS tvgId, media.catchup AS catchup,
+            media.genre AS genre, media.releaseDate AS releaseDate
+        FROM media
+        INNER JOIN media_search ON media_search.serverId = media.serverId
+            AND media_search.type = media.type
+            AND media_search.id = media.id
+        WHERE (:serverId <= 0 OR media.serverId = :serverId)
+            AND (
+                media_search.title LIKE :containsQuery ESCAPE '\'
+                OR media_search.categoryName LIKE :containsQuery ESCAPE '\'
+                OR media_search.tvgId LIKE :containsQuery ESCAPE '\'
+                OR media_search.searchText LIKE :containsQuery ESCAPE '\'
+            )
+        ORDER BY
+            CASE WHEN media_search.title LIKE :prefixQuery ESCAPE '\' THEN 0 ELSE 1 END,
+            CASE media.type WHEN 'LIVE' THEN 0 WHEN 'MOVIE' THEN 1 WHEN 'SERIES' THEN 2 WHEN 'EPISODE' THEN 3 ELSE 4 END,
+            CASE WHEN media.lastPlayedAt > 0 THEN 0 ELSE 1 END,
+            media.serverId ASC,
+            media.serverOrder ASC,
+            media.title COLLATE NOCASE
+        """
+    )
+    fun searchPaging(serverId: Long, containsQuery: String, prefixQuery: String): PagingSource<Int, MediaListRow>
 
     @Query("SELECT * FROM media WHERE serverId = :serverId AND type = 'LIVE' AND lastPlayedAt > 0 ORDER BY lastPlayedAt DESC LIMIT 1")
     suspend fun lastPlayedLive(serverId: Long): MediaEntity?
@@ -264,8 +353,17 @@ interface MediaDao {
     @Query("SELECT id, type, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt FROM media WHERE serverId = :serverId")
     suspend fun playbackState(serverId: Long): List<MediaStateSnapshot>
 
+    @Query("SELECT id, type, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt FROM media WHERE serverId = :serverId AND type IN (:types)")
+    suspend fun playbackStateForTypes(serverId: Long, types: List<ContentType>): List<MediaStateSnapshot>
+
     @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId AND type IN (:types)")
     suspend fun countForServerTypes(serverId: Long, types: List<ContentType>): Int
+
+    @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId AND type = :type")
+    suspend fun countForServerType(serverId: Long, type: ContentType): Int
+
+    @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId AND seriesId = :seriesId AND type = 'EPISODE'")
+    suspend fun episodeCount(serverId: Long, seriesId: String): Int
 
     @Upsert
     suspend fun upsertAll(items: List<MediaEntity>)
@@ -296,6 +394,18 @@ interface MediaDao {
 
     @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId")
     suspend fun countForServer(serverId: Long): Int
+}
+
+@Dao
+interface MediaSearchDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<MediaSearchEntity>)
+
+    @Query("DELETE FROM media_search WHERE serverId = :serverId")
+    suspend fun deleteForServer(serverId: Long)
+
+    @Query("DELETE FROM media_search WHERE serverId = :serverId AND type IN (:types)")
+    suspend fun deleteForServerTypes(serverId: Long, types: List<ContentType>)
 }
 
 @Dao
@@ -381,6 +491,7 @@ interface SyncStateDao {
         ServerEntity::class,
         CategoryEntity::class,
         MediaEntity::class,
+        MediaSearchEntity::class,
         AccountInfoEntity::class,
         ServerInfoEntity::class,
         VodDetailsEntity::class,
@@ -388,7 +499,7 @@ interface SyncStateDao {
         EpgProgramEntity::class,
         SyncStateEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(MoConverters::class)
@@ -396,6 +507,7 @@ abstract class MoPlayerDatabase : RoomDatabase() {
     abstract fun serverDao(): ServerDao
     abstract fun categoryDao(): CategoryDao
     abstract fun mediaDao(): MediaDao
+    abstract fun mediaSearchDao(): MediaSearchDao
     abstract fun accountInfoDao(): AccountInfoDao
     abstract fun serverInfoDao(): ServerInfoDao
     abstract fun vodDetailsDao(): VodDetailsDao
@@ -412,14 +524,16 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         syncState: SyncStateEntity?,
         epgPrograms: List<EpgProgramEntity>,
     ) = withTransaction {
-        // Robustness guard: a server whose subscription expired (or whose panel briefly errors)
-        // returns empty stream lists. Never let that empty response delete a library we already
-        // cached — keep the existing content and only refresh account/server/sync status so the
-        // viewer still sees their channels plus an accurate "expired / renew" state.
-        if (media.isEmpty() && mediaDao().countForServer(serverId) > 0) {
+        // Robustness guard: panels can return categories while stream lists are empty during
+        // transient failures or expired sessions. Never persist a categories-only library.
+        val existingMediaCount = mediaDao().countForServer(serverId)
+        if (media.isEmpty()) {
             if (accountInfo != null) accountInfoDao().upsert(accountInfo)
             if (serverInfo != null) serverInfoDao().upsert(serverInfo)
-            if (syncState != null) syncStateDao().upsert(syncState)
+            if (existingMediaCount <= 0 && categories.isNotEmpty()) {
+                categoryDao().deleteForServer(serverId)
+                mediaSearchDao().deleteForServer(serverId)
+            }
             serverDao().touch(serverId, System.currentTimeMillis())
             return@withTransaction
         }
@@ -440,13 +554,17 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         }
         categoryDao().deleteForServer(serverId)
         mediaDao().deleteForServer(serverId)
+        mediaSearchDao().deleteForServer(serverId)
         accountInfoDao().deleteForServer(serverId)
         serverInfoDao().deleteForServer(serverId)
         vodDetailsDao().deleteForServer(serverId)
         seasonDao().deleteForServer(serverId)
         syncStateDao().deleteForServer(serverId)
         categoryDao().insertAll(categories)
-        mergedMedia.chunked(5_000).forEach { mediaDao().insertAll(it) }
+        mergedMedia.chunked(5_000).forEach { chunk ->
+            mediaDao().insertAll(chunk)
+            mediaSearchDao().insertAll(chunk.map { it.toSearchEntity() })
+        }
         if (accountInfo != null) accountInfoDao().upsert(accountInfo)
         if (serverInfo != null) serverInfoDao().upsert(serverInfo)
         if (syncState != null) syncStateDao().upsert(syncState)
@@ -470,13 +588,15 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         if (normalizedTypes.isEmpty()) return@withTransaction
 
         val existingForTypes = mediaDao().countForServerTypes(serverId, normalizedTypes)
-        // Same robustness guard as replaceServerContent, scoped to the section being refreshed:
-        // an empty result for a type that already has cached content means an expired/erroring
-        // panel, so keep the cache instead of blanking the section.
-        if (media.isEmpty() && existingForTypes > 0) {
+        // Same robustness guard as replaceServerContent, scoped to the section being refreshed.
+        // Keep cached media and clear stale categories-only data from fresh or broken sections.
+        if (media.isEmpty()) {
             if (accountInfo != null) accountInfoDao().upsert(accountInfo)
             if (serverInfo != null) serverInfoDao().upsert(serverInfo)
-            if (syncState != null) syncStateDao().upsert(syncState)
+            if (existingForTypes <= 0 && categories.isNotEmpty()) {
+                categoryDao().deleteForServerTypes(serverId, normalizedTypes)
+                mediaSearchDao().deleteForServerTypes(serverId, normalizedTypes)
+            }
             serverDao().touch(serverId, System.currentTimeMillis())
             return@withTransaction
         }
@@ -484,7 +604,7 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         val mergedMedia = if (!hasExistingPlaybackState) {
             media
         } else {
-            val playbackState = mediaDao().playbackState(serverId).associateBy { "${it.type.name}:${it.id}" }
+            val playbackState = mediaDao().playbackStateForTypes(serverId, normalizedTypes).associateBy { "${it.type.name}:${it.id}" }
             media.map { item ->
                 val key = "${item.type.name}:${item.id}"
                 val previous = playbackState[key]
@@ -503,8 +623,12 @@ abstract class MoPlayerDatabase : RoomDatabase() {
 
         categoryDao().deleteForServerTypes(serverId, normalizedTypes)
         mediaDao().deleteForServerTypes(serverId, normalizedTypes)
+        mediaSearchDao().deleteForServerTypes(serverId, normalizedTypes)
         categoryDao().insertAll(categories)
-        mergedMedia.chunked(5_000).forEach { mediaDao().insertAll(it) }
+        mergedMedia.chunked(5_000).forEach { chunk ->
+            mediaDao().insertAll(chunk)
+            mediaSearchDao().insertAll(chunk.map { it.toSearchEntity() })
+        }
         if (accountInfo != null) accountInfoDao().upsert(accountInfo)
         if (serverInfo != null) serverInfoDao().upsert(serverInfo)
         if (syncState != null) syncStateDao().upsert(syncState)
@@ -517,7 +641,7 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         fun get(context: Context): MoPlayerDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(context, MoPlayerDatabase::class.java, "moplayer.db")
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                     .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
                     .build()
                     .also { instance = it }
@@ -708,6 +832,45 @@ abstract class MoPlayerDatabase : RoomDatabase() {
                         timezone = '',
                         serverMessage = '',
                         lastSyncSource = 'upgrade-cache-reset'
+                    """.trimIndent(),
+                )
+            }
+        }
+
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS media_search (
+                        serverId INTEGER NOT NULL,
+                        type TEXT NOT NULL,
+                        id TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        categoryName TEXT NOT NULL,
+                        tvgId TEXT NOT NULL,
+                        genre TEXT NOT NULL,
+                        searchText TEXT NOT NULL,
+                        PRIMARY KEY(serverId, type, id)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_media_search_serverId_type ON media_search(serverId, type)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_media_search_serverId_title ON media_search(serverId, title)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_media_search_serverId_categoryName ON media_search(serverId, categoryName)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_media_search_serverId_tvgId ON media_search(serverId, tvgId)")
+                db.execSQL(
+                    """
+                    INSERT OR REPLACE INTO media_search(serverId, type, id, title, categoryName, tvgId, genre, searchText)
+                    SELECT
+                        serverId,
+                        type,
+                        id,
+                        title,
+                        categoryName,
+                        tvgId,
+                        genre,
+                        trim(title || ' ' || categoryName || ' ' || tvgId || ' ' || genre || ' ' || releaseDate)
+                    FROM media
                     """.trimIndent(),
                 )
             }

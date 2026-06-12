@@ -234,6 +234,15 @@ class PlayerActivity : BaseTvActivity() {
             if (isLiveStream) {
                 loadLiveSupportData()
             }
+
+            // A dead subscription would otherwise spin through buffering + retries before
+            // failing. Surface the clear "subscription expired" message immediately instead.
+            if (isActiveSubscriptionExpired()) {
+                setLoadingOverlayVisible(false)
+                showSubscriptionExpiredError()
+                return@launch
+            }
+
             binding.root.post {
                 if (useExoPlayerPrimary) {
                     initPlaybackEngine()
@@ -677,6 +686,10 @@ class PlayerActivity : BaseTvActivity() {
         binding.btnExternalPlayer.setOnClickListener { showExternalPlayerDialog() }
 
         binding.btnRetry.setOnClickListener {
+            if (subscriptionExpiredMode) {
+                openLoginForNewSourceFromPlayer()
+                return@setOnClickListener
+            }
             liveRetryCount = 0
             liveRetryScheduled = false
             LivePlaybackRetryPolicy.reset()
@@ -875,9 +888,44 @@ class PlayerActivity : BaseTvActivity() {
         url.replace(Regex("(?i)\\.(m3u8|ts)(?=([?#]|$))"), ".$extension")
 
     private fun showPlaybackError(message: String) {
+        // Reset any prior "subscription expired" framing so the retry button behaves normally.
+        subscriptionExpiredMode = false
+        binding.btnRetry.setText(R.string.retry)
         binding.tvErrorMessage.text = message
         binding.errorOverlay.visibility = View.VISIBLE
         binding.btnRetry.requestFocus()
+    }
+
+    // True while the error overlay is showing the subscription-expired message; flips the
+    // retry button into a "sign in again" action.
+    private var subscriptionExpiredMode = false
+
+    /** Active Xtream source is out of days / reported dead by the panel. Offline-safe check. */
+    private suspend fun isActiveSubscriptionExpired(): Boolean {
+        return try {
+            val server = repository.getActiveServerSync() ?: return false
+            if (!server.serverType.equals("xtream", ignoreCase = true)) return false
+            com.mo.moplayer.util.ProviderSubscription.isExpired(server)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun showSubscriptionExpiredError() {
+        subscriptionExpiredMode = true
+        binding.tvErrorMessage.text = getString(R.string.player_subscription_expired)
+        binding.btnRetry.setText(R.string.subscription_expired_new_signin)
+        binding.errorOverlay.visibility = View.VISIBLE
+        binding.btnRetry.requestFocus()
+    }
+
+    private fun openLoginForNewSourceFromPlayer() {
+        val intent = Intent(this, com.mo.moplayer.ui.login.LoginActivity::class.java).apply {
+            putExtra("add_new_server", true)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun handleLiveStreamEnded() {
@@ -1487,7 +1535,6 @@ class PlayerActivity : BaseTvActivity() {
         binding.topScrim.visibility = View.VISIBLE
         binding.bottomScrim.visibility = View.VISIBLE
         binding.topControlsBar.visibility = View.VISIBLE
-        binding.centerControls.visibility = View.VISIBLE
         binding.bottomControlsBar.visibility = View.VISIBLE
         
         // Restore last focused view or default to play/pause
@@ -1517,7 +1564,6 @@ class PlayerActivity : BaseTvActivity() {
         binding.topScrim.visibility = View.GONE
         binding.bottomScrim.visibility = View.GONE
         binding.topControlsBar.visibility = View.GONE
-        binding.centerControls.visibility = View.GONE
         binding.bottomControlsBar.visibility = View.GONE
     }
 
@@ -1718,7 +1764,6 @@ class PlayerActivity : BaseTvActivity() {
             hideControls()
             binding.topControlsBar.visibility = View.GONE
             binding.bottomControlsBar.visibility = View.GONE
-            binding.centerControls.visibility = View.GONE
         } else {
             // Restore controls when exiting PIP
             if (!isPlaybackActive()) {

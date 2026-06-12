@@ -13,12 +13,10 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import com.airbnb.lottie.LottieAnimationView
 import com.mo.moplayer.R
 import com.mo.moplayer.data.weather.WeatherService
 import com.mo.moplayer.ui.common.design.WidgetUiState
-import com.mo.moplayer.ui.widgets.weather.WeatherCanvas
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,7 +29,6 @@ import android.view.animation.OvershootInterpolator
 import android.text.format.DateUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.delay
 
 /**
  * Advanced 3D Weather Widget
@@ -68,6 +65,7 @@ class Weather3DWidget @JvmOverloads constructor(
     private var weatherCollectJob: Job? = null
     private var lastGoodData: WeatherService.WeatherData? = null
     private var focusAccentColor: Int = Color.parseColor("#00E5FF")
+    private var lowPowerMode: Boolean = false
     
     init {
         LayoutInflater.from(context).inflate(R.layout.widget_weather_3d, this, true)
@@ -121,6 +119,20 @@ class Weather3DWidget @JvmOverloads constructor(
         
         // Show placeholder until real data loads
         renderState(WidgetUiState.Loading)
+    }
+
+    fun setLowPowerMode(enabled: Boolean) {
+        lowPowerMode = enabled
+        if (enabled) {
+            weatherIconLottie.cancelAnimation()
+            weatherIconLottie.visibility = View.GONE
+            ivWeatherIcon.visibility = View.VISIBLE
+            iconGlow.alpha = 0.18f
+            scaleX = 1f
+            scaleY = 1f
+            translationY = 0f
+            elevation = 2f
+        }
     }
     
     /**
@@ -311,6 +323,13 @@ class Weather3DWidget @JvmOverloads constructor(
     }
     
     private fun loadLottieAnimation(category: WeatherService.WeatherCategory, isDay: Boolean) {
+        if (lowPowerMode) {
+            weatherIconLottie.cancelAnimation()
+            weatherIconLottie.visibility = View.GONE
+            ivWeatherIcon.visibility = View.VISIBLE
+            return
+        }
+
         // Lottie animations enabled with custom-built animations
         val animationPath = when (category) {
             WeatherService.WeatherCategory.CLEAR -> {
@@ -338,6 +357,8 @@ class Weather3DWidget @JvmOverloads constructor(
     }
     
     private fun animateUpdate() {
+        if (lowPowerMode) return
+
         // Pulse animation on update
         val scaleAnimator = ValueAnimator.ofFloat(1f, 1.1f, 1f)
         scaleAnimator.duration = 300
@@ -360,23 +381,37 @@ class Weather3DWidget @JvmOverloads constructor(
     }
 
     private fun animateFocus(hasFocus: Boolean) {
-        val targetScale = if (hasFocus) 1.06f else 1.0f
-        val targetElevation = if (hasFocus) 14f else 4f
+        val targetScale = if (hasFocus) {
+            if (lowPowerMode) 1.03f else 1.06f
+        } else {
+            1.0f
+        }
+        val targetElevation = if (hasFocus) {
+            if (lowPowerMode) 8f else 14f
+        } else {
+            if (lowPowerMode) 2f else 4f
+        }
         background = if (hasFocus) createFocusBackground(focusAccentColor) else null
-        animate()
+        val animator = animate()
             .scaleX(targetScale)
             .scaleY(targetScale)
             .translationY(if (hasFocus) -3f else 0f)
-            .setDuration(200)
-            .setInterpolator(OvershootInterpolator(1.4f))
-            .start()
+            .setDuration(if (lowPowerMode) 110L else 200L)
+        if (!lowPowerMode) {
+            animator.setInterpolator(OvershootInterpolator(1.4f))
+        }
+        animator.start()
 
         elevation = targetElevation
 
-        iconGlow.animate()
-            .alpha(if (hasFocus) 0.8f else 0.25f)
-            .setDuration(200)
-            .start()
+        if (lowPowerMode) {
+            iconGlow.alpha = if (hasFocus) 0.42f else 0.18f
+        } else {
+            iconGlow.animate()
+                .alpha(if (hasFocus) 0.8f else 0.25f)
+                .setDuration(200)
+                .start()
+        }
     }
 
     private fun createFocusBackground(color: Int): GradientDrawable =

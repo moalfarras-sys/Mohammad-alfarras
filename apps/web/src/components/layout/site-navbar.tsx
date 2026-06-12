@@ -54,6 +54,7 @@ export function SiteNavbar({
   const mobileDockLinks = links;
   const ctaLabel = isAr ? "ابدأ مشروعك" : "Start Project";
   const dockLabel = isAr ? "التنقل السريع" : "Quick navigation";
+  const hideMobileDock = Boolean(pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -138,21 +139,23 @@ export function SiteNavbar({
         pathname={pathname}
       />
 
-      <nav className="mobile-bottom-dock" aria-label={dockLabel}>
-        {mobileDockLinks.map((item) => {
-          const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Home;
-          const active =
-            item.href === `/${locale}`
-              ? pathname === `/${locale}` || pathname === `/${locale}/`
-              : pathname === item.href || pathname?.startsWith(`${item.href}/`);
-          return (
-            <Link key={item.id} href={item.href} className={active ? "mobile-dock-link mobile-dock-link-active" : "mobile-dock-link"} aria-label={item.label}>
-              <Icon size={18} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {!hideMobileDock ? (
+        <nav className="mobile-bottom-dock" aria-label={dockLabel}>
+          {mobileDockLinks.map((item) => {
+            const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Home;
+            const active =
+              item.href === `/${locale}`
+                ? pathname === `/${locale}` || pathname === `/${locale}/`
+                : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+            return (
+              <Link key={item.id} href={item.href} className={active ? "mobile-dock-link mobile-dock-link-active" : "mobile-dock-link"} aria-label={item.label}>
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </>
   );
 }

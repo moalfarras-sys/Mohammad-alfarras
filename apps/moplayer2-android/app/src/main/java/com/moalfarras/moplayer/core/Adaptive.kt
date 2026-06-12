@@ -115,7 +115,9 @@ object Adaptive {
             if (displayCapability.height >= 2160 && !lowRam && cores >= 4) add(1)
             if (isTvDevice && !packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) add(0)
         }.sum()
+        val forceLowTier = lowRam || memoryClass <= 128 || (isTvDevice && sdk < 26)
         val tier = when {
+            forceLowTier -> DevicePerformanceTier.LOW
             score <= -4 -> DevicePerformanceTier.LOW
             score >= 2 -> DevicePerformanceTier.HIGH
             else -> DevicePerformanceTier.MID

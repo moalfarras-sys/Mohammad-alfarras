@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Scrubber knob: a bright white core inside a soft cyan glow, so the play head reads
+     clearly while scrubbing on a TV. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <size android:width="30dp" android:height="30dp" />
+            <solid android:color="#4D00E5FF" />
+        </shape>
+    </item>
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <size android:width="20dp" android:height="20dp" />
+            <solid android:color="#FFFFFFFF" />
+            <stroke android:width="3dp" android:color="@color/cinematic_cyan" />
+        </shape>
+    </item>
+</layer-list>

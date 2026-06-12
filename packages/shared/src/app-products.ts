@@ -36,7 +36,17 @@ export function resolveManagedAppSlug(value: string | null | undefined): Managed
     .trim()
     .toLowerCase()
     .replace(/[\s_]+/g, "-");
-  if (normalized === "moplayer-pro" || normalized === "mo-player-pro" || normalized === "pro") {
+  if (
+    normalized === "moplayer-pro" ||
+    normalized === "mo-player-pro" ||
+    normalized === "moplayer-pc" ||
+    normalized === "mo-player-pc" ||
+    normalized === "moplayer-windows" ||
+    normalized === "mo-player-windows" ||
+    normalized === "windows" ||
+    normalized === "windows-pc" ||
+    normalized === "pro"
+  ) {
     return "moplayer2";
   }
   return isManagedAppSlug(normalized) ? normalized : "moplayer";

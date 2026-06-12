@@ -88,6 +88,40 @@ fun MediaEntity.toDomain() = MediaItem(
     rawJson = rawJson,
 )
 
+fun MediaListRow.toDomain() = MediaItem(
+    id = id,
+    serverId = serverId,
+    type = type,
+    categoryId = categoryId,
+    categoryName = categoryName,
+    title = title,
+    streamUrl = streamUrl,
+    posterUrl = posterUrl,
+    backdropUrl = backdropUrl,
+    description = description,
+    rating = rating,
+    durationSecs = durationSecs,
+    addedAt = addedAt,
+    lastModifiedAt = lastModifiedAt,
+    addedAtUnknown = addedAtUnknown,
+    serverOrder = serverOrder,
+    containerExtension = containerExtension,
+    seriesId = seriesId,
+    seasonNumber = seasonNumber,
+    episodeNumber = episodeNumber,
+    isFavorite = isFavorite,
+    watchPositionMs = watchPositionMs,
+    watchDurationMs = watchDurationMs,
+    lastPlayedAt = lastPlayedAt,
+    tvgId = tvgId,
+    catchup = catchup,
+    cast = "",
+    director = "",
+    genre = genre,
+    releaseDate = releaseDate,
+    rawJson = "",
+)
+
 fun MediaItem.toEntity() = MediaEntity(
     id = id,
     serverId = serverId,
@@ -122,3 +156,18 @@ fun MediaItem.toEntity() = MediaEntity(
     rawJson = rawJson,
     updatedAt = System.currentTimeMillis(),
 )
+
+fun MediaEntity.toSearchEntity() = MediaSearchEntity(
+    serverId = serverId,
+    type = type,
+    id = id,
+    title = title,
+    categoryName = categoryName,
+    tvgId = tvgId,
+    genre = genre,
+    searchText = listOf(title, categoryName, tvgId, genre, releaseDate)
+        .filter { it.isNotBlank() }
+        .joinToString(" "),
+)
+
+fun MediaItem.toSearchEntity() = toEntity().toSearchEntity()

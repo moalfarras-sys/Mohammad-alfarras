@@ -24,6 +24,7 @@ This folder is the classic Android TV app. It is not an independent product. It 
 - Do not rename this app to MoPlayer Pro.
 - Do not change the package name or slug unless the public site, admin, database rows, and download metadata are updated together.
 - Do not mix Pro activation/source handling into Classic unless shared APIs explicitly support both product slugs.
+- QR source delivery is a fresh-session handoff only. The app may fetch a website-delivered source shortly after QR activation, save it locally, acknowledge it, and then stop polling until a new QR code is created.
 - Classic may support legacy activation rows; Pro must remain explicitly `moplayer2`.
 
 ## Where To Edit

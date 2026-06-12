@@ -12,12 +12,12 @@ const meta = {
   en: {
     title: "MoPlayer Setup | Add IPTV Source",
     description:
-      "Activate MoPlayer and securely send an Xtream or M3U source to the paired Android TV device.",
+      "Activate MoPlayer and securely send your private source to the paired Android TV device.",
   },
   ar: {
     title: "إعداد MoPlayer | إضافة مصدر IPTV",
     description:
-      "فعّل MoPlayer وأرسل مصدر Xtream أو M3U بأمان إلى جهاز Android TV المرتبط.",
+      "فعّل MoPlayer وأرسل مصدرك الخاص بأمان إلى جهاز Android TV المرتبط.",
   },
 } as const;
 

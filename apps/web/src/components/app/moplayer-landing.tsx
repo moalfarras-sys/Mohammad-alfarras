@@ -2,17 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   ArrowDownToLine,
-  ArrowUpRight,
   CheckCircle2,
-  Cpu,
   Download,
   KeyRound,
   MonitorPlay,
   ShieldCheck,
   Sparkles,
-  Smartphone,
   Tv2,
   Workflow,
 } from "lucide-react";
@@ -23,310 +21,282 @@ import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 
-function formatBytes(size?: number | null) {
-  if (!size) return null;
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
+/* ── Classic color tokens (navy blue) ── */
+const ACCENT = "#2563eb";
+const ACCENT_DARK = "#1e3a8a";
 
-function formatDate(locale: Locale, value?: string | null) {
-  if (!value) return null;
-  try {
-    return new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC",
-    }).format(new Date(value));
-  } catch {
-    return null;
-  }
-}
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
+};
 
 export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
   const isAr = locale === "ar";
   const t = repairMojibakeDeep(moPlayerCopy[locale]);
-  // ecosystem.* product fields are single-language (English). On the Arabic page we
-  // prefer the curated Arabic copy so the experience stays fully Arabic.
   const text = (en: string | undefined | null, ar: string) => (isAr ? ar : en?.trim() || ar);
   const list = <T,>(en: T[] | undefined | null, ar: T[]) => (isAr ? ar : en && en.length ? en : ar);
-  const productName = ecosystem.product.product_name || "MoPlayer";
+  const productName = ecosystem.product.product_name || "MoPlayer Classic";
   const productHero = text(ecosystem.product.long_description || ecosystem.product.short_description, t.heroBody);
-  const heroImage = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-hero-3d-final.png");
-  const logoImage = normalizePublicImagePath(ecosystem.product.logo_path || "/images/moplayer-icon-512.png");
+  const heroImage = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-tv-hero.png");
+  
   const latest = ecosystem.releases[0] ?? null;
-  const primaryAsset = latest?.assets.find((item) => item.is_primary) ?? latest?.assets[0] ?? null;
-  const advancedAssets = latest?.assets.filter((item) => item.id !== primaryAsset?.id) ?? [];
-  const size = formatBytes(primaryAsset?.file_size_bytes);
-  const releaseDate = formatDate(locale, latest?.published_at ?? ecosystem.product.last_updated_at);
-  const downloaderCode = ecosystem.runtimeConfig?.downloaderCode || "2418397";
   const downloadHref = latest && latest.assets.some((asset) => asset.external_url || asset.storage_path) ? `/api/app/releases/${latest.slug}/download` : null;
-  const updateHref = `/api/app/releases/latest?product=${ecosystem.product.slug}`;
   const proHref = `/${locale}/apps/moplayer2`;
-  const screenshots = ecosystem.screenshots.length
-    ? ecosystem.screenshots
-    : [
-        { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-hero-3d-final.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
-      ];
-  const visualFallbacks = [
+  const activateHref = `/${locale}/activate?product=moplayer`;
+  
+  const galleryShots = [
+    { id: "classic-promo", title: isAr ? "عرض MoPlayer Classic" : "MoPlayer Classic Showcase", alt_text: "MoPlayer Classic promotional showcase", image_path: "/images/moplayer-classic-promo.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
+    { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-tv-hero.png", product_slug: "moplayer", device_frame: "tv", sort_order: 1, is_featured: false, created_at: "" },
     { id: "visual-cinema", title: isAr ? "واجهة تلفزيونية" : "TV showcase", alt_text: "MoPlayer cinematic TV visual", image_path: "/images/moplayer_ui_playlist-final.png", product_slug: "moplayer", device_frame: "tv", sort_order: 10, is_featured: false, created_at: "" },
     { id: "visual-activation", title: isAr ? "تفعيل واضح" : "Guided activation", alt_text: "MoPlayer activation flow visual", image_path: "/images/moplayer-activation-flow.webp", product_slug: "moplayer", device_frame: "phone", sort_order: 11, is_featured: false, created_at: "" },
     { id: "visual-release", title: isAr ? "مركز التحميل" : "Release center", alt_text: "MoPlayer APK release visual", image_path: "/images/moplayer-release-panel.webp", product_slug: "moplayer", device_frame: "tv", sort_order: 12, is_featured: false, created_at: "" },
   ];
-  const galleryShots = [...screenshots, ...visualFallbacks].filter((shot, index, list) => {
-    return list.findIndex((item) => item.image_path === shot.image_path) === index;
-  });
-
-  const specs = [
-    { icon: Download, label: t.specsLabels.version, value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
-    { icon: Cpu, label: t.specsLabels.size, value: size ?? "APK" },
-    { icon: Smartphone, label: t.specsLabels.minSdk, value: `API ${ecosystem.product.android_min_sdk}` },
-    { icon: MonitorPlay, label: t.specsLabels.targetSdk, value: `API ${ecosystem.product.android_target_sdk}` },
-    { icon: Workflow, label: t.specsLabels.abi, value: primaryAsset?.abi ?? "arm64-v8a" },
-    { icon: Tv2, label: t.specsLabels.tv, value: ecosystem.product.android_tv_ready ? "Ready" : "Android" },
-  ];
-
-  const stats = [
-    { label: isAr ? "أحدث إصدار" : "Latest release", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
-    { label: isAr ? "آخر تحديث" : "Updated", value: releaseDate ?? (isAr ? "حديثًا" : "Recently") },
-    { label: isAr ? "التشغيل" : "Playback", value: "VLC / libVLC" },
-    { label: isAr ? "التلفزيون" : "TV", value: ecosystem.product.android_tv_ready ? "Ready" : "Android" },
-  ];
 
   return (
-    <main className="moplayer-page" dir={isAr ? "rtl" : "ltr"}>
-      <section className="moplayer-hero">
-        <div className="moplayer-hero-copy">
-          <span className="moplayer-kicker">
-            <ShieldCheck className="h-4 w-4" />
-            {text(ecosystem.product.hero_badge, t.badge)}
-          </span>
-          <h1>{productName}</h1>
-          <p>{productHero}</p>
-          <div className="moplayer-actions">
+    <main className="min-h-screen bg-[#050505] text-white overflow-hidden font-sans relative" dir={isAr ? "rtl" : "ltr"}>
+      
+      {/* Background effects - Navy Blue */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 w-full h-[80vh] opacity-35">
+          <Image src="/images/moplayer-classic-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" priority />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
+        </div>
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.015]" />
+        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-[${ACCENT}]/10 to-transparent rounded-full blur-[120px]`} />
+        <div className={`absolute bottom-0 right-0 w-[500px] h-[500px] bg-[${ACCENT_DARK}]/8 rounded-full blur-[150px]`} />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-16 px-6 sm:px-12 max-w-6xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-12">
+        <div className="flex-1 text-center lg:text-start z-10">
+          <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/8 backdrop-blur-sm mb-6">
+            <ShieldCheck className="h-4 w-4 text-blue-400" />
+            <span className="text-xs font-bold tracking-widest uppercase text-blue-400">{text(ecosystem.product.hero_badge, t.badge)}</span>
+          </motion.div>
+          
+          <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-blue-300/60 mb-5 leading-[1.1]">
+            {productName}
+          </motion.h1>
+          
+          <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="text-sm md:text-base text-white/60 mb-8 max-w-lg leading-relaxed mx-auto lg:mx-0">
+            {productHero}
+          </motion.p>
+          
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="flex flex-col sm:flex-row gap-3 items-center justify-center lg:justify-start">
             {downloadHref ? (
-              <a href={downloadHref} className="moplayer-button moplayer-button-primary">
-                <ArrowDownToLine className="h-4 w-4" />
+              <a href={downloadHref} className="group px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-[0_4px_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 flex items-center gap-2">
+                <Download className="h-4 w-4" />
                 {t.download}
               </a>
             ) : (
-              <span className="moplayer-button">{t.releasePending}</span>
+              <span className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 font-bold text-sm flex items-center gap-2 cursor-not-allowed">
+                {t.releasePending}
+              </span>
             )}
-            <Link href={`/${locale}/activate`} className="moplayer-button">
-              <KeyRound className="h-4 w-4" />
-              {isAr ? "التفعيل / التحكم" : "Activate / Control"}
+            <Link href={activateHref} className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-white/60" />
+              {isAr ? "تفعيل Classic" : "Activate Classic"}
             </Link>
-            <Link href={updateHref} className="moplayer-button">
-              <ArrowUpRight className="h-4 w-4" />
-              {isAr ? "بيانات التحديث" : "Update info"}
-            </Link>
-          </div>
+          </motion.div>
         </div>
+        
+        <div className="flex-1 w-full relative flex justify-center lg:justify-end">
+           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }} className="relative z-10 w-full max-w-sm aspect-square flex items-center justify-center">
+              <Image src={heroImage} alt="MoPlayer Classic" width={500} height={500} className="w-[85%] h-auto object-contain drop-shadow-[0_20px_60px_rgba(37,99,235,0.2)]" priority />
+           </motion.div>
+           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-blue-900/10 rounded-full blur-[80px] z-0 pointer-events-none w-[70%] h-[70%] m-auto opacity-50" />
+        </div>
+      </section>
 
-        <div className="moplayer-device-stage">
-          <div className="moplayer-device-glow" />
-          <div className="moplayer-tv-frame">
-            <Image src={heroImage} alt={`${productName} Android TV product visual`} fill sizes="(max-width: 900px) 92vw, 620px" className="moplayer-image" priority />
-          </div>
-          <div className="moplayer-floating-card">
-            <Image src={logoImage} alt="" width={44} height={44} />
-            <div>
-              <strong>{productName}</strong>
-              <span>{isAr ? "جاهز للتلفزيون والتفعيل" : "TV and activation ready"}</span>
+      {/* Stats Bar */}
+      <section className="relative py-8 border-y border-white/5 bg-white/[0.02] z-10">
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-around items-center gap-6">
+          {[
+            { label: isAr ? "أحدث إصدار" : "Latest", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
+            { label: isAr ? "التجربة" : "Experience", value: isAr ? "كلاسيك" : "Classic" },
+            { label: isAr ? "التثبيت" : "Install", value: isAr ? "خفيف" : "Light" },
+            { label: isAr ? "التلفزيون" : "TV", value: ecosystem.product.android_tv_ready ? (isAr ? "جاهز" : "Ready") : "Android" },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <span className="block text-white/40 text-xs font-bold uppercase tracking-widest mb-1">{s.label}</span>
+              <strong className="block text-lg font-extrabold text-white">{s.value}</strong>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="moplayer-stats">
-        {stats.map((item) => (
-          <div key={item.label}>
-            <span>{item.label}</span>
-            <strong>{item.value}</strong>
-          </div>
-        ))}
-      </section>
-
-      <section className="moplayer-pro-switch">
-        <div>
-          <span className="moplayer-kicker">
-            <Sparkles className="h-4 w-4" />
-            {isAr ? "النسخة الجديدة" : "New product line"}
-          </span>
-          <h2>{isAr ? "تريد تجربة أدفأ وأحدث؟ انتقل إلى MoPlayer Pro." : "Want the warmer next-generation app? Open MoPlayer Pro."}</h2>
-          <p>
-            {isAr
-              ? "MoPlayer يبقى التطبيق الأزرق الكلاسيكي. MoPlayer Pro تطبيق منفصل بالهوية الذهبية، تحميل مستقل، وتفعيل QR خاص به."
-              : "MoPlayer stays the blue classic app. MoPlayer Pro is a separate warm-gold app with its own APK, QR activation, and release channel."}
-          </p>
-          <Link href={proHref} className="moplayer-button moplayer-button-pro">
-            <Sparkles className="h-4 w-4" />
-            {isAr ? "افتح MoPlayer Pro" : "Open MoPlayer Pro"}
-          </Link>
-        </div>
-        <Link href={proHref} className="moplayer-pro-switch-media" aria-label={isAr ? "افتح صفحة MoPlayer Pro" : "Open MoPlayer Pro page"}>
-          <Image
-            src="/images/moplayer-pro-hero.webp"
-            alt={isAr ? "واجهة MoPlayer Pro باللون الذهبي" : "MoPlayer Pro warm gold product preview"}
-            fill
-            sizes="(max-width: 900px) 92vw, 470px"
-            className="moplayer-image"
-          />
-        </Link>
-      </section>
-
-      <section className="moplayer-section">
-        <div className="moplayer-section-head">
-          <span className="moplayer-kicker">
-            <Cpu className="h-4 w-4" />
-            {isAr ? "معلومات الإصدار" : "Release system"}
-          </span>
-          <h2>{isAr ? "كل ما يحتاجه المستخدم قبل التحميل واضح في مكان واحد." : "Everything a user needs before downloading, clear in one place."}</h2>
-        </div>
-        <div className="moplayer-spec-grid">
-          {specs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <article key={item.label} className="moplayer-spec">
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </article>
-            );
-          })}
-        </div>
-        {latest && primaryAsset ? (
-          <div className="moplayer-download-chooser">
-            <div>
-              <span className="moplayer-kicker">{isAr ? "التنزيل الموصى به" : "Recommended TV download"}</span>
-              <h3>{isAr ? "استخدم ملف Universal APK أولًا لتجنب خطأ التثبيت على التلفزيون." : "Use the Universal APK first to avoid TV install mismatch."}</h3>
-              <p>
-                {isAr
-                  ? "إذا ظهرت رسالة App not installed، احذف أي نسخة قديمة من MoPlayer ثم ثبّت هذا الملف من جديد."
-                  : "If Android shows “App not installed”, remove any older MoPlayer build first, then install this recommended package again."}
-              </p>
-              <div className="moplayer-downloader-code">
-                <span>{isAr ? "رمز Downloader" : "Downloader code"}</span>
-                <strong>{downloaderCode}</strong>
-              </div>
-            </div>
-            <div className="moplayer-download-list">
-              <a href={`/api/app/releases/${latest.slug}/download`} className="moplayer-download-row is-primary">
-                <span>{primaryAsset.label || (isAr ? "ملف التلفزيون الموصى به" : "Recommended TV APK")}</span>
-                <strong>{primaryAsset.abi ?? "universal"} · {formatBytes(primaryAsset.file_size_bytes) ?? "APK"}</strong>
-              </a>
-              {advancedAssets.map((asset) => (
-                <a
-                  key={asset.id}
-                  href={asset.external_url || `/api/app/releases/${latest.slug}/download`}
-                  className="moplayer-download-row"
-                >
-                  <span>{asset.label || asset.abi || "APK"}</span>
-                  <strong>{asset.abi ?? "APK"} · {formatBytes(asset.file_size_bytes) ?? "APK"}</strong>
-                </a>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="moplayer-section moplayer-showcase">
-        <div className="moplayer-section-head">
-          <span className="moplayer-kicker">
-            <MonitorPlay className="h-4 w-4" />
-            {t.featuresEyebrow}
-          </span>
-          <h2>{text(ecosystem.product.tagline, t.featuresTitle)}</h2>
-        </div>
-        <div className="moplayer-feature-grid">
-          {list(ecosystem.product.feature_highlights, t.features).map((feature, index) => {
-            const icons = [Tv2, MonitorPlay, ShieldCheck, CheckCircle2];
-            const Icon = icons[index] ?? CheckCircle2;
-            return (
-              <article key={feature.title} className="moplayer-feature-card">
-                <Icon className="h-5 w-5" />
-                <h3>{feature.title}</h3>
-                <p>{feature.body}</p>
-              </article>
-            );
-          })}
-        </div>
-        <div className="moplayer-gallery">
-          {galleryShots.slice(0, 4).map((shot, index) => (
-            <figure key={shot.id} className={index === 0 ? "is-wide" : ""}>
-              <Image src={normalizePublicImagePath(shot.image_path)} alt={shot.alt_text || shot.title || "MoPlayer screenshot"} fill sizes={index === 0 ? "(max-width: 900px) 92vw, 58vw" : "(max-width: 900px) 92vw, 28vw"} className="moplayer-image" />
-              <figcaption>{shot.title || "MoPlayer"}</figcaption>
-            </figure>
           ))}
         </div>
       </section>
 
-      <section className="moplayer-section moplayer-two-col">
-        <article className="moplayer-info-card">
-          <Workflow className="h-6 w-6" />
-          <h2>{t.philosophyTitle}</h2>
-          <p>{text(ecosystem.product.short_description, t.philosophy)}</p>
-        </article>
-        <article className="moplayer-info-card">
-          <ShieldCheck className="h-6 w-6" />
-          <h2>{t.privacyTitle}</h2>
-          <div className="moplayer-check-list">
-            {list(ecosystem.product.legal_notes, t.privacyBullets).map((item) => (
-              <span key={item}>
-                <CheckCircle2 className="h-4 w-4" />
-                {item}
+      {/* Pro Switch Card */}
+      <section className="relative py-16 px-6 z-10">
+         <div className="max-w-5xl mx-auto rounded-2xl overflow-hidden border border-amber-500/20 bg-gradient-to-r from-black via-amber-500/5 to-black p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1 relative z-10 text-center md:text-start">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider mb-4">
+                <Sparkles className="h-3 w-3" /> {isAr ? "النسخة الجديدة" : "New product line"}
               </span>
-            ))}
-          </div>
-        </article>
+              <h2 className="text-xl md:text-2xl font-extrabold mb-4 text-white leading-tight">
+                {isAr ? "تريد تجربة أدفأ وأحدث؟ انتقل إلى MoPlayer Pro." : "Want the warmer next-gen app? Try MoPlayer Pro."}
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6">
+                {isAr
+                  ? "MoPlayer يبقى التطبيق الأزرق الكلاسيكي. MoPlayer Pro تطبيق منفصل بالهوية الذهبية وتحميل مستقل."
+                  : "MoPlayer stays the blue classic app. MoPlayer Pro is a separate warm-gold app with its own APK and release channel."}
+              </p>
+              <Link href={proHref} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 text-black font-bold text-sm hover:bg-amber-400 transition-all hover:-translate-y-0.5">
+                <Sparkles className="h-4 w-4" />
+                {isAr ? "افتح MoPlayer Pro" : "Open MoPlayer Pro"}
+              </Link>
+            </div>
+            
+            <div className="w-full md:w-auto">
+               <div className="w-full max-w-[280px] mx-auto rounded-xl overflow-hidden shadow-lg border border-amber-500/15">
+                  <Image src="/images/moplayer-pro-home.webp" alt="Pro Preview" width={400} height={280} className="w-full h-auto object-cover" />
+               </div>
+            </div>
+         </div>
       </section>
 
-      <section className="moplayer-section moplayer-install">
-        <div>
-          <span className="moplayer-kicker">{isAr ? "خطوات التثبيت" : "Install steps"}</span>
-          <h2>{t.installTitle}</h2>
-          <div className="moplayer-step-list">
-            {list(ecosystem.product.install_steps, t.installSteps).map((step, index) => (
-              <article key={step.title}>
-                <span>{`0${index + 1}`}</span>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-              </article>
-            ))}
-          </div>
+      {/* Features Grid */}
+      <section className="relative py-16 px-6 z-10 border-t border-white/5">
+        <div className="max-w-6xl mx-auto text-center mb-12">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-500/30 text-blue-400 text-[10px] font-bold uppercase tracking-wider mb-4 bg-blue-500/8">
+            <MonitorPlay className="h-3 w-3" />
+            {t.featuresEyebrow}
+          </span>
+          <h2 className="text-2xl md:text-3xl font-extrabold mb-3 text-white max-w-3xl mx-auto leading-tight">{text(ecosystem.product.tagline, t.featuresTitle)}</h2>
         </div>
-        <div>
-          <span className="moplayer-kicker">{t.faqTitle}</span>
-          <div className="moplayer-faq-list">
-            {list(ecosystem.faqs, t.faqs).map((faq) => (
-              <details key={faq.question}>
-                <summary>{faq.question}</summary>
-                <p>{faq.answer}</p>
-              </details>
-            ))}
+
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }} className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {list(ecosystem.product.feature_highlights, t.features).map((f, i) => {
+            const icons = [Tv2, MonitorPlay, ShieldCheck, CheckCircle2];
+            const Icon = icons[i] ?? CheckCircle2;
+            return (
+              <motion.article variants={itemVariants} key={f.title} className="p-5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-blue-500/20 transition-all duration-300 group">
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center mb-3 text-blue-400 group-hover:scale-105 transition-transform">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-sm font-bold mb-2 text-white">{f.title}</h3>
+                <p className="text-white/50 text-xs leading-relaxed">{f.body}</p>
+              </motion.article>
+            );
+          })}
+        </motion.div>
+      </section>
+
+      {/* Screenshots Gallery */}
+      <section className="relative py-16 px-6 z-10 bg-white/[0.01] border-t border-white/5">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+          {galleryShots.slice(0, 5).map((shot, i) => (
+             <div key={shot.id} className={`relative rounded-xl overflow-hidden border border-white/5 bg-black group ${i === 0 ? "md:col-span-2" : ""}`}>
+               <Image src={normalizePublicImagePath(shot.image_path)} alt={shot.alt_text} width={i === 0 ? 1200 : 600} height={i === 0 ? 500 : 340} className="w-full h-auto object-cover opacity-75 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-500" />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+               <span className="absolute bottom-4 left-6 text-white font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">{shot.title}</span>
+             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Philosophy & Privacy */}
+      <section className="relative py-16 px-6 z-10 border-t border-white/5">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+          <article className="p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-blue-500/20 transition-all duration-300">
+            <Workflow className="h-6 w-6 text-blue-400 mb-4" />
+            <h2 className="text-lg font-bold mb-3 text-white">{t.philosophyTitle}</h2>
+            <p className="text-white/60 text-sm leading-relaxed">{text(ecosystem.product.short_description, t.philosophy)}</p>
+          </article>
+          <article className="p-6 rounded-xl bg-white/[0.02] border border-white/5 hover:border-blue-500/20 transition-all duration-300">
+            <ShieldCheck className="h-6 w-6 text-blue-400 mb-4" />
+            <h2 className="text-lg font-bold mb-3 text-white">{t.privacyTitle}</h2>
+            <div className="space-y-2.5">
+              {list(ecosystem.product.legal_notes, t.privacyBullets).map((item) => (
+                <div key={item} className="flex items-start gap-2.5 text-white/60 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-blue-400/60 shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* Install & FAQ */}
+      <section className="relative py-16 px-6 z-10 border-t border-white/5">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-blue-500/30 text-blue-400 text-[10px] font-bold uppercase tracking-wider mb-4 bg-blue-500/8">
+              {isAr ? "خطوات التثبيت" : "Install steps"}
+            </span>
+            <h2 className="text-2xl font-extrabold mb-8 text-white">{t.installTitle}</h2>
+            <div className="space-y-4">
+              {list(ecosystem.product.install_steps, t.installSteps).map((step, index) => (
+                <article key={step.title} className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full border border-blue-500/20 bg-blue-500/8 flex items-center justify-center text-blue-400 text-xs font-bold">
+                    {`0${index + 1}`}
+                  </div>
+                  <div className="flex-1 p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                    <h3 className="font-bold text-white mb-1 text-sm">{step.title}</h3>
+                    <p className="text-white/50 text-xs leading-relaxed">{step.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/15 text-white/60 text-[10px] font-bold uppercase tracking-wider mb-4 bg-white/5">
+              {t.faqTitle}
+            </span>
+            <div className="space-y-3 mt-8">
+              {list(ecosystem.faqs, t.faqs).map((faq) => (
+                <details key={faq.question} className="group rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden open:border-blue-500/20 transition-colors">
+                  <summary className="cursor-pointer p-4 font-bold text-sm text-white flex items-center justify-between list-none select-none hover:text-blue-400 transition-colors">
+                    {faq.question}
+                    <span className="relative flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-white/5 group-open:rotate-180 transition-transform duration-300">
+                      <ArrowDownToLine className="h-3 w-3" />
+                    </span>
+                  </summary>
+                  <div className="px-4 pb-4 text-white/60 text-sm leading-relaxed border-t border-white/5">
+                    <p className="pt-3">{faq.answer}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="moplayer-final">
-        <span className="moplayer-kicker">{t.disclaimerTitle}</span>
-        <h2>{productName}</h2>
-        <p>{text(ecosystem.product.changelog_intro, t.finalBody)}</p>
-        <div className="moplayer-actions">
-          {downloadHref ? (
-            <Link href={downloadHref} className="moplayer-button moplayer-button-primary">
-              <ArrowDownToLine className="h-4 w-4" />
-              {t.download}
+      {/* Final CTA */}
+      <section className="relative py-20 px-6 z-10 border-t border-white/5 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-600/5 via-transparent to-transparent pointer-events-none" />
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-500/30 text-red-400 text-[10px] font-bold uppercase tracking-wider mb-5 bg-red-500/8">
+            {t.disclaimerTitle}
+          </span>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-white">{productName}</h2>
+          <p className="text-sm text-white/40 mb-8 max-w-xl mx-auto leading-relaxed">{text(ecosystem.product.changelog_intro, t.finalBody)}</p>
+          
+          <div className="flex flex-wrap gap-3 items-center justify-center">
+            {downloadHref && (
+              <a href={downloadHref} className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm transition-all duration-300 shadow-[0_4px_20px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 flex items-center gap-2">
+                <Download className="h-4 w-4" /> {t.download}
+              </a>
+            )}
+            <Link href={activateHref} className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-white/60" /> {isAr ? "فعّل التطبيق" : "Activate"}
             </Link>
-          ) : null}
-          <Link href={`/${locale}/activate`} className="moplayer-button">
-            <KeyRound className="h-4 w-4" />
-            {isAr ? "فعّل التطبيق / التحكم" : "Activate / Control"}
-          </Link>
-          <Link href={`/${locale}/support`} className="moplayer-button">
-            {t.support}
-          </Link>
+            <Link href={`/${locale}/support`} className="px-6 py-3 rounded-xl bg-transparent border border-white/5 text-white/50 font-bold text-sm hover:bg-white/5 hover:text-white transition-all duration-300">
+              {t.support}
+            </Link>
+          </div>
         </div>
       </section>
+
     </main>
   );
 }

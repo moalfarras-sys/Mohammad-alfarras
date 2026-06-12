@@ -45,6 +45,15 @@ Optional dashboard:
 npm run dev:moplayer-dashboard
 ```
 
+MoPlayer Pro Windows:
+
+```powershell
+npm run dev:windows
+npm run verify:windows
+npm run dist:windows
+npm --prefix apps/moplayer-pro-windows run qa:screens
+```
+
 Default ports may vary if another server is already running. Prefer explicit ports during QA:
 
 ```powershell
@@ -54,7 +63,7 @@ npm --prefix apps/admin run dev -- --hostname 127.0.0.1 --port 3001
 
 ## Research Before Implementation
 
-For fast-moving topics, verify current docs before changing code. This matters because the project uses active platforms: Next.js 16, React 19, Vercel, Supabase, Android/Kotlin, Media3/ExoPlayer, LibVLC, and Android TV.
+For fast-moving topics, verify current docs before changing code. This matters because the project uses active platforms: Next.js 16, React 19, Vercel, Supabase, Android/Kotlin, Media3/ExoPlayer, LibVLC, Android TV, Electron, and Windows packaging.
 
 Research is required before:
 
@@ -77,6 +86,7 @@ Use official docs and release notes first. Keep the implementation conservative:
 | Supabase migrations | Verify affected API/admin flows and document migration order |
 | MoPlayer Classic Android | `npm run verify:android:classic` |
 | MoPlayer Pro Android | `npm run verify:android:pro` |
+| MoPlayer Pro Windows PC | `npm run verify:windows`, `npm run dist:windows`, and `npm --prefix apps/moplayer-pro-windows run qa:screens` before release |
 | Player/live playback changes | Android unit tests plus manual/emulator playback QA when a stream is available |
 | Production deploy | `npm run verify:production` |
 
@@ -111,6 +121,9 @@ Safe to delete locally when not running builds:
 - `**/coverage`
 - `**/build`
 - `**/build-output`
+- `apps/moplayer-pro-windows/dist`
+- `apps/moplayer-pro-windows/dist-electron`
+- `apps/moplayer-pro-windows/release`
 - `**/.gradle`
 - `**/.kotlin`
 - `output`

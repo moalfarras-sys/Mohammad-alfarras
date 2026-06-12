@@ -14,6 +14,9 @@ class EpgRefreshWorker(
         val graph = AppGraph.get(applicationContext)
         val server = graph.iptvRepository.activeServer.first() ?: return Result.success()
         if (server.kind != LoginKind.XTREAM) return Result.success()
+        if (!graph.iptvRepository.needsFullEpgRefresh(server, FULL_EPG_REFRESH_INTERVAL_MS)) {
+            return Result.success()
+        }
 
         return runCatching {
             graph.iptvRepository.refreshFullEpg(server)
@@ -21,5 +24,9 @@ class EpgRefreshWorker(
         }.getOrElse {
             Result.retry()
         }
+    }
+
+    private companion object {
+        const val FULL_EPG_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000L
     }
 }

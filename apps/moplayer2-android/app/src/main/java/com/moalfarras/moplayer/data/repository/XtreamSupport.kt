@@ -211,7 +211,7 @@ internal object XtreamSupport {
             name = obj.string("category_name"),
             sortOrder = index,
             parentId = obj.string("parent_id"),
-            rawJson = json.encodeToString(JsonElement.serializer(), item),
+            rawJson = "",
         )
     }
 
@@ -257,7 +257,7 @@ internal object XtreamSupport {
                 containerExtension = output,
                 tvgId = obj.string("epg_channel_id"),
                 catchup = obj.string("tv_archive"),
-                rawJson = json.encodeToString(JsonElement.serializer(), item),
+                rawJson = "",
             )
         }
     }
@@ -275,8 +275,11 @@ internal object XtreamSupport {
             null
         } else {
             val categoryId = obj.string("category_id")
-            val extension = obj.string("container_extension").ifBlank { "mp4" }
             val directSource = obj.string("direct_source")
+            val extension = obj.string("container_extension")
+                .normalizeVodExtension()
+                .ifBlank { directSource.extractMediaExtension() }
+                .ifBlank { "mp4" }
             val addedAt = parseTimestamp(obj.string("added"))
             val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
             MediaItem(
@@ -298,12 +301,12 @@ internal object XtreamSupport {
                 lastModifiedAt = lastModifiedAt,
                 addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
                 serverOrder = obj.int("num").takeIf { it > 0 } ?: index,
-                containerExtension = extension,
+                containerExtension = directSource.extractMediaExtension().ifBlank { extension },
                 cast = obj.stringOrJoin("cast"),
                 director = obj.stringOrJoin("director"),
                 genre = obj.stringOrJoin("genre"),
                 releaseDate = obj.string("releaseDate").ifBlank { obj.string("release_date") },
-                rawJson = json.encodeToString(JsonElement.serializer(), item),
+                rawJson = "",
             )
         }
     }
@@ -343,7 +346,7 @@ internal object XtreamSupport {
                 director = obj.stringOrJoin("director"),
                 genre = obj.stringOrJoin("genre"),
                 releaseDate = obj.string("releaseDate").ifBlank { obj.string("release_date") },
-                rawJson = json.encodeToString(JsonElement.serializer(), item),
+                rawJson = "",
             )
         }
     }
@@ -369,7 +372,7 @@ internal object XtreamSupport {
             director = info.stringOrJoin("director").ifBlank { current.director },
             genre = info.stringOrJoin("genre").ifBlank { current.genre },
             releaseDate = info.string("releasedate").ifBlank { info.string("releaseDate").ifBlank { current.releaseDate } },
-            rawJson = json.encodeToString(JsonElement.serializer(), root),
+            rawJson = "",
         )
         return enriched to VodDetailsEntity(
             serverId = serverId,
@@ -417,7 +420,7 @@ internal object XtreamSupport {
             director = info.stringOrJoin("director").ifBlank { current.director },
             genre = info.stringOrJoin("genre").ifBlank { current.genre },
             releaseDate = info.string("releaseDate").ifBlank { current.releaseDate },
-            rawJson = json.encodeToString(JsonElement.serializer(), root),
+            rawJson = "",
         )
         val episodeItems = episodeGroups.flatMap { (seasonKey, value) ->
             value.mapIndexedNotNull { index, element ->
@@ -429,7 +432,12 @@ internal object XtreamSupport {
                 } else {
                     val seasonNumber = obj.int("season").takeIf { it > 0 } ?: seasonKey.toIntOrNull() ?: 0
                     val episodeNumber = obj.int("episode_num").takeIf { it > 0 } ?: (index + 1)
-                    val extension = obj.string("container_extension").ifBlank { "mp4" }
+                    val directSource = obj.string("direct_source").ifBlank { episodeInfo.string("direct_source") }
+                    val extension = obj.string("container_extension")
+                        .normalizeVodExtension()
+                        .ifBlank { episodeInfo.string("container_extension").normalizeVodExtension() }
+                        .ifBlank { directSource.extractMediaExtension() }
+                        .ifBlank { "mp4" }
                     val addedAt = parseTimestamp(obj.string("added"))
                     val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
                     MediaItem(
@@ -439,7 +447,9 @@ internal object XtreamSupport {
                         categoryId = current.categoryId,
                         categoryName = current.categoryName,
                         title = obj.string("title").ifBlank { "Episode $episodeNumber" },
-                        streamUrl = "${credentials.baseUrl}series/${credentials.username}/${credentials.password}/$episodeId.$extension",
+                        streamUrl = directSource.ifBlank {
+                            "${credentials.baseUrl}series/${credentials.username}/${credentials.password}/$episodeId.$extension"
+                        },
                         posterUrl = episodeInfo.imageUrl("cover_big").ifBlank { episodeInfo.imageUrl("movie_image").ifBlank { enrichedSeries.posterUrl } },
                         backdropUrl = enrichedSeries.backdropUrl,
                         description = episodeInfo.string("plot"),
@@ -449,7 +459,7 @@ internal object XtreamSupport {
                         lastModifiedAt = lastModifiedAt,
                         addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
                         serverOrder = episodeNumber,
-                        containerExtension = extension,
+                        containerExtension = directSource.extractMediaExtension().ifBlank { extension },
                         seriesId = current.seriesId.ifBlank { current.id },
                         seasonNumber = seasonNumber,
                         episodeNumber = episodeNumber,
@@ -457,7 +467,7 @@ internal object XtreamSupport {
                         director = enrichedSeries.director,
                         genre = enrichedSeries.genre,
                         releaseDate = episodeInfo.string("releaseDate").ifBlank { enrichedSeries.releaseDate },
-                        rawJson = json.encodeToString(JsonElement.serializer(), element),
+                        rawJson = "",
                     )
                 }
             }
@@ -473,7 +483,7 @@ internal object XtreamSupport {
                 cover = obj.string("cover"),
                 airDate = obj.string("air_date"),
                 plot = obj.string("overview"),
-                rawJson = json.encodeToString(JsonElement.serializer(), element),
+                rawJson = "",
                 updatedAt = now,
             )
         }
@@ -491,7 +501,7 @@ internal object XtreamSupport {
                         cover = enrichedSeries.posterUrl,
                         airDate = "",
                         plot = "",
-                        rawJson = """{"season_number":$seasonNumber,"source":"episodes"}""",
+                        rawJson = "",
                         updatedAt = now,
                     )
                 }
@@ -755,6 +765,21 @@ private fun String.normalizeLiveExtension(): String = trim()
             "mp4", "mkv", "webm", "flv" -> value
             else -> ""
         }
+    }
+
+private fun String.normalizeVodExtension(): String =
+    normalizeLiveExtension().ifBlank {
+        trim()
+            .trimStart('.')
+            .lowercase(Locale.US)
+            .let { value ->
+                when (value) {
+                    "mov", "m4v", "avi", "mpg", "mpeg", "vob", "3gp", "3g2" -> value
+                    "matroska" -> "mkv"
+                    "quicktime" -> "mov"
+                    else -> ""
+                }
+            }
     }
 
 private fun parseXmltvTime(value: String): Long {

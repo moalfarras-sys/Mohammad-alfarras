@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mo.moplayer.data.local.entity.EpisodeEntity
 import com.mo.moplayer.data.local.entity.SeriesEntity
-import com.mo.moplayer.data.remote.dto.SeriesInfoResponse as ApiSeriesInfoResponse
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,7 +47,7 @@ class SeriesDetailViewModel @Inject constructor(
     private var seriesId: String = ""
     private var serverId: Long = 0
     private var originalSeriesId: Int = 0
-    private var apiSeriesInfoResponse: ApiSeriesInfoResponse? = null
+    private var cachedEpisodes: List<EpisodeEntity> = emptyList()
 
     fun loadSeriesDetails(seriesId: String) {
         this.seriesId = seriesId
@@ -67,9 +67,9 @@ class SeriesDetailViewModel @Inject constructor(
                 // Check if favorite
                 _isFavorite.value = repository.isFavorite(serverId, seriesId).first()
 
-                // Fetch series info with seasons/episodes from API
+                // Fetch and cache seasons/episodes from Xtream when needed.
                 foundSeries?.let {
-                    fetchSeriesInfo(it.originalSeriesId)
+                    fetchSeriesInfo(it)
                 }
             }
 
@@ -77,35 +77,25 @@ class SeriesDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchSeriesInfo(originalSeriesId: Int) {
+    private suspend fun fetchSeriesInfo(series: SeriesEntity) {
         try {
-            this.originalSeriesId = originalSeriesId
-            val server = repository.getActiveServerSync()
-            
-            if (server == null) {
-                _seasons.value = emptyList()
-                _episodes.value = emptyList()
-                return
-            }
-            
-            // جلب معلومات المسلسل من Xtream API
-            val result = repository.getSeriesInfo(server, originalSeriesId)
+            this.originalSeriesId = series.originalSeriesId
+            val result = repository.refreshSeriesDetails(series)
             
             when (result) {
                 is Resource.Success -> {
-                    val seriesInfo = result.data
-                    
-                    // حفظ البيانات
-                    apiSeriesInfoResponse = seriesInfo
-                    
-                    // استخراج المواسم من episodes map
-                    val seasonsList = seriesInfo?.episodes?.keys?.mapNotNull { 
-                        it.toIntOrNull() 
-                    }?.filter { it > 0 }?.sorted() ?: listOf(1)
+                    val details = result.data
+                    details?.series?.let { _series.value = it }
+                    cachedEpisodes = details?.episodes.orEmpty()
+                    val seasonsList = cachedEpisodes
+                        .map { it.seasonNumber }
+                        .filter { it > 0 }
+                        .distinct()
+                        .sorted()
+                        .ifEmpty { listOf(1) }
                     
                     _seasons.value = seasonsList
                     
-                    // تحميل الموسم الأول
                     selectSeason(seasonsList.firstOrNull() ?: 1)
                 }
                 is Resource.Error -> {
@@ -130,29 +120,25 @@ class SeriesDetailViewModel @Inject constructor(
         _currentSeason.value = seasonNumber
 
         viewModelScope.launch {
-            // جلب الحلقات الحقيقية من apiSeriesInfoResponse
-            val episodesForSeason = apiSeriesInfoResponse?.episodes?.get(seasonNumber.toString())
-            
-            if (episodesForSeason != null && episodesForSeason.isNotEmpty()) {
-                val episodeList = episodesForSeason.map { episodeDto ->
+            val episodesForSeason = cachedEpisodes.filter { it.seasonNumber == seasonNumber }
+
+            if (episodesForSeason.isNotEmpty()) {
+                val episodeList = episodesForSeason.map { episode ->
                     Episode(
-                        id = episodeDto.id ?: "${seriesId}_s${seasonNumber}_e${episodeDto.episodeNum}",
+                        id = episode.episodeId,
                         seasonNumber = seasonNumber,
-                        episodeNumber = episodeDto.episodeNum ?: 0,
-                        title = episodeDto.title ?: "Episode ${episodeDto.episodeNum}",
-                        plot = episodeDto.info?.plot,
-                        duration = episodeDto.info?.duration,
-                        streamUrl = episodeDto.directSource?.takeIf { it.isNotBlank() }
-                            ?: buildEpisodeStreamUrl(episodeDto.id ?: "", episodeDto.containerExtension),
-                        thumbnail = episodeDto.info?.movieImage ?: _series.value?.cover,
-                        releaseDate = episodeDto.info?.releaseDate,
-                        rating = episodeDto.info?.rating
+                        episodeNumber = episode.episodeNumber,
+                        title = episode.title ?: "Episode ${episode.episodeNumber}",
+                        plot = episode.plot,
+                        duration = episode.duration,
+                        streamUrl = episode.streamUrl,
+                        thumbnail = episode.cover ?: _series.value?.cover,
+                        releaseDate = episode.releaseDate
                     )
                 }.sortedBy { it.episodeNumber }
                 
                 _episodes.value = episodeList
             } else {
-                // Fallback: إذا لم توجد بيانات من API
                 _episodes.value = emptyList()
             }
         }

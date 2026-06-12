@@ -15,6 +15,8 @@ import type {
   AppReleaseAsset,
   ActivationRequest,
   AppDevice,
+  AppDeviceEvent,
+  AppDiagnosticReport,
   AppOperationalMetrics,
   AppScreenshot,
   AppRuntimeConfig,
@@ -28,9 +30,14 @@ const now = new Date().toISOString();
 const moplayerDownloadBase = "/api/app/releases";
 const widgetProviderSettingsKey = "moplayer_widget_provider_settings";
 const moplayerDownloadUrls = {
-  universal: `${moplayerDownloadBase}/moplayer-2.2.12/download`,
+  universal: `${moplayerDownloadBase}/moplayer-2.2.16/download`,
 };
 const localSettings = new Map<string, unknown>();
+
+function sourceQueueExpired(queue: Partial<DeviceProviderSourceQueue> | null | undefined) {
+  if (!queue?.expiresAt) return false;
+  return new Date(queue.expiresAt).getTime() <= Date.now();
+}
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
   if (!Array.isArray(value)) return fallback;
@@ -243,7 +250,7 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   maintenanceMode: false,
   forceUpdate: false,
   minimumVersionCode: 18,
-  latestVersionName: "2.2.12",
+  latestVersionName: "2.2.16",
   downloaderCode: "2418397",
   message: "",
   accentColor: "#00e5ff",
@@ -274,25 +281,25 @@ export const fallbackRuntimeConfig: AppRuntimeConfig = {
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",
   update: {
-    latestVersionName: "2.2.12",
-    latestVersionCode: 18,
+    latestVersionName: "2.2.16",
+    latestVersionCode: 22,
     downloadUrl: "/api/app/download/latest?product=moplayer",
-    apkSizeBytes: 52746532,
-    checksumSha256: "67b0fa3b55ca05e1ff7ea380b91c47d46d32748325669cb557a1b85487c305f7",
+    apkSizeBytes: 52792635,
+    checksumSha256: "79701639678373dda3b44c07347c22bd799975767a2eb260943c50609f1f9a0d",
     releaseNotes:
-      "MoPlayer Classic 2.2.12 repairs Live TV remote focus when the overlay is visible and refreshes stale server sync counters so movies, series, channels, categories, posters, and subscription data stay accurate.",
+      "MoPlayer Classic 2.2.16 keeps the 2.2.15 speed and football-data fixes, removes the duplicate Home watch-history row, and keeps only the working Continue watching row with resume progress.",
   },
 };
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-moplayer-2-2-12",
+    id: "release-moplayer-2-2-16",
     product_slug: "moplayer",
-    slug: "moplayer-2.2.12",
-    version_name: "2.2.12",
-    version_code: 18,
+    slug: "moplayer-2.2.16",
+    version_name: "2.2.16",
+    version_code: 22,
     release_notes:
-      "MoPlayer Classic 2.2.12 repairs Live TV remote focus when the overlay is visible and refreshes stale server sync counters so movies, series, channels, categories, posters, and subscription data stay accurate.",
+      "MoPlayer Classic 2.2.16 keeps the 2.2.15 speed and football-data fixes, removes the duplicate Home watch-history row, and keeps only the working Continue watching row with resume progress.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -300,8 +307,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-moplayer-2-2-12-universal",
-        release_id: "release-moplayer-2-2-12",
+        id: "asset-moplayer-2-2-16-universal",
+        release_id: "release-moplayer-2-2-16",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -309,8 +316,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52746532,
-        checksum_sha256: "67b0fa3b55ca05e1ff7ea380b91c47d46d32748325669cb557a1b85487c305f7",
+        file_size_bytes: 52792635,
+        checksum_sha256: "79701639678373dda3b44c07347c22bd799975767a2eb260943c50609f1f9a0d",
         is_primary: true,
         created_at: now,
       },
@@ -387,23 +394,23 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-12",
+      id: "release-moplayer2-v2-5-20",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.12-full",
-      version_name: "2.5.12",
-      version_code: 50,
+      slug: "moplayer2-v2.5.20-full",
+      version_name: "2.5.20",
+      version_code: 58,
       release_notes:
-        "MoPlayer Pro 2.5.12 restores posters/logos on older Android TV devices with a server-side image proxy and scoped legacy image TLS handling, and surfaces subscription expiry and connection limits on Home.",
+        "MoPlayer Pro 2.5.20 hardens live and series playback for large Xtream panels: slow get_series_info calls retry with a longer Xtream API timeout, episodes use direct_source and normalized container extensions when available, Xtream VOD/episodes try compatible containers before fallback, and weak-device live playback switches recovery paths faster when video does not render.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-12-universal",
-          release_id: "release-moplayer2-v2-5-12",
+          id: "asset-moplayer2-v2-5-20-universal",
+          release_id: "release-moplayer2-v2-5-20",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49253817,
-          checksum_sha256: "1e8d9bd4ee4cae45a6164269dd102fc7905479285e01ecb44f661f45910374d5",
+          file_size_bytes: 49260800,
+          checksum_sha256: "477beee677797ae489ec6afce71fe369a31f020ecb18fd3d12ec0d4192907a0f",
         },
       ],
     },
@@ -415,8 +422,8 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
   moplayer2: {
     ...fallbackRuntimeConfig,
     minimumVersionCode: 50,
-    latestVersionName: "2.5.12",
-    latestVersionCode: 50,
+    latestVersionName: "2.5.20",
+    latestVersionCode: 58,
     downloaderCode: "4608937",
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",
@@ -449,13 +456,13 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
       promoUrl: "https://moalfarras.space/en/apps/moplayer2",
     },
     update: {
-      latestVersionName: "2.5.12",
-      latestVersionCode: 50,
+      latestVersionName: "2.5.20",
+      latestVersionCode: 58,
       downloadUrl: "/api/app/download/latest?product=moplayer2",
-      apkSizeBytes: 49253817,
-      checksumSha256: "1e8d9bd4ee4cae45a6164269dd102fc7905479285e01ecb44f661f45910374d5",
+      apkSizeBytes: 49260800,
+      checksumSha256: "477beee677797ae489ec6afce71fe369a31f020ecb18fd3d12ec0d4192907a0f",
       releaseNotes:
-        "MoPlayer Pro 2.5.12 restores posters/logos on older Android TV devices with a server-side image proxy and scoped legacy image TLS handling, and surfaces subscription expiry and connection limits on Home.",
+        "MoPlayer Pro 2.5.20 improves slow Xtream series details, episode container fallback, and weak-device live video recovery.",
     },
   },
 };
@@ -763,12 +770,23 @@ export async function readAdminAppData(productSlug = "moplayer") {
   let activationRequests: ActivationRequest[] = [];
   let licenses: AppLicense[] = [];
   let providerSources: DeviceProviderSourceQueue[] = [];
+  let deviceEvents: AppDeviceEvent[] = [];
+  let diagnostics: AppDiagnosticReport[] = [];
   let runtimeConfig: AppRuntimeConfig = fallbackFor(slug).runtimeConfig;
 
   try {
     const supabase = createSupabaseAdminClient();
     await cleanupStaleActivationRequests(slug).catch(() => 0);
-    const [{ data }, { data: deviceRows }, { data: activationRows }, { data: licenseRows }, { data: settingsRow }, { data: sourceRows }] = await Promise.all([
+    const [
+      { data },
+      { data: deviceRows },
+      { data: activationRows },
+      { data: licenseRows },
+      { data: settingsRow },
+      { data: sourceRows },
+      { data: eventRows },
+      { data: diagnosticRows },
+    ] = await Promise.all([
       supabase
       .from("app_support_requests")
       .select("*")
@@ -782,26 +800,68 @@ export async function readAdminAppData(productSlug = "moplayer") {
         .or(slug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${slug}`)
         .order("created_at", { ascending: false })
         .limit(100),
-      supabase.from("licenses").select("*, devices(public_device_id)").order("created_at", { ascending: false }).limit(100),
+      supabase.from("licenses").select("*, devices(public_device_id, product_slug)").order("created_at", { ascending: false }).limit(100),
       supabase.from("app_settings").select("value").eq("key", getManagedApp(slug).runtimeConfigKey).maybeSingle(),
-      supabase.from("app_settings").select("value").like("key", "moplayer_device_source:%").order("updated_at", { ascending: false }).limit(100),
+      supabase.from("app_settings").select("key,value").like("key", "%device_source:%").order("updated_at", { ascending: false }).limit(100),
+      supabase
+        .from("app_device_events")
+        .select("*")
+        .eq("product_slug", slug)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("app_diagnostic_reports")
+        .select("*")
+        .eq("product_slug", slug)
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
     supportRequests = (data as AppSupportRequest[] | null) ?? [];
     activationRequests = (activationRows as ActivationRequest[] | null) ?? [];
-    const scopedDeviceIds = new Set(activationRequests.map((request) => request.public_device_id));
-    devices = ((deviceRows as AppDevice[] | null) ?? []).filter((device) => scopedDeviceIds.has(device.public_device_id));
-    licenses = ((licenseRows as Array<AppLicense & { devices?: { public_device_id?: string | null } | null }> | null) ?? [])
+    deviceEvents = (eventRows as AppDeviceEvent[] | null) ?? [];
+    diagnostics = (diagnosticRows as AppDiagnosticReport[] | null) ?? [];
+    const scopedDeviceIds = new Set([
+      ...activationRequests.map((request) => request.public_device_id),
+      ...deviceEvents.map((event) => event.public_device_id),
+      ...diagnostics.map((report) => report.public_device_id),
+    ]);
+    devices = ((deviceRows as AppDevice[] | null) ?? []).filter((device) => {
+      const deviceSlug = device.product_slug ? resolveManagedAppSlug(device.product_slug) : null;
+      return deviceSlug === slug || scopedDeviceIds.has(device.public_device_id);
+    });
+    licenses = ((licenseRows as Array<AppLicense & { devices?: { public_device_id?: string | null; product_slug?: string | null } | null }> | null) ?? [])
       .map((license) => ({
         ...license,
         public_device_id: license.public_device_id ?? license.devices?.public_device_id ?? null,
       }))
-      .filter((license) => license.public_device_id ? scopedDeviceIds.has(license.public_device_id) : true);
+      .filter((license) => {
+        const deviceSlug = license.devices?.product_slug ? resolveManagedAppSlug(license.devices.product_slug) : null;
+        return deviceSlug === slug || (license.public_device_id ? scopedDeviceIds.has(license.public_device_id) : false);
+      });
     const savedConfig = (settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {};
     runtimeConfig = normalizeRuntimeConfig(savedConfig, slug);
-    providerSources = ((sourceRows as Array<{ value: unknown }> | null) ?? [])
-      .map((row) => row.value as Partial<DeviceProviderSourceQueue>)
+    const sourceSettings = (sourceRows as Array<{ key: string; value: unknown }> | null) ?? [];
+    const expiredSourceKeys = sourceSettings
+      .filter((row) => sourceQueueExpired(row.value as Partial<DeviceProviderSourceQueue>))
+      .map((row) => row.key);
+    if (expiredSourceKeys.length) {
+      await supabase.from("app_settings").delete().in("key", expiredSourceKeys);
+    }
+    providerSources = sourceSettings
+      .map((row) => {
+        // Never ship the encrypted provider payload to the admin client.
+        const value = { ...(row.value as Partial<DeviceProviderSourceQueue> & { encryptedPayload?: string }) };
+        delete value.encryptedPayload;
+        return value as Partial<DeviceProviderSourceQueue>;
+      })
       .filter((row): row is DeviceProviderSourceQueue =>
-        Boolean(row?.id && row?.publicDeviceId && row?.status && (row.productSlug ?? "moplayer") === slug),
+        Boolean(
+          row?.id &&
+          row?.publicDeviceId &&
+          row?.status &&
+          !sourceQueueExpired(row) &&
+          (row.productSlug ?? "moplayer") === slug,
+        ),
       );
   } catch {
     if (hasDatabaseUrl()) {
@@ -848,6 +908,8 @@ export async function readAdminAppData(productSlug = "moplayer") {
     activationRequests,
     licenses,
     providerSources,
+    deviceEvents,
+    diagnostics,
     runtimeConfig,
     widgetProviderSettings: await readWidgetProviderSettingsStatus(),
     metrics: calculateOperationalMetrics(devices, activationRequests),
@@ -1278,28 +1340,24 @@ export async function upsertDeviceLicense(input: {
 
 export async function updateProviderSourceStatus(id: string, status: DeviceProviderSourceQueue["status"]) {
   const supabase = createSupabaseAdminClient();
-  const direct = await supabase
-    .from("device_provider_sources")
-    .update({
-      status,
-      updated_at: new Date().toISOString(),
-      failed_at: status === "failed" ? new Date().toISOString() : null,
-    })
-    .eq("id", id);
-
-  if (!direct.error) return;
-
   const settings = await supabase.from("app_settings").select("key,value").like("key", "%device_source:%").limit(200);
-  if (settings.error) throw direct.error;
+  if (settings.error) throw settings.error;
 
   for (const row of settings.data ?? []) {
     const value = row.value as Partial<DeviceProviderSourceQueue>;
     if (value?.id !== id) continue;
+    if (status === "imported" || status === "revoked") {
+      const { error } = await supabase.from("app_settings").delete().eq("key", row.key);
+      if (error) throw error;
+      return;
+    }
+    const safeValue = { ...value } as Partial<DeviceProviderSourceQueue> & { encryptedPayload?: string };
+    delete safeValue.encryptedPayload;
     const { error } = await supabase
       .from("app_settings")
       .update({
         value: {
-          ...value,
+          ...safeValue,
           status,
           updatedAt: new Date().toISOString(),
           failedAt: status === "failed" ? new Date().toISOString() : value.failedAt,
@@ -1311,7 +1369,16 @@ export async function updateProviderSourceStatus(id: string, status: DeviceProvi
     return;
   }
 
-  throw direct.error;
+  throw new Error("Source delivery receipt was not found. It may already be cleared.");
+}
+
+export async function updateDiagnosticReportStatus(id: string, status: "new" | "reviewing" | "resolved" | "archived") {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("app_diagnostic_reports")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
 }
 
 export async function resolveDownloadBySlug(slug: string) {

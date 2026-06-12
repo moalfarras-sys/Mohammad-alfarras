@@ -4,6 +4,14 @@
 **/.env
 **/.env.*
 !**/.env.example
+# Windows desktop binaries live on GitHub Releases, never on Vercel (>100 MB).
+apps/web/public/downloads/moplayer/windows/*.exe
+apps/web/public/downloads/moplayer/windows/*.blockmap
+apps/moplayer-pro-windows/release/
+apps/moplayer-pro-windows/release-*/
+apps/moplayer-pro-windows/dist/
+apps/moplayer-pro-windows/dist-electron/
+apps/moplayer-pro-windows/qa-screenshots/
 .git/
 .vercel/
 .vercel/**

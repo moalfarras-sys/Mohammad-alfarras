@@ -1,6 +1,6 @@
 {
   "name": "moplayer-pc",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "description": "MoPlayer Pro Windows desktop app",
   "author": "Mohammad Alfarras",
@@ -23,10 +23,12 @@
     "start": "electron .",
     "smoke": "node scripts/smoke.mjs",
     "qa:screens": "node scripts/qa-screens.mjs",
+    "qa:stream-proxy": "npm run build:electron && node scripts/qa-stream-proxy.mjs",
     "release:meta": "node scripts/write-release-meta.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "electron-updater": "^6.8.9",
     "hls.js": "^1.6.16",
     "lucide-react": "^1.17.0",
     "mpegts.js": "^1.8.0",
@@ -65,6 +67,13 @@
     "extraMetadata": {
       "main": "dist-electron/main/main.js"
     },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://moalfarras.space/downloads/moplayer/windows",
+        "channel": "latest"
+      }
+    ],
     "win": {
       "icon": "build/icon.ico",
       "target": [

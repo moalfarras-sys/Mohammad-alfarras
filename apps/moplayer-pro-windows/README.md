@@ -12,6 +12,7 @@ npm run dist:windows
 npm --prefix apps/moplayer-pro-windows run prepare:installer-art
 npm --prefix apps/moplayer-pro-windows run smoke
 npm --prefix apps/moplayer-pro-windows run qa:screens
+npm --prefix apps/moplayer-pro-windows run qa:stream-proxy
 ```
 
 Output files are written to:
@@ -22,8 +23,8 @@ apps/moplayer-pro-windows/release/
 
 Expected release files:
 
-- `MoPlayer-Pro-Setup.exe`
-- `MoPlayer-Pro-Portable.exe`
+- `MoPlayer-PC-Setup.exe`
+- `MoPlayer-PC-Portable.exe`
 
 `npm run dist:windows` packages in the system Temp folder first, then copies the final artifacts into `release/`. This avoids Windows Desktop/Application Control file locks during Electron packaging.
 
@@ -98,15 +99,26 @@ As of 2026-06-12, `qa:screens` also captures Arabic RTL regressions and the mult
 - `ar-home.png`
 - `ar-settings.png`
 - `ar-multi.png`
+- `ar-multi-1.png` through `ar-multi-4.png`
 - `ar-multi-picker.png`
 - `ar-login.png`
+- `multi-1.png` through `multi-4.png`
 - `multi-picker.png`
 
 The Windows title bar is intentionally kept LTR even when the app content is RTL so the brand/logo never slides under the native Windows close/maximize/minimize controls.
 
+Multi-view grows progressively instead of showing four empty panes at launch:
+
+- one channel uses the full viewing area;
+- two channels sit side by side;
+- the third channel spans the lower row;
+- the fourth channel switches the view to the standard 2x2 grid.
+
+After the first channel is selected, the Add Channel action above the grid opens the picker for the next pane. Removing a channel compacts the remaining panes and restores the matching larger layout.
+
 For real-source QA, launch Electron with `--qa-user-data=<temp path>` so provider credentials and large libraries stay isolated from the installed user profile. M3U Plus `get.php` URLs are detected and imported through Xtream `player_api.php` to avoid blocking on huge playlist downloads.
 
-The 2026-06-11 real-source QA loaded 42,673 items, verified account status/expiry metadata, search, favorites, settings, Android-parity screen layout, bottom dock interaction, and live HLS playback. Details are in `MOPLAYER-PC-QA-REPORT.md`.
+The 2026-06-12 real-source QA loaded 42,957 items and verified HLS, raw MPEG-TS, MP4, MKV, sustained 4K live playback, and four simultaneous multi-view tiles. Details and measured startup times are in `MOPLAYER-PC-QA-REPORT.md`.
 
 The installer and portable EXE are local build artifacts and should not be committed. Publish the Windows download on the public website only after the EXE is hosted in a proper binary store and trusted Windows code signing is configured.
 
@@ -115,8 +127,10 @@ The installer and portable EXE are local build artifacts and should not be commi
 The Windows app does not bundle a provider/server URL, username, password, playlist URL, or EPG URL inside the installer. User-added sources are stored on the PC under:
 
 ```text
-%APPDATA%\@moalfarras\moplayer-pro-windows\
+%APPDATA%\moplayer-pc\
 ```
+
+Older development builds may still have a separate legacy profile under `%APPDATA%\@moalfarras\moplayer-pro-windows\`. Do not merge or copy provider secrets between profiles manually; QA copies only the encrypted state and library into a temporary `--qa-user-data` folder.
 
 Important files:
 
@@ -140,6 +154,16 @@ QR activation uses the website API as a short-lived handoff. The website queues 
 - The quiet Windows update check now uses `app:checkWindowsUpdate`, which returns `null` when Windows release metadata is absent instead of throwing noisy IPC errors on launch.
 - Local website QA passed for the MoPlayer family links: Classic download/activation uses `product=moplayer`, Pro Android download/activation uses `product=moplayer2`, and PC download/activation uses `product=moplayer2&platform=windows` for downloads plus `product=moplayer-pc&platform=windows` for the public activation entry.
 - Production on 2026-06-12 serves JSON for `/api/app/config?product=moplayer2`, `/api/weather?city=Berlin`, and `/api/football`. Production Windows download metadata/routes were not yet deployed; `/downloads/moplayer/windows/latest-windows.json` returned 404 and `/api/app/download/latest?product=moplayer2&platform=windows` still resolved to the Android Pro APK until the web deployment is updated.
+
+## 2026-06-12 Playback Reliability
+
+- HLS and MPEG-TS workers are now allowed by the renderer CSP instead of being blocked at startup.
+- Main playback and every multi-view tile have bounded startup timers, live-stall recovery, HLS-to-TS fallback, and a visible retry action.
+- HLS buffers are tuned separately for the main player and multi-view. Multi-view starts at a conservative adaptive level and caps quality to each tile size; the main player keeps full adaptive/manual quality selection.
+- MPEG-TS keeps a smaller startup stash for faster first frame while retaining jitter protection and source-buffer cleanup.
+- The local stream proxy now rewrites every HLS `URI` attribute, including audio, subtitles, keys, and fragmented-MP4 init maps. It also preserves byte ranges and cache validators without aborting healthy upstream requests.
+- Player keyboard controls include Space/K for play-pause, J/L and Left/Right for seeking, M for mute, F for fullscreen, number entry for live channel jumps, and mouse-wheel volume. Form controls no longer trigger player shortcuts while typing.
+- Multi-view supports arrow-key focus, Enter to expand, Delete to remove, duplicate-channel filtering, staggered startup, and a provider connection-limit warning.
 
 ## Startup Troubleshooting
 

@@ -32,12 +32,14 @@ function rewritePlaylist(body: string, baseUrl: string, proxyBase: string) {
     .split(/\r?\n/)
     .map((line) => {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) {
-        if (trimmed.startsWith("#EXT-X-KEY") && trimmed.includes("URI=")) {
-          return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => {
-            const absolute = toAbsoluteUrl(uri, baseUrl);
-            return `URI="${proxyBase}/proxy?url=${encodeURIComponent(absolute)}"`;
-          });
+      if (!trimmed) return line;
+      if (trimmed.startsWith("#")) {
+        // HLS can place media, subtitles, encryption keys, and init segments in
+        // URI attributes. All of them need the same local proxy treatment.
+        if (trimmed.includes("URI=")) {
+          return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => (
+            `URI="${proxyBase}/proxy?url=${encodeURIComponent(toAbsoluteUrl(uri, baseUrl))}"`
+          ));
         }
         return line;
       }
@@ -55,6 +57,8 @@ export class StreamProxy {
     this.server = http.createServer((request, response) => {
       void this.handle(request, response);
     });
+    this.server.keepAliveTimeout = 30_000;
+    this.server.headersTimeout = 35_000;
 
     this.server.listen(0, "127.0.0.1");
     await once(this.server, "listening");
@@ -66,7 +70,9 @@ export class StreamProxy {
 
   private async handle(request: http.IncomingMessage, response: http.ServerResponse) {
     const abort = new AbortController();
-    request.on("close", () => abort.abort());
+    response.on("close", () => {
+      if (!response.writableEnded) abort.abort();
+    });
     try {
       const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
       if (requestUrl.pathname !== "/proxy") {
@@ -84,9 +90,20 @@ export class StreamProxy {
         Accept: "*/*",
       };
       const range = request.headers.range;
-      if (range) headers.Range = range;
+      if (range) {
+        headers.Range = range;
+      } else {
+        headers["Accept-Encoding"] = "identity";
+      }
+      const ifRange = request.headers["if-range"];
+      if (typeof ifRange === "string") headers["If-Range"] = ifRange;
 
-      const upstream = await fetch(target, { headers, redirect: "follow", signal: abort.signal });
+      const upstream = await fetch(target, {
+        method: request.method === "HEAD" ? "HEAD" : "GET",
+        headers,
+        redirect: "follow",
+        signal: abort.signal,
+      });
       const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
       const status = upstream.status;
       const contentLength = Number(upstream.headers.get("content-length") ?? 0);
@@ -121,9 +138,12 @@ export class StreamProxy {
         ...(upstream.headers.get("content-length") ? { "Content-Length": upstream.headers.get("content-length") as string } : {}),
         ...(upstream.headers.get("content-range") ? { "Content-Range": upstream.headers.get("content-range") as string } : {}),
         ...(upstream.headers.get("accept-ranges") ? { "Accept-Ranges": upstream.headers.get("accept-ranges") as string } : {}),
+        ...(upstream.headers.get("cache-control") ? { "Cache-Control": upstream.headers.get("cache-control") as string } : {}),
+        ...(upstream.headers.get("etag") ? { ETag: upstream.headers.get("etag") as string } : {}),
+        ...(upstream.headers.get("last-modified") ? { "Last-Modified": upstream.headers.get("last-modified") as string } : {}),
       });
 
-      if (!upstream.body) {
+      if (request.method === "HEAD" || !upstream.body) {
         response.end();
         return;
       }

@@ -10,8 +10,8 @@ const electronBin = process.platform === "win32"
   ? path.join(workspaceRoot, "node_modules", "electron", "dist", "electron.exe")
   : path.join(workspaceRoot, "node_modules", ".bin", "electron");
 const outDir = path.join(appRoot, "qa-screenshots");
-const screens = ["home", "live", "guide", "multi", "multi-picker", "movies", "series", "search", "favorites", "settings", "license", "support", "player", "login"];
-const rtlScreens = ["home", "multi", "multi-picker", "settings", "login"];
+const screens = ["home", "live", "guide", "matches", "multi", "multi-1", "multi-2", "multi-3", "multi-4", "multi-picker", "movies", "series", "search", "favorites", "settings", "license", "support", "player", "login"];
+const rtlScreens = ["home", "matches", "multi", "multi-1", "multi-2", "multi-3", "multi-4", "multi-picker", "settings", "login"];
 
 await mkdir(outDir, { recursive: true });
 

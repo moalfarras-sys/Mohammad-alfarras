@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
+import type { IpcRendererEvent } from "electron";
 
-import type { AppSettings, LibraryData, MoPlayerApi, NetRequest, SourceMeta, SourceSecret } from "./shared/types.js";
+import type { AppSettings, LibraryData, MoPlayerApi, NetRequest, SourceMeta, SourceSecret, UpdaterEvent } from "./shared/types.js";
 
 const api: MoPlayerApi = {
   app: {
@@ -16,6 +17,13 @@ const api: MoPlayerApi = {
     startRecording: (url: string, suggestedName: string) => ipcRenderer.invoke("app:startRecording", url, suggestedName),
     stopRecording: () => ipcRenderer.invoke("app:stopRecording"),
     checkWindowsUpdate: () => ipcRenderer.invoke("app:checkWindowsUpdate"),
+    checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
+    installUpdate: () => ipcRenderer.invoke("app:installUpdate"),
+    onUpdaterEvent: (listener: (event: UpdaterEvent) => void) => {
+      const handler = (_event: IpcRendererEvent, payload: UpdaterEvent) => listener(payload);
+      ipcRenderer.on("updates:event", handler);
+      return () => ipcRenderer.removeListener("updates:event", handler);
+    },
     smokeReady: () => ipcRenderer.invoke("app:smokeReady"),
   },
   store: {

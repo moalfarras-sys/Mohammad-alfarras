@@ -2,6 +2,19 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-12 MoPlayer Pro Windows Adaptive Multi-view
+
+- Replaced the always-visible four-pane multi-view with a progressive layout in `apps/moplayer-pro-windows`.
+- One channel now fills the viewing area, two channels sit side by side, three channels use two upper panes plus a full-width lower pane, and four channels return to the standard 2x2 grid.
+- Added an Add Channel action above the grid after the first selection. Removing a channel compacts the remaining streams so the larger matching layout is restored without leaving holes.
+- Expanded Electron screenshot QA with English and Arabic `multi-1` through `multi-4` states in addition to the empty view and channel picker.
+- Hardened the Windows playback pipeline: blob workers are allowed by CSP, HLS and MPEG-TS use separate main/multi buffer profiles, startup and persistent-stall timers recover or switch live formats, and failed multi-view tiles expose retry.
+- Corrected the local proxy so completed browser requests do not abort healthy upstream streams, byte ranges/cache validators survive, compressed-length mismatches are avoided, and every HLS `URI` attribute is rewritten for audio, subtitles, keys, and init maps.
+- Real encrypted-profile QA covered 42,957 items. BEIN SPORT 4K HLS started in 1.69 seconds and stayed advancing, four tiles played in 2.90 seconds, MP4/MKV started in about 1.24 seconds, raw MPEG-TS started in 2.04 seconds, and no CSP/uncaught/renderer-crash log lines appeared.
+- The provider metadata reports one maximum connection even though four streams were accepted during QA. Multi-view now warns when selected tiles exceed the reported provider limit; match-day provider congestion remains external to the app.
+- Added `qa:stream-proxy` and `apps/moplayer-pro-windows/MOPLAYER-PC-QA-REPORT.md` for repeatable proxy checks and the full playback handoff.
+- Final installer/portable artifacts were generated locally, but Authenticode reports `NotSigned` and this PC's Windows Application Control blocks new unsigned hashes. Do not publish the generated metadata or binaries until trusted Windows code signing is configured; the tracked website metadata was intentionally left unchanged.
+
 ## 2026-06-12 MoPlayer Pro Windows Polish Pass
 
 - Fixed the Windows app logo pipeline in `apps/moplayer-pro-windows`: `prepare:icon` now regenerates a transparent `moplayer-mark.png` from the source art before creating `build/icon.png` and `build/icon.ico`. Black/white source background pixels and the isolated top hairline are removed so the app, title bar, and installer no longer show a boxed black logo.

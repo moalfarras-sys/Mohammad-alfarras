@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
+import electronUpdater from "electron-updater";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -13,6 +14,7 @@ import {
   type PlaylistFilePick,
   type SourceMeta,
   type SourceSecret,
+  type UpdaterEvent,
   type WindowsUpdateInfo,
 } from "../shared/types.js";
 import { AppStore } from "./store.js";
@@ -25,8 +27,13 @@ const qaFixture = process.argv.includes("--qa-fixture");
 const qaScreen = process.argv.find((arg) => arg.startsWith("--qa-screen="))?.split("=")[1] ?? "";
 const qaScreenshot = process.argv.find((arg) => arg.startsWith("--qa-screenshot="))?.slice("--qa-screenshot=".length) ?? "";
 const qaUserData = process.argv.find((arg) => arg.startsWith("--qa-user-data="))?.slice("--qa-user-data=".length) ?? "";
+const qaDebugPort = process.argv.find((arg) => arg.startsWith("--qa-debug-port="))?.slice("--qa-debug-port=".length) ?? "";
 const qaLanguageArg = process.argv.find((arg) => arg.startsWith("--qa-language="))?.split("=")[1];
 const qaLanguage = qaLanguageArg === "ar" || qaLanguageArg === "en" ? qaLanguageArg : "";
+const qaMultiCount = Number(/^multi-([1-4])$/.exec(qaScreen)?.[1] ?? 0);
+if (/^\d{2,5}$/.test(qaDebugPort)) {
+  app.commandLine.appendSwitch("remote-debugging-port", qaDebugPort);
+}
 const packageVersion = app.getVersion() || "1.0.0";
 const qaFixtureDataPath = qaUserData || path.join(tmpdir(), "moplayer-pro-windows-qa");
 if (qaFixture || qaUserData) {
@@ -38,8 +45,39 @@ const streamProxy = new StreamProxy();
 let mainWindow: BrowserWindow | null = null;
 let recordingAbort: AbortController | null = null;
 
+// Full in-app updates: packaged NSIS installs only. Portable builds, dev runs,
+// and screenshot/smoke QA fall back to the website download banner instead.
+const { autoUpdater } = electronUpdater;
+const updaterSupported =
+  app.isPackaged && !isSmokeTest && !qaFixture && !qaScreen && !process.env.PORTABLE_EXECUTABLE_DIR;
+
+function sendUpdaterEvent(event: UpdaterEvent) {
+  mainWindow?.webContents.send("updates:event", event);
+  if (event.type !== "progress") {
+    void store.log(`Updater: ${JSON.stringify(event)}`);
+  }
+}
+
+function installUpdaterEvents() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.on("checking-for-update", () => sendUpdaterEvent({ type: "checking" }));
+  autoUpdater.on("update-available", (info) => sendUpdaterEvent({ type: "available", version: info.version }));
+  autoUpdater.on("update-not-available", () => sendUpdaterEvent({ type: "not-available" }));
+  autoUpdater.on("download-progress", (progress) =>
+    sendUpdaterEvent({
+      type: "progress",
+      percent: Math.round(progress.percent),
+      transferredBytes: progress.transferred,
+      totalBytes: progress.total,
+    }),
+  );
+  autoUpdater.on("update-downloaded", (info) => sendUpdaterEvent({ type: "downloaded", version: info.version }));
+  autoUpdater.on("error", (error) => sendUpdaterEvent({ type: "error", message: String(error?.message ?? error).slice(0, 240) }));
+}
+
 function rendererUrl() {
-  const rendererScreen = qaScreen === "multi-picker" ? "multi" : qaScreen;
+  const rendererScreen = qaScreen === "multi-picker" || qaMultiCount > 0 ? "multi" : qaScreen;
   const hash = rendererScreen ? `#screen=${encodeURIComponent(rendererScreen)}` : "";
   if (isDev && process.env.VITE_DEV_SERVER_URL) return `${process.env.VITE_DEV_SERVER_URL}${hash}`;
   return `file://${path.join(__dirname, "../../dist/index.html")}${hash}`;
@@ -117,9 +155,23 @@ function createWindow(state = store.publicState()) {
               if ("scrollTo" in node) node.scrollTo(0, 0);
             });
             window.scrollTo(0, 0);
+            const multiCount = ${qaMultiCount};
+            for (let index = 0; index < multiCount; index += 1) {
+              const addButton = document.querySelector(index === 0 ? ".multi-empty" : ".multi-add-button");
+              addButton?.click();
+              await new Promise((resolve) => window.setTimeout(resolve, 180));
+              const channels = document.querySelectorAll(".picker-list button");
+              channels[index % Math.max(channels.length, 1)]?.click();
+              await new Promise((resolve) => window.setTimeout(resolve, 320));
+            }
             if (${JSON.stringify(qaScreen)} === "multi-picker") {
-              document.querySelector(".multi-empty")?.click();
-              await new Promise((resolve) => window.setTimeout(resolve, 350));
+              for (let attempt = 0; attempt < 3 && !document.querySelector(".picker-overlay"); attempt += 1) {
+                document.querySelector(".multi-empty")?.click();
+                await new Promise((resolve) => window.setTimeout(resolve, 350));
+              }
+            }
+            if (multiCount > 0) {
+              await new Promise((resolve) => window.setTimeout(resolve, 3500));
             }
             })();
           `);
@@ -343,6 +395,17 @@ function installIpc() {
     recordingAbort = null;
   });
   ipcMain.handle("app:checkWindowsUpdate", () => readWindowsUpdateInfo());
+  ipcMain.handle("app:checkForUpdates", async () => {
+    if (!updaterSupported) return { supported: false };
+    autoUpdater.checkForUpdates().catch((error) => {
+      sendUpdaterEvent({ type: "error", message: String(error?.message ?? error).slice(0, 240) });
+    });
+    return { supported: true };
+  });
+  ipcMain.handle("app:installUpdate", () => {
+    if (!updaterSupported) return;
+    autoUpdater.quitAndInstall(true, true);
+  });
   ipcMain.handle("store:setFavorite", (_event, itemId: string, value: boolean) => store.setFavorite(itemId, value));
   ipcMain.handle("store:saveWatchProgress", (_event, itemId: string, positionMs: number, durationMs: number) => {
     store.saveWatchProgress(itemId, positionMs, durationMs);
@@ -421,6 +484,9 @@ app.whenReady().then(async () => {
   }
   await streamProxy.start();
   installIpc();
+  if (updaterSupported) {
+    installUpdaterEvents();
+  }
   createWindow(state);
 });
 

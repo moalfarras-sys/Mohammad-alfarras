@@ -28,6 +28,18 @@ import {
 
 import type { MediaItem, PlayerStatus } from "../../shared/types";
 import type { EpgEntry } from "../lib/xtream";
+import {
+  hlsPlaybackConfig,
+  isAbortError,
+  isHlsUrl,
+  isTsUrl,
+  LIVE_STALL_RECONNECT_MS,
+  LIVE_STALL_RECOVERY_MS,
+  LIVE_START_TIMEOUT_MS,
+  mpegtsPlaybackConfig,
+  streamCandidates,
+  VOD_START_TIMEOUT_MS,
+} from "../lib/playback";
 
 type PlayerLabels = {
   failedStream: string;
@@ -92,26 +104,6 @@ function formatTime(value: number) {
   return hours > 0
     ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
     : `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
-
-function isHlsUrl(url: string) {
-  return /\.m3u8($|\?)/i.test(url);
-}
-
-function isTsUrl(url: string) {
-  return /\.ts($|\?)/i.test(url);
-}
-
-/** Live Xtream streams exist in both HLS and raw TS variants on the same path. */
-function streamCandidates(item: MediaItem): string[] {
-  const url = item.streamUrl;
-  if (item.type !== "live") return [url];
-  const liveXtream = /\/live\/[^/]+\/[^/]+\/[^/.]+\.(m3u8|ts)$/i;
-  if (liveXtream.test(url)) {
-    if (isHlsUrl(url)) return [url, url.replace(/\.m3u8$/i, ".ts")];
-    return [url, url.replace(/\.ts$/i, ".m3u8")];
-  }
-  return [url];
 }
 
 function RelatedPoster({ src }: { src: string }) {
@@ -243,6 +235,10 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
 
   useEffect(() => {
     let cancelled = false;
+    let startupTimer = 0;
+    let stallRecoveryTimer = 0;
+    let stallReconnectTimer = 0;
+    let hasPlayed = false;
     const video = videoRef.current;
     if (!video) return undefined;
     const sourceUrl = candidates[Math.min(attempt, candidates.length - 1)];
@@ -260,8 +256,19 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
     video.muted = muted;
     video.playbackRate = speed;
 
+    const clearStallTimers = () => {
+      window.clearTimeout(stallRecoveryTimer);
+      window.clearTimeout(stallReconnectTimer);
+      stallRecoveryTimer = 0;
+      stallReconnectTimer = 0;
+    };
+
     const failOrFallback = (message: string) => {
       if (cancelled) return;
+      window.clearTimeout(startupTimer);
+      clearStallTimers();
+      destroyEngines();
+      video.pause();
       if (hasFallback) {
         setAttempt((current) => current + 1);
         return;
@@ -270,14 +277,66 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
       setError(message);
     };
 
+    const startPlayback = () => {
+      void video.play().catch((reason) => {
+        if (cancelled || isAbortError(reason)) return;
+        failOrFallback(reason instanceof Error ? reason.message : labels.unsupported);
+      });
+    };
+
+    const onPlaying = () => {
+      hasPlayed = true;
+      window.clearTimeout(startupTimer);
+      clearStallTimers();
+      if (!cancelled) setStatus("playing");
+    };
+
+    const onStalled = () => {
+      if (!isLive || !hasPlayed || cancelled) return;
+      if (!stallRecoveryTimer) {
+        stallRecoveryTimer = window.setTimeout(() => {
+          if (cancelled || video.paused) return;
+          const hls = hlsRef.current;
+          if (hls) {
+            const livePosition = hls.liveSyncPosition;
+            if (livePosition && livePosition - video.currentTime > 4) {
+              video.currentTime = Math.max(0, livePosition - 0.5);
+            }
+            hls.startLoad(-1);
+          } else {
+            const player = mpegtsRef.current;
+            if (player) {
+              try {
+                player.unload();
+                player.load();
+              } catch {
+                // The reconnect timer below will switch format or surface the error.
+              }
+            }
+          }
+          startPlayback();
+        }, LIVE_STALL_RECOVERY_MS);
+      }
+      if (!stallReconnectTimer) {
+        stallReconnectTimer = window.setTimeout(
+          () => failOrFallback(labels.failedStream),
+          LIVE_STALL_RECONNECT_MS,
+        );
+      }
+    };
+
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("waiting", onStalled);
+    video.addEventListener("stalled", onStalled);
+    startupTimer = window.setTimeout(
+      () => failOrFallback(labels.failedStream),
+      isLive ? LIVE_START_TIMEOUT_MS : VOD_START_TIMEOUT_MS,
+    );
+
     window.moPlayer.stream.proxyUrl(sourceUrl).then((url) => {
       if (cancelled) return;
       if (isHlsUrl(sourceUrl) && Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker: true,
-          backBufferLength: 60,
-          maxBufferLength: 30,
-        });
+        const hls = new Hls(hlsPlaybackConfig("main", isLive));
         hlsRef.current = hls;
         let recoveredNetwork = false;
         let recoveredMedia = false;
@@ -296,6 +355,7 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
           setSubtitleTrack(hls.subtitleTrack);
         });
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          startPlayback();
           if (hls.levels.length > 1) {
             setQualityLevels(hls.levels.map((level, index) => ({
               id: index,
@@ -316,36 +376,29 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
             hls.recoverMediaError();
             return;
           }
-          hls.destroy();
           failOrFallback(data.details || labels.failedStream);
         });
-        hls.loadSource(url);
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          if (!cancelled) hls.loadSource(url);
+        });
         hls.attachMedia(video);
       } else if (isTsUrl(sourceUrl) && mpegts.getFeatureList().mseLivePlayback) {
         const player = mpegts.createPlayer(
           { type: "mse", isLive, url },
-          { enableWorker: true, liveBufferLatencyChasing: true, lazyLoad: false },
+          mpegtsPlaybackConfig(isLive),
         );
         mpegtsRef.current = player;
         player.on(mpegts.Events.ERROR, () => {
-          try {
-            player.destroy();
-          } catch {
-            // engine already detached
-          }
-          if (mpegtsRef.current === player) mpegtsRef.current = null;
           failOrFallback(labels.failedStream);
         });
         player.attachMediaElement(video);
         player.load();
+        startPlayback();
       } else {
         video.src = url;
+        video.load();
+        startPlayback();
       }
-      video.play().then(() => {
-        if (!cancelled) setStatus("playing");
-      }).catch((reason) => {
-        failOrFallback(reason instanceof Error ? reason.message : labels.unsupported);
-      });
     }).catch((reason) => {
       failOrFallback(reason instanceof Error ? reason.message : labels.failedStream);
     });
@@ -357,7 +410,12 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
 
     return () => {
       cancelled = true;
+      window.clearTimeout(startupTimer);
+      clearStallTimers();
       window.clearInterval(progressTimer);
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("waiting", onStalled);
+      video.removeEventListener("stalled", onStalled);
       destroyEngines();
       video.pause();
       video.removeAttribute("src");
@@ -383,8 +441,7 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      void video.play();
-      setStatus("playing");
+      void video.play().then(() => setStatus("playing")).catch(() => {});
     } else {
       video.pause();
       setStatus("paused");
@@ -426,10 +483,21 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
     const onKey = (event: KeyboardEvent) => {
       const video = videoRef.current;
       if (!video) return;
+      const target = event.target;
+      if (target instanceof Element && target.matches("input, select, textarea, button")) return;
       scheduleHide();
-      if (event.key === " ") {
+      const key = event.key.toLowerCase();
+      if (event.key === " " || key === "k") {
         event.preventDefault();
         togglePlay();
+      }
+      if (key === "l") {
+        event.preventDefault();
+        seekBy(10);
+      }
+      if (key === "j") {
+        event.preventDefault();
+        seekBy(-10);
       }
       if (event.key === "ArrowRight") {
         event.preventDefault();
@@ -449,7 +517,7 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
         if (isLive) zapBy(-1);
         else setVolume((value) => Math.max(0, value - 0.05));
       }
-      if (event.key.toLowerCase() === "m") {
+      if (key === "m") {
         event.preventDefault();
         video.muted = !video.muted;
         setMuted(video.muted);
@@ -492,7 +560,13 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
 
   const selectQualityLevel = (id: number) => {
     setQualityLevel(id);
-    if (hlsRef.current) hlsRef.current.currentLevel = id;
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = id;
+      if (id < 0) {
+        hlsRef.current.nextLevel = -1;
+        hlsRef.current.loadLevel = -1;
+      }
+    }
   };
 
   const nowSecs = Date.now() / 1000;
@@ -514,6 +588,7 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
         className="player-video"
         style={{ objectFit: fitMode }}
         controls={false}
+        preload="auto"
         playsInline
         onClick={togglePlay}
         onDoubleClick={() => window.moPlayer.app.toggleFullscreen()}

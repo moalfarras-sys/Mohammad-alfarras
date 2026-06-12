@@ -1,5 +1,14 @@
 # MoPlayer Pro Windows PC QA Report
 
+## 2026-06-12 v1.0.2: full in-app auto-update + matches screen (live-verified)
+
+- **electron-updater wired end-to-end**: generic feed at `https://moalfarras.space/downloads/moplayer/windows/latest.yml` (committed, deployed by the website) with absolute GitHub Release asset URLs; `app-update.yml` embedded in the package; updater disabled for portable/dev/QA-screenshot runs (falls back to the website-link banner). Renderer shows a live progress banner and a "Restart to update" button; quiet startup check stays silent when up to date.
+- **Live auto-update proof on this PC**: installed v1.0.1 checked the production feed, found v1.0.2, downloaded it from GitHub in ~7 seconds (app log: `checking → available 1.0.2 → downloaded 1.0.2`), installed silently on quit, and relaunched as v1.0.2. A follow-up check on v1.0.2 returns `not-available` (up to date).
+- **New football matches screen** (`#screen=matches`): grouped by league with logos, live-score chips with elapsed minutes, kickoff times, venues, auto-refresh every 60 s, EN + AR RTL. Opened by clicking the home football widget.
+- **Football API duplicate fix (production)**: `/api/football` returned every fixture twice (ESPN path concatenated `upcomingFixtures`/`recentResults` subsets with the full unique list; api-football path lacked id-dedup across per-day queries). Both assembly points now dedupe by fixture id — verified live: 8 matches / 8 unique. The PC widget and matches screen also dedupe defensively client-side.
+- Release `moplayer-pc-v1.0.2` published on GitHub with Setup, Portable, and the `.blockmap` (enables differential updates); website metadata and feed deployed; `qa-auto-update.mjs` added for repeatable update-pipeline QA.
+- This pass also shipped the parallel playback-hardening work (stream proxy URI/keep-alive/HEAD fixes, playback.ts engine tuning, multi-view audio/limit-awareness, CSP worker-src) — see `apps/moplayer-pro-windows/MOPLAYER-PC-QA-REPORT.md` for its measured results.
+
 ## 2026-06-12 Release Pass (MoPlayer PC v1.0.0 public naming)
 
 - Product renamed to **MoPlayer PC** (`MoPlayer-PC-Setup.exe` / `MoPlayer-PC-Portable.exe`); `write-release-meta.mjs`, the website download API, and `latest-windows.json` now all use the PC artifact names. `package.json` `win.target` was corrected from `squirrel` back to `nsis` to match the packaging CLI.

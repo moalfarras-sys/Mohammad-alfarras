@@ -96,7 +96,9 @@ type WeatherWidget = {
   error?: string | boolean;
 };
 type FootballMatch = {
+  id?: number | string;
   league?: string;
+  leagueLogo?: string;
   homeTeam?: string;
   awayTeam?: string;
   homeLogo?: string;
@@ -104,6 +106,11 @@ type FootballMatch = {
   homeGoals?: number | null;
   awayGoals?: number | null;
   status?: string;
+  statusLong?: string;
+  elapsed?: number;
+  venueName?: string;
+  venueCity?: string;
+  round?: string;
   date?: string;
 };
 type FootballWidget = {
@@ -173,7 +180,7 @@ function isPlayable(item: MediaItem) {
 
 function initialScreenFromHash(): ScreenId {
   const raw = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("screen") as ScreenId | null;
-  const allowed: ScreenId[] = ["home", "live", "guide", "multi", "movies", "series", "episodes", "search", "favorites", "settings", "license", "support", "player"];
+  const allowed: ScreenId[] = ["home", "live", "guide", "multi", "matches", "movies", "series", "episodes", "search", "favorites", "settings", "license", "support", "player"];
   return raw && allowed.includes(raw) ? raw : "home";
 }
 
@@ -289,6 +296,11 @@ export function App() {
   const [football, setFootball] = useState<FootballWidget | null>(null);
   const [updateVersion, setUpdateVersion] = useState("");
   const [updateDismissed, setUpdateDismissed] = useState(false);
+  // "" = idle/fallback link mode; otherwise the in-app updater pipeline state.
+  const [updatePhase, setUpdatePhase] = useState<"" | "downloading" | "ready">("");
+  const [updatePercent, setUpdatePercent] = useState(0);
+  const updaterSupported = useRef(false);
+  const manualUpdateCheck = useRef(false);
   const [activation, setActivation] = useState<ActivationSession | null>(null);
   const [activationBusy, setActivationBusy] = useState(false);
   const [syncBusy, setSyncBusy] = useState(false);
@@ -499,6 +511,8 @@ export function App() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      const target = event.target;
+      const typing = target instanceof Element && target.matches("input, select, textarea, button");
       if (event.ctrlKey && event.key.toLowerCase() === "f") {
         event.preventDefault();
         setScreen("search");
@@ -508,6 +522,7 @@ export function App() {
         event.preventDefault();
         void refreshLibrary();
       }
+      if (typing && !event.ctrlKey && event.key !== "Escape") return;
       if (!event.ctrlKey && event.key.toLowerCase() === "f" && screen === "player") {
         event.preventDefault();
         void window.moPlayer.app.toggleFullscreen();
@@ -705,26 +720,68 @@ export function App() {
     setState(fresh);
   };
 
-  const checkUpdates = async () => {
+  /** Website-metadata fallback for builds without the in-app updater (portable, dev). */
+  const checkUpdatesViaMetadata = async (announce: boolean) => {
     try {
       const meta = await window.moPlayer.app.checkWindowsUpdate();
       const latest = String(meta?.version ?? "").trim();
       if (!latest) {
-        showToast("error", labels.updateCheckFailed);
+        if (announce) showToast("error", labels.updateCheckFailed);
         return;
       }
       if (state && isNewerVersion(latest, state.device.appVersion)) {
         setUpdateVersion(latest);
         setUpdateDismissed(false);
-        showToast("info", `${labels.updateAvailable} (${latest})`);
+        if (announce) showToast("info", `${labels.updateAvailable} (${latest})`);
       } else {
         setUpdateVersion("");
-        showToast("ok", labels.upToDate);
+        if (announce) showToast("ok", labels.upToDate);
       }
     } catch {
-      showToast("error", labels.updateCheckFailed);
+      if (announce) showToast("error", labels.updateCheckFailed);
     }
   };
+
+  const checkUpdates = async () => {
+    manualUpdateCheck.current = true;
+    const result = await window.moPlayer.app.checkForUpdates().catch(() => ({ supported: false }));
+    updaterSupported.current = result.supported;
+    if (!result.supported) {
+      await checkUpdatesViaMetadata(true);
+    }
+    // When supported, updater events drive the banner; "not-available" toasts only for manual checks.
+  };
+
+  // In-app updater pipeline events → banner state.
+  useEffect(() => {
+    const off = window.moPlayer.app.onUpdaterEvent((event) => {
+      updaterSupported.current = true;
+      if (event.type === "available") {
+        setUpdateVersion(event.version);
+        setUpdateDismissed(false);
+        setUpdatePhase("downloading");
+        setUpdatePercent(0);
+      } else if (event.type === "progress") {
+        setUpdatePhase("downloading");
+        setUpdatePercent(event.percent);
+      } else if (event.type === "downloaded") {
+        setUpdateVersion(event.version);
+        setUpdateDismissed(false);
+        setUpdatePhase("ready");
+      } else if (event.type === "not-available") {
+        setUpdateVersion("");
+        setUpdatePhase("");
+        if (manualUpdateCheck.current) showToast("ok", labels.upToDate);
+        manualUpdateCheck.current = false;
+      } else if (event.type === "error") {
+        // Fall back to the website link if the silent pipeline fails.
+        setUpdatePhase("");
+        void checkUpdatesViaMetadata(false);
+      }
+    });
+    return off;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [labels.upToDate]);
 
   const playItem = async (item: MediaItem) => {
     if (item.type === "series") {
@@ -822,9 +879,13 @@ export function App() {
   }, [loadEpg, playing]);
 
   // Quiet update check shortly after launch — only speaks up when something is newer.
+  // Prefers the silent in-app updater; falls back to website metadata otherwise.
   useEffect(() => {
     if (!state) return undefined;
     const timer = window.setTimeout(async () => {
+      const result = await window.moPlayer.app.checkForUpdates().catch(() => ({ supported: false }));
+      updaterSupported.current = result.supported;
+      if (result.supported) return;
       const meta = await window.moPlayer.app.checkWindowsUpdate();
       const latest = String(meta?.version ?? "").trim();
       if (latest && isNewerVersion(latest, state.device.appVersion)) {
@@ -959,10 +1020,27 @@ export function App() {
       {updateVersion && !updateDismissed && !playerMode ? (
         <div className="update-banner" role="status">
           <Download size={15} />
-          <span>{labels.updateAvailable} (v{updateVersion})</span>
-          <button className="primary-button is-small" onClick={() => void window.moPlayer.app.openExternal(UPDATE_DOWNLOAD_URL)}>
-            {labels.downloadUpdate}
-          </button>
+          {updatePhase === "downloading" ? (
+            <>
+              <span>{labels.updateDownloading} (v{updateVersion})</span>
+              <span className="update-progress" aria-hidden="true"><span className="update-progress-fill" style={{ width: `${updatePercent}%` }} /></span>
+              <strong className="update-percent">{updatePercent}%</strong>
+            </>
+          ) : updatePhase === "ready" ? (
+            <>
+              <span>{labels.updateReady} (v{updateVersion})</span>
+              <button className="primary-button is-small" onClick={() => void window.moPlayer.app.installUpdate()}>
+                {labels.updateRestart}
+              </button>
+            </>
+          ) : (
+            <>
+              <span>{labels.updateAvailable} (v{updateVersion})</span>
+              <button className="primary-button is-small" onClick={() => void window.moPlayer.app.openExternal(UPDATE_DOWNLOAD_URL)}>
+                {labels.downloadUpdate}
+              </button>
+            </>
+          )}
           <button className="ghost-button is-small" onClick={() => setUpdateDismissed(true)}>{labels.updateLater}</button>
         </div>
       ) : null}
@@ -1320,7 +1398,7 @@ function ScreenContent(props: {
           </div>
           <div className="hero-widgets">
             {state.settings.showWeatherWidget ? <WeatherCard labels={labels} weather={weather} /> : null}
-            {state.settings.showFootballWidget ? <FootballCard labels={labels} football={football} /> : null}
+            {state.settings.showFootballWidget ? <FootballCard labels={labels} football={football} onOpen={() => goScreen("matches")} /> : null}
           </div>
         </div>
         <div className="hub-grid">
@@ -1347,7 +1425,18 @@ function ScreenContent(props: {
   }
 
   if (screen === "multi") {
-    return <MultiViewScreen labels={labels} channels={mediaByType(library, "live")} onExpand={playItem} />;
+    return (
+      <MultiViewScreen
+        labels={labels}
+        channels={mediaByType(library, "live")}
+        connectionLimit={account?.maxConnections}
+        onExpand={playItem}
+      />
+    );
+  }
+
+  if (screen === "matches") {
+    return <MatchesScreen labels={labels} initial={football} />;
   }
 
   if (screen === "guide") {
@@ -1993,18 +2082,32 @@ function formatKickoff(raw?: string) {
   }
 }
 
-function FootballCard({ labels, football }: { labels: Labels; football: FootballWidget | null }) {
+function FootballCard({ labels, football, onOpen }: { labels: Labels; football: FootballWidget | null; onOpen?: () => void }) {
   const match = football?.primaryMatch ?? football?.matches?.[0] ?? null;
   const score = match ? matchScore(match, labels) : labels.scheduled;
+  const seenPairs = new Set<string>([`${match?.homeTeam}|${match?.awayTeam}`]);
   const upcoming = (football?.matches ?? [])
-    .filter((entry) => entry !== match && (entry.homeTeam !== match?.homeTeam || entry.awayTeam !== match?.awayTeam))
+    .filter((entry) => {
+      const key = `${entry.homeTeam}|${entry.awayTeam}`;
+      if (seenPairs.has(key)) return false;
+      seenPairs.add(key);
+      return true;
+    })
     .slice(0, 3);
 
   return (
-    <article className="service-card is-premium is-football">
+    <article
+      className={`service-card is-premium is-football ${onOpen ? "is-clickable" : ""}`}
+      onClick={onOpen}
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onKeyDown={(event) => { if (onOpen && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onOpen(); } }}
+      title={onOpen ? labels.allMatches : undefined}
+    >
       <header>
         <span className="service-title"><Trophy size={15} /> {labels.matches}</span>
         {match?.league ? <small className="service-league">{match.league}</small> : null}
+        {onOpen ? <ChevronRight size={14} className="service-open-hint" /> : null}
       </header>
       {match ? (
         <div className="service-body">
@@ -2048,6 +2151,130 @@ function FootballCard({ labels, football }: { labels: Labels; football: Football
         </div>
       )}
     </article>
+  );
+}
+
+const LIVE_STATUSES = new Set(["1H", "2H", "HT", "ET", "BT", "P", "LIVE", "INT"]);
+const FINISHED_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
+
+function matchPhase(match: FootballMatch): "live" | "finished" | "upcoming" {
+  const status = (match.status ?? "").toUpperCase();
+  if (LIVE_STATUSES.has(status)) return "live";
+  if (FINISHED_STATUSES.has(status)) return "finished";
+  return "upcoming";
+}
+
+function MatchRow({ match, labels }: { match: FootballMatch; labels: Labels }) {
+  const phase = matchPhase(match);
+  const statusChip = phase === "live"
+    ? `${labels.liveNow}${match.elapsed ? ` ${match.elapsed}′` : ""}`
+    : phase === "finished"
+      ? labels.finishedLabel
+      : formatKickoff(match.date) || labels.scheduled;
+  const score = match.homeGoals != null && match.awayGoals != null
+    ? `${match.homeGoals} – ${match.awayGoals}`
+    : "—";
+  return (
+    <article className={`fixture-row is-${phase}`}>
+      <div className="fixture-team">
+        <span className="fixture-flag">{getTeamIcon(match.homeTeam, match.homeLogo)}</span>
+        <span className="fixture-name">{match.homeTeam ?? "Home"}</span>
+      </div>
+      <div className="fixture-center">
+        <strong className="fixture-score">{score}</strong>
+        <span className={`fixture-status is-${phase}`}>{statusChip}</span>
+      </div>
+      <div className="fixture-team is-away">
+        <span className="fixture-name">{match.awayTeam ?? "Away"}</span>
+        <span className="fixture-flag">{getTeamIcon(match.awayTeam, match.awayLogo)}</span>
+      </div>
+      {match.venueName ? <small className="fixture-venue">{match.venueName}{match.venueCity ? ` · ${match.venueCity}` : ""}</small> : null}
+    </article>
+  );
+}
+
+/** Full football matches screen — refreshes itself while open so live scores stay current. */
+function MatchesScreen({ labels, initial }: { labels: Labels; initial: FootballWidget | null }) {
+  const [data, setData] = useState<FootballWidget | null>(initial);
+  const [busy, setBusy] = useState(false);
+
+  const loadMatches = useCallback(async (silent: boolean) => {
+    if (!silent) setBusy(true);
+    try {
+      const fresh = await window.moPlayer.net.json<FootballWidget>({
+        url: `${WEB_BASE_URL}/api/football`,
+        timeoutMs: 22000,
+      });
+      setData(fresh);
+    } catch {
+      // Keep showing the last good data; the empty state covers the cold-start failure.
+    } finally {
+      if (!silent) setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMatches(Boolean(initial));
+    const timer = window.setInterval(() => void loadMatches(true), 60_000);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadMatches]);
+
+  const matches = useMemo(() => {
+    const list = [...(data?.matches ?? [])];
+    const primary = data?.primaryMatch;
+    if (primary && !list.some((entry) => entry.id != null && entry.id === primary.id)) list.unshift(primary);
+    // Defensive de-dup: keep the first occurrence per fixture.
+    const seen = new Set<string>();
+    const unique = list.filter((entry) => {
+      const key = entry.id != null ? String(entry.id) : `${entry.homeTeam}|${entry.awayTeam}|${entry.date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const order = { live: 0, upcoming: 1, finished: 2 } as const;
+    return unique.sort((a, b) => order[matchPhase(a)] - order[matchPhase(b)] || String(a.date ?? "").localeCompare(String(b.date ?? "")));
+  }, [data]);
+
+  const leagues = useMemo(() => {
+    const groups = new Map<string, FootballMatch[]>();
+    for (const match of matches) {
+      const key = match.league || "Football";
+      const bucket = groups.get(key) ?? [];
+      bucket.push(match);
+      groups.set(key, bucket);
+    }
+    return [...groups.entries()];
+  }, [matches]);
+
+  return (
+    <section className="page-stack matches-screen">
+      <div className="section-heading">
+        <span className="pill"><Trophy size={15} /> {labels.matchesTitle}</span>
+        <button className="ghost-button is-small" onClick={() => void loadMatches(false)} disabled={busy}>
+          {busy ? <Loader2 className="spin" size={14} /> : <RefreshCw size={14} />} {labels.sync}
+        </button>
+      </div>
+      {leagues.length === 0 ? (
+        <div className="matches-empty">
+          <Trophy size={40} />
+          <p>{labels.matchesEmpty}</p>
+        </div>
+      ) : (
+        leagues.map(([league, entries]) => (
+          <div key={league} className="league-group">
+            <h3 className="league-title">
+              {entries[0]?.leagueLogo ? <img src={entries[0].leagueLogo} alt="" loading="lazy" /> : <Trophy size={16} />}
+              {league}
+              {entries[0]?.round ? <small>{entries[0].round.replace(/-/g, " ")}</small> : null}
+            </h3>
+            <div className="fixture-list">
+              {entries.map((match, index) => <MatchRow key={`${match.id ?? `${match.homeTeam}-${match.awayTeam}-${index}`}`} match={match} labels={labels} />)}
+            </div>
+          </div>
+        ))
+      )}
+    </section>
   );
 }
 

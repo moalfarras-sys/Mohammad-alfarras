@@ -10,6 +10,7 @@ export type ScreenId =
   | "live"
   | "guide"
   | "multi"
+  | "matches"
   | "movies"
   | "series"
   | "episodes"
@@ -207,6 +208,15 @@ export type WindowsUpdateInfo = {
   sha256?: string;
 };
 
+/** Progress events streamed from the electron-updater pipeline in the main process. */
+export type UpdaterEvent =
+  | { type: "checking" }
+  | { type: "available"; version: string }
+  | { type: "not-available" }
+  | { type: "progress"; percent: number; transferredBytes: number; totalBytes: number }
+  | { type: "downloaded"; version: string }
+  | { type: "error"; message: string };
+
 export type PlaylistFilePick = {
   name: string;
   path: string;
@@ -227,6 +237,11 @@ export type MoPlayerApi = {
     startRecording(url: string, suggestedName: string): Promise<string | null>;
     stopRecording(): Promise<void>;
     checkWindowsUpdate(): Promise<WindowsUpdateInfo | null>;
+    /** Triggers an electron-updater check. supported=false means use the metadata fallback. */
+    checkForUpdates(): Promise<{ supported: boolean }>;
+    /** Quits and installs a downloaded update. */
+    installUpdate(): Promise<void>;
+    onUpdaterEvent(listener: (event: UpdaterEvent) => void): () => void;
     smokeReady(): Promise<void>;
   };
   store: {

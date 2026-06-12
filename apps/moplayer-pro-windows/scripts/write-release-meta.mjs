@@ -68,6 +68,22 @@ const metadata = {
 
 await mkdir(outDir, { recursive: true });
 await writeFile(path.join(outDir, "latest-windows.json"), `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
+
+// electron-updater feed: rewrite the channel file so the installed app fetches
+// the metadata from the website but downloads the binary from GitHub Releases.
+const channelPath = path.join(releaseDir, "latest.yml");
+if (existsSync(channelPath)) {
+  const channel = await readFile(channelPath, "utf8");
+  const rewritten = channel.replaceAll(
+    `url: ${SETUP_NAME}`,
+    `url: ${metadata.downloadUrl}`,
+  ).replace(new RegExp(`^path: ${SETUP_NAME}$`, "m"), `path: ${metadata.downloadUrl}`);
+  await writeFile(path.join(outDir, "latest.yml"), rewritten, "utf8");
+  console.log("latest.yml feed written with absolute GitHub asset URLs.");
+} else {
+  console.warn("WARNING: latest.yml not found in release dir; in-app auto-update feed not refreshed.");
+}
+
 // Local copies allow `next dev`/local QA to serve the EXE without hitting GitHub.
 if (setup) {
   await copyFile(setupPath, path.join(outDir, SETUP_NAME));

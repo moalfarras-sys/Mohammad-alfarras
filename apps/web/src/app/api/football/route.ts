@@ -216,7 +216,8 @@ function buildFootballPayload(
   const liveMatches = unique.filter((match) => isLiveStatus(match.status));
   const recentResults = sortByDateDesc(unique.filter((match) => isFinishedStatus(match.status))).slice(0, 20);
   const upcomingFixtures = sortByDateAsc(unique.filter((match) => isUpcomingStatus(match.status) || matchTimestamp(match) >= Date.now())).slice(0, 32);
-  const prioritized = sortForWidget(liveMatches.length ? liveMatches : [...upcomingFixtures, ...recentResults, ...unique]).slice(0, config.maxMatches);
+  // upcomingFixtures/recentResults are subsets of `unique`, so re-dedupe after concatenating.
+  const prioritized = uniqueMatches(sortForWidget(liveMatches.length ? liveMatches : [...upcomingFixtures, ...recentResults, ...unique])).slice(0, config.maxMatches);
   const important = sortForWidget(unique).slice(0, Math.max(24, config.maxMatches));
   const cup = sortByDateAsc(uniqueMatches(worldCupMatches)).map(stripPriority);
   const primary = prioritized[0] ?? sortForWidget(unique)[0];
@@ -922,12 +923,14 @@ async function getApiFootballMatches(config: FootballRuntimeConfig) {
     .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 10);
 
-  let recentResults = [...previousDay, ...today]
+  // The per-day queries can return the same fixture twice (the API resolves
+  // the date in the venue's local timezone), so always dedupe by fixture id.
+  let recentResults = uniqueMatches([...previousDay, ...today])
     .filter((match) => match.homeGoals !== null && match.awayGoals !== null)
     .sort((a, b) => b.priority - a.priority || new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 12);
 
-  let upcomingFixtures = [...today, ...nextDay]
+  let upcomingFixtures = uniqueMatches([...today, ...nextDay])
     .filter((match) => match.homeGoals === null || match.awayGoals === null)
     .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 8);
@@ -954,14 +957,14 @@ async function getApiFootballMatches(config: FootballRuntimeConfig) {
       .slice(0, 8);
   }
 
-  const matches = (liveMatches.length > 0 ? liveMatches : [...recentResults, ...upcomingFixtures])
+  const matches = uniqueMatches(liveMatches.length > 0 ? liveMatches : [...recentResults, ...upcomingFixtures])
     .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, config.maxMatches)
     .map(stripPriority);
 
   if (matches.length === 0) return null;
 
-  const importantMatches = (liveMatches.length > 0 ? liveMatches : [...previousDay, ...today, ...nextDay, ...recentResults, ...upcomingFixtures])
+  const importantMatches = uniqueMatches(liveMatches.length > 0 ? liveMatches : [...previousDay, ...today, ...nextDay, ...recentResults, ...upcomingFixtures])
     .sort((a, b) => b.priority - a.priority || Math.abs(new Date(a.date).getTime() - Date.now()) - Math.abs(new Date(b.date).getTime() - Date.now()))
     .slice(0, 16)
     .map(stripPriority);

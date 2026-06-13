@@ -14,6 +14,7 @@ This repository is a production monorepo for the public website, admin control c
 - Production CMS contact copy was updated in both languages to remove visitor-facing implementation details about the admin panel. The admin fallback and MoPlayer support receipt use the same public-safe wording.
 - YouTube channel metrics now come from one lightweight server-side YouTube Data API request cached for 24 hours and are reused by the shared shell, CV, and YouTube page. The static fallback was synchronized on 2026-06-13 to 1,543,472 views, 6,230 subscribers, and 161 videos.
 - Removed the generic `2018-2021` and `2021-now` CV story labels because they contradicted the detailed work timeline. The story now uses factual phase labels until the owner confirms the exact employment dates.
+- Corrected the icon and social metadata pipeline: browser icons now use the small favicon, Apple gets a real 180px icon, the manifest uses a correctly declared square icon, and Open Graph/Twitter use the generated 1200x630 image. The 512px PNG was losslessly reduced from 67.7 KB to 22.1 KB.
 - One factual content blocker remains: the owner must confirm exact Stocubo, IKEA, and Rhenus month/year ranges before the CV timeline can be unified without guessing.
 
 ## 2026-06-12 MoPlayer Pro Windows Adaptive Multi-view

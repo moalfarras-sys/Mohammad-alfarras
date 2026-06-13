@@ -36,14 +36,14 @@ export const metadata: Metadata = {
     description: defaultDescription,
     locale: "en_US",
     alternateLocale: ["ar_SA"],
-    images: [{ url: "/images/logo.png", width: 512, height: 512, alt: "Mohammad Alfarras logo" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mohammad Alfarras digital portfolio" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     creator: "@Moalfarras",
-    images: ["/images/logo.png"],
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
@@ -57,9 +57,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: "/images/site-icon.png", type: "image/png", sizes: "512x512" }],
-    shortcut: "/images/site-icon.png",
-    apple: "/images/site-icon.png",
+    icon: [{ url: "/favicon.ico", type: "image/x-icon", sizes: "64x64" }],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/images/site-icon-180.png", type: "image/png", sizes: "180x180" }],
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || undefined,

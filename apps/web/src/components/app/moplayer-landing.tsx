@@ -72,9 +72,29 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
           <Image src="/images/moplayer-classic-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.015]" />
-        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-[${ACCENT}]/10 to-transparent rounded-full blur-[120px]`} />
-        <div className={`absolute bottom-0 right-0 w-[500px] h-[500px] bg-[${ACCENT_DARK}]/8 rounded-full blur-[150px]`} />
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.02]" />
+        {/* Brand glows — inline styles compile reliably (dynamic Tailwind classes do not) + gentle breathing motion */}
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0.55, scale: 0.96 }}
+          animate={{ opacity: [0.55, 0.9, 0.55], scale: [0.96, 1.06, 0.96] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[-90px] left-1/2 -translate-x-1/2 w-[860px] max-w-[140vw] h-[560px] rounded-full blur-[120px]"
+          style={{ background: `radial-gradient(ellipse at center, ${ACCENT}40, transparent 70%)` }}
+        />
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0.4 }}
+          animate={{ opacity: [0.4, 0.72, 0.4] }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+          className="absolute bottom-[-140px] right-[-90px] w-[580px] max-w-[100vw] h-[580px] rounded-full blur-[150px]"
+          style={{ background: `radial-gradient(ellipse at center, ${ACCENT_DARK}55, transparent 70%)` }}
+        />
+        <div
+          className="absolute top-1/3 -left-40 w-[480px] max-w-[90vw] h-[480px] rounded-full blur-[140px]"
+          style={{ background: `radial-gradient(ellipse at center, ${ACCENT}26, transparent 70%)` }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_25%,transparent_55%,rgba(0,0,0,0.55)_100%)]" />
       </div>
 
       {/* Hero Section */}

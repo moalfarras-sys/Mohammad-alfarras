@@ -34,7 +34,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       languages: {
         ar: `${BASE_URL}${altAr}`,
         en: `${BASE_URL}${altEn}`,
-        "x-default": `${BASE_URL}${altEn}`,
+        "x-default": `${BASE_URL}${altAr}`,
       },
     },
     openGraph: {

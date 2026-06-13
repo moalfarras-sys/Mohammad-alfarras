@@ -25,9 +25,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
     languages: {
-      en: "/en",
       ar: "/ar",
-      "x-default": "/en",
+      en: "/en",
+      "x-default": "/ar",
     },
   },
   openGraph: {
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
     siteName,
     title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     description: defaultDescription,
-    locale: "en_US",
-    alternateLocale: ["ar_SA"],
+    locale: "ar_SA",
+    alternateLocale: ["en_US"],
   },
   twitter: {
     card: "summary_large_image",
@@ -121,7 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning className={`liquid-site ${siteFontClassName}`}>
+    <html lang="ar" dir="rtl" suppressHydrationWarning className={`liquid-site ${siteFontClassName}`}>
       <head>
         <meta charSet="UTF-8" />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootPersonJsonLd) }} />

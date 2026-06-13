@@ -43,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         languages: {
           ar: `${BASE}/ar${route.path}`,
           en: `${BASE}/en${route.path}`,
-          "x-default": `${BASE}/en${route.path}`,
+          "x-default": `${BASE}/ar${route.path}`,
         },
       },
     })),
@@ -69,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         languages: {
           ar: `${BASE}/ar/work/${project.slug}`,
           en: `${BASE}/en/work/${project.slug}`,
-          "x-default": `${BASE}/en/work/${project.slug}`,
+          "x-default": `${BASE}/ar/work/${project.slug}`,
         },
       },
     })),

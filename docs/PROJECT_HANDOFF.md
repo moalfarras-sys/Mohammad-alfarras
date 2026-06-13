@@ -11,6 +11,7 @@ This repository is a production monorepo for the public website, admin control c
 - Local mobile Lighthouse now measures 91-94 Performance and 100 Accessibility/Best Practices/SEO on the acceptance routes. Initial modern-browser JS is about 157.5 KB gzip. LCP remains about 3.0-3.2 seconds because the legacy global stylesheet is still shared; see `docs/WEB_AUDIT_2026-06-13.md`.
 - Updated public web and admin to Next.js `16.2.9` and `eslint-config-next` `16.2.9`. Both `npm run verify:web` and `npm run verify:admin` passed; web produced 94 pages and passed all 9 Vitest tests.
 - `npm audit --omit=dev` still reports transitive esbuild and Next-bundled PostCSS advisories. The available npm remediation is incompatible or an unsafe Next.js downgrade, so the advisories are documented for an upstream-compatible update instead of being force-overridden.
+- Production CMS contact copy was updated in both languages to remove visitor-facing implementation details about the admin panel. The admin fallback and MoPlayer support receipt use the same public-safe wording.
 - One factual content blocker remains: the owner must confirm exact Stocubo, IKEA, and Rhenus month/year ranges before the CV timeline can be unified without guessing.
 
 ## 2026-06-12 MoPlayer Pro Windows Adaptive Multi-view

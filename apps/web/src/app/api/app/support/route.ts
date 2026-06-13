@@ -66,7 +66,10 @@ export async function POST(request: Request) {
         accent: productSlug === "moplayer2" ? "#f5c66b" : "#22d3ee",
         eyebrow: payload.locale === "ar" ? "تأكيد استلام الدعم" : "Support request received",
         title: payload.locale === "ar" ? "تم استلام طلب الدعم" : "We received your support request",
-        intro: payload.locale === "ar" ? "طلبك ظاهر الآن في لوحة الإدارة وسيتم الرد على هذا البريد." : "Your request is now visible in the admin panel and we will reply to this email.",
+        intro:
+          payload.locale === "ar"
+            ? "تم استلام طلب الدعم وسيتم الرد على هذا البريد."
+            : "Your support request has been received and we will reply to this email.",
         requestId,
         productSlug,
         body: payload.message,

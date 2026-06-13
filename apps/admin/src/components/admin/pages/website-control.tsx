@@ -259,7 +259,7 @@ const contactFallback: ContactContent = {
   ar: {
     eyebrow: "تواصل مباشر",
     title: "احكِ لي عن مشروعك",
-    body: "أرسل تفاصيل الموقع أو التطبيق أو الحملة التي تريدها، وسيظهر الطلب مباشرة في لوحة الإدارة للمتابعة والرد.",
+    body: "أرسل تفاصيل الموقع أو التطبيق أو الحملة، وسأراجع طلبك وأرد عليك بخطوة واضحة.",
     directTitle: "تريد رداً أسرع؟",
     directBody: "اكتب الهدف والميزانية والموعد التقريبي حتى أستطيع فهم الطلب بسرعة.",
     primaryCta: "إرسال الطلب",
@@ -268,7 +268,7 @@ const contactFallback: ContactContent = {
   en: {
     eyebrow: "Direct contact",
     title: "Tell me about your project",
-    body: "Send the website, app, or campaign details. The request appears directly in the admin panel for follow-up and reply.",
+    body: "Send the website, app, or campaign details. I will review your request and reply with a clear next step.",
     directTitle: "Need a faster reply?",
     directBody: "Include the goal, budget, and rough timeline so the request is easy to review.",
     primaryCta: "Send request",

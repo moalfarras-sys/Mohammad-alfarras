@@ -36,14 +36,12 @@ export const metadata: Metadata = {
     description: defaultDescription,
     locale: "en_US",
     alternateLocale: ["ar_SA"],
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Mohammad Alfarras digital portfolio" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     creator: "@Moalfarras",
-    images: ["/opengraph-image"],
   },
   robots: {
     index: true,

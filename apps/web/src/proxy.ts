@@ -58,6 +58,8 @@ export function proxy(request: NextRequest) {
   if (
     pathname === "/admin" ||
     pathname.startsWith("/admin/") ||
+    pathname === "/opengraph-image" ||
+    pathname === "/twitter-image" ||
     pathname === "/app" ||
     pathname.startsWith("/app/") ||
     pathname === "/activate" ||

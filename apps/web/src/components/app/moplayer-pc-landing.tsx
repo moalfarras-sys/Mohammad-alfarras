@@ -133,6 +133,32 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
     ],
   };
 
+  const installGuide = isAr
+    ? {
+        eyebrow: "تثبيت آمن",
+        title: "ظهر تحذير من Windows؟ هذا طبيعي — وإليك كيف تثبّت بأمان",
+        body: "MoPlayer PC تطبيق مستقل لا يستخدم بعدُ شهادة ناشر مدفوعة، لذلك قد يُظهر Windows SmartScreen رسالة “Windows protected your PC”. الملف مستضاف على GitHub Releases الرسمي وآمن للتثبيت.",
+        steps: [
+          "اضغط “More info” (مزيد من المعلومات) في نافذة Windows الزرقاء.",
+          "ثم اضغط “Run anyway” (تشغيل على أي حال) لإكمال التثبيت.",
+          "إذا وضعه Microsoft Defender في الحجر، اختر “Allow on device” أو “Restore” لاستعادته.",
+        ],
+        verify:
+          "للتحقّق من أصالة الملف (اختياري): افتح PowerShell ونفّذ Get-FileHash على الملف، ثم قارن النتيجة مع البصمة المنشورة في صفحة الإصدار.",
+      }
+    : {
+        eyebrow: "Safe install",
+        title: "Seeing a Windows warning? It’s normal — here’s how to install safely",
+        body: "MoPlayer PC is an independent app that doesn’t yet use a paid publisher certificate, so Windows SmartScreen may show “Windows protected your PC”. The file is hosted on official GitHub Releases and is safe to install.",
+        steps: [
+          "Click “More info” in the blue Windows dialog.",
+          "Then click “Run anyway” to finish installing.",
+          "If Microsoft Defender quarantines it, choose “Allow on device” / “Restore”.",
+        ],
+        verify:
+          "Verify authenticity (optional): open PowerShell and run Get-FileHash on the file, then compare the result with the checksum published on the release page.",
+      };
+
   return (
     <main ref={containerRef} className="min-h-screen bg-[#050505] overflow-hidden selection:bg-orange-600/30 selection:text-orange-200">
       {/* Background */}
@@ -291,6 +317,31 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
               ))}
             </div>
           </article>
+        </div>
+      </section>
+
+      {/* Safe install guide */}
+      <section className="relative py-16 px-6 z-10 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8 text-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-600/30 text-orange-300 text-[10px] font-bold uppercase tracking-wider bg-orange-600/8 mb-4">
+              <ShieldCheck className="h-3 w-3" /> {installGuide.eyebrow}
+            </span>
+            <h2 className="text-xl md:text-2xl font-bold text-white mb-3 max-w-2xl mx-auto">{installGuide.title}</h2>
+            <p className="text-white/65 text-sm leading-relaxed max-w-2xl mx-auto">{installGuide.body}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            {installGuide.steps.map((step, i) => (
+              <article key={i} className="p-5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-orange-600/20 transition-all duration-300">
+                <div className="w-8 h-8 rounded-lg bg-orange-600/12 border border-orange-600/25 text-orange-300 flex items-center justify-center font-black text-sm mb-3">{i + 1}</div>
+                <p className="text-white/75 text-sm leading-relaxed">{step}</p>
+              </article>
+            ))}
+          </div>
+          <div className="flex items-start gap-2.5 p-4 rounded-xl bg-white/[0.02] border border-white/5 text-white/55 text-xs leading-relaxed">
+            <CheckCircle2 className="h-4 w-4 text-orange-400/60 shrink-0 mt-0.5" />
+            <span>{installGuide.verify}</span>
+          </div>
         </div>
       </section>
 

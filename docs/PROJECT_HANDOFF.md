@@ -17,6 +17,7 @@ This repository is a production monorepo for the public website, admin control c
 - Corrected the icon and social metadata pipeline: browser icons now use the small favicon, Apple gets a real 180px icon, the manifest uses a correctly declared square icon, and Open Graph/Twitter use the generated 1200x630 image. The 512px PNG was losslessly reduced from 67.7 KB to 22.1 KB.
 - Exempted Next.js file-based `/opengraph-image` and `/twitter-image` routes from locale prefixing. Without this exception the proxy redirected the extensionless metadata routes to localized 404 pages.
 - Search Console and Bing sitemap submission still require the owner’s authenticated webmaster accounts; the sitemap and robots files are ready for submission.
+- Production deployment `dpl_7Y9C3SJYjkmJ8UQc13Fn9eCUZMpf` is live on `https://moalfarras.space`. The production crawl passed all 50 sitemap URLs and 59 internal paths with no 404s or redirect chains. Isolated mobile Lighthouse measured 96-98 Performance and 100 Accessibility/Best Practices/SEO; the Arabic home LCP is 2.53 seconds, approximately 30ms above the strict 2.5-second budget.
 
 ## 2026-06-12 MoPlayer Pro Windows Adaptive Multi-view
 

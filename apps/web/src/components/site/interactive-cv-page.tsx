@@ -88,13 +88,13 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
         icon: Route,
       },
       {
-        year: "2018-2021",
+        year: ar ? "\u0627\u0644\u062e\u0628\u0631\u0629 \u0627\u0644\u062a\u0634\u063a\u064a\u0644\u064a\u0629" : "Operations",
         title: ar ? "مرحلة اللوجستيات" : "The Logistics Phase",
         body: ar ? "تشغيل، تنظيم، خدمة عملاء، وتعلّم كيف تتحرك الأعمال الحقيقية تحت الضغط." : "Operations, coordination, customer flow, and learning how real businesses move under pressure.",
         icon: Truck,
       },
       {
-        year: "2021-now",
+        year: ar ? "\u0627\u0644\u062a\u062d\u0648\u0644 \u0627\u0644\u0631\u0642\u0645\u064a" : "Digital systems",
         title: ar ? "القفزة الرقمية" : "The Digital Leap",
         body: ar ? "Full Stack، يوتيوب، MoPlayer، وأنظمة ويب تربط المنتج بالمستخدم." : "Full stack work, YouTube, MoPlayer, and web systems connecting products with users.",
         icon: Code2,

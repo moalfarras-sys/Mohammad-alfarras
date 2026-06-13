@@ -30,9 +30,9 @@ export const youtubeChannel = {
   title: siteIdentity.name.en,
   revalidateSeconds: 86_400,
   fallback: {
-    views: 1_494_029,
-    subscribers: 6_130,
-    videos: 162,
+    views: 1_543_472,
+    subscribers: 6_230,
+    videos: 161,
   },
 } as const;
 

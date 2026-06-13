@@ -11,6 +11,7 @@ import { siteIdentity, youtubeChannel } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
+import { getLiveYoutubeChannelStats } from "@/lib/youtube-live";
 
 export const revalidate = 30;
 
@@ -82,7 +83,7 @@ function safeLogoSrc(path: string | null | undefined) {
   return path;
 }
 
-type YoutubeMetricsSetting = { views?: number; subscribers?: number; videos?: number };
+type YoutubeMetricsSetting = { channel_id?: string; views?: number; subscribers?: number; videos?: number };
 type SiteThemeSetting = { accent?: string; background?: string; panel?: string };
 
 const youtubeMetricsFallback: YoutubeMetricsSetting = {
@@ -154,7 +155,15 @@ export default async function SiteLayout({
   if (siteStatus.maintenance) {
     return <MaintenanceScreen locale={locale} logoSrc={logoSrc} message={locale === "ar" ? siteStatus.message_ar : siteStatus.message_en} />;
   }
-  const ytMetrics = getSiteSetting(snapshot, "youtube_channel", youtubeMetricsFallback);
+  const savedYoutubeMetrics = getSiteSetting(snapshot, "youtube_channel", youtubeMetricsFallback);
+  const liveYoutubeMetrics = await getLiveYoutubeChannelStats(savedYoutubeMetrics.channel_id);
+  const ytMetrics = liveYoutubeMetrics
+    ? {
+        views: liveYoutubeMetrics.totalViews,
+        subscribers: liveYoutubeMetrics.subscribers,
+        videos: liveYoutubeMetrics.videoCount,
+      }
+    : savedYoutubeMetrics;
   const siteTheme = getSiteSetting<SiteThemeSetting>(snapshot, "site_theme", {});
   const footerQuickFacts = buildFooterQuickFacts(locale, ytMetrics);
   const copy = siteCopy(locale);

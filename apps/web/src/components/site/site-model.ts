@@ -5,7 +5,7 @@ import { buildCvPresentationModel } from "@/lib/cv-presenter";
 import { formatMonthYear } from "@/lib/locale-format";
 import { getProjectStudioItem, resolveMediaPath, translateMetric } from "@/lib/projects-studio";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
-import { getLiveYoutubeData } from "@/lib/youtube-live";
+import { getLiveYoutubeChannelStats, getLiveYoutubeData } from "@/lib/youtube-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
 
 import type { SiteViewModel } from "./site-view-model";
@@ -501,11 +501,13 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
   const pageSlug = slug || "home";
-  const needsLiveYoutube = pageSlug === "youtube" || pageSlug === "cv";
+  const needsYoutubeDetails = pageSlug === "youtube";
 
   const [videos, liveYoutube] = await Promise.all([
     readVideos(),
-    needsLiveYoutube ? getLiveYoutubeData(typeof youtube.channel_id === "string" ? youtube.channel_id : undefined) : Promise.resolve(null),
+    needsYoutubeDetails
+      ? getLiveYoutubeData(typeof youtube.channel_id === "string" ? youtube.channel_id : undefined)
+      : getLiveYoutubeChannelStats(typeof youtube.channel_id === "string" ? youtube.channel_id : undefined),
   ]);
 
   const cvPresentation = buildCvPresentationModel(snapshot, locale);

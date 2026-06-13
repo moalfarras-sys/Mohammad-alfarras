@@ -12,6 +12,8 @@ This repository is a production monorepo for the public website, admin control c
 - Updated public web and admin to Next.js `16.2.9` and `eslint-config-next` `16.2.9`. Both `npm run verify:web` and `npm run verify:admin` passed; web produced 94 pages and passed all 9 Vitest tests.
 - `npm audit --omit=dev` still reports transitive esbuild and Next-bundled PostCSS advisories. The available npm remediation is incompatible or an unsafe Next.js downgrade, so the advisories are documented for an upstream-compatible update instead of being force-overridden.
 - Production CMS contact copy was updated in both languages to remove visitor-facing implementation details about the admin panel. The admin fallback and MoPlayer support receipt use the same public-safe wording.
+- YouTube channel metrics now come from one lightweight server-side YouTube Data API request cached for 24 hours and are reused by the shared shell, CV, and YouTube page. The static fallback was synchronized on 2026-06-13 to 1,543,472 views, 6,230 subscribers, and 161 videos.
+- Removed the generic `2018-2021` and `2021-now` CV story labels because they contradicted the detailed work timeline. The story now uses factual phase labels until the owner confirms the exact employment dates.
 - One factual content blocker remains: the owner must confirm exact Stocubo, IKEA, and Rhenus month/year ranges before the CV timeline can be unified without guessing.
 
 ## 2026-06-12 MoPlayer Pro Windows Adaptive Multi-view

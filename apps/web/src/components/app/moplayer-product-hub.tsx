@@ -193,10 +193,20 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
 
   return (
     <main className="min-h-screen bg-[#060606] text-white overflow-hidden font-sans" dir={isAr ? "rtl" : "ltr"}>
-      {/* Background */}
+      {/* Background — premium ambient, brand-integrated with the site */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.012]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-[#FF5722]/6 to-transparent rounded-full blur-[120px]" />
+        {/* depth base */}
+        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_-10%,#0c0a09_0%,#070707_55%,#040404_100%)]" />
+        {/* fine dot texture */}
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:26px_26px] opacity-[0.015]" />
+        {/* warm MoPlayer glow (top) */}
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[900px] max-w-[140vw] h-[520px] bg-[radial-gradient(ellipse_at_center,rgba(255,87,34,0.16),transparent_70%)] blur-[100px]" />
+        {/* cool site-accent glow ties it to the blue/cyan site theme */}
+        <div className="absolute top-1/3 -right-32 w-[600px] max-w-[90vw] h-[600px] bg-[radial-gradient(ellipse_at_center,rgba(56,189,248,0.10),transparent_70%)] blur-[120px]" />
+        {/* deep amber base glow (bottom) */}
+        <div className="absolute bottom-0 left-0 w-[700px] max-w-[120vw] h-[420px] bg-[radial-gradient(ellipse_at_center,rgba(230,74,25,0.10),transparent_70%)] blur-[120px]" />
+        {/* vignette for depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_30%,transparent_55%,rgba(0,0,0,0.55)_100%)]" />
       </div>
 
       {/* ─── Hero ─── */}

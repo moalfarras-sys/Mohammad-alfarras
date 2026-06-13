@@ -35,9 +35,9 @@ const AppleIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
 
 /* ── Color Tokens ── */
 const colors = {
-  pro:     { primary: "#FF5722", light: "#FF8A65", bg: "#FF5722" },
-  classic: { primary: "#1e3a8a", light: "#60a5fa", bg: "#2563eb" },
-  pc:      { primary: "#E64A19", light: "#FF8A65", bg: "#E64A19" },
+  pro:     { primary: "#FF6A3D", light: "#FFB59E", bg: "#FF5722" },
+  classic: { primary: "#3b82f6", light: "#93c5fd", bg: "#2563eb" },
+  pc:      { primary: "#06b6d4", light: "#67e8f9", bg: "#0891b2" },
 } as const;
 
 /* ── Copy ── */
@@ -158,7 +158,7 @@ function getProducts(locale: Locale) {
       href: withLocale(locale, "apps/moplayer2"),
       downloadHref: "/api/app/download/latest?product=moplayer2",
       activateHref: `${withLocale(locale, "activate")}?product=moplayer2`,
-      platformIcon: <AndroidIcon className="w-4 h-4 text-[#FF8A65]" />,
+      platformIcon: <AndroidIcon className="w-4 h-4 text-[#FFB59E]" />,
       ...c.pro,
     },
     {
@@ -168,7 +168,7 @@ function getProducts(locale: Locale) {
       href: withLocale(locale, "apps/moplayer/classic"),
       downloadHref: "/api/app/download/latest?product=moplayer",
       activateHref: `${withLocale(locale, "activate")}?product=moplayer`,
-      platformIcon: <AndroidIcon className="w-4 h-4 text-[#60a5fa]" />,
+      platformIcon: <AndroidIcon className="w-4 h-4 text-[#93c5fd]" />,
       ...c.classic,
     },
     {
@@ -178,7 +178,7 @@ function getProducts(locale: Locale) {
       href: withLocale(locale, "apps/moplayer-pc"),
       downloadHref: "/api/app/download/latest?product=moplayer2&platform=windows",
       activateHref: `${withLocale(locale, "activate")}?product=moplayer-pc&platform=windows`,
-      platformIcon: <WindowsIcon className="w-4 h-4 text-[#FF8A65]" />,
+      platformIcon: <WindowsIcon className="w-4 h-4 text-[#67e8f9]" />,
       ...c.pc,
     },
   ];
@@ -223,7 +223,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
             {c.title}
           </h1>
 
-          <p className="text-sm md:text-base text-white/45 max-w-lg mx-auto mb-8 leading-relaxed">
+          <p className="text-base md:text-lg text-white/70 max-w-lg mx-auto mb-8 leading-relaxed">
             {c.body}
           </p>
 
@@ -269,11 +269,11 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                   </div>
 
                   <h2 className="text-xl md:text-2xl font-extrabold text-white mb-2 leading-tight">{product.headline}</h2>
-                  <p className="text-white/55 text-sm leading-relaxed mb-4 max-w-md">{product.body}</p>
+                  <p className="text-white/75 text-sm md:text-[15px] leading-relaxed mb-4 max-w-md">{product.body}</p>
 
                   <div className="flex flex-wrap gap-1.5 mb-5">
                     {product.stats.map((s) => (
-                      <span key={s} className="px-2 py-0.5 rounded text-[10px] font-semibold border" style={{ color: col.light, borderColor: `${col.primary}18`, background: `${col.primary}06` }}>{s}</span>
+                      <span key={s} className="px-2.5 py-1 rounded-md text-[11px] font-semibold border" style={{ color: col.light, borderColor: `${col.primary}33`, background: `${col.primary}12` }}>{s}</span>
                     ))}
                   </div>
 
@@ -348,7 +348,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-white mb-2">{c.legalTitle}</h2>
-              <p className="text-sm leading-relaxed text-white/55 max-w-4xl">{c.legalBody}</p>
+              <p className="text-sm leading-relaxed text-white/70 max-w-4xl">{c.legalBody}</p>
             </div>
           </div>
         </div>
@@ -362,7 +362,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
               <Zap className="h-3 w-3" /> {c.services}
             </span>
             <h2 className="text-xl md:text-2xl font-extrabold text-white mb-2">{c.servicesTitle}</h2>
-            <p className="text-white/60 text-xs max-w-md mx-auto">{c.servicesBody}</p>
+            <p className="text-white/70 text-sm max-w-md mx-auto">{c.servicesBody}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {c.servicesList.map(([title, body], index) => {
@@ -372,8 +372,8 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                   <div className="w-9 h-9 rounded-lg bg-emerald-500/8 border border-emerald-500/15 flex items-center justify-center mb-2.5 text-emerald-400 group-hover:scale-105 transition-transform">
                     <Icon className="h-4 w-4" />
                   </div>
-                  <h3 className="text-xs font-bold text-white mb-1">{title}</h3>
-                  <p className="text-white/60 text-[11px] leading-relaxed">{body}</p>
+                  <h3 className="text-sm font-bold text-white mb-1">{title}</h3>
+                  <p className="text-white/70 text-xs leading-relaxed">{body}</p>
                 </article>
               );
             })}
@@ -398,15 +398,15 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                   <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/8 flex items-center justify-center mb-2.5 text-white/50 group-hover:text-white/80 transition-colors">
                     {isApple ? <AppleIcon className="h-4 w-4" /> : <MonitorPlay className="h-4 w-4" />}
                   </div>
-                  <span className="text-[9px] font-bold text-white/60 uppercase tracking-widest mb-0.5">{item.platform}</span>
-                  <h3 className="text-xs font-bold text-white mb-1.5">{item.name}</h3>
-                  <p className="text-white/60 text-[11px] leading-relaxed flex-1 mb-2.5">{item.body}</p>
+                  <span className="text-[10px] font-bold text-white/65 uppercase tracking-widest mb-0.5">{item.platform}</span>
+                  <h3 className="text-sm font-bold text-white mb-1.5">{item.name}</h3>
+                  <p className="text-white/70 text-xs leading-relaxed flex-1 mb-2.5">{item.body}</p>
                   <div className="inline-flex items-center gap-1.5 self-start px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/8">
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                      <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
                     </span>
-                    <span className="text-[9px] text-white/60 font-bold uppercase tracking-wider">
+                    <span className="text-[10px] text-white/70 font-bold uppercase tracking-wider">
                       {isAr ? "قيد التطوير" : "In Dev"}
                     </span>
                   </div>

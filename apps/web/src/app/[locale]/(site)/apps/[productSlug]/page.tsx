@@ -32,12 +32,13 @@ export async function generateMetadata({
   const { locale, productSlug } = await params;
   if (!isLocale(locale) || !isManagedAppSlug(productSlug)) return {};
   const ecosystem = await readAppEcosystem(productSlug);
-  const title = `${ecosystem.product.product_name} | Mohammad Alfarras`;
+  const title = ecosystem.product.product_name;
+  const socialTitle = `${title} | Mohammad Alfarras`;
   const description = ecosystem.product.short_description;
   const image = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-hero-3d-final.png");
 
   return {
-    title: { absolute: title },
+    title,
     description,
     alternates: {
       canonical: `${SITE_URL}/${locale}/apps/${productSlug}`,
@@ -48,17 +49,17 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       url: `${SITE_URL}/${locale}/apps/${productSlug}`,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: image, width: 1600, height: 900, alt: title }],
+      images: [{ url: image, width: 1600, height: 900, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: socialTitle,
       description,
       images: [image],
     },
@@ -91,7 +92,7 @@ export default async function AppProductRoute({
   const latest = normalizedEcosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
   const fileSize = primaryAsset?.file_size_bytes ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB` : undefined;
-  const title = `${normalizedEcosystem.product.product_name} | Mohammad Alfarras Apps`;
+  const title = normalizedEcosystem.product.product_name;
   const description = normalizedEcosystem.product.short_description;
 
   const breadcrumb = breadcrumbJsonLd(loc, [

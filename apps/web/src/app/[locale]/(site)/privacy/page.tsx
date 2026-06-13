@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/site-pages-v3";
+import { PortfolioPrivacyPage } from "@/components/site/portfolio-pages";
 import { privacyCopy } from "@/content/legal";
 import { SITE_URL } from "@/content/site";
 import { isLocale } from "@/lib/i18n";
@@ -13,12 +13,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) return {};
   const loc = locale as Locale;
   const copy = privacyCopy[loc];
-  const fullTitle = `${copy.eyebrow} | ${loc === "ar" ? "محمد الفراس" : "Mohammad Alfarras"}`;
+  const title = loc === "ar" ? "سياسة الخصوصية" : "Privacy Policy";
+  const socialTitle = `${title} | Mohammad Alfarras`;
   const canonical = `${SITE_URL}/${loc}/privacy`;
   const image = `${SITE_URL}/images/protofeilnew.jpeg`;
 
   return {
-    title: { absolute: fullTitle },
+    title,
     description: copy.intro,
     alternates: {
       canonical,
@@ -29,19 +30,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
     },
     openGraph: {
-      title: fullTitle,
+      title: socialTitle,
       description: copy.intro,
       url: canonical,
       type: "website",
       locale: loc === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [{ url: image, width: 1200, height: 630, alt: fullTitle }],
+      images: [{ url: image, width: 1200, height: 630, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
       site: "@Moalfarras",
       creator: "@Moalfarras",
-      title: fullTitle,
+      title: socialTitle,
       description: copy.intro,
       images: [image],
     },
@@ -69,7 +70,7 @@ export default async function LocalizedPrivacyPage({ params }: { params: Promise
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <SitePage locale={loc} slug="privacy" />
+      <PortfolioPrivacyPage locale={loc} />
     </>
   );
 }

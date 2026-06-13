@@ -10,14 +10,18 @@ export function LocalePreferenceLink(props: ComponentProps<typeof Link>) {
     <Link
       href={href}
       onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+        const path = typeof href === "string" ? href : href.pathname ?? "";
         try {
-          const path = typeof href === "string" ? href : href.pathname ?? "";
           const lang = path.startsWith("/ar") ? "ar" : "en";
           localStorage.setItem("preferred-lang", lang);
         } catch {
           /* ignore */
         }
         onClick?.(e);
+        if (!e.defaultPrevented && typeof href === "string" && !href.includes("?") && window.location.search) {
+          e.preventDefault();
+          window.location.assign(`${href}${window.location.search}${window.location.hash}`);
+        }
       }}
       {...rest}
     />

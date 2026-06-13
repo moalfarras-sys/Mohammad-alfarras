@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
-const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
+import { youtubeChannel } from "@/content/site-data";
+
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || youtubeChannel.id;
 const API_KEY = process.env.YOUTUBE_API_KEY;
 
 export async function GET() {
@@ -15,7 +17,7 @@ export async function GET() {
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?` +
         `part=statistics,snippet&id=${encodeURIComponent(CHANNEL_ID)}&key=${encodeURIComponent(API_KEY)}`,
-      { next: { revalidate: 3600 } },
+      { next: { revalidate: youtubeChannel.revalidateSeconds } },
     );
     const data = (await res.json()) as {
       items?: Array<{ statistics?: Record<string, string>; snippet?: { customUrl?: string } }>;
@@ -26,7 +28,7 @@ export async function GET() {
     const searchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?` +
         `part=id&channelId=${encodeURIComponent(CHANNEL_ID)}&order=date&maxResults=1&type=video&key=${encodeURIComponent(API_KEY)}`,
-      { next: { revalidate: 3600 } },
+      { next: { revalidate: youtubeChannel.revalidateSeconds } },
     );
     const searchData = (await searchRes.json()) as { items?: Array<{ id?: { videoId?: string } }> };
     latestVideoId = searchData.items?.[0]?.id?.videoId ?? null;

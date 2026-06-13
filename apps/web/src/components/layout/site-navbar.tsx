@@ -1,17 +1,16 @@
 "use client";
 
-import { ArrowUpRight, BriefcaseBusiness, Home, Menu, Moon, MonitorPlay, PlayCircle, Send, Sun, UserRound, Wrench } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, MonitorPlay, PlayCircle, Send, UserRound, Wrench } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
 import { LocalePreferenceLink } from "@/components/layout/locale-preference-link";
 import { alternateLocalePath, localeMeta } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
 
 import { MobileMenuDrawer } from "./mobile-menu-drawer";
-import { useThemeMode } from "./use-theme-mode";
 
 type NavLink = { id: string; label: string; href: string };
 
@@ -41,8 +40,6 @@ export function SiteNavbar({
   brandName: string;
 }) {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useThemeMode();
-  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [failedLogoSrcs, setFailedLogoSrcs] = useState<ReadonlySet<string>>(() => new Set());
@@ -75,7 +72,6 @@ export function SiteNavbar({
                 width={44}
                 height={44}
                 className="fresh-brand-logo"
-                priority
                 onError={() =>
                   setFailedLogoSrcs((current) => {
                     if (current.has(resolvedLogoSrc)) return current;
@@ -110,10 +106,6 @@ export function SiteNavbar({
             <LocalePreferenceLink href={alternatePath} className="fresh-icon-button fresh-lang">
               {localeMeta[nextLocale].label}
             </LocalePreferenceLink>
-
-            <button type="button" onClick={toggleTheme} className="fresh-icon-button" aria-label="Toggle theme">
-              {mounted && theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
 
             <Link href={`/${locale}/contact`} className="fresh-nav-cta">
               <Send size={16} />

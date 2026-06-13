@@ -77,10 +77,10 @@ function initialMessages(locale: Locale): Message[] {
   }
 }
 
-export function SiteAssistantWidget({ locale }: { locale: Locale }) {
+export function SiteAssistantWidget({ locale, initialOpen = false }: { locale: Locale; initialOpen?: boolean }) {
   const pathname = usePathname();
   const t = widgetCopy[locale];
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [messages, setMessages] = useState<Message[]>(() => initialMessages(locale));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

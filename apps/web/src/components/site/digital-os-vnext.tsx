@@ -17,392 +17,17 @@ import {
   MonitorPlay,
   PlayCircle,
   Radio,
-  Truck,
   Users,
 } from "lucide-react";
 
-import { AppsShowcasePage } from "@/components/site/apps-showcase-page";
-import { ContactHubPage } from "@/components/site/contact-hub-page";
-import { InteractiveCvPage } from "@/components/site/interactive-cv-page";
-import { WorkDigitalExhibition } from "@/components/site/work-digital-exhibition";
+import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { PageShell, SectionHeader } from "@/components/ui/os-primitives";
 import { socialLinks } from "@/content/site";
+import { compactMetric, youtubeChannel } from "@/content/site-data";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 import type { SiteViewModel } from "./site-view-model";
-
-const homepageCopy = {
-  en: {
-    eyebrow: "Mohammad Alfarras Digital OS",
-    title: "I build websites, digital presence, tech content, and systems that connect real work with technology.",
-    body:
-      "A premium personal hub for web design, development, digital marketing, YouTube storytelling, logistics experience, and the technology work I keep building around.",
-    primary: "Explore the work",
-    secondary: "Start a conversation",
-    proof: ["Web design & development", "Digital marketing mindset", "Arabic tech creator", "Logistics discipline"],
-    exploreEyebrow: "What you can explore",
-    exploreTitle: "Move through the main parts of the ecosystem.",
-    exploreBody: "Each card opens a focused part of the site: work, products, content, profile, or collaboration.",
-    positioningEyebrow: "Personal operating system",
-    positioningTitle: "A practical digital identity shaped by web craft, content, logistics, and technology.",
-    positioningBody:
-      "I connect polished websites, marketing-aware digital experiences, Arabic tech content, and operations discipline into one clear ecosystem. The goal is simple: make ideas easier to understand, easier to trust, and easier to move forward.",
-    highlightsEyebrow: "Quick signals",
-    highlightsTitle: "One profile, several useful lanes.",
-    ctaEyebrow: "Next step",
-    ctaTitle: "Choose the path that matches what you need now.",
-    ctaBody: "Browse the work, discover MoPlayer, watch the YouTube channel, or send a project inquiry.",
-    ctaWork: "See work",
-    ctaApps: "Discover MoPlayer",
-    ctaYoutube: "Watch YouTube",
-    ctaContact: "Contact",
-    portraitLabel: "Mohammad Alfarras",
-    portraitRole: "Web / Marketing / YouTube / Logistics / Technology",
-    explore: [
-      { title: "Work", body: "Selected websites, service flows, and digital experiences built for clarity and trust.", href: "work", cta: "View projects" },
-      { title: "Apps / MoPlayer", body: "A product surface for MoPlayer with activation, support, releases, and app positioning.", href: "apps/moplayer", cta: "Open product" },
-      { title: "YouTube", body: "Arabic tech videos, product reviews, tutorials, and content that explains technology simply.", href: "youtube", cta: "Visit channel" },
-      { title: "CV", body: "A focused professional profile across logistics, web systems, content, and product work.", href: "cv", cta: "Read profile" },
-      { title: "Contact", body: "A clean path for project inquiries, collaboration, support, or a practical next step.", href: "contact", cta: "Start inquiry" },
-      { title: "Story", body: "The thread behind the work: operations pressure, technology curiosity, and building useful systems.", href: "about", cta: "Learn more" },
-    ],
-    highlights: [
-      { value: "Web", label: "Design, frontend, bilingual structure" },
-      { value: "MoPlayer", label: "Product thinking and Android TV surface" },
-      { value: "YouTube", label: "Arabic technology storytelling" },
-      { value: "Logistics", label: "Real-world systems and service clarity" },
-    ],
-  },
-  ar: {
-    eyebrow: "نظام محمد الفراس الرقمي",
-    title: "أبني مواقع وحضوراً رقمياً ومحتوى تقنياً يربط العمل الحقيقي بالتكنولوجيا.",
-    body:
-      "واجهة شخصية فاخرة تجمع تصميم وتطوير المواقع، التسويق الرقمي، يوتيوب، الخبرة اللوجستية، وحب التكنولوجيا والبناء المستمر.",
-    primary: "استكشف الأعمال",
-    secondary: "ابدأ محادثة",
-    proof: ["تصميم وتطوير مواقع", "تفكير تسويقي رقمي", "صانع محتوى تقني عربي", "انضباط لوجستي عملي"],
-    exploreEyebrow: "ماذا تجد هنا",
-    exploreTitle: "تنقّل بين المسارات الأساسية للمنظومة.",
-    exploreBody: "كل بطاقة تفتح جزءاً واضحاً من الموقع: الأعمال، المنتجات، المحتوى، السيرة، أو التعاون.",
-    positioningEyebrow: "نظام شخصي واضح",
-    positioningTitle: "هوية رقمية عملية تجمع صنعة الويب، المحتوى، اللوجستيات، والتكنولوجيا.",
-    positioningBody:
-      "أربط المواقع المصقولة، التجارب الرقمية ذات الحس التسويقي، المحتوى التقني العربي، والانضباط التشغيلي داخل منظومة واحدة واضحة. الهدف أن تصبح الأفكار أسهل فهماً، أكثر ثقة، وأقرب للتنفيذ.",
-    highlightsEyebrow: "إشارات سريعة",
-    highlightsTitle: "شخصية واحدة ومسارات مفيدة متعددة.",
-    ctaEyebrow: "الخطوة التالية",
-    ctaTitle: "اختر المسار المناسب لما تحتاجه الآن.",
-    ctaBody: "تصفح الأعمال، اكتشف MoPlayer، شاهد محتوى يوتيوب، أو أرسل طلب تعاون.",
-    ctaWork: "شاهد الأعمال",
-    ctaApps: "اكتشف MoPlayer",
-    ctaYoutube: "شاهد يوتيوب",
-    ctaContact: "تواصل",
-    portraitLabel: "محمد الفراس",
-    portraitRole: "ويب / تسويق / يوتيوب / لوجستيات / تكنولوجيا",
-    explore: [
-      { title: "الأعمال", body: "مواقع وتجارب رقمية مختارة مبنية للوضوح والثقة واتخاذ القرار.", href: "work", cta: "عرض المشاريع" },
-      { title: "التطبيقات / MoPlayer", body: "واجهة منتج كاملة لـ MoPlayer تشمل التفعيل والدعم والإصدارات والتموضع.", href: "apps/moplayer", cta: "فتح المنتج" },
-      { title: "يوتيوب", body: "محتوى تقني عربي، مراجعات، شروحات، وتجارب تجعل التكنولوجيا أسهل فهماً.", href: "youtube", cta: "زيارة القناة" },
-      { title: "السيرة", body: "ملف مهني واضح يجمع اللوجستيات، أنظمة الويب، المحتوى، والعمل على المنتجات.", href: "cv", cta: "قراءة الملف" },
-      { title: "تواصل", body: "مسار واضح لطلبات المشاريع، التعاون، الدعم، أو تحديد الخطوة العملية التالية.", href: "contact", cta: "ابدأ الطلب" },
-      { title: "القصة", body: "الخيط الذي يجمع العمل: ضغط العمليات، فضول التكنولوجيا، وبناء أنظمة مفيدة.", href: "about", cta: "اعرف أكثر" },
-    ],
-    highlights: [
-      { value: "Web", label: "تصميم، واجهات، وبنية ثنائية اللغة" },
-      { value: "MoPlayer", label: "تفكير منتج وتجربة Android TV" },
-      { value: "YouTube", label: "سرد تقني عربي واضح" },
-      { value: "Logistics", label: "أنظمة واقعية ووضوح في الخدمات" },
-    ],
-  },
-} as const;
-
-const workPageCopy = {
-  en: {
-    hero: {
-      eyebrow: "Selected Work",
-      title: "Digital systems built for real businesses.",
-      subtitle:
-        "A curated look at websites, product surfaces, and digital experiences I designed around clarity, trust, and action — from moving and transport companies to MoPlayer, my Android TV app ecosystem.",
-      positioning:
-        "I do not build pages only to look good. I build digital systems that explain the offer, guide the customer, and make the next step obvious.",
-      primary: "View case studies",
-      secondary: "Start a project",
-      tertiary: "Need a website like this?",
-    },
-    intro: {
-      title: "Projects with structure, story, and conversion in mind.",
-      text:
-        "Every project starts with the same question: what does the customer need to understand quickly? From there, I shape the layout, content, visuals, and contact flow so the website feels clear, trustworthy, and easy to use on mobile and desktop.",
-    },
-    projects: [
-      {
-        label: "Moving company website",
-        title: "Schnell Sicher Umzug",
-        url: "https://schnellsicherumzug.de/",
-        line: "A structured service website for moving, disposal, and furniture assembly requests.",
-        description:
-          "Schnell Sicher Umzug needed a website that presents practical moving services without confusing the customer. The experience is built around clear service categories, quick contact options, pricing orientation, and a request flow that works well on mobile.",
-        focus:
-          "I focused on making the service understandable fast: what the company offers, where it operates, how to request a quote, and how the customer can take the next step without friction.",
-        highlights: [
-          "Clear service structure for moving, disposal, and assembly",
-          "Mobile-first request and contact flow",
-          "Trust-building copy for Berlin and Germany-wide service",
-          "Strong calls to action for quote requests and WhatsApp contact",
-          "Visual hierarchy designed for quick decision-making",
-        ],
-        cta: "Build a service website like this",
-        image: "/images/projects/schnell-home-case.png",
-        secondaryImage: "/images/projects/schnell-service-case.png",
-        tone: "cyan",
-      },
-      {
-        label: "Moving / relocation website",
-        title: "Intelligent Umzüge",
-        url: "https://www.intelligent-umzuege.de/",
-        line: "A conversion-focused moving website with pricing clarity and direct inquiry paths.",
-        description:
-          "Intelligent Umzüge is designed around the questions customers ask before a move: how much does it cost, how quickly can I get help, and how can I request a reliable offer? The page structure brings pricing, inspection, WhatsApp contact, and service trust into one clear flow.",
-        focus:
-          "The goal was to make the website feel direct and useful: customers can understand the offer, compare service options, and move quickly toward contact or inspection.",
-        highlights: [
-          "Clear pricing orientation and service packages",
-          "Strong WhatsApp and inquiry CTAs",
-          "Free inspection positioning for larger moves",
-          "Berlin, Germany-wide, and Europe-wide service framing",
-          "Trust-focused sections for planning and execution",
-        ],
-        cta: "Request a conversion-focused website",
-        image: "/images/projects/intelligent-umzuege-home.png",
-        secondaryImage: "/images/projects/intelligent-umzuege-mobile.png",
-        tone: "violet",
-      },
-      {
-        label: "Vehicle transport / towing website",
-        title: "A&D Fahrzeugtransporte",
-        url: "https://www.adtransporte.de/",
-        line: "A direct-response website for towing, vehicle transport, and emergency service.",
-        description:
-          "A&D Fahrzeugtransporte needed a strong digital presence for urgent and planned vehicle transport requests. The website is structured to communicate trust fast: 24/7 availability, Berlin and Brandenburg coverage, direct phone and WhatsApp contact, and clear service categories for different transport needs.",
-        focus:
-          "For this kind of business, speed and trust matter. The layout helps visitors understand the service immediately and contact the company without searching.",
-        highlights: [
-          "Emergency-first hero for towing and vehicle transport",
-          "Direct contact paths for phone, WhatsApp, and inquiry",
-          "Clear service categories for towing, transport, transfer, and machinery",
-          "Strong local positioning for Berlin and Brandenburg",
-          "Visual structure designed for urgency and trust",
-        ],
-        cta: "Create a transport website like this",
-        image: "/images/projects/adtransporte-home.png",
-        secondaryImage: "/images/projects/adtransporte-mobile.png",
-        tone: "gold",
-      },
-    ],
-    product: {
-      label: "Android TV product / IPTV app",
-      title: "MoPlayer",
-      line: "A custom Android TV media product built around activation, sources, and a TV-first interface.",
-      description:
-        "MoPlayer is my own Android TV app ecosystem — a product that connects Android development, product design, IPTV source management, activation flows, weather and match widgets, and a website-based release/download system.",
-      focus:
-        "MoPlayer is more than an app screen. It is a product system: Android app, website, release pipeline, activation, remote configuration, and user setup flow working together.",
-      highlights: [
-        "Android TV-first interface direction",
-        "MO-XXXX device activation flow",
-        "Xtream and M3U source support",
-        "Weather and football widgets through website proxies",
-        "APK release metadata and official download flow",
-        "Admin and remote configuration foundation",
-      ],
-      cta: "Explore MoPlayer",
-    },
-    ecosystem: {
-      label: "Personal brand / product ecosystem",
-      title: "moalfarras.space",
-      line: "A personal digital OS connecting portfolio, content, products, CV, and admin control.",
-      description:
-        "This website is designed as the central hub for my work: web projects, MoPlayer, YouTube content, CV, contact, and future digital products. The goal is to turn a personal portfolio into a structured ecosystem that can grow over time.",
-      focus:
-        "The goal is not just to present who I am, but to make the whole ecosystem understandable: what I build, what I create, and how people can work with me.",
-      highlights: [
-        "Personal brand system",
-        "Multi-language Arabic/English experience",
-        "MoPlayer product pages and activation routes",
-        "CV and project presentation",
-        "Admin control direction",
-        "Designed to connect work, content, and products",
-      ],
-      cta: "Build a digital ecosystem",
-    },
-    offer: {
-      title: "Want a project with the same level of clarity?",
-      text:
-        "I design and build websites for people and businesses that need more than a simple online page. Whether it is a transport company, moving service, product landing page, app ecosystem, or personal brand, the goal is the same: make the offer clear, make the design trustworthy, and make the next step easy.",
-      cards: [
-        ["Business websites", "For companies that need a serious, mobile-friendly presence with clear services and contact flow."],
-        ["Service company websites", "For moving, transport, towing, cleaning, local services, and appointment-based businesses."],
-        ["Product pages", "For apps, tools, digital products, and offers that need a strong presentation."],
-        ["UI/UX redesign", "For existing websites that feel outdated, confusing, or weak on mobile."],
-        ["Admin and control systems", "For projects that need content control, releases, media, messages, or business workflows."],
-        ["Bilingual experiences", "For websites that need Arabic, English, or German-friendly communication."],
-      ],
-      ctaTitle: "Have an idea or a business that needs a stronger digital presence?",
-      ctaText:
-        "Send me what you want to build. I can help shape the structure, design, content, and user flow so the final result feels professional and easy to use.",
-      buttons: ["Start a project", "Contact me", "View MoPlayer"],
-    },
-    labels: {
-      live: "Live website",
-      focus: "What I focused on",
-      similar: "Need something similar?",
-      jump: "Project index",
-    },
-  },
-  ar: {
-    hero: {
-      eyebrow: "أعمال مختارة",
-      title: "أنظمة رقمية مصممة لأعمال حقيقية.",
-      subtitle:
-        "مجموعة من المواقع، صفحات المنتجات، وتجارب الويب التي صممتها حول الوضوح، الثقة، وسهولة الوصول للخطوة التالية — من مواقع النقل والخدمات إلى MoPlayer كتجربة تطبيق Android TV.",
-      positioning:
-        "أنا لا أبني صفحات فقط لتبدو جميلة. أبني تجربة رقمية تساعد الزائر أن يفهم الخدمة بسرعة، يثق بالعرض، ويتخذ الخطوة التالية بسهولة.",
-      primary: "استعرض المشاريع",
-      secondary: "ابدأ مشروعك",
-      tertiary: "تريد موقعًا مشابهًا؟",
-    },
-    intro: {
-      title: "مشاريع مبنية على الوضوح، القصة، والتحويل.",
-      text:
-        "كل مشروع يبدأ بسؤال بسيط: ما الذي يحتاج العميل أن يفهمه بسرعة؟ بعدها أبني هيكل الصفحة، النصوص، الصور، وتجربة التواصل حتى يكون الموقع واضحًا، موثوقًا، وسهل الاستخدام على الجوال والكمبيوتر.",
-    },
-    projects: [
-      {
-        label: "موقع شركة نقل",
-        title: "Schnell Sicher Umzug",
-        url: "https://schnellsicherumzug.de/",
-        line: "موقع خدمات منظم للنقل، التخلص من الأثاث، وتركيب الأثاث.",
-        description:
-          "Schnell Sicher Umzug يحتاج إلى موقع يشرح الخدمات العملية بطريقة واضحة وغير معقدة. التجربة مبنية حول تصنيفات خدمات واضحة، طرق تواصل سريعة، توجيه سعري، ونموذج طلب مناسب للجوال.",
-        focus:
-          "ركزت على جعل الخدمة مفهومة من أول لحظة: ماذا تقدم الشركة، أين تعمل، كيف يطلب العميل عرض سعر، وما هي الخطوة التالية بدون تعقيد.",
-        highlights: [
-          "تنظيم واضح لخدمات النقل، التخلص، والتركيب",
-          "تجربة طلب وتواصل مناسبة للجوال",
-          "نصوص تبني الثقة لخدمات برلين وألمانيا",
-          "دعوات واضحة لطلب عرض سعر أو التواصل عبر واتساب",
-          "ترتيب بصري يساعد العميل على اتخاذ القرار بسرعة",
-        ],
-        cta: "صمّم موقع خدمات مشابه",
-        image: "/images/projects/schnell-home-case.png",
-        secondaryImage: "/images/projects/schnell-service-case.png",
-        tone: "cyan",
-      },
-      {
-        label: "موقع نقل وانتقال",
-        title: "Intelligent Umzüge",
-        url: "https://www.intelligent-umzuege.de/",
-        line: "موقع نقل يركز على وضوح الأسعار وسهولة إرسال الطلب.",
-        description:
-          "Intelligent Umzüge مبني حول الأسئلة التي يطرحها العميل قبل الانتقال: ما التكلفة؟ كيف أتواصل بسرعة؟ وهل يمكنني الحصول على عرض واضح؟ لذلك تم تنظيم الصفحة حول الأسعار، المعاينة المجانية، واتساب، وبناء الثقة بالخدمة.",
-        focus:
-          "الهدف كان أن يشعر الزائر أن الموقع مباشر ومفيد: يفهم العرض، يقارن الخيارات، وينتقل بسرعة إلى التواصل أو حجز معاينة.",
-        highlights: [
-          "عرض واضح للأسعار وباقات الخدمة",
-          "دعوات قوية للتواصل عبر واتساب والطلب المباشر",
-          "إبراز المعاينة المجانية للمشاريع الأكبر",
-          "توضيح نطاق الخدمة في برلين، ألمانيا، وأوروبا",
-          "أقسام تعزز الثقة في التخطيط والتنفيذ",
-        ],
-        cta: "اطلب موقعًا يركز على التحويل",
-        image: "/images/projects/intelligent-umzuege-home.png",
-        secondaryImage: "/images/projects/intelligent-umzuege-mobile.png",
-        tone: "violet",
-      },
-      {
-        label: "موقع نقل وسحب سيارات",
-        title: "A&D Fahrzeugtransporte",
-        url: "https://www.adtransporte.de/",
-        line: "موقع مباشر لخدمات السحب، نقل السيارات، وحالات الطوارئ.",
-        description:
-          "A&D Fahrzeugtransporte يحتاج إلى حضور رقمي قوي لطلبات السحب والنقل العاجلة والمخططة. تم بناء الموقع ليعرض الثقة بسرعة: توفر 24/7، خدمة في برلين وبراندنبورغ، تواصل مباشر عبر الهاتف والواتساب، وتصنيفات خدمة واضحة.",
-        focus:
-          "في هذا النوع من الأعمال، السرعة والثقة هما الأهم. لذلك يساعد التصميم الزائر أن يفهم الخدمة فورًا ويتواصل بدون بحث طويل.",
-        highlights: [
-          "هيرو موجه للطوارئ وخدمات نقل السيارات",
-          "طرق تواصل مباشرة: هاتف، واتساب، ونموذج طلب",
-          "تصنيفات واضحة للسحب، النقل، التحويلات، والمعدات",
-          "تموضع محلي قوي في برلين وبراندنبورغ",
-          "تصميم يخدم السرعة والثقة في قرار التواصل",
-        ],
-        cta: "أنشئ موقع نقل مشابه",
-        image: "/images/projects/adtransporte-home.png",
-        secondaryImage: "/images/projects/adtransporte-mobile.png",
-        tone: "gold",
-      },
-    ],
-    product: {
-      label: "تطبيق Android TV / IPTV",
-      title: "MoPlayer",
-      line: "تجربة Android TV مخصصة لإدارة المصادر، التفعيل، وتشغيل المحتوى بواجهة تلفزيونية.",
-      description:
-        "MoPlayer هو منظومة تطبيق Android TV خاصة بي، تجمع بين تطوير أندرويد، تصميم المنتج، إدارة مصادر IPTV، التفعيل عبر الموقع، وواجهات الطقس والمباريات، مع نظام إصدار وتحميل رسمي من الموقع.",
-      focus:
-        "MoPlayer ليس مجرد شاشة تطبيق. هو نظام منتج كامل: تطبيق أندرويد، موقع، إصدار، تفعيل، إعدادات عن بعد، وتجربة استخدام متصلة.",
-      highlights: [
-        "واجهة موجهة لتجربة Android TV",
-        "نظام تفعيل الجهاز بكود MO-XXXX",
-        "دعم مصادر Xtream و M3U",
-        "ويدجت الطقس والمباريات عبر الموقع بدون أسرار داخل التطبيق",
-        "نظام إصدار APK وبيانات تحميل رسمية",
-        "أساس للتحكم من الأدمن والإعدادات عن بعد",
-      ],
-      cta: "استكشف MoPlayer",
-    },
-    ecosystem: {
-      label: "هوية شخصية ومنظومة رقمية",
-      title: "moalfarras.space",
-      line: "منظومة شخصية تجمع الأعمال، المحتوى، المنتجات، السيرة الذاتية، والتحكم من الأدمن.",
-      description:
-        "هذا الموقع هو المركز الرئيسي لأعمالي: المشاريع، MoPlayer، محتوى يوتيوب، السيرة الذاتية، التواصل، والمنتجات الرقمية القادمة. الهدف هو تحويل الموقع الشخصي إلى منظومة واضحة قابلة للتوسع.",
-      focus:
-        "الهدف ليس فقط أن أعرض من أنا، بل أن أجعل كل المنظومة مفهومة: ماذا أبني، ماذا أقدم، وكيف يمكن للناس العمل معي.",
-      highlights: [
-        "نظام هوية شخصية",
-        "تجربة متعددة اللغات بالعربي والإنجليزي",
-        "صفحات MoPlayer وروابط التفعيل",
-        "عرض السيرة الذاتية والمشاريع",
-        "اتجاه واضح للوحة تحكم وإدارة المحتوى",
-        "ربط العمل، المحتوى، والمنتجات في مكان واحد",
-      ],
-      cta: "ابنِ منظومة رقمية",
-    },
-    offer: {
-      title: "تريد مشروعًا بنفس مستوى الوضوح؟",
-      text:
-        "أصمم وأبني مواقع للأشخاص والشركات التي تحتاج أكثر من صفحة عادية على الإنترنت. سواء كان المشروع لشركة نقل، خدمة محلية، صفحة منتج، تطبيق، أو هوية شخصية، الهدف واحد: عرض واضح، تصميم موثوق، وخطوة تواصل سهلة.",
-      cards: [
-        ["مواقع أعمال", "للشركات التي تحتاج حضورًا احترافيًا وسهل الاستخدام على الجوال."],
-        ["مواقع شركات خدمات", "للنقل، السحب، التنظيف، الخدمات المحلية، والمواعيد."],
-        ["صفحات منتجات", "للتطبيقات، الأدوات، والمنتجات الرقمية التي تحتاج عرضًا قويًا."],
-        ["إعادة تصميم UI/UX", "للمواقع القديمة أو الضعيفة أو غير الواضحة على الجوال."],
-        ["لوحات تحكم وأنظمة إدارة", "للمشاريع التي تحتاج إدارة محتوى، إصدارات، صور، رسائل، أو عمليات عمل."],
-        ["تجارب متعددة اللغات", "لمواقع تحتاج تواصلًا عربيًا، إنجليزيًا، أو ألمانيًا بشكل واضح."],
-      ],
-      ctaTitle: "عندك فكرة أو مشروع يحتاج حضورًا رقميًا أقوى؟",
-      ctaText:
-        "أرسل لي ما تريد بناءه. أستطيع مساعدتك في ترتيب الفكرة، التصميم، النصوص، وتجربة المستخدم حتى تكون النتيجة احترافية وسهلة الاستخدام.",
-      buttons: ["ابدأ مشروعك", "تواصل معي", "استكشف MoPlayer"],
-    },
-    labels: {
-      live: "الموقع المباشر",
-      focus: "محور التركيز",
-      similar: "تحتاج شيئًا مشابهًا؟",
-      jump: "فهرس المشاريع",
-    },
-  },
-} as const;
 
 const youtubePageCopy = {
   en: {
@@ -423,9 +48,9 @@ const youtubePageCopy = {
       watch: "Watch now",
     },
     grid: {
-      eyebrow: "Latest masterpieces",
-      title: "Fresh videos, reviews, and practical tech stories.",
-      body: "A fast, visual way to explore recent videos from the channel.",
+      eyebrow: "Latest uploads",
+      title: "Recent reviews and practical technology videos.",
+      body: "Explore the newest available uploads from the channel with their real publication dates.",
       views: "views",
       play: "Play",
     },
@@ -464,9 +89,9 @@ const youtubePageCopy = {
       watch: "شاهد الآن",
     },
     grid: {
-      eyebrow: "أحدث الأعمال",
-      title: "فيديوهات حديثة، مراجعات، وقصص تقنية عملية.",
-      body: "طريقة بصرية وسريعة لاستكشاف آخر محتوى القناة.",
+      eyebrow: "أحدث الفيديوهات",
+      title: "آخر المراجعات والفيديوهات التقنية العملية.",
+      body: "استكشف أحدث الفيديوهات المتاحة من القناة مع تواريخ نشرها الحقيقية.",
       views: "مشاهدة",
       play: "تشغيل",
     },
@@ -653,173 +278,19 @@ function PillarGrid({ model }: { model: SiteViewModel }) {
   );
 }
 
-function homeExploreIcons(index: number) {
-  return [Globe2, MonitorPlay, PlayCircle, BriefcaseBusiness, Mail, Compass][index] ?? Compass;
-}
-
-function homeHighlightIcons(index: number) {
-  return [Code2, Cpu, Film, Truck][index] ?? Compass;
-}
-
-function OffersSection({ model, placement }: { model: SiteViewModel; placement: SiteViewModel["offers"][number]["placement"] }) {
-  const offers = model.offers.filter((offer) => offer.placement === placement || offer.placement === "all");
-  if (!offers.length) return null;
-
-  return (
-    <section className="fresh-section site-offers-section" data-placement={placement}>
-      <div className={offers.some((offer) => offer.style === "cards") ? "site-offers-grid" : "site-offers-stack"}>
-        {offers.map((offer) => (
-          <article key={offer.id} className={`site-offer site-offer-${offer.style}`}>
-            <div className="site-offer-copy">
-              {offer.badge ? <span className="fresh-eyebrow">{offer.badge}</span> : null}
-              <h2>{offer.title}</h2>
-              <p>{offer.body}</p>
-              {offer.ctaLabel ? (
-                <Link href={offer.ctaHref} className="fresh-button fresh-button-primary">
-                  {offer.ctaLabel}
-                  <ArrowUpRight size={16} />
-                </Link>
-              ) : null}
-            </div>
-            <div className="site-offer-media">
-              <Image src={offer.image} alt={offer.title} fill sizes="(max-width: 900px) 92vw, 420px" className="fresh-image" />
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// Kept temporarily as a fallback reference while the Digital OS v2 homepage is reviewed.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function HomePage({ model }: { model: SiteViewModel }) {
-  const h = homepageCopy[model.locale];
-  const portrait = model.portraitImage || "/images/protofeilnew.jpeg";
-  const views = compact(model.locale, model.live.youtube?.totalViews ?? model.youtube.views, "1.5M+");
-  const subscribers = compact(model.locale, model.live.youtube?.subscribers ?? model.youtube.subscribers, "6.1K+");
-
-  return (
-    <PageShell className="os-home">
-      <section className="os-home-hero">
-        <div className="os-home-hero-copy">
-          <Image src="/images/logo.png" alt="" width={120} height={120} className="os-home-logo-ghost" priority />
-          <p className="fresh-eyebrow">{h.eyebrow}</p>
-          <h1>{h.title}</h1>
-          <p className="os-home-lede">{h.body}</p>
-          <div className="os-home-proof-row" aria-label={model.locale === "ar" ? "نقاط تعريفية" : "Identity proof points"}>
-            {h.proof.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </div>
-          <div className="fresh-actions">
-            <Link href={pathFor(model.locale, "work")} className="fresh-button fresh-button-primary">
-              {h.primary}
-              <ArrowUpRight size={17} />
-            </Link>
-            <Link href={pathFor(model.locale, "contact")} className="fresh-button">
-              {h.secondary}
-            </Link>
-          </div>
-        </div>
-
-        <div className="os-home-visual">
-          <div className="os-home-orbit" />
-          <div className="os-home-logo-card">
-            <Image src="/images/logo.png" alt="Mohammad Alfarras logo" width={96} height={96} />
-            <span>Digital OS</span>
-          </div>
-          <div className="os-home-photo-frame">
-            <Image src={portrait} alt={model.profile.name} fill priority sizes="(max-width: 900px) 100vw, 38vw" className="fresh-image" />
-          </div>
-          <div className="os-home-id-card">
-            <strong>{h.portraitLabel}</strong>
-            <span>{h.portraitRole}</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="fresh-section">
-        <SectionHeader eyebrow={h.exploreEyebrow} title={h.exploreTitle} body={h.exploreBody} />
-        <div className="os-home-explore-grid">
-          {h.explore.map((item, index) => {
-            const Icon = homeExploreIcons(index);
-            return (
-              <Link href={pathFor(model.locale, item.href)} className="os-home-explore-card" key={item.title}>
-                <span className="fresh-card-icon">
-                  <Icon />
-                </span>
-                <span className="os-home-card-kicker">0{index + 1}</span>
-                <h3>{item.title}</h3>
-                <p>{item.body}</p>
-                <span className="fresh-link">
-                  {item.cta}
-                  <ArrowUpRight size={16} />
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="fresh-section os-home-positioning">
-        <div>
-          <p className="fresh-eyebrow">{h.positioningEyebrow}</p>
-          <h2>{h.positioningTitle}</h2>
-          <p>{h.positioningBody}</p>
-        </div>
-        <div className="os-home-signal-panel">
-          <div>
-            <span>{model.locale === "ar" ? "مشاهدات يوتيوب" : "YouTube views"}</span>
-            <strong>{views}</strong>
-          </div>
-          <div>
-            <span>{model.locale === "ar" ? "مشتركون" : "Subscribers"}</span>
-            <strong>{subscribers}</strong>
-          </div>
-          <div>
-            <span>{model.locale === "ar" ? "القاعدة" : "Base"}</span>
-            <strong>{model.profile.location || "Germany"}</strong>
-          </div>
-        </div>
-      </section>
-
-      <section className="fresh-section">
-        <SectionHeader eyebrow={h.highlightsEyebrow} title={h.highlightsTitle} />
-        <div className="os-home-highlight-grid">
-          {h.highlights.map((item, index) => {
-            const Icon = homeHighlightIcons(index);
-            return (
-              <article className="fresh-card fresh-card-quiet" key={item.value}>
-                <Icon className="fresh-card-icon" />
-                <h3>{item.value}</h3>
-                <p>{item.label}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="fresh-section os-home-cta">
-        <p className="fresh-eyebrow">{h.ctaEyebrow}</p>
-        <h2>{h.ctaTitle}</h2>
-        <p>{h.ctaBody}</p>
-        <div className="fresh-actions">
-          <Link href={pathFor(model.locale, "work")} className="fresh-button fresh-button-primary">{h.ctaWork}</Link>
-          <Link href={pathFor(model.locale, "apps/moplayer")} className="fresh-button">{h.ctaApps}</Link>
-          <Link href={pathFor(model.locale, "youtube")} className="fresh-button">{h.ctaYoutube}</Link>
-          <Link href={pathFor(model.locale, "contact")} className="fresh-button">{h.ctaContact}</Link>
-        </div>
-      </section>
-    </PageShell>
-  );
-}
-
 function HomePageV2({ model }: { model: SiteViewModel }) {
   const isAr = model.locale === "ar";
   const portrait = model.portraitImage || "/images/protofeilnew.jpeg";
-  const views = compact(model.locale, model.live.youtube?.totalViews ?? model.youtube.views, "1.5M+");
-  const subscribers = compact(model.locale, model.live.youtube?.subscribers ?? model.youtube.subscribers, "6.1K+");
+  const views = compact(
+    model.locale,
+    model.live.youtube?.totalViews ?? model.youtube.views,
+    compactMetric(youtubeChannel.fallback.views),
+  );
+  const subscribers = compact(
+    model.locale,
+    model.live.youtube?.subscribers ?? model.youtube.subscribers,
+    compactMetric(youtubeChannel.fallback.subscribers),
+  );
   const home = isAr
     ? {
         eyebrow: "Mohammad Alfarras Digital OS",
@@ -955,7 +426,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      <OffersSection model={model} placement="home" />
+      <SiteOffersSection model={model} placement="home" />
 
       <section className="fresh-section os-home-explore-section">
         <div className="os-home-explore-grid os-entry-grid">
@@ -1048,193 +519,6 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
   );
 }
 
-// Kept temporarily as a fallback reference while the interactive exhibition is reviewed.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function WorkPage({ model }: { model: SiteViewModel }) {
-  const w = workPageCopy[model.locale];
-  const contactHref = pathFor(model.locale, "contact");
-  const workAnchors = [
-    ...w.projects.map((project) => project.title),
-    w.product.title,
-    w.ecosystem.title,
-  ];
-  return (
-    <PageShell className="os-work-page">
-      <section className="os-work-hero">
-        <div className="os-work-hero-copy">
-          <p className="fresh-eyebrow">{w.hero.eyebrow}</p>
-          <h1>{w.hero.title}</h1>
-          <p className="os-work-subtitle">{w.hero.subtitle}</p>
-          <div className="os-work-positioning">
-            <Radio className="h-5 w-5" />
-            <p>{w.hero.positioning}</p>
-          </div>
-          <div className="fresh-actions">
-            <a href="#case-studies" className="fresh-button fresh-button-primary">
-              {w.hero.primary}
-              <ArrowUpRight size={17} />
-            </a>
-            <Link href={contactHref} className="fresh-button">{w.hero.secondary}</Link>
-          </div>
-        </div>
-        <div className="os-work-hero-board">
-          <div className="os-work-board-screen os-work-board-screen-main">
-            <Image src="/images/projects/schnell-home-case.png" alt="Schnell Sicher Umzug preview" fill priority sizes="(max-width: 900px) 100vw, 42vw" className="fresh-image" />
-          </div>
-          <div className="os-work-board-screen os-work-board-screen-small">
-            <Image src="/images/projects/adtransporte-mobile.png" alt="A&D Fahrzeugtransporte mobile preview" fill priority sizes="220px" className="fresh-image" />
-          </div>
-          <div className="os-work-board-caption">
-            <span>{w.hero.tertiary}</span>
-            <Link href={contactHref}>
-              {w.hero.secondary}
-              <ArrowUpRight size={15} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <nav className="os-work-jump" aria-label={w.labels.jump}>
-        {workAnchors.map((item, index) => (
-          <a href={`#work-${index + 1}`} key={item}>
-            <span>0{index + 1}</span>
-            {item}
-          </a>
-        ))}
-      </nav>
-
-      <section className="fresh-section os-work-intro" id="case-studies">
-        <div>
-          <p className="fresh-eyebrow">{w.hero.eyebrow}</p>
-          <h2>{w.intro.title}</h2>
-        </div>
-        <p>{w.intro.text}</p>
-      </section>
-
-      <div className="os-work-showcase">
-        {w.projects.map((project, index) => (
-          <section className="os-work-case" id={`work-${index + 1}`} key={project.title} data-tone={project.tone} data-flip={index % 2 === 1 ? "true" : "false"}>
-            <div className="os-work-case-media">
-              <div className="os-work-browser">
-                <div><span /><span /><span /></div>
-                <Image src={project.image} alt={`${project.title} website preview`} fill sizes="(max-width: 900px) 100vw, 52vw" className="fresh-image" />
-              </div>
-              <div className="os-work-phone">
-                <Image src={project.secondaryImage} alt={`${project.title} secondary preview`} fill sizes="180px" className="fresh-image" />
-              </div>
-            </div>
-            <div className="os-work-case-copy">
-              <span className="os-work-index">0{index + 1}</span>
-              <p className="fresh-eyebrow">{project.label}</p>
-              <h2>{project.title}</h2>
-              <p className="os-work-line">{project.line}</p>
-              <p>{project.description}</p>
-              <div className="os-work-focus">
-                <strong>{w.labels.focus}</strong>
-                <span>{project.focus}</span>
-              </div>
-              <ul className="os-work-highlights">
-                {project.highlights.map((highlight) => (
-                  <li key={highlight}>{highlight}</li>
-                ))}
-              </ul>
-              <div className="fresh-actions">
-                <Link href={contactHref} className="fresh-button fresh-button-primary">
-                  {project.cta}
-                </Link>
-                <a href={project.url} target="_blank" rel="noopener noreferrer" className="fresh-button">
-                  {w.labels.live}
-                  <ArrowUpRight size={16} />
-                </a>
-              </div>
-            </div>
-          </section>
-        ))}
-      </div>
-
-      <section className="fresh-section os-work-product" id="work-4">
-        <div className="os-work-product-copy">
-          <span className="os-work-index">04</span>
-          <p className="fresh-eyebrow">{w.product.label}</p>
-          <h2>{w.product.title}</h2>
-          <p className="os-work-line">{w.product.line}</p>
-          <p>{w.product.description}</p>
-          <div className="os-work-focus">
-            <strong>{w.labels.focus}</strong>
-            <span>{w.product.focus}</span>
-          </div>
-          <ul className="os-work-highlights">
-            {w.product.highlights.map((highlight) => (
-              <li key={highlight}>{highlight}</li>
-            ))}
-          </ul>
-          <div className="fresh-actions">
-            <Link href={pathFor(model.locale, "apps/moplayer")} className="fresh-button fresh-button-primary">{w.product.cta}</Link>
-            <Link href={contactHref} className="fresh-button">{w.labels.similar}</Link>
-          </div>
-        </div>
-        <div className="os-work-product-media">
-          <Image src="/images/moplayer-release-panel.webp" alt="MoPlayer release and download product visual" fill sizes="(max-width: 900px) 100vw, 45vw" className="fresh-image" loading="eager" />
-          <div>
-            <Image src="/images/moplayer_ui_now_playing-final.png" alt="MoPlayer Android TV cinematic screen" fill sizes="260px" className="fresh-image" loading="eager" />
-          </div>
-        </div>
-      </section>
-
-      <section className="fresh-section os-work-ecosystem" id="work-5">
-        <div className="os-work-ecosystem-visual">
-          <Image src="/images/logo.png" alt="moalfarras.space logo" width={150} height={150} loading="eager" />
-          <span>moalfarras.space</span>
-        </div>
-        <div>
-          <span className="os-work-index">05</span>
-          <p className="fresh-eyebrow">{w.ecosystem.label}</p>
-          <h2>{w.ecosystem.title}</h2>
-          <p className="os-work-line">{w.ecosystem.line}</p>
-          <p>{w.ecosystem.description}</p>
-          <div className="os-work-focus">
-            <strong>{w.labels.focus}</strong>
-            <span>{w.ecosystem.focus}</span>
-          </div>
-          <ul className="os-work-highlights">
-            {w.ecosystem.highlights.map((highlight) => (
-              <li key={highlight}>{highlight}</li>
-            ))}
-          </ul>
-          <Link href={contactHref} className="fresh-button fresh-button-primary">{w.ecosystem.cta}</Link>
-        </div>
-      </section>
-
-      <section className="fresh-section os-work-offer">
-        <div className="os-work-offer-head">
-          <h2>{w.offer.title}</h2>
-          <p>{w.offer.text}</p>
-        </div>
-        <div className="os-work-offer-grid">
-          {w.offer.cards.map(([title, body], index) => (
-            <article key={title}>
-              <span>0{index + 1}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="fresh-section os-work-final-cta">
-        <p className="fresh-eyebrow">{w.labels.similar}</p>
-        <h2>{w.offer.ctaTitle}</h2>
-        <p>{w.offer.ctaText}</p>
-        <div className="fresh-actions">
-          <Link href={contactHref} className="fresh-button fresh-button-primary">{w.offer.buttons[0]}</Link>
-          <Link href={contactHref} className="fresh-button">{w.offer.buttons[1]}</Link>
-          <Link href={pathFor(model.locale, "apps/moplayer")} className="fresh-button">{w.offer.buttons[2]}</Link>
-        </div>
-      </section>
-    </PageShell>
-  );
-}
-
 function ServicesPage({ model }: { model: SiteViewModel }) {
   const c = t(model.locale);
   const isAr = model.locale === "ar";
@@ -1257,7 +541,7 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
   return (
     <PageShell className="services-command-page">
       <section className="fresh-section fresh-first services-hero-band">
-        <SectionHeader eyebrow={c.services.eyebrow} title={c.services.title} body={c.services.body} />
+        <SectionHeader eyebrow={c.services.eyebrow} title={c.services.title} body={c.services.body} level="h1" />
         <div className="services-proof-row">
           {outcomes.map((item) => (
             <span key={item}>{item}</span>
@@ -1284,7 +568,7 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      <OffersSection model={model} placement="services" />
+      <SiteOffersSection model={model} placement="services" />
 
       <section className="fresh-section services-process-section">
         <div>
@@ -1328,15 +612,6 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
   );
 }
 
-function AppsPage({ model }: { model: SiteViewModel }) {
-  return (
-    <>
-      <AppsShowcasePage locale={model.locale} />
-      <OffersSection model={model} placement="apps" />
-    </>
-  );
-}
-
 function YoutubePage({ model }: { model: SiteViewModel }) {
   const y = youtubePageCopy[model.locale];
   const isAr = model.locale === "ar";
@@ -1356,7 +631,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
       publishedAt: video.published_at,
     }));
   const videos = latest.length ? latest.slice(0, 6) : [
-    { id: "wfTnQK_tTSA", title: isAr ? "مراجعة تقنية مختارة من قناة محمد الفراس" : "Featured Arabic technology review by Mohammad Alfarras", thumbnail: "/images/yt-channel-hero.png", views: Number(model.youtube.views) || 1494029, publishedAt: new Date().toISOString() },
+    { id: "wfTnQK_tTSA", title: isAr ? "مراجعة تقنية مختارة من قناة محمد الفراس" : "Featured Arabic technology review by Mohammad Alfarras", thumbnail: "/images/yt-channel-hero.png", views: Number(model.youtube.views) || youtubeChannel.fallback.views, publishedAt: new Date().toISOString() },
   ];
   const spotlight = model.live.youtube?.popularVideos?.[0]
     ? {
@@ -1368,9 +643,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
       }
     : videos[0];
   const statsData = [
-    { label: y.hero.stats[0], value: compact(model.locale, model.live.youtube?.subscribers ?? model.youtube.subscribers, "6.1K+") },
-    { label: y.hero.stats[1], value: compact(model.locale, model.live.youtube?.totalViews ?? model.youtube.views, "1.5M+") },
-    { label: y.hero.stats[2], value: compact(model.locale, model.live.youtube?.videoCount ?? model.youtube.videos, "162") },
+    { label: y.hero.stats[0], value: compact(model.locale, model.live.youtube?.subscribers ?? model.youtube.subscribers, compactMetric(youtubeChannel.fallback.subscribers)) },
+    { label: y.hero.stats[1], value: compact(model.locale, model.live.youtube?.totalViews ?? model.youtube.views, compactMetric(youtubeChannel.fallback.views)) },
+    { label: y.hero.stats[2], value: compact(model.locale, model.live.youtube?.videoCount ?? model.youtube.videos, String(youtubeChannel.fallback.videos)) },
   ];
   const fmt = new Intl.NumberFormat(isAr ? "ar" : "en", { notation: "compact", maximumFractionDigits: 1 });
   const dateFmt = new Intl.DateTimeFormat(isAr ? "ar" : "en", { month: "short", day: "numeric", year: "numeric" });
@@ -1499,37 +774,12 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   );
 }
 
-function CvPage({ model }: { model: SiteViewModel }) {
-  const views = Number(model.live.youtube?.totalViews ?? model.youtube.views ?? 1494029) || 1494029;
-  const subscribers = Number(model.live.youtube?.subscribers ?? model.youtube.subscribers ?? 6130) || 6130;
-  const videos = Number(model.live.youtube?.videoCount ?? model.youtube.videos ?? 162) || 162;
-  return (
-    <InteractiveCvPage
-      locale={model.locale}
-      profileName={model.profile.name}
-      portrait="/images/portrait.jpg"
-      downloads={{ branded: model.downloads.branded, docx: model.downloads.docx }}
-      stats={{ views, subscribers, videos }}
-      experience={model.cvExperience}
-    />
-  );
-}
-
-function ContactPage({ model }: { model: SiteViewModel }) {
-  return (
-    <>
-      <ContactHubPage locale={model.locale} content={model.t.contact} />
-      <OffersSection model={model} placement="contact" />
-    </>
-  );
-}
-
 function AboutPage({ model }: { model: SiteViewModel }) {
   const c = t(model.locale);
   return (
     <PageShell>
       <section className="fresh-section fresh-first">
-        <SectionHeader eyebrow={c.about.eyebrow} title={c.about.title} body={c.about.body} />
+        <SectionHeader eyebrow={c.about.eyebrow} title={c.about.title} body={c.about.body} level="h1" />
         <PillarGrid model={model} />
       </section>
     </PageShell>
@@ -1538,19 +788,10 @@ function AboutPage({ model }: { model: SiteViewModel }) {
 
 export function DigitalOsPage({ model }: { model: SiteViewModel }) {
   switch (model.pageSlug) {
-    case "work":
-    case "projects":
-      return <WorkDigitalExhibition locale={model.locale} projects={model.projects} />;
     case "services":
       return <ServicesPage model={model} />;
-    case "apps":
-      return <AppsPage model={model} />;
     case "youtube":
       return <YoutubePage model={model} />;
-    case "cv":
-      return <CvPage model={model} />;
-    case "contact":
-      return <ContactPage model={model} />;
     case "about":
       return <AboutPage model={model} />;
     case "home":

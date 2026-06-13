@@ -1,6 +1,4 @@
 import type { LiveYoutubeStats } from "@/lib/youtube-live";
-import type { LiveWeather } from "@/lib/weather-live";
-import type { LiveMatch } from "@/lib/matches-live";
 import type { CvBuilderData, CvBuilderSection } from "@/lib/cv-builder";
 import type { RebuildLocaleContent } from "@/data/rebuild-content";
 import type { Locale, YoutubeVideo } from "@/types/cms";
@@ -123,8 +121,6 @@ export type SiteViewModel = {
   latestVideos: YoutubeVideo[];
   gallery: SiteGalleryItem[];
   live: {
-    weather: LiveWeather | null;
-    matches: LiveMatch[];
     youtube?: LiveYoutubeStats | null;
   };
   cvBuilder: CvBuilderData;

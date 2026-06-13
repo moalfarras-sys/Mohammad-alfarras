@@ -51,6 +51,9 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   const downloadHref = latest && latest.assets.some((asset) => asset.external_url || asset.storage_path) ? `/api/app/releases/${latest.slug}/download` : null;
   const proHref = `/${locale}/apps/moplayer2`;
   const activateHref = `/${locale}/activate?product=moplayer`;
+  const legalDisclaimer = isAr
+    ? "MoPlayer مشغل وسائط فقط. لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمياً بحقوق النشر. تقع مسؤولية إضافة المصادر والتأكد من امتلاك حق استخدامها على المستخدم وحده."
+    : "MoPlayer is a media player only. It does not provide channels, playlists, subscriptions, or copyrighted media. Users are solely responsible for adding sources they are legally authorized to use.";
   
   const galleryShots = [
     { id: "classic-promo", title: isAr ? "عرض MoPlayer Classic" : "MoPlayer Classic Showcase", alt_text: "MoPlayer Classic promotional showcase", image_path: "/images/moplayer-classic-promo.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
@@ -66,7 +69,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
       {/* Background effects - Navy Blue */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 w-full h-[80vh] opacity-35">
-          <Image src="/images/moplayer-classic-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" priority />
+          <Image src="/images/moplayer-classic-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.015]" />
@@ -279,7 +282,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
             {t.disclaimerTitle}
           </span>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-white">{productName}</h2>
-          <p className="text-sm text-white/40 mb-8 max-w-xl mx-auto leading-relaxed">{text(ecosystem.product.changelog_intro, t.finalBody)}</p>
+          <p className="text-sm text-white/50 mb-8 max-w-2xl mx-auto leading-relaxed">{legalDisclaimer}</p>
           
           <div className="flex flex-wrap gap-3 items-center justify-center">
             {downloadHref && (

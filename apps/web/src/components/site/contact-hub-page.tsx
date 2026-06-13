@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowUpRight, Clock3, Mail, MapPin, MessageCircle, MonitorPlay, Network, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import { socialLinks } from "@/content/site";
-import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 import type { RebuildLocaleContent } from "@/data/rebuild-content";
@@ -167,10 +165,10 @@ export function ContactHubPage({ locale, content }: ContactHubPageProps) {
           <h1>{t.title}</h1>
           <p>{t.body}</p>
           <div className="fresh-actions">
-            <Link href={withLocale(locale, "work")} className="fresh-button fresh-button-primary magnetic-surface">
+            <a href="#inquiry-form" className="fresh-button fresh-button-primary magnetic-surface">
               {t.cta}
               <ArrowUpRight size={17} />
-            </Link>
+            </a>
             <a href={`mailto:${socialLinks.email}`} className="fresh-button magnetic-surface">
               {t.socials.email}
               <Mail size={17} />
@@ -223,7 +221,7 @@ export function ContactHubPage({ locale, content }: ContactHubPageProps) {
           </div>
         </aside>
 
-        <section className="contact-form-panel">
+        <section className="contact-form-panel" id="inquiry-form">
           <div className="contact-form-head">
             <p className="fresh-eyebrow"><Mail size={15} />{t.formTitle}</p>
             <p>{t.formBody}</p>

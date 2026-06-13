@@ -10,12 +10,14 @@ const SITE_URL = "https://moalfarras.space";
 
 const localizedMeta = {
   ar: {
-    title: "MoPlayer — عائلة تطبيقات Android وWindows ومنصات التلفزيون",
+    title: "تطبيقات MoPlayer",
+    socialTitle: "MoPlayer — عائلة تطبيقات Android وWindows والتلفزيون",
     description:
       "بوابة MoPlayer الجديدة تجمع Classic وPro وPC، وتجهز مكانا واضحا لتطبيقات iOS وApple TV وLG وSamsung القادمة.",
   },
   en: {
-    title: "MoPlayer — Android, Windows, and TV platform product family",
+    title: "MoPlayer Apps",
+    socialTitle: "MoPlayer — Android, Windows, and TV product family",
     description:
       "The new MoPlayer hub brings Classic, Pro, and PC together, with a prepared roadmap for future iOS, Apple TV, LG, and Samsung apps.",
   },
@@ -37,17 +39,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
     },
     openGraph: {
-      title: meta.title,
+      title: meta.socialTitle,
       description: meta.description,
       url: `${SITE_URL}/${locale}/apps/moplayer`,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: meta.title }],
+      images: [{ url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: meta.socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
+      title: meta.socialTitle,
       description: meta.description,
       images: ["/images/moplayer-pro-hero.webp"],
     },

@@ -2,10 +2,21 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PortfolioProjectPage } from "@/components/site/portfolio-pages";
-import { buildSiteModel } from "@/components/site/site-pages-v3";
+import { buildSiteModel } from "@/components/site/site-model";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, creativeWorkJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
+
+export async function generateStaticParams() {
+  const params: Array<{ locale: Locale; slug: string }> = [];
+  for (const locale of ["en", "ar"] as const) {
+    const model = await buildSiteModel({ locale, slug: "work" });
+    for (const project of model.projects) {
+      params.push({ locale, slug: project.slug });
+    }
+  }
+  return params;
+}
 
 export async function generateMetadata({
   params,
@@ -21,7 +32,8 @@ export async function generateMetadata({
 
   const baseUrl = "https://moalfarras.space";
   const path = `/${locale}/work/${slug}`;
-  const title = `${project.title} | ${locale === "ar" ? "الأعمال" : "Work"} | Mohammad Alfarras`;
+  const title = `${project.title} | ${locale === "ar" ? "الأعمال" : "Work"}`;
+  const socialTitle = `${title} | Mohammad Alfarras`;
   const description = project.description || project.summary;
 
   return {
@@ -38,7 +50,7 @@ export async function generateMetadata({
     openGraph: {
       type: "article",
       url: `${baseUrl}${path}`,
-      title,
+      title: socialTitle,
       description,
       images: [
         {
@@ -51,7 +63,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: socialTitle,
       description,
       images: [`${baseUrl}${project.image}`],
     },

@@ -1,3 +1,5 @@
+import { youtubeChannel } from "@/content/site-data";
+
 export type LiveYoutubeVideo = {
   id: string;
   title: string;
@@ -77,7 +79,7 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
     // 1. Fetch channel stats and metadata
     const channelRes = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${CHANNEL_ID}&key=${API_KEY}`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: youtubeChannel.revalidateSeconds } }
     );
     const channelData = (await channelRes.json()) as YoutubeChannelResponse;
     const channelItem = channelData.items?.[0];
@@ -87,7 +89,7 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
     // 2. Fetch Latest 6 videos
     const latestSearchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&order=date&type=video&maxResults=6&key=${API_KEY}`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: youtubeChannel.revalidateSeconds } }
     );
     const latestSearchData = (await latestSearchRes.json()) as YoutubeSearchResponse;
     const latestVideoIds = latestSearchData.items?.map((item) => item.id.videoId).join(",") || "";
@@ -95,7 +97,7 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
     // 3. Fetch Most Popular 6 videos
     const popularSearchRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&order=viewCount&type=video&maxResults=6&key=${API_KEY}`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: youtubeChannel.revalidateSeconds } }
     );
     const popularSearchData = (await popularSearchRes.json()) as YoutubeSearchResponse;
     const popularVideoIds = popularSearchData.items?.map((item) => item.id.videoId).join(",") || "";
@@ -104,7 +106,7 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
       if (!ids) return [];
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${ids}&key=${API_KEY}`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: youtubeChannel.revalidateSeconds } }
       );
       const data = (await res.json()) as YoutubeVideoDetailsResponse;
       return (data.items || []).map((item) => ({
@@ -128,7 +130,7 @@ export async function getLiveYoutubeData(channelId?: string): Promise<LiveYoutub
     for (const targetVidId of candidateVideoIds) {
       const commentsRes = await fetch(
         `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${targetVidId}&maxResults=10&order=relevance&key=${API_KEY}`,
-        { next: { revalidate: 3600 } }
+        { next: { revalidate: youtubeChannel.revalidateSeconds } }
       );
 
       if (!commentsRes.ok) continue;

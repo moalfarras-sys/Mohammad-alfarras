@@ -18,12 +18,14 @@ const SITE_URL = "https://moalfarras.space";
 
 const localizedMeta = {
   ar: {
-    title: "MoPlayer Classic — تطبيق أندرويد سريع للأجهزة العادية والضعيفة",
+    title: "MoPlayer Classic",
+    socialTitle: "MoPlayer Classic — تطبيق أندرويد سريع وخفيف",
     description:
       "MoPlayer Classic هو تطبيق أندرويد وAndroid TV خفيف وسريع، مناسب للأجهزة الضعيفة، مع تحميل APK رسمي وإرشادات تثبيت وتفعيل واضحة.",
   },
   en: {
-    title: "MoPlayer Classic — fast Android media player for more devices",
+    title: "MoPlayer Classic",
+    socialTitle: "MoPlayer Classic — fast, lightweight Android player",
     description:
       "MoPlayer Classic is the lightweight Android and Android TV player for normal and low-power devices, with official APK downloads and clear setup guidance.",
   },
@@ -45,17 +47,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
     },
     openGraph: {
-      title: meta.title,
+      title: meta.socialTitle,
       description: meta.description,
       url: `${SITE_URL}/${locale}/apps/moplayer/classic`,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: "/images/moplayer-hero-3d-final.png", width: 1600, height: 900, alt: meta.title }],
+      images: [{ url: "/images/moplayer-hero-3d-final.png", width: 1600, height: 900, alt: meta.socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
+      title: meta.socialTitle,
       description: meta.description,
       images: ["/images/moplayer-hero-3d-final.png"],
     },

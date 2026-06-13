@@ -64,7 +64,7 @@ const copy = {
         body: "A clear product release path for downloads, metadata, and future version notes without confusing the visitor.",
         badges: ["APK path", "Version clarity", "Website-linked"],
         cta: "Download APK",
-        href: "api/app/download/latest",
+        href: "/api/app/download/latest?product=moplayer",
         image: "/images/moplayer-release-panel.webp",
         icon: "/images/moplayer-icon-512.png",
         accent: "metal",
@@ -122,7 +122,7 @@ const copy = {
         body: "مسار واضح للتحميل، معلومات الإصدار، والتحديثات القادمة بدون تشتيت للمستخدم.",
         badges: ["مسار APK", "وضوح الإصدار", "مرتبط بالموقع"],
         cta: "تحميل APK",
-        href: "api/app/download/latest",
+        href: "/api/app/download/latest?product=moplayer",
         image: "/images/moplayer-release-panel.webp",
         icon: "/images/moplayer-icon-512.png",
         accent: "metal",
@@ -174,7 +174,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
             <h1>{c.title}</h1>
             <p>{c.body}</p>
             <div className="apps-actions">
-              <Link href={withLocale(locale, "activate")} className="apps-button apps-button-primary">
+              <Link href={`${withLocale(locale, "activate")}?product=moplayer`} className="apps-button apps-button-primary">
                 <KeyRound className="h-4 w-4" />
                 {c.primary}
               </Link>
@@ -259,8 +259,8 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
                       <span key={badge}>{badge}</span>
                     ))}
                   </div>
-                  <Link href={app.href.startsWith("api/") ? `/${app.href}` : withLocale(locale, app.href)} className="apps-card-link">
-                    {app.href.startsWith("api/") ? <Download className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+                  <Link href={app.href.startsWith("/api/") ? app.href : withLocale(locale, app.href)} className="apps-card-link">
+                    {app.href.startsWith("/api/") ? <Download className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                     {app.cta}
                   </Link>
                 </div>
@@ -298,11 +298,11 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
           <h2>{c.finalTitle}</h2>
           <p>{c.finalBody}</p>
           <div className="apps-actions">
-            <Link href={withLocale(locale, "activate")} className="apps-button apps-button-primary">
+            <Link href={`${withLocale(locale, "activate")}?product=moplayer`} className="apps-button apps-button-primary">
               <KeyRound className="h-4 w-4" />
               {c.primary}
             </Link>
-            <Link href="/api/app/download/latest" className="apps-button apps-button-ghost">
+            <Link href="/api/app/download/latest?product=moplayer" className="apps-button apps-button-ghost">
               <Download className="h-4 w-4" />
               {c.download}
             </Link>

@@ -16,11 +16,24 @@ export function GlassPanel({ children, className, as = "div" }: { children: Reac
   return <Component className={cn("fresh-card", className)}>{children}</Component>;
 }
 
-export function SectionHeader({ eyebrow, title, body, className }: { eyebrow: string; title: string; body?: string; className?: string }) {
+export function SectionHeader({
+  eyebrow,
+  title,
+  body,
+  className,
+  level = "h2",
+}: {
+  eyebrow: string;
+  title: string;
+  body?: string;
+  className?: string;
+  level?: "h1" | "h2";
+}) {
+  const Heading = level;
   return (
     <div className={cn("fresh-section-head", className)}>
       <p className="fresh-eyebrow">{eyebrow}</p>
-      <h1>{title}</h1>
+      <Heading>{title}</Heading>
       {body ? <p>{body}</p> : null}
     </div>
   );

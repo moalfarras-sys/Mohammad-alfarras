@@ -1,4 +1,5 @@
 import type { CmsSnapshot } from "@/types/cms";
+import { siteIdentity, youtubeChannel } from "@/content/site-data";
 
 const now = new Date().toISOString();
 
@@ -1038,11 +1039,11 @@ export const defaultSnapshot: CmsSnapshot = {
   work_project_media: [],
   work_project_metrics: [],
   site_settings: [
-    { key: "site_name", value_json: { ar: "محمد الفراس", en: "Mohammad Alfarras" } },
+    { key: "site_name", value_json: { ar: siteIdentity.name.ar, en: siteIdentity.name.en } },
     { key: "contact", value_json: { email: "Mohammad.Alfarras@gmail.com", phone: "+49 176 23419358" } },
-    { key: "brand_profile", value_json: { title_ar: "محمد الفراس", title_en: "Mohammad Alfarras", subtitle_ar: "تجارب رقمية، محتوى تقني، وعقلية تنفيذ تعرف كيف ترتب الفكرة", subtitle_en: "Digital experiences, tech content, and execution shaped by operational thinking", location_ar: "ألمانيا", location_en: "Germany" } },
+    { key: "brand_profile", value_json: { title_ar: siteIdentity.name.ar, title_en: siteIdentity.name.en, subtitle_ar: "تجارب رقمية، محتوى تقني، وعقلية تنفيذ تعرف كيف ترتب الفكرة", subtitle_en: "Digital experiences, tech content, and execution shaped by operational thinking", location_ar: "ألمانيا", location_en: "Germany" } },
     { key: "availability", value_json: { ar: "جاهز الآن لمشاريع جديدة في المواقع والتطبيقات وتسويق المنتجات.", en: "Currently available for new website, app, and product-promotion projects." } },
-    { key: "youtube_channel", value_json: { channel_id: "UCfQKyFnNaW026LVb5TGx87g", handle: "@Moalfarras", title: "Mohammad Alfarras", avatar: "https://yt3.googleusercontent.com/QFjHe2t4ubzu20Iobk4N0FxkKfpTQL5e4pRZzU8f0BfGib6hEd4QEE4-NBLLVtg2LO23HwCeXA=s900-c-k-c0x00ffffff-no-rj", subscribers: 6130, videos: 162, views: 1494029, description_ar: "مراجعات وعرض منتجات وتقنية عربية من ألمانيا.", description_en: "Arabic tech reviews and product storytelling from Germany." } },
+    { key: "youtube_channel", value_json: { channel_id: youtubeChannel.id, handle: youtubeChannel.handle, title: youtubeChannel.title, avatar: "https://yt3.googleusercontent.com/QFjHe2t4ubzu20Iobk4N0FxkKfpTQL5e4pRZzU8f0BfGib6hEd4QEE4-NBLLVtg2LO23HwCeXA=s900-c-k-c0x00ffffff-no-rj", subscribers: youtubeChannel.fallback.subscribers, videos: youtubeChannel.fallback.videos, views: youtubeChannel.fallback.views, description_ar: "مراجعات وعرض منتجات وتقنية عربية من ألمانيا.", description_en: "Arabic tech reviews and product storytelling from Germany." } },
     { key: "youtube_sync", value_json: { status: "configured", last_sync: null, synced_count: 6, channel_id: "UCfQKyFnNaW026LVb5TGx87g" } },
   ],
   audit_logs: [],

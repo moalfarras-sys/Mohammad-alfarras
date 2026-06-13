@@ -1,17 +1,13 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   ArrowDownToLine,
   ArrowRight,
   BadgeCheck,
   Bot,
-  CloudSun,
-  Gamepad2,
   KeyRound,
   MonitorPlay,
+  ShieldCheck,
   Zap,
 } from "lucide-react";
 
@@ -78,14 +74,17 @@ const copy = {
     },
     services: "Unified Services",
     activateCta: "Activate",
-    servicesTitle: "Synchronized widgets across the ecosystem.",
-    servicesBody: "Weather, matches, support, and downloads feel consistent across every edition.",
+    servicesTitle: "One clear product flow across every edition.",
+    servicesBody: "Activation, support, official downloads, and privacy stay consistent across every MoPlayer product.",
     servicesList: [
-      ["Weather", "Clear daily context on supported screens."],
-      ["Football", "Match cards stay familiar across web and players."],
-      ["Mo Assistant", "One friendly help layer for support."],
+      ["Activation", "Each device opens the correct private pairing flow."],
+      ["Support", "One clear route for product and setup questions."],
       ["Downloads", "Each edition opens the right official file."],
+      ["Privacy", "Private sources remain under the user's control."],
     ],
+    legalTitle: "Player-only legal notice",
+    legalBody:
+      "MoPlayer products are media players only. They do not sell or provide channels, playlists, subscriptions, or copyrighted media. Users must connect only sources they own or are legally authorized to access.",
     coming: "Expanding Ecosystem",
     comingBody: "Native builds for more screens are in active preparation.",
     futures: [
@@ -127,14 +126,17 @@ const copy = {
     },
     services: "خدمات موحدة",
     activateCta: "تفعيل",
-    servicesTitle: "مزامنة الويدجت عبر المنظومة.",
-    servicesBody: "الطقس والمباريات والدعم والتحميلات تظهر بروح واحدة في كل إصدار.",
+    servicesTitle: "مسار منتج واحد وواضح في كل إصدار.",
+    servicesBody: "التفعيل والدعم والتنزيلات الرسمية والخصوصية تبقى متناسقة في جميع منتجات MoPlayer.",
     servicesList: [
-      ["الطقس", "معلومة يومية واضحة على الشاشات المدعومة."],
-      ["المباريات", "بطاقات مباريات مألوفة بين الموقع والمشغلات."],
-      ["مساعد Mo", "مساعدة ودودة من مكان واحد."],
-      ["التحميلات", "كل إصدار يفتح ملفه الرسمي الصحيح."],
+      ["التفعيل", "كل جهاز يفتح مسار الربط الخاص به."],
+      ["الدعم", "مسار واضح لأسئلة المنتج والإعداد."],
+      ["التنزيلات", "كل إصدار يفتح ملفه الرسمي الصحيح."],
+      ["الخصوصية", "تبقى المصادر الخاصة تحت تحكم المستخدم."],
     ],
+    legalTitle: "تنبيه قانوني خاص بالمشغل",
+    legalBody:
+      "منتجات MoPlayer هي مشغلات وسائط فقط. لا تبيع ولا توفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمياً بحقوق النشر. يجب على المستخدم ربط المصادر التي يملكها أو يملك تصريحاً قانونياً للوصول إليها فقط.",
     coming: "منظومة تتوسع",
     comingBody: "نسخ لأجهزة إضافية قيد التطوير.",
     futures: [
@@ -183,15 +185,6 @@ function getProducts(locale: Locale) {
 }
 
 /* ── Framer Motion ── */
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
-};
-const stagger = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.12 } },
-};
-
 /* ── Main Component ── */
 export function MoPlayerProductHub({ locale }: { locale: Locale }) {
   const isAr = locale === "ar";
@@ -208,23 +201,23 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
 
       {/* ─── Hero ─── */}
       <section className="relative z-10 pt-32 pb-12 md:pt-36 md:pb-16 px-6 max-w-5xl mx-auto text-center">
-        <motion.div initial="hidden" animate="show" variants={stagger}>
-          <motion.div variants={fadeUp} className="mb-5">
+        <div>
+          <div className="mb-5">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[11px] font-bold tracking-widest uppercase text-white/60">
               <BadgeCheck className="h-3.5 w-3.5 text-amber-400" />
               {c.badge}
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-4 leading-[1.08] whitespace-pre-line">
+          <h1 className="critical-hero-title text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-4 leading-[1.08] whitespace-pre-line">
             {c.title}
-          </motion.h1>
+          </h1>
 
-          <motion.p variants={fadeUp} className="text-sm md:text-base text-white/45 max-w-lg mx-auto mb-8 leading-relaxed">
+          <p className="text-sm md:text-base text-white/45 max-w-lg mx-auto mb-8 leading-relaxed">
             {c.body}
-          </motion.p>
+          </p>
 
-          <motion.div variants={fadeUp} className="flex flex-wrap gap-2.5 justify-center">
+          <div className="flex flex-wrap gap-2.5 justify-center">
             {products.map((p) => {
               const col = colors[p.tone];
               return (
@@ -234,8 +227,8 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                 </a>
               );
             })}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* ─── Product Showcase Cards ─── */}
@@ -245,14 +238,10 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
           const isReversed = idx % 2 === 1;
 
           return (
-            <motion.article
+            <article
               key={product.id}
               id={product.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5, ease: "easeOut" as const }}
-              className="relative group rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.015] backdrop-blur-sm hover:border-white/15 transition-all duration-400"
+              className="moplayer-product-card relative group rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.015] backdrop-blur-sm hover:border-white/15 transition-all duration-400"
             >
               {/* Hover glow */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: `radial-gradient(ellipse at ${isReversed ? "100%" : "0%"} 50%, ${col.primary}10, transparent 60%)` }} />
@@ -269,7 +258,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                     </span>
                   </div>
 
-                  <h3 className="text-xl md:text-2xl font-extrabold text-white mb-2 leading-tight">{product.headline}</h3>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-white mb-2 leading-tight">{product.headline}</h2>
                   <p className="text-white/55 text-sm leading-relaxed mb-4 max-w-md">{product.body}</p>
 
                   <div className="flex flex-wrap gap-1.5 mb-5">
@@ -308,6 +297,12 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                         alt={product.name}
                         width={600}
                         height={400}
+                        sizes={
+                          product.galleryImages.length >= 2
+                            ? "(max-width: 640px) 44vw, (max-width: 1024px) 46vw, 520px"
+                            : "(max-width: 640px) 88vw, (max-width: 1024px) 92vw, 520px"
+                        }
+                        quality={70}
                         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.03] transition-all duration-700"
                       />
                     </div>
@@ -321,6 +316,8 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                           alt={`${product.name} screenshot ${i + 1}`}
                           width={300}
                           height={200}
+                          sizes="(max-width: 640px) 44vw, (max-width: 1024px) 46vw, 260px"
+                          quality={70}
                           className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500"
                         />
                       </div>
@@ -328,31 +325,45 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                   </div>
                 </div>
               </div>
-            </motion.article>
+            </article>
           );
         })}
       </section>
 
+      <section className="moplayer-deferred-section relative z-10 px-6 pb-16 max-w-6xl mx-auto">
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.04] p-6 md:p-8">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 shrink-0 rounded-xl border border-red-500/25 bg-red-500/10 text-red-300 flex items-center justify-center">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-white mb-2">{c.legalTitle}</h2>
+              <p className="text-sm leading-relaxed text-white/55 max-w-4xl">{c.legalBody}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ─── Services ─── */}
-      <section className="relative z-10 py-16 px-6 border-t border-white/[0.04]">
+      <section className="moplayer-deferred-section relative z-10 py-16 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/25 text-emerald-400 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/6 mb-3">
               <Zap className="h-3 w-3" /> {c.services}
             </span>
             <h2 className="text-xl md:text-2xl font-extrabold text-white mb-2">{c.servicesTitle}</h2>
-            <p className="text-white/40 text-xs max-w-md mx-auto">{c.servicesBody}</p>
+            <p className="text-white/60 text-xs max-w-md mx-auto">{c.servicesBody}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {c.servicesList.map(([title, body], index) => {
-              const Icon = [CloudSun, Gamepad2, Bot, MonitorPlay][index] || Zap;
+              const Icon = [KeyRound, Bot, ArrowDownToLine, ShieldCheck][index] || Zap;
               return (
                 <article key={title} className="p-4 rounded-xl bg-white/[0.015] border border-white/[0.04] hover:border-emerald-500/15 transition-all duration-300 group">
                   <div className="w-9 h-9 rounded-lg bg-emerald-500/8 border border-emerald-500/15 flex items-center justify-center mb-2.5 text-emerald-400 group-hover:scale-105 transition-transform">
                     <Icon className="h-4 w-4" />
                   </div>
                   <h3 className="text-xs font-bold text-white mb-1">{title}</h3>
-                  <p className="text-white/35 text-[11px] leading-relaxed">{body}</p>
+                  <p className="text-white/60 text-[11px] leading-relaxed">{body}</p>
                 </article>
               );
             })}
@@ -361,7 +372,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
       </section>
 
       {/* ─── Future Platforms ─── */}
-      <section className="relative z-10 py-16 px-6 border-t border-white/[0.04]">
+      <section className="moplayer-deferred-section relative z-10 py-16 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-500/25 text-sky-400 text-[10px] font-bold uppercase tracking-wider bg-sky-500/6 mb-3">
@@ -377,15 +388,15 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                   <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/8 flex items-center justify-center mb-2.5 text-white/50 group-hover:text-white/80 transition-colors">
                     {isApple ? <AppleIcon className="h-4 w-4" /> : <MonitorPlay className="h-4 w-4" />}
                   </div>
-                  <span className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-0.5">{item.platform}</span>
+                  <span className="text-[9px] font-bold text-white/60 uppercase tracking-widest mb-0.5">{item.platform}</span>
                   <h3 className="text-xs font-bold text-white mb-1.5">{item.name}</h3>
-                  <p className="text-white/35 text-[11px] leading-relaxed flex-1 mb-2.5">{item.body}</p>
+                  <p className="text-white/60 text-[11px] leading-relaxed flex-1 mb-2.5">{item.body}</p>
                   <div className="inline-flex items-center gap-1.5 self-start px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/8">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
                     </span>
-                    <span className="text-[9px] text-white/40 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] text-white/60 font-bold uppercase tracking-wider">
                       {isAr ? "قيد التطوير" : "In Dev"}
                     </span>
                   </div>

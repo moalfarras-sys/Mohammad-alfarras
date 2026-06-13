@@ -126,7 +126,14 @@ export function softwareApplicationJsonLd(params: {
     softwareVersion: params.version,
     fileSize: params.fileSize,
     downloadUrl: params.downloadUrl,
+    softwareRequirements: params.targetSdk ? `Android SDK ${params.targetSdk}+` : "Android 7.0+",
     featureList: params.featureList?.length ? params.featureList : defaults,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "EUR",
+      availability: "https://schema.org/InStock",
+    },
     publisher: { "@id": `${BASE_URL}/#person` },
   };
 }

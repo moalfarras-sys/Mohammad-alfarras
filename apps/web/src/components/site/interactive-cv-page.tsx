@@ -1,11 +1,7 @@
-"use client";
-
-import { AnimatePresence, motion, useInView, useScroll } from "framer-motion";
 import {
   ArrowUpRight,
   BriefcaseBusiness,
   Code2,
-  Coffee,
   Download,
   FileText,
   Languages,
@@ -14,16 +10,15 @@ import {
   Radio,
   Route,
   ShieldCheck,
-  Terminal,
   Truck,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
 
 import { withLocale } from "@/lib/i18n";
+import { languageLevels } from "@/content/site-data";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
@@ -62,7 +57,7 @@ function compactNumber(value: number, suffix = "+") {
 function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
   const ar = locale === "ar";
   return repairMojibakeDeep({
-    heroTitle: ar ? "محمد الفراس - مهندس برمجيات ومعماري رقمي" : "Mohamed Al Farras - Software Engineer & Digital Architect",
+    heroTitle: ar ? "محمد الفراس - مهندس برمجيات ومعماري رقمي" : "Mohammad Alfarras - Software Engineer & Digital Architect",
     heroHook: ar
       ? "الجسر بين عالم اللوجستيات الواقعي والأنظمة الرقمية المتقدمة."
       : "Bridging the gap between physical logistics and digital systems.",
@@ -123,60 +118,47 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
       [ar ? "باني تطبيقات" : "App Builder", "MoPlayer"],
     ],
     gameStats: [
-      [stats.videos, ar ? "فيديو تم إنتاجه" : "Videos Exported", PlayCircle],
-      [Math.round(stats.views / 1000), ar ? "ألف مشاهدة" : "K Views Generated", Users],
-      [4200, ar ? "شحنة/عملية لوجستية" : "Logistics Flows Managed", Truck],
-      [999, ar ? "قهوة أثناء البناء" : "Coffees Brewed", Coffee],
+      [stats.videos, ar ? "فيديو منشور" : "Videos published", PlayCircle],
+      [stats.views, ar ? "إجمالي المشاهدات" : "Total views", Users],
+      [4, ar ? "مشاريع ويب منشورة" : "Shipped web projects", Code2],
+      [2, ar ? "منتجان من MoPlayer" : "MoPlayer products", MonitorPlay],
     ] as Array<[number, string, LucideIcon]>,
   });
 }
 
 export function InteractiveCvPage({ locale, profileName, portrait, downloads, stats, experience }: InteractiveCvProps) {
   const displayStats = {
-    views: Math.max(stats.views, 1_500_000),
-    videos: Math.max(stats.videos, 162),
+    views: stats.views,
+    videos: stats.videos,
     subscribers: stats.subscribers,
   };
   const t = copy(locale, displayStats);
   const isAr = locale === "ar";
-  const [persona, setPersona] = useState<"dev" | "creator" | null>(null);
-  const [terminalOpen, setTerminalOpen] = useState(false);
-  const journeyRef = useRef<HTMLElement | null>(null);
-  const { scrollYProgress } = useScroll({ target: journeyRef, offset: ["start 70%", "end 55%"] });
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setTerminalOpen((value) => !value);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const rings = [
-    ["Next.js", 92, "cyan"],
-    ["TypeScript", 88, "blue"],
-    ["React", 90, "orange"],
+  const skillProof = [
+    ["Next.js + React", isAr ? "أنظمة ويب إنتاجية ثنائية اللغة" : "Production bilingual web systems"],
+    ["TypeScript", isAr ? "واجهات API وCMS ومسارات منتج Typed" : "Typed APIs, CMS, and product flows"],
+    ["Supabase + Postgres", isAr ? "بيانات المحتوى والإصدارات وقواعد الوصول" : "Content, release data, and access policies"],
+    ["Android TV", isAr ? "MoPlayer Classic وMoPlayer Pro" : "MoPlayer Classic and MoPlayer Pro"],
+    ["Product delivery", isAr ? "تنزيل وتفعيل ودعم وإدارة إصدارات" : "Downloads, activation, support, and releases"],
+    ["Technical content", `${compactNumber(displayStats.views)} ${isAr ? "مشاهدة" : "views"} / ${displayStats.videos} ${isAr ? "فيديو" : "videos"}`],
   ] as const;
-  const bars = [
-    ["Supabase", 78],
-    ["Postgres / APIs", 74],
-    ["Tailwind", 94],
-    ["Framer Motion", 82],
-  ] as const;
+  const languages = languageLevels[locale];
+  const languageFlags: Record<string, string> = {
+    ar: "/icons/flag-sy-new.svg",
+    de: "/icons/flag-de.svg",
+    en: "/icons/flag-gb.svg",
+  };
 
   return (
     <main className="cv-blueprint">
-      <section className={terminalOpen ? "cv-hero cv-terminal-open" : "cv-hero"}>
-        <div className="cv-persona-grid" onMouseLeave={() => setPersona(null)}>
-          <div className={persona === "dev" ? "cv-persona cv-persona-dev cv-persona-active" : "cv-persona cv-persona-dev"} onMouseEnter={() => setPersona("dev")}>
+      <section className="cv-hero">
+        <div className="cv-persona-grid">
+          <div className="cv-persona cv-persona-dev">
             <Code2 />
             <strong>{t.developer}</strong>
             <span>{t.devBody}</span>
           </div>
-          <div className={persona === "creator" ? "cv-persona cv-persona-creator cv-persona-active" : "cv-persona cv-persona-creator"} onMouseEnter={() => setPersona("creator")}>
+          <div className="cv-persona cv-persona-creator">
             <PlayCircle />
             <strong>{t.creator}</strong>
             <span>{t.creatorBody}</span>
@@ -184,10 +166,10 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
         </div>
 
         <div className="cv-profile-wrap">
-          <motion.div className="cv-photo-shell" initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.65 }}>
-            <Image src={portrait} alt={profileName} fill priority sizes="(max-width: 900px) 86vw, 380px" className="cv-photo" />
-          </motion.div>
-          <motion.div className="cv-hero-copy" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.65 }}>
+          <div className="cv-photo-shell">
+            <Image src={portrait} alt={profileName} fill priority sizes="(max-width: 480px) 348px, (max-width: 900px) 86vw, 380px" quality={65} className="cv-photo" />
+          </div>
+          <div className="cv-hero-copy">
             <p className="fresh-eyebrow">Interactive CV / The Engineer&apos;s Blueprint</p>
             <h1>{t.heroTitle}</h1>
             <p>{t.heroHook}</p>
@@ -199,21 +181,9 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
             <div className="fresh-actions">
               <Link href={downloads.branded} className="fresh-button fresh-button-primary" download><Download size={17} />{t.downloads}</Link>
               <Link href={downloads.docx} className="fresh-button" download><FileText size={17} />{t.docx}</Link>
-              <button type="button" className="fresh-button cv-terminal-toggle" onClick={() => setTerminalOpen((value) => !value)}><Terminal size={17} />{t.cmdHint}</button>
             </div>
-          </motion.div>
+          </div>
         </div>
-
-        <AnimatePresence>
-          {terminalOpen ? (
-            <motion.div className="cv-terminal" initial={{ rotateX: -75, opacity: 0 }} animate={{ rotateX: 0, opacity: 1 }} exit={{ rotateX: 75, opacity: 0 }}>
-              <div className="cv-terminal-bar"><span /><span /><span /><strong>{t.terminalTitle}</strong></div>
-              <div className="cv-terminal-body">
-                {t.terminalLines.map((line, index) => <p key={`${line}-${index}`} style={{ "--delay": `${index * 240}ms` } as React.CSSProperties}>{line}</p>)}
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
       </section>
 
       <section className="cv-game-stats">
@@ -228,9 +198,9 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
         <div className="cv-story-copy">{t.story.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
       </section>
 
-      <section className="cv-journey" ref={journeyRef}>
+      <section className="cv-journey">
         <svg className="cv-journey-path" viewBox="0 0 260 820" preserveAspectRatio="none" aria-hidden="true">
-          <motion.path d="M130 20 C30 150 230 235 130 360 C35 480 225 570 130 800" pathLength={scrollYProgress} />
+          <path d="M130 20 C30 150 230 235 130 360 C35 480 225 570 130 800" pathLength={1} />
         </svg>
         <div className="cv-waypoints">
           {t.waypoints.map((item) => <TimelineItem key={item.year} item={item} />)}
@@ -238,18 +208,17 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
       </section>
 
       <section className="cv-skills">
-        <div>
+        <div className="cv-skills-proof">
           <p className="fresh-eyebrow">Skills / Tech Stats</p>
           <h2>{t.skillTitle}</h2>
-          <div className="cv-rings">{rings.map(([label, value, tone]) => <SkillRing key={label} label={label} value={value} tone={tone} />)}</div>
-        </div>
-        <div className="cv-bars">
-          {bars.map(([label, value]) => <SkillBar key={label} label={label} value={value} />)}
-          <div className="cv-radar">
-            <ShieldCheck />
-            <strong>{isAr ? "حل المشكلات" : "Problem Solving"}</strong>
-            <span>{isAr ? "إدارة العمليات" : "Operations Management"}</span>
-            <span>{isAr ? "استراتيجية المحتوى" : "Content Strategy"}</span>
+          <div className="cv-proof-grid">
+            {skillProof.map(([label, proof]) => (
+              <article className="cv-proof-card" key={label}>
+                <ShieldCheck />
+                <strong>{label}</strong>
+                <span>{proof}</span>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -257,24 +226,14 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
       <section className="cv-languages">
         <h2>{t.languageTitle}</h2>
         <div>
-          <LanguageBadge
-            flagSrc="/icons/flag-sy-new.svg"
-            title={isAr ? "العربية" : "Arabic"}
-            level={isAr ? "اللغة الأم - تعبير وشرح وصناعة محتوى" : "Native - writing, explanation, and content"}
-            score={100}
-          />
-          <LanguageBadge
-            flagSrc="/icons/flag-de.svg"
-            title={isAr ? "الألمانية" : "German"}
-            level={isAr ? "C1 مهني - حياة وعمل في ألمانيا" : "C1 professional - life and work in Germany"}
-            score={88}
-          />
-          <LanguageBadge
-            flagSrc="/icons/flag-gb.svg"
-            title={isAr ? "الإنجليزية" : "English"}
-            level={isAr ? "كفاءة مهنية عملية للتقنية والتواصل" : "Professional working proficiency"}
-            score={78}
-          />
+          {languages.map((language) => (
+            <LanguageBadge
+              key={language.id}
+              flagSrc={languageFlags[language.id]}
+              title={language.label}
+              level={language.level}
+            />
+          ))}
         </div>
       </section>
 
@@ -309,34 +268,10 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
 }
 
 function CountCard({ value, label, icon: Icon, compact = false }: { value: number; label: string; icon: LucideIcon; compact?: boolean }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  const animatedRef = useRef(false);
-  const [current, setCurrent] = useState(value);
-  const display = useMemo(() => compactNumber(current, value >= 1000 ? "+" : ""), [current, value]);
-
-  useEffect(() => {
-    if (!inView || animatedRef.current) return;
-    animatedRef.current = true;
-    let frame = 0;
-    const total = 34;
-    const tick = () => {
-      frame += 1;
-      const progress = 1 - Math.pow(1 - frame / total, 3);
-      setCurrent(Math.round(value * Math.min(progress, 1)));
-      if (frame < total) requestAnimationFrame(tick);
-    };
-    const start = requestAnimationFrame(() => {
-      setCurrent(0);
-      requestAnimationFrame(tick);
-    });
-    return () => cancelAnimationFrame(start);
-  }, [inView, value]);
-
   return (
-    <div ref={ref} className={compact ? "cv-count-card cv-count-card-compact" : "cv-count-card"}>
+    <div className={compact ? "cv-count-card cv-count-card-compact" : "cv-count-card"}>
       <Icon />
-      <strong>{display}</strong>
+      <strong>{compactNumber(value, value >= 1000 ? "+" : "")}</strong>
       <span>{label}</span>
     </div>
   );
@@ -345,38 +280,16 @@ function CountCard({ value, label, icon: Icon, compact = false }: { value: numbe
 function TimelineItem({ item }: { item: { year: string; title: string; body: string; icon: LucideIcon } }) {
   const Icon = item.icon;
   return (
-    <motion.article className="cv-waypoint" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-120px" }}>
+    <article className="cv-waypoint">
       <span>{item.year}</span>
       <Icon />
       <h3>{item.title}</h3>
       <p>{item.body}</p>
-    </motion.article>
+    </article>
   );
 }
 
-function SkillRing({ label, value, tone }: { label: string; value: number; tone: "cyan" | "blue" | "orange" }) {
-  return (
-    <div className={`cv-skill-ring cv-ring-${tone}`} style={{ "--ring-value": value / 100 } as React.CSSProperties}>
-      <svg viewBox="0 0 120 120" aria-hidden="true">
-        <circle cx="60" cy="60" r="46" />
-        <motion.circle cx="60" cy="60" r="46" initial={{ pathLength: 0 }} whileInView={{ pathLength: value / 100 }} viewport={{ once: true }} transition={{ duration: 1.2, ease: "easeOut" }} />
-      </svg>
-      <strong>{value}%</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function SkillBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="cv-skill-bar">
-      <div><span>{label}</span><strong>{value}%</strong></div>
-      <span><motion.i initial={{ width: 0 }} whileInView={{ width: `${value}%` }} viewport={{ once: true }} transition={{ duration: 1.1, ease: "easeOut" }} /></span>
-    </div>
-  );
-}
-
-function LanguageBadge({ flagSrc, title, level, score }: { flagSrc: string; title: string; level: string; score: number }) {
+function LanguageBadge({ flagSrc, title, level }: { flagSrc: string; title: string; level: string }) {
   return (
     <article className="cv-language-badge">
       <span className="cv-language-flag">
@@ -384,12 +297,8 @@ function LanguageBadge({ flagSrc, title, level, score }: { flagSrc: string; titl
       </span>
       <div className="cv-language-title">
         <h3>{title}</h3>
-        <strong>{score}%</strong>
       </div>
       <p>{level}</p>
-      <div className="cv-language-meter" aria-hidden="true">
-        <i style={{ width: `${score}%` }} />
-      </div>
       <Languages />
     </article>
   );

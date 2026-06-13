@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/site-pages-v3";
+import { AppsShowcasePage } from "@/components/site/apps-showcase-page";
+import { buildSiteModel } from "@/components/site/site-model";
+import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -18,6 +20,7 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
+  const model = await buildSiteModel({ locale: loc, slug: "apps" });
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "التطبيقات" : "Apps", path: `/${loc}/apps` },
@@ -35,7 +38,8 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <SitePage locale={loc} slug="apps" />
+      <AppsShowcasePage locale={loc} />
+      <SiteOffersSection model={model} placement="apps" />
     </>
   );
 }

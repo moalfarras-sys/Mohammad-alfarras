@@ -13,7 +13,7 @@ const copy = {
     delivery: "Email delivery failed.",
     invalid: "Please check the highlighted fields.",
     receiptSubject: "We received your request",
-    receiptIntro: "Your request has been received and is now visible in the Moalfarras admin panel.",
+    receiptIntro: "Your request has been received. I will review it and reply to this email.",
     receiptStatus: "Current status: new",
   },
   ar: {
@@ -22,7 +22,7 @@ const copy = {
     delivery: "تعذر إرسال البريد.",
     invalid: "راجع الحقول المحددة.",
     receiptSubject: "تم استلام طلبك",
-    receiptIntro: "تم استلام طلبك وهو الآن ظاهر في لوحة إدارة Moalfarras.",
+    receiptIntro: "تم استلام طلبك. سأراجعه وأرد على هذا البريد الإلكتروني.",
     receiptStatus: "الحالة الحالية: جديد",
   },
 } as const;

@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 
-import { ThemeProvider } from "@/components/theme-provider";
 import { siteFontClassName } from "@/lib/fonts";
 
 import "./globals.css";
@@ -22,18 +20,6 @@ export const metadata: Metadata = {
   authors: [{ name: siteName, url: siteUrl }],
   creator: siteName,
   publisher: siteName,
-  keywords: [
-    "frontend developer germany",
-    "arabic web developer",
-    "bilingual website",
-    "Next.js developer germany",
-    "UI designer germany",
-    "مطوّر ويب",
-    "مصمم مواقع",
-    "تطوير مواقع عربية",
-    "Mohammad Alfarras",
-    "محمد الفراس",
-  ],
   alternates: {
     canonical: "/",
     languages: {
@@ -92,11 +78,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const requestHeaders = await headers();
-  const resolvedLocale = requestHeaders.get("x-site-locale") === "ar" ? "ar" : "en";
-  const resolvedDir = resolvedLocale === "ar" ? "rtl" : "ltr";
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const rootPersonJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -139,18 +121,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html lang={resolvedLocale} dir={resolvedDir} suppressHydrationWarning className={`liquid-site ${siteFontClassName}`}>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={`liquid-site ${siteFontClassName}`}>
       <head>
         <meta charSet="UTF-8" />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootPersonJsonLd) }} />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootOrgJsonLd) }} />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootWebsiteJsonLd) }} />
       </head>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="moalfarras-theme-ink-blue-amber-v2" disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

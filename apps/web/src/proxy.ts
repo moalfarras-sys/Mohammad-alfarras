@@ -27,6 +27,13 @@ export function proxy(request: NextRequest) {
 
   const locale = localeFromPathname(pathname);
 
+  const legacyPortfolioRoute = pathname.match(/^\/(en|ar)\/(?:projects|blog)(\/.*)?$/);
+  if (legacyPortfolioRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${legacyPortfolioRoute[1]}/work${legacyPortfolioRoute[2] ?? ""}`;
+    return NextResponse.redirect(url, 301);
+  }
+
   if (locale && (pathname === `/${locale}/admin` || pathname.startsWith(`/${locale}/admin/`))) {
     const adminUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space";
     const destination = new URL(
@@ -66,17 +73,10 @@ export function proxy(request: NextRequest) {
   if (!locale) {
     const url = request.nextUrl.clone();
     url.pathname = `/${defaultLocale}${pathname === "/" ? "" : pathname}`;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 308);
   }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-site-locale", locale);
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  return NextResponse.next();
 }
 
 export const config = {

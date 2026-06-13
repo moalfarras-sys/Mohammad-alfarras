@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/site-pages-v3";
+import { buildSiteModel } from "@/components/site/site-model";
+import { WorkDigitalExhibition } from "@/components/site/work-digital-exhibition";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -18,6 +19,7 @@ export default async function WorkRoute({ params }: { params: Promise<{ locale: 
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
+  const model = await buildSiteModel({ locale: loc, slug: "work" });
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "الأعمال" : "Work", path: `/${loc}/work` },
@@ -35,7 +37,7 @@ export default async function WorkRoute({ params }: { params: Promise<{ locale: 
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <SitePage locale={loc} slug="work" />
+      <WorkDigitalExhibition locale={loc} projects={model.projects} />
     </>
   );
 }

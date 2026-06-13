@@ -2,6 +2,17 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-13 Public Web Unification and Performance Audit
+
+- Completed the public EN/AR route, shell, SEO, interaction, accessibility, and performance audit in `apps/web`.
+- Unified active localized pages on the shared Digital OS shell, added direct legacy redirects, removed public weather/football UI, and retained the underlying APIs because Android/Windows clients still use them.
+- Centralized stable identity, social, metric, language-level, and SEO data; corrected the public name and million-scale view metric; removed CV jokes and percentage skill UI.
+- Converted the CV and MoPlayer hub to Server Components, split page-specific client bundles, removed route-wide Framer Motion and theme code, and changed Mo AI to load only on click.
+- Local mobile Lighthouse now measures 91-94 Performance and 100 Accessibility/Best Practices/SEO on the acceptance routes. Initial modern-browser JS is about 157.5 KB gzip. LCP remains about 3.0-3.2 seconds because the legacy global stylesheet is still shared; see `docs/WEB_AUDIT_2026-06-13.md`.
+- Updated public web and admin to Next.js `16.2.9` and `eslint-config-next` `16.2.9`. Both `npm run verify:web` and `npm run verify:admin` passed; web produced 94 pages and passed all 9 Vitest tests.
+- `npm audit --omit=dev` still reports transitive esbuild and Next-bundled PostCSS advisories. The available npm remediation is incompatible or an unsafe Next.js downgrade, so the advisories are documented for an upstream-compatible update instead of being force-overridden.
+- One factual content blocker remains: the owner must confirm exact Stocubo, IKEA, and Rhenus month/year ranges before the CV timeline can be unified without guessing.
+
 ## 2026-06-12 MoPlayer Pro Windows Adaptive Multi-view
 
 - Replaced the always-visible four-pane multi-view with a progressive layout in `apps/moplayer-pro-windows`.

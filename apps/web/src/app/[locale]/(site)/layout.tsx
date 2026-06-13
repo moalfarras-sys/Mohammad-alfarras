@@ -2,15 +2,21 @@ import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
 import { CookieBanner } from "@/components/layout/cookie-banner";
-import { DigitalOsClientEffects } from "@/components/layout/digital-os-client-effects";
+import { LazySiteAssistant } from "@/components/layout/lazy-site-assistant";
 import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
-import { SiteAssistantWidget } from "@/components/site/site-assistant-widget";
 import { getNavigation } from "@/content/navigation";
+import { siteIdentity, youtubeChannel } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
+
+export const revalidate = 30;
+
+export function generateStaticParams() {
+  return [{ locale: "en" }, { locale: "ar" }];
+}
 
 function siteCopy(locale: "ar" | "en") {
   if (locale === "ar") {
@@ -36,8 +42,8 @@ function siteCopy(locale: "ar" | "en") {
   }
 
   return {
-    brandName: "Mohammad Alfarras",
-    tagline: "Web | Apps | Content | Logistics",
+      brandName: siteIdentity.name.en,
+      tagline: siteIdentity.tagline.en,
     links: [
       { id: "home", label: "Home", href: withLocale(locale, "") },
       { id: "work", label: "Work", href: withLocale(locale, "work") },
@@ -80,9 +86,9 @@ type YoutubeMetricsSetting = { views?: number; subscribers?: number; videos?: nu
 type SiteThemeSetting = { accent?: string; background?: string; panel?: string };
 
 const youtubeMetricsFallback: YoutubeMetricsSetting = {
-  views: 1494029,
-  subscribers: 6130,
-  videos: 162,
+  views: youtubeChannel.fallback.views,
+  subscribers: youtubeChannel.fallback.subscribers,
+  videos: youtubeChannel.fallback.videos,
 };
 
 function formatYoutubeViewsLabel(n: number | undefined): string {
@@ -196,7 +202,6 @@ export default async function SiteLayout({
       >
         <LocaleDocumentSync locale={locale} />
         <div className="noise-overlay" />
-        <DigitalOsClientEffects />
 
         <a
           href="#main-content"
@@ -207,7 +212,7 @@ export default async function SiteLayout({
 
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
         <main id="main-content">{children}</main>
-        <SiteAssistantWidget locale={locale} />
+        <LazySiteAssistant locale={locale} />
         <CookieBanner locale={locale} />
         <SiteFooter
           locale={locale}

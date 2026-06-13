@@ -13,7 +13,7 @@ export const contactMessageSchema = z.object({
   timeline: z.enum(timelines),
   message: z.string().trim().min(20).max(5000),
   consent: z.literal(true),
-  honeypot: z.string().trim().max(0).optional().or(z.literal("")),
+  honeypot: z.string().trim().max(200).optional().or(z.literal("")),
   locale: z.enum(["ar", "en"]).default("en"),
   subject: z.string().trim().max(180).optional().or(z.literal("")),
 });

@@ -1,10 +1,12 @@
 ﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage, buildSiteModel } from "@/components/site/site-pages-v3";
+import { SitePage } from "@/components/site/site-pages-v3";
+import { buildSiteModel } from "@/components/site/site-model";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, videoObjectJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
+import { compactMetric, youtubeChannel } from "@/content/site-data";
 import type { Locale } from "@/types/cms";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -28,7 +30,7 @@ export default async function YoutubeRoute({ params }: { params: Promise<{ local
     description:
       loc === "ar"
         ? "محتوى تقني عربي من محمد الفراس: +1.5 مليون مشاهدة، +6 آلاف مشترك."
-        : "Arabic tech content from Mohammad Alfarras: 1.5M+ views, 6K+ subscribers.",
+        : `Arabic tech content from Mohammad Alfarras: ${compactMetric(youtubeChannel.fallback.views)} views, ${compactMetric(youtubeChannel.fallback.subscribers)} subscribers.`,
   });
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },

@@ -1,46 +1,22 @@
 import type { Locale } from "@/types/cms";
 
+import {
+  compactMetric,
+  siteIdentity,
+  socialLinks,
+  youtubeChannel,
+  type Localized,
+} from "./site-data";
+
+export { siteIdentity, socialLinks };
+
 export const SITE_URL = "https://moalfarras.space";
 
-export type Localized<T> = Record<Locale, T>;
+export type { Localized };
 
 export function localized<T>(value: Localized<T>, locale: Locale): T {
   return value[locale];
 }
-
-export const socialLinks = {
-  youtube: "https://www.youtube.com/@Moalfarras",
-  github: "https://github.com/moalfarras-sys",
-  linkedin: "https://de.linkedin.com/in/mohammad-alfarras-525531262",
-  instagram: "https://www.instagram.com/moalfarras",
-  whatsapp: "https://wa.me/4917623419358",
-  telegram: "https://t.me/MoalFarras",
-  facebook: "https://www.facebook.com/share/14TQSSocNQG/?mibextid=wwXIfr",
-  email: "mohammad.alfarras@gmail.com",
-} as const;
-
-export const siteIdentity = {
-  name: {
-    en: "Mohammad Alfarras",
-    ar: "محمد الفراس",
-  },
-  tagline: {
-    en: "Web | Apps | Content | Logistics",
-    ar: "ويب | تطبيقات | محتوى | لوجستيات",
-  },
-  shortPositioning: {
-    en: "Frontend developer, UI/UX-focused builder, MoPlayer product owner, and Arabic tech creator based in Germany.",
-    ar: "مطوّر واجهات ومصمم تجارب وباني MoPlayer وصانع محتوى تقني عربي مقيم في ألمانيا.",
-  },
-  origin: {
-    en: "From Al-Hasakah, Syria",
-    ar: "من الحسكة، سوريا",
-  },
-  location: {
-    en: "Based in Germany",
-    ar: "مقيم في ألمانيا",
-  },
-} satisfies Record<string, Localized<string>>;
 
 export const navigationItems = {
   en: [
@@ -78,9 +54,9 @@ export const homeContent = {
       { value: "MoPlayer", label: "Android TV product" },
     ],
     youtubeProof: [
-      { value: "1.5M+", label: "YouTube views" },
-      { value: "6.1K+", label: "Subscribers" },
-      { value: "162", label: "Videos" },
+      { value: compactMetric(youtubeChannel.fallback.views), label: "YouTube views" },
+      { value: compactMetric(youtubeChannel.fallback.subscribers), label: "Subscribers" },
+      { value: String(youtubeChannel.fallback.videos), label: "Videos" },
     ],
     capabilitiesEyebrow: "What I can help with",
     capabilities: [
@@ -132,9 +108,9 @@ export const homeContent = {
       { value: "MoPlayer", label: "منتج Android TV" },
     ],
     youtubeProof: [
-      { value: "+1.5M", label: "مشاهدة على يوتيوب" },
-      { value: "+6.1K", label: "مشترك" },
-      { value: "162", label: "فيديو" },
+      { value: compactMetric(youtubeChannel.fallback.views), label: "مشاهدة على يوتيوب" },
+      { value: compactMetric(youtubeChannel.fallback.subscribers), label: "مشترك" },
+      { value: String(youtubeChannel.fallback.videos), label: "فيديو" },
     ],
     capabilitiesEyebrow: "كيف أستطيع مساعدتك",
     capabilities: [

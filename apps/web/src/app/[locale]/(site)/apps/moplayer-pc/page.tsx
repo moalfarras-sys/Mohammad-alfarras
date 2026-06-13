@@ -19,18 +19,19 @@ export async function generateMetadata({
   const copy =
     locale === "ar"
       ? {
-          title: "MoPlayer PC | محمد الفراس",
+          title: "MoPlayer PC",
           description: "مشغل مكتبي متكامل وقوي مصمم لنظام التشغيل Windows.",
         }
       : {
-          title: "MoPlayer PC | Mohammad Alfarras",
+          title: "MoPlayer PC",
           description: "A fully integrated desktop player built natively for Windows.",
         };
 
   const canonical = `${SITE_URL}/${locale}/apps/moplayer-pc`;
+  const socialTitle = `${copy.title} | Mohammad Alfarras`;
 
   return {
-    title: { absolute: copy.title },
+    title: copy.title,
     description: copy.description,
     alternates: {
       canonical,
@@ -41,19 +42,19 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: copy.title,
+      title: socialTitle,
       description: copy.description,
       url: canonical,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [{ url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: copy.title }],
+      images: [{ url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
       site: "@Moalfarras",
       creator: "@Moalfarras",
-      title: copy.title,
+      title: socialTitle,
       description: copy.description,
       images: ["/images/moplayer-pro-hero.webp"],
     },

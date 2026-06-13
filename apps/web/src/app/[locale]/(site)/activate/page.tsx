@@ -9,12 +9,12 @@ const SITE_URL = "https://moalfarras.space";
 
 const meta = {
   en: {
-    title: "Activate MoPlayer | Mohammad Alfarras",
+    title: "Activate MoPlayer",
     description:
       "Pair MoPlayer on Android TV with moalfarras.space using a short private device code and website activation flow.",
   },
   ar: {
-    title: "تفعيل MoPlayer | محمد الفراس",
+    title: "تفعيل MoPlayer",
     description: "اربط MoPlayer على Android TV مع moalfarras.space باستخدام كود جهاز قصير وخاص.",
   },
 } as const;
@@ -35,31 +35,32 @@ export async function generateMetadata({
   const copy = isPc
     ? locale === "ar"
       ? {
-          title: "تفعيل MoPlayer PC | محمد الفراس",
+          title: "تفعيل MoPlayer PC",
           description: "أكد كود الكمبيوتر وأرسل مصدرك الخاص إلى MoPlayer PC بأمان.",
         }
       : {
-          title: "Activate MoPlayer PC | Mohammad Alfarras",
+          title: "Activate MoPlayer PC",
           description: "Confirm your PC code and securely send your private source to MoPlayer PC.",
         }
     : isPro && locale === "ar"
       ? {
-          title: "تفعيل MoPlayer Pro | محمد الفراس",
+          title: "تفعيل MoPlayer Pro",
           description: "أكد كود التلفاز وأرسل مصدرك الخاص إلى MoPlayer Pro بأمان.",
         }
       : isPro
         ? {
-            title: "Activate MoPlayer Pro | Mohammad Alfarras",
+            title: "Activate MoPlayer Pro",
             description: "Confirm your TV code and securely send your private source to MoPlayer Pro.",
           }
         : meta[locale];
   const suffix = isPc ? "?product=moplayer-pc" : isPro ? "?product=moplayer2" : "";
   const canonical = `${SITE_URL}/${locale}/activate${suffix}`;
+  const socialTitle = `${copy.title} | Mohammad Alfarras`;
 
   const image = "/images/moplayer-activation-flow.webp";
 
   return {
-    title: { absolute: copy.title },
+    title: copy.title,
     description: copy.description,
     alternates: {
       canonical,
@@ -70,19 +71,19 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: copy.title,
+      title: socialTitle,
       description: copy.description,
       url: canonical,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [{ url: image, width: 1600, height: 900, alt: copy.title }],
+      images: [{ url: image, width: 1600, height: 900, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
       site: "@Moalfarras",
       creator: "@Moalfarras",
-      title: copy.title,
+      title: socialTitle,
       description: copy.description,
       images: [image],
     },

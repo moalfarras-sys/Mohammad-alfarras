@@ -12,14 +12,13 @@ import {
   Lightbulb,
   MonitorPlay,
   PlayCircle,
-  Radio,
   Target,
   Trophy,
   Truck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { withLocale } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
@@ -47,26 +46,6 @@ type ExhibitionProject = {
   tone: ProjectTone;
   mockup: MockupKind;
   featured?: boolean;
-};
-
-type FootballMatch = {
-  id: number;
-  date: string;
-  status: string;
-  statusLong?: string;
-  league: string;
-  homeTeam: string;
-  awayTeam: string;
-  homeGoals: number | null;
-  awayGoals: number | null;
-};
-
-type FootballPayload = {
-  matches?: FootballMatch[];
-  importantMatches?: FootballMatch[];
-  worldCupMatches?: FootballMatch[];
-  source?: string;
-  mode?: string;
 };
 
 const categories: Record<Locale, Array<{ id: ProjectCategory; label: string }>> = {
@@ -355,8 +334,6 @@ export function WorkDigitalExhibition({
           }}
         />
       ) : null}
-      <WorkMatchPulse locale={locale} />
-
       <motion.section className="work-gallery" layout>
         <AnimatePresence mode="popLayout">
           {visibleProjects.map((project, index) => (
@@ -555,136 +532,6 @@ function ProjectSpotlight({
       </AnimatePresence>
     </section>
   );
-}
-
-function WorkMatchPulse({ locale }: { locale: Locale }) {
-  const [payload, setPayload] = useState<FootballPayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const isAr = locale === "ar";
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/football", { headers: { Accept: "application/json" }, cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data: FootballPayload | null) => {
-        if (!cancelled) setPayload(data);
-      })
-      .catch(() => {
-        if (!cancelled) setPayload(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const worldCup = payload?.worldCupMatches?.[0] ?? null;
-  const candidateMatches = payload?.matches?.length
-    ? payload.matches
-    : (payload?.importantMatches ?? []);
-  const matches = candidateMatches
-    .filter(
-      (match, index, items) =>
-        items.findIndex((item) => item.id === match.id && item.date === match.date) === index,
-    )
-    .slice(0, 3);
-  const primary = matches[0] ?? worldCup;
-  if (!loading && !primary) return null;
-
-  const source = payload?.source
-    ? payload.source.replaceAll("-", " ")
-    : isAr
-      ? "مصادر مباشرة"
-      : "live sources";
-  const title = isAr
-    ? "مباريات حقيقية داخل مشاريع MoPlayer"
-    : "Live match data inside the MoPlayer system";
-  const subtitle = isAr
-    ? "نفس المصدر الذي تقرأه التطبيقات: الدوريات الكبرى، كأس العالم، وتحويل تلقائي بين المزودات."
-    : "The same real-data route used by the apps: top leagues, World Cup, and automatic provider fallback.";
-
-  return (
-    <section className="work-football-pulse" aria-live="polite">
-      <div className="work-football-copy">
-        <span className="work-football-kicker">
-          <Radio size={14} />
-          {loading ? (isAr ? "فحص المصادر" : "Checking sources") : source}
-        </span>
-        <h2>{title}</h2>
-        <p>{subtitle}</p>
-      </div>
-
-      <div className="work-football-board">
-        <div className="work-football-feature">
-          <span className="work-football-label">
-            <Trophy size={14} />
-            {worldCup
-              ? isAr
-                ? "كأس العالم"
-                : "World Cup"
-              : isAr
-                ? "المباراة الأبرز"
-                : "Featured match"}
-          </span>
-          <strong>
-            {primary
-              ? `${primary.homeTeam} vs ${primary.awayTeam}`
-              : isAr
-                ? "جاري التحميل"
-                : "Loading"}
-          </strong>
-          <small>
-            {primary
-              ? matchMeta(primary, locale)
-              : isAr
-                ? "لا يتم عرض نتائج وهمية"
-                : "No fake score is shown"}
-          </small>
-        </div>
-
-        <div className="work-football-list">
-          {(matches.length ? matches : primary ? [primary] : []).slice(0, 3).map((match) => (
-            <div className="work-football-row" key={`${match.id}-${match.date}`}>
-              <span>{match.league}</span>
-              <b>{shortMatchName(match)}</b>
-              <em>{scoreOrTime(match, locale)}</em>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function shortMatchName(match: FootballMatch) {
-  return `${match.homeTeam} - ${match.awayTeam}`;
-}
-
-function scoreOrTime(match: FootballMatch, locale: Locale) {
-  if (match.homeGoals !== null && match.awayGoals !== null)
-    return `${match.homeGoals}:${match.awayGoals}`;
-  return formatMatchTime(match.date, locale);
-}
-
-function matchMeta(match: FootballMatch, locale: Locale) {
-  const pieces = [
-    match.league,
-    match.status === "NS" ? formatMatchTime(match.date, locale) : match.statusLong || match.status,
-  ].filter(Boolean);
-  return pieces.join(" · ");
-}
-
-function formatMatchTime(value: string, locale: Locale) {
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return locale === "ar" ? "موعد لاحق" : "TBD";
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }
 
 function FilterBar({

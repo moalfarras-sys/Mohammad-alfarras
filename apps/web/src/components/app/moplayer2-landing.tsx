@@ -78,7 +78,7 @@ const t = {
     compareOld: "MoPlayer Classic",
     compareNew: "MoPlayer Pro",
     compareOldPoints: ["Classic TV-first interface", "Reliable simple playback", "One familiar release path", "Standard dark theme"],
-    compareNewPoints: ["Warm premium glass interface", "Richer playback controls", "Separate Pro download path", "Weather and football cards on Home"],
+    compareNewPoints: ["Warm premium glass interface", "Richer playback controls", "Separate Pro download path", "Remote-first navigation and QR activation"],
     faqTitle: "Frequently asked questions",
     faqs: [
       { question: "Does MoPlayer Pro include channels or playlists?", answer: "No. MoPlayer Pro is a private player only. You connect your own authorized sources; the app does not provide channels or media." },
@@ -137,7 +137,7 @@ const t = {
     compareOld: "MoPlayer القديم",
     compareNew: "MoPlayer Pro",
     compareOldPoints: ["واجهة تلفزيونية كلاسيكية", "تشغيل بسيط وموثوق", "مسار تحميل مألوف", "ثيم داكن قياسي"],
-    compareNewPoints: ["واجهة زجاجية دافئة وفاخرة", "تحكم أغنى أثناء التشغيل", "مسار تحميل خاص بإصدار Pro", "بطاقات الطقس والمباريات على الشاشة الرئيسية"],
+    compareNewPoints: ["واجهة زجاجية دافئة وفاخرة", "تحكم أغنى أثناء التشغيل", "مسار تحميل خاص بإصدار Pro", "تنقل بالريموت وتفعيل عبر QR"],
     faqTitle: "الأسئلة الشائعة",
     faqs: [
       { question: "هل يتضمن MoPlayer Pro قنوات أو قوائم تشغيل؟", answer: "لا. MoPlayer Pro مشغل خاص فقط. تربط مصادرك المصرح لك بها، والتطبيق لا يوفّر قنوات أو محتوى." },
@@ -233,7 +233,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
       {/* Background Image */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 w-full h-[80vh] opacity-40">
-          <Image src="/images/moplayer-pro-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" priority />
+          <Image src="/images/moplayer-pro-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
         </div>
       </div>

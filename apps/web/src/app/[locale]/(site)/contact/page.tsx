@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/site-pages-v3";
+import { ContactHubPage } from "@/components/site/contact-hub-page";
+import { buildSiteModel } from "@/components/site/site-model";
+import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, contactPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -18,6 +20,7 @@ export default async function ContactPageRoute({ params }: { params: Promise<{ l
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
+  const model = await buildSiteModel({ locale: loc, slug: "contact" });
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "تواصل" : "Contact", path: `/${loc}/contact` },
@@ -27,7 +30,8 @@ export default async function ContactPageRoute({ params }: { params: Promise<{ l
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(contactPageJsonLd(loc)) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <SitePage locale={loc} slug="contact" />
+      <ContactHubPage locale={loc} content={model.t.contact} />
+      <SiteOffersSection model={model} placement="contact" />
     </>
   );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/site-pages-v3";
+import { InteractiveCvPage } from "@/components/site/interactive-cv-page";
+import { buildSiteModel } from "@/components/site/site-model";
+import { youtubeChannel } from "@/content/site-data";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, personExpandedJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -18,6 +20,16 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
+  const model = await buildSiteModel({ locale: loc, slug: "cv" });
+  const views =
+    Number(model.live.youtube?.totalViews ?? model.youtube.views ?? youtubeChannel.fallback.views) ||
+    youtubeChannel.fallback.views;
+  const subscribers =
+    Number(model.live.youtube?.subscribers ?? model.youtube.subscribers ?? youtubeChannel.fallback.subscribers) ||
+    youtubeChannel.fallback.subscribers;
+  const videos =
+    Number(model.live.youtube?.videoCount ?? model.youtube.videos ?? youtubeChannel.fallback.videos) ||
+    youtubeChannel.fallback.videos;
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "السيرة الذاتية" : "CV", path: `/${loc}/cv` },
@@ -37,7 +49,14 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(personExpandedJsonLd(loc)) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <SitePage locale={loc} slug="cv" />
+      <InteractiveCvPage
+        locale={loc}
+        profileName={model.profile.name}
+        portrait="/images/portrait.jpg"
+        downloads={{ branded: model.downloads.branded, docx: model.downloads.docx }}
+        stats={{ views, subscribers, videos }}
+        experience={model.cvExperience}
+      />
     </>
   );
 }

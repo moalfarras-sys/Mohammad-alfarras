@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { readSnapshot } from "@/lib/content/store";
+import { siteLastModified } from "@/content/site-data";
 
 const BASE = "https://moalfarras.space";
 
@@ -20,6 +21,7 @@ const localizedRoutes: RouteDef[] = [
   { path: "/apps/moplayer", priority: 0.95, changeFrequency: "weekly" },
   { path: "/apps/moplayer/classic", priority: 0.86, changeFrequency: "weekly" },
   { path: "/apps/moplayer2", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/apps/moplayer-pc", priority: 0.86, changeFrequency: "weekly" },
   { path: "/activate", priority: 0.7, changeFrequency: "monthly" },
   { path: "/moplayer/setup", priority: 0.55, changeFrequency: "monthly" },
   { path: "/youtube", priority: 0.8, changeFrequency: "weekly" },
@@ -34,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const localized = (["ar", "en"] as const).flatMap((locale) =>
     localizedRoutes.map<MetadataRoute.Sitemap[number]>((route) => ({
       url: `${BASE}/${locale}${route.path}`,
+      lastModified: new Date(siteLastModified),
       changeFrequency: route.changeFrequency,
       priority: route.priority,
       alternates: {
@@ -56,9 +59,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const localizedProjects = (["ar", "en"] as const).flatMap((locale) =>
     projectRoutes.map<MetadataRoute.Sitemap[number]>((project) => ({
       url: `${BASE}/${locale}/work/${project.slug}`,
-      ...(project.updatedAt && !Number.isNaN(project.updatedAt.getTime())
-        ? { lastModified: project.updatedAt }
-        : {}),
+      lastModified:
+        project.updatedAt && !Number.isNaN(project.updatedAt.getTime())
+          ? project.updatedAt
+          : new Date(siteLastModified),
       changeFrequency: "monthly",
       priority: 0.82,
       alternates: {

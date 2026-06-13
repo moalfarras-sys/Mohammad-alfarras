@@ -7,9 +7,14 @@ import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
+import "@/styles/route-apps.css";
 import type { Locale } from "@/types/cms";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   return pageMetadata(locale, "apps");
@@ -36,8 +41,16 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
       <AppsShowcasePage locale={loc} />
       <SiteOffersSection model={model} placement="apps" />
     </>

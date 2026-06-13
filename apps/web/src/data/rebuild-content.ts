@@ -1,6 +1,13 @@
 import type { Locale } from "@/types/cms";
 
-export type RebuildPageKey = "home" | "cv" | "blog" | "projects" | "youtube" | "contact" | "privacy";
+export type RebuildPageKey =
+  | "home"
+  | "cv"
+  | "blog"
+  | "projects"
+  | "youtube"
+  | "contact"
+  | "privacy";
 
 export type SeoEntry = {
   title: string;
@@ -11,7 +18,14 @@ export type SeoEntry = {
 };
 
 type StoryCard = { title: string; body: string };
-type JourneyStep = { title: string; body: string; period?: string; location?: string; role?: string; highlights?: string[] };
+type JourneyStep = {
+  title: string;
+  body: string;
+  period?: string;
+  location?: string;
+  role?: string;
+  highlights?: string[];
+};
 type ContactReason = { title: string; body: string };
 type CollectionLabel = { title: string; body: string };
 
@@ -122,49 +136,57 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
     seo: {
       home: {
         title: "محمد الفراس | تطوير ويب جريء وتصميم ومحتوى تقني من ألمانيا",
-        description: "من الحسكة إلى ألمانيا: محمد الفراس يبني حضورًا رقميًا يربح الثقة من أول شاشة عبر تطوير الواجهات، التصميم الجريء، والمحتوى التقني العربي.",
+        description:
+          "من الحسكة إلى ألمانيا: محمد الفراس يبني حضورًا رقميًا يربح الثقة من أول شاشة عبر تطوير الواجهات، التصميم الجريء، والمحتوى التقني العربي.",
         ogTitle: "محمد الفراس | حضور رقمي لا يُنسى",
         ogDescription: "تطوير ويب، تصميم جريء، ومحتوى تقني عربي بصوت واضح وانضباط تنفيذي حقيقي.",
         image: "/images/hero_tech.png",
       },
       cv: {
         title: "السيرة | محمد الفراس",
-        description: "رحلة محمد الفراس من العمليات اليومية واللوجستيات إلى بناء تجارب رقمية ثابتة، جريئة، ومقنعة.",
+        description:
+          "رحلة محمد الفراس من العمليات اليومية واللوجستيات إلى بناء تجارب رقمية ثابتة، جريئة، ومقنعة.",
         ogTitle: "السيرة | تنفيذ حقيقي وذوق بصري",
         ogDescription: "الانضباط التشغيلي حين يدخل عالم الويب يصنع فرقًا يراه العميل قبل أن يقرأ.",
         image: "/images/portrait.jpg",
       },
       blog: {
         title: "الرؤية | محمد الفراس",
-        description: "مبادئ عملية حول الوضوح، الثقة، والانطباع الأول كما تُبنى في المشاريع الحقيقية.",
+        description:
+          "مبادئ عملية حول الوضوح، الثقة، والانطباع الأول كما تُبنى في المشاريع الحقيقية.",
         ogTitle: "الرؤية | ما الذي يجعل العرض يعمل؟",
-        ogDescription: "أفكار مختصرة من العمل الفعلي: كيف يُبنى الانطباع، وكيف تتحول الواجهة إلى قرار.",
+        ogDescription:
+          "أفكار مختصرة من العمل الفعلي: كيف يُبنى الانطباع، وكيف تتحول الواجهة إلى قرار.",
         image: "/images/hero_tech.png",
       },
       projects: {
         title: "الأعمال | محمد الفراس",
-        description: "دراسات حالة مختارة توضح كيف يتحول الويب من واجهة جميلة إلى أداة تقنع وتحوّل الزائر إلى خطوة فعلية.",
+        description:
+          "دراسات حالة مختارة توضح كيف يتحول الويب من واجهة جميلة إلى أداة تقنع وتحوّل الزائر إلى خطوة فعلية.",
         ogTitle: "الأعمال | كل مشروع هنا حلّ مشكلة حقيقية",
         ogDescription: "صفحات وتجارب صُممت لتقود إلى الثقة، القرار، والحجز.",
         image: "/images/projects/seel-home-case.png",
       },
       youtube: {
         title: "يوتيوب | محمد الفراس",
-        description: "محتوى تقني عربي صادق من ألمانيا. شرح واضح، مراجعات حقيقية، وثقة لا تُشترى بالإعلان.",
+        description:
+          "محتوى تقني عربي صادق من ألمانيا. شرح واضح، مراجعات حقيقية، وثقة لا تُشترى بالإعلان.",
         ogTitle: "يوتيوب | محتوى عربي حقيقي من ألمانيا",
         ogDescription: "أكثر من 1.5 مليون مشاهدة بنت سلطة مبنية على الصدق لا على الضجيج.",
         image: "/images/hero_tech.png",
       },
       contact: {
         title: "تواصل | محمد الفراس",
-        description: "إذا كانت لديك فكرة جادة وتحتاج تنفيذًا لا يخذلها، ابدأ برسالة واضحة وسأعود إليك بخطوة عملية.",
+        description:
+          "إذا كانت لديك فكرة جادة وتحتاج تنفيذًا لا يخذلها، ابدأ برسالة واضحة وسأعود إليك بخطوة عملية.",
         ogTitle: "تواصل | ابدأ من فكرة واحدة واضحة",
         ogDescription: "تواصل مباشر للمشاريع الجادة في الويب، إعادة التصميم، والتعاونات التقنية.",
         image: "/images/hero_tech.png",
       },
       privacy: {
         title: "الخصوصية | محمد الفراس",
-        description: "سياسة واضحة ومختصرة حول استخدام البيانات والرسائل وملفات تعريف الارتباط الأساسية.",
+        description:
+          "سياسة واضحة ومختصرة حول استخدام البيانات والرسائل وملفات تعريف الارتباط الأساسية.",
         ogTitle: "الخصوصية | وضوح قبل كل شيء",
         ogDescription: "بياناتك لا تُباع ولا تُستخدم خارج ما يلزم لتشغيل التواصل الأساسي.",
         image: "/images/logo.png",
@@ -177,7 +199,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       primary: "لنبدأ مشروعك الاستثنائي",
       secondary: "شاهد الأعمال",
       proofTitle: "ويب 2026 · زجاج داكن · عمق وحركة محسوبة",
-      proofBody: "الهدف ليس أن يبدو كل شيء جميلًا فقط. الهدف أن يشعر الزائر أن أمامه عملًا جادًا من أول ثانية.",
+      proofBody:
+        "الهدف ليس أن يبدو كل شيء جميلًا فقط. الهدف أن يشعر الزائر أن أمامه عملًا جادًا من أول ثانية.",
     },
     identity: {
       eyebrow: "من أنا",
@@ -257,23 +280,23 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         {
           title: "Frontend Developer & Digital Creator",
           role: "Mohammad Alfarras Studio",
-          period: "2021 – Present",
+          period: "الممارسة الرقمية الحالية",
           location: "Bremen, Germany",
-          body: "تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (<span dir=\"ltr\" class=\"inline-block px-1\">Next.js</span>، <span dir=\"ltr\" class=\"inline-block px-1\">React</span>، <span dir=\"ltr\" class=\"inline-block px-1\">Tailwind</span>). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.",
+          body: 'تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (<span dir="ltr" class="inline-block px-1">Next.js</span>، <span dir="ltr" class="inline-block px-1">React</span>، <span dir="ltr" class="inline-block px-1">Tailwind</span>). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.',
           highlights: ["Next.js & React", "UI/UX Design", "Content Creation", "1.5M+ Views"],
         },
         {
           title: "Rhenus Home Delivery GmbH",
           role: "Dispositionsmitarbeiter",
-          period: "2018 – 2021",
+          period: "نوفمبر 2023 – الآن",
           location: "Germany",
-          body: "العمل اليومي تحت الضغط وإدارة العمليات اللوجستية. استخدام نظام (<span dir=\"ltr\" class=\"inline-block px-1\">TMS</span>) لإدارة حركة النقل وتوجيه السائقين والتواصل مع خدمة العملاء لضمان التسليم السريع الخالي من الأخطاء.",
+          body: 'العمل اليومي تحت الضغط وإدارة العمليات اللوجستية. استخدام نظام (<span dir="ltr" class="inline-block px-1">TMS</span>) لإدارة حركة النقل وتوجيه السائقين والتواصل مع خدمة العملاء لضمان التسليم السريع الخالي من الأخطاء.',
           highlights: ["Logistics", "TMS", "Kundendienst", "Fahrerbetreuung"],
         },
         {
-          title: "IKEA",
-          role: "Logistics Expert",
-          period: "2015 – 2018",
+          title: "Stocubo GmbH",
+          role: "عامل إنتاج",
+          period: "أكتوبر 2019 – نوفمبر 2022",
           location: "Germany",
           body: "اكتساب خبرات واسعة في ترتيب وتسلسل بيئة العمل المعقدة، وتعلم كيف أن البساطة الظاهرة للمستخدمين تعتمد دائماً على تنظيم صارم ومدروس خلف الكواليس.",
           highlights: ["Operations", "Systematic Thinking", "Team Coordination"],
@@ -286,22 +309,26 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       body: "أبني واجهات تبدو مبهرة، لكنها في الداخل مرتبة، واضحة، وسهلة التطوير. هذه ليست رفاهية بالنسبة لي، بل أسلوب عمل.",
       chips: ["واجهة أمامية", "تصميم", "صناعة محتوى", "ألمانيا"],
       pillarsTitle: "المهارات التي أستخدمها حين تكون النتيجة مهمة",
-      pillarsBody: "ما تراه هنا ليس استعراض أدوات، بل طبقات عمل حقيقية تدخل في كل مشروع: من الرسالة إلى الحركة إلى الأداء.",
+      pillarsBody:
+        "ما تراه هنا ليس استعراض أدوات، بل طبقات عمل حقيقية تدخل في كل مشروع: من الرسالة إلى الحركة إلى الأداء.",
       creatorTitle: "خلف الكاميرا والكود",
-      creatorBody: "صورة شخصية، مشهد تقني، وعناصر محتوى توضّح كيف تلتقي الهوية مع التنفيذ في عمل واحد.",
+      creatorBody:
+        "صورة شخصية، مشهد تقني، وعناصر محتوى توضّح كيف تلتقي الهوية مع التنفيذ في عمل واحد.",
     },
     projects: {
       eyebrow: "أعمال مختارة",
       title: "كل مشروع هنا حلّ مشكلة حقيقية.",
       body: "لا أقبل مشاريع التجميل فقط. أقبل المشاريع التي تعرف ما تريد الوصول إليه وتحتاج تنفيذًا لا يخذلها.",
       featureTitle: "كيف أختار ما أعرضه",
-      featureBody: "أعرض الأعمال التي تغيّر الانطباع الأول أو تختصر القرار أو ترفع الثقة بشكل ملموس.",
+      featureBody:
+        "أعرض الأعمال التي تغيّر الانطباع الأول أو تختصر القرار أو ترفع الثقة بشكل ملموس.",
       collection: {
         title: "دراسات حالة",
         body: "كل حالة هنا تُقرأ بسرعة: ما التحدي، ما الحل، وما الذي تغيّر بعد إعادة البناء.",
       },
       conceptTitle: "من gallery إلى case study",
-      conceptBody: "الزائر لا يحتاج صورًا أكثر. يحتاج سببًا مقنعًا ليصدق أن هذا العمل يمكنه أن يرفع مشروعه هو أيضًا.",
+      conceptBody:
+        "الزائر لا يحتاج صورًا أكثر. يحتاج سببًا مقنعًا ليصدق أن هذا العمل يمكنه أن يرفع مشروعه هو أيضًا.",
     },
     youtube: {
       eyebrow: "يوتيوب",
@@ -311,7 +338,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       latestLabel: "أحدث الفيديوهات",
       values: ["1.5M+ مشاهدة", "6.1K+ مشترك", "162 فيديو", "مراجعات صادقة"],
       collaborationTitle: "لماذا يتابعني جمهور عربي من ألمانيا؟",
-      collaborationBody: "لأنني لا أبيع ضجيجًا. أشرح المنتج كما هو، وأحترم عقل المشاهد الذي يريد مراجعة حقيقية لا إعلانًا مموّهًا.",
+      collaborationBody:
+        "لأنني لا أبيع ضجيجًا. أشرح المنتج كما هو، وأحترم عقل المشاهد الذي يريد مراجعة حقيقية لا إعلانًا مموّهًا.",
       channelCta: "ادخل إلى القناة",
     },
     contact: {
@@ -383,51 +411,62 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
     seo: {
       home: {
         title: "Mohammad Alfarras | Bold web, design, and Arabic tech content from Germany",
-        description: "From Al-Hasakah to Germany, Mohammad Alfarras combines logistics discipline, visual sharpness, and honest tech content into a personal brand that earns trust fast.",
+        description:
+          "From Al-Hasakah to Germany, Mohammad Alfarras combines logistics discipline, visual sharpness, and honest tech content into a personal brand that earns trust fast.",
         ogTitle: "Mohammad Alfarras | A digital presence that gets remembered",
-        ogDescription: "Bold web execution, confident design, and Arabic tech content shaped by real operational discipline.",
+        ogDescription:
+          "Bold web execution, confident design, and Arabic tech content shaped by real operational discipline.",
         image: "/images/hero_tech.png",
       },
       cv: {
         title: "About | Mohammad Alfarras",
-        description: "A professional journey shaped by logistics operations, frontend execution, design taste, and creator trust.",
+        description:
+          "A professional journey shaped by logistics operations, frontend execution, design taste, and creator trust.",
         ogTitle: "About | Real execution with visual discipline",
-        ogDescription: "When operational pressure meets digital craft, the result is work that looks strong and holds under pressure.",
+        ogDescription:
+          "When operational pressure meets digital craft, the result is work that looks strong and holds under pressure.",
         image: "/images/portrait.jpg",
       },
       blog: {
         title: "Insights | Mohammad Alfarras",
-        description: "Short principles on clarity, trust, first impressions, and why some digital experiences convert while others disappear.",
+        description:
+          "Short principles on clarity, trust, first impressions, and why some digital experiences convert while others disappear.",
         ogTitle: "Insights | Why some experiences work",
         ogDescription: "Practical thinking from real projects, not decorative design commentary.",
         image: "/images/hero_tech.png",
       },
       projects: {
         title: "Work | Mohammad Alfarras",
-        description: "Selected case studies showing how websites become clearer, more persuasive, and more conversion-focused.",
+        description:
+          "Selected case studies showing how websites become clearer, more persuasive, and more conversion-focused.",
         ogTitle: "Work | Every project here solved a real problem",
-        ogDescription: "Challenge, solution, result — presented as decision-making tools, not decorative galleries.",
+        ogDescription:
+          "Challenge, solution, result — presented as decision-making tools, not decorative galleries.",
         image: "/images/projects/seel-home-case.png",
       },
       youtube: {
         title: "YouTube | Mohammad Alfarras",
-        description: "Arabic tech content from Germany built on honesty, clarity, and product storytelling that earns trust.",
+        description:
+          "Arabic tech content from Germany built on honesty, clarity, and product storytelling that earns trust.",
         ogTitle: "YouTube | Arabic tech content without the filler",
         ogDescription: "More than 1.5M views built on clear explanation, not paid hype.",
         image: "/images/hero-profile-bg.png",
       },
       contact: {
         title: "Contact | Mohammad Alfarras",
-        description: "For serious web builds, redesigns, and tech content collaborations. Send the idea as it is and get a clear next step back.",
+        description:
+          "For serious web builds, redesigns, and tech content collaborations. Send the idea as it is and get a clear next step back.",
         ogTitle: "Contact | Direct conversation, no middle layer",
         ogDescription: "A serious project deserves a serious response. Start here.",
         image: "/images/hero-profile-bg.png",
       },
       privacy: {
         title: "Privacy | Mohammad Alfarras",
-        description: "A short and clear privacy policy covering essential cookies, messages, and basic data handling.",
+        description:
+          "A short and clear privacy policy covering essential cookies, messages, and basic data handling.",
         ogTitle: "Privacy | Clear and minimal",
-        ogDescription: "Your information is not sold or repurposed beyond what is needed for direct communication.",
+        ogDescription:
+          "Your information is not sold or repurposed beyond what is needed for direct communication.",
         image: "/images/logo.png",
       },
     },
@@ -438,7 +477,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       primary: "Start your standout project",
       secondary: "See the work",
       proofTitle: "2026 web presence · glass depth · motion with intent",
-      proofBody: "The goal is not to look expensive for a second. The goal is to feel credible before the visitor reads the second line.",
+      proofBody:
+        "The goal is not to look expensive for a second. The goal is to feel credible before the visitor reads the second line.",
     },
     identity: {
       eyebrow: "About me",
@@ -472,7 +512,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
     },
     featuredWork: {
       eyebrow: "Selected work",
-      title: "Every project here started with a real problem and ended with a stronger first impression.",
+      title:
+        "Every project here started with a real problem and ended with a stronger first impression.",
       body: "This is not a decorative gallery. These are case studies where clarity, trust, and conversion had to improve at the same time.",
     },
     media: {
@@ -518,7 +559,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         {
           title: "Frontend Developer & Digital Creator",
           role: "Mohammad Alfarras Studio",
-          period: "2021 – Present",
+          period: "Current digital practice",
           location: "Bremen, Germany",
           body: "Developing modern front-end interfaces using Next.js, React, and Tailwind. Building persuasive digital presence for corporate clients while running a tech YouTube channel with over 1.5 million views focusing on reviews and technical advice.",
           highlights: ["Next.js & React", "UI/UX Design", "Content Creation", "1.5M+ Views"],
@@ -526,15 +567,15 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         {
           title: "Rhenus Home Delivery GmbH",
           role: "Dispositionsmitarbeiter",
-          period: "2018 – 2021",
+          period: "Nov 2023 – Present",
           location: "Germany",
           body: "Daily operations management under pressure. Using Transport Management Systems (TMS) to coordinate driver routes, troubleshoot delivery issues, and optimize customer service workflows.",
           highlights: ["Logistics", "TMS", "Kundendienst", "Fahrerbetreuung"],
         },
         {
-          title: "IKEA",
-          role: "Logistics Expert",
-          period: "2015 – 2018",
+          title: "Stocubo GmbH",
+          role: "Production Employee",
+          period: "Oct 2019 – Nov 2022",
           location: "Germany",
           body: "Gained foundational experience in structural organization. Learned firsthand that apparent simplicity for the end-user always requires rigorous, methodical systems behind the scenes.",
           highlights: ["Operations", "Systematic Thinking", "Team Coordination"],
@@ -547,22 +588,26 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       body: "I build websites that look strong on the surface and stay structured under real change. That is not a style choice. It is how I work.",
       chips: ["Frontend", "Design", "Content", "Germany"],
       pillarsTitle: "The skill stack I rely on when the outcome matters",
-      pillarsBody: "Not a tool list for decoration. A working stack used across launches, redesigns, and creator-led product communication.",
+      pillarsBody:
+        "Not a tool list for decoration. A working stack used across launches, redesigns, and creator-led product communication.",
       creatorTitle: "Behind the camera and the code",
-      creatorBody: "Portrait, tech setup, creator energy, and presentation layers that show how visual identity and execution live together.",
+      creatorBody:
+        "Portrait, tech setup, creator energy, and presentation layers that show how visual identity and execution live together.",
     },
     projects: {
       eyebrow: "Selected work",
       title: "Every project here solved a real business problem.",
       body: "I do not take on visual polishing alone. I work on projects that know where they want to go and need execution that can actually get them there.",
       featureTitle: "Why these case studies",
-      featureBody: "They represent the kind of work that changes perception, reduces hesitation, and moves people toward action.",
+      featureBody:
+        "They represent the kind of work that changes perception, reduces hesitation, and moves people toward action.",
       collection: {
         title: "Case studies",
         body: "Each one is structured for fast reading: challenge, solution, result.",
       },
       conceptTitle: "From gallery to proof",
-      conceptBody: "The visitor does not need more images. They need evidence that the same thinking can improve their project too.",
+      conceptBody:
+        "The visitor does not need more images. They need evidence that the same thinking can improve their project too.",
     },
     youtube: {
       eyebrow: "YouTube",
@@ -572,7 +617,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       latestLabel: "Latest videos",
       values: ["1.5M+ views", "6.1K+ subscribers", "162 videos", "Honest reviews"],
       collaborationTitle: "Why follow an Arab creator from Germany?",
-      collaborationBody: "Because the goal is not noise. It is clarity. I explain products for an Arabic audience that wants real perspective, not disguised advertising.",
+      collaborationBody:
+        "Because the goal is not noise. It is clarity. I explain products for an Arabic audience that wants real perspective, not disguised advertising.",
       channelCta: "Open the channel",
     },
     contact: {
@@ -595,7 +641,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
         },
       ],
       directTitle: "No middle layer",
-      directBody: "Start with a clear message or even half a message. I will return with a direct step within 24 hours.",
+      directBody:
+        "Start with a clear message or even half a message. I will return with a direct step within 24 hours.",
       primaryCta: "Start the conversation",
     },
     privacy: {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -32,8 +32,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Release not found" }, { status: 404 });
   }
 
-  const target = new URL(`/api/app/releases/${latest.slug}/download`, request.url);
-  if (abi) target.searchParams.set("abi", abi);
+  const resolved = await resolveDownloadBySlug(latest.slug, abi);
+  if (!resolved) {
+    return NextResponse.json({ error: "Release asset not found" }, { status: 404 });
+  }
+
+  const target = new URL(resolved.redirectUrl, request.url);
 
   return NextResponse.redirect(target, {
     headers: {

@@ -75,7 +75,7 @@ export function proxy(request: NextRequest) {
   if (!locale) {
     const url = request.nextUrl.clone();
     url.pathname = `/${defaultLocale}${pathname === "/" ? "" : pathname}`;
-    return NextResponse.redirect(url, 308);
+    return NextResponse.redirect(url, pathname === "/" ? 301 : 308);
   }
 
   return NextResponse.next();

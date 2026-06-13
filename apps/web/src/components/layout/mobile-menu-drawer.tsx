@@ -74,7 +74,7 @@ export function MobileMenuDrawer({
                 ? pathname === `/${locale}` || pathname === `/${locale}/`
                 : pathname === item.href || pathname?.startsWith(`${item.href}/`);
             return (
-              <Link key={item.id} href={item.href} onClick={onClose} className={cn(active && "fresh-drawer-link-active")}>
+              <Link key={item.id} href={item.href} prefetch={false} onClick={onClose} className={cn(active && "fresh-drawer-link-active")}>
                 {item.label}
               </Link>
             );
@@ -85,7 +85,7 @@ export function MobileMenuDrawer({
           <LocalePreferenceLink href={alternatePath} className="fresh-button">
             {localeMeta[nextLocale].label}
           </LocalePreferenceLink>
-          <Link href={`/${locale}/contact`} onClick={onClose} className="fresh-button fresh-button-primary">
+          <Link href={`/${locale}/contact`} prefetch={false} onClick={onClose} className="fresh-button fresh-button-primary">
             <Send className="h-4 w-4" />
             {locale === "ar" ? "ابدأ التواصل" : "Start Contact"}
           </Link>

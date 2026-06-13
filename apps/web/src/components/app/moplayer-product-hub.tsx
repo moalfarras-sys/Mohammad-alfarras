@@ -269,7 +269,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
 
                   <div className="flex flex-wrap gap-2.5">
                     {product.href && (
-                      <Link href={product.href} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${col.primary}, ${col.bg}cc)`, boxShadow: `0 4px 16px ${col.primary}25` }}>
+                      <Link href={product.href} prefetch={false} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5" style={{ background: `linear-gradient(135deg, ${col.primary}, ${col.bg}cc)`, boxShadow: `0 4px 16px ${col.primary}25` }}>
                         {product.primaryCta} <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     )}
@@ -279,7 +279,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
                       </a>
                     )}
                     {product.activateHref && (
-                      <Link href={product.activateHref} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-bold text-white/70 bg-white/[0.04] border border-white/8 hover:bg-white/[0.08] transition-all duration-300 hover:-translate-y-0.5">
+                      <Link href={product.activateHref} prefetch={false} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-bold text-white/70 bg-white/[0.04] border border-white/8 hover:bg-white/[0.08] transition-all duration-300 hover:-translate-y-0.5">
                         <KeyRound className="h-3.5 w-3.5" /> {c.activateCta}
                       </Link>
                     )}

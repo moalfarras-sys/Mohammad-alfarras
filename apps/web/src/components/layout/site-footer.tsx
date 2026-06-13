@@ -64,7 +64,7 @@ export function SiteFooter({
             <div>
               <p className="fresh-eyebrow">{isAr ? "التنقل" : "Navigation"}</p>
               {links.slice(0, 6).map((item) => (
-                <Link key={item.id} href={item.href}>
+                <Link key={item.id} href={item.href} prefetch={false}>
                   {item.label}
                 </Link>
               ))}
@@ -72,7 +72,7 @@ export function SiteFooter({
             <div>
               <p className="fresh-eyebrow">{isAr ? "المنتج" : "Product"}</p>
               {productLinks.map((item) => (
-                <Link key={item.id} href={item.href}>
+                <Link key={item.id} href={item.href} prefetch={false}>
                   {item.label}
                 </Link>
               ))}
@@ -88,7 +88,7 @@ export function SiteFooter({
 
           <div className="fresh-footer-bottom">
             <p>{`© ${year} ${brandName}`}</p>
-            <Link href={`/${locale}/privacy`}>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
+            <Link href={`/${locale}/privacy`} prefetch={false}>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
             <a href="#top" className="fresh-footer-top" aria-label={isAr ? "العودة للأعلى" : "Back to top"}>
               <ArrowUp size={16} />
             </a>

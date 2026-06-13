@@ -6,10 +6,15 @@ import { buildSiteModel } from "@/components/site/site-model";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, videoObjectJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
+import "@/styles/route-youtube.css";
 import { compactMetric, youtubeChannel } from "@/content/site-data";
 import type { Locale } from "@/types/cms";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   return pageMetadata(locale, "youtube");
@@ -51,9 +56,23 @@ export default async function YoutubeRoute({ params }: { params: Promise<{ local
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      {videoJson ? <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(videoJson) }} /> : null}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(page) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
+      {videoJson ? (
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: jsonLdString(videoJson) }}
+        />
+      ) : null}
       <SitePage locale={loc} slug="youtube" />
     </>
   );

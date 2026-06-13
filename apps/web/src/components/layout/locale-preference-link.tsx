@@ -5,10 +5,11 @@ import type { ComponentProps, MouseEvent } from "react";
 
 /** Persists locale choice for client-side UX hints. */
 export function LocalePreferenceLink(props: ComponentProps<typeof Link>) {
-  const { href, onClick, ...rest } = props;
+  const { href, onClick, prefetch = false, ...rest } = props;
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       onClick={(e: MouseEvent<HTMLAnchorElement>) => {
         const path = typeof href === "string" ? href : href.pathname ?? "";
         try {

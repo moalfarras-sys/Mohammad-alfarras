@@ -384,9 +384,9 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
             {home.quickFacts.map((item) => <span key={item}>{item}</span>)}
           </div>
           <div className="fresh-actions">
-            <Link href={pathFor(model.locale, "contact")} className="fresh-button fresh-button-primary magnetic-surface">{home.primary}<ArrowUpRight size={17} /></Link>
-            <Link href={pathFor(model.locale, "work")} className="fresh-button magnetic-surface">{home.secondary}</Link>
-            <Link href={pathFor(model.locale, "youtube")} className="fresh-button fresh-button-ghost magnetic-surface"><PlayCircle size={17} />{home.secondarySoft}</Link>
+            <Link href={pathFor(model.locale, "contact")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">{home.primary}<ArrowUpRight size={17} /></Link>
+            <Link href={pathFor(model.locale, "work")} prefetch={false} className="fresh-button magnetic-surface">{home.secondary}</Link>
+            <Link href={pathFor(model.locale, "youtube")} prefetch={false} className="fresh-button fresh-button-ghost magnetic-surface"><PlayCircle size={17} />{home.secondarySoft}</Link>
           </div>
         </div>
 
@@ -431,7 +431,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
       <section className="fresh-section os-home-explore-section">
         <div className="os-home-explore-grid os-entry-grid">
           {explore.map(([title, body, href, Icon], index) => (
-            <Link href={pathFor(model.locale, href)} className="os-home-explore-card magnetic-surface" key={title}>
+            <Link href={pathFor(model.locale, href)} prefetch={false} className="os-home-explore-card magnetic-surface" key={title}>
               <span className="fresh-card-icon"><Icon /></span>
               <span className="os-home-card-kicker">0{index + 1}</span>
               <h3>{title}</h3>
@@ -462,11 +462,11 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
           ))}
         </div>
         <div className="fresh-actions">
-          <Link href={pathFor(model.locale, "work")} className="fresh-button fresh-button-primary magnetic-surface">
+          <Link href={pathFor(model.locale, "work")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">
             {isAr ? "شاهد الأعمال" : "View the work"}
             <ArrowUpRight size={17} />
           </Link>
-          <Link href={pathFor(model.locale, "contact")} className="fresh-button magnetic-surface">
+          <Link href={pathFor(model.locale, "contact")} prefetch={false} className="fresh-button magnetic-surface">
             {isAr ? "أريد موقعًا مشابهًا" : "I need something similar"}
           </Link>
         </div>
@@ -495,8 +495,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
           <h2>{home.productTitle}</h2>
           <p>{home.productBody}</p>
           <div className="fresh-actions">
-            <Link href={pathFor(model.locale, "apps/moplayer")} className="fresh-button fresh-button-primary magnetic-surface">{isAr ? "استكشف MoPlayer" : "Explore MoPlayer"}<ArrowUpRight size={17} /></Link>
-            <Link href={pathFor(model.locale, "activate")} className="fresh-button magnetic-surface">{isAr ? "تجربة التفعيل" : "Activation flow"}</Link>
+            <Link href={pathFor(model.locale, "apps/moplayer")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">{isAr ? "استكشف MoPlayer" : "Explore MoPlayer"}<ArrowUpRight size={17} /></Link>
+            <Link href={pathFor(model.locale, "activate")} prefetch={false} className="fresh-button magnetic-surface">{isAr ? "تجربة التفعيل" : "Activation flow"}</Link>
           </div>
         </div>
         <div className="os-moplayer-visual">
@@ -511,7 +511,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         <h2>{home.ctaTitle}</h2>
         <p>{home.ctaBody}</p>
         <div className="fresh-actions">
-          <Link href={pathFor(model.locale, "contact")} className="fresh-button fresh-button-primary magnetic-surface">{home.ctaPrimary}</Link>
+          <Link href={pathFor(model.locale, "contact")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">{home.ctaPrimary}</Link>
           <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="fresh-button magnetic-surface">{home.ctaSecondary}</a>
         </div>
       </section>
@@ -600,10 +600,10 @@ function ServicesPage({ model }: { model: SiteViewModel }) {
             : "Send the idea, and I will help shape it visually, commercially, and technically without unnecessary complexity."}
         </p>
         <div className="fresh-actions">
-          <Link href={pathFor(model.locale, "contact")} className="fresh-button fresh-button-primary magnetic-surface">
+          <Link href={pathFor(model.locale, "contact")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">
             {isAr ? "ابدأ مشروعك" : "Start your project"}
           </Link>
-          <Link href={pathFor(model.locale, "work")} className="fresh-button magnetic-surface">
+          <Link href={pathFor(model.locale, "work")} prefetch={false} className="fresh-button magnetic-surface">
             {isAr ? "شاهد الأعمال" : "See the work"}
           </Link>
         </div>
@@ -767,7 +767,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
             <BellRing className="yt-bell" />
             {y.cta.primary}
           </a>
-          <Link href={pathFor(model.locale, "contact")} className="fresh-button">{y.cta.secondary}</Link>
+          <Link href={pathFor(model.locale, "contact")} prefetch={false} className="fresh-button">{y.cta.secondary}</Link>
         </div>
       </section>
     </PageShell>

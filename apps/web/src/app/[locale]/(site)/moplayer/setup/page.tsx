@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MoPlayerActivationPage } from "@/components/app/moplayer-activation-page";
 import { isLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
+import "@/styles/route-activation.css";
 import type { Locale } from "@/types/cms";
 
 const SITE_URL = "https://moalfarras.space";
@@ -16,12 +17,15 @@ const meta = {
   },
   ar: {
     title: "إعداد MoPlayer | إضافة مصدر IPTV",
-    description:
-      "فعّل MoPlayer وأرسل مصدرك الخاص بأمان إلى جهاز Android TV المرتبط.",
+    description: "فعّل MoPlayer وأرسل مصدرك الخاص بأمان إلى جهاز Android TV المرتبط.",
   },
 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const copy = repairMojibakeDeep(meta[locale]);
@@ -42,7 +46,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: `${SITE_URL}/${locale}/moplayer/setup`,
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
-      images: [{ url: "/images/moplayer-tv-banner-final.png", width: 1600, height: 900, alt: copy.title }],
+      images: [
+        { url: "/images/moplayer-tv-banner-final.png", width: 1600, height: 900, alt: copy.title },
+      ],
     },
   };
 }

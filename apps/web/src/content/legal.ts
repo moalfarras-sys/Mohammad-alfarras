@@ -10,33 +10,27 @@ export const privacyCopy = {
     sections: [
       {
         title: "What this site collects",
-        body:
-          "The site may process information you intentionally submit through contact or support forms, such as name, email, optional WhatsApp number, project type, budget range, timeline, and message.",
+        body: "The site may process information you intentionally submit through contact or support forms, such as name, email, optional WhatsApp number, project type, budget range, timeline, and message.",
       },
       {
         title: "Why it is used",
-        body:
-          "Submitted information is used to understand the request, respond to you, handle support questions, and keep a basic operational record of the conversation.",
+        body: "Submitted information is used to understand the request, respond to you, handle support questions, and keep a basic operational record of the conversation.",
       },
       {
         title: "MoPlayer",
-        body:
-          "MoPlayer is a playback interface. It does not provide channels, playlists, subscriptions, or copyrighted media. Users are responsible for the legality of the sources they connect.",
+        body: "MoPlayer is a playback interface. It does not provide channels, playlists, subscriptions, or copyrighted media. Users are responsible for the legality of the sources they connect.",
       },
       {
         title: "Storage and third parties",
-        body:
-          "Contact/support messages may be stored in the configured database and may be delivered by the configured email provider. Secrets and service-role keys must remain server-side only.",
+        body: "Contact/support messages may be stored in the configured database and may be delivered by the configured email provider. Secrets and service-role keys must remain server-side only.",
       },
       {
         title: "Your choices",
-        body:
-          "You can request clarification or deletion of a submitted message by contacting the published support email. Legal retention duties may limit deletion in some cases.",
+        body: "You can request clarification or deletion of a submitted message by contacting the published support email. Legal retention duties may limit deletion in some cases.",
       },
     ],
     todoTitle: "Owner confirmation needed",
-    todo:
-      "If the site is used commercially from Germany, confirm the required Impressum/legal notice details: legal name, address, responsible person, tax/business identifiers if applicable, and any mandatory professional disclosures.",
+    todo: "If the site is used commercially from Germany, confirm the required Impressum/legal notice details: legal name, address, responsible person, tax/business identifiers if applicable, and any mandatory professional disclosures.",
     contact: "Privacy contact",
   },
   ar: {
@@ -48,33 +42,27 @@ export const privacyCopy = {
     sections: [
       {
         title: "ما الذي يجمعه الموقع",
-        body:
-          "قد يعالج الموقع المعلومات التي ترسلها عمداً عبر نماذج التواصل أو الدعم، مثل الاسم، البريد، رقم واتساب الاختياري، نوع المشروع، نطاق الميزانية، الجدول الزمني، والرسالة.",
+        body: "قد يعالج الموقع المعلومات التي ترسلها عمداً عبر نماذج التواصل أو الدعم، مثل الاسم، البريد، رقم واتساب الاختياري، نوع المشروع، نطاق الميزانية، الجدول الزمني، والرسالة.",
       },
       {
         title: "لماذا تُستخدم البيانات",
-        body:
-          "تُستخدم المعلومات المرسلة لفهم الطلب، الرد عليك، معالجة أسئلة الدعم، والاحتفاظ بسجل تشغيلي بسيط للمحادثة.",
+        body: "تُستخدم المعلومات المرسلة لفهم الطلب، الرد عليك، معالجة أسئلة الدعم، والاحتفاظ بسجل تشغيلي بسيط للمحادثة.",
       },
       {
         title: "MoPlayer",
-        body:
-          "MoPlayer واجهة تشغيل فقط. لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمي الحقوق. المستخدم مسؤول عن قانونية المصادر التي يربطها.",
+        body: "MoPlayer واجهة تشغيل فقط. لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمي الحقوق. المستخدم مسؤول عن قانونية المصادر التي يربطها.",
       },
       {
         title: "التخزين والأطراف الخارجية",
-        body:
-          "قد تُخزّن رسائل التواصل أو الدعم في قاعدة البيانات المضبوطة، وقد تُرسل عبر مزود البريد المضبوط. يجب أن تبقى الأسرار ومفاتيح service-role على الخادم فقط.",
+        body: "قد تُخزّن رسائل التواصل أو الدعم في قاعدة البيانات المضبوطة، وقد تُرسل عبر مزود البريد المضبوط. يجب أن تبقى الأسرار ومفاتيح service-role على الخادم فقط.",
       },
       {
         title: "خياراتك",
-        body:
-          "يمكنك طلب توضيح أو حذف رسالة مرسلة عبر بريد الدعم المنشور. قد تمنع الالتزامات القانونية الحذف في بعض الحالات.",
+        body: "يمكنك طلب توضيح أو حذف رسالة مرسلة عبر بريد الدعم المنشور. قد تمنع الالتزامات القانونية الحذف في بعض الحالات.",
       },
     ],
     todoTitle: "معلومات تحتاج تأكيد المالك",
-    todo:
-      "إذا كان الموقع يُستخدم تجارياً من ألمانيا، يجب تأكيد بيانات Impressum / الإشعار القانوني: الاسم القانوني، العنوان، الشخص المسؤول، أرقام الضريبة أو التسجيل إن وجدت، وأي إفصاحات مهنية مطلوبة.",
+    todo: "إذا كان الموقع يُستخدم تجارياً من ألمانيا، يجب تأكيد بيانات Impressum / الإشعار القانوني: الاسم القانوني، العنوان، الشخص المسؤول، أرقام الضريبة أو التسجيل إن وجدت، وأي إفصاحات مهنية مطلوبة.",
     contact: "تواصل بخصوص الخصوصية",
   },
 } satisfies Localized<{
@@ -93,7 +81,7 @@ export const supportCopy = {
     eyebrow: "Support",
     title: "MoPlayer support inside the same product ecosystem.",
     intro:
-      "Use this page for installation, compatibility, release, or download questions. MoPlayer support is connected to the product, privacy, and case-study story rather than separated into a detached help site.",
+      "Get help with MoPlayer installation, compatibility, releases, and downloads in the same product and privacy ecosystem.",
     sent: "Your support request was sent successfully.",
     directTitle: "Direct routes",
     formTitle: "Send support request",
@@ -107,8 +95,7 @@ export const supportCopy = {
     legal:
       "MoPlayer does not provide channels, playlists, subscriptions, or copyrighted media. Support can help with the app surface, installation, release compatibility, and download questions.",
     todoTitle: "Owner confirmation needed",
-    todo:
-      "For commercial operation in Germany, confirm whether an Impressum/legal notice must be linked from support and product pages.",
+    todo: "For commercial operation in Germany, confirm whether an Impressum/legal notice must be linked from support and product pages.",
   },
   ar: {
     eyebrow: "الدعم",
@@ -128,7 +115,6 @@ export const supportCopy = {
     legal:
       "MoPlayer لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمي الحقوق. الدعم يساعد في واجهة التطبيق، التثبيت، توافق الإصدارات، وأسئلة التنزيل.",
     todoTitle: "معلومات تحتاج تأكيد المالك",
-    todo:
-      "للاستخدام التجاري من ألمانيا، يجب تأكيد ما إذا كان يلزم ربط Impressum / إشعار قانوني من صفحات الدعم والمنتج.",
+    todo: "للاستخدام التجاري من ألمانيا، يجب تأكيد ما إذا كان يلزم ربط Impressum / إشعار قانوني من صفحات الدعم والمنتج.",
   },
 } satisfies Localized<Record<string, string>>;

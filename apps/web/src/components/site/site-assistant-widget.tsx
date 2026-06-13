@@ -77,16 +77,26 @@ function initialMessages(locale: Locale): Message[] {
   }
 }
 
-export function SiteAssistantWidget({ locale, initialOpen = false }: { locale: Locale; initialOpen?: boolean }) {
+export function SiteAssistantWidget({
+  locale,
+  initialOpen = false,
+  initialPrompt = "",
+}: {
+  locale: Locale;
+  initialOpen?: boolean;
+  initialPrompt?: string;
+}) {
   const pathname = usePathname();
   const t = widgetCopy[locale];
   const [open, setOpen] = useState(initialOpen);
   const [messages, setMessages] = useState<Message[]>(() => initialMessages(locale));
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialPrompt);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const conversationId = useMemo(() => crypto.randomUUID(), []);
-  const hiddenOnFocusedFlow = Boolean(pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"));
+  const hiddenOnFocusedFlow = Boolean(
+    pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"),
+  );
 
   useEffect(() => {
     try {

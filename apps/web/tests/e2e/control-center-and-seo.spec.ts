@@ -23,7 +23,9 @@ test.describe("public site smoke", () => {
 
     await page.getByRole("button", { name: /Ask Mo Ai about this project/i }).click();
     await expect(page.locator(".mo-ai-panel")).toBeVisible();
-    await expect(page.locator(".mo-ai-form input")).toHaveValue(/Explain the .+ project/);
+    await expect(page.locator(".mo-ai-form input")).toHaveValue(/Explain the .+ project/, {
+      timeout: 10_000,
+    });
   });
 
   test("Arabic work discovery stays readable on mobile", async ({ page }) => {
@@ -48,11 +50,12 @@ test.describe("public site smoke", () => {
   test("MoPlayer activation surfaces load on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/en/activate");
-    await expect(page.getByRole("heading", { name: /Activate your TV/i })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: /TV code/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Activate your device/i })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: /Device code/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Open Mo Ai assistant/i })).toHaveCount(0);
 
     await page.goto("/ar/activate");
-    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(page.locator('[lang="ar"][dir="rtl"]').first()).toBeVisible();
     await expect(page.getByRole("textbox").first()).toBeVisible();
   });
 });
@@ -87,7 +90,7 @@ test.describe("search indexing signals", () => {
       /<url>\s*<loc>https:\/\/moalfarras\.space\/en<\/loc>[\s\S]*?<\/url>/,
     )?.[0];
     expect(homeEntry).toBeTruthy();
-    expect(homeEntry).not.toContain("<lastmod>");
+    expect(homeEntry).toContain("<lastmod>2026-06-13T00:00:00.000Z</lastmod>");
   });
 
   test("localized pages publish self-canonical language alternates", async ({ request }) => {

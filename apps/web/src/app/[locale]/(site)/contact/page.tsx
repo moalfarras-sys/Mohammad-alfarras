@@ -7,15 +7,24 @@ import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, contactPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
+import "@/styles/route-contact.css";
 import type { Locale } from "@/types/cms";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   return pageMetadata(locale, "contact");
 }
 
-export default async function ContactPageRoute({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ContactPageRoute({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -28,8 +37,16 @@ export default async function ContactPageRoute({ params }: { params: Promise<{ l
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(contactPageJsonLd(loc)) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(contactPageJsonLd(loc)) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
       <ContactHubPage locale={loc} content={model.t.contact} />
       <SiteOffersSection model={model} placement="contact" />
     </>

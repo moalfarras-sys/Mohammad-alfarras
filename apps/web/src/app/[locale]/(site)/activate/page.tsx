@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { MoPlayerActivationPage } from "@/components/app/moplayer-activation-page";
 import { isLocale } from "@/lib/i18n";
+import "@/styles/route-activation.css";
 import type { Locale } from "@/types/cms";
 
 const SITE_URL = "https://moalfarras.space";
@@ -50,7 +51,8 @@ export async function generateMetadata({
       : isPro
         ? {
             title: "Activate MoPlayer Pro",
-            description: "Confirm your TV code and securely send your private source to MoPlayer Pro.",
+            description:
+              "Confirm your TV code and securely send your private source to MoPlayer Pro.",
           }
         : meta[locale];
   const suffix = isPc ? "?product=moplayer-pc" : isPro ? "?product=moplayer2" : "";
@@ -105,7 +107,13 @@ export default async function ActivateRoute({
     <MoPlayerActivationPage
       locale={locale as Locale}
       initialCode={code || device_code}
-      productSlug={product === "moplayer-pc" ? "moplayer-pc" : product === "moplayer2" ? "moplayer2" : "moplayer"}
+      productSlug={
+        product === "moplayer-pc"
+          ? "moplayer-pc"
+          : product === "moplayer2"
+            ? "moplayer2"
+            : "moplayer"
+      }
     />
   );
 }

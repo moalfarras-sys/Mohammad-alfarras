@@ -12,16 +12,34 @@ import {
   jsonLdString,
   softwareApplicationJsonLd,
 } from "@/lib/seo-jsonld";
+import "@/styles/route-moplayer-pro.css";
 import type { Locale } from "@/types/cms";
 import { isManagedAppSlug, managedApps } from "@moalfarras/shared/app-products";
 
 const SITE_URL = "https://moalfarras.space";
 
+const productMetadata = {
+  moplayer2: {
+    ar: {
+      title: "MoPlayer Pro للتلفزيون",
+      description:
+        "مشغل وسائط مميز لأجهزة Android TV وFire TV، مخصص لمصادر Xtream وM3U التي يملك المستخدم حق الوصول إليها.",
+    },
+    en: {
+      title: "MoPlayer Pro",
+      description:
+        "A premium Android TV and Fire TV media player for Xtream and M3U sources the user is authorized to access.",
+    },
+  },
+} as const;
+
 export function generateStaticParams() {
-  return managedApps.filter((app) => app.slug !== "moplayer").flatMap((app) => [
-    { locale: "ar", productSlug: app.slug },
-    { locale: "en", productSlug: app.slug },
-  ]);
+  return managedApps
+    .filter((app) => app.slug !== "moplayer")
+    .flatMap((app) => [
+      { locale: "ar", productSlug: app.slug },
+      { locale: "en", productSlug: app.slug },
+    ]);
 }
 
 export async function generateMetadata({
@@ -32,10 +50,15 @@ export async function generateMetadata({
   const { locale, productSlug } = await params;
   if (!isLocale(locale) || !isManagedAppSlug(productSlug)) return {};
   const ecosystem = await readAppEcosystem(productSlug);
-  const title = ecosystem.product.product_name;
+  const localized = productSlug === "moplayer2" ? productMetadata.moplayer2[locale] : null;
+  const title = localized?.title ?? ecosystem.product.product_name;
   const socialTitle = `${title} | Mohammad Alfarras`;
-  const description = ecosystem.product.short_description;
-  const image = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-hero-3d-final.png");
+  const description = localized?.description ?? ecosystem.product.short_description;
+  const image = normalizePublicImagePath(
+    ecosystem.product.hero_image_path ||
+      ecosystem.product.tv_banner_path ||
+      "/images/moplayer-hero-3d-final.png",
+  );
 
   return {
     title,
@@ -91,9 +114,12 @@ export default async function AppProductRoute({
   };
   const latest = normalizedEcosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
-  const fileSize = primaryAsset?.file_size_bytes ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB` : undefined;
-  const title = normalizedEcosystem.product.product_name;
-  const description = normalizedEcosystem.product.short_description;
+  const fileSize = primaryAsset?.file_size_bytes
+    ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`
+    : undefined;
+  const localized = productSlug === "moplayer2" ? productMetadata.moplayer2[loc] : null;
+  const title = localized?.title ?? normalizedEcosystem.product.product_name;
+  const description = localized?.description ?? normalizedEcosystem.product.short_description;
 
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
@@ -118,9 +144,23 @@ export default async function AppProductRoute({
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(software) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      {faq ? <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }} /> : null}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(software) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
+      {faq ? (
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }}
+        />
+      ) : null}
       <script
         type="application/ld+json"
         suppressHydrationWarning

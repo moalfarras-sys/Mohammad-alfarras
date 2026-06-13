@@ -19,7 +19,7 @@ export async function generateMetadata({
   const copy =
     locale === "ar"
       ? {
-          title: "MoPlayer PC",
+          title: "MoPlayer PC لويندوز",
           description: "مشغل مكتبي متكامل وقوي مصمم لنظام التشغيل Windows.",
         }
       : {
@@ -48,7 +48,9 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [{ url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: socialTitle }],
+      images: [
+        { url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: socialTitle },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -61,11 +63,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function MoPlayerPcRoute({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export default async function MoPlayerPcRoute({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -74,5 +72,11 @@ export default async function MoPlayerPcRoute({
     readLatestWindowsRelease(),
   ]);
 
-  return <MoPlayerPcLanding ecosystem={ecosystem} locale={locale as "en" | "ar"} windowsRelease={windowsRelease} />;
+  return (
+    <MoPlayerPcLanding
+      ecosystem={ecosystem}
+      locale={locale as "en" | "ar"}
+      windowsRelease={windowsRelease}
+    />
+  );
 }

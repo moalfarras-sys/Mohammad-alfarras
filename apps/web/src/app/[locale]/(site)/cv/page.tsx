@@ -5,11 +5,21 @@ import { InteractiveCvPage } from "@/components/site/interactive-cv-page";
 import { buildSiteModel } from "@/components/site/site-model";
 import { youtubeChannel } from "@/content/site-data";
 import { isLocale } from "@/lib/i18n";
-import { breadcrumbJsonLd, jsonLdString, personExpandedJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
+import {
+  breadcrumbJsonLd,
+  jsonLdString,
+  personExpandedJsonLd,
+  webPageJsonLd,
+} from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
+import "@/styles/route-cv.css";
 import type { Locale } from "@/types/cms";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   return pageMetadata(locale, "cv");
@@ -22,14 +32,19 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
   const loc = locale as Locale;
   const model = await buildSiteModel({ locale: loc, slug: "cv" });
   const views =
-    Number(model.live.youtube?.totalViews ?? model.youtube.views ?? youtubeChannel.fallback.views) ||
-    youtubeChannel.fallback.views;
+    Number(
+      model.live.youtube?.totalViews ?? model.youtube.views ?? youtubeChannel.fallback.views,
+    ) || youtubeChannel.fallback.views;
   const subscribers =
-    Number(model.live.youtube?.subscribers ?? model.youtube.subscribers ?? youtubeChannel.fallback.subscribers) ||
-    youtubeChannel.fallback.subscribers;
+    Number(
+      model.live.youtube?.subscribers ??
+        model.youtube.subscribers ??
+        youtubeChannel.fallback.subscribers,
+    ) || youtubeChannel.fallback.subscribers;
   const videos =
-    Number(model.live.youtube?.videoCount ?? model.youtube.videos ?? youtubeChannel.fallback.videos) ||
-    youtubeChannel.fallback.videos;
+    Number(
+      model.live.youtube?.videoCount ?? model.youtube.videos ?? youtubeChannel.fallback.videos,
+    ) || youtubeChannel.fallback.videos;
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "السيرة الذاتية" : "CV", path: `/${loc}/cv` },
@@ -46,9 +61,21 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(personExpandedJsonLd(loc)) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(personExpandedJsonLd(loc)) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(page) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
       <InteractiveCvPage
         locale={loc}
         profileName={model.profile.name}

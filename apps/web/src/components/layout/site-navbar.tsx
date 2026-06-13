@@ -64,7 +64,7 @@ export function SiteNavbar({
     <>
       <header className="fresh-nav-wrap">
         <div className={scrolled ? "site-navbar-shell fresh-nav fresh-nav-scrolled" : "site-navbar-shell fresh-nav"}>
-          <Link href={`/${locale}`} className="fresh-brand">
+          <Link href={`/${locale}`} prefetch={false} className="fresh-brand">
             <span className="fresh-brand-mark">
               <Image
                 src={brandLogoSrc}
@@ -95,7 +95,7 @@ export function SiteNavbar({
                   ? pathname === `/${locale}` || pathname === `/${locale}/`
                   : pathname === item.href || pathname?.startsWith(`${item.href}/`);
               return (
-                <Link key={item.id} href={item.href} className={active ? "fresh-nav-link fresh-nav-link-active" : "fresh-nav-link"}>
+                <Link key={item.id} href={item.href} prefetch={false} className={active ? "fresh-nav-link fresh-nav-link-active" : "fresh-nav-link"}>
                   {item.label}
                 </Link>
               );
@@ -107,7 +107,7 @@ export function SiteNavbar({
               {localeMeta[nextLocale].label}
             </LocalePreferenceLink>
 
-            <Link href={`/${locale}/contact`} className="fresh-nav-cta">
+            <Link href={`/${locale}/contact`} prefetch={false} className="fresh-nav-cta">
               <Send size={16} />
               <span>{ctaLabel}</span>
               <ArrowUpRight size={16} />
@@ -140,7 +140,7 @@ export function SiteNavbar({
                 ? pathname === `/${locale}` || pathname === `/${locale}/`
                 : pathname === item.href || pathname?.startsWith(`${item.href}/`);
             return (
-              <Link key={item.id} href={item.href} className={active ? "mobile-dock-link mobile-dock-link-active" : "mobile-dock-link"} aria-label={item.label}>
+              <Link key={item.id} href={item.href} prefetch={false} className={active ? "mobile-dock-link mobile-dock-link-active" : "mobile-dock-link"} aria-label={item.label}>
                 <Icon size={18} />
                 <span>{item.label}</span>
               </Link>

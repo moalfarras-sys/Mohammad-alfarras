@@ -24,7 +24,7 @@ export function SiteOffersSection({
               <h2>{offer.title}</h2>
               <p>{offer.body}</p>
               {offer.ctaLabel ? (
-                <Link href={offer.ctaHref} className="fresh-button fresh-button-primary">
+                <Link href={offer.ctaHref} prefetch={false} className="fresh-button fresh-button-primary">
                   {offer.ctaLabel}
                   <ArrowUpRight size={16} />
                 </Link>

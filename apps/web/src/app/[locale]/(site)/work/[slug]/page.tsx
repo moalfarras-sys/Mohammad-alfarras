@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 
 import { PortfolioProjectPage } from "@/components/site/portfolio-pages";
 import { buildSiteModel } from "@/components/site/site-model";
+import { normalizePublicImagePath } from "@/lib/asset-url";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, creativeWorkJsonLd, jsonLdString } from "@/lib/seo-jsonld";
+import "@/styles/route-work.css";
 import type { Locale } from "@/types/cms";
 
 export async function generateStaticParams() {
@@ -34,7 +36,18 @@ export async function generateMetadata({
   const path = `/${locale}/work/${slug}`;
   const title = `${project.title} | ${locale === "ar" ? "الأعمال" : "Work"}`;
   const socialTitle = `${title} | Mohammad Alfarras`;
-  const description = project.description || project.summary;
+  const rawDescription = project.description || project.summary;
+  const description =
+    rawDescription.length <= 155
+      ? rawDescription
+      : `${rawDescription
+          .slice(0, 154)
+          .replace(/\s+\S*$/, "")
+          .trimEnd()}…`;
+  const normalizedImage = normalizePublicImagePath(project.image);
+  const socialImage = /^https?:\/\//i.test(normalizedImage)
+    ? normalizedImage
+    : `${baseUrl}${normalizedImage.startsWith("/") ? normalizedImage : `/${normalizedImage}`}`;
 
   return {
     title,
@@ -54,7 +67,7 @@ export async function generateMetadata({
       description,
       images: [
         {
-          url: `${baseUrl}${project.image}`,
+          url: socialImage,
           width: 1200,
           height: 630,
           alt: project.title,
@@ -65,7 +78,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: socialTitle,
       description,
-      images: [`${baseUrl}${project.image}`],
+      images: [socialImage],
     },
   };
 }
@@ -98,8 +111,16 @@ export default async function ProjectDetailRoute({
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(work) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(work) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
       <PortfolioProjectPage model={model} projectId={slug} />
     </>
   );

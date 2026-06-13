@@ -12,13 +12,14 @@ import {
   jsonLdString,
   softwareApplicationJsonLd,
 } from "@/lib/seo-jsonld";
+import "@/styles/route-moplayer-classic.css";
 import type { Locale } from "@/types/cms";
 
 const SITE_URL = "https://moalfarras.space";
 
 const localizedMeta = {
   ar: {
-    title: "MoPlayer Classic",
+    title: "MoPlayer Classic للأندرويد",
     socialTitle: "MoPlayer Classic — تطبيق أندرويد سريع وخفيف",
     description:
       "MoPlayer Classic هو تطبيق أندرويد وAndroid TV خفيف وسريع، مناسب للأجهزة الضعيفة، مع تحميل APK رسمي وإرشادات تثبيت وتفعيل واضحة.",
@@ -31,7 +32,11 @@ const localizedMeta = {
   },
 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const meta = localizedMeta[locale];
@@ -53,7 +58,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: "/images/moplayer-hero-3d-final.png", width: 1600, height: 900, alt: meta.socialTitle }],
+      images: [
+        {
+          url: "/images/moplayer-hero-3d-final.png",
+          width: 1600,
+          height: 900,
+          alt: meta.socialTitle,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -64,7 +76,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function MoPlayerClassicRoute({ params }: { params: Promise<{ locale: string }> }) {
+export default async function MoPlayerClassicRoute({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
@@ -85,7 +101,9 @@ export default async function MoPlayerClassicRoute({ params }: { params: Promise
   };
   const latest = normalizedEcosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
-  const fileSize = primaryAsset?.file_size_bytes ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB` : undefined;
+  const fileSize = primaryAsset?.file_size_bytes
+    ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`
+    : undefined;
 
   const meta = localizedMeta[loc];
   const breadcrumb = breadcrumbJsonLd(loc, [
@@ -108,9 +126,23 @@ export default async function MoPlayerClassicRoute({ params }: { params: Promise
 
   return (
     <>
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(software) }} />
-      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      {faq ? <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }} /> : null}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(software) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
+      />
+      {faq ? (
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: jsonLdString(faq) }}
+        />
+      ) : null}
       <script
         type="application/ld+json"
         suppressHydrationWarning

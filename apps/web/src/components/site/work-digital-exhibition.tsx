@@ -111,10 +111,10 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
     ? cmsProjects.map((project) => cmsProjectToExhibition(project, locale))
     : undefined;
   return {
-    eyebrow: ar ? "Digital Exhibition" : "Digital Exhibition",
-    title: ar ? "أعمال هندسية مختارة." : "Selected Engineering Work.",
+    eyebrow: ar ? "معرض الأعمال" : "Digital Exhibition",
+    title: ar ? "مشاريع وأعمال مختارة." : "Selected Engineering Work.",
     subtitle: ar
-      ? "دراسات حالة بوضوح في المشكلة، الدور، القرارات، والنتيجة الرقمية."
+      ? "دراسات حالة واضحة: المشكلة، دوري فيها، القرارات، والنتيجة."
       : "Case studies with clear problems, roles, decisions, and outcomes.",
     scroll: ar ? "مرّر للاستكشاف" : "Scroll to explore",
     view: ar ? "عرض التفاصيل" : "View Case Study",
@@ -145,7 +145,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
           id: "moplayer",
           slug: "moplayer",
           title: "MoPlayer",
-          label: ar ? "Android TV / IPTV Product" : "Android TV / IPTV Product",
+          label: ar ? "تطبيق Android TV / IPTV" : "Android TV / IPTV Product",
           description: ar
             ? "منظومة منتج تجمع تطبيق Android TV، التفعيل، مصادر IPTV، الإصدارات، والدعم ضمن تجربة واضحة."
             : "A product ecosystem connecting Android TV, activation, IPTV sources, release flow, and support into one clear experience.",
@@ -162,7 +162,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
           id: "seel",
           slug: "seeltransport",
           title: "SEEL Transport",
-          label: ar ? "Transport / Service Website" : "Transport / Service Website",
+          label: ar ? "موقع نقل وخدمات" : "Transport / Service Website",
           description: ar
             ? "موقع خدمات نقل منظم يعرض الخدمة، الثقة، الصور، والتواصل بطريقة مناسبة للجوال والعملاء."
             : "A structured transport service website shaped around service clarity, trust, visual proof, and mobile-friendly contact.",
@@ -177,7 +177,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
           id: "schnell",
           slug: "schnellsicherumzug",
           title: "Schnell Sicher Umzug",
-          label: ar ? "Moving Company Website" : "Moving Company Website",
+          label: ar ? "موقع شركة نقل" : "Moving Company Website",
           description: ar
             ? "تجربة موقع لشركة نقل تشرح الخدمات بسرعة وتوجه العميل نحو طلب عرض أو تواصل مباشر."
             : "A moving-company experience that explains services quickly and guides visitors toward quote requests and direct contact.",
@@ -193,7 +193,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
           id: "intelligent",
           slug: "intelligent-umzuege",
           title: "Intelligent Umzüge",
-          label: ar ? "Relocation Website" : "Relocation Website",
+          label: ar ? "موقع خدمات انتقال" : "Relocation Website",
           description: ar
             ? "صفحة نقل تركز على وضوح الأسعار، المعاينة، واتساب، والثقة قبل طلب العرض."
             : "A relocation website focused on pricing clarity, inspection flow, WhatsApp contact, and trust before inquiry.",
@@ -209,7 +209,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
           id: "adtransporte",
           slug: "ad-fahrzeugtransporte",
           title: "A&D Fahrzeugtransporte",
-          label: ar ? "Towing / Vehicle Logistics" : "Towing / Vehicle Logistics",
+          label: ar ? "سحب ونقل مركبات" : "Towing / Vehicle Logistics",
           description: ar
             ? "موقع مباشر لخدمات السحب ونقل السيارات، مصمم للسرعة والثقة والتواصل في الحالات العاجلة."
             : "A direct-response website for towing and vehicle logistics, designed for urgency, trust, and fast contact.",
@@ -225,7 +225,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
           id: "ecosystem",
           slug: "moalfarras-space",
           title: "moalfarras.space",
-          label: ar ? "Personal Digital OS" : "Personal Digital OS",
+          label: ar ? "موقع شخصي متكامل" : "Personal Digital OS",
           description: ar
             ? "منظومة شخصية تربط الأعمال، يوتيوب، MoPlayer، التفعيل، السيرة، والتواصل ضمن هوية واحدة."
             : "A personal digital OS connecting work, YouTube, MoPlayer, activation, CV, and contact into one identity.",

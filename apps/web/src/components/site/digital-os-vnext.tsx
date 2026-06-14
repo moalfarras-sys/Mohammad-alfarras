@@ -402,7 +402,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
           </div>
           <div className="os-home-id-card">
             <strong>{isAr ? "محمد الفراس" : "Mohammad Alfarras"}</strong>
-            <span>{isAr ? "Web / YouTube / Logistics / MoPlayer" : "Web / Creator / Logistics / MoPlayer"}</span>
+            <span>{isAr ? "ويب · يوتيوب · لوجستيات · MoPlayer" : "Web / Creator / Logistics / MoPlayer"}</span>
           </div>
           <div className="os-floating-metric os-floating-metric-a"><Users size={16} /><strong>{subscribers}</strong><span>{isAr ? "مشترك" : "Subscribers"}</span></div>
           <div className="os-floating-metric os-floating-metric-b"><Eye size={16} /><strong>{views}</strong><span>{isAr ? "مشاهدة" : "Views"}</span></div>

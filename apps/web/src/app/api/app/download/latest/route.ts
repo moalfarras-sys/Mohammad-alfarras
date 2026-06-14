@@ -13,6 +13,12 @@ export async function GET(request: Request) {
   if (product === "moplayer2" && platform === "windows") {
     const portable = url.searchParams.get("portable") === "1";
     const release = await readLatestWindowsRelease();
+    if (release?.maintenance) {
+      return NextResponse.json(
+        { error: "MoPlayer PC is under maintenance. Please try again shortly." },
+        { status: 503, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     // Binaries are >100 MB, so production hosts them on GitHub Releases;
     // the local static copy is only a dev fallback.
     const external = portable ? release?.portableDownloadUrl : release?.downloadUrl;

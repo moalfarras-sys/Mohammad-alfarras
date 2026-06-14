@@ -190,8 +190,20 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
             {hubCopy.headline}
           </motion.p>
           
+          {windowsRelease?.maintenance ? (
+            <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-3 text-amber-200 text-sm font-semibold">
+              {isAr
+                ? "MoPlayer PC قيد التحديث حالياً — التحميل سيعود قريباً جداً. شكراً لصبرك."
+                : "MoPlayer PC is being updated right now — downloads will return shortly. Thanks for your patience."}
+            </div>
+          ) : null}
+
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }} className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            {downloadHref ? (
+            {windowsRelease?.maintenance ? (
+              <span className="px-6 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 font-bold text-sm flex items-center justify-center gap-2">
+                {isAr ? "قيد الصيانة" : "Under maintenance"}
+              </span>
+            ) : downloadHref ? (
               <Link href={downloadHref} className="group relative px-6 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 text-white font-bold text-sm overflow-hidden shadow-[0_4px_25px_rgba(230,74,25,0.3)] hover:shadow-[0_6px_35px_rgba(230,74,25,0.5)] transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2">
                 <Download className="h-4 w-4 relative z-10" />
                 <span className="relative z-10">{hubCopy.primaryCta}</span>

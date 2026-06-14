@@ -819,6 +819,44 @@ export async function saveSiteStatusAction(formData: FormData) {
   redirect("/website?updated=site_status");
 }
 
+export async function saveWindowsReleaseAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const str = (k: string) => String(formData.get(k) ?? "").trim();
+  const num = (k: string) => {
+    const v = Number(str(k));
+    return Number.isFinite(v) && v > 0 ? v : undefined;
+  };
+  // Deep-merged: only non-empty fields are written, so a partial update never
+  // wipes the rest. Maintenance is always set from the toggle.
+  const value: Record<string, unknown> = {
+    maintenance: formData.get("maintenance") === "on",
+    updatedAt: new Date().toISOString(),
+  };
+  for (const key of [
+    "version",
+    "file",
+    "downloadUrl",
+    "portableFile",
+    "portableDownloadUrl",
+    "sha256",
+    "portableSha256",
+    "releaseDate",
+    "systemRequirements",
+    "notes",
+  ]) {
+    const v = str(key);
+    if (v) value[key] = v;
+  }
+  const fileSizeBytes = num("fileSizeBytes");
+  if (fileSizeBytes) value.fileSizeBytes = fileSizeBytes;
+  const portableFileSizeBytes = num("portableFileSizeBytes");
+  if (portableFileSizeBytes) value.portableFileSizeBytes = portableFileSizeBytes;
+
+  await mergeSiteSetting("windows_release", value);
+  revalidateAll();
+  redirect("/moplayer-pro?updated=windows_release");
+}
+
 export async function saveWebsiteBrandAction(formData: FormData) {
   await requireAdminRole("editor");
   let logoUpload: WebsiteMediaAsset | null = null;

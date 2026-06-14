@@ -57,13 +57,13 @@ function compactNumber(value: number, suffix = "+") {
 function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
   const ar = locale === "ar";
   return repairMojibakeDeep({
-    heroTitle: ar ? "محمد الفراس - مهندس برمجيات ومعماري رقمي" : "Mohammad Alfarras - Software Engineer & Digital Architect",
+    heroTitle: ar ? "محمد الفراس — مطوّر ومصمّم مواقع وتطبيقات" : "Mohammad Alfarras - Software Engineer & Digital Architect",
     heroHook: ar
-      ? "الجسر بين عالم اللوجستيات الواقعي والأنظمة الرقمية المتقدمة."
+      ? "أجمع بين خبرة العمل على أرض الواقع ومهارة بناء المواقع والتطبيقات."
       : "Bridging the gap between physical logistics and digital systems.",
-    developer: ar ? "وضع المطور" : "Developer Mode",
-    creator: ar ? "وضع الصانع" : "Creator Mode",
-    devBody: ar ? "واجهات ويب، أنظمة رقمية، Next.js، وقرارات تصميم قابلة للتوسع." : "Web interfaces, digital systems, Next.js, and scalable design decisions.",
+    developer: ar ? "وضع المطوّر" : "Developer Mode",
+    creator: ar ? "وضع صانع المحتوى" : "Creator Mode",
+    devBody: ar ? "مواقع وواجهات ويب، تطبيقات، Next.js، وتصميم قابل للتطوير." : "Web interfaces, digital systems, Next.js, and scalable design decisions.",
     creatorBody: ar ? "يوتيوب، شرح تقني، مراجعات، وتحويل التجربة إلى محتوى واضح." : "YouTube, tech storytelling, reviews, and turning experiments into clear content.",
     cmdHint: ar ? "اضغط Ctrl/⌘ + K لوضع Dev" : "Press Ctrl/⌘ + K for Dev Mode",
     downloads: ar ? "تحميل السيرة" : "Download CV",

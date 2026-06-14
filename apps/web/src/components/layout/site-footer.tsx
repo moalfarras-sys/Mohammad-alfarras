@@ -43,7 +43,7 @@ export function SiteFooter({
               <strong>{brandName}</strong>
               <p>
                 {isAr
-                  ? "منظومة رقمية شخصية تجمع الويب والمنتجات والمحتوى والخبرة التشغيلية داخل تجربة واحدة واضحة."
+                  ? "محمد الفراس — تصميم وبرمجة المواقع والتطبيقات، وصناعة محتوى تقني عربي واضح ومفيد."
                   : "A personal digital system connecting products, websites, media, and operational clarity inside one clear experience."}
               </p>
             </div>

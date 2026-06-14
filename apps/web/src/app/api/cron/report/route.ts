@@ -33,10 +33,12 @@ async function recentLeads(sinceIso: string): Promise<Lead[]> {
  * by CRON_SECRET. Returns the compiled numbers so it can be verified directly.
  */
 export async function GET(request: Request) {
+  // Only Vercel Cron (which sets x-vercel-cron) or a caller with CRON_SECRET
+  // may trigger this — otherwise the public URL could be hit to spam the inbox.
   const secret = process.env.CRON_SECRET;
   const isVercelCron = request.headers.get("x-vercel-cron") !== null;
-  const authorized = !secret || isVercelCron || request.headers.get("authorization") === `Bearer ${secret}`;
-  if (!authorized) {
+  const hasSecret = Boolean(secret) && request.headers.get("authorization") === `Bearer ${secret}`;
+  if (!isVercelCron && !hasSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

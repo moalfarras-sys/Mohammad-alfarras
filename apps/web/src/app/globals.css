@@ -2768,6 +2768,67 @@ html[dir="rtl"] .fresh-section-head h1,
   line-height: 1.65;
 }
 
+/* ── Cinematic card polish (additive; global prefers-reduced-motion disables the motion) ── */
+.os-home-case-card {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform var(--os-motion-fast),
+    border-color var(--os-motion-fast),
+    box-shadow var(--os-motion-fast);
+}
+
+.os-home-case-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--os-cyan) 30%, var(--os-glass-border));
+  box-shadow: var(--os-shadow-soft), var(--os-shadow-glow);
+}
+
+.os-home-explore-card:hover {
+  transform: translateY(-6px) scale(1.012);
+}
+
+.os-home-explore-card::after,
+.os-home-case-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: -65%;
+  width: 55%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  transform: skewX(-14deg);
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 44%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.08) 56%,
+    transparent 100%
+  );
+  opacity: 0;
+}
+
+.os-home-explore-card:hover::after,
+.os-home-case-card:hover::after {
+  animation: os-card-sheen 850ms ease;
+}
+
+@keyframes os-card-sheen {
+  0% {
+    inset-inline-start: -65%;
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    inset-inline-start: 120%;
+    opacity: 0;
+  }
+}
+
 .os-home-positioning {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);

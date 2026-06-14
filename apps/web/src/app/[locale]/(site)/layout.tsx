@@ -6,6 +6,7 @@ import { LazySiteAssistant } from "@/components/layout/lazy-site-assistant";
 import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
+import { VisitBeacon } from "@/components/site/visit-beacon";
 import { getNavigation } from "@/content/navigation";
 import { siteIdentity, youtubeChannel } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
@@ -210,6 +211,7 @@ export default async function SiteLayout({
         }
       >
         <LocaleDocumentSync locale={locale} />
+        <VisitBeacon />
         <div className="noise-overlay" />
 
         <a

@@ -2,8 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useState } from "react";
-import { Briefcase, ExternalLink, FileText, Globe, ImageIcon, Inbox, Power, Settings2, Trash2, UploadCloud } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Briefcase, Check, ExternalLink, FileText, Globe, ImageIcon, Inbox, Power, Search, Settings2, Trash2, UploadCloud, X } from "lucide-react";
 
 import {
   deleteWebsiteMessageAction,
@@ -1316,32 +1316,135 @@ function MediaSelect({
 }) {
   const { t } = useLocale();
   const [selectedId, setSelectedId] = useState(value ?? "");
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const selected = assets.find((asset) => asset.id === selectedId);
   const previewSrc = selected?.path || fallbackPath || "";
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const filtered = assets.filter((asset) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return [asset.id, asset.type, asset.path, asset.alt_en, asset.alt_ar]
+      .filter(Boolean)
+      .some((v) => String(v).toLowerCase().includes(q));
+  });
+
   return (
     <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-3">
-      <label className="field">
-        <span>{label}</span>
-        <select name={name} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="input">
-          <option value="">{t({ en: "Keep current fallback image", ar: "استخدم الصورة الاحتياطية الحالية" })}</option>
-          {assets.map((asset) => (
-            <option key={asset.id} value={asset.id}>
-              {asset.id} · {asset.type}
-            </option>
-          ))}
-        </select>
-      </label>
-      <div className="mt-3 overflow-hidden rounded-xl border border-[var(--line)] bg-black/25">
+      <input type="hidden" name={name} value={selectedId} />
+      <p className="mb-2 text-xs font-black text-[var(--text-1)]">{label}</p>
+      <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-black/25">
         <div className="aspect-video">
           {previewSrc ? <SafeImage src={previewSrc} alt={label} className="h-full w-full object-contain p-3" /> : <ImageFallback label={label} />}
         </div>
       </div>
-      {selected ? (
-        <p className="mt-2 truncate text-[10px] font-bold text-[var(--text-3)]">{selected.path}</p>
-      ) : (
-        <p className="mt-2 text-[10px] font-bold text-[var(--text-3)]">{t({ en: "Upload an image first, then choose it here.", ar: "ارفع صورة أولاً ثم اخترها من هنا." })}</p>
-      )}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => setOpen(true)} className="btn btn-sm btn-primary">
+          <ImageIcon className="h-4 w-4" />
+          {t({ en: "Choose from library", ar: "اختر من المكتبة" })}
+        </button>
+        {selectedId ? (
+          <button type="button" onClick={() => setSelectedId("")} className="btn btn-sm">
+            {t({ en: "Use fallback", ar: "إزالة الاختيار" })}
+          </button>
+        ) : null}
+        <span className="text-[10px] font-bold text-[var(--text-3)]">
+          {selected ? t({ en: "Custom image selected", ar: "تم اختيار صورة" }) : t({ en: "Using fallback image", ar: "الصورة الافتراضية" })}
+        </span>
+      </div>
+
+      {open ? (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-[var(--line-strong)] bg-[var(--panel-2)] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] p-4">
+              <div className="min-w-0">
+                <p className="text-sm font-black text-[var(--text-1)]">{t({ en: "Media library", ar: "مكتبة الصور" })}</p>
+                <p className="truncate text-[11px] text-[var(--text-3)]">
+                  {t({ en: "Tap an image to choose it for", ar: "اضغط على صورة لاختيارها لـ" })} «{label}» · {filtered.length}
+                </p>
+              </div>
+              <button type="button" onClick={() => setOpen(false)} className="btn btn-sm" aria-label="Close">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 border-b border-[var(--line)] p-3">
+              <Search className="h-4 w-4 text-[var(--accent)]" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t({ en: "Search images...", ar: "ابحث في الصور..." })}
+                className="h-9 flex-1 bg-transparent text-sm text-[var(--text-1)] outline-none placeholder:text-[var(--text-3)]"
+              />
+            </div>
+            <div className="grid flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2 md:grid-cols-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedId("");
+                  setOpen(false);
+                }}
+                className={`rounded-2xl border p-2 text-start transition ${!selectedId ? "border-[var(--accent)] ring-1 ring-[var(--accent)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}
+              >
+                <div className="flex aspect-video items-center justify-center rounded-xl bg-black/25 text-[11px] font-bold text-[var(--text-3)]">
+                  {t({ en: "Default / fallback", ar: "الصورة الافتراضية" })}
+                </div>
+              </button>
+              {filtered.map((asset) => (
+                <button
+                  key={asset.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(asset.id);
+                    setOpen(false);
+                  }}
+                  className={`group rounded-2xl border p-2 text-start transition ${selectedId === asset.id ? "border-[var(--accent)] ring-1 ring-[var(--accent)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}
+                >
+                  <div className="overflow-hidden rounded-xl bg-black/25">
+                    <div className="aspect-video">
+                      <SafeImage src={asset.path} alt={asset.alt_en || asset.id} className="h-full w-full object-cover" />
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <span className="truncate text-[10px] font-bold text-[var(--text-3)]">{asset.type}</span>
+                    {selectedId === asset.id ? (
+                      <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-black text-[var(--accent)]">
+                        <Check className="h-3 w-3" />
+                        {t({ en: "Selected", ar: "مختارة" })}
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              ))}
+              {!filtered.length ? (
+                <div className="sm:col-span-2 md:col-span-3">
+                  <EmptyState
+                    icon={<ImageIcon className="h-5 w-5" />}
+                    title={t({ en: "No images found", ar: "لا توجد صور" })}
+                    body={t({ en: "Upload images from the Media section, then pick them here.", ar: "ارفع صوراً من قسم الصور، ثم اخترها من هنا." })}
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

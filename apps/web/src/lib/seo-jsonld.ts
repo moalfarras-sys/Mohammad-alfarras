@@ -150,6 +150,29 @@ export function faqPageJsonLd(qas: Array<{ question: string; answer: string }>) 
   };
 }
 
+/**
+ * Schema.org VideoObject.duration must be an ISO 8601 duration (e.g. PT5M30S).
+ * Our videos store a display clock ("MM:SS" / "HH:MM:SS"), so convert it here.
+ * Returns undefined for unknown/zero durations so the field is omitted entirely
+ * (an invalid duration is what Google Search Console flags).
+ */
+function toIsoDuration(value?: string): string | undefined {
+  if (!value) return undefined;
+  const raw = value.trim();
+  if (/^P/i.test(raw)) return raw; // already ISO 8601
+  const parts = raw.split(":").map((part) => Number(part));
+  if (!parts.length || parts.some((n) => !Number.isFinite(n) || n < 0)) return undefined;
+  let h = 0;
+  let m = 0;
+  let s = 0;
+  if (parts.length === 3) [h, m, s] = parts;
+  else if (parts.length === 2) [m, s] = parts;
+  else if (parts.length === 1) [s] = parts;
+  else return undefined;
+  if (h === 0 && m === 0 && s === 0) return undefined;
+  return `PT${h ? `${h}H` : ""}${m ? `${m}M` : ""}${s ? `${s}S` : ""}`;
+}
+
 export function videoObjectJsonLd(video: {
   locale: Locale;
   title: string;
@@ -166,7 +189,7 @@ export function videoObjectJsonLd(video: {
     description: video.description,
     thumbnailUrl: video.thumbnailUrl,
     uploadDate: video.uploadDate,
-    duration: video.duration,
+    duration: toIsoDuration(video.duration),
     embedUrl: `https://www.youtube.com/embed/${video.youtubeId}`,
     contentUrl: `https://www.youtube.com/watch?v=${video.youtubeId}`,
     inLanguage: video.locale === "ar" ? "ar-SA" : "en-US",

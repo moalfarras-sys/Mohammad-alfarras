@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { resolveDownloadBySlug } from "@/lib/app-ecosystem";
+import { productFromReleaseSlug, recordDownload } from "@/lib/download-counter";
 
 export async function GET(
   request: Request,
@@ -29,6 +30,7 @@ export async function GET(
     redirectUrl = new URL(redirectUrl, origin).toString();
   }
 
+  after(() => recordDownload(productFromReleaseSlug(slug)));
   return NextResponse.redirect(redirectUrl, {
     headers: {
       "Cache-Control": "no-store",

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
+import { recordDownload } from "@/lib/download-counter";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
     const external = portable ? release?.portableDownloadUrl : release?.downloadUrl;
     const fileName = (portable ? release?.portableFile : release?.file) || "MoPlayer-PC-Setup.exe";
     const target = external ?? new URL(`/downloads/moplayer/windows/${fileName}`, request.url);
+    after(() => recordDownload(product, "windows"));
     return NextResponse.redirect(target, {
       headers: {
         "Cache-Control": "no-store",
@@ -45,6 +47,7 @@ export async function GET(request: Request) {
 
   const target = new URL(resolved.redirectUrl, request.url);
 
+  after(() => recordDownload(product, platform));
   return NextResponse.redirect(target, {
     headers: {
       "Cache-Control": "no-store",

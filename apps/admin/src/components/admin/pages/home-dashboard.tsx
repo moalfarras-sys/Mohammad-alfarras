@@ -49,6 +49,18 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
 
   const releasesPerApp = apps.map((a) => ({ label: a.name, value: a.data.releases.length }));
 
+  const downloadRaw = website.settings.find((s) => s.key === "download_counts")?.value_json as
+    | { counts?: Record<string, number>; total?: number; since?: string }
+    | undefined;
+  const downloadCounts = downloadRaw?.counts && typeof downloadRaw.counts === "object" ? downloadRaw.counts : {};
+  const downloadTotal = Number(downloadRaw?.total) || 0;
+  const downloadSince = typeof downloadRaw?.since === "string" ? downloadRaw.since : null;
+  const downloadRows = [
+    { label: "MoPlayer Classic", value: Number(downloadCounts["moplayer"]) || 0 },
+    { label: "MoPlayer Pro", value: Number(downloadCounts["moplayer2"]) || 0 },
+    { label: "MoPlayer PC", value: Number(downloadCounts["moplayer2:windows"]) || 0 },
+  ];
+
   return (
     <>
       <PageHeader
@@ -150,6 +162,38 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         <StatCard label={t({ en: "Published pages", ar: "صفحات منشورة" })} value={website.pages.filter((item) => item.status === "published").length} icon={<Key className="h-5 w-5" />} tone="warning" hint="SEO" />
         <StatCard label={t({ en: "Releases", ar: "الإصدارات" })} value={allReleases.length} icon={<Box className="h-5 w-5" />} tone="violet" hint={t({ en: "Classic + Pro", ar: "كلاسيك + برو" })} />
         <StatCard label={t({ en: "App images", ar: "صور التطبيقات" })} value={apps.reduce((sum, app) => sum + app.data.screenshots.length, 0)} icon={<Inbox className="h-5 w-5" />} tone="danger" href="/moplayer-pro#visual-assets" />
+      </section>
+
+      {/* App downloads counter */}
+      <section className="glass fade-up rounded-[22px] p-6">
+        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--accent)]">{t({ en: "App downloads", ar: "تحميلات التطبيقات" })}</p>
+            <h3 className="mt-1 text-lg font-black text-[var(--text-1)]">{t({ en: "Total downloads", ar: "إجمالي التحميلات" })}</h3>
+          </div>
+          <div className="text-end">
+            <p className="tnum text-3xl font-black text-[var(--accent)]">{downloadTotal.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-[var(--text-3)]">
+              {downloadSince
+                ? `${t({ en: "Since", ar: "منذ" })} ${new Date(downloadSince).toLocaleDateString("en-GB")}`
+                : t({ en: "Counting from first download", ar: "يبدأ العدّ من أول تحميل" })}
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {downloadRows.map((row) => (
+            <div key={row.label} className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">{row.label}</p>
+              <p className="tnum mt-1 text-2xl font-black text-[var(--text-1)]">{row.value.toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-[11px] leading-5 text-[var(--text-3)]">
+          {t({
+            en: "Counts each download/update served by the website (Classic + Pro APKs and the PC installer).",
+            ar: "يحسب كل تحميل/تحديث يخدمه الموقع (ملفات Classic وPro ومثبّت PC).",
+          })}
+        </p>
       </section>
 
       {/* Quick navigation */}

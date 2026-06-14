@@ -631,8 +631,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
       publishedAt: video.published_at,
     }));
   const videos = latest.length ? latest.slice(0, 6) : [
-    { id: "wfTnQK_tTSA", title: isAr ? "مراجعة تقنية مختارة من قناة محمد الفراس" : "Featured Arabic technology review by Mohammad Alfarras", thumbnail: "/images/yt-channel-hero.png", views: Number(model.youtube.views) || youtubeChannel.fallback.views, publishedAt: new Date().toISOString() },
+    { id: "", title: isAr ? "شاهد أحدث الفيديوهات على القناة" : "Watch the latest videos on the channel", thumbnail: "/images/yt-channel-hero.png", views: Number(model.youtube.views) || youtubeChannel.fallback.views, publishedAt: new Date().toISOString() },
   ];
+  const watchUrl = (id?: string) => (id ? `https://www.youtube.com/watch?v=${id}` : socialLinks.youtube);
   const spotlight = model.live.youtube?.popularVideos?.[0]
     ? {
         id: model.live.youtube.popularVideos[0].id,
@@ -650,6 +651,9 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   const fmt = new Intl.NumberFormat(isAr ? "ar" : "en", { notation: "compact", maximumFractionDigits: 1 });
   const dateFmt = new Intl.DateTimeFormat(isAr ? "ar" : "en", { month: "short", day: "numeric", year: "numeric" });
   const channelName = model.youtube.title || model.live.youtube?.channelTitle || "Mohammad Alfarras";
+  // Clean, single-script display name for the channel header (the raw API/CMS
+  // title can mix Arabic + Latin + a pipe, which renders as a bidi mess).
+  const channelDisplayName = isAr ? "محمد الفراس" : "Mohammad Alfarras";
   const handle = model.youtube.handle || model.live.youtube?.channelHandle || "@Moalfarras";
 
   function videoDate(value: string | undefined) {
@@ -667,8 +671,8 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
               <Image src="/images/logo.png" alt={channelName} width={64} height={64} />
             </span>
             <div>
-              <strong>{channelName}</strong>
-              <span>{handle}</span>
+              <strong><bdi>{channelDisplayName}</bdi></strong>
+              <span><bdi>{handle}</bdi></span>
             </div>
           </div>
           <p className="fresh-eyebrow">{y.hero.eyebrow}</p>
@@ -700,7 +704,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
       <section className="fresh-section yt-spotlight" id="yt-spotlight">
         <div className="yt-player-frame">
           <Image src={spotlight.thumbnail} alt={spotlight.title} fill sizes="(max-width: 900px) 100vw, 58vw" className="fresh-image" />
-          <a href={`https://www.youtube.com/watch?v=${spotlight.id}`} target="_blank" rel="noopener noreferrer" className="yt-play-orb" aria-label={y.spotlight.watch}>
+          <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="yt-play-orb" aria-label={y.spotlight.watch}>
             <PlayCircle />
           </a>
         </div>
@@ -713,7 +717,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
             <span><Eye size={15} /> {fmt.format(Number(spotlight.views) || 0)} {y.grid.views}</span>
             <span><CalendarDays size={15} /> {videoDate(spotlight.publishedAt)}</span>
           </div>
-          <a href={`https://www.youtube.com/watch?v=${spotlight.id}`} target="_blank" rel="noopener noreferrer" className="fresh-button fresh-button-primary">
+          <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="fresh-button fresh-button-primary">
             {y.spotlight.watch}
             <ArrowUpRight size={16} />
           </a>
@@ -724,7 +728,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         <SectionHeader eyebrow={y.grid.eyebrow} title={y.grid.title} body={y.grid.body} />
         <div className="yt-video-grid">
           {videos.map((video, index) => (
-            <a className="yt-video-card" key={`${video.id}-${index}`} href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer">
+            <a className="yt-video-card" key={`${video.id}-${index}`} href={watchUrl(video.id)} target="_blank" rel="noopener noreferrer">
               <div className="yt-thumb">
                 <Image src={video.thumbnail} alt={video.title} fill sizes="(max-width: 700px) 100vw, 33vw" className="fresh-image" />
                 <span className="yt-play-overlay"><PlayCircle /> {y.grid.play}</span>

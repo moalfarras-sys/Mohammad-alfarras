@@ -1,52 +1,70 @@
-/* Premium YouTube showcase page */
+/* Cinematic YouTube showcase — bold red, premium, channel-first */
 .yt-showcase {
-  width: min(100% - 32px, 1240px);
-  --yt-red: #ff0000;
-  --yt-red-soft: rgba(255, 0, 0, 0.14);
-  --yt-ink: rgba(8, 8, 12, 0.84);
+  width: min(100% - 32px, 1280px);
+  margin-inline: auto;
+  --yt-red: #ff0033;
+  --yt-red-2: #c1001b;
+  --yt-red-soft: rgba(255, 0, 45, 0.16);
+  --yt-red-line: rgba(255, 0, 45, 0.42);
+  --yt-glow: rgba(255, 0, 45, 0.5);
+  --yt-black: #07060a;
 }
 
 .yt-hero,
 .yt-spotlight,
 .yt-playlists,
+.yt-grid-section,
 .yt-final-cta {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--os-glass-border);
+  border: 1px solid color-mix(in srgb, var(--yt-red) 16%, var(--os-glass-border));
   border-radius: var(--os-radius-xl);
   background:
-    radial-gradient(circle at 16% 0%, var(--yt-red-soft), transparent 34%),
-    radial-gradient(
-      circle at 88% 18%,
-      color-mix(in srgb, var(--os-violet) 14%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.078), rgba(255, 255, 255, 0.018)), var(--os-glass);
+    radial-gradient(circle at 14% -10%, var(--yt-red-soft), transparent 42%),
+    radial-gradient(circle at 92% 0%, rgba(255, 0, 45, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)),
+    var(--yt-black);
   box-shadow:
     var(--os-shadow-soft),
-    0 0 54px rgba(255, 0, 0, 0.08);
-  backdrop-filter: blur(var(--os-blur)) saturate(1.18);
-  -webkit-backdrop-filter: blur(var(--os-blur)) saturate(1.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 70px rgba(255, 0, 45, 0.1);
+}
+
+/* Cinematic vignette + faint scanline texture */
+.yt-hero::after,
+.yt-spotlight::after,
+.yt-final-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 40%, transparent 40%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+  mix-blend-mode: soft-light;
+  z-index: 0;
 }
 
 .yt-hero::before,
 .yt-final-cta::before {
   content: "";
   position: absolute;
-  inset: -40%;
+  inset: -45%;
   background: conic-gradient(
-    from 120deg,
+    from 130deg,
     transparent,
-    rgba(255, 0, 0, 0.16),
-    transparent,
-    rgba(91, 220, 255, 0.12),
-    transparent
+    rgba(255, 0, 45, 0.26),
+    transparent 42%,
+    rgba(255, 70, 90, 0.14),
+    transparent 70%
   );
-  animation: ytSpin 18s linear infinite;
-  opacity: 0.72;
+  animation: ytSpin 22s linear infinite;
+  opacity: 0.7;
+  z-index: 0;
 }
 
 .yt-hero > *,
+.yt-spotlight > *,
 .yt-final-cta > * {
   position: relative;
   z-index: 1;
@@ -54,37 +72,41 @@
 
 .yt-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.48fr);
-  gap: clamp(18px, 4vw, 48px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.46fr);
+  gap: clamp(18px, 4vw, 52px);
   align-items: center;
-  min-height: 650px;
-  padding: clamp(24px, 5vw, 64px);
+  min-height: 600px;
+  padding: clamp(24px, 5vw, 68px);
 }
 
+/* Channel identity pill with a live red dot */
 .yt-channel-line {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid var(--os-glass-border);
+  border: 1px solid color-mix(in srgb, var(--yt-red) 28%, var(--os-glass-border));
   border-radius: 999px;
-  margin-bottom: 22px;
-  padding: 8px 16px 8px 8px;
-  background: color-mix(in srgb, var(--os-surface-strong) 84%, transparent);
+  margin-bottom: 24px;
+  padding: 8px 18px 8px 8px;
+  background: linear-gradient(135deg, rgba(255, 0, 45, 0.12), rgba(0, 0, 0, 0.4));
+  box-shadow: 0 0 30px rgba(255, 0, 45, 0.16);
 }
 
 [dir="rtl"] .yt-channel-line {
-  padding: 8px 8px 8px 16px;
+  padding: 8px 8px 8px 18px;
 }
 
 .yt-avatar {
+  position: relative;
   display: grid;
-  width: 54px;
-  height: 54px;
+  width: 56px;
+  height: 56px;
   place-items: center;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--yt-red) 34%, var(--os-glass-border));
+  border: 2px solid var(--yt-red);
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 0, 45, 0.18), 0 0 22px rgba(255, 0, 45, 0.3);
 }
 
 .yt-channel-line strong,
@@ -95,48 +117,67 @@
 .yt-channel-line strong {
   color: var(--os-text);
   font-weight: 900;
+  letter-spacing: -0.01em;
 }
 
 .yt-channel-line span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: var(--os-text-soft);
   font-size: 0.82rem;
   font-weight: 800;
 }
 
+/* live recording dot before the handle */
+.yt-channel-line span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--yt-red);
+  box-shadow: 0 0 10px var(--yt-red);
+  animation: ytPulse 1.6s ease-in-out infinite;
+}
+
 .yt-hero h1 {
-  max-width: 900px;
+  max-width: 920px;
   margin: 0;
   color: var(--os-text);
-  font-size: clamp(2.6rem, 6.4vw, 5.45rem);
-  line-height: 0.98;
+  font-size: clamp(2.6rem, 6.2vw, 5.3rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
 [dir="rtl"] .yt-hero h1 {
-  line-height: 1.16;
-  font-weight: 700;
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 .yt-hero-copy > p:not(.fresh-eyebrow) {
   max-width: 760px;
   color: var(--os-text-muted);
-  font-size: clamp(1rem, 1.35vw, 1.16rem);
+  font-size: clamp(1rem, 1.3vw, 1.16rem);
   line-height: 1.9;
 }
 
+/* The big red subscribe button */
 .yt-subscribe-button {
   display: inline-flex;
-  min-height: 46px;
+  min-height: 50px;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--os-radius-md);
-  padding-inline: 18px;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.95), rgba(176, 0, 0, 0.88)), var(--yt-red);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding-inline: 24px;
+  background: linear-gradient(135deg, #ff0033, #c1001b);
   color: white;
   font-weight: 950;
-  box-shadow: 0 16px 42px rgba(255, 0, 0, 0.28);
+  letter-spacing: 0.01em;
+  box-shadow: 0 16px 44px rgba(255, 0, 45, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition:
     transform var(--os-motion-fast),
     box-shadow var(--os-motion-fast);
@@ -144,26 +185,44 @@
 
 .yt-subscribe-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 58px rgba(255, 0, 0, 0.38);
+  box-shadow: 0 22px 60px rgba(255, 0, 45, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .yt-bell {
   width: 18px;
   height: 18px;
-  animation: ytBell 1.7s ease-in-out infinite;
+  animation: ytBell 1.8s ease-in-out infinite;
 }
 
+/* Stats dashboard */
 .yt-dashboard {
   display: grid;
   gap: 14px;
 }
 
 .yt-stat-card {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--os-glass-border);
   border-radius: var(--os-radius-lg);
-  padding: 20px;
-  background: color-mix(in srgb, var(--yt-ink) 84%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255, 0, 45, 0.06), rgba(0, 0, 0, 0.5));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform var(--os-motion-fast), border-color var(--os-motion-fast);
+}
+
+.yt-stat-card::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--yt-red), transparent);
+}
+
+.yt-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--yt-red-line);
 }
 
 .yt-stat-card svg {
@@ -174,8 +233,9 @@
 .yt-meta-row span {
   display: block;
   color: var(--os-text-soft);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -183,28 +243,30 @@
   display: block;
   margin-top: 8px;
   color: var(--os-text);
-  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
   font-weight: 950;
+  letter-spacing: -0.02em;
 }
 
+/* Spotlight — cinematic featured video */
 .yt-spotlight {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.72fr);
-  gap: clamp(20px, 4vw, 48px);
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.7fr);
+  gap: clamp(20px, 4vw, 52px);
   align-items: center;
-  padding: clamp(18px, 4vw, 42px);
+  padding: clamp(18px, 4vw, 46px);
 }
 
 .yt-player-frame {
   position: relative;
-  min-height: 470px;
+  min-height: 480px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--yt-red) 24%, var(--os-glass-border));
+  border: 1px solid var(--yt-red-line);
   border-radius: 28px;
   background: black;
   box-shadow:
-    0 26px 78px rgba(0, 0, 0, 0.4),
-    0 0 60px rgba(255, 0, 0, 0.12);
+    0 30px 90px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(255, 0, 45, 0.22);
 }
 
 .yt-player-frame::after {
@@ -212,7 +274,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 48%, rgba(0, 0, 0, 0.42));
+  background: linear-gradient(180deg, transparent 44%, rgba(0, 0, 0, 0.55));
 }
 
 .yt-play-orb,
@@ -227,19 +289,21 @@
 .yt-play-orb {
   inset: 50% auto auto 50%;
   z-index: 2;
-  width: 92px;
-  height: 92px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  width: 96px;
+  height: 96px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
-  background: rgba(255, 0, 0, 0.82);
+  background: radial-gradient(circle at 50% 40%, #ff1a4d, #c1001b);
   color: white;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 70px rgba(255, 0, 0, 0.45);
+  box-shadow: 0 0 0 0 rgba(255, 0, 45, 0.55);
+  animation: ytOrb 2.4s ease-out infinite;
 }
 
 .yt-play-orb svg {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  margin-inline-start: 4px;
 }
 
 .yt-spotlight-copy h2,
@@ -251,15 +315,16 @@
 
 .yt-spotlight-copy h2 {
   margin: 0;
-  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-size: clamp(2rem, 4vw, 3.4rem);
   line-height: 1.08;
+  letter-spacing: -0.02em;
 }
 
 .yt-spotlight-copy h3 {
   margin: 20px 0 0;
   color: var(--os-text);
   font-size: clamp(1.2rem, 2vw, 1.55rem);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .yt-spotlight-copy p {
@@ -278,20 +343,35 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  border: 1px solid var(--os-glass-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.yt-meta-row span svg {
+  color: var(--yt-red);
+}
+
+/* Grid section wrapper */
+.yt-grid-section,
+.yt-playlists {
+  padding: clamp(20px, 4vw, 44px);
 }
 
 .yt-video-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .yt-video-card {
   overflow: hidden;
   border: 1px solid var(--os-glass-border);
-  border-radius: var(--os-radius-xl);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018)), var(--os-glass);
+  border-radius: var(--os-radius-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.35));
   box-shadow: var(--os-shadow-soft);
   transition:
     transform var(--os-motion-fast),
@@ -300,11 +380,11 @@
 }
 
 .yt-video-card:hover {
-  transform: translateY(-5px);
-  border-color: color-mix(in srgb, var(--yt-red) 34%, var(--os-glass-border));
+  transform: translateY(-6px);
+  border-color: var(--yt-red-line);
   box-shadow:
     var(--os-shadow-soft),
-    0 0 42px rgba(255, 0, 0, 0.16);
+    0 18px 50px rgba(255, 0, 45, 0.22);
 }
 
 .yt-thumb {
@@ -321,7 +401,7 @@
 }
 
 .yt-video-card:hover .fresh-image {
-  transform: scale(1.06);
+  transform: scale(1.07);
   filter: saturate(1.2) contrast(1.08);
 }
 
@@ -329,14 +409,15 @@
   inset: 0;
   color: white;
   font-weight: 950;
+  letter-spacing: 0.04em;
   opacity: 0;
-  background: radial-gradient(circle at center, rgba(255, 0, 0, 0.45), rgba(0, 0, 0, 0.58));
+  background: radial-gradient(circle at center, rgba(255, 0, 45, 0.5), rgba(0, 0, 0, 0.62));
   transition: opacity var(--os-motion-fast);
 }
 
 .yt-play-overlay svg {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
 }
 
 .yt-video-card:hover .yt-play-overlay {
@@ -350,32 +431,44 @@
 .yt-card-body h3 {
   margin: 0;
   color: var(--os-text);
-  font-size: 1.06rem;
+  font-size: 1.04rem;
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+/* Playlists */
 .yt-playlist-rail {
   display: grid;
   grid-auto-columns: minmax(260px, 1fr);
   grid-auto-flow: column;
-  gap: 14px;
+  gap: 16px;
   overflow-x: auto;
   padding-bottom: 6px;
+  scrollbar-width: thin;
 }
 
 .yt-playlist-card {
-  min-height: 260px;
+  min-height: 250px;
   border: 1px solid var(--os-glass-border);
-  border-radius: var(--os-radius-xl);
-  padding: 22px;
+  border-radius: var(--os-radius-lg);
+  padding: 24px;
   background:
-    radial-gradient(circle at top left, rgba(255, 0, 0, 0.13), transparent 42%),
-    color-mix(in srgb, var(--os-surface-strong) 76%, transparent);
+    radial-gradient(circle at top left, rgba(255, 0, 45, 0.16), transparent 46%),
+    rgba(0, 0, 0, 0.4);
+  transition: transform var(--os-motion-fast), border-color var(--os-motion-fast);
+}
+
+.yt-playlist-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--yt-red-line);
 }
 
 .yt-playlist-card svg {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   color: var(--yt-red);
 }
 
@@ -388,7 +481,7 @@
 }
 
 .yt-playlist-card h3 {
-  margin: 18px 0 0;
+  margin: 16px 0 0;
   color: var(--os-text);
   font-size: 1.3rem;
   font-weight: 950;
@@ -400,20 +493,35 @@
   line-height: 1.75;
 }
 
+/* Final CTA */
 .yt-final-cta {
-  padding: clamp(24px, 5vw, 56px);
+  padding: clamp(28px, 5vw, 60px);
+  text-align: center;
 }
 
 .yt-final-cta h2 {
-  max-width: 880px;
-  margin: 0;
+  max-width: 900px;
+  margin: 0 auto;
   font-size: clamp(2.15rem, 5vw, 4rem);
   line-height: 1.06;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
 .yt-final-cta p {
   max-width: 720px;
+  margin-inline: auto;
+}
+
+.yt-final-cta .fresh-actions {
+  justify-content: center;
+}
+
+/* Section headers inside grid/playlists */
+.yt-grid-section .fresh-eyebrow,
+.yt-playlists .fresh-eyebrow,
+.yt-spotlight .fresh-eyebrow {
+  color: var(--yt-red);
 }
 
 @keyframes ytSpin {
@@ -438,10 +546,36 @@
   }
 }
 
+@keyframes ytPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes ytOrb {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 45, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 26px rgba(255, 0, 45, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 45, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .yt-hero::before,
   .yt-final-cta::before,
-  .yt-bell {
+  .yt-bell,
+  .yt-play-orb,
+  .yt-channel-line span::before {
     animation: none;
   }
 }
@@ -457,17 +591,19 @@
   }
 
   .yt-player-frame {
-    min-height: 390px;
+    min-height: 380px;
   }
 }
 
 @media (max-width: 640px) {
   .yt-showcase {
-    width: min(100% - 20px, 1240px);
+    width: min(100% - 20px, 1280px);
   }
 
   .yt-hero,
   .yt-spotlight,
+  .yt-grid-section,
+  .yt-playlists,
   .yt-final-cta {
     padding: 18px;
   }
@@ -477,7 +613,13 @@
   }
 
   .yt-hero h1 {
-    font-size: clamp(2.25rem, 12vw, 3rem);
+    font-size: clamp(2.25rem, 11vw, 3rem);
+  }
+
+  /* Lighten heavy effects on small/weak phones for speed */
+  .yt-hero::before,
+  .yt-final-cta::before {
+    display: none;
   }
 
   .yt-dashboard,
@@ -486,11 +628,10 @@
   }
 
   .yt-player-frame {
-    min-height: 240px;
+    min-height: 230px;
   }
 
   .yt-playlist-rail {
-    display: grid;
     grid-auto-flow: row;
     grid-auto-columns: auto;
     grid-template-columns: 1fr;
@@ -498,8 +639,8 @@
   }
 
   .yt-play-orb {
-    width: 72px;
-    height: 72px;
+    width: 74px;
+    height: 74px;
   }
 
   .yt-play-orb svg {

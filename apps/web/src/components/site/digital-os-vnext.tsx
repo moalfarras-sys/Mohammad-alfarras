@@ -663,97 +663,101 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   }
 
   return (
-    <PageShell className="yt-showcase">
-      <section className="yt-hero">
-        <div className="yt-hero-copy">
-          <div className="yt-channel-line">
-            <span className="yt-avatar">
-              <Image src="/images/logo.png" alt={channelName} width={64} height={64} />
+    <PageShell className="yt2">
+      {/* Cinematic full-bleed hero — featured video as the backdrop */}
+      <section className="yt2-hero">
+        <div className="yt2-hero-media" style={{ backgroundImage: `url("${spotlight.thumbnail}")` }} aria-hidden="true" />
+        <div className="yt2-hero-veil" aria-hidden="true" />
+        <div className="yt2-hero-inner">
+          <div className="yt2-channel yt2-rise" style={{ "--d": "0ms" } as React.CSSProperties}>
+            <span className="yt2-avatar">
+              <Image src="/images/logo.png" alt={channelName} width={72} height={72} />
             </span>
             <div>
               <strong><bdi>{channelDisplayName}</bdi></strong>
-              <span><bdi>{handle}</bdi></span>
+              <span className="yt2-handle"><i aria-hidden="true" /><bdi>{handle}</bdi></span>
             </div>
           </div>
-          <p className="fresh-eyebrow">{y.hero.eyebrow}</p>
-          <h1>{y.hero.title}</h1>
-          <p>{y.hero.subtitle}</p>
-          <div className="fresh-actions">
-            <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="yt-subscribe-button">
+          <p className="yt2-eyebrow yt2-rise" style={{ "--d": "80ms" } as React.CSSProperties}>{y.hero.eyebrow}</p>
+          <h1 className="yt2-title yt2-rise" style={{ "--d": "160ms" } as React.CSSProperties}>{y.hero.title}</h1>
+          <p className="yt2-sub yt2-rise" style={{ "--d": "240ms" } as React.CSSProperties}>{y.hero.subtitle}</p>
+          <div className="yt2-actions yt2-rise" style={{ "--d": "320ms" } as React.CSSProperties}>
+            <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="yt2-subscribe">
               <BellRing className="yt-bell" />
               {y.hero.subscribe}
-              <ArrowUpRight size={17} />
             </a>
-            <a href="#yt-spotlight" className="fresh-button">{y.hero.watch}</a>
+            <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="yt2-watch">
+              <PlayCircle size={18} />
+              {y.hero.watch}
+            </a>
           </div>
-        </div>
-        <div className="yt-dashboard">
-          {statsData.map((item, index) => {
-            const Icon = [Users, Eye, Film][index] ?? Compass;
-            return (
-              <div className="yt-stat-card" key={item.label}>
-                <Icon />
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            );
-          })}
+          <div className="yt2-stats yt2-rise" style={{ "--d": "400ms" } as React.CSSProperties}>
+            {statsData.map((item, index) => {
+              const Icon = [Users, Eye, Film][index] ?? Compass;
+              return (
+                <div className="yt2-stat" key={item.label}>
+                  <Icon size={18} />
+                  <strong>{item.value}</strong>
+                  <span>{item.label}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      <section className="fresh-section yt-spotlight" id="yt-spotlight">
-        <div className="yt-player-frame">
-          <Image src={spotlight.thumbnail} alt={spotlight.title} fill sizes="(max-width: 900px) 100vw, 58vw" className="fresh-image" />
-          <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="yt-play-orb" aria-label={y.spotlight.watch}>
-            <PlayCircle />
-          </a>
-        </div>
-        <div className="yt-spotlight-copy">
-          <p className="fresh-eyebrow">{y.spotlight.eyebrow}</p>
+      {/* Featured film */}
+      <section className="fresh-section yt2-feature" id="yt-spotlight">
+        <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="yt2-player" aria-label={y.spotlight.watch}>
+          <Image src={spotlight.thumbnail} alt={spotlight.title} fill sizes="(max-width: 900px) 100vw, 60vw" className="fresh-image" />
+          <span className="yt2-orb"><PlayCircle /></span>
+          <span className="yt2-badge">{y.spotlight.eyebrow}</span>
+        </a>
+        <div className="yt2-feature-copy">
           <h2>{y.spotlight.title}</h2>
           <h3>{spotlight.title}</h3>
           <p>{y.spotlight.body}</p>
-          <div className="yt-meta-row">
+          <div className="yt2-meta">
             <span><Eye size={15} /> {fmt.format(Number(spotlight.views) || 0)} {y.grid.views}</span>
             <span><CalendarDays size={15} /> {videoDate(spotlight.publishedAt)}</span>
           </div>
-          <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="fresh-button fresh-button-primary">
+          <a href={watchUrl(spotlight.id)} target="_blank" rel="noopener noreferrer" className="yt2-watch yt2-watch-solid">
+            <PlayCircle size={16} />
             {y.spotlight.watch}
-            <ArrowUpRight size={16} />
           </a>
         </div>
       </section>
 
-      <section className="fresh-section yt-grid-section">
+      {/* Latest videos — magazine grid */}
+      <section className="fresh-section yt2-latest">
         <SectionHeader eyebrow={y.grid.eyebrow} title={y.grid.title} body={y.grid.body} />
-        <div className="yt-video-grid">
+        <div className="yt2-grid">
           {videos.map((video, index) => (
-            <a className="yt-video-card" key={`${video.id}-${index}`} href={watchUrl(video.id)} target="_blank" rel="noopener noreferrer">
-              <div className="yt-thumb">
+            <a className="yt2-card" key={`${video.id}-${index}`} href={watchUrl(video.id)} target="_blank" rel="noopener noreferrer">
+              <div className="yt2-card-thumb">
                 <Image src={video.thumbnail} alt={video.title} fill sizes="(max-width: 700px) 100vw, 33vw" className="fresh-image" />
-                <span className="yt-play-overlay"><PlayCircle /> {y.grid.play}</span>
+                <span className="yt2-card-play"><PlayCircle /></span>
+                <span className="yt2-card-views"><Eye size={13} /> {fmt.format(Number(video.views) || 0)}</span>
               </div>
-              <div className="yt-card-body">
+              <div className="yt2-card-body">
                 <h3>{video.title}</h3>
-                <div className="yt-meta-row">
-                  <span><Eye size={14} /> {fmt.format(Number(video.views) || 0)} {y.grid.views}</span>
-                  <span><CalendarDays size={14} /> {videoDate(video.publishedAt)}</span>
-                </div>
+                <span className="yt2-card-date"><CalendarDays size={13} /> {videoDate(video.publishedAt)}</span>
               </div>
             </a>
           ))}
         </div>
       </section>
 
-      <section className="fresh-section yt-playlists">
+      {/* Series / playlists */}
+      <section className="fresh-section yt2-series">
         <SectionHeader eyebrow={y.playlists.eyebrow} title={y.playlists.title} />
-        <div className="yt-playlist-rail">
+        <div className="yt2-series-rail">
           {y.playlists.items.map(([title, body], index) => {
             const Icon = [ListVideo, MonitorPlay, Headphones, Radio][index] ?? Film;
             return (
-              <article className="yt-playlist-card" key={title}>
-                <Icon />
-                <span>0{index + 1}</span>
+              <article className="yt2-series-card" key={title}>
+                <span className="yt2-series-icon"><Icon /></span>
+                <span className="yt2-series-num">0{index + 1}</span>
                 <h3>{title}</h3>
                 <p>{body}</p>
               </article>
@@ -762,16 +766,18 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      <section className="fresh-section yt-final-cta">
-        <p className="fresh-eyebrow">{handle}</p>
+      {/* Final subscribe CTA */}
+      <section className="fresh-section yt2-cta">
+        <div className="yt2-cta-glow" aria-hidden="true" />
+        <p className="yt2-eyebrow"><bdi>{handle}</bdi></p>
         <h2>{y.cta.title}</h2>
         <p>{y.cta.body}</p>
-        <div className="fresh-actions">
-          <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="yt-subscribe-button">
+        <div className="yt2-actions yt2-actions-center">
+          <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="yt2-subscribe">
             <BellRing className="yt-bell" />
             {y.cta.primary}
           </a>
-          <Link href={pathFor(model.locale, "contact")} prefetch={false} className="fresh-button">{y.cta.secondary}</Link>
+          <Link href={pathFor(model.locale, "contact")} prefetch={false} className="yt2-watch">{y.cta.secondary}</Link>
         </div>
       </section>
     </PageShell>

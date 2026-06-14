@@ -833,8 +833,12 @@ export async function saveYoutubeCurationAction(formData: FormData) {
   const excludedIds = parseSimpleLines(String(formData.get("excludedIds") ?? ""))
     .map((id) => extractYoutubeId(id))
     .filter(Boolean);
+  const pinnedIds = parseSimpleLines(String(formData.get("pinnedIds") ?? ""))
+    .map((id) => extractYoutubeId(id))
+    .filter(Boolean);
   const featuredId = extractYoutubeId(String(formData.get("featuredId") ?? ""));
-  await mergeSiteSetting("youtube_curation", { excludedIds, featuredId, updatedAt: new Date().toISOString() });
+  const sortByViews = formData.get("sortByViews") === "on";
+  await mergeSiteSetting("youtube_curation", { excludedIds, pinnedIds, featuredId, sortByViews, updatedAt: new Date().toISOString() });
   revalidateAll();
   redirect("/website?updated=youtube_curation#youtube");
 }

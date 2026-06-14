@@ -341,7 +341,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
   const theme = setting<SiteTheme>(data.settings, "site_theme", {});
   const contact = setting<ContactContent>(data.settings, "contact_page_content", contactFallback);
   const offers = setting<OffersContent>(data.settings, "site_offers", { items: [] });
-  const youtubeCuration = setting<{ excludedIds?: string[]; featuredId?: string }>(data.settings, "youtube_curation", {});
+  const youtubeCuration = setting<{ excludedIds?: string[]; featuredId?: string; pinnedIds?: string[]; sortByViews?: boolean }>(data.settings, "youtube_curation", {});
   const homeHeroAr = { ...homeFallback.ar?.hero, ...(home.ar?.hero ?? {}) };
   const homeHeroEn = { ...homeFallback.en?.hero, ...(home.en?.hero ?? {}) };
   const homeServicesAr = { ...homeFallback.ar?.services, ...(home.ar?.services ?? {}) };
@@ -836,6 +836,16 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         />
         <form action={saveYoutubeCurationAction} className="grid gap-4">
           <label className="field">
+            <span>{t({ en: "Chosen videos — shown first, in this order (links or IDs, one per line)", ar: "الفيديوهات المختارة — تظهر أولاً بهذا الترتيب (روابط أو معرّفات، واحد بكل سطر)" })}</span>
+            <textarea
+              name="pinnedIds"
+              rows={4}
+              className="input font-mono"
+              defaultValue={(youtubeCuration.pinnedIds ?? []).join("\n")}
+              placeholder={"https://youtu.be/XXXXXXXXXXX\nXXXXXXXXXXX"}
+            />
+          </label>
+          <label className="field">
             <span>{t({ en: "Hidden videos (links or IDs, one per line)", ar: "الفيديوهات المخفية (روابط أو معرّفات، واحد بكل سطر)" })}</span>
             <textarea
               name="excludedIds"
@@ -850,6 +860,12 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
             name="featuredId"
             defaultValue={youtubeCuration.featuredId ?? ""}
             placeholder="https://youtu.be/XXXXXXXXXXX"
+          />
+          <Toggle
+            name="sortByViews"
+            label={t({ en: "Auto-sort the rest by views (most watched first)", ar: "ترتيب الباقي تلقائياً حسب المشاهدات (الأكثر مشاهدة أولاً)" })}
+            description={t({ en: "Chosen videos still come first; everything else is ordered by view count.", ar: "الفيديوهات المختارة تبقى أولاً، والباقي يُرتّب حسب عدد المشاهدات." })}
+            checked={youtubeCuration.sortByViews === true}
           />
           <div>
             <button type="submit" className="btn btn-primary">{t({ en: "Save YouTube settings", ar: "حفظ إعدادات يوتيوب" })}</button>

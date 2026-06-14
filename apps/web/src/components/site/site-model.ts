@@ -520,22 +520,43 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
       ? pdfRegistry.uploads.ats.url
       : `/api/cv-pdf?locale=${locale}&variant=ats`;
 
-  // Admin-managed YouTube curation: hide specific videos and/or pin a featured one.
-  const youtubeCuration = getSiteSetting<{ excludedIds?: string[]; featuredId?: string }>(snapshot, "youtube_curation", {});
-  const excludedVideoIds = new Set(
-    (Array.isArray(youtubeCuration.excludedIds) ? youtubeCuration.excludedIds : [])
-      .map((id) => String(id).trim())
-      .filter(Boolean),
+  // Admin-managed YouTube curation: hide videos, choose/order which to show,
+  // optionally sort by views, and pin a featured one.
+  const youtubeCuration = getSiteSetting<{ excludedIds?: string[]; featuredId?: string; pinnedIds?: string[]; sortByViews?: boolean }>(
+    snapshot,
+    "youtube_curation",
+    {},
   );
-  const visibleVideos = excludedVideoIds.size ? videos.filter((video) => !excludedVideoIds.has(video.youtube_id)) : videos;
-  const curatedLiveYoutube =
-    liveYoutube && excludedVideoIds.size
-      ? {
-          ...liveYoutube,
-          videos: liveYoutube.videos.filter((video) => !excludedVideoIds.has(video.id)),
-          popularVideos: liveYoutube.popularVideos.filter((video) => !excludedVideoIds.has(video.id)),
-        }
-      : liveYoutube;
+  const cleanIds = (value: unknown) => (Array.isArray(value) ? value : []).map((id) => String(id).trim()).filter(Boolean);
+  const excludedVideoIds = new Set(cleanIds(youtubeCuration.excludedIds));
+  const pinnedIds = cleanIds(youtubeCuration.pinnedIds);
+  const pinnedOrder = new Map(pinnedIds.map((id, index) => [id, index] as const));
+  const sortByViews = youtubeCuration.sortByViews === true;
+  const orderVideos = <T>(list: T[], idOf: (video: T) => string, viewsOf: (video: T) => number): T[] => {
+    if (!pinnedOrder.size && !sortByViews) return list;
+    return [...list].sort((a, b) => {
+      const pa = pinnedOrder.has(idOf(a)) ? (pinnedOrder.get(idOf(a)) as number) : Number.POSITIVE_INFINITY;
+      const pb = pinnedOrder.has(idOf(b)) ? (pinnedOrder.get(idOf(b)) as number) : Number.POSITIVE_INFINITY;
+      if (pa !== pb) return pa - pb;
+      return sortByViews ? viewsOf(b) - viewsOf(a) : 0;
+    });
+  };
+  const visibleVideos = orderVideos(
+    excludedVideoIds.size ? videos.filter((video) => !excludedVideoIds.has(video.youtube_id)) : videos,
+    (video) => video.youtube_id,
+    (video) => video.views,
+  );
+  const curatedLiveYoutube = liveYoutube
+    ? {
+        ...liveYoutube,
+        videos: orderVideos(
+          liveYoutube.videos.filter((video) => !excludedVideoIds.has(video.id)),
+          (video) => video.id,
+          (video) => video.views,
+        ),
+        popularVideos: liveYoutube.popularVideos.filter((video) => !excludedVideoIds.has(video.id)),
+      }
+    : liveYoutube;
   const pinnedFeatured = youtubeCuration.featuredId
     ? visibleVideos.find((video) => video.youtube_id === String(youtubeCuration.featuredId).trim())
     : undefined;

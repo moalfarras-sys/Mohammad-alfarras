@@ -191,6 +191,46 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
   const c = copy[locale];
   const products = getProducts(locale);
 
+  const downloader = isAr
+    ? {
+        eyebrow: "تثبيت على تلفزيون أندرويد",
+        title: "حمّل MoPlayer على تلفزيونك عبر تطبيق Downloader",
+        subtitle: "أدخِل الكود في تطبيق Downloader على التلفزيون، فتفتح صفحة MoPlayer الرسمية لتختار النسخة وتحمّلها بسهولة.",
+        codeLabel: "كود Downloader",
+        urlLabel: "الموقع الرسمي",
+        url: "moalfarras.space/ar/apps/moplayer",
+        steps: [
+          "افتح تطبيق Downloader على التلفزيون",
+          "اكتب الكود: 7876083",
+          "اضغط Go لفتح الصفحة الرسمية",
+          "اختر النسخة: MoPlayer Pro أو Classic",
+          "اضغط تحميل APK وانتظر اكتمال التنزيل",
+          "اضغط Install ثم Open",
+        ],
+        safetyTitle: "إذا ظهرت رسالة أمان عند التثبيت",
+        safetyBody:
+          "فعّل «مصادر غير معروفة» لتطبيق Downloader من: الإعدادات ← الأمان والقيود ← مصادر غير معروفة، ثم أكمل التثبيت. التطبيق آمن تماماً — التحذير يظهر فقط لأن النسخة ما تزال قيد التوثيق بشهادة ناشر، ولا يدل على أي خطر.",
+      }
+    : {
+        eyebrow: "Install on Android TV",
+        title: "Get MoPlayer on your TV via the Downloader app",
+        subtitle: "Enter the code in the Downloader app on your TV; the official MoPlayer page opens so you can pick an edition and download it.",
+        codeLabel: "Downloader code",
+        urlLabel: "Official site",
+        url: "moalfarras.space/en/apps/moplayer",
+        steps: [
+          "Open the Downloader app on your TV",
+          "Type the code: 7876083",
+          "Press Go to open the official page",
+          "Choose your edition: MoPlayer Pro or Classic",
+          "Press Download APK and wait for it to finish",
+          "Press Install, then Open",
+        ],
+        safetyTitle: "If a security message appears",
+        safetyBody:
+          "Allow installs from unknown sources for the Downloader app: Settings → Security & restrictions → Unknown sources, then continue. The app is safe — the warning only appears because the build is still pending a publisher certificate; it does not indicate any risk.",
+      };
+
   return (
     <main className="min-h-screen bg-[#060606] text-white overflow-hidden font-sans" dir={isAr ? "rtl" : "ltr"}>
       {/* Background — premium ambient, brand-integrated with the site */}
@@ -338,6 +378,57 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
             </article>
           );
         })}
+      </section>
+
+      {/* ─── Install on Android TV via Downloader ─── */}
+      <section className="relative z-10 px-6 pb-16 max-w-6xl mx-auto">
+        <div className="relative overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-b from-orange-500/[0.06] to-white/[0.01] p-6 md:p-10">
+          <div
+            className="absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] max-w-[120%] h-[300px] rounded-full blur-[100px] pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at center, rgba(255,120,40,0.18), transparent 70%)" }}
+          />
+
+          <div className="relative text-center mb-8">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-300 text-[11px] font-bold uppercase tracking-wider mb-3">
+              <MonitorPlay className="h-3.5 w-3.5" /> {downloader.eyebrow}
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black text-white mb-3 max-w-2xl mx-auto leading-tight">{downloader.title}</h2>
+            <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">{downloader.subtitle}</p>
+          </div>
+
+          <div className="relative grid gap-4 sm:grid-cols-[auto_1fr] items-stretch max-w-3xl mx-auto mb-9">
+            <div
+              className="rounded-2xl border border-orange-500/40 bg-black/40 px-7 py-4 text-center flex flex-col justify-center"
+              style={{ boxShadow: "0 0 40px rgba(255,120,40,0.18)" }}
+            >
+              <div className="text-[11px] font-bold uppercase tracking-widest text-orange-300/80 mb-1">{downloader.codeLabel}</div>
+              <div dir="ltr" className="text-4xl md:text-5xl font-black tracking-[0.15em] text-white tabular-nums">7876083</div>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center sm:text-start flex flex-col justify-center">
+              <div className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">{downloader.urlLabel}</div>
+              <div dir="ltr" className="text-sm md:text-base font-semibold text-cyan-300 break-all">{downloader.url}</div>
+            </div>
+          </div>
+
+          <ol className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0 max-w-5xl mx-auto">
+            {downloader.steps.map((step, i) => (
+              <li key={i} className="flex items-start gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+                <span className="shrink-0 grid place-items-center w-8 h-8 rounded-xl bg-orange-500/15 border border-orange-500/30 text-orange-300 font-black text-sm">{i + 1}</span>
+                <span className="text-white/80 text-sm leading-relaxed pt-1">{step}</span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="relative mt-6 max-w-5xl mx-auto flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4 md:p-5">
+            <div className="shrink-0 w-9 h-9 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 grid place-items-center">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white mb-1">{downloader.safetyTitle}</h3>
+              <p className="text-white/70 text-[13px] leading-relaxed">{downloader.safetyBody}</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="moplayer-deferred-section relative z-10 px-6 pb-16 max-w-6xl mx-auto">

@@ -854,7 +854,7 @@ export async function saveWindowsReleaseAction(formData: FormData) {
 
   await mergeSiteSetting("windows_release", value);
   revalidateAll();
-  redirect("/moplayer-pro?updated=windows_release");
+  redirect("/moplayer-pc?updated=windows_release");
 }
 
 export async function saveWebsiteBrandAction(formData: FormData) {

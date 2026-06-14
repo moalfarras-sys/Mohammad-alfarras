@@ -28,6 +28,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
   return {
     title: copy.title,
     description: copy.description,
+    keywords: copy.keywords,
     metadataBase: new URL(BASE_URL),
     alternates: {
       canonical: `${BASE_URL}${localizedPath}`,

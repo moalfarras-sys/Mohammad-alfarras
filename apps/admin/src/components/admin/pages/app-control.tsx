@@ -35,7 +35,6 @@ import {
   saveProductAction,
   saveReleaseAction,
   saveRuntimeConfigAction,
-  saveWindowsReleaseAction,
   saveWidgetProviderSettingsAction,
   saveScreenshotAction,
   updateActivationStatusAction,
@@ -88,7 +87,7 @@ function runtimeNumber(value: unknown, fallback: number) {
   return Number.isFinite(next) && next > 0 ? next : fallback;
 }
 
-export function AppControl({ slug, data, updated, windowsRelease }: { slug: ManagedAppSlug; data: AdminAppData; updated?: string; windowsRelease?: Record<string, unknown> }) {
+export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data: AdminAppData; updated?: string }) {
   const { t } = useLocale();
   const [deviceQuery, setDeviceQuery] = useState("");
   const {
@@ -476,58 +475,6 @@ export function AppControl({ slug, data, updated, windowsRelease }: { slug: Mana
           </div>
         </form>
       </Accordion>
-
-      {slug === "moplayer2" &&
-        (() => {
-          const win = (windowsRelease ?? {}) as Record<string, unknown>;
-          const ws = (k: string) => (typeof win[k] === "string" ? (win[k] as string) : "");
-          const wn = (k: string) => (typeof win[k] === "number" ? String(win[k]) : "");
-          return (
-            <Accordion
-              id="windows-pc"
-              title={t({ en: "MoPlayer PC (Windows)", ar: "MoPlayer PC (ويندوز)" })}
-              description={t({ en: "Control the Windows desktop build: version, download links, and maintenance.", ar: "تحكّم بنسخة ويندوز للكمبيوتر: الإصدار، روابط التحميل، والصيانة." })}
-              icon={<UploadCloud className="h-5 w-5" />}
-              tone="accent"
-              count={ws("version") ? `v${ws("version")}` : t({ en: "Static fallback", ar: "ملف ثابت" })}
-            >
-              <SectionHelp
-                title={t({ en: "How PC updates work", ar: "كيف يُحدَّث تطبيق PC" })}
-                body={t({
-                  en: "These values drive BOTH the MoPlayer PC page and the Download button. Empty fields keep their current value (nothing is wiped). Turn on maintenance to tell PC visitors an update is in progress.",
-                  ar: "هذه القيم تتحكم بصفحة MoPlayer PC وبزر التحميل معاً. الحقول الفارغة تبقى على قيمتها الحالية (لا يُمسح شيء). فعّل الصيانة لإخبار زوار PC بأن هناك تحديثاً جارياً.",
-                })}
-              />
-              <form action={saveWindowsReleaseAction} className="grid gap-5 lg:grid-cols-2">
-                <div className="grid gap-3 lg:col-span-2">
-                  <Toggle
-                    name="maintenance"
-                    label={t({ en: "PC maintenance mode", ar: "وضع صيانة PC" })}
-                    description={t({ en: "Shows a maintenance notice on the MoPlayer PC page.", ar: "يعرض إشعار صيانة على صفحة MoPlayer PC." })}
-                    checked={win.maintenance === true}
-                  />
-                </div>
-                <Field label={t({ en: "Version", ar: "الإصدار" })} name="version" defaultValue={ws("version")} placeholder="1.0.2" help={t({ en: "Human version like 1.0.2.", ar: "رقم النسخة مثل 1.0.2." })} />
-                <Field label={t({ en: "Release date", ar: "تاريخ الإصدار" })} name="releaseDate" defaultValue={ws("releaseDate")} placeholder="2026-06-14" />
-                <Field label={t({ en: "Installer file name", ar: "اسم ملف المثبت" })} name="file" defaultValue={ws("file")} placeholder="MoPlayer-PC-Setup.exe" />
-                <Field label={t({ en: "Installer download URL (https)", ar: "رابط تحميل المثبت (https)" })} name="downloadUrl" defaultValue={ws("downloadUrl")} placeholder="https://github.com/.../MoPlayer-PC-Setup.exe" help={t({ en: "Public https link, e.g. GitHub Releases.", ar: "رابط https عام، مثل GitHub Releases." })} />
-                <Field label={t({ en: "Installer size (bytes)", ar: "حجم المثبت (بايت)" })} name="fileSizeBytes" type="number" defaultValue={wn("fileSizeBytes")} />
-                <Field label={t({ en: "Installer SHA-256", ar: "بصمة المثبت SHA-256" })} name="sha256" defaultValue={ws("sha256")} />
-                <Field label={t({ en: "Portable file name", ar: "اسم النسخة المحمولة" })} name="portableFile" defaultValue={ws("portableFile")} placeholder="MoPlayer-PC-Portable.exe" />
-                <Field label={t({ en: "Portable download URL (https)", ar: "رابط النسخة المحمولة (https)" })} name="portableDownloadUrl" defaultValue={ws("portableDownloadUrl")} />
-                <Field label={t({ en: "Portable size (bytes)", ar: "حجم المحمولة (بايت)" })} name="portableFileSizeBytes" type="number" defaultValue={wn("portableFileSizeBytes")} />
-                <Field label={t({ en: "Portable SHA-256", ar: "بصمة المحمولة SHA-256" })} name="portableSha256" defaultValue={ws("portableSha256")} />
-                <Field label={t({ en: "System requirements", ar: "متطلبات النظام" })} name="systemRequirements" defaultValue={ws("systemRequirements")} placeholder="Windows 10/11 64-bit" />
-                <TextAreaField label={t({ en: "Release notes", ar: "ملاحظات الإصدار" })} name="notes" defaultValue={ws("notes")} />
-                <div className="lg:col-span-2">
-                  <button type="submit" className="btn btn-primary">
-                    {t({ en: "Save MoPlayer PC release", ar: "حفظ إصدار MoPlayer PC" })}
-                  </button>
-                </div>
-              </form>
-            </Accordion>
-          );
-        })()}
 
       {/* Releases */}
       <Accordion id="releases" title={t({ en: "Releases", ar: "الإصدارات" })} description={t({ en: "Upload and manage APK builds", ar: "رفع وإدارة ملفات APK" })} icon={<UploadCloud className="h-5 w-5" />} count={releases.length}>

@@ -11,9 +11,10 @@ import {
   Globe,
   Inbox,
   Key,
-  MonitorPlay,
+  Monitor,
   Radio,
   Smartphone,
+  Tv,
 } from "lucide-react";
 
 import { useLocale } from "@/components/admin/locale-provider";
@@ -54,8 +55,8 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         eyebrow={health.supabase && health.storage ? t({ en: "Control center ready", ar: "مركز التحكم جاهز" }) : t({ en: "Checks need review", ar: "توجد فحوصات تحتاج مراجعة" })}
         title={t({ en: "Control Dashboard", ar: "لوحة التحكم" })}
         subtitle={t({
-          en: "A mobile-ready admin app for the website, MoPlayer Classic, MoPlayer Pro, AI, and automation health. Each area stays separate so no setting jumps into another product.",
-          ar: "تطبيق إدارة جاهز للهاتف للموقع وMoPlayer Classic وMoPlayer Pro والـ AI وصحة الأتمتة. كل قسم منفصل حتى لا تدخل إعدادات تطبيق في تطبيق آخر.",
+          en: "A mobile-ready admin app for the website, MoPlayer Classic, MoPlayer Pro, MoPlayer PC, AI, and automation health. Each product is its own section so no setting jumps into another product.",
+          ar: "تطبيق إدارة جاهز للهاتف للموقع وMoPlayer Classic وMoPlayer Pro وMoPlayer PC والـ AI وصحة الأتمتة. كل منتج له قسمه المستقل حتى لا تدخل إعدادات تطبيق في تطبيق آخر.",
         })}
         icon={<Activity className="h-7 w-7" />}
         actions={
@@ -66,7 +67,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         }
       />
 
-      <section className="grid gap-3 md:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <GuideTile
           title={t({ en: "Website is separate", ar: "الموقع منفصل" })}
           body={t({
@@ -75,17 +76,24 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
           })}
         />
         <GuideTile
-          title="MoPlayer"
+          title="MoPlayer Classic"
           body={t({
-            en: "Classic app only: releases, activation, devices, sources, maintenance, and support for moplayer.",
-            ar: "التطبيق الكلاسيكي فقط: الإصدارات والتفعيل والأجهزة والمصادر والصيانة والدعم الخاص بـ moplayer.",
+            en: "Android app only (slug moplayer): releases, activation, devices, sources, maintenance, and support.",
+            ar: "تطبيق أندرويد فقط (slug moplayer): الإصدارات والتفعيل والأجهزة والمصادر والصيانة والدعم.",
           })}
         />
         <GuideTile
           title="MoPlayer Pro"
           body={t({
-            en: "Pro app only: slug stays moplayer2 for URLs, APIs, devices, releases, colors, and maintenance.",
-            ar: "تطبيق برو فقط: يبقى slug باسم moplayer2 للروابط والـ API والأجهزة والإصدارات والألوان والصيانة.",
+            en: "Android/TV app only: slug stays moplayer2 for URLs, APIs, devices, releases, colors, and maintenance.",
+            ar: "تطبيق أندرويد/تلفاز فقط: يبقى slug باسم moplayer2 للروابط والـ API والأجهزة والإصدارات والألوان والصيانة.",
+          })}
+        />
+        <GuideTile
+          title="MoPlayer PC"
+          body={t({
+            en: "Windows desktop app only: version, installer and portable downloads, system requirements, and maintenance.",
+            ar: "تطبيق ويندوز للكمبيوتر فقط: الإصدار، روابط المثبت والنسخة المحمولة، متطلبات النظام، والصيانة.",
           })}
         />
         <GuideTile
@@ -97,7 +105,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         />
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <ActionTile
           href="/website#brand"
           icon={<Globe className="h-5 w-5" />}
@@ -111,22 +119,28 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
           body={t({ en: "Create a banner, card, or strip and choose where it appears.", ar: "أنشئ بانر أو بطاقة أو شريط واختر أين يظهر." })}
         />
         <ActionTile
-          href="/moplayer#runtime"
-          icon={<Smartphone className="h-5 w-5" />}
-          title="MoPlayer Classic"
-          body={t({ en: "Runtime, releases, images, and public page.", ar: "التشغيل، الإصدارات، الصور، وصفحة الموقع." })}
-        />
-        <ActionTile
-          href="/moplayer-pro#runtime"
-          icon={<MonitorPlay className="h-5 w-5" />}
-          title="MoPlayer Pro"
-          body={t({ en: "Runtime, releases, images, and public page.", ar: "التشغيل، الإصدارات، الصور، وصفحة الموقع." })}
-        />
-        <ActionTile
           href="/ai"
           icon={<Bot className="h-5 w-5" />}
           title={t({ en: "AI & automation", ar: "AI والأتمتة" })}
           body={t({ en: "Understand assistant messages, app assistant, n8n, and route health.", ar: "افهم رسائل المساعد ومساعد التطبيق وn8n وصحة المسارات." })}
+        />
+        <ActionTile
+          href="/moplayer#runtime"
+          icon={<Smartphone className="h-5 w-5" />}
+          title="MoPlayer Classic"
+          body={t({ en: "Android app: runtime, releases, images, and public page.", ar: "تطبيق أندرويد: التشغيل، الإصدارات، الصور، وصفحة الموقع." })}
+        />
+        <ActionTile
+          href="/moplayer-pro#runtime"
+          icon={<Tv className="h-5 w-5" />}
+          title="MoPlayer Pro"
+          body={t({ en: "Android/TV app: runtime, releases, images, and public page.", ar: "تطبيق أندرويد/تلفاز: التشغيل، الإصدارات، الصور، وصفحة الموقع." })}
+        />
+        <ActionTile
+          href="/moplayer-pc"
+          icon={<Monitor className="h-5 w-5" />}
+          title="MoPlayer PC"
+          body={t({ en: "Windows app: version, downloads, requirements, and maintenance.", ar: "تطبيق ويندوز: الإصدار، روابط التحميل، المتطلبات، والصيانة." })}
         />
       </section>
 
@@ -139,7 +153,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
       </section>
 
       {/* Quick navigation */}
-      <section className="grid gap-3 md:grid-cols-3">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <QuickCard
           href="/website"
           icon={<Globe className="h-6 w-6" />}
@@ -150,16 +164,23 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         <QuickCard
           href="/moplayer"
           icon={<Smartphone className="h-6 w-6" />}
-          title="MoPlayer"
-          body={t({ en: "Classic app runtime, releases, activations, fleet, sources, and support.", ar: "تشغيل التطبيق الكلاسيكي، الإصدارات، التفعيل، الأجهزة، المصادر، والدعم." })}
+          title="MoPlayer Classic"
+          body={t({ en: "Android app runtime, releases, activations, fleet, sources, and support.", ar: "تطبيق أندرويد: التشغيل، الإصدارات، التفعيل، الأجهزة، المصادر، والدعم." })}
           stat={appRuntimeLabel(apps.find((a) => a.slug === "moplayer")?.data, t)}
         />
         <QuickCard
           href="/moplayer-pro"
-          icon={<MonitorPlay className="h-6 w-6" />}
+          icon={<Tv className="h-6 w-6" />}
           title="MoPlayer Pro"
-          body={t({ en: "Pro app runtime, colors, releases, activations, fleet, and support.", ar: "تشغيل تطبيق برو، الألوان، الإصدارات، التفعيل، الأجهزة، والدعم." })}
+          body={t({ en: "Android/TV app runtime, colors, releases, activations, fleet, and support.", ar: "تطبيق أندرويد/تلفاز: التشغيل، الألوان، الإصدارات، التفعيل، الأجهزة، والدعم." })}
           stat={appRuntimeLabel(apps.find((a) => a.slug === "moplayer2")?.data, t)}
+        />
+        <QuickCard
+          href="/moplayer-pc"
+          icon={<Monitor className="h-6 w-6" />}
+          title="MoPlayer PC"
+          body={t({ en: "Windows desktop app: version, installer + portable downloads, and maintenance.", ar: "تطبيق ويندوز للكمبيوتر: الإصدار، روابط المثبت والنسخة المحمولة، والصيانة." })}
+          stat={t({ en: "Windows", ar: "ويندوز" })}
         />
       </section>
 

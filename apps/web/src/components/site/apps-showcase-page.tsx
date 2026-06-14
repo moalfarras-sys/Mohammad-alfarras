@@ -156,6 +156,19 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
     icon: "/images/moplayer-icon-512.png",
     accent: "metal",
   };
+  const moplayerPcCard = {
+    title: "MoPlayer PC",
+    label: isAr ? "تطبيق ويندوز للكمبيوتر" : "Windows desktop player",
+    body: isAr
+      ? "نسخة مكتبية كاملة لنظام Windows: تثبيت سريع، نسخة محمولة، ودعم Xtream / M3U بأداء قوي."
+      : "A full desktop build for Windows: a fast installer, a portable option, and powerful Xtream / M3U playback.",
+    badges: isAr ? ["Windows 10/11", "مثبت + محمول", "Xtream + M3U"] : ["Windows 10/11", "Installer + portable", "Xtream + M3U"],
+    cta: isAr ? "افتح MoPlayer PC" : "Open MoPlayer PC",
+    href: "apps/moplayer-pc",
+    image: "/images/moplayer-pro-hero.webp",
+    icon: "/images/moplayer-icon-512.png",
+    accent: "metal",
+  };
 
   return (
     <PageShell className="apps-lux-page">
@@ -230,7 +243,7 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
           </div>
 
           <div className="apps-bento">
-            {[...c.appCards.filter((app) => app.title !== "MoPlayer Pro"), moplayer2Card].map((app, index) => (
+            {[...c.appCards.filter((app) => app.title !== "MoPlayer Pro"), moplayer2Card, moplayerPcCard].map((app, index) => (
               <motion.article
                 key={app.title}
                 initial={{ opacity: 0, y: 18 }}

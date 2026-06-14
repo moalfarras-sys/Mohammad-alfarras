@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:locale(en|ar)/admin", destination: adminAppUrl, permanent: true },
       { source: "/:locale(en|ar)/admin/:path*", destination: `${adminAppUrl}/website`, permanent: true },
+      // Friendly Pro aliases -> canonical moplayer2 URL (protects old links and typos).
+      { source: "/:locale(en|ar)/apps/moplayerpro", destination: "/:locale/apps/moplayer2", permanent: true },
+      { source: "/:locale(en|ar)/apps/moplayer-pro", destination: "/:locale/apps/moplayer2", permanent: true },
     ];
   },
   turbopack: {

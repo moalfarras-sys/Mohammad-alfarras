@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTheme } from "next-themes";
-import { Bot, Globe, Languages, LayoutDashboard, LogOut, Mail, MonitorPlay, Moon, ShieldCheck, Smartphone, Sun } from "lucide-react";
+import { Bot, Globe, Languages, LayoutDashboard, LogOut, Mail, Monitor, Moon, ShieldCheck, Smartphone, Tv, Sun } from "lucide-react";
 
 import { logoutAdminAction } from "@/app/actions";
 import { AdminHelperWidget } from "@/components/admin/admin-helper-widget";
@@ -14,8 +14,9 @@ import { useLocale } from "@/components/admin/locale-provider";
 const NAV = [
   { href: "/", en: "Overview", ar: "نظرة عامة", short_en: "Home", short_ar: "الرئيسية", hint_en: "Start here", hint_ar: "ابدأ من هنا", icon: LayoutDashboard },
   { href: "/website", en: "Website", ar: "الموقع", short_en: "Website", short_ar: "الموقع", hint_en: "Text, images, SEO", hint_ar: "نصوص وصور وفهرسة", icon: Globe },
-  { href: "/moplayer", en: "MoPlayer", ar: "مو بلاير", short_en: "Classic", short_ar: "كلاسيك", hint_en: "Classic app only", hint_ar: "التطبيق الكلاسيكي فقط", icon: Smartphone },
-  { href: "/moplayer-pro", en: "MoPlayer Pro", ar: "مو بلاير برو", short_en: "Pro", short_ar: "برو", hint_en: "Pro app only", hint_ar: "تطبيق برو فقط", icon: MonitorPlay },
+  { href: "/moplayer", en: "MoPlayer Classic", ar: "مو بلاير كلاسيك", short_en: "Classic", short_ar: "كلاسيك", hint_en: "Android app", hint_ar: "تطبيق أندرويد", icon: Smartphone },
+  { href: "/moplayer-pro", en: "MoPlayer Pro", ar: "مو بلاير برو", short_en: "Pro", short_ar: "برو", hint_en: "Android/TV app", hint_ar: "تطبيق أندرويد/تلفاز", icon: Tv },
+  { href: "/moplayer-pc", en: "MoPlayer PC", ar: "مو بلاير PC", short_en: "PC", short_ar: "PC", hint_en: "Windows app", hint_ar: "تطبيق ويندوز", icon: Monitor },
   { href: "/email", en: "Email", ar: "الإيميلات", short_en: "Email", short_ar: "إيميل", hint_en: "Inbox + AI replies", hint_ar: "رسائل وردود AI", icon: Mail },
   { href: "/ai", en: "AI & automation", ar: "AI والأتمتة", short_en: "AI", short_ar: "AI", hint_en: "Assistant health", hint_ar: "صحة المساعد", icon: Bot },
 ] as const;

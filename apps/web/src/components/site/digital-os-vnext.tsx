@@ -398,7 +398,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
             <span>Digital OS</span>
           </div>
           <div className="os-home-photo-frame">
-            <Image src={portrait} alt={model.profile.name} fill priority sizes="(max-width: 900px) 100vw, 38vw" className="fresh-image" />
+            <Image src={portrait} alt={model.profile.name} fill priority sizes="(max-width: 900px) 100vw, 38vw" className="fresh-image" unoptimized={portrait.startsWith("http")} />
           </div>
           <div className="os-home-id-card">
             <strong>{isAr ? "محمد الفراس" : "Mohammad Alfarras"}</strong>
@@ -501,8 +501,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         </div>
         <div className="os-moplayer-visual">
           <div className="os-moplayer-glow" />
-          <div className="os-moplayer-device"><Image src="/images/moplayer-hero-3d-final.png" alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" /></div>
-          <div className="os-moplayer-mini"><Image src="/images/moplayer-activation-flow.webp" alt="MoPlayer activation flow" fill sizes="220px" className="fresh-image" /></div>
+          <div className="os-moplayer-device"><Image src={model.siteImages?.home_product_hero || "/images/moplayer-hero-3d-final.png"} alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" unoptimized={(model.siteImages?.home_product_hero || "").startsWith("http")} /></div>
+          <div className="os-moplayer-mini"><Image src={model.siteImages?.home_product_secondary || "/images/moplayer-activation-flow.webp"} alt="MoPlayer activation flow" fill sizes="220px" className="fresh-image" unoptimized={(model.siteImages?.home_product_secondary || "").startsWith("http")} /></div>
         </div>
       </section>
 

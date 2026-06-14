@@ -828,6 +828,23 @@ function extractYoutubeId(value: string): string {
   return raw;
 }
 
+export async function saveSiteImagesAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const slots = ["home_portrait", "home_product_hero", "home_product_secondary"];
+  const supabase = createSupabaseAdminClient();
+  const { data } = await supabase.from("site_settings").select("value_json").eq("key", "site_images").maybeSingle();
+  const current = (data?.value_json && typeof data.value_json === "object" ? data.value_json : {}) as Record<string, string>;
+  const next: Record<string, string> = { ...current };
+  for (const slot of slots) {
+    const mediaId = String(formData.get(`${slot}_media_id`) ?? "").trim();
+    if (mediaId) next[slot] = mediaId;
+    else delete next[slot];
+  }
+  await supabase.from("site_settings").upsert({ key: "site_images", value_json: next }, { onConflict: "key" });
+  revalidateAll();
+  redirect("/website?updated=site_images#site-images");
+}
+
 export async function saveYoutubeCurationAction(formData: FormData) {
   await requireAdminRole("editor");
   const excludedIds = parseSimpleLines(String(formData.get("excludedIds") ?? ""))

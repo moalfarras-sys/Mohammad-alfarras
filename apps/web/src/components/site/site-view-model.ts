@@ -142,6 +142,7 @@ export type SiteViewModel = {
     highlights: string[];
   }[];
   portraitImage: string;
+  siteImages: Record<string, string>;
   brandMedia: {
     profilePortrait: string;
     youtubeHero: string;

@@ -498,6 +498,16 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const snapshot = await readSnapshot();
   const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
+  // Admin-managed overrides for images that used to be hard-coded in components.
+  // Stored as media-asset IDs; resolved to public paths here.
+  const siteImagesRaw = getSiteSetting<Record<string, unknown>>(snapshot, "site_images", {});
+  const siteImages: Record<string, string> = {};
+  for (const [slot, mediaId] of Object.entries(siteImagesRaw)) {
+    if (typeof mediaId === "string" && mediaId.trim()) {
+      const resolved = resolveMediaPath(snapshot.media_assets, mediaId.trim(), "");
+      if (resolved) siteImages[slot] = resolved;
+    }
+  }
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
   const pageSlug = slug || "home";
@@ -585,7 +595,8 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     cvSections: cvPresentation.sections,
     cvProjects: cvPresentation.projects,
     cvExperience: cvPresentation.experience,
-    portraitImage: safeImageSrc("/images/protofeilnew.jpeg", "/images/protofeilnew.jpeg"),
+    portraitImage: safeImageSrc(siteImages.home_portrait || "/images/protofeilnew.jpeg", "/images/protofeilnew.jpeg"),
+    siteImages,
     brandMedia,
     downloads: {
       branded: brandedDownload,

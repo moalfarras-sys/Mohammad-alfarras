@@ -19,6 +19,7 @@ import {
   saveWebsitePageAction,
   saveWebsiteProjectAction,
   saveWebsiteServiceAction,
+  saveSiteImagesAction,
   saveWebsiteServicesAction,
   saveYoutubeCurationAction,
   updateWebsiteMessageStatusAction,
@@ -342,6 +343,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
   const contact = setting<ContactContent>(data.settings, "contact_page_content", contactFallback);
   const offers = setting<OffersContent>(data.settings, "site_offers", { items: [] });
   const youtubeCuration = setting<{ excludedIds?: string[]; featuredId?: string; pinnedIds?: string[]; sortByViews?: boolean }>(data.settings, "youtube_curation", {});
+  const siteImages = setting<Record<string, string>>(data.settings, "site_images", {});
   const homeHeroAr = { ...homeFallback.ar?.hero, ...(home.ar?.hero ?? {}) };
   const homeHeroEn = { ...homeFallback.en?.hero, ...(home.en?.hero ?? {}) };
   const homeServicesAr = { ...homeFallback.ar?.services, ...(home.ar?.services ?? {}) };
@@ -819,6 +821,29 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
           ))}
           {!data.mediaAssets.length ? <div className="sm:col-span-2 xl:col-span-4"><EmptyState icon={<ImageIcon className="h-5 w-5" />} title={t({ en: "No media yet", ar: "لا صور بعد" })} /></div> : null}
         </div>
+      </Accordion>
+
+      <Accordion
+        id="site-images"
+        title={t({ en: "Key site images", ar: "صور الموقع الرئيسية" })}
+        description={t({ en: "Change the big images that used to be fixed in code — homepage photo and product visuals", ar: "غيّر الصور الكبيرة التي كانت ثابتة في الكود — صورة الرئيسية وصور المنتج" })}
+        icon={<ImageIcon className="h-5 w-5" />}
+      >
+        <SectionHelp
+          title={t({ en: "Now editable from here", ar: "صارت قابلة للتعديل من هنا" })}
+          body={t({
+            en: "These are images that were previously hard-coded on the site, so you couldn't find them. Pick any image from your library (or upload first in Media), then Save. Leave on the default to use the original.",
+            ar: "هذه صور كانت مثبّتة في الكود سابقاً فما كنت تلاقيها. اختر أي صورة من مكتبتك (أو ارفعها أولاً في قسم الصور) ثم احفظ. اتركها على الافتراضي لاستخدام الصورة الأصلية.",
+          })}
+        />
+        <form action={saveSiteImagesAction} className="grid gap-4 lg:grid-cols-3">
+          <MediaSelect label={t({ en: "Homepage photo (portrait)", ar: "صورة الرئيسية (البورتريه)" })} name="home_portrait_media_id" assets={data.mediaAssets} value={siteImages.home_portrait ?? ""} fallbackPath="/images/protofeilnew.jpeg" />
+          <MediaSelect label={t({ en: "Homepage product image", ar: "صورة المنتج في الرئيسية" })} name="home_product_hero_media_id" assets={data.mediaAssets} value={siteImages.home_product_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
+          <MediaSelect label={t({ en: "Homepage activation image", ar: "صورة التفعيل في الرئيسية" })} name="home_product_secondary_media_id" assets={data.mediaAssets} value={siteImages.home_product_secondary ?? ""} fallbackPath="/images/moplayer-activation-flow.webp" />
+          <div className="lg:col-span-3">
+            <button type="submit" className="btn btn-primary">{t({ en: "Save site images", ar: "حفظ صور الموقع" })}</button>
+          </div>
+        </form>
       </Accordion>
 
       <Accordion

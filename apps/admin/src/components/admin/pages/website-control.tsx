@@ -20,6 +20,7 @@ import {
   saveWebsiteProjectAction,
   saveWebsiteServiceAction,
   saveWebsiteServicesAction,
+  saveYoutubeCurationAction,
   updateWebsiteMessageStatusAction,
   uploadWebsiteMediaAction,
 } from "@/app/actions";
@@ -340,6 +341,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
   const theme = setting<SiteTheme>(data.settings, "site_theme", {});
   const contact = setting<ContactContent>(data.settings, "contact_page_content", contactFallback);
   const offers = setting<OffersContent>(data.settings, "site_offers", { items: [] });
+  const youtubeCuration = setting<{ excludedIds?: string[]; featuredId?: string }>(data.settings, "youtube_curation", {});
   const homeHeroAr = { ...homeFallback.ar?.hero, ...(home.ar?.hero ?? {}) };
   const homeHeroEn = { ...homeFallback.en?.hero, ...(home.en?.hero ?? {}) };
   const homeServicesAr = { ...homeFallback.ar?.services, ...(home.ar?.services ?? {}) };
@@ -817,6 +819,42 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
           ))}
           {!data.mediaAssets.length ? <div className="sm:col-span-2 xl:col-span-4"><EmptyState icon={<ImageIcon className="h-5 w-5" />} title={t({ en: "No media yet", ar: "لا صور بعد" })} /></div> : null}
         </div>
+      </Accordion>
+
+      <Accordion
+        id="youtube"
+        title={t({ en: "YouTube videos", ar: "فيديوهات يوتيوب" })}
+        description={t({ en: "Hide videos and pin a featured one on the public YouTube page", ar: "إخفاء فيديوهات وتثبيت فيديو مميز في صفحة يوتيوب العامة" })}
+        icon={<Globe className="h-5 w-5" />}
+      >
+        <SectionHelp
+          title={t({ en: "How the YouTube page works", ar: "كيف تعمل صفحة يوتيوب" })}
+          body={t({
+            en: "By default the page auto-pulls the latest videos from your channel via the YouTube API. To remove a specific video (for example one you no longer want shown), paste its link or ID below — one per line. Optionally pin one video as the big featured one at the top.",
+            ar: "تلقائياً تجلب الصفحة أحدث فيديوهات قناتك عبر YouTube API. لإخفاء فيديو معيّن (مثلاً فيديو ما عدت تريده يظهر)، الصق رابطه أو معرّفه بالأسفل — واحد بكل سطر. واختياريّاً ثبّت فيديو واحد ليظهر كالفيديو المميز الكبير في الأعلى.",
+          })}
+        />
+        <form action={saveYoutubeCurationAction} className="grid gap-4">
+          <label className="field">
+            <span>{t({ en: "Hidden videos (links or IDs, one per line)", ar: "الفيديوهات المخفية (روابط أو معرّفات، واحد بكل سطر)" })}</span>
+            <textarea
+              name="excludedIds"
+              rows={4}
+              className="input font-mono"
+              defaultValue={(youtubeCuration.excludedIds ?? []).join("\n")}
+              placeholder={"https://youtu.be/XXXXXXXXXXX\nXXXXXXXXXXX"}
+            />
+          </label>
+          <Inp
+            label={t({ en: "Featured video (link or ID, optional)", ar: "الفيديو المميز (رابط أو معرّف، اختياري)" })}
+            name="featuredId"
+            defaultValue={youtubeCuration.featuredId ?? ""}
+            placeholder="https://youtu.be/XXXXXXXXXXX"
+          />
+          <div>
+            <button type="submit" className="btn btn-primary">{t({ en: "Save YouTube settings", ar: "حفظ إعدادات يوتيوب" })}</button>
+          </div>
+        </form>
       </Accordion>
 
       <Accordion

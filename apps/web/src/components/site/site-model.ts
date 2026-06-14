@@ -520,6 +520,27 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
       ? pdfRegistry.uploads.ats.url
       : `/api/cv-pdf?locale=${locale}&variant=ats`;
 
+  // Admin-managed YouTube curation: hide specific videos and/or pin a featured one.
+  const youtubeCuration = getSiteSetting<{ excludedIds?: string[]; featuredId?: string }>(snapshot, "youtube_curation", {});
+  const excludedVideoIds = new Set(
+    (Array.isArray(youtubeCuration.excludedIds) ? youtubeCuration.excludedIds : [])
+      .map((id) => String(id).trim())
+      .filter(Boolean),
+  );
+  const visibleVideos = excludedVideoIds.size ? videos.filter((video) => !excludedVideoIds.has(video.youtube_id)) : videos;
+  const curatedLiveYoutube =
+    liveYoutube && excludedVideoIds.size
+      ? {
+          ...liveYoutube,
+          videos: liveYoutube.videos.filter((video) => !excludedVideoIds.has(video.id)),
+          popularVideos: liveYoutube.popularVideos.filter((video) => !excludedVideoIds.has(video.id)),
+        }
+      : liveYoutube;
+  const pinnedFeatured = youtubeCuration.featuredId
+    ? visibleVideos.find((video) => video.youtube_id === String(youtubeCuration.featuredId).trim())
+    : undefined;
+  const featuredVideo = pinnedFeatured ?? visibleVideos.find((item) => item.is_featured) ?? visibleVideos[0] ?? null;
+
   return repairMojibakeDeep({
     locale,
     pageSlug,
@@ -532,11 +553,11 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
     certifications: getCertifications(snapshot, locale),
     contact: getContact(snapshot, locale),
     youtube,
-    featuredVideo: videos.find((item) => item.is_featured) ?? videos[0] ?? null,
-    latestVideos: videos.slice(0, 6),
+    featuredVideo,
+    latestVideos: visibleVideos.slice(0, 6),
     gallery: getGallery(snapshot),
     live: {
-      youtube: liveYoutube,
+      youtube: curatedLiveYoutube,
     },
     settings: snapshot.site_settings.reduce((acc, s) => ({ ...acc, [s.key]: s }), {}),
     cvBuilder: cvPresentation.builder,

@@ -819,6 +819,26 @@ export async function saveSiteStatusAction(formData: FormData) {
   redirect("/website?updated=site_status");
 }
 
+function extractYoutubeId(value: string): string {
+  const raw = value.trim();
+  if (!raw) return "";
+  const match = raw.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  if (match) return match[1];
+  if (/^[A-Za-z0-9_-]{11}$/.test(raw)) return raw;
+  return raw;
+}
+
+export async function saveYoutubeCurationAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const excludedIds = parseSimpleLines(String(formData.get("excludedIds") ?? ""))
+    .map((id) => extractYoutubeId(id))
+    .filter(Boolean);
+  const featuredId = extractYoutubeId(String(formData.get("featuredId") ?? ""));
+  await mergeSiteSetting("youtube_curation", { excludedIds, featuredId, updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/website?updated=youtube_curation#youtube");
+}
+
 export async function saveWindowsReleaseAction(formData: FormData) {
   await requireAdminRole("admin");
   const str = (k: string) => String(formData.get(k) ?? "").trim();

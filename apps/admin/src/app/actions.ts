@@ -857,6 +857,65 @@ export async function saveWindowsReleaseAction(formData: FormData) {
   redirect("/moplayer-pc?updated=windows_release");
 }
 
+async function readWindowsReleaseSetting(): Promise<Record<string, unknown>> {
+  const supabase = createSupabaseAdminClient();
+  const { data } = await supabase.from("site_settings").select("value_json").eq("key", "windows_release").maybeSingle();
+  return data?.value_json && typeof data.value_json === "object" ? (data.value_json as Record<string, unknown>) : {};
+}
+
+function currentPcScreenshots(setting: Record<string, unknown>): string[] {
+  return Array.isArray(setting.screenshots)
+    ? setting.screenshots.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+export async function savePcHeroImageAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Image file is required.");
+  const uploaded = await uploadAppScreenshot({
+    filename: file.name,
+    contentType: file.type || "image/png",
+    bytes: new Uint8Array(await file.arrayBuffer()),
+  });
+  await mergeSiteSetting("windows_release", { heroImage: uploaded.publicUrl, updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
+export async function addPcScreenshotAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Image file is required.");
+  const uploaded = await uploadAppScreenshot({
+    filename: file.name,
+    contentType: file.type || "image/png",
+    bytes: new Uint8Array(await file.arrayBuffer()),
+  });
+  const setting = await readWindowsReleaseSetting();
+  const screenshots = [...currentPcScreenshots(setting), uploaded.publicUrl];
+  await mergeSiteSetting("windows_release", { screenshots, updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
+export async function deletePcScreenshotAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const url = String(formData.get("url") ?? "").trim();
+  const setting = await readWindowsReleaseSetting();
+  const screenshots = currentPcScreenshots(setting).filter((item) => item !== url);
+  await mergeSiteSetting("windows_release", { screenshots, updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
+export async function clearPcHeroImageAction() {
+  await requireAdminRole("admin");
+  await mergeSiteSetting("windows_release", { heroImage: "", updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
 export async function saveWebsiteBrandAction(formData: FormData) {
   await requireAdminRole("editor");
   let logoUpload: WebsiteMediaAsset | null = null;

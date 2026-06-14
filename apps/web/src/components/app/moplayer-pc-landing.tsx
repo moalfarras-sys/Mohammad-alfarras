@@ -90,7 +90,11 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
   const downloadHref = "/api/app/download/latest?product=moplayer2&platform=windows";
   const portableHref = "/api/app/download/latest?product=moplayer2&platform=windows&portable=1";
   const activateHref = `/${locale}/activate?product=moplayer-pc&platform=windows`;
-  const galleryShots = (ecosystem.product as ProductWithGallery).gallery_shots ?? [];
+  const pcShots = (windowsRelease?.screenshots ?? []).filter((src): src is string => typeof src === "string" && src.trim().length > 0);
+  const galleryShots: GalleryShot[] = pcShots.length
+    ? pcShots.map((src, i) => ({ id: `pc-shot-${i}`, image_path: src, alt_text: productName, title: productName }))
+    : (ecosystem.product as ProductWithGallery).gallery_shots ?? [];
+  const heroImageSrc = windowsRelease?.heroImage?.trim() ? windowsRelease.heroImage.trim() : "/images/moplayer-pc-desktop.png";
   const releaseStats = [
     windowsRelease?.version ? { label: isAr ? "الإصدار" : "Version", value: `v${windowsRelease.version}` } : null,
     windowsRelease?.fileSizeBytes ? { label: isAr ? "حجم المثبت" : "Setup size", value: formatBytes(windowsRelease.fileSizeBytes) } : null,
@@ -256,10 +260,11 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
           >
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 pointer-events-none" />
             <Image
-              src="/images/moplayer-pc-desktop.png"
+              src={heroImageSrc}
               alt="MoPlayer PC Interface"
               width={1400}
               height={900}
+              unoptimized={heroImageSrc.startsWith("http")}
               className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
             />
           </motion.div>

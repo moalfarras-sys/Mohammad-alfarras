@@ -1,21 +1,29 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import {
   CheckCircle2,
   Download,
   ExternalLink,
   FileText,
-  HardDrive,
+  Image as ImageIcon,
   Monitor,
   Package,
   ShieldCheck,
+  Trash2,
   UploadCloud,
 } from "lucide-react";
 
-import { saveWindowsReleaseAction } from "@/app/actions";
+import {
+  addPcScreenshotAction,
+  clearPcHeroImageAction,
+  deletePcScreenshotAction,
+  savePcHeroImageAction,
+  saveWindowsReleaseAction,
+} from "@/app/actions";
 import { useLocale } from "@/components/admin/locale-provider";
-import { CopyButton, Field, PageHeader, StatCard, TextAreaField, Toggle } from "@/components/admin/ui";
+import { CopyButton, EmptyState, Field, PageHeader, StatCard, TextAreaField, Toggle } from "@/components/admin/ui";
 import { UpdatedToast } from "@/components/admin/updated-toast";
 
 const webBaseUrl = (process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space").replace(/\/$/, "");
@@ -35,6 +43,10 @@ export function PcControl({ windowsRelease, updated }: { windowsRelease: Record<
   const version = ws("version");
   const installerSet = Boolean(ws("downloadUrl") || ws("file"));
   const portableSet = Boolean(ws("portableDownloadUrl") || ws("portableFile"));
+  const heroImage = ws("heroImage");
+  const screenshots = Array.isArray(win.screenshots)
+    ? (win.screenshots as unknown[]).filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
 
   return (
     <>
@@ -80,9 +92,9 @@ export function PcControl({ windowsRelease, updated }: { windowsRelease: Record<
           icon={<UploadCloud className="h-5 w-5" />}
         />
         <StatCard
-          label={t({ en: "Portable", ar: "المحمولة" })}
-          value={portableSet ? t({ en: "Set", ar: "مضبوطة" }) : t({ en: "Optional", ar: "اختياري" })}
-          icon={<HardDrive className="h-5 w-5" />}
+          label={t({ en: "Images", ar: "الصور" })}
+          value={screenshots.length + (heroImage ? 1 : 0)}
+          icon={<ImageIcon className="h-5 w-5" />}
           tone="success"
         />
       </section>
@@ -136,6 +148,98 @@ export function PcControl({ windowsRelease, updated }: { windowsRelease: Record<
           </div>
         </section>
       )}
+
+      <section id="images" className="glass fade-up rounded-[24px] p-5">
+        <div className="mb-1 flex items-center gap-2">
+          <ImageIcon className="h-5 w-5 text-[var(--accent)]" />
+          <h2 className="text-xl font-black text-[var(--text-1)]">{t({ en: "MoPlayer PC images", ar: "صور MoPlayer PC" })}</h2>
+        </div>
+        <p className="mb-4 text-xs leading-6 text-[var(--text-3)]">
+          {t({
+            en: "These images are specific to the MoPlayer PC page only (separate from Classic and Pro). Upload a file and it appears here and on the public page. No links to paste.",
+            ar: "هذه الصور تخص صفحة MoPlayer PC فقط (منفصلة عن Classic وPro). ارفع صورة وتظهر مباشرة هنا وعلى الصفحة العامة. لا حاجة للصق أي رابط.",
+          })}
+        </p>
+
+        {/* Hero image */}
+        <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1.3fr]">
+          <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-black/25">
+            <div className="aspect-video">
+              {heroImage ? (
+                <img src={heroImage} alt="MoPlayer PC hero" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center">
+                  <ImageIcon className="h-7 w-7 text-[var(--accent)]" />
+                  <p className="text-xs font-black text-[var(--text-1)]">{t({ en: "No hero image yet", ar: "لا توجد صورة رئيسية بعد" })}</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+            <p className="text-sm font-black text-[var(--text-1)]">{t({ en: "Hero image", ar: "الصورة الرئيسية" })}</p>
+            <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">
+              {t({ en: "The big image at the top of the MoPlayer PC page.", ar: "الصورة الكبيرة في أعلى صفحة MoPlayer PC." })}
+            </p>
+            <form action={savePcHeroImageAction} className="mt-3 grid gap-3" encType="multipart/form-data">
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
+                <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image file", ar: "اختر ملف صورة" })}</span>
+                <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
+                <input type="file" name="file" accept="image/*" required className="sr-only" />
+              </label>
+              <div className="flex gap-2">
+                <button type="submit" className="btn btn-primary btn-sm">{t({ en: "Upload hero image", ar: "رفع الصورة الرئيسية" })}</button>
+                {heroImage ? (
+                  <button type="submit" formAction={clearPcHeroImageAction} className="btn btn-sm btn-danger">
+                    <Trash2 className="h-4 w-4" />
+                    {t({ en: "Remove", ar: "حذف" })}
+                  </button>
+                ) : null}
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Screenshots gallery */}
+        <div className="rounded-2xl border border-[var(--line-strong)] bg-white/[0.02] p-4">
+          <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-black text-[var(--text-1)]">{t({ en: "Screenshots gallery", ar: "معرض اللقطات" })}</p>
+              <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{t({ en: "Shown in the gallery section of the MoPlayer PC page.", ar: "تظهر في معرض الصور على صفحة MoPlayer PC." })}</p>
+            </div>
+            <span className="badge">{screenshots.length} {t({ en: "images", ar: "صورة" })}</span>
+          </div>
+          <form action={addPcScreenshotAction} className="mb-4 flex flex-wrap items-center gap-3" encType="multipart/form-data">
+            <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
+              <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
+              <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image to add", ar: "اختر صورة لإضافتها" })}</span>
+              <input type="file" name="file" accept="image/*" required className="sr-only" />
+            </label>
+            <button type="submit" className="btn btn-primary btn-sm">{t({ en: "Add to gallery", ar: "أضف للمعرض" })}</button>
+          </form>
+          {screenshots.length ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {screenshots.map((src, index) => (
+                <div key={`${src}-${index}`} className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/[0.02]">
+                  <div className="aspect-video bg-black/25">
+                    <img src={src} alt={`MoPlayer PC screenshot ${index + 1}`} className="h-full w-full object-cover" />
+                  </div>
+                  <div className="flex items-center justify-between gap-2 p-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">#{index + 1}</span>
+                    <form action={deletePcScreenshotAction}>
+                      <input type="hidden" name="url" value={src} />
+                      <button type="submit" className="btn btn-sm btn-danger" aria-label="Delete screenshot">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={<ImageIcon className="h-5 w-5" />} title={t({ en: "No screenshots yet", ar: "لا توجد لقطات بعد" })} body={t({ en: "Upload images to build the PC gallery.", ar: "ارفع صوراً لبناء معرض الكمبيوتر." })} />
+          )}
+        </div>
+      </section>
 
       <section className="glass fade-up rounded-[24px] p-5">
         <div className="mb-4 flex items-center gap-2">

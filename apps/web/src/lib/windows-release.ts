@@ -20,6 +20,10 @@ export type WindowsRelease = {
   systemRequirements?: string;
   notes?: string;
   maintenance?: boolean;
+  /** PC-specific hero image (managed from the admin PC media library). */
+  heroImage?: string;
+  /** PC-specific gallery screenshots (managed from the admin PC media library). */
+  screenshots?: string[];
   productSlug: "moplayer2";
 };
 
@@ -57,6 +61,10 @@ function mapWindowsRelease(raw: Record<string, unknown>, allowMaintenance: boole
     systemRequirements: asString(raw.systemRequirements) || undefined,
     notes: asString(raw.notes) || undefined,
     maintenance: allowMaintenance ? raw.maintenance === true : false,
+    heroImage: asString(raw.heroImage) || undefined,
+    screenshots: Array.isArray(raw.screenshots)
+      ? raw.screenshots.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      : undefined,
     productSlug: "moplayer2",
   };
 }

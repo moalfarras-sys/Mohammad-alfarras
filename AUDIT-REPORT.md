@@ -19,11 +19,12 @@
 
 - `npm run verify:web` passed: typecheck, lint, production build, Vitest coverage.
 - `npm run verify:admin` passed: typecheck, lint, production build.
+- `npm run verify:moplayer-dashboard` passed after updating Vite.
+- Production deploy and HTTP smoke checks passed on 2026-06-15 for the public site and admin domains.
 - Browser QA passed on desktop and 390px mobile for AI and support. Hidden legal pages returned 404 until configured.
 - Admin image controls now cover homepage, apps, AI, support, and legal hero images with library selection or direct upload.
 
 ## Remaining Attention
 
-- Apply Supabase migration `20260615100000_support_uploads_bucket.sql` before relying on support screenshot storage in production.
 - Complete and confirm legal owner details in admin before publishing legal pages.
-- Production deploy was not executed in this run.
+- Vercel still reports the current stable Next.js PostCSS moderate advisory; keep watching for the next stable Next release that updates its bundled PostCSS dependency.

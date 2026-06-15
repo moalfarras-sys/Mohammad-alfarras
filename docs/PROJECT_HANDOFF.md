@@ -6,7 +6,7 @@ This repository is a production monorepo for the public website, admin control c
 
 - Restored the public standalone Mo Ai page at `/en/ai` and `/ar/ai`, backed by the existing site assistant API. Navigation, footer navigation list, mobile dock, and sitemap now include the AI route.
 - Rebuilt the support page into a structured diagnostic form and extended `/api/app/support` to route product/issue/device/version/contact details into admin support requests and owner email.
-- Added optional support screenshot handling through private Supabase Storage bucket `support-uploads`; migration `supabase/migrations/20260615100000_support_uploads_bucket.sql` must be applied before production screenshot uploads can succeed.
+- Added optional support screenshot handling through private Supabase Storage bucket `support-uploads`; the bucket was created in production on 2026-06-15, and migration `supabase/migrations/20260615100000_support_uploads_bucket.sql` records the expected state for future environments.
 - Added hidden-by-default legal routes: `/impressum`, `/terms`, `/app-disclaimer`, `/download-disclaimer`. They return 404 until admin Legal Pages are published with responsible name, address, and email.
 - Added admin Website Control fields for legal owner data and disclaimers. Server action `saveLegalPagesAction` prevents publishing incomplete legal pages.
 - Expanded Admin > Website > Key Site Images so public images can be selected from the media library or uploaded directly: home portrait/product/activation, apps hero, AI hero, support hero, and legal hero.
@@ -15,8 +15,10 @@ This repository is a production monorepo for the public website, admin control c
 - Wired `vercel.json` Cron Jobs to `/api/cron/report` and saved each generated report into `automation_inbox` in addition to email.
 - Updated CV response filenames to the 2026 naming convention.
 - Added static public CV aliases for DE/EN/AR 2026 filenames.
-- Verification passed: `npm run verify:web` and `npm run verify:admin`. Local Browser QA passed on `/en/ai`, `/en/support`, `/en/impressum` hidden gate, and mobile 390px width checks.
-- Production deploy was not run in this handoff. Deploy after reviewing changes, applying the Supabase migration, and running the normal Vercel project deployment flow.
+- Verification passed: `npm run verify:web`, `npm run verify:admin`, and `npm run verify:moplayer-dashboard`. Local Browser QA passed on `/en/ai`, `/en/support`, `/en/impressum` hidden gate, and mobile 390px width checks.
+- Production deploy completed on 2026-06-15: public site deployment `dpl_3UCzrS96sX8HGtahpfvTBzasKZP4` is aliased to `https://moalfarras.space`, and admin deployment `dpl_BEhs3CnhugYB6QMyeKsRNbH7F7ey` is aliased to `https://admin.moalfarras.space`.
+- Production checks passed for `/en`, `/en/ai`, `/en/support`, `/en/apps/moplayer2`, `/en/activate?product=moplayer2`, `/api/app/config?product=moplayer2`, the 2026 DE CV PDF alias, sitemap, the hidden unpublished legal 404 gate, and the admin shell.
+- Package audit hardening removed the high-severity `esbuild` advisory by updating `tsx` and Vite-related lockfiles. Vercel still reports 2 moderate PostCSS advisories from the latest stable Next.js `16.2.9`; the only npm remediation is an unsafe downgrade or canary Next, so production remains on stable Next.
 
 ## 2026-06-13 Public Web Unification and Performance Audit
 

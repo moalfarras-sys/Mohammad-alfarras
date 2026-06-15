@@ -16,7 +16,9 @@ Updated: 2026-06-15
 - Vercel cron is configured in `vercel.json` for `/api/cron/report` on `0 7 */10 * *`; the route still emails the owner and now also writes a copy to `automation_inbox`.
 - CV export filenames now include 2026: `Mohammad-Alfarras-CV-2026-{locale}-{variant}.pdf` and `Mohammad-Alfarras-CV-2026-{locale}.docx`.
 - Static public CV aliases exist for `Mohammad-Alfarras-CV-2026-DE.pdf`, `Mohammad-Alfarras-CV-2026-EN.pdf`, and `Mohammad-Alfarras-CV-2026-AR.pdf`.
-- Verification passed on 2026-06-15: `npm run verify:web` and `npm run verify:admin`. Browser QA covered desktop/mobile `/en/ai`, desktop/mobile `/en/support`, hidden `/en/impressum`, and footer legal gating on `http://127.0.0.1:3000`.
+- Verification passed on 2026-06-15: `npm run verify:web`, `npm run verify:admin`, and `npm run verify:moplayer-dashboard`. Browser QA covered desktop/mobile `/en/ai`, desktop/mobile `/en/support`, hidden `/en/impressum`, and footer legal gating on `http://127.0.0.1:3000`.
+- Production is deployed: public site deployment `dpl_3UCzrS96sX8HGtahpfvTBzasKZP4` is live on `https://moalfarras.space`, and admin deployment `dpl_BEhs3CnhugYB6QMyeKsRNbH7F7ey` is live on `https://admin.moalfarras.space`.
+- Supabase Storage bucket `support-uploads` exists in production as a private support screenshot bucket.
 
 ## 2026-06-06 Work and Case Study Experience
 
@@ -34,7 +36,7 @@ Updated: 2026-06-15
 - Google Search Console metadata showed `Discovered - currently not indexed`; the exported CSV did not include example URLs, only the issue type.
 - Production `robots.txt` and `sitemap.xml` were reachable with HTTP 200, but the sitemap included redirect-only shortcut URLs: `https://moalfarras.space/app`, `https://moalfarras.space/privacy`, and `https://moalfarras.space/support`.
 - `apps/web/src/app/sitemap.ts` now advertises only final localized public pages and localized work/project URLs. Shortcut redirects remain live, but they are no longer submitted as sitemap URLs.
-- The AI assistant is a site-wide chatbot widget, not a standalone navigation destination. AI was removed from desktop/mobile navigation and from the sitemap; legacy `/ar/ai` and `/en/ai` URLs permanently redirect to their localized home pages.
+- Superseded on 2026-06-15: `/ar/ai` and `/en/ai` are standalone localized Mo Ai pages again, and AI is back in desktop/mobile navigation and the sitemap.
 - Shared page metadata now points `x-default` to the matching English page instead of incorrectly pointing every internal page to `/en`.
 - Static sitemap entries no longer publish a constantly changing `lastmod`; project entries use their real update timestamp when one exists.
 - Desktop navigation links are single-line and non-shrinking, with an earlier switch to the menu layout on medium widths so Arabic and English labels do not overlap or get clipped.

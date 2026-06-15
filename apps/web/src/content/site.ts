@@ -24,7 +24,6 @@ export const navigationItems = {
     { id: "work", label: "Work", slug: "work" },
     { id: "services", label: "Services", slug: "services" },
     { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
-    { id: "ai", label: "Mo Ai", slug: "ai" },
     { id: "youtube", label: "YouTube", slug: "youtube" },
     { id: "cv", label: "CV", slug: "cv" },
     { id: "contact", label: "Contact", slug: "contact" },
@@ -34,7 +33,6 @@ export const navigationItems = {
     { id: "work", label: "الأعمال", slug: "work" },
     { id: "services", label: "الخدمات", slug: "services" },
     { id: "apps", label: "MoPlayer", slug: "apps/moplayer" },
-    { id: "ai", label: "Mo Ai", slug: "ai" },
     { id: "youtube", label: "يوتيوب", slug: "youtube" },
     { id: "cv", label: "السيرة الذاتية", slug: "cv" },
     { id: "contact", label: "تواصل", slug: "contact" },
@@ -72,7 +70,7 @@ export const homeContent = {
       },
       {
         title: "Web apps and product interfaces",
-        body: "Next.js, React, TypeScript, Tailwind, Supabase, admin dashboards, and user interfaces designed to scale cleanly.",
+        body: "Fast, reliable web apps and practical dashboards with clean interfaces that grow with your business and stay easy to manage.",
       },
       {
         title: "MoPlayer and Android TV product support",
@@ -126,7 +124,7 @@ export const homeContent = {
       },
       {
         title: "واجهة أو تطبيق ويب",
-        body: "واجهات مبنية بـ Next.js وReact وTypeScript وSupabase مع بنية قابلة للتوسع ولوحات تحكم عملية.",
+        body: "تطبيقات وواجهات ويب سريعة وموثوقة، مع لوحات تحكم عملية وبنية تنمو مع أعمالك وتبقى سهلة الإدارة.",
       },
       {
         title: "MoPlayer ودعم تجربة المنتج",

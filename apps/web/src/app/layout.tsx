@@ -7,14 +7,14 @@ import { siteFontClassName } from "@/lib/fonts";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "") || "https://moalfarras.space";
-const siteName = "Mohammad Alfarras Digital OS";
+const siteName = "Mohammad Alfarras";
 const defaultDescription =
   "Germany-based builder turning logistics discipline into clear web systems, Android TV products (MoPlayer), and Arabic technical storytelling.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
+    default: "Mohammad Alfarras — Web, MoPlayer, Arabic tech",
     template: "%s | Mohammad Alfarras",
   },
   description: defaultDescription,
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     type: "website",
     url: siteUrl,
     siteName,
-    title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
+    title: "Mohammad Alfarras — Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     locale: "ar_SA",
     alternateLocale: ["en_US"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mohammad Alfarras Digital OS - Web, MoPlayer, Arabic tech",
+    title: "Mohammad Alfarras — Web, MoPlayer, Arabic tech",
     description: defaultDescription,
     creator: "@Moalfarras",
   },

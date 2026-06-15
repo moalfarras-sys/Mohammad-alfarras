@@ -1,9 +1,23 @@
 import { after, NextResponse } from "next/server";
 
 import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
-import { recordDownload } from "@/lib/download-counter";
+import { downloadEventFromRequest, recordDownload } from "@/lib/download-counter";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
+
+function unavailableResponse(productName: string, mode: "maintenance" | "disabled", message?: string) {
+  return NextResponse.json(
+    {
+      error:
+        message ||
+        (mode === "maintenance"
+          ? `${productName} is under maintenance. Please try again shortly.`
+          : `${productName} downloads are currently disabled.`),
+      status: mode,
+    },
+    { status: 503, headers: { "Cache-Control": "no-store" } },
+  );
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -25,7 +39,17 @@ export async function GET(request: Request) {
     const external = portable ? release?.portableDownloadUrl : release?.downloadUrl;
     const fileName = (portable ? release?.portableFile : release?.file) || "MoPlayer-PC-Setup.exe";
     const target = external ?? new URL(`/downloads/moplayer/windows/${fileName}`, request.url);
-    after(() => recordDownload(product, "windows"));
+    after(() =>
+      recordDownload(
+        product,
+        "windows",
+        downloadEventFromRequest(request, {
+          fileName,
+          targetUrl: String(target),
+          metadata: { portable },
+        }),
+      ),
+    );
     return NextResponse.redirect(target, {
       headers: {
         "Cache-Control": "no-store",
@@ -34,6 +58,14 @@ export async function GET(request: Request) {
   }
 
   const ecosystem = await readAppEcosystem(product);
+  const runtime = ecosystem.runtimeConfig;
+  if (runtime?.enabled === false) {
+    return unavailableResponse(ecosystem.product.product_name, "disabled", runtime.message);
+  }
+  if (runtime?.maintenanceMode === true) {
+    return unavailableResponse(ecosystem.product.product_name, "maintenance", runtime.message);
+  }
+
   const latest = ecosystem.releases[0] ?? null;
 
   if (!latest) {
@@ -47,7 +79,18 @@ export async function GET(request: Request) {
 
   const target = new URL(resolved.redirectUrl, request.url);
 
-  after(() => recordDownload(product, platform));
+  after(() =>
+    recordDownload(
+      product,
+      platform,
+      downloadEventFromRequest(request, {
+        releaseSlug: latest.slug,
+        assetId: resolved.asset.id,
+        fileName: resolved.filename,
+        targetUrl: resolved.redirectUrl,
+      }),
+    ),
+  );
   return NextResponse.redirect(target, {
     headers: {
       "Cache-Control": "no-store",

@@ -57,7 +57,14 @@ export function MoPlayerLanding({
   const heroImage = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-tv-hero.png");
   
   const latest = ecosystem.releases[0] ?? null;
-  const downloadHref = latest && latest.assets.some((asset) => asset.external_url || asset.storage_path) ? `/api/app/releases/${latest.slug}/download` : null;
+  const appUnavailable =
+    ecosystem.runtimeConfig?.enabled === false || ecosystem.runtimeConfig?.maintenanceMode === true;
+  const unavailableMode = ecosystem.runtimeConfig?.enabled === false ? "disabled" : "maintenance";
+  const unavailableMessage = ecosystem.runtimeConfig?.message?.trim();
+  const downloadHref =
+    !appUnavailable && latest && latest.assets.some((asset) => asset.external_url || asset.storage_path)
+      ? `/api/app/releases/${latest.slug}/download`
+      : null;
   const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
   const downloadSince = downloadSinceLabel(downloadStats, locale);
   const proHref = `/${locale}/apps/moplayer2`;
@@ -124,6 +131,25 @@ export function MoPlayerLanding({
           <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="text-sm md:text-base text-white/60 mb-5 md:mb-8 max-w-lg leading-relaxed mx-auto lg:mx-0">
             {productHero}
           </motion.p>
+
+          {appUnavailable ? (
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mb-4 md:mb-5 max-w-lg rounded-2xl border border-amber-400/25 bg-amber-400/10 px-5 py-4 text-start text-amber-100">
+              <strong className="block text-sm font-black">
+                {unavailableMode === "maintenance"
+                  ? isAr ? "التطبيق قيد الصيانة" : "App under maintenance"
+                  : isAr ? "التحميل متوقف مؤقتاً" : "Downloads temporarily disabled"}
+              </strong>
+              <span className="mt-1 block text-sm leading-6 text-amber-100/75">
+                {unavailableMessage ||
+                  (isAr
+                    ? "نعمل على تحديث هذا الإصدار. زر التحميل متوقف حتى لا يصل للزائر ملف غير جاهز."
+                    : "This release is being updated. The download button is paused so visitors do not receive a broken file.")}
+              </span>
+              <Link href={`/${locale}/support`} className="mt-3 inline-flex rounded-xl border border-amber-200/25 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-amber-100 transition hover:bg-amber-200/10">
+                {isAr ? "تواصل مع الدعم" : "Contact support"}
+              </Link>
+            </motion.div>
+          ) : null}
 
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.22 }} className="mb-4 md:mb-5 inline-flex items-center gap-4 rounded-2xl border border-blue-400/20 bg-blue-400/[0.07] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_52px_rgba(37,99,235,0.12)]">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">

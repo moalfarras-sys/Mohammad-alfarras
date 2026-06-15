@@ -35,6 +35,15 @@ type ScreenshotUpload = {
   error?: string;
 };
 
+function supportSuccessResponse(request: Request, locale: "ar" | "en", requestId?: string) {
+  const accept = request.headers.get("accept") || "";
+  const requestedWith = request.headers.get("x-requested-with") || "";
+  if (accept.includes("application/json") || requestedWith.toLowerCase() === "fetch") {
+    return NextResponse.json({ ok: true, id: requestId ?? null });
+  }
+  return NextResponse.redirect(new URL(`/${locale}/support?support=sent`, request.url), { status: 303 });
+}
+
 function productSlugForSupport(product: z.infer<typeof supportSchema>["support_product"]) {
   if (product === "moplayer") return "moplayer";
   return "moplayer2";
@@ -129,7 +138,7 @@ export async function POST(request: Request) {
     });
 
     if (payload.website) {
-      return NextResponse.redirect(new URL(`/${payload.locale}/support?support=sent`, request.url), { status: 303 });
+      return supportSuccessResponse(request, payload.locale);
     }
 
     const requestId = randomUUID();
@@ -181,7 +190,7 @@ export async function POST(request: Request) {
       }),
     });
 
-    return NextResponse.redirect(new URL(`/${payload.locale}/support?support=sent`, request.url), { status: 303 });
+    return supportSuccessResponse(request, payload.locale, requestId);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues[0]?.message ?? "Invalid support request" }, { status: 400 });

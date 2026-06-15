@@ -112,6 +112,9 @@ export type AppEcosystemData = {
   faqs: AppFaq[];
   releases: AppRelease[];
   runtimeConfig?: {
+    enabled?: boolean;
+    maintenanceMode?: boolean;
+    message?: string;
     downloaderCode?: string;
   };
 };

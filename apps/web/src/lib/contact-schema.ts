@@ -11,6 +11,7 @@ export const contactMessageSchema = z.object({
   projectType: z.enum(projectTypes),
   budgetRange: z.enum(budgetRanges),
   timeline: z.enum(timelines),
+  preferredTime: z.string().trim().max(120).optional().or(z.literal("")),
   message: z.string().trim().min(20).max(5000),
   consent: z.literal(true),
   honeypot: z.string().trim().max(200).optional().or(z.literal("")),

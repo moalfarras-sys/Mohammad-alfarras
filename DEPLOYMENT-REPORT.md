@@ -1,45 +1,35 @@
-# Deployment Report - 2026-06-15
+# Deployment Report
 
-## Status
+Date: 2026-06-15 · Branch: `cursor/admin-panel-upgrade`
 
-- Production deployment completed on 2026-06-15.
-- Public Vercel project `mohammad-alfarras` deployed and aliased to `https://moalfarras.space`.
-- Admin Vercel project `moalfarras-admin` deployed and aliased to `https://admin.moalfarras.space`.
-- Supabase Storage bucket `support-uploads` was created as a private image bucket for support screenshots.
-- Local verification passed for web, admin, and the MoPlayer dashboard.
+## Status: this session's changes are NOT deployed
+Per your decision ("continue heavier work first"), production deploy was **held**. No commit or push to `main` was made this session.
 
-## Production Deployments
+Important: the brief's main feature work (AI page → redirect, contact/support rebuild, download metadata, legal routes, jargon fixes) is **uncommitted in the working tree on this branch**. Production (`main`) still runs the previously-deployed code until this branch is committed and merged. The **live CMS content edits** I made (service/work copy) were written directly to production Supabase, so they are already live in the data layer regardless of code deploy.
 
-- Public site deployment: `dpl_3UCzrS96sX8HGtahpfvTBzasKZP4`
-- Admin deployment: `dpl_BEhs3CnhugYB6QMyeKsRNbH7F7ey`
+## Ready / green
+- `npm run verify:web` passes: typecheck + lint + build + 12/12 tests.
+- `npm run typecheck:admin` passes.
+- Key routes 200; downloads, sitemap, robots, contact/support forms, AI widget verified locally (reads prod Supabase).
+- Admin⇄site binding proven live and reversible (CMS-REALITY-TEST.md).
 
-## Production Checks
+## Working-tree changes to commit
+- Code (jargon removal): `content/site.ts`, `components/site/digital-os-vnext.tsx`, `components/site/work-digital-exhibition.tsx`, `components/app/moplayer2-landing.tsx`, `components/layout/site-footer.tsx`, `app/layout.tsx`, `app/not-found.tsx`.
+- Code (contact attachment): `app/api/contact/route.ts`, `components/site/liquid-contact-form.tsx`.
+- The 10 report files in this set.
+- (Pre-existing uncommitted feature work on this branch: AI redirect, contact/support, download counters, legal — verify these are intended before merge.)
 
-- `https://moalfarras.space/en` returned HTTP 200.
-- `https://moalfarras.space/en/ai` returned HTTP 200.
-- `https://moalfarras.space/en/support` returned HTTP 200.
-- `https://moalfarras.space/en/apps/moplayer2` returned HTTP 200.
-- `https://moalfarras.space/en/activate?product=moplayer2` returned HTTP 200.
-- `https://moalfarras.space/api/app/config?product=moplayer2` returned HTTP 200 JSON.
-- `https://moalfarras.space/Mohammad-Alfarras-CV-2026-DE.pdf` returned HTTP 200 PDF.
-- `https://moalfarras.space/sitemap.xml` returned HTTP 200 XML.
-- `https://moalfarras.space/en/impressum` returned HTTP 404 while legal pages are unpublished, as intended.
-- `https://admin.moalfarras.space` returned HTTP 200.
-- `https://admin.moalfarras.space/website` returned HTTP 200 for the protected admin shell/login flow.
+## Deploy procedure (when authorized)
+1. Review + commit code and reports on the branch.
+2. Merge/push to `main` → Vercel auto-deploys web (`moalfarras.space`) + admin (`admin.moalfarras.space`).
+3. Post-deploy smoke on production: `/en`, `/ar`, `/en/contact`, `/en/services`, `/en/work`, MoPlayer pages; confirm `/ai` redirects + `noindex`; footer/header clean; jargon gone; a real download; sitemap/robots.
 
-## Verification Completed Locally
+## Recommended before deploy
+- Pixel multi-device visual pass (VISUAL-FINAL-QA.md) and Lighthouse (PERFORMANCE-FINAL-QA.md).
+- Optional: contact file upload; wire home hero to `home_content`; decide on SSR `<html lang>` + SEO framework keywords.
 
-- `npm run verify:web`
-- `npm run verify:admin`
-- `npm run verify:moplayer-dashboard`
-- `npm audit --omit=dev --workspaces=false` at repo root returned 0 vulnerabilities.
-- `npm audit --omit=dev --workspaces=false` in `apps/web` returned 0 vulnerabilities.
-- `npm audit --omit=dev --workspaces=false` in `apps/admin` returned 0 vulnerabilities.
-- Browser QA on `http://127.0.0.1:3000/en/ai`
-- Browser QA on `http://127.0.0.1:3000/en/support`
-- Hidden legal route check on `http://127.0.0.1:3000/en/impressum`
+## Cleanup
+- Remove `tmp-cms-probe/` (temporary Supabase probe/test scripts created this session), and stale `tmp-web-*.log` / `tmp-download-qa/`.
 
-## Remaining Operational Notes
-
-- Fill real legal owner details in Admin > Website > Legal Pages before publishing legal routes.
-- Vercel install still prints 2 moderate `postcss` advisories through the current latest stable Next.js `16.2.9`, whose package metadata depends on `postcss 8.4.31`. The patched dependency is only present in `next@16.3.0-canary.51`, so the project stays on stable Next instead of moving production to a canary build.
+---
+_Note: a prior version of this file described an earlier 2026-06-15 production deployment (pre-AI-removal, when `/en/ai` returned 200). That report is superseded by this one._

@@ -3,7 +3,7 @@
 import { Send } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { budgetRanges, contactMessageSchema, projectTypes, timelines, type ContactMessageInput } from "@/lib/contact-schema";
 import { cn } from "@/lib/cn";
@@ -18,18 +18,20 @@ type SubmitState =
 const copy = {
   en: {
     title: "Project inquiry",
-    hint: "Pick the request type first so the form can stay focused.",
+    hint: "Send one complete request with the budget, timing, and project details.",
     name: "Name",
     email: "Email",
     whatsapp: "WhatsApp, optional",
     projectType: "Project type",
     budgetRange: "Budget range",
     timeline: "Timeline",
+    preferredTime: "Preferred appointment",
     message: "Project brief",
     namePh: "Your full name",
     emailPh: "you@example.com",
     whatsappPh: "+49 ...",
     messagePh: "Tell me what exists now, what needs to change, and what outcome matters most.",
+    preferredTimePh: "Example: weekday evenings, or 2026-06-20 at 18:00",
     consent: "I agree that Mohammad may use the submitted information only to reply to this request.",
     submit: "Send inquiry",
     sending: "Sending...",
@@ -37,8 +39,9 @@ const copy = {
     error: "The message could not be sent. Please review the form and try again.",
     privacy: "Only send information that is actually needed to understand the request.",
     newMessage: "Send another inquiry",
-    continue: "Continue",
-    back: "Back",
+    attachment: "Attachment, optional (image or PDF, max 8MB)",
+    attachmentBig: "File is too large (max 8MB).",
+    attachmentType: "Use an image (PNG, JPG, WebP, GIF) or a PDF.",
     projectTypes: {
       website: "Website / digital presence",
       product: "Product or app surface",
@@ -66,6 +69,7 @@ const copy = {
       projectType: "Choose a project type.",
       budgetRange: "Choose a budget range.",
       timeline: "Choose a timeline.",
+      preferredTime: "Use a short appointment note.",
       message: "Please write at least 20 characters.",
       consent: "Consent is required before sending.",
     },
@@ -91,6 +95,9 @@ const copy = {
     error: "تعذر إرسال الرسالة. راجع النموذج ثم حاول مرة أخرى.",
     privacy: "أرسل فقط المعلومات اللازمة فعلاً لفهم الطلب.",
     newMessage: "إرسال طلب جديد",
+    attachment: "إرفاق ملف، اختياري (صورة أو PDF، حتى 8 ميغابايت)",
+    attachmentBig: "حجم الملف كبير جداً (الحد 8 ميغابايت).",
+    attachmentType: "استخدم صورة (PNG أو JPG أو WebP أو GIF) أو ملف PDF.",
     continue: "متابعة",
     back: "رجوع",
     projectTypes: {
@@ -131,10 +138,10 @@ const inputClass = "fresh-input text-base placeholder:text-[var(--text-4)]";
 export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
   const t = repairMojibakeDeep(copy[locale]);
   const [state, setState] = useState<SubmitState>({ status: "idle" });
-  const [step, setStep] = useState<1 | 2>(1);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [fileKey, setFileKey] = useState(0);
   const {
     register,
-    control,
     handleSubmit,
     setError,
     reset,
@@ -148,6 +155,7 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
       projectType: "website",
       budgetRange: "not-sure",
       timeline: "flexible",
+      preferredTime: "",
       message: "",
       consent: false,
       honeypot: "",
@@ -155,8 +163,6 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
       subject: "",
     },
   });
-
-  const selectedProjectType = useWatch({ control, name: "projectType" }) ?? "website";
 
   function fieldMessage(key: keyof FormValues) {
     if (key in t.validation) return t.validation[key as keyof typeof t.validation];
@@ -176,13 +182,36 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
       return;
     }
 
+    const file = attachedFile;
+    if (file) {
+      const allowed = ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"];
+      if (file.size > 8 * 1024 * 1024) {
+        setState({ status: "error", message: t.attachmentBig });
+        return;
+      }
+      if (!allowed.includes(file.type)) {
+        setState({ status: "error", message: t.attachmentType });
+        return;
+      }
+    }
+
     setState({ status: "sending" });
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      });
+      let response: Response;
+      if (file) {
+        const fd = new FormData();
+        Object.entries(parsed.data).forEach(([key, value]) => {
+          fd.append(key, typeof value === "boolean" ? String(value) : value == null ? "" : String(value));
+        });
+        fd.append("attachment", file);
+        response = await fetch("/api/contact", { method: "POST", body: fd });
+      } else {
+        response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(parsed.data),
+        });
+      }
       const data = (await response.json().catch(() => null)) as
         | { error?: string; fieldErrors?: Partial<Record<keyof FormValues, string>> }
         | null;
@@ -197,7 +226,8 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
       }
 
       reset();
-      setStep(1);
+      setAttachedFile(null);
+      setFileKey((key) => key + 1);
       setState({ status: "success", message: t.success });
     } catch (error) {
       setState({ status: "error", message: error instanceof Error ? error.message : t.error });
@@ -205,14 +235,19 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
   }
 
   const disabled = state.status === "sending";
+  const contactCopy = t as typeof t & {
+    preferredTime?: string;
+    preferredTimePh?: string;
+    validation: typeof t.validation & { preferredTime?: string };
+  };
+  const preferredTimeLabel = contactCopy.preferredTime || (locale === "ar" ? "الموعد المفضل" : "Preferred appointment");
+  const preferredTimePlaceholder =
+    contactCopy.preferredTimePh || (locale === "ar" ? "مثال: مساء أيام الأسبوع، أو 2026-06-20 الساعة 18:00" : "Example: weekday evenings, or 2026-06-20 at 18:00");
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="sr-only" aria-hidden>
-        <label>
-          Company website
-          <input tabIndex={-1} autoComplete="off" {...register("honeypot")} />
-        </label>
+        <input tabIndex={-1} autoComplete="off" aria-label="Honeypot" {...register("honeypot")} />
       </div>
 
       <div className="min-h-[56px]" aria-live="polite" aria-atomic="true">
@@ -223,105 +258,108 @@ export function LiquidContactForm({ locale }: { locale: "ar" | "en" }) {
         ) : null}
       </div>
 
-      {step === 1 ? (
-        <div className="space-y-5">
-          <div>
-            <h2 className="text-base font-black text-[var(--text-1)]">{t.title}</h2>
-            <p className="mt-1 text-sm text-[var(--text-3)]">{t.hint}</p>
-          </div>
-          <Field label={t.projectType} error={errors.projectType?.message}>
-            <select className="fresh-input" aria-invalid={Boolean(errors.projectType)} {...register("projectType")}>
-              {projectTypes.map((value) => (
-                <option key={value} value={value}>
-                  {t.projectTypes[value]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <button type="button" className="fresh-button fresh-button-primary min-w-[180px] justify-center" onClick={() => setStep(2)}>
-            {t.continue}
+      <div>
+        <h2 className="text-base font-black text-[var(--text-1)]">{t.title}</h2>
+        <p className="mt-1 text-sm text-[var(--text-3)]">{t.hint}</p>
+      </div>
+
+      <Field label={t.projectType} error={errors.projectType?.message}>
+        <select className="fresh-input" aria-invalid={Boolean(errors.projectType)} {...register("projectType")}>
+          {projectTypes.map((value) => (
+            <option key={value} value={value}>
+              {t.projectTypes[value]}
+            </option>
+          ))}
+        </select>
+      </Field>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label={t.name} error={errors.name?.message}>
+          <input className={inputClass} placeholder={t.namePh} autoComplete="name" aria-invalid={Boolean(errors.name)} {...register("name")} />
+        </Field>
+        <Field label={t.email} error={errors.email?.message}>
+          <input className={inputClass} type="email" placeholder={t.emailPh} autoComplete="email" aria-invalid={Boolean(errors.email)} {...register("email")} />
+        </Field>
+      </div>
+
+      <Field label={t.whatsapp} error={errors.whatsapp?.message}>
+        <input className={inputClass} placeholder={t.whatsappPh} autoComplete="tel" aria-invalid={Boolean(errors.whatsapp)} {...register("whatsapp")} />
+      </Field>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label={t.budgetRange} error={errors.budgetRange?.message}>
+          <select className="fresh-input" aria-invalid={Boolean(errors.budgetRange)} {...register("budgetRange")}>
+            {budgetRanges.map((value) => (
+              <option key={value} value={value}>
+                {t.budgetRanges[value]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label={t.timeline} error={errors.timeline?.message}>
+          <select className="fresh-input" aria-invalid={Boolean(errors.timeline)} {...register("timeline")}>
+            {timelines.map((value) => (
+              <option key={value} value={value}>
+                {t.timelines[value]}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      <Field label={preferredTimeLabel} error={errors.preferredTime?.message}>
+        <input
+          className={inputClass}
+          placeholder={preferredTimePlaceholder}
+          autoComplete="off"
+          aria-invalid={Boolean(errors.preferredTime)}
+          {...register("preferredTime")}
+        />
+      </Field>
+
+      <Field label={t.message} error={errors.message?.message}>
+        <textarea className={cn("fresh-textarea", inputClass)} rows={6} placeholder={t.messagePh} aria-invalid={Boolean(errors.message)} {...register("message")} />
+      </Field>
+
+      <Field label={t.attachment}>
+        <input
+          key={fileKey}
+          name="attachment"
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
+          className={inputClass}
+          disabled={disabled}
+          onChange={(event) => setAttachedFile(event.target.files?.[0] ?? null)}
+        />
+      </Field>
+
+      <label className="fresh-note text-sm leading-7">
+        <input type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-[var(--brand-blue)]" {...register("consent")} />
+        <span>
+          {t.consent}
+          {errors.consent ? <span className="mt-1 block text-xs text-red-300">{errors.consent.message}</span> : null}
+        </span>
+      </label>
+
+      <p className="text-xs leading-6 text-[var(--text-3)]">{t.privacy}</p>
+
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" className="fresh-button fresh-button-primary min-w-[180px] justify-center" disabled={disabled}>
+          <Send className="h-4 w-4" />
+          {disabled ? t.sending : t.submit}
+        </button>
+        {state.status === "success" ? (
+          <button
+            type="button"
+            className="fresh-button"
+            onClick={() => {
+              setState({ status: "idle" });
+            }}
+          >
+            {t.newMessage}
           </button>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <button type="button" className="text-sm font-bold text-[var(--brand-blue)] hover:underline" onClick={() => setStep(1)}>
-              {t.back}
-            </button>
-            <p className="text-xs text-[var(--text-3)]">
-              {t.projectType}:{" "}
-              <span className="font-bold text-[var(--text-2)]">{t.projectTypes[selectedProjectType as keyof typeof t.projectTypes]}</span>
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label={t.name} error={errors.name?.message}>
-              <input className={inputClass} placeholder={t.namePh} autoComplete="name" aria-invalid={Boolean(errors.name)} {...register("name")} />
-            </Field>
-            <Field label={t.email} error={errors.email?.message}>
-              <input className={inputClass} type="email" placeholder={t.emailPh} autoComplete="email" aria-invalid={Boolean(errors.email)} {...register("email")} />
-            </Field>
-          </div>
-
-          <Field label={t.whatsapp} error={errors.whatsapp?.message}>
-            <input className={inputClass} placeholder={t.whatsappPh} autoComplete="tel" aria-invalid={Boolean(errors.whatsapp)} {...register("whatsapp")} />
-          </Field>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label={t.budgetRange} error={errors.budgetRange?.message}>
-              <select className="fresh-input" aria-invalid={Boolean(errors.budgetRange)} {...register("budgetRange")}>
-                {budgetRanges.map((value) => (
-                  <option key={value} value={value}>
-                    {t.budgetRanges[value]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t.timeline} error={errors.timeline?.message}>
-              <select className="fresh-input" aria-invalid={Boolean(errors.timeline)} {...register("timeline")}>
-                {timelines.map((value) => (
-                  <option key={value} value={value}>
-                    {t.timelines[value]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-
-          <Field label={t.message} error={errors.message?.message}>
-            <textarea className={cn("fresh-textarea", inputClass)} rows={6} placeholder={t.messagePh} aria-invalid={Boolean(errors.message)} {...register("message")} />
-          </Field>
-
-          <label className="fresh-note text-sm leading-7">
-            <input type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-[var(--brand-blue)]" {...register("consent")} />
-            <span>
-              {t.consent}
-              {errors.consent ? <span className="mt-1 block text-xs text-red-300">{errors.consent.message}</span> : null}
-            </span>
-          </label>
-
-          <p className="text-xs leading-6 text-[var(--text-3)]">{t.privacy}</p>
-
-          <div className="flex flex-wrap gap-3">
-            <button type="submit" className="fresh-button fresh-button-primary min-w-[180px] justify-center" disabled={disabled}>
-              <Send className="h-4 w-4" />
-              {disabled ? t.sending : t.submit}
-            </button>
-            {state.status === "success" ? (
-              <button
-                type="button"
-                className="fresh-button"
-                onClick={() => {
-                  setState({ status: "idle" });
-                  setStep(1);
-                }}
-              >
-                {t.newMessage}
-              </button>
-            ) : null}
-          </div>
-        </>
-      )}
+        ) : null}
+      </div>
     </form>
   );
 }

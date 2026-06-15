@@ -21,7 +21,7 @@ Any key exposed in chat, logs, screenshots, or committed files should be rotated
 
 ## Current Assistant Flow
 
-- Website widget and AI page call `/api/ai/site-assistant`.
+- Website widget calls `/api/ai/site-assistant`. The public standalone AI page is retired; `/en/ai` and `/ar/ai` redirect to the localized home pages and are not in the sitemap.
 - Android apps should call `/api/app/assistant` for in-app assistant behavior.
 - The app endpoint should receive product/app/screen context and return a short TV-safe answer.
 - Conversations, messages, OTP, and feedback are stored server-side in Supabase when configured.

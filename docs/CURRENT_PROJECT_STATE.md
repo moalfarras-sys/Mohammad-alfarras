@@ -2,12 +2,15 @@
 
 Updated: 2026-06-15
 
-## 2026-06-15 AI, Support, Legal, and Reporting Pass
+## 2026-06-15 Admin Reality, AI Widget, Forms, and Downloads Pass
 
-- The standalone localized AI route is active again at `/en/ai` and `/ar/ai`. It uses `apps/web/src/components/site/ai-assistant-page.tsx` and the existing `/api/ai/site-assistant` backend, while the floating Mo Ai widget remains available site-wide.
-- Main navigation and mobile dock include `Mo Ai`; sitemap includes `/ai`. This supersedes the older 2026-06-06 note that the standalone AI page should stay redirected.
+- Public Mo Ai is widget-only. The standalone localized AI route is not an indexable page: `/en/ai` and `/ar/ai` redirect to `/en` and `/ar`, publish `noindex`, and are excluded from the sitemap and disallowed in robots. Admin `/ai` remains the real operations page for conversations, feedback, automation inbox, rules, and health checks.
+- Main public navigation and mobile dock do not include a standalone Mo Ai route. The floating Mo Ai widget remains available on public pages and can still be opened from contextual actions such as Work/case-study prompts.
 - The support page at `/en/support` and `/ar/support` was rebuilt as a diagnostic support form for MoPlayer Pro, Classic, PC, website requests, and other issues. Visitor-facing internal/TODO legal text was removed.
 - `/api/app/support` now stores structured diagnostics: product/area, issue type, device, app version, optional WhatsApp/phone, message, and optional screenshot upload metadata. Screenshots target the private Supabase Storage bucket `support-uploads`; migration `20260615100000_support_uploads_bucket.sql` creates/updates that bucket.
+- Contact is a full request form with project type, name, email, optional WhatsApp, budget range, timeline, preferred appointment, project details, loading/success/error states, admin storage, and owner email routing.
+- Download redirect APIs now record structured download metadata into `analytics_events` immediately and keep the legacy `site_settings.download_counts` aggregate. Migration `20260615120000_app_download_events.sql` adds normalized `app_download_events`, `app_download_baselines`, and `app_download_counts` for the next database migration window; production PostgREST does not expose those tables until the migration is applied.
+- Android app download routes read real runtime settings from `app_settings` with legacy `site_settings` fallback. Disabled or maintenance apps return a 503 maintenance response and public pages hide broken download buttons.
 - Legal public routes were added for `/impressum`, `/terms`, `/app-disclaimer`, and `/download-disclaimer`. They stay 404/hidden until the admin publishes complete legal owner details.
 - Admin Website Control has a new Legal Pages section. Publishing is blocked server-side unless responsible name, address, and email are present. Published legal links are then added to the footer and sitemap.
 - Admin Website Control Key Site Images supports media-library selection and direct device upload for homepage portrait/product/activation, apps hero, AI hero, support hero, and legal hero.
@@ -16,7 +19,7 @@ Updated: 2026-06-15
 - Vercel cron is configured in `vercel.json` for `/api/cron/report` on `0 7 */10 * *`; the route still emails the owner and now also writes a copy to `automation_inbox`.
 - CV export filenames now include 2026: `Mohammad-Alfarras-CV-2026-{locale}-{variant}.pdf` and `Mohammad-Alfarras-CV-2026-{locale}.docx`.
 - Static public CV aliases exist for `Mohammad-Alfarras-CV-2026-DE.pdf`, `Mohammad-Alfarras-CV-2026-EN.pdf`, and `Mohammad-Alfarras-CV-2026-AR.pdf`.
-- Verification passed on 2026-06-15: `npm run verify:web`, `npm run verify:admin`, and `npm run verify:moplayer-dashboard`. Browser QA covered desktop/mobile `/en/ai`, desktop/mobile `/en/support`, hidden `/en/impressum`, and footer legal gating on `http://127.0.0.1:3000`.
+- Local QA on 2026-06-15 covered desktop/mobile `/en`, `/ar`, `/en/support`, `/ar/support`, `/en/contact`, `/ar/contact`, MoPlayer Classic/Pro/PC pages, `/en/privacy`, `/en/ai` redirect behavior, robots, sitemap, admin `/website`, `/moplayer`, `/moplayer-pro`, `/moplayer-pc`, `/email`, and `/ai`.
 - Production is deployed: public site deployment `dpl_3UCzrS96sX8HGtahpfvTBzasKZP4` is live on `https://moalfarras.space`, and admin deployment `dpl_BEhs3CnhugYB6QMyeKsRNbH7F7ey` is live on `https://admin.moalfarras.space`.
 - Supabase Storage bucket `support-uploads` exists in production as a private support screenshot bucket.
 
@@ -36,7 +39,7 @@ Updated: 2026-06-15
 - Google Search Console metadata showed `Discovered - currently not indexed`; the exported CSV did not include example URLs, only the issue type.
 - Production `robots.txt` and `sitemap.xml` were reachable with HTTP 200, but the sitemap included redirect-only shortcut URLs: `https://moalfarras.space/app`, `https://moalfarras.space/privacy`, and `https://moalfarras.space/support`.
 - `apps/web/src/app/sitemap.ts` now advertises only final localized public pages and localized work/project URLs. Shortcut redirects remain live, but they are no longer submitted as sitemap URLs.
-- Superseded on 2026-06-15: `/ar/ai` and `/en/ai` are standalone localized Mo Ai pages again, and AI is back in desktop/mobile navigation and the sitemap.
+- Current state on 2026-06-15: `/ar/ai` and `/en/ai` are not standalone localized Mo Ai pages. They redirect to the localized home pages, are excluded from the sitemap, and are disallowed in robots. Keep Mo Ai as a floating widget plus admin operations only.
 - Shared page metadata now points `x-default` to the matching English page instead of incorrectly pointing every internal page to `/en`.
 - Static sitemap entries no longer publish a constantly changing `lastmod`; project entries use their real update timestamp when one exists.
 - Desktop navigation links are single-line and non-shrinking, with an earlier switch to the menu layout on medium widths so Arabic and English labels do not overlap or get clipped.

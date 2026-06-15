@@ -56,6 +56,27 @@ function normalizeDownloadMetrics(value: unknown, productSlug: string, platform?
 export async function readAppDownloadMetrics(productSlug: string, platform?: string | null): Promise<AppDownloadMetrics> {
   try {
     const supabase = createSupabaseAdminClient();
+    const normalizedPlatform = platform?.toLowerCase() === "windows" ? "windows" : "android";
+    const { data, error } = await supabase
+      .from("app_download_counts")
+      .select("downloads,since,updated_at")
+      .eq("product_slug", resolveManagedAppSlug(productSlug))
+      .eq("platform", normalizedPlatform)
+      .maybeSingle();
+    if (!error && data) {
+      return {
+        value: Math.max(0, Number(data.downloads) || 0),
+        total: Math.max(0, Number(data.downloads) || 0),
+        since: typeof data.since === "string" ? data.since : undefined,
+        updatedAt: typeof data.updated_at === "string" ? data.updated_at : undefined,
+      };
+    }
+  } catch {
+    // Environments without the download-events migration still use the legacy aggregate.
+  }
+
+  try {
+    const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from("site_settings")
       .select("value_json")
@@ -818,6 +839,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
       { data: activationRows },
       { data: licenseRows },
       { data: settingsRow },
+      { data: legacySettingsRow },
       { data: sourceRows },
       { data: eventRows },
       { data: diagnosticRows },
@@ -837,6 +859,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
         .limit(100),
       supabase.from("licenses").select("*, devices(public_device_id, product_slug)").order("created_at", { ascending: false }).limit(100),
       supabase.from("app_settings").select("value").eq("key", getManagedApp(slug).runtimeConfigKey).maybeSingle(),
+      supabase.from("site_settings").select("value_json").eq("key", getManagedApp(slug).runtimeConfigKey).maybeSingle(),
       supabase.from("app_settings").select("key,value").like("key", "%device_source:%").order("updated_at", { ascending: false }).limit(100),
       supabase
         .from("app_device_events")
@@ -873,7 +896,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
         const deviceSlug = license.devices?.product_slug ? resolveManagedAppSlug(license.devices.product_slug) : null;
         return deviceSlug === slug || (license.public_device_id ? scopedDeviceIds.has(license.public_device_id) : false);
       });
-    const savedConfig = (settingsRow?.value as Partial<AppRuntimeConfig> | null) ?? {};
+    const savedConfig = ((settingsRow?.value ?? legacySettingsRow?.value_json) as Partial<AppRuntimeConfig> | null) ?? {};
     runtimeConfig = normalizeRuntimeConfig(savedConfig, slug);
     const sourceSettings = (sourceRows as Array<{ key: string; value: unknown }> | null) ?? [];
     const expiredSourceKeys = sourceSettings

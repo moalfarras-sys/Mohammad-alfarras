@@ -168,15 +168,18 @@ export async function GET(request: Request) {
   }
 
   const supabase = createSupabaseDataClient();
-  const [settingsRes, ecosystem] = await Promise.all([
+  const [settingsRes, legacySettingsRes, ecosystem] = await Promise.all([
     supabase.from("app_settings").select("value, updated_at").eq("key", settingsKey).maybeSingle(),
+    supabase.from("site_settings").select("value_json").eq("key", settingsKey).maybeSingle(),
     readAppEcosystem(product),
   ]);
 
   const { data, error } = settingsRes;
+  const legacyData = legacySettingsRes.error ? null : legacySettingsRes.data;
+  const settingsRecord = data?.value ? { value: data.value, updatedAt: data.updated_at, source: "supabase" } : legacyData?.value_json ? { value: legacyData.value_json, updatedAt: null, source: "legacy-site-settings" } : null;
   const latestRelease = (ecosystem.releases[0] ?? null) as LatestRelease | null;
 
-  if (error || !data) {
+  if ((error && !legacyData) || !settingsRecord) {
     const response = NextResponse.json({
       product,
       source: latestRelease ? "release" : "fallback",
@@ -190,7 +193,7 @@ export async function GET(request: Request) {
   }
 
   const settingsValue =
-    typeof data.value === "object" && data.value ? (data.value as Record<string, unknown>) : {};
+    typeof settingsRecord.value === "object" && settingsRecord.value ? (settingsRecord.value as Record<string, unknown>) : {};
   const config: Record<string, unknown> = {
     ...fallbackConfig,
     ...settingsValue,
@@ -217,7 +220,7 @@ export async function GET(request: Request) {
   if (String(config.backgroundUrl ?? "") === "/images/moplayer-tv-banner.png") {
     config.backgroundUrl = "/images/moplayer-tv-banner-final.png";
   }
-  const response = NextResponse.json({ source: "supabase", product, updatedAt: data.updated_at, config });
+  const response = NextResponse.json({ source: settingsRecord.source, product, updatedAt: settingsRecord.updatedAt, config });
   response.headers.set("Cache-Control", "no-store");
   return response;
 }

@@ -333,7 +333,12 @@ function fallbackDownloaderCode(productSlug: string) {
 function runtimeConfigSummary(value: unknown, productSlug: string): AppEcosystemData["runtimeConfig"] {
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const downloaderCode = String(record.downloaderCode ?? fallbackDownloaderCode(productSlug)).trim();
-  return { downloaderCode };
+  return {
+    enabled: record.enabled === false ? false : true,
+    maintenanceMode: record.maintenanceMode === true,
+    message: typeof record.message === "string" ? record.message : "",
+    downloaderCode,
+  };
 }
 
 function asSiteSettingValue<T>(value: T): Record<string, unknown> {
@@ -465,12 +470,13 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
 
   try {
     const supabase = createSupabaseDataClient();
-    const [productRes, screenshotsRes, faqRes, releasesRes, settingsRes] = await Promise.all([
+    const [productRes, screenshotsRes, faqRes, releasesRes, settingsRes, legacySettingsRes] = await Promise.all([
       supabase.from("app_products").select("*").eq("slug", slug).maybeSingle(),
       supabase.from("app_screenshots").select("*").eq("product_slug", slug).order("sort_order"),
       supabase.from("app_faqs").select("*").eq("product_slug", slug).order("sort_order"),
       supabase.from("app_releases").select("*").eq("product_slug", slug).eq("is_published", true).order("published_at", { ascending: false }),
       supabase.from("app_settings").select("value").eq("key", getRuntimeConfigKey(slug)).maybeSingle(),
+      supabase.from("site_settings").select("value_json").eq("key", getRuntimeConfigKey(slug)).maybeSingle(),
     ]);
 
     if (productRes.error && !String(productRes.error.message).includes("does not exist")) throw productRes.error;
@@ -478,6 +484,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
     if (faqRes.error && !String(faqRes.error.message).includes("does not exist")) throw faqRes.error;
     if (releasesRes.error && !String(releasesRes.error.message).includes("does not exist")) throw releasesRes.error;
     if (settingsRes.error && !String(settingsRes.error.message).includes("does not exist")) throw settingsRes.error;
+    if (legacySettingsRes.error && !String(legacySettingsRes.error.message).includes("does not exist")) throw legacySettingsRes.error;
 
     const releases = releasesRes.data ?? [];
     const releaseIds = releases.map((item) => item.id);
@@ -503,7 +510,7 @@ export async function readAppEcosystem(productSlug = "moplayer"): Promise<AppEco
           : fallback.screenshots,
       faqs: (faqRes.data as AppFaq[] | null)?.length ? ((faqRes.data as AppFaq[]) ?? []) : fallback.faqs,
       releases: releases.map((row) => normalizeRelease(row, assetsMap.get(row.id) ?? [])),
-      runtimeConfig: runtimeConfigSummary(settingsRes.data?.value, slug),
+      runtimeConfig: runtimeConfigSummary(settingsRes.data?.value ?? legacySettingsRes.data?.value_json, slug),
     }, slug);
 
     if (!data.releases.length) {

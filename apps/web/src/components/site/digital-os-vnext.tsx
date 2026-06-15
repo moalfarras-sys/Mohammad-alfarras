@@ -305,8 +305,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         modesTitle: "خدمات واضحة تعطي مشروعك حضوراً رقمياً أقوى.",
         storyEyebrow: "قصتي باختصار",
         storyTitle: "من العمل على أرض الواقع إلى بناء المواقع والتطبيقات.",
-        stackEyebrow: "الأدوات",
-        stackTitle: "أحدث الأدوات لمواقع سريعة وأنيقة وآمنة.",
+        stackEyebrow: "خلف الكواليس",
+        stackTitle: "تجربة رقمية سريعة وآمنة ومصممة لتعمل على كل الأجهزة.",
         productEyebrow: "منتج مميّز",
         productTitle: "MoPlayer — تطبيقي الخاص لمشاهدة سلسة على الأندرويد والتلفزيون.",
         productBody:
@@ -317,7 +317,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         ctaSecondary: "راسلني على واتساب",
       }
     : {
-        eyebrow: "Mohammad Alfarras Digital OS",
+        eyebrow: "Mohammad Alfarras · Web & Product Design",
         title: "I design and build premium websites and digital experiences that help projects look professional.",
         body:
           "Websites, interfaces, apps, and technical content shaped with clear execution, smooth UX, and a visual identity that turns attention into action.",
@@ -329,8 +329,8 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         modesTitle: "Clear services for projects that need a stronger digital presence.",
         storyEyebrow: "Story arc",
         storyTitle: "From real-world pressure to digital systems.",
-        stackEyebrow: "Stack",
-        stackTitle: "Modern tools for sharp, fast interfaces.",
+        stackEyebrow: "Behind the scenes",
+        stackTitle: "A fast, secure digital experience built to work on every device.",
         productEyebrow: "Featured product",
         productTitle: "MoPlayer as a cinematic product surface.",
         productBody:
@@ -357,7 +357,9 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
     ["MoPlayer", isAr ? "من فكرة تطبيق إلى منظومة منتج كاملة." : "From an app idea into a connected product ecosystem."],
   ];
 
-  const stack = ["Next.js", "TypeScript", "React", "Framer Motion", "Tailwind CSS", "Supabase", "Android TV", "UI Systems", "RTL/LTR", "SEO"];
+  const stack = isAr
+    ? ["أداء سريع", "تصميم متجاوب", "عربي وإنجليزي", "ظهور أقوى في البحث", "حركات سلسة", "أمان وموثوقية", "تجربة جوال أولاً", "بنية قابلة للتوسع", "لوحة تحكم سهلة", "دعم مستمر"]
+    : ["Fast performance", "Mobile-first design", "Arabic & English", "Stronger search visibility", "Smooth motion", "Secure & reliable", "Scalable structure", "Easy content control", "Clean interfaces", "Ongoing support"];
   const explore = [
     [isAr ? "الأعمال" : "Work", isAr ? "دراسات حالة لمواقع وخدمات بتركيز على المشكلة والدور والقرار." : "Case studies framed by problem, role, decision, and outcome.", "work", Globe2],
     ["MoPlayer", isAr ? "منتج مستقل لتجربة Android TV والتفعيل والتحميل والدعم." : "A standalone Android TV product for activation, downloads, and support.", "apps/moplayer", MonitorPlay],
@@ -395,7 +397,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
           <div className="os-home-orbit" />
           <div className="os-home-logo-card magnetic-surface">
             <Image src="/images/logo.png" alt="Mohammad Alfarras logo" width={96} height={96} />
-            <span>Digital OS</span>
+            <span>{isAr ? "ويب · تصميم · منتجات" : "Web · Design · Products"}</span>
           </div>
           <div className="os-home-photo-frame">
             <Image src={portrait} alt={model.profile.name} fill priority sizes="(max-width: 900px) 100vw, 38vw" className="fresh-image" unoptimized={portrait.startsWith("http")} />

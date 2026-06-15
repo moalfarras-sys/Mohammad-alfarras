@@ -49,7 +49,7 @@ export function SiteFooter({
               <p>
                 {isAr
                   ? "محمد الفراس — تصميم وبرمجة المواقع والتطبيقات، وصناعة محتوى تقني عربي واضح ومفيد."
-                  : "A personal digital system connecting products, websites, media, and operational clarity inside one clear experience."}
+                  : "Mohammad Alfarras — websites, apps, and clear tech content that help your project look professional."}
               </p>
             </div>
           </div>

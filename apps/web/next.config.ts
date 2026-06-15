@@ -78,7 +78,11 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
   async headers() {
-    const devScriptDirective = process.env.NODE_ENV === "production" ? "'self' 'unsafe-inline'" : "'self' 'unsafe-inline' 'unsafe-eval'";
+    const vercelScriptOrigin = "https://va.vercel-scripts.com";
+    const devScriptDirective =
+      process.env.NODE_ENV === "production"
+        ? `'self' 'unsafe-inline' ${vercelScriptOrigin}`
+        : `'self' 'unsafe-inline' 'unsafe-eval' ${vercelScriptOrigin}`;
     return [
       {
         source: "/(.*)",
@@ -91,7 +95,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              `default-src 'self'; img-src 'self' https://moalfarras.space https://www.moalfarras.space https://alhasakah.net https://qamishli.net https://xubrjnbolomqrgeutcfw.supabase.co https://i.ytimg.com https://img.youtube.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://ckefrnalgnbuaxsuufyx.supabase.co https://media.api-sports.io https://cdn.weatherapi.com data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src ${devScriptDirective}; connect-src 'self' https://ckefrnalgnbuaxsuufyx.supabase.co https://raw.githubusercontent.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`,
+              `default-src 'self'; img-src 'self' https://moalfarras.space https://www.moalfarras.space https://alhasakah.net https://qamishli.net https://xubrjnbolomqrgeutcfw.supabase.co https://i.ytimg.com https://img.youtube.com https://yt3.ggpht.com https://yt3.googleusercontent.com https://ckefrnalgnbuaxsuufyx.supabase.co https://media.api-sports.io https://cdn.weatherapi.com data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src ${devScriptDirective}; connect-src 'self' https://ckefrnalgnbuaxsuufyx.supabase.co https://raw.githubusercontent.com ${vercelScriptOrigin}; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';`,
           },
         ],
       },

@@ -10,13 +10,14 @@ import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, webPageJsonLd } from "@/lib/seo-jsonld";
 import { resolveSiteImages, siteImage } from "@/lib/site-images";
 import type { Locale } from "@/types/cms";
+import { SupportRequestForm } from "@/components/site/support-request-form";
 
 const supportPageCopy = {
   en: {
-    title: "App and Website Support",
+    title: "App and Project Support",
     eyebrow: "Support center",
     intro:
-      "Send one complete request for MoPlayer Pro, MoPlayer Classic, MoPlayer PC, downloads, activation, playback, or website questions. The request is routed to email and the admin control center.",
+      "Send one complete request for MoPlayer Pro, MoPlayer Classic, MoPlayer PC, downloads, activation, playback, or project questions. The request is routed to email and the admin control center.",
     sent: "Your request was received. A reply will be sent to the email address you entered.",
     directTitle: "Direct channels",
     formTitle: "Support request",
@@ -73,14 +74,14 @@ const productOptions = {
     ["moplayer2", "MoPlayer Pro"],
     ["moplayer", "MoPlayer Classic"],
     ["moplayer-pc", "MoPlayer PC / Windows"],
-    ["website", "Website service"],
+    ["website", "Project support"],
     ["other", "Other"],
   ],
   ar: [
     ["moplayer2", "MoPlayer Pro"],
     ["moplayer", "MoPlayer Classic"],
     ["moplayer-pc", "MoPlayer PC / Windows"],
-    ["website", "خدمة موقع"],
+    ["website", "\u0627\u0633\u062a\u0634\u0627\u0631\u0629 \u0645\u0634\u0631\u0648\u0639"],
     ["other", "أخرى"],
   ],
 } satisfies Record<Locale, Array<[string, string]>>;
@@ -92,7 +93,7 @@ const issueOptions = {
     ["playback", "Playback"],
     ["source", "Playlist / IPTV source handoff"],
     ["account", "Account or license"],
-    ["website", "Website project"],
+    ["website", "Project request"],
     ["other", "Other"],
   ],
   ar: [
@@ -101,7 +102,7 @@ const issueOptions = {
     ["playback", "التشغيل"],
     ["source", "تسليم مصدر IPTV / Playlist"],
     ["account", "الحساب أو الترخيص"],
-    ["website", "مشروع موقع"],
+    ["website", "\u0637\u0644\u0628 \u0645\u0634\u0631\u0648\u0639"],
     ["other", "أخرى"],
   ],
 } satisfies Record<Locale, Array<[string, string]>>;
@@ -243,79 +244,27 @@ export default async function LocalizedSupportPage({
               ))}
             </aside>
 
-            <form action="/api/app/support" method="post" encType="multipart/form-data" className="fresh-form">
-              <input type="hidden" name="locale" value={loc} />
-              <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
-
-              <p className="fresh-eyebrow">{copy.formTitle}</p>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.product}</span>
-                <select name="support_product" required className="fresh-input" defaultValue="moplayer2">
-                  {productOptions[loc].map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.issue}</span>
-                <select name="issue_type" required className="fresh-input" defaultValue="activation">
-                  {issueOptions[loc].map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.device}</span>
-                <select name="device_type" required className="fresh-input" defaultValue="android-tv">
-                  {deviceOptions[loc].map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.version}</span>
-                <input name="app_version" className="fresh-input" inputMode="text" maxLength={80} />
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.name}</span>
-                <input name="name" required className="fresh-input" maxLength={120} />
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.email}</span>
-                <input name="email" type="email" required className="fresh-input" maxLength={160} />
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.whatsapp}</span>
-                <input name="whatsapp" className="fresh-input" maxLength={80} />
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.screenshot}</span>
-                <input name="screenshot" type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="fresh-input" />
-              </label>
-
-              <label className="fresh-field">
-                <span className="fresh-field-label">{copy.message}</span>
-                <textarea name="message" required rows={8} className="fresh-input fresh-textarea" placeholder={copy.messageHelp as string} />
-              </label>
-
-              <button type="submit" className="fresh-button fresh-button-primary">
-                {copy.submit}
-              </button>
-            </form>
+            <SupportRequestForm
+              locale={loc}
+              copy={{
+                formTitle: copy.formTitle as string,
+                product: copy.product as string,
+                issue: copy.issue as string,
+                device: copy.device as string,
+                version: copy.version as string,
+                name: copy.name as string,
+                email: copy.email as string,
+                whatsapp: copy.whatsapp as string,
+                screenshot: copy.screenshot as string,
+                message: copy.message as string,
+                messageHelp: copy.messageHelp as string,
+                submit: copy.submit as string,
+                sent: copy.sent as string,
+              }}
+              productOptions={productOptions[loc]}
+              issueOptions={issueOptions[loc]}
+              deviceOptions={deviceOptions[loc]}
+            />
           </div>
         </section>
       </main>

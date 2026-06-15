@@ -29,8 +29,8 @@ export const privacyCopy = {
         body: "You can request clarification or deletion of a submitted message by contacting the published support email. Legal retention duties may limit deletion in some cases.",
       },
     ],
-    todoTitle: "Owner confirmation needed",
-    todo: "If the site is used commercially from Germany, confirm the required Impressum/legal notice details: legal name, address, responsible person, tax/business identifiers if applicable, and any mandatory professional disclosures.",
+    todoTitle: "Legal notice",
+    todo: "Verified legal operator details are managed in the admin control center and published only when the required responsible name, address, and email are available.",
     contact: "Privacy contact",
   },
   ar: {
@@ -94,8 +94,8 @@ export const supportCopy = {
     legalTitle: "Important product note",
     legal:
       "MoPlayer does not provide channels, playlists, subscriptions, or copyrighted media. Support can help with the app surface, installation, release compatibility, and download questions.",
-    todoTitle: "Owner confirmation needed",
-    todo: "For commercial operation in Germany, confirm whether an Impressum/legal notice must be linked from support and product pages.",
+    todoTitle: "Legal notice",
+    todo: "Legal notice links are managed from the admin control center and appear only after the required operator details are verified.",
   },
   ar: {
     eyebrow: "الدعم",

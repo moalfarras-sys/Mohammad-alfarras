@@ -27,9 +27,9 @@ export default function GlobalNotFound() {
         <h1>404</h1>
 
         <div className="not-found-copy">
-          <h2>The page stepped outside the Digital OS.</h2>
+          <h2>This page could not be found.</h2>
           <p>The link may be old, moved, or mistyped. Choose a stable route below to continue.</p>
-          <h2 dir="rtl">هذه الصفحة خرجت من النظام الرقمي.</h2>
+          <h2 dir="rtl">هذه الصفحة غير موجودة.</h2>
           <p dir="rtl">ربما تغيّر الرابط أو كُتب بشكل غير صحيح. اختر مساراً واضحاً للعودة إلى الموقع.</p>
         </div>
 

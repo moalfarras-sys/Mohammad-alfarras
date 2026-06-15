@@ -27,13 +27,40 @@ const copy = {
   },
 } as const;
 
+const attachmentMaxBytes = 8 * 1024 * 1024;
+const attachmentTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"]);
+
+function safeAttachmentName(value: string) {
+  const name = (value || "").replace(/[^\w.\-]+/g, "-").replace(/^-+|-+$/g, "");
+  return name.slice(0, 90) || "attachment";
+}
+
 export async function POST(request: Request) {
   let raw: unknown;
+  let attachmentFile: File | null = null;
 
-  try {
-    raw = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const requestContentType = request.headers.get("content-type") || "";
+  if (requestContentType.includes("multipart/form-data")) {
+    try {
+      const form = await request.formData();
+      const obj: Record<string, unknown> = {};
+      for (const [key, value] of form.entries()) {
+        if (key === "attachment") continue;
+        if (typeof value === "string") obj[key] = value;
+      }
+      obj.consent = obj.consent === "true" || obj.consent === "on";
+      raw = obj;
+      const file = form.get("attachment");
+      if (file instanceof File && file.size > 0) attachmentFile = file;
+    } catch {
+      return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
+    }
+  } else {
+    try {
+      raw = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
   }
 
   const parsed = contactMessageSchema.safeParse(raw);
@@ -57,12 +84,50 @@ export async function POST(request: Request) {
   }
 
   const requestId = crypto.randomUUID();
+
+  let attachment:
+    | { filename: string; size: number; type: string; storagePath?: string; signedUrl?: string; error?: string }
+    | null = null;
+  if (attachmentFile) {
+    const base = { filename: attachmentFile.name, size: attachmentFile.size, type: attachmentFile.type };
+    if (attachmentFile.size > attachmentMaxBytes) {
+      attachment = { ...base, error: "File too large (max 8MB)" };
+    } else if (!attachmentTypes.has(attachmentFile.type)) {
+      attachment = { ...base, error: "Unsupported file type" };
+    } else if (getSupabaseEnv().url && getSupabaseEnv().service) {
+      try {
+        const supabase = createSupabaseAdminClient();
+        const storagePath = `contact/${requestId}/${Date.now()}-${safeAttachmentName(attachmentFile.name)}`;
+        const up = await supabase.storage
+          .from("support-uploads")
+          .upload(storagePath, new Uint8Array(await attachmentFile.arrayBuffer()), { contentType: attachmentFile.type, upsert: false });
+        if (up.error) {
+          attachment = { ...base, error: up.error.message };
+        } else {
+          const signed = await supabase.storage.from("support-uploads").createSignedUrl(storagePath, 14 * 24 * 60 * 60);
+          attachment = { ...base, storagePath, signedUrl: signed.data?.signedUrl };
+        }
+      } catch (error) {
+        attachment = { ...base, error: error instanceof Error ? error.message : "upload failed" };
+      }
+    }
+  }
+
   const subject = payload.subject || `${t.subject} - ${payload.name}`;
   const messageForStorage = [
     `[Project type: ${payload.projectType}]`,
     `[Budget range: ${payload.budgetRange}]`,
     `[Timeline: ${payload.timeline}]`,
+    `[Preferred appointment: ${payload.preferredTime || "not provided"}]`,
     `[Consent accepted: yes]`,
+    ...(attachment
+      ? [
+          `[Attachment: ${attachment.filename} (${Math.round(attachment.size / 1024)} KB, ${attachment.type})]`,
+          attachment.signedUrl ? `[Attachment URL (14 days): ${attachment.signedUrl}]` : "",
+          attachment.storagePath ? `[Attachment storage path: ${attachment.storagePath}]` : "",
+          attachment.error ? `[Attachment note: ${attachment.error}]` : "",
+        ].filter(Boolean)
+      : []),
     "",
     payload.message,
   ].join("\n");
@@ -78,11 +143,13 @@ export async function POST(request: Request) {
       ["Project type", payload.projectType],
       ["Budget", payload.budgetRange],
       ["Timeline", payload.timeline],
+      ["Preferred appointment", payload.preferredTime || "-"],
+      ["Attachment", attachment ? attachment.signedUrl || attachment.storagePath || attachment.error || attachment.filename : "-"],
     ],
     body: payload.message,
     tone: "info",
   });
-  const text = `${payload.name} <${payload.email}>\n${payload.whatsapp ? `WhatsApp: ${payload.whatsapp}\n` : ""}Project: ${payload.projectType} / ${payload.budgetRange} / ${payload.timeline}\n\n${payload.message}`;
+  const text = `${payload.name} <${payload.email}>\n${payload.whatsapp ? `WhatsApp: ${payload.whatsapp}\n` : ""}Project: ${payload.projectType} / ${payload.budgetRange} / ${payload.timeline}\nPreferred appointment: ${payload.preferredTime || "-"}\n\n${payload.message}`;
   const receiptHtml = cinematicEmailHtml({
     direction: locale === "ar" ? "rtl" : "ltr",
     eyebrow: locale === "ar" ? "تأكيد الاستلام" : "Request received",

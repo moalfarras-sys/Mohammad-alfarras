@@ -79,6 +79,15 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const localeAttributeScript = `
+(function () {
+  var match = window.location.pathname.match(/^\\/(ar|en)(?=\\/|$)/);
+  var locale = match ? match[1] : "ar";
+  document.documentElement.lang = locale;
+  document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+})();
+`;
+
   const rootPersonJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -124,6 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ar" dir="rtl" suppressHydrationWarning className={`liquid-site ${siteFontClassName}`}>
       <head>
         <meta charSet="UTF-8" />
+        <script dangerouslySetInnerHTML={{ __html: localeAttributeScript }} />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootPersonJsonLd) }} />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootOrgJsonLd) }} />
         <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: JSON.stringify(rootWebsiteJsonLd) }} />

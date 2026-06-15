@@ -2,51 +2,51 @@
 
 Date: 2026-06-15
 
-## Status: DEPLOYED to production ✅
+## Current Status
 
-| Field | Value |
-|---|---|
-| Branch | `cursor/admin-panel-upgrade` |
-| Commit | `ce89118c` — "finalize-admin-cms-contact-ai-widget-production-ready" |
-| Merge to main | fast-forward push `8d28ed2a..ce89118c` → `origin/main` |
-| Deploy trigger | push to `origin/main` → Vercel auto-deploy (web + admin) |
-| Production domains | https://moalfarras.space (web), https://admin.moalfarras.space (admin) |
-| Deploy went live | ~2 min after push (verified by polling production) |
-| Vercel deploy ID | not captured (no Vercel API/token access this session) |
+READY FOR PRODUCTION PUSH.
 
-## Pre-deploy gates (all green)
-- `npm run verify:web` — typecheck + lint + build + 12/12 tests ✅
-- `npm run verify:admin` — typecheck + lint + build ✅
+The public homepage MoPlayer section has been redesigned, the MoPlayer PC download fallback was fixed, and the production verification suite passed locally. This report will be updated with the final production URL smoke results after the deployment is promoted by the git push.
 
-## Post-deploy production verification (live on moalfarras.space)
+## Verification Run
 
-**Status codes** — all 200: `/ar`, `/en`, `/ar/contact`, `/en/contact`, `/ar/support`, `/en/support`, `/ar/apps/moplayer`, `/ar/apps/moplayer2`, `/ar/apps/moplayer/classic`, `/ar/apps/moplayer-pc`, `/ar/activate`, `/sitemap.xml`, `/robots.txt`. `/activate`→`/ar/activate` (307).
+| Command | Result |
+| --- | --- |
+| `npm run verify:web` | PASS |
+| `npm run verify:admin` | PASS |
+| `npm run verify:moplayer-dashboard` | PASS |
+| `npm run verify:production` | PASS |
+| `git diff --check` | PASS |
 
-**AI page** — `/en/ai`→`/en`, `/ar/ai`→`/ar` (307 redirect, noindex). No standalone AI page.
+`verify:web` included typecheck, lint, production build, and 12 passing tests.
 
-**No tech jargon (visitor body text)** — home: "Behind the scenes"/"Fast performance" present, "Digital OS"/"Next.js" gone; services: "Business Websites You Can Edit Yourself" (no "CMS-Controlled"); moplayer2: clean copy (no "admin-controlled"/"Supabase and admin"). (SEO JSON-LD `knowsAbout` + meta keywords intentionally still name frameworks — not visitor body text.)
+`verify:production` completed successfully after the MoPlayer PC Windows download fix.
 
-**Header/footer** — no "Mo Ai" link; floating Mo Ai widget present; footer clean (Navigation/Product/Channels/Legal, my tagline fix live, no "Built with").
+## Local Browser/HTTP QA
 
-**Chatbot widget** — opens on click (panel `mo-ai-widget-open` with input). Verified on identical deployed code (preview browser is localhost-locked, so checked the same build locally).
+| Check | Result |
+| --- | --- |
+| Homepage MoPlayer section `/en` | PASS - desktop and mobile visual inspection, no horizontal overflow |
+| Homepage MoPlayer section `/ar` | PASS - Arabic RTL copy and links reflected |
+| MoPlayer hub link | PASS - `/en/apps/moplayer` and `/ar/apps/moplayer` return 200 |
+| MoPlayer Classic link | PASS - `/en/apps/moplayer/classic` and `/ar/apps/moplayer/classic` return 200 |
+| MoPlayer Pro link | PASS - `/en/apps/moplayer2` and `/ar/apps/moplayer2` return 200 |
+| MoPlayer PC link | PASS - `/en/apps/moplayer-pc` and `/ar/apps/moplayer-pc` return 200 |
+| Activation link | PASS - `/en/activate?product=moplayer2` and `/ar/activate?product=moplayer2` return 200 |
+| Classic download API | PASS - redirects to the official APK |
+| Pro download API | PASS - redirects to the official APK |
+| PC setup download API | PASS - redirects to the GitHub Releases setup executable |
+| PC portable download API | PASS - redirects to the GitHub Releases portable executable |
 
-**Downloads (HTTP 206 range = real files)** — Classic APK, Pro APK, MoPlayer PC Setup.exe + Portable.exe (GitHub Releases v1.0.2). Correct content-type for APKs.
+## Production Actions
 
-**Placeholders** — none ("Owner confirmation needed"/lorem/TODO = 0 across home, contact, support, moplayer2, privacy).
+| Action | Result |
+| --- | --- |
+| Commit | pending |
+| Push to `main` | pending |
+| Production domain smoke test | pending |
 
-**Console errors** — none on home (checked on the identical deployed build locally; production browser console not directly accessible via the preview tool).
+## Notes
 
-## Honest — not exercised live (to avoid polluting production)
-- Live submission of contact/support forms (would create real rows + email the owner). Storage is proven by 5 existing `contact_messages` rows; both forms render fully; contact attachment field is live and uses the proven `support-uploads` upload path.
-- Download counter increment (would inflate real counters). Mechanism records on each redirect; moplayer2 page shows a live count.
-- Flipping a real app into maintenance (would disrupt live downloads). Code path + version binding verified instead.
-- Authenticated admin UI screenshots (owner password not available). Admin function proven via the live reversible binding test (CMS-REALITY-TEST.md).
-- Lighthouse/Web Vitals and full pixel multi-device matrix (representative set captured; see VISUAL/PERFORMANCE reports).
-
-## Live DB content changes
-Applied to production Supabase and codified in `supabase/migrations/20260615170000_visitor_copy_jargon_cleanup.sql` (services copy, work tags, moplayer2 product copy). Data map in CMS-REALITY-TEST.md.
-
-## Recommended follow-ups (non-blocking)
-- Make root SSR `<html lang>` locale-correct (currently corrected client-side; see SEO-FINAL-QA.md).
-- Wire home hero copy to the `home_content` CMS setting (currently hardcoded).
-- Run Lighthouse and a full device-matrix visual pass.
+- `tmp-admin/` remains local QA evidence and is ignored by git.
+- The fully admin-editable custom 404 page remains documented in `ADMIN-CMS-REALITY-MATRIX.md` as an attention item, not a blocker for the current homepage MoPlayer and download deployment.

@@ -29,7 +29,7 @@ export const workPageCopy = {
     caseStudy: "Case study",
     role: "Role",
     problem: "Problem",
-    stack: "Stack / discipline",
+    stack: "Scope / discipline",
     proof: "Proof",
     open: "Read case study",
     live: "Open live site",
@@ -64,7 +64,7 @@ export const caseStudyCopy = {
     technical: "Technical decisions",
     ux: "UX and content decisions",
     changed: "What changed",
-    stack: "Stack",
+    stack: "Scope",
     outcome: "Outcome",
     gallery: "Visual gallery",
     lessons: "Lessons",
@@ -130,7 +130,7 @@ export const caseStudies = {
         "The role and constraints are explicit.",
         "The presentation is easier to scan for a client or recruiter.",
       ],
-      stack: ["Next.js", "React", "TypeScript", "Responsive UI", "Content structure"],
+      stack: ["Business website", "Responsive UI", "Content structure", "Trust hierarchy"],
       outcome:
         "A calmer, more credible logistics case study with clear ownership and a stronger route from problem to execution.",
       lessons: [
@@ -169,7 +169,7 @@ export const caseStudies = {
         "صار الدور والقيود أوضح.",
         "أصبحت دراسة الحالة أسهل للمراجعة من عميل أو مسؤول توظيف.",
       ],
-      stack: ["Next.js", "React", "TypeScript", "واجهة متجاوبة", "بنية محتوى"],
+      stack: ["موقع أعمال", "واجهة متجاوبة", "بنية محتوى", "هرمية ثقة"],
       outcome: "دراسة حالة أهدأ وأكثر مصداقية لخدمة لوجستية، مع ملكية أوضح ومسار أقوى من المشكلة إلى التنفيذ.",
       lessons: [
         "الثقة في صفحات الخدمات تأتي غالباً من النظام والتحديد قبل اللمعة البصرية.",
@@ -209,7 +209,7 @@ export const caseStudies = {
         "The card and case study explain Mohammad's ownership more clearly.",
         "The service feels more direct without inflated promises.",
       ],
-      stack: ["Next.js", "Responsive design", "Service copy", "Trust hierarchy", "CTA architecture"],
+      stack: ["Responsive design", "Service copy", "Trust hierarchy", "CTA structure"],
       outcome: "A clearer local-service case study that shows how presentation, trust, and action paths work together.",
       lessons: [
         "For local services, the best interface often removes hesitation rather than adding visual noise.",
@@ -247,7 +247,7 @@ export const caseStudies = {
         "أصبحت البطاقة ودراسة الحالة أوضح في عرض ملكية محمد للعمل.",
         "الخدمة تبدو مباشرة أكثر من دون وعود مبالغ فيها.",
       ],
-      stack: ["Next.js", "تصميم متجاوب", "نص خدمات", "هرمية ثقة", "بنية CTA"],
+      stack: ["تصميم متجاوب", "نص خدمات", "هرمية ثقة", "بنية دعوة للفعل"],
       outcome: "دراسة حالة أوضح لخدمة محلية، تبيّن كيف يعمل العرض والثقة ومسار الفعل معاً.",
       lessons: [
         "في الخدمات المحلية، أفضل واجهة غالباً تزيل التردد بدل أن تضيف ضجيجاً بصرياً.",
@@ -287,7 +287,7 @@ export const caseStudies = {
         "The product story is legally safer and more factual.",
         "Arabic users receive the full product explanation, not a partial translation.",
       ],
-      stack: ["Android", "Android TV", "APK releases", "Next.js", "Product content", "Support flow"],
+      stack: ["Android", "Android TV", "App releases", "Product content", "Support flow"],
       outcome:
         "A unified product case study that shows product ownership without inventing adoption, performance, or legal claims.",
       lessons: [
@@ -325,7 +325,7 @@ export const caseStudies = {
         "أصبحت قصة المنتج أكثر أماناً وواقعية.",
         "المستخدم العربي يحصل على شرح كامل، وليس ترجمة جزئية.",
       ],
-      stack: ["Android", "Android TV", "إصدارات APK", "Next.js", "محتوى منتج", "مسار دعم"],
+      stack: ["Android", "Android TV", "إصدارات التطبيق", "محتوى منتج", "مسار دعم"],
       outcome: "دراسة حالة موحدة لمنتج تُظهر الملكية من دون اختراع أرقام تبنٍ أو وعود أداء أو ادعاءات قانونية.",
       lessons: [
         "صفحة المنتج تصبح أوثق عندما توضّح ما الذي لا يفعله المنتج.",

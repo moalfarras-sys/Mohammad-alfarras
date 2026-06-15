@@ -4,14 +4,16 @@ import {
   ArrowDownToLine,
   ArrowRight,
   BadgeCheck,
-  Bot,
   KeyRound,
   MonitorPlay,
   ShieldCheck,
   Zap,
 } from "lucide-react";
 
+import { normalizePublicImagePath } from "@/lib/asset-url";
 import { withLocale } from "@/lib/i18n";
+import type { WindowsRelease } from "@/lib/windows-release";
+import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 
 /* ── Brand SVGs ── */
@@ -148,35 +150,71 @@ const copy = {
   },
 } as const;
 
-function getProducts(locale: Locale) {
+function appHeroImage(app: AppEcosystemData | undefined, fallback: string) {
+  return normalizePublicImagePath(app?.product.hero_image_path || app?.product.tv_banner_path || app?.screenshots[0]?.image_path || fallback);
+}
+
+function appGalleryImages(app: AppEcosystemData | undefined, fallback: string[]) {
+  const images = app?.screenshots.map((shot) => normalizePublicImagePath(shot.image_path)).filter(Boolean) ?? [];
+  return images.length ? images : fallback;
+}
+
+function windowsGalleryImages(release?: WindowsRelease | null) {
+  const images = release?.screenshotItems?.length
+    ? release.screenshotItems.map((item) => item.url)
+    : release?.screenshots ?? [];
+  return images.map((item) => normalizePublicImagePath(item)).filter(Boolean);
+}
+
+function getProducts(
+  locale: Locale,
+  data: {
+    classic?: AppEcosystemData;
+    pro?: AppEcosystemData;
+    windowsRelease?: WindowsRelease | null;
+  } = {},
+) {
   const c = copy[locale].products;
+  const proGallery = appGalleryImages(data.pro, ["/images/moplayer-pro-showcase-1.png", "/images/moplayer-pro-home.webp", "/images/moplayer-pro-hero.webp", "/images/moplayer-pro-player.webp"]);
+  const classicGallery = appGalleryImages(data.classic, ["/images/moplayer-classic-promo.png", "/images/moplayer_ui_playlist-final.png", "/images/moplayer-activation-flow.webp"]);
+  const pcGallery = windowsGalleryImages(data.windowsRelease);
+  const pcCardImage = normalizePublicImagePath(
+    data.windowsRelease?.cardImage ||
+      data.windowsRelease?.heroImage ||
+      pcGallery[0] ||
+      "/images/moplayer-pc-desktop.png",
+  );
+  const pcDownloadHref =
+    data.windowsRelease?.maintenance || !data.windowsRelease?.file
+      ? undefined
+      : "/api/app/download/latest?product=moplayer2&platform=windows";
   return [
     {
       id: "pro", name: "MoPlayer Pro", tone: "pro" as const,
-      heroImage: "/images/moplayer-pro-showcase-2.png",
-      galleryImages: ["/images/moplayer-pro-showcase-1.png", "/images/moplayer-pro-home.webp", "/images/moplayer-pro-hero.webp", "/images/moplayer-pro-player.webp"],
+      heroImage: appHeroImage(data.pro, "/images/moplayer-pro-showcase-2.png"),
+      galleryImages: proGallery,
       href: withLocale(locale, "apps/moplayer2"),
-      downloadHref: "/api/app/download/latest?product=moplayer2",
+      downloadHref: data.pro?.releases[0] ? "/api/app/download/latest?product=moplayer2" : undefined,
       activateHref: `${withLocale(locale, "activate")}?product=moplayer2`,
       platformIcon: <AndroidIcon className="w-4 h-4 text-[#FFB59E]" />,
       ...c.pro,
     },
     {
       id: "classic", name: "MoPlayer Classic", tone: "classic" as const,
-      heroImage: "/images/moplayer-tv-hero.png",
-      galleryImages: ["/images/moplayer-classic-promo.png", "/images/moplayer_ui_playlist-final.png", "/images/moplayer-activation-flow.webp"],
+      heroImage: appHeroImage(data.classic, "/images/moplayer-tv-hero.png"),
+      galleryImages: classicGallery,
       href: withLocale(locale, "apps/moplayer/classic"),
-      downloadHref: "/api/app/download/latest?product=moplayer",
+      downloadHref: data.classic?.releases[0] ? "/api/app/download/latest?product=moplayer" : undefined,
       activateHref: `${withLocale(locale, "activate")}?product=moplayer`,
       platformIcon: <AndroidIcon className="w-4 h-4 text-[#93c5fd]" />,
       ...c.classic,
     },
     {
       id: "pc", name: "MoPlayer PC", tone: "pc" as const,
-      heroImage: "/images/moplayer-pc-desktop.png",
-      galleryImages: ["/images/moplayer-pc-interface.png"],
+      heroImage: pcCardImage,
+      galleryImages: pcGallery.length ? pcGallery : [pcCardImage],
       href: withLocale(locale, "apps/moplayer-pc"),
-      downloadHref: "/api/app/download/latest?product=moplayer2&platform=windows",
+      downloadHref: pcDownloadHref,
       activateHref: `${withLocale(locale, "activate")}?product=moplayer-pc&platform=windows`,
       platformIcon: <WindowsIcon className="w-4 h-4 text-[#67e8f9]" />,
       ...c.pc,
@@ -184,12 +222,21 @@ function getProducts(locale: Locale) {
   ];
 }
 
-/* ── Framer Motion ── */
-/* ── Main Component ── */
-export function MoPlayerProductHub({ locale }: { locale: Locale }) {
+/* Main component */
+export function MoPlayerProductHub({
+  locale,
+  classic,
+  pro,
+  windowsRelease,
+}: {
+  locale: Locale;
+  classic?: AppEcosystemData;
+  pro?: AppEcosystemData;
+  windowsRelease?: WindowsRelease | null;
+}) {
   const isAr = locale === "ar";
   const c = copy[locale];
-  const products = getProducts(locale);
+  const products = getProducts(locale, { classic, pro, windowsRelease });
 
   const downloader = isAr
     ? {
@@ -207,9 +254,9 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
           "اضغط تحميل APK وانتظر اكتمال التنزيل",
           "اضغط Install ثم Open",
         ],
-        safetyTitle: "إذا ظهرت رسالة أمان عند التثبيت",
+        safetyTitle: "إذا ظهرت رسالة أثناء التثبيت",
         safetyBody:
-          "فعّل «مصادر غير معروفة» لتطبيق Downloader من: الإعدادات ← الأمان والقيود ← مصادر غير معروفة، ثم أكمل التثبيت. التطبيق آمن تماماً — التحذير يظهر فقط لأن النسخة ما تزال قيد التوثيق بشهادة ناشر، ولا يدل على أي خطر.",
+          "حمّل الملف من صفحة MoPlayer الرسمية فقط، وتأكد من اسم المنتج والإصدار قبل التثبيت. قد يطلب Android إذناً للتثبيت من Downloader لأن الملف ليس من متجر التطبيقات.",
       }
     : {
         eyebrow: "Install on Android TV",
@@ -226,9 +273,9 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
           "Press Download APK and wait for it to finish",
           "Press Install, then Open",
         ],
-        safetyTitle: "If a security message appears",
+        safetyTitle: "If an install message appears",
         safetyBody:
-          "Allow installs from unknown sources for the Downloader app: Settings → Security & restrictions → Unknown sources, then continue. The app is safe — the warning only appears because the build is still pending a publisher certificate; it does not indicate any risk.",
+          "Download only from the official MoPlayer page, then check the product name and version before installing. Android may ask for permission because the file is installed through Downloader instead of an app store.",
       };
 
   return (
@@ -457,7 +504,7 @@ export function MoPlayerProductHub({ locale }: { locale: Locale }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {c.servicesList.map(([title, body], index) => {
-              const Icon = [KeyRound, Bot, ArrowDownToLine, ShieldCheck][index] || Zap;
+              const Icon = [KeyRound, Zap, ArrowDownToLine, ShieldCheck][index] || Zap;
               return (
                 <article key={title} className="p-4 rounded-xl bg-white/[0.015] border border-white/[0.04] hover:border-emerald-500/15 transition-all duration-300 group">
                   <div className="w-9 h-9 rounded-lg bg-emerald-500/8 border border-emerald-500/15 flex items-center justify-center mb-2.5 text-emerald-400 group-hover:scale-105 transition-transform">

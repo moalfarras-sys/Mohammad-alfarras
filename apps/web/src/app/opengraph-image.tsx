@@ -71,7 +71,7 @@ export default async function OpengraphImage() {
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <div style={{ display: "flex", gap: 24, fontSize: 20, color: "rgba(250,250,250,0.6)" }}>
-            <span>Next.js · Supabase</span>
+            <span>Websites · Apps</span>
             <span>·</span>
             <span>AR · EN · DE</span>
           </div>

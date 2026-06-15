@@ -4,12 +4,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDown,
   ArrowUpRight,
-  Bot,
   Boxes,
   Code2,
   ExternalLink,
   Filter,
   Lightbulb,
+  MessageCircle,
   MonitorPlay,
   PlayCircle,
   Target,
@@ -130,7 +130,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
     challenge: ar ? "المشكلة" : "Problem",
     solution: ar ? "القرار" : "Decision",
     result: ar ? "النتيجة" : "Outcome",
-    askAi: ar ? "اسأل Mo Ai عن المشروع" : "Ask Mo Ai about this project",
+    askAi: ar ? "اسأل المساعد عن المشروع" : "Ask the assistant about this project",
     selectedProject: ar ? "مشروع مختار" : "Selected project",
     ctaTitle: ar ? "جاهز لبناء تواجدك الرقمي؟" : "Ready to build your digital presence?",
     ctaBody: ar
@@ -523,7 +523,7 @@ function ProjectSpotlight({
                 className="fresh-button work-spotlight-ai"
                 onClick={openAssistant}
               >
-                <Bot size={16} />
+                <MessageCircle size={16} />
                 {copy.askAi}
               </button>
             </div>

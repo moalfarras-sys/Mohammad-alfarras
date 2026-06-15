@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Loader2, MessageCircle, Send, X } from "lucide-react";
+import { Loader2, MessageCircle, Send, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -13,15 +13,15 @@ const localThreadTtlMs = 7 * 24 * 60 * 60 * 1000;
 
 const widgetCopy = {
   en: {
-    label: "Mo Ai",
-    title: "Mo Ai",
+    label: "Assistant",
+    title: "Site assistant",
     status: "Site guide",
     initial:
       "Hi. I can guide you through this page, MoPlayer, activation, services, and contact options.",
     placeholder: "Ask about this page...",
     send: "Send",
     close: "Close assistant",
-    open: "Open Mo Ai assistant",
+    open: "Open assistant",
     thinking: "Thinking...",
     starters: [
       "What is this page?",
@@ -30,14 +30,14 @@ const widgetCopy = {
     ],
   },
   ar: {
-    label: "Mo Ai",
-    title: "Mo Ai",
+    label: "مساعد محمد",
+    title: "مساعد محمد",
     status: "دليل الموقع",
     initial: "أهلا بك. أقدر أرشدك داخل هذه الصفحة، MoPlayer، التفعيل، الخدمات، وطرق التواصل.",
     placeholder: "اسأل عن هذه الصفحة...",
     send: "إرسال",
     close: "إغلاق المساعد",
-    open: "فتح مساعد Mo Ai",
+    open: "فتح المساعد",
     thinking: "يفكر...",
     starters: ["ما محتوى هذه الصفحة؟", "كيف أفعل MoPlayer Pro؟", "كيف أتواصل مع محمد؟"],
   },
@@ -168,7 +168,7 @@ export function SiteAssistantWidget({
         <section className="mo-ai-panel">
           <header className="mo-ai-head">
             <span className="mo-ai-mark">
-              <Bot size={16} />
+              <MessageCircle size={16} />
             </span>
             <span className="mo-ai-title">
               <strong>{t.title}</strong>

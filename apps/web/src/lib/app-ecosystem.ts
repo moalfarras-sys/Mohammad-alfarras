@@ -91,7 +91,7 @@ const fallbackProduct: AppProduct = {
     { title: "Open and configure", body: "Launch MoPlayer, add your provider details, and start browsing immediately." },
   ],
   compatibility_notes: [
-    "Android 7.0+ (API 24 and above)",
+    "Android 7.0 or newer",
     "Positioned for Android TV and remote-based navigation",
     "Recommended TV download is the v2.2 full universal APK for Android 7.0+ TV devices",
   ],
@@ -231,7 +231,7 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
     short_description:
       "MoPlayer Pro is the new Android and Android TV app line in the Moalfarras ecosystem, separated from the classic MoPlayer release channel.",
     long_description:
-      "MoPlayer Pro keeps the same domain, admin, and Supabase foundation while giving the new app its own public page, screenshots, releases, FAQs, support queue, runtime controls, and QR activation flow.",
+      "MoPlayer Pro keeps the same domain and management foundation while giving the new app its own public page, screenshots, releases, FAQs, support queue, runtime controls, and QR activation flow.",
     package_name: "com.moalfarras.moplayerpro",
     default_download_label: "Download MoPlayer Pro APK",
     feature_highlights: [
@@ -251,7 +251,7 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
       { title: "Open and configure", body: "Launch MoPlayer Pro and connect only sources you are allowed to use." },
     ],
     compatibility_notes: [
-      "Android 7.0+ (API 24 and above)",
+    "Android 7.0 or newer",
       "Separated from the classic MoPlayer public release channel",
       "Designed for Android TV and remote-first navigation",
     ],
@@ -294,7 +294,7 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
       version_name: "2.5.20",
       version_code: 58,
       release_notes:
-        "MoPlayer Pro 2.5.20 hardens live and series playback for large Xtream panels: slow get_series_info calls retry with a longer Xtream API timeout, episodes use direct_source and normalized container extensions when available, Xtream VOD/episodes try compatible containers before fallback, and weak-device live playback switches recovery paths faster when video does not render.",
+        "MoPlayer Pro 2.5.20 improves live and series playback for large provider panels: slow series details retry with a longer connection timeout, episodes use cleaner source links when available, video items try compatible formats before fallback, and weaker devices switch recovery paths faster when video does not render.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {

@@ -17,9 +17,12 @@ import {
 
 import {
   addPcScreenshotAction,
+  clearPcCardImageAction,
   clearPcHeroImageAction,
   deletePcScreenshotAction,
+  savePcCardImageAction,
   savePcHeroImageAction,
+  savePcScreenshotMetaAction,
   saveWindowsReleaseAction,
 } from "@/app/actions";
 import { useLocale } from "@/components/admin/locale-provider";
@@ -28,6 +31,13 @@ import { UpdatedToast } from "@/components/admin/updated-toast";
 import type { AppDownloadMetrics } from "@/types/app-ecosystem";
 
 const webBaseUrl = (process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space").replace(/\/$/, "");
+
+type PcScreenshotItem = {
+  id: string;
+  url: string;
+  alt: string;
+  sortOrder: number;
+};
 
 function formatBytes(size?: number | null) {
   if (!size) return "—";
@@ -53,12 +63,38 @@ export function PcControl({
   const installerSet = Boolean(ws("downloadUrl") || ws("file"));
   const portableSet = Boolean(ws("portableDownloadUrl") || ws("portableFile"));
   const heroImage = ws("heroImage");
+  const heroAlt = ws("heroAlt") || "MoPlayer PC hero";
+  const cardImage = ws("cardImage");
+  const cardAlt = ws("cardAlt") || "MoPlayer PC card";
   const downloadHint = downloadStats?.since
     ? `${t({ en: "Since", ar: "منذ" })} ${new Date(downloadStats.since).toLocaleDateString("en-GB")}`
     : t({ en: "From first live download", ar: "من أول تحميل مباشر" });
   const screenshots = Array.isArray(win.screenshots)
     ? (win.screenshots as unknown[]).filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
+  const screenshotItems: PcScreenshotItem[] = Array.isArray(win.screenshotItems)
+    ? (win.screenshotItems as unknown[])
+        .map((item, index): PcScreenshotItem | null => {
+          if (!item || typeof item !== "object") return null;
+          const record = item as Record<string, unknown>;
+          const url = String(record.url ?? record.image ?? record.image_path ?? "").trim();
+          if (!url) return null;
+          const sortOrder = Number(record.sortOrder ?? record.sort_order ?? index + 1);
+          return {
+            id: String(record.id ?? `pc-shot-${index + 1}`).trim() || `pc-shot-${index + 1}`,
+            url,
+            alt: String(record.alt ?? record.alt_text ?? "MoPlayer PC screenshot").trim(),
+            sortOrder: Number.isFinite(sortOrder) && sortOrder > 0 ? sortOrder : index + 1,
+          };
+        })
+        .filter((item): item is PcScreenshotItem => Boolean(item))
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+    : screenshots.map((url, index) => ({
+        id: `pc-shot-${index + 1}`,
+        url,
+        alt: "MoPlayer PC screenshot",
+        sortOrder: index + 1,
+      }));
 
   return (
     <>
@@ -112,7 +148,7 @@ export function PcControl({
         />
         <StatCard
           label={t({ en: "Images", ar: "الصور" })}
-          value={screenshots.length + (heroImage ? 1 : 0)}
+          value={screenshotItems.length + (heroImage ? 1 : 0) + (cardImage ? 1 : 0)}
           icon={<ImageIcon className="h-5 w-5" />}
           tone="success"
         />
@@ -200,6 +236,7 @@ export function PcControl({
               {t({ en: "The big image at the top of the MoPlayer PC page.", ar: "الصورة الكبيرة في أعلى صفحة MoPlayer PC." })}
             </p>
             <form action={savePcHeroImageAction} className="mt-3 grid gap-3" encType="multipart/form-data">
+              <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" defaultValue={heroAlt} />
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
                 <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image file", ar: "اختر ملف صورة" })}</span>
                 <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
@@ -218,6 +255,48 @@ export function PcControl({
           </div>
         </div>
 
+        {/* Card image */}
+        <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1.3fr]">
+          <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-black/25">
+            <div className="aspect-video">
+              {cardImage ? (
+                <img src={cardImage} alt={cardAlt} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-center">
+                  <ImageIcon className="h-7 w-7 text-[var(--accent)]" />
+                  <p className="text-xs font-black text-[var(--text-1)]">{t({ en: "No card image yet", ar: "لا توجد صورة بطاقة بعد" })}</p>
+                  <p className="max-w-xs text-[11px] leading-5 text-[var(--text-3)]">
+                    {t({ en: "Used on the MoPlayer family page and app listing cards.", ar: "تُستخدم في صفحة عائلة MoPlayer وبطاقات التطبيقات." })}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[var(--line)] bg-white/[0.02] p-4">
+            <p className="text-sm font-black text-[var(--text-1)]">{t({ en: "Card image", ar: "صورة البطاقة" })}</p>
+            <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">
+              {t({ en: "The image shown for MoPlayer PC inside /apps and the MoPlayer family page.", ar: "الصورة التي تظهر لـ MoPlayer PC داخل صفحة التطبيقات وصفحة عائلة MoPlayer." })}
+            </p>
+            <form action={savePcCardImageAction} className="mt-3 grid gap-3" encType="multipart/form-data">
+              <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" defaultValue={cardAlt} />
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
+                <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image file", ar: "اختر ملف صورة" })}</span>
+                <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
+                <input type="file" name="file" accept="image/*" required className="sr-only" />
+              </label>
+              <div className="flex gap-2">
+                <button type="submit" className="btn btn-primary btn-sm">{t({ en: "Upload card image", ar: "رفع صورة البطاقة" })}</button>
+                {cardImage ? (
+                  <button type="submit" formAction={clearPcCardImageAction} className="btn btn-sm btn-danger">
+                    <Trash2 className="h-4 w-4" />
+                    {t({ en: "Remove", ar: "حذف" })}
+                  </button>
+                ) : null}
+              </div>
+            </form>
+          </div>
+        </div>
+
         {/* Screenshots gallery */}
         <div className="rounded-2xl border border-[var(--line-strong)] bg-white/[0.02] p-4">
           <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -225,27 +304,37 @@ export function PcControl({
               <p className="text-sm font-black text-[var(--text-1)]">{t({ en: "Screenshots gallery", ar: "معرض اللقطات" })}</p>
               <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">{t({ en: "Shown in the gallery section of the MoPlayer PC page.", ar: "تظهر في معرض الصور على صفحة MoPlayer PC." })}</p>
             </div>
-            <span className="badge">{screenshots.length} {t({ en: "images", ar: "صورة" })}</span>
+            <span className="badge">{screenshotItems.length} {t({ en: "images", ar: "صورة" })}</span>
           </div>
-          <form action={addPcScreenshotAction} className="mb-4 flex flex-wrap items-center gap-3" encType="multipart/form-data">
+          <form action={addPcScreenshotAction} className="mb-4 grid gap-3 rounded-2xl border border-[var(--line)] bg-black/10 p-3 md:grid-cols-[1fr_160px_auto]" encType="multipart/form-data">
+            <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" placeholder="MoPlayer PC screenshot" />
+            <Field label={t({ en: "Order", ar: "الترتيب" })} name="sort_order" type="number" min={1} defaultValue={String(screenshotItems.length + 1)} />
             <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
               <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
               <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image to add", ar: "اختر صورة لإضافتها" })}</span>
               <input type="file" name="file" accept="image/*" required className="sr-only" />
             </label>
-            <button type="submit" className="btn btn-primary btn-sm">{t({ en: "Add to gallery", ar: "أضف للمعرض" })}</button>
+            <button type="submit" className="btn btn-primary btn-sm md:col-span-3">{t({ en: "Add to gallery", ar: "أضف للمعرض" })}</button>
           </form>
-          {screenshots.length ? (
+          {screenshotItems.length ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {screenshots.map((src, index) => (
-                <div key={`${src}-${index}`} className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/[0.02]">
+              {screenshotItems.map((item, index) => (
+                <div key={`${item.id}-${item.url}`} className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/[0.02]">
                   <div className="aspect-video bg-black/25">
-                    <img src={src} alt={`MoPlayer PC screenshot ${index + 1}`} className="h-full w-full object-cover" />
+                    <img src={item.url} alt={item.alt || `MoPlayer PC screenshot ${index + 1}`} className="h-full w-full object-cover" />
                   </div>
-                  <div className="flex items-center justify-between gap-2 p-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">#{index + 1}</span>
-                    <form action={deletePcScreenshotAction}>
-                      <input type="hidden" name="url" value={src} />
+                  <div className="grid gap-2 p-3">
+                    <form action={savePcScreenshotMetaAction} className="grid gap-2">
+                      <input type="hidden" name="id" value={item.id} />
+                      <input type="hidden" name="url" value={item.url} />
+                      <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" defaultValue={item.alt} />
+                      <Field label={t({ en: "Order", ar: "الترتيب" })} name="sort_order" type="number" min={1} defaultValue={String(item.sortOrder)} />
+                      <button type="submit" className="btn btn-sm">{t({ en: "Save details", ar: "حفظ التفاصيل" })}</button>
+                    </form>
+                    <form action={deletePcScreenshotAction} className="flex items-center justify-between gap-2 border-t border-[var(--line)] pt-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">#{item.sortOrder || index + 1}</span>
+                      <input type="hidden" name="id" value={item.id} />
+                      <input type="hidden" name="url" value={item.url} />
                       <button type="submit" className="btn btn-sm btn-danger" aria-label="Delete screenshot">
                         <Trash2 className="h-4 w-4" />
                       </button>

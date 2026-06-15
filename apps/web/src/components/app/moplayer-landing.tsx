@@ -92,7 +92,7 @@ export function MoPlayerLanding({
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.02]" />
-        {/* Brand glows — inline styles compile reliably (dynamic Tailwind classes do not) + gentle breathing motion */}
+        {/* Brand glows with inline styles and gentle breathing motion */}
         <motion.div
           aria-hidden
           initial={{ opacity: 0.55, scale: 0.96 }}

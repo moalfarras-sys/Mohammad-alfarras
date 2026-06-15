@@ -43,6 +43,7 @@ apps/moplayer-dashboard/dist/
 # Local QA screenshots / automation artifacts (not versioned)
 artifacts/
 output/
+tmp-admin/
 current_state.png
 tv-emulator-login.png
 m3u_test_playlist.txt

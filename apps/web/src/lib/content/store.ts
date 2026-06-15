@@ -80,7 +80,7 @@ function isPlaceholderMediaPath(path: string | undefined | null): boolean {
   return p.includes("cine-fallback-wide") || p.includes("cine-fallback-portrait");
 }
 
-/** Supabase rows often keep old SVG fallbacks; curated defaults in repo win unless remote has a real URL or non-placeholder path. */
+/** Remote rows can keep old SVG fallbacks; curated defaults win unless remote has a real URL or non-placeholder path. */
 function mergeMediaAssets(base: MediaAsset[], incoming: MediaAsset[]): MediaAsset[] {
   const map = new Map<string, MediaAsset>();
   for (const item of base) {

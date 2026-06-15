@@ -282,8 +282,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
           role: "Mohammad Alfarras Studio",
           period: "الممارسة الرقمية الحالية",
           location: "Bremen, Germany",
-          body: 'تطوير وبناء واجهات أمامية حديثة باستخدام تقنيات (<span dir="ltr" class="inline-block px-1">Next.js</span>، <span dir="ltr" class="inline-block px-1">React</span>، <span dir="ltr" class="inline-block px-1">Tailwind</span>). تصميم حضور رقمي مُقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تقنية تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات التقنية.',
-          highlights: ["Next.js & React", "UI/UX Design", "Content Creation", "1.5M+ Views"],
+          body: "بناء واجهات رقمية حديثة وحضور بصري مقنع للشركات، بالإضافة إلى إدارة قناة يوتيوب تضم أكثر من 1.5 مليون مشاهدة تركز على المراجعات والشروحات الواضحة.",
+          highlights: ["Web experiences", "UI/UX Design", "Content Creation", "1.5M+ Views"],
         },
         {
           title: "Rhenus Home Delivery GmbH",
@@ -561,8 +561,8 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
           role: "Mohammad Alfarras Studio",
           period: "Current digital practice",
           location: "Bremen, Germany",
-          body: "Developing modern front-end interfaces using Next.js, React, and Tailwind. Building persuasive digital presence for corporate clients while running a tech YouTube channel with over 1.5 million views focusing on reviews and technical advice.",
-          highlights: ["Next.js & React", "UI/UX Design", "Content Creation", "1.5M+ Views"],
+          body: "Building modern digital interfaces and persuasive online presence for corporate clients while running a YouTube channel with over 1.5 million views focused on clear product reviews and practical advice.",
+          highlights: ["Web experiences", "UI/UX Design", "Content Creation", "1.5M+ Views"],
         },
         {
           title: "Rhenus Home Delivery GmbH",

@@ -65,8 +65,8 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
       title: locale === "ar" ? "واجهات وتطبيقات ويب" : "Web apps & interfaces",
       body:
         locale === "ar"
-          ? "واجهات منظمة لمنتج، لوحة تحكم، أو تجربة تفاعلية مبنية بـ Next.js وReact مع تصميم قابل للتوسع."
-          : "Structured interfaces for a product, dashboard, or interactive experience, built with Next.js and React to scale cleanly.",
+          ? "واجهات منظمة لمنتج، لوحة تحكم، أو تجربة تفاعلية مع تصميم قابل للتوسع وسهل الإدارة."
+          : "Structured interfaces for a product, dashboard, or interactive experience, designed to scale cleanly.",
       bullets: locale === "ar" ? ["UI/UX حديث", "لوحات تحكم", "بنية قابلة للنمو"] : ["Modern UI/UX", "Dashboards", "Scalable architecture"],
       image: "/images/service_tech.png",
     },
@@ -201,12 +201,12 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
     gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer_ui_now_playing-final.png", "/images/moplayer-activation-flow.webp"],
     metrics: locale === "ar"
       ? [
-          { value: "API 24+", label: "الحد الأدنى" },
+          { value: "Android 7+", label: "الحد الأدنى" },
           { value: "TV", label: "سياق Android TV" },
           { value: "VLC", label: "محرك التشغيل" },
         ]
       : [
-          { value: "API 24+", label: "Minimum SDK" },
+          { value: "Android 7+", label: "Minimum version" },
           { value: "TV", label: "Android TV focus" },
           { value: "VLC", label: "Playback engine" },
         ],
@@ -224,8 +224,8 @@ function moplayer2Fallback(locale: Locale): SiteViewModel["projects"][number] {
       ? "الجيل الجديد من MoPlayer كمنتج مستقل داخل نفس موقع محمد الفراس، مع صفحة وإصدارات وإدارة منفصلة."
       : "The new MoPlayer generation as a separate product inside the same Mohammad Alfarras site, with its own page, releases, and admin control.",
     description: isAr
-      ? "MoPlayer Pro يبقى تحت نفس الدومين ونفس Supabase، لكنه يظهر كمنتج مستقل عن MoPlayer القديم."
-      : "MoPlayer Pro stays under the same domain and Supabase system, but appears as its own product separate from classic MoPlayer.",
+      ? "MoPlayer Pro يبقى تحت نفس الدومين ونفس لوحة الإدارة، لكنه يظهر كمنتج مستقل عن MoPlayer القديم."
+      : "MoPlayer Pro stays under the same domain and management flow, but appears as its own product separate from classic MoPlayer.",
     image: "/images/moplayer-tv-hero.png",
     href: `/${locale}/apps/moplayer2`,
     featured: true,

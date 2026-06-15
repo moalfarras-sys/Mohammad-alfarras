@@ -36,6 +36,32 @@ import type { WebsiteCmsData, WebsiteSetting } from "@/lib/website-cms";
 
 const webBaseUrl = (process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space").replace(/\/$/, "");
 
+function mediaUsageLabels(item: WebsiteCmsData["mediaAssets"][number], data: WebsiteCmsData) {
+  const usage = new Set<string>();
+  const needles = [item.id, item.path].filter(Boolean);
+
+  for (const service of data.services) {
+    if (service.cover_media_id === item.id) usage.add(`Service: ${service.id}`);
+  }
+  for (const project of data.projects) {
+    if (project.cover_media_id === item.id) usage.add(`Project: ${project.id}`);
+  }
+  for (const setting of data.settings) {
+    const text = JSON.stringify(setting.value_json);
+    if (needles.some((needle) => text.includes(needle))) usage.add(`Settings: ${setting.key}`);
+  }
+  for (const page of data.pages) {
+    const text = JSON.stringify(page);
+    if (needles.some((needle) => text.includes(needle))) usage.add(`Page: ${page.slug}`);
+  }
+  for (const translation of data.pageTranslations) {
+    const text = JSON.stringify(translation);
+    if (needles.some((needle) => text.includes(needle))) usage.add(`Page copy: ${translation.page_id}/${translation.locale}`);
+  }
+
+  return [...usage];
+}
+
 const pageFallbacks = {
   home: {
     ar: {
@@ -863,25 +889,48 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         </form>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {data.mediaAssets.map((item) => (
-            <article key={item.id} className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/[0.02]">
-              <div className="aspect-video bg-black/30">
-                <SafeImage src={item.path} alt={item.alt_en || item.id} className="h-full w-full object-cover" />
-              </div>
-              <div className="space-y-2 p-3">
-                <p className="truncate text-xs font-black text-[var(--text-1)]">{item.id}</p>
-                <div className="flex items-center justify-between">
-                  <span className="badge">{item.type}</span>
-                  <form action={deleteWebsiteMediaAction}>
-                    <input type="hidden" name="id" value={item.id} />
-                    <button type="submit" className="text-[var(--danger)] opacity-70 transition hover:opacity-100" aria-label="Delete media">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
+          {data.mediaAssets.map((item) => {
+            const usage = mediaUsageLabels(item, data);
+            return (
+              <article key={item.id} className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/[0.02]">
+                <div className="aspect-video bg-black/30">
+                  <SafeImage src={item.path} alt={item.alt_en || item.id} className="h-full w-full object-cover" />
                 </div>
-              </div>
-            </article>
-          ))}
+                <div className="space-y-2 p-3">
+                  <p className="truncate text-xs font-black text-[var(--text-1)]">{item.id}</p>
+                  <p className="line-clamp-2 text-[11px] leading-5 text-[var(--text-3)]">{item.alt_en || item.alt_ar || t({ en: "No alt text", ar: "لا يوجد وصف" })}</p>
+                  <div className="rounded-xl border border-[var(--line)] bg-black/10 p-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-3)]">{t({ en: "Used in", ar: "مستخدمة في" })}</p>
+                    {usage.length ? (
+                      <ul className="mt-1 space-y-1 text-[11px] leading-5 text-[var(--text-2)]">
+                        {usage.slice(0, 4).map((entry) => <li key={entry}>{entry}</li>)}
+                        {usage.length > 4 ? <li>+{usage.length - 4}</li> : null}
+                      </ul>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-[var(--success)]">{t({ en: "Unused", ar: "غير مستخدمة" })}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="badge">{item.type}</span>
+                    <form
+                      action={deleteWebsiteMediaAction}
+                      onSubmit={(event) => {
+                        const message = usage.length
+                          ? t({ en: "This image is still used. The server will block deletion until you replace it. Continue?", ar: "هذه الصورة مستخدمة. سيمنع السيرفر حذفها حتى تستبدلها. هل تتابع؟" })
+                          : t({ en: "Delete this unused image?", ar: "حذف هذه الصورة غير المستخدمة؟" });
+                        if (!window.confirm(message)) event.preventDefault();
+                      }}
+                    >
+                      <input type="hidden" name="id" value={item.id} />
+                      <button type="submit" className="text-[var(--danger)] opacity-70 transition hover:opacity-100" aria-label="Delete media">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
           {!data.mediaAssets.length ? <div className="sm:col-span-2 xl:col-span-4"><EmptyState icon={<ImageIcon className="h-5 w-5" />} title={t({ en: "No media yet", ar: "لا صور بعد" })} /></div> : null}
         </div>
       </Accordion>

@@ -49,7 +49,9 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
       "/images/moplayer-pro-hero.webp",
   );
   const pcImage = normalizePublicImagePath(
-    windowsRelease?.heroImage ||
+    windowsRelease?.cardImage ||
+      windowsRelease?.heroImage ||
+      windowsRelease?.screenshotItems?.[0]?.url ||
       windowsRelease?.screenshots?.[0] ||
       pro.product.hero_image_path ||
       "/images/moplayer-pc-desktop.png",

@@ -16,10 +16,31 @@ export async function POST(request: Request) {
 
   revalidateTag("cms-snapshot", "max");
   revalidatePath("/[locale]", "layout");
-  revalidatePath("/en");
-  revalidatePath("/ar");
-  revalidatePath("/en/apps/moplayer2");
-  revalidatePath("/ar/apps/moplayer2");
+  for (const locale of ["en", "ar"]) {
+    for (const path of [
+      "",
+      "/services",
+      "/work",
+      "/contact",
+      "/support",
+      "/apps",
+      "/apps/moplayer",
+      "/apps/moplayer/classic",
+      "/apps/moplayer2",
+      "/apps/moplayer-pc",
+      "/activate",
+      "/youtube",
+      "/cv",
+      "/privacy",
+      "/terms",
+      "/legal",
+      "/impressum",
+    ]) {
+      revalidatePath(`/${locale}${path}`);
+    }
+  }
+  revalidatePath("/api/app/config");
+  revalidatePath("/api/app/download/latest");
 
   return NextResponse.json({ ok: true, revalidatedAt: new Date().toISOString() });
 }

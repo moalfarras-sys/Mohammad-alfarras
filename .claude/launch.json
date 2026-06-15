@@ -16,7 +16,7 @@
     {
       "name": "admin",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "apps/admin", "run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3002"],
+      "runtimeArgs": ["--prefix", "apps/admin", "run", "dev", "--", "--port", "3002"],
       "port": 3002
     }
   ]

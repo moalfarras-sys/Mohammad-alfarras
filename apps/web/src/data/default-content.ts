@@ -1811,7 +1811,7 @@ export const defaultSnapshot: CmsSnapshot = {
       id: "cert-nextjs",
       is_active: true,
       sort_order: 3,
-      issuer: "Next.js / Vercel Ecosystem",
+      issuer: "Modern Web Delivery Practice",
       issue_date: "2024-06-01",
       expiry_date: null,
       credential_url: "",
@@ -1858,28 +1858,28 @@ export const defaultSnapshot: CmsSnapshot = {
       locale: "ar",
       name: "تطور مستمر في الأدوات الرقمية",
       description:
-        "تعلم وتطبيق مستمر في Next.js، React، التصميم بـ Figma، وبناء تجارب رقمية حديثة.",
+        "تعلم وتطبيق مستمر في بناء المواقع، التصميم، وتجارب رقمية حديثة.",
     },
     {
       certification_id: "cert-digital",
       locale: "en",
       name: "Continuous digital tools development",
       description:
-        "Ongoing hands-on growth across Next.js, React, Figma, and modern web experience building.",
+        "Ongoing hands-on growth across business websites, interface design, and modern digital experience building.",
     },
     {
       certification_id: "cert-nextjs",
       locale: "ar",
-      name: "بناء مواقع حديثة بـ Next.js وReact",
+      name: "بناء مواقع حديثة وسريعة",
       description:
-        "تصميم وبناء مواقع ديناميكية وسريعة باستخدام Next.js App Router، TypeScript، وTailwind.",
+        "تصميم وبناء مواقع ديناميكية وسريعة مع تجربة سهلة الإدارة والتحديث.",
     },
     {
       certification_id: "cert-nextjs",
       locale: "en",
-      name: "Modern web development with Next.js and React",
+      name: "Modern website delivery",
       description:
-        "Building fast, scalable, and production-ready websites using Next.js App Router, TypeScript, and Tailwind.",
+        "Building fast, scalable, and production-ready websites with a clean editing and publishing workflow.",
     },
     {
       certification_id: "cert-figma",
@@ -2012,7 +2012,7 @@ export const defaultSnapshot: CmsSnapshot = {
       locale: "ar",
       title: "واجهات وتطبيقات ويب",
       description:
-        "واجهات منظمة لمنتج، لوحة تحكم، أو تجربة تفاعلية مبنية بـ Next.js و React وTypeScript مع تصميم قابل للتوسع.",
+        "واجهات منظمة لمنتج، لوحة تحكم، أو تجربة تفاعلية مع تصميم قابل للتوسع.",
       bullets_json: ["تصميم UI/UX حديث", "لوحات تحكم عملية", "أداء وسلاسة", "بنية قابلة للنمو"],
     },
     {
@@ -2020,7 +2020,7 @@ export const defaultSnapshot: CmsSnapshot = {
       locale: "en",
       title: "Web apps & interfaces",
       description:
-        "Structured interfaces for a product, dashboard, or interactive experience — built with Next.js, React, and TypeScript on a design that scales cleanly.",
+        "Structured interfaces for a product, dashboard, or interactive experience, with a design that scales cleanly.",
       bullets_json: [
         "Modern UI/UX design",
         "Practical dashboards",

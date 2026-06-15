@@ -1,7 +1,6 @@
-// Next.js 16 "proxy" convention (replaces deprecated middleware.ts).
 // Handles locale prefixing on public pages. The unified admin lives on
 // admin.moalfarras.space; locale-prefixed admin entrypoints are bridged there
-// so visitors do not land on the legacy CMS login surface.
+// so visitors do not land on the old editor login surface.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 

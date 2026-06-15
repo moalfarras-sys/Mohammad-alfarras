@@ -307,10 +307,10 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         storyTitle: "من العمل على أرض الواقع إلى بناء المواقع والتطبيقات.",
         stackEyebrow: "خلف الكواليس",
         stackTitle: "تجربة رقمية سريعة وآمنة ومصممة لتعمل على كل الأجهزة.",
-        productEyebrow: "منتج مميّز",
-        productTitle: "MoPlayer — تطبيقي الخاص لمشاهدة سلسة على الأندرويد والتلفزيون.",
+        productEyebrow: "تجربة MoPlayer السينمائية",
+        productTitle: "بوابة واحدة لكل تطبيقات MoPlayer.",
         productBody:
-          "تطبيق مشاهدة متكامل للأندرويد والتلفزيون: تثبيت سهل، تفعيل سريع، وتشغيل مستقر — مع صفحات تحميل ودعم واضحة لأي مستخدم.",
+          "استكشف Classic للأجهزة الخفيفة، Pro للتجربة الأحدث، وMoPlayer PC للكمبيوتر من قسم واحد واضح يقودك إلى صفحات التحميل والتفعيل والدعم.",
         ctaTitle: "جاهز نحوّل فكرتك إلى موقع يفتخر بيه مشروعك؟",
         ctaBody: "احكِ لي عن مشروعك: وين وصلت، وشو النتيجة اللي بدك توصلها. وبرجع عليك بخطوة عملية واضحة تبدأ فيها صح.",
         ctaPrimary: "ابدأ المحادثة",
@@ -331,10 +331,10 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         storyTitle: "From real-world pressure to digital systems.",
         stackEyebrow: "Behind the scenes",
         stackTitle: "A fast, secure digital experience built to work on every device.",
-        productEyebrow: "Featured product",
-        productTitle: "MoPlayer as a cinematic product surface.",
+        productEyebrow: "Cinematic MoPlayer experience",
+        productTitle: "One gateway for every MoPlayer app.",
         productBody:
-          "An Android TV ecosystem connecting the app, activation, IPTV sources, release pages, and remote configuration into one clear product system.",
+          "Explore Classic for lightweight Android devices, Pro for the newer product line, and MoPlayer PC for Windows from one clear section that leads to downloads, activation, and support.",
         ctaTitle: "Ready to turn the idea into a clear digital experience?",
         ctaBody: "Send the current situation, the goal, and what needs to happen next. I will help shape the structure, visual direction, and first practical move.",
         ctaPrimary: "Start the conversation",
@@ -371,6 +371,71 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
     { title: "A&D Fahrzeugtransporte", type: isAr ? "نقل وسحب سيارات" : "Vehicle transport", problem: isAr ? "الزائر يحتاج قرارًا سريعًا في حالات طارئة." : "Visitors need fast decisions in urgent situations.", role: isAr ? "تصميم مباشر للثقة والاتصال." : "Direct-response design for trust and contact.", result: isAr ? "تصنيف خدمات واضح مع دعوات تواصل قوية." : "Clear service categories with strong contact cues." },
     { title: "MoPlayer", type: isAr ? "منتج Android TV" : "Android TV product", problem: isAr ? "التطبيق يحتاج عرضًا وتفعيلًا وتنزيلًا مفهومًا." : "The app needs clear presentation, activation, and download flow.", role: isAr ? "نظام منتج من الموقع إلى التطبيق." : "Product system from website to app.", result: isAr ? "مسار منتج مستقل يربط التحميل والتفعيل والدعم." : "A product path connecting download, activation, and support." },
   ];
+  const moplayerApps = isAr
+    ? [
+        {
+          title: "MoPlayer Classic",
+          label: "Android / TV",
+          body: "الإصدار الأزرق الخفيف للأجهزة العادية والضعيفة، مع صفحة تحميل وتفعيل ودعم واضحة.",
+          href: "apps/moplayer/classic",
+          image: "/images/moplayer-classic-promo.png",
+          tone: "classic",
+          cta: "افتح Classic",
+          icon: Radio,
+        },
+        {
+          title: "MoPlayer Pro",
+          label: "Android / Android TV",
+          body: "الجيل الأحدث من عائلة MoPlayer، بهوية ذهبية ومسار إصدار مستقل وصفحة منتج كاملة.",
+          href: "apps/moplayer2",
+          image: "/images/moplayer-pro-hero.webp",
+          tone: "pro",
+          cta: "افتح Pro",
+          icon: MonitorPlay,
+        },
+        {
+          title: "MoPlayer PC",
+          label: "Windows",
+          body: "تجربة سطح المكتب داخل نفس العائلة، مع حالة الإصدار والتحميل من صفحة Windows المخصصة.",
+          href: "apps/moplayer-pc",
+          image: "/images/moplayer-pc-desktop.png",
+          tone: "pc",
+          cta: "افتح PC",
+          icon: Cpu,
+        },
+      ]
+    : [
+        {
+          title: "MoPlayer Classic",
+          label: "Android / TV",
+          body: "The lightweight blue edition for normal and low-power devices, with clear download, activation, and support paths.",
+          href: "apps/moplayer/classic",
+          image: "/images/moplayer-classic-promo.png",
+          tone: "classic",
+          cta: "Open Classic",
+          icon: Radio,
+        },
+        {
+          title: "MoPlayer Pro",
+          label: "Android / Android TV",
+          body: "The newer MoPlayer line with a warm gold identity, separate releases, and a complete product page.",
+          href: "apps/moplayer2",
+          image: "/images/moplayer-pro-hero.webp",
+          tone: "pro",
+          cta: "Open Pro",
+          icon: MonitorPlay,
+        },
+        {
+          title: "MoPlayer PC",
+          label: "Windows",
+          body: "The desktop experience in the same product family, with release status and downloads on its Windows page.",
+          href: "apps/moplayer-pc",
+          image: "/images/moplayer-pc-desktop.png",
+          tone: "pc",
+          cta: "Open PC",
+          icon: Cpu,
+        },
+      ];
 
   return (
     <PageShell className="os-home os-digital-os">
@@ -496,15 +561,41 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
           <p className="fresh-eyebrow">{home.productEyebrow}</p>
           <h2>{home.productTitle}</h2>
           <p>{home.productBody}</p>
+          <div className="os-moplayer-route-strip" aria-label={isAr ? "مسارات MoPlayer" : "MoPlayer routes"}>
+            <span>Classic</span>
+            <span>Pro</span>
+            <span>PC</span>
+            <span>{isAr ? "تفعيل" : "Activation"}</span>
+          </div>
           <div className="fresh-actions">
-            <Link href={pathFor(model.locale, "apps/moplayer")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">{isAr ? "استكشف MoPlayer" : "Explore MoPlayer"}<ArrowUpRight size={17} /></Link>
-            <Link href={pathFor(model.locale, "activate")} prefetch={false} className="fresh-button magnetic-surface">{isAr ? "تجربة التفعيل" : "Activation flow"}</Link>
+            <Link href={pathFor(model.locale, "apps/moplayer")} prefetch={false} className="fresh-button fresh-button-primary magnetic-surface">{isAr ? "افتح بوابة MoPlayer" : "Open MoPlayer hub"}<ArrowUpRight size={17} /></Link>
+            <Link href={pathFor(model.locale, "activate?product=moplayer2")} prefetch={false} className="fresh-button magnetic-surface">{isAr ? "تجربة التفعيل" : "Activation flow"}</Link>
           </div>
         </div>
         <div className="os-moplayer-visual">
           <div className="os-moplayer-glow" />
-          <div className="os-moplayer-device"><Image src={model.siteImages?.home_product_hero || "/images/moplayer-hero-3d-final.png"} alt="MoPlayer Android TV product visual" fill sizes="(max-width: 900px) 92vw, 520px" className="fresh-image" unoptimized={(model.siteImages?.home_product_hero || "").startsWith("http")} /></div>
-          <div className="os-moplayer-mini"><Image src={model.siteImages?.home_product_secondary || "/images/moplayer-activation-flow.webp"} alt="MoPlayer activation flow" fill sizes="220px" className="fresh-image" unoptimized={(model.siteImages?.home_product_secondary || "").startsWith("http")} /></div>
+          <Link href={pathFor(model.locale, "apps/moplayer")} prefetch={false} className="os-moplayer-hero-panel magnetic-surface">
+            <Image src={model.siteImages?.home_product_hero || "/images/moplayer-hero-3d-final.png"} alt="MoPlayer product family visual" fill sizes="(max-width: 900px) 92vw, 560px" className="fresh-image" unoptimized={(model.siteImages?.home_product_hero || "").startsWith("http")} />
+            <span className="os-moplayer-hero-badge">{isAr ? "كل التطبيقات" : "All apps"}</span>
+            <strong>MoPlayer Family Hub</strong>
+          </Link>
+          <div className="os-moplayer-app-grid">
+            {moplayerApps.map((app) => {
+              const Icon = app.icon;
+              return (
+                <Link href={pathFor(model.locale, app.href)} prefetch={false} className={`os-moplayer-app-card os-moplayer-app-${app.tone} magnetic-surface`} key={app.title}>
+                  <span className="os-moplayer-app-icon"><Icon size={16} /></span>
+                  <span className="os-moplayer-app-label">{app.label}</span>
+                  <div className="os-moplayer-app-image">
+                    <Image src={app.image} alt={`${app.title} preview`} fill sizes="(max-width: 900px) 45vw, 170px" className="fresh-image" />
+                  </div>
+                  <h3>{app.title}</h3>
+                  <p>{app.body}</p>
+                  <span className="fresh-link">{app.cta}<ArrowUpRight size={15} /></span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -653,7 +744,7 @@ function YoutubePage({ model }: { model: SiteViewModel }) {
   const fmt = new Intl.NumberFormat(isAr ? "ar" : "en", { notation: "compact", maximumFractionDigits: 1 });
   const dateFmt = new Intl.DateTimeFormat(isAr ? "ar" : "en", { month: "short", day: "numeric", year: "numeric" });
   const channelName = model.youtube.title || model.live.youtube?.channelTitle || "Mohammad Alfarras";
-  // Clean, single-script display name for the channel header (the raw API/CMS
+  // Clean, single-script display name for the channel header (the raw source
   // title can mix Arabic + Latin + a pipe, which renders as a bidi mess).
   const channelDisplayName = isAr ? "محمد الفراس" : "Mohammad Alfarras";
   const handle = model.youtube.handle || model.live.youtube?.channelHandle || "@Moalfarras";

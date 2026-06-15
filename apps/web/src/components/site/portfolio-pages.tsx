@@ -6,11 +6,11 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Bot,
   CheckCircle2,
   Download,
   ExternalLink,
   Mail,
+  MessageCircle,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -197,8 +197,8 @@ export function PortfolioProjectPage({
               {ar ? "ابدأ مشروعا مشابها" : "Start a similar project"}
             </Link>
             <button type="button" className="fresh-button" onClick={openProjectAssistant}>
-              <Bot className="h-4 w-4" />
-              {ar ? "اسأل Mo Ai" : "Ask Mo Ai"}
+              <MessageCircle className="h-4 w-4" />
+              {ar ? "اسأل المساعد" : "Ask the assistant"}
             </button>
           </div>
         </div>

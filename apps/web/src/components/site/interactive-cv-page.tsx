@@ -63,7 +63,7 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
       : "Bridging the gap between physical logistics and digital systems.",
     developer: ar ? "وضع المطوّر" : "Developer Mode",
     creator: ar ? "وضع صانع المحتوى" : "Creator Mode",
-    devBody: ar ? "مواقع وواجهات ويب، تطبيقات، Next.js، وتصميم قابل للتطوير." : "Web interfaces, digital systems, Next.js, and scalable design decisions.",
+    devBody: ar ? "مواقع وواجهات ويب، تطبيقات، وتصميم قابل للتطوير." : "Web interfaces, digital systems, and scalable design decisions.",
     creatorBody: ar ? "يوتيوب، شرح تقني، مراجعات، وتحويل التجربة إلى محتوى واضح." : "YouTube, tech storytelling, reviews, and turning experiments into clear content.",
     cmdHint: ar ? "اضغط Ctrl/⌘ + K لوضع Dev" : "Press Ctrl/⌘ + K for Dev Mode",
     downloads: ar ? "تحميل السيرة" : "Download CV",
@@ -96,7 +96,7 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
       {
         year: ar ? "\u0627\u0644\u062a\u062d\u0648\u0644 \u0627\u0644\u0631\u0642\u0645\u064a" : "Digital systems",
         title: ar ? "القفزة الرقمية" : "The Digital Leap",
-        body: ar ? "Full Stack، يوتيوب، MoPlayer، وأنظمة ويب تربط المنتج بالمستخدم." : "Full stack work, YouTube, MoPlayer, and web systems connecting products with users.",
+        body: ar ? "بناء منتجات رقمية، يوتيوب، MoPlayer، وأنظمة ويب تربط المنتج بالمستخدم." : "Digital product work, YouTube, MoPlayer, and web systems connecting products with users.",
         icon: Code2,
       },
     ],
@@ -135,9 +135,9 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
   const t = copy(locale, displayStats);
   const isAr = locale === "ar";
   const skillProof = [
-    ["Next.js + React", isAr ? "أنظمة ويب إنتاجية ثنائية اللغة" : "Production bilingual web systems"],
-    ["TypeScript", isAr ? "واجهات API وCMS ومسارات منتج Typed" : "Typed APIs, CMS, and product flows"],
-    ["Supabase + Postgres", isAr ? "بيانات المحتوى والإصدارات وقواعد الوصول" : "Content, release data, and access policies"],
+    ["Web platforms", isAr ? "أنظمة ويب إنتاجية ثنائية اللغة" : "Production bilingual web systems"],
+    ["Product flows", isAr ? "واجهات منظمة ولوحات إدارة ومسارات منتج واضحة" : "Structured screens, control panels, and product flows"],
+    ["Managed content", isAr ? "بيانات المحتوى والإصدارات وقواعد الوصول" : "Content, release data, and access rules"],
     ["Android TV", isAr ? "MoPlayer Classic وMoPlayer Pro" : "MoPlayer Classic and MoPlayer Pro"],
     ["Product delivery", isAr ? "تنزيل وتفعيل ودعم وإدارة إصدارات" : "Downloads, activation, support, and releases"],
     ["Technical content", `${compactNumber(displayStats.views)} ${isAr ? "مشاهدة" : "views"} / ${displayStats.videos} ${isAr ? "فيديو" : "videos"}`],

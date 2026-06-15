@@ -5,7 +5,7 @@ export const cvPageCopy = {
     eyebrow: "CV",
     title: "A profile built between logistics pressure, web execution, design, and Arabic tech storytelling.",
     body:
-      "This is not only a resume. It is the practical story behind the work: Rhenus Home Delivery, disposition, TMS, driver coordination, customer service, Next.js, React, TypeScript, UI/UX, MoPlayer, and a YouTube channel built on clear Arabic product explanation.",
+      "This is not only a resume. It is the practical story behind the work: Rhenus Home Delivery, disposition, TMS, driver coordination, customer service, web product delivery, UI/UX, MoPlayer, and a YouTube channel built on clear Arabic product explanation.",
     downloadDesigned: "Download designed CV",
     downloadAts: "Download ATS CV",
     summaryTitle: "Professional summary",
@@ -25,11 +25,11 @@ export const cvPageCopy = {
     skillGroups: [
       {
         title: "Frontend and product UI",
-        items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Responsive interfaces", "Design systems"],
+        items: ["Business websites", "Product interfaces", "Managed content", "Responsive interfaces", "Design systems"],
       },
       {
         title: "Product and content architecture",
-        items: ["Case studies", "Product pages", "Bilingual copy", "RTL/LTR structure", "SEO metadata", "JSON-LD"],
+        items: ["Case studies", "Product pages", "Bilingual copy", "Arabic/English structure", "Search metadata", "Structured content"],
       },
       {
         title: "Operations and delivery",
@@ -47,7 +47,7 @@ export const cvPageCopy = {
     eyebrow: "السيرة الذاتية",
     title: "ملف مهني بين ضغط اللوجستيات، تنفيذ الويب، التصميم، والسرد التقني العربي.",
     body:
-      "هذه ليست سيرة تقليدية فقط. هي القصة العملية خلف العمل: Rhenus Home Delivery، الديسبوزيشن، TMS، تنسيق السائقين، خدمة العملاء، Next.js، React، TypeScript، UI/UX، MoPlayer، وقناة يوتيوب مبنية على شرح عربي واضح للمنتجات.",
+      "هذه ليست سيرة تقليدية فقط. هي القصة العملية خلف العمل: Rhenus Home Delivery، الديسبوزيشن، TMS، تنسيق السائقين، خدمة العملاء، بناء المنتجات الرقمية، UI/UX، MoPlayer، وقناة يوتيوب مبنية على شرح عربي واضح للمنتجات.",
     downloadDesigned: "تنزيل السيرة المصممة",
     downloadAts: "تنزيل نسخة ATS",
     summaryTitle: "ملخص مهني",
@@ -67,11 +67,11 @@ export const cvPageCopy = {
     skillGroups: [
       {
         title: "Frontend وواجهات المنتجات",
-        items: ["Next.js", "React", "TypeScript", "Tailwind CSS", "واجهات متجاوبة", "أنظمة تصميم"],
+        items: ["مواقع أعمال", "واجهات منتجات", "محتوى قابل للإدارة", "واجهات متجاوبة", "أنظمة تصميم"],
       },
       {
         title: "بنية المنتج والمحتوى",
-        items: ["دراسات حالة", "صفحات منتجات", "نص ثنائي اللغة", "بنية RTL/LTR", "SEO metadata", "JSON-LD"],
+        items: ["دراسات حالة", "صفحات منتجات", "نص ثنائي اللغة", "بنية عربية/إنجليزية", "بيانات بحث وصفية", "محتوى منظم"],
       },
       {
         title: "التشغيل والتسليم",

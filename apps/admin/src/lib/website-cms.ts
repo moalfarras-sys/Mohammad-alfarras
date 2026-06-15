@@ -305,8 +305,14 @@ export async function deleteWebsiteProject(id: string) {
 
 export async function deleteWebsiteMedia(id: string) {
   const supabase = createSupabaseAdminClient();
-  const existing = await supabase.from("media_assets").select("path").eq("id", id).maybeSingle();
+  const existing = await supabase.from("media_assets").select("id,path").eq("id", id).maybeSingle();
   if (existing.error) throw existing.error;
+  if (!existing.data) return;
+
+  const usage = await findWebsiteMediaUsage(id, existing.data.path ?? "");
+  if (usage.length) {
+    throw new Error(`MEDIA_IN_USE:${usage.slice(0, 6).join(", ")}`);
+  }
 
   const storagePath = extractSiteMediaStoragePath(existing.data?.path);
   if (storagePath) {
@@ -315,6 +321,47 @@ export async function deleteWebsiteMedia(id: string) {
 
   const { error } = await supabase.from("media_assets").delete().eq("id", id);
   if (error) throw error;
+}
+
+async function findWebsiteMediaUsage(id: string, mediaPath: string) {
+  const supabase = createSupabaseAdminClient();
+  const needles = [id, mediaPath].filter(Boolean);
+  const usage = new Set<string>();
+
+  const [services, projects, settings, pages, pageTranslations, appProducts, appScreenshots, appReleases] = await Promise.all([
+    supabase.from("service_offerings").select("id,cover_media_id").eq("cover_media_id", id),
+    supabase.from("work_projects").select("id,cover_media_id").eq("cover_media_id", id),
+    supabase.from("site_settings").select("key,value_json").limit(500),
+    supabase.from("pages").select("*").limit(500),
+    supabase.from("page_translations").select("*").limit(500),
+    supabase.from("app_products").select("*").limit(500),
+    supabase.from("app_screenshots").select("*").limit(500),
+    supabase.from("app_releases").select("*").limit(500),
+  ]);
+
+  for (const row of services.data ?? []) usage.add(`service:${row.id}`);
+  for (const row of projects.data ?? []) usage.add(`project:${row.id}`);
+
+  const scanRows = [
+    ["setting", settings.data ?? [], "key"],
+    ["page", pages.data ?? [], "id"],
+    ["page_translation", pageTranslations.data ?? [], "page_id"],
+    ["app_product", appProducts.data ?? [], "slug"],
+    ["app_screenshot", appScreenshots.data ?? [], "id"],
+    ["app_release", appReleases.data ?? [], "id"],
+  ] as const;
+
+  for (const [label, rows, key] of scanRows) {
+    for (const row of rows) {
+      const text = JSON.stringify(row);
+      if (needles.some((needle) => text.includes(needle))) {
+        const record = row as Record<string, unknown>;
+        usage.add(`${label}:${String(record[key] ?? "row")}`);
+      }
+    }
+  }
+
+  return [...usage];
 }
 
 export async function deleteWebsiteMessage(id: string) {

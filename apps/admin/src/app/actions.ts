@@ -802,7 +802,14 @@ export async function uploadWebsiteMediaAction(formData: FormData) {
 
 export async function deleteWebsiteMediaAction(formData: FormData) {
   await requireAdminRole("admin");
-  await deleteWebsiteMedia(String(formData.get("id") ?? ""));
+  try {
+    await deleteWebsiteMedia(String(formData.get("id") ?? ""));
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("MEDIA_IN_USE:")) {
+      redirect("/website?updated=website_media_in_use#media");
+    }
+    throw error;
+  }
   revalidateAll();
   redirect("/website?updated=website_media_deleted");
 }
@@ -951,38 +958,139 @@ async function readWindowsReleaseSetting(): Promise<Record<string, unknown>> {
   return data?.value_json && typeof data.value_json === "object" ? (data.value_json as Record<string, unknown>) : {};
 }
 
+type PcScreenshotSetting = {
+  id: string;
+  url: string;
+  alt: string;
+  sortOrder: number;
+};
+
 function currentPcScreenshots(setting: Record<string, unknown>): string[] {
   return Array.isArray(setting.screenshots)
     ? setting.screenshots.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
 }
 
-export async function savePcHeroImageAction(formData: FormData) {
-  await requireAdminRole("editor");
-  const file = formData.get("file");
+function currentPcScreenshotItems(setting: Record<string, unknown>): PcScreenshotSetting[] {
+  const items = Array.isArray(setting.screenshotItems)
+    ? setting.screenshotItems
+        .map((item, index): PcScreenshotSetting | null => {
+          if (!item || typeof item !== "object") return null;
+          const record = item as Record<string, unknown>;
+          const url = String(record.url ?? record.image ?? record.image_path ?? "").trim();
+          if (!url) return null;
+          const sortOrder = Number(record.sortOrder ?? record.sort_order ?? index + 1);
+          return {
+            id: String(record.id ?? `pc-shot-${index + 1}`).trim() || `pc-shot-${index + 1}`,
+            url,
+            alt: String(record.alt ?? record.alt_text ?? "MoPlayer PC screenshot").trim(),
+            sortOrder: Number.isFinite(sortOrder) && sortOrder > 0 ? sortOrder : index + 1,
+          };
+        })
+        .filter((item): item is PcScreenshotSetting => Boolean(item))
+    : [];
+
+  if (items.length) return items.sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return currentPcScreenshots(setting).map((url, index) => ({
+    id: `pc-shot-${index + 1}`,
+    url,
+    alt: "MoPlayer PC screenshot",
+    sortOrder: index + 1,
+  }));
+}
+
+function normalizePcScreenshotItems(items: PcScreenshotSetting[]) {
+  const sorted = items
+    .filter((item) => item.url.trim())
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((item, index) => ({
+      id: item.id,
+      url: item.url,
+      alt: item.alt || "MoPlayer PC screenshot",
+      sortOrder: Number.isFinite(item.sortOrder) && item.sortOrder > 0 ? item.sortOrder : index + 1,
+    }));
+  return {
+    screenshotItems: sorted,
+    screenshots: sorted.map((item) => item.url),
+  };
+}
+
+async function uploadPcManagedImage(formData: FormData, key: string, kind: string, fallbackAlt: string) {
+  const file = formData.get(key);
   if (!(file instanceof File) || file.size === 0) throw new Error("Image file is required.");
-  const uploaded = await uploadAppScreenshot({
+  validateWebsiteImageFile(file);
+  const alt = String(formData.get("alt") ?? formData.get("alt_text") ?? fallbackAlt).trim() || fallbackAlt;
+  return uploadWebsiteMedia({
     filename: file.name,
     contentType: file.type || "image/png",
     bytes: new Uint8Array(await file.arrayBuffer()),
+    altAr: String(formData.get("alt_ar") ?? alt).trim() || alt,
+    altEn: String(formData.get("alt_en") ?? alt).trim() || alt,
+    kind,
   });
-  await mergeSiteSetting("windows_release", { heroImage: uploaded.publicUrl, updatedAt: new Date().toISOString() });
+}
+
+export async function savePcHeroImageAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const uploaded = await uploadPcManagedImage(formData, "file", "apps/moplayer-pc/hero", "MoPlayer PC hero");
+  await mergeSiteSetting("windows_release", {
+    heroImage: uploaded.path,
+    heroAlt: uploaded.alt_en,
+    updatedAt: new Date().toISOString(),
+  });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
+export async function savePcCardImageAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const uploaded = await uploadPcManagedImage(formData, "file", "apps/moplayer-pc/card", "MoPlayer PC card");
+  await mergeSiteSetting("windows_release", {
+    cardImage: uploaded.path,
+    cardAlt: uploaded.alt_en,
+    updatedAt: new Date().toISOString(),
+  });
   revalidateAll();
   redirect("/moplayer-pc?updated=pc_image#images");
 }
 
 export async function addPcScreenshotAction(formData: FormData) {
   await requireAdminRole("editor");
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) throw new Error("Image file is required.");
-  const uploaded = await uploadAppScreenshot({
-    filename: file.name,
-    contentType: file.type || "image/png",
-    bytes: new Uint8Array(await file.arrayBuffer()),
-  });
+  const uploaded = await uploadPcManagedImage(formData, "file", "apps/moplayer-pc/screenshots", "MoPlayer PC screenshot");
   const setting = await readWindowsReleaseSetting();
-  const screenshots = [...currentPcScreenshots(setting), uploaded.publicUrl];
-  await mergeSiteSetting("windows_release", { screenshots, updatedAt: new Date().toISOString() });
+  const sortOrder = Number(formData.get("sort_order") ?? "");
+  const items = [
+    ...currentPcScreenshotItems(setting),
+    {
+      id: uploaded.id,
+      url: uploaded.path,
+      alt: uploaded.alt_en,
+      sortOrder: Number.isFinite(sortOrder) && sortOrder > 0 ? sortOrder : currentPcScreenshotItems(setting).length + 1,
+    },
+  ];
+  await mergeSiteSetting("windows_release", { ...normalizePcScreenshotItems(items), updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
+export async function savePcScreenshotMetaAction(formData: FormData) {
+  await requireAdminRole("editor");
+  const id = String(formData.get("id") ?? "").trim();
+  const url = String(formData.get("url") ?? "").trim();
+  const alt = String(formData.get("alt") ?? "MoPlayer PC screenshot").trim() || "MoPlayer PC screenshot";
+  const sortOrder = Number(formData.get("sort_order") ?? "");
+  const setting = await readWindowsReleaseSetting();
+  const items = currentPcScreenshotItems(setting).map((item) =>
+    item.id === id || item.url === url
+      ? {
+          ...item,
+          alt,
+          sortOrder: Number.isFinite(sortOrder) && sortOrder > 0 ? sortOrder : item.sortOrder,
+        }
+      : item,
+  );
+  await mergeSiteSetting("windows_release", { ...normalizePcScreenshotItems(items), updatedAt: new Date().toISOString() });
   revalidateAll();
   redirect("/moplayer-pc?updated=pc_image#images");
 }
@@ -990,16 +1098,24 @@ export async function addPcScreenshotAction(formData: FormData) {
 export async function deletePcScreenshotAction(formData: FormData) {
   await requireAdminRole("admin");
   const url = String(formData.get("url") ?? "").trim();
+  const id = String(formData.get("id") ?? "").trim();
   const setting = await readWindowsReleaseSetting();
-  const screenshots = currentPcScreenshots(setting).filter((item) => item !== url);
-  await mergeSiteSetting("windows_release", { screenshots, updatedAt: new Date().toISOString() });
+  const items = currentPcScreenshotItems(setting).filter((item) => item.url !== url && item.id !== id);
+  await mergeSiteSetting("windows_release", { ...normalizePcScreenshotItems(items), updatedAt: new Date().toISOString() });
   revalidateAll();
   redirect("/moplayer-pc?updated=pc_image#images");
 }
 
 export async function clearPcHeroImageAction() {
   await requireAdminRole("admin");
-  await mergeSiteSetting("windows_release", { heroImage: "", updatedAt: new Date().toISOString() });
+  await mergeSiteSetting("windows_release", { heroImage: "", heroAlt: "", updatedAt: new Date().toISOString() });
+  revalidateAll();
+  redirect("/moplayer-pc?updated=pc_image#images");
+}
+
+export async function clearPcCardImageAction() {
+  await requireAdminRole("admin");
+  await mergeSiteSetting("windows_release", { cardImage: "", cardAlt: "", updatedAt: new Date().toISOString() });
   revalidateAll();
   redirect("/moplayer-pc?updated=pc_image#images");
 }

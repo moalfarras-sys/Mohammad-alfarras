@@ -28,6 +28,11 @@ const MESSAGES: Record<string, { en: string; ar: string; error?: boolean }> = {
   website_upload_too_large: { en: "Image is too large. Use an image under 10 MB.", ar: "الصورة كبيرة جداً. استخدم صورة أقل من 10 MB.", error: true },
   website_upload_failed: { en: "Image upload failed. Try another image or a smaller file.", ar: "فشل رفع الصورة. جرّب صورة أخرى أو ملفاً أصغر.", error: true },
   website_media_deleted: { en: "Media deleted.", ar: "تم حذف الصورة." },
+  website_media_in_use: {
+    en: "This image is still used on the site. Replace it where it is used before deleting it.",
+    ar: "هذه الصورة ما زالت مستخدمة في الموقع. استبدلها في مكان استخدامها قبل الحذف.",
+    error: true,
+  },
   site_status: { en: "Site status updated.", ar: "تم تحديث حالة الموقع." },
   legal_pages: { en: "Legal pages saved.", ar: "تم حفظ الصفحات القانونية." },
   legal_missing: {

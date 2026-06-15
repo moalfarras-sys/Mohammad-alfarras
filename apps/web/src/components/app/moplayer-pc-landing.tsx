@@ -98,21 +98,36 @@ export function MoPlayerPcLanding({
   const opacityHero = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
 
   const productName = "MoPlayer PC";
-  const downloadHref = "/api/app/download/latest?product=moplayer2&platform=windows";
-  const portableHref = "/api/app/download/latest?product=moplayer2&platform=windows&portable=1";
+  const hasInstaller = Boolean(!windowsRelease?.maintenance && windowsRelease?.file);
+  const hasPortable = Boolean(!windowsRelease?.maintenance && windowsRelease?.portableFile);
+  const downloadHref = hasInstaller ? "/api/app/download/latest?product=moplayer2&platform=windows" : "";
+  const portableHref = hasPortable ? "/api/app/download/latest?product=moplayer2&platform=windows&portable=1" : "";
   const activateHref = `/${locale}/activate?product=moplayer-pc&platform=windows`;
   const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
   const downloadSince = downloadSinceLabel(downloadStats, locale);
-  const pcShots = (windowsRelease?.screenshots ?? []).filter((src): src is string => typeof src === "string" && src.trim().length > 0);
+  const pcShots = windowsRelease?.screenshotItems?.length
+    ? windowsRelease.screenshotItems
+    : (windowsRelease?.screenshots ?? [])
+        .filter((src): src is string => typeof src === "string" && src.trim().length > 0)
+        .map((src, i) => ({ id: `pc-shot-${i + 1}`, url: src, alt: productName, sortOrder: i + 1 }));
   const galleryShots: GalleryShot[] = pcShots.length
-    ? pcShots.map((src, i) => ({ id: `pc-shot-${i}`, image_path: src, alt_text: productName, title: productName }))
+    ? pcShots.map((shot, i) => ({ id: shot.id ?? `pc-shot-${i}`, image_path: shot.url, alt_text: shot.alt ?? productName, title: productName }))
     : (ecosystem.product as ProductWithGallery).gallery_shots ?? [];
-  const heroImageSrc = windowsRelease?.heroImage?.trim() ? windowsRelease.heroImage.trim() : "/images/moplayer-pc-desktop.png";
+  const heroImageSrc = normalizePublicImagePath(windowsRelease?.heroImage?.trim() ? windowsRelease.heroImage.trim() : "/images/moplayer-pc-desktop.png");
+  const heroImageAlt = windowsRelease?.heroAlt || "MoPlayer PC interface";
   const releaseStats = [
     windowsRelease?.version ? { label: isAr ? "الإصدار" : "Version", value: `v${windowsRelease.version}` } : null,
     windowsRelease?.fileSizeBytes ? { label: isAr ? "حجم المثبت" : "Setup size", value: formatBytes(windowsRelease.fileSizeBytes) } : null,
     windowsRelease?.systemRequirements ? { label: isAr ? "النظام" : "System", value: windowsRelease.systemRequirements } : null,
   ].filter(Boolean) as Array<{ label: string; value: string }>;
+  const releaseCardItems = [
+    windowsRelease?.version ? { label: isAr ? "الإصدار" : "Version", value: `v${windowsRelease.version}` } : null,
+    windowsRelease?.releaseDate ? { label: isAr ? "تاريخ الإصدار" : "Release date", value: windowsRelease.releaseDate } : null,
+    windowsRelease?.file ? { label: isAr ? "اسم الملف" : "File name", value: windowsRelease.file } : null,
+    windowsRelease?.fileSizeBytes ? { label: isAr ? "الحجم" : "Size", value: formatBytes(windowsRelease.fileSizeBytes) } : null,
+    windowsRelease?.sha256 ? { label: "SHA-256", value: windowsRelease.sha256, mono: true } : null,
+    { label: isAr ? "التحميلات" : "Downloads", value: `${downloadCount} · ${downloadSince}` },
+  ].filter(Boolean) as Array<{ label: string; value: string; mono?: boolean }>;
 
   const pcFeatures = isAr ? [
     { title: "تشغيل سريع على الكمبيوتر", body: "واجهة خفيفة تستفيد من شاشة الكمبيوتر بدون ازدحام.", icon: Zap },
@@ -152,28 +167,28 @@ export function MoPlayerPcLanding({
 
   const installGuide = isAr
     ? {
-        eyebrow: "تثبيت آمن",
-        title: "ظهر تحذير من Windows؟ هذا طبيعي — وإليك كيف تثبّت بأمان",
-        body: "MoPlayer PC تطبيق مستقل لا يستخدم بعدُ شهادة ناشر مدفوعة، لذلك قد يُظهر Windows SmartScreen رسالة “Windows protected your PC”. الملف مستضاف على GitHub Releases الرسمي وآمن للتثبيت.",
+        eyebrow: "ملاحظة تثبيت",
+        title: "قد تظهر رسالة من Windows عند فتح المثبت",
+        body: "هذا الملف الرسمي المنشور من صفحة MoPlayer. تحقق من اسم الملف والإصدار ومصدر التحميل قبل التثبيت. قد تظهر رسالة Windows لأن التطبيق مستقل ولا يستخدم حالياً شهادة ناشر تجارية.",
         steps: [
-          "اضغط “More info” (مزيد من المعلومات) في نافذة Windows الزرقاء.",
-          "ثم اضغط “Run anyway” (تشغيل على أي حال) لإكمال التثبيت.",
-          "إذا وضعه Microsoft Defender في الحجر، اختر “Allow on device” أو “Restore” لاستعادته.",
+          "حمّل المثبت من زر التحميل الرسمي في هذه الصفحة فقط.",
+          "تأكد أن اسم الملف ورقم الإصدار يطابقان بطاقة الإصدار المعروضة هنا.",
+          "إذا ظهرت رسالة نظام، راجع التفاصيل بهدوء ولا تكمل إلا إذا كان المصدر هو صفحة MoPlayer الرسمية.",
         ],
         verify:
-          "للتحقّق من أصالة الملف (اختياري): افتح PowerShell ونفّذ Get-FileHash على الملف، ثم قارن النتيجة مع البصمة المنشورة في صفحة الإصدار.",
+          "للتحقق الإضافي، قارن بصمة SHA-256 المنشورة هنا مع بصمة الملف بعد التحميل عند توفرها.",
       }
     : {
-        eyebrow: "Safe install",
-        title: "Seeing a Windows warning? It’s normal — here’s how to install safely",
-        body: "MoPlayer PC is an independent app that doesn’t yet use a paid publisher certificate, so Windows SmartScreen may show “Windows protected your PC”. The file is hosted on official GitHub Releases and is safe to install.",
+        eyebrow: "Install note",
+        title: "Windows may show a message when you open the installer",
+        body: "This is the official file published from the MoPlayer page. Check the file name, version, and download source before installing. Windows may show a message because the app is independent and does not currently use a commercial publisher certificate.",
         steps: [
-          "Click “More info” in the blue Windows dialog.",
-          "Then click “Run anyway” to finish installing.",
-          "If Microsoft Defender quarantines it, choose “Allow on device” / “Restore”.",
+          "Download the installer only from the official button on this page.",
+          "Confirm the file name and version match the release card shown here.",
+          "If a system message appears, review the details and continue only when the source is the official MoPlayer page.",
         ],
         verify:
-          "Verify authenticity (optional): open PowerShell and run Get-FileHash on the file, then compare the result with the checksum published on the release page.",
+          "For an extra check, compare the SHA-256 value shown here with the downloaded file when a checksum is available.",
       };
 
   return (
@@ -289,7 +304,7 @@ export function MoPlayerPcLanding({
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 pointer-events-none" />
             <Image
               src={heroImageSrc}
-              alt="MoPlayer PC Interface"
+              alt={heroImageAlt}
               width={1400}
               height={900}
               unoptimized={heroImageSrc.startsWith("http")}
@@ -341,6 +356,48 @@ export function MoPlayerPcLanding({
           </div>
         </section>
       )}
+
+      {/* Release card */}
+      <section className="relative py-16 px-6 z-10 border-t border-white/5">
+        <div className="max-w-5xl mx-auto rounded-2xl border border-orange-500/15 bg-white/[0.025] p-6 md:p-8 shadow-[0_20px_70px_rgba(230,74,25,0.10)]">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300">
+                <Download className="h-3.5 w-3.5" />
+                {isAr ? "الإصدار الرسمي" : "Official release"}
+              </span>
+              <h2 className="mt-3 text-xl font-black text-white md:text-2xl">{isAr ? "معلومات تحميل MoPlayer PC" : "MoPlayer PC download details"}</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-white/55">
+                {isAr
+                  ? "تأتي هذه القيم من لوحة الأدمن. إذا لم يوجد ملف إصدار، لا يظهر زر التحميل للزائر."
+                  : "These values come from the admin panel. If no release file is configured, the download button is hidden from visitors."}
+              </p>
+            </div>
+            {windowsRelease?.maintenance ? (
+              <span className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-200">
+                {isAr ? "صيانة" : "Maintenance"}
+              </span>
+            ) : hasInstaller ? (
+              <a href={downloadHref} className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-orange-400">
+                <Download className="h-4 w-4" />
+                {hubCopy.primaryCta}
+              </a>
+            ) : (
+              <span className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white/45">
+                {c.releasePending}
+              </span>
+            )}
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {releaseCardItems.map((item) => (
+              <div key={item.label} className="rounded-xl border border-white/8 bg-black/20 p-4">
+                <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-orange-300/70">{item.label}</span>
+                <strong className={`mt-1 block text-sm text-white ${item.mono ? "break-all font-mono text-xs leading-6" : ""}`}>{item.value}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Philosophy & Privacy */}
       <section className="relative py-16 px-6 z-10 border-t border-white/5">
@@ -406,7 +463,7 @@ export function MoPlayerPcLanding({
                 <Download className="h-4 w-4" /> {hubCopy.primaryCta}
               </a>
             )}
-            {windowsRelease?.portableFile ? (
+            {hasPortable ? (
               <a href={portableHref} className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2">
                 <ArrowDownToLine className="h-4 w-4 text-orange-300" /> {isAr ? "نسخة محمولة" : "Portable version"}
               </a>

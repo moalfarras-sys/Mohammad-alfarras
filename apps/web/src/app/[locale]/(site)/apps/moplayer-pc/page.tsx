@@ -36,7 +36,9 @@ export async function generateMetadata({
     readLatestWindowsRelease(),
   ]);
   const image = normalizePublicImagePath(
-    windowsRelease?.heroImage ||
+    windowsRelease?.cardImage ||
+      windowsRelease?.heroImage ||
+      windowsRelease?.screenshotItems?.[0]?.url ||
       windowsRelease?.screenshots?.[0] ||
       ecosystem.product.hero_image_path ||
       ecosystem.product.tv_banner_path ||

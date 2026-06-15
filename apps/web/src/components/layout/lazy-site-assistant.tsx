@@ -13,10 +13,10 @@ const SiteAssistantWidget = dynamic(
   {
     ssr: false,
     loading: () => (
-      <aside className="mo-ai-widget mo-ai-widget-open" aria-label="Mo Ai" aria-busy="true">
+      <aside className="mo-ai-widget mo-ai-widget-open" aria-label="Assistant" aria-busy="true">
         <section className="mo-ai-panel mo-ai-panel-loading">
           <LoaderCircle className="animate-spin" />
-          <span>Mo Ai</span>
+          <span aria-hidden="true">…</span>
         </section>
       </aside>
     ),
@@ -57,10 +57,10 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
         type="button"
         className="mo-ai-fab"
         onClick={() => setReady(true)}
-        aria-label={locale === "ar" ? "فتح مساعد Mo Ai" : "Open Mo Ai assistant"}
+        aria-label={locale === "ar" ? "فتح المساعد" : "Open assistant"}
       >
         <MessageCircle />
-        <span>Mo Ai</span>
+        <span>{locale === "ar" ? "مساعد محمد" : "Assistant"}</span>
       </button>
     </div>
   );

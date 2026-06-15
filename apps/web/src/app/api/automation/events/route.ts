@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     } catch (error) {
       await sendAutomationAlert({
         title: "Automation event was not stored",
-        message: error instanceof Error ? error.message : "Supabase failed to store the automation event.",
+        message: error instanceof Error ? error.message : "The automation event was not stored.",
         route: "/api/automation/events",
         severity: "danger",
         details: {

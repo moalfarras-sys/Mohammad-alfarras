@@ -37,7 +37,10 @@ export async function GET(request: Request) {
     // Binaries are >100 MB, so production hosts them on GitHub Releases;
     // the local static copy is only a dev fallback.
     const external = portable ? release?.portableDownloadUrl : release?.downloadUrl;
-    const fileName = (portable ? release?.portableFile : release?.file) || "MoPlayer-PC-Setup.exe";
+    const fileName = portable ? release?.portableFile : release?.file;
+    if (!release || !fileName) {
+      return NextResponse.json({ error: "MoPlayer PC release file not configured" }, { status: 404, headers: { "Cache-Control": "no-store" } });
+    }
     const target = external ?? new URL(`/downloads/moplayer/windows/${fileName}`, request.url);
     after(() =>
       recordDownload(

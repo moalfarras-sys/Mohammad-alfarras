@@ -10,8 +10,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) return {};
   const loc = locale as Locale;
   return {
-    title: "Mo Ai",
-    description: "Mo Ai is available as an in-page assistant widget across moalfarras.space.",
+    title: "Site assistant",
+    description: "The site assistant is available as an in-page widget across moalfarras.space.",
     robots: { index: false, follow: false },
     alternates: {
       canonical: `${SITE_URL}/${loc}`,

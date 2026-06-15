@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MoPlayerProductHub } from "@/components/app/moplayer-product-hub";
+import { normalizePublicImagePath } from "@/lib/asset-url";
+import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { isLocale } from "@/lib/i18n";
+import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
 
@@ -27,6 +30,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const meta = localizedMeta[locale];
+  const pro = await readAppEcosystem("moplayer2");
+  const image = normalizePublicImagePath(pro.product.hero_image_path || pro.product.tv_banner_path || pro.screenshots[0]?.image_path || "/images/moplayer-pro-hero.webp");
   return {
     title: meta.title,
     description: meta.description,
@@ -45,13 +50,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: meta.socialTitle }],
+      images: [{ url: image, width: 1600, height: 900, alt: meta.socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.socialTitle,
       description: meta.description,
-      images: ["/images/moplayer-pro-hero.webp"],
+      images: [image],
     },
   };
 }
@@ -79,13 +84,18 @@ export default async function MoPlayerHubRoute({ params }: { params: Promise<{ l
       { "@type": "ListItem", position: 3, name: "MoPlayer PC", url: `${SITE_URL}/api/app/download/latest?product=moplayer2&platform=windows` },
     ],
   };
+  const [classic, pro, windowsRelease] = await Promise.all([
+    readAppEcosystem("moplayer"),
+    readAppEcosystem("moplayer2"),
+    readLatestWindowsRelease(),
+  ]);
 
   return (
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(itemList) }} />
-      <MoPlayerProductHub locale={loc} />
+      <MoPlayerProductHub locale={loc} classic={classic} pro={pro} windowsRelease={windowsRelease} />
     </>
   );
 }

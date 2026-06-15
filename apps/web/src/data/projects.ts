@@ -46,6 +46,6 @@ export const projects: ProjectEntry[] = [
       github: "https://github.com/moalfarras-sys",
     },
     status: "coming-soon",
-    tags: ["Next.js", "UI", "Product"],
+    tags: ["Web experience", "Interface", "Product"],
   },
 ];

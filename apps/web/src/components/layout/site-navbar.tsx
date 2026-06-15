@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Bot, BriefcaseBusiness, Home, Menu, MonitorPlay, PlayCircle, Send, UserRound, Wrench } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, MonitorPlay, PlayCircle, Send, UserRound, Wrench } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,7 +19,6 @@ const dockIcons = {
   work: BriefcaseBusiness,
   services: Wrench,
   apps: MonitorPlay,
-  ai: Bot,
   youtube: PlayCircle,
   cv: UserRound,
   contact: Send,

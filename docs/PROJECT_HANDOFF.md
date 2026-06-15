@@ -11,8 +11,10 @@ This repository is a production monorepo for the public website, admin control c
 - Changed Work/project rendering so public project cards come from active admin projects when they exist. Static fallback projects are now used only if the database has no active projects.
 - Added an `activation_hero` site-image slot in Admin > Website > Key Site Images, and wired activation/support/social preview images to admin-selected media.
 - Production data cleanup completed: added the missing portrait, activation-flow, and PC desktop images to `media_assets`; populated `site_images` keys for home, apps, activation, AI, support, and legal hero slots.
+- Added a safe early browser-side locale attribute correction so `/en/*` pages set `documentElement.lang=en` / `dir=ltr` and `/ar/*` pages set `lang=ar` / `dir=rtl` without making the static public routes dynamic.
 - Important counter limitation: production currently has a first recorded download timestamp of `2026-06-14T19:00:57.030Z` and total `1`. Older downloads before this counter existed cannot be reconstructed from the current database.
-- Verification passed: `npm run verify:web`, `npm run verify:admin`, plus local Playwright visual QA on desktop and 390px mobile for `/en`, `/en/work`, `/en/apps`, Classic, Pro, PC, activation, and support routes.
+- Verification passed: `npm run verify:web`, `npm run verify:admin`, `npm run verify:production`, plus local and production Playwright visual QA on desktop and 390px mobile for `/en`, `/en/work`, `/en/apps`, Classic, Pro, PC, activation, and support routes.
+- Production deploy completed: public deployment `dpl_HHLFPqBzgUhFjrEbv4CpREqDaYT2` is aliased to `https://moalfarras.space`; admin deployment `dpl_Cnf7gGm7m2TGdHFWhe9E2W9YBbu6` is aliased to `https://admin.moalfarras.space`.
 
 ## 2026-06-15 AI, Support, Legal, and Cron Update
 

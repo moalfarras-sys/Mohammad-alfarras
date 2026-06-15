@@ -1,35 +1,52 @@
 # Deployment Report
 
-Date: 2026-06-15 · Branch: `cursor/admin-panel-upgrade`
+Date: 2026-06-15
 
-## Status: this session's changes are NOT deployed
-Per your decision ("continue heavier work first"), production deploy was **held**. No commit or push to `main` was made this session.
+## Status: DEPLOYED to production ✅
 
-Important: the brief's main feature work (AI page → redirect, contact/support rebuild, download metadata, legal routes, jargon fixes) is **uncommitted in the working tree on this branch**. Production (`main`) still runs the previously-deployed code until this branch is committed and merged. The **live CMS content edits** I made (service/work copy) were written directly to production Supabase, so they are already live in the data layer regardless of code deploy.
+| Field | Value |
+|---|---|
+| Branch | `cursor/admin-panel-upgrade` |
+| Commit | `ce89118c` — "finalize-admin-cms-contact-ai-widget-production-ready" |
+| Merge to main | fast-forward push `8d28ed2a..ce89118c` → `origin/main` |
+| Deploy trigger | push to `origin/main` → Vercel auto-deploy (web + admin) |
+| Production domains | https://moalfarras.space (web), https://admin.moalfarras.space (admin) |
+| Deploy went live | ~2 min after push (verified by polling production) |
+| Vercel deploy ID | not captured (no Vercel API/token access this session) |
 
-## Ready / green
-- `npm run verify:web` passes: typecheck + lint + build + 12/12 tests.
-- `npm run typecheck:admin` passes.
-- Key routes 200; downloads, sitemap, robots, contact/support forms, AI widget verified locally (reads prod Supabase).
-- Admin⇄site binding proven live and reversible (CMS-REALITY-TEST.md).
+## Pre-deploy gates (all green)
+- `npm run verify:web` — typecheck + lint + build + 12/12 tests ✅
+- `npm run verify:admin` — typecheck + lint + build ✅
 
-## Working-tree changes to commit
-- Code (jargon removal): `content/site.ts`, `components/site/digital-os-vnext.tsx`, `components/site/work-digital-exhibition.tsx`, `components/app/moplayer2-landing.tsx`, `components/layout/site-footer.tsx`, `app/layout.tsx`, `app/not-found.tsx`.
-- Code (contact attachment): `app/api/contact/route.ts`, `components/site/liquid-contact-form.tsx`.
-- The 10 report files in this set.
-- (Pre-existing uncommitted feature work on this branch: AI redirect, contact/support, download counters, legal — verify these are intended before merge.)
+## Post-deploy production verification (live on moalfarras.space)
 
-## Deploy procedure (when authorized)
-1. Review + commit code and reports on the branch.
-2. Merge/push to `main` → Vercel auto-deploys web (`moalfarras.space`) + admin (`admin.moalfarras.space`).
-3. Post-deploy smoke on production: `/en`, `/ar`, `/en/contact`, `/en/services`, `/en/work`, MoPlayer pages; confirm `/ai` redirects + `noindex`; footer/header clean; jargon gone; a real download; sitemap/robots.
+**Status codes** — all 200: `/ar`, `/en`, `/ar/contact`, `/en/contact`, `/ar/support`, `/en/support`, `/ar/apps/moplayer`, `/ar/apps/moplayer2`, `/ar/apps/moplayer/classic`, `/ar/apps/moplayer-pc`, `/ar/activate`, `/sitemap.xml`, `/robots.txt`. `/activate`→`/ar/activate` (307).
 
-## Recommended before deploy
-- Pixel multi-device visual pass (VISUAL-FINAL-QA.md) and Lighthouse (PERFORMANCE-FINAL-QA.md).
-- Optional: contact file upload; wire home hero to `home_content`; decide on SSR `<html lang>` + SEO framework keywords.
+**AI page** — `/en/ai`→`/en`, `/ar/ai`→`/ar` (307 redirect, noindex). No standalone AI page.
 
-## Cleanup
-- Remove `tmp-cms-probe/` (temporary Supabase probe/test scripts created this session), and stale `tmp-web-*.log` / `tmp-download-qa/`.
+**No tech jargon (visitor body text)** — home: "Behind the scenes"/"Fast performance" present, "Digital OS"/"Next.js" gone; services: "Business Websites You Can Edit Yourself" (no "CMS-Controlled"); moplayer2: clean copy (no "admin-controlled"/"Supabase and admin"). (SEO JSON-LD `knowsAbout` + meta keywords intentionally still name frameworks — not visitor body text.)
 
----
-_Note: a prior version of this file described an earlier 2026-06-15 production deployment (pre-AI-removal, when `/en/ai` returned 200). That report is superseded by this one._
+**Header/footer** — no "Mo Ai" link; floating Mo Ai widget present; footer clean (Navigation/Product/Channels/Legal, my tagline fix live, no "Built with").
+
+**Chatbot widget** — opens on click (panel `mo-ai-widget-open` with input). Verified on identical deployed code (preview browser is localhost-locked, so checked the same build locally).
+
+**Downloads (HTTP 206 range = real files)** — Classic APK, Pro APK, MoPlayer PC Setup.exe + Portable.exe (GitHub Releases v1.0.2). Correct content-type for APKs.
+
+**Placeholders** — none ("Owner confirmation needed"/lorem/TODO = 0 across home, contact, support, moplayer2, privacy).
+
+**Console errors** — none on home (checked on the identical deployed build locally; production browser console not directly accessible via the preview tool).
+
+## Honest — not exercised live (to avoid polluting production)
+- Live submission of contact/support forms (would create real rows + email the owner). Storage is proven by 5 existing `contact_messages` rows; both forms render fully; contact attachment field is live and uses the proven `support-uploads` upload path.
+- Download counter increment (would inflate real counters). Mechanism records on each redirect; moplayer2 page shows a live count.
+- Flipping a real app into maintenance (would disrupt live downloads). Code path + version binding verified instead.
+- Authenticated admin UI screenshots (owner password not available). Admin function proven via the live reversible binding test (CMS-REALITY-TEST.md).
+- Lighthouse/Web Vitals and full pixel multi-device matrix (representative set captured; see VISUAL/PERFORMANCE reports).
+
+## Live DB content changes
+Applied to production Supabase and codified in `supabase/migrations/20260615170000_visitor_copy_jargon_cleanup.sql` (services copy, work tags, moplayer2 product copy). Data map in CMS-REALITY-TEST.md.
+
+## Recommended follow-ups (non-blocking)
+- Make root SSR `<html lang>` locale-correct (currently corrected client-side; see SEO-FINAL-QA.md).
+- Wire home hero copy to the `home_content` CMS setting (currently hardcoded).
+- Run Lighthouse and a full device-matrix visual pass.

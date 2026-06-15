@@ -18,13 +18,13 @@ Date: 2026-06-15 · Branch: `cursor/admin-panel-upgrade` · Verified against loc
 | 9 | Downloads work | ✅ Done (APK) | Classic 52,792,635 B & Pro 49,260,800 B → HTTP 200, correct content-type; config from live Supabase. PC (GitHub Releases) not browser-tested this session |
 | 10 | MoPlayer pages | ✅ Routes healthy | `/apps/moplayer`, `/apps/moplayer2`, `/apps/moplayer/classic`, `/apps/moplayer-pc`, `/activate`, `/support` → 200 |
 | 11 | Sitemap & SEO | ✅ Done | `/ai` absent from sitemap; robots clean; canonical/hreflang in metadata |
-| 12 | Mobile/performance | ◑ Partial | Route health + structure verified; pixel multi-device screenshots not captured (see VISUAL-FINAL-QA.md) |
+| 12 | Mobile/performance | ◑ Partial | Representative screenshots captured (home AR mobile, contact AR mobile + form/upload, support EN, 404, moplayer2) — see VISUAL-FINAL-QA.md; no Lighthouse run |
 | 13 | Footer/header clean | ✅ Done | No "Mo Ai"; no tech jargon; clear links only |
 | 14 | Legal pages | ✅ Present | `/impressum`,`/terms`,`/app-disclaimer`,`/download-disclaimer` exist; hidden until admin publishes owner details |
 | 15 | Chatbot as in-site assistant | ✅ Done | Floating widget, not a page |
 | 16 | 10-day reports | ✅ Configured | Vercel cron `0 7 */10 * *` → `/api/cron/report`; emails owner + writes to `automation_inbox` |
 | 17 | Pre-publish gate | ✅ Green | `npm run verify:web` = typecheck + lint + build + 12/12 tests pass; admin typecheck passes |
-| 18 | Production deploy | ⏸ Not done | Held per your choice ("continue heavier work first"). Not pushed to `main` |
+| 18 | Production deploy | ✅ Deployed | Commit `ce89118c` → `origin/main` (FF); live on moalfarras.space + admin; post-deploy verified (see DEPLOYMENT-REPORT.md) |
 
 ## Fixes applied this pass
 
@@ -42,6 +42,8 @@ Date: 2026-06-15 · Branch: `cursor/admin-panel-upgrade` · Verified against loc
 - Service `business-websites` (en): title "CMS-Controlled Business Websites" → "Business Websites You Can Edit Yourself"; description rewritten
 - Service `srv-uiux` (en+ar): removed "built with Next.js, React, TypeScript"
 - Work `wp-ecosystem` (en+ar): tags `["Next.js","RTL/LTR","Admin CMS"]` → `["Web Platform","Arabic & English","Admin Panel"]`
+- App product `moplayer2` (found via visual QA): tagline/long_description/feature_highlights/how_it_works — removed "admin-controlled", "Supabase", "Vercel", "runtime settings", "admin product switcher", "Downloader code", "Independent records" → customer copy
+- Codified in migration `supabase/migrations/20260615170000_visitor_copy_jargon_cleanup.sql`
 
 ## Known gaps / decisions
 - Home hero headline copy is hardcoded (not CMS-editable) — see CMS-REALITY-TEST.md.

@@ -42,7 +42,7 @@ export async function GET(request: Request) {
   return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="mohammad-alfarras-${locale}-${variant}.pdf"`,
+      "Content-Disposition": `inline; filename="Mohammad-Alfarras-CV-2026-${locale}-${variant}.pdf"`,
       "Cache-Control": "public, max-age=3600",
     },
   });

@@ -520,8 +520,8 @@ export async function readManagedAppEcosystems(): Promise<AppEcosystemData[]> {
   return Promise.all(managedApps.map((app) => readAppEcosystem(app.slug)));
 }
 
-export async function saveSupportRequest(input: { product_slug: string; name: string; email: string; message: string }) {
-  const requestId = crypto.randomUUID();
+export async function saveSupportRequest(input: { id?: string; product_slug: string; name: string; email: string; message: string }) {
+  const requestId = input.id || crypto.randomUUID();
   const fallbackPayload: AppSupportRequest = {
     id: requestId,
     product_slug: input.product_slug,

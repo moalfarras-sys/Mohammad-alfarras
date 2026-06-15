@@ -27,6 +27,23 @@ async function recentLeads(sinceIso: string): Promise<Lead[]> {
   }
 }
 
+async function saveInboxReport(input: { title: string; body: string; payload: Record<string, unknown> }) {
+  try {
+    const supabase = createSupabaseAdminClient();
+    await supabase.from("automation_inbox").insert({
+      title: input.title,
+      body: input.body,
+      severity: "info",
+      status: "new",
+      action_type: "site_report",
+      action_payload: input.payload,
+      created_by: "vercel-cron",
+    });
+  } catch {
+    // The email report remains the primary delivery path if the inbox table is unavailable.
+  }
+}
+
 /**
  * 10-day owner report: downloads (per app), visits, and new leads → one
  * cinematic email. Triggered by Vercel Cron (see vercel.json) and protected
@@ -80,6 +97,18 @@ export async function GET(request: Request) {
       html,
     });
   }
+
+  await saveInboxReport({
+    title: `10-day moalfarras.space report`,
+    body: text,
+    payload: {
+      period_days: PERIOD_DAYS,
+      sent,
+      downloads: { total: downloads.total, ...downloads.counts },
+      visits: visits.total,
+      leads: leads.length,
+    },
+  });
 
   return NextResponse.json(
     {

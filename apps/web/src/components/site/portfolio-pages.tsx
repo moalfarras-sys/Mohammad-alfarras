@@ -87,7 +87,7 @@ export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
   );
 }
 
-export function PortfolioPrivacyPage({ locale }: { locale: string }) {
+export function PortfolioPrivacyPage({ locale, extraNote }: { locale: string; extraNote?: string }) {
   const t = repairMojibakeDeep(privacyCopy[locale as "en" | "ar"] ?? privacyCopy.en);
   const ar = isArabic(locale);
 
@@ -106,6 +106,12 @@ export function PortfolioPrivacyPage({ locale }: { locale: string }) {
               <p>{section.body}</p>
             </article>
           ))}
+          {extraNote?.trim() ? (
+            <article>
+              <span>{ar ? "ملاحظة إضافية" : "Additional note"}</span>
+              <p>{extraNote.trim()}</p>
+            </article>
+          ) : null}
         </div>
       </section>
     </PageShell>

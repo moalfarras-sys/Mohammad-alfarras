@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { PortfolioPrivacyPage } from "@/components/site/portfolio-pages";
 import { privacyCopy } from "@/content/legal";
 import { SITE_URL } from "@/content/site";
+import { readSiteSetting } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
+import type { LegalPagesSetting } from "@/lib/legal-pages";
 import { breadcrumbJsonLd, jsonLdString, webPageJsonLd } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
 
@@ -55,6 +57,7 @@ export default async function LocalizedPrivacyPage({ params }: { params: Promise
 
   const loc = locale as Locale;
   const copy = privacyCopy[loc];
+  const legal = await readSiteSetting<LegalPagesSetting>("legal_pages", {});
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: copy.eyebrow, path: `/${loc}/privacy` },
@@ -70,7 +73,7 @@ export default async function LocalizedPrivacyPage({ params }: { params: Promise
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <PortfolioPrivacyPage locale={loc} />
+      <PortfolioPrivacyPage locale={loc} extraNote={legal.privacyExtra} />
     </>
   );
 }

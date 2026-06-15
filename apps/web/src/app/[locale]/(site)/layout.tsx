@@ -12,6 +12,7 @@ import { siteIdentity, youtubeChannel } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale, withLocale } from "@/lib/i18n";
+import { legalFooterLinks, legalPagesPublished, type LegalPagesSetting } from "@/lib/legal-pages";
 import { getLiveYoutubeChannelStats } from "@/lib/youtube-live";
 
 export const revalidate = 30;
@@ -170,6 +171,8 @@ export default async function SiteLayout({
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
   const navLinks = getNavigation(locale);
+  const legalPages = getSiteSetting<LegalPagesSetting>(snapshot, "legal_pages", {});
+  const footerLegalLinks = legalPagesPublished(legalPages) ? legalFooterLinks(locale) : [];
 
   const personJsonLd = {
     "@context": "https://schema.org",
@@ -230,6 +233,7 @@ export default async function SiteLayout({
           logoSrc={logoSrc}
           brandName={copy.brandName}
           links={navLinks}
+          legalLinks={footerLegalLinks}
           quickFacts={footerQuickFacts}
         />
       </div>

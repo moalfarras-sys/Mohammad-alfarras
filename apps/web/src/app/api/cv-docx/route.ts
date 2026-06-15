@@ -148,7 +148,7 @@ export async function GET(request: Request) {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  const filename = `Mohammad-Alfarras-CV-${locale}.docx`;
+  const filename = `Mohammad-Alfarras-CV-2026-${locale}.docx`;
   return new Response(new Uint8Array(buffer), {
     headers: {
       "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

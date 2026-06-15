@@ -12,6 +12,7 @@ import {
   deleteWebsiteServiceAction,
   saveWebsiteBrandAction,
   saveWebsiteContactAction,
+  saveLegalPagesAction,
   saveWebsiteOffersAction,
   saveSiteStatusAction,
   saveWebsiteThemeAction,
@@ -297,6 +298,21 @@ type HomeContent = {
 };
 
 type SiteStatus = { maintenance?: boolean; message_ar?: string; message_en?: string };
+type LegalPagesSetting = {
+  published?: boolean;
+  responsibleName?: string;
+  businessName?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  taxId?: string;
+  register?: string;
+  privacyExtra?: string;
+  termsExtra?: string;
+  appDisclaimerExtra?: string;
+  downloadDisclaimerExtra?: string;
+  updatedAt?: string;
+};
 type BrandAssets = {
   siteName?: { ar?: string; en?: string };
   navTagline?: { ar?: string; en?: string };
@@ -338,6 +354,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
   const { t } = useLocale();
   const home = setting<HomeContent>(data.settings, "home_content", homeFallback);
   const status = setting<SiteStatus>(data.settings, "site_status", {});
+  const legal = setting<LegalPagesSetting>(data.settings, "legal_pages", {});
   const brand = setting<BrandAssets>(data.settings, "brand_assets", {});
   const theme = setting<SiteTheme>(data.settings, "site_theme", {});
   const contact = setting<ContactContent>(data.settings, "contact_page_content", contactFallback);
@@ -395,6 +412,11 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
           href="/website#maintenance"
           title={t({ en: "Put site in maintenance", ar: "تشغيل صيانة الموقع" })}
           body={t({ en: "Use only when visitors should temporarily see a maintenance message.", ar: "استخدمها فقط عندما تريد أن يرى الزوار رسالة صيانة مؤقتة." })}
+        />
+        <QuickJump
+          href="/website#legal"
+          title={t({ en: "Publish legal pages", ar: "نشر الصفحات القانونية" })}
+          body={t({ en: "Impressum, terms, and app disclaimers stay hidden until required owner details are filled.", ar: "تبقى البيانات القانونية والشروط والتنبيهات مخفية حتى تكتمل بيانات المالك المطلوبة." })}
         />
         <QuickJump
           href="/website#offers"
@@ -523,6 +545,47 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
           <Area label={t({ en: "English message", ar: "رسالة الصيانة (إنجليزي)" })} name="message_en" defaultValue={status.message_en} placeholder="We are doing maintenance, back soon." />
           <div>
             <button type="submit" className="btn btn-primary">{t({ en: "Save site status", ar: "حفظ حالة الموقع" })}</button>
+          </div>
+        </form>
+      </Accordion>
+
+      <Accordion
+        id="legal"
+        title={t({ en: "Legal pages", ar: "الصفحات القانونية" })}
+        description={t({ en: "Control Impressum, terms, app disclaimer, and download disclaimer visibility.", ar: "تحكم بظهور البيانات القانونية والشروط وتنبيه التطبيق وتنبيه التحميل." })}
+        icon={<FileText className="h-5 w-5" />}
+        tone="accent"
+        count={legal.published ? t({ en: "PUBLISHED", ar: "منشور" }) : t({ en: "HIDDEN", ar: "مخفي" })}
+        defaultOpen={Boolean(legal.published)}
+      >
+        <SectionHelp
+          title={t({ en: "Publish only when complete", ar: "انشر فقط عند اكتمال البيانات" })}
+          body={t({
+            en: "The public legal routes are hidden until publishing is enabled and responsible name, address, and email are filled. This prevents incomplete legal pages from appearing to visitors.",
+            ar: "تبقى الروابط القانونية العامة مخفية حتى يتم تفعيل النشر وتعبئة اسم المسؤول والعنوان والبريد. هذا يمنع ظهور صفحات قانونية ناقصة للزوار.",
+          })}
+          tone="warning"
+        />
+        <form action={saveLegalPagesAction} className="grid gap-4 lg:grid-cols-2">
+          <Toggle
+            name="published"
+            label={t({ en: "Publish legal pages", ar: "نشر الصفحات القانونية" })}
+            description={t({ en: "Required before footer and sitemap links appear.", ar: "مطلوب حتى تظهر الروابط في التذييل وملف sitemap." })}
+            checked={Boolean(legal.published)}
+          />
+          <Inp label={t({ en: "Responsible name", ar: "اسم المسؤول" })} name="responsibleName" defaultValue={legal.responsibleName ?? ""} required />
+          <Inp label={t({ en: "Business name", ar: "الاسم التجاري" })} name="businessName" defaultValue={legal.businessName ?? ""} />
+          <Inp label={t({ en: "Email", ar: "البريد الإلكتروني" })} name="email" type="email" defaultValue={legal.email ?? ""} required />
+          <Area label={t({ en: "Address", ar: "العنوان" })} name="address" defaultValue={legal.address ?? ""} required rows={4} />
+          <Inp label={t({ en: "Phone", ar: "الهاتف" })} name="phone" defaultValue={legal.phone ?? ""} />
+          <Inp label={t({ en: "Tax ID / VAT", ar: "الرقم الضريبي / VAT" })} name="taxId" defaultValue={legal.taxId ?? ""} />
+          <Inp label={t({ en: "Register entry", ar: "بيانات السجل" })} name="register" defaultValue={legal.register ?? ""} />
+          <Area label={t({ en: "Privacy extra note", ar: "ملاحظة إضافية للخصوصية" })} name="privacyExtra" defaultValue={legal.privacyExtra ?? ""} rows={4} />
+          <Area label={t({ en: "Terms extra note", ar: "ملاحظة إضافية للشروط" })} name="termsExtra" defaultValue={legal.termsExtra ?? ""} rows={4} />
+          <Area label={t({ en: "App disclaimer extra note", ar: "ملاحظة إضافية لتنبيه التطبيق" })} name="appDisclaimerExtra" defaultValue={legal.appDisclaimerExtra ?? ""} rows={4} />
+          <Area label={t({ en: "Download disclaimer extra note", ar: "ملاحظة إضافية لتنبيه التحميل" })} name="downloadDisclaimerExtra" defaultValue={legal.downloadDisclaimerExtra ?? ""} rows={4} />
+          <div className="lg:col-span-2">
+            <button type="submit" className="btn btn-primary">{t({ en: "Save legal pages", ar: "حفظ الصفحات القانونية" })}</button>
           </div>
         </form>
       </Accordion>
@@ -832,15 +895,18 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
         <SectionHelp
           title={t({ en: "Now editable from here", ar: "صارت قابلة للتعديل من هنا" })}
           body={t({
-            en: "These are images that were previously hard-coded on the site, so you couldn't find them. Pick any image from your library (or upload first in Media), then Save. Leave on the default to use the original.",
-            ar: "هذه صور كانت مثبّتة في الكود سابقاً فما كنت تلاقيها. اختر أي صورة من مكتبتك (أو ارفعها أولاً في قسم الصور) ثم احفظ. اتركها على الافتراضي لاستخدام الصورة الأصلية.",
+            en: "These are images that were previously hard-coded on the site. Pick any image from the library or upload a new file directly from your device, then Save. Leave empty to use the original.",
+            ar: "هذه صور كانت مثبّتة في الكود سابقاً. اختر أي صورة من المكتبة أو ارفع ملفاً جديداً مباشرة من جهازك ثم احفظ. اتركها فارغة لاستخدام الصورة الأصلية.",
           })}
         />
-        <form action={saveSiteImagesAction} className="grid gap-4 lg:grid-cols-3">
-          <MediaSelect label={t({ en: "Homepage photo (portrait)", ar: "صورة الرئيسية (البورتريه)" })} name="home_portrait_media_id" assets={data.mediaAssets} value={siteImages.home_portrait ?? ""} fallbackPath="/images/protofeilnew.jpeg" />
-          <MediaSelect label={t({ en: "Homepage product image", ar: "صورة المنتج في الرئيسية" })} name="home_product_hero_media_id" assets={data.mediaAssets} value={siteImages.home_product_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
-          <MediaSelect label={t({ en: "Homepage activation image", ar: "صورة التفعيل في الرئيسية" })} name="home_product_secondary_media_id" assets={data.mediaAssets} value={siteImages.home_product_secondary ?? ""} fallbackPath="/images/moplayer-activation-flow.webp" />
-          <MediaSelect label={t({ en: "Apps page hero image", ar: "صورة بطل صفحة التطبيقات" })} name="apps_hero_media_id" assets={data.mediaAssets} value={siteImages.apps_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
+        <form action={saveSiteImagesAction} className="grid gap-4 lg:grid-cols-3" encType="multipart/form-data">
+          <ImageControl label={t({ en: "Homepage photo (portrait)", ar: "صورة الرئيسية (البورتريه)" })} selectName="home_portrait_media_id" fileName="home_portrait_file" assets={data.mediaAssets} value={siteImages.home_portrait ?? ""} fallbackPath="/images/protofeilnew.jpeg" />
+          <ImageControl label={t({ en: "Homepage product image", ar: "صورة المنتج في الرئيسية" })} selectName="home_product_hero_media_id" fileName="home_product_hero_file" assets={data.mediaAssets} value={siteImages.home_product_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
+          <ImageControl label={t({ en: "Homepage activation image", ar: "صورة التفعيل في الرئيسية" })} selectName="home_product_secondary_media_id" fileName="home_product_secondary_file" assets={data.mediaAssets} value={siteImages.home_product_secondary ?? ""} fallbackPath="/images/moplayer-activation-flow.webp" />
+          <ImageControl label={t({ en: "Apps page hero image", ar: "صورة بطل صفحة التطبيقات" })} selectName="apps_hero_media_id" fileName="apps_hero_file" assets={data.mediaAssets} value={siteImages.apps_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
+          <ImageControl label={t({ en: "AI page hero image", ar: "صورة صفحة الذكاء الاصطناعي" })} selectName="ai_hero_media_id" fileName="ai_hero_file" assets={data.mediaAssets} value={siteImages.ai_hero ?? ""} fallbackPath="/images/hero_tech.png" />
+          <ImageControl label={t({ en: "Support page hero image", ar: "صورة صفحة الدعم" })} selectName="support_hero_media_id" fileName="support_hero_file" assets={data.mediaAssets} value={siteImages.support_hero ?? ""} fallbackPath="/images/moplayer-activation-flow.webp" />
+          <ImageControl label={t({ en: "Legal pages hero image", ar: "صورة الصفحات القانونية" })} selectName="legal_hero_media_id" fileName="legal_hero_file" assets={data.mediaAssets} value={siteImages.legal_hero ?? ""} fallbackPath="/images/hero_tech.png" />
           <div className="lg:col-span-3">
             <button type="submit" className="btn btn-primary">{t({ en: "Save site images", ar: "حفظ صور الموقع" })}</button>
           </div>

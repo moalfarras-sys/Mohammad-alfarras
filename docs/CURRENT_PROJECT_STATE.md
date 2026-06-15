@@ -1,6 +1,22 @@
 # Current Project State
 
-Updated: 2026-06-06
+Updated: 2026-06-15
+
+## 2026-06-15 AI, Support, Legal, and Reporting Pass
+
+- The standalone localized AI route is active again at `/en/ai` and `/ar/ai`. It uses `apps/web/src/components/site/ai-assistant-page.tsx` and the existing `/api/ai/site-assistant` backend, while the floating Mo Ai widget remains available site-wide.
+- Main navigation and mobile dock include `Mo Ai`; sitemap includes `/ai`. This supersedes the older 2026-06-06 note that the standalone AI page should stay redirected.
+- The support page at `/en/support` and `/ar/support` was rebuilt as a diagnostic support form for MoPlayer Pro, Classic, PC, website requests, and other issues. Visitor-facing internal/TODO legal text was removed.
+- `/api/app/support` now stores structured diagnostics: product/area, issue type, device, app version, optional WhatsApp/phone, message, and optional screenshot upload metadata. Screenshots target the private Supabase Storage bucket `support-uploads`; migration `20260615100000_support_uploads_bucket.sql` creates/updates that bucket.
+- Legal public routes were added for `/impressum`, `/terms`, `/app-disclaimer`, and `/download-disclaimer`. They stay 404/hidden until the admin publishes complete legal owner details.
+- Admin Website Control has a new Legal Pages section. Publishing is blocked server-side unless responsible name, address, and email are present. Published legal links are then added to the footer and sitemap.
+- Admin Website Control Key Site Images supports media-library selection and direct device upload for homepage portrait/product/activation, apps hero, AI hero, support hero, and legal hero.
+- CMS project cover/gallery selections are respected; hard-coded visual overrides for specific slugs were removed.
+- Privacy can now receive an admin-managed extra note from the same `legal_pages` setting.
+- Vercel cron is configured in `vercel.json` for `/api/cron/report` on `0 7 */10 * *`; the route still emails the owner and now also writes a copy to `automation_inbox`.
+- CV export filenames now include 2026: `Mohammad-Alfarras-CV-2026-{locale}-{variant}.pdf` and `Mohammad-Alfarras-CV-2026-{locale}.docx`.
+- Static public CV aliases exist for `Mohammad-Alfarras-CV-2026-DE.pdf`, `Mohammad-Alfarras-CV-2026-EN.pdf`, and `Mohammad-Alfarras-CV-2026-AR.pdf`.
+- Verification passed on 2026-06-15: `npm run verify:web` and `npm run verify:admin`. Browser QA covered desktop/mobile `/en/ai`, desktop/mobile `/en/support`, hidden `/en/impressum`, and footer legal gating on `http://127.0.0.1:3000`.
 
 ## 2026-06-06 Work and Case Study Experience
 

@@ -1,24 +1,126 @@
+import { randomUUID } from "crypto";
+
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { saveSupportRequest } from "@/lib/app-ecosystem";
 import { isSmtpConfigured, ownerInbox, sendMail, sendTransactionalMail } from "@/lib/mailer";
+import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
+export const runtime = "nodejs";
+
+const screenshotMaxBytes = 8 * 1024 * 1024;
+const screenshotTypes = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+
 const supportSchema = z.object({
-  product_slug: z.string().trim().min(1).default("moplayer"),
+  support_product: z.enum(["moplayer2", "moplayer", "moplayer-pc", "website", "other"]).default("moplayer2"),
+  issue_type: z.enum(["activation", "download", "playback", "source", "account", "website", "other"]).default("other"),
+  device_type: z.enum(["android-tv", "fire-tv", "android-phone", "windows", "browser", "other"]).default("other"),
+  app_version: z.string().trim().max(80).optional().default(""),
+  whatsapp: z.string().trim().max(80).optional().default(""),
   name: z.string().trim().min(2).max(120),
   email: z.email().trim().max(160),
   message: z.string().trim().min(10).max(4000),
   locale: z.enum(["ar", "en"]).default("en"),
-  website: z.string().trim().max(0).optional().or(z.literal("")),
+  website: z.string().trim().max(500).optional().default(""),
 });
+
+type ScreenshotUpload = {
+  filename: string;
+  size: number;
+  type: string;
+  storagePath?: string;
+  signedUrl?: string;
+  error?: string;
+};
+
+function productSlugForSupport(product: z.infer<typeof supportSchema>["support_product"]) {
+  if (product === "moplayer") return "moplayer";
+  return "moplayer2";
+}
+
+function labelFor(value: string) {
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function safeFilename(value: string) {
+  const name = value.trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+  return name.slice(0, 90) || "screenshot";
+}
+
+async function uploadScreenshot(file: FormDataEntryValue | null, requestId: string): Promise<ScreenshotUpload | null> {
+  if (!(file instanceof File) || file.size === 0) return null;
+  const type = file.type || "application/octet-stream";
+  if (file.size > screenshotMaxBytes) {
+    throw new Error("Screenshot is too large. Use an image under 8 MB.");
+  }
+  if (!screenshotTypes.has(type)) {
+    throw new Error("Screenshot must be PNG, JPEG, WebP, or GIF.");
+  }
+
+  const filename = safeFilename(file.name);
+  const storagePath = `${requestId}/${Date.now()}-${filename}`;
+  try {
+    const supabase = createSupabaseAdminClient();
+    const upload = await supabase.storage.from("support-uploads").upload(storagePath, new Uint8Array(await file.arrayBuffer()), {
+      contentType: type,
+      upsert: false,
+    });
+    if (upload.error) {
+      return { filename, size: file.size, type, error: upload.error.message };
+    }
+    const signed = await supabase.storage.from("support-uploads").createSignedUrl(storagePath, 14 * 24 * 60 * 60);
+    return {
+      filename,
+      size: file.size,
+      type,
+      storagePath,
+      signedUrl: signed.data?.signedUrl,
+      error: signed.error?.message,
+    };
+  } catch (error) {
+    return {
+      filename,
+      size: file.size,
+      type,
+      error: error instanceof Error ? error.message : "Storage unavailable",
+    };
+  }
+}
+
+function supportDetails(payload: z.infer<typeof supportSchema>, screenshot: ScreenshotUpload | null) {
+  const lines = [
+    "Support diagnostics",
+    `Product/area: ${labelFor(payload.support_product)}`,
+    `Issue type: ${labelFor(payload.issue_type)}`,
+    `Device: ${labelFor(payload.device_type)}`,
+    `App version: ${payload.app_version || "not provided"}`,
+    `WhatsApp/phone: ${payload.whatsapp || "not provided"}`,
+  ];
+
+  if (screenshot) {
+    lines.push(`Screenshot: ${screenshot.filename} (${Math.round(screenshot.size / 1024)} KB, ${screenshot.type})`);
+    if (screenshot.storagePath) lines.push(`Screenshot storage path: ${screenshot.storagePath}`);
+    if (screenshot.signedUrl) lines.push(`Screenshot signed URL (14 days): ${screenshot.signedUrl}`);
+    if (screenshot.error) lines.push(`Screenshot upload note: ${screenshot.error}`);
+  }
+
+  return `${lines.join("\n")}\n\nMessage:\n${payload.message}`;
+}
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const payload = supportSchema.parse({
-      product_slug: String(formData.get("product_slug") ?? "moplayer"),
+      support_product: String(formData.get("support_product") ?? formData.get("product_slug") ?? "moplayer2"),
+      issue_type: String(formData.get("issue_type") ?? "other"),
+      device_type: String(formData.get("device_type") ?? "other"),
+      app_version: String(formData.get("app_version") ?? ""),
+      whatsapp: String(formData.get("whatsapp") ?? ""),
       name: String(formData.get("name") ?? ""),
       email: String(formData.get("email") ?? ""),
       message: String(formData.get("message") ?? ""),
@@ -30,25 +132,28 @@ export async function POST(request: Request) {
       return NextResponse.redirect(new URL(`/${payload.locale}/support?support=sent`, request.url), { status: 303 });
     }
 
-    const productSlug = resolveManagedAppSlug(payload.product_slug);
-    const requestId = await saveSupportRequest({ ...payload, product_slug: productSlug });
+    const requestId = randomUUID();
+    const productSlug = resolveManagedAppSlug(productSlugForSupport(payload.support_product));
+    const screenshot = await uploadScreenshot(formData.get("screenshot"), requestId);
+    const message = supportDetails(payload, screenshot);
+    await saveSupportRequest({ id: requestId, product_slug: productSlug, name: payload.name, email: payload.email, message });
 
     const to = ownerInbox();
     if (isSmtpConfigured() && to) {
       await sendMail({
         to,
-        subject: `New ${productSlug} support request - ${payload.name}`,
+        subject: `New ${payload.support_product} support request - ${payload.name}`,
         replyTo: payload.email,
-        text: `${payload.name} <${payload.email}>\nProduct: ${productSlug}\nRequest: ${requestId}\n\n${payload.message}`,
+        text: `${payload.name} <${payload.email}>\nProduct: ${payload.support_product}\nRequest: ${requestId}\n\n${message}`,
         html: supportEmailHtml({
           direction: payload.locale === "ar" ? "rtl" : "ltr",
           accent: productSlug === "moplayer2" ? "#f5c66b" : "#22d3ee",
           eyebrow: "App support request",
-          title: `${productSlug} support`,
+          title: `${labelFor(payload.support_product)} support`,
           intro: `${payload.name} <${payload.email}>`,
           requestId,
-          productSlug,
-          body: payload.message,
+          productSlug: payload.support_product,
+          body: message,
         }),
       });
     }
@@ -59,8 +164,8 @@ export async function POST(request: Request) {
       subject: payload.locale === "ar" ? "تم استلام طلب الدعم" : "We received your support request",
       text:
         payload.locale === "ar"
-          ? `تم استلام طلب دعم ${productSlug}.\nرقم الطلب: ${requestId}\nالحالة: جديد`
-          : `We received your ${productSlug} support request.\nRequest: ${requestId}\nStatus: new`,
+          ? `تم استلام طلب دعم ${labelFor(payload.support_product)}.\nرقم الطلب: ${requestId}\nالحالة: جديد`
+          : `We received your ${labelFor(payload.support_product)} support request.\nRequest: ${requestId}\nStatus: new`,
       html: supportEmailHtml({
         direction: payload.locale === "ar" ? "rtl" : "ltr",
         accent: productSlug === "moplayer2" ? "#f5c66b" : "#22d3ee",
@@ -71,7 +176,7 @@ export async function POST(request: Request) {
             ? "تم استلام طلب الدعم وسيتم الرد على هذا البريد."
             : "Your support request has been received and we will reply to this email.",
         requestId,
-        productSlug,
+        productSlug: payload.support_product,
         body: payload.message,
       }),
     });
@@ -80,6 +185,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues[0]?.message ?? "Invalid support request" }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.startsWith("Screenshot")) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

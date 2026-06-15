@@ -2,6 +2,22 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-15 AI, Support, Legal, and Cron Update
+
+- Restored the public standalone Mo Ai page at `/en/ai` and `/ar/ai`, backed by the existing site assistant API. Navigation, footer navigation list, mobile dock, and sitemap now include the AI route.
+- Rebuilt the support page into a structured diagnostic form and extended `/api/app/support` to route product/issue/device/version/contact details into admin support requests and owner email.
+- Added optional support screenshot handling through private Supabase Storage bucket `support-uploads`; migration `supabase/migrations/20260615100000_support_uploads_bucket.sql` must be applied before production screenshot uploads can succeed.
+- Added hidden-by-default legal routes: `/impressum`, `/terms`, `/app-disclaimer`, `/download-disclaimer`. They return 404 until admin Legal Pages are published with responsible name, address, and email.
+- Added admin Website Control fields for legal owner data and disclaimers. Server action `saveLegalPagesAction` prevents publishing incomplete legal pages.
+- Expanded Admin > Website > Key Site Images so public images can be selected from the media library or uploaded directly: home portrait/product/activation, apps hero, AI hero, support hero, and legal hero.
+- Removed code-level project visual overrides so CMS project cover/gallery selections are not silently replaced.
+- Added conditional footer and sitemap legal links; privacy remains public and can show an optional extra note from the legal setting.
+- Wired `vercel.json` Cron Jobs to `/api/cron/report` and saved each generated report into `automation_inbox` in addition to email.
+- Updated CV response filenames to the 2026 naming convention.
+- Added static public CV aliases for DE/EN/AR 2026 filenames.
+- Verification passed: `npm run verify:web` and `npm run verify:admin`. Local Browser QA passed on `/en/ai`, `/en/support`, `/en/impressum` hidden gate, and mobile 390px width checks.
+- Production deploy was not run in this handoff. Deploy after reviewing changes, applying the Supabase migration, and running the normal Vercel project deployment flow.
+
 ## 2026-06-13 Public Web Unification and Performance Audit
 
 - Completed the public EN/AR route, shell, SEO, interaction, accessibility, and performance audit in `apps/web`.

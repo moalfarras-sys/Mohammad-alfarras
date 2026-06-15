@@ -4,6 +4,7 @@ import { getSiteSetting, readSnapshot, readVideos } from "@/lib/content/store";
 import { buildCvPresentationModel } from "@/lib/cv-presenter";
 import { formatMonthYear } from "@/lib/locale-format";
 import { getProjectStudioItem, resolveMediaPath, translateMetric } from "@/lib/projects-studio";
+import { resolveSiteImages } from "@/lib/site-images";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import { getLiveYoutubeChannelStats, getLiveYoutubeData } from "@/lib/youtube-live";
 import type { CmsSnapshot, Locale } from "@/types/cms";
@@ -381,33 +382,6 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
     if (!active.some((project) => project.slug === showcase.slug)) active.push(showcase);
   }
 
-  const visualOverrides: Record<string, { image: string; gallery: string[] }> = {
-    "ad-fahrzeugtransporte": {
-      image: "/images/projects/adtransporte-home.png",
-      gallery: ["/images/projects/adtransporte-home.png", "/images/projects/adtransporte-mobile.png"],
-    },
-    "intelligent-umzuege": {
-      image: "/images/projects/intelligent-umzuege-home.png",
-      gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png"],
-    },
-    moplayer: {
-      image: "/images/moplayer-hero-3d-final.png",
-      gallery: ["/images/moplayer-hero-3d-final.png", "/images/moplayer_ui_playlist-final.png", "/images/moplayer-release-panel.webp"],
-    },
-    moplayer2: {
-      image: "/images/moplayer-pro-hero.webp",
-      gallery: ["/images/moplayer-pro-hero.webp", "/images/moplayer-pro-home.webp", "/images/moplayer-pro-activation.webp", "/images/moplayer-pro-player.webp"],
-    },
-  };
-
-  for (const project of active) {
-    const override = visualOverrides[project.slug];
-    if (override) {
-      project.image = override.image;
-      project.gallery = override.gallery;
-    }
-  }
-
   return repairMojibakeDeep(active);
 }
 
@@ -498,16 +472,7 @@ export async function buildSiteModel({ locale, slug }: { locale: Locale; slug: s
   const snapshot = await readSnapshot();
   const copy = resolveRebuildLocaleContent(snapshot, locale);
   const brandMedia = resolveBrandAssetPaths(snapshot);
-  // Admin-managed overrides for images that used to be hard-coded in components.
-  // Stored as media-asset IDs; resolved to public paths here.
-  const siteImagesRaw = getSiteSetting<Record<string, unknown>>(snapshot, "site_images", {});
-  const siteImages: Record<string, string> = {};
-  for (const [slot, mediaId] of Object.entries(siteImagesRaw)) {
-    if (typeof mediaId === "string" && mediaId.trim()) {
-      const resolved = resolveMediaPath(snapshot.media_assets, mediaId.trim(), "");
-      if (resolved) siteImages[slot] = resolved;
-    }
-  }
+  const siteImages = resolveSiteImages(snapshot);
   const pdfRegistry = getPdfRegistry(snapshot);
   const youtube = getYoutube(snapshot);
   const pageSlug = slug || "home";

@@ -29,6 +29,12 @@ const MESSAGES: Record<string, { en: string; ar: string; error?: boolean }> = {
   website_upload_failed: { en: "Image upload failed. Try another image or a smaller file.", ar: "فشل رفع الصورة. جرّب صورة أخرى أو ملفاً أصغر.", error: true },
   website_media_deleted: { en: "Media deleted.", ar: "تم حذف الصورة." },
   site_status: { en: "Site status updated.", ar: "تم تحديث حالة الموقع." },
+  legal_pages: { en: "Legal pages saved.", ar: "تم حفظ الصفحات القانونية." },
+  legal_missing: {
+    en: "Legal pages saved as hidden. Add responsible name, address, and email before publishing.",
+    ar: "تم حفظ الصفحات القانونية كمخفية. أضف اسم المسؤول والعنوان والبريد قبل النشر.",
+    error: true,
+  },
   message_status: { en: "Message status updated.", ar: "تم تحديث حالة الرسالة." },
   message_deleted: { en: "Message deleted.", ar: "تم حذف الرسالة." },
   message_invalid: { en: "Invalid message status update.", ar: "تحديث حالة الرسالة غير صالح.", error: true },

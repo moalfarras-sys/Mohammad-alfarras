@@ -11,12 +11,14 @@ type QuickFact = { label: string; value: string };
 export function SiteFooter({
   locale,
   links,
+  legalLinks = [],
   logoSrc,
   brandName,
   quickFacts,
 }: {
   locale: Locale;
   links: FooterLink[];
+  legalLinks?: FooterLink[];
   logoSrc: string;
   brandName: string;
   quickFacts?: QuickFact[];
@@ -27,7 +29,10 @@ export function SiteFooter({
     { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "activate", label: isAr ? "التفعيل" : "Activate", href: `/${locale}/activate` },
     { id: "support", label: isAr ? "الدعم" : "Support", href: `/${locale}/support` },
+  ];
+  const footerLegalLinks = [
     { id: "privacy", label: isAr ? "الخصوصية" : "Privacy", href: `/${locale}/privacy` },
+    ...legalLinks,
   ];
 
   return (
@@ -83,6 +88,14 @@ export function SiteFooter({
               <a href={socialLinks.github} target="_blank" rel="noopener noreferrer">GitHub</a>
               <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
               <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            </div>
+            <div>
+              <p className="fresh-eyebrow">{isAr ? "قانوني" : "Legal"}</p>
+              {footerLegalLinks.map((item) => (
+                <Link key={item.id} href={item.href} prefetch={false}>
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
 

@@ -819,6 +819,35 @@ export async function saveSiteStatusAction(formData: FormData) {
   redirect("/website?updated=site_status");
 }
 
+export async function saveLegalPagesAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const str = (key: string) => String(formData.get(key) ?? "").trim();
+  const wantsPublished = formData.get("published") === "on";
+  const responsibleName = str("responsibleName");
+  const address = str("address");
+  const email = str("email");
+  const missingRequired = wantsPublished && (!responsibleName || !address || !email);
+
+  await mergeSiteSetting("legal_pages", {
+    published: wantsPublished && !missingRequired,
+    responsibleName,
+    businessName: str("businessName"),
+    address,
+    email,
+    phone: str("phone"),
+    taxId: str("taxId"),
+    register: str("register"),
+    privacyExtra: str("privacyExtra"),
+    termsExtra: str("termsExtra"),
+    appDisclaimerExtra: str("appDisclaimerExtra"),
+    downloadDisclaimerExtra: str("downloadDisclaimerExtra"),
+    updatedAt: new Date().toISOString(),
+  });
+
+  revalidateAll();
+  redirect(`/website?updated=${missingRequired ? "legal_missing" : "legal_pages"}#legal`);
+}
+
 function extractYoutubeId(value: string): string {
   const raw = value.trim();
   if (!raw) return "";
@@ -830,12 +859,29 @@ function extractYoutubeId(value: string): string {
 
 export async function saveSiteImagesAction(formData: FormData) {
   await requireAdminRole("editor");
-  const slots = ["home_portrait", "home_product_hero", "home_product_secondary", "apps_hero"];
+  const slots = [
+    "home_portrait",
+    "home_product_hero",
+    "home_product_secondary",
+    "apps_hero",
+    "ai_hero",
+    "support_hero",
+    "legal_hero",
+  ];
   const supabase = createSupabaseAdminClient();
   const { data } = await supabase.from("site_settings").select("value_json").eq("key", "site_images").maybeSingle();
   const current = (data?.value_json && typeof data.value_json === "object" ? data.value_json : {}) as Record<string, string>;
   const next: Record<string, string> = { ...current };
   for (const slot of slots) {
+    try {
+      const uploaded = await maybeUploadBrandMedia(formData, `${slot}_file`, `site-${slot}`);
+      if (uploaded?.id) {
+        next[slot] = uploaded.id;
+        continue;
+      }
+    } catch (error) {
+      redirect(`/website?updated=${uploadFailureCode(error)}#site-images`);
+    }
     const mediaId = String(formData.get(`${slot}_media_id`) ?? "").trim();
     if (mediaId) next[slot] = mediaId;
     else delete next[slot];

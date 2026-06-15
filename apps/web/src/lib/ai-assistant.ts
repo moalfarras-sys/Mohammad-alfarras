@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 
+import { cinematicEmailHtml } from "@/lib/email-template";
+import { ownerInbox, sendTransactionalMail } from "@/lib/mailer";
 import { serverHmac } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
@@ -392,6 +394,66 @@ function assistantLeadScore(message: string) {
   if (lower.includes("price") || lower.includes("تكلفة") || lower.includes("quote")) score += 20;
   if (lower.includes("urgent") || lower.includes("ضروري") || lower.includes("asap")) score += 15;
   return Math.min(100, score);
+}
+
+/**
+ * Emails the owner once per conversation when a visitor looks like a real lead
+ * (clear need + contact email). Best-effort, runs post-response via after().
+ */
+export async function maybeNotifyOwnerOfLead(input: {
+  conversationId: string;
+  locale: AssistantLocale;
+  messages: AssistantMessage[];
+  pagePath?: string;
+}): Promise<void> {
+  try {
+    if (!hasSupabasePublicEnv()) return;
+    const userText = input.messages.filter((m) => m.role === "user").map((m) => m.content).join("\n");
+    const score = assistantLeadScore(userText);
+    const email = userText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/)?.[0];
+    if (score < 40 || !email) return; // only strong leads with contact info
+    const to = ownerInbox();
+    if (!to) return;
+
+    const supabase = createSupabaseAdminClient();
+    const flagKey = `lead_notified:${input.conversationId}`;
+    const existing = await supabase.from("app_settings").select("key").eq("key", flagKey).maybeSingle();
+    if (existing.data) return; // already notified for this conversation
+
+    const intent = assistantIntent(userText);
+    const lastUser = [...input.messages].reverse().find((m) => m.role === "user")?.content ?? "";
+    const rows: Array<[string, string]> = [
+      ["البريد", email],
+      ["الاهتمام", intent],
+      ["درجة الأهمية", `${score}/100`],
+      ["الصفحة", input.pagePath || "/"],
+      ["اللغة", input.locale],
+    ];
+    const sent = await sendTransactionalMail({
+      to,
+      replyTo: email,
+      subject: `عميل محتمل من موقع moalfarras.space (${intent})`,
+      text: `عميل محتمل\n${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\nالرسالة: ${lastUser.slice(0, 600)}`,
+      html: cinematicEmailHtml({
+        direction: "rtl",
+        eyebrow: "عميل محتمل من المساعد الذكي",
+        title: "زائر يحتاج خدمة 👋",
+        intro: "تحدّث زائر مع المساعد الذكي وترك بريده — قد يكون عميلاً محتملاً تتابعه.",
+        rows,
+        body: lastUser.slice(0, 600) || "—",
+        tone: "success",
+      }),
+    });
+    if (sent) {
+      await supabase.from("app_settings").upsert({
+        key: flagKey,
+        value: { notifiedAt: new Date().toISOString(), email, intent, score },
+        updated_at: new Date().toISOString(),
+      });
+    }
+  } catch {
+    // Lead notification must never break the assistant.
+  }
 }
 
 export async function persistAssistantExchange(input: {

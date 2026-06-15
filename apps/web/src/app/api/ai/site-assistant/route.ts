@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
-import { answerSiteAssistant, normalizeLocale, normalizeMessages, persistAssistantExchange } from "@/lib/ai-assistant";
+import { answerSiteAssistant, maybeNotifyOwnerOfLead, normalizeLocale, normalizeMessages, persistAssistantExchange } from "@/lib/ai-assistant";
 import { rateLimit } from "@/lib/request-guard";
 
 export async function POST(request: Request) {
@@ -26,6 +26,15 @@ export async function POST(request: Request) {
       model: result.model,
       fallback: result.fallback,
     });
+
+    after(() =>
+      maybeNotifyOwnerOfLead({
+        conversationId: persisted.conversationId,
+        locale,
+        messages,
+        pagePath: body.pagePath,
+      }),
+    );
 
     return NextResponse.json({
       conversationId: persisted.conversationId,

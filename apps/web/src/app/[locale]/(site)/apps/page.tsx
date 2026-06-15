@@ -51,7 +51,7 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
-      <AppsShowcasePage locale={loc} />
+      <AppsShowcasePage locale={loc} siteImages={model.siteImages} />
       <SiteOffersSection model={model} placement="apps" />
     </>
   );

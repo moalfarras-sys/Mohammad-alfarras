@@ -140,9 +140,10 @@ const copy = {
   },
 } as const;
 
-export function AppsShowcasePage({ locale }: { locale: Locale }) {
+export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteImages?: Record<string, string> }) {
   const c = repairMojibakeDeep(copy[locale]);
   const isAr = locale === "ar";
+  const appsHero = siteImages?.apps_hero?.trim() || "/images/moplayer-hero-3d-final.png";
   const moplayer2Card = {
     title: "MoPlayer Pro",
     label: isAr ? "أفضل تطبيق IPTV لـ Android TV" : "Premium IPTV for Android TV",
@@ -214,11 +215,12 @@ export function AppsShowcasePage({ locale }: { locale: Locale }) {
           >
             <div className="apps-device-orbit" />
             <Image
-              src="/images/moplayer-hero-3d-final.png"
+              src={appsHero}
               alt="MoPlayer Android TV product mockup"
               width={900}
               height={700}
               priority
+              unoptimized={appsHero.startsWith("http")}
               className="apps-device-image"
             />
             <div className="apps-device-panel">

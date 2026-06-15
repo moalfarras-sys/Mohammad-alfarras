@@ -482,3 +482,39 @@
     width: 100%;
   }
 }
+
+/* ── Premium contact elevation (additive: richer mesh, bolder hero, lively cards) ── */
+.contact-hero-copy {
+  background:
+    radial-gradient(130% 150% at 6% -16%, color-mix(in srgb, var(--os-cyan) 22%, transparent), transparent 52%),
+    radial-gradient(120% 150% at 102% 8%, color-mix(in srgb, var(--os-gold) 18%, transparent), transparent 50%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.16)),
+    var(--os-glass);
+}
+
+.contact-hero h1 {
+  font-size: clamp(2.5rem, 5.6vw, 4.9rem);
+}
+
+.contact-social-card {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.contact-social-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--contact-tone) 50%, var(--os-glass-border));
+  box-shadow: 0 18px 44px color-mix(in srgb, var(--contact-tone) 22%, transparent);
+}
+
+.contact-form-panel {
+  box-shadow: var(--os-shadow-soft), 0 0 64px color-mix(in srgb, var(--os-cyan) 10%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .contact-social-card,
+  .contact-form-panel {
+    animation: osReveal both linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+}

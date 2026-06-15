@@ -830,7 +830,7 @@ function extractYoutubeId(value: string): string {
 
 export async function saveSiteImagesAction(formData: FormData) {
   await requireAdminRole("editor");
-  const slots = ["home_portrait", "home_product_hero", "home_product_secondary"];
+  const slots = ["home_portrait", "home_product_hero", "home_product_secondary", "apps_hero"];
   const supabase = createSupabaseAdminClient();
   const { data } = await supabase.from("site_settings").select("value_json").eq("key", "site_images").maybeSingle();
   const current = (data?.value_json && typeof data.value_json === "object" ? data.value_json : {}) as Record<string, string>;

@@ -840,6 +840,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
           <MediaSelect label={t({ en: "Homepage photo (portrait)", ar: "صورة الرئيسية (البورتريه)" })} name="home_portrait_media_id" assets={data.mediaAssets} value={siteImages.home_portrait ?? ""} fallbackPath="/images/protofeilnew.jpeg" />
           <MediaSelect label={t({ en: "Homepage product image", ar: "صورة المنتج في الرئيسية" })} name="home_product_hero_media_id" assets={data.mediaAssets} value={siteImages.home_product_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
           <MediaSelect label={t({ en: "Homepage activation image", ar: "صورة التفعيل في الرئيسية" })} name="home_product_secondary_media_id" assets={data.mediaAssets} value={siteImages.home_product_secondary ?? ""} fallbackPath="/images/moplayer-activation-flow.webp" />
+          <MediaSelect label={t({ en: "Apps page hero image", ar: "صورة بطل صفحة التطبيقات" })} name="apps_hero_media_id" assets={data.mediaAssets} value={siteImages.apps_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
           <div className="lg:col-span-3">
             <button type="submit" className="btn btn-primary">{t({ en: "Save site images", ar: "حفظ صور الموقع" })}</button>
           </div>

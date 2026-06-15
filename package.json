@@ -43,6 +43,7 @@
     "@rollup/rollup-linux-x64-gnu": "4.60.3"
   },
   "overrides": {
+    "esbuild": "^0.28.1",
     "hono": "^4.12.16",
     "postcss": "^8.5.13",
     "@modelcontextprotocol/sdk": {
@@ -58,6 +59,9 @@
       "postcss": "^8.5.13"
     },
     "next@16.2.6": {
+      "postcss": "^8.5.13"
+    },
+    "next@16.2.9": {
       "postcss": "^8.5.13"
     },
     "resend": {

@@ -17,6 +17,7 @@ import {
 
 import { moPlayerCopy } from "@/content/apps";
 import { normalizePublicImagePath } from "@/lib/asset-url";
+import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -38,7 +39,15 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
 };
 
-export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
+export function MoPlayerLanding({
+  ecosystem,
+  locale = "en",
+  downloadStats,
+}: {
+  ecosystem: AppEcosystemData;
+  locale?: Locale;
+  downloadStats?: DownloadStatsView;
+}) {
   const isAr = locale === "ar";
   const t = repairMojibakeDeep(moPlayerCopy[locale]);
   const text = (en: string | undefined | null, ar: string) => (isAr ? ar : en?.trim() || ar);
@@ -49,19 +58,22 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
   
   const latest = ecosystem.releases[0] ?? null;
   const downloadHref = latest && latest.assets.some((asset) => asset.external_url || asset.storage_path) ? `/api/app/releases/${latest.slug}/download` : null;
+  const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
+  const downloadSince = downloadSinceLabel(downloadStats, locale);
   const proHref = `/${locale}/apps/moplayer2`;
   const activateHref = `/${locale}/activate?product=moplayer`;
   const legalDisclaimer = isAr
     ? "MoPlayer مشغل وسائط فقط. لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمياً بحقوق النشر. تقع مسؤولية إضافة المصادر والتأكد من امتلاك حق استخدامها على المستخدم وحده."
     : "MoPlayer is a media player only. It does not provide channels, playlists, subscriptions, or copyrighted media. Users are solely responsible for adding sources they are legally authorized to use.";
   
-  const galleryShots = [
+  const fallbackGalleryShots = [
     { id: "classic-promo", title: isAr ? "عرض MoPlayer Classic" : "MoPlayer Classic Showcase", alt_text: "MoPlayer Classic promotional showcase", image_path: "/images/moplayer-classic-promo.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
     { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-tv-hero.png", product_slug: "moplayer", device_frame: "tv", sort_order: 1, is_featured: false, created_at: "" },
     { id: "visual-cinema", title: isAr ? "واجهة تلفزيونية" : "TV showcase", alt_text: "MoPlayer cinematic TV visual", image_path: "/images/moplayer_ui_playlist-final.png", product_slug: "moplayer", device_frame: "tv", sort_order: 10, is_featured: false, created_at: "" },
     { id: "visual-activation", title: isAr ? "تفعيل واضح" : "Guided activation", alt_text: "MoPlayer activation flow visual", image_path: "/images/moplayer-activation-flow.webp", product_slug: "moplayer", device_frame: "phone", sort_order: 11, is_featured: false, created_at: "" },
     { id: "visual-release", title: isAr ? "مركز التحميل" : "Release center", alt_text: "MoPlayer APK release visual", image_path: "/images/moplayer-release-panel.webp", product_slug: "moplayer", device_frame: "tv", sort_order: 12, is_featured: false, created_at: "" },
   ];
+  const galleryShots = ecosystem.screenshots.length ? ecosystem.screenshots : fallbackGalleryShots;
 
   return (
     <main className="min-h-screen bg-[#050505] text-white overflow-hidden font-sans relative" dir={isAr ? "rtl" : "ltr"}>
@@ -98,20 +110,31 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
       </div>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 px-6 sm:px-12 max-w-6xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-12">
+      <section className="relative pt-24 md:pt-32 pb-16 px-6 sm:px-12 max-w-6xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-12">
         <div className="flex-1 text-center lg:text-start z-10">
-          <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/8 backdrop-blur-sm mb-6">
+          <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/8 backdrop-blur-sm mb-4 md:mb-6">
             <ShieldCheck className="h-4 w-4 text-blue-400" />
             <span className="text-xs font-bold tracking-widest uppercase text-blue-400">{text(ecosystem.product.hero_badge, t.badge)}</span>
           </motion.div>
           
-          <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-blue-300/60 mb-5 leading-[1.1]">
+          <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-blue-300/60 mb-4 md:mb-5 leading-[1.1]">
             {productName}
           </motion.h1>
           
-          <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="text-sm md:text-base text-white/60 mb-8 max-w-lg leading-relaxed mx-auto lg:mx-0">
+          <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="text-sm md:text-base text-white/60 mb-5 md:mb-8 max-w-lg leading-relaxed mx-auto lg:mx-0">
             {productHero}
           </motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.22 }} className="mb-4 md:mb-5 inline-flex items-center gap-4 rounded-2xl border border-blue-400/20 bg-blue-400/[0.07] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_52px_rgba(37,99,235,0.12)]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+              <Download className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-blue-200/70">{isAr ? "تحميلات رسمية" : "Official downloads"}</span>
+              <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
+              <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
+            </div>
+          </motion.div>
           
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="flex flex-col sm:flex-row gap-3 items-center justify-center lg:justify-start">
             {downloadHref ? (
@@ -130,7 +153,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
             </Link>
           </motion.div>
         </div>
-        
+
         <div className="flex-1 w-full relative flex justify-center lg:justify-end">
            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }} className="relative z-10 w-full max-w-sm aspect-square flex items-center justify-center">
               <Image src={heroImage} alt="MoPlayer Classic" width={500} height={500} className="w-[85%] h-auto object-contain drop-shadow-[0_20px_60px_rgba(37,99,235,0.2)]" priority />
@@ -144,6 +167,7 @@ export function MoPlayerLanding({ ecosystem, locale = "en" }: { ecosystem: AppEc
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-around items-center gap-6">
           {[
             { label: isAr ? "أحدث إصدار" : "Latest", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
+            { label: isAr ? "التحميلات" : "Downloads", value: downloadCount },
             { label: isAr ? "التجربة" : "Experience", value: isAr ? "كلاسيك" : "Classic" },
             { label: isAr ? "التثبيت" : "Install", value: isAr ? "خفيف" : "Light" },
             { label: isAr ? "التلفزيون" : "TV", value: ecosystem.product.android_tv_ready ? (isAr ? "جاهز" : "Ready") : "Android" },

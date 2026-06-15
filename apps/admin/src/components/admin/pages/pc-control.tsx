@@ -25,6 +25,7 @@ import {
 import { useLocale } from "@/components/admin/locale-provider";
 import { CopyButton, EmptyState, Field, PageHeader, StatCard, TextAreaField, Toggle } from "@/components/admin/ui";
 import { UpdatedToast } from "@/components/admin/updated-toast";
+import type { AppDownloadMetrics } from "@/types/app-ecosystem";
 
 const webBaseUrl = (process.env.NEXT_PUBLIC_WEB_APP_URL || "https://moalfarras.space").replace(/\/$/, "");
 
@@ -33,7 +34,15 @@ function formatBytes(size?: number | null) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function PcControl({ windowsRelease, updated }: { windowsRelease: Record<string, unknown>; updated?: string }) {
+export function PcControl({
+  windowsRelease,
+  downloadStats,
+  updated,
+}: {
+  windowsRelease: Record<string, unknown>;
+  downloadStats?: AppDownloadMetrics;
+  updated?: string;
+}) {
   const { t } = useLocale();
   const win = windowsRelease ?? {};
   const ws = (k: string) => (typeof win[k] === "string" ? (win[k] as string) : "");
@@ -44,6 +53,9 @@ export function PcControl({ windowsRelease, updated }: { windowsRelease: Record<
   const installerSet = Boolean(ws("downloadUrl") || ws("file"));
   const portableSet = Boolean(ws("portableDownloadUrl") || ws("portableFile"));
   const heroImage = ws("heroImage");
+  const downloadHint = downloadStats?.since
+    ? `${t({ en: "Since", ar: "منذ" })} ${new Date(downloadStats.since).toLocaleDateString("en-GB")}`
+    : t({ en: "From first live download", ar: "من أول تحميل مباشر" });
   const screenshots = Array.isArray(win.screenshots)
     ? (win.screenshots as unknown[]).filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
@@ -85,6 +97,13 @@ export function PcControl({ windowsRelease, updated }: { windowsRelease: Record<
           value={maintenance ? t({ en: "Maintenance", ar: "صيانة" }) : t({ en: "Online", ar: "يعمل" })}
           icon={<ShieldCheck className="h-5 w-5" />}
           tone={maintenance ? "warning" : "success"}
+        />
+        <StatCard
+          label={t({ en: "Downloads", ar: "التحميلات" })}
+          value={(downloadStats?.value ?? 0).toLocaleString()}
+          icon={<Download className="h-5 w-5" />}
+          tone="success"
+          hint={downloadHint}
         />
         <StatCard
           label={t({ en: "Installer", ar: "المثبت" })}

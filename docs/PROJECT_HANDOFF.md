@@ -2,6 +2,18 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-15 Download Counters and Admin Image Parity
+
+- Surfaced the real `site_settings.download_counts` counter on `/en/apps`, MoPlayer Classic, MoPlayer Pro, and MoPlayer PC. The existing download redirect APIs continue to increment it on real app downloads, including Windows via `moplayer2:windows`.
+- Added download-count visibility to Admin app controls for Classic, Pro, and PC so the dashboard shows the same real counters used by the public pages.
+- Reworked `/apps` to show only the three real app products and to pull card images, icons, versions, and PC visuals from admin-managed app/release data instead of static extra cards.
+- Classic screenshots now use admin-managed app screenshots when present, with legacy images only as fallback.
+- Changed Work/project rendering so public project cards come from active admin projects when they exist. Static fallback projects are now used only if the database has no active projects.
+- Added an `activation_hero` site-image slot in Admin > Website > Key Site Images, and wired activation/support/social preview images to admin-selected media.
+- Production data cleanup completed: added the missing portrait, activation-flow, and PC desktop images to `media_assets`; populated `site_images` keys for home, apps, activation, AI, support, and legal hero slots.
+- Important counter limitation: production currently has a first recorded download timestamp of `2026-06-14T19:00:57.030Z` and total `1`. Older downloads before this counter existed cannot be reconstructed from the current database.
+- Verification passed: `npm run verify:web`, `npm run verify:admin`, plus local Playwright visual QA on desktop and 390px mobile for `/en`, `/en/work`, `/en/apps`, Classic, Pro, PC, activation, and support routes.
+
 ## 2026-06-15 AI, Support, Legal, and Cron Update
 
 - Restored the public standalone Mo Ai page at `/en/ai` and `/ar/ai`, backed by the existing site assistant API. Navigation, footer navigation list, mobile dock, and sitemap now include the AI route.

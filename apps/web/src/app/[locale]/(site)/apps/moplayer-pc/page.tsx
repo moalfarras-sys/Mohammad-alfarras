@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MoPlayerPcLanding } from "@/components/app/moplayer-pc-landing";
-import { isLocale } from "@/lib/i18n";
+import { normalizePublicImagePath } from "@/lib/asset-url";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
+import { isLocale } from "@/lib/i18n";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 
 const SITE_URL = "https://moalfarras.space";
@@ -29,6 +31,17 @@ export async function generateMetadata({
 
   const canonical = `${SITE_URL}/${locale}/apps/moplayer-pc`;
   const socialTitle = `${copy.title} | Mohammad Alfarras`;
+  const [ecosystem, windowsRelease] = await Promise.all([
+    readAppEcosystem("moplayer2"),
+    readLatestWindowsRelease(),
+  ]);
+  const image = normalizePublicImagePath(
+    windowsRelease?.heroImage ||
+      windowsRelease?.screenshots?.[0] ||
+      ecosystem.product.hero_image_path ||
+      ecosystem.product.tv_banner_path ||
+      "/images/moplayer-pc-desktop.png",
+  );
 
   return {
     title: copy.title,
@@ -48,9 +61,7 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [
-        { url: "/images/moplayer-pro-hero.webp", width: 1600, height: 900, alt: socialTitle },
-      ],
+      images: [{ url: image, width: 1600, height: 900, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -58,7 +69,7 @@ export async function generateMetadata({
       creator: "@Moalfarras",
       title: socialTitle,
       description: copy.description,
-      images: ["/images/moplayer-pro-hero.webp"],
+      images: [image],
     },
   };
 }
@@ -67,9 +78,10 @@ export default async function MoPlayerPcRoute({ params }: { params: Promise<{ lo
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [ecosystem, windowsRelease] = await Promise.all([
+  const [ecosystem, windowsRelease, downloadCounts] = await Promise.all([
     readAppEcosystem("moplayer2"),
     readLatestWindowsRelease(),
+    readDownloadCounts(),
   ]);
 
   return (
@@ -77,6 +89,7 @@ export default async function MoPlayerPcRoute({ params }: { params: Promise<{ lo
       ecosystem={ecosystem}
       locale={locale as "en" | "ar"}
       windowsRelease={windowsRelease}
+      downloadStats={publicDownloadStats(downloadCounts, "moplayer2", "windows")}
     />
   );
 }

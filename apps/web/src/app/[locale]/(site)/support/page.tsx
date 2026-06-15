@@ -133,6 +133,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = copy.title as string;
   const description = copy.intro as string;
   const canonical = `${SITE_URL}/${loc}/support`;
+  const snapshot = await readSnapshot();
+  const siteImages = resolveSiteImages(snapshot);
+  const supportImage = siteImage(siteImages, "support_hero", "/images/moplayer-activation-flow.webp");
+  const socialImage = supportImage.startsWith("http") ? supportImage : `${SITE_URL}${supportImage}`;
 
   return {
     title,
@@ -152,7 +156,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       locale: loc === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras",
-      images: [{ url: `${SITE_URL}/images/moplayer-hero-3d-final.png`, width: 1600, height: 900, alt: title }],
+      images: [{ url: socialImage, width: 1600, height: 900, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
@@ -160,7 +164,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       creator: "@Moalfarras",
       title: `${title} | Mohammad Alfarras`,
       description,
-      images: [`${SITE_URL}/images/moplayer-hero-3d-final.png`],
+      images: [socialImage],
     },
   };
 }

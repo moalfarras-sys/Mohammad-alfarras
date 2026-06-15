@@ -17,6 +17,7 @@ import type {
   AppDevice,
   AppDeviceEvent,
   AppDiagnosticReport,
+  AppDownloadMetrics,
   AppOperationalMetrics,
   AppScreenshot,
   AppRuntimeConfig,
@@ -33,6 +34,40 @@ const moplayerDownloadUrls = {
   universal: `${moplayerDownloadBase}/moplayer-2.2.16/download`,
 };
 const localSettings = new Map<string, unknown>();
+const downloadCountsSettingKey = "download_counts";
+
+function downloadCountId(productSlug: string, platform?: string | null) {
+  const slug = resolveManagedAppSlug(productSlug);
+  return platform?.toLowerCase() === "windows" ? `${slug}:windows` : slug;
+}
+
+function normalizeDownloadMetrics(value: unknown, productSlug: string, platform?: string | null): AppDownloadMetrics {
+  const raw = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  const counts = raw.counts && typeof raw.counts === "object" ? (raw.counts as Record<string, unknown>) : {};
+  const id = downloadCountId(productSlug, platform);
+  return {
+    value: Math.max(0, Number(counts[id]) || 0),
+    total: Math.max(0, Number(raw.total) || 0),
+    since: typeof raw.since === "string" ? raw.since : undefined,
+    updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : undefined,
+  };
+}
+
+export async function readAppDownloadMetrics(productSlug: string, platform?: string | null): Promise<AppDownloadMetrics> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("value_json")
+      .eq("key", downloadCountsSettingKey)
+      .maybeSingle();
+    if (error) throw error;
+    return normalizeDownloadMetrics(data?.value_json, productSlug, platform);
+  } catch {
+    const value = await readSiteSetting(downloadCountsSettingKey, {});
+    return normalizeDownloadMetrics(value, productSlug, platform);
+  }
+}
 
 function sourceQueueExpired(queue: Partial<DeviceProviderSourceQueue> | null | undefined) {
   if (!queue?.expiresAt) return false;
@@ -913,6 +948,7 @@ export async function readAdminAppData(productSlug = "moplayer") {
     runtimeConfig,
     widgetProviderSettings: await readWidgetProviderSettingsStatus(),
     metrics: calculateOperationalMetrics(devices, activationRequests),
+    downloadStats: await readAppDownloadMetrics(slug),
   };
 }
 

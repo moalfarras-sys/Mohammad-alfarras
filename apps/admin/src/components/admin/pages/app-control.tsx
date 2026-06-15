@@ -104,6 +104,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
     diagnostics,
     runtimeConfig,
     widgetProviderSettings,
+    downloadStats,
   } = data;
   const runtime = runtimeConfig as RuntimeExtras;
   const basePath = slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
@@ -113,6 +114,9 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
   const openSupport = supportRequests.filter((r) => r.status === "new").length;
   const openDiagnostics = diagnostics.filter((item) => !["resolved", "archived"].includes(item.status)).length;
   const latestRelease = [...releases].sort((a, b) => b.version_code - a.version_code)[0];
+  const downloadHint = downloadStats.since
+    ? `${t({ en: "Since", ar: "منذ" })} ${new Date(downloadStats.since).toLocaleDateString("en-GB")}`
+    : t({ en: "From first live download", ar: "من أول تحميل مباشر" });
 
   const filteredDevices = devices.filter((d) => {
     const q = deviceQuery.trim().toLowerCase();
@@ -162,6 +166,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label={t({ en: "Releases", ar: "إصدارات" })} value={releases.length} icon={<Box className="h-5 w-5" />} tone="violet" href={`${basePath}#releases`} />
+        <StatCard label={t({ en: "Downloads", ar: "التحميلات" })} value={downloadStats.value.toLocaleString()} icon={<Download className="h-5 w-5" />} tone="success" hint={downloadHint} />
         <StatCard label={t({ en: "Images", ar: "صور" })} value={screenshots.length} icon={<ImageIconLucide className="h-5 w-5" />} href={`${basePath}#visual-assets`} />
         <StatCard label={t({ en: "FAQ", ar: "أسئلة" })} value={faqs.length} icon={<HelpCircle className="h-5 w-5" />} tone="success" />
         <StatCard label={t({ en: "Runtime", ar: "التشغيل" })} value={runtimeConfig.enabled ? t({ en: "On", ar: "يعمل" }) : t({ en: "Off", ar: "متوقف" })} icon={<SlidersHorizontal className="h-5 w-5" />} tone="warning" href={`${basePath}#runtime`} />

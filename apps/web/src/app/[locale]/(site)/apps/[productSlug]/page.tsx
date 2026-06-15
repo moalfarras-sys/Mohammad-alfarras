@@ -5,6 +5,7 @@ import { MoPlayerLanding } from "@/components/app/moplayer-landing";
 import { MoPlayer2Landing } from "@/components/app/moplayer2-landing";
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
 import { isLocale } from "@/lib/i18n";
 import {
   breadcrumbJsonLd,
@@ -98,7 +99,10 @@ export default async function AppProductRoute({
   if (!isLocale(locale) || !isManagedAppSlug(productSlug)) notFound();
 
   const loc = locale as Locale;
-  const ecosystem = await readAppEcosystem(productSlug);
+  const [ecosystem, downloadCounts] = await Promise.all([
+    readAppEcosystem(productSlug),
+    readDownloadCounts(),
+  ]);
   const normalizedEcosystem = {
     ...ecosystem,
     product: {
@@ -177,9 +181,9 @@ export default async function AppProductRoute({
         }}
       />
       {productSlug === "moplayer2" ? (
-        <MoPlayer2Landing ecosystem={normalizedEcosystem} locale={loc} />
+        <MoPlayer2Landing ecosystem={normalizedEcosystem} locale={loc} downloadStats={publicDownloadStats(downloadCounts, productSlug)} />
       ) : (
-        <MoPlayerLanding ecosystem={normalizedEcosystem} locale={loc} />
+        <MoPlayerLanding ecosystem={normalizedEcosystem} locale={loc} downloadStats={publicDownloadStats(downloadCounts, productSlug)} />
       )}
     </>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PcControl } from "@/components/admin/pages/pc-control";
+import { readAppDownloadMetrics } from "@/lib/app-ecosystem";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
 export const metadata: Metadata = { title: "MoPlayer PC", robots: { index: false, follow: false } };
@@ -20,6 +21,10 @@ export default async function MoPlayerPcPage({
 }: {
   searchParams: Promise<{ updated?: string }>;
 }) {
-  const [windowsRelease, query] = await Promise.all([readWindowsRelease(), searchParams]);
-  return <PcControl windowsRelease={windowsRelease} updated={query.updated} />;
+  const [windowsRelease, downloadStats, query] = await Promise.all([
+    readWindowsRelease(),
+    readAppDownloadMetrics("moplayer2", "windows"),
+    searchParams,
+  ]);
+  return <PcControl windowsRelease={windowsRelease} downloadStats={downloadStats} updated={query.updated} />;
 }

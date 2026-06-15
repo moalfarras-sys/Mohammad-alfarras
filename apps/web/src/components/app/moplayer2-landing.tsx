@@ -26,6 +26,7 @@ import {
 import { useRef } from "react";
 
 import { normalizePublicImagePath } from "@/lib/asset-url";
+import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -183,13 +184,23 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 70, damping: 15 } },
 };
 
-export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppEcosystemData; locale?: Locale }) {
+export function MoPlayer2Landing({
+  ecosystem,
+  locale = "en",
+  downloadStats,
+}: {
+  ecosystem: AppEcosystemData;
+  locale?: Locale;
+  downloadStats?: DownloadStatsView;
+}) {
   const isAr = locale === "ar";
   const c = repairMojibakeDeep(t[locale]);
   const latest = ecosystem.releases[0] ?? null;
   const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
   const hasDownload = latest && latest.assets.some((a) => a.external_url || a.storage_path);
   const downloadHref = hasDownload ? `/api/app/releases/${latest.slug}/download` : null;
+  const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
+  const downloadSince = downloadSinceLabel(downloadStats, locale);
   const activateHref = `/${locale}/activate?product=moplayer2`;
   const size = formatBytes(primaryAsset?.file_size_bytes);
   const downloaderCode = ecosystem.runtimeConfig?.downloaderCode || "4608937";
@@ -258,26 +269,37 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
       />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 px-6 sm:px-12 max-w-7xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-10">
+      <section className="relative pt-24 md:pt-32 pb-16 px-6 sm:px-12 max-w-7xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-10">
         <div className="flex-1 text-center lg:text-start z-10">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, type: "spring" }} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#f4b860]/30 bg-[#f4b860]/10 backdrop-blur-md mb-8 shadow-[0_0_20px_rgba(244,184,96,0.15)]">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, type: "spring" }} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#f4b860]/30 bg-[#f4b860]/10 backdrop-blur-md mb-5 md:mb-8 shadow-[0_0_20px_rgba(244,184,96,0.15)]">
             <Sparkles className="h-5 w-5 text-[#f4b860]" />
             <span className="text-sm font-bold tracking-widest uppercase text-[#f4b860]">{heroBadge}</span>
           </motion.div>
           
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-[#fdf2e3] to-[#f4b860]/60 mb-6 leading-[1.1] drop-shadow-sm">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-[#fdf2e3] to-[#f4b860]/60 mb-4 md:mb-6 leading-[1.1] drop-shadow-sm">
             {heroTitle}
           </motion.h1>
           
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-lg md:text-xl text-white/90 mb-4 font-semibold leading-relaxed">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-base md:text-xl text-white/90 mb-3 md:mb-4 font-semibold leading-relaxed">
             {heroSub}
           </motion.p>
           
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-lg text-white/60 mb-6 max-w-2xl leading-relaxed font-light mx-auto lg:mx-0">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-base md:text-lg text-white/60 mb-4 md:mb-6 max-w-2xl leading-relaxed font-light mx-auto lg:mx-0">
             {heroBody}
           </motion.p>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.38 }} className="mb-4 md:mb-6 inline-flex items-center gap-4 rounded-3xl border border-[#f4b860]/25 bg-[#f4b860]/10 px-5 py-4 text-start backdrop-blur-xl shadow-[0_22px_68px_rgba(244,184,96,0.16)]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f4b860]/18 text-[#f4b860]">
+              <Download className="h-6 w-6" />
+            </div>
+            <div>
+              <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#f4b860]/80">{isAr ? "تحميلات رسمية" : "Official downloads"}</span>
+              <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
+              <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
+            </div>
+          </motion.div>
           
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-col sm:flex-row gap-5 items-center justify-center lg:justify-start">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-col sm:flex-row gap-3 sm:gap-5 items-center justify-center lg:justify-start">
             {downloadHref ? (
               <a href={downloadHref} className="group px-6 py-3 rounded-2xl bg-gradient-to-r from-[#f4b860] to-[#e6a84f] text-black font-extrabold text-lg hover:from-white hover:to-white transition-all duration-300 shadow-[0_0_40px_rgba(244,184,96,0.4)] hover:shadow-[0_0_60px_rgba(255,255,255,0.6)] hover:-translate-y-1 flex items-center gap-3">
                 <Download className="h-6 w-6" />
@@ -308,6 +330,7 @@ export function MoPlayer2Landing({ ecosystem, locale = "en" }: { ecosystem: AppE
         <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-wrap justify-around items-center gap-8">
           {[
             { label: isAr ? "الإصدار" : "Version", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
+            { label: isAr ? "التحميلات" : "Downloads", value: downloadCount },
             { label: isAr ? "الحجم" : "Size", value: size ?? "APK" },
             { label: isAr ? "المنصة" : "Platform", value: "Android TV" },
             { label: isAr ? "الشاشة الكبيرة" : "Big Screen", value: ecosystem.product.android_tv_ready ? (isAr ? "جاهز" : "Ready") : "Android" },

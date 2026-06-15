@@ -863,6 +863,7 @@ export async function saveSiteImagesAction(formData: FormData) {
     "home_portrait",
     "home_product_hero",
     "home_product_secondary",
+    "activation_hero",
     "apps_hero",
     "ai_hero",
     "support_hero",

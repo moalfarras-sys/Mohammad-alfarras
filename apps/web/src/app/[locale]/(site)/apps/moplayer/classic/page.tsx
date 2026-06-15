@@ -5,6 +5,7 @@ import { MoPlayerLanding } from "@/components/app/moplayer-landing";
 import { getMoPlayerFaqs, moPlayerCopy } from "@/content/apps";
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
 import { isLocale } from "@/lib/i18n";
 import {
   breadcrumbJsonLd,
@@ -40,6 +41,13 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const meta = localizedMeta[locale];
+  const ecosystem = await readAppEcosystem("moplayer");
+  const image = normalizePublicImagePath(
+    ecosystem.product.hero_image_path ||
+      ecosystem.product.tv_banner_path ||
+      ecosystem.screenshots[0]?.image_path ||
+      "/images/moplayer-hero-3d-final.png",
+  );
   return {
     title: meta.title,
     description: meta.description,
@@ -58,20 +66,13 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [
-        {
-          url: "/images/moplayer-hero-3d-final.png",
-          width: 1600,
-          height: 900,
-          alt: meta.socialTitle,
-        },
-      ],
+      images: [{ url: image, width: 1600, height: 900, alt: meta.socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.socialTitle,
       description: meta.description,
-      images: ["/images/moplayer-hero-3d-final.png"],
+      images: [image],
     },
   };
 }
@@ -85,7 +86,10 @@ export default async function MoPlayerClassicRoute({
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
-  const ecosystem = await readAppEcosystem("moplayer");
+  const [ecosystem, downloadCounts] = await Promise.all([
+    readAppEcosystem("moplayer"),
+    readDownloadCounts(),
+  ]);
   const normalizedEcosystem = {
     ...ecosystem,
     product: {
@@ -163,7 +167,7 @@ export default async function MoPlayerClassicRoute({
           }),
         }}
       />
-      <MoPlayerLanding ecosystem={normalizedEcosystem} locale={loc} />
+      <MoPlayerLanding ecosystem={normalizedEcosystem} locale={loc} downloadStats={publicDownloadStats(downloadCounts, "moplayer")} />
     </>
   );
 }

@@ -19,6 +19,7 @@ import {
 import { useRef } from "react";
 
 import { normalizePublicImagePath } from "@/lib/asset-url";
+import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
 import { moPlayerCopy } from "@/content/apps";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -63,7 +64,17 @@ function formatBytes(size?: number | null) {
   return `${value >= 10 ? value.toFixed(0) : value.toFixed(1)} ${units[unit]}`;
 }
 
-export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosystem: AppEcosystemData; locale: Locale; windowsRelease?: WindowsRelease | null }) {
+export function MoPlayerPcLanding({
+  ecosystem,
+  locale,
+  windowsRelease,
+  downloadStats,
+}: {
+  ecosystem: AppEcosystemData;
+  locale: Locale;
+  windowsRelease?: WindowsRelease | null;
+  downloadStats?: DownloadStatsView;
+}) {
   const isAr = locale === "ar";
   const c = moPlayerCopy[locale];
   
@@ -90,6 +101,8 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
   const downloadHref = "/api/app/download/latest?product=moplayer2&platform=windows";
   const portableHref = "/api/app/download/latest?product=moplayer2&platform=windows&portable=1";
   const activateHref = `/${locale}/activate?product=moplayer-pc&platform=windows`;
+  const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
+  const downloadSince = downloadSinceLabel(downloadStats, locale);
   const pcShots = (windowsRelease?.screenshots ?? []).filter((src): src is string => typeof src === "string" && src.trim().length > 0);
   const galleryShots: GalleryShot[] = pcShots.length
     ? pcShots.map((src, i) => ({ id: `pc-shot-${i}`, image_path: src, alt_text: productName, title: productName }))
@@ -178,19 +191,19 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
       </div>
 
       {/* Hero */}
-      <section className="relative min-h-[70vh] flex items-center justify-center pt-28 pb-16 px-6 z-10">
+      <section className="relative min-h-[70vh] flex items-center justify-center pt-24 md:pt-28 pb-16 px-6 z-10">
         <motion.div style={{ y: yHero, opacity: opacityHero }} className="max-w-5xl mx-auto w-full text-center">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="mb-6 inline-block">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="mb-4 md:mb-6 inline-block">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-600/30 bg-orange-600/8 text-orange-300 text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
               <Cpu className="h-3.5 w-3.5" /> {isAr ? "نسخة الكمبيوتر" : "Windows Desktop Edition"}
             </span>
           </motion.div>
           
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="text-3xl md:text-4xl lg:text-5xl font-black mb-5 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/40">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-5 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/40">
             {productName}
           </motion.h1>
           
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-sm md:text-base text-orange-300/60 max-w-2xl mx-auto leading-relaxed mb-10">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-sm md:text-base text-orange-300/60 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-10">
             {hubCopy.headline}
           </motion.p>
           
@@ -201,6 +214,17 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
                 : "MoPlayer PC is being updated right now — downloads will return shortly. Thanks for your patience."}
             </div>
           ) : null}
+
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.24 }} className="mb-4 md:mb-6 inline-flex items-center gap-4 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_54px_rgba(230,74,25,0.12)]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-300">
+              <Download className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-orange-200/70">{isAr ? "تحميلات Windows" : "Windows downloads"}</span>
+              <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
+              <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
+            </div>
+          </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }} className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             {windowsRelease?.maintenance ? (
@@ -245,6 +269,10 @@ export function MoPlayerPcLanding({ ecosystem, locale, windowsRelease }: { ecosy
               <span className="text-white/40 font-medium uppercase tracking-wider text-xs">{isAr ? "جاهز" : "Ready"}</span>
             </div>
           ))}
+          <div className="flex flex-col items-center">
+            <span className="text-orange-400 font-extrabold text-lg mb-1 tabular-nums">{downloadCount}</span>
+            <span className="text-white/40 font-medium uppercase tracking-wider text-xs">{isAr ? "تحميل" : "Downloads"}</span>
+          </div>
         </div>
       </section>
 

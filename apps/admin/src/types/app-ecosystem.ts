@@ -161,6 +161,13 @@ export type AppOperationalMetrics = {
   activationSuccessRate: number;
 };
 
+export type AppDownloadMetrics = {
+  value: number;
+  total: number;
+  since?: string;
+  updatedAt?: string;
+};
+
 export type DeviceProviderSourceQueue = {
   id: string;
   publicDeviceId: string;
@@ -295,4 +302,5 @@ export type AdminAppData = AppEcosystemData & {
   runtimeConfig: AppRuntimeConfig;
   widgetProviderSettings: WidgetProviderSettingsStatus;
   metrics: AppOperationalMetrics;
+  downloadStats: AppDownloadMetrics;
 };

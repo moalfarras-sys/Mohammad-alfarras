@@ -6,9 +6,25 @@ import { ArrowUpRight, BadgeCheck, Box, Download, KeyRound, MonitorPlay, Play, T
 import { motion } from "framer-motion";
 
 import { PageShell } from "@/components/ui/os-primitives";
+import { formatDownloadNumber } from "@/lib/download-display";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
+
+type AppVisual = {
+  image?: string;
+  icon?: string;
+  version?: string;
+  downloads?: number;
+};
+
+type DownloadSummary = {
+  total: number;
+  since?: string;
+  classic: number;
+  pro: number;
+  pc: number;
+};
 
 const copy = {
   en: {
@@ -140,10 +156,28 @@ const copy = {
   },
 } as const;
 
-export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteImages?: Record<string, string> }) {
+export function AppsShowcasePage({
+  locale,
+  siteImages,
+  appVisuals,
+  downloadStats,
+}: {
+  locale: Locale;
+  siteImages?: Record<string, string>;
+  appVisuals?: {
+    classic?: AppVisual;
+    pro?: AppVisual;
+    pc?: AppVisual;
+  };
+  downloadStats?: DownloadSummary;
+}) {
   const c = repairMojibakeDeep(copy[locale]);
   const isAr = locale === "ar";
   const appsHero = siteImages?.apps_hero?.trim() || "/images/moplayer-hero-3d-final.png";
+  const appsHeroIcon = appVisuals?.pro?.icon || appVisuals?.classic?.icon || appVisuals?.pc?.icon || "/images/moplayer-icon-512.png";
+  const downloadMetricLabel = isAr ? "تحميلات رسمية" : "official downloads";
+  const versionMetricLabel = isAr ? "آخر إصدار" : "latest version";
+  const classicBase = c.appCards[0];
   const moplayer2Card = {
     title: "MoPlayer Pro",
     label: isAr ? "أفضل تطبيق IPTV لـ Android TV" : "Premium IPTV for Android TV",
@@ -153,9 +187,11 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
     badges: isAr ? ["Glass UI", "Xtream + M3U", "QR Activation"] : ["Glass UI", "Xtream + M3U", "QR Activation"],
     cta: isAr ? "افتح MoPlayer Pro" : "Open MoPlayer Pro",
     href: "apps/moplayer2",
-    image: "/images/moplayer-pro-hero.webp",
-    icon: "/images/moplayer-icon-512.png",
+    image: appVisuals?.pro?.image || "/images/moplayer-pro-hero.webp",
+    icon: appVisuals?.pro?.icon || "/images/moplayer-icon-512.png",
     accent: "metal",
+    downloads: appVisuals?.pro?.downloads ?? 0,
+    version: appVisuals?.pro?.version,
   };
   const moplayerPcCard = {
     title: "MoPlayer PC",
@@ -166,10 +202,22 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
     badges: isAr ? ["Windows 10/11", "مثبت + محمول", "Xtream + M3U"] : ["Windows 10/11", "Installer + portable", "Xtream + M3U"],
     cta: isAr ? "افتح MoPlayer PC" : "Open MoPlayer PC",
     href: "apps/moplayer-pc",
-    image: "/images/moplayer-pro-hero.webp",
-    icon: "/images/moplayer-icon-512.png",
+    image: appVisuals?.pc?.image || "/images/moplayer-pc-desktop.png",
+    icon: appVisuals?.pc?.icon || "/images/moplayer-icon-512.png",
     accent: "metal",
+    downloads: appVisuals?.pc?.downloads ?? 0,
+    version: appVisuals?.pc?.version,
   };
+  const moplayerClassicCard = {
+    ...classicBase,
+    title: "MoPlayer Classic",
+    href: "apps/moplayer/classic",
+    image: appVisuals?.classic?.image || classicBase.image,
+    icon: appVisuals?.classic?.icon || classicBase.icon,
+    downloads: appVisuals?.classic?.downloads ?? 0,
+    version: appVisuals?.classic?.version,
+  };
+  const appCards = [moplayerClassicCard, moplayer2Card, moplayerPcCard];
 
   return (
     <PageShell className="apps-lux-page">
@@ -205,6 +253,26 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
                 </span>
               ))}
             </div>
+            {downloadStats ? (
+              <div className="apps-download-strip">
+                <div className="apps-download-total">
+                  <span>{isAr ? "تحميلات التطبيقات" : "App downloads"}</span>
+                  <strong>{formatDownloadNumber(downloadStats.total, locale)}</strong>
+                </div>
+                <div className="apps-download-products">
+                  {[
+                    ["MoPlayer Classic", downloadStats.classic],
+                    ["MoPlayer Pro", downloadStats.pro],
+                    ["MoPlayer PC", downloadStats.pc],
+                  ].map(([label, value]) => (
+                    <span key={label}>
+                      <strong>{formatDownloadNumber(Number(value), locale)}</strong>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </motion.div>
 
           <motion.div
@@ -224,7 +292,7 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
               className="apps-device-image"
             />
             <div className="apps-device-panel">
-              <Image src="/images/moplayer-icon-512.png" alt="" width={42} height={42} />
+              <Image src={appsHeroIcon} alt="" width={42} height={42} unoptimized={appsHeroIcon.startsWith("http")} />
               <div>
                 <strong>MoPlayer</strong>
                 <span>TV-first product system</span>
@@ -245,7 +313,7 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
           </div>
 
           <div className="apps-bento">
-            {[...c.appCards.filter((app) => app.title !== "MoPlayer Pro"), moplayer2Card, moplayerPcCard].map((app, index) => (
+            {appCards.map((app, index) => (
               <motion.article
                 key={app.title}
                 initial={{ opacity: 0, y: 18 }}
@@ -254,7 +322,14 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
                 className={`apps-card apps-card-${app.accent} ${index === 0 ? "apps-card-featured" : ""}`}
               >
                 <div className="apps-card-media">
-                  <Image src={app.image} alt={app.title} fill sizes={index === 0 ? "(max-width: 900px) 100vw, 58vw" : "(max-width: 900px) 100vw, 34vw"} className="apps-card-image" />
+                  <Image
+                    src={app.image}
+                    alt={app.title}
+                    fill
+                    sizes={index === 0 ? "(max-width: 900px) 100vw, 58vw" : "(max-width: 900px) 100vw, 34vw"}
+                    className="apps-card-image"
+                    unoptimized={app.image.startsWith("http")}
+                  />
                   <div className="apps-preview">
                     <Play className="h-4 w-4" />
                     {c.quickPreview}
@@ -273,6 +348,18 @@ export function AppsShowcasePage({ locale, siteImages }: { locale: Locale; siteI
                     {app.badges.map((badge) => (
                       <span key={badge}>{badge}</span>
                     ))}
+                  </div>
+                  <div className="apps-card-metrics">
+                    <span>
+                      <strong>{formatDownloadNumber(app.downloads, locale)}</strong>
+                      {downloadMetricLabel}
+                    </span>
+                    {app.version ? (
+                      <span>
+                        <strong>{app.version}</strong>
+                        {versionMetricLabel}
+                      </span>
+                    ) : null}
                   </div>
                   <Link href={app.href.startsWith("/api/") ? app.href : withLocale(locale, app.href)} className="apps-card-link">
                     {app.href.startsWith("/api/") ? <Download className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}

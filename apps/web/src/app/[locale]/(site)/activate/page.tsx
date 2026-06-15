@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MoPlayerActivationPage } from "@/components/app/moplayer-activation-page";
+import { readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
+import { resolveSiteImages, siteImage } from "@/lib/site-images";
 import "@/styles/route-activation.css";
 import type { Locale } from "@/types/cms";
 
@@ -59,7 +61,10 @@ export async function generateMetadata({
   const canonical = `${SITE_URL}/${locale}/activate${suffix}`;
   const socialTitle = `${copy.title} | Mohammad Alfarras`;
 
-  const image = "/images/moplayer-activation-flow.webp";
+  const snapshot = await readSnapshot();
+  const siteImages = resolveSiteImages(snapshot);
+  const image = siteImage(siteImages, "activation_hero", siteImage(siteImages, "home_product_secondary", "/images/moplayer-activation-flow.webp"));
+  const socialImage = image.startsWith("http") ? image : `${SITE_URL}${image}`;
 
   return {
     title: copy.title,
@@ -79,7 +84,7 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [{ url: image, width: 1600, height: 900, alt: socialTitle }],
+      images: [{ url: socialImage, width: 1600, height: 900, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -87,7 +92,7 @@ export async function generateMetadata({
       creator: "@Moalfarras",
       title: socialTitle,
       description: copy.description,
-      images: [image],
+      images: [socialImage],
     },
   };
 }

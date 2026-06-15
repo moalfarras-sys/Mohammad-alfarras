@@ -18,8 +18,28 @@ export type DownloadCounts = {
   updatedAt?: string;
 };
 
+export type PublicDownloadStats = {
+  value: number;
+  total: number;
+  since?: string;
+  updatedAt?: string;
+};
+
 function countId(slug: string, platform?: string | null) {
   return platform && platform.toLowerCase() === "windows" ? `${slug}:windows` : slug;
+}
+
+export function downloadCountFor(counts: DownloadCounts, slug: string, platform?: string | null): number {
+  return Math.max(0, Number(counts.counts[countId(slug, platform)]) || 0);
+}
+
+export function publicDownloadStats(counts: DownloadCounts, slug: string, platform?: string | null): PublicDownloadStats {
+  return {
+    value: downloadCountFor(counts, slug, platform),
+    total: Math.max(0, Number(counts.total) || 0),
+    since: counts.since,
+    updatedAt: counts.updatedAt,
+  };
 }
 
 export async function recordDownload(slug: string, platform?: string | null): Promise<void> {

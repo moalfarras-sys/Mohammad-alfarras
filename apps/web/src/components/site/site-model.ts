@@ -376,13 +376,9 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
       };
     });
 
-  if (!active.some((project) => project.slug === "moplayer")) active.push(moplayerFallback(locale));
-  if (!active.some((project) => project.slug === "moplayer2")) active.push(moplayer2Fallback(locale));
-  for (const showcase of businessShowcaseProjects(locale)) {
-    if (!active.some((project) => project.slug === showcase.slug)) active.push(showcase);
-  }
+  if (active.length) return repairMojibakeDeep(active);
 
-  return repairMojibakeDeep(active);
+  return repairMojibakeDeep([moplayerFallback(locale), moplayer2Fallback(locale), ...businessShowcaseProjects(locale)]);
 }
 
 function getExperience(snapshot: CmsSnapshot, locale: Locale, nowLabel: string): SiteViewModel["experience"] {

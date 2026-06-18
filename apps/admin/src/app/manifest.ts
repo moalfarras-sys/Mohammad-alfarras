@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Moalfarras Admin",
     short_name: "MF Admin",
-    description: "Control center for the public website, MoPlayer Classic, MoPlayer Pro, and assistant operations.",
+    description: "Control center for the public website, MoPlayer Suite, MoPlayer iOS, and assistant operations.",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -21,8 +21,9 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Website", short_name: "Site", url: "/website", description: "Edit the public website" },
-      { name: "MoPlayer", short_name: "Classic", url: "/moplayer", description: "Manage MoPlayer Classic" },
-      { name: "MoPlayer Pro", short_name: "Pro", url: "/moplayer-pro", description: "Manage MoPlayer Pro" },
+      { name: "MoPlayer Suite", short_name: "Apps", url: "/moplayer", description: "Manage all MoPlayer editions" },
+      { name: "MoPlayer iOS", short_name: "iOS", url: "/moplayer/ios", description: "Manage MoPlayer iOS" },
+      { name: "MoPlayer Pro", short_name: "Pro", url: "/moplayer/pro", description: "Manage MoPlayer Pro" },
       { name: "Email", short_name: "Email", url: "/email", description: "Email inbox" },
     ],
   };

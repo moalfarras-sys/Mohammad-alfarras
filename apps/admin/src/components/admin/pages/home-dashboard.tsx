@@ -11,6 +11,7 @@ import {
   Globe,
   Inbox,
   Key,
+  Laptop,
   Monitor,
   Radio,
   Smartphone,
@@ -67,7 +68,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         eyebrow={health.supabase && health.storage ? t({ en: "Control center ready", ar: "مركز التحكم جاهز" }) : t({ en: "Checks need review", ar: "توجد فحوصات تحتاج مراجعة" })}
         title={t({ en: "Control Dashboard", ar: "لوحة التحكم" })}
         subtitle={t({
-          en: "A mobile-ready admin app for the website, MoPlayer Classic, MoPlayer Pro, MoPlayer PC, AI, and automation health. Each product is its own section so no setting jumps into another product.",
+          en: "A mobile-ready admin app for the website, MoPlayer Classic, MoPlayer Pro, MoPlayer iOS, MoPlayer PC, AI, and automation health. Each product is its own section so no setting jumps into another product.",
           ar: "تطبيق إدارة جاهز للهاتف للموقع وMoPlayer Classic وMoPlayer Pro وMoPlayer PC والـ AI وصحة الأتمتة. كل منتج له قسمه المستقل حتى لا تدخل إعدادات تطبيق في تطبيق آخر.",
         })}
         icon={<Activity className="h-7 w-7" />}
@@ -79,7 +80,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         }
       />
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <GuideTile
           title={t({ en: "Website is separate", ar: "الموقع منفصل" })}
           body={t({
@@ -99,6 +100,13 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
           body={t({
             en: "Android/TV app only: slug stays moplayer2 for URLs, APIs, devices, releases, colors, and maintenance.",
             ar: "تطبيق أندرويد/تلفاز فقط: يبقى slug باسم moplayer2 للروابط والـ API والأجهزة والإصدارات والألوان والصيانة.",
+          })}
+        />
+        <GuideTile
+          title="MoPlayer iOS"
+          body={t({
+            en: "iPhone public page only: App Store/TestFlight link, activation link, status, note, and preview image.",
+            ar: "صفحة iPhone فقط: رابط App Store/TestFlight، رابط التفعيل، الحالة، الملاحظة، وصورة المعاينة.",
           })}
         />
         <GuideTile
@@ -137,19 +145,25 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
           body={t({ en: "Understand assistant messages, app assistant, n8n, and route health.", ar: "افهم رسائل المساعد ومساعد التطبيق وn8n وصحة المسارات." })}
         />
         <ActionTile
-          href="/moplayer#runtime"
+          href="/moplayer/classic#runtime"
           icon={<Smartphone className="h-5 w-5" />}
           title="MoPlayer Classic"
           body={t({ en: "Android app: runtime, releases, images, and public page.", ar: "تطبيق أندرويد: التشغيل، الإصدارات، الصور، وصفحة الموقع." })}
         />
         <ActionTile
-          href="/moplayer-pro#runtime"
+          href="/moplayer/pro#runtime"
           icon={<Tv className="h-5 w-5" />}
           title="MoPlayer Pro"
           body={t({ en: "Android/TV app: runtime, releases, images, and public page.", ar: "تطبيق أندرويد/تلفاز: التشغيل، الإصدارات، الصور، وصفحة الموقع." })}
         />
         <ActionTile
-          href="/moplayer-pc"
+          href="/moplayer/ios#ios-runtime"
+          icon={<Laptop className="h-5 w-5" />}
+          title="MoPlayer iOS"
+          body={t({ en: "iPhone page: store button, activation link, status, note, and public image.", ar: "صفحة iPhone: زر المتجر، رابط التفعيل، الحالة، الملاحظة، والصورة العامة." })}
+        />
+        <ActionTile
+          href="/moplayer/pc"
           icon={<Monitor className="h-5 w-5" />}
           title="MoPlayer PC"
           body={t({ en: "Windows app: version, downloads, requirements, and maintenance.", ar: "تطبيق ويندوز: الإصدار، روابط التحميل، المتطلبات، والصيانة." })}
@@ -161,7 +175,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
         <StatCard label={t({ en: "Visible services", ar: "خدمات ظاهرة" })} value={website.services.filter((item) => item.is_active).length} icon={<Gauge className="h-5 w-5" />} tone="success" hint={t({ en: "Website", ar: "الموقع" })} />
         <StatCard label={t({ en: "Published pages", ar: "صفحات منشورة" })} value={website.pages.filter((item) => item.status === "published").length} icon={<Key className="h-5 w-5" />} tone="warning" hint="SEO" />
         <StatCard label={t({ en: "Releases", ar: "الإصدارات" })} value={allReleases.length} icon={<Box className="h-5 w-5" />} tone="violet" hint={t({ en: "Classic + Pro", ar: "كلاسيك + برو" })} />
-        <StatCard label={t({ en: "App images", ar: "صور التطبيقات" })} value={apps.reduce((sum, app) => sum + app.data.screenshots.length, 0)} icon={<Inbox className="h-5 w-5" />} tone="danger" href="/moplayer-pro#visual-assets" />
+        <StatCard label={t({ en: "App images", ar: "صور التطبيقات" })} value={apps.reduce((sum, app) => sum + app.data.screenshots.length, 0)} icon={<Inbox className="h-5 w-5" />} tone="danger" href="/moplayer" />
       </section>
 
       {/* App downloads counter */}
@@ -197,7 +211,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
       </section>
 
       {/* Quick navigation */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <QuickCard
           href="/website"
           icon={<Globe className="h-6 w-6" />}
@@ -206,21 +220,28 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
           stat={`${website.mediaAssets.length} ${t({ en: "images", ar: "صورة" })} · ${website.messages.length} ${t({ en: "messages", ar: "رسالة" })}`}
         />
         <QuickCard
-          href="/moplayer"
+          href="/moplayer/classic"
           icon={<Smartphone className="h-6 w-6" />}
           title="MoPlayer Classic"
           body={t({ en: "Android app runtime, releases, activations, fleet, sources, and support.", ar: "تطبيق أندرويد: التشغيل، الإصدارات، التفعيل، الأجهزة، المصادر، والدعم." })}
           stat={appRuntimeLabel(apps.find((a) => a.slug === "moplayer")?.data, t)}
         />
         <QuickCard
-          href="/moplayer-pro"
+          href="/moplayer/pro"
           icon={<Tv className="h-6 w-6" />}
           title="MoPlayer Pro"
           body={t({ en: "Android/TV app runtime, colors, releases, activations, fleet, and support.", ar: "تطبيق أندرويد/تلفاز: التشغيل، الألوان، الإصدارات، التفعيل، الأجهزة، والدعم." })}
           stat={appRuntimeLabel(apps.find((a) => a.slug === "moplayer2")?.data, t)}
         />
         <QuickCard
-          href="/moplayer-pc"
+          href="/moplayer/ios"
+          icon={<Laptop className="h-6 w-6" />}
+          title="MoPlayer iOS"
+          body={t({ en: "iPhone public page, store link, activation link, note, and preview image.", ar: "صفحة iPhone العامة، رابط المتجر، رابط التفعيل، الملاحظة، وصورة المعاينة." })}
+          stat={t({ en: "App Store ready", ar: "جاهز App Store" })}
+        />
+        <QuickCard
+          href="/moplayer/pc"
           icon={<Monitor className="h-6 w-6" />}
           title="MoPlayer PC"
           body={t({ en: "Windows desktop app: version, installer + portable downloads, and maintenance.", ar: "تطبيق ويندوز للكمبيوتر: الإصدار، روابط المثبت والنسخة المحمولة، والصيانة." })}
@@ -276,7 +297,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
       {/* Per-app runtime strip */}
       <section className="grid gap-3 md:grid-cols-2">
         {apps.map((a) => (
-          <Link key={a.slug} href={a.slug === "moplayer2" ? "/moplayer-pro" : "/moplayer"} className="glass fade-up flex items-center gap-4 rounded-[20px] p-5 transition hover:border-[var(--line-strong)]">
+          <Link key={a.slug} href={a.slug === "moplayer2" ? "/moplayer/pro" : "/moplayer/classic"} className="glass fade-up flex items-center gap-4 rounded-[20px] p-5 transition hover:border-[var(--line-strong)]">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)]">
               <Radio className="h-5 w-5" />
             </span>

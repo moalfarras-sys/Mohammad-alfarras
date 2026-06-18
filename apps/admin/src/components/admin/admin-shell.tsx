@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useTheme } from "next-themes";
-import { Bot, Globe, Languages, LayoutDashboard, LogOut, Mail, Monitor, Moon, ShieldCheck, Smartphone, Tv, Sun } from "lucide-react";
+import { Bot, Boxes, Globe, Languages, LayoutDashboard, LogOut, Mail, Moon, ShieldCheck, Sun } from "lucide-react";
 
 import { logoutAdminAction } from "@/app/actions";
 import { AdminHelperWidget } from "@/components/admin/admin-helper-widget";
@@ -14,9 +14,7 @@ import { useLocale } from "@/components/admin/locale-provider";
 const NAV = [
   { href: "/", en: "Overview", ar: "نظرة عامة", short_en: "Home", short_ar: "الرئيسية", hint_en: "Start here", hint_ar: "ابدأ من هنا", icon: LayoutDashboard },
   { href: "/website", en: "Website", ar: "الموقع", short_en: "Website", short_ar: "الموقع", hint_en: "Text, images, SEO", hint_ar: "نصوص وصور وفهرسة", icon: Globe },
-  { href: "/moplayer", en: "MoPlayer Classic", ar: "مو بلاير كلاسيك", short_en: "Classic", short_ar: "كلاسيك", hint_en: "Android app", hint_ar: "تطبيق أندرويد", icon: Smartphone },
-  { href: "/moplayer-pro", en: "MoPlayer Pro", ar: "مو بلاير برو", short_en: "Pro", short_ar: "برو", hint_en: "Android/TV app", hint_ar: "تطبيق أندرويد/تلفاز", icon: Tv },
-  { href: "/moplayer-pc", en: "MoPlayer PC", ar: "مو بلاير PC", short_en: "PC", short_ar: "PC", hint_en: "Windows app", hint_ar: "تطبيق ويندوز", icon: Monitor },
+  { href: "/moplayer", en: "MoPlayer Suite", ar: "MoPlayer Suite", short_en: "Apps", short_ar: "التطبيقات", hint_en: "Classic, Pro, iOS, PC", hint_ar: "Classic وPro وiOS وPC", icon: Boxes },
   { href: "/email", en: "Email", ar: "الإيميلات", short_en: "Email", short_ar: "إيميل", hint_en: "Inbox + AI replies", hint_ar: "رسائل وردود AI", icon: Mail },
   { href: "/ai", en: "AI & automation", ar: "AI والأتمتة", short_en: "AI", short_ar: "AI", hint_en: "Assistant health", hint_ar: "صحة المساعد", icon: Bot },
 ] as const;
@@ -44,12 +42,7 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
   const pathname = usePathname();
   const { t, locale, toggle } = useLocale();
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
+  const darkTheme = resolvedTheme === "dark";
 
   return (
     <div className="admin-root min-h-screen">
@@ -65,12 +58,12 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
         <div className="mb-4 rounded-3xl border border-[var(--line-strong)] bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(99,102,241,0.07))] p-3">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-[var(--accent)]" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent)]">{t({ en: "Safe mode", ar: "وضع آمن" })}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent)]">{t({ en: "Safe controls", ar: "تحكم آمن" })}</p>
           </div>
           <p className="mt-2 text-xs leading-5 text-[var(--text-3)]">
             {t({
-              en: "Controls are separated by area. Destructive cleanup is not automatic.",
-              ar: "كل قسم منفصل. لا يوجد حذف أو تنظيف تلقائي للبيانات.",
+              en: "Website, apps, media, and automation are separated so edits stay in their product.",
+              ar: "الموقع والتطبيقات والصور والأتمتة مفصولة حتى يبقى كل تعديل في مكانه الصحيح.",
             })}
           </p>
         </div>
@@ -102,8 +95,8 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
               <Languages className="h-4 w-4" />
               {locale === "ar" ? "English" : "العربية"}
             </button>
-            <button type="button" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} className="btn btn-sm" aria-label="Toggle theme">
-              {mounted && resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <button type="button" onClick={() => setTheme(darkTheme ? "light" : "dark")} className="btn btn-sm" aria-label="Toggle theme">
+              {darkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <form action={logoutAdminAction}>
               <button type="submit" className="btn btn-sm btn-danger" aria-label="Sign out">
@@ -127,8 +120,8 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
             <button type="button" onClick={toggle} className="btn btn-sm" aria-label="Toggle language">
               {locale === "ar" ? "EN" : "AR"}
             </button>
-            <button type="button" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} className="btn btn-sm" aria-label="Toggle theme">
-              {mounted && resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <button type="button" onClick={() => setTheme(darkTheme ? "light" : "dark")} className="btn btn-sm" aria-label="Toggle theme">
+              {darkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <form action={logoutAdminAction}>
               <button type="submit" className="btn btn-sm btn-danger" aria-label="Sign out">

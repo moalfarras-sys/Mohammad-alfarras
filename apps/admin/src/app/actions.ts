@@ -12,6 +12,7 @@ import {
   deleteAppRelease,
   deleteAppScreenshot,
   deleteActivationRequest,
+  readAdminAppData,
   saveAppFaq,
   saveAppProduct,
   saveAppRelease,
@@ -52,14 +53,19 @@ import {
 import type { WebsiteMediaAsset } from "@/lib/website-cms";
 
 function appRoute(slug: ManagedAppSlug) {
-  return slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
+  return slug === "moplayer2" ? "/moplayer/pro" : "/moplayer/classic";
 }
 
 function revalidateAll() {
   revalidatePath("/");
   revalidatePath("/website");
   revalidatePath("/moplayer");
+  revalidatePath("/moplayer/classic");
+  revalidatePath("/moplayer/pro");
+  revalidatePath("/moplayer/ios");
+  revalidatePath("/moplayer/pc");
   revalidatePath("/moplayer-pro");
+  revalidatePath("/moplayer-pc");
   void revalidatePublicCms();
 }
 
@@ -566,6 +572,62 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   appRedirect("runtime_config", productSlug);
 }
 
+export async function saveIosRuntimeConfigAction(formData: FormData) {
+  await requireAdminRole("admin");
+  const current = await readAdminAppData("moplayer2");
+  const runtime = current.runtimeConfig;
+  const iosStatus = String(formData.get("iosStatus") ?? "coming_soon").trim() || "coming_soon";
+  const iosStoreUrl = String(formData.get("iosStoreUrl") ?? "").trim();
+  const iosActivationUrl = String(formData.get("iosActivationUrl") ?? "").trim();
+  const iosButtonLabel = String(formData.get("iosButtonLabel") ?? "").trim();
+  const iosHeroImageUrl = String(formData.get("iosHeroImageUrl") ?? "").trim();
+  const iosNote = String(formData.get("iosNote") ?? "").trim();
+  let resolvedImageUrl = iosHeroImageUrl || runtime.ios?.heroImageUrl || "/images/moplayer-pro-home.webp";
+
+  const selectedMediaId = String(formData.get("iosHeroImageMediaId") ?? "").trim();
+  if (selectedMediaId) {
+    const supabase = createSupabaseAdminClient();
+    const selected = await supabase.from("media_assets").select("path").eq("id", selectedMediaId).maybeSingle();
+    if (selected.data?.path) resolvedImageUrl = String(selected.data.path);
+  }
+
+  const file = formData.get("iosHeroImageFile");
+  if (file instanceof File && file.size > 0) {
+    try {
+      validateWebsiteImageFile(file);
+      const uploaded = await uploadWebsiteMedia({
+        filename: file.name,
+        contentType: file.type || "image/png",
+        bytes: new Uint8Array(await file.arrayBuffer()),
+        altAr: "MoPlayer iOS",
+        altEn: "MoPlayer iOS",
+        kind: "apps/moplayer-ios",
+      });
+      resolvedImageUrl = uploaded.path;
+    } catch (error) {
+      redirect(`/moplayer/ios?updated=${uploadFailureCode(error)}#ios-images`);
+    }
+  }
+
+  await saveRuntimeConfig(
+    {
+      ...runtime,
+      ios: {
+        enabled: formData.get("iosEnabled") === "on",
+        status: iosStatus,
+        storeUrl: iosStoreUrl || "/en/apps/moplayer-ios#app-store-coming-soon",
+        activationUrl: iosActivationUrl || "/en/activate?product=moplayer2&platform=ios",
+        buttonLabel: iosButtonLabel || "App Store soon",
+        heroImageUrl: resolvedImageUrl,
+        note: iosNote,
+      },
+    },
+    "moplayer2",
+  );
+  revalidateAll();
+  redirect("/moplayer/ios?updated=ios_runtime#ios-runtime");
+}
+
 export async function saveWidgetProviderSettingsAction(formData: FormData) {
   await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
@@ -968,7 +1030,7 @@ export async function saveWindowsReleaseAction(formData: FormData) {
 
   await mergeSiteSetting("windows_release", value);
   revalidateAll();
-  redirect("/moplayer-pc?updated=windows_release");
+  redirect("/moplayer/pc?updated=windows_release");
 }
 
 async function readWindowsReleaseSetting(): Promise<Record<string, unknown>> {
@@ -1059,7 +1121,7 @@ export async function savePcHeroImageAction(formData: FormData) {
     updatedAt: new Date().toISOString(),
   });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function savePcCardImageAction(formData: FormData) {
@@ -1071,7 +1133,7 @@ export async function savePcCardImageAction(formData: FormData) {
     updatedAt: new Date().toISOString(),
   });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function addPcScreenshotAction(formData: FormData) {
@@ -1090,7 +1152,7 @@ export async function addPcScreenshotAction(formData: FormData) {
   ];
   await mergeSiteSetting("windows_release", { ...normalizePcScreenshotItems(items), updatedAt: new Date().toISOString() });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function savePcScreenshotMetaAction(formData: FormData) {
@@ -1111,7 +1173,7 @@ export async function savePcScreenshotMetaAction(formData: FormData) {
   );
   await mergeSiteSetting("windows_release", { ...normalizePcScreenshotItems(items), updatedAt: new Date().toISOString() });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function deletePcScreenshotAction(formData: FormData) {
@@ -1122,21 +1184,21 @@ export async function deletePcScreenshotAction(formData: FormData) {
   const items = currentPcScreenshotItems(setting).filter((item) => item.url !== url && item.id !== id);
   await mergeSiteSetting("windows_release", { ...normalizePcScreenshotItems(items), updatedAt: new Date().toISOString() });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function clearPcHeroImageAction() {
   await requireAdminRole("admin");
   await mergeSiteSetting("windows_release", { heroImage: "", heroAlt: "", updatedAt: new Date().toISOString() });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function clearPcCardImageAction() {
   await requireAdminRole("admin");
   await mergeSiteSetting("windows_release", { cardImage: "", cardAlt: "", updatedAt: new Date().toISOString() });
   revalidateAll();
-  redirect("/moplayer-pc?updated=pc_image#images");
+  redirect("/moplayer/pc?updated=pc_image#images");
 }
 
 export async function saveWebsiteBrandAction(formData: FormData) {

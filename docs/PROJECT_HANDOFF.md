@@ -6,12 +6,14 @@ This repository is a production monorepo for the public website, admin control c
 
 - Added MoPlayer iOS as a real platform section in the public MoPlayer family hub at `/en/apps/moplayer` and `/ar/apps/moplayer`, instead of leaving it only as a future placeholder card.
 - Connected the iOS page and hub card to `moplayer2_public_config.ios`, with admin-managed fields for show/hide, publishing status, temporary/App Store URL, QR activation URL, button label, preview image, and public note.
-- The safe default store link is `/en/apps/moplayer-ios#app-store-coming-soon`; replace it from Admin > MoPlayer Pro > Runtime configuration when the real Apple App Store URL is available.
+- Rebuilt Admin > MoPlayer into a suite page at `/moplayer` with separate control pages for `/moplayer/classic`, `/moplayer/pro`, `/moplayer/ios`, and `/moplayer/pc`. Legacy `/moplayer-pro` and `/moplayer-pc` now redirect to the nested pages.
+- Moved iOS controls out of the Pro Android/TV runtime form. The dedicated `/moplayer/ios` page saves the App Store/TestFlight URL, activation URL, status, button label, public note, and preview image; it can choose from the Website media library or upload a new image to `site-media`.
+- The safe default store link is `/en/apps/moplayer-ios#app-store-coming-soon`; replace it from Admin > MoPlayer Suite > MoPlayer iOS when the real Apple App Store URL is available.
 - Kept product slugs unchanged: `moplayer` remains Classic and `moplayer2` remains Pro. iOS is treated as a MoPlayer Pro platform surface, not a new managed app slug.
-- Verified locally with `npm run verify:web` and `npm run verify:admin`; both passed typecheck/lint/build, and web tests passed 12/12.
-- Deployed public site deployment `dpl_DYenh4ypKhYxDBZchxgqpquBmqYG` to `https://moalfarras.space` and admin deployment `dpl_5rbRbYEtXRGbvcUXootoXNWD756x` to `https://admin.moalfarras.space`.
-- Production smoke checks passed for `/en/apps/moplayer`, `/ar/apps/moplayer`, `/en/apps/moplayer-ios`, `/ar/apps/moplayer-ios`, `/api/app/config?product=moplayer2`, and the expected admin login redirect.
-- GitHub push was attempted again for the monorepo branch and the standalone `C:\Users\Moalf\Desktop\MoPlayerios-release-20260618-131052` export, but this machine still has no GitHub HTTPS credential, `gh` is not logged in, SSH is denied, and `C:\Users\Moalf\Desktop\mo.txt` does not contain a GitHub token pattern.
+- Verified locally with `npm run verify:web`, `npm run verify:admin`, and `npm run verify:production`; web tests passed 12/12 and the admin build includes `/moplayer`, `/moplayer/classic`, `/moplayer/pro`, `/moplayer/ios`, and `/moplayer/pc`.
+- Deployed public site deployment `dpl_CYKk3CA9Dqom5iz6XVMCwGrUMmCv` to `https://moalfarras.space` and admin deployment `dpl_FfSw9rroK9t3CXWrkPT4GLmn4R23` to `https://admin.moalfarras.space`.
+- Production smoke checks passed for `/en/apps/moplayer`, `/en/apps/moplayer-ios`, `/api/app/config?product=moplayer2`, and expected admin login redirects for `/`, `/moplayer`, `/moplayer/ios`, `/moplayer-pro`, and `/moplayer-pc`.
+- GitHub push was attempted again for the standalone `C:\Users\Moalf\Desktop\MoPlayerios-release-20260618-131052` export after GitHub tokens were provided in chat. One token returned `403 Write access to repository not granted`; the other returned GitHub authentication failure. No token value was written to code/docs. The exposed tokens should be revoked/rotated, and the iOS repo still needs a valid PAT with write access to `moalfarras-sys/MoPlayerios.git`.
 
 ## 2026-06-18 MoPlayer iOS App Store/GitHub readiness pass
 
@@ -24,7 +26,7 @@ This repository is a production monorepo for the public website, admin control c
 - Removed the current Windows debug QR URL console log from `apps/moplayer-pro-windows/src/renderer/App.tsx` before release because full activation URLs should not be logged in production.
 - Current local verification after Flutter changes: `flutter analyze` passed and `flutter test` passed with 6 tests. Mac/Xcode archive, TestFlight, App Store Connect privacy answers, final screenshots, and physical iPhone playback remain Mac-only steps.
 - Vercel production deploy completed after this pass: `https://moalfarras.space/en/apps/moplayer-ios` and `https://moalfarras.space/ar/apps/moplayer-ios` return 200, `https://moalfarras.space/sitemap.xml` includes `/apps/moplayer-ios`, and `https://admin.moalfarras.space` returns the expected 307 login redirect.
-- GitHub push was attempted for both this monorepo branch and the standalone `https://github.com/moalfarras-sys/MoPlayerios.git` export, but this Windows session has no non-interactive GitHub credentials available. Local commits are ready: monorepo current HEAD on `fix/production-audit-2026-06-18`; standalone export `C:\Users\Moalf\Desktop\MoPlayerios-release-20260618-131052` at commit `27a75fd` with remote `https://github.com/moalfarras-sys/MoPlayerios.git`.
+- GitHub push was attempted for both this monorepo branch and the standalone `https://github.com/moalfarras-sys/MoPlayerios.git` export. Later token-based iOS push attempts failed because the provided credentials did not have usable write access. Local commits are ready: monorepo branch `fix/production-audit-2026-06-18`; standalone export `C:\Users\Moalf\Desktop\MoPlayerios-release-20260618-131052` at commit `27a75fd` with remote `https://github.com/moalfarras-sys/MoPlayerios.git`.
 
 ## 2026-06-18 MoPlayer iOS real-server emulator QA follow-up
 

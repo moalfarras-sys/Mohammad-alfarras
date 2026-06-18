@@ -22,8 +22,9 @@ const topics = [
       links: [
         { href: "/website#media", label: "مكتبة صور الموقع" },
         { href: "/website#brand", label: "صور الهوية" },
-        { href: "/moplayer#product-content", label: "صور MoPlayer" },
-        { href: "/moplayer-pro#product-content", label: "صور Pro" },
+        { href: "/moplayer/classic#product-content", label: "صور MoPlayer" },
+        { href: "/moplayer/pro#product-content", label: "صور Pro" },
+        { href: "/moplayer/ios#ios-images", label: "صور iOS" },
       ],
     },
     en: {
@@ -32,8 +33,9 @@ const topics = [
       links: [
         { href: "/website#media", label: "Website media" },
         { href: "/website#brand", label: "Brand images" },
-        { href: "/moplayer#product-content", label: "MoPlayer images" },
-        { href: "/moplayer-pro#product-content", label: "Pro images" },
+        { href: "/moplayer/classic#product-content", label: "MoPlayer images" },
+        { href: "/moplayer/pro#product-content", label: "Pro images" },
+        { href: "/moplayer/ios#ios-images", label: "iOS image" },
       ],
     },
   },
@@ -64,20 +66,22 @@ const topics = [
       title: "إدارة التطبيقات",
       body: "كل تطبيق له صفحة منفصلة. MoPlayer Classic لا يخلط مع Pro. ابدأ من بطاقات مركز التحكم: التشغيل، الإصدارات، الأجهزة، الصور والصفحة.",
       links: [
-        { href: "/moplayer#runtime", label: "تشغيل Classic" },
-        { href: "/moplayer#releases", label: "إصدارات Classic" },
-        { href: "/moplayer-pro#runtime", label: "تشغيل Pro" },
-        { href: "/moplayer-pro#releases", label: "إصدارات Pro" },
+        { href: "/moplayer/classic#runtime", label: "تشغيل Classic" },
+        { href: "/moplayer/classic#releases", label: "إصدارات Classic" },
+        { href: "/moplayer/pro#runtime", label: "تشغيل Pro" },
+        { href: "/moplayer/pro#releases", label: "إصدارات Pro" },
+        { href: "/moplayer/ios#ios-runtime", label: "صفحة iOS" },
       ],
     },
     en: {
       title: "Manage apps",
       body: "Each app has its own page. Classic does not mix with Pro. Start from the control cards: runtime, releases, devices, images and page.",
       links: [
-        { href: "/moplayer#runtime", label: "Classic runtime" },
-        { href: "/moplayer#releases", label: "Classic releases" },
-        { href: "/moplayer-pro#runtime", label: "Pro runtime" },
-        { href: "/moplayer-pro#releases", label: "Pro releases" },
+        { href: "/moplayer/classic#runtime", label: "Classic runtime" },
+        { href: "/moplayer/classic#releases", label: "Classic releases" },
+        { href: "/moplayer/pro#runtime", label: "Pro runtime" },
+        { href: "/moplayer/pro#releases", label: "Pro releases" },
+        { href: "/moplayer/ios#ios-runtime", label: "iOS page" },
       ],
     },
   },
@@ -90,7 +94,8 @@ const topics = [
       links: [
         { href: "/ai", label: "AI" },
         { href: "/website#offers", label: "العروض" },
-        { href: "/moplayer-pro#product-content", label: "صور Pro" },
+        { href: "/moplayer/pro#product-content", label: "صور Pro" },
+        { href: "/moplayer/ios#ios-images", label: "صور iOS" },
       ],
     },
     en: {
@@ -99,7 +104,8 @@ const topics = [
       links: [
         { href: "/ai", label: "AI" },
         { href: "/website#offers", label: "Offers" },
-        { href: "/moplayer-pro#product-content", label: "Pro images" },
+        { href: "/moplayer/pro#product-content", label: "Pro images" },
+        { href: "/moplayer/ios#ios-images", label: "iOS image" },
       ],
     },
   },
@@ -116,7 +122,8 @@ function answerQuestion(input: string, locale: "ar" | "en"): HelperAnswer {
         links: [
           { href: "/", label: "لوحة التحكم" },
           { href: "/website", label: "إدارة الموقع" },
-          { href: "/moplayer-pro", label: "إدارة Pro" },
+          { href: "/moplayer", label: "مركز MoPlayer" },
+          { href: "/moplayer/pro", label: "إدارة Pro" },
           { href: "/ai", label: "AI" },
         ],
       }
@@ -126,7 +133,8 @@ function answerQuestion(input: string, locale: "ar" | "en"): HelperAnswer {
         links: [
           { href: "/", label: "Overview" },
           { href: "/website", label: "Website control" },
-          { href: "/moplayer-pro", label: "Pro control" },
+          { href: "/moplayer", label: "MoPlayer suite" },
+          { href: "/moplayer/pro", label: "Pro control" },
           { href: "/ai", label: "AI inbox" },
         ],
       };

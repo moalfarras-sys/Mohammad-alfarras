@@ -9,7 +9,7 @@ The hub is the doorway for:
 - `MoPlayer Classic`: lightweight Android/Android TV app for normal and weak devices.
 - `MoPlayer Pro`: modern gold Android/Android TV app with richer IPTV workflows.
 - `MoPlayer PC`: Windows desktop app and installer path.
-- `MoPlayer iOS`: public iPhone page and App Store/TestFlight link surface controlled from MoPlayer Pro runtime config.
+- `MoPlayer iOS`: public iPhone page and App Store/TestFlight link surface controlled from the dedicated admin iOS page. Values are stored under `moplayer2_public_config.ios`; iOS is not a separate app slug.
 - Future native products: Apple TV, LG webOS, and Samsung Tizen.
 
 ## Current Routes
@@ -24,13 +24,27 @@ The hub is the doorway for:
 - Windows portable download: `/api/app/download/latest?product=moplayer2&platform=windows&portable=1`
 - iOS activation placeholder: `/{locale}/activate?product=moplayer2&platform=ios`
 
+## Admin Control Routes
+
+- Suite overview: `/moplayer`
+- Classic controls: `/moplayer/classic`
+- Pro Android/TV controls: `/moplayer/pro`
+- iOS public page controls: `/moplayer/ios`
+- PC/Windows controls: `/moplayer/pc`
+- Legacy admin routes `/moplayer-pro` and `/moplayer-pc` redirect to the new nested routes.
+
+The iOS admin page saves real runtime values, supports choosing an existing `media_assets` image, and supports uploading a new image to `site-media` for the public iOS page/card.
+
 ## Files
 
 - Hub component: `apps/web/src/components/app/moplayer-product-hub.tsx`
 - Hub route: `apps/web/src/app/[locale]/(site)/apps/moplayer/page.tsx`
 - Classic route: `apps/web/src/app/[locale]/(site)/apps/moplayer/classic/page.tsx`
+- iOS route: `apps/web/src/app/[locale]/(site)/apps/moplayer-ios/page.tsx`
 - Styling: `apps/web/src/app/globals.css`
-- Admin shortcut actions: `apps/admin/src/components/admin/pages/app-control.tsx`
+- Admin suite: `apps/admin/src/components/admin/pages/moplayer-suite-control.tsx`
+- Admin iOS controls: `apps/admin/src/components/admin/pages/moplayer-ios-control.tsx`
+- Admin shared product controls: `apps/admin/src/components/admin/pages/app-control.tsx`
 
 ## Future Product Pattern
 

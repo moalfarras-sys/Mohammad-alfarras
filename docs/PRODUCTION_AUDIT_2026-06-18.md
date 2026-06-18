@@ -20,14 +20,12 @@ So most download/canonical/SEO items were **not broken** — the user's stronges
 
 ## Fixes applied
 
-### 1. Impressum (§5 DDG) — `#1`
+### 1. Impressum (§5 DDG) — `#1` ✅ complete
 - Impressum now **always renders** (previously 404'd until a CMS publish flag) and is
   **always linked in the footer next to Privacy** on every page.
-- Pre-filled: operator name (`Mohammad Alfarras / محمد الفراس`), country (Germany /
-  Deutschland), official email. Indexable + in `sitemap.xml`.
-- **Action required (owner):** the full **postal street address** is legally required and
-  cannot be fabricated. Until provided, the page shows an honest *"provided on request"*
-  line. Add it in Admin → Legal (`legal_pages.address`) or send it to finish compliance.
+- Legally complete with owner-provided data: name `Mohammad Alfarras / محمد الفراس`, address
+  **Tangermünder Str. 73, 12627 Berlin, Deutschland**, country, official email. Indexable +
+  in `sitemap.xml`. The admin CMS `legal_pages` setting can still override any field.
 
 ### 2. Canonical domain & language — `#2`
 - `www` → non-`www` already preserved path + locale (verified live). No "www=English /
@@ -98,7 +96,16 @@ So most download/canonical/SEO items were **not broken** — the user's stronges
   honest address line); support channels labelled & separated; `robots.txt` and `sitemap.xml`
   reflect the new routes.
 
+## Design polish — 3D cover-flow gallery
+- New reusable `CoverflowGallery` component: images render in a 3D perspective flow (active
+  faces front, neighbours rotate back). Interactive: prev/next, dots, drag/swipe, arrow keys,
+  click-a-side-card-to-front. Respects `prefers-reduced-motion`, mobile-first, no overflow.
+- Wired into the **MoPlayer Pro, Classic, and PC** screenshot sections (replacing the flat grids).
+- Verified: slides + dots render, next/prev/dot navigation change the active image, no
+  horizontal overflow at 375 px. `tsc`/`eslint`/`next build` green.
+
 ## Open items needing owner input
-1. **Impressum postal address** (legal requirement).
-2. **Downloader code numbers** — confirm gateway + Pro-direct values.
-3. **Live CMS YouTube blocks** — re-seed/update in Admin so old `6.1K/162` strings are replaced.
+1. **Downloader code numbers** — confirm gateway (`7876083`) + Pro-direct (`4608937`).
+2. **Live CMS YouTube blocks** — re-seed/update in Admin so old `6.1K/162` strings are replaced.
+3. **Push** — this environment has no GitHub credentials; run
+   `git push -u origin fix/production-audit-2026-06-18` from your terminal, then open a PR to `main`.

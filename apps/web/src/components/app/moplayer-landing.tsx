@@ -15,6 +15,7 @@ import {
   Workflow,
 } from "lucide-react";
 
+import { CoverflowGallery } from "@/components/site/coverflow-gallery";
 import { moPlayerCopy } from "@/content/apps";
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
@@ -264,14 +265,16 @@ export function MoPlayerLanding({
 
       {/* Screenshots Gallery */}
       <section className="relative py-16 px-6 z-10 bg-white/[0.01] border-t border-white/5">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-          {galleryShots.slice(0, 5).map((shot, i) => (
-             <div key={shot.id} className={`relative rounded-xl overflow-hidden border border-white/5 bg-black group ${i === 0 ? "md:col-span-2" : ""}`}>
-               <Image src={normalizePublicImagePath(shot.image_path)} alt={shot.alt_text} width={i === 0 ? 1200 : 600} height={i === 0 ? 500 : 340} className="w-full h-auto object-cover opacity-75 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-500" />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-               <span className="absolute bottom-4 left-6 text-white font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">{shot.title}</span>
-             </div>
-          ))}
+        <div className="max-w-5xl mx-auto">
+          <CoverflowGallery
+            locale={locale}
+            images={galleryShots.slice(0, 8).map((shot) => ({
+              id: String(shot.id),
+              src: normalizePublicImagePath(shot.image_path),
+              alt: shot.alt_text,
+              label: shot.title,
+            }))}
+          />
         </div>
       </section>
 

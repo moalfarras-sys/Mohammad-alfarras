@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useRef } from "react";
 
+import { CoverflowGallery } from "@/components/site/coverflow-gallery";
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
@@ -436,14 +437,11 @@ export function MoPlayer2Landing({
           <h2 className="text-2xl md:text-3xl font-extrabold text-white">{c.galleryTitle}</h2>
         </div>
         
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-          {galleryScreenshots.slice(0, 6).map((shot, i) => (
-             <div key={shot.id} className={`relative rounded-xl overflow-hidden border border-white/10 bg-black group shadow-lg ${i === 0 ? "md:col-span-2" : ""}`}>
-               <Image src={shot.src} alt={shot.alt} width={i === 0 ? 1200 : 600} height={i === 0 ? 500 : 340} className="w-full h-auto object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-500" />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-               <span className="absolute bottom-4 left-6 text-white font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">{shot.label}</span>
-             </div>
-          ))}
+        <div className="max-w-5xl mx-auto">
+          <CoverflowGallery
+            locale={locale}
+            images={galleryScreenshots.slice(0, 8).map((shot) => ({ id: String(shot.id), src: shot.src, alt: shot.alt, label: shot.label }))}
+          />
         </div>
       </section>
 

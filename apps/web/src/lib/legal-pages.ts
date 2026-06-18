@@ -52,14 +52,14 @@ const labels = {
 } satisfies Record<Locale, Record<string, string>>;
 
 /**
- * Baseline operator identity used for the Impressum even before the admin CMS
- * `legal_pages` setting is filled. The one field that cannot be defaulted is the
- * full street address (legally required under §5 DDG) — until it is provided in
- * admin, the page shows an honest "on request" line instead of a fabricated one.
+ * Baseline operator identity used for the Impressum. The admin CMS `legal_pages`
+ * setting can override any field; these are the verified owner-provided defaults
+ * so the page is legally complete (§5 DDG) out of the box.
  */
 const impressumDefaults = {
   responsibleName: "Mohammad Alfarras (محمد الفراس)",
   email: "mohammad.alfarras@gmail.com",
+  address: "Tangermünder Str. 73, 12627 Berlin, Deutschland",
 } as const;
 
 export function legalPagesPublished(setting: LegalPagesSetting | undefined): boolean {
@@ -89,18 +89,13 @@ function impressumRows(locale: Locale, setting: LegalPagesSetting) {
   const isAr = locale === "ar";
   const name = setting.responsibleName?.trim() || impressumDefaults.responsibleName;
   const email = setting.email?.trim() || impressumDefaults.email;
-  const address = setting.address?.trim();
+  const address = setting.address?.trim() || impressumDefaults.address;
 
   const rows = [
     `${l.responsible}: ${name}`,
     ...(setting.businessName?.trim() ? [`${l.business}: ${setting.businessName.trim()}`] : []),
     `${l.country}: ${isAr ? "ألمانيا (Deutschland)" : "Germany (Deutschland)"}`,
-    `${l.address}: ${
-      address ||
-      (isAr
-        ? "يُرسل العنوان البريدي الكامل عند الطلب عبر البريد الرسمي."
-        : "Full postal address provided on request via the official email.")
-    }`,
+    `${l.address}: ${address}`,
     `${l.email}: ${email}`,
     ...(setting.phone?.trim() ? [`${l.phone}: ${setting.phone.trim()}`] : []),
     ...(setting.taxId?.trim() ? [`${l.tax}: ${setting.taxId.trim()}`] : []),

@@ -268,6 +268,15 @@ export type AppRuntimeConfig = {
     checksumSha256?: string;
     releaseNotes?: string;
   };
+  ios?: {
+    enabled?: boolean;
+    status?: "coming_soon" | "testflight" | "app_store" | string;
+    storeUrl?: string;
+    activationUrl?: string;
+    buttonLabel?: string;
+    heroImageUrl?: string;
+    note?: string;
+  };
   supportUrl: string;
   privacyUrl: string;
 };

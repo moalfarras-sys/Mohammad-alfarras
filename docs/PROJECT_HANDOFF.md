@@ -2,6 +2,17 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-18 MoPlayer iOS public/admin control publish
+
+- Added MoPlayer iOS as a real platform section in the public MoPlayer family hub at `/en/apps/moplayer` and `/ar/apps/moplayer`, instead of leaving it only as a future placeholder card.
+- Connected the iOS page and hub card to `moplayer2_public_config.ios`, with admin-managed fields for show/hide, publishing status, temporary/App Store URL, QR activation URL, button label, preview image, and public note.
+- The safe default store link is `/en/apps/moplayer-ios#app-store-coming-soon`; replace it from Admin > MoPlayer Pro > Runtime configuration when the real Apple App Store URL is available.
+- Kept product slugs unchanged: `moplayer` remains Classic and `moplayer2` remains Pro. iOS is treated as a MoPlayer Pro platform surface, not a new managed app slug.
+- Verified locally with `npm run verify:web` and `npm run verify:admin`; both passed typecheck/lint/build, and web tests passed 12/12.
+- Deployed public site deployment `dpl_DYenh4ypKhYxDBZchxgqpquBmqYG` to `https://moalfarras.space` and admin deployment `dpl_5rbRbYEtXRGbvcUXootoXNWD756x` to `https://admin.moalfarras.space`.
+- Production smoke checks passed for `/en/apps/moplayer`, `/ar/apps/moplayer`, `/en/apps/moplayer-ios`, `/ar/apps/moplayer-ios`, `/api/app/config?product=moplayer2`, and the expected admin login redirect.
+- GitHub push was attempted again for the monorepo branch and the standalone `C:\Users\Moalf\Desktop\MoPlayerios-release-20260618-131052` export, but this machine still has no GitHub HTTPS credential, `gh` is not logged in, SSH is denied, and `C:\Users\Moalf\Desktop\mo.txt` does not contain a GitHub token pattern.
+
 ## 2026-06-18 MoPlayer iOS App Store/GitHub readiness pass
 
 - Prepared the MoPlayer Pro iOS Flutter app for GitHub/App Store handoff without committing Apple credentials, provider credentials, service-role keys, provisioning profiles, or `.env.local` files.

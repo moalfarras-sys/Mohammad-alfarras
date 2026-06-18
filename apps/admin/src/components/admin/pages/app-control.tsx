@@ -109,6 +109,9 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
   const runtime = runtimeConfig as RuntimeExtras;
   const basePath = slug === "moplayer2" ? "/moplayer-pro" : "/moplayer";
   const runtimeBackgroundUrl = runtimeConfig.backgroundUrl ? resolveAdminAssetUrl(runtimeConfig.backgroundUrl) : "";
+  const iosRuntime = runtime.ios ?? {};
+  const iosStoreFallback = "/en/apps/moplayer-ios#app-store-coming-soon";
+  const iosActivationFallback = "/en/activate?product=moplayer2&platform=ios";
 
   const waiting = activationRequests.filter((r) => r.status === "waiting").length;
   const openSupport = supportRequests.filter((r) => r.status === "new").length;
@@ -382,6 +385,101 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
               <Field label={t({ en: "Promo URL", ar: "رابط العرض" })} name="campaignPromoUrl" defaultValue={runtime.campaignWidgets?.promoUrl ?? ""} />
             </div>
           </div>
+          {slug === "moplayer2" ? (
+            <div className="rounded-2xl border border-orange-300/20 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.18),transparent_44%),rgba(255,255,255,0.035)] p-4 lg:col-span-2">
+              <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">
+                    {t({ en: "MoPlayer iOS", ar: "MoPlayer iOS" })}
+                  </p>
+                  <h4 className="mt-1 text-lg font-black text-[var(--text-1)]">
+                    {t({ en: "Public iPhone page and App Store button", ar: "صفحة iPhone العامة وزر App Store" })}
+                  </h4>
+                  <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-[var(--text-3)]">
+                    {t({
+                      en: "Controls the iOS card on the MoPlayer hub and the standalone iOS page. Use the temporary page anchor until the App Store URL is live.",
+                      ar: "يتحكم ببطاقة iOS في بوابة MoPlayer وبصفحة iOS المستقلة. استخدم الرابط المؤقت للصفحة إلى أن يصبح رابط App Store جاهزاً.",
+                    })}
+                  </p>
+                </div>
+                <a
+                  href={`${webBaseUrl}/en/apps/moplayer-ios`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-sm whitespace-nowrap"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {t({ en: "Preview page", ar: "معاينة الصفحة" })}
+                </a>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Toggle
+                  name="iosEnabled"
+                  label={t({ en: "Show iOS section", ar: "إظهار قسم iOS" })}
+                  description={t({
+                    en: "When on, iOS appears as a real MoPlayer platform card on the public hub.",
+                    ar: "عند التفعيل يظهر iOS كبطاقة منصة حقيقية داخل بوابة MoPlayer.",
+                  })}
+                  checked={iosRuntime.enabled !== false}
+                />
+                <SelectField
+                  label={t({ en: "Publishing status", ar: "حالة النشر" })}
+                  name="iosStatus"
+                  defaultValue={iosRuntime.status ?? "coming_soon"}
+                  options={[
+                    { value: "coming_soon", label: t({ en: "Coming soon / temporary link", ar: "قريباً / رابط مؤقت" }) },
+                    { value: "testflight", label: t({ en: "TestFlight testing", ar: "اختبار TestFlight" }) },
+                    { value: "app_store", label: t({ en: "Live on App Store", ar: "منشور على App Store" }) },
+                  ]}
+                />
+                <Field
+                  label={t({ en: "App Store or temporary URL", ar: "رابط App Store أو الرابط المؤقت" })}
+                  name="iosStoreUrl"
+                  defaultValue={iosRuntime.storeUrl ?? iosStoreFallback}
+                  placeholder="https://apps.apple.com/app/..."
+                  help={t({
+                    en: "Current safe fallback is the public iOS page anchor. Replace it with the real App Store URL after Apple approval.",
+                    ar: "البديل الآمن حالياً هو رابط داخل صفحة iOS. استبدله برابط App Store الحقيقي بعد موافقة Apple.",
+                  })}
+                />
+                <Field
+                  label={t({ en: "iOS activation URL", ar: "رابط تفعيل iOS" })}
+                  name="iosActivationUrl"
+                  defaultValue={iosRuntime.activationUrl ?? iosActivationFallback}
+                  help={t({
+                    en: "Used by the QR activation button for iPhone setup.",
+                    ar: "يستخدمه زر تفعيل QR لإعداد iPhone.",
+                  })}
+                />
+                <Field
+                  label={t({ en: "Store button label", ar: "نص زر المتجر" })}
+                  name="iosButtonLabel"
+                  defaultValue={iosRuntime.buttonLabel ?? t({ en: "App Store soon", ar: "App Store قريباً" })}
+                />
+                <Field
+                  label={t({ en: "iOS preview image URL", ar: "رابط صورة معاينة iOS" })}
+                  name="iosHeroImageUrl"
+                  defaultValue={iosRuntime.heroImageUrl ?? "/images/moplayer-pro-home.webp"}
+                  help={t({
+                    en: "Public image used on the iOS page and MoPlayer family card.",
+                    ar: "صورة عامة تظهر في صفحة iOS وبطاقة عائلة MoPlayer.",
+                  })}
+                />
+                <div className="md:col-span-2">
+                  <TextAreaField
+                    label={t({ en: "iOS public note", ar: "ملاحظة iOS العامة" })}
+                    name="iosNote"
+                    defaultValue={iosRuntime.note ?? "Temporary public page link until the App Store listing is live."}
+                    placeholder={t({
+                      en: "Short status note shown near the App Store button.",
+                      ar: "ملاحظة قصيرة تظهر قرب زر App Store.",
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
           <Toggle
             name="allowFootballFallback"
             label={t({ en: "Allow curated football fallback", ar: "السماح ببديل مباريات منسق" })}

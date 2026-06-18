@@ -79,6 +79,15 @@ const fallbackConfigs = {
       releaseNotes:
         "MoPlayer Pro 2.5.20 improves slow Xtream series details, episode container fallback, and weak-device live video recovery.",
     },
+    ios: {
+      enabled: true,
+      status: "coming_soon",
+      storeUrl: "/en/apps/moplayer-ios#app-store-coming-soon",
+      activationUrl: "/en/activate?product=moplayer2&platform=ios",
+      buttonLabel: "App Store soon",
+      heroImageUrl: "/images/moplayer-pro-home.webp",
+      note: "Temporary public page link until the App Store listing is live.",
+    },
     weatherBackgroundMode: "city_daily",
     weatherBackgroundUrl: "",
     supportUrl: "https://moalfarras.space/en/support",

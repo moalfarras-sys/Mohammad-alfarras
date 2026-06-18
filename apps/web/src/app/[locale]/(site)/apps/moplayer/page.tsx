@@ -7,6 +7,7 @@ import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { isLocale } from "@/lib/i18n";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { Locale } from "@/types/cms";
 
 const SITE_URL = "https://moalfarras.space";
@@ -22,14 +23,14 @@ const localizedMeta = {
     title: "MoPlayer Apps",
     socialTitle: "MoPlayer — Android, Windows, and TV product family",
     description:
-      "The new MoPlayer hub brings Classic, Pro, and PC together, with a prepared roadmap for future iOS, Apple TV, LG, and Samsung apps.",
+      "The MoPlayer hub brings Classic, Pro, PC, and iOS together with clear activation, download, support, and player-only legal guidance.",
   },
 } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const meta = localizedMeta[locale];
+  const meta = repairMojibakeDeep(localizedMeta[locale]);
   const pro = await readAppEcosystem("moplayer2");
   const image = normalizePublicImagePath(pro.product.hero_image_path || pro.product.tv_banner_path || pro.screenshots[0]?.image_path || "/images/moplayer-pro-hero.webp");
   return {
@@ -66,7 +67,7 @@ export default async function MoPlayerHubRoute({ params }: { params: Promise<{ l
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
-  const meta = localizedMeta[loc];
+  const meta = repairMojibakeDeep(localizedMeta[loc]);
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "التطبيقات" : "Apps", path: `/${loc}/apps` },
@@ -82,6 +83,7 @@ export default async function MoPlayerHubRoute({ params }: { params: Promise<{ l
       { "@type": "ListItem", position: 1, name: "MoPlayer Classic", url: `${SITE_URL}/${loc}/apps/moplayer/classic` },
       { "@type": "ListItem", position: 2, name: "MoPlayer Pro", url: `${SITE_URL}/${loc}/apps/moplayer2` },
       { "@type": "ListItem", position: 3, name: "MoPlayer PC", url: `${SITE_URL}/${loc}/apps/moplayer-pc` },
+      { "@type": "ListItem", position: 4, name: "MoPlayer iOS", url: `${SITE_URL}/${loc}/apps/moplayer-ios` },
     ],
   };
   const [classic, pro, windowsRelease] = await Promise.all([

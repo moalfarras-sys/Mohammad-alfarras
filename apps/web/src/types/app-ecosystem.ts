@@ -116,5 +116,14 @@ export type AppEcosystemData = {
     maintenanceMode?: boolean;
     message?: string;
     downloaderCode?: string;
+    ios?: {
+      enabled?: boolean;
+      status?: "coming_soon" | "testflight" | "app_store" | string;
+      storeUrl?: string;
+      activationUrl?: string;
+      buttonLabel?: string;
+      heroImageUrl?: string;
+      note?: string;
+    };
   };
 };

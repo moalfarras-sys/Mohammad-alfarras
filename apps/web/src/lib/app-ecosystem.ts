@@ -333,11 +333,42 @@ function fallbackDownloaderCode(productSlug: string) {
 function runtimeConfigSummary(value: unknown, productSlug: string): AppEcosystemData["runtimeConfig"] {
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const downloaderCode = String(record.downloaderCode ?? fallbackDownloaderCode(productSlug)).trim();
+  const iosRecord = record.ios && typeof record.ios === "object" ? (record.ios as Record<string, unknown>) : null;
+  const fallbackIos =
+    resolveManagedAppSlug(productSlug) === "moplayer2"
+      ? {
+          enabled: true,
+          status: "coming_soon",
+          storeUrl: "/en/apps/moplayer-ios#app-store-coming-soon",
+          activationUrl: "/en/activate?product=moplayer2&platform=ios",
+          buttonLabel: "App Store soon",
+          heroImageUrl: "/images/moplayer-pro-home.webp",
+          note: "Temporary public page link until the App Store listing is live.",
+        }
+      : undefined;
   return {
     enabled: record.enabled === false ? false : true,
     maintenanceMode: record.maintenanceMode === true,
     message: typeof record.message === "string" ? record.message : "",
     downloaderCode,
+    ...(fallbackIos || iosRecord
+      ? {
+          ios: {
+            ...(fallbackIos ?? {}),
+            ...(iosRecord
+              ? {
+                  enabled: iosRecord.enabled === false ? false : true,
+                  status: typeof iosRecord.status === "string" ? iosRecord.status : fallbackIos?.status,
+                  storeUrl: typeof iosRecord.storeUrl === "string" ? iosRecord.storeUrl : fallbackIos?.storeUrl,
+                  activationUrl: typeof iosRecord.activationUrl === "string" ? iosRecord.activationUrl : fallbackIos?.activationUrl,
+                  buttonLabel: typeof iosRecord.buttonLabel === "string" ? iosRecord.buttonLabel : fallbackIos?.buttonLabel,
+                  heroImageUrl: typeof iosRecord.heroImageUrl === "string" ? iosRecord.heroImageUrl : fallbackIos?.heroImageUrl,
+                  note: typeof iosRecord.note === "string" ? iosRecord.note : fallbackIos?.note,
+                }
+              : {}),
+          },
+        }
+      : {}),
   };
 }
 

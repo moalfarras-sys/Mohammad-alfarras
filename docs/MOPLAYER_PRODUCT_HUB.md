@@ -9,17 +9,20 @@ The hub is the doorway for:
 - `MoPlayer Classic`: lightweight Android/Android TV app for normal and weak devices.
 - `MoPlayer Pro`: modern gold Android/Android TV app with richer IPTV workflows.
 - `MoPlayer PC`: Windows desktop app and installer path.
-- Future native products: iOS, Apple TV, LG webOS, and Samsung Tizen.
+- `MoPlayer iOS`: public iPhone page and App Store/TestFlight link surface controlled from MoPlayer Pro runtime config.
+- Future native products: Apple TV, LG webOS, and Samsung Tizen.
 
 ## Current Routes
 
 - Family hub: `/en/apps/moplayer`, `/ar/apps/moplayer`
 - Classic details: `/en/apps/moplayer/classic`, `/ar/apps/moplayer/classic`
 - Pro details: `/en/apps/moplayer2`, `/ar/apps/moplayer2`
+- iOS details: `/en/apps/moplayer-ios`, `/ar/apps/moplayer-ios`
 - Classic latest download: `/api/app/download/latest?product=moplayer`
 - Pro latest download: `/api/app/download/latest?product=moplayer2`
 - Windows setup download: `/api/app/download/latest?product=moplayer2&platform=windows`
 - Windows portable download: `/api/app/download/latest?product=moplayer2&platform=windows&portable=1`
+- iOS activation placeholder: `/{locale}/activate?product=moplayer2&platform=ios`
 
 ## Files
 
@@ -59,7 +62,7 @@ If a paid provider fails, prefer a safe free/cached fallback over breaking the u
 The page should feel like a premium product shelf, not a generic APK page:
 
 - First viewport shows the product family clearly.
-- Classic, Pro, and PC each have a distinct message and CTA.
-- Coming-soon platform cards are visible but do not pretend downloads exist.
+- Classic, Pro, PC, and iOS each have a distinct message and CTA.
+- Coming-soon platform cards are visible for unreleased TV-store targets, but they do not pretend downloads exist.
 - Motion is decorative only and must respect `prefers-reduced-motion`.
 - The design uses real MoPlayer images/assets and avoids fake stock imagery.

@@ -17,7 +17,11 @@ import {
 } from "lucide-react";
 
 import { SITE_URL } from "@/content/site";
+import { normalizePublicImagePath } from "@/lib/asset-url";
+import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { isLocale } from "@/lib/i18n";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
+import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 
 const copy = {
@@ -71,6 +75,63 @@ const copy = {
   },
 } as const;
 
+type IosRuntimeConfig = NonNullable<NonNullable<AppEcosystemData["runtimeConfig"]>["ios"]>;
+
+function localizedRuntimeHref(locale: Locale, value: string | undefined, fallback: string) {
+  const href = String(value ?? "").trim() || fallback;
+  if (href.startsWith("/en/") || href.startsWith("/ar/")) {
+    return href.replace(/^\/(en|ar)\//, `/${locale}/`);
+  }
+  return href;
+}
+
+function statusLabel(locale: Locale, status?: string) {
+  const labels = {
+    en: {
+      coming_soon: "App Store link reserved",
+      testflight: "TestFlight testing",
+      app_store: "Live on App Store",
+    },
+    ar: {
+      coming_soon: "رابط App Store مؤقت",
+      testflight: "اختبار TestFlight",
+      app_store: "منشور على App Store",
+    },
+  } as const;
+  return labels[locale][(status as keyof (typeof labels)["en"]) || "coming_soon"] ?? labels[locale].coming_soon;
+}
+
+function storeBody(locale: Locale, status?: string) {
+  if (status === "app_store") {
+    return locale === "ar"
+      ? "هذا الزر يفتح صفحة MoPlayer iOS الرسمية على App Store."
+      : "This button opens the official MoPlayer iOS listing on the App Store.";
+  }
+  if (status === "testflight") {
+    return locale === "ar"
+      ? "استخدم هذا الرابط للوصول إلى صفحة الاختبار أو التعليمات المؤقتة قبل النشر العام."
+      : "Use this link for TestFlight access or temporary testing instructions before the public release.";
+  }
+  return locale === "ar"
+    ? "حالياً هذا رابط مؤقت داخل الموقع إلى حين اعتماد التطبيق في App Store. عند توفر رابط Apple الحقيقي يمكن تغييره من لوحة التحكم."
+    : "This is currently a safe temporary site link until Apple approves the App Store listing. Replace it from Admin when the real Apple URL is ready.";
+}
+
+function iosPageRuntime(locale: Locale, ios?: IosRuntimeConfig) {
+  const pageHref = `/${locale}/apps/moplayer-ios`;
+  const status = ios?.status || "coming_soon";
+  return {
+    status,
+    statusLabel: statusLabel(locale, status),
+    storeBody: storeBody(locale, status),
+    storeHref: localizedRuntimeHref(locale, ios?.storeUrl, `${pageHref}#app-store-coming-soon`),
+    activationHref: localizedRuntimeHref(locale, ios?.activationUrl, `/${locale}/activate?product=moplayer2&platform=ios`),
+    buttonLabel: ios?.buttonLabel?.trim() || (locale === "ar" ? "App Store قريباً" : "App Store soon"),
+    heroImage: normalizePublicImagePath(ios?.heroImageUrl || "/images/moplayer-pro-home.webp"),
+    note: ios?.note?.trim(),
+  };
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -79,7 +140,7 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const loc = locale as Locale;
-  const c = copy[loc];
+  const c = repairMojibakeDeep(copy[loc]);
   const canonical = `${SITE_URL}/${loc}/apps/moplayer-ios`;
   return {
     title: `${c.title} | Moalfarras`,
@@ -109,8 +170,10 @@ export default async function MoPlayerIosPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const loc = locale as Locale;
-  const c = copy[loc];
+  const c = repairMojibakeDeep(copy[loc]);
   const isAr = loc === "ar";
+  const ecosystem = await readAppEcosystem("moplayer2");
+  const ios = iosPageRuntime(loc, ecosystem.runtimeConfig?.ios);
 
   return (
     <main dir={isAr ? "rtl" : "ltr"} className="min-h-screen overflow-hidden bg-[#050506] text-white">
@@ -131,14 +194,18 @@ export default async function MoPlayerIosPage({
             <h1 className="mt-6 text-5xl font-black text-white md:text-7xl">{c.title}</h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-white/76">{c.subtitle}</p>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/60">{c.body}</p>
+            {ios.note ? <p className="mt-3 max-w-2xl text-sm font-bold leading-7 text-orange-100/75">{ios.note}</p> : null}
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={`/${loc}/support`} className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-[0_18px_60px_rgba(249,115,22,0.25)] transition hover:bg-orange-400">
-                <Smartphone size={18} /> {c.primary}
+              <a href={ios.storeHref} className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-[0_18px_60px_rgba(249,115,22,0.25)] transition hover:bg-orange-400">
+                <Smartphone size={18} /> {ios.buttonLabel}
+              </a>
+              <Link href={`/${loc}/support`} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black text-white/84 transition hover:bg-white/[0.08]">
+                <Heart size={18} /> {c.primary}
               </Link>
               <Link href={`/${loc}/privacy`} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black text-white/84 transition hover:bg-white/[0.08]">
                 <LockKeyhole size={18} /> {c.secondary}
               </Link>
-              <Link href={`/${loc}/activate?product=moplayer2&platform=ios`} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black text-white/84 transition hover:bg-white/[0.08]">
+              <Link href={ios.activationHref} className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black text-white/84 transition hover:bg-white/[0.08]">
                 <KeyRound size={18} /> {c.activate}
               </Link>
             </div>
@@ -147,11 +214,11 @@ export default async function MoPlayerIosPage({
           <div className="relative mx-auto w-full max-w-[500px]">
             <div className="relative border border-white/12 bg-white/[0.055] p-3 shadow-2xl backdrop-blur-xl" style={{ borderRadius: 28 }}>
               <div className="relative overflow-hidden border border-white/10 bg-[#0b0b0f]" style={{ borderRadius: 22 }}>
-                <Image src="/images/moplayer-pro-home.webp" alt="MoPlayer iOS interface preview" width={960} height={720} className="h-auto w-full object-cover" priority />
+                <Image src={ios.heroImage} alt="MoPlayer iOS interface preview" width={960} height={720} className="h-auto w-full object-cover" priority />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/72 to-transparent p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-200">{c.status}</p>
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-orange-200">{ios.statusLabel}</p>
                       <h2 className="mt-2 text-2xl font-black">MoPlayer Pro</h2>
                     </div>
                     <div className="grid h-12 w-12 place-items-center rounded-lg bg-orange-500 text-white">
@@ -193,6 +260,23 @@ export default async function MoPlayerIosPage({
               <p className="mt-2 text-sm leading-7 text-white/65">{body}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section id="app-store-coming-soon" className="scroll-mt-28 px-5 pb-12">
+        <div className="mx-auto max-w-6xl border border-orange-300/18 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_42%),rgba(255,255,255,0.035)] p-6 md:p-8" style={{ borderRadius: 8 }}>
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <p className="inline-flex items-center gap-2 rounded-lg border border-orange-300/20 bg-orange-300/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-orange-200">
+                <BadgeCheck size={14} /> {ios.statusLabel}
+              </p>
+              <h2 className="mt-4 text-2xl font-black text-white">{isAr ? "رابط MoPlayer iOS" : "MoPlayer iOS Release Link"}</h2>
+              <p className="mt-3 text-sm leading-7 text-white/66">{ios.storeBody}</p>
+            </div>
+            <a href={ios.storeHref} className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-[0_18px_60px_rgba(249,115,22,0.22)] transition hover:bg-orange-400">
+              <Smartphone size={18} /> {ios.buttonLabel}
+            </a>
+          </div>
         </div>
       </section>
 

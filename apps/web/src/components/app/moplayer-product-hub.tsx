@@ -12,6 +12,7 @@ import {
 
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { withLocale } from "@/lib/i18n";
+import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { WindowsRelease } from "@/lib/windows-release";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -40,6 +41,7 @@ const colors = {
   pro:     { primary: "#FF6A3D", light: "#FFB59E", bg: "#FF5722" },
   classic: { primary: "#3b82f6", light: "#93c5fd", bg: "#2563eb" },
   pc:      { primary: "#06b6d4", light: "#67e8f9", bg: "#0891b2" },
+  ios:     { primary: "#f59e0b", light: "#fde68a", bg: "#d97706" },
 } as const;
 
 /* ── Downloader (Android TV) codes — single source of truth.
@@ -80,6 +82,14 @@ const copy = {
         primaryCta: "Explore PC",
         secondaryCta: "Download Setup",
         stats: ["Windows", "Desktop", "Mouse + Keys"],
+      },
+      ios: {
+        eyebrow: "iOS",
+        headline: "A polished iPhone player prepared for App Store",
+        body: "Touch-first MoPlayer for iPhone with QR activation, Xtream and M3U setup, legal demo mode, and a temporary store button until Apple publishing is complete.",
+        primaryCta: "Open iOS",
+        secondaryCta: "App Store soon",
+        stats: ["iPhone", "QR Activation", "Legal Demo"],
       },
     },
     services: "Unified Services",
@@ -174,6 +184,40 @@ function windowsGalleryImages(release?: WindowsRelease | null) {
   return images.map((item) => normalizePublicImagePath(item)).filter(Boolean);
 }
 
+function localizedRuntimeHref(locale: Locale, value: string | undefined, fallback: string) {
+  const href = String(value ?? "").trim() || fallback;
+  if (href.startsWith("/en/") || href.startsWith("/ar/")) {
+    return href.replace(/^\/(en|ar)\//, `/${locale}/`);
+  }
+  return href;
+}
+
+function iosRuntimeConfig(locale: Locale, pro?: AppEcosystemData) {
+  const ios = pro?.runtimeConfig?.ios;
+  const pageHref = withLocale(locale, "apps/moplayer-ios");
+  return {
+    enabled: ios?.enabled !== false,
+    storeHref: localizedRuntimeHref(locale, ios?.storeUrl, `${pageHref}#app-store-coming-soon`),
+    activationHref: localizedRuntimeHref(locale, ios?.activationUrl, `${withLocale(locale, "activate")}?product=moplayer2&platform=ios`),
+    buttonLabel: ios?.buttonLabel?.trim(),
+    heroImage: normalizePublicImagePath(ios?.heroImageUrl || appHeroImage(pro, "/images/moplayer-pro-home.webp")),
+  };
+}
+
+function iosProductCopy(locale: Locale) {
+  if (locale === "ar") {
+    return {
+      eyebrow: "iOS",
+      headline: "تطبيق iPhone مصقول وجاهز لمسار App Store",
+      body: "نسخة MoPlayer للموبايل بواجهة لمس، تفعيل QR، إعداد Xtream و M3U، وضع demo قانوني، وزر متجر مؤقت إلى حين اكتمال نشر Apple.",
+      primaryCta: "افتح iOS",
+      secondaryCta: "App Store قريباً",
+      stats: ["iPhone", "تفعيل QR", "Demo قانوني"],
+    };
+  }
+  return copy.en.products.ios;
+}
+
 function getProducts(
   locale: Locale,
   data: {
@@ -182,7 +226,9 @@ function getProducts(
     windowsRelease?: WindowsRelease | null;
   } = {},
 ) {
-  const c = copy[locale].products;
+  const c = repairMojibakeDeep(copy[locale].products);
+  const iosConfig = iosRuntimeConfig(locale, data.pro);
+  const iosCopy = iosProductCopy(locale);
   const proGallery = appGalleryImages(data.pro, ["/images/moplayer-pro-showcase-1.png", "/images/moplayer-pro-home.webp", "/images/moplayer-pro-hero.webp", "/images/moplayer-pro-player.webp"]);
   const classicGallery = appGalleryImages(data.classic, ["/images/moplayer-classic-promo.png", "/images/moplayer_ui_playlist-final.png", "/images/moplayer-activation-flow.webp"]);
   const pcGallery = windowsGalleryImages(data.windowsRelease);
@@ -227,6 +273,23 @@ function getProducts(
       platformIcon: <WindowsIcon className="w-4 h-4 text-[#67e8f9]" />,
       ...c.pc,
     },
+    ...(iosConfig.enabled
+      ? [
+          {
+            id: "ios",
+            name: "MoPlayer iOS",
+            tone: "ios" as const,
+            heroImage: iosConfig.heroImage,
+            galleryImages: [iosConfig.heroImage, ...proGallery.filter((image) => image !== iosConfig.heroImage)].slice(0, 3),
+            href: withLocale(locale, "apps/moplayer-ios"),
+            downloadHref: iosConfig.storeHref,
+            activateHref: iosConfig.activationHref,
+            platformIcon: <AppleIcon className="w-4 h-4 text-[#fde68a]" />,
+            ...iosCopy,
+            secondaryCta: iosConfig.buttonLabel || iosCopy.secondaryCta,
+          },
+        ]
+      : []),
   ];
 }
 
@@ -243,7 +306,7 @@ export function MoPlayerProductHub({
   windowsRelease?: WindowsRelease | null;
 }) {
   const isAr = locale === "ar";
-  const c = copy[locale];
+  const c = repairMojibakeDeep(copy[locale]);
   const products = getProducts(locale, { classic, pro, windowsRelease });
 
   const downloader = isAr
@@ -549,8 +612,8 @@ export function MoPlayerProductHub({
             <h2 className="text-xl md:text-2xl font-extrabold text-white mb-2 max-w-lg mx-auto">{c.comingBody}</h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {c.futures.map((item) => {
-              const isApple = item.icon === "ios" || item.icon === "apple-tv";
+            {c.futures.filter((item) => item.icon !== "ios").map((item) => {
+              const isApple = item.icon === "apple-tv";
               return (
                 <article key={item.name} className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.015] hover:border-white/10 transition-all duration-300 group flex flex-col">
                   <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/8 flex items-center justify-center mb-2.5 text-white/50 group-hover:text-white/80 transition-colors">

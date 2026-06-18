@@ -482,6 +482,12 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   const updateDownloadUrl = String(formData.get("updateDownloadUrl") ?? "").trim();
   const updateChecksumSha256 = String(formData.get("updateChecksumSha256") ?? "").trim();
   const updateReleaseNotes = String(formData.get("updateReleaseNotes") ?? "").trim();
+  const iosStatus = String(formData.get("iosStatus") ?? "coming_soon").trim() || "coming_soon";
+  const iosStoreUrl = String(formData.get("iosStoreUrl") ?? "").trim();
+  const iosActivationUrl = String(formData.get("iosActivationUrl") ?? "").trim();
+  const iosButtonLabel = String(formData.get("iosButtonLabel") ?? "").trim();
+  const iosHeroImageUrl = String(formData.get("iosHeroImageUrl") ?? "").trim();
+  const iosNote = String(formData.get("iosNote") ?? "").trim();
   await saveRuntimeConfig(
     {
       enabled: formData.get("enabled") === "on",
@@ -538,6 +544,19 @@ export async function saveRuntimeConfigAction(formData: FormData) {
         ...(updateChecksumSha256 ? { checksumSha256: updateChecksumSha256 } : {}),
         ...(updateReleaseNotes ? { releaseNotes: updateReleaseNotes } : {}),
       },
+      ...(productSlug === "moplayer2"
+        ? {
+            ios: {
+              enabled: formData.get("iosEnabled") === "on",
+              status: iosStatus,
+              ...(iosStoreUrl ? { storeUrl: iosStoreUrl } : {}),
+              ...(iosActivationUrl ? { activationUrl: iosActivationUrl } : {}),
+              ...(iosButtonLabel ? { buttonLabel: iosButtonLabel } : {}),
+              ...(iosHeroImageUrl ? { heroImageUrl: iosHeroImageUrl } : {}),
+              ...(iosNote ? { note: iosNote } : {}),
+            },
+          }
+        : {}),
       supportUrl: String(formData.get("supportUrl") ?? "https://moalfarras.space/en/contact"),
       privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),
     },

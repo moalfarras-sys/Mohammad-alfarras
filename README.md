@@ -7,6 +7,7 @@ Production monorepo for:
 - MoPlayer Classic Android TV app: internal slug `moplayer`
 - MoPlayer Pro Android app: internal slug `moplayer2`
 - MoPlayer Pro Windows PC app: public desktop client for `moplayer2`
+- MoPlayer Pro iOS Flutter app: `apps/MoPlayer iphone ios`
 
 The public name is **MoPlayer Pro**. Keep the `moplayer2` slug in code, URLs, API payloads, and database rows for compatibility.
 
@@ -18,6 +19,7 @@ apps/admin               Next.js admin control center
 apps/moplayer-android    MoPlayer Classic Android TV app
 apps/moplayer2-android   MoPlayer Pro Android app
 apps/moplayer-pro-windows Electron Windows desktop app for MoPlayer Pro
+apps/MoPlayer iphone ios  Flutter iPhone app prepared for Mac/Xcode publishing
 apps/moplayer-dashboard  Optional Vite dashboard
 packages/shared          Shared product metadata and helpers
 packages/db              Shared database helpers
@@ -109,6 +111,24 @@ npm run verify:windows
 npm run dist:windows
 npm --prefix apps/moplayer-pro-windows run qa:screens
 ```
+
+iOS Flutter app:
+
+```powershell
+cd "apps/MoPlayer iphone ios"
+flutter pub get
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test
+flutter build apk --debug --dart-define=MOPLAYER_PLATFORM=ios
+```
+
+App Store publishing must be completed on macOS/Xcode. Start with:
+
+- [Mac Publishing Guide](docs/app-store/MAC_PUBLISHING_GUIDE.md)
+- [App Store Metadata](docs/app-store/APP_STORE_METADATA.md)
+- [QA Report](docs/QA_REPORT.md)
+- [Apple TV Feasibility](docs/apple-tv/TVOS_FEASIBILITY.md)
 
 Release APKs:
 

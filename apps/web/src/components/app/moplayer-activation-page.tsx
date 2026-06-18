@@ -512,7 +512,7 @@ export function MoPlayerActivationPage({
                 <>
                   <label className="mo-act-label">
                     <span>{t.portalUrl}</span>
-                    <input value={serverUrl} onChange={(event) => setServerUrl(event.target.value)} placeholder={t.portalPlaceholder} inputMode="url" />
+                    <input value={serverUrl} onChange={(event) => setServerUrl(event.target.value)} placeholder={t.portalPlaceholder} inputMode="url" dir="ltr" className="mo-act-url-input" />
                   </label>
                   <div className="mo-act-split">
                     <label className="mo-act-label">
@@ -529,11 +529,11 @@ export function MoPlayerActivationPage({
                 <>
                   <label className="mo-act-label">
                     <span>{t.playlistUrl}</span>
-                    <input value={playlistUrl} onChange={(event) => setPlaylistUrl(event.target.value)} placeholder={t.playlistPlaceholder} inputMode="url" />
+                    <input value={playlistUrl} onChange={(event) => setPlaylistUrl(event.target.value)} placeholder={t.playlistPlaceholder} inputMode="url" dir="ltr" className="mo-act-url-input" />
                   </label>
                   <label className="mo-act-label">
                     <span>{t.epgUrl}</span>
-                    <input value={epgUrl} onChange={(event) => setEpgUrl(event.target.value)} inputMode="url" />
+                    <input value={epgUrl} onChange={(event) => setEpgUrl(event.target.value)} inputMode="url" dir="ltr" className="mo-act-url-input" />
                   </label>
                 </>
               )}

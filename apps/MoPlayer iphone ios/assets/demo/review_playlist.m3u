@@ -1,0 +1,5 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="moplayer.demo.apple.hls" tvg-name="Open HLS Demo" group-title="Legal Demo",Open HLS Demo
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8
+#EXTINF:-1 tvg-id="moplayer.demo.apple.hls.alt" tvg-name="Open HLS Demo Alternate" group-title="Legal Demo",Open HLS Demo Alternate
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8

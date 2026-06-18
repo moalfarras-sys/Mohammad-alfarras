@@ -217,7 +217,22 @@ export function AppsShowcasePage({
     downloads: appVisuals?.classic?.downloads ?? 0,
     version: appVisuals?.classic?.version,
   };
-  const appCards = [moplayerClassicCard, moplayer2Card, moplayerPcCard];
+  const moplayerIosCard = {
+    title: "MoPlayer iOS",
+    label: isAr ? "تطبيق iPhone قيد تجهيز App Store" : "iPhone app in App Store preparation",
+    body: isAr
+      ? "نسخة iPhone مبنية بـ Flutter مع Xtream و M3U و QR Activation و demo قانوني آمن لمراجعة App Store."
+      : "A Flutter iPhone build with Xtream, M3U, QR activation, source management, and a safe legal demo mode for App Store review.",
+    badges: isAr ? ["iPhone", "Legal Demo", "App Store Prep"] : ["iPhone", "Legal Demo", "App Store Prep"],
+    cta: isAr ? "افتح MoPlayer iOS" : "Open MoPlayer iOS",
+    href: "apps/moplayer-ios",
+    image: appVisuals?.pro?.image || "/images/moplayer-pro-hero.webp",
+    icon: appVisuals?.pro?.icon || "/images/moplayer-icon-512.png",
+    accent: "metal",
+    downloads: 0,
+    version: "1.0.0",
+  };
+  const appCards = [moplayerClassicCard, moplayer2Card, moplayerPcCard, moplayerIosCard];
 
   return (
     <PageShell className="apps-lux-page">

@@ -220,6 +220,26 @@ function withTimeout(ms: number) {
   return { controller, done: () => clearTimeout(timeout) };
 }
 
+/**
+ * Detect if an M3U URL is actually an Xtream get.php endpoint.
+ * Returns extracted credentials or null.
+ */
+function extractXtreamFromM3uUrl(raw: string): { serverUrl: string; username: string; password: string } | null {
+  try {
+    const url = new URL(raw);
+    const username = url.searchParams.get("username") ?? "";
+    const password = url.searchParams.get("password") ?? "";
+    if (!username || !password || !url.pathname.toLowerCase().includes("get.php")) return null;
+    return {
+      serverUrl: `${url.protocol}//${url.host}`,
+      username,
+      password,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function xtreamApiUrl(serverUrl: string, username: string, password: string) {
   const base = serverUrl.replace(/\/player_api\.php$/i, "").replace(/\/$/, "");
   const url = new URL(`${base}/player_api.php`);
@@ -298,7 +318,30 @@ export async function testProviderSource(payload: ProviderSourcePayload): Promis
     return { ok: false, message: "Could not test Xtream connection." };
   }
 
-  const timeout = withTimeout(12_000);
+  // For M3U type: check if this is actually an Xtream get.php URL and try the API first
+  const xtreamFromUrl = extractXtreamFromM3uUrl(payload.playlistUrl);
+  if (xtreamFromUrl) {
+    const xtreamPayload: ProviderSourcePayload = {
+      type: "xtream",
+      name: payload.name,
+      serverUrl: xtreamFromUrl.serverUrl,
+      username: xtreamFromUrl.username,
+      password: xtreamFromUrl.password,
+    };
+    const xtreamResult = await testProviderSource(xtreamPayload);
+    if (xtreamResult.ok) {
+      // The Xtream API works — return success but keep the original M3U payload
+      return {
+        ok: true,
+        message: xtreamResult.message,
+        normalizedSource: payload,
+        details: xtreamResult.details,
+      };
+    }
+    // Xtream API failed — fall through to test the M3U URL directly
+  }
+
+  const timeout = withTimeout(15_000);
   try {
     const response = await fetch(payload.playlistUrl, {
       signal: timeout.controller.signal,
@@ -309,26 +352,69 @@ export async function testProviderSource(payload: ProviderSourcePayload): Promis
       },
       cache: "no-store",
     });
+
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, message: "الرابط مرفوض من السيرفر (خطأ في الصلاحيات). تأكد من اسم المستخدم وكلمة المرور. / Server rejected the request (authorization error). Check username and password." };
+    }
     if (!response.ok) {
-      return { ok: false, message: `Playlist responded with HTTP ${response.status}.` };
+      return { ok: false, message: `الرابط أرجع خطأ HTTP ${response.status}. تأكد من صحة العنوان. / Playlist responded with HTTP ${response.status}.` };
     }
+
     const sample = await readLimitedText(response);
-    const hasM3uHeader = sample.includes("#EXTM3U");
-    const hasPlayableEntry = sample.includes("#EXTINF") && /^https?:\/\//im.test(sample);
-    if (!hasM3uHeader && !hasPlayableEntry) {
-      return { ok: false, message: "The playlist did not look like a playable M3U file." };
+
+    if (!sample || sample.trim().length === 0) {
+      return { ok: false, message: "الرابط أرجع رداً فارغاً. تأكد من السيرفر واسم المستخدم وكلمة المرور. / The server returned an empty response." };
     }
-    return {
-      ok: true,
-      message: "M3U playlist is reachable.",
-      normalizedSource: payload,
-      details: {
-        sampleBytes: sample.length,
-        hasM3uHeader,
-      },
-    };
+
+    // Strip BOM and leading whitespace for header detection
+    const cleaned = sample.replace(/^\uFEFF/, "").trimStart();
+
+    // Check for HTML responses (login pages, error pages)
+    const looksLikeHtml = /^\s*<(!DOCTYPE|html|head|body)/i.test(cleaned) || cleaned.includes("<html") || cleaned.includes("<!DOCTYPE");
+    if (looksLikeHtml) {
+      return { ok: false, message: "الرابط لا يرجع ملف M3U صالح — يبدو أنه يعرض صفحة ويب. تأكد من السيرفر واسم المستخدم وكلمة المرور. / The URL returned an HTML page instead of an M3U file. Check server, username, and password." };
+    }
+
+    const hasM3uHeader = cleaned.includes("#EXTM3U");
+    const hasExtinf = cleaned.includes("#EXTINF");
+
+    // Accept if: has #EXTM3U header OR has #EXTINF entries
+    if (hasM3uHeader || hasExtinf) {
+      return {
+        ok: true,
+        message: "M3U playlist is reachable.",
+        normalizedSource: payload,
+        details: {
+          sampleBytes: sample.length,
+          hasM3uHeader,
+        },
+      };
+    }
+
+    // Last resort: check if response is binary/compressed (some servers gzip M3U)
+    const hasBinarySignature = sample.charCodeAt(0) === 0x1f && sample.charCodeAt(1) === 0x8b; // gzip
+    if (hasBinarySignature) {
+      return {
+        ok: true,
+        message: "M3U playlist appears to be compressed but reachable.",
+        normalizedSource: payload,
+        details: { sampleBytes: sample.length, compressed: true },
+      };
+    }
+
+    return { ok: false, message: "الرابط لا يرجع ملف M3U صالح. تأكد من السيرفر واسم المستخدم وكلمة المرور. / The playlist did not look like a playable M3U file. Check server, username, and password." };
   } catch (error) {
-    return { ok: false, message: error instanceof Error && error.name === "AbortError" ? "Playlist timeout." : "Could not test M3U playlist." };
+    if (error instanceof Error && error.name === "AbortError") {
+      return { ok: false, message: "انتهت مهلة الاتصال بالسيرفر. تأكد من العنوان واتصال الإنترنت. / Server timeout. Check the address and your connection." };
+    }
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("ECONNREFUSED") || msg.includes("ENOTFOUND")) {
+      return { ok: false, message: "تعذّر الاتصال بالسيرفر. تأكد من صحة العنوان. / Could not connect to the server. Check the address." };
+    }
+    if (msg.includes("certificate") || msg.includes("SSL") || msg.includes("TLS")) {
+      return { ok: false, message: "مشكلة في شهادة SSL للسيرفر. جرّب http:// بدلاً من https://. / SSL certificate error. Try http:// instead of https://." };
+    }
+    return { ok: false, message: "تعذّر اختبار رابط M3U. تأكد من العنوان واتصال الإنترنت. / Could not test M3U playlist. Check the address and your connection." };
   } finally {
     timeout.done();
   }

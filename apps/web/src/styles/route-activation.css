@@ -493,6 +493,14 @@
   opacity: 0.6;
 }
 
+/* URL inputs must stay LTR even in Arabic/RTL pages */
+.mo-act-url-input,
+.mo-act-form input[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
 .mo-act-msg {
   display: flex;
   align-items: center;

@@ -2,6 +2,54 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-18 MoPlayer iOS App Store/GitHub readiness pass
+
+- Prepared the MoPlayer Pro iOS Flutter app for GitHub/App Store handoff without committing Apple credentials, provider credentials, service-role keys, provisioning profiles, or `.env.local` files.
+- Added a neutral bundled Legal Demo M3U under `apps/MoPlayer iphone ios/assets/demo/review_playlist.m3u` and wired `asset://` playlist loading through the normal M3U parser/content path. This is only for reviewer-safe functionality testing and must not be replaced with copyrighted or protected content.
+- Added in-app compliance surfaces: Login legal disclaimer, Settings legal disclaimer, Source Management, Support, Privacy, Terms, App Disclaimer, and Data Deletion guidance. Settings can now switch/delete saved sources and open Add Source without wiping the current source first.
+- Added release documentation: `docs/app-store/*`, `docs/QA_REPORT.md`, `docs/RELEASE_NOTES.md`, `docs/ARCHITECTURE.md`, `docs/ci/IOS_CI_SETUP.md`, and `docs/apple-tv/TVOS_FEASIBILITY.md`.
+- Added safe GitHub Actions workflow `.github/workflows/flutter_quality.yml` for Flutter format/analyze/test/web debug preview. It does not sign iOS builds and requires no Apple secrets.
+- Added root `.env.example` and updated README files with iOS/App Store build guidance.
+- Removed the current Windows debug QR URL console log from `apps/moplayer-pro-windows/src/renderer/App.tsx` before release because full activation URLs should not be logged in production.
+- Current local verification after Flutter changes: `flutter analyze` passed and `flutter test` passed with 6 tests. Mac/Xcode archive, TestFlight, App Store Connect privacy answers, final screenshots, and physical iPhone playback remain Mac-only steps.
+- Vercel production deploy completed after this pass: `https://moalfarras.space/en/apps/moplayer-ios` and `https://moalfarras.space/ar/apps/moplayer-ios` return 200, `https://moalfarras.space/sitemap.xml` includes `/apps/moplayer-ios`, and `https://admin.moalfarras.space` returns the expected 307 login redirect.
+- GitHub push was attempted for both this monorepo branch and the standalone `https://github.com/moalfarras-sys/MoPlayerios.git` export, but this Windows session has no non-interactive GitHub credentials available. Local commits are ready: monorepo current HEAD on `fix/production-audit-2026-06-18`; standalone export `C:\Users\Moalf\Desktop\MoPlayerios-release-20260618-131052` at commit `27a75fd` with remote `https://github.com/moalfarras-sys/MoPlayerios.git`.
+
+## 2026-06-18 MoPlayer iOS real-server emulator QA follow-up
+
+- Re-tested the MoPlayer Pro iOS Flutter preview in `apps/MoPlayer iphone ios` on Android emulator `emulator-5554` as the Windows-side phone landscape/iPhone-size preview after the UI completion pass. No production website deploy, no Vercel deploy, and no provider credentials were saved in code or docs.
+- Real provider API checks confirmed an active Xtream login, 124 live categories, 12,616 live channels, 70 movie categories, 20,041 movies, 41 series categories, 10,450 series, valid movie detail data, and valid series episode data.
+- Direct media probes returned valid streams: Live HLS HTTP 200 playlist, movie HTTP 206 media bytes, and episode HTTP 206 media bytes with sub-second first-byte timings in the local test.
+- Fixed follow-up UI issues found during emulator QA: Home now orders latest movies/series across all server content by provider timestamps, Movies and Series default to All content instead of the first provider category, Search no longer overflows with the keyboard open in phone landscape, Series Detail fits Play and Season content cleanly, and player title separators avoid encoding artifacts.
+- Fixed the Android 12+ emulator preview splash so cold start shows a dark MoPlayer mark instead of the default white launcher-icon disc; after `pm clear`, the app returns to a clean Login screen with empty runtime fields.
+- Verified emulator screens: Login, Home, Live with slim preview, Movies, Series, Movie Detail, Series Detail, Episodes, Search, Favorites empty state, Settings, Live player, Movie player, and Episode player. The final debug APK was installed successfully and launched on the emulator.
+- Verification passed: `flutter analyze`, `flutter test`, `flutter build apk --debug --dart-define=MOPLAYER_PLATFORM=ios`, and `flutter build web --debug --dart-define=MOPLAYER_PLATFORM=ios`. The web build still reports the existing wasm dry-run warning from `flutter_secure_storage_web`, while the JavaScript debug build succeeds.
+- Android emulator video limitation remains: player controls, duration/progress, buffering state, and stream probes worked, but the Android emulator rendered the tested provider video surfaces black while logging emulator media/EGL rendering limitations. Final native video rendering must still be validated on macOS/Xcode with iOS Simulator or a physical iPhone.
+- Emulator app data was cleared after QA from `com.moalfarras.moplayerpro.iospreview`.
+
+## 2026-06-18 MoPlayer iOS UI and Settings Completion
+
+- Continued the MoPlayer Pro iOS Flutter app in `apps/MoPlayer iphone ios` only. No production website deploy, no Vercel deploy, and no live route changes were performed.
+- Completed the previously thin Settings surface with real persisted controls for playback, Live preview density, compact grids, cloud sync on launch, cinematic motion, source/device info, library counters, and maintenance actions.
+- Slimmed the Live channel preview so the default iPhone-landscape layout keeps it near a quarter of the available app width while preserving channel logo, stream badges, now/next EPG, progress, and Watch action.
+- Improved phone-landscape sizing across the app: compact navigation rail, category rails, poster grids, Home hero, quick actions, QR activation, and login fields now use a shared 470px compact-height breakpoint.
+- Reworked Login with an animated 3D brand preview and 3D method transitions. Local browser QA at `932x430` confirmed Save & Enter is visible without scrolling and Activation fits cleanly.
+- Verification passed: `flutter analyze`, `flutter test`, `flutter build web --debug --dart-define=MOPLAYER_PLATFORM=ios`, `flutter build apk --debug --dart-define=MOPLAYER_PLATFORM=ios`, and `dart tool\local_real_server_qa.dart`.
+- Real-server QA passed with 0 failures: 124 live categories, 26 sampled live channels, 70 movie categories, 489 sampled movies, 41 series categories, 610 sampled series, 3 Supabase rows read back, and duplicate device upsert true.
+- Detailed report: `apps/MoPlayer iphone ios/MOPLAYER_IOS_UI_COMPLETION_QA.md`.
+- Remaining attention: real native iPhone/iOS Simulator QA still requires macOS, Xcode, CocoaPods, Apple signing, and an iOS device/simulator run.
+
+## 2026-06-16 MoPlayer iOS Supabase Completion
+
+- Completed the MoPlayer Pro iOS Supabase cloud-sync pass in `apps/MoPlayer iphone ios` using the Android emulator as the Windows iPhone landscape preview. No Vercel deploy, no production website publish, and no live route code changes were performed.
+- Supabase anonymous Auth is enabled for the project. Anonymous sessions are now used only with RLS-owned app rows; no service-role key is used in Flutter client code.
+- Added and applied `supabase/migrations/20260616120000_moplayer_ios_cloud_sync_rls.sql`, which adds nullable `devices.user_id`, an owned-device index, and authenticated app policies for non-sensitive device select/insert/update.
+- Updated the Flutter Supabase adapter so device upserts include the current Auth user id and continue-watching rows use `ios:` platform-scoped content ids in `watch_history`.
+- Verified cloud writes/readback for iOS preview device registration, favorites, watch history, and continue watching. Activation create/status stayed on the existing product-aware web API with `moplayer2`; QA activation rows were cleaned up.
+- Final local checks passed: `flutter analyze`, `flutter test`, `flutter build apk --debug --dart-define=MOPLAYER_PLATFORM=ios`, `dart tool\local_real_server_qa.dart`, and emulator UI QA for Login, Home, Live, Movies, Series, Search, Favorites, Settings, playback routes, restart reload, and Logout.
+- Detailed value-free report: `apps/MoPlayer iphone ios/MOPLAYER_IOS_SUPABASE_QA.md`.
+- Remaining attention: real iPhone/iOS Simulator QA still requires macOS/Xcode, and unrelated legacy dashboard-style tables with broad public `ALL` RLS policies should be reviewed in a separate security-hardening pass.
+
 ## 2026-06-15 Download Counters and Admin Image Parity
 
 - Surfaced the real `site_settings.download_counts` counter on `/en/apps`, MoPlayer Classic, MoPlayer Pro, and MoPlayer PC. The existing download redirect APIs continue to increment it on real app downloads, including Windows via `moplayer2:windows`.

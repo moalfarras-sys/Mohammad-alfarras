@@ -29,33 +29,41 @@ This repo is focused and usable as the standalone MoPlayer iOS Flutter/App Store
 - Visibility: public
 - Default branch: `main`
 - Repository size reported by GitHub API: about 634 MB
-- Latest admin/site work is pushed to `fix/production-audit-2026-06-18`, not merged into `main`.
-- `main` currently points to `b435e603 Document production MoPlayer deployment`.
-- Latest admin suite commit exists only on `fix/production-audit-2026-06-18`: `6d9eb6ac feat: redesign MoPlayer admin suite controls`.
+- Latest admin/site work was fast-forwarded into `main`.
+- `main` currently points to `06b03d7 docs: add GitHub repository audit`.
 
-Important: because `main` is the default branch, a future Vercel/GitHub-based production deploy from `main` may overwrite the already-deployed MoPlayer admin suite work unless the branch is merged.
+The default branch now matches the already-deployed MoPlayer admin suite work.
+
+## Cleanup Completed
+
+- Fast-forwarded `moalfarras-sys/Mohammad-alfarras` `main` to include the MoPlayer iOS/admin/site production work.
+- Deleted old non-default `Mohammad-alfarras` branches: `copilot/*`, `cursor/*`, `production`, `ui-ux-redesign`, and the temporary `fix/production-audit-2026-06-18` branch after merging it into `main`.
+- Removed duplicate root `logo.png` from `moalfarras-sys/MoPlayerios`; the app uses `assets/branding/logo.png`.
+- Removed tracked `.env`, DocuSign private key files, logs, pid files, generated PDFs, `tmp/`, `test-results/`, and `tsconfig.tsbuildinfo` from `moalfarras-sys/schnell-bashar`; updated its `.gitignore`.
+- Removed `git hub.txt` from `moalfarras-sys/alhasaha` because it contained a GitHub PAT; updated its `.gitignore`.
+- Closed stale `elmedina-website` PRs #1 and #2 and deleted their unrelated `codex/*` branches.
+- Deleted merged/stale branches in `Faressalon` and `seelweb` where safe.
+- Added useful GitHub repository descriptions/homepage metadata for all visible repositories.
+- Moved root-level report clutter in `Mohammad-alfarras` into `docs/archive/root-reports/`.
+- Moved root placeholder docs from `backend/`, `database/`, and `storage/` into `docs/archive/root-reports/`.
+- Removed the tool-specific `.claude/launch.json` from `Mohammad-alfarras`.
 
 ## Branch Audit
 
-Remote branches found in `Mohammad-alfarras`:
+Remote branches currently expected in `Mohammad-alfarras`:
 
 - `main`: keep, default branch.
-- `fix/production-audit-2026-06-18`: keep until merged; contains the latest MoPlayer iOS/admin/site work.
-- `cursor/admin-panel-upgrade`: duplicate of `main` at `b435e603`; safe deletion candidate after confirming no external workflow uses it.
-- `production`: already merged into `main`; safe deletion candidate if not used as a manual deployment branch.
-- `copilot/clean-up-repository-files`: old branch from 2025-12-12; review once, then delete if no needed cleanup remains.
-- `copilot/improve-env-file-comments`: old branch from 2025-12-17; safe deletion candidate after review.
-- `copilot/prepare-deploy-to-vercel`: old branch from 2025-12-12; safe deletion candidate after review.
-- `copilot/update-portfolio-mobile-first`: old branch from 2025-12-10; safe deletion candidate after review.
-- `cursor/setup-dev-environment-6ac4`: old branch from 2026-05-05; safe deletion candidate after review.
-- `ui-ux-redesign`: old branch from 2026-05-06; safe deletion candidate after review.
 
-Recommended branch cleanup order:
+Other visible repositories after cleanup:
 
-1. Open or merge `fix/production-audit-2026-06-18` into `main` after review.
-2. Delete `cursor/admin-panel-upgrade` if it remains identical to `main`.
-3. Delete old `copilot/*`, `cursor/setup-dev-environment-6ac4`, and `ui-ux-redesign` branches after confirming no active pull requests or workflows reference them.
-4. Delete `production` only if the team does not use it as a manual release marker.
+- `MoPlayerios`: `main`
+- `alhasaha`: `main`
+- `elmedina-website`: `main`
+- `Faressalon`: `main`
+- `seelweb`: `main`, `backup/origin-main-2026-04-18`
+- `schnell-bashar`: `main`, `release/theme-media-booking-v1`
+
+The two remaining non-default branches contain commits that are not trivially represented in `main`, so they were kept instead of deleting potentially useful project history.
 
 ## File Audit
 
@@ -63,10 +71,10 @@ Recommended branch cleanup order:
 
 These are safe cleanup candidates, but should be removed through a normal PR/commit rather than direct GitHub deletion:
 
-- Root-level QA/report markdown files in `Mohammad-alfarras`, for example `ADMIN-QA.md`, `FINAL-AUDIT.md`, `SEO-REPORT.md`, `PERFORMANCE-REPORT.md`, and similar files. These should be moved into `docs/archive/` or consolidated, not blindly deleted.
-- `.claude/launch.json` in `Mohammad-alfarras`. It appears tool/editor-specific. Delete if nobody uses Claude local workspace launch config.
-- `backend/README.md`, `database/README.md`, and `storage/README.md`. These folders contain only placeholder README files. Delete or move to docs if they are no longer used operationally.
-- `logo.png` at the root of `MoPlayerios`. The app references `assets/branding/logo.png`; the root `logo.png` is a duplicate and appears unused.
+- The current cleanup moved root-level QA/report markdown into `docs/archive/root-reports/`.
+- The current cleanup removed `.claude/launch.json`.
+- The current cleanup moved placeholder `backend/`, `database/`, and `storage/` README files into `docs/archive/root-reports/`.
+- The current cleanup removed the duplicate root `logo.png` from `MoPlayerios`.
 
 ### Keep For Now
 
@@ -93,14 +101,15 @@ Recommended future cleanup:
 
 ## Secret Check
 
-Searched tracked files for the recently shared GitHub tokens and real test IPTV URL fragments. No matching real token or real server URL was found in tracked files.
+Searched tracked files for the recently shared GitHub tokens and real test IPTV URL fragments. After cleanup, no matching real token or real server URL was found in default-branch tracked files.
 
-The GitHub tokens shared in chat are still exposed outside the repository context and should be revoked/rotated from GitHub.
+The removed `alhasaha/git hub.txt`, the removed `schnell-bashar/.env`, and the removed `schnell-bashar/docusign-private.key` still exist in Git history until a deliberate history rewrite is performed. Rotate/revoke those credentials.
+
+The GitHub tokens shared in chat are exposed outside the repository context and should be revoked/rotated from GitHub.
 
 ## Recommended Next Actions
 
-1. Merge `fix/production-audit-2026-06-18` into `main` so GitHub default branch matches the already-deployed production site/admin work.
-2. Decide whether iOS should live only in `MoPlayerios` or remain duplicated inside the monorepo until App Store launch.
-3. Move root QA/report markdown clutter into `docs/archive/` in a separate docs-cleanup commit.
-4. Delete old remote branches only after branch-owner confirmation.
-5. Plan a separate binary-release cleanup for APKs instead of deleting public download assets immediately.
+1. Decide whether iOS should live only in `MoPlayerios` or remain duplicated inside the monorepo until App Store launch.
+2. Decide whether to rewrite history for `alhasaha` and `schnell-bashar` to permanently purge exposed secrets from older commits. This requires coordination because it rewrites Git history.
+3. Review the two remaining non-default branches: `seelweb/backup/origin-main-2026-04-18` and `schnell-bashar/release/theme-media-booking-v1`.
+4. Plan a separate binary-release cleanup for APKs instead of deleting public download assets immediately.

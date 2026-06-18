@@ -29,10 +29,14 @@ export function SiteFooter({
     { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "activate", label: isAr ? "التفعيل" : "Activate", href: `/${locale}/activate` },
     { id: "support", label: isAr ? "الدعم" : "Support", href: `/${locale}/support` },
+    { id: "assistant", label: isAr ? "المساعد الذكي" : "Assistant", href: `/${locale}/ai` },
   ];
+  // Privacy + Impressum always appear (Impressum is a legal requirement for a
+  // Germany-based commercial site); any extra published legal links follow.
   const footerLegalLinks = [
     { id: "privacy", label: isAr ? "الخصوصية" : "Privacy", href: `/${locale}/privacy` },
-    ...legalLinks,
+    { id: "impressum", label: isAr ? "البيانات القانونية" : "Impressum", href: `/${locale}/impressum` },
+    ...legalLinks.filter((item) => item.id !== "impressum" && item.id !== "privacy"),
   ];
 
   return (

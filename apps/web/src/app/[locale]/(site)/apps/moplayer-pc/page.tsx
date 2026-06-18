@@ -53,7 +53,7 @@ export async function generateMetadata({
       languages: {
         ar: `${SITE_URL}/ar/apps/moplayer-pc`,
         en: `${SITE_URL}/en/apps/moplayer-pc`,
-        "x-default": `${SITE_URL}/en/apps/moplayer-pc`,
+        "x-default": `${SITE_URL}/ar/apps/moplayer-pc`,
       },
     },
     openGraph: {

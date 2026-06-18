@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { saveSupportRequest } from "@/lib/app-ecosystem";
 import { isSmtpConfigured, ownerInbox, sendMail, sendTransactionalMail } from "@/lib/mailer";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -123,6 +124,9 @@ function supportDetails(payload: z.infer<typeof supportSchema>, screenshot: Scre
 
 export async function POST(request: Request) {
   try {
+    const limited = await rateLimit({ request, bucket: "support-request", limit: 6, windowSeconds: 10 * 60 });
+    if (limited) return limited;
+
     const formData = await request.formData();
     const payload = supportSchema.parse({
       support_product: String(formData.get("support_product") ?? formData.get("product_slug") ?? "moplayer2"),

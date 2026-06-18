@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       languages: {
         ar: `${SITE_URL}/ar/apps/moplayer`,
         en: `${SITE_URL}/en/apps/moplayer`,
-        "x-default": `${SITE_URL}/en/apps/moplayer`,
+        "x-default": `${SITE_URL}/ar/apps/moplayer`,
       },
     },
     openGraph: {
@@ -81,7 +81,7 @@ export default async function MoPlayerHubRoute({ params }: { params: Promise<{ l
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "MoPlayer Classic", url: `${SITE_URL}/${loc}/apps/moplayer/classic` },
       { "@type": "ListItem", position: 2, name: "MoPlayer Pro", url: `${SITE_URL}/${loc}/apps/moplayer2` },
-      { "@type": "ListItem", position: 3, name: "MoPlayer PC", url: `${SITE_URL}/api/app/download/latest?product=moplayer2&platform=windows` },
+      { "@type": "ListItem", position: 3, name: "MoPlayer PC", url: `${SITE_URL}/${loc}/apps/moplayer-pc` },
     ],
   };
   const [classic, pro, windowsRelease] = await Promise.all([

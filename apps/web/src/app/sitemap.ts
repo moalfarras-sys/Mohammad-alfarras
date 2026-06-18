@@ -26,6 +26,7 @@ const localizedRoutes: RouteDef[] = [
   { path: "/activate", priority: 0.7, changeFrequency: "monthly" },
   { path: "/moplayer/setup", priority: 0.55, changeFrequency: "monthly" },
   { path: "/youtube", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/ai", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.7, changeFrequency: "monthly" },
   { path: "/support", priority: 0.55, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.45, changeFrequency: "yearly" },
@@ -34,14 +35,17 @@ const localizedRoutes: RouteDef[] = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const snapshot = await readSnapshot();
   const legalPages = getSiteSetting<LegalPagesSetting>(snapshot, "legal_pages", {});
-  const legalRoutes: RouteDef[] = legalPagesPublished(legalPages)
-    ? [
-        { path: "/impressum", priority: 0.35, changeFrequency: "yearly" },
-        { path: "/terms", priority: 0.35, changeFrequency: "yearly" },
-        { path: "/app-disclaimer", priority: 0.35, changeFrequency: "yearly" },
-        { path: "/download-disclaimer", priority: 0.35, changeFrequency: "yearly" },
-      ]
-    : [];
+  const legalRoutes: RouteDef[] = [
+    // Impressum is always live and indexable; the rest follow the publish flag.
+    { path: "/impressum", priority: 0.35, changeFrequency: "yearly" },
+    ...(legalPagesPublished(legalPages)
+      ? [
+          { path: "/terms", priority: 0.35, changeFrequency: "yearly" as const },
+          { path: "/app-disclaimer", priority: 0.35, changeFrequency: "yearly" as const },
+          { path: "/download-disclaimer", priority: 0.35, changeFrequency: "yearly" as const },
+        ]
+      : []),
+  ];
 
   const localized = (["ar", "en"] as const).flatMap((locale) =>
     [...localizedRoutes, ...legalRoutes].map<MetadataRoute.Sitemap[number]>((route) => ({

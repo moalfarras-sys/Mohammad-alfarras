@@ -30,7 +30,8 @@ const labels = {
   en: {
     responsible: "Responsible operator",
     business: "Business name",
-    address: "Address",
+    country: "Country",
+    address: "Postal address",
     email: "Email",
     phone: "Phone",
     tax: "Tax ID / VAT",
@@ -40,7 +41,8 @@ const labels = {
   ar: {
     responsible: "المسؤول عن الموقع",
     business: "الاسم التجاري",
-    address: "العنوان",
+    country: "الدولة",
+    address: "العنوان البريدي",
     email: "البريد الإلكتروني",
     phone: "الهاتف",
     tax: "الرقم الضريبي / VAT",
@@ -48,6 +50,17 @@ const labels = {
     notProvided: "غير متوفر",
   },
 } satisfies Record<Locale, Record<string, string>>;
+
+/**
+ * Baseline operator identity used for the Impressum even before the admin CMS
+ * `legal_pages` setting is filled. The one field that cannot be defaulted is the
+ * full street address (legally required under §5 DDG) — until it is provided in
+ * admin, the page shows an honest "on request" line instead of a fabricated one.
+ */
+const impressumDefaults = {
+  responsibleName: "Mohammad Alfarras (محمد الفراس)",
+  email: "mohammad.alfarras@gmail.com",
+} as const;
 
 export function legalPagesPublished(setting: LegalPagesSetting | undefined): boolean {
   return Boolean(setting?.published && setting.responsibleName?.trim() && setting.address?.trim() && setting.email?.trim());
@@ -71,22 +84,29 @@ export function legalFooterLinks(locale: Locale) {
   ];
 }
 
-function value(setting: LegalPagesSetting, key: keyof LegalPagesSetting, fallback = labels.en.notProvided) {
-  const raw = setting[key];
-  return typeof raw === "string" && raw.trim() ? raw.trim() : fallback;
-}
-
-function contactRows(locale: Locale, setting: LegalPagesSetting) {
+function impressumRows(locale: Locale, setting: LegalPagesSetting) {
   const l = labels[locale];
-  return [
-    `${l.responsible}: ${value(setting, "responsibleName", l.notProvided)}`,
-    `${l.business}: ${value(setting, "businessName", l.notProvided)}`,
-    `${l.address}: ${value(setting, "address", l.notProvided)}`,
-    `${l.email}: ${value(setting, "email", l.notProvided)}`,
-    `${l.phone}: ${value(setting, "phone", l.notProvided)}`,
-    `${l.tax}: ${value(setting, "taxId", l.notProvided)}`,
-    `${l.register}: ${value(setting, "register", l.notProvided)}`,
+  const isAr = locale === "ar";
+  const name = setting.responsibleName?.trim() || impressumDefaults.responsibleName;
+  const email = setting.email?.trim() || impressumDefaults.email;
+  const address = setting.address?.trim();
+
+  const rows = [
+    `${l.responsible}: ${name}`,
+    ...(setting.businessName?.trim() ? [`${l.business}: ${setting.businessName.trim()}`] : []),
+    `${l.country}: ${isAr ? "ألمانيا (Deutschland)" : "Germany (Deutschland)"}`,
+    `${l.address}: ${
+      address ||
+      (isAr
+        ? "يُرسل العنوان البريدي الكامل عند الطلب عبر البريد الرسمي."
+        : "Full postal address provided on request via the official email.")
+    }`,
+    `${l.email}: ${email}`,
+    ...(setting.phone?.trim() ? [`${l.phone}: ${setting.phone.trim()}`] : []),
+    ...(setting.taxId?.trim() ? [`${l.tax}: ${setting.taxId.trim()}`] : []),
+    ...(setting.register?.trim() ? [`${l.register}: ${setting.register.trim()}`] : []),
   ];
+  return rows;
 }
 
 function extraText(value: string | undefined) {
@@ -108,7 +128,7 @@ export function legalPageContent(slug: LegalPageSlug, locale: Locale, setting: L
       sections: [
         {
           title: isAr ? "المشغل المسؤول" : "Operator",
-          body: contactRows(locale, setting),
+          body: impressumRows(locale, setting),
         },
         {
           title: isAr ? "المسؤولية عن المحتوى" : "Content responsibility",

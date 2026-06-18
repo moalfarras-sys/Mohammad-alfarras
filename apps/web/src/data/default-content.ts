@@ -572,7 +572,7 @@ export const defaultSnapshot: CmsSnapshot = {
         body: "النتيجة ليست شكلًا فقط. هي حضور أقوى، وضوح أسرع، وثقة أعلى.",
         items: [
           { value: "+1.5M", label: "مشاهدة حقيقية على يوتيوب" },
-          { value: "162", label: "فيديو منشور بجودة متسقة" },
+          { value: String(youtubeChannel.fallback.videos), label: "فيديو منشور بجودة متسقة" },
           { value: "3+", label: "مشاريع واجهات وتجارب منشورة" },
           { value: "24h", label: "متوسط وقت الرد للمشاريع" },
         ],
@@ -586,7 +586,7 @@ export const defaultSnapshot: CmsSnapshot = {
         body: "The output is not only visual. It improves trust, clarity, and action.",
         items: [
           { value: "1.5M+", label: "organic YouTube views" },
-          { value: "162", label: "published videos with consistency" },
+          { value: String(youtubeChannel.fallback.videos), label: "published videos with consistency" },
           { value: "3+", label: "live web experience projects" },
           { value: "24h", label: "average response window" },
         ],
@@ -1897,14 +1897,14 @@ export const defaultSnapshot: CmsSnapshot = {
     {
       certification_id: "cert-yt",
       locale: "ar",
-      name: "إنتاج محتوى يوتيوب تقني — 162 فيديو",
+      name: `إنتاج محتوى يوتيوب تقني — ${youtubeChannel.fallback.videos} فيديو`,
       description:
         "1.5M+ مشاهدة من خلال مراجعات تقنية صادقة وتقديم منتجات إلكترونية بأسلوب واضح وجذاب.",
     },
     {
       certification_id: "cert-yt",
       locale: "en",
-      name: "YouTube tech content production — 162 videos",
+      name: `YouTube tech content production — ${youtubeChannel.fallback.videos} videos`,
       description:
         "1.5M+ views through honest product reviews and clear, engaging electronics presentation to Arabic-speaking audiences.",
     },

@@ -1,4 +1,9 @@
+import { compactMetric, youtubeChannel } from "@/content/site-data";
 import type { Locale } from "@/types/cms";
+
+const ytViews = compactMetric(youtubeChannel.fallback.views);
+const ytSubscribers = compactMetric(youtubeChannel.fallback.subscribers);
+const ytVideos = String(youtubeChannel.fallback.videos);
 
 export type RebuildPageKey =
   | "home"
@@ -336,7 +341,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       body: "بدأت القناة من فيديو واحد لمنتج صغير. اليوم تقول الأرقام شيئًا واضحًا: الصدق في الشرح يبني ثقة لا تستطيع الإعلانات شراءها.",
       featuredLabel: "الفيديو المميز",
       latestLabel: "أحدث الفيديوهات",
-      values: ["1.5M+ مشاهدة", "6.1K+ مشترك", "162 فيديو", "مراجعات صادقة"],
+      values: [`${ytViews} مشاهدة`, `${ytSubscribers} مشترك`, `${ytVideos} فيديو`, "مراجعات صادقة"],
       collaborationTitle: "لماذا يتابعني جمهور عربي من ألمانيا؟",
       collaborationBody:
         "لأنني لا أبيع ضجيجًا. أشرح المنتج كما هو، وأحترم عقل المشاهد الذي يريد مراجعة حقيقية لا إعلانًا مموّهًا.",
@@ -615,7 +620,7 @@ export const rebuildContent: Record<Locale, RebuildLocaleContent> = {
       body: "The channel started with one small product and one honest explanation. The response proved something simple: trust compounds when the explanation stays clean.",
       featuredLabel: "Channel highlight",
       latestLabel: "Latest videos",
-      values: ["1.5M+ views", "6.1K+ subscribers", "162 videos", "Honest reviews"],
+      values: [`${ytViews} views`, `${ytSubscribers} subscribers`, `${ytVideos} videos`, "Honest reviews"],
       collaborationTitle: "Why follow an Arab creator from Germany?",
       collaborationBody:
         "Because the goal is not noise. It is clarity. I explain products for an Arabic audience that wants real perspective, not disguised advertising.",

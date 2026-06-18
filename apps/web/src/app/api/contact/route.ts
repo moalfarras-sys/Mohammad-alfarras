@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { contactFieldErrors, contactMessageSchema } from "@/lib/contact-schema";
 import { cinematicEmailHtml } from "@/lib/email-template";
 import { isSmtpConfigured, ownerInbox, sendMail, sendTransactionalMail } from "@/lib/mailer";
+import { rateLimit } from "@/lib/request-guard";
 import { hasDatabaseUrl, queryRows } from "@/lib/server-db";
 import { createSupabaseAdminClient, getSupabaseEnv } from "@/lib/supabase/client";
 
@@ -36,6 +37,9 @@ function safeAttachmentName(value: string) {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "contact-message", limit: 6, windowSeconds: 10 * 60 });
+  if (limited) return limited;
+
   let raw: unknown;
   let attachmentFile: File | null = null;
 

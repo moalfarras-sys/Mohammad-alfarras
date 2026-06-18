@@ -74,7 +74,7 @@ export async function generateMetadata({
       languages: {
         ar: `${SITE_URL}/ar/activate${suffix}`,
         en: `${SITE_URL}/en/activate${suffix}`,
-        "x-default": `${SITE_URL}/en/activate${suffix}`,
+        "x-default": `${SITE_URL}/ar/activate${suffix}`,
       },
     },
     openGraph: {

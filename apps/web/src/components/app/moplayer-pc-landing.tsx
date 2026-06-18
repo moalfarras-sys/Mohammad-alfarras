@@ -100,8 +100,8 @@ export function MoPlayerPcLanding({
   const productName = "MoPlayer PC";
   const hasInstaller = Boolean(!windowsRelease?.maintenance && windowsRelease?.file);
   const hasPortable = Boolean(!windowsRelease?.maintenance && windowsRelease?.portableFile);
-  const downloadHref = hasInstaller ? "/api/app/download/latest?product=moplayer2&platform=windows" : "";
-  const portableHref = hasPortable ? "/api/app/download/latest?product=moplayer2&platform=windows&portable=1" : "";
+  const downloadHref = hasInstaller ? "/api/app/download/latest?product=moplayer-pc&platform=windows" : "";
+  const portableHref = hasPortable ? "/api/app/download/latest?product=moplayer-pc&platform=windows&portable=1" : "";
   const activateHref = `/${locale}/activate?product=moplayer-pc&platform=windows`;
   const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
   const downloadSince = downloadSinceLabel(downloadStats, locale);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AppWindow, Mail, MessageCircle, Shield } from "lucide-react";
 
 import { SITE_URL } from "@/content/site";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
@@ -147,7 +148,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       languages: {
         ar: `${SITE_URL}/ar/support`,
         en: `${SITE_URL}/en/support`,
-        "x-default": `${SITE_URL}/en/support`,
+        "x-default": `${SITE_URL}/ar/support`,
       },
     },
     openGraph: {
@@ -221,14 +222,40 @@ export default async function LocalizedSupportPage({
             </div>
             <p className="fresh-eyebrow">{copy.directTitle}</p>
             <div className="fresh-channel-list">
-              <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
+              <a
+                href={`mailto:${supportEmail}`}
+                className="fresh-channel"
+                aria-label={loc === "ar" ? `راسلنا عبر البريد الإلكتروني ${supportEmail}` : `Email us at ${supportEmail}`}
+              >
+                <span className="fresh-channel-label">
+                  <Mail size={15} aria-hidden="true" /> {loc === "ar" ? "البريد الإلكتروني" : "Email"}
+                </span>
+                <span className="fresh-channel-value" dir="ltr">{supportEmail}</span>
+              </a>
               {supportWhatsapp ? (
-                <a href={supportWhatsapp} target="_blank" rel="noopener noreferrer">
-                  WhatsApp
+                <a
+                  href={supportWhatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="fresh-channel"
+                  aria-label={loc === "ar" ? "تواصل عبر واتساب (يفتح في نافذة جديدة)" : "Contact on WhatsApp (opens in a new tab)"}
+                >
+                  <span className="fresh-channel-label">
+                    <MessageCircle size={15} aria-hidden="true" /> WhatsApp
+                  </span>
+                  <span className="fresh-channel-value">{loc === "ar" ? "محادثة مباشرة" : "Direct chat"}</span>
                 </a>
               ) : null}
-              <Link href={`/${loc}/privacy`}>{copy.privacy as string}</Link>
-              <Link href={`/${loc}/apps/moplayer2`}>{copy.appPage as string}</Link>
+              <Link href={`/${loc}/privacy`} className="fresh-channel">
+                <span className="fresh-channel-label">
+                  <Shield size={15} aria-hidden="true" /> {copy.privacy as string}
+                </span>
+              </Link>
+              <Link href={`/${loc}/apps/moplayer2`} className="fresh-channel">
+                <span className="fresh-channel-label">
+                  <AppWindow size={15} aria-hidden="true" /> {copy.appPage as string}
+                </span>
+              </Link>
             </div>
           </aside>
         </section>

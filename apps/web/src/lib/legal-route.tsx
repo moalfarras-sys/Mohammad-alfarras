@@ -26,13 +26,15 @@ export async function generateLegalMetadata(slug: LegalPageSlug, { params }: Rou
   return {
     title: content.title,
     description: content.description,
-    robots: legalPagesPublished(setting) ? undefined : { index: false, follow: false },
+    // The Impressum is a permanent legal page and is always available + indexable;
+    // the other legal pages stay noindex until published in admin.
+    robots: slug === "impressum" || legalPagesPublished(setting) ? undefined : { index: false, follow: false },
     alternates: {
       canonical,
       languages: {
         ar: `${SITE_URL}/ar/${slug}`,
         en: `${SITE_URL}/en/${slug}`,
-        "x-default": `${SITE_URL}/en/${slug}`,
+        "x-default": `${SITE_URL}/ar/${slug}`,
       },
     },
   };
@@ -42,7 +44,9 @@ export async function renderLegalPage(slug: LegalPageSlug, { params }: RoutePara
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const setting = await readLegalSetting();
-  if (!legalPagesPublished(setting)) notFound();
+  // The Impressum must always be reachable (legal requirement + linked in every
+  // footer). The other legal pages stay gated behind the admin publish flag.
+  if (slug !== "impressum" && !legalPagesPublished(setting)) notFound();
   const snapshot = await readSnapshot();
   const siteImages = resolveSiteImages(snapshot);
   const heroImage = siteImage(siteImages, "legal_hero", "/images/hero_tech.png");

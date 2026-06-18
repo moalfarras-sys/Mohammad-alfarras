@@ -42,6 +42,14 @@ const colors = {
   pc:      { primary: "#06b6d4", light: "#67e8f9", bg: "#0891b2" },
 } as const;
 
+/* ── Downloader (Android TV) codes — single source of truth.
+   gateway → opens the official chooser page (pick Pro / Classic / PC)
+   pro     → opens the MoPlayer Pro download directly ── */
+const DOWNLOADER_CODES = {
+  gateway: "7876083",
+  pro: "4608937",
+} as const;
+
 /* ── Copy ── */
 const copy = {
   en: {
@@ -92,8 +100,8 @@ const copy = {
     futures: [
       { name: "MoPlayer iOS", platform: "iPhone + iPad", body: "Touch-first Apple app with clean source setup.", icon: "ios" as const },
       { name: "MoPlayer Apple TV", platform: "tvOS", body: "Siri Remote navigation with Apple-style restraint.", icon: "apple-tv" as const },
-      { name: "MoPlayer LG TV", platform: "webOS", body: "LG TV store with native layout.", icon: "lg" as const },
-      { name: "MoPlayer Samsung TV", platform: "Tizen", body: "Samsung TV app with store-ready metadata.", icon: "samsung" as const },
+      { name: "MoPlayer LG TV", platform: "webOS", body: "Planned for the LG TV store with a native layout.", icon: "lg" as const },
+      { name: "MoPlayer Samsung TV", platform: "Tizen", body: "Planned Samsung TV app — store metadata in progress.", icon: "samsung" as const },
     ],
   },
   ar: {
@@ -144,8 +152,8 @@ const copy = {
     futures: [
       { name: "MoPlayer iOS", platform: "iPhone + iPad", body: "تطبيق لمس لأجهزة Apple.", icon: "ios" as const },
       { name: "MoPlayer Apple TV", platform: "tvOS", body: "نسخة مع تنقل Siri Remote.", icon: "apple-tv" as const },
-      { name: "MoPlayer LG TV", platform: "webOS", body: "جاهز لمتجر LG TV.", icon: "lg" as const },
-      { name: "MoPlayer Samsung TV", platform: "Tizen", body: "جاهز لتلفزيونات Samsung.", icon: "samsung" as const },
+      { name: "MoPlayer LG TV", platform: "webOS", body: "قيد التطوير لمتجر LG TV.", icon: "lg" as const },
+      { name: "MoPlayer Samsung TV", platform: "Tizen", body: "قيد التطوير لتلفزيونات Samsung.", icon: "samsung" as const },
     ],
   },
 } as const;
@@ -187,7 +195,7 @@ function getProducts(
   const pcDownloadHref =
     data.windowsRelease?.maintenance || !data.windowsRelease?.file
       ? undefined
-      : "/api/app/download/latest?product=moplayer2&platform=windows";
+      : "/api/app/download/latest?product=moplayer-pc&platform=windows";
   return [
     {
       id: "pro", name: "MoPlayer Pro", tone: "pro" as const,
@@ -242,15 +250,17 @@ export function MoPlayerProductHub({
     ? {
         eyebrow: "تثبيت على تلفزيون أندرويد",
         title: "حمّل MoPlayer على تلفزيونك عبر تطبيق Downloader",
-        subtitle: "أدخِل الكود في تطبيق Downloader على التلفزيون، فتفتح صفحة MoPlayer الرسمية لتختار النسخة وتحمّلها بسهولة.",
-        codeLabel: "كود Downloader",
+        subtitle: "اكتب أحد الكودين في تطبيق Downloader على التلفزيون: كود البوابة يفتح صفحة الاختيار، وكود Pro يفتح MoPlayer Pro مباشرة.",
+        codes: [
+          { code: DOWNLOADER_CODES.gateway, label: "كود البوابة — كل تطبيقات MoPlayer", hint: "يفتح صفحة الاختيار: Pro أو Classic أو PC" },
+          { code: DOWNLOADER_CODES.pro, label: "كود MoPlayer Pro المباشر", hint: "يفتح تحميل MoPlayer Pro مباشرة" },
+        ],
         urlLabel: "الموقع الرسمي",
         url: "moalfarras.space/ar/apps/moplayer",
         steps: [
           "افتح تطبيق Downloader على التلفزيون",
-          "اكتب الكود: 7876083",
-          "اضغط Go لفتح الصفحة الرسمية",
-          "اختر النسخة: MoPlayer Pro أو Classic",
+          "اكتب أحد الكودين بالأعلى ثم اضغط Go",
+          "كود البوابة يفتح صفحة الاختيار، وكود Pro يفتح Pro مباشرة",
           "اضغط تحميل APK وانتظر اكتمال التنزيل",
           "اضغط Install ثم Open",
         ],
@@ -261,15 +271,17 @@ export function MoPlayerProductHub({
     : {
         eyebrow: "Install on Android TV",
         title: "Get MoPlayer on your TV via the Downloader app",
-        subtitle: "Enter the code in the Downloader app on your TV; the official MoPlayer page opens so you can pick an edition and download it.",
-        codeLabel: "Downloader code",
+        subtitle: "Type one of the two codes in the Downloader app on your TV: the gateway code opens the chooser page, the Pro code opens MoPlayer Pro directly.",
+        codes: [
+          { code: DOWNLOADER_CODES.gateway, label: "Gateway code — all MoPlayer apps", hint: "Opens the chooser: Pro, Classic, or PC" },
+          { code: DOWNLOADER_CODES.pro, label: "MoPlayer Pro direct code", hint: "Opens the MoPlayer Pro download directly" },
+        ],
         urlLabel: "Official site",
         url: "moalfarras.space/en/apps/moplayer",
         steps: [
           "Open the Downloader app on your TV",
-          "Type the code: 7876083",
-          "Press Go to open the official page",
-          "Choose your edition: MoPlayer Pro or Classic",
+          "Type one of the codes above, then press Go",
+          "Gateway code opens the chooser; Pro code opens Pro directly",
           "Press Download APK and wait for it to finish",
           "Press Install, then Open",
         ],
@@ -443,18 +455,26 @@ export function MoPlayerProductHub({
             <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">{downloader.subtitle}</p>
           </div>
 
-          <div className="relative grid gap-4 sm:grid-cols-[auto_1fr] items-stretch max-w-3xl mx-auto mb-9">
-            <div
-              className="rounded-2xl border border-orange-500/40 bg-black/40 px-7 py-4 text-center flex flex-col justify-center"
-              style={{ boxShadow: "0 0 40px rgba(255,120,40,0.18)" }}
-            >
-              <div className="text-[11px] font-bold uppercase tracking-widest text-orange-300/80 mb-1">{downloader.codeLabel}</div>
-              <div dir="ltr" className="text-4xl md:text-5xl font-black tracking-[0.15em] text-white tabular-nums">7876083</div>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center sm:text-start flex flex-col justify-center">
-              <div className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">{downloader.urlLabel}</div>
-              <div dir="ltr" className="text-sm md:text-base font-semibold text-cyan-300 break-all">{downloader.url}</div>
-            </div>
+          <div className="relative grid gap-4 sm:grid-cols-2 items-stretch max-w-3xl mx-auto mb-6">
+            {downloader.codes.map((entry, idx) => (
+              <div
+                key={entry.code}
+                className={`rounded-2xl border px-6 py-4 text-center flex flex-col justify-center ${
+                  idx === 0 ? "border-orange-500/40 bg-black/40" : "border-amber-400/40 bg-amber-500/[0.06]"
+                }`}
+                style={idx === 0 ? { boxShadow: "0 0 40px rgba(255,120,40,0.18)" } : undefined}
+              >
+                <div className={`text-[11px] font-bold uppercase tracking-widest mb-1 ${idx === 0 ? "text-orange-300/80" : "text-amber-300/90"}`}>
+                  {entry.label}
+                </div>
+                <div dir="ltr" className="text-3xl md:text-4xl font-black tracking-[0.15em] text-white tabular-nums">{entry.code}</div>
+                <div className="text-[11px] text-white/55 mt-1.5 leading-snug">{entry.hint}</div>
+              </div>
+            ))}
+          </div>
+          <div className="relative max-w-3xl mx-auto mb-9 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3.5 text-center flex flex-col justify-center">
+            <div className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">{downloader.urlLabel}</div>
+            <div dir="ltr" className="text-sm md:text-base font-semibold text-cyan-300 break-all">{downloader.url}</div>
           </div>
 
           <ol className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0 max-w-5xl mx-auto">

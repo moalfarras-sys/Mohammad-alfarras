@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/admin/", "/api/", "/downloads/", "/draft/", "/*/draft/", "/ai", "/ar/ai", "/en/ai"],
+      disallow: ["/admin", "/admin/", "/api/", "/downloads/", "/draft/", "/*/draft/"],
     },
     sitemap: "https://moalfarras.space/sitemap.xml",
   };

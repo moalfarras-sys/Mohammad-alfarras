@@ -19,10 +19,28 @@ function unavailableResponse(productName: string, mode: "maintenance" | "disable
   );
 }
 
+// Slugs that mean "the Windows desktop build" even when ?platform=windows is
+// omitted. They all resolve to the `moplayer2` namespace, but the Windows
+// release lives under platform=windows — so we default the platform here to keep
+// the PC slug (`moplayer-pc`) consistent everywhere instead of 404ing.
+const windowsProductAliases = new Set([
+  "moplayer-pc",
+  "mo-player-pc",
+  "moplayer-windows",
+  "mo-player-windows",
+  "windows",
+  "windows-pc",
+]);
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const product = resolveManagedAppSlug(url.searchParams.get("product"));
-  const platform = url.searchParams.get("platform")?.toLowerCase();
+  const rawProduct = String(url.searchParams.get("product") ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-");
+  const product = resolveManagedAppSlug(rawProduct);
+  const platform =
+    url.searchParams.get("platform")?.toLowerCase() || (windowsProductAliases.has(rawProduct) ? "windows" : undefined);
   const abi = url.searchParams.get("abi");
 
   if (product === "moplayer2" && platform === "windows") {

@@ -150,7 +150,7 @@ export async function generateMetadata({
       languages: {
         ar: `${SITE_URL}/ar/apps/moplayer-ios`,
         en: `${SITE_URL}/en/apps/moplayer-ios`,
-        "x-default": `${SITE_URL}/en/apps/moplayer-ios`,
+        "x-default": `${SITE_URL}/ar/apps/moplayer-ios`,
       },
     },
     openGraph: {

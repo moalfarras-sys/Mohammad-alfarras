@@ -1,0 +1,42 @@
+name: Flutter quality
+
+# Static quality gate for the MoPlayer iOS Flutter app. Safe to run on any
+# runner — it needs NO Apple secrets, certificates, or provisioning profiles.
+# iOS archiving/signing is intentionally NOT done here; see docs/ci/IOS_CI_SETUP.md.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  analyze-and-test:
+    name: Analyze, format & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.9
+          cache: true
+
+      - name: Print versions
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test

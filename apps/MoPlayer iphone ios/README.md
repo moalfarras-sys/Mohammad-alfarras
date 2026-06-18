@@ -94,17 +94,23 @@ deep-link scheme, and `PrivacyInfo.xcprivacy`. Before App Store submission,
 archive in Xcode and generate the privacy report, then confirm the final privacy
 nutrition labels with the project owner.
 
-Release/App Store documentation:
+Release/App Store documentation (in this repo, under `docs/`):
 
-- `../../docs/app-store/APP_STORE_METADATA.md`
-- `../../docs/app-store/REVIEW_NOTES.md`
-- `../../docs/app-store/PRIVACY_CHECKLIST.md`
-- `../../docs/app-store/MAC_PUBLISHING_GUIDE.md`
-- `../../docs/app-store/SCREENSHOTS_GUIDE.md`
-- `../../docs/QA_REPORT.md`
+- `docs/app-store/MAC_PUBLISHING_GUIDE.md` — clone → build → sign → submit
+- `docs/app-store/APP_STORE_METADATA.md`
+- `docs/app-store/REVIEW_NOTES.md`
+- `docs/app-store/PRIVACY_CHECKLIST.md`
+- `docs/app-store/RELEASE_CHECKLIST.md`
+- `docs/app-store/SCREENSHOTS_GUIDE.md`
+- `docs/app-store/TESTFLIGHT_TEST_PLAN.md`
+- `docs/app-store/APP_STORE_RISK_REVIEW.md`
+- `docs/app-store/PRIVACY_POLICY_TEMPLATE.md`, `docs/app-store/TERMS_TEMPLATE.md`
+- `docs/ARCHITECTURE.md`, `docs/QA_REPORT.md`, `docs/RELEASE_NOTES.md`
+- CI: `.github/workflows/flutter_quality.yml` (analyze + format + test; no Apple secrets)
+- Optional iOS build CI: `docs/ci/IOS_CI_SETUP.md`
 
 Apple TV/tvOS is not production-ready from this Flutter project. See
-`../../docs/apple-tv/TVOS_FEASIBILITY.md`.
+`docs/apple-tv/TVOS_FEASIBILITY.md`.
 
 ## Latest Local QA
 

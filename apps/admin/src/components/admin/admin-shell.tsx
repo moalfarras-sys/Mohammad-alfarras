@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useTheme } from "next-themes";
-import { Bot, Boxes, Globe, Languages, LayoutDashboard, LogOut, Mail, Moon, ShieldCheck, Sun } from "lucide-react";
+import { Bot, Boxes, Globe, Image as ImageIcon, Languages, LayoutDashboard, LogOut, Mail, Moon, ShieldCheck, Sun } from "lucide-react";
 
 import { logoutAdminAction } from "@/app/actions";
+import { AdminCommandPalette } from "@/components/admin/admin-command-palette";
 import { AdminHelperWidget } from "@/components/admin/admin-helper-widget";
 import { InstallPrompt } from "@/components/admin/install-prompt";
 import { useLocale } from "@/components/admin/locale-provider";
@@ -14,6 +15,7 @@ import { useLocale } from "@/components/admin/locale-provider";
 const NAV = [
   { href: "/", en: "Overview", ar: "نظرة عامة", short_en: "Home", short_ar: "الرئيسية", hint_en: "Start here", hint_ar: "ابدأ من هنا", icon: LayoutDashboard },
   { href: "/website", en: "Website", ar: "الموقع", short_en: "Website", short_ar: "الموقع", hint_en: "Text, images, SEO", hint_ar: "نصوص وصور وفهرسة", icon: Globe },
+  { href: "/media", en: "Media Library", ar: "مكتبة الصور", short_en: "Media", short_ar: "صور", hint_en: "Upload, replace, map", hint_ar: "رفع وربط واستبدال", icon: ImageIcon },
   { href: "/moplayer", en: "MoPlayer Suite", ar: "MoPlayer Suite", short_en: "Apps", short_ar: "التطبيقات", hint_en: "Classic, Pro, iOS, PC", hint_ar: "Classic وPro وiOS وPC", icon: Boxes },
   { href: "/email", en: "Email", ar: "الإيميلات", short_en: "Email", short_ar: "إيميل", hint_en: "Inbox + AI replies", hint_ar: "رسائل وردود AI", icon: Mail },
   { href: "/ai", en: "AI & automation", ar: "AI والأتمتة", short_en: "AI", short_ar: "AI", hint_en: "Assistant health", hint_ar: "صحة المساعد", icon: Bot },
@@ -54,6 +56,10 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
             <span className="block truncate text-sm font-black text-[var(--text-1)]">{t({ en: "Control Center", ar: "مركز التحكم" })}</span>
           </span>
         </Link>
+
+        <div className="mb-3">
+          <AdminCommandPalette />
+        </div>
 
         <div className="mb-4 rounded-3xl border border-[var(--line-strong)] bg-[linear-gradient(135deg,rgba(34,211,238,0.12),rgba(99,102,241,0.07))] p-3">
           <div className="flex items-center gap-2">
@@ -117,6 +123,7 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
             </span>
           </Link>
           <div className="flex items-center gap-2">
+            <AdminCommandPalette />
             <button type="button" onClick={toggle} className="btn btn-sm" aria-label="Toggle language">
               {locale === "ar" ? "EN" : "AR"}
             </button>

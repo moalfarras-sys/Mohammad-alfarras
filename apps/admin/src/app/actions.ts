@@ -58,6 +58,7 @@ function appRoute(slug: ManagedAppSlug) {
 
 function revalidateAll() {
   revalidatePath("/");
+  revalidatePath("/media");
   revalidatePath("/website");
   revalidatePath("/moplayer");
   revalidatePath("/moplayer/classic");
@@ -859,9 +860,18 @@ export async function deleteWebsiteProjectAction(formData: FormData) {
 
 export async function uploadWebsiteMediaAction(formData: FormData) {
   await requireAdminRole("editor");
+  await uploadWebsiteMediaFromForm(formData, "/website?updated=website_media", "/website?updated=website_upload_missing#media", "/website?updated=");
+}
+
+export async function uploadMediaLibraryAction(formData: FormData) {
+  await requireAdminRole("editor");
+  await uploadWebsiteMediaFromForm(formData, "/media?updated=website_media", "/media?updated=website_upload_missing#upload", "/media?updated=");
+}
+
+async function uploadWebsiteMediaFromForm(formData: FormData, successUrl: string, missingUrl: string, failurePrefix: string) {
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) {
-    redirect("/website?updated=website_upload_missing#media");
+    redirect(missingUrl);
   }
   try {
     validateWebsiteImageFile(file);
@@ -874,25 +884,34 @@ export async function uploadWebsiteMediaAction(formData: FormData) {
       kind: String(formData.get("kind") ?? "general").trim() || "general",
     });
   } catch (error) {
-    redirect(`/website?updated=${uploadFailureCode(error)}#media`);
+    redirect(`${failurePrefix}${uploadFailureCode(error)}#upload`);
   }
 
   revalidateAll();
-  redirect("/website?updated=website_media");
+  redirect(successUrl);
 }
 
 export async function deleteWebsiteMediaAction(formData: FormData) {
   await requireAdminRole("admin");
+  await deleteWebsiteMediaFromForm(formData, "/website?updated=website_media_deleted", "/website?updated=website_media_in_use#media");
+}
+
+export async function deleteMediaLibraryAction(formData: FormData) {
+  await requireAdminRole("admin");
+  await deleteWebsiteMediaFromForm(formData, "/media?updated=website_media_deleted", "/media?updated=website_media_in_use#library");
+}
+
+async function deleteWebsiteMediaFromForm(formData: FormData, successUrl: string, inUseUrl: string) {
   try {
     await deleteWebsiteMedia(String(formData.get("id") ?? ""));
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("MEDIA_IN_USE:")) {
-      redirect("/website?updated=website_media_in_use#media");
+      redirect(inUseUrl);
     }
     throw error;
   }
   revalidateAll();
-  redirect("/website?updated=website_media_deleted");
+  redirect(successUrl);
 }
 
 export async function saveSiteStatusAction(formData: FormData) {
@@ -947,6 +966,15 @@ function extractYoutubeId(value: string): string {
 
 export async function saveSiteImagesAction(formData: FormData) {
   await requireAdminRole("editor");
+  await saveSiteImagesFromForm(formData, "/website?updated=site_images#site-images", "/website?updated=");
+}
+
+export async function saveMediaSiteImagesAction(formData: FormData) {
+  await requireAdminRole("editor");
+  await saveSiteImagesFromForm(formData, "/media?updated=site_images#site-images", "/media?updated=");
+}
+
+async function saveSiteImagesFromForm(formData: FormData, successUrl: string, failurePrefix: string) {
   const slots = [
     "home_portrait",
     "home_product_hero",
@@ -969,7 +997,7 @@ export async function saveSiteImagesAction(formData: FormData) {
         continue;
       }
     } catch (error) {
-      redirect(`/website?updated=${uploadFailureCode(error)}#site-images`);
+      redirect(`${failurePrefix}${uploadFailureCode(error)}#site-images`);
     }
     const mediaId = String(formData.get(`${slot}_media_id`) ?? "").trim();
     if (mediaId) next[slot] = mediaId;
@@ -977,7 +1005,7 @@ export async function saveSiteImagesAction(formData: FormData) {
   }
   await supabase.from("site_settings").upsert({ key: "site_images", value_json: next }, { onConflict: "key" });
   revalidateAll();
-  redirect("/website?updated=site_images#site-images");
+  redirect(successUrl);
 }
 
 export async function saveYoutubeCurationAction(formData: FormData) {

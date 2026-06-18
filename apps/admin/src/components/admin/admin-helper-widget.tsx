@@ -20,7 +20,7 @@ const topics = [
       title: "تغيير الصور",
       body: "لتغيير صور الموقع افتح إدارة الموقع ثم مكتبة الصور أو الهوية. لتغيير صور MoPlayer أو Pro افتح صفحة التطبيق، ستجد خريطة الصور، ثم ارفع بديل واحفظ. لا تحتاج تكتب مسار إلا إذا فتحت Advanced.",
       links: [
-        { href: "/website#media", label: "مكتبة صور الموقع" },
+        { href: "/media#library", label: "مكتبة صور الموقع" },
         { href: "/website#brand", label: "صور الهوية" },
         { href: "/moplayer/classic#product-content", label: "صور MoPlayer" },
         { href: "/moplayer/pro#product-content", label: "صور Pro" },
@@ -31,7 +31,7 @@ const topics = [
       title: "Change images",
       body: "For website images, open Website then Media or Brand. For MoPlayer/Pro images, open the app page, use the image map, upload a replacement, then save. You do not need paths unless you open Advanced.",
       links: [
-        { href: "/website#media", label: "Website media" },
+        { href: "/media#library", label: "Website media" },
         { href: "/website#brand", label: "Brand images" },
         { href: "/moplayer/classic#product-content", label: "MoPlayer images" },
         { href: "/moplayer/pro#product-content", label: "Pro images" },
@@ -47,7 +47,7 @@ const topics = [
       body: "العروض موجودة داخل إدارة الموقع. أضف عرضاً، اختر أين يظهر، اختر الشكل، ارفع صورة، واحفظ. إذا أردت إخفاء العرض أطفئ Show offer بدل الحذف.",
       links: [
         { href: "/website#offers", label: "عروض الموقع" },
-        { href: "/website#media", label: "رفع صورة للعرض" },
+        { href: "/media#upload", label: "رفع صورة للعرض" },
       ],
     },
     en: {
@@ -55,7 +55,7 @@ const topics = [
       body: "Offers live in Website control. Add an offer, choose where it appears, choose the style, upload an image, and save. Turn Show offer off to hide it without deleting.",
       links: [
         { href: "/website#offers", label: "Website offers" },
-        { href: "/website#media", label: "Upload offer image" },
+        { href: "/media#upload", label: "Upload offer image" },
       ],
     },
   },

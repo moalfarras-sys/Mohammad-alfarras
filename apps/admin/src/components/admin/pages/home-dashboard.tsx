@@ -9,6 +9,7 @@ import {
   Gauge,
   ExternalLink,
   Globe,
+  Image as ImageIcon,
   Inbox,
   Key,
   Laptop,
@@ -133,6 +134,12 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
           body={t({ en: "Images, colors, SEO, pages, services, projects, and messages.", ar: "الصور والألوان وSEO والصفحات والخدمات والمشاريع والرسائل." })}
         />
         <ActionTile
+          href="/media"
+          icon={<ImageIcon className="h-5 w-5" />}
+          title={t({ en: "Media library", ar: "مكتبة الصور" })}
+          body={t({ en: "Upload images, map homepage slots, see usage, and jump to app image editors.", ar: "ارفع الصور، اربط صور الرئيسية، شاهد أماكن الاستخدام، وافتح محررات صور التطبيقات." })}
+        />
+        <ActionTile
           href="/website#offers"
           icon={<Inbox className="h-5 w-5" />}
           title={t({ en: "Website offers", ar: "عروض الموقع" })}
@@ -171,7 +178,7 @@ export function HomeDashboard({ apps, website, health }: { apps: AppEntry[]; web
       </section>
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <StatCard label={t({ en: "Website images", ar: "صور الموقع" })} value={website.mediaAssets.length} icon={<Globe className="h-5 w-5" />} hint={t({ en: "Media library", ar: "مكتبة الصور" })} />
+        <StatCard label={t({ en: "Website images", ar: "صور الموقع" })} value={website.mediaAssets.length} icon={<ImageIcon className="h-5 w-5" />} hint={t({ en: "Media library", ar: "مكتبة الصور" })} href="/media" />
         <StatCard label={t({ en: "Visible services", ar: "خدمات ظاهرة" })} value={website.services.filter((item) => item.is_active).length} icon={<Gauge className="h-5 w-5" />} tone="success" hint={t({ en: "Website", ar: "الموقع" })} />
         <StatCard label={t({ en: "Published pages", ar: "صفحات منشورة" })} value={website.pages.filter((item) => item.status === "published").length} icon={<Key className="h-5 w-5" />} tone="warning" hint="SEO" />
         <StatCard label={t({ en: "Releases", ar: "الإصدارات" })} value={allReleases.length} icon={<Box className="h-5 w-5" />} tone="violet" hint={t({ en: "Classic + Pro", ar: "كلاسيك + برو" })} />

@@ -523,6 +523,141 @@ body {
   color: var(--accent);
 }
 
+.admin-command-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-2);
+  padding: 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-align: start;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.admin-command-trigger:hover {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-1);
+}
+.admin-command-trigger span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-command-trigger kbd {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-3);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 950;
+}
+.admin-command-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.68);
+  padding: max(7vh, 32px) 1rem 1rem;
+  backdrop-filter: blur(14px);
+}
+.admin-command-panel {
+  width: min(760px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 26px;
+  background: var(--panel-2);
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58);
+}
+.admin-command-panel header {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.9rem;
+  color: var(--accent);
+}
+.admin-command-panel input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-1);
+  outline: 0;
+  font-size: 1rem;
+  font-weight: 750;
+}
+.admin-command-panel input::placeholder {
+  color: var(--text-3);
+}
+.admin-command-panel header button {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-2);
+}
+.admin-command-results {
+  display: grid;
+  max-height: min(62vh, 560px);
+  overflow-y: auto;
+  padding: 0.7rem;
+}
+.admin-command-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 16px;
+  padding: 0.65rem;
+  color: var(--text-2);
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.admin-command-item:hover {
+  background: var(--accent-soft);
+  color: var(--text-1);
+}
+.admin-command-item > span {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.035);
+}
+.admin-command-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  color: var(--text-1);
+}
+.admin-command-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-3);
+}
+
 .dock {
   position: fixed;
   inset-inline: 0;
@@ -767,6 +902,31 @@ body {
 }
 
 @media (max-width: 759px) {
+  .admin-command-trigger {
+    width: auto;
+    min-height: 38px;
+    padding: 0 0.65rem;
+  }
+  .admin-command-trigger span,
+  .admin-command-trigger kbd {
+    display: none;
+  }
+  .admin-command-overlay {
+    padding: 0.75rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+  }
+  .admin-command-panel {
+    border-radius: 22px;
+  }
+  .admin-command-item {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+  .admin-command-item small {
+    grid-column: 2;
+    white-space: normal;
+    line-height: 1.45;
+  }
+
   .admin-helper {
     right: 12px;
     bottom: calc(88px + env(safe-area-inset-bottom));

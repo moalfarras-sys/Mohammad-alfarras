@@ -130,7 +130,7 @@ export function MoPlayerSuiteControl({
               <ExternalLink className="h-4 w-4" />
               {t({ en: "Public hub", ar: "البوابة العامة" })}
             </Link>
-            <Link href="/website#site-images" className="btn btn-sm">
+            <Link href="/media#site-images" className="btn btn-sm">
               <ImageIcon className="h-4 w-4" />
               {t({ en: "Homepage images", ar: "صور الرئيسية" })}
             </Link>
@@ -201,7 +201,7 @@ export function MoPlayerSuiteControl({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/website#site-images" className="btn btn-sm">
+            <Link href="/media#site-images" className="btn btn-sm">
               <ImageIcon className="h-4 w-4" />
               {t({ en: "Website images", ar: "صور الموقع" })}
             </Link>

@@ -21,6 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Website", short_name: "Site", url: "/website", description: "Edit the public website" },
+      { name: "Media Library", short_name: "Media", url: "/media", description: "Upload and map website/app images" },
       { name: "MoPlayer Suite", short_name: "Apps", url: "/moplayer", description: "Manage all MoPlayer editions" },
       { name: "MoPlayer iOS", short_name: "iOS", url: "/moplayer/ios", description: "Manage MoPlayer iOS" },
       { name: "MoPlayer Pro", short_name: "Pro", url: "/moplayer/pro", description: "Manage MoPlayer Pro" },

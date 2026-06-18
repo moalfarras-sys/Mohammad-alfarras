@@ -2,6 +2,15 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-18 Admin Media Control Center redesign
+
+- Added a dedicated Admin `/media` page so image control is no longer hidden inside the long Website CMS page.
+- `/media` can upload real images to Supabase Storage, create `media_assets` rows, map key public website image slots, show media usage, and route the owner to app-specific image editors.
+- Added a global command palette (`Ctrl/Cmd+K`) and added Media Library to the desktop sidebar, mobile dock, PWA shortcuts, dashboard quick actions, and helper widget.
+- Added media-specific server actions so upload/delete/site-image save operations can return to `/media` while still using the existing guarded Supabase media pipeline.
+- Dashboard now has direct links for Media Library, app runtime/maintenance, app images, iOS controls, and public previews.
+- Detailed report: `docs/ADMIN_REDESIGN_2026-06-18.md`.
+
 ## 2026-06-18 MoPlayer iOS public/admin control publish
 
 - Added MoPlayer iOS as a real platform section in the public MoPlayer family hub at `/en/apps/moplayer` and `/ar/apps/moplayer`, instead of leaving it only as a future placeholder card.

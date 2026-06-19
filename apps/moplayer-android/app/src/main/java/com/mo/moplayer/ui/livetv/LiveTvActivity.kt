@@ -19,6 +19,8 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.mo.moplayer.R
@@ -1040,14 +1042,15 @@ class LiveTvActivity : BaseTvActivity() {
             clipToPadding = false
             clipChildren = false
             setHasFixedSize(true)
-
-            // Enable drawing cache for better performance (deprecated but still useful on older
-            // devices)
-            try {
-                @Suppress("DEPRECATION") isDrawingCacheEnabled = true
-            } catch (e: Exception) {
-                // Ignore if not supported
-            }
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    val manager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+                    val lastVisible = manager.findLastVisibleItemPosition()
+                    if (lastVisible >= manager.itemCount - 24) {
+                        viewModel.loadMoreChannels()
+                    }
+                }
+            })
         }
     }
 

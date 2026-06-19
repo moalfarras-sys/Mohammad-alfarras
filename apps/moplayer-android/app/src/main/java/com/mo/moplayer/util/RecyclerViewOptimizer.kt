@@ -16,18 +16,24 @@ import javax.inject.Singleton
 class RecyclerViewOptimizer @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private val performanceTier = DevicePerformance.tier(context)
+    private fun tierValue(low: Int, medium: Int, high: Int): Int = when (performanceTier) {
+        DevicePerformance.Tier.LOW -> low
+        DevicePerformance.Tier.MEDIUM -> medium
+        DevicePerformance.Tier.HIGH -> high
+    }
     
     // Shared ViewPool for content cards
     private val contentCardPool = RecyclerView.RecycledViewPool().apply {
-        setMaxRecycledViews(VIEW_TYPE_CONTENT_CARD, ListPerformanceConfig.HomeRails.maxPoolSize)
-        setMaxRecycledViews(VIEW_TYPE_CONTENT_CARD_SMALL, 25)
-        setMaxRecycledViews(VIEW_TYPE_CHANNEL, ListPerformanceConfig.LiveChannels.maxPoolSize)
-        setMaxRecycledViews(VIEW_TYPE_EPISODE, 10)
-        setMaxRecycledViews(VIEW_TYPE_MOVIE, 20)
-        setMaxRecycledViews(VIEW_TYPE_SERIES, 20)
-        setMaxRecycledViews(VIEW_TYPE_EPISODE_TV, 10)
-        setMaxRecycledViews(VIEW_TYPE_SEASON, 10)
-        setMaxRecycledViews(VIEW_TYPE_SEASON_TV, 10)
+        setMaxRecycledViews(VIEW_TYPE_CONTENT_CARD, tierValue(8, 16, 24))
+        setMaxRecycledViews(VIEW_TYPE_CONTENT_CARD_SMALL, tierValue(8, 16, 25))
+        setMaxRecycledViews(VIEW_TYPE_CHANNEL, tierValue(10, 20, 32))
+        setMaxRecycledViews(VIEW_TYPE_EPISODE, tierValue(5, 8, 10))
+        setMaxRecycledViews(VIEW_TYPE_MOVIE, tierValue(6, 12, 20))
+        setMaxRecycledViews(VIEW_TYPE_SERIES, tierValue(6, 12, 20))
+        setMaxRecycledViews(VIEW_TYPE_EPISODE_TV, tierValue(5, 8, 10))
+        setMaxRecycledViews(VIEW_TYPE_SEASON, tierValue(5, 8, 10))
+        setMaxRecycledViews(VIEW_TYPE_SEASON_TV, tierValue(5, 8, 10))
     }
     
     // Shared ViewPool for rows (category lists: Movies/Series)
@@ -54,21 +60,18 @@ class RecyclerViewOptimizer @Inject constructor(
             
             // Optimize layout
             setHasFixedSize(true)
-            setItemViewCacheSize(config.itemCacheSize)
+            setItemViewCacheSize(tierValue(5, 9, config.itemCacheSize))
             
             // Configure layout manager for prefetching
             (layoutManager as? LinearLayoutManager)?.apply {
-                initialPrefetchItemCount = maxOf(prefetchCount, config.prefetchCount)
+                initialPrefetchItemCount = tierValue(2, 4, maxOf(prefetchCount, config.prefetchCount))
                 isItemPrefetchEnabled = true
             }
             
             // Disable nested scrolling for better performance in nested layouts
             isNestedScrollingEnabled = false
             
-            // Optimize for TV with larger cache
-            if (context.isTvDevice()) {
-                setItemViewCacheSize(15)
-            }
+            // TV focus remains smooth without pinning dozens of poster bitmaps on 1 GB boxes.
         }
     }
     
@@ -83,9 +86,9 @@ class RecyclerViewOptimizer @Inject constructor(
         recyclerView.apply {
             setRecycledViewPool(rowPool)
             setHasFixedSize(true)
-            setItemViewCacheSize(5)
+            setItemViewCacheSize(tierValue(3, 4, 5))
             (layoutManager as? LinearLayoutManager)?.apply {
-                initialPrefetchItemCount = prefetchCount
+                initialPrefetchItemCount = tierValue(1, 2, prefetchCount)
                 isItemPrefetchEnabled = true
             }
         }
@@ -102,9 +105,9 @@ class RecyclerViewOptimizer @Inject constructor(
         recyclerView.apply {
             setRecycledViewPool(contentRowPool)
             setHasFixedSize(true)
-            setItemViewCacheSize(5)
+            setItemViewCacheSize(tierValue(3, 4, 5))
             (layoutManager as? LinearLayoutManager)?.apply {
-                initialPrefetchItemCount = prefetchCount
+                initialPrefetchItemCount = tierValue(1, 2, prefetchCount)
                 isItemPrefetchEnabled = true
             }
         }
@@ -120,11 +123,10 @@ class RecyclerViewOptimizer @Inject constructor(
         recyclerView.apply {
             setRecycledViewPool(contentCardPool)
             setHasFixedSize(true)
-            setItemViewCacheSize(config.itemCacheSize)
-            
-            // Larger cache for channel switching performance
-            if (context.isTvDevice()) {
-                setItemViewCacheSize(config.itemCacheSize + 8)
+            setItemViewCacheSize(tierValue(6, 12, 20))
+            (layoutManager as? LinearLayoutManager)?.apply {
+                initialPrefetchItemCount = tierValue(3, 5, config.prefetchCount)
+                isItemPrefetchEnabled = true
             }
         }
     }

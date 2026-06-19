@@ -23,7 +23,7 @@ interface ContentSearchDao {
 
     @Query(
         """
-        SELECT * FROM content_search_index
+        SELECT rowid, * FROM content_search_index
         WHERE serverId = :serverId
           AND content_search_index MATCH :ftsQuery
         ORDER BY title COLLATE NOCASE
@@ -38,7 +38,7 @@ interface ContentSearchDao {
 
     @Query(
         """
-        SELECT * FROM content_search_index
+        SELECT rowid, * FROM content_search_index
         WHERE serverId = :serverId
           AND title LIKE '%' || :query || '%'
         ORDER BY title COLLATE NOCASE

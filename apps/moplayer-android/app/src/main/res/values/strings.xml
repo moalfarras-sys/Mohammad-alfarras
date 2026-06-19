@@ -105,6 +105,7 @@
     <string name="login_error_empty">Please fill in all fields</string>
     <string name="login_error_invalid_url">Invalid server URL format</string>
     <string name="login_downloading_playlist">Downloading playlist…</string>
+    <string name="login_parsing_playlist_progress">Preparing playlist… %1$d items</string>
     <string name="login_parsing_playlist">Parsing playlist…</string>
     <string name="loading_marketing_text">Now the Fun Begins</string>
     <string name="loading_server_connecting">Connecting to Server</string>
@@ -647,6 +648,11 @@
     <string name="player_not_available_restart">Video player not available. Please restart the app.</string>
     <string name="player_no_network_retry">No network connection. Check your internet and retry.</string>
     <string name="player_stream_error_after_retries">Stream error after %1$d attempts. Press Retry or use external player.</string>
+    <string name="back">Back</string>
+    <string name="player_opening_stream">Opening stream…</string>
+    <string name="player_opening_named_stream">Opening %1$s…</string>
+    <string name="player_error_source_live">%1$s · Live TV</string>
+    <string name="player_error_source_video">%1$s · Video</string>
     <string name="player_stream_error_with_external_hint">This stream could not start. Press Retry, or use an external player if your provider uses a rare format.</string>
     <string name="player_unsupported_stream_format">This stream link uses an unsupported format or protocol.</string>
     <string name="player_audio_track_format">Audio: %1$s</string>
@@ -702,6 +708,28 @@
     <string name="settings_app_update_progress">Downloading update… %1$d%%</string>
     <string name="settings_app_update_installer_opened">Installer opened. Complete the update from Android.</string>
     <string name="settings_app_update_latest_toast">No newer version is published yet.</string>
+    <string name="settings_update_center_title">App update</string>
+    <string name="settings_update_center_subtitle">A dedicated, secure update center for MoPlayer Classic.</string>
+    <string name="settings_update_status_label">RELEASE STATUS</string>
+    <string name="settings_update_verified_source">Release data and APK verification come from moalfarras.space.</string>
+    <string name="settings_update_installed_label">Installed</string>
+    <string name="settings_update_available_label">Available</string>
+    <string name="settings_update_package_label">Package</string>
+    <string name="settings_update_release_notes_label">What’s new</string>
+    <string name="settings_update_version_value">%1$s (%2$d)</string>
+    <string name="settings_version_compact">MoPlayer %1$s · %2$d</string>
+    <string name="settings_update_available_unknown">Checking…</string>
+    <string name="settings_update_size_unknown">Size —</string>
+    <string name="settings_update_size_value">Size %1$s</string>
+    <string name="settings_update_ready">Version %1$s is ready</string>
+    <string name="settings_update_ahead_of_published">This build is newer than published version %1$s</string>
+    <string name="settings_update_published_older">Published build is older</string>
+    <string name="settings_update_check_again">Check for update</string>
+    <string name="settings_update_try_again">Try again</string>
+    <string name="settings_update_check_failed">Could not check: %1$s</string>
+    <string name="settings_update_check_failed_hint">Check the TV connection, then try again. No existing app data was changed.</string>
+    <string name="settings_update_install_hint">Android may ask once for permission to install updates from MoPlayer. The downloaded APK is checked against the published size and SHA-256 checksum before the installer opens.</string>
+    <string name="settings_server_management_desc">Manage the active IPTV source, refresh content, and switch between saved providers.</string>
 
     <!-- EPG full program guide -->
     <string name="epg_guide_title">Program Guide</string>

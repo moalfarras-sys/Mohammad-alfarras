@@ -25,7 +25,7 @@
                         android:angle="90"
                         android:startColor="@color/cinematic_cyan"
                         android:endColor="@color/cinematic_cyan_light" />
-                    <stroke android:width="2dp" android:color="#90FFFFFF" />
+                    <stroke android:width="2dp" android:color="#D98FF4FF" />
                 </shape>
             </item>
         </layer-list>

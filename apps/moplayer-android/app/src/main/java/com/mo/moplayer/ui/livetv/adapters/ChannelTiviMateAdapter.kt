@@ -91,6 +91,9 @@ class ChannelTiviMateAdapter(
         return getItem(position).channel.channelId.hashCode().toLong()
     }
 
+    override fun getItemViewType(position: Int): Int =
+        com.mo.moplayer.util.RecyclerViewOptimizer.VIEW_TYPE_CHANNEL
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
         val binding = ItemChannelTivimateBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -101,6 +104,11 @@ class ChannelTiviMateAdapter(
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item.channel, position, item.isPlaying)
+    }
+
+    override fun onViewRecycled(holder: ChannelViewHolder) {
+        holder.recycle()
+        super.onViewRecycled(holder)
     }
     
     /**
@@ -164,6 +172,7 @@ class ChannelTiviMateAdapter(
         private val binding: ItemChannelTivimateBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         private var remoteShortcutManager: RemoteShortcutManager? = null
+        private var lastFocusColor: Int? = null
 
         /**
          * Update only the playing state without full rebind
@@ -226,11 +235,10 @@ class ChannelTiviMateAdapter(
                 if (!channel.streamIcon.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.root.context)) {
                     Glide.with(binding.root.context)
                         .load(channel.streamIcon)
-                        .thumbnail(0.1f) // Load low-res version first
-                    .override(96, 72)
-                        .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache everything
+                        .override(96, 72)
+                        .diskCacheStrategy(DiskCacheStrategy.DATA)
                         .dontAnimate() // Skip crossfade for better performance
-                    .dontTransform()
+                        .dontTransform()
                         .placeholder(R.drawable.ic_placeholder_channel)
                         .error(R.drawable.ic_placeholder_channel)
                         .centerInside()
@@ -331,8 +339,11 @@ class ChannelTiviMateAdapter(
             // Apply dynamic colors from ThemeManager
             if (hasFocus) {
                 val accentColor = themeManager.currentAccentColor.value
-                binding.focusBorder.background = FocusStyleHelper.createChannelFocusBorder(accentColor)
-                binding.focusGlow.background = FocusStyleHelper.createChannelFocusGlow(accentColor)
+                if (lastFocusColor != accentColor) {
+                    binding.focusBorder.background = FocusStyleHelper.createChannelFocusBorder(accentColor)
+                    binding.focusGlow.background = FocusStyleHelper.createChannelFocusGlow(accentColor)
+                    lastFocusColor = accentColor
+                }
             }
 
             LiquidFocusDelegate.animateCardFocus(
@@ -347,12 +358,14 @@ class ChannelTiviMateAdapter(
             binding.channelContainer.translationX = if (hasFocus) -2f else 0f
 
             // Glow animation (no interpolator needed for alpha)
+            binding.focusGlow.animate().cancel()
             binding.focusGlow.animate()
                 .alpha(glowAlpha)
                 .setDuration(180)
                 .start()
 
             // Border animation (no interpolator needed for alpha)
+            binding.focusBorder.animate().cancel()
             binding.focusBorder.animate()
                 .alpha(borderAlpha)
                 .setDuration(180)
@@ -365,10 +378,30 @@ class ChannelTiviMateAdapter(
          * Update focus colors when theme changes
          */
         fun updateFocusColors(color: Int) {
+            lastFocusColor = null
             if (binding.channelContainer.hasFocus()) {
                 binding.focusBorder.background = FocusStyleHelper.createChannelFocusBorder(color)
                 binding.focusGlow.background = FocusStyleHelper.createChannelFocusGlow(color)
+                lastFocusColor = color
             }
+        }
+
+        fun recycle() {
+            remoteShortcutManager = null
+            binding.channelContainer.animate().cancel()
+            binding.focusGlow.animate().cancel()
+            binding.focusBorder.animate().cancel()
+            binding.channelContainer.scaleX = 1f
+            binding.channelContainer.scaleY = 1f
+            binding.channelContainer.translationX = 0f
+            binding.channelContainer.translationY = 0f
+            binding.focusGlow.alpha = 0f
+            binding.focusBorder.alpha = 0f
+            binding.channelContainer.setOnKeyListener(null)
+            if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.root.context)) {
+                Glide.with(binding.root.context).clear(binding.ivChannelLogo)
+            }
+            binding.ivChannelLogo.setImageResource(R.drawable.ic_placeholder_channel)
         }
 
         fun updateFavoriteState(isFavorite: Boolean) {

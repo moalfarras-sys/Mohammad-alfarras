@@ -10,6 +10,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
@@ -147,6 +148,7 @@ class LoginActivity : AppCompatActivity() {
     private var pendingWebsiteSourceId: String? = null
     private val websiteSourceDeliveryWindowMs = 20 * 60 * 1000L
     private val focusIconAnimators = WeakHashMap<View, AnimatorSet>()
+    private var crashSafeMode = false
     private val websiteSourceRunnable = object : Runnable {
         override fun run() {
             checkWebsiteDeliveredSource(scheduleNext = true)
@@ -160,17 +162,20 @@ class LoginActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { !startupResolved }
         // Sign-in can sit idle while the user types credentials or waits to scan a QR
         // code from a phone. Keep the TV panel awake so it never dims mid-setup.
-        window.addFlags(
-            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-        )
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
         window.setBackgroundDrawableResource(R.color.cinematic_bg_base)
 
         lifecycleScope.launch {
-            val safeMode = CrashGuard.shouldUseSafeMode(this@LoginActivity)
-            val hasSavedSession = withContext(Dispatchers.IO) {
-                repository.getActiveServerSync() != null
+            val (safeMode, hasSavedSession) = withContext(Dispatchers.IO) {
+                CrashGuard.shouldUseSafeMode(this@LoginActivity) to (repository.getActiveServerSync() != null)
             }
+            crashSafeMode = safeMode
             val shouldStayForSetup =
                 intent?.getBooleanExtra(EXTRA_ACTIVATION_COMPLETED, false) == true ||
                     intent?.getBooleanExtra("add_new_server", false) == true
@@ -225,8 +230,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun applyRemoteConfig() {
-        applyRemoteConfigState(appRemoteConfigService.cachedConfig())
         lifecycleScope.launch {
+            applyRemoteConfigState(withContext(Dispatchers.IO) { appRemoteConfigService.cachedConfig() })
             val config = appRemoteConfigService.fetchConfig()
             applyRemoteConfigState(config)
         }
@@ -296,12 +301,15 @@ class LoginActivity : AppCompatActivity() {
                 val currentTheme = backgroundManager.currentTheme.first()
                 val particleColor = backgroundManager.particleColor.first()
                 val animationEnabled = true
-                val customImagePath = if (backgroundManager.hasCustomImage()) {
-                    backgroundManager.getCustomImageFile().absolutePath
-                } else null
+                val (customImagePath, cityImagePath) = withContext(Dispatchers.IO) {
+                    val custom = backgroundManager.getCustomImageFile().takeIf { it.exists() }?.absolutePath
+                    val city = backgroundManager.getCityWallpaperFile().takeIf { it.exists() }?.absolutePath
+                    custom to city
+                }
 
                 binding.htcAnimatedBackground.initializeFromSettings(
                     customImagePath = customImagePath,
+                    cityImagePath = cityImagePath,
                     currentTheme = currentTheme,
                     particleColor = particleColor
                 )
@@ -335,18 +343,20 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             backgroundManager.cityWallpaperState.collect { state ->
                 val imagePath = state?.imagePath
-                val shouldShowWallpaper =
+                val shouldShowWallpaper = withContext(Dispatchers.IO) {
                     !imagePath.isNullOrBlank() &&
                         java.io.File(imagePath).exists() &&
                         backgroundManager.autoCityWallpaperEnabled.first()
+                }
 
-                if (shouldShowWallpaper) {
+                val usableImagePath = imagePath?.takeIf { shouldShowWallpaper }
+                if (usableImagePath != null) {
                     binding.ivLoginCityWallpaper.visibility = View.VISIBLE
                     binding.viewLoginWallpaperScrim.visibility = View.VISIBLE
-                    if (binding.ivLoginCityWallpaper.tag != imagePath) {
-                        binding.ivLoginCityWallpaper.tag = imagePath
+                    if (binding.ivLoginCityWallpaper.tag != usableImagePath) {
+                        binding.ivLoginCityWallpaper.tag = usableImagePath
                         Glide.with(this@LoginActivity)
-                            .load(java.io.File(imagePath))
+                            .load(java.io.File(usableImagePath))
                             .centerCrop()
                             .into(binding.ivLoginCityWallpaper)
                     }
@@ -707,12 +717,16 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun applySavedActivationState() {
-        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
-        val isActivated = activationPrefs.getString("activation_status", null) == "activated"
-        if (isActivated) {
-            binding.btnOpenActivationClean.text = getString(R.string.activation_entry_button_done)
-        } else {
-            binding.btnOpenActivationClean.text = getString(R.string.activation_entry_button)
+        lifecycleScope.launch {
+            val isActivated = withContext(Dispatchers.IO) {
+                getSharedPreferences("activation", MODE_PRIVATE)
+                    .getString("activation_status", null) == "activated"
+            }
+            binding.btnOpenActivationClean.text = if (isActivated) {
+                getString(R.string.activation_entry_button_done)
+            } else {
+                getString(R.string.activation_entry_button)
+            }
         }
     }
 
@@ -730,12 +744,17 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startWebsiteSourcePollingIfActivated() {
-        val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
-        val isActivated = activationPrefs.getString("activation_status", null) == "activated"
-        if (isActivated && isWebsiteSourceDeliveryWindowOpen(activationPrefs)) {
-            startWebsiteSourcePolling()
-        } else {
-            websiteSourceHandler.removeCallbacks(websiteSourceRunnable)
+        lifecycleScope.launch {
+            val shouldPoll = withContext(Dispatchers.IO) {
+                val activationPrefs = getSharedPreferences("activation", MODE_PRIVATE)
+                val isActivated = activationPrefs.getString("activation_status", null) == "activated"
+                isActivated && isWebsiteSourceDeliveryWindowOpen(activationPrefs)
+            }
+            if (shouldPoll) {
+                startWebsiteSourcePolling()
+            } else {
+                websiteSourceHandler.removeCallbacks(websiteSourceRunnable)
+            }
         }
     }
 
@@ -1355,6 +1374,7 @@ class LoginActivity : AppCompatActivity() {
                         addCategory(Intent.CATEGORY_OPENABLE)
                     }
                     val chooser = Intent.createChooser(intent, getString(R.string.login_select_m3u_file))
+                    @Suppress("DEPRECATION")
                     startActivityForResult(chooser, REQUEST_CODE_M3U_PICKER)
                 } catch (e3: android.content.ActivityNotFoundException) {
                     Toast.makeText(
@@ -1391,11 +1411,6 @@ class LoginActivity : AppCompatActivity() {
     }
     
     private fun handleM3uFile(uri: Uri) {
-        if (uri == null) {
-            Toast.makeText(this, getString(R.string.login_no_file_selected), Toast.LENGTH_SHORT).show()
-            return
-        }
-        
         try {
             viewModel.importM3uFromFile(uri, "Local Playlist")
         } catch (e: Exception) {
@@ -1431,6 +1446,7 @@ class LoginActivity : AppCompatActivity() {
         val intent = Intent(this, HomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
+        @Suppress("DEPRECATION")
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         finish()
     }
@@ -1481,7 +1497,7 @@ class LoginActivity : AppCompatActivity() {
         val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
         return activityManager?.isLowRamDevice == true ||
             DevicePerformance.isLow(this) ||
-            CrashGuard.shouldUseSafeMode(this)
+            crashSafeMode
     }
 
     @Deprecated("Deprecated in Java")

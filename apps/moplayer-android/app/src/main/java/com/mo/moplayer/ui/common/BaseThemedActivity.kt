@@ -9,6 +9,7 @@ import android.content.res.ColorStateList
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
+import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -28,8 +29,10 @@ import com.mo.moplayer.ui.common.background.BackgroundVisualMode
 import com.mo.moplayer.ui.common.background.CinematicBackgroundController
 import com.mo.moplayer.ui.widgets.AnimatedBackground
 import com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -65,10 +68,13 @@ abstract class BaseThemedActivity : AppCompatActivity() {
         // long periods between selections and the TV idle timer must never interrupt
         // them. FLAG_TURN_SCREEN_ON wakes the panel if the activity is brought up
         // while the display is asleep (e.g. from a notification deep link).
-        window.addFlags(
-            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-        )
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
         super.onCreate(savedInstanceState)
         setupBackPressHandler()
     }
@@ -187,12 +193,15 @@ abstract class BaseThemedActivity : AppCompatActivity() {
             val currentTheme = backgroundManager.currentTheme.first()
             val particleColor = backgroundManager.particleColor.first()
             val animationEnabled = backgroundManager.animationEnabled.first()
-            val customImagePath = if (backgroundManager.hasCustomImage()) {
-                backgroundManager.getCustomImageFile().absolutePath
-            } else null
+            val (customImagePath, cityImagePath) = withContext(Dispatchers.IO) {
+                val custom = backgroundManager.getCustomImageFile().takeIf { it.exists() }?.absolutePath
+                val city = backgroundManager.getCityWallpaperFile().takeIf { it.exists() }?.absolutePath
+                custom to city
+            }
             
             animatedBackground.initializeFromSettings(
                 customImagePath = customImagePath,
+                cityImagePath = cityImagePath,
                 currentTheme = currentTheme,
                 particleColor = particleColor
             )

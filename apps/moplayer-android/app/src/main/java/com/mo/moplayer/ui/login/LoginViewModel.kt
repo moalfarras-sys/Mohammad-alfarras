@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mo.moplayer.R
 import com.mo.moplayer.data.remote.dto.AuthResponse
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.util.ProviderSourceUrlParser
@@ -167,7 +168,11 @@ class LoginViewModel @Inject constructor(
                 if (inputStream != null) {
                     val name = playlistName.ifBlank { "Local Playlist" }
                     _loadingMessage.value = "Parsing playlist..."
-                    val result = repository.importM3uPlaylist(inputStream, name)
+                    val result = repository.importM3uPlaylist(inputStream, name) { imported ->
+                        _loadingMessage.postValue(
+                            application.getString(R.string.login_parsing_playlist_progress, imported)
+                        )
+                    }
                     handleM3uImportResult(result)
                 } else {
                     _isLoading.value = false
@@ -250,7 +255,11 @@ class LoginViewModel @Inject constructor(
             okHttpClient.newCall(request).execute().use { response ->
                 if (response.isSuccessful && response.body != null) {
                     _loadingMessage.postValue("Parsing playlist...")
-                    val result = repository.importM3uPlaylist(response.body!!.byteStream(), name)
+                    val result = repository.importM3uPlaylist(response.body!!.byteStream(), name) { imported ->
+                        _loadingMessage.postValue(
+                            application.getString(R.string.login_parsing_playlist_progress, imported)
+                        )
+                    }
                     when (result) {
                         is Resource.Success -> {
                             _isLoading.postValue(false)

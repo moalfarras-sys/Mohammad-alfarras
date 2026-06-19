@@ -1351,10 +1351,11 @@ class IptvRepository @Inject constructor(
 
     suspend fun importM3uPlaylist(
         inputStream: InputStream,
-        serverName: String
+        serverName: String,
+        onProgress: (Int) -> Unit = {}
     ): Resource<Long> = withContext(Dispatchers.IO) {
         try {
-            importLargeM3uPlaylist(inputStream, serverName)
+            importLargeM3uPlaylist(inputStream, serverName, onProgress)
         } catch (e: Exception) {
             Resource.Error("Failed to import M3U: ${e.message}")
         }
@@ -1362,7 +1363,8 @@ class IptvRepository @Inject constructor(
 
     private suspend fun importLargeM3uPlaylist(
         inputStream: InputStream,
-        serverName: String
+        serverName: String,
+        onProgress: (Int) -> Unit
     ): Resource<Long> {
         val serverId = saveServer(
             name = serverName,
@@ -1416,6 +1418,9 @@ class IptvRepository @Inject constructor(
             val summary = inputStream.use { stream ->
                 m3uParser.parseStreaming(stream) { item ->
                     importedItems += 1
+                    if (importedItems == 1 || importedItems % 250 == 0) {
+                        onProgress(importedItems)
+                    }
                     val contentType = if (item.isLive) "live" else "movie"
                     val categoryName = item.group?.takeIf { it.isNotBlank() } ?: "Uncategorized"
                     val categoryKey = "$contentType:$categoryName"
@@ -1510,6 +1515,7 @@ class IptvRepository @Inject constructor(
             }
 
             flushPendingImport()
+            onProgress(importedItems)
 
             serverSyncStateDao.upsert(
                 ServerSyncStateEntity(

@@ -24,7 +24,7 @@ object FocusStyleHelper {
      * Creates a 3-layer focus border drawable:
      * 1. Outer glow layer (6dp stroke with 30% alpha)
      * 2. Main border (2dp stroke with accent color)
-     * 3. Inner highlight (1dp stroke with white glass effect)
+     * 3. Inner highlight (1dp stroke with a restrained cyan glass effect)
      * 
      * Replicates: res/drawable/focus_border.xml
      */
@@ -82,7 +82,7 @@ object FocusStyleHelper {
     }
     
     /**
-     * Creates the inner white highlight layer (glass effect)
+     * Creates the inner cyan highlight layer (glass effect)
      */
     private fun createInnerHighlightLayer(): GradientDrawable {
         return GradientDrawable().apply {
@@ -90,7 +90,7 @@ object FocusStyleHelper {
             cornerRadius = INNER_CORNER_RADIUS
             setStroke(
                 INNER_HIGHLIGHT_WIDTH.toInt(),
-                Color.parseColor("#4DFFFFFF") // htc_glass_highlight
+                Color.parseColor("#405DEBFF")
             )
             setColor(Color.TRANSPARENT)
         }

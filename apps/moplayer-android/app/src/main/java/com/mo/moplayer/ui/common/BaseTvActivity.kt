@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import com.mo.moplayer.R
+import com.mo.moplayer.util.DevicePerformance
 import com.mo.moplayer.util.TvNavigationManager
 
 /**
@@ -117,19 +118,31 @@ abstract class BaseTvActivity : BaseThemedActivity() {
     override fun startActivity(intent: Intent?) {
         super.startActivity(intent)
         @Suppress("DEPRECATION")
-        overridePendingTransition(R.anim.cinematic_enter, R.anim.cinematic_exit)
+        if (DevicePerformance.isLow(this)) {
+            overridePendingTransition(0, 0)
+        } else {
+            overridePendingTransition(R.anim.cinematic_enter, R.anim.cinematic_exit)
+        }
     }
 
     override fun startActivity(intent: Intent?, options: Bundle?) {
         super.startActivity(intent, options)
         @Suppress("DEPRECATION")
-        overridePendingTransition(R.anim.cinematic_enter, R.anim.cinematic_exit)
+        if (DevicePerformance.isLow(this)) {
+            overridePendingTransition(0, 0)
+        } else {
+            overridePendingTransition(R.anim.cinematic_enter, R.anim.cinematic_exit)
+        }
     }
 
     override fun finish() {
         super.finish()
         @Suppress("DEPRECATION")
-        overridePendingTransition(R.anim.cinematic_pop_enter, R.anim.cinematic_pop_exit)
+        if (DevicePerformance.isLow(this)) {
+            overridePendingTransition(0, 0)
+        } else {
+            overridePendingTransition(R.anim.cinematic_pop_enter, R.anim.cinematic_pop_exit)
+        }
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

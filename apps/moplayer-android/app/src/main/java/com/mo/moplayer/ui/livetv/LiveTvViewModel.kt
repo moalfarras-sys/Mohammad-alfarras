@@ -73,11 +73,14 @@ class LiveTvViewModel @Inject constructor(
     private var epgDebounceJob: Job? = null
     private val epgLastFetchByStream = mutableMapOf<Int, Long>()
     private var pendingChannelId: String? = null
+    private var channelWindowSize = CHANNEL_PAGE_SIZE
+    private var channelTotalCount = 0
+    private var channelLoadInFlight = false
 
     companion object {
         private const val EPG_FOCUS_DEBOUNCE_MS = 550L
         private const val EPG_REMOTE_FETCH_COOLDOWN_MS = 30_000L
-        private const val SAFE_ALL_CHANNEL_LIMIT = 500
+        private const val CHANNEL_PAGE_SIZE = 400
     }
 
     init {
@@ -163,9 +166,12 @@ class LiveTvViewModel @Inject constructor(
                 val now = System.currentTimeMillis()
                 val lastFetchAt = epgLastFetchByStream[streamId] ?: 0L
                 val hasCachedEpg = repository.hasEpgData(streamId, server.id)
+                val supportsRemoteEpg = server.serverType.equals("xtream", ignoreCase = true) &&
+                    server.serverUrl.isNotBlank()
 
                 val shouldFetchRemote =
-                    forceRemoteFetch || (!hasCachedEpg && now - lastFetchAt >= EPG_REMOTE_FETCH_COOLDOWN_MS)
+                    supportsRemoteEpg &&
+                        (forceRemoteFetch || (!hasCachedEpg && now - lastFetchAt >= EPG_REMOTE_FETCH_COOLDOWN_MS))
 
                 if (shouldFetchRemote) {
                     try {
@@ -213,7 +219,7 @@ class LiveTvViewModel @Inject constructor(
 
     fun selectCategory(categoryId: String?) {
         _selectedCategory.value = categoryId
-        observeChannelsForCategory(categoryId)
+        observeChannelsForCategory(categoryId, resetWindow = true)
     }
 
     private fun loadCategoryCounts(categories: List<CategoryEntity>) {
@@ -308,22 +314,46 @@ class LiveTvViewModel @Inject constructor(
         }
     }
 
-    private fun observeChannelsForCategory(categoryId: String?) {
+    fun loadMoreChannels() {
+        if (channelLoadInFlight || currentFilteredList.size >= channelTotalCount) return
+        channelWindowSize = (channelWindowSize + CHANNEL_PAGE_SIZE).coerceAtMost(channelTotalCount)
+        channelLoadInFlight = true
+        observeChannelsForCategory(_selectedCategory.value, resetWindow = false)
+    }
+
+    private fun observeChannelsForCategory(categoryId: String?, resetWindow: Boolean = true) {
+        if (resetWindow) {
+            channelWindowSize = CHANNEL_PAGE_SIZE
+            channelTotalCount = 0
+            channelLoadInFlight = false
+        }
         channelsJob?.cancel()
         channelsJob = viewModelScope.launch {
             try {
-                _isLoading.value = true
+                val paginating = channelLoadInFlight
+                if (!paginating) _isLoading.value = true
+                channelTotalCount = withContext(Dispatchers.IO) {
+                    if (categoryId.isNullOrBlank()) {
+                        repository.getChannelCount(serverId)
+                    } else {
+                        repository.getChannelCountByCategory(serverId, categoryId)
+                    }
+                }
+                val requestedLimit = channelWindowSize.coerceAtMost(channelTotalCount.coerceAtLeast(CHANNEL_PAGE_SIZE))
                 val flow = if (categoryId.isNullOrBlank()) {
-                    repository.getAllChannelsLimited(serverId, SAFE_ALL_CHANNEL_LIMIT)
+                    repository.getAllChannelsLimited(serverId, requestedLimit)
                 } else {
-                    repository.getChannelsByCategory(serverId, categoryId)
+                    repository.getChannelsByCategoryLimited(serverId, categoryId, requestedLimit)
                 }
 
                 flow.collect { channels ->
                     currentFilteredList = channels
                     _channels.value = channels
                     _filteredChannels.value = channels
-                    Log.d("LiveTvViewModel", "Loaded ${channels.size} channels for category=${categoryId ?: "all"}")
+                    Log.d(
+                        "LiveTvViewModel",
+                        "Loaded window ${channels.size}/$channelTotalCount for category=${categoryId ?: "all"}"
+                    )
 
                     if (channels.isEmpty()) {
                         _currentChannel.value = null
@@ -347,6 +377,7 @@ class LiveTvViewModel @Inject constructor(
                     }
 
                     _isLoading.value = false
+                    channelLoadInFlight = false
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -357,6 +388,7 @@ class LiveTvViewModel @Inject constructor(
                 _channels.value = emptyList()
                 _filteredChannels.value = emptyList()
                 _isLoading.value = false
+                channelLoadInFlight = false
             }
         }
     }

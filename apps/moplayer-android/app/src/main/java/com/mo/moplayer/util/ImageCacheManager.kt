@@ -1,9 +1,9 @@
 package com.mo.moplayer.util
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.util.LruCache
+import android.os.Handler
+import android.os.Looper
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,20 +31,15 @@ class ImageCacheManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    
-    // Memory cache for fast access (10% of available memory)
-    private val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
-    private val cacheSize = maxMemory / 10
-    
-    private val memoryCache = object : LruCache<String, Bitmap>(cacheSize) {
-        override fun sizeOf(key: String, bitmap: Bitmap): Int {
-            return bitmap.byteCount / 1024
-        }
-    }
+    private val mainHandler = Handler(Looper.getMainLooper())
     
     // Preload queue for upcoming images
-    private val preloadQueue = mutableSetOf<String>()
-    private val maxPreloadQueue = 50
+    private val preloadQueue = Collections.synchronizedSet(mutableSetOf<String>())
+    private val maxPreloadQueue = when (DevicePerformance.tier(context)) {
+        DevicePerformance.Tier.LOW -> 8
+        DevicePerformance.Tier.MEDIUM -> 18
+        DevicePerformance.Tier.HIGH -> 32
+    }
     
     // Request options for different scenarios
     private val thumbnailOptions = RequestOptions()
@@ -130,10 +126,10 @@ class ImageCacheManager @Inject constructor(
     fun preloadImages(urls: List<String?>, type: ImageType = ImageType.THUMBNAIL) {
         scope.launch {
             urls.filterNotNull()
-                .filter { it.isNotEmpty() && !preloadQueue.contains(it) }
-                .take(maxPreloadQueue - preloadQueue.size)
+                .filter { it.isNotEmpty() }
+                .take((maxPreloadQueue - preloadQueue.size).coerceAtLeast(0))
                 .forEach { url ->
-                    preloadQueue.add(url)
+                    if (!preloadQueue.add(url)) return@forEach
                     
                     val options = when (type) {
                         ImageType.THUMBNAIL -> thumbnailOptions
@@ -172,40 +168,26 @@ class ImageCacheManager @Inject constructor(
      */
     fun trimMemory(level: Int) {
         when {
-            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
-                memoryCache.evictAll()
+            level >= BACKGROUND_TRIM_LEVEL -> {
                 Glide.get(context).clearMemory()
             }
-            level >= android.content.ComponentCallbacks2.TRIM_MEMORY_BACKGROUND -> {
-                memoryCache.trimToSize(memoryCache.size() / 2)
-            }
+            level >= RUNNING_LOW_TRIM_LEVEL -> clearPreloadQueue()
         }
+    }
+
+    fun clearMemory() {
+        clearPreloadQueue()
+        mainHandler.post { Glide.get(context).clearMemory() }
     }
     
     /**
      * Clear all caches
      */
     fun clearAll() {
-        scope.launch {
-            memoryCache.evictAll()
-            Glide.get(context).clearMemory()
-        }
+        clearMemory()
         scope.launch(Dispatchers.IO) {
             Glide.get(context).clearDiskCache()
         }
-    }
-    
-    /**
-     * Get cache statistics for debugging
-     */
-    fun getCacheStats(): CacheStats {
-        return CacheStats(
-            hitCount = memoryCache.hitCount(),
-            missCount = memoryCache.missCount(),
-            currentSize = memoryCache.size(),
-            maxSize = memoryCache.maxSize(),
-            preloadQueueSize = preloadQueue.size
-        )
     }
     
     enum class ImageType {
@@ -213,12 +195,11 @@ class ImageCacheManager @Inject constructor(
         BACKDROP,   // Background/Banner images
         ICON        // Channel logos
     }
+
+    private companion object {
+        // Numeric levels keep the behavior compatible after ComponentCallbacks2 constants were deprecated.
+        const val BACKGROUND_TRIM_LEVEL = 40
+        const val RUNNING_LOW_TRIM_LEVEL = 10
+    }
     
-    data class CacheStats(
-        val hitCount: Int,
-        val missCount: Int,
-        val currentSize: Int,
-        val maxSize: Int,
-        val preloadQueueSize: Int
-    )
 }

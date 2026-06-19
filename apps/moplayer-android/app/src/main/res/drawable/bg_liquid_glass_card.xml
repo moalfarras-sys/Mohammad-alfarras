@@ -5,12 +5,12 @@
             <corners android:radius="@dimen/liquid_radius_l" />
             <gradient
                 android:angle="315"
-                android:startColor="#5A0E4E68"
-                android:centerColor="#46305A72"
-                android:endColor="#4A081C2F" />
+                android:startColor="#D00A3B4C"
+                android:centerColor="#C80C3047"
+                android:endColor="#C80A1C33" />
             <stroke
-                android:width="3dp"
-                android:color="#E8DDFBFF" />
+                android:width="2dp"
+                android:color="#D000B8C7" />
         </shape>
     </item>
     <item android:state_selected="true">

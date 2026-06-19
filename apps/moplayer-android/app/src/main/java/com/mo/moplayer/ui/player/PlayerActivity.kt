@@ -160,13 +160,47 @@ class PlayerActivity : BaseTvActivity() {
             contentType.equals("LIVE", ignoreCase = true)
 
     private var liveRetryCount = 0
-    private val LIVE_MAX_RETRIES = LivePlaybackRetryPolicy.DEFAULT_MAX_RETRIES
+    private val LIVE_MAX_RETRIES = 3
     private var lastRetryTime = 0L
     private val RETRY_BACKOFF_MS = LivePlaybackRetryPolicy.DEFAULT_BASE_DELAY_MS
     private var liveRetryScheduled = false
     private var useHttpFallbackForApi24Stream = false
     private var activePlaybackToken = 0L
     private var isDestroying = false
+    private var openTimeoutRunnable: Runnable? = null
+
+    private fun schedulePlaybackOpenTimeout(requestToken: Long) {
+        cancelPlaybackOpenTimeout()
+        val timeoutMs = if (liveRetryCount == 0) 15_000L else 10_000L
+        openTimeoutRunnable = Runnable {
+            if (
+                requestToken != activePlaybackToken ||
+                hasStartedPlayback ||
+                isDestroying ||
+                isFinishing ||
+                isDestroyed
+            ) {
+                return@Runnable
+            }
+
+            android.util.Log.w(
+                "PlayerActivity",
+                "Playback open timed out after ${timeoutMs}ms (attempt=$liveRetryCount)"
+            )
+            runCatching { engineManager?.stop() ?: mediaPlayer?.stop() }
+            setLoadingOverlayVisible(false)
+            if (isLiveStream) {
+                handleLiveStreamError()
+            } else {
+                showPlaybackError(getString(R.string.player_stream_error_with_external_hint))
+            }
+        }.also { handler.postDelayed(it, timeoutMs) }
+    }
+
+    private fun cancelPlaybackOpenTimeout() {
+        openTimeoutRunnable?.let(handler::removeCallbacks)
+        openTimeoutRunnable = null
+    }
     
     // PIP (Picture-in-Picture) support
     private var isInPipMode = false
@@ -191,10 +225,13 @@ class PlayerActivity : BaseTvActivity() {
         super.onCreate(savedInstanceState)
         // TV must never sleep while a movie/series/channel is on screen. Set this BEFORE
         // setContentView so the flag is honored from the first frame.
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-        )
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
         acquirePlaybackWakeLock()
         performanceTier = DevicePerformance.tier(this)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
@@ -475,6 +512,7 @@ class PlayerActivity : BaseTvActivity() {
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == androidx.media3.common.Player.STATE_READY) {
                     hasStartedPlayback = true
+                    cancelPlaybackOpenTimeout()
                     handler.removeCallbacks(rebufferShowRunnable)
                     setLoadingOverlayVisible(false)
                     binding.errorOverlay.visibility = View.GONE
@@ -486,7 +524,16 @@ class PlayerActivity : BaseTvActivity() {
                 binding.btnPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
                 if (isPlaying) startProgressUpdate()
             }
-            override fun onPlaybackError(error: PlayerEngine.PlaybackError) { /* handled */ }
+            override fun onPlaybackError(error: PlayerEngine.PlaybackError) {
+                android.util.Log.w("PlayerActivity", "Playback engine error: ${error.message}")
+                cancelPlaybackOpenTimeout()
+                setLoadingOverlayVisible(false)
+                if (isLiveStream) {
+                    handleLiveStreamError()
+                } else {
+                    showPlaybackError(getString(R.string.player_stream_error_with_external_hint))
+                }
+            }
             override fun onPositionChanged(positionMs: Long, durationMs: Long) {
                 if (!seeking) updateProgress()
                 updateDuration()
@@ -504,7 +551,9 @@ class PlayerActivity : BaseTvActivity() {
             }
         })
 
+        val requestToken = ++activePlaybackToken
         engineManager?.play(streamUrl, title, resumePosition)
+        schedulePlaybackOpenTimeout(requestToken)
     }
 
     private fun attachPlaybackEngineView() {
@@ -632,6 +681,7 @@ class PlayerActivity : BaseTvActivity() {
                         when (event.type) {
                             MediaPlayer.Event.Playing -> {
                                 hasStartedPlayback = true
+                                cancelPlaybackOpenTimeout()
                                 handler.removeCallbacks(rebufferShowRunnable)
                                 setLoadingOverlayVisible(false)
                                 binding.errorOverlay.visibility = View.GONE
@@ -655,6 +705,7 @@ class PlayerActivity : BaseTvActivity() {
                                 }
                             }
                             MediaPlayer.Event.EncounteredError -> {
+                                cancelPlaybackOpenTimeout()
                                 setLoadingOverlayVisible(false)
                                 if (tryApi24HttpFallbackAfterPlaybackError()) {
                                     return@runOnUiThread
@@ -698,6 +749,7 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun setupControls() {
         binding.btnBack.setOnClickListener { finish() }
+        binding.btnErrorBack.setOnClickListener { finish() }
 
         binding.btnPreviousChannel.setOnClickListener { playAdjacentChannel(-1) }
         binding.btnNextChannel.setOnClickListener { playAdjacentChannel(1) }
@@ -756,6 +808,7 @@ class PlayerActivity : BaseTvActivity() {
 
         listOf(
             binding.btnBack,
+            binding.btnErrorBack,
             binding.btnPreviousChannel,
             binding.btnRewind,
             binding.btnPlayPause,
@@ -861,6 +914,7 @@ class PlayerActivity : BaseTvActivity() {
             mediaPlayer?.media = media
             media.release()
             mediaPlayer?.play()
+            schedulePlaybackOpenTimeout(requestToken)
             
             // Also seek to position after playback starts (more reliable)
             if (resumePosition > 0) {
@@ -919,6 +973,10 @@ class PlayerActivity : BaseTvActivity() {
         subscriptionExpiredMode = false
         binding.btnRetry.setText(R.string.retry)
         binding.tvErrorMessage.text = message
+        binding.tvErrorSource.text = getString(
+            if (isLiveStream) R.string.player_error_source_live else R.string.player_error_source_video,
+            title.ifBlank { getString(R.string.app_name) }
+        )
         binding.errorOverlay.visibility = View.VISIBLE
         binding.btnRetry.requestFocus()
     }
@@ -941,6 +999,10 @@ class PlayerActivity : BaseTvActivity() {
     private fun showSubscriptionExpiredError() {
         subscriptionExpiredMode = true
         binding.tvErrorMessage.text = getString(R.string.player_subscription_expired)
+        binding.tvErrorSource.text = getString(
+            R.string.player_error_source_live,
+            title.ifBlank { getString(R.string.app_name) }
+        )
         binding.btnRetry.setText(R.string.subscription_expired_new_signin)
         binding.errorOverlay.visibility = View.VISIBLE
         binding.btnRetry.requestFocus()
@@ -1007,7 +1069,7 @@ class PlayerActivity : BaseTvActivity() {
                 }
                 // Check network before retrying
                 if (isNetworkAvailable()) {
-                    playStream()
+                    restartCurrentStream(startPositionMs = if (isLiveStream) 0 else resumePosition)
                 } else {
                     setLoadingOverlayVisible(false)
                     showPlaybackError(getString(R.string.player_no_network_retry))
@@ -1017,11 +1079,7 @@ class PlayerActivity : BaseTvActivity() {
         } else {
             liveRetryScheduled = false
             setLoadingOverlayVisible(false)
-            val message = if (LivePlaybackRetryPolicy.isCircuitOpen) {
-                LivePlaybackRetryPolicy.circuitBlockReason()
-            } else {
-                getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES)
-            }
+            val message = getString(R.string.player_stream_error_after_retries, LIVE_MAX_RETRIES)
             showPlaybackError(message)
             Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             liveRetryCount = 0 // Reset for manual retry
@@ -1043,6 +1101,15 @@ class PlayerActivity : BaseTvActivity() {
     }
 
     private fun setLoadingOverlayVisible(visible: Boolean) {
+        if (visible) {
+            binding.tvLoadingMessage.text = if (hasStartedPlayback) {
+                getString(R.string.player_buffering)
+            } else if (title.isNotBlank()) {
+                getString(R.string.player_opening_named_stream, title)
+            } else {
+                getString(R.string.player_opening_stream)
+            }
+        }
         val now = SystemClock.uptimeMillis()
         val changed = lastBufferingUiVisible == null || lastBufferingUiVisible != visible
         if (changed || now - lastBufferingUiUpdateAtMs >= BUFFERING_UI_THROTTLE_MS) {
@@ -1550,8 +1617,9 @@ class PlayerActivity : BaseTvActivity() {
         setLoadingOverlayVisible(true)
         val manager = engineManager
         if (manager != null) {
-            activePlaybackToken++
+            val requestToken = ++activePlaybackToken
             manager.play(streamUrl, title, startPositionMs)
+            schedulePlaybackOpenTimeout(requestToken)
         } else {
             playStream()
         }
@@ -1860,6 +1928,10 @@ class PlayerActivity : BaseTvActivity() {
             }
             
             KeyEvent.KEYCODE_BACK -> {
+                if (binding.errorOverlay.visibility == View.VISIBLE) {
+                    finish()
+                    return true
+                }
                 if (controlsVisible) {
                     hideControls()
                     return true
@@ -2012,6 +2084,7 @@ class PlayerActivity : BaseTvActivity() {
 
     override fun onStop() {
         super.onStop()
+        cancelPlaybackOpenTimeout()
         handler.removeCallbacks(saveProgressRunnable)
         if (isFinishing) {
             activePlaybackToken++
@@ -2021,6 +2094,7 @@ class PlayerActivity : BaseTvActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        cancelPlaybackOpenTimeout()
         isDestroying = true
         releasePlaybackWakeLock()
         saveCurrentProgress()

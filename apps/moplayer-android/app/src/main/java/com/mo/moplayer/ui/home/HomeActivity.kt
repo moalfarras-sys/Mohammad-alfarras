@@ -60,8 +60,10 @@ import android.graphics.PorterDuffColorFilter
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
 import androidx.appcompat.app.AlertDialog
 import com.mo.moplayer.data.update.AppUpdateInfo
@@ -126,6 +128,8 @@ class HomeActivity : BaseTvActivity() {
     private var silentRefreshStarted = false
     private var updateCheckStarted = false
     private var appRemoteConfig = AppRemoteConfig()
+    private var appRemoteConfigUsingCached = true
+    private var appRemoteConfigStatusLabel = "Using cached Control Center config"
     private var homeCityWallpaperSelected = false
     private var cityWallpaperRefreshInFlight = false
     private var activeSourceName: String? = null
@@ -243,15 +247,22 @@ class HomeActivity : BaseTvActivity() {
             ) { theme, state -> theme to state }
             .collect { (theme, state) ->
                 homeCityWallpaperSelected = theme == BackgroundManager.THEME_CITY_WALLPAPER
-                renderHomeCityWallpaper(state)
-                if (homeCityWallpaperSelected && !hasUsableCityWallpaper(state)) {
+                val imagePath = state?.imagePath
+                val hasUsableWallpaper = withContext(Dispatchers.IO) {
+                    !imagePath.isNullOrBlank() && java.io.File(imagePath).exists()
+                }
+                renderHomeCityWallpaper(state, hasUsableWallpaper)
+                if (homeCityWallpaperSelected && !hasUsableWallpaper) {
                     refreshHomeCityWallpaper()
                 }
             }
         }
     }
 
-    private fun renderHomeCityWallpaper(state: BackgroundManager.CityWallpaperState?) {
+    private fun renderHomeCityWallpaper(
+        state: BackgroundManager.CityWallpaperState?,
+        hasUsableWallpaper: Boolean,
+    ) {
         if (!homeCityWallpaperSelected) {
             binding.ivHomeCityWallpaper.setImageDrawable(null)
             binding.ivHomeCityWallpaper.tag = null
@@ -261,7 +272,7 @@ class HomeActivity : BaseTvActivity() {
         }
 
         val imagePath = state?.imagePath
-        if (imagePath.isNullOrBlank() || !java.io.File(imagePath).exists()) {
+        if (imagePath.isNullOrBlank() || !hasUsableWallpaper) {
             binding.ivHomeCityWallpaper.setImageDrawable(null)
             binding.ivHomeCityWallpaper.tag = null
             binding.ivHomeCityWallpaper.alpha = 0f
@@ -283,11 +294,6 @@ class HomeActivity : BaseTvActivity() {
                 .centerCrop()
                 .into(binding.ivHomeCityWallpaper)
         }
-    }
-
-    private fun hasUsableCityWallpaper(state: BackgroundManager.CityWallpaperState?): Boolean {
-        val imagePath = state?.imagePath
-        return !imagePath.isNullOrBlank() && java.io.File(imagePath).exists()
     }
 
     private fun refreshHomeCityWallpaper() {
@@ -360,10 +366,14 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun applyRemoteConfig() {
-        appRemoteConfig = appRemoteConfigService.cachedConfig()
-        applyRemoteConfigState()
         lifecycleScope.launch {
+            appRemoteConfig = withContext(Dispatchers.IO) { appRemoteConfigService.cachedConfig() }
+            appRemoteConfigUsingCached = withContext(Dispatchers.IO) { appRemoteConfigService.isUsingCachedConfig() }
+            appRemoteConfigStatusLabel = withContext(Dispatchers.IO) { appRemoteConfigService.connectionStatusLabel() }
+            applyRemoteConfigState()
             appRemoteConfig = appRemoteConfigService.fetchConfig()
+            appRemoteConfigUsingCached = withContext(Dispatchers.IO) { appRemoteConfigService.isUsingCachedConfig() }
+            appRemoteConfigStatusLabel = withContext(Dispatchers.IO) { appRemoteConfigService.connectionStatusLabel() }
             applyRemoteConfigState()
         }
     }
@@ -383,8 +393,8 @@ class HomeActivity : BaseTvActivity() {
             binding.tvPreviewTitle.text = message
             binding.tvPreviewDescription.text = "Managed from the Moalfarras control center."
             binding.tvPreviewDescription.isVisible = true
-        } else if (appRemoteConfigService.isUsingCachedConfig()) {
-            binding.tvPreviewDescription.text = appRemoteConfigService.connectionStatusLabel()
+        } else if (appRemoteConfigUsingCached) {
+            binding.tvPreviewDescription.text = appRemoteConfigStatusLabel
             binding.tvPreviewDescription.isVisible = true
         }
         binding.root.post { setupFocusMap() }

@@ -3,6 +3,7 @@ import java.util.Collections
 import java.io.FileInputStream
 import java.util.Locale
 import java.util.zip.ZipFile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // Workaround for R.jar file lock on Windows when building from Android Studio.
 // Output to build-output/ to avoid IDE and daemon holding files in app/build/
@@ -55,8 +56,8 @@ android {
         applicationId = "com.mo.moplayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 22
-        versionName = "2.2.16"
+        versionCode = 23
+        versionName = "2.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -131,10 +132,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-    
     // Lint options for release
     lint {
         abortOnError = false
@@ -154,6 +151,12 @@ android {
                 excludes += "**/x86_64/**"
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

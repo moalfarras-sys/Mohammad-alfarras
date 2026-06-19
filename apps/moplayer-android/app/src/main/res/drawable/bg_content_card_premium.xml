@@ -20,12 +20,12 @@
                 <shape android:shape="rectangle">
                     <gradient
                         android:angle="135"
-                        android:startColor="#E8173470"
-                        android:centerColor="#D6221B61"
-                        android:endColor="#DA092C58" />
+                        android:startColor="#F00B3551"
+                        android:centerColor="#F00C2946"
+                        android:endColor="#F010203E" />
                     <stroke
                         android:width="3dp"
-                        android:color="#FFFFFFFF"/>
+                        android:color="#FF72E7F2"/>
                     <corners android:radius="@dimen/card_corner_radius"/>
                 </shape>
             </item>

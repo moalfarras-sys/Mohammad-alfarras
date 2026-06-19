@@ -12,7 +12,9 @@ import androidx.core.content.FileProvider
 import com.mo.moplayer.BuildConfig
 import com.mo.moplayer.util.WebApiEndpoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
@@ -36,6 +38,7 @@ data class AppUpdateInfo(
     val forceUpdate: Boolean = false,
 ) {
     val updateAvailable: Boolean = latestVersionCode > currentVersionCode
+    val newerThanPublished: Boolean = currentVersionCode > latestVersionCode
 }
 
 sealed class UpdateInstallResult {
@@ -48,17 +51,21 @@ class UpdateRepository(private val context: Context) {
     private var cachedInfo: AppUpdateInfo? = null
     private var cachedAtMs: Long = 0L
 
-    suspend fun fetchUpdateInfo(): AppUpdateInfo = withContext(Dispatchers.IO) {
-        cachedInfo
-            ?.takeIf { System.currentTimeMillis() - cachedAtMs < UPDATE_CACHE_MS }
-            ?.let { return@withContext it }
-        runCatching {
+    suspend fun fetchUpdateInfo(forceRefresh: Boolean = false): AppUpdateInfo = withContext(Dispatchers.IO) {
+        if (!forceRefresh) {
+            cachedInfo
+                ?.takeIf { System.currentTimeMillis() - cachedAtMs < UPDATE_CACHE_MS }
+                ?.let { return@withContext it }
+        }
+        try {
             val body = fetchConfigBody()
             parseUpdateInfo(body) { absolutize(it) }.also {
                 cachedInfo = it
                 cachedAtMs = System.currentTimeMillis()
             }
-        }.getOrElse { cachedInfo ?: AppUpdateInfo() }
+        } catch (error: Throwable) {
+            cachedInfo?.takeIf { !forceRefresh } ?: throw error
+        }
     }
 
     suspend fun downloadAndOpenInstaller(
@@ -81,7 +88,17 @@ class UpdateRepository(private val context: Context) {
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, UPDATE_FILE_NAME)
 
         val downloadId = manager.enqueue(request)
-        val result = waitForDownload(manager, downloadId, onProgress)
+        val result = try {
+            withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) {
+                waitForDownload(manager, downloadId, info, onProgress)
+            } ?: UpdateInstallResult.Failed("Download timed out")
+        } catch (cancelled: CancellationException) {
+            manager.remove(downloadId)
+            throw cancelled
+        }
+        if (result is UpdateInstallResult.Failed && result.message == "Download timed out") {
+            manager.remove(downloadId)
+        }
         if (result !is UpdateInstallResult.InstallerOpened) return@withContext result
         openInstaller(file)
     }
@@ -123,6 +140,7 @@ class UpdateRepository(private val context: Context) {
     private suspend fun waitForDownload(
         manager: DownloadManager,
         downloadId: Long,
+        info: AppUpdateInfo,
         onProgress: (Int) -> Unit,
     ): UpdateInstallResult {
         val query = DownloadManager.Query().setFilterById(downloadId)
@@ -136,7 +154,7 @@ class UpdateRepository(private val context: Context) {
                     when (status) {
                         DownloadManager.STATUS_SUCCESSFUL -> {
                             onProgress(100)
-                            val validationError = validateDownloadedFile()
+                            val validationError = validateDownloadedFile(info)
                             if (validationError != null) return UpdateInstallResult.Failed(validationError)
                             return UpdateInstallResult.InstallerOpened
                         }
@@ -183,8 +201,7 @@ class UpdateRepository(private val context: Context) {
     private fun updateFile(): File =
         File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), UPDATE_FILE_NAME)
 
-    private fun validateDownloadedFile(): String? {
-        val info = cachedInfo ?: return null
+    private fun validateDownloadedFile(info: AppUpdateInfo): String? {
         val file = updateFile()
         if (!file.exists()) return "Downloaded APK was not found"
         info.apkSizeBytes?.let { expected ->
@@ -224,6 +241,7 @@ class UpdateRepository(private val context: Context) {
         private const val UPDATE_FILE_NAME = "moplayer-latest.apk"
         private const val APK_MIME_TYPE = "application/vnd.android.package-archive"
         private const val UPDATE_CACHE_MS = 15 * 60 * 1000L
+        private const val DOWNLOAD_TIMEOUT_MS = 30 * 60 * 1000L
 
         internal fun parseUpdateInfo(
             body: String,

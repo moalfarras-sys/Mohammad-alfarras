@@ -4,28 +4,30 @@
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <corners android:radius="10dp" />
-            <solid android:color="@color/htc_accent_green" />
+            <solid android:color="#3000E5FF" />
+            <stroke android:width="2dp" android:color="#B300E5FF" />
         </shape>
     </item>
     <!-- Focused state -->
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <corners android:radius="10dp" />
-            <solid android:color="#25FFFFFF" />
+            <gradient android:angle="0" android:startColor="#3000E5FF" android:endColor="#180B2340" />
+            <stroke android:width="2dp" android:color="#B300E5FF" />
         </shape>
     </item>
     <!-- Pressed state -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <corners android:radius="10dp" />
-            <solid android:color="#30FFFFFF" />
+            <solid android:color="#3800E5FF" />
         </shape>
     </item>
     <!-- Default state -->
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="10dp" />
-            <solid android:color="#0AFFFFFF" />
+            <solid android:color="#120A1C30" />
         </shape>
     </item>
 </selector>

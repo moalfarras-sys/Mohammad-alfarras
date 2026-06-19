@@ -43,6 +43,7 @@
     <string name="login_error_empty">يرجى تعبئة جميع الحقول</string>
     <string name="login_error_invalid_url">صيغة رابط السيرفر غير صحيحة</string>
     <string name="login_downloading_playlist">جارٍ تنزيل القائمة...</string>
+    <string name="login_parsing_playlist_progress">جارٍ تجهيز القائمة… %1$d عنصر</string>
     <string name="login_parsing_playlist">جارٍ تحليل القائمة...</string>
     <string name="loading_marketing_text">نجهّز لك التجربة</string>
     <string name="loading_server_connecting">جاري الاتصال بالسيرفر</string>
@@ -639,6 +640,11 @@
     <string name="player_not_available_restart">مشغّل الفيديو غير متاح. الرجاء إعادة تشغيل التطبيق.</string>
     <string name="player_no_network_retry">لا يوجد اتصال بالشبكة. تحقّق من الإنترنت وأعد المحاولة.</string>
     <string name="player_stream_error_after_retries">خطأ في البث بعد %1$d محاولات. اضغط إعادة المحاولة أو استخدم مشغّلًا خارجيًا.</string>
+    <string name="back">رجوع</string>
+    <string name="player_opening_stream">جارٍ فتح البث…</string>
+    <string name="player_opening_named_stream">جارٍ فتح %1$s…</string>
+    <string name="player_error_source_live">%1$s · بث مباشر</string>
+    <string name="player_error_source_video">%1$s · فيديو</string>
     <string name="player_stream_error_with_external_hint">تعذّر بدء هذا البث. اضغط إعادة المحاولة، أو استخدم مشغّلًا خارجيًا إذا كان مزوّدك يستخدم صيغة نادرة.</string>
     <string name="player_unsupported_stream_format">يستخدم رابط البث هذا صيغة أو بروتوكولًا غير مدعوم.</string>
     <string name="player_audio_track_format">الصوت: %1$s</string>
@@ -676,6 +682,28 @@
     <string name="settings_app_update_progress">جارٍ تنزيل التحديث… %1$d%%</string>
     <string name="settings_app_update_installer_opened">تم فتح المثبّت. أكمل التحديث من Android.</string>
     <string name="settings_app_update_latest_toast">لا توجد نسخة أحدث منشورة بعد.</string>
+    <string name="settings_update_center_title">تحديث التطبيق</string>
+    <string name="settings_update_center_subtitle">مركز مستقل وآمن لتحديث MoPlayer Classic بوضوح وسهولة.</string>
+    <string name="settings_update_status_label">حالة الإصدار</string>
+    <string name="settings_update_verified_source">تأتي معلومات الإصدار والتحقق من ملف APK من moalfarras.space.</string>
+    <string name="settings_update_installed_label">المثبت حاليًا</string>
+    <string name="settings_update_available_label">الإصدار المتاح</string>
+    <string name="settings_update_package_label">حجم الحزمة</string>
+    <string name="settings_update_release_notes_label">ما الجديد</string>
+    <string name="settings_update_version_value">%1$s (%2$d)</string>
+    <string name="settings_version_compact">MoPlayer %1$s · %2$d</string>
+    <string name="settings_update_available_unknown">جارٍ الفحص…</string>
+    <string name="settings_update_size_unknown">الحجم —</string>
+    <string name="settings_update_size_value">الحجم %1$s</string>
+    <string name="settings_update_ready">الإصدار %1$s جاهز</string>
+    <string name="settings_update_ahead_of_published">هذه النسخة أحدث من الإصدار المنشور %1$s</string>
+    <string name="settings_update_published_older">الإصدار المنشور أقدم</string>
+    <string name="settings_update_check_again">التحقق من التحديث</string>
+    <string name="settings_update_try_again">إعادة المحاولة</string>
+    <string name="settings_update_check_failed">تعذر التحقق: %1$s</string>
+    <string name="settings_update_check_failed_hint">تحقق من اتصال التلفاز ثم حاول مجددًا. لم يتم تغيير بيانات التطبيق الحالية.</string>
+    <string name="settings_update_install_hint">قد يطلب Android مرة واحدة السماح بتثبيت التحديثات من MoPlayer. يتم التحقق من حجم ملف APK وبصمة SHA-256 المنشورة قبل فتح المثبّت.</string>
+    <string name="settings_server_management_desc">إدارة مصدر IPTV النشط وتحديث المحتوى والتبديل بين المصادر المحفوظة.</string>
 
     <!-- دليل البرامج الكامل -->
     <string name="epg_guide_title">دليل البرامج</string>

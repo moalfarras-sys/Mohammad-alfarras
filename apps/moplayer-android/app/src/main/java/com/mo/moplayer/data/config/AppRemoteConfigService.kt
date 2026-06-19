@@ -22,7 +22,9 @@ class AppRemoteConfigService @Inject constructor(
         private const val STATUS_CACHED = "cached"
     }
 
-    private val prefs = context.getSharedPreferences("moplayer_remote_config", Context.MODE_PRIVATE)
+    private val prefs by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        context.getSharedPreferences("moplayer_remote_config", Context.MODE_PRIVATE)
+    }
     suspend fun fetchConfig(): AppRemoteConfig = withContext(Dispatchers.IO) {
         try {
             val body = fetchConfigBody()

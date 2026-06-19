@@ -15,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.mo.moplayer.BuildConfig
 import com.mo.moplayer.R
 import com.mo.moplayer.ui.common.BaseTvActivity
 import com.mo.moplayer.databinding.ActivitySettingsBinding
@@ -93,11 +94,13 @@ class SettingsActivity : BaseTvActivity() {
     private val panelRoots: MutableMap<SettingsPanel, View> = mutableMapOf()
     private var serverRefreshInFlight = false
     private var updateInfo: AppUpdateInfo? = null
+    private var updateCheckInFlight = false
     private var updateDownloadInFlight = false
+    private val updateRepository by lazy(LazyThreadSafetyMode.NONE) { UpdateRepository(applicationContext) }
     private val accentChipViews = mutableMapOf<View, Pair<ThemeManager.AppThemeId, ThemeManager.AccentId>>()
 
     private enum class SettingsPanel {
-        SERVER, PLAYER, PARENTAL, INTERFACE, ABOUT
+        SERVER, PLAYER, PARENTAL, INTERFACE, UPDATE, ABOUT
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,6 +113,7 @@ class SettingsActivity : BaseTvActivity() {
         setupPlayerPanel()
         setupParentalPanel()
         setupInterfacePanel()
+        setupUpdatePanel()
         setupAboutPanel()
         setupPinDialog()
         setupPanelRegistry()
@@ -119,12 +123,9 @@ class SettingsActivity : BaseTvActivity() {
         observeViewModel()
 
         // Show server panel by default
-        showPanel(SettingsPanel.SERVER)
-        if (backgroundManager.hasCityWallpaper()) {
-            binding.animatedBackground.setCurrentTheme(BackgroundManager.THEME_CITY_WALLPAPER)
-        } else {
-            binding.animatedBackground.pauseAnimation()
-        }
+        showPanel(SettingsPanel.SERVER, focusPanel = false)
+        binding.rvCategories.post { focusCurrentCategory() }
+        binding.animatedBackground.pauseAnimation()
         if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)) {
             binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 240L)
         }
@@ -138,6 +139,7 @@ class SettingsActivity : BaseTvActivity() {
             SettingsCategory("player", getString(R.string.settings_player), R.drawable.ic_play),
             SettingsCategory("parental", getString(R.string.settings_parental), R.drawable.ic_settings),
             SettingsCategory("interface", getString(R.string.settings_ui), R.drawable.ic_settings),
+            SettingsCategory("update", getString(R.string.settings_update_center_title), R.drawable.ic_refresh),
             SettingsCategory("about", getString(R.string.settings_about), R.drawable.ic_settings)
         )
 
@@ -148,6 +150,7 @@ class SettingsActivity : BaseTvActivity() {
                     "player" -> showPanel(SettingsPanel.PLAYER)
                     "parental" -> showPanel(SettingsPanel.PARENTAL)
                     "interface" -> showPanel(SettingsPanel.INTERFACE)
+                    "update" -> showPanel(SettingsPanel.UPDATE)
                     "about" -> showPanel(SettingsPanel.ABOUT)
                 }
             }
@@ -165,10 +168,11 @@ class SettingsActivity : BaseTvActivity() {
         }
 
         val crashSummary = CrashGuard.lastCrashSummary(this)
+        val versionLabel = getString(R.string.settings_version_compact, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
         binding.tvVersion.text = if (crashSummary.isNullOrBlank()) {
-            getString(R.string.about_version)
+            versionLabel
         } else {
-            getString(R.string.about_version) + "\n\n" + getString(R.string.crash_guard_last_crash_short, crashSummary)
+            versionLabel + "\n\n" + getString(R.string.crash_guard_last_crash_short, crashSummary)
         }
 
         // TV-accessible: version opens the Weather Lab because it was previously hidden behind long-press.
@@ -186,6 +190,7 @@ class SettingsActivity : BaseTvActivity() {
         panelRoots[SettingsPanel.PLAYER] = binding.panelPlayer
         panelRoots[SettingsPanel.PARENTAL] = binding.panelParental
         panelRoots[SettingsPanel.INTERFACE] = binding.panelInterface
+        panelRoots[SettingsPanel.UPDATE] = binding.panelUpdate
         panelRoots[SettingsPanel.ABOUT] = binding.panelAbout
     }
 
@@ -1150,7 +1155,7 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun setAppLocale(languageCode: String) {
-        val locale = java.util.Locale(languageCode)
+        val locale = Locale.forLanguageTag(languageCode)
         java.util.Locale.setDefault(locale)
         
         val config = resources.configuration
@@ -1254,11 +1259,6 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun handleSelectedImage(uri: android.net.Uri) {
-        if (uri == null) {
-            Toast.makeText(this, getString(R.string.settings_no_image_selected), Toast.LENGTH_SHORT).show()
-            return
-        }
-        
         lifecycleScope.launch {
             try {
                 Toast.makeText(this@SettingsActivity, getString(R.string.settings_image_loading), Toast.LENGTH_SHORT).show()
@@ -1364,6 +1364,7 @@ class SettingsActivity : BaseTvActivity() {
                         addCategory(Intent.CATEGORY_OPENABLE)
                     }
                     val chooser = Intent.createChooser(intent, "Select Image")
+                    @Suppress("DEPRECATION")
                     startActivityForResult(chooser, REQUEST_CODE_IMAGE_PICKER)
                 } catch (e3: android.content.ActivityNotFoundException) {
                     Toast.makeText(
@@ -1399,24 +1400,36 @@ class SettingsActivity : BaseTvActivity() {
         }
     }
     
-    private fun setupAboutPanel() {
-        val updateRepo = UpdateRepository(this)
+    private fun setupUpdatePanel() {
+        binding.tvInstalledVersion.text = getString(
+            R.string.settings_update_version_value,
+            BuildConfig.VERSION_NAME,
+            BuildConfig.VERSION_CODE
+        )
         binding.btnCheckAppUpdate.setOnClickListener {
-            checkLatestAppUpdate(updateRepo, manual = true)
+            checkLatestAppUpdate(manual = true)
         }
-        binding.btnServerCheckAppUpdate.setOnClickListener {
-            checkLatestAppUpdate(updateRepo, manual = true)
+        binding.btnInstallAppUpdate.setOnClickListener {
+            val info = updateInfo
+            if (info == null) {
+                checkLatestAppUpdate(manual = true)
+            } else {
+                startSettingsUpdateDownload(info)
+            }
         }
         binding.btnOpenAppDownload.setOnClickListener {
-            val info = updateInfo ?: AppUpdateInfo()
-            updateRepo.openDownloadInBrowser(info)
+            updateRepository.openDownloadInBrowser(updateInfo ?: AppUpdateInfo())
         }
-        binding.btnServerOpenAppDownload.setOnClickListener {
-            val info = updateInfo ?: AppUpdateInfo()
-            updateRepo.openDownloadInBrowser(info)
-        }
-        checkLatestAppUpdate(updateRepo, manual = false)
+        renderUpdateCheckingState()
+        checkLatestAppUpdate(manual = false)
+    }
 
+    private fun setupAboutPanel() {
+        binding.tvAboutVersion.text = getString(
+            R.string.settings_update_version_value,
+            BuildConfig.VERSION_NAME,
+            BuildConfig.VERSION_CODE
+        )
         // WhatsApp button
         binding.btnWhatsApp?.setOnClickListener {
             openWhatsApp()
@@ -1432,67 +1445,130 @@ class SettingsActivity : BaseTvActivity() {
         }
     }
 
-    private fun checkLatestAppUpdate(repo: UpdateRepository, manual: Boolean) {
-        if (updateDownloadInFlight) return
-        binding.tvAppUpdateStatus.setText(R.string.settings_app_update_checking)
+    private fun checkLatestAppUpdate(manual: Boolean) {
+        if (updateDownloadInFlight || updateCheckInFlight) return
+        updateCheckInFlight = true
+        renderUpdateCheckingState()
         lifecycleScope.launch {
-            val info = repo.fetchUpdateInfo()
-            updateInfo = info
-            val statusText = if (info.updateAvailable) {
-                getString(R.string.settings_app_update_available, info.latestVersionName, info.latestVersionCode)
-            } else {
-                getString(R.string.settings_app_update_current, info.latestVersionName)
-            }
-            binding.tvAppUpdateStatus.text = statusText
-            binding.tvServerAppUpdateStatus.text = statusText
-            val notes = info.releaseNotes.ifBlank { info.downloadUrl }
-            binding.tvAppUpdateNotes.text = notes
-            binding.tvServerAppUpdateNotes.text = notes
-            val buttonText = if (info.updateAvailable) {
-                getString(R.string.settings_app_update_install)
-            } else {
-                getString(R.string.settings_app_update_reinstall)
-            }
-            binding.btnCheckAppUpdate.text = buttonText
-            binding.btnServerCheckAppUpdate.text = buttonText
-            if (manual) {
-                startSettingsUpdateDownload(repo, info)
-            }
+            runCatching { updateRepository.fetchUpdateInfo(forceRefresh = manual) }
+                .onSuccess { info ->
+                    updateInfo = info
+                    renderUpdateInfo(info)
+                }
+                .onFailure { error ->
+                    renderUpdateError(error.message ?: getString(R.string.error_generic))
+                }
+            updateCheckInFlight = false
+            binding.btnCheckAppUpdate.isEnabled = true
+            binding.btnInstallAppUpdate.isEnabled = updateInfo?.newerThanPublished == false
         }
     }
 
-    private fun startSettingsUpdateDownload(repo: UpdateRepository, info: AppUpdateInfo) {
+    private fun renderUpdateCheckingState() {
+        binding.tvUpdateHeroStatus.setText(R.string.settings_app_update_checking)
+        binding.tvUpdateHeroStatus.setTextColor(ContextCompat.getColor(this, R.color.cinematic_cyan))
+        binding.tvAvailableVersion.text = getString(R.string.settings_update_available_unknown)
+        binding.tvUpdateSize.text = getString(R.string.settings_update_size_unknown)
+        binding.tvAppUpdateNotes.setText(R.string.settings_app_update_desc)
+        binding.updateProgressContainer.visibility = View.GONE
+        binding.btnCheckAppUpdate.isEnabled = false
+        binding.btnInstallAppUpdate.isEnabled = false
+    }
+
+    private fun renderUpdateInfo(info: AppUpdateInfo) {
+        binding.tvAvailableVersion.text = getString(
+            R.string.settings_update_version_value,
+            info.latestVersionName,
+            info.latestVersionCode
+        )
+        binding.tvUpdateSize.text = info.apkSizeBytes?.let {
+            getString(R.string.settings_update_size_value, formatFileSize(it))
+        } ?: getString(R.string.settings_update_size_unknown)
+        binding.tvAppUpdateNotes.text = info.releaseNotes.ifBlank {
+            getString(R.string.settings_app_update_desc)
+        }
+        if (info.updateAvailable) {
+            binding.tvUpdateHeroStatus.text = getString(
+                R.string.settings_update_ready,
+                info.latestVersionName
+            )
+            binding.tvUpdateHeroStatus.setTextColor(ContextCompat.getColor(this, R.color.cinematic_cyan))
+            binding.btnInstallAppUpdate.setText(R.string.settings_app_update_install)
+            binding.btnInstallAppUpdate.isEnabled = true
+        } else if (info.newerThanPublished) {
+            binding.tvUpdateHeroStatus.text = getString(
+                R.string.settings_update_ahead_of_published,
+                info.latestVersionName
+            )
+            binding.tvUpdateHeroStatus.setTextColor(ContextCompat.getColor(this, R.color.htc_warning))
+            binding.btnInstallAppUpdate.setText(R.string.settings_update_published_older)
+            binding.btnInstallAppUpdate.isEnabled = false
+        } else {
+            binding.tvUpdateHeroStatus.text = getString(
+                R.string.settings_app_update_current,
+                info.latestVersionName
+            )
+            binding.tvUpdateHeroStatus.setTextColor(ContextCompat.getColor(this, R.color.htc_success))
+            binding.btnInstallAppUpdate.setText(R.string.settings_app_update_reinstall)
+            binding.btnInstallAppUpdate.isEnabled = true
+        }
+        binding.btnCheckAppUpdate.setText(R.string.settings_update_check_again)
+    }
+
+    private fun renderUpdateError(message: String) {
+        binding.tvUpdateHeroStatus.text = getString(R.string.settings_update_check_failed, message)
+        binding.tvUpdateHeroStatus.setTextColor(ContextCompat.getColor(this, R.color.htc_error))
+        binding.tvAvailableVersion.setText(R.string.settings_update_available_unknown)
+        binding.tvUpdateSize.setText(R.string.settings_update_size_unknown)
+        binding.tvAppUpdateNotes.setText(R.string.settings_update_check_failed_hint)
+        binding.btnCheckAppUpdate.setText(R.string.settings_update_try_again)
+        if (updateInfo == null) {
+            binding.btnInstallAppUpdate.isEnabled = false
+        }
+    }
+
+    private fun formatFileSize(bytes: Long): String {
+        if (bytes <= 0L) return getString(R.string.settings_update_size_unknown)
+        val megabytes = bytes / (1024.0 * 1024.0)
+        return String.format(Locale.getDefault(), "%.1f MB", megabytes)
+    }
+
+    private fun startSettingsUpdateDownload(info: AppUpdateInfo) {
         if (updateDownloadInFlight) return
         updateDownloadInFlight = true
         binding.btnCheckAppUpdate.isEnabled = false
-        binding.btnServerCheckAppUpdate.isEnabled = false
-        binding.tvAppUpdateStatus.setText(R.string.update_downloading)
-        binding.tvServerAppUpdateStatus.setText(R.string.update_downloading)
+        binding.btnInstallAppUpdate.isEnabled = false
+        binding.btnOpenAppDownload.isEnabled = false
+        binding.updateProgressContainer.visibility = View.VISIBLE
+        binding.updateProgressBar.progress = 0
+        binding.tvUpdateProgress.setText(R.string.update_downloading)
+        binding.tvUpdateHeroStatus.setText(R.string.update_downloading)
         lifecycleScope.launch {
-            val result = repo.downloadAndOpenInstaller(info) { progress ->
+            val result = updateRepository.downloadAndOpenInstaller(info) { progress ->
                 runOnUiThread {
-                    val progressText = getString(R.string.settings_app_update_progress, progress)
-                    binding.tvAppUpdateStatus.text = progressText
-                    binding.tvServerAppUpdateStatus.text = progressText
+                    binding.updateProgressBar.progress = progress
+                    binding.tvUpdateProgress.text = getString(R.string.settings_app_update_progress, progress)
+                    binding.tvUpdateHeroStatus.text = getString(R.string.settings_app_update_progress, progress)
                 }
             }
             updateDownloadInFlight = false
             binding.btnCheckAppUpdate.isEnabled = true
-            binding.btnServerCheckAppUpdate.isEnabled = true
+            binding.btnInstallAppUpdate.isEnabled = true
+            binding.btnOpenAppDownload.isEnabled = true
             when (result) {
                 UpdateInstallResult.InstallerOpened -> {
-                    binding.tvAppUpdateStatus.setText(R.string.settings_app_update_installer_opened)
-                    binding.tvServerAppUpdateStatus.setText(R.string.settings_app_update_installer_opened)
+                    binding.tvUpdateHeroStatus.setText(R.string.settings_app_update_installer_opened)
+                    binding.tvUpdateProgress.setText(R.string.settings_app_update_installer_opened)
                 }
                 UpdateInstallResult.InstallPermissionRequired -> {
-                    binding.tvAppUpdateStatus.setText(R.string.update_permission_required)
-                    binding.tvServerAppUpdateStatus.setText(R.string.update_permission_required)
+                    binding.tvUpdateHeroStatus.setText(R.string.update_permission_required)
+                    binding.tvUpdateProgress.setText(R.string.update_permission_required)
                     Toast.makeText(this@SettingsActivity, R.string.update_permission_required, Toast.LENGTH_LONG).show()
                 }
                 is UpdateInstallResult.Failed -> {
                     val errorText = getString(R.string.update_failed, result.message)
-                    binding.tvAppUpdateStatus.text = errorText
-                    binding.tvServerAppUpdateStatus.text = errorText
+                    binding.tvUpdateHeroStatus.text = errorText
+                    binding.tvUpdateProgress.text = errorText
                     Toast.makeText(this@SettingsActivity, getString(R.string.update_failed, result.message), Toast.LENGTH_LONG).show()
                 }
             }
@@ -1603,7 +1679,7 @@ class SettingsActivity : BaseTvActivity() {
         }
     }
 
-    private fun showPanel(panel: SettingsPanel) {
+    private fun showPanel(panel: SettingsPanel, focusPanel: Boolean = true) {
         val switchStartMs = System.currentTimeMillis()
 
         // Save current focus if in a panel
@@ -1620,6 +1696,7 @@ class SettingsActivity : BaseTvActivity() {
         binding.panelPlayer.visibility = View.GONE
         binding.panelParental.visibility = View.GONE
         binding.panelInterface.visibility = View.GONE
+        binding.panelUpdate.visibility = View.GONE
         binding.panelAbout.visibility = View.GONE
 
         // Show selected panel
@@ -1630,8 +1707,8 @@ class SettingsActivity : BaseTvActivity() {
             SettingsPanel.INTERFACE -> {
                 binding.panelInterface.also { it.visibility = View.VISIBLE }
             }
+            SettingsPanel.UPDATE -> binding.panelUpdate.also { it.visibility = View.VISIBLE }
             SettingsPanel.ABOUT -> {
-                setupAboutPanel()
                 binding.panelAbout.also { it.visibility = View.VISIBLE }
             }
         }
@@ -1642,6 +1719,7 @@ class SettingsActivity : BaseTvActivity() {
             SettingsPanel.PLAYER -> "player"
             SettingsPanel.PARENTAL -> "parental"
             SettingsPanel.INTERFACE -> "interface"
+            SettingsPanel.UPDATE -> "update"
             SettingsPanel.ABOUT -> "about"
         }
         categoryAdapter.setSelectedCategory(categoryId)
@@ -1649,9 +1727,29 @@ class SettingsActivity : BaseTvActivity() {
         // Restore or set focus on panel
         panelView.post {
             applyPanelFocusMap(panel, panelView)
-            restorePanelFocus(panel, panelView)
+            if (focusPanel) restorePanelFocus(panel, panelView)
             val duration = System.currentTimeMillis() - switchStartMs
             Log.d("SettingsPanelPerf", "panel=${panel.name} switchDurationMs=$duration")
+        }
+    }
+
+    private fun focusCurrentCategory() {
+        val targetPosition = when (currentPanel) {
+            SettingsPanel.SERVER -> 0
+            SettingsPanel.PLAYER -> 1
+            SettingsPanel.PARENTAL -> 2
+            SettingsPanel.INTERFACE -> 3
+            SettingsPanel.UPDATE -> 4
+            SettingsPanel.ABOUT -> 5
+        }
+        val manager = binding.rvCategories.layoutManager as? LinearLayoutManager
+        val target = manager?.findViewByPosition(targetPosition)
+        if (target?.requestFocus() != true) {
+            binding.rvCategories.scrollToPosition(targetPosition)
+            binding.rvCategories.post {
+                manager?.findViewByPosition(targetPosition)?.requestFocus()
+                    ?: binding.rvCategories.requestFocus()
+            }
         }
     }
     
@@ -1696,6 +1794,15 @@ class SettingsActivity : BaseTvActivity() {
                 upTarget = binding.optionLayoutStyle,
                 downTarget = binding.etCustomImageUrl
             )
+        } else if (panel == SettingsPanel.UPDATE) {
+            FocusMapRegistry.mapHorizontalStrip(
+                listOf(
+                    binding.btnCheckAppUpdate,
+                    binding.btnInstallAppUpdate,
+                    binding.btnOpenAppDownload
+                ),
+                wrap = false
+            )
         }
 
         // Keep right navigation inside content area unless explicit next-focus exists.
@@ -1714,6 +1821,7 @@ class SettingsActivity : BaseTvActivity() {
             SettingsPanel.PLAYER -> binding.optionPlayerSelection
             SettingsPanel.PARENTAL -> binding.optionParentalEnabled
             SettingsPanel.INTERFACE -> binding.optionBackground
+            SettingsPanel.UPDATE -> binding.btnCheckAppUpdate
             SettingsPanel.ABOUT -> binding.btnWhatsApp
         }
         if (preferred.visibility == View.VISIBLE && preferred.isEnabled && preferred.isFocusable) return preferred
@@ -1939,7 +2047,7 @@ class SettingsActivity : BaseTvActivity() {
                 if (binding.rvCategories.hasFocus()) {
                     restorePanelFocus(currentPanel, getCurrentPanelView())
                 } else {
-                    binding.rvCategories.requestFocus()
+                    focusCurrentCategory()
                 }
                 return true
             }
@@ -1985,11 +2093,12 @@ class SettingsActivity : BaseTvActivity() {
              isViewInPanel(currentFocusView, binding.panelPlayer) ||
              isViewInPanel(currentFocusView, binding.panelParental) ||
              isViewInPanel(currentFocusView, binding.panelInterface) ||
+             isViewInPanel(currentFocusView, binding.panelUpdate) ||
              isViewInPanel(currentFocusView, binding.panelAbout))
         
         if (inPanel) {
             // Move to categories list
-            binding.rvCategories.requestFocus()
+            focusCurrentCategory()
             return true
         }
         
@@ -2201,13 +2310,18 @@ class SettingsActivity : BaseTvActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.reloadServerInfo()
-        if (backgroundManager.hasCityWallpaper()) {
-            binding.animatedBackground.setCurrentTheme(BackgroundManager.THEME_CITY_WALLPAPER)
-            binding.animatedBackground.pauseAnimation()
-        } else if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)) {
-            binding.animatedBackground.resumeAnimation()
-        } else {
-            binding.animatedBackground.pauseAnimation()
+        lifecycleScope.launch {
+            val cityWallpaperPath = withContext(Dispatchers.IO) {
+                backgroundManager.getCityWallpaperFile().takeIf { it.exists() }?.absolutePath
+            }
+            if (cityWallpaperPath != null) {
+                binding.animatedBackground.loadCustomImageFromFile(cityWallpaperPath, blurAmount = 0)
+                binding.animatedBackground.pauseAnimation()
+            } else if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this@SettingsActivity)) {
+                binding.animatedBackground.resumeAnimation()
+            } else {
+                binding.animatedBackground.pauseAnimation()
+            }
         }
     }
 

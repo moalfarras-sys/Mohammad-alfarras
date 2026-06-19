@@ -2,6 +2,7 @@ package com.mo.moplayer
 
 import com.mo.moplayer.data.update.UpdateRepository
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -73,5 +74,18 @@ class UpdateRepositoryTest {
         assertEquals(16, info.latestVersionCode)
         assertTrue(info.forceUpdate)
         assertEquals("https://example.com/moplayer.apk", info.downloadUrl)
+    }
+
+    @Test
+    fun parseUpdateInfo_doesNotOfferDowngradeWhenInstalledBuildIsNewer() {
+        val info = UpdateRepository.parseUpdateInfo(
+            body = """{"latestVersionName":"2.2.16","latestVersionCode":22}""",
+            currentVersionCode = 23,
+            currentVersionName = "2.3.0",
+            absolutize = { it }
+        )
+
+        assertTrue(info.newerThanPublished)
+        assertFalse(info.updateAvailable)
     }
 }

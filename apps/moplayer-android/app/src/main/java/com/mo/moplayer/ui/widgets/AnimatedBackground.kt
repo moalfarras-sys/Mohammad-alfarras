@@ -170,19 +170,23 @@ class AnimatedBackground @JvmOverloads constructor(
         bufferNeedsRecreate = true
     }
     
-    fun initializeFromSettings(customImagePath: String?, currentTheme: Int, particleColor: Int) {
+    fun initializeFromSettings(
+        customImagePath: String?,
+        cityImagePath: String? = null,
+        currentTheme: Int,
+        particleColor: Int,
+    ) {
         this.currentTheme = normalizeTheme(currentTheme)
         setParticleColor(particleColor)
-        
-        val cityWallpaperPath = File(context.filesDir, BackgroundManager.CITY_BG_FILENAME).absolutePath
+
         when {
             this.currentTheme == BackgroundManager.THEME_CUSTOM_IMAGE && !customImagePath.isNullOrEmpty() -> {
                 savedImagePath = customImagePath
                 loadCustomImageFromFile(customImagePath)
             }
-            this.currentTheme == BackgroundManager.THEME_CITY_WALLPAPER && File(cityWallpaperPath).exists() -> {
-                savedImagePath = cityWallpaperPath
-                loadCustomImageFromFile(cityWallpaperPath, blurAmount = 0)
+            this.currentTheme == BackgroundManager.THEME_CITY_WALLPAPER && !cityImagePath.isNullOrEmpty() -> {
+                savedImagePath = cityImagePath
+                loadCustomImageFromFile(cityImagePath, blurAmount = 0)
             }
             else -> initializeTheme(this.currentTheme)
         }

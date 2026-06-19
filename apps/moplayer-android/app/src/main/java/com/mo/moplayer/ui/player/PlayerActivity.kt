@@ -131,6 +131,30 @@ class PlayerActivity : BaseTvActivity() {
     private var lastBufferingUiUpdateAtMs: Long = 0L
     private var hasStartedPlayback = false
 
+    // Mid-stream rebuffering indicator: once playback has started we DEBOUNCE the spinner so brief
+    // network stalls don't flash it, while a real stall still gives the user clear feedback
+    // instead of a silently frozen frame. Works for both the VLC and ExoPlayer paths.
+    private val REBUFFER_DEBOUNCE_MS = 700L
+    private val rebufferShowRunnable = Runnable {
+        if (!isDestroying && !isFinishing && !isDestroyed && hasStartedPlayback) {
+            setLoadingOverlayVisible(true)
+        }
+    }
+
+    private fun setRebufferingState(buffering: Boolean) {
+        if (!hasStartedPlayback) {
+            // Initial load: immediate spinner (preserves existing behavior).
+            setLoadingOverlayVisible(buffering)
+            return
+        }
+        handler.removeCallbacks(rebufferShowRunnable)
+        if (buffering) {
+            handler.postDelayed(rebufferShowRunnable, REBUFFER_DEBOUNCE_MS)
+        } else {
+            setLoadingOverlayVisible(false)
+        }
+    }
+
     private val isLiveStream: Boolean
         get() = contentType.equals("CHANNEL", ignoreCase = true) ||
             contentType.equals("LIVE", ignoreCase = true)
@@ -450,6 +474,8 @@ class PlayerActivity : BaseTvActivity() {
         engineManager?.addCallback(object : PlayerEngine.Callback {
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == androidx.media3.common.Player.STATE_READY) {
+                    hasStartedPlayback = true
+                    handler.removeCallbacks(rebufferShowRunnable)
                     setLoadingOverlayVisible(false)
                     binding.errorOverlay.visibility = View.GONE
                     startProgressUpdate()
@@ -474,7 +500,7 @@ class PlayerActivity : BaseTvActivity() {
             }
             override fun onTracksChanged(audio: List<PlayerEngine.TrackInfo>, subtitles: List<PlayerEngine.TrackInfo>) {}
             override fun onBuffering(buffering: Boolean) {
-                runOnUiThread { setLoadingOverlayVisible(buffering) }
+                runOnUiThread { setRebufferingState(buffering) }
             }
         })
 
@@ -606,6 +632,7 @@ class PlayerActivity : BaseTvActivity() {
                         when (event.type) {
                             MediaPlayer.Event.Playing -> {
                                 hasStartedPlayback = true
+                                handler.removeCallbacks(rebufferShowRunnable)
                                 setLoadingOverlayVisible(false)
                                 binding.errorOverlay.visibility = View.GONE
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
@@ -618,7 +645,7 @@ class PlayerActivity : BaseTvActivity() {
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_play)
                             }
                             MediaPlayer.Event.Buffering -> {
-                                setLoadingOverlayVisible(event.buffering < 100f && !hasStartedPlayback)
+                                setRebufferingState(event.buffering < 100f)
                             }
                             MediaPlayer.Event.EndReached -> {
                                 if (isLiveStream) {

@@ -1861,6 +1861,10 @@ class HomeActivity : BaseTvActivity() {
         if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(this)) {
             com.bumptech.glide.Glide.with(this)
                 .load(backdropUrl)
+                // Decode at backdrop display size, not full poster resolution — big memory win
+                // on weak TV boxes for an image shown at 0.54 alpha as ambient background.
+                .override(960, 540)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(500))
                 .into(binding.ivPreviewBackdrop)
         }

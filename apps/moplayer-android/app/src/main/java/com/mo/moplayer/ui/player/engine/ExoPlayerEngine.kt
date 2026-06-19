@@ -292,6 +292,8 @@ class ExoPlayerEngine(
     private inner class PlayerListener : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
             callbacks.forEach { it.onPlaybackStateChanged(state) }
+            // STATE_BUFFERING is the canonical stall signal — far less noisy than isLoading.
+            callbacks.forEach { it.onBuffering(state == Player.STATE_BUFFERING) }
         }
 
         override fun onIsPlayingChanged(playing: Boolean) {
@@ -337,8 +339,8 @@ class ExoPlayerEngine(
         }
 
         override fun onIsLoadingChanged(isLoading: Boolean) {
-            // isLoading is true during buffering; treat as buffering UI state
-            callbacks.forEach { it.onBuffering(isLoading && !exoPlayer.isPlaying) }
+            // Buffering UI is driven by STATE_BUFFERING in onPlaybackStateChanged. isLoading is too
+            // noisy (it fires for background preloading even while smoothly playing).
         }
     }
 }

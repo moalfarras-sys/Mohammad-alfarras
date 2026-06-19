@@ -60,6 +60,9 @@ class PlayerEngineManager(context: Context, isLive: Boolean) {
                     exoEngine.stop()
                     exoEngine.detachView()
                     primaryEngine = vlcEngine
+                    // Re-bind the composite callback to VLC so its buffering/state/error events
+                    // reach the UI after the fallback (otherwise the UI would go silent).
+                    ensureCompositeCallback(vlcEngine)
                     vlcView?.let { vlcEngine.attachView(it) }
                     vlcEngine.play(url, title, pos)
                 }

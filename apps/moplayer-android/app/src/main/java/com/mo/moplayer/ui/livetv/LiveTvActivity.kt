@@ -84,6 +84,32 @@ class LiveTvActivity : BaseTvActivity() {
     private var lastBufferingUiUpdateAtMs: Long = 0L
     private var hasStartedPlayback = false
 
+    // Mid-stream rebuffering indicator. The initial channel load shows the spinner immediately,
+    // but once the first frame has rendered we DEBOUNCE the spinner so brief network stalls don't
+    // flash it, while a real stall still gives the user clear feedback instead of a frozen frame.
+    private val REBUFFER_DEBOUNCE_MS = 700L
+    private val rebufferShowRunnable = Runnable {
+        if (!isDestroying && hasStartedPlayback &&
+            activePlaybackToken == activePlayRequestToken) {
+            setLoadingOverlayVisible(true)
+        }
+    }
+
+    private fun setLiveRebufferingState(buffering: Boolean) {
+        if (!hasStartedPlayback) {
+            // Initial channel load: immediate spinner (preserves existing behavior).
+            setLoadingOverlayVisible(buffering)
+            return
+        }
+        // Mid-stream stall: debounce so micro-rebuffers don't flash the spinner.
+        handler.removeCallbacks(rebufferShowRunnable)
+        if (buffering) {
+            handler.postDelayed(rebufferShowRunnable, REBUFFER_DEBOUNCE_MS)
+        } else {
+            setLoadingOverlayVisible(false)
+        }
+    }
+
     @Inject lateinit var playerPreferences: com.mo.moplayer.util.PlayerPreferences
 
     @Inject lateinit var recyclerViewOptimizer: com.mo.moplayer.util.RecyclerViewOptimizer
@@ -413,6 +439,7 @@ class LiveTvActivity : BaseTvActivity() {
                             when (event.type) {
                                 MediaPlayer.Event.Playing -> {
                                     hasStartedPlayback = true
+                                    handler.removeCallbacks(rebufferShowRunnable)
                                     binding.vlcVideoLayout.visibility = View.VISIBLE
                                     binding.liveIdleBackdrop.visibility = View.GONE
                                     setLoadingOverlayVisible(false)
@@ -430,7 +457,7 @@ class LiveTvActivity : BaseTvActivity() {
                                     updateQualityIndicator()
                                 }
                                 MediaPlayer.Event.Buffering -> {
-                                    setLoadingOverlayVisible(event.buffering < 100f && !hasStartedPlayback)
+                                    setLiveRebufferingState(event.buffering < 100f)
                                 }
                                 MediaPlayer.Event.EncounteredError -> {
                                     setLoadingOverlayVisible(false)
@@ -1957,13 +1984,31 @@ class LiveTvActivity : BaseTvActivity() {
         mediaPlayer?.setEventListener(null)
         previewPlayer?.setEventListener(null)
 
-        // Release main player
+        // Detach views on the main thread (view ops must stay on the UI thread)...
         detachMainViewsIfNeeded()
-        mediaPlayer?.release()
-        libVLC?.release()
+        detachPreviewViewsIfNeeded()
 
-        // Release preview player
-        releasePreviewPlayer()
+        // ...but release the native VLC instances OFF the main thread. VLC release() blocks while
+        // its native threads join, which janks/ANRs when leaving the screen on weak boxes —
+        // especially with two LibVLC instances here (main + preview). Mirrors PlayerActivity.
+        val mp = mediaPlayer
+        val vlc = libVLC
+        val previewMp = previewPlayer
+        val previewVlc = previewLibVLC
+        mediaPlayer = null
+        libVLC = null
+        previewPlayer = null
+        previewLibVLC = null
+        previewChannel = null
+        Thread {
+            runCatching { mp?.stop() }
+            runCatching { mp?.release() }
+            runCatching { vlc?.release() }
+            runCatching { previewMp?.stop() }
+            runCatching { previewMp?.release() }
+            runCatching { previewVlc?.release() }
+        }.start()
+
         android.util.Log.i(
                 "LiveTvPerf",
                 "session_end switches=$channelSwitchCount decoder_fallbacks=$decoderFallbackCount"

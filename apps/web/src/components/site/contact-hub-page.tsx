@@ -39,6 +39,12 @@ const copy = {
       linkedin: "LinkedIn",
       email: "Email",
     },
+    socialDetails: {
+      youtube: "Creator channel",
+      whatsapp: "Fast direct chat",
+      linkedin: "Professional profile",
+      email: "",
+    },
   },
   ar: {
     eyebrow: "تواصل مباشر",
@@ -63,6 +69,12 @@ const copy = {
       whatsapp: "واتساب",
       linkedin: "LinkedIn",
       email: "البريد",
+    },
+    socialDetails: {
+      youtube: "قناة المحتوى",
+      whatsapp: "محادثة مباشرة سريعة",
+      linkedin: "الملف المهني",
+      email: "",
     },
   },
 } as const;
@@ -202,6 +214,7 @@ export function ContactHubPage({ locale, content }: ContactHubPageProps) {
             {socialCards.map((item) => {
               const Icon = item.icon;
               const label = t.socials[item.id as keyof typeof t.socials];
+              const detail = t.socialDetails[item.id as keyof typeof t.socialDetails] || item.detail;
               return (
                 <a
                   key={item.id}
@@ -213,7 +226,7 @@ export function ContactHubPage({ locale, content }: ContactHubPageProps) {
                 >
                   <Icon />
                   <span>{label}</span>
-                  <small>{item.detail}</small>
+                  <small>{detail}</small>
                   <ArrowUpRight size={15} />
                 </a>
               );

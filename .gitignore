@@ -59,6 +59,10 @@ apps/web/public/downloads/moplayer/windows/*.blockmap
 /check_hash.js
 /fix_footer.js
 
+# Large archives must never be committed (host big binaries on GitHub Releases)
+*.rar
+*.7z
+
 # Temporary local artifacts (UI dumps, focus snapshots, layout exports)
 _backups/
 **/*dump*.xml

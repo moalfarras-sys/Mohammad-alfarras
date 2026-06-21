@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { Bot, Boxes, Globe, Image as ImageIcon, Languages, LayoutDashboard, LogOut, Mail, Moon, ShieldCheck, Sun } from "lucide-react";
 
@@ -45,10 +45,14 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
   const { t, locale, toggle } = useLocale();
   const { resolvedTheme, setTheme } = useTheme();
   const darkTheme = resolvedTheme === "dark";
-  // Theme is unknown during SSR; render a stable icon until mounted so the
-  // server and first client render match (avoids a hydration mismatch).
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Theme is unknown during SSR; render a stable icon until hydrated so the
+  // server and first client render match (avoids a hydration mismatch). Uses
+  // useSyncExternalStore instead of setState-in-effect to avoid cascading renders.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   return (
     <div className="admin-root min-h-screen">

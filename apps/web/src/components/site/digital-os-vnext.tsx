@@ -24,6 +24,7 @@ import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { PageShell, SectionHeader } from "@/components/ui/os-primitives";
 import { socialLinks } from "@/content/site";
 import { compactMetric, youtubeChannel } from "@/content/site-data";
+import { rebuildContent } from "@/data/rebuild-content";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
@@ -340,6 +341,20 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         ctaPrimary: "Start the conversation",
         ctaSecondary: "Message me on WhatsApp",
       };
+
+  // Wire the hero to the CMS `home_content` document. `model.t.hero` is already
+  // the admin-merged hero; when a field differs from the bundled default it means
+  // the admin edited it in the panel, so show their copy. Otherwise keep the
+  // curated default copy above so the homepage design is unchanged out of the box.
+  const cmsHero = model.t.hero;
+  const defaultHero = rebuildContent[model.locale].hero;
+  const heroFromCms = (cmsValue: string | undefined, hardcoded: string, defaultValue: string) =>
+    cmsValue && cmsValue.trim() && cmsValue !== defaultValue ? cmsValue : hardcoded;
+  home.eyebrow = heroFromCms(cmsHero.eyebrow, home.eyebrow, defaultHero.eyebrow);
+  home.title = heroFromCms(cmsHero.title, home.title, defaultHero.title);
+  home.body = heroFromCms(cmsHero.body, home.body, defaultHero.body);
+  home.primary = heroFromCms(cmsHero.primary, home.primary, defaultHero.primary);
+  home.secondary = heroFromCms(cmsHero.secondary, home.secondary, defaultHero.secondary);
 
   const modes = [
     { icon: Code2, tone: "cyan", title: isAr ? "موقع تعريفي احترافي" : "Professional business website", detail: isAr ? "هوية · موقع · ثقة" : "Brand / Web / Trust", body: isAr ? "موقع يشرح بوضوح مين أنت، شو بتقدّم، وليش يثق فيك العميل من أول زيارة." : "A clear website that explains who you are, what you offer, and why visitors should trust you." },

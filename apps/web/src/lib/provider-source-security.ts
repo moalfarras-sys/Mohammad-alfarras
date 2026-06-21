@@ -62,11 +62,19 @@ const PENDING_SOURCE_TTL_MS = 20 * 60 * 1000;
 const FETCHED_SOURCE_RECEIPT_TTL_MS = 5 * 60 * 1000;
 
 function serverSecret() {
-  const value = process.env.MOPLAYER_PROVIDER_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!value) {
-    throw new Error("Missing MOPLAYER_PROVIDER_ENCRYPTION_KEY or SUPABASE_SERVICE_ROLE_KEY");
+  const dedicated = process.env.MOPLAYER_PROVIDER_ENCRYPTION_KEY;
+  if (dedicated) return dedicated;
+  // Fail closed in production: never silently fall back to the Supabase
+  // service-role key. That key already has full read access to the ciphertext
+  // rows, so reusing it as the encryption secret gives no real defense-in-depth.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("MOPLAYER_PROVIDER_ENCRYPTION_KEY is required in production.");
   }
-  return value;
+  const devFallback = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!devFallback) {
+    throw new Error("Missing MOPLAYER_PROVIDER_ENCRYPTION_KEY (or SUPABASE_SERVICE_ROLE_KEY for local dev).");
+  }
+  return devFallback;
 }
 
 function encryptionKey() {

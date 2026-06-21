@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -11,6 +12,9 @@ function json(body: unknown, init?: ResponseInit) {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-confirm", limit: 20, windowSeconds: 60 });
+  if (limited) return limited;
+
   let body: { code?: string; deviceName?: string; productSlug?: string; product_slug?: string } = {};
   try {
     body = (await request.json()) as typeof body;

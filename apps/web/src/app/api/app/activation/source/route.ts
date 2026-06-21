@@ -21,6 +21,7 @@ import {
   type ProviderSourceQueueValue,
   testProviderSource,
 } from "@/lib/provider-source-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -81,6 +82,9 @@ function readQueueValue(value: unknown): ProviderSourceQueueValue | null {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-source", limit: 12, windowSeconds: 60 });
+  if (limited) return limited;
+
   let body: Record<string, unknown>;
   try {
     body = (await request.json()) as Record<string, unknown>;
@@ -162,6 +166,9 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-source-pull", limit: 30, windowSeconds: 60 });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const publicDeviceId = normalizePublicDeviceId(searchParams.get("publicDeviceId"));
   const token = normalizeSourcePullToken(searchParams.get("token"));

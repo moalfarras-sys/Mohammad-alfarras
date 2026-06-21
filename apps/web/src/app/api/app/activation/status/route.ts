@@ -8,6 +8,7 @@ import {
   providerSourceQueueExpired,
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -42,6 +43,9 @@ async function sourceDeliveryStatus(
 }
 
 export async function GET(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-status", limit: 60, windowSeconds: 60 });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const code = normalizeActivationCode(searchParams.get("code"));
   const productSlug = resolveManagedAppSlug(searchParams.get("product") ?? searchParams.get("productSlug"));

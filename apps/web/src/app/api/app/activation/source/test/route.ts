@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import { normalizeProviderSource, testProviderSource } from "@/lib/provider-source-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -28,6 +29,9 @@ async function getActivatedDevice(code: string, productSlug: string) {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-source-test", limit: 12, windowSeconds: 60 });
+  if (limited) return limited;
+
   let body: Record<string, unknown>;
   try {
     body = (await request.json()) as Record<string, unknown>;

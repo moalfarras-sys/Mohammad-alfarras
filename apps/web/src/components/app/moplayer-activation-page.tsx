@@ -80,6 +80,7 @@ const copy = {
     activated: ["Device confirmed", "Great — continue to step 2 and add your source."],
     expired: ["Code expired", "Generate a fresh code on the device, then enter it again."],
     backend: ["Connection issue", "Something went wrong for a moment. Check your internet and try again."],
+    rateLimited: ["Too many attempts", "Please wait a minute, then check the code again."],
     // Source results
     testOk: "Connection works. You can send it now.",
     testFail: "Connection failed. Double-check the details and try again.",
@@ -141,6 +142,7 @@ const copy = {
     activated: ["تم تأكيد الجهاز", "رائع — تابع إلى الخطوة 2 وأضف مصدرك."],
     expired: ["انتهت صلاحية الكود", "أنشئ كوداً جديداً على الجهاز ثم أدخله مرة أخرى."],
     backend: ["مشكلة في الاتصال", "حدث خطأ مؤقت. تحقق من الإنترنت وحاول مرة أخرى."],
+    rateLimited: ["محاولات كثيرة", "انتظر دقيقة ثم أعد فحص الكود."],
     // Source results
     testOk: "الاتصال يعمل. يمكنك الإرسال الآن.",
     testFail: "فشل الاتصال. راجع البيانات وحاول مرة أخرى.",
@@ -151,7 +153,7 @@ const copy = {
   },
 } as const;
 
-type Status = "waiting" | "pending" | "invalid" | "activated" | "expired" | "backend";
+type Status = "waiting" | "pending" | "invalid" | "activated" | "expired" | "backend" | "rateLimited";
 type SourceType = "xtream" | "m3u";
 type SourceState = "idle" | "testing" | "ok" | "sending" | "sent" | "error";
 
@@ -224,6 +226,7 @@ export function MoPlayerActivationPage({
     if (status === "activated") return { icon: CheckCircle2, tone: "is-success", data: t.activated };
     if (status === "expired") return { icon: Clock3, tone: "is-warn", data: t.expired };
     if (status === "backend") return { icon: AlertCircle, tone: "is-error", data: t.backend };
+    if (status === "rateLimited") return { icon: Clock3, tone: "is-warn", data: t.rateLimited };
     if (status === "pending") return { icon: Clock3, tone: "is-pending", data: t.pending };
     return { icon: KeyRound, tone: "is-waiting", data: t.waiting };
   }, [status, t]);
@@ -256,6 +259,8 @@ export function MoPlayerActivationPage({
         setStatus("expired");
       } else if (payload?.status === "invalid") {
         setStatus("invalid");
+      } else if (response.status === 429) {
+        setStatus("rateLimited");
       } else if (response.status === 202 || payload?.status === "pending") {
         setStatus("pending");
       } else {
@@ -288,6 +293,8 @@ export function MoPlayerActivationPage({
         setStatus("expired");
       } else if (payload?.status === "invalid") {
         setStatus("invalid");
+      } else if (response.status === 429) {
+        setStatus("rateLimited");
       } else if (response.status === 202 || payload?.status === "pending") {
         setStatus("pending");
       } else {

@@ -8,6 +8,7 @@ import {
   normalizePublicDeviceId,
   normalizeSourcePullToken,
 } from "@/lib/provider-source-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -28,6 +29,9 @@ function json(body: unknown, init?: ResponseInit) {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-create", limit: 15, windowSeconds: 60 });
+  if (limited) return limited;
+
   let body: CreateBody = {};
   try {
     body = (await request.json()) as CreateBody;

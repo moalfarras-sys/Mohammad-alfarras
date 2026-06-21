@@ -10,6 +10,7 @@ import {
   providerSourceQueueExpired,
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
+import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
 function readQueueValue(value: unknown): ProviderSourceQueueValue | null {
@@ -21,6 +22,9 @@ function readQueueValue(value: unknown): ProviderSourceQueueValue | null {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimit({ request, bucket: "activation-source-ack", limit: 30, windowSeconds: 60 });
+  if (limited) return limited;
+
   let body: {
     publicDeviceId?: string;
     token?: string;

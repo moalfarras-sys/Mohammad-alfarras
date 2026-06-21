@@ -71,6 +71,7 @@ export function SiteNavbar({
                 alt={brandName}
                 width={44}
                 height={44}
+                priority
                 className="fresh-brand-logo"
                 onError={() =>
                   setFailedLogoSrcs((current) => {

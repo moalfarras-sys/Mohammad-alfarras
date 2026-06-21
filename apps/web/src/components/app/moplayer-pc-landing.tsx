@@ -198,7 +198,7 @@ export function MoPlayerPcLanding({
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-black" />
         <div className="absolute top-0 w-full h-[80vh] z-0 opacity-30">
-          <Image src="/images/moplayer_pc_bg.png" alt="" fill className="object-cover object-top mix-blend-screen" priority />
+          <Image src="/images/moplayer_pc_bg.png" alt="" fill sizes="100vw" className="object-cover object-top mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
         </div>
         <div className="absolute top-[-15%] left-[-5%] w-[40%] h-[40%] bg-[#E64A19]/10 blur-[120px] rounded-full mix-blend-screen z-10" />

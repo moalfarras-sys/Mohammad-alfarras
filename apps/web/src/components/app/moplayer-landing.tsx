@@ -89,7 +89,7 @@ export function MoPlayerLanding({
       {/* Background effects - Navy Blue */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 w-full h-[80vh] opacity-35">
-          <Image src="/images/moplayer-classic-bg.png" alt="" fill className="object-cover object-top mix-blend-screen" />
+          <Image src="/images/moplayer-classic-bg.png" alt="" fill sizes="100vw" className="object-cover object-top mix-blend-screen" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050505]/70 to-[#050505] z-10" />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff_0.5px,transparent_0.5px)] [background-size:24px_24px] opacity-[0.02]" />

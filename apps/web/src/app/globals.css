@@ -5615,3 +5615,13 @@ html[dir="rtl"] .mo-ai-panel {
     transition: opacity 0.3s ease;
   }
 }
+
+/* ── Arabic readability: never letter-space cursive Arabic text ──
+   Arabic is connected/cursive. Negative tracking on headings glues words
+   together ("كلمات لاصقة") and positive tracking breaks the letter joins.
+   Force normal letter-spacing on every RTL text element so Arabic always
+   renders correctly connected and readable (Latin labels just lose tracking). */
+html[dir="rtl"] body,
+html[dir="rtl"] body * {
+  letter-spacing: normal !important;
+}

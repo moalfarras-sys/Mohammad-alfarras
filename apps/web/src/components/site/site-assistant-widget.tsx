@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send, Sparkles, X } from "lucide-react";
+import { Bot, Loader2, Send, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -169,7 +169,7 @@ export function SiteAssistantWidget({
         <section className="mo-ai-panel">
           <header className="mo-ai-head">
             <span className="mo-ai-mark">
-              <Sparkles size={16} />
+              <Bot size={18} />
             </span>
             <span className="mo-ai-title">
               <strong>{t.title}</strong>
@@ -243,7 +243,7 @@ export function SiteAssistantWidget({
         onClick={() => setOpen((value) => !value)}
         aria-label={t.open as string}
       >
-        <Sparkles size={16} />
+        <Bot size={18} />
         <span>{t.label}</span>
       </button>
     </aside>

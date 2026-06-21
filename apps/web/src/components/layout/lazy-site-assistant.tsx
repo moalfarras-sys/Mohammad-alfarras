@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { LoaderCircle, Sparkles } from "lucide-react";
+import { Bot, LoaderCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -59,7 +59,7 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
         onClick={() => setReady(true)}
         aria-label={locale === "ar" ? "تحدّث مع Mo Ai" : "Chat with Mo Ai"}
       >
-        <Sparkles />
+        <Bot />
         <span>Mo Ai</span>
       </button>
     </div>

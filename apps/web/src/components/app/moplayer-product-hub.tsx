@@ -184,6 +184,12 @@ function windowsGalleryImages(release?: WindowsRelease | null) {
   return images.map((item) => normalizePublicImagePath(item)).filter(Boolean);
 }
 
+// Galleries must never repeat the hero (the hero already renders as the card's
+// main image), and must be de-duplicated, so thumbnails are real extra shots.
+function galleryWithoutHero(hero: string, gallery: string[]) {
+  return Array.from(new Set(gallery.filter((image) => image && image !== hero)));
+}
+
 function localizedRuntimeHref(locale: Locale, value: string | undefined, fallback: string) {
   const href = String(value ?? "").trim() || fallback;
   if (href.startsWith("/en/") || href.startsWith("/ar/")) {
@@ -238,6 +244,8 @@ function getProducts(
       pcGallery[0] ||
       "/images/moplayer-pc-desktop.png",
   );
+  const proHero = appHeroImage(data.pro, "/images/moplayer-pro-showcase-2.png");
+  const classicHero = appHeroImage(data.classic, "/images/moplayer-tv-hero.png");
   const pcDownloadHref =
     data.windowsRelease?.maintenance || !data.windowsRelease?.file
       ? undefined
@@ -245,8 +253,8 @@ function getProducts(
   return [
     {
       id: "pro", name: "MoPlayer Pro", tone: "pro" as const,
-      heroImage: appHeroImage(data.pro, "/images/moplayer-pro-showcase-2.png"),
-      galleryImages: proGallery,
+      heroImage: proHero,
+      galleryImages: galleryWithoutHero(proHero, proGallery),
       href: withLocale(locale, "apps/moplayer2"),
       downloadHref: data.pro?.releases[0] ? "/api/app/download/latest?product=moplayer2" : undefined,
       activateHref: `${withLocale(locale, "activate")}?product=moplayer2`,
@@ -255,8 +263,8 @@ function getProducts(
     },
     {
       id: "classic", name: "MoPlayer Classic", tone: "classic" as const,
-      heroImage: appHeroImage(data.classic, "/images/moplayer-tv-hero.png"),
-      galleryImages: classicGallery,
+      heroImage: classicHero,
+      galleryImages: galleryWithoutHero(classicHero, classicGallery),
       href: withLocale(locale, "apps/moplayer/classic"),
       downloadHref: data.classic?.releases[0] ? "/api/app/download/latest?product=moplayer" : undefined,
       activateHref: `${withLocale(locale, "activate")}?product=moplayer`,
@@ -266,7 +274,7 @@ function getProducts(
     {
       id: "pc", name: "MoPlayer PC", tone: "pc" as const,
       heroImage: pcCardImage,
-      galleryImages: pcGallery.length ? pcGallery : [pcCardImage],
+      galleryImages: galleryWithoutHero(pcCardImage, pcGallery),
       href: withLocale(locale, "apps/moplayer-pc"),
       downloadHref: pcDownloadHref,
       activateHref: `${withLocale(locale, "activate")}?product=moplayer-pc&platform=windows`,
@@ -280,7 +288,9 @@ function getProducts(
             name: "MoPlayer iOS",
             tone: "ios" as const,
             heroImage: iosConfig.heroImage,
-            galleryImages: [iosConfig.heroImage, ...proGallery.filter((image) => image !== iosConfig.heroImage)].slice(0, 3),
+            // iOS has no own screenshots yet — show only its hero rather than
+            // borrowing (misplacing) Pro screenshots. Wire iOS shots in admin later.
+            galleryImages: [],
             href: withLocale(locale, "apps/moplayer-ios"),
             downloadHref: iosConfig.storeHref,
             activateHref: iosConfig.activationHref,

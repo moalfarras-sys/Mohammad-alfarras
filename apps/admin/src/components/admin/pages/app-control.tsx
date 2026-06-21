@@ -1152,6 +1152,20 @@ function ProductImageField({
         <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
         <input type="file" name={fileName} accept="image/*" className="sr-only" onChange={handleFile} />
       </label>
+      {value ? (
+        <button
+          type="button"
+          onClick={() => {
+            setValue("");
+            setPendingPreview(null);
+            setPendingName(null);
+          }}
+          className="btn btn-sm mt-3"
+        >
+          <Trash2 className="h-4 w-4" />
+          {t({ en: "Remove image", ar: "حذف الصورة" })}
+        </button>
+      ) : null}
       <details className="mt-3 rounded-2xl border border-[var(--line)] bg-black/15 p-3">
         <summary className="cursor-pointer text-[10px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">
           {t({ en: "Advanced path", ar: "المسار المتقدم" })}

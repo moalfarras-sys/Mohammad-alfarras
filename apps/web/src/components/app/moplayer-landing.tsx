@@ -76,7 +76,6 @@ export function MoPlayerLanding({
   
   const fallbackGalleryShots = [
     { id: "classic-promo", title: isAr ? "عرض MoPlayer Classic" : "MoPlayer Classic Showcase", alt_text: "MoPlayer Classic promotional showcase", image_path: "/images/moplayer-classic-promo.png", product_slug: "moplayer", device_frame: "tv", sort_order: 0, is_featured: true, created_at: "" },
-    { id: "hero", title: "MoPlayer", alt_text: "MoPlayer Android TV product", image_path: "/images/moplayer-tv-hero.png", product_slug: "moplayer", device_frame: "tv", sort_order: 1, is_featured: false, created_at: "" },
     { id: "visual-cinema", title: isAr ? "واجهة تلفزيونية" : "TV showcase", alt_text: "MoPlayer cinematic TV visual", image_path: "/images/moplayer_ui_playlist-final.png", product_slug: "moplayer", device_frame: "tv", sort_order: 10, is_featured: false, created_at: "" },
     { id: "visual-activation", title: isAr ? "تفعيل واضح" : "Guided activation", alt_text: "MoPlayer activation flow visual", image_path: "/images/moplayer-activation-flow.webp", product_slug: "moplayer", device_frame: "phone", sort_order: 11, is_featured: false, created_at: "" },
     { id: "visual-release", title: isAr ? "مركز التحميل" : "Release center", alt_text: "MoPlayer APK release visual", image_path: "/images/moplayer-release-panel.webp", product_slug: "moplayer", device_frame: "tv", sort_order: 12, is_featured: false, created_at: "" },

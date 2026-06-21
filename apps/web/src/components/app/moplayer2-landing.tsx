@@ -169,7 +169,6 @@ const mp2Screenshots = [
   { id: "mp2-home", src: "/images/moplayer-pro-home.webp", alt: "MoPlayer Pro warm gold Android TV home screen", label: "Home" },
   { id: "mp2-activation", src: "/images/moplayer-pro-activation.webp", alt: "MoPlayer Pro QR activation and website pairing flow", label: "Activation" },
   { id: "mp2-player", src: "/images/moplayer-pro-player.webp", alt: "MoPlayer Pro warm glass media player controls", label: "Player" },
-  { id: "mp2-hero", src: "/images/moplayer-pro-hero.webp", alt: "MoPlayer Pro TV and phone setup", label: "Setup" },
 ];
 
 const containerVariants = {

@@ -510,7 +510,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
             ar: "ارفع APK الخاص بهذا التطبيق فقط. تحميل كلاسيك وبرو يبقى منفصلاً عبر slug وسجل الإصدار.",
           })}
         />
-        <form action={saveReleaseAction} className="mb-6 grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
+        <form action={saveReleaseAction} className="mb-6 grid gap-4 lg:grid-cols-2">
           <input type="hidden" name="product_slug" value={slug} />
           <Field label={t({ en: "Release slug", ar: "معرّف الإصدار" })} name="slug" placeholder="moplayer-v2-1-0" required />
           <Field label={t({ en: "Hardware ABI", ar: "معمارية" })} name="abi" defaultValue="universal" required />
@@ -830,7 +830,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
             ar: "استخدم هذا القسم عندما تريد تغيير ما يراه المستخدم في صفحة التطبيق. الشعار يظهر في بطاقة الهوية الصغيرة. صورة البطل هي الصورة الكبيرة في أول الشاشة. بانر التلفاز يستخدم كصورة احتياطية ومعاينة تلفزيونية. صور المعرض تُدار من قسم الصور بالأسفل. ارفع صورة بديلة، احفظ المحتوى، ثم افتح الصفحة العامة لتتأكد.",
           })}
         />
-        <form action={saveProductAction} className="grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
+        <form action={saveProductAction} className="grid gap-4 lg:grid-cols-2">
           <input type="hidden" name="product_slug" value={slug} />
           <Field label={t({ en: "Product name", ar: "اسم المنتج" })} name="product_name" defaultValue={product.product_name} required />
           <Field label={t({ en: "Hero badge", ar: "شارة" })} name="hero_badge" defaultValue={product.hero_badge} />
@@ -911,7 +911,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
             ar: "لا تحتاج لمس أي مسار. اكتب عنواناً، اختر نوع العرض، ارفع الصورة، واحفظ. الصور الموجودة يمكن استبدالها مباشرة من الأسفل.",
           })}
         />
-        <form action={saveScreenshotAction} className="mb-6 grid gap-4 lg:grid-cols-2" encType="multipart/form-data">
+        <form action={saveScreenshotAction} className="mb-6 grid gap-4 lg:grid-cols-2">
           <input type="hidden" name="product_slug" value={slug} />
           <Field label={t({ en: "Asset title", ar: "عنوان الصورة" })} name="title" required />
           <Field label={t({ en: "Order", ar: "الترتيب" })} name="sort_order" type="number" defaultValue="1" required />
@@ -955,7 +955,7 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
                     </button>
                   </form>
                 </div>
-                <form action={saveScreenshotAction} className="grid gap-2" encType="multipart/form-data">
+                <form action={saveScreenshotAction} className="grid gap-2">
                   <input type="hidden" name="id" value={item.id} />
                   <input type="hidden" name="product_slug" value={slug} />
                   <input type="hidden" name="title" value={item.title} />

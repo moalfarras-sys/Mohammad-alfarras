@@ -74,7 +74,7 @@ export function MoPlayerIosControl({
         <StatCard label={t({ en: "Media library", ar: "مكتبة الصور" })} value={mediaAssets.length.toLocaleString()} icon={<ImageIcon className="h-5 w-5" />} tone="violet" />
       </section>
 
-      <form id="ios-runtime" action={saveIosRuntimeConfigAction} encType="multipart/form-data" className="grid gap-5 lg:grid-cols-[1fr_0.92fr]">
+      <form id="ios-runtime" action={saveIosRuntimeConfigAction} className="grid gap-5 lg:grid-cols-[1fr_0.92fr]">
         <section className="rounded-[24px] border border-[var(--line-strong)] bg-white/[0.025] p-5">
           <div className="mb-4 flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)]">

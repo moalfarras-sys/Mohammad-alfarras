@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTheme } from "next-themes";
 import { Bot, Boxes, Globe, Image as ImageIcon, Languages, LayoutDashboard, LogOut, Mail, Moon, ShieldCheck, Sun } from "lucide-react";
 
@@ -45,6 +45,10 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
   const { t, locale, toggle } = useLocale();
   const { resolvedTheme, setTheme } = useTheme();
   const darkTheme = resolvedTheme === "dark";
+  // Theme is unknown during SSR; render a stable icon until mounted so the
+  // server and first client render match (avoids a hydration mismatch).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <div className="admin-root min-h-screen">
@@ -102,7 +106,7 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
               {locale === "ar" ? "English" : "العربية"}
             </button>
             <button type="button" onClick={() => setTheme(darkTheme ? "light" : "dark")} className="btn btn-sm" aria-label="Toggle theme">
-              {darkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {!mounted || darkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <form action={logoutAdminAction}>
               <button type="submit" className="btn btn-sm btn-danger" aria-label="Sign out">
@@ -128,7 +132,7 @@ export function AdminShell({ adminEmail, role, children }: { adminEmail: string;
               {locale === "ar" ? "EN" : "AR"}
             </button>
             <button type="button" onClick={() => setTheme(darkTheme ? "light" : "dark")} className="btn btn-sm" aria-label="Toggle theme">
-              {darkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {!mounted || darkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <form action={logoutAdminAction}>
               <button type="submit" className="btn btn-sm btn-danger" aria-label="Sign out">

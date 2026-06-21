@@ -235,7 +235,7 @@ export function PcControl({
             <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">
               {t({ en: "The big image at the top of the MoPlayer PC page.", ar: "الصورة الكبيرة في أعلى صفحة MoPlayer PC." })}
             </p>
-            <form action={savePcHeroImageAction} className="mt-3 grid gap-3" encType="multipart/form-data">
+            <form action={savePcHeroImageAction} className="mt-3 grid gap-3">
               <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" defaultValue={heroAlt} />
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
                 <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image file", ar: "اختر ملف صورة" })}</span>
@@ -277,7 +277,7 @@ export function PcControl({
             <p className="mt-1 text-xs leading-6 text-[var(--text-3)]">
               {t({ en: "The image shown for MoPlayer PC inside /apps and the MoPlayer family page.", ar: "الصورة التي تظهر لـ MoPlayer PC داخل صفحة التطبيقات وصفحة عائلة MoPlayer." })}
             </p>
-            <form action={savePcCardImageAction} className="mt-3 grid gap-3" encType="multipart/form-data">
+            <form action={savePcCardImageAction} className="mt-3 grid gap-3">
               <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" defaultValue={cardAlt} />
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">
                 <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">{t({ en: "Choose image file", ar: "اختر ملف صورة" })}</span>
@@ -306,7 +306,7 @@ export function PcControl({
             </div>
             <span className="badge">{screenshotItems.length} {t({ en: "images", ar: "صورة" })}</span>
           </div>
-          <form action={addPcScreenshotAction} className="mb-4 grid gap-3 rounded-2xl border border-[var(--line)] bg-black/10 p-3 md:grid-cols-[1fr_160px_auto]" encType="multipart/form-data">
+          <form action={addPcScreenshotAction} className="mb-4 grid gap-3 rounded-2xl border border-[var(--line)] bg-black/10 p-3 md:grid-cols-[1fr_160px_auto]">
             <Field label={t({ en: "Alt text", ar: "وصف الصورة" })} name="alt" placeholder="MoPlayer PC screenshot" />
             <Field label={t({ en: "Order", ar: "الترتيب" })} name="sort_order" type="number" min={1} defaultValue={String(screenshotItems.length + 1)} />
             <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-[var(--line-strong)] bg-[var(--accent-soft)] px-4 py-3">

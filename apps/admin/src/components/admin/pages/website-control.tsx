@@ -678,7 +678,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
             </span>
             <span className="btn btn-sm">{t({ en: "Create", ar: "إنشاء" })}</span>
           </summary>
-          <form action={saveWebsiteServiceAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-4 lg:grid-cols-3" encType="multipart/form-data">
+          <form action={saveWebsiteServiceAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-4 lg:grid-cols-3">
             <Inp label={t({ en: "Service ID / slug", ar: "معرّف الخدمة" })} name="id" placeholder="custom-websites" />
             <Inp label={t({ en: "Sort order", ar: "الترتيب" })} name="sort_order" type="number" defaultValue={String(data.services.length + 1)} />
             <Inp label={t({ en: "Icon", ar: "الأيقونة" })} name="icon" defaultValue="sparkles" />
@@ -733,7 +733,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
                     <span className="btn btn-sm">{t({ en: "Customize", ar: "تخصيص" })}</span>
                   </div>
                 </summary>
-                <form action={saveWebsiteServiceAction} className="mt-4 grid gap-4 border-t border-[var(--line)] pt-4 lg:grid-cols-2" encType="multipart/form-data">
+                <form action={saveWebsiteServiceAction} className="mt-4 grid gap-4 border-t border-[var(--line)] pt-4 lg:grid-cols-2">
                   <input type="hidden" name="id" value={service.id} />
                   <input type="hidden" name="current_cover_media_id" value={service.cover_media_id ?? ""} />
                   <Inp label={t({ en: "Sort order", ar: "الترتيب" })} name="sort_order" type="number" defaultValue={String(service.sort_order)} />
@@ -873,7 +873,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
             ar: "استخدم اسماً ووصفاً واضحين. بعدها يمكن استخدام الصورة في أكثر من مكان بدون رفعها مرة ثانية.",
           })}
         />
-        <form action={uploadWebsiteMediaAction} className="mb-6 grid gap-4 lg:grid-cols-3" encType="multipart/form-data">
+        <form action={uploadWebsiteMediaAction} className="mb-6 grid gap-4 lg:grid-cols-3">
           <Inp label={t({ en: "Arabic alt text", ar: "وصف الصورة (عربي)" })} name="alt_ar" />
           <Inp label={t({ en: "English alt text", ar: "وصف الصورة (إنجليزي)" })} name="alt_en" />
           <Inp label={t({ en: "Kind", ar: "النوع" })} name="kind" defaultValue="site" />
@@ -948,7 +948,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
             ar: "هذه صور كانت مثبّتة في الكود سابقاً. اختر أي صورة من المكتبة أو ارفع ملفاً جديداً مباشرة من جهازك ثم احفظ. اتركها فارغة لاستخدام الصورة الأصلية.",
           })}
         />
-        <form action={saveSiteImagesAction} className="grid gap-4 lg:grid-cols-3" encType="multipart/form-data">
+        <form action={saveSiteImagesAction} className="grid gap-4 lg:grid-cols-3">
           <ImageControl label={t({ en: "Homepage photo (portrait)", ar: "صورة الرئيسية (البورتريه)" })} selectName="home_portrait_media_id" fileName="home_portrait_file" assets={data.mediaAssets} value={siteImages.home_portrait ?? ""} fallbackPath="/images/protofeilnew.jpeg" />
           <ImageControl label={t({ en: "Homepage product image", ar: "صورة المنتج في الرئيسية" })} selectName="home_product_hero_media_id" fileName="home_product_hero_file" assets={data.mediaAssets} value={siteImages.home_product_hero ?? ""} fallbackPath="/images/moplayer-hero-3d-final.png" />
           <ImageControl label={t({ en: "Homepage activation image", ar: "صورة التفعيل في الرئيسية" })} selectName="home_product_secondary_media_id" fileName="home_product_secondary_file" assets={data.mediaAssets} value={siteImages.home_product_secondary ?? ""} fallbackPath="/images/moplayer-activation-flow.webp" />
@@ -1163,7 +1163,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
             </span>
             <span className="btn btn-sm">{t({ en: "Create", ar: "إنشاء" })}</span>
           </summary>
-          <form action={saveWebsiteProjectAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-4 lg:grid-cols-3" encType="multipart/form-data">
+          <form action={saveWebsiteProjectAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-4 lg:grid-cols-3">
             <Inp label={t({ en: "ID (optional)", ar: "المعرّف (اختياري)" })} name="id" placeholder="existing-id" />
             <Inp label={t({ en: "Slug", ar: "المعرّف النصي" })} name="slug" placeholder="project-slug" />
             <Inp label={t({ en: "Sort order", ar: "الترتيب" })} name="sort_order" type="number" defaultValue={String(data.projects.length + 1)} />
@@ -1238,7 +1238,7 @@ export function WebsiteControl({ data, updated }: { data: WebsiteCmsData; update
                     <span className="btn btn-sm">{t({ en: "Customize", ar: "تخصيص" })}</span>
                   </div>
                 </summary>
-                <form action={saveWebsiteProjectAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-3" encType="multipart/form-data">
+                <form action={saveWebsiteProjectAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-3">
                   <input type="hidden" name="id" value={project.id} />
                   <input type="hidden" name="current_cover_media_id" value={project.cover_media_id ?? ""} />
                   <Inp label={t({ en: "Slug", ar: "المعرّف النصي" })} name="slug" defaultValue={project.slug} />
@@ -1440,7 +1440,7 @@ function OfferForm({ offer, assets, index }: { offer?: WebsiteOffer; assets: Web
   const imageId = offer?.image ? assets.find((asset) => asset.path === offer.image)?.id ?? "" : "";
 
   return (
-    <form action={saveWebsiteOffersAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-3" encType="multipart/form-data">
+    <form action={saveWebsiteOffersAction} className="mt-5 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-3">
       <input type="hidden" name="existing_index" value={index ?? ""} />
       <input type="hidden" name="id" value={offer?.id ?? ""} />
       <Inp label={t({ en: "Sort order", ar: "الترتيب" })} name="sort_order" type="number" defaultValue={String(offer?.sortOrder ?? (index ?? 0) + 1)} />

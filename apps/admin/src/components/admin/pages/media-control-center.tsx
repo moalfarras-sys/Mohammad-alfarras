@@ -264,7 +264,7 @@ export function MediaControlCenter({
       </section>
 
       <section id="upload" className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-        <form action={uploadMediaLibraryAction} className="glass fade-up rounded-[24px] p-5" encType="multipart/form-data">
+        <form action={uploadMediaLibraryAction} className="glass fade-up rounded-[24px] p-5">
           <div className="mb-4 flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--accent-soft)] text-[var(--accent)]">
               <UploadCloud className="h-5 w-5" />
@@ -355,7 +355,7 @@ export function MediaControlCenter({
             {t({ en: "Preview home", ar: "معاينة الرئيسية" })}
           </Link>
         </div>
-        <form action={saveMediaSiteImagesAction} className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4" encType="multipart/form-data">
+        <form action={saveMediaSiteImagesAction} className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           {SITE_IMAGE_SLOTS.map((slot) => (
             <SiteImageSlotCard key={slot.key} slot={slot} assets={website.mediaAssets} selectedValue={siteImages[slot.controlKey]} locale={locale} />
           ))}

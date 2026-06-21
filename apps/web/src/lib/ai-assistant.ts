@@ -178,10 +178,13 @@ function groundedReply(messages: AssistantMessage[], locale: AssistantLocale): P
   const reply = (body: string): ProviderResult => ({ fallback: true, provider: "local", reply: body });
 
   const asksMoPlayer = /moplayer|moplayer2|classic|كلاسيك|برو/.test(last) || /\bpro\b/.test(last);
-  const asksActivation = /activate|activation|\bcode\b|\bqr\b|تفعيل|أفعل|افعل|فعل|الكود|رمز/.test(last);
-  const asksUpdate = /update|latest|version|download|تحديث|أحدث|نسخة|قديم|تحم|حمّل/.test(last);
-  const asksProblem = /error|issue|problem|not work|خطأ|مشكلة|ما يشتغل|توقف|تعليق/.test(last);
-  const asksSupport = /support|\bhelp\b|دعم|مساعدة|ساعدني/.test(last);
+  const asksActivation = /activate|activation|\bqr\b|تفعيل|الكود|كود الجهاز|رمز التفعيل/.test(last);
+  // App context required for support/update routing so generic sales phrases like
+  // "كيف يساعدني محمد" / "I need help with my website" are NOT hijacked into a
+  // MoPlayer support answer — those fall through to the warm sales fallback.
+  const mentionsApp = asksMoPlayer || /\bapp\b|تطبيق|اندرويد|أندرويد|android|fire ?tv|تلفزيون|الجهاز/.test(last);
+  const asksUpdate = /update|latest version|تحديث|أحدث إصدار|تنزيل التطبيق|تحميل التطبيق/.test(last);
+  const asksProblem = /\berror\b|crash|not work|won'?t|لا يعمل|ما يشتغل|ما بيشتغل|توقف|تعليق|خطأ|مشكلة/.test(last);
 
   if (asksActivation && asksMoPlayer) {
     return reply(
@@ -207,7 +210,7 @@ function groundedReply(messages: AssistantMessage[], locale: AssistantLocale): P
     );
   }
 
-  if (asksSupport || asksProblem || asksUpdate) {
+  if ((asksProblem || asksUpdate) && mentionsApp) {
     return reply(
       isAr
         ? "صفحة الدعم: https://moalfarras.space/ar/support — اكتب اسم التطبيق ونوع الجهاز ونص المشكلة وأساعدك بأسرع طريقة. وللطلبات أو الاتفاق المباشر تقدر تتواصل مع محمد من زر «تواصل مباشرة مع محمد» بالأسفل."

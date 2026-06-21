@@ -32,6 +32,8 @@ export async function generateMetadata({
   return {
     title: copy.title,
     description: copy.description,
+    // Device-pairing flow (carries ?code=) — keep out of the index.
+    robots: { index: false, follow: true },
     alternates: {
       canonical: `${SITE_URL}/${locale}/moplayer/setup`,
       languages: {

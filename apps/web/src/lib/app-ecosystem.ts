@@ -558,7 +558,13 @@ export async function readManagedAppEcosystems(): Promise<AppEcosystemData[]> {
   return Promise.all(managedApps.map((app) => readAppEcosystem(app.slug)));
 }
 
-export async function saveSupportRequest(input: { id?: string; product_slug: string; name: string; email: string; message: string }) {
+export async function saveSupportRequest(input: {
+  id?: string;
+  product_slug: string;
+  name: string;
+  email: string;
+  message: string;
+}): Promise<{ requestId: string; stored: "db" | "fallback" | false }> {
   const requestId = input.id || crypto.randomUUID();
   const fallbackPayload: AppSupportRequest = {
     id: requestId,
@@ -581,7 +587,7 @@ export async function saveSupportRequest(input: { id?: string; product_slug: str
       status: "new",
     });
     if (error) throw error;
-    return requestId;
+    return { requestId, stored: "db" };
   } catch {
     if (hasDatabaseUrl()) {
       const inserted = await queryRows(
@@ -592,15 +598,21 @@ export async function saveSupportRequest(input: { id?: string; product_slug: str
       ).then(() => true).catch(() => false);
 
       if (inserted) {
-        return requestId;
+        return { requestId, stored: "db" };
       }
     }
 
-    const slug = resolveManagedAppSlug(input.product_slug);
-    const current = await readSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(fallbackSupportRequests));
-    const next = [fallbackPayload, ...(Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)].slice(0, 100);
-    await upsertSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(next));
-    return requestId;
+    // Last-resort store in site_settings. If even this fails, report it so the
+    // caller can surface an error instead of a false "received" success.
+    try {
+      const slug = resolveManagedAppSlug(input.product_slug);
+      const current = await readSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(fallbackSupportRequests));
+      const next = [fallbackPayload, ...(Array.isArray(current) ? (current as AppSupportRequest[]) : fallbackSupportRequests)].slice(0, 100);
+      await upsertSiteSetting(`${slug}_app_support_requests`, asSiteSettingValue(next));
+      return { requestId, stored: "fallback" };
+    } catch {
+      return { requestId, stored: false };
+    }
   }
 }
 

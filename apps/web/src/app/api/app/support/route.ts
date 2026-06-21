@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { saveSupportRequest } from "@/lib/app-ecosystem";
-import { isSmtpConfigured, ownerInbox, sendMail, sendTransactionalMail } from "@/lib/mailer";
+import { isSmtpConfigured, ownerInbox, sendAutomationAlert, sendMail, sendTransactionalMail } from "@/lib/mailer";
 import { rateLimit } from "@/lib/request-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
@@ -149,11 +149,12 @@ export async function POST(request: Request) {
     const productSlug = resolveManagedAppSlug(productSlugForSupport(payload.support_product));
     const screenshot = await uploadScreenshot(formData.get("screenshot"), requestId);
     const message = supportDetails(payload, screenshot);
-    await saveSupportRequest({ id: requestId, product_slug: productSlug, name: payload.name, email: payload.email, message });
+    const { stored } = await saveSupportRequest({ id: requestId, product_slug: productSlug, name: payload.name, email: payload.email, message });
 
     const to = ownerInbox();
+    let ownerDelivered = false;
     if (isSmtpConfigured() && to) {
-      await sendMail({
+      ownerDelivered = await sendMail({
         to,
         subject: `New ${payload.support_product} support request - ${payload.name}`,
         replyTo: payload.email,
@@ -193,6 +194,27 @@ export async function POST(request: Request) {
         body: payload.message,
       }),
     });
+
+    // Total failure: nothing persisted AND the owner email did not go out.
+    // Tell the visitor honestly instead of a false "received", and alert the owner.
+    if (stored === false && !ownerDelivered) {
+      await sendAutomationAlert({
+        title: "Support request not stored or emailed",
+        message: `A ${payload.support_product} support request from ${payload.email} could not be saved or emailed.`,
+        route: "/api/app/support",
+        severity: "danger",
+        details: { requestId, product: payload.support_product },
+      }).catch(() => {});
+      return NextResponse.json(
+        {
+          error:
+            payload.locale === "ar"
+              ? "تعذّر استلام طلب الدعم حالياً. حاول مرة أخرى بعد قليل أو تواصل عبر واتساب."
+              : "We couldn't receive your support request right now. Please try again shortly or reach us on WhatsApp.",
+        },
+        { status: 502 },
+      );
+    }
 
     return supportSuccessResponse(request, payload.locale, requestId);
   } catch (error) {

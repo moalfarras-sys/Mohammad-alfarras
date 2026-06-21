@@ -24,8 +24,6 @@ const localizedRoutes: RouteDef[] = [
   { path: "/apps/moplayer2", priority: 0.9, changeFrequency: "weekly" },
   { path: "/apps/moplayer-ios", priority: 0.82, changeFrequency: "weekly" },
   { path: "/apps/moplayer-pc", priority: 0.86, changeFrequency: "weekly" },
-  { path: "/activate", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/moplayer/setup", priority: 0.55, changeFrequency: "monthly" },
   { path: "/youtube", priority: 0.8, changeFrequency: "weekly" },
   { path: "/ai", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.7, changeFrequency: "monthly" },

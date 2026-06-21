@@ -35,10 +35,6 @@ type GalleryShot = {
   image_path: string;
 };
 
-type ProductWithGallery = AppEcosystemData["product"] & {
-  gallery_shots?: GalleryShot[];
-};
-
 /* ── Orange color tokens (same as Pro) ── */
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -66,7 +62,6 @@ function formatBytes(size?: number | null) {
 }
 
 export function MoPlayerPcLanding({
-  ecosystem,
   locale,
   windowsRelease,
   downloadStats,
@@ -111,9 +106,18 @@ export function MoPlayerPcLanding({
     : (windowsRelease?.screenshots ?? [])
         .filter((src): src is string => typeof src === "string" && src.trim().length > 0)
         .map((src, i) => ({ id: `pc-shot-${i + 1}`, url: src, alt: productName, sortOrder: i + 1 }));
+  // Real MoPlayer PC desktop screenshots (compressed from the app's own QA set)
+  // used when no CMS screenshots are set — never borrow another product's art.
+  const defaultPcShots: GalleryShot[] = [
+    { id: "pc-real-home", image_path: "/images/apps/pc/home.webp", alt_text: isAr ? "الشاشة الرئيسية لـ MoPlayer PC" : "MoPlayer PC home screen", title: productName },
+    { id: "pc-real-movies", image_path: "/images/apps/pc/movies.webp", alt_text: isAr ? "مكتبة الأفلام في MoPlayer PC" : "MoPlayer PC movies library", title: productName },
+    { id: "pc-real-live", image_path: "/images/apps/pc/live.webp", alt_text: isAr ? "البث المباشر في MoPlayer PC" : "MoPlayer PC live TV", title: productName },
+    { id: "pc-real-multi", image_path: "/images/apps/pc/multi.webp", alt_text: isAr ? "العرض المتعدد في MoPlayer PC" : "MoPlayer PC multi-view", title: productName },
+    { id: "pc-real-settings", image_path: "/images/apps/pc/settings.webp", alt_text: isAr ? "إعدادات MoPlayer PC" : "MoPlayer PC settings", title: productName },
+  ];
   const galleryShots: GalleryShot[] = pcShots.length
     ? pcShots.map((shot, i) => ({ id: shot.id ?? `pc-shot-${i}`, image_path: shot.url, alt_text: shot.alt ?? productName, title: productName }))
-    : (ecosystem.product as ProductWithGallery).gallery_shots ?? [];
+    : defaultPcShots;
   const heroImageSrc = normalizePublicImagePath(windowsRelease?.heroImage?.trim() ? windowsRelease.heroImage.trim() : "/images/moplayer-pc-desktop.png");
   const heroImageAlt = windowsRelease?.heroAlt || "MoPlayer PC interface";
   const releaseStats = [

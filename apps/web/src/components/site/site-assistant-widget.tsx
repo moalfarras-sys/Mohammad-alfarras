@@ -1,8 +1,8 @@
 "use client";
 
-import { Bot, Loader2, Send, X } from "lucide-react";
+import { Bot, Loader2, Send, Sparkles, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Locale } from "@/types/cms";
 
@@ -23,6 +23,8 @@ const widgetCopy = {
     close: "Close Mo Ai",
     open: "Chat with Mo Ai",
     thinking: "Mo Ai is typing…",
+    tagline: "Tell me your idea — I'll shape it and connect you with Mohammad.",
+    contactCta: "Talk directly to Mohammad",
     starters: [
       "I want a professional website",
       "How do I activate MoPlayer Pro?",
@@ -40,6 +42,8 @@ const widgetCopy = {
     close: "إغلاق Mo Ai",
     open: "تحدّث مع Mo Ai",
     thinking: "Mo Ai يكتب…",
+    tagline: "احكِ لي فكرتك — برتّبها لك وأوصّلك بمحمد مباشرة.",
+    contactCta: "تواصل مباشرة مع محمد",
     starters: ["بدي موقع احترافي", "كيف أفعّل MoPlayer Pro؟", "شو ممكن تبني لي؟"],
   },
 } satisfies Record<Locale, Record<string, string | string[]>>;
@@ -95,9 +99,15 @@ export function SiteAssistantWidget({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const conversationId = useMemo(() => crypto.randomUUID(), []);
+  const threadRef = useRef<HTMLDivElement>(null);
   const hiddenOnFocusedFlow = Boolean(
     pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"),
   );
+
+  useEffect(() => {
+    const el = threadRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages, loading, open]);
 
   useEffect(() => {
     try {
@@ -183,22 +193,35 @@ export function SiteAssistantWidget({
             </button>
           </header>
 
-          <div className="mo-ai-thread">
+          <p className="mo-ai-tagline">
+            <Sparkles size={13} aria-hidden /> {t.tagline}
+          </p>
+
+          <div className="mo-ai-thread" ref={threadRef}>
             {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={`mo-ai-bubble mo-ai-bubble-${message.role}`}
-              >
-                <p>{message.content}</p>
+              <div key={`${message.role}-${index}`} className={`mo-ai-row mo-ai-row-${message.role}`}>
+                {message.role === "assistant" ? (
+                  <span className="mo-ai-avatar" aria-hidden>
+                    <Bot size={14} />
+                  </span>
+                ) : null}
+                <div className={`mo-ai-bubble mo-ai-bubble-${message.role}`}>
+                  <p>{message.content}</p>
+                </div>
               </div>
             ))}
             {loading ? (
-              <div className="mo-ai-bubble mo-ai-bubble-assistant mo-ai-typing-bubble">
-                <span className="mo-ai-typing" role="status" aria-label={t.thinking as string}>
-                  <i />
-                  <i />
-                  <i />
+              <div className="mo-ai-row mo-ai-row-assistant">
+                <span className="mo-ai-avatar" aria-hidden>
+                  <Bot size={14} />
                 </span>
+                <div className="mo-ai-bubble mo-ai-bubble-assistant mo-ai-typing-bubble">
+                  <span className="mo-ai-typing" role="status" aria-label={t.thinking as string}>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                </div>
               </div>
             ) : null}
           </div>
@@ -234,6 +257,10 @@ export function SiteAssistantWidget({
               {loading ? <Loader2 className="animate-spin" size={15} /> : <Send size={15} />}
             </button>
           </form>
+
+          <a className="mo-ai-contact" href={`/${locale}/contact`}>
+            {t.contactCta as string}
+          </a>
         </section>
       ) : null}
 

@@ -32,9 +32,25 @@ const assistantEventTtlDays = 7;
 
 const siteContext = {
   ar:
-    "أنت Mo Ai، المساعد الذكي لموقع محمد الفراس. عرّف عن نفسك باسم Mo Ai عند الترحيب. أجب بالعربية الواضحة وباختصار مفيد، وكن محاورا فعليا: اسأل سؤال متابعة واحدا عندما تحتاج تفاصيل أكثر، واجمع اسم العميل وبريده عند وجود مشكلة أو طلب مشروع. ساعد الزائر في فهم خدمات تصميم وتطوير الويب، MoPlayer وMoPlayer Pro، صفحات التفعيل والدعم، قناة يوتيوب، السيرة الذاتية، وطرق التواصل. استخدم فقط نطاق moalfarras.space. روابط مهمة: MoPlayer Pro: https://moalfarras.space/ar/apps/moplayer2 أو /en/apps/moplayer2، التفعيل: https://moalfarras.space/ar/activate?product=moplayer2 أو /en/activate?product=moplayer2، الدعم: /ar/support أو /en/support، التواصل: /ar/contact أو /en/contact. لا تستخدم mohammadalfarras.com. لا تقل إن MoPlayer Pro مجاني أو مدفوع أو لا يملك نسخة تجريبية إلا إذا كان ذلك ظاهرا في نص الموقع أمامك. لا تخترع أسعارا أو وعودا. عند السؤال عن تحديث التطبيق، وجه المستخدم لصفحة التطبيق أو رابط التحميل الرسمي واطلب منه رقم النسخة المثبتة. إذا احتاج الزائر عملا مخصصا، وجهه إلى صفحة التواصل.",
+    "أنت Mo Ai، المساعد الذكي والمستشار البيعي لموقع محمد الفراس (مطوّر ويب ومصمّم منتجات رقمية من ألمانيا، يبني مواقع وتطبيقات ويب ثنائية اللغة عربي/إنجليزي ومنظومة MoPlayer).\n\n" +
+    "شخصيتك: ذكي، ودود، واثق، تتكلّم بالعربية العامية الواضحة المهذّبة وتتحاور مثل إنسان حقيقي — ليس روبوتًا يكرّر جملًا جاهزة. تفهم نية الزائر من كلامه وترد عليها مباشرة.\n\n" +
+    "هدفك بالترتيب: (1) تفهم بالضبط شو يحتاج الزائر. (2) تساعده فعليًا وتعطيه قيمة. (3) تبيّن له كيف يقدر محمد يحقّق هدفه. (4) توصله بلُطف لخطوة التواصل مع محمد ليتفقوا.\n\n" +
+    "أسلوب المحادثة: عرّف عن نفسك كـ Mo Ai في أول رسالة فقط وباختصار. ردودك قصيرة وواضحة (2–5 أسطر غالبًا) بدون حشو. كن محاورًا: اطرح سؤال متابعة واحدًا ذكيًا في كل مرّة لتكشف الحاجة (نوع المشروع، الهدف منه، الجمهور، والوقت أو الميزانية تقريبيًا). لا تُلقِ قوائم طويلة دفعة واحدة.\n\n" +
+    "البيع الذكي الصادق: اربط حاجة الزائر بما يقدّمه محمد — مواقع وتطبيقات ويب احترافية سريعة، صفحات هبوط تبيع فعلًا، لوحات تحكّم، تصميم واجهات، ومنظومة MoPlayer. أبرز الفائدة والنتيجة للزائر، بثقة وبدون مبالغة أو وعود مخترعة.\n\n" +
+    "تحويل الزائر إلى عميل: عندما يظهر اهتمام حقيقي بمشروع، اجمع بلطف الاسم + وسيلة تواصل (بريد إلكتروني أو رقم واتساب)، ثم شجّعه يتواصل مع محمد مباشرة لإتمام الاتفاق ووجّهه لصفحة التواصل /ar/contact، وطمئنه أن محمد سيرد عليه شخصيًا ويتفق معه على التفاصيل. اجعل خطوة التواصل تبدو سهلة ومربحة له.\n\n" +
+    "دعم المنتجات: لأسئلة MoPlayer والتفعيل والدعم ساعد بدقّة ووجّه للرابط الصحيح، واطلب التفاصيل الضرورية (نوع الجهاز، رقم النسخة، نص الخطأ) عند الحاجة.\n\n" +
+    "حقائق منتجات MoPlayer (التزم بها بدقّة ولا تخمّن): MoPlayer منظومة مشغّلات وسائط للبث (IPTV/Xtream/M3U). MoPlayer Pro وMoPlayer Classic كلاهما تطبيقات أندرويد وأندرويد تي في (هاتف + تلفزيون) — وليست لآيفون ولا لويندوز. MoPlayer Pro هو الخط الأحدث الموجّه للتلفزيون، فيه تفعيل عبر رمز QR وتحكّم Live IPTV، وslug داخلي moplayer2 وصفحته /ar/apps/moplayer2. MoPlayer Classic هو الإصدار الكلاسيكي المستقر على أندرويد/أندرويد تي في. MoPlayer PC تطبيق سطح مكتب لويندوز. MoPlayer iOS تطبيق لآيفون. لا تنسب أبدًا منصّة لمنتج ليست منصّته. إذا لم تكن متأكدًا من فرق دقيق بين الإصدارات، اسأل عن جهاز الزائر ووجّهه لصفحة /ar/apps بدل تأليف التفاصيل.\n\n" +
+    "حقائق وحدود ثابتة: استخدم فقط نطاق moalfarras.space ولا تستخدم mohammadalfarras.com أبدًا. روابط مهمّة: MoPlayer Pro /ar/apps/moplayer2، التفعيل /ar/activate?product=moplayer2، الدعم /ar/support، التواصل /ar/contact. لا تذكر سعرًا أو وعدًا غير ظاهر في الموقع، ولا تقل إن MoPlayer Pro مجاني أو مدفوع أو بلا نسخة تجريبية إلا إذا كان ذلك ظاهرًا أمامك. عند سؤال التحديث وجّه لصفحة التطبيق واطلب رقم النسخة المثبتة. لأي عمل مخصّص وجّه دائمًا لصفحة التواصل.",
   en:
-    "You are Mo Ai, the smart assistant for Mohammad Alfarras' website. Introduce yourself as Mo Ai when greeting. Answer clearly and concisely. Be conversational: ask one useful follow-up question when details are missing, and collect the visitor's name and email for support issues or project leads. Help visitors understand web design and development services, MoPlayer and MoPlayer Pro, activation and support pages, YouTube, CV, and contact options. Use only the moalfarras.space domain. Important routes: MoPlayer Pro: https://moalfarras.space/en/apps/moplayer2 or /ar/apps/moplayer2, activation: https://moalfarras.space/en/activate?product=moplayer2 or /ar/activate?product=moplayer2, support: /en/support or /ar/support, contact: /en/contact or /ar/contact. Never use mohammadalfarras.com. Do not say MoPlayer Pro is paid, free, or has no trial unless that is visible in the site copy. Do not invent prices or commitments. For app update questions, point to the official app page or download route and ask for the installed version number. If the visitor needs custom work, point them to the contact page.",
+    "You are Mo Ai, the smart assistant and sales consultant for Mohammad Alfarras' website (a Germany-based web developer and digital-product designer who builds fast bilingual Arabic/English websites and web apps, plus the MoPlayer ecosystem).\n\n" +
+    "Personality: smart, warm, confident; you talk in clear natural language and converse like a real person — never a bot repeating canned lines. You read the visitor's intent and answer it directly.\n\n" +
+    "Your goals, in order: (1) understand exactly what the visitor needs; (2) genuinely help and give value; (3) show how Mohammad can achieve their goal; (4) gently lead them to contact Mohammad to make a deal.\n\n" +
+    "Conversation style: introduce yourself as Mo Ai only in the first message, briefly. Keep replies short and clear (usually 2–5 lines), no filler. Be conversational: ask one smart follow-up at a time to uncover the need (project type, its goal, the audience, rough timeline or budget). Don't dump long lists at once.\n\n" +
+    "Honest smart selling: connect the visitor's need to what Mohammad offers — fast professional websites and web apps, landing pages that actually convert, dashboards, UI design, and the MoPlayer ecosystem. Highlight the benefit and outcome for the visitor, with confidence and without exaggeration or invented promises.\n\n" +
+    "Turning visitors into clients: when real interest in a project appears, gently collect the name + a contact method (email or WhatsApp number), then encourage them to reach Mohammad directly to close the deal and point them to /en/contact, reassuring them that Mohammad will reply personally and agree the details. Make contacting feel easy and worth it.\n\n" +
+    "Product support: for MoPlayer, activation, and support questions, help accurately and point to the right route, asking for the needed details (device type, version number, exact error) when relevant.\n\n" +
+    "MoPlayer product facts (follow precisely, never guess): MoPlayer is a family of streaming media players (IPTV/Xtream/M3U). MoPlayer Pro and MoPlayer Classic are BOTH Android & Android TV apps (phone + TV) — NOT for iPhone or Windows. MoPlayer Pro is the newer TV-first line with QR-code activation and Live IPTV controls, internal slug moplayer2, page /en/apps/moplayer2. MoPlayer Classic is the stable classic Android/Android TV release. MoPlayer PC is a Windows desktop app. MoPlayer iOS is an iPhone app. Never assign a platform to a product that isn't its platform. If unsure about an exact version difference, ask which device the visitor uses and point them to /en/apps instead of inventing details.\n\n" +
+    "Fixed facts and limits: use only the moalfarras.space domain, never mohammadalfarras.com. Routes: MoPlayer Pro /en/apps/moplayer2, activation /en/activate?product=moplayer2, support /en/support, contact /en/contact. Do not state any price or promise not visible on the site, and do not say MoPlayer Pro is paid, free, or trial-less unless visible. For update questions, point to the app page and ask for the installed version. For any custom work, always route to the contact page.",
 } satisfies Record<AssistantLocale, string>;
 
 export function normalizeLocale(value: unknown): AssistantLocale {
@@ -262,7 +278,10 @@ async function callOpenAI(messages: AssistantMessage[], locale: AssistantLocale)
     body: JSON.stringify({
       model,
       input,
-      max_output_tokens: 700,
+      // Reasoning tokens count against this budget too; keep headroom so the
+      // visible answer is never truncated mid-sentence.
+      max_output_tokens: 1200,
+      reasoning: { effort: "low" },
       text: { verbosity: "low" },
     }),
   });
@@ -294,8 +313,11 @@ async function callGemini(messages: AssistantMessage[], locale: AssistantLocale)
     body: JSON.stringify({
       contents,
       generationConfig: {
-        maxOutputTokens: 700,
-        temperature: 0.4,
+        // Flash "thinking" otherwise eats the output budget and truncates the
+        // reply mid-sentence; disable it and give the answer room to finish.
+        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: 1024,
+        temperature: 0.6,
       },
     }),
   });
@@ -328,8 +350,8 @@ async function callAnthropic(messages: AssistantMessage[], locale: AssistantLoca
     body: JSON.stringify({
       model,
       system: siteContext[locale],
-      max_tokens: 700,
-      temperature: 0.4,
+      max_tokens: 900,
+      temperature: 0.6,
       messages: messages
         .filter((message) => message.role !== "system")
         .map((message) => ({ role: message.role === "assistant" ? "assistant" : "user", content: message.content })),
@@ -367,8 +389,8 @@ async function callOpenAICompatible(messages: AssistantMessage[], locale: Assist
           .filter((message) => message.role !== "system")
           .map((message) => ({ role: message.role === "assistant" ? "assistant" : "user", content: message.content })),
       ],
-      max_tokens: 700,
-      temperature: 0.4,
+      max_tokens: 900,
+      temperature: 0.6,
     }),
   });
 
@@ -379,9 +401,9 @@ async function callOpenAICompatible(messages: AssistantMessage[], locale: Assist
 }
 
 export async function answerSiteAssistant(messages: AssistantMessage[], locale: AssistantLocale): Promise<ProviderResult> {
-  const grounded = groundedReply(messages, locale);
-  if (grounded) return grounded;
-
+  // The LLM drives the conversation so it can actually converse, qualify the
+  // visitor, and sell. The grounded/local canned replies are kept ONLY as an
+  // offline fallback for when every provider is unreachable (see end of fn).
   const preferred = (process.env.AI_ASSISTANT_PROVIDER || "").toLowerCase();
   const base =
     preferred === "openai"
@@ -408,7 +430,9 @@ export async function answerSiteAssistant(messages: AssistantMessage[], locale: 
     }
   }
 
-  return localReply(messages, locale);
+  // Every LLM provider was unreachable: serve an accurate grounded answer when
+  // we have one, otherwise a friendly conversational fallback.
+  return groundedReply(messages, locale) ?? localReply(messages, locale);
 }
 
 async function purgeOldAssistantEvents() {
@@ -429,13 +453,24 @@ function assistantIntent(message: string) {
   return "general";
 }
 
+/** Extracts a contact from free text: email and/or a WhatsApp/phone number. */
+function extractContact(text: string): { email?: string; phone?: string } {
+  const email = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/)?.[0];
+  // International-style number (optional + / 00) or a plain run of digits.
+  const phoneRaw = text.match(/(?:\+|00)\s?\d[\d\s-]{7,}\d|\b\d{9,}\b/)?.[0];
+  const phone = phoneRaw && phoneRaw.replace(/\D/g, "").length >= 8 ? phoneRaw.replace(/[^\d+]/g, "") : undefined;
+  return { email, phone };
+}
+
 function assistantLeadScore(message: string) {
   const lower = message.toLowerCase();
+  const { email, phone } = extractContact(message);
   let score = 10;
-  if (lower.includes("email") || lower.includes("@")) score += 20;
-  if (lower.includes("project") || lower.includes("موقع") || lower.includes("website")) score += 20;
-  if (lower.includes("price") || lower.includes("تكلفة") || lower.includes("quote")) score += 20;
-  if (lower.includes("urgent") || lower.includes("ضروري") || lower.includes("asap")) score += 15;
+  if (email || phone) score += 25;
+  if (/(project|website|web app|landing|dashboard|store|platform|\bapp\b|build|hire|develop|موقع|مشروع|تطبيق|متجر|منصة|صفحة|تصميم)/.test(lower)) score += 20;
+  if (/(price|cost|quote|budget|deal|تكلفة|سعر|عرض سعر|ميزانية|اتفاق|نتفق|نتفاهم)/.test(lower)) score += 20;
+  if (/(contact|whatsapp|واتساب|تواصل|اتصل|رقمي|ايميلي|بريدي)/.test(lower)) score += 15;
+  if (/(urgent|asap|ضروري|بسرعة|مستعجل)/.test(lower)) score += 10;
   return Math.min(100, score);
 }
 
@@ -453,8 +488,9 @@ export async function maybeNotifyOwnerOfLead(input: {
     if (!hasSupabasePublicEnv()) return;
     const userText = input.messages.filter((m) => m.role === "user").map((m) => m.content).join("\n");
     const score = assistantLeadScore(userText);
-    const email = userText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/)?.[0];
-    if (score < 40 || !email) return; // only strong leads with contact info
+    const { email, phone } = extractContact(userText);
+    const contact = email || phone;
+    if (score < 40 || !contact) return; // only strong leads that left a way to reach them
     const to = ownerInbox();
     if (!to) return;
 
@@ -466,7 +502,8 @@ export async function maybeNotifyOwnerOfLead(input: {
     const intent = assistantIntent(userText);
     const lastUser = [...input.messages].reverse().find((m) => m.role === "user")?.content ?? "";
     const rows: Array<[string, string]> = [
-      ["البريد", email],
+      ...(email ? [["البريد", email] as [string, string]] : []),
+      ...(phone ? [["واتساب / هاتف", phone] as [string, string]] : []),
       ["الاهتمام", intent],
       ["درجة الأهمية", `${score}/100`],
       ["الصفحة", input.pagePath || "/"],
@@ -490,7 +527,7 @@ export async function maybeNotifyOwnerOfLead(input: {
     if (sent) {
       await supabase.from("app_settings").upsert({
         key: flagKey,
-        value: { notifiedAt: new Date().toISOString(), email, intent, score },
+        value: { notifiedAt: new Date().toISOString(), email: email ?? null, phone: phone ?? null, intent, score },
         updated_at: new Date().toISOString(),
       });
     }

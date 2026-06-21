@@ -10,10 +10,12 @@ export const interFont = Manrope({
 
 export const arabicFont = IBM_Plex_Sans_Arabic({
   subsets: ["arabic"],
-  weight: "400",
+  // Arabic is the primary language: load real bold weights so headings (700+)
+  // render with true glyphs instead of smeared browser faux-bold.
+  weight: ["400", "500", "600", "700"],
   variable: "--font-arabic",
   display: "swap",
-  preload: false,
+  preload: true,
 });
 
 export const siteFontClassName = `${interFont.variable} ${arabicFont.variable}`;

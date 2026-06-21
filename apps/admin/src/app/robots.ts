@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
+  // The admin control center must never be indexed. Hard wall, and no pointer
+  // to the public-site sitemap/host (this is a separate admin deployment).
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin", "/ar/admin", "/en/admin"] }],
-    host: "https://moalfarras.space",
-    sitemap: "https://moalfarras.space/sitemap.xml",
+    rules: [{ userAgent: "*", disallow: "/" }],
   };
 }

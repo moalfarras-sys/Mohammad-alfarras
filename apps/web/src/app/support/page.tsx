@@ -6,5 +6,5 @@ export default async function SupportRedirect({
   searchParams?: Promise<{ support?: string }>;
 }) {
   const query = (await searchParams) ?? {};
-  redirect(query.support ? `/en/support?support=${encodeURIComponent(query.support)}` : "/en/support");
+  redirect(query.support ? `/ar/support?support=${encodeURIComponent(query.support)}` : "/ar/support");
 }

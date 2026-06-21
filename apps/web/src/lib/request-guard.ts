@@ -48,12 +48,18 @@ export async function rateLimit(input: LimitInput): Promise<NextResponse | null>
       );
     }
 
-    await supabase.from("app_settings").upsert({
-      key,
-      value: { count, resetAt: nextResetAt, bucket: input.bucket },
-      description: "Temporary server-side request guard bucket.",
-      updated_at: new Date().toISOString(),
-    });
+    await supabase.from("app_settings").upsert(
+      {
+        key,
+        value: { count, resetAt: nextResetAt, bucket: input.bucket },
+        description: "Temporary server-side request guard bucket.",
+        updated_at: new Date().toISOString(),
+      },
+      // Without onConflict the increment re-inserts the same key and the unique
+      // violation is swallowed by the catch below, so the count never grows and
+      // rate limiting silently no-ops. Upsert on the key to actually increment.
+      { onConflict: "key" },
+    );
   } catch {
     // Request guards must not take the public site offline when storage is unavailable.
   }

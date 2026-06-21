@@ -36,6 +36,7 @@ const siteContext = {
     "شخصيتك: ذكي، ودود، واثق، تتكلّم بالعربية العامية الواضحة المهذّبة وتتحاور مثل إنسان حقيقي — ليس روبوتًا يكرّر جملًا جاهزة. تفهم نية الزائر من كلامه وترد عليها مباشرة.\n\n" +
     "هدفك بالترتيب: (1) تفهم بالضبط شو يحتاج الزائر. (2) تساعده فعليًا وتعطيه قيمة. (3) تبيّن له كيف يقدر محمد يحقّق هدفه. (4) توصله بلُطف لخطوة التواصل مع محمد ليتفقوا.\n\n" +
     "أسلوب المحادثة: عرّف عن نفسك كـ Mo Ai في أول رسالة فقط وباختصار. ردودك قصيرة وواضحة (2–5 أسطر غالبًا) بدون حشو. كن محاورًا: اطرح سؤال متابعة واحدًا ذكيًا في كل مرّة لتكشف الحاجة (نوع المشروع، الهدف منه، الجمهور، والوقت أو الميزانية تقريبيًا). لا تُلقِ قوائم طويلة دفعة واحدة.\n\n" +
+    "مهم جدًا: لا تقل أبدًا إن رسالة الزائر «غير واضحة» أو اطلب منه إعادتها طالما فيها طلب مفهوم. حتى لو كانت مختصرة، افهم المقصود وتفاعل معه فورًا وأعطِ قيمة، ثم اسأل سؤال متابعة واحدًا قصيرًا عند الحاجة فقط. تجنّب الردود العامة على شكل قائمة خيارات؛ ردّ تحديدًا على ما كتبه الزائر.\n\n" +
     "البيع الذكي الصادق: اربط حاجة الزائر بما يقدّمه محمد — مواقع وتطبيقات ويب احترافية سريعة، صفحات هبوط تبيع فعلًا، لوحات تحكّم، تصميم واجهات، ومنظومة MoPlayer. أبرز الفائدة والنتيجة للزائر، بثقة وبدون مبالغة أو وعود مخترعة.\n\n" +
     "تحويل الزائر إلى عميل: عندما يظهر اهتمام حقيقي بمشروع، اجمع بلطف الاسم + وسيلة تواصل (بريد إلكتروني أو رقم واتساب)، ثم شجّعه يتواصل مع محمد مباشرة لإتمام الاتفاق ووجّهه لصفحة التواصل /ar/contact، وطمئنه أن محمد سيرد عليه شخصيًا ويتفق معه على التفاصيل. اجعل خطوة التواصل تبدو سهلة ومربحة له.\n\n" +
     "دعم المنتجات: لأسئلة MoPlayer والتفعيل والدعم ساعد بدقّة ووجّه للرابط الصحيح، واطلب التفاصيل الضرورية (نوع الجهاز، رقم النسخة، نص الخطأ) عند الحاجة.\n\n" +
@@ -46,6 +47,7 @@ const siteContext = {
     "Personality: smart, warm, confident; you talk in clear natural language and converse like a real person — never a bot repeating canned lines. You read the visitor's intent and answer it directly.\n\n" +
     "Your goals, in order: (1) understand exactly what the visitor needs; (2) genuinely help and give value; (3) show how Mohammad can achieve their goal; (4) gently lead them to contact Mohammad to make a deal.\n\n" +
     "Conversation style: introduce yourself as Mo Ai only in the first message, briefly. Keep replies short and clear (usually 2–5 lines), no filler. Be conversational: ask one smart follow-up at a time to uncover the need (project type, its goal, the audience, rough timeline or budget). Don't dump long lists at once.\n\n" +
+    "Very important: NEVER say the visitor's message is 'unclear' or ask them to rephrase as long as it contains an understandable request. Even if it's short, infer the intent, engage with it immediately and give value, then ask at most one short follow-up only if truly needed. Avoid generic menu-style replies; respond specifically to what the visitor wrote.\n\n" +
     "Honest smart selling: connect the visitor's need to what Mohammad offers — fast professional websites and web apps, landing pages that actually convert, dashboards, UI design, and the MoPlayer ecosystem. Highlight the benefit and outcome for the visitor, with confidence and without exaggeration or invented promises.\n\n" +
     "Turning visitors into clients: when real interest in a project appears, gently collect the name + a contact method (email or WhatsApp number), then encourage them to reach Mohammad directly to close the deal and point them to /en/contact, reassuring them that Mohammad will reply personally and agree the details. Make contacting feel easy and worth it.\n\n" +
     "Product support: for MoPlayer, activation, and support questions, help accurately and point to the right route, asking for the needed details (device type, version number, exact error) when relevant.\n\n" +
@@ -94,168 +96,143 @@ function conversationUuid(value: unknown) {
   return randomUUID();
 }
 
-function localReply(messages: AssistantMessage[], locale: AssistantLocale): ProviderResult {
-  const last = [...messages].reverse().find((message) => message.role === "user")?.content.toLowerCase() ?? "";
-  const isAr = locale === "ar";
-
-  const isUpdateQuestion =
-    last.includes("update") ||
-    last.includes("latest") ||
-    last.includes("version") ||
-    last.includes("old") ||
-    last.includes("download") ||
-    last.includes("تحديث") ||
-    last.includes("أحدث") ||
-    last.includes("نسخة") ||
-    last.includes("قديم");
-
-  if ((last.includes("moplayer") || last.includes("برو")) && isUpdateQuestion) {
-    return {
-      fallback: false,
-      provider: "local",
-      reply: isAr
-        ? "نعم، إذا كانت النسخة المثبتة قديمة فافتح صفحة التطبيق الرسمية وحمل أحدث إصدار من زر التحميل. MoPlayer Pro صفحته: https://moalfarras.space/ar/apps/moplayer2 ويستخدم داخليا product=moplayer2 في روابط التحديث. أرسل رقم النسخة المثبتة ونوع الجهاز إذا لم يظهر التحديث."
-        : "Yes. If your installed version is old, open the official app page and use the download button for the latest release. MoPlayer Pro is at https://moalfarras.space/en/apps/moplayer2 and uses product=moplayer2 internally for update APIs. Send your installed version and device type if the update does not appear.",
-    };
-  }
-
-  if (last.includes("moplayer2") || last.includes("moplayer") || last.includes("pro") || last.includes("برو")) {
-    return {
-      fallback: true,
-      provider: "local",
-      reply: isAr
-        ? "MoPlayer Pro يستخدم slug ثابت اسمه moplayer2 في الروابط والـ API. إذا كانت نسختك قديمة افتح https://moalfarras.space/ar/apps/moplayer2 وحمل أحدث إصدار من زر التحميل. للتفعيل استخدم /activate?product=moplayer2 مع كود الجهاز. إذا ظهر خطأ أرسل نوع الجهاز ورقم النسخة ونص الخطأ."
-        : "MoPlayer Pro keeps the internal slug moplayer2 for URLs and APIs. If your installed version is old, open https://moalfarras.space/en/apps/moplayer2 and use the download button for the latest release. Activation uses /activate?product=moplayer2 with the device code. If an error appears, send the device type, app version, and exact error text.",
-    };
-  }
-
-  if (last.includes("تفعيل") || last.includes("activate") || last.includes("code") || last.includes("الكود")) {
-    return {
-      fallback: true,
-      provider: "local",
-      reply: isAr
-        ? "للتفعيل افتح صفحة التفعيل، أدخل كود الجهاز، ثم أرسل بيانات المصدر من الموقع. إذا كان المنتج Pro تأكد أن الرابط يحتوي product=moplayer2. أرسل لي كود الجهاز أو وصف الخطأ حتى أوجهك للخطوة الصحيحة."
-        : "To activate, open the activation page, enter the device code, then send the source details from the website. For Pro, make sure the URL includes product=moplayer2. Send the device code or error text so I can guide the next step.",
-    };
-  }
-
-  if (
-    last.includes("iptv") ||
-    last.includes("website") ||
-    last.includes("site") ||
-    last.includes("project") ||
-    last.includes("موقع") ||
-    last.includes("مشروع") ||
-    last.includes("تطبيق")
-  ) {
-    return {
-      fallback: true,
-      provider: "local",
-      reply: isAr
-        ? "أكيد. لنبدأ بذكاء: أحتاج منك 4 أشياء حتى أرتب الطلب وأرسله للدعم بشكل واضح: نوع المشروع، الجمهور المستهدف، أهم 3 ميزات تريدها، والبريد أو واتساب للتواصل. إذا كان المشروع IPTV أو تطبيق بث، اذكر أيضا هل تحتاج صفحة تحميل، تفعيل أكواد، لوحة أدمن، أو مساعد داخل التطبيق."
-        : "Absolutely. To shape this properly, I need four details: project type, target users, the top 3 features you want, and an email or WhatsApp contact. If this is an IPTV or streaming app project, also mention whether you need a download page, activation codes, admin dashboard, or in-app assistant.",
-    };
-  }
-
-  return {
-    fallback: true,
-    provider: "local",
-    reply: isAr
-      ? "أهلا بك. أقدر أساعدك في خدمات الموقع، MoPlayer، التفعيل، الدعم، أو ترتيب فكرة مشروعك. ما الذي تريد فحصه أو بناؤه؟"
-      : "Hi. I can help with website services, MoPlayer, activation, support, or shaping a project idea. What would you like to check or build?",
-  };
+/** Best-effort name extraction from "my name is X" / "اسمي X". Conservative. */
+function extractName(text: string): string | undefined {
+  const ar = text.match(/اسمي\s+([^\s,،.\d]{2,20})/);
+  const en = text.match(/(?:my name is|i am|i'm)\s+([A-Za-z]{2,20})/i);
+  const raw = (ar?.[1] || en?.[1] || "").trim();
+  return raw.length >= 2 ? raw : undefined;
 }
 
+/**
+ * Warm, on-brand offline fallback used only when every LLM provider is
+ * unreachable. It still reads intent, sounds like the Mo Ai sales persona, and
+ * always steers the visitor toward contacting Mohammad — never a cold checklist.
+ */
+function localReply(messages: AssistantMessage[], locale: AssistantLocale): ProviderResult {
+  const text = messages.filter((m) => m.role === "user").map((m) => m.content).join("\n");
+  const last = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+  const lower = last.toLowerCase();
+  const isAr = locale === "ar";
+  const { email, phone } = extractContact(text);
+  const name = extractName(text);
+  const hi = name ? (isAr ? `أهلاً ${name}! ` : `Hi ${name}! `) : isAr ? "أهلاً! " : "Hi! ";
+  const cta = isAr
+    ? "تقدر تتواصل مع محمد مباشرة من زر «تواصل مباشرة مع محمد» بالأسفل، وهو بيرد عليك شخصيًا."
+    : "You can reach Mohammad directly via the “Talk directly to Mohammad” button below — he replies personally.";
+  const reply = (body: string): ProviderResult => ({ fallback: true, provider: "local", reply: body });
+
+  // Strong lead: they shared contact details → confirm warmly and route to contact.
+  if (email || phone) {
+    const got = [email, phone].filter(Boolean).join(" · ");
+    return reply(
+      isAr
+        ? `${hi}تمام، سجّلت تفاصيلك (${got}). أفضل خطوة تالية إنك تتواصل مع محمد مباشرة ليتفق معك على التفاصيل والتنفيذ. ${cta}`
+        : `${hi}Great — I’ve noted your details (${got}). The best next step is to contact Mohammad directly so he can align on scope and delivery. ${cta}`,
+    );
+  }
+
+  // Project / build intent.
+  if (/(iptv|website|web app|landing|dashboard|store|platform|\bapp\b|build|develop|design|موقع|مشروع|تطبيق|متجر|منصة|صفحة|تصميم|بناء)/.test(lower)) {
+    return reply(
+      isAr
+        ? `${hi}فكرة حلوة، وهذا بالضبط شغل محمد — يبني مواقع وتطبيقات ويب احترافية وسريعة تجيب نتائج. احكِ لي باختصار: شو هدف المشروع ولمين موجّه؟ وعشان نمشي بسرعة، ${cta}`
+        : `${hi}Love it — this is exactly what Mohammad does: fast, professional websites and web apps that get results. Tell me briefly what the goal is and who it’s for, and to move fast, ${cta}`,
+    );
+  }
+
+  // Pricing.
+  if (/(price|cost|quote|budget|سعر|تكلفة|كلفة|قديش|كم سعر|ميزانية)/.test(lower)) {
+    return reply(
+      isAr
+        ? `${hi}السعر بيعتمد على حجم المشروع وما تحتاجه بالضبط، وعشان هيك محمد بيعطيك عرض واضح بعد ما يفهم فكرتك. احكِ لي باختصار شو بدك تبني، و${cta}`
+        : `${hi}Pricing depends on the scope and exactly what you need, so Mohammad gives you a clear quote once he understands your idea. Tell me briefly what you want to build, and ${cta}`,
+    );
+  }
+
+  // Direct contact request.
+  if (/(contact|reach|talk|تواصل|اتصل|كيف احكي|كيف اتواصل|رقم محمد|ايميل محمد)/.test(lower)) {
+    return reply(
+      isAr
+        ? `${hi}${cta} اكتب له فكرتك أو سؤالك وهو بيرجعلك بأقرب وقت.`
+        : `${hi}${cta} Drop your idea or question and he’ll get back to you shortly.`,
+    );
+  }
+
+  // Default warm welcome.
+  return reply(
+    isAr
+      ? `${hi}أنا Mo Ai، مساعد محمد الفراس. بقدر أساعدك في مواقع وتطبيقات ويب احترافية، تطبيقات MoPlayer (التفعيل والتحميل والدعم)، أو ترتيب فكرة مشروعك. شو بتحب نبدأ فيه؟`
+      : `${hi}I’m Mo Ai, Mohammad Alfarras’ assistant. I can help with professional websites & web apps, the MoPlayer apps (activation, downloads, support), or shaping your project idea. Where would you like to start?`,
+  );
+}
+
+/**
+ * Accurate offline answers for the MoPlayer / activation / support topics. Returns
+ * null for everything else so localReply() handles the warm, sales-oriented path.
+ * Used only when every LLM provider is unreachable.
+ */
 function groundedReply(messages: AssistantMessage[], locale: AssistantLocale): ProviderResult | null {
   const last = [...messages].reverse().find((message) => message.role === "user")?.content.toLowerCase() ?? "";
   const isAr = locale === "ar";
-  const asksProject =
-    last.includes("iptv") ||
-    last.includes("website") ||
-    last.includes("site") ||
-    last.includes("project") ||
-    last.includes("موقع") ||
-    last.includes("مشروع") ||
-    last.includes("تطبيق");
-  const asksActivation =
-    last.includes("activate") ||
-    last.includes("activation") ||
-    last.includes("code") ||
-    last.includes("تفعيل") ||
-    last.includes("أفعل") ||
-    last.includes("افعل") ||
-    last.includes("فعل") ||
-    last.includes("الكود") ||
-    last.includes("رمز");
-  const asksPro = last.includes("moplayer") || last.includes("moplayer2") || last.includes("pro") || last.includes("برو");
-  const asksUpdate =
-    last.includes("update") ||
-    last.includes("latest") ||
-    last.includes("version") ||
-    last.includes("old") ||
-    last.includes("download") ||
-    last.includes("تحديث") ||
-    last.includes("أحدث") ||
-    last.includes("نسخة") ||
-    last.includes("قديم");
-  const asksProblem =
-    last.includes("error") ||
-    last.includes("issue") ||
-    last.includes("problem") ||
-    last.includes("خطأ") ||
-    last.includes("مشكلة") ||
-    last.includes("تشغيل");
+  const reply = (body: string): ProviderResult => ({ fallback: true, provider: "local", reply: body });
 
-  if (asksProject && !asksPro) {
-    return {
-      fallback: false,
-      provider: "local",
-      reply: isAr
-        ? "أكيد. لبناء مساعد ذكي لموقع أو تطبيق IPTV، أول خطوة هي جمع البيانات التي يحتاجها الدعم: نوع المشروع، الجمهور المستهدف، أهم 3 ميزات، البريد أو واتساب، وهل تحتاج صفحة تحميل أو تفعيل أكواد أو لوحة أدمن. أرسل هذه التفاصيل وسأرتبها لك كطلب واضح."
-        : "Absolutely. For an IPTV website or app assistant, the first step is collecting the support-ready details: project type, target audience, top 3 features, email or WhatsApp, and whether you need a download page, activation codes, or admin dashboard. Send those details and I will structure the request clearly.",
-    };
+  const asksMoPlayer = /moplayer|moplayer2|classic|كلاسيك|برو/.test(last) || /\bpro\b/.test(last);
+  const asksActivation = /activate|activation|\bcode\b|\bqr\b|تفعيل|أفعل|افعل|فعل|الكود|رمز/.test(last);
+  const asksUpdate = /update|latest|version|download|تحديث|أحدث|نسخة|قديم|تحم|حمّل/.test(last);
+  const asksProblem = /error|issue|problem|not work|خطأ|مشكلة|ما يشتغل|توقف|تعليق/.test(last);
+  const asksSupport = /support|\bhelp\b|دعم|مساعدة|ساعدني/.test(last);
+
+  if (asksActivation && asksMoPlayer) {
+    return reply(
+      isAr
+        ? "لتفعيل MoPlayer Pro (أندرويد/أندرويد تي في): افتح صفحة التطبيق https://moalfarras.space/ar/apps/moplayer2 ثم صفحة التفعيل https://moalfarras.space/ar/activate?product=moplayer2، وأدخل كود الجهاز أو امسح رمز QR الظاهر على شاشة التلفزيون. إذا ظهر خطأ أرسل لي نوع الجهاز ونص الخطأ وأوجّهك خطوة بخطوة."
+        : "To activate MoPlayer Pro (Android / Android TV): open the app page https://moalfarras.space/en/apps/moplayer2, then the activation page https://moalfarras.space/en/activate?product=moplayer2, and enter the device code or scan the QR shown on the TV. If you see an error, send me the device type and exact error text and I’ll guide you step by step.",
+    );
   }
 
-  if (asksPro && asksUpdate) {
-    return {
-      fallback: false,
-      provider: "local",
-      reply: isAr
-        ? "نعم، إذا كانت النسخة المثبتة قديمة فافتح صفحة MoPlayer Pro الرسمية: https://moalfarras.space/ar/apps/moplayer2 ثم حمل أحدث إصدار من زر التحميل. التطبيق يعتمد داخليا على product=moplayer2 في روابط التحديث والـ API. أرسل لي رقم النسخة المثبتة عندك ونوع الجهاز إذا لم يظهر التحديث."
-        : "Yes. If your installed version is old, open the official MoPlayer Pro page at https://moalfarras.space/en/apps/moplayer2 and use the download button for the latest release. The app update APIs use product=moplayer2 internally. Send me your installed version number and device type if the update does not appear.",
-    };
+  if (asksActivation) {
+    return reply(
+      isAr
+        ? "للتفعيل افتح صفحة التفعيل https://moalfarras.space/ar/activate وأدخل كود الجهاز. لو المنتج MoPlayer Pro استخدم الرابط مع product=moplayer2. أرسل لي اسم التطبيق ونوع الجهاز إذا واجهت أي خطأ."
+        : "To activate, open https://moalfarras.space/en/activate and enter your device code. For MoPlayer Pro use the link with product=moplayer2. Send me the app name and device type if you hit any error.",
+    );
   }
 
-  if (asksPro && asksProblem) {
-    return {
-      fallback: false,
-      provider: "local",
-      reply: isAr
-        ? "لمشكلة في MoPlayer Pro افتح صفحة الدعم https://moalfarras.space/ar/support واكتب: نوع الجهاز، رقم النسخة، نص الخطأ، وهل المشكلة في التفعيل أم تشغيل القنوات. إذا كان عندك كود جهاز أرسله أيضا حتى نراجع الطلب بسرعة."
-        : "For a MoPlayer Pro issue, open https://moalfarras.space/en/support and include the device type, app version, exact error text, and whether the issue is activation or playback. If you have a device code, include it so support can review it faster.",
-    };
+  if (asksMoPlayer) {
+    return reply(
+      isAr
+        ? "MoPlayer Pro و Classic كلاهما تطبيقات أندرويد وأندرويد تي في؛ Pro هو الأحدث الموجّه للتلفزيون مع تفعيل عبر رمز QR وتحكّم Live IPTV، وClassic الإصدار الكلاسيكي المستقر. لأحدث إصدار افتح الصفحة الرسمية https://moalfarras.space/ar/apps/moplayer2 وحمّل من زر التحميل. لو في مشكلة، أرسل نوع الجهاز ورقم النسخة ونص الخطأ، أو افتح صفحة الدعم https://moalfarras.space/ar/support."
+        : "MoPlayer Pro and Classic are both Android & Android TV apps; Pro is the newer TV-first build with QR-code activation and Live IPTV controls, and Classic is the stable classic release. For the latest version open the official page https://moalfarras.space/en/apps/moplayer2 and use the download button. If something’s wrong, send the device type, version number and error text, or open support https://moalfarras.space/en/support.",
+    );
   }
 
-  if (asksActivation && asksPro) {
-    return {
-      fallback: false,
-      provider: "local",
-      reply: isAr
-        ? "لتفعيل MoPlayer Pro افتح https://moalfarras.space/ar/activate?product=moplayer2 أو https://moalfarras.space/en/activate?product=moplayer2، أدخل كود الجهاز، ثم أرسل بيانات المصدر من صفحة التفعيل. مهم: المنتج يبقى داخليا باسم moplayer2 في الروابط والـ API. إذا ظهر خطأ، أرسل نص الخطأ وكود الجهاز."
-        : "To activate MoPlayer Pro, open https://moalfarras.space/en/activate?product=moplayer2 or https://moalfarras.space/ar/activate?product=moplayer2, enter the device code, then send the source details from the activation page. Important: the internal product slug stays moplayer2 in URLs and APIs. If you see an error, send the error text and device code.",
-    };
+  if (asksSupport || asksProblem || asksUpdate) {
+    return reply(
+      isAr
+        ? "صفحة الدعم: https://moalfarras.space/ar/support — اكتب اسم التطبيق ونوع الجهاز ونص المشكلة وأساعدك بأسرع طريقة. وللطلبات أو الاتفاق المباشر تقدر تتواصل مع محمد من زر «تواصل مباشرة مع محمد» بالأسفل."
+        : "Support page: https://moalfarras.space/en/support — share the app name, device type and the issue and I’ll help the fastest way. For requests or to agree directly, reach Mohammad via the “Talk directly to Mohammad” button below.",
+    );
   }
 
-  if (last.includes("support") || last.includes("دعم") || last.includes("مساعدة")) {
-    return {
-      fallback: false,
-      provider: "local",
-      reply: isAr
-        ? "صفحة الدعم هي https://moalfarras.space/ar/support ويمكنك أيضا استخدام https://moalfarras.space/ar/contact للتواصل المباشر. اكتب اسم التطبيق ونوع الجهاز ونص الخطأ حتى نحل المشكلة أسرع."
-        : "The support page is https://moalfarras.space/en/support. You can also use https://moalfarras.space/en/contact for direct contact. Include the app name, device type, and exact error text so we can solve it faster.",
-    };
-  }
+  return null;
+}
 
+/**
+ * fetch() that retries transient failures (rate limits / gateway errors) with a
+ * short backoff. Permanent errors (400/401/403/404) are returned immediately so
+ * we don't waste time, and the caller falls through to the next provider.
+ */
+async function fetchWithRetry(url: string, init: RequestInit, retries = 2, backoffMs = 450): Promise<Response | null> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (res.ok || ![429, 500, 502, 503, 504].includes(res.status) || attempt === retries) return res;
+    } catch {
+      if (attempt === retries) return null;
+    }
+    await new Promise((resolve) => setTimeout(resolve, backoffMs * (attempt + 1)));
+  }
   return null;
 }
 
@@ -264,6 +241,10 @@ async function callOpenAI(messages: AssistantMessage[], locale: AssistantLocale)
   if (!apiKey) return null;
 
   const model = process.env.OPENAI_MODEL || "gpt-5-mini";
+  // `reasoning` and `text.verbosity` are GPT-5 / o-series only. Sending them to a
+  // non-reasoning model (e.g. gpt-4.1-mini) returns HTTP 400 and silently kills
+  // the whole assistant, so gate them by model family.
+  const isReasoningModel = /^(gpt-5|o\d)/i.test(model);
   const input = [
     { role: "developer", content: siteContext[locale] },
     ...messages.map((message) => ({ role: message.role === "assistant" ? "assistant" : "user", content: message.content })),
@@ -281,8 +262,7 @@ async function callOpenAI(messages: AssistantMessage[], locale: AssistantLocale)
       // Reasoning tokens count against this budget too; keep headroom so the
       // visible answer is never truncated mid-sentence.
       max_output_tokens: 1200,
-      reasoning: { effort: "low" },
-      text: { verbosity: "low" },
+      ...(isReasoningModel ? { reasoning: { effort: "low" }, text: { verbosity: "low" } } : {}),
     }),
   });
 
@@ -304,7 +284,7 @@ async function callGemini(messages: AssistantMessage[], locale: AssistantLocale)
     },
   ];
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+  const res = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -322,7 +302,7 @@ async function callGemini(messages: AssistantMessage[], locale: AssistantLocale)
     }),
   });
 
-  if (!res.ok) return null;
+  if (!res || !res.ok) return null;
   const data = (await res.json()) as {
     candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
   };
@@ -375,7 +355,9 @@ async function callOpenAICompatible(messages: AssistantMessage[], locale: Assist
   if (!apiKey || !baseUrl) return null;
 
   const model = process.env.CUSTOM_AI_MODEL || "gpt-5.4-mini";
-  const res = await fetch(`${baseUrl}/chat/completions`, {
+  // This gateway is currently the most reliable provider but it throws transient
+  // 429/502s under load, so retry before giving up.
+  const res = await fetchWithRetry(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -394,7 +376,7 @@ async function callOpenAICompatible(messages: AssistantMessage[], locale: Assist
     }),
   });
 
-  if (!res.ok) return null;
+  if (!res || !res.ok) return null;
   const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const reply = data.choices?.[0]?.message?.content?.trim();
   return reply ? { fallback: false, model, provider: "custom", reply } : null;
@@ -405,21 +387,24 @@ export async function answerSiteAssistant(messages: AssistantMessage[], locale: 
   // visitor, and sell. The grounded/local canned replies are kept ONLY as an
   // offline fallback for when every provider is unreachable (see end of fn).
   const preferred = (process.env.AI_ASSISTANT_PROVIDER || "").toLowerCase();
-  const base =
-    preferred === "openai"
-      ? [callOpenAI, callGemini, callAnthropic]
-      : preferred === "gemini"
-        ? [callGemini, callOpenAI, callAnthropic]
-        : preferred === "anthropic" || preferred === "claude"
-          ? [callAnthropic, callOpenAI, callGemini]
-          : preferred === "custom" || preferred === "synterolink"
-            ? [callOpenAICompatible, callOpenAI, callGemini, callAnthropic]
-            : [callOpenAI, callGemini, callAnthropic];
+  const byName: Record<string, (m: AssistantMessage[], l: AssistantLocale) => Promise<ProviderResult | null>> = {
+    openai: callOpenAI,
+    gemini: callGemini,
+    anthropic: callAnthropic,
+    claude: callAnthropic,
+    custom: callOpenAICompatible,
+    synterolink: callOpenAICompatible,
+  };
 
-  // Always keep the OpenAI-compatible custom backup in the chain (last), unless it
-  // was explicitly promoted to first via AI_ASSISTANT_PROVIDER=custom. Every key is
-  // kept; a failing/absent provider simply falls through to the next one.
-  const providers = base.includes(callOpenAICompatible) ? base : [...base, callOpenAICompatible];
+  // Quality-first default order: Gemini (strong, free tier that resets daily) →
+  // the OpenAI-compatible gateway (reliable functional backup) → OpenAI →
+  // Anthropic. Every provider stays in the chain; a failing/absent one falls
+  // through to the next, and finally to the grounded/local canned reply. An
+  // explicit AI_ASSISTANT_PROVIDER just promotes that provider to the front.
+  // No key is ever removed — only ordered.
+  const defaultOrder = [callGemini, callOpenAICompatible, callOpenAI, callAnthropic];
+  const lead = byName[preferred];
+  const providers = lead ? [lead, ...defaultOrder.filter((provider) => provider !== lead)] : defaultOrder;
 
   for (const provider of providers) {
     try {

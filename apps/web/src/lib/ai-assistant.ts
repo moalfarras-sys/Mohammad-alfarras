@@ -22,7 +22,7 @@ export type PersistedAssistantMessage = {
 type ProviderResult = {
   fallback: boolean;
   model?: string;
-  provider: "anthropic" | "gemini" | "openai" | "local";
+  provider: "anthropic" | "gemini" | "openai" | "custom" | "local";
   reply: string;
 };
 
@@ -342,19 +342,62 @@ async function callAnthropic(messages: AssistantMessage[], locale: AssistantLoca
   return reply ? { fallback: false, model, provider: "anthropic", reply } : null;
 }
 
+/**
+ * Generic OpenAI-compatible provider (e.g. a self-hosted gateway). Configured via
+ * CUSTOM_AI_BASE_URL + CUSTOM_AI_API_KEY (+ CUSTOM_AI_MODEL). Used as a resilient
+ * backup so the assistant keeps answering if the primary providers are down.
+ */
+async function callOpenAICompatible(messages: AssistantMessage[], locale: AssistantLocale): Promise<ProviderResult | null> {
+  const apiKey = process.env.CUSTOM_AI_API_KEY;
+  const baseUrl = (process.env.CUSTOM_AI_BASE_URL || "").replace(/\/+$/, "");
+  if (!apiKey || !baseUrl) return null;
+
+  const model = process.env.CUSTOM_AI_MODEL || "gpt-5.4-mini";
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: siteContext[locale] },
+        ...messages
+          .filter((message) => message.role !== "system")
+          .map((message) => ({ role: message.role === "assistant" ? "assistant" : "user", content: message.content })),
+      ],
+      max_tokens: 700,
+      temperature: 0.4,
+    }),
+  });
+
+  if (!res.ok) return null;
+  const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  const reply = data.choices?.[0]?.message?.content?.trim();
+  return reply ? { fallback: false, model, provider: "custom", reply } : null;
+}
+
 export async function answerSiteAssistant(messages: AssistantMessage[], locale: AssistantLocale): Promise<ProviderResult> {
   const grounded = groundedReply(messages, locale);
   if (grounded) return grounded;
 
   const preferred = (process.env.AI_ASSISTANT_PROVIDER || "").toLowerCase();
-  const providers =
+  const base =
     preferred === "openai"
       ? [callOpenAI, callGemini, callAnthropic]
       : preferred === "gemini"
         ? [callGemini, callOpenAI, callAnthropic]
         : preferred === "anthropic" || preferred === "claude"
           ? [callAnthropic, callOpenAI, callGemini]
-          : [callOpenAI, callGemini, callAnthropic];
+          : preferred === "custom" || preferred === "synterolink"
+            ? [callOpenAICompatible, callOpenAI, callGemini, callAnthropic]
+            : [callOpenAI, callGemini, callAnthropic];
+
+  // Always keep the OpenAI-compatible custom backup in the chain (last), unless it
+  // was explicitly promoted to first via AI_ASSISTANT_PROVIDER=custom. Every key is
+  // kept; a failing/absent provider simply falls through to the next one.
+  const providers = base.includes(callOpenAICompatible) ? base : [...base, callOpenAICompatible];
 
   for (const provider of providers) {
     try {

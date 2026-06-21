@@ -20,6 +20,16 @@ export type ProviderSourcePayload =
 export type ProviderSourceTestResult = {
   ok: boolean;
   message: string;
+  code?:
+    | "ok"
+    | "auth_failed"
+    | "expired"
+    | "forbidden"
+    | "http_error"
+    | "invalid_response"
+    | "network_error"
+    | "timeout"
+    | "unreachable";
   details?: Record<string, unknown>;
   normalizedSource?: ProviderSourcePayload;
 };
@@ -86,6 +96,19 @@ function normalizeHttpUrl(value: unknown, fieldName: string) {
   return url.toString().replace(/\/$/, "");
 }
 
+function normalizeXtreamServerUrl(value: unknown) {
+  const normalized = normalizeHttpUrl(value, "Server URL");
+  const url = new URL(normalized);
+  const path = url.pathname.replace(/\/+$/, "");
+  const endpointMatch = path.match(/^(.*)\/(?:player_api|get|xmltv)\.php$/i);
+  if (endpointMatch) {
+    url.pathname = endpointMatch[1] || "/";
+  }
+  url.search = "";
+  url.hash = "";
+  return url.toString().replace(/\/$/, "");
+}
+
 function cleanText(value: unknown, fallback: string, max = 160) {
   return String(value ?? fallback).trim().slice(0, max) || fallback;
 }
@@ -95,7 +118,7 @@ export function normalizeProviderSource(input: unknown): ProviderSourcePayload {
   const type = String(body.type ?? "").toLowerCase();
 
   if (type === "xtream") {
-    const serverUrl = normalizeHttpUrl(body.serverUrl, "Server URL");
+    const serverUrl = normalizeXtreamServerUrl(body.serverUrl);
     const username = cleanText(body.username, "", 240);
     const password = cleanText(body.password, "", 240);
     if (!username || !password) {
@@ -241,7 +264,7 @@ function extractXtreamFromM3uUrl(raw: string): { serverUrl: string; username: st
 }
 
 function xtreamApiUrl(serverUrl: string, username: string, password: string) {
-  const base = serverUrl.replace(/\/player_api\.php$/i, "").replace(/\/$/, "");
+  const base = normalizeXtreamServerUrl(serverUrl);
   const url = new URL(`${base}/player_api.php`);
   url.searchParams.set("username", username);
   url.searchParams.set("password", password);
@@ -273,6 +296,33 @@ async function readLimitedText(response: Response, maxBytes = MAX_TEST_BYTES) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+function errorText(error: unknown) {
+  if (!(error instanceof Error)) return "";
+  const cause = "cause" in error ? String(error.cause ?? "") : "";
+  return `${error.name} ${error.message} ${cause}`.trim();
+}
+
+function xtreamFetchFailure(error: unknown): ProviderSourceTestResult {
+  const message = errorText(error);
+  if (error instanceof Error && error.name === "AbortError") {
+    return { ok: false, code: "timeout", message: "Server timeout. Check the address and try again." };
+  }
+  if (/ENOTFOUND|EAI_AGAIN|getaddrinfo|could not resolve|unable to resolve/i.test(message)) {
+    return { ok: false, code: "unreachable", message: "Server host could not be resolved. Check the domain name, for example m3mlink.site, then try again." };
+  }
+  if (/ECONNREFUSED|ECONNRESET|ETIMEDOUT|fetch failed|network/i.test(message)) {
+    return { ok: false, code: "network_error", message: "The website could not reach this Xtream server. Check the server URL or try sending it to the device for local validation." };
+  }
+  if (/certificate|SSL|TLS/i.test(message)) {
+    return { ok: false, code: "network_error", message: "SSL/TLS failed for this server. Try the http:// address if your provider supports it." };
+  }
+  return { ok: false, code: "network_error", message: "Could not test Xtream connection from the website." };
+}
+
+export function providerSourceTestAllowsHandoff(result: ProviderSourceTestResult) {
+  return !result.ok && result.code !== "auth_failed" && result.code !== "expired" && result.code !== "forbidden";
+}
+
 export async function testProviderSource(payload: ProviderSourcePayload): Promise<ProviderSourceTestResult> {
   if (payload.type === "xtream") {
     const candidates = [payload, insecureFallbackSource(payload)].filter(Boolean) as ProviderSourcePayload[];
@@ -282,24 +332,38 @@ export async function testProviderSource(payload: ProviderSourcePayload): Promis
       try {
         const response = await fetch(xtreamApiUrl(candidate.serverUrl, candidate.username, candidate.password), {
           signal: timeout.controller.signal,
-          headers: { accept: "application/json" },
+          headers: { accept: "application/json", "user-agent": "MoPlayer-Website-Activation/1.0" },
           cache: "no-store",
         });
         const text = await response.text();
         if (!response.ok) {
-          if (candidate === candidates[candidates.length - 1]) return { ok: false, message: `Server responded with HTTP ${response.status}.` };
+          if (candidate === candidates[candidates.length - 1]) {
+            return {
+              ok: false,
+              code: response.status === 401 || response.status === 403 ? "forbidden" : "http_error",
+              message: response.status === 401 || response.status === 403
+                ? "Xtream server rejected the request. Check username and password."
+                : `Server responded with HTTP ${response.status}.`,
+            };
+          }
           continue;
         }
-        const json = JSON.parse(text) as { user_info?: { auth?: number; status?: string; exp_date?: string; message?: string } };
+        let json: { user_info?: { auth?: number; status?: string; exp_date?: string; message?: string } };
+        try {
+          json = JSON.parse(text) as typeof json;
+        } catch {
+          return { ok: false, code: "invalid_response", message: "Server replied, but it was not a valid Xtream player_api response." };
+        }
         const userInfo = json.user_info;
         if (userInfo?.auth !== 1) {
-          return { ok: false, message: userInfo?.message || "Xtream credentials were not accepted." };
+          return { ok: false, code: "auth_failed", message: userInfo?.message || "Xtream credentials were not accepted." };
         }
         if (String(userInfo.status ?? "").toLowerCase() === "expired") {
-          return { ok: false, message: "Xtream account appears to be expired." };
+          return { ok: false, code: "expired", message: "Xtream account appears to be expired." };
         }
         return {
           ok: true,
+          code: "ok",
           message: "Xtream connection works.",
           normalizedSource: candidate,
           details: {
@@ -309,13 +373,13 @@ export async function testProviderSource(payload: ProviderSourcePayload): Promis
         };
       } catch (error) {
         if (candidate === candidates[candidates.length - 1]) {
-          return { ok: false, message: error instanceof Error && error.name === "AbortError" ? "Server timeout." : "Could not test Xtream connection." };
+          return xtreamFetchFailure(error);
         }
       } finally {
         timeout.done();
       }
     }
-    return { ok: false, message: "Could not test Xtream connection." };
+    return { ok: false, code: "network_error", message: "Could not test Xtream connection from the website." };
   }
 
   // For M3U type: check if this is actually an Xtream get.php URL and try the API first

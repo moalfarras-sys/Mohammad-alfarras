@@ -14,7 +14,7 @@ Android projects use their own Gradle wrappers:
 
 ```powershell
 apps/moplayer-android/gradlew.bat tasks
-apps/moplayer2-android/gradlew.bat tasks
+apps/moplayer-pro-android/gradlew.bat tasks
 ```
 
 Secrets stay in ignored local files:

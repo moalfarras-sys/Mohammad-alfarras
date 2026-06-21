@@ -17,7 +17,7 @@ The public name is **MoPlayer Pro**. Keep the `moplayer2` slug in code, URLs, AP
 apps/web                 Next.js public site, activation APIs, APK downloads
 apps/admin               Next.js admin control center
 apps/moplayer-android    MoPlayer Classic Android TV app
-apps/moplayer2-android   MoPlayer Pro Android app
+apps/moplayer-pro-android   MoPlayer Pro Android app
 apps/moplayer-pro-windows Electron Windows desktop app for MoPlayer Pro
 apps/MoPlayer iphone ios  Flutter iPhone app prepared for Mac/Xcode publishing
 apps/moplayer-dashboard  Optional Vite dashboard
@@ -101,7 +101,7 @@ Android:
 
 ```powershell
 apps/moplayer-android/gradlew.bat testSideloadDebugUnitTest
-apps/moplayer2-android/gradlew.bat testDebugUnitTest
+apps/moplayer-pro-android/gradlew.bat testDebugUnitTest
 ```
 
 Windows PC:
@@ -136,7 +136,7 @@ Release APKs:
 cd apps/moplayer-android
 .\gradlew.bat assembleSideloadRelease -PincludeX86Abis=true
 
-cd ..\moplayer2-android
+cd ..\moplayer-pro-android
 .\gradlew.bat assembleRelease
 ```
 

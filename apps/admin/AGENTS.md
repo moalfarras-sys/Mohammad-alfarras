@@ -6,7 +6,7 @@ This folder is the admin Next.js app for `https://admin.moalfarras.space`. It is
 
 - Public site and APIs live in `../web` and deploy to `https://moalfarras.space`.
 - MoPlayer Classic lives in `../moplayer-android`, slug `moplayer`, package `com.mo.moplayer`.
-- MoPlayer Pro lives in `../moplayer2-android`, slug `moplayer2`, package `com.moalfarras.moplayerpro`.
+- MoPlayer Pro lives in `../moplayer-pro-android`, slug `moplayer2`, package `com.moalfarras.moplayerpro`.
 - Shared product slug logic lives in `../../packages/shared`.
 - Server database helpers live in `../../packages/db`.
 - Supabase schema changes live in `../../supabase/migrations`.

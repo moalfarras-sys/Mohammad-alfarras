@@ -52,7 +52,7 @@ If a requested change crosses multiple areas, plan the ownership boundaries firs
 | Public site | `apps/web` | `moalfarras.space`, marketing pages, activation UI, public APIs, APK download routes |
 | Admin app | `apps/admin` | `admin.moalfarras.space`, operations UI, app/release/source management |
 | MoPlayer Classic | `apps/moplayer-android` | Classic Android TV app, slug `moplayer`, package `com.mo.moplayer` |
-| MoPlayer Pro | `apps/moplayer2-android` | Pro Android/TV app, slug `moplayer2`, package `com.moalfarras.moplayerpro` |
+| MoPlayer Pro | `apps/moplayer-pro-android` | Pro Android/TV app, slug `moplayer2`, package `com.moalfarras.moplayerpro` |
 | Shared product identity | `packages/shared` | Product slugs, release metadata helpers, shared app constants |
 | Shared DB helpers | `packages/db` | Server-side Postgres helpers only |
 | Database schema | `supabase/migrations` | Ordered Supabase/Postgres migrations |
@@ -65,7 +65,7 @@ Each major workspace has its own local guide. If you open only one folder in an 
 - `apps/web/AGENTS.md`
 - `apps/admin/AGENTS.md`
 - `apps/moplayer-android/AGENTS.md`
-- `apps/moplayer2-android/AGENTS.md`
+- `apps/moplayer-pro-android/AGENTS.md`
 - `apps/moplayer-dashboard/AGENTS.md`
 - `packages/shared/AGENTS.md`
 - `packages/db/AGENTS.md`
@@ -88,7 +88,7 @@ Each major workspace has its own local guide. If you open only one folder in an 
 - Admin app/release operations: `apps/admin/src/components/admin/pages/app-control.tsx`, `apps/admin/src/lib/app-ecosystem.ts`, `apps/admin/src/app/actions.ts`.
 - Website CMS/admin content: `apps/admin/src/components/admin/pages/website-control.tsx`, `apps/admin/src/lib/website-cms.ts`.
 - Classic player stability: `apps/moplayer-android/app/src/main/java/com/mo/moplayer/ui/player`, `apps/moplayer-android/app/src/main/java/com/mo/moplayer/ui/livetv`.
-- Pro player stability: `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/player`.
+- Pro player stability: `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/ui/player`.
 - Shared slug behavior: `packages/shared/src/app-products.ts`.
 
 ## Do Not Commit

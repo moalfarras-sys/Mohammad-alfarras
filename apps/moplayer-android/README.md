@@ -2,7 +2,7 @@
 
 Production **Android / Android TV** client shipped as `com.mo.moplayer`. Gradle project name: **`MoPlayerapp`**.
 
-- Open this folder in **Android Studio** (not `moplayer2-android` unless you need the Compose variant).
+- Open this folder in **Android Studio** (not `moplayer-pro-android` unless you need the Compose variant).
 - Before AI-assisted edits, read [AGENTS.md](AGENTS.md). This app is connected to `apps/web`, `apps/admin`, `packages/shared`, and Supabase migrations.
 - Releases: see repo [README.md](../../README.md) (`npm run release:moplayer`, `scripts/publish-android-release.mjs`).
 - Build outputs go to `build-output/` (see `app/build.gradle.kts`).
@@ -30,4 +30,4 @@ Production verification on 2026-06-20:
 - `https://moalfarras.space/api/app/download/latest?product=moplayer` redirects to `/downloads/moplayer/app-sideload-universal-release.apk`.
 - API 24 Android TV emulator update panel shows `You are on the latest published version: 2.3.0`.
 
-**Pair:** `moplayer2-android` is the separate `com.moalfarras.moplayer2` line — see [../moplayer2-android/README.md](../moplayer2-android/README.md).
+**Pair:** `moplayer-pro-android` is the separate `com.moalfarras.moplayerpro` line — see [../moplayer-pro-android/README.md](../moplayer-pro-android/README.md).

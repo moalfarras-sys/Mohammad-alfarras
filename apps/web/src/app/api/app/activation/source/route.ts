@@ -14,6 +14,7 @@ import {
   normalizeProviderSource,
   normalizeSourcePullToken,
   pendingProviderSourceExpiresAt,
+  providerSourceTestAllowsHandoff,
   providerSourceQueueBelongsToProduct,
   providerSourceQueueExpired,
   publicProviderSource,
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
   try {
     const source = normalizeProviderSource(body.source);
     const test = await testProviderSource(source);
-    if (!test.ok) {
+    if (!test.ok && !providerSourceTestAllowsHandoff(test)) {
       return json(test, { status: 422 });
     }
     const normalizedSource = test.normalizedSource ?? source;
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
       encryptedPayload: encryptProviderSource(normalizedSource),
       encryptionVersion: "aes-256-gcm:v1",
       status: "pending",
-      lastTestStatus: "success",
+      lastTestStatus: test.ok ? "success" : "failed",
       lastTestMessage: test.message,
       createdAt: now,
       updatedAt: now,
@@ -141,7 +142,9 @@ export async function POST(request: Request) {
     return json({
       ok: true,
       status: "source_sent",
-      message: "Source saved. MoPlayer will import it automatically while the activation screen is open.",
+      message: test.ok
+        ? "Source saved. MoPlayer will import it automatically while the activation screen is open."
+        : "Source queued for the device. The website could not verify this provider, so MoPlayer will validate it locally.",
       source: {
         id: queueValue.id,
         source_type: queueValue.sourceType,

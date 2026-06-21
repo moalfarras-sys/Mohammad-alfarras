@@ -6,7 +6,7 @@ This folder is an optional Vite dashboard. It is not the production public site 
 
 - Production public site lives in `../web`.
 - Production admin lives in `../admin`.
-- Android apps live in `../moplayer-android` and `../moplayer2-android`.
+- Android apps live in `../moplayer-android` and `../moplayer-pro-android`.
 - Shared product identity lives in `../../packages/shared`.
 
 ## What This App Owns

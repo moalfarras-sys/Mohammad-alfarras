@@ -57,7 +57,7 @@ The provider URL, username, and password used for real-source QA are intentional
 
 - Re-inspected the Android Pro Compose implementation before the final Windows correction: `HomeScreen.kt`, `LoginScreen.kt`, `MediaScreens.kt`, `Cards.kt`, `Glass.kt`, `MoTheme.kt`, `TvScale.kt`, `Dock.kt`, and `SearchSettingsScreens.kt`.
 - Reworked the Windows shell away from the rejected web-style dashboard and toward the Android Pro TV layout: fiery glass palette, cinematic background, bottom dock, left category rail, central content panel, live channel rows, poster grid/shelves, and right-side preview pane.
-- Reused the same Android Pro logo/icon/background/banner/font assets already copied from `apps/moplayer2-android`.
+- Reused the same Android Pro logo/icon/background/banner/font assets already copied from `apps/moplayer-pro-android`.
 - Verified the corrected layout with screenshot QA for home, live, movies, series, search, settings, license, and support. The generated images are under `apps/moplayer-pro-windows/qa-screenshots/`.
 - Fixed the final bottom-dock hit area after real-source QA showed the workspace layer intercepting pointer clicks over dock buttons. The dock now sits above the workspace layer and is clickable with mouse/touch automation.
 

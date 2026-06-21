@@ -1,6 +1,6 @@
 # Current Project State
 
-Updated: 2026-06-15
+Updated: 2026-06-20
 
 ## 2026-06-15 Admin Reality, AI Widget, Forms, and Downloads Pass
 
@@ -57,7 +57,7 @@ This monorepo serves three production surfaces:
 - Admin control center: `apps/admin` -> `https://admin.moalfarras.space`
 - Android apps:
   - MoPlayer Classic: `apps/moplayer-android`, slug `moplayer`, package `com.mo.moplayer`
-  - MoPlayer Pro: `apps/moplayer2-android`, slug `moplayer2`, package `com.moalfarras.moplayerpro`
+  - MoPlayer Pro: `apps/moplayer-pro-android`, slug `moplayer2`, package `com.moalfarras.moplayerpro`
 
 There is only one real admin. It is `apps/admin`. The old localized public-site admin in `apps/web/src/app/[locale]/admin` has been removed. Public legacy admin URLs now redirect to the admin app.
 
@@ -181,7 +181,7 @@ Last checked locally on 2026-06-05 with real `.env.local` secrets, without print
 
 - Supabase service-role access works.
 - `app_products` contains `moplayer` and `moplayer2`.
-- `app_releases` contains published releases for both products: MoPlayer Classic `2.2.16`, MoPlayer Pro `2.5.20`.
+- `app_releases` contains published releases for both products: MoPlayer Classic `2.2.16`, MoPlayer Pro `2.5.23`.
 - One Supabase Auth user exists and has an `admin` role in `app_admin_roles`.
 - SMTP verification works, and a live `/api/contact` smoke test returned `delivered: true`, `stored: true`, and `customerReceipt: true`.
 - YouTube Data API works for the configured channel.
@@ -194,7 +194,7 @@ Last checked locally on 2026-06-05 with real `.env.local` secrets, without print
 - `/api/automation/health` no longer self-fetches local pages; it checks real dependencies directly and reports Supabase, SMTP, YouTube, Weather, football fallback, and both app release channels.
 - Production downloads were verified from `https://moalfarras.space`:
   - MoPlayer Classic latest download resolves to `/downloads/moplayer/app-sideload-universal-release.apk`, `52792635` bytes, SHA-256 `79701639678373dda3b44c07347c22bd799975767a2eb260943c50609f1f9a0d`.
-  - MoPlayer Pro latest download resolves to `/downloads/moplayer2/app-release.apk`, `49260800` bytes, SHA-256 `477beee677797ae489ec6afce71fe369a31f020ecb18fd3d12ec0d4192907a0f`.
+  - MoPlayer Pro latest API download redirects to the published Supabase Storage APK for `2.5.23`, `49276473` bytes, SHA-256 `abd79199b9b074d5ce5130847dd16b9c8f2823d548cbd2f6314067a4a50b4ddd`. The static fallback copy also lives at `apps/web/public/downloads/moplayer2/app-release.apk`.
 - Android API 24 emulator QA used the only available local AVD, `MoPlayer_Classic_API24_TV_720p`, sequentially for both apps. Classic and Pro both generated real website `MO-XXXX` QR codes, imported a QR-delivered public M3U source, loaded home content, and left no provider source/auth payload behind in Supabase after acknowledgement.
 
 ## Verification Commands

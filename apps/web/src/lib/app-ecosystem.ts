@@ -288,24 +288,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-20",
+      id: "release-moplayer2-v2-5-24",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.20-full",
-      version_name: "2.5.20",
-      version_code: 58,
+      slug: "moplayer2-v2.5.24-full",
+      version_name: "2.5.24",
+      version_code: 62,
       release_notes:
-        "MoPlayer Pro 2.5.20 improves live and series playback for large provider panels: slow series details retry with a longer connection timeout, episodes use cleaner source links when available, video items try compatible formats before fallback, and weaker devices switch recovery paths faster when video does not render.",
+        "MoPlayer Pro 2.5.24 fixes cold-start M3U link imports, Android 6 Xtream JSON sync, and old-TV HTTPS playback. It keeps the 2.5.23 Xtream/M3U/QR source loading, URL normalization, smart first-run loading, and VOD detail refresh improvements.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-20-universal",
-          release_id: "release-moplayer2-v2-5-20",
+          id: "asset-moplayer2-v2-5-24-universal",
+          release_id: "release-moplayer2-v2-5-24",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url: "/downloads/moplayer2/app-release.apk",
-          file_size_bytes: 49260800,
-          checksum_sha256: "477beee677797ae489ec6afce71fe369a31f020ecb18fd3d12ec0d4192907a0f",
+          file_size_bytes: 49276472,
+          checksum_sha256: "3f63482fcb021c8fc6c9eb9ff79e02b43b75fe71932e8958eaf1f7a91bf8dd67",
         },
       ],
     },

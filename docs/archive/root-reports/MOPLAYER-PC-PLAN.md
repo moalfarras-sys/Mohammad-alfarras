@@ -15,7 +15,7 @@
 ## What I Found
 
 - The repository is a production monorepo for the public site, admin app, shared packages, Supabase migrations, MoPlayer Classic Android, and MoPlayer Pro Android.
-- MoPlayer Pro Android lives in `apps/moplayer2-android`. It is a native Kotlin / Jetpack Compose Android and Android TV app, not React Native or Expo.
+- MoPlayer Pro Android lives in `apps/moplayer-pro-android`. It is a native Kotlin / Jetpack Compose Android and Android TV app, not React Native or Expo.
 - The public website lives in `apps/web` and owns activation APIs, release/download routes, public product pages, diagnostics/events, and support.
 - The admin app lives in `apps/admin` and already reads devices, licenses, activation requests, runtime config, releases, diagnostics, and support data.
 - Shared product slugs live in `packages/shared/src/app-products.ts`. The public Pro name is `MoPlayer Pro`, but API/database product identity remains `moplayer2`.
@@ -35,7 +35,7 @@
 | Public website and app APIs | `apps/web` | Next.js public site, activation, config, downloads |
 | Admin control center | `apps/admin` | App operations, releases, devices, licenses, diagnostics |
 | MoPlayer Classic | `apps/moplayer-android` | Existing Android TV app, slug `moplayer` |
-| MoPlayer Pro Android | `apps/moplayer2-android` | Kotlin/Compose app, slug `moplayer2` |
+| MoPlayer Pro Android | `apps/moplayer-pro-android` | Kotlin/Compose app, slug `moplayer2` |
 | Shared product helpers | `packages/shared` | Slug/name helper logic |
 | Database migrations | `supabase/migrations` | Supabase schema and policy history |
 
@@ -56,16 +56,16 @@ Reason: the Android Pro app is native Kotlin/Compose and cannot be reused direct
 
 ## Files To Use As References
 
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/MainActivity.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/MainViewModel.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/screens/LoginScreen.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/screens/HomeScreen.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/screens/MediaScreens.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/ui/player/PlayerScreen.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/data/repository/IptvRepository.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/data/repository/XtreamSupport.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/data/parser/M3uParser.kt`
-- `apps/moplayer2-android/app/src/main/java/com/moalfarras/moplayer/data/network/NetworkModels.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/MainActivity.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/ui/MainViewModel.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/ui/screens/LoginScreen.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/ui/screens/HomeScreen.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/ui/screens/MediaScreens.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/ui/player/PlayerScreen.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/data/repository/IptvRepository.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/data/repository/XtreamSupport.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/data/parser/M3uParser.kt`
+- `apps/moplayer-pro-android/app/src/main/java/com/moalfarras/moplayer/data/network/NetworkModels.kt`
 - `apps/web/src/app/api/app/activation/*`
 - `apps/web/src/components/app/moplayer2-landing.tsx`
 - `apps/admin/src/lib/app-ecosystem.ts`

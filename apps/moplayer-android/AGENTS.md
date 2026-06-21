@@ -8,7 +8,7 @@ This folder is the classic Android TV app. It is not an independent product. It 
 - Android package: `com.mo.moplayer`.
 - Public website/API: `../web`, deployed at `https://moalfarras.space`.
 - Admin control center: `../admin`, deployed at `https://admin.moalfarras.space`.
-- MoPlayer Pro sibling app: `../moplayer2-android`, slug `moplayer2`, package `com.moalfarras.moplayerpro`.
+- MoPlayer Pro sibling app: `../moplayer-pro-android`, slug `moplayer2`, package `com.moalfarras.moplayerpro`.
 - Shared product slug metadata: `../../packages/shared`.
 - Database migrations: `../../supabase/migrations`.
 

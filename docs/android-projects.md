@@ -20,13 +20,13 @@ https://moalfarras.space/activate?code=MO-XXXX
 
 ## MoPlayer Pro
 
-- Path: `apps/moplayer2-android`
+- Path: `apps/moplayer-pro-android`
 - Public name: `MoPlayer Pro`
 - Internal slug: `moplayer2`
 - Android application ID: `com.moalfarras.moplayerpro`
 - Release task: `assembleRelease`
 - Published APK: `apps/web/public/downloads/moplayer2/app-release.apk`
-- Current published APK: `2.5.20` (`versionCode` 58), `49271867` bytes, SHA-256 `728fe89e4ed4b89845482716faba9811dc8123365d13469e904d7cc5d44d8f91`
+- Current published APK: `2.5.23` (`versionCode` 61), `49276473` bytes, SHA-256 `abd79199b9b074d5ce5130847dd16b9c8f2823d548cbd2f6314067a4a50b4ddd`
 
 Pro QR links must use:
 

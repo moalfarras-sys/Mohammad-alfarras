@@ -7,7 +7,7 @@ This package is the shared product identity and helper layer for the ecosystem. 
 - Public app: `../../apps/web`.
 - Admin app: `../../apps/admin`.
 - Classic Android: `../../apps/moplayer-android`, slug `moplayer`.
-- Pro Android: `../../apps/moplayer2-android`, slug `moplayer2`.
+- Pro Android: `../../apps/moplayer-pro-android`, slug `moplayer2`.
 
 ## What This Package Owns
 

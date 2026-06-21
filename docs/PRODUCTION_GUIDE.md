@@ -7,7 +7,7 @@ This guide is the operating manual for `moalfarras.space`, `admin.moalfarras.spa
 | Product | Public name | Internal slug | Android project | Download folder |
 | --- | --- | --- | --- | --- |
 | Classic | MoPlayer | `moplayer` | `apps/moplayer-android` | `apps/web/public/downloads/moplayer` |
-| Pro | MoPlayer Pro | `moplayer2` | `apps/moplayer2-android` | `apps/web/public/downloads/moplayer2` |
+| Pro | MoPlayer Pro | `moplayer2` | `apps/moplayer-pro-android` | `apps/web/public/downloads/moplayer2` |
 
 Never rename the `moplayer2` slug. Only user-facing copy should say `MoPlayer Pro`.
 
@@ -111,7 +111,7 @@ Android:
 
 ```powershell
 apps/moplayer-android/gradlew.bat testSideloadDebugUnitTest
-apps/moplayer2-android/gradlew.bat testDebugUnitTest
+apps/moplayer-pro-android/gradlew.bat testDebugUnitTest
 ```
 
 ## APK Publishing
@@ -135,7 +135,7 @@ release entry explicitly needs separate ABI downloads.
 Pro:
 
 ```powershell
-cd apps/moplayer2-android
+cd apps/moplayer-pro-android
 .\gradlew.bat assembleRelease
 ```
 

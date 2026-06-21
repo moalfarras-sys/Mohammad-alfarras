@@ -1,0 +1,899 @@
+package com.moalfarras.moplayer.data.repository
+
+import com.moalfarras.moplayer.data.db.AccountInfoEntity
+import com.moalfarras.moplayer.data.db.EpgProgramEntity
+import com.moalfarras.moplayer.data.db.SeasonEntity
+import com.moalfarras.moplayer.data.db.ServerInfoEntity
+import com.moalfarras.moplayer.data.db.SyncStateEntity
+import com.moalfarras.moplayer.data.db.VodDetailsEntity
+import com.moalfarras.moplayer.domain.model.Category
+import com.moalfarras.moplayer.domain.model.ContentType
+import com.moalfarras.moplayer.domain.model.EpgEntry
+import com.moalfarras.moplayer.domain.model.LiveEpgSnapshot
+import com.moalfarras.moplayer.domain.model.MediaItem
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
+import java.io.StringReader
+import java.net.URI
+import java.net.URLDecoder
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+internal data class XtreamCredentials(
+    val baseUrl: String,
+    val username: String,
+    val password: String,
+    val playlistUrl: String = "",
+)
+
+internal data class XtreamAccountSnapshot(
+    val accountInfo: AccountInfoEntity?,
+    val serverInfo: ServerInfoEntity?,
+    val accountStatus: String,
+    val expiryDate: Long,
+    val activeConnections: Int,
+    val maxConnections: Int,
+    val allowedOutputFormats: List<String>,
+    val timezone: String,
+    val serverMessage: String,
+)
+
+internal data class XtreamSyncPayload(
+    val categories: List<Category>,
+    val media: List<MediaItem>,
+    val accountInfo: AccountInfoEntity?,
+    val serverInfo: ServerInfoEntity?,
+    val syncState: SyncStateEntity,
+    val epgPrograms: List<EpgProgramEntity>,
+)
+
+internal object XtreamSupport {
+    fun extractCredentialsFromPlaylistUrl(url: String): XtreamCredentials? = runCatching {
+        val cleanedUrl = cleanSourceUrl(url)
+        val uri = URI(cleanedUrl)
+        val params = uri.rawQuery
+            ?.replace(";", "&")
+            ?.split('&')
+            ?.mapNotNull { part ->
+                val pieces = part.split('=', limit = 2)
+                if (pieces.size == 2) {
+                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()).lowercase(Locale.US) to
+                        URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
+                } else {
+                    null
+                }
+            }
+            ?.toMap()
+            .orEmpty()
+        val username = params["username"].orEmpty()
+        val password = params["password"].orEmpty()
+        if (username.isBlank() || password.isBlank()) {
+            null
+        } else {
+            XtreamCredentials(
+                baseUrl = normalizeServerBaseUrl(cleanedUrl) ?: run {
+                    val port = if (uri.port > 0) ":${uri.port}" else ""
+                    "${uri.scheme}://${uri.host}$port/"
+                },
+                username = username,
+                password = password,
+                playlistUrl = cleanedUrl,
+            )
+        }
+    }.getOrNull()
+
+    fun extractActivationSource(url: String): XtreamCredentials? = runCatching {
+        val cleanedUrl = cleanSourceUrl(url)
+        val uri = URI(cleanedUrl)
+        val params = uri.rawQuery
+            ?.replace(";", "&")
+            ?.split('&')
+            ?.mapNotNull { part ->
+                val pieces = part.split('=', limit = 2)
+                if (pieces.size == 2) {
+                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()).lowercase(Locale.US) to
+                        URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
+                } else {
+                    null
+                }
+            }
+            ?.toMap()
+            .orEmpty()
+        val baseUrl = params["server"].orEmpty().ifBlank { params["url"].orEmpty() }
+        val username = params["username"].orEmpty()
+        val password = params["password"].orEmpty()
+        if (baseUrl.isBlank() || username.isBlank() || password.isBlank()) {
+            null
+        } else {
+            XtreamCredentials(
+                baseUrl = normalizeServerBaseUrl(baseUrl) ?: when {
+                    baseUrl.startsWith("http://", ignoreCase = true) || baseUrl.startsWith("https://", ignoreCase = true) -> baseUrl.trimEnd('/') + "/"
+                    else -> "http://${baseUrl.trimStart('/').trimEnd('/')}/"
+                },
+                username = username,
+                password = password,
+                playlistUrl = cleanedUrl,
+            )
+        }
+    }.getOrNull()
+
+    fun normalizeServerBaseUrl(raw: String): String? = runCatching {
+        val cleaned = cleanSourceUrl(raw)
+        if (cleaned.isBlank()) return@runCatching null
+        val withScheme = if (
+            cleaned.startsWith("http://", ignoreCase = true) ||
+            cleaned.startsWith("https://", ignoreCase = true)
+        ) {
+            cleaned
+        } else {
+            "http://${cleaned.trimStart('/')}"
+        }
+        val uri = URI(withScheme)
+        val scheme = uri.scheme?.lowercase(Locale.US)?.takeIf { it == "http" || it == "https" } ?: return@runCatching null
+        val host = uri.host?.takeIf { it.isNotBlank() } ?: return@runCatching null
+        val port = if (uri.port > 0) ":${uri.port}" else ""
+        val segments = uri.rawPath
+            ?.split('/')
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+        val endpointIndex = segments.indexOfFirst { segment ->
+            segment.equals("player_api.php", ignoreCase = true) ||
+                segment.equals("get.php", ignoreCase = true) ||
+                segment.equals("xmltv.php", ignoreCase = true)
+        }
+        val baseSegments = when {
+            endpointIndex >= 0 -> segments.take(endpointIndex)
+            segments.lastOrNull()?.endsWith(".php", ignoreCase = true) == true -> segments.dropLast(1)
+            else -> segments
+        }
+        val path = if (baseSegments.isEmpty()) {
+            "/"
+        } else {
+            "/" + baseSegments.joinToString("/") + "/"
+        }
+        "$scheme://$host$port$path"
+    }.getOrNull()
+
+    private fun cleanSourceUrl(url: String): String = url
+        .trim()
+        .trim('"', '\'')
+        .replace("&amp;", "&", ignoreCase = true)
+        .replace("^&", "&")
+
+    fun looksLikeXtreamPlaylistUrl(url: String): Boolean {
+        val cleanedUrl = cleanSourceUrl(url).lowercase(Locale.US)
+        return cleanedUrl.contains("/get.php") &&
+            (cleanedUrl.contains("username=") || cleanedUrl.contains("password=") || cleanedUrl.contains("type=m3u"))
+    }
+
+    fun parseAccountSnapshot(
+        json: Json,
+        serverId: Long,
+        root: JsonObject,
+        updatedAt: Long,
+    ): XtreamAccountSnapshot {
+        val userInfo = root.objectOrNull("user_info")
+        val serverInfo = root.objectOrNull("server_info")
+        val formats = userInfo?.arrayOrNull("allowed_output_formats")?.mapNotNull { it.contentOrNull() }
+            ?: serverInfo?.arrayOrNull("allowed_output_formats")?.mapNotNull { it.contentOrNull() }
+            ?: emptyList()
+        val account = if (userInfo != null) {
+            AccountInfoEntity(
+                serverId = serverId,
+                status = userInfo.string("status"),
+                expiryDate = parseTimestamp(userInfo.string("exp_date")),
+                activeConnections = userInfo.int("active_cons"),
+                maxConnections = userInfo.int("max_connections"),
+                allowedOutputFormats = formats.joinToString(","),
+                createdAt = parseTimestamp(userInfo.string("created_at")),
+                isTrial = userInfo.boolean("is_trial"),
+                usernameMasked = maskUsername(userInfo.string("username")),
+                rawJson = json.encodeToString(JsonElement.serializer(), userInfo),
+                updatedAt = updatedAt,
+            )
+        } else {
+            null
+        }
+        val server = if (serverInfo != null) {
+            ServerInfoEntity(
+                serverId = serverId,
+                url = serverInfo.string("url"),
+                timezone = serverInfo.string("timezone"),
+                timestampNow = parseTimestamp(serverInfo.string("timestamp_now")),
+                timeNow = serverInfo.string("time_now"),
+                message = root.string("message"),
+                rawJson = json.encodeToString(JsonElement.serializer(), serverInfo),
+                updatedAt = updatedAt,
+            )
+        } else {
+            null
+        }
+        return XtreamAccountSnapshot(
+            accountInfo = account,
+            serverInfo = server,
+            accountStatus = account?.status.orEmpty(),
+            expiryDate = account?.expiryDate ?: 0,
+            activeConnections = account?.activeConnections ?: 0,
+            maxConnections = account?.maxConnections ?: 0,
+            allowedOutputFormats = formats,
+            timezone = server?.timezone.orEmpty(),
+            serverMessage = server?.message.orEmpty(),
+        )
+    }
+
+    fun requireAuthorizedAccount(root: JsonObject) {
+        val userInfo = root.objectOrNull("user_info")
+            ?: throw IllegalStateException("Xtream account could not be verified. Check the server URL, username and password.")
+        val auth = userInfo.string("auth").ifBlank { userInfo.string("authorized") }
+        val status = userInfo.string("status").trim().lowercase(Locale.US)
+        val message = root.string("message").ifBlank { userInfo.string("message") }
+        val isRejectedAuth = auth.equals("0", ignoreCase = true) ||
+            auth.equals("false", ignoreCase = true) ||
+            auth.equals("no", ignoreCase = true)
+        if (isRejectedAuth) {
+            throw IllegalStateException(message.ifBlank { "Xtream login is not authorized. Check the server URL, username and password." })
+        }
+        if (status in setOf("disabled", "banned", "expired")) {
+            throw IllegalStateException("Xtream account is $status. Use another source or contact the provider.")
+        }
+    }
+
+    fun parseCategories(
+        json: Json,
+        serverId: Long,
+        type: ContentType,
+        array: JsonArray,
+    ): List<Category> = array.mapIndexed { index, item ->
+        val obj = item.jsonObject
+        Category(
+            id = obj.string("category_id"),
+            serverId = serverId,
+            type = type,
+            name = obj.string("category_name"),
+            sortOrder = index,
+            parentId = obj.string("parent_id"),
+            rawJson = "",
+        )
+    }
+
+    fun parseLiveStreams(
+        json: Json,
+        serverId: Long,
+        credentials: XtreamCredentials,
+        allowedFormats: List<String>,
+        categories: Map<String, String>,
+        array: JsonArray,
+    ): List<MediaItem> = array.mapIndexedNotNull { index, item ->
+        val obj = item.jsonObject
+        val streamId = obj.string("stream_id")
+        if (streamId.isBlank()) {
+            null
+        } else {
+            val categoryId = obj.string("category_id")
+            val directSource = obj.string("direct_source")
+            val output = pickLiveExtension(
+                allowedFormats = allowedFormats,
+                streamExtension = obj.string("container_extension").ifBlank { obj.string("stream_type") },
+                directSource = directSource,
+                playlistUrl = credentials.playlistUrl,
+            )
+            val addedAt = parseTimestamp(obj.string("added"))
+            val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
+            MediaItem(
+                id = streamId,
+                serverId = serverId,
+                type = ContentType.LIVE,
+                categoryId = categoryId,
+                categoryName = categories[categoryId].orEmpty(),
+                title = obj.string("name"),
+                streamUrl = directSource.ifBlank {
+                    "${credentials.baseUrl}live/${credentials.username}/${credentials.password}/$streamId.$output"
+                },
+                posterUrl = obj.imageUrl("stream_icon"),
+                description = obj.string("plot"),
+                addedAt = addedAt,
+                lastModifiedAt = lastModifiedAt,
+                addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
+                serverOrder = obj.int("num").takeIf { it > 0 } ?: index,
+                containerExtension = output,
+                tvgId = obj.string("epg_channel_id"),
+                catchup = obj.string("tv_archive"),
+                rawJson = "",
+            )
+        }
+    }
+
+    fun parseVodStreams(
+        json: Json,
+        serverId: Long,
+        credentials: XtreamCredentials,
+        categories: Map<String, String>,
+        array: JsonArray,
+    ): List<MediaItem> = array.mapIndexedNotNull { index, item ->
+        val obj = item.jsonObject
+        val streamId = obj.string("stream_id")
+        if (streamId.isBlank()) {
+            null
+        } else {
+            val categoryId = obj.string("category_id")
+            val directSource = obj.string("direct_source")
+            val extension = obj.string("container_extension")
+                .normalizeVodExtension()
+                .ifBlank { directSource.extractMediaExtension() }
+                .ifBlank { "mp4" }
+            val addedAt = parseTimestamp(obj.string("added"))
+            val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
+            MediaItem(
+                id = streamId,
+                serverId = serverId,
+                type = ContentType.MOVIE,
+                categoryId = categoryId,
+                categoryName = categories[categoryId].orEmpty(),
+                title = obj.string("name"),
+                streamUrl = directSource.ifBlank {
+                    "${credentials.baseUrl}movie/${credentials.username}/${credentials.password}/$streamId.$extension"
+                },
+                posterUrl = obj.imageUrl("stream_icon").ifBlank { obj.imageUrl("cover") },
+                backdropUrl = obj.imageUrlOrJoin("backdrop_path"),
+                description = obj.string("plot"),
+                rating = obj.string("rating").ifBlank { obj.string("rating_5based") },
+                durationSecs = obj.durationSeconds("duration_secs", "duration"),
+                addedAt = addedAt,
+                lastModifiedAt = lastModifiedAt,
+                addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
+                serverOrder = obj.int("num").takeIf { it > 0 } ?: index,
+                containerExtension = directSource.extractMediaExtension().ifBlank { extension },
+                cast = obj.stringOrJoin("cast"),
+                director = obj.stringOrJoin("director"),
+                genre = obj.stringOrJoin("genre"),
+                releaseDate = obj.string("releaseDate").ifBlank { obj.string("release_date") },
+                rawJson = "",
+            )
+        }
+    }
+
+    fun parseSeries(
+        json: Json,
+        serverId: Long,
+        categories: Map<String, String>,
+        array: JsonArray,
+    ): List<MediaItem> = array.mapIndexedNotNull { index, item ->
+        val obj = item.jsonObject
+        val seriesId = obj.string("series_id")
+        if (seriesId.isBlank()) {
+            null
+        } else {
+            val categoryId = obj.string("category_id")
+            val addedAt = parseTimestamp(obj.string("added"))
+            val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
+            MediaItem(
+                id = seriesId,
+                serverId = serverId,
+                type = ContentType.SERIES,
+                categoryId = categoryId,
+                categoryName = categories[categoryId].orEmpty(),
+                title = obj.string("name"),
+                streamUrl = "",
+                posterUrl = obj.imageUrl("cover"),
+                backdropUrl = obj.imageUrlOrJoin("backdrop_path"),
+                description = obj.string("plot"),
+                rating = obj.string("rating").ifBlank { obj.string("rating_5based") },
+                addedAt = addedAt,
+                lastModifiedAt = lastModifiedAt,
+                addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
+                serverOrder = obj.int("num").takeIf { it > 0 } ?: index,
+                seriesId = seriesId,
+                cast = obj.stringOrJoin("cast"),
+                director = obj.stringOrJoin("director"),
+                genre = obj.stringOrJoin("genre"),
+                releaseDate = obj.string("releaseDate").ifBlank { obj.string("release_date") },
+                rawJson = "",
+            )
+        }
+    }
+
+    fun enrichVod(
+        json: Json,
+        serverId: Long,
+        current: MediaItem,
+        root: JsonObject,
+    ): Pair<MediaItem, VodDetailsEntity> {
+        val info = root.objectOrNull("info") ?: JsonObject(emptyMap())
+        val movieData = root.objectOrNull("movie_data") ?: JsonObject(emptyMap())
+        val movieImage = info.imageUrl("movie_image").ifBlank { current.posterUrl }
+        val backdrop = info.imageUrlOrJoin("backdrop_path").ifBlank { current.backdropUrl }
+        val plot = info.string("plot").ifBlank { movieData.string("plot").ifBlank { current.description } }
+        val rating = info.string("rating").ifBlank { movieData.string("rating").ifBlank { current.rating } }
+        val durationSecs = info.durationSeconds("duration_secs", "duration")
+            .takeIf { it > 0 }
+            ?: movieData.durationSeconds("duration_secs", "duration").takeIf { it > 0 }
+            ?: current.durationSecs
+        val enriched = current.copy(
+            posterUrl = movieImage,
+            backdropUrl = backdrop,
+            description = plot,
+            rating = rating,
+            durationSecs = durationSecs,
+            cast = info.stringOrJoin("cast").ifBlank { current.cast },
+            director = info.stringOrJoin("director").ifBlank { current.director },
+            genre = info.stringOrJoin("genre").ifBlank { current.genre },
+            releaseDate = info.string("releasedate").ifBlank { info.string("releaseDate").ifBlank { current.releaseDate } },
+            rawJson = "",
+        )
+        return enriched to VodDetailsEntity(
+            serverId = serverId,
+            vodId = current.id,
+            movieImage = movieImage,
+            backdrop = backdrop,
+            plot = plot,
+            cast = enriched.cast,
+            director = enriched.director,
+            genre = enriched.genre,
+            releaseDate = enriched.releaseDate,
+            rating = rating,
+            duration = info.string("duration"),
+            country = info.stringOrJoin("country"),
+            youtubeTrailer = info.string("youtube_trailer"),
+            rawJson = json.encodeToString(JsonElement.serializer(), root),
+            updatedAt = System.currentTimeMillis(),
+        )
+    }
+
+    fun enrichSeries(
+        json: Json,
+        serverId: Long,
+        credentials: XtreamCredentials,
+        current: MediaItem,
+        root: JsonObject,
+    ): Triple<MediaItem, List<SeasonEntity>, List<MediaItem>> {
+        val info = root.objectOrNull("info") ?: JsonObject(emptyMap())
+        val seasons = root.arrayOrNull("seasons").orEmpty()
+        val episodeGroups = when (val value = root["episodes"]) {
+            is JsonObject -> value.entries.mapNotNull { (seasonKey, element) ->
+                (element as? JsonArray)?.let { seasonKey to it }
+            }
+            is JsonArray -> listOf("1" to value)
+            else -> emptyList()
+        }
+        val now = System.currentTimeMillis()
+        val enrichedSeries = current.copy(
+            title = info.string("name").ifBlank { current.title },
+            description = info.string("plot").ifBlank { current.description },
+            rating = info.string("rating").ifBlank { current.rating },
+            posterUrl = info.imageUrl("cover_big").ifBlank { info.imageUrl("cover").ifBlank { current.posterUrl } },
+            backdropUrl = info.imageUrlOrJoin("backdrop_path").ifBlank { current.backdropUrl },
+            cast = info.stringOrJoin("cast").ifBlank { current.cast },
+            director = info.stringOrJoin("director").ifBlank { current.director },
+            genre = info.stringOrJoin("genre").ifBlank { current.genre },
+            releaseDate = info.string("releaseDate").ifBlank { current.releaseDate },
+            rawJson = "",
+        )
+        val episodeItems = episodeGroups.flatMap { (seasonKey, value) ->
+            value.mapIndexedNotNull { index, element ->
+                val obj = element.jsonObject
+                val episodeInfo = obj.objectOrNull("info") ?: JsonObject(emptyMap())
+                val episodeId = obj.string("id")
+                if (episodeId.isBlank()) {
+                    null
+                } else {
+                    val seasonNumber = obj.int("season").takeIf { it > 0 } ?: seasonKey.toIntOrNull() ?: 0
+                    val episodeNumber = obj.int("episode_num").takeIf { it > 0 } ?: (index + 1)
+                    val directSource = obj.string("direct_source").ifBlank { episodeInfo.string("direct_source") }
+                    val extension = obj.string("container_extension")
+                        .normalizeVodExtension()
+                        .ifBlank { episodeInfo.string("container_extension").normalizeVodExtension() }
+                        .ifBlank { directSource.extractMediaExtension() }
+                        .ifBlank { "mp4" }
+                    val addedAt = parseTimestamp(obj.string("added"))
+                    val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
+                    MediaItem(
+                        id = episodeId,
+                        serverId = serverId,
+                        type = ContentType.EPISODE,
+                        categoryId = current.categoryId,
+                        categoryName = current.categoryName,
+                        title = obj.string("title").ifBlank { "Episode $episodeNumber" },
+                        streamUrl = directSource.ifBlank {
+                            "${credentials.baseUrl}series/${credentials.username}/${credentials.password}/$episodeId.$extension"
+                        },
+                        posterUrl = episodeInfo.imageUrl("cover_big").ifBlank { episodeInfo.imageUrl("movie_image").ifBlank { enrichedSeries.posterUrl } },
+                        backdropUrl = enrichedSeries.backdropUrl,
+                        description = episodeInfo.string("plot"),
+                        rating = episodeInfo.string("rating").ifBlank { enrichedSeries.rating },
+                        durationSecs = episodeInfo.durationSeconds("duration_secs", "duration")
+                            .takeIf { it > 0 }
+                            ?: obj.durationSeconds("duration_secs", "duration").takeIf { it > 0 }
+                            ?: 0,
+                        addedAt = addedAt,
+                        lastModifiedAt = lastModifiedAt,
+                        addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
+                        serverOrder = episodeNumber,
+                        containerExtension = directSource.extractMediaExtension().ifBlank { extension },
+                        seriesId = current.seriesId.ifBlank { current.id },
+                        seasonNumber = seasonNumber,
+                        episodeNumber = episodeNumber,
+                        cast = enrichedSeries.cast,
+                        director = enrichedSeries.director,
+                        genre = enrichedSeries.genre,
+                        releaseDate = episodeInfo.string("releaseDate").ifBlank { enrichedSeries.releaseDate },
+                        rawJson = "",
+                    )
+                }
+            }
+        }
+        val explicitSeasonEntities = seasons.mapNotNull { element ->
+            val obj = element.jsonObject
+            val seasonNumber = obj.int("season_number")
+            if (seasonNumber <= 0) null else SeasonEntity(
+                serverId = serverId,
+                seriesId = current.seriesId.ifBlank { current.id },
+                seasonNumber = seasonNumber,
+                name = obj.string("name").ifBlank { "Season $seasonNumber" },
+                cover = obj.string("cover"),
+                airDate = obj.string("air_date"),
+                plot = obj.string("overview"),
+                rawJson = "",
+                updatedAt = now,
+            )
+        }
+        val seasonEntities = explicitSeasonEntities.ifEmpty {
+            episodeItems
+                .map { it.seasonNumber.coerceAtLeast(1) }
+                .distinct()
+                .sorted()
+                .map { seasonNumber ->
+                    SeasonEntity(
+                        serverId = serverId,
+                        seriesId = current.seriesId.ifBlank { current.id },
+                        seasonNumber = seasonNumber,
+                        name = "Season $seasonNumber",
+                        cover = enrichedSeries.posterUrl,
+                        airDate = "",
+                        plot = "",
+                        rawJson = "",
+                        updatedAt = now,
+                    )
+                }
+        }
+        return Triple(enrichedSeries, seasonEntities, episodeItems)
+    }
+
+    fun parseXmltv(
+        serverId: Long,
+        xml: String,
+    ): List<EpgProgramEntity> {
+        val factory = XmlPullParserFactory.newInstance()
+        factory.isNamespaceAware = false
+        val parser = factory.newPullParser()
+        parser.setInput(StringReader(xml))
+        val result = mutableListOf<EpgProgramEntity>()
+        var eventType = parser.eventType
+        var currentChannel = ""
+        var start = ""
+        var stop = ""
+        var title = ""
+        var description = ""
+        var category = ""
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> when (parser.name) {
+                    "programme" -> {
+                        currentChannel = parser.getAttributeValue(null, "channel").orEmpty()
+                        start = parser.getAttributeValue(null, "start").orEmpty()
+                        stop = parser.getAttributeValue(null, "stop").orEmpty()
+                        title = ""
+                        description = ""
+                        category = ""
+                    }
+                    "title" -> title = parser.nextText().orEmpty()
+                    "desc" -> description = parser.nextText().orEmpty()
+                    "category" -> category = parser.nextText().orEmpty()
+                }
+                XmlPullParser.END_TAG -> if (parser.name == "programme" && currentChannel.isNotBlank()) {
+                    result += EpgProgramEntity(
+                        serverId = serverId,
+                        channelKey = currentChannel,
+                        title = title,
+                        description = description,
+                        startAt = parseXmltvTime(start),
+                        endAt = parseXmltvTime(stop),
+                        category = category,
+                        rawJson = """{"channel":"$currentChannel","title":${title.quoteJson()},"desc":${description.quoteJson()}}""",
+                        updatedAt = System.currentTimeMillis(),
+                    )
+                }
+            }
+            eventType = parser.next()
+        }
+        return result
+    }
+
+    fun parseShortEpg(
+        json: Json,
+        serverId: Long,
+        fallbackChannelKey: String,
+        root: JsonObject,
+    ): List<EpgProgramEntity> {
+        val listings = root.arrayOrNull("epg_listings")
+            ?: root.arrayOrNull("listings")
+            ?: root.arrayOrNull("epgListings")
+            ?: JsonArray(emptyList())
+        val updatedAt = System.currentTimeMillis()
+        return listings.mapNotNull { element ->
+            val obj = element.jsonObject
+            val title = obj.string("title").ifBlank { obj.string("name") }
+            val startAt = parseTimestamp(obj.string("start_timestamp"))
+                .takeIf { it > 0 }
+                ?: parseTimestamp(obj.string("start"))
+            val endAt = parseTimestamp(obj.string("stop_timestamp"))
+                .takeIf { it > 0 }
+                ?: parseTimestamp(obj.string("end"))
+                .takeIf { it > 0 }
+                ?: parseTimestamp(obj.string("stop"))
+            if (title.isBlank() || startAt <= 0) {
+                null
+            } else {
+                EpgProgramEntity(
+                    serverId = serverId,
+                    channelKey = obj.string("epg_channel_id").ifBlank { fallbackChannelKey },
+                    title = title,
+                    description = obj.string("description").ifBlank { obj.string("desc") },
+                    startAt = startAt,
+                    endAt = if (endAt > 0) endAt else startAt,
+                    category = obj.string("category"),
+                    rawJson = json.encodeToString(JsonElement.serializer(), element),
+                    updatedAt = updatedAt,
+                )
+            }
+        }
+    }
+
+    fun toLiveEpgSnapshot(programs: List<EpgProgramEntity>, now: Long = System.currentTimeMillis()): LiveEpgSnapshot {
+        val sorted = programs.sortedBy { it.startAt }
+        val current = sorted.firstOrNull { it.startAt <= now && (it.endAt == 0L || it.endAt >= now) }
+            ?: sorted.firstOrNull { it.startAt >= now }
+        val next = when {
+            current == null -> sorted.getOrNull(1)
+            else -> sorted.firstOrNull { it.startAt > current.startAt && it.title != current.title }
+        }
+        return LiveEpgSnapshot(
+            current = current?.toEntry(),
+            next = next?.toEntry(),
+        )
+    }
+
+    fun parseTimestamp(value: String?): Long {
+        val trimmed = value.orEmpty().trim()
+        if (trimmed.isBlank()) return 0
+        trimmed.toLongOrNull()?.let { numeric ->
+            return if (numeric > 1_000_000_000_000L) numeric else numeric * 1000L
+        }
+        return runCatching {
+            ZonedDateTime.parse(trimmed).toInstant().toEpochMilli()
+        }.recoverCatching {
+            LocalDateTime.parse(trimmed, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.US))
+                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        }.getOrDefault(0L)
+    }
+
+    fun sanitizeError(message: String?, host: String): String {
+        val clean = message.orEmpty()
+            .replace(Regex("username=[^&\\s]+"), "username=***")
+            .replace(Regex("password=[^&\\s]+"), "password=***")
+        return if (clean.isBlank()) "Server sync failed for $host" else clean
+    }
+
+    fun maskUsername(username: String): String {
+        if (username.length <= 2) return "*".repeat(username.length.coerceAtLeast(1))
+        return username.take(2) + "*".repeat((username.length - 2).coerceAtLeast(2))
+    }
+
+    fun hostLabel(url: String): String = runCatching {
+        URI(url).host?.removePrefix("www.").orEmpty().ifBlank { url }
+    }.getOrDefault(url)
+}
+
+private fun EpgProgramEntity.toEntry(): EpgEntry = EpgEntry(
+    title = title,
+    description = description,
+    startAt = startAt,
+    endAt = endAt,
+    category = category,
+)
+
+private fun JsonObject.string(name: String): String = this[name]?.contentOrNull().orEmpty()
+
+private fun JsonObject.imageUrl(name: String): String = string(name).normalizeImageUrl()
+
+private fun JsonObject.int(name: String): Int = string(name).toIntOrNull() ?: this[name]?.jsonPrimitive?.intOrNull ?: 0
+
+private fun JsonObject.long(name: String): Long = string(name).toLongOrNull() ?: this[name]?.jsonPrimitive?.longOrNull ?: 0L
+
+private fun JsonObject.durationSeconds(vararg names: String): Long {
+    names.forEach { name ->
+        val direct = long(name)
+        if (direct > 0 && name.contains("secs", ignoreCase = true)) return direct
+        parseDurationSeconds(string(name)).takeIf { it > 0 }?.let { return it }
+        if (direct > 0) return direct
+    }
+    return 0L
+}
+
+private fun parseDurationSeconds(value: String): Long {
+    val clean = value.trim().lowercase(Locale.US)
+    if (clean.isBlank()) return 0L
+    clean.toLongOrNull()?.let { numeric ->
+        return if (numeric in 1..600) numeric * 60 else numeric
+    }
+    if (":" in clean) {
+        val parts = clean.split(':').mapNotNull { it.toLongOrNull() }
+        if (parts.size == 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
+        if (parts.size == 2) return parts[0] * 60 + parts[1]
+    }
+    val hours = Regex("""(\d+)\s*(h|hr|hrs|hour|hours)""").find(clean)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
+    val minutes = Regex("""(\d+)\s*(m|min|mins|minute|minutes)""").find(clean)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
+    val seconds = Regex("""(\d+)\s*(s|sec|secs|second|seconds)""").find(clean)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
+    return hours * 3600 + minutes * 60 + seconds
+}
+
+private fun JsonObject.boolean(name: String): Boolean = when (string(name).lowercase(Locale.US)) {
+    "1", "true", "yes" -> true
+    else -> false
+}
+
+private fun JsonObject.objectOrNull(name: String): JsonObject? = this[name] as? JsonObject
+
+private fun JsonObject.arrayOrNull(name: String): JsonArray? = this[name] as? JsonArray
+
+private fun JsonObject.stringOrJoin(name: String): String = when (val value = this[name]) {
+    is JsonArray -> value.mapNotNull { it.contentOrNull() }.joinToString(", ")
+    is JsonPrimitive -> value.contentOrNull().orEmpty()
+    else -> ""
+}
+
+private fun JsonObject.imageUrlOrJoin(name: String): String = when (val value = this[name]) {
+    is JsonArray -> value.mapNotNull { it.contentOrNull()?.normalizeImageUrl()?.takeIf(String::isNotBlank) }.firstOrNull().orEmpty()
+    is JsonPrimitive -> value.contentOrNull().orEmpty().normalizeImageUrl()
+    else -> ""
+}
+
+private fun JsonElement?.contentOrNull(): String? = when (this) {
+    null, JsonNull -> null
+    is JsonPrimitive -> content.trim().takeUnless { it.isNullLikeToken() }
+    else -> null
+}
+
+internal fun String.normalizeImageUrl(): String {
+    val clean = trim()
+        .trim('"', '\'')
+        .replace("&amp;", "&", ignoreCase = true)
+    if (clean.isBlank() || clean.isNullLikeToken()) return ""
+    return when {
+        clean.startsWith("//") -> "https:$clean"
+        clean.startsWith("http://", ignoreCase = true) || clean.startsWith("https://", ignoreCase = true) -> clean
+        else -> ""
+    }
+}
+
+private fun String.isNullLikeToken(): Boolean =
+    equals("null", ignoreCase = true) ||
+        equals("undefined", ignoreCase = true) ||
+        equals("n/a", ignoreCase = true) ||
+        equals("na", ignoreCase = true) ||
+        equals("none", ignoreCase = true) ||
+        equals("[]")
+
+internal fun pickLiveExtension(
+    allowedFormats: List<String>,
+    streamExtension: String = "",
+    directSource: String = "",
+    playlistUrl: String = "",
+): String {
+    val directExtension = directSource.extractMediaExtension()
+    if (directExtension.isNotBlank()) return directExtension
+
+    val metadataExtension = streamExtension.normalizeLiveExtension()
+    if (metadataExtension.isNotBlank()) return metadataExtension
+
+    val playlistOutput = runCatching {
+        URI(playlistUrl).rawQuery
+            ?.split('&')
+            ?.mapNotNull { part ->
+                val pieces = part.split('=', limit = 2)
+                if (pieces.size == 2) {
+                    URLDecoder.decode(pieces[0], Charsets.UTF_8.name()) to URLDecoder.decode(pieces[1], Charsets.UTF_8.name())
+                } else {
+                    null
+                }
+            }
+            ?.firstOrNull { (key, _) -> key.equals("output", ignoreCase = true) }
+            ?.second
+            .orEmpty()
+    }.getOrDefault("").normalizeLiveExtension()
+    if (playlistOutput.isNotBlank()) return playlistOutput
+
+    val supported = allowedFormats.mapNotNull { it.normalizeLiveExtension().takeIf(String::isNotBlank) }
+    return when {
+        supported.any { it == "m3u8" } -> "m3u8"
+        supported.any { it == "ts" } -> "ts"
+        supported.any { it == "mp4" } -> "mp4"
+        supported.isNotEmpty() -> supported.first()
+        else -> "m3u8"
+    }
+}
+
+private fun String.extractMediaExtension(): String {
+    val path = substringBefore('|').substringBefore('?').substringBefore('#')
+    return path.substringAfterLast('/', "")
+        .substringAfterLast('.', "")
+        .normalizeLiveExtension()
+}
+
+private fun String.normalizeLiveExtension(): String = trim()
+    .trimStart('.')
+    .lowercase(Locale.US)
+    .let { value ->
+        when (value) {
+            "hls", "m3u", "m3u8" -> "m3u8"
+            "mpegts", "mpeg-ts", "ts" -> "ts"
+            "dash", "mpd" -> "mpd"
+            "smooth", "ism" -> "ism"
+            "mp4", "mkv", "webm", "flv" -> value
+            else -> ""
+        }
+    }
+
+private fun String.normalizeVodExtension(): String =
+    normalizeLiveExtension().ifBlank {
+        trim()
+            .trimStart('.')
+            .lowercase(Locale.US)
+            .let { value ->
+                when (value) {
+                    "mov", "m4v", "avi", "mpg", "mpeg", "vob", "3gp", "3g2" -> value
+                    "matroska" -> "mkv"
+                    "quicktime" -> "mov"
+                    else -> ""
+                }
+            }
+    }
+
+private fun parseXmltvTime(value: String): Long {
+    val trimmed = value.trim()
+    if (trimmed.isBlank()) return 0
+    return runCatching {
+        ZonedDateTime.parse(trimmed, DateTimeFormatter.ofPattern("yyyyMMddHHmmss Z", Locale.US)).toInstant().toEpochMilli()
+    }.recoverCatching {
+        LocalDateTime.parse(trimmed.take(14), DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.US))
+            .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    }.getOrDefault(0L)
+}
+
+private fun String.quoteJson(): String = buildString(length + 2) {
+    append('"')
+    for (char in this@quoteJson) {
+        when (char) {
+            '\\' -> append("\\\\")
+            '"' -> append("\\\"")
+            '\n' -> append("\\n")
+            '\r' -> append("\\r")
+            '\t' -> append("\\t")
+            else -> append(char)
+        }
+    }
+    append('"')
+}

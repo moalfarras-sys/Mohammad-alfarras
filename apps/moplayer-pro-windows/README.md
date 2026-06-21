@@ -58,7 +58,7 @@ The app registers with the existing MoPlayer activation backend as:
 
 ## Product Assets
 
-The Windows app reuses MoPlayer Pro Android assets from `apps/moplayer2-android`:
+The Windows app reuses MoPlayer Pro Android assets from `apps/moplayer-pro-android`:
 
 - splash/logo art from `ic_splash_logo.png`;
 - app icon from `ic_launcher_foreground_img.png`;

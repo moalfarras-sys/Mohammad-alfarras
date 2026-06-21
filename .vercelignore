@@ -28,7 +28,7 @@ coverage/
 artifacts/
 output/
 apps/moplayer-android/
-apps/moplayer2-android/
+apps/moplayer-pro-android/
 apps/moplayer-dashboard/
 local.properties
 **/local.properties
@@ -37,9 +37,9 @@ keystore.properties
 *.keystore
 *.jks
 .supabase/
-apps/moplayer2-android/.gradle/
-apps/moplayer2-android/build/
-apps/moplayer2-android/app/build/
+apps/moplayer-pro-android/.gradle/
+apps/moplayer-pro-android/build/
+apps/moplayer-pro-android/app/build/
 android/moplayer/build/
 android/moplayer/build-output/
 android/moplayer/releases/

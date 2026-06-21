@@ -18,7 +18,7 @@
     "verify:web": "npm --prefix apps/web run typecheck && npm --prefix apps/web run lint && npm --prefix apps/web run build && npm --prefix apps/web test",
     "verify:admin": "npm --prefix apps/admin run typecheck && npm --prefix apps/admin run lint && npm --prefix apps/admin run build",
     "verify:android:classic": "cd apps/moplayer-android && gradlew.bat testSideloadDebugUnitTest",
-    "verify:android:pro": "cd apps/moplayer2-android && gradlew.bat testDebugUnitTest",
+    "verify:android:pro": "cd apps/moplayer-pro-android && gradlew.bat testDebugUnitTest",
     "verify:android": "npm run verify:android:classic && npm run verify:android:pro",
     "verify:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",
     "verify:windows": "npm --prefix apps/moplayer-pro-windows run typecheck && npm --prefix apps/moplayer-pro-windows run lint && npm --prefix apps/moplayer-pro-windows run build",

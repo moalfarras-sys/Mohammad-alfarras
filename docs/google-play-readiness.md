@@ -83,7 +83,7 @@ cd apps/moplayer-android
 ```
 
 ```powershell
-cd apps/moplayer2-android
+cd apps/moplayer-pro-android
 .\gradlew.bat clean bundleRelease
 ```
 

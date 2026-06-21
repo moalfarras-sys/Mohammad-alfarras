@@ -2,6 +2,25 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-06-20 MoPlayer Pro Android TV player/cache pass
+
+- Renamed the Pro Android folder with Git from `apps/moplayer2-android` to `apps/moplayer-pro-android`; the public/product slug remains `moplayer2`, Gradle root remains `MoPlayerPro`, and Android `applicationId` remains `com.moalfarras.moplayerpro`.
+- Kept signing paths intact. `assembleRelease` validated the existing release signing config and produced universal, `arm64-v8a`, and `armeabi-v7a` APKs.
+- Fixed defensive full-screen video sizing in `PlayerScreen`: Media3 `PlayerView` is forced to `MATCH_PARENT`, the Compose/SurfaceView sync workaround is enabled, and LibVLC `TextureView`/vout window sizing is refreshed from the actual view size.
+- Added persisted Video Size setting (`Auto`, `Fit`, `Fill`, `Zoom`) in DataStore, Settings, and the live player. `Auto` defaults to the safe fit behavior.
+- Rebuilt the live OK overlay into a wider premium TV overlay with tabs for Channels, Groups, Video Size, Audio, Subtitles, and Favorites; selected rows now scroll into view on every remote move.
+- Reduced startup reload pressure for saved servers by delaying startup background refresh and increasing the smart refresh interval from 1 hour to 6 hours; cached content still opens first and manual refresh remains available.
+- Added debug-only StrictMode logging to catch disk/network work on the main thread during future Android QA.
+- Added Xtream login validation before saving a source. Earlier negative QA with rejected provider credentials now fails clearly instead of saving an empty server and showing an empty library.
+- Added robust Xtream/M3U/QR source normalization for pasted `get.php`, `player_api.php`, `xmltv.php`, activation URLs, bare hosts, and saved legacy server URLs. First-run imports now load the library before entering Home; cached sources still open immediately and refresh in the background.
+- Added smart VOD details refresh/cache. Focused or played Xtream movies fetch `get_vod_info` on demand so providers that omit plot/duration/cast from `get_vod_streams` can still fill posters, ratings, descriptions, duration, cast, director, genre, release date, and trailer metadata without slowing initial sync.
+- Real Android TV API 36 emulator QA with a user-provided temporary Xtream/M3U-plus source loaded `12622` live items, `20055` movies, `10458` series, and category counts `124/70/41`. The same provider returned VOD detail metadata through `get_vod_info`.
+- Re-tested on Android TV API 24 x86 720p emulator with a temporary QA M3U source hosted outside the repo. Saved-source restart reopened from cache in about 0.68 s Activity time; local 16:9 video filled 1280x720 with no tiny player surface; the OK overlay stayed over the video with visible channel focus and no hidden focus row.
+- Bumped Android to `versionName 2.5.23` / `versionCode 61`, built signed `assembleRelease`, copied the universal APK to `apps/web/public/downloads/moplayer2/app-release.apk`, and updated web/admin fallback release metadata.
+- Published live release `moplayer2-2.5.23` through `scripts/publish-android-release.mjs` with the new universal APK uploaded to Supabase Storage. Production `/api/app/config?product=moplayer2` returns `2.5.23` / code `61`, and `/api/app/download/latest?product=moplayer2` redirects to the new Supabase Storage APK.
+- Current Pro APK: `49276473` bytes, SHA-256 `abd79199b9b074d5ce5130847dd16b9c8f2823d548cbd2f6314067a4a50b4ddd`.
+- Local checks passed: `assembleDebug`, targeted `XtreamSupportTest`, `assembleRelease`, real emulator source import QA, and full `npm run verify:production`. Physical Android TV / Fire TV hardware QA still needs a real device because this Windows machine only had Android emulators available.
+
 ## 2026-06-18 Admin Media Control Center redesign
 
 - Added a dedicated Admin `/media` page so image control is no longer hidden inside the long Website CMS page.
@@ -223,7 +242,7 @@ This repository is a production monorepo for the public website, admin control c
 - `apps/web/src/app/api/app/activation/source/ack/route.ts` is idempotent and deletes both the source receipt and temporary source auth hash after app import/failure acknowledgement.
 - `apps/web/src/app/api/app/activation/create/route.ts` gives the source auth hash its own expiry so old QR sessions cannot become long-lived device links.
 - `apps/moplayer-android` now polls website-delivered sources only for a short window after a fresh QR activation and marks the delivery complete after import, failure, or timeout.
-- `apps/moplayer2-android` no longer exposes the old direct Supabase activation source endpoints/models; QR source import goes through the public website API only, then the server profile is saved locally in the app.
+- `apps/moplayer-pro-android` no longer exposes the old direct Supabase activation source endpoints/models; QR source import goes through the public website API only, then the server profile is saved locally in the app.
 - `apps/admin` source delivery controls read/update only non-sensitive `app_settings` receipts. The old `device_provider_sources` table is not used.
 - Added migration `supabase/migrations/20260605090000_enforce_ephemeral_provider_source_handoff.sql` to clear old source/auth queue keys and document the policy.
 - MoPlayer Pro now applies admin runtime maintenance/disabled/force-update config as a blocking control message that closes current playback; non-blocking admin messages appear as notices.
@@ -256,7 +275,7 @@ This repository is a production monorepo for the public website, admin control c
 - `apps/web`: public Next.js site for `moalfarras.space`, MoPlayer pages, activation, support, app config, and downloads.
 - `apps/admin`: admin control center for `admin.moalfarras.space`.
 - `apps/moplayer-android`: classic MoPlayer Android TV app.
-- `apps/moplayer2-android`: MoPlayer Pro Android app.
+- `apps/moplayer-pro-android`: MoPlayer Pro Android app.
 - `packages/shared`: shared app product metadata and slug helpers.
 - `packages/db`: server-side database helpers.
 - `supabase/migrations`: ordered database migrations for production Supabase.
@@ -374,7 +393,7 @@ Android TV API 24 x86 emulator (the running `emulator-5554`). Baseline `dumpsys 
 showed **100% janky frames** while browsing Live TV, and an idle screen (no input) was still
 rendering ~40 fps continuously — the app never settled.
 
-Root causes and fixes (all scoped to `apps/moplayer2-android`):
+Root causes and fixes (all scoped to `apps/moplayer-pro-android`):
 
 - **Ungated infinite animations were the main culprit.** Several `rememberInfiniteTransition`
   blocks were created unconditionally and only gated their *value* (e.g. `if (animate) raw else 0f`).
@@ -402,7 +421,7 @@ before/after signal):
 - `assembleRelease -PincludeX86Abis=true` succeeds (R8 + lintVital pass), so the changes ship cleanly.
 - No new permissions, no crashes in logcat, all home/live widgets still render (motion just rests).
 
-Notes for the next machine: `apps/moplayer2-android/local.properties` had a stale `sdk.dir`
+Notes for the next machine: `apps/moplayer-pro-android/local.properties` had a stale `sdk.dir`
 (`C:\Users\Moalfarras\...`); corrected to the real SDK path for this box. That file stays
 untracked. Version was left at `2.5.12` (`versionCode` 50) — bump and rebuild a signed release
 only on an explicit publish request.
@@ -485,7 +504,7 @@ jarring flashes, both fixed and included in the released build:
 
 ### MoPlayer Pro 2.5.20 live/series playback hardening
 
-Scoped follow-up for MoPlayer Pro only (`apps/moplayer2-android`) after real-device reports that
+Scoped follow-up for MoPlayer Pro only (`apps/moplayer-pro-android`) after real-device reports that
 Live TV could stay black with audio, series details sometimes failed with a 12s `get_series_info`
 connect timeout, and episodes from several series did not play:
 
@@ -526,21 +545,21 @@ connect timeout, and episodes from several series did not play:
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49260800` bytes
 - SHA-256: `477beee677797ae489ec6afce71fe369a31f020ecb18fd3d12ec0d4192907a0f`
 
 Verification completed locally before publish:
 
 - `npm run verify:android:pro`
-- `apps/moplayer2-android/gradlew.bat assembleDebug`
-- `apps/moplayer2-android/gradlew.bat assembleRelease`
+- `apps/moplayer-pro-android/gradlew.bat assembleDebug`
+- `apps/moplayer-pro-android/gradlew.bat assembleRelease`
 - `npm run verify:web`
 - `npm run verify:admin`
 
 ### MoPlayer Pro 2.5.19 stable cached browsing and QR handoff verification
 
-Scoped follow-up for MoPlayer Pro only (`apps/moplayer2-android`) after reports that an already
+Scoped follow-up for MoPlayer Pro only (`apps/moplayer-pro-android`) after reports that an already
 loaded library still appeared to reload when returning to Home/Movies/Series or opening the same
 area again:
 
@@ -575,7 +594,7 @@ area again:
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49267249` bytes
 - SHA-256: `f626b375d26e546be176c16070a957aac8dc9df0517660eedd44ef10f2420291`
 - Signing cert SHA-256: `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`
@@ -583,14 +602,14 @@ Built APK:
 Verification completed locally:
 
 - `npm run verify:android:pro`
-- `apps/moplayer2-android/gradlew.bat assembleDebug`
-- `apps/moplayer2-android/gradlew.bat assembleRelease`
+- `apps/moplayer-pro-android/gradlew.bat assembleDebug`
+- `apps/moplayer-pro-android/gradlew.bat assembleRelease`
 - `npm run verify:web`
 - `npm run verify:admin`
 
 ### MoPlayer Pro 2.5.16 weak-device library browsing pass
 
-Scoped follow-up for MoPlayer Pro only (`apps/moplayer2-android`) after reports that large
+Scoped follow-up for MoPlayer Pro only (`apps/moplayer-pro-android`) after reports that large
 libraries and series episodes still felt slow on weak real devices:
 
 - **Larger bounded Paging batches** (`data/repository/IptvRepository.kt`): browse pages now load
@@ -620,7 +639,7 @@ libraries and series episodes still felt slow on weak real devices:
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49258848` bytes
 - SHA-256: `ec0560ad1d754cfeb102df78476a5b3c38f0f9bae35713caa2ec91b9d5651319`
 - Signing cert SHA-256: `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`
@@ -628,8 +647,8 @@ Built APK:
 Verification completed locally:
 
 - `npm run verify:android:pro`
-- `apps/moplayer2-android/gradlew.bat assembleDebug`
-- `apps/moplayer2-android/gradlew.bat assembleRelease`
+- `apps/moplayer-pro-android/gradlew.bat assembleDebug`
+- `apps/moplayer-pro-android/gradlew.bat assembleRelease`
 - `npm run verify:web`
 - `npm run verify:admin`
 
@@ -669,7 +688,7 @@ category arrays and empty stream arrays.
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49265390` bytes
 - SHA-256: `4ef7cad9c6a859a9cec691ee663447df4b637a0324614842a014abf16d88fa85`
 - APK URL:
@@ -707,7 +726,7 @@ Follow-up scoped to MoPlayer Pro after another weak-device review:
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49263486` bytes
 - SHA-256: `f26b2f2596fce2ed672cbaaabefccc907c9246fe033f184f5e645559dcdf1cd2`
 - Signing cert SHA-256: `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`
@@ -716,14 +735,14 @@ Verification completed locally before publish:
 
 - `npm run verify:android:pro`
 - `npm run verify:android`
-- `apps/moplayer2-android/gradlew.bat assembleRelease`
+- `apps/moplayer-pro-android/gradlew.bat assembleRelease`
 - `npm run verify:web`
 - `npm run verify:admin`
 - `npm run verify:moplayer-dashboard`
 
 ### MoPlayer Pro 2.5.15 large-library sync performance
 
-Scoped follow-up for MoPlayer Pro only (`apps/moplayer2-android`) after testing a real large
+Scoped follow-up for MoPlayer Pro only (`apps/moplayer-pro-android`) after testing a real large
 Xtream/M3U-plus account with roughly 12.5k live channels, 19.9k movies, and 10.4k series:
 
 - **Bulk library rows no longer store raw Xtream/M3U JSON blobs** (`XtreamSupport.kt`,
@@ -747,7 +766,7 @@ Xtream/M3U-plus account with roughly 12.5k live channels, 19.9k movies, and 10.4
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49257055` bytes
 - SHA-256: `263b79d099e257971d2104665db88c3a9b8a318005ad20749d7300dc2046b169`
 - Signing cert SHA-256: `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`
@@ -755,8 +774,8 @@ Built APK:
 Verification completed locally:
 
 - `npm run verify:android:pro`
-- `apps/moplayer2-android/gradlew.bat assembleDebug`
-- `apps/moplayer2-android/gradlew.bat assembleRelease`
+- `apps/moplayer-pro-android/gradlew.bat assembleDebug`
+- `apps/moplayer-pro-android/gradlew.bat assembleRelease`
 - Old Android TV API 24 x86 emulator (`MoPlayer_Classic_API24_TV_720p`): uninstalled the existing
   Pro debug app, installed the fresh debug APK, imported the real M3U-plus/Xtream test source, and
   confirmed the local library contained `LIVE=12489`, `MOVIE=19909`, `SERIES=10398`. The synced
@@ -764,7 +783,7 @@ Verification completed locally:
 
 ### MoPlayer Pro 2.5.14 Xtream/QR partial-sync hardening
 
-Scoped follow-up for MoPlayer Pro only (`apps/moplayer2-android`) after reports that weak
+Scoped follow-up for MoPlayer Pro only (`apps/moplayer-pro-android`) after reports that weak
 devices could stay slow or show only partial libraries after server registration/update:
 
 - **Partial Xtream syncs no longer look complete** (`data/repository/IptvRepository.kt`):
@@ -792,7 +811,7 @@ devices could stay slow or show only partial libraries after server registration
 
 Built APK:
 
-- `apps/moplayer2-android/app/build/outputs/apk/release/app-universal-release.apk`
+- `apps/moplayer-pro-android/app/build/outputs/apk/release/app-universal-release.apk`
 - Size: `49256978` bytes
 - SHA-256: `ee31b490a4bdc7ab7f889f30d9d369f7a2e8b0c376e1195ca30a876fbf886e8f`
 - Signing cert SHA-256: `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`
@@ -800,7 +819,7 @@ Built APK:
 Verification completed locally:
 
 - `npm run verify:android:pro`
-- `apps/moplayer2-android/gradlew.bat assembleRelease`
+- `apps/moplayer-pro-android/gradlew.bat assembleRelease`
 - `npm run verify:web`
 - `npm run verify:admin`
 - Old Android TV API 24 x86 emulator (`MoPlayer_Classic_API24_TV_720p`): uninstalled existing
@@ -815,7 +834,7 @@ precompiling hot startup and user-journey code paths; the app already depends on
 
 ### Released MoPlayer Pro 2.5.13 to production
 
-Bumped `apps/moplayer2-android/app/build.gradle.kts` to `versionName 2.5.13` / `versionCode 51`
+Bumped `apps/moplayer-pro-android/app/build.gradle.kts` to `versionName 2.5.13` / `versionCode 51`
 and built a signed `assembleRelease` universal APK. `apksigner` confirmed the new APK carries the
 **same signing certificate** as the live 2.5.12 (`97dad776…`), so it installs as an update.
 

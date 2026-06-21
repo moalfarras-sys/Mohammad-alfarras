@@ -13,7 +13,7 @@ This monorepo contains the public website, admin control center, shared packages
 | Shared database helpers | `packages/db` | Server-side DB utilities |
 | Supabase schema | `supabase/migrations` | Hosted PostgreSQL migrations |
 | MoPlayer Classic | `apps/moplayer-android` | Android app `com.mo.moplayer` |
-| MoPlayer Pro | `apps/moplayer2-android` | Android app `com.moalfarras.moplayerpro` |
+| MoPlayer Pro | `apps/moplayer-pro-android` | Android app `com.moalfarras.moplayerpro` |
 | MoPlayer Pro Windows | `apps/moplayer-pro-windows` | Electron desktop app for `moplayer2` |
 | MoPlayer Pro iOS | `apps/MoPlayer iphone ios` | Flutter iPhone app prepared for Mac/Xcode publishing |
 

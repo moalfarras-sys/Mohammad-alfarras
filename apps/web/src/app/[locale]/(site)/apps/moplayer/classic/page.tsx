@@ -48,9 +48,15 @@ export async function generateMetadata({
       ecosystem.screenshots[0]?.image_path ||
       "/images/moplayer-hero-3d-final.png",
   );
+  const keywords =
+    locale === "ar"
+      ? ["MoPlayer Classic", "مشغل IPTV للأندرويد", "مشغل M3U", "مشغل Xtream", "مشغل خفيف للأجهزة الضعيفة", "تحميل APK", "محمد الفراس"]
+      : ["MoPlayer Classic", "IPTV player Android", "M3U player", "Xtream player", "lightweight Android TV player", "APK download", "Mohammad Alfarras"];
+
   return {
     title: meta.title,
     description: meta.description,
+    keywords,
     alternates: {
       canonical: `${SITE_URL}/${locale}/apps/moplayer/classic`,
       languages: {

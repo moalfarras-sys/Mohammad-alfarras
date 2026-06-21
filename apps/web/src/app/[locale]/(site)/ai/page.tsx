@@ -67,6 +67,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title,
     description,
+    keywords: isAr
+      ? ["Mo Ai", "مساعد ذكي", "مساعد الموقع", "شات بوت", "مساعدة MoPlayer", "محمد الفراس"]
+      : ["Mo Ai", "AI assistant", "site assistant", "chatbot", "MoPlayer help", "Mohammad Alfarras"],
     alternates: {
       canonical: `${SITE_URL}/${loc}/ai`,
       languages: {

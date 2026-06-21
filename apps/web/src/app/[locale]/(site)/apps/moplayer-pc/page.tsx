@@ -45,9 +45,15 @@ export async function generateMetadata({
       "/images/moplayer-pc-desktop.png",
   );
 
+  const keywords =
+    locale === "ar"
+      ? ["MoPlayer PC", "مشغل IPTV لويندوز", "مشغل وسائط ويندوز", "مشغل M3U للكمبيوتر", "مشغل Xtream ويندوز", "تحميل مشغل للكمبيوتر", "محمد الفراس"]
+      : ["MoPlayer PC", "Windows IPTV player", "desktop M3U player", "Xtream Windows player", "download IPTV player for PC", "Mohammad Alfarras"];
+
   return {
     title: copy.title,
     description: copy.description,
+    keywords,
     alternates: {
       canonical,
       languages: {

@@ -18,12 +18,14 @@ const localizedMeta = {
     socialTitle: "MoPlayer — عائلة تطبيقات Android وWindows والتلفزيون",
     description:
       "بوابة MoPlayer الجديدة تجمع Classic وPro وPC، وتجهز مكانا واضحا لتطبيقات iOS وApple TV وLG وSamsung القادمة.",
+    keywords: ["MoPlayer", "عائلة تطبيقات MoPlayer", "مشغل IPTV", "Android TV", "مشغل ويندوز", "iOS", "تفعيل", "محمد الفراس"],
   },
   en: {
     title: "MoPlayer Apps",
     socialTitle: "MoPlayer — Android, Windows, and TV product family",
     description:
       "The MoPlayer hub brings Classic, Pro, PC, and iOS together with clear activation, download, support, and player-only legal guidance.",
+    keywords: ["MoPlayer", "IPTV player family", "Android TV player", "Windows IPTV player", "iOS IPTV player", "activation", "Mohammad Alfarras"],
   },
 } as const;
 
@@ -36,6 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: meta.title,
     description: meta.description,
+    keywords: [...meta.keywords],
     alternates: {
       canonical: `${SITE_URL}/${locale}/apps/moplayer`,
       languages: {

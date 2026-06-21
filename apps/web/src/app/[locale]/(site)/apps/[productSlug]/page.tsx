@@ -61,9 +61,15 @@ export async function generateMetadata({
       "/images/moplayer-hero-3d-final.png",
   );
 
+  const keywords =
+    locale === "ar"
+      ? ["MoPlayer Pro", "مشغل IPTV لأجهزة Android TV", "مشغل Fire TV", "مشغل Xtream", "تفعيل MoPlayer Pro", "تطبيق بث للتلفزيون", "محمد الفراس"]
+      : ["MoPlayer Pro", "Android TV IPTV player", "Fire TV player", "Xtream Codes player", "premium IPTV app", "MoPlayer activation", "Mohammad Alfarras"];
+
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `${SITE_URL}/${locale}/apps/${productSlug}`,
       languages: {

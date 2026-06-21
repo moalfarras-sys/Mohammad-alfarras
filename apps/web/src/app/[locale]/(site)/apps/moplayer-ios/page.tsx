@@ -142,9 +142,14 @@ export async function generateMetadata({
   const loc = locale as Locale;
   const c = repairMojibakeDeep(copy[loc]);
   const canonical = `${SITE_URL}/${loc}/apps/moplayer-ios`;
+  const socialImage = `${SITE_URL}/images/moplayer-pro-home.webp`;
   return {
     title: `${c.title} | Moalfarras`,
     description: c.subtitle,
+    keywords:
+      loc === "ar"
+        ? ["MoPlayer iOS", "مشغل IPTV للايفون", "مشغل آيفون", "مشغل M3U للايفون", "App Store", "محمد الفراس"]
+        : ["MoPlayer iOS", "iPhone IPTV player", "iOS M3U player", "Xtream iPhone player", "App Store IPTV", "Mohammad Alfarras"],
     alternates: {
       canonical,
       languages: {
@@ -158,6 +163,16 @@ export async function generateMetadata({
       description: c.subtitle,
       url: canonical,
       type: "website",
+      locale: loc === "ar" ? "ar_SA" : "en_US",
+      images: [{ url: socialImage, width: 1600, height: 900, alt: c.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: "@Moalfarras",
+      creator: "@Moalfarras",
+      title: c.title,
+      description: c.subtitle,
+      images: [socialImage],
     },
   };
 }

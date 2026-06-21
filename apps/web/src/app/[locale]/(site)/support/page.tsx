@@ -144,6 +144,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title,
     description,
+    keywords:
+      loc === "ar"
+        ? ["دعم MoPlayer", "مساعدة تقنية", "دعم التفعيل", "مشاكل IPTV", "الدعم الفني", "محمد الفراس"]
+        : ["MoPlayer support", "IPTV player help", "activation support", "technical support", "Mohammad Alfarras"],
     alternates: {
       canonical,
       languages: {

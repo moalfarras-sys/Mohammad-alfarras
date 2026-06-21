@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, MessageCircle, Send, X } from "lucide-react";
+import { Loader2, Send, Sparkles, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -13,33 +13,34 @@ const localThreadTtlMs = 7 * 24 * 60 * 60 * 1000;
 
 const widgetCopy = {
   en: {
-    label: "Assistant",
-    title: "Site assistant",
-    status: "Site guide",
+    label: "Mo Ai",
+    title: "Mo Ai",
+    status: "Smart assistant · online",
     initial:
-      "Hi. I can guide you through this page, MoPlayer, activation, services, and contact options.",
-    placeholder: "Ask about this page...",
+      "👋 Hi, I'm Mo Ai — Mohammad's smart assistant. I can help with premium websites & web apps, MoPlayer (Pro · Classic · PC · iOS), activation, support, and shaping your project in minutes. What would you like to build?",
+    placeholder: "Ask Mo Ai anything…",
     send: "Send",
-    close: "Close assistant",
-    open: "Open assistant",
-    thinking: "Thinking...",
+    close: "Close Mo Ai",
+    open: "Chat with Mo Ai",
+    thinking: "Mo Ai is typing…",
     starters: [
-      "What is this page?",
+      "I want a professional website",
       "How do I activate MoPlayer Pro?",
-      "How can I contact Mohammad?",
+      "What can you build for me?",
     ],
   },
   ar: {
-    label: "مساعد محمد",
-    title: "مساعد محمد",
-    status: "دليل الموقع",
-    initial: "أهلا بك. أقدر أرشدك داخل هذه الصفحة، MoPlayer، التفعيل، الخدمات، وطرق التواصل.",
-    placeholder: "اسأل عن هذه الصفحة...",
+    label: "Mo Ai",
+    title: "Mo Ai",
+    status: "مساعد ذكي · متصل",
+    initial:
+      "👋 أهلاً، أنا Mo Ai — المساعد الذكي لموقع محمد الفراس. أقدر أساعدك في مواقع وتطبيقات ويب احترافية، MoPlayer (Pro · Classic · PC · iOS)، التفعيل، الدعم، وترتيب فكرة مشروعك خلال دقائق. شو حابب تبني؟",
+    placeholder: "اسأل Mo Ai أي شيء…",
     send: "إرسال",
-    close: "إغلاق المساعد",
-    open: "فتح المساعد",
-    thinking: "يفكر...",
-    starters: ["ما محتوى هذه الصفحة؟", "كيف أفعل MoPlayer Pro؟", "كيف أتواصل مع محمد؟"],
+    close: "إغلاق Mo Ai",
+    open: "تحدّث مع Mo Ai",
+    thinking: "Mo Ai يكتب…",
+    starters: ["بدي موقع احترافي", "كيف أفعّل MoPlayer Pro؟", "شو ممكن تبني لي؟"],
   },
 } satisfies Record<Locale, Record<string, string | string[]>>;
 
@@ -168,11 +169,14 @@ export function SiteAssistantWidget({
         <section className="mo-ai-panel">
           <header className="mo-ai-head">
             <span className="mo-ai-mark">
-              <MessageCircle size={16} />
+              <Sparkles size={16} />
             </span>
             <span className="mo-ai-title">
               <strong>{t.title}</strong>
-              <small>{t.status}</small>
+              <small>
+                <span className="mo-ai-online" aria-hidden />
+                {t.status}
+              </small>
             </span>
             <button type="button" onClick={() => setOpen(false)} aria-label={t.close as string}>
               <X size={16} />
@@ -189,10 +193,12 @@ export function SiteAssistantWidget({
               </div>
             ))}
             {loading ? (
-              <div className="mo-ai-bubble mo-ai-bubble-assistant">
-                <p>
-                  <Loader2 className="inline animate-spin" size={14} /> {t.thinking}
-                </p>
+              <div className="mo-ai-bubble mo-ai-bubble-assistant mo-ai-typing-bubble">
+                <span className="mo-ai-typing" role="status" aria-label={t.thinking as string}>
+                  <i />
+                  <i />
+                  <i />
+                </span>
               </div>
             ) : null}
           </div>
@@ -237,7 +243,7 @@ export function SiteAssistantWidget({
         onClick={() => setOpen((value) => !value)}
         aria-label={t.open as string}
       >
-        <MessageCircle size={16} />
+        <Sparkles size={16} />
         <span>{t.label}</span>
       </button>
     </aside>

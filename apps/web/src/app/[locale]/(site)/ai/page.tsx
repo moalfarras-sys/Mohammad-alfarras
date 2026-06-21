@@ -13,9 +13,9 @@ export const revalidate = 3600;
 
 const copy = {
   ar: {
-    eyebrow: "المساعد الذكي للموقع",
-    title: "اسأل، ودع المساعد يرشدك خطوة بخطوة",
-    lead: "مساعد محمد الذكي يجيبك مباشرة داخل الموقع عن MoPlayer والتفعيل والتحميل والخدمات وطرق التواصل — بالعربية، وبدون أن تغادر الصفحة.",
+    eyebrow: "Mo Ai · مساعدك الذكي",
+    title: "اسأل Mo Ai، ودعه يرشدك خطوة بخطوة",
+    lead: "Mo Ai هو مساعدك الذكي على هذا الموقع — يجيبك مباشرة عن MoPlayer والتفعيل والتحميل والخدمات وطرق التواصل، بلغتك، وبدون أن تغادر الصفحة.",
     primary: "ابدأ المحادثة الآن",
     secondary: "تواصل بشري مباشر",
     capabilitiesTitle: "كيف يساعدك؟",
@@ -30,9 +30,9 @@ const copy = {
     note: "المساعد دليل إرشادي ضمن الموقع. للطلبات الرسمية أو الحساسة استخدم صفحة التواصل أو الدعم.",
   },
   en: {
-    eyebrow: "Smart site assistant",
-    title: "Ask, and let the assistant guide you step by step",
-    lead: "Mohammad's smart assistant answers right inside the site about MoPlayer, activation, downloads, services, and contact — in English, without leaving the page.",
+    eyebrow: "Mo Ai · your smart guide",
+    title: "Ask Mo Ai, and let it guide you step by step",
+    lead: "Mo Ai is the smart assistant on this site — it answers about MoPlayer, activation, downloads, services, and contact, in your language, without leaving the page.",
     primary: "Start the conversation",
     secondary: "Talk to a human",
     capabilitiesTitle: "How it helps",
@@ -60,10 +60,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) return {};
   const loc = locale as Locale;
   const isAr = loc === "ar";
-  const title = isAr ? "المساعد الذكي للموقع | محمد الفراس" : "Smart site assistant | Mohammad Alfarras";
+  const title = isAr ? "Mo Ai — المساعد الذكي | محمد الفراس" : "Mo Ai — Smart Assistant | Mohammad Alfarras";
   const description = isAr
-    ? "مساعد ذكي داخل موقع محمد الفراس يجيبك عن MoPlayer والتفعيل والتحميل والخدمات والتواصل بالعربية."
-    : "A smart assistant inside Mohammad Alfarras' site that answers about MoPlayer, activation, downloads, services, and contact.";
+    ? "Mo Ai، المساعد الذكي على موقع محمد الفراس، يجيبك عن MoPlayer والتفعيل والتحميل والخدمات والتواصل بلغتك."
+    : "Mo Ai, the smart assistant on Mohammad Alfarras' site, answers about MoPlayer, activation, downloads, services, and contact in your language.";
   return {
     title,
     description,

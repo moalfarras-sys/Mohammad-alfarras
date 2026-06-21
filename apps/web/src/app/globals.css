@@ -5138,6 +5138,147 @@ html[dir="rtl"] .mo-ai-bubble-user {
   }
 }
 
+/* ── Mo Ai — flagship animated assistant ── */
+.mo-ai-mark {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-blue) 72%, #1d4ed8),
+    color-mix(in srgb, var(--brand-amber) 55%, #b45309)
+  );
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--brand-blue) 40%, transparent);
+}
+.mo-ai-online {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 5px;
+  border-radius: 999px;
+  background: #34d399;
+  vertical-align: middle;
+  animation: mo-ai-pulse-dot 1.9s ease-out infinite;
+}
+.mo-ai-fab {
+  position: relative;
+  animation: mo-ai-fab-glow 3.4s ease-in-out infinite;
+}
+.mo-ai-fab::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 8px #34d399;
+}
+.mo-ai-panel {
+  transform-origin: bottom right;
+  animation: mo-ai-pop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html[dir="rtl"] .mo-ai-panel {
+  transform-origin: bottom left;
+}
+.mo-ai-bubble {
+  animation: mo-ai-bubble-in 0.26s ease both;
+}
+.mo-ai-typing-bubble {
+  padding: 13px 14px;
+}
+.mo-ai-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mo-ai-typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-blue) 72%, var(--text-muted));
+  animation: mo-ai-blink 1.2s infinite ease-in-out both;
+}
+.mo-ai-typing i:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.mo-ai-typing i:nth-child(3) {
+  animation-delay: 0.36s;
+}
+.mo-ai-starters button {
+  transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s;
+}
+.mo-ai-starters button:hover {
+  border-color: color-mix(in srgb, var(--brand-blue) 50%, var(--line));
+  color: var(--text);
+  transform: translateY(-1px);
+}
+@keyframes mo-ai-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes mo-ai-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes mo-ai-blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+@keyframes mo-ai-pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+@keyframes mo-ai-fab-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.36),
+      0 0 24px color-mix(in srgb, var(--brand-blue) 18%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.4),
+      0 0 42px color-mix(in srgb, var(--brand-blue) 40%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mo-ai-panel,
+  .mo-ai-bubble,
+  .mo-ai-fab,
+  .mo-ai-online,
+  .mo-ai-typing i {
+    animation: none !important;
+  }
+}
+
 /* ── Site-wide scroll reveal for cards (scroll-driven, premium).
    Safe: without animation-timeline support the animation has 0s duration and
    fills to the visible end state, so content is never hidden. ── */

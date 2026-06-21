@@ -29,7 +29,7 @@ export function SiteFooter({
     { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "activate", label: isAr ? "التفعيل" : "Activate", href: `/${locale}/activate` },
     { id: "support", label: isAr ? "الدعم" : "Support", href: `/${locale}/support` },
-    { id: "assistant", label: isAr ? "المساعد الذكي" : "Assistant", href: `/${locale}/ai` },
+    { id: "assistant", label: "Mo Ai", href: `/${locale}/ai` },
   ];
   // Privacy + Impressum always appear (Impressum is a legal requirement for a
   // Germany-based commercial site); any extra published legal links follow.

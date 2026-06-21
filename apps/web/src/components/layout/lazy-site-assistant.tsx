@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { LoaderCircle, MessageCircle } from "lucide-react";
+import { LoaderCircle, Sparkles } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,7 @@ const SiteAssistantWidget = dynamic(
   {
     ssr: false,
     loading: () => (
-      <aside className="mo-ai-widget mo-ai-widget-open" aria-label="Assistant" aria-busy="true">
+      <aside className="mo-ai-widget mo-ai-widget-open" aria-label="Mo Ai" aria-busy="true">
         <section className="mo-ai-panel mo-ai-panel-loading">
           <LoaderCircle className="animate-spin" />
           <span aria-hidden="true">…</span>
@@ -57,10 +57,10 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
         type="button"
         className="mo-ai-fab"
         onClick={() => setReady(true)}
-        aria-label={locale === "ar" ? "فتح المساعد" : "Open assistant"}
+        aria-label={locale === "ar" ? "تحدّث مع Mo Ai" : "Chat with Mo Ai"}
       >
-        <MessageCircle />
-        <span>{locale === "ar" ? "مساعد محمد" : "Assistant"}</span>
+        <Sparkles />
+        <span>Mo Ai</span>
       </button>
     </div>
   );

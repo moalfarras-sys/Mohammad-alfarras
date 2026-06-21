@@ -61,6 +61,8 @@ import {
 } from "@/components/admin/ui";
 import { UpdatedToast } from "@/components/admin/updated-toast";
 import { resolveAdminAssetUrl } from "@/lib/asset-url";
+import { MediaPicker } from "@/components/admin/media-picker";
+import type { WebsiteMediaAsset } from "@/lib/website-cms";
 import { cn } from "@/lib/cn";
 import type { ManagedAppSlug } from "@moalfarras/shared/app-products";
 import type { AdminAppData, AppRuntimeConfig } from "@/types/app-ecosystem";
@@ -87,7 +89,7 @@ function runtimeNumber(value: unknown, fallback: number) {
   return Number.isFinite(next) && next > 0 ? next : fallback;
 }
 
-export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data: AdminAppData; updated?: string }) {
+export function AppControl({ slug, data, updated, mediaAssets = [] }: { slug: ManagedAppSlug; data: AdminAppData; updated?: string; mediaAssets?: WebsiteMediaAsset[] }) {
   const { t } = useLocale();
   const [deviceQuery, setDeviceQuery] = useState("");
   const {
@@ -844,9 +846,9 @@ export function AppControl({ slug, data, updated }: { slug: ManagedAppSlug; data
           <Field label={t({ en: "Min SDK", ar: "أدنى SDK" })} name="android_min_sdk" type="number" defaultValue={String(product.android_min_sdk)} />
           <Field label={t({ en: "Target SDK", ar: "SDK المستهدف" })} name="android_target_sdk" type="number" defaultValue={String(product.android_target_sdk)} />
           <div className="lg:col-span-2 grid gap-4 md:grid-cols-3">
-            <ProductImageField label={t({ en: "Logo image", ar: "صورة الشعار" })} hint={t({ en: "Shown in the public hero brand card and app identity.", ar: "تظهر في بطاقة الهوية أعلى صفحة التطبيق." })} pathName="logo_path" fileName="logo_file" defaultValue={product.logo_path ?? ""} />
-            <ProductImageField label={t({ en: "Hero image", ar: "صورة البطل" })} hint={t({ en: "Main image on the first screen of the public app page.", ar: "الصورة الرئيسية في أول شاشة من صفحة التطبيق." })} pathName="hero_image_path" fileName="hero_file" defaultValue={product.hero_image_path ?? ""} />
-            <ProductImageField label={t({ en: "TV banner", ar: "بانر التلفاز" })} hint={t({ en: "Fallback hero/banner image and TV preview image.", ar: "صورة احتياطية للواجهة وبانر التلفاز." })} pathName="tv_banner_path" fileName="tv_banner_file" defaultValue={product.tv_banner_path ?? ""} />
+            <ProductImageField label={t({ en: "Logo image", ar: "صورة الشعار" })} hint={t({ en: "Shown in the public hero brand card and app identity.", ar: "تظهر في بطاقة الهوية أعلى صفحة التطبيق." })} pathName="logo_path" fileName="logo_file" defaultValue={product.logo_path ?? ""} assets={mediaAssets} />
+            <ProductImageField label={t({ en: "Hero image", ar: "صورة البطل" })} hint={t({ en: "Main image on the first screen of the public app page.", ar: "الصورة الرئيسية في أول شاشة من صفحة التطبيق." })} pathName="hero_image_path" fileName="hero_file" defaultValue={product.hero_image_path ?? ""} assets={mediaAssets} />
+            <ProductImageField label={t({ en: "TV banner", ar: "بانر التلفاز" })} hint={t({ en: "Fallback hero/banner image and TV preview image.", ar: "صورة احتياطية للواجهة وبانر التلفاز." })} pathName="tv_banner_path" fileName="tv_banner_file" defaultValue={product.tv_banner_path ?? ""} assets={mediaAssets} />
           </div>
           <label className="switch">
             <span><strong>{t({ en: "Android TV ready", ar: "جاهز للتلفاز" })}</strong></span>
@@ -1091,12 +1093,14 @@ function ProductImageField({
   pathName,
   fileName,
   defaultValue,
+  assets = [],
 }: {
   label: string;
   hint: string;
   pathName: string;
   fileName: string;
   defaultValue: string;
+  assets?: WebsiteMediaAsset[];
 }) {
   const { t } = useLocale();
   const [value, setValue] = useState(defaultValue);
@@ -1152,20 +1156,33 @@ function ProductImageField({
         <UploadCloud className="h-5 w-5 text-[var(--accent)]" />
         <input type="file" name={fileName} accept="image/*" className="sr-only" onChange={handleFile} />
       </label>
-      {value ? (
-        <button
-          type="button"
-          onClick={() => {
-            setValue("");
-            setPendingPreview(null);
-            setPendingName(null);
-          }}
-          className="btn btn-sm mt-3"
-        >
-          <Trash2 className="h-4 w-4" />
-          {t({ en: "Remove image", ar: "حذف الصورة" })}
-        </button>
-      ) : null}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {assets.length ? (
+          <MediaPicker
+            assets={assets}
+            selectedPath={value}
+            onSelect={(asset) => {
+              setValue(asset.path);
+              setPendingPreview(null);
+              setPendingName(null);
+            }}
+          />
+        ) : null}
+        {value ? (
+          <button
+            type="button"
+            onClick={() => {
+              setValue("");
+              setPendingPreview(null);
+              setPendingName(null);
+            }}
+            className="btn btn-sm"
+          >
+            <Trash2 className="h-4 w-4" />
+            {t({ en: "Remove image", ar: "حذف الصورة" })}
+          </button>
+        ) : null}
+      </div>
       <details className="mt-3 rounded-2xl border border-[var(--line)] bg-black/15 p-3">
         <summary className="cursor-pointer text-[10px] font-black uppercase tracking-[0.16em] text-[var(--accent)]">
           {t({ en: "Advanced path", ar: "المسار المتقدم" })}

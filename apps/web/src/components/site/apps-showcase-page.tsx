@@ -6,6 +6,7 @@ import { ArrowUpRight, BadgeCheck, Box, Download, KeyRound, MonitorPlay, Play, T
 import { motion } from "framer-motion";
 
 import { PageShell } from "@/components/ui/os-primitives";
+import { unoptimizedImage } from "@/lib/asset-url";
 import { formatDownloadNumber } from "@/lib/download-display";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
@@ -303,11 +304,11 @@ export function AppsShowcasePage({
               width={900}
               height={700}
               priority
-              unoptimized={appsHero.startsWith("http")}
+              unoptimized={unoptimizedImage(appsHero)}
               className="apps-device-image"
             />
             <div className="apps-device-panel">
-              <Image src={appsHeroIcon} alt="" width={42} height={42} unoptimized={appsHeroIcon.startsWith("http")} />
+              <Image src={appsHeroIcon} alt="" width={42} height={42} unoptimized={unoptimizedImage(appsHeroIcon)} />
               <div>
                 <strong>MoPlayer</strong>
                 <span>TV-first product system</span>
@@ -343,7 +344,7 @@ export function AppsShowcasePage({
                     fill
                     sizes={index === 0 ? "(max-width: 900px) 100vw, 58vw" : "(max-width: 900px) 100vw, 34vw"}
                     className="apps-card-image"
-                    unoptimized={app.image.startsWith("http")}
+                    unoptimized={unoptimizedImage(app.image)}
                   />
                   <div className="apps-preview">
                     <Play className="h-4 w-4" />

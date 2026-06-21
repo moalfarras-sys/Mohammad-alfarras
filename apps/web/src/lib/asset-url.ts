@@ -14,3 +14,28 @@ export function normalizePublicImagePath(path?: string | null): string {
   if (value.startsWith("images/")) return `/${value}`;
   return value;
 }
+
+// Hosts allowed by next.config `remotePatterns` — these CAN be optimized by
+// next/image (AVIF/WebP + resize). Keep in sync with next.config.ts.
+const OPTIMIZABLE_IMAGE_HOSTS = new Set([
+  "ckefrnalgnbuaxsuufyx.supabase.co",
+  "xubrjnbolomqrgeutcfw.supabase.co",
+  "moalfarras.space",
+  "www.moalfarras.space",
+]);
+
+/**
+ * Value for next/image `unoptimized`: optimize local paths and whitelisted
+ * remote hosts (Supabase CMS, our own domain), and skip optimization ONLY for
+ * unknown external URLs (which aren't in remotePatterns and would otherwise
+ * throw). This lets admin-uploaded CMS images get AVIF/WebP + resizing.
+ */
+export function unoptimizedImage(src?: string | null): boolean {
+  const value = String(src || "");
+  if (!value.startsWith("http")) return false;
+  try {
+    return !OPTIMIZABLE_IMAGE_HOSTS.has(new URL(value).hostname);
+  } catch {
+    return true;
+  }
+}

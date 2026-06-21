@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { unoptimizedImage } from "@/lib/asset-url";
 import type { LegalPageContent } from "@/lib/legal-pages";
 import type { Locale } from "@/types/cms";
 
@@ -25,7 +26,7 @@ export function LegalPage({ content, locale, heroImage }: { content: LegalPageCo
               sizes="(max-width: 900px) 92vw, 420px"
               className="fresh-image"
               priority
-              unoptimized={heroImage.startsWith("http")}
+              unoptimized={unoptimizedImage(heroImage)}
             />
           </div>
           <p className="fresh-eyebrow">{isAr ? "روابط مهمة" : "Important links"}</p>

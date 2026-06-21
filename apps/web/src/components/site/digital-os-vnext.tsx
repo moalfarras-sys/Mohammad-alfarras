@@ -25,6 +25,7 @@ import { PageShell, SectionHeader } from "@/components/ui/os-primitives";
 import { socialLinks } from "@/content/site";
 import { compactMetric, youtubeChannel } from "@/content/site-data";
 import { rebuildContent } from "@/data/rebuild-content";
+import { unoptimizedImage } from "@/lib/asset-url";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
@@ -480,7 +481,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
             <span>{isAr ? "ويب · تصميم · منتجات" : "Web · Design · Products"}</span>
           </div>
           <div className="os-home-photo-frame">
-            <Image src={portrait} alt={model.profile.name} fill priority sizes="(max-width: 900px) 100vw, 38vw" className="fresh-image" unoptimized={portrait.startsWith("http")} />
+            <Image src={portrait} alt={model.profile.name} fill priority sizes="(max-width: 900px) 100vw, 38vw" className="fresh-image" unoptimized={unoptimizedImage(portrait)} />
           </div>
           <div className="os-home-id-card">
             <strong>{isAr ? "محمد الفراس" : "Mohammad Alfarras"}</strong>
@@ -590,7 +591,7 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         <div className="os-moplayer-visual">
           <div className="os-moplayer-glow" />
           <Link href={pathFor(model.locale, "apps/moplayer")} prefetch={false} className="os-moplayer-hero-panel magnetic-surface">
-            <Image src={model.siteImages?.home_product_hero || "/images/moplayer-hero-3d-final.png"} alt="MoPlayer product family visual" fill sizes="(max-width: 900px) 92vw, 560px" className="fresh-image" unoptimized={(model.siteImages?.home_product_hero || "").startsWith("http")} />
+            <Image src={model.siteImages?.home_product_hero || "/images/moplayer-hero-3d-final.png"} alt="MoPlayer product family visual" fill sizes="(max-width: 900px) 92vw, 560px" className="fresh-image" unoptimized={unoptimizedImage((model.siteImages?.home_product_hero || ""))} />
             <span className="os-moplayer-hero-badge">{isAr ? "كل التطبيقات" : "All apps"}</span>
             <strong>MoPlayer Family Hub</strong>
           </Link>

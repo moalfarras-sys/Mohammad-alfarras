@@ -6,6 +6,7 @@ import { AppWindow, Mail, MessageCircle, Shield } from "lucide-react";
 
 import { SITE_URL } from "@/content/site";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { unoptimizedImage } from "@/lib/asset-url";
 import { readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, webPageJsonLd } from "@/lib/seo-jsonld";
@@ -217,7 +218,7 @@ export default async function LocalizedSupportPage({
                 sizes="(max-width: 900px) 92vw, 420px"
                 className="fresh-image"
                 priority
-                unoptimized={heroImage.startsWith("http")}
+                unoptimized={unoptimizedImage(heroImage)}
               />
             </div>
             <p className="fresh-eyebrow">{copy.directTitle}</p>

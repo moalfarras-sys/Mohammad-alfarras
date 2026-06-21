@@ -19,7 +19,7 @@ import {
 import { useRef } from "react";
 
 import { CoverflowGallery } from "@/components/site/coverflow-gallery";
-import { normalizePublicImagePath } from "@/lib/asset-url";
+import { normalizePublicImagePath, unoptimizedImage } from "@/lib/asset-url";
 import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
 import { moPlayerCopy } from "@/content/apps";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
@@ -312,7 +312,7 @@ export function MoPlayerPcLanding({
               alt={heroImageAlt}
               width={1400}
               height={900}
-              unoptimized={heroImageSrc.startsWith("http")}
+              unoptimized={unoptimizedImage(heroImageSrc)}
               className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
             />
           </motion.div>

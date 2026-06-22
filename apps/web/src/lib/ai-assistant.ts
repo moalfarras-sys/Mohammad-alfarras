@@ -389,25 +389,15 @@ export async function answerSiteAssistant(messages: AssistantMessage[], locale: 
   // The LLM drives the conversation so it can actually converse, qualify the
   // visitor, and sell. The grounded/local canned replies are kept ONLY as an
   // offline fallback for when every provider is unreachable (see end of fn).
-  const preferred = (process.env.AI_ASSISTANT_PROVIDER || "").toLowerCase();
-  const byName: Record<string, (m: AssistantMessage[], l: AssistantLocale) => Promise<ProviderResult | null>> = {
-    openai: callOpenAI,
-    gemini: callGemini,
-    anthropic: callAnthropic,
-    claude: callAnthropic,
-    custom: callOpenAICompatible,
-    synterolink: callOpenAICompatible,
-  };
-
-  // Quality-first default order: Gemini (strong, free tier that resets daily) →
-  // the OpenAI-compatible gateway (reliable functional backup) → OpenAI →
-  // Anthropic. Every provider stays in the chain; a failing/absent one falls
-  // through to the next, and finally to the grounded/local canned reply. An
-  // explicit AI_ASSISTANT_PROVIDER just promotes that provider to the front.
-  // No key is ever removed — only ordered.
-  const defaultOrder = [callGemini, callOpenAICompatible, callOpenAI, callAnthropic];
-  const lead = byName[preferred];
-  const providers = lead ? [lead, ...defaultOrder.filter((provider) => provider !== lead)] : defaultOrder;
+  // Fixed quality order, Gemini-first: Gemini is the verified working,
+  // high-quality provider (free tier, resets daily); the synterolink gateway is
+  // the functional backup; OpenAI + Anthropic remain in the chain and
+  // auto-activate the moment their billing/keys are restored. We intentionally do
+  // NOT read AI_ASSISTANT_PROVIDER here: the production value points at the
+  // out-of-quota OpenAI account, which would otherwise starve every request with
+  // a doomed 429 first. A failing/absent provider falls through to the next, then
+  // to the grounded/local canned reply. No key is ever removed — only ordered.
+  const providers = [callGemini, callOpenAICompatible, callOpenAI, callAnthropic];
 
   for (const provider of providers) {
     try {

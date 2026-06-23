@@ -183,7 +183,7 @@
     linear-gradient(#000 0 0);
   mask-composite: exclude;
   padding: 2px;
-  animation: osSpin 8s linear infinite;
+  animation: cvRingSpin 8s linear infinite;
 }
 
 .cv-photo {
@@ -756,6 +756,7 @@
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--cv-accent) 50%, transparent),
     0 24px 60px color-mix(in srgb, var(--cv-accent) 22%, transparent);
+  animation: cvActivePulse 2.8s ease-in-out infinite;
 }
 .cv-persona-active svg {
   color: var(--cv-accent);
@@ -870,15 +871,32 @@
   }
 }
 
-/* Was referenced (rotating accent ring around the portrait) but never defined —
-   the missing keyframe left the ring frozen. */
-@keyframes osSpin {
+/* Rotating accent ring around the portrait. Unique name (not the shared ring
+   keyframe in route-work.css) so the CSS optimizer can't dedupe it into a chunk
+   that /cv doesn't load — that left the ring frozen on the live page. */
+@keyframes cvRingSpin {
   to {
     transform: rotate(360deg);
   }
 }
+
+/* Gentle breathing glow on the active mode card — reinforces which mode is live. */
+@keyframes cvActivePulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cv-accent) 50%, transparent),
+      0 18px 48px color-mix(in srgb, var(--cv-accent) 18%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--cv-accent) 66%, transparent),
+      0 26px 72px color-mix(in srgb, var(--cv-accent) 34%, transparent);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .cv-photo-shell::before {
+  .cv-photo-shell::before,
+  .cv-persona-active {
     animation: none;
   }
 }

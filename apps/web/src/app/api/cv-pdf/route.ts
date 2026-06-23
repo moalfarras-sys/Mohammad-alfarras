@@ -36,13 +36,31 @@ export async function GET(request: Request) {
     // Fall back to the bundled PDF if CMS content cannot be read.
   }
 
-  const fallbackPath = path.join(process.cwd(), "public", "Lebenslauf.pdf");
-  const pdf = await readFile(fallbackPath);
+  // Serve the locale-specific, site-branded CV generated from /[locale]/cv-print.
+  // Falls back to the bundled Lebenslauf only if the generated file is missing.
+  const candidates = [
+    path.join(process.cwd(), "public", "cv", `Mohammad-Alfarras-CV-${locale}.pdf`),
+    path.join(process.cwd(), "public", "Lebenslauf.pdf"),
+  ];
 
-  return new Response(pdf, {
+  let pdf: Buffer | null = null;
+  for (const candidate of candidates) {
+    try {
+      pdf = await readFile(candidate);
+      break;
+    } catch {
+      // try the next candidate
+    }
+  }
+
+  if (!pdf) {
+    return new Response("CV not found", { status: 404 });
+  }
+
+  return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="Mohammad-Alfarras-CV-2026-${locale}-${variant}.pdf"`,
+      "Content-Disposition": `inline; filename="Mohammad-Alfarras-CV-${locale}-${variant}.pdf"`,
       "Cache-Control": "public, max-age=3600",
     },
   });

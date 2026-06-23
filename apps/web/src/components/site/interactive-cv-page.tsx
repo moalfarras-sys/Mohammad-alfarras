@@ -46,7 +46,7 @@ type InteractiveCvProps = {
   profileName: string;
   portrait: string;
   downloads: { branded: string; docx: string };
-  stats: { views: number; videos: number; subscribers: number };
+  stats: { views: number; videos: number; subscribers: number; projects: number; apps: number };
   experience: CvExperience[];
 };
 
@@ -111,8 +111,8 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
     gameStats: [
       [stats.videos, ar ? "فيديو منشور" : "Videos published", PlayCircle],
       [stats.views, ar ? "إجمالي المشاهدات" : "Total views", Users],
-      [4, ar ? "مشاريع ويب منشورة" : "Shipped web projects", Code2],
-      [2, ar ? "منتجان من MoPlayer" : "MoPlayer products", MonitorPlay],
+      [stats.projects, ar ? "مشاريع وأنظمة منشورة" : "Shipped web projects", Code2],
+      [stats.apps, ar ? "تطبيقات منشورة" : "Published apps", MonitorPlay],
     ] as Array<[number, string, LucideIcon]>,
   });
 }
@@ -211,7 +211,7 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
 
       <motion.section className="cv-game-stats" {...reveal}>
         {t.gameStats.map(([value, label, Icon]) => (
-          <CountCard key={label} value={value} label={label} icon={Icon} />
+          <CountCard key={label} value={value} label={label} icon={Icon} suffix="+" />
         ))}
       </motion.section>
 
@@ -311,21 +311,21 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
   );
 }
 
-function CountCard({ value, label, icon: Icon, compact = false }: { value: number; label: string; icon: LucideIcon; compact?: boolean }) {
+function CountCard({ value, label, icon: Icon, compact = false, suffix }: { value: number; label: string; icon: LucideIcon; compact?: boolean; suffix?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
     <div ref={ref} className={compact ? "cv-count-card cv-count-card-compact" : "cv-count-card"}>
       <Icon />
       <strong>
-        <CountUp value={value} start={inView} />
+        <CountUp value={value} start={inView} suffix={suffix} />
       </strong>
       <span>{label}</span>
     </div>
   );
 }
 
-function CountUp({ value, start }: { value: number; start: boolean }) {
+function CountUp({ value, start, suffix }: { value: number; start: boolean; suffix?: string }) {
   const [n, setN] = useState(0);
   useEffect(() => {
     if (!start) return;
@@ -345,7 +345,9 @@ function CountUp({ value, start }: { value: number; start: boolean }) {
     }, 36);
     return () => clearInterval(id);
   }, [start, value]);
-  return <span>{compactNumber(n, n >= 1000 ? "+" : "")}</span>;
+  // Only show the "+" once the count has reached its target, so it doesn't flash mid-animation.
+  const reached = n >= value;
+  return <span>{compactNumber(n, suffix !== undefined ? (reached ? suffix : "") : n >= 1000 ? "+" : "")}</span>;
 }
 
 function Typewriter({ lines }: { lines: string[] }) {

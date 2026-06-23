@@ -45,6 +45,15 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
     Number(
       model.live.youtube?.videoCount ?? model.youtube.videos ?? youtubeChannel.fallback.videos,
     ) || youtubeChannel.fallback.videos;
+  // Counts are derived from real site data so the CV stats stay in sync: add a client
+  // project in the admin (or a MoPlayer surface below) and the numbers rise automatically.
+  const projectsCount =
+    model.projects.filter((project) => !/moplayer/i.test(String(project.id))).length ||
+    5;
+  // MoPlayer ships on four surfaces today: Classic + Pro (Android/Android TV), PC (Windows),
+  // and iPhone. Counted from this list so adding a surface bumps the stat.
+  const appSurfaces = ["moplayer-classic", "moplayer-pro", "moplayer-pc", "moplayer-ios"];
+  const appsCount = appSurfaces.length;
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "السيرة الذاتية" : "CV", path: `/${loc}/cv` },
@@ -81,7 +90,7 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
         profileName={model.profile.name}
         portrait="/images/portrait.jpg"
         downloads={{ branded: model.downloads.branded, docx: model.downloads.docx }}
-        stats={{ views, subscribers, videos }}
+        stats={{ views, subscribers, videos, projects: projectsCount, apps: appsCount }}
         experience={model.cvExperience}
       />
     </>

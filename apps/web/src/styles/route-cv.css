@@ -74,8 +74,41 @@
   padding: clamp(20px, 3vw, 38px);
 }
 
+/* Animated aurora glow behind the hero — slow, premium, alive. */
+.cv-hero::after {
+  content: "";
+  position: absolute;
+  inset: -32% -12% auto -12%;
+  z-index: 0;
+  height: 78%;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 60% at 22% 28%, color-mix(in srgb, var(--cv-accent) 24%, transparent), transparent 70%),
+    radial-gradient(40% 56% at 80% 18%, rgba(255, 132, 56, 0.2), transparent 70%),
+    radial-gradient(36% 52% at 62% 82%, color-mix(in srgb, var(--cv-accent-2) 20%, transparent), transparent 70%);
+  filter: blur(26px);
+  opacity: 0.9;
+  animation: cvAurora 16s ease-in-out infinite alternate;
+}
+
+@keyframes cvAurora {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.78;
+  }
+  50% {
+    transform: translate3d(2.5%, 1.5%, 0) scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-2.5%, -1%, 0) scale(1.03);
+    opacity: 0.86;
+  }
+}
+
 .cv-persona-grid {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: clamp(10px, 1.4vw, 16px);
@@ -961,7 +994,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .cv-photo-shell::before,
-  .cv-persona-active {
+  .cv-persona-active,
+  .cv-hero::after {
     animation: none;
   }
 }

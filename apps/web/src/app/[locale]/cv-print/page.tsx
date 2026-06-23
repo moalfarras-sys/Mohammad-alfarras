@@ -74,9 +74,13 @@ export default async function CvPrintPage({ params }: { params: Promise<{ locale
       <div className="cvp-page">
         <header className="cvp-header">
           <div className="cvp-header-glow" aria-hidden />
-          <div className="cvp-id">
-            <h1>{name}</h1>
-            <p className="cvp-title">{title}</p>
+          <div className="cvp-header-top">
+            <div className="cvp-id">
+              <h1>{name}</h1>
+              <p className="cvp-title">{title}</p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="cvp-photo" src="/images/portrait.jpg" alt={name} />
           </div>
           <ul className="cvp-contact">
             <li><span>✉</span>{email}</li>

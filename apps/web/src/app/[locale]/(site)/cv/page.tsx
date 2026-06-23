@@ -54,6 +54,8 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
   // and iPhone. Counted from this list so adding a surface bumps the stat.
   const appSurfaces = ["moplayer-classic", "moplayer-pro", "moplayer-pc", "moplayer-ios"];
   const appsCount = appSurfaces.length;
+  // Working since 2014 (first managed role). Grows by itself each year.
+  const yearsExperience = Math.max(10, new Date().getFullYear() - 2014);
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "السيرة الذاتية" : "CV", path: `/${loc}/cv` },
@@ -90,7 +92,7 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
         profileName={model.profile.name}
         portrait="/images/portrait.jpg"
         downloads={{ branded: model.downloads.branded, docx: model.downloads.docx }}
-        stats={{ views, subscribers, videos, projects: projectsCount, apps: appsCount }}
+        stats={{ views, subscribers, videos, projects: projectsCount, apps: appsCount, years: yearsExperience }}
         experience={model.cvExperience}
       />
     </>

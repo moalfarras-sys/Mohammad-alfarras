@@ -64,9 +64,29 @@
   filter: blur(8px);
 }
 
+.cvp-header-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
 .cvp-id {
   position: relative;
   z-index: 1;
+}
+
+.cvp-photo {
+  width: 86px;
+  height: 86px;
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  object-position: center top;
+  border: 3px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .cvp-header h1 {

@@ -2,17 +2,21 @@
 
 import {
   ArrowUpRight,
+  Award,
   BriefcaseBusiness,
   Code2,
+  Compass,
   Download,
   FileText,
   Languages,
-  MonitorPlay,
   Palette,
+  PenTool,
   PlayCircle,
   Radio,
+  Rocket,
   Route,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Terminal,
   Truck,
@@ -46,7 +50,7 @@ type InteractiveCvProps = {
   profileName: string;
   portrait: string;
   downloads: { branded: string; docx: string };
-  stats: { views: number; videos: number; subscribers: number; projects: number; apps: number };
+  stats: { views: number; videos: number; subscribers: number; projects: number; apps: number; years: number };
   experience: CvExperience[];
 };
 
@@ -103,17 +107,26 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
     ctaBody: ar ? "أستطيع تحويل الفكرة، الخبرة، أو الخدمة إلى موقع واضح وتجربة رقمية تقنع الزائر." : "I can turn an idea, expertise, or service into a clear website and digital experience that earns trust.",
     contact: ar ? "ابدأ الحديث" : "Start the conversation",
     badges: [
-      [compactNumber(stats.views), ar ? "مشاهدات" : "Views"],
-      [`${stats.videos}+`, ar ? "فيديو" : "Videos"],
-      [ar ? "خبير لوجستيات" : "Logistics Expert", ar ? "عمليات" : "Operations"],
-      [ar ? "باني تطبيقات" : "App Builder", "MoPlayer"],
+      [ar ? "مطوّر ويب" : "Web developer", "Next.js · React"],
+      [ar ? "مصمّم واجهات" : "UI/UX designer", ar ? "تجربة المستخدم" : "Product design"],
+      ["Android TV", "MoPlayer"],
+      [ar ? "خبير لوجستيات" : "Logistics expert", ar ? "عمليات" : "Operations"],
     ] as Array<[string, string]>,
     gameStats: [
-      [stats.videos, ar ? "فيديو منشور" : "Videos published", PlayCircle],
-      [stats.views, ar ? "إجمالي المشاهدات" : "Total views", Users],
-      [stats.projects, ar ? "مشاريع وأنظمة منشورة" : "Shipped web projects", Code2],
-      [stats.apps, ar ? "تطبيقات منشورة" : "Published apps", MonitorPlay],
+      [stats.years, ar ? "سنوات خبرة" : "Years of experience", Award],
+      [stats.projects, ar ? "مشاريع وأنظمة" : "Projects & systems", Code2],
+      [stats.apps, ar ? "تطبيقات منشورة" : "Published apps", Smartphone],
+      [stats.views, ar ? "مشاهدة على يوتيوب" : "YouTube views", PlayCircle],
     ] as Array<[number, string, LucideIcon]>,
+    processTitle: ar ? "كيف أعمل: من الفكرة إلى الإطلاق." : "How I work: from idea to launch.",
+    processEyebrow: ar ? "طريقة العمل" : "How I work",
+    process: [
+      [ar ? "نفهم الفكرة" : "Discover", ar ? "نجلس، أسمع فكرتك وهدفك وجمهورك، وأحوّلها إلى خطة واضحة." : "We talk through your idea, goal, and audience, and turn it into a clear plan.", Compass],
+      [ar ? "نصمّم التجربة" : "Design", ar ? "أصمّم واجهة جميلة وواضحة تقنع الزائر من أول شاشة." : "I design a clean, convincing interface that earns trust from the first screen.", PenTool],
+      [ar ? "نبني المنتج" : "Build", ar ? "أبرمج موقعاً أو تطبيقاً سريعاً وآمناً وقابلاً للنمو." : "I build a fast, secure, scalable website or app.", Code2],
+      [ar ? "نطلق وندعم" : "Launch & support", ar ? "ننشر المنتج، نتابع الأداء، وأبقى معك للدعم والتطوير." : "We launch, track performance, and I stay on for support and growth.", Rocket],
+    ] as Array<[string, string, LucideIcon]>,
+    channelCta: ar ? "زر القناة على يوتيوب" : "Visit the YouTube channel",
   });
 }
 
@@ -139,7 +152,7 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
     ["Managed content", isAr ? "بيانات المحتوى والإصدارات وقواعد الوصول" : "Content, release data, and access rules"],
     ["Android TV", isAr ? "MoPlayer Classic وMoPlayer Pro" : "MoPlayer Classic and MoPlayer Pro"],
     ["Product delivery", isAr ? "تنزيل وتفعيل ودعم وإدارة إصدارات" : "Downloads, activation, support, and releases"],
-    ["Technical content", `${compactNumber(stats.views)} ${isAr ? "مشاهدة" : "views"} / ${stats.videos} ${isAr ? "فيديو" : "videos"}`],
+    ["Technical content", isAr ? "محتوى تقني عربي يشرح ويبسّط ويبني ثقة" : "Arabic tech content that explains, simplifies, and builds trust"],
   ] as const;
   const languages = languageLevels[locale];
   const languageFlags: Record<string, string> = { ar: "/icons/flag-sy-new.svg", de: "/icons/flag-de.svg", en: "/icons/flag-gb.svg" };
@@ -291,11 +304,42 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
         <div>
           <p className="fresh-eyebrow">Creator Metrics</p>
           <h2>{t.metricsTitle}</h2>
+          <a
+            href="https://www.youtube.com/@Moalfarras"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cv-channel-cta"
+          >
+            <PlayCircle size={17} aria-hidden />
+            {t.channelCta}
+            <ArrowUpRight size={15} aria-hidden />
+          </a>
         </div>
         <div className="cv-dashboard-cells">
-          <CountCard value={stats.views} label={isAr ? "إجمالي المشاهدات" : "Total views"} icon={Radio} compact />
-          <CountCard value={stats.subscribers} label={isAr ? "مشترك" : "Subscribers"} icon={Users} compact />
-          <CountCard value={stats.videos} label={isAr ? "فيديو" : "Videos"} icon={MonitorPlay} compact />
+          <CountCard value={stats.subscribers} label={isAr ? "مشترك" : "Subscribers"} icon={Users} compact suffix="+" />
+          <CountCard value={stats.videos} label={isAr ? "فيديو منشور" : "Videos"} icon={Radio} compact suffix="+" />
+        </div>
+      </motion.section>
+
+      <motion.section className="cv-process" {...reveal}>
+        <p className="fresh-eyebrow">{t.processEyebrow}</p>
+        <h2>{t.processTitle}</h2>
+        <div className="cv-process-grid">
+          {t.process.map(([title, body, Icon], i) => (
+            <motion.article
+              className="cv-process-step"
+              key={title}
+              initial={{ opacity: 0, y: 26 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.5, delay: i * 0.09, ease: [0.2, 0.8, 0.2, 1] }}
+            >
+              <span className="cv-process-num">{String(i + 1).padStart(2, "0")}</span>
+              <Icon aria-hidden />
+              <strong>{title}</strong>
+              <span className="cv-process-body">{body}</span>
+            </motion.article>
+          ))}
         </div>
       </motion.section>
 

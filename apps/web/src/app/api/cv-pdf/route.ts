@@ -3,16 +3,25 @@ import path from "node:path";
 
 import { getPdfRegistry } from "@/lib/cms-documents";
 import { readSnapshot } from "@/lib/content/store";
-import type { Locale } from "@/types/cms";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type PdfVariant = "branded" | "ats";
+type CvLocale = "ar" | "en" | "de";
 
-function normalizeLocale(value: string | null): Locale {
-  return value === "ar" ? "ar" : "en";
+function normalizeLocale(value: string | null): CvLocale {
+  if (value === "ar") return "ar";
+  if (value === "de") return "de";
+  return "en";
 }
+
+// Literal paths so the Vercel file tracer bundles every CV into the function.
+const CV_FILES: Record<CvLocale, string> = {
+  ar: path.join(process.cwd(), "public", "cv", "Mohammad-Alfarras-CV-ar.pdf"),
+  en: path.join(process.cwd(), "public", "cv", "Mohammad-Alfarras-CV-en.pdf"),
+  de: path.join(process.cwd(), "public", "cv", "Mohammad-Alfarras-CV-de.pdf"),
+};
 
 function normalizeVariant(value: string | null): PdfVariant {
   return value === "ats" ? "ats" : "branded";
@@ -36,12 +45,9 @@ export async function GET(request: Request) {
     // Fall back to the bundled PDF if CMS content cannot be read.
   }
 
-  // Serve the locale-specific, site-branded CV generated from /[locale]/cv-print.
+  // Serve the locale-specific, site-branded CV generated from /cv-print/[locale].
   // Falls back to the bundled Lebenslauf only if the generated file is missing.
-  const candidates = [
-    path.join(process.cwd(), "public", "cv", `Mohammad-Alfarras-CV-${locale}.pdf`),
-    path.join(process.cwd(), "public", "Lebenslauf.pdf"),
-  ];
+  const candidates = [CV_FILES[locale], path.join(process.cwd(), "public", "Lebenslauf.pdf")];
 
   let pdf: Buffer | null = null;
   for (const candidate of candidates) {

@@ -80,6 +80,7 @@ function copy(locale: Locale, stats: InteractiveCvProps["stats"]) {
     switchHint: ar ? "اضغط الزرّين فوق أو Ctrl/⌘ + K للتبديل" : "Tap the toggles above or press Ctrl/⌘ + K to switch",
     downloads: ar ? "تحميل السيرة" : "Download CV",
     docx: ar ? "نسخة DOCX" : "DOCX version",
+    germanCv: ar ? "نسخة ألمانية" : "German CV",
     storyTitle: ar ? "رحلتي: من سوريا إلى ألمانيا، ومن العمليات إلى الهندسة." : "My story: from Syria to Germany, from operations to engineering.",
     story: ar
       ? [
@@ -216,6 +217,10 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
               <Link href={downloads.docx} className="fresh-button" download>
                 <FileText size={17} />
                 {t.docx}
+              </Link>
+              <Link href="/api/cv-pdf?locale=de&variant=branded" className="fresh-button" download hrefLang="de">
+                <Languages size={17} />
+                {t.germanCv}
               </Link>
             </div>
           </div>

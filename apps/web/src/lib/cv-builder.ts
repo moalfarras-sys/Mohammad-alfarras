@@ -229,16 +229,12 @@ export function createDefaultCvBuilder(snapshot: CmsSnapshot): CvBuilderData {
       },
     ],
     skills: [
-      {
-        id: "skill-nav",
-        label_ar: "Microsoft Dynamics NAV",
-        label_en: "Microsoft Dynamics NAV",
-        level: 88,
-        category: "product",
-      },
-      { id: "skill-datev", label_ar: "DATEV Pro", label_en: "DATEV Pro", level: 86, category: "tools" },
-      { id: "skill-lexware", label_ar: "Lexware Pro", label_en: "Lexware Pro", level: 82, category: "tools" },
-      { id: "skill-photoshop", label_ar: "Photoshop", label_en: "Photoshop", level: 84, category: "design" },
+      { id: "skill-web", label_ar: "تطوير الويب (Next.js · React · TypeScript)", label_en: "Web development (Next.js · React · TypeScript)", level: 92, category: "product" },
+      { id: "skill-uiux", label_ar: "تصميم واجهات وتجربة المستخدم (UI/UX)", label_en: "UI/UX interface design", level: 90, category: "design" },
+      { id: "skill-android", label_ar: "تطبيقات Android / Android TV", label_en: "Android / Android TV apps", level: 86, category: "product" },
+      { id: "skill-cms", label_ar: "أنظمة إدارة محتوى ولوحات تحكم", label_en: "CMS & dashboard systems", level: 88, category: "tools" },
+      { id: "skill-content", label_ar: "محتوى تقني وتسويق رقمي وSEO", label_en: "Technical content, digital marketing & SEO", level: 85, category: "tools" },
+      { id: "skill-ops", label_ar: "إدارة عمليات ولوجستيات", label_en: "Operations & logistics management", level: 84, category: "operations" },
     ],
     languages: [
       {

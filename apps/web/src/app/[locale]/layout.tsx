@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { MotionProvider } from "@/components/site/motion-provider";
 import { isLocale, localeMeta } from "@/lib/i18n";
 
 export default async function LocaleLayout({
@@ -14,7 +15,7 @@ export default async function LocaleLayout({
 
   return (
     <div lang={locale} dir={localeMeta[locale].dir} className="min-h-screen">
-      {children}
+      <MotionProvider>{children}</MotionProvider>
     </div>
   );
 }

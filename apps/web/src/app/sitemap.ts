@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { buildSiteModel } from "@/components/site/site-model";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { siteLastModified } from "@/content/site-data";
 import { legalPagesPublished, type LegalPagesSetting } from "@/lib/legal-pages";
@@ -62,12 +63,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   );
 
-  const projectRoutes = snapshot.work_projects
-    .filter((project) => project.is_active && project.slug)
-    .map((project) => ({
-      slug: project.slug,
-      updatedAt: project.updated_at ? new Date(project.updated_at) : undefined,
-    }));
+  // Derive project URLs from the SAME source the /work pages render from
+  // (buildSiteModel → includes the curated showcase when the CMS has no project
+  // media). This keeps the sitemap in sync with generateStaticParams so it never
+  // lists a /work/<slug> that 404s, nor hides a real one.
+  const workModel = await buildSiteModel({ locale: "ar", slug: "work" });
+  const seenSlugs = new Set<string>();
+  const projectRoutes = workModel.projects
+    .filter((project) => project.slug && !seenSlugs.has(project.slug) && seenSlugs.add(project.slug))
+    .map((project) => ({ slug: project.slug, updatedAt: undefined as Date | undefined }));
 
   const localizedProjects = (["ar", "en"] as const).flatMap((locale) =>
     projectRoutes.map<MetadataRoute.Sitemap[number]>((project) => ({

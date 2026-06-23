@@ -118,13 +118,14 @@ function storeBody(locale: Locale, status?: string) {
 }
 
 function iosPageRuntime(locale: Locale, ios?: IosRuntimeConfig) {
-  const pageHref = `/${locale}/apps/moplayer-ios`;
   const status = ios?.status || "coming_soon";
   return {
     status,
     statusLabel: statusLabel(locale, status),
     storeBody: storeBody(locale, status),
-    storeHref: localizedRuntimeHref(locale, ios?.storeUrl, `${pageHref}#app-store-coming-soon`),
+    // No real App Store URL yet → send interested visitors to contact (to ask /
+    // be notified) instead of a dead self-scroll anchor.
+    storeHref: localizedRuntimeHref(locale, ios?.storeUrl, `/${locale}/contact`),
     activationHref: localizedRuntimeHref(locale, ios?.activationUrl, `/${locale}/activate?product=moplayer2&platform=ios`),
     buttonLabel: ios?.buttonLabel?.trim() || (locale === "ar" ? "App Store قريباً" : "App Store soon"),
     heroImage: normalizePublicImagePath(ios?.heroImageUrl || "/images/moplayer-pro-home.webp"),

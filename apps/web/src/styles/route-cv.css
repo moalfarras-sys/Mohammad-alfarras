@@ -13,7 +13,7 @@
   --cv-accent-2: #5b8cff;
 }
 .cv-mode-designer {
-  --cv-accent: #ff9f45;
+  --cv-accent: #ffb05a;
   --cv-accent-2: #ff5d8f;
 }
 .cv-blueprint section,
@@ -90,7 +90,7 @@
   border: 1px solid var(--os-glass-border);
   border-radius: 22px;
   padding: clamp(16px, 2vw, 22px);
-  opacity: 0.46;
+  opacity: 0.62;
   transition:
     opacity 240ms ease,
     transform 240ms ease,
@@ -117,7 +117,7 @@
   color: var(--os-text-muted);
   font-size: 0.88rem;
   line-height: 1.55;
-  opacity: 0.55;
+  opacity: 0.88;
   transition: opacity 220ms ease;
 }
 
@@ -196,7 +196,7 @@
   margin: 18px 0 0;
   color: var(--os-text);
   font-size: clamp(2.55rem, 5.4vw, 5.4rem);
-  line-height: 0.94;
+  line-height: 1.02;
   letter-spacing: -0.05em;
   text-wrap: balance;
 }
@@ -227,12 +227,20 @@
   gap: 8px;
   min-height: 42px;
   border: 1px solid color-mix(in srgb, var(--cv-accent) 22%, var(--os-glass-border));
-  border-radius: 999px;
-  padding-inline: 13px;
-  background: color-mix(in srgb, var(--os-surface-strong) 70%, transparent);
+  border-radius: 14px;
+  padding-inline: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cv-accent) 12%, transparent), transparent 70%),
+    color-mix(in srgb, var(--os-surface-strong) 72%, transparent);
   color: var(--os-text-soft);
   font-size: 0.76rem;
   font-weight: 900;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.cv-floating-badges span:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--cv-accent) 40%, var(--os-glass-border));
 }
 
 .cv-floating-badges strong {
@@ -291,7 +299,7 @@
 .cv-terminal-body {
   min-height: 190px;
   padding: 18px;
-  color: #7df9ff;
+  color: #9efff8;
   direction: ltr;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-align: left;
@@ -314,7 +322,7 @@
 .cv-deep-dive,
 .cv-youtube-dashboard,
 .cv-final-cta {
-  margin-top: 24px;
+  margin-top: clamp(28px, 4vw, 56px);
 }
 
 .cv-game-stats {
@@ -340,6 +348,45 @@
     color-mix(in srgb, var(--os-surface-strong) 82%, transparent);
 }
 
+.cv-count-card {
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.cv-count-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--cv-accent) 42%, var(--os-glass-border));
+  box-shadow: 0 22px 80px color-mix(in srgb, var(--cv-accent) 14%, transparent);
+}
+
+/* Hand-placed gradient + icon tilt per card so the row reads bespoke, not templated. */
+.cv-game-stats .cv-count-card:nth-child(1) {
+  background:
+    radial-gradient(circle at 14% -4%, color-mix(in srgb, var(--cv-accent) 16%, transparent), transparent 40%),
+    color-mix(in srgb, var(--os-surface-strong) 82%, transparent);
+}
+.cv-game-stats .cv-count-card:nth-child(2) {
+  background:
+    radial-gradient(circle at 30% 6%, color-mix(in srgb, var(--cv-accent) 13%, transparent), transparent 42%),
+    color-mix(in srgb, var(--os-surface-strong) 82%, transparent);
+}
+.cv-game-stats .cv-count-card:nth-child(3) {
+  background:
+    radial-gradient(circle at 8% 10%, color-mix(in srgb, var(--cv-accent) 15%, transparent), transparent 40%),
+    color-mix(in srgb, var(--os-surface-strong) 82%, transparent);
+}
+.cv-game-stats .cv-count-card:nth-child(4) {
+  background:
+    radial-gradient(circle at 26% 0%, color-mix(in srgb, var(--cv-accent) 12%, transparent), transparent 44%),
+    color-mix(in srgb, var(--os-surface-strong) 82%, transparent);
+}
+.cv-game-stats .cv-count-card:nth-child(1) svg { transform: rotate(-2deg); }
+.cv-game-stats .cv-count-card:nth-child(2) svg { transform: rotate(1.5deg); }
+.cv-game-stats .cv-count-card:nth-child(3) svg { transform: rotate(-1deg); }
+.cv-game-stats .cv-count-card:nth-child(4) svg { transform: rotate(2deg); }
+
 .cv-count-card svg {
   color: var(--cv-accent);
 }
@@ -350,6 +397,7 @@
   color: var(--os-text);
   font-size: clamp(1.65rem, 3vw, 2.5rem);
   font-weight: 950;
+  font-variant-numeric: tabular-nums;
 }
 
 .cv-count-card span {
@@ -383,7 +431,7 @@
   margin: 0;
   color: var(--os-text);
   font-size: clamp(2rem, 4.6vw, 4.4rem);
-  line-height: 1;
+  line-height: 1.08;
   letter-spacing: -0.045em;
   text-wrap: balance;
 }
@@ -435,7 +483,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 120px;
+  gap: clamp(90px, 7vw, 130px);
 }
 
 .cv-waypoint {
@@ -452,8 +500,9 @@
 }
 
 .cv-waypoint span {
-  color: #ffb169;
+  color: #ffc680;
   font-weight: 950;
+  font-variant-numeric: tabular-nums;
 }
 
 .cv-waypoint svg {
@@ -601,7 +650,7 @@
 }
 
 .cv-experience-card strong {
-  color: #ffb169;
+  color: #ffc680;
 }
 
 .cv-experience-card div {
@@ -746,8 +795,21 @@
   cursor: pointer;
   color: inherit;
 }
-.cv-persona:hover {
-  opacity: 0.62;
+.cv-persona:not(.cv-persona-active):hover {
+  opacity: 0.82;
+  transform: scale(1.01);
+  border-color: color-mix(in srgb, var(--cv-accent) 22%, var(--os-glass-border));
+}
+
+/* Visible keyboard focus for every interactive element (WCAG 2.4.7). */
+.cv-persona:focus-visible,
+.cv-language-badge:focus-visible,
+.cv-experience-card:focus-visible,
+.cv-blueprint a:focus-visible,
+.cv-terminal-toggle:focus-visible {
+  outline: 2px solid var(--cv-accent);
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 .cv-persona-active {
   opacity: 1;
@@ -813,13 +875,16 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: #ff5f57;
+  background: var(--cv-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cv-accent) 60%, transparent);
 }
 .cv-terminal-bar i:nth-child(2) {
-  background: #febc2e;
+  background: color-mix(in srgb, var(--cv-accent) 55%, var(--os-glass-border));
+  box-shadow: none;
 }
 .cv-terminal-bar i:nth-child(3) {
-  background: #28c840;
+  background: color-mix(in srgb, var(--cv-accent) 30%, var(--os-glass-border));
+  box-shadow: none;
 }
 .cv-terminal-bar span {
   display: inline-flex;

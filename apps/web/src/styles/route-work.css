@@ -877,7 +877,7 @@
 
 /* Phase 2 Work / Projects page showroom */
 .os-work-page {
-  width: min(100% - 32px, 1240px);
+  width: min(100% - 40px, 1360px);
 }
 
 .os-work-hero,

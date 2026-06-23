@@ -1,6 +1,6 @@
 /* Contact hub */
 .contact-hub {
-  width: min(100% - 32px, 1240px);
+  width: min(100% - 40px, 1360px);
   margin-inline: auto;
 }
 

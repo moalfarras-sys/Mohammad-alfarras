@@ -504,7 +504,7 @@ select {
   display: none;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 960px) {
   .fresh-nav {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -1775,7 +1775,7 @@ html[dir="rtl"] .ai-message-user {
   background: var(--panel);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 960px) {
   .fresh-nav {
     grid-template-columns: 1fr auto;
   }
@@ -2933,7 +2933,7 @@ html[dir="rtl"] .fresh-section-head h1,
   margin-top: 24px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 960px) {
   .os-home-hero,
   .os-home-positioning {
     grid-template-columns: 1fr;

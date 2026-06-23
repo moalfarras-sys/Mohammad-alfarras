@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ContactHubPage } from "@/components/site/contact-hub-page";
+import { ProjectWizard } from "@/components/site/project-wizard";
 import { buildSiteModel } from "@/components/site/site-model";
 import { SiteOffersSection } from "@/components/site/site-offers-section";
 import { isLocale } from "@/lib/i18n";
@@ -48,6 +49,9 @@ export default async function ContactPageRoute({
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
       <ContactHubPage locale={loc} content={model.t.contact} />
+      <section className="pw-section section-frame" id="design-your-project">
+        <ProjectWizard locale={loc} />
+      </section>
       <SiteOffersSection model={model} placement="contact" />
     </>
   );

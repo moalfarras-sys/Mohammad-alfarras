@@ -109,51 +109,15 @@ const fallbackProduct: AppProduct = {
   updated_at: now,
 };
 
+// Real, compressed in-app screenshots for the Classic 3D gallery.
 const fallbackScreenshots: AppScreenshot[] = [
-  {
-    id: "moplayer-screen-1",
-    product_slug: "moplayer",
-    title: "TV product showcase",
-    alt_text: "MoPlayer cinematic Android TV product preview",
-    image_path: "/images/moplayer-hero-3d-final.png",
-    device_frame: "tv",
-    sort_order: 1,
-    is_featured: true,
-    created_at: now,
-  },
-  {
-    id: "moplayer-screen-2",
-    product_slug: "moplayer",
-    title: "Guided activation",
-    alt_text: "MoPlayer guided activation and source setup preview",
-    image_path: "/images/moplayer-activation-flow.webp",
-    device_frame: "phone",
-    sort_order: 2,
-    is_featured: false,
-    created_at: now,
-  },
-  {
-    id: "moplayer-screen-3",
-    product_slug: "moplayer",
-    title: "Android TV presence",
-    alt_text: "MoPlayer Android TV banner",
-    image_path: "/images/moplayer-tv-banner-final.png",
-    device_frame: "tv",
-    sort_order: 3,
-    is_featured: false,
-    created_at: now,
-  },
-  {
-    id: "moplayer-screen-4",
-    product_slug: "moplayer",
-    title: "Release center",
-    alt_text: "MoPlayer universal APK release and download preview",
-    image_path: "/images/moplayer-release-panel.webp",
-    device_frame: "tv",
-    sort_order: 4,
-    is_featured: false,
-    created_at: now,
-  },
+  { id: "moplayer-screen-1", product_slug: "moplayer", title: "Home", alt_text: "MoPlayer Classic home screen with content rows", image_path: "/images/apps/classic/classic-home-after.webp", device_frame: "tv", sort_order: 1, is_featured: true, created_at: now },
+  { id: "moplayer-screen-2", product_slug: "moplayer", title: "Live TV", alt_text: "MoPlayer Classic live channel playback", image_path: "/images/apps/classic/classic-live-playing-after.webp", device_frame: "tv", sort_order: 2, is_featured: false, created_at: now },
+  { id: "moplayer-screen-3", product_slug: "moplayer", title: "Movies", alt_text: "MoPlayer Classic movies library", image_path: "/images/apps/classic/classic-movies-cyan-after.webp", device_frame: "tv", sort_order: 3, is_featured: false, created_at: now },
+  { id: "moplayer-screen-4", product_slug: "moplayer", title: "Settings", alt_text: "MoPlayer Classic settings and update screen", image_path: "/images/apps/classic/classic-settings-update-ahead-fixed.webp", device_frame: "tv", sort_order: 4, is_featured: false, created_at: now },
+  { id: "moplayer-screen-5", product_slug: "moplayer", title: "Activation", alt_text: "MoPlayer Classic device activation screen", image_path: "/images/apps/classic/classic-activation-before.webp", device_frame: "tv", sort_order: 5, is_featured: false, created_at: now },
+  { id: "moplayer-screen-6", product_slug: "moplayer", title: "Sign in", alt_text: "MoPlayer Classic modern login screen", image_path: "/images/apps/classic/classic-modern-api36-login-final.webp", device_frame: "tv", sort_order: 6, is_featured: false, created_at: now },
+  { id: "moplayer-screen-7", product_slug: "moplayer", title: "Add source", alt_text: "MoPlayer Classic add M3U source screen", image_path: "/images/apps/classic/classic-m3u-before.webp", device_frame: "tv", sort_order: 7, is_featured: false, created_at: now },
 ];
 
 const fallbackFaqs: AppFaq[] = [
@@ -265,10 +229,13 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
 const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
   moplayer: fallbackScreenshots,
   moplayer2: [
-    { id: "moplayer2-screen-1", product_slug: "moplayer2", title: "Home Screen", alt_text: "MoPlayer Pro warm gold home screen with widgets and content rows", image_path: "/images/moplayer-pro-home.webp", device_frame: "tv", sort_order: 1, is_featured: true, created_at: now },
-    { id: "moplayer2-screen-2", product_slug: "moplayer2", title: "Activation Flow", alt_text: "MoPlayer Pro QR activation and website pairing flow", image_path: "/images/moplayer-pro-activation.webp", device_frame: "tv", sort_order: 2, is_featured: false, created_at: now },
-    { id: "moplayer2-screen-3", product_slug: "moplayer2", title: "Player Controls", alt_text: "MoPlayer Pro warm glass player controls and channel list", image_path: "/images/moplayer-pro-player.webp", device_frame: "tv", sort_order: 3, is_featured: false, created_at: now },
-    { id: "moplayer2-screen-4", product_slug: "moplayer2", title: "TV and Phone", alt_text: "MoPlayer Pro product preview on TV and phone", image_path: "/images/moplayer-pro-hero.webp", device_frame: "tv", sort_order: 4, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-1", product_slug: "moplayer2", title: "Home", alt_text: "MoPlayer Pro home screen with content rows", image_path: "/images/apps/pro/05-home-after-real-source.webp", device_frame: "tv", sort_order: 1, is_featured: true, created_at: now },
+    { id: "moplayer2-screen-2", product_slug: "moplayer2", title: "Sign in", alt_text: "MoPlayer Pro clean login screen", image_path: "/images/apps/pro/01-login-clean.webp", device_frame: "tv", sort_order: 2, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-3", product_slug: "moplayer2", title: "Live TV", alt_text: "MoPlayer Pro live channel list", image_path: "/images/apps/pro/09-live-list-temp-m3u.webp", device_frame: "tv", sort_order: 3, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-4", product_slug: "moplayer2", title: "Player", alt_text: "MoPlayer Pro player overlay controls", image_path: "/images/apps/pro/13-player-ok-overlay.webp", device_frame: "tv", sort_order: 4, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-5", product_slug: "moplayer2", title: "Now playing", alt_text: "MoPlayer Pro live playback", image_path: "/images/apps/pro/18-player-ok-30s.webp", device_frame: "tv", sort_order: 5, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-6", product_slug: "moplayer2", title: "Search", alt_text: "MoPlayer Pro search screen", image_path: "/images/apps/pro/22-search.webp", device_frame: "tv", sort_order: 6, is_featured: false, created_at: now },
+    { id: "moplayer2-screen-7", product_slug: "moplayer2", title: "Settings", alt_text: "MoPlayer Pro settings screen", image_path: "/images/apps/pro/28-settings.webp", device_frame: "tv", sort_order: 7, is_featured: false, created_at: now },
   ],
 };
 

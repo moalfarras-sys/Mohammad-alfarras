@@ -1257,6 +1257,15 @@ export const defaultSnapshot: CmsSnapshot = {
   ],
   media_assets: [
     {
+      id: "m-platform",
+      path: "/images/projects/qamishli-home.webp",
+      alt_ar: "منصّة عقارات إلكترونية من تطوير محمد الفراس",
+      alt_en: "Online real-estate platform built by Mohammad Alfarras",
+      width: 1280,
+      height: 800,
+      type: "image/webp",
+    },
+    {
       id: "m1",
       path: "/images/portrait.jpg",
       alt_ar: "الصورة الشخصية لمحمد الفراس",
@@ -1958,6 +1967,14 @@ export const defaultSnapshot: CmsSnapshot = {
       color_token: "accent",
       cover_media_id: "m5",
     },
+    {
+      id: "srv-platform",
+      is_active: true,
+      sort_order: 7,
+      icon: "layout-grid",
+      color_token: "accent",
+      cover_media_id: "m-platform",
+    },
   ],
   service_offering_translations: [
     {
@@ -2104,6 +2121,32 @@ export const defaultSnapshot: CmsSnapshot = {
         "Disciplined, noise-free execution",
         "Practical problem solving",
         "Delivery you can count on",
+      ],
+    },
+    {
+      service_id: "srv-platform",
+      locale: "ar",
+      title: "منصّات ودلائل وأسواق إلكترونية",
+      description:
+        "أبني منصّات كاملة وليست صفحات فقط: دليل مدينة، منصّة عقارات، أو متجر — فيها بحث وفلاتر وخريطة وصفحات تفصيلية ولوحة إدارة يتحكّم بها صاحب المشروع.",
+      bullets_json: [
+        "بحث وفلاتر متقدّمة",
+        "خرائط وقوائم تفاعلية",
+        "لوحة إدارة كاملة",
+        "بنية قابلة للنمو",
+      ],
+    },
+    {
+      service_id: "srv-platform",
+      locale: "en",
+      title: "Directories, marketplaces & platforms",
+      description:
+        "I build complete platforms, not just pages: a city directory, a property marketplace, or a store — with search, filters, a map, detail pages, and an admin panel the owner controls.",
+      bullets_json: [
+        "Advanced search & filters",
+        "Interactive maps & listings",
+        "Full admin panel",
+        "Scalable architecture",
       ],
     },
   ],

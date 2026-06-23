@@ -61,6 +61,16 @@ function getServices(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["serv
       image: "/images/hero_tech.png",
     },
     {
+      id: "service-platform",
+      title: locale === "ar" ? "منصّات ودلائل وأسواق إلكترونية" : "Directories, marketplaces & platforms",
+      body:
+        locale === "ar"
+          ? "منصّات كاملة فيها بحث وفلاتر وخريطة وصفحات تفصيلية ولوحة إدارة — مثل دليل مدينة، أو منصّة عقارات، أو متجر إلكتروني."
+          : "Full platforms with search, filters, a map, detail pages, and an admin panel — like a city directory, a property marketplace, or an online store.",
+      bullets: locale === "ar" ? ["بحث وفلاتر", "خرائط وقوائم", "لوحة إدارة"] : ["Search & filters", "Maps & listings", "Admin panel"],
+      image: "/images/projects/qamishli-home.webp",
+    },
+    {
       id: "service-uiux",
       title: locale === "ar" ? "واجهات وتطبيقات ويب" : "Web apps & interfaces",
       body:
@@ -257,6 +267,114 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
   const isAr = locale === "ar";
   return [
     {
+      id: "wp-alhasakah",
+      slug: "alhasakah",
+      title: isAr ? "دليل الحسكة" : "Alhasakah City Guide",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "دليل مدينة متكامل يجمع المطاعم والمحلات والأطباء والخدمات مع بحث ذكي وخريطة."
+        : "A complete city directory bringing together restaurants, shops, doctors and services with smart search and a map.",
+      description: isAr
+        ? "منصّة دليل محلي لمدينة الحسكة: تصنيفات واضحة، بحث، خريطة، إضافة نشاطك، ومساعد ذكي — بتصميم عصري سريع."
+        : "A local directory platform for Al-Hasakah: clear categories, search, an interactive map, self-serve business listings, and a smart assistant — modern and fast.",
+      image: "/images/projects/alhasakah-home.webp",
+      href: "https://alhasakah.net/",
+      featured: true,
+      featuredRank: 1,
+      accent: "amber",
+      highlightStyle: "editorial",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "دليل مدينة" : "City directory",
+      challenge: isAr ? "تجميع أنشطة مدينة كاملة في مكان واحد سهل البحث والتصفّح." : "Bring a whole city's businesses into one easy, searchable place.",
+      solution: isAr ? "بحث ذكي، تصنيفات واضحة، خريطة تفاعلية، ولوحة لإضافة الأنشطة." : "Smart search, clear categories, an interactive map, and a self-serve listing flow.",
+      result: isAr ? "منصّة محلية حيّة سهلة الاستخدام على الجوال والكمبيوتر." : "A living local platform, easy to use on phone and desktop.",
+      tags: isAr ? ["دليل محلي", "بحث", "خريطة", "سوريا"] : ["Local directory", "Search", "Map", "Syria"],
+      gallery: ["/images/projects/alhasakah-home.webp", "/images/projects/alhasakah-mobile.webp"],
+      metrics: isAr
+        ? [
+            { value: "+44", label: "فئة" },
+            { value: "بحث", label: "ذكي" },
+            { value: "خريطة", label: "تفاعلية" },
+          ]
+        : [
+            { value: "44+", label: "Categories" },
+            { value: "Smart", label: "Search" },
+            { value: "Map", label: "Interactive" },
+          ],
+    },
+    {
+      id: "wp-qamishli",
+      slug: "qamishli",
+      title: isAr ? "عقارات القامشلي" : "Qamishli Real Estate",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "منصّة عقارية تجمع الشقق والبيوت والأراضي في القامشلي مع بحث وفلاتر وخريطة."
+        : "A real-estate marketplace for apartments, houses and land in Qamishli with search, filters and a map.",
+      description: isAr
+        ? "منصّة عقارات: بيع وإيجار، فلاتر سعر ونوع، خريطة، إضافة عقارك، وتواصل مباشر — بتصميم عصري سريع."
+        : "A property platform: sale and rent, price and type filters, a map, self-listing, and direct contact — modern and fast.",
+      image: "/images/projects/qamishli-home.webp",
+      href: "https://qamishli.net/",
+      featured: true,
+      featuredRank: 2,
+      accent: "ink",
+      highlightStyle: "app",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "منصّة عقارات" : "Real-estate platform",
+      challenge: isAr ? "تنظيم سوق العقارات المحلي في تجربة واحدة واضحة وموثوقة." : "Organize a local property market into one clear, trustworthy experience.",
+      solution: isAr ? "بحث وفلاتر دقيقة، خريطة، صفحات عقار واضحة، ومسار تواصل مباشر." : "Precise search and filters, a map, clean listing pages, and a direct contact path.",
+      result: isAr ? "منصّة عقارية عصرية سريعة مبنية للجوال أولاً." : "A modern, fast property platform built mobile-first.",
+      tags: isAr ? ["عقارات", "بحث وفلاتر", "خريطة", "سوريا"] : ["Real estate", "Search & filters", "Map", "Syria"],
+      gallery: ["/images/projects/qamishli-home.webp", "/images/projects/qamishli-mobile.webp"],
+      metrics: isAr
+        ? [
+            { value: "عقارات", label: "بيع وإيجار" },
+            { value: "فلاتر", label: "بحث دقيق" },
+            { value: "خريطة", label: "مواقع" },
+          ]
+        : [
+            { value: "Sale/Rent", label: "Listings" },
+            { value: "Filters", label: "Precise search" },
+            { value: "Map", label: "Locations" },
+          ],
+    },
+    {
+      id: "wp-mbkservice",
+      slug: "mbkservice",
+      title: "MBK Service",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "حضور رقمي فاخر لخدمات النقل والليموزين والتوصيل في برلين، مبني على الثقة والأناقة."
+        : "A premium digital presence for mobility, limousine and courier services in Berlin, built on trust and elegance.",
+      description: isAr
+        ? "موقع خدمات راقٍ: سيارات مع سائق، ليموزين، وتوصيل طرود — مع مسار طلب واتصال واضح وهوية أسود/ذهبي."
+        : "An upscale service site: chauffeured cars, limousine, and parcel courier — with a clear inquiry/call path and a black-gold identity.",
+      image: "/images/projects/mbkservice-home.webp",
+      href: "https://mbkservice.de/de",
+      featured: true,
+      featuredRank: 3,
+      accent: "ink",
+      highlightStyle: "trust",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "نقل وتوصيل فاخر" : "Premium mobility",
+      challenge: isAr ? "تقديم خدمة نقل فاخرة بثقة وأناقة تليق بالعملاء." : "Present a premium transport service with the trust and elegance its clients expect.",
+      solution: isAr ? "هوية بصرية فاخرة (أسود/ذهبي)، خدمات واضحة، وأزرار طلب واتصال بارزة." : "A luxury black-gold identity, clear service blocks, and prominent inquiry/call actions.",
+      result: isAr ? "واجهة راقية تبني الثقة وتسهّل الطلب والحجز." : "A refined surface that builds trust and makes inquiry and booking easy.",
+      tags: isAr ? ["برلين", "نقل فاخر", "ليموزين", "توصيل"] : ["Berlin", "Premium mobility", "Limousine", "Courier"],
+      gallery: ["/images/projects/mbkservice-home.webp", "/images/projects/mbkservice-mobile.webp"],
+      metrics: isAr
+        ? [
+            { value: "Premium", label: "تموضع فاخر" },
+            { value: "Berlin", label: "سوق محلي" },
+            { value: "24/7", label: "خدمة" },
+          ]
+        : [
+            { value: "Premium", label: "Positioning" },
+            { value: "Berlin", label: "Local market" },
+            { value: "24/7", label: "Service" },
+          ],
+    },
+    {
       id: "wp-ad-fahrzeugtransporte",
       slug: "ad-fahrzeugtransporte",
       title: "A&D Fahrzeugtransporte",
@@ -267,10 +385,10 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
       description: isAr
         ? "موقع يقدّم الخدمات بسرعة ويقود الزائر إلى الهاتف أو واتساب بدون تشتت."
         : "A service site that explains the offer quickly and moves visitors toward phone or WhatsApp without friction.",
-      image: "/images/projects/adtransporte-home.png",
+      image: "/images/projects/adtransporte-home.webp",
       href: "https://www.adtransporte.de/",
       featured: true,
-      featuredRank: 1,
+      featuredRank: 4,
       accent: "blue",
       highlightStyle: "operations",
       deviceFrame: "browser",
@@ -279,7 +397,7 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
       solution: isAr ? "ترتيب العرض والخدمات والـ CTA بشكل أوضح." : "Clarify services, hierarchy, and CTA flow.",
       result: isAr ? "واجهة عملية وواضحة مناسبة للجوال." : "A practical, mobile-ready service surface.",
       tags: isAr ? ["ألمانيا", "موقع خدمات", "نقل مركبات"] : ["Germany", "Service site", "Vehicle transport"],
-      gallery: ["/images/projects/adtransporte-home.png", "/images/projects/adtransporte-mobile.png"],
+      gallery: ["/images/projects/adtransporte-home.webp", "/images/projects/adtransporte-mobile.webp"],
       metrics: isAr
         ? [
             { value: "24/7", label: "تموضع الخدمة" },
@@ -303,10 +421,10 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
       description: isAr
         ? "المشروع يركّز على الوضوح والثقة وبنية طلب سهلة على الجوال."
         : "The build focuses on clarity, trust, and a mobile-friendly request path.",
-      image: "/images/projects/intelligent-umzuege-home.png",
-      href: "https://intelligent-umzuege.vercel.app/",
+      image: "/images/projects/intelligent-umzuege-home.webp",
+      href: "https://www.intelligent-umzuege.de/",
       featured: true,
-      featuredRank: 2,
+      featuredRank: 5,
       accent: "amber",
       highlightStyle: "trust",
       deviceFrame: "browser",
@@ -315,7 +433,7 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
       solution: isAr ? "بنية أوضح للعرض والخدمات والطلب." : "A clearer structure for services and quote flow.",
       result: isAr ? "تجربة أخف وأوضح على الجوال والكمبيوتر." : "A clearer experience across phone and desktop.",
       tags: isAr ? ["نقل", "خدمات محلية", "برلين"] : ["Moving", "Local services", "Berlin"],
-      gallery: ["/images/projects/intelligent-umzuege-home.png", "/images/projects/intelligent-umzuege-mobile.png"],
+      gallery: ["/images/projects/intelligent-umzuege-home.webp", "/images/projects/intelligent-umzuege-mobile.webp"],
       metrics: isAr
         ? [
             { value: "Mobile", label: "طلب سريع" },
@@ -332,6 +450,14 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
 }
 
 function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["projects"] {
+  // CMS projects only present well once they have media. When none is configured
+  // (the static seed snapshot, or while the database is unavailable), use the
+  // curated showcase — it carries the real client projects with proper images and
+  // case-study copy. Once projects are configured with media in the admin, that
+  // CMS data takes over automatically.
+  if (snapshot.work_project_media.length === 0) {
+    return repairMojibakeDeep([moplayerFallback(locale), moplayer2Fallback(locale), ...businessShowcaseProjects(locale)]);
+  }
   const active: SiteViewModel["projects"] = snapshot.work_projects
     .filter((entry) => entry.is_active)
     .sort((a, b) => a.sort_order - b.sort_order)

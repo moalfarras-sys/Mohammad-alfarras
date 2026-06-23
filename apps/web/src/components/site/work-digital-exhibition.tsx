@@ -46,6 +46,7 @@ type ExhibitionProject = {
   tone: ProjectTone;
   mockup: MockupKind;
   featured?: boolean;
+  status?: "live" | "in-development";
 };
 
 const categories: Record<Locale, Array<{ id: ProjectCategory; label: string }>> = {
@@ -102,6 +103,7 @@ function cmsProjectToExhibition(project: SiteProject, locale: Locale): Exhibitio
     tone: projectTone(project),
     mockup: projectMockup(project),
     featured: project.featured,
+    status: project.status,
   };
 }
 
@@ -470,6 +472,9 @@ function ProjectSpotlight({
               <PlayCircle size={22} />
               {copy.view}
             </span>
+            {project.status === "in-development" ? (
+              <em className="work-status-badge">{locale === "ar" ? "قيد التطوير" : "In development"}</em>
+            ) : null}
           </Link>
 
           <div className="work-spotlight-copy">

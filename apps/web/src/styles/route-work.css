@@ -305,6 +305,52 @@
   font-weight: 950;
 }
 
+/* "In development" badge for unreleased products (MoPlayer PC / iOS). */
+.work-status-badge {
+  position: absolute;
+  z-index: 3;
+  inset-block-start: 14px;
+  inset-inline-end: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 196, 102, 0.55);
+  background: linear-gradient(120deg, rgba(255, 168, 78, 0.95), rgba(255, 122, 82, 0.95));
+  color: #1a1206;
+  font-size: 0.74rem;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 30px rgba(255, 140, 60, 0.36);
+}
+
+.work-status-badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #1a1206;
+  animation: workDevPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes workDevPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-status-badge::before {
+    animation: none;
+  }
+}
+
 .work-spotlight-copy {
   display: flex;
   min-width: 0;

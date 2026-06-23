@@ -25,6 +25,7 @@ export type SiteProject = {
   tags: string[];
   gallery: string[];
   metrics: Array<{ value: string; label: string }>;
+  status?: "live" | "in-development";
 };
 
 export type SiteService = {

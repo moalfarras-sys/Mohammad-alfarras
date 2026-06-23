@@ -263,6 +263,88 @@ function moplayer2Fallback(locale: Locale): SiteViewModel["projects"][number] {
   });
 }
 
+function moplayerPcFallback(locale: Locale): SiteViewModel["projects"][number] {
+  const isAr = locale === "ar";
+  return repairMojibakeDeep({
+    id: "moplayer-pc-fallback",
+    slug: "moplayer-pc",
+    title: "MoPlayer PC",
+    ctaLabel: isAr ? "قريباً" : "Coming soon",
+    summary: isAr
+      ? "نسخة ويندوز من MoPlayer تنقل تجربة المشاهدة إلى الكمبيوتر بنفس الهوية — قيد التطوير حالياً."
+      : "The Windows edition of MoPlayer, bringing the playback experience to desktop with the same identity — currently in development.",
+    description: isAr
+      ? "تطبيق سطح مكتب لويندوز يكمل منظومة MoPlayer (أندرويد وAndroid TV) ليغطّي الكمبيوتر بواجهة سريعة وواضحة."
+      : "A Windows desktop app extending the MoPlayer ecosystem (Android and Android TV) to the computer with a fast, clear interface.",
+    image: "/images/moplayer-pro-showcase-1.png",
+    href: undefined,
+    featured: true,
+    featuredRank: 5,
+    accent: "blue",
+    highlightStyle: "app",
+    deviceFrame: "browser",
+    eyebrow: isAr ? "تطبيق ويندوز · قيد التطوير" : "Windows app · In development",
+    challenge: isAr ? "توسيع MoPlayer من الموبايل والتلفاز إلى الكمبيوتر بنفس الجودة." : "Extend MoPlayer from mobile and TV to desktop with the same quality.",
+    solution: isAr ? "تطبيق ويندوز أصلي يشارك نفس الهوية ومنطق التشغيل والتفعيل." : "A native Windows app sharing the same identity, playback, and activation logic.",
+    result: isAr ? "منظومة MoPlayer تغطّي كل الشاشات قريباً." : "A MoPlayer ecosystem covering every screen — soon.",
+    tags: isAr ? ["MoPlayer", "ويندوز", "كمبيوتر", "قيد التطوير"] : ["MoPlayer", "Windows", "Desktop", "In development"],
+    gallery: ["/images/moplayer-pro-showcase-1.png", "/images/moplayer-pro-showcase-2.png"],
+    metrics: isAr
+      ? [
+          { value: "Windows", label: "المنصة" },
+          { value: "قريباً", label: "الإطلاق" },
+          { value: "Desktop", label: "تجربة الكمبيوتر" },
+        ]
+      : [
+          { value: "Windows", label: "Platform" },
+          { value: "Soon", label: "Release" },
+          { value: "Desktop", label: "Experience" },
+        ],
+    status: "in-development",
+  });
+}
+
+function moplayerIosFallback(locale: Locale): SiteViewModel["projects"][number] {
+  const isAr = locale === "ar";
+  return repairMojibakeDeep({
+    id: "moplayer-ios-fallback",
+    slug: "moplayer-ios",
+    title: "MoPlayer iOS",
+    ctaLabel: isAr ? "قريباً" : "Coming soon",
+    summary: isAr
+      ? "نسخة آيفون من MoPlayer لتجربة مشاهدة سلسة على iOS بنفس منطق التفعيل — قيد التطوير حالياً."
+      : "The iPhone edition of MoPlayer for a smooth iOS playback experience with the same activation logic — currently in development.",
+    description: isAr
+      ? "تطبيق iPhone يكمل منظومة MoPlayer ليصل المحتوى إلى مستخدمي iOS بواجهة أنيقة وسريعة."
+      : "An iPhone app extending the MoPlayer ecosystem to iOS users with a clean, fast interface.",
+    image: "/images/moplayer-pro-home.webp",
+    href: `/${locale}/apps/moplayer-ios`,
+    featured: true,
+    featuredRank: 6,
+    accent: "blue",
+    highlightStyle: "app",
+    deviceFrame: "phone",
+    eyebrow: isAr ? "تطبيق آيفون · قيد التطوير" : "iPhone app · In development",
+    challenge: isAr ? "إيصال تجربة MoPlayer إلى منظومة iOS بمعاييرها." : "Bring the MoPlayer experience to the iOS ecosystem and its standards.",
+    solution: isAr ? "تطبيق iPhone أصلي بنفس الهوية ومنطق التفعيل والتشغيل." : "A native iPhone app with the same identity, activation, and playback logic.",
+    result: isAr ? "MoPlayer على الآيفون قريباً ضمن نفس المنظومة." : "MoPlayer on iPhone soon, inside the same ecosystem.",
+    tags: isAr ? ["MoPlayer", "iPhone", "iOS", "قيد التطوير"] : ["MoPlayer", "iPhone", "iOS", "In development"],
+    gallery: ["/images/moplayer-pro-home.webp", "/images/moplayer_ui_now_playing-final.png"],
+    metrics: isAr
+      ? [
+          { value: "iPhone", label: "المنصة" },
+          { value: "قريباً", label: "الإطلاق" },
+          { value: "iOS", label: "تجربة أصلية" },
+        ]
+      : [
+          { value: "iPhone", label: "Platform" },
+          { value: "Soon", label: "Release" },
+          { value: "iOS", label: "Native experience" },
+        ],
+    status: "in-development",
+  });
+}
+
 function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
   const isAr = locale === "ar";
   return [
@@ -446,6 +528,78 @@ function businessShowcaseProjects(locale: Locale): SiteViewModel["projects"] {
             { value: "Form", label: "Quote flow" },
           ],
     },
+    {
+      id: "wp-seel",
+      slug: "seel",
+      title: "SEEL Transport & Reinigung",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "حضور رقمي فاخر لشركة نقل وتنظيف وإخلاء في برلين وبراندنبورغ، مبني على التنظيم والثقة."
+        : "A premium digital presence for a Berlin moving, cleaning and clearance company, built on organization and trust.",
+      description: isAr
+        ? "موقع خدمات أنيق بهوية داكنة وسماوية: نقل، تنظيف، وإخلاء — مع أسعار شفافة، حجز أونلاين، ومسار اتصال واضح وسريع."
+        : "An elegant service site with a dark-cyan identity: moving, cleaning, and clearance — with transparent pricing, online booking, and a clear, fast contact path.",
+      image: "/images/projects/seel-home.webp",
+      href: "https://seeltransport.de/",
+      featured: true,
+      featuredRank: 6,
+      accent: "blue",
+      highlightStyle: "trust",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "نقل · تنظيف · إخلاء" : "Moving · Cleaning · Clearance",
+      challenge: isAr ? "تقديم خدمات نقل وتنظيف وإخلاء بثقة وتنظيم يطمئن العميل." : "Present moving, cleaning, and clearance services with the trust and order a client needs.",
+      solution: isAr ? "هوية فاخرة، خدمات واضحة، أسعار شفافة، وحجز أونلاين مباشر." : "A premium identity, clear services, transparent pricing, and direct online booking.",
+      result: isAr ? "واجهة هادئة واحترافية تبني الثقة وتسهّل الحجز." : "A calm, professional surface that builds trust and makes booking easy.",
+      tags: isAr ? ["برلين", "نقل", "تنظيف", "إخلاء"] : ["Berlin", "Moving", "Cleaning", "Clearance"],
+      gallery: ["/images/projects/seel-home.webp", "/images/projects/seel-mobile.webp"],
+      metrics: isAr
+        ? [
+            { value: "24/7", label: "خدمة" },
+            { value: "Berlin", label: "وبراندنبورغ" },
+            { value: "حجز", label: "أونلاين" },
+          ]
+        : [
+            { value: "24/7", label: "Service" },
+            { value: "Berlin", label: "& Brandenburg" },
+            { value: "Booking", label: "Online" },
+          ],
+    },
+    {
+      id: "wp-schnell",
+      slug: "schnell",
+      title: "Schnell Sicher Umzug",
+      ctaLabel: isAr ? "عرض المشروع" : "View project",
+      summary: isAr
+        ? "خدمة نقل ألمانية متكاملة (نقل · تخلّص · تركيب) مع نظام حجز عصري وتغطية على مستوى ألمانيا."
+        : "A full German moving service (moving · disposal · assembly) with a modern booking system and nationwide coverage.",
+      description: isAr
+        ? "موقع نقل احترافي بتصميم أزرق فاتح فخم: عرض سريع وواضح، حجز موعد أونلاين، أسعار عادلة، وتغطية في كل ألمانيا."
+        : "A professional moving site with a premium light-blue design: a fast, clear pitch, online appointment booking, fair pricing, and Germany-wide coverage.",
+      image: "/images/projects/schnell-home.webp",
+      href: "https://schnellsicherumzug.de/",
+      featured: true,
+      featuredRank: 7,
+      accent: "ink",
+      highlightStyle: "operations",
+      deviceFrame: "browser",
+      eyebrow: isAr ? "نقل · تخلّص · تركيب" : "Moving · Disposal · Assembly",
+      challenge: isAr ? "تحويل خدمة نقل إلى تجربة بلا توتر مع حجز سهل وثقة فورية." : "Turn a moving service into a stress-free experience with easy booking and instant trust.",
+      solution: isAr ? "عرض واضح، نظام حجز موعد عصري، ومؤشرات ثقة (24/7، أسعار عادلة، كل ألمانيا)." : "A clear pitch, a modern booking system, and trust signals (24/7, fair pricing, nationwide).",
+      result: isAr ? "تجربة حجز نقل عصرية وسلسة على الجوال والكمبيوتر." : "A modern, smooth moving-booking experience on phone and desktop.",
+      tags: isAr ? ["ألمانيا", "نقل", "حجز أونلاين", "نظام مواعيد"] : ["Germany", "Moving", "Online booking", "Scheduling"],
+      gallery: ["/images/projects/schnell-home.webp", "/images/projects/schnell-mobile.webp"],
+      metrics: isAr
+        ? [
+            { value: "24/7", label: "تواصل" },
+            { value: "DE", label: "كل ألمانيا" },
+            { value: "حجز", label: "نظام عصري" },
+          ]
+        : [
+            { value: "24/7", label: "Reachable" },
+            { value: "DE", label: "Nationwide" },
+            { value: "Booking", label: "Modern system" },
+          ],
+    },
   ];
 }
 
@@ -456,7 +610,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
   // case-study copy. Once projects are configured with media in the admin, that
   // CMS data takes over automatically.
   if (snapshot.work_project_media.length === 0) {
-    return repairMojibakeDeep([moplayerFallback(locale), moplayer2Fallback(locale), ...businessShowcaseProjects(locale)]);
+    return repairMojibakeDeep([moplayerFallback(locale), moplayer2Fallback(locale), moplayerPcFallback(locale), moplayerIosFallback(locale), ...businessShowcaseProjects(locale)]);
   }
   const active: SiteViewModel["projects"] = snapshot.work_projects
     .filter((entry) => entry.is_active)
@@ -504,7 +658,7 @@ function getProjects(snapshot: CmsSnapshot, locale: Locale): SiteViewModel["proj
 
   if (active.length) return repairMojibakeDeep(active);
 
-  return repairMojibakeDeep([moplayerFallback(locale), moplayer2Fallback(locale), ...businessShowcaseProjects(locale)]);
+  return repairMojibakeDeep([moplayerFallback(locale), moplayer2Fallback(locale), moplayerPcFallback(locale), moplayerIosFallback(locale), ...businessShowcaseProjects(locale)]);
 }
 
 function getExperience(snapshot: CmsSnapshot, locale: Locale, nowLabel: string): SiteViewModel["experience"] {

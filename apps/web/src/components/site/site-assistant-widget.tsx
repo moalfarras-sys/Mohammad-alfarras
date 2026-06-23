@@ -2,7 +2,7 @@
 
 import { Bot, Loader2, Send, Sparkles, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Locale } from "@/types/cms";
 
@@ -10,6 +10,56 @@ type Message = { role: "user" | "assistant"; content: string };
 type SavedThread = { savedAt: string; messages: Message[] };
 
 const localThreadTtlMs = 7 * 24 * 60 * 60 * 1000;
+
+function prettyUrl(url: string) {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+function MoLink({ href, children }: { href: string; children: ReactNode }) {
+  const internal = href.startsWith("/") || href.includes("moalfarras.space");
+  return (
+    <a
+      className="mo-ai-link"
+      href={href}
+      {...(internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+    >
+      {children}
+    </a>
+  );
+}
+
+/** Renders assistant text with clickable links: Markdown [text](url) + bare URLs. */
+function renderRich(text: string): ReactNode {
+  const parts: ReactNode[] = [];
+  const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  let last = 0;
+  let key = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push(<Fragment key={`t${key}`}>{text.slice(last, match.index)}</Fragment>);
+    const [, label, mdUrl, bareUrl] = match;
+    if (label && mdUrl) {
+      parts.push(
+        <MoLink key={`l${key}`} href={mdUrl}>
+          {label}
+        </MoLink>,
+      );
+    } else if (bareUrl) {
+      const clean = bareUrl.replace(/[).,!?؟،]+$/, "");
+      parts.push(
+        <MoLink key={`l${key}`} href={clean}>
+          {prettyUrl(clean)}
+        </MoLink>,
+      );
+      const trailing = bareUrl.slice(clean.length);
+      if (trailing) parts.push(<Fragment key={`p${key}`}>{trailing}</Fragment>);
+    }
+    key += 1;
+    last = regex.lastIndex;
+  }
+  if (last < text.length) parts.push(<Fragment key={`t${key}`}>{text.slice(last)}</Fragment>);
+  return parts;
+}
 
 const widgetCopy = {
   en: {
@@ -98,6 +148,7 @@ export function SiteAssistantWidget({
   const [input, setInput] = useState(initialPrompt);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>(t.starters as string[]);
   const conversationId = useMemo(() => crypto.randomUUID(), []);
   const threadRef = useRef<HTMLDivElement>(null);
   const hiddenOnFocusedFlow = Boolean(
@@ -156,11 +207,14 @@ export function SiteAssistantWidget({
           messages: [{ role: "system", content: pageContext }, ...nextMessages],
         }),
       });
-      const data = (await res.json()) as { reply?: string; error?: string };
+      const data = (await res.json()) as { reply?: string; error?: string; suggestions?: string[] };
       if (!res.ok || !data.reply) throw new Error(data.error || "Assistant failed");
       setMessages((current) =>
         [...current, { role: "assistant" as const, content: data.reply! }].slice(-10),
       );
+      if (Array.isArray(data.suggestions) && data.suggestions.length) {
+        setSuggestions(data.suggestions.slice(0, 4));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Assistant failed");
     } finally {
@@ -206,7 +260,7 @@ export function SiteAssistantWidget({
                   </span>
                 ) : null}
                 <div className={`mo-ai-bubble mo-ai-bubble-${message.role}`}>
-                  <p>{message.content}</p>
+                  <p>{message.role === "assistant" ? renderRich(message.content) : message.content}</p>
                 </div>
               </div>
             ))}
@@ -229,7 +283,7 @@ export function SiteAssistantWidget({
           {error ? <p className="mo-ai-error">{error}</p> : null}
 
           <div className="mo-ai-starters">
-            {(t.starters as string[]).map((starter) => (
+            {suggestions.map((starter) => (
               <button
                 key={starter}
                 type="button"

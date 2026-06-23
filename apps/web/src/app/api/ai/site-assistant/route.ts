@@ -2,7 +2,15 @@ import { randomUUID } from "crypto";
 
 import { after, NextResponse } from "next/server";
 
-import { answerSiteAssistant, maybeNotifyOwnerOfLead, normalizeLocale, normalizeMessages, persistAssistantExchange } from "@/lib/ai-assistant";
+import {
+  answerSiteAssistant,
+  detectLanguage,
+  maybeNotifyOwnerOfLead,
+  normalizeLocale,
+  normalizeMessages,
+  persistAssistantExchange,
+  suggestFollowups,
+} from "@/lib/ai-assistant";
 import { rateLimit } from "@/lib/request-guard";
 
 export async function POST(request: Request) {
@@ -36,6 +44,10 @@ export async function POST(request: Request) {
       }),
     );
 
+    const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+    const lang = detectLanguage(lastUser);
+    const suggestions = suggestFollowups(messages, lang);
+
     return NextResponse.json({
       conversationId: persisted.conversationId,
       traceId: persisted.conversationId,
@@ -44,6 +56,8 @@ export async function POST(request: Request) {
       provider: result.provider,
       model: result.model,
       fallback: result.fallback,
+      lang,
+      suggestions,
     });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid input" }, { status: 400 });
@@ -55,11 +69,11 @@ export async function GET() {
     ok: true,
     ready: true,
     retentionDays: 7,
-    provider: process.env.AI_ASSISTANT_PROVIDER || (process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : "local"),
+    provider: process.env.GEMINI_API_KEY ? "gemini" : process.env.CUSTOM_AI_API_KEY ? "custom" : process.env.OPENAI_API_KEY ? "openai" : "local",
     providers: {
-      openai: Boolean(process.env.OPENAI_API_KEY),
       gemini: Boolean(process.env.GEMINI_API_KEY),
-      anthropic: Boolean(process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY),
+      custom: Boolean(process.env.CUSTOM_AI_API_KEY && process.env.CUSTOM_AI_BASE_URL),
+      openai: Boolean(process.env.OPENAI_API_KEY),
     },
   });
 }

@@ -22,7 +22,7 @@ export type PersistedAssistantMessage = {
 type ProviderResult = {
   fallback: boolean;
   model?: string;
-  provider: "anthropic" | "gemini" | "openai" | "custom" | "local";
+  provider: "gemini" | "openai" | "custom" | "local";
   reply: string;
 };
 
@@ -36,6 +36,9 @@ const siteContext = {
     "شخصيتك: ذكي، ودود، واثق، تتكلّم بالعربية العامية الواضحة المهذّبة وتتحاور مثل إنسان حقيقي — ليس روبوتًا يكرّر جملًا جاهزة. تفهم نية الزائر من كلامه وترد عليها مباشرة.\n\n" +
     "هدفك بالترتيب: (1) تفهم بالضبط شو يحتاج الزائر. (2) تساعده فعليًا وتعطيه قيمة. (3) تبيّن له كيف يقدر محمد يحقّق هدفه. (4) توصله بلُطف لخطوة التواصل مع محمد ليتفقوا.\n\n" +
     "أسلوب المحادثة: عرّف عن نفسك كـ Mo Ai في أول رسالة فقط وباختصار. ردودك قصيرة وواضحة (2–5 أسطر غالبًا) بدون حشو. كن محاورًا: اطرح سؤال متابعة واحدًا ذكيًا في كل مرّة لتكشف الحاجة (نوع المشروع، الهدف منه، الجمهور، والوقت أو الميزانية تقريبيًا). لا تُلقِ قوائم طويلة دفعة واحدة.\n\n" +
+    "اللغة: ردّ دائمًا بنفس لغة الزائر — عربي أو إنجليزي أو ألماني. اكتشف لغته من رسالته وطابِقها. استخدم كلمات بسيطة وواضحة وسهلة الفهم للجميع. إذا كتب بالألمانية فردّ بألماني واضح وبسيط.\n\n" +
+    "النبرة: مرحة ولطيفة ومحترفة في آنٍ واحد — اجعل المحادثة ممتعة وجميلة وجذّابة، ويمكنك استخدام إيموجي مناسب باعتدال (مثل ✨ 👋 🚀) لإضافة دفء، بدون مبالغة.\n\n" +
+    "الروابط (مهم): كلما وجّهت الزائر إلى صفحة، اكتب الرابط بصيغة ماركداون مع العنوان الكامل https://moalfarras.space ليكون قابلًا للنقر ويأخذه للصفحة مباشرة — مثل: [تواصل مع محمد](https://moalfarras.space/ar/contact) أو [صفحة MoPlayer Pro](https://moalfarras.space/ar/apps/moplayer2) أو [صفحة التفعيل](https://moalfarras.space/ar/activate?product=moplayer2). لا تكتب الرابط كنص عادي أبدًا، واجعل نص الرابط وصفيًا وواضحًا.\n\n" +
     "مهم جدًا: لا تقل أبدًا إن رسالة الزائر «غير واضحة» أو اطلب منه إعادتها طالما فيها طلب مفهوم. حتى لو كانت مختصرة، افهم المقصود وتفاعل معه فورًا وأعطِ قيمة، ثم اسأل سؤال متابعة واحدًا قصيرًا عند الحاجة فقط. تجنّب الردود العامة على شكل قائمة خيارات؛ ردّ تحديدًا على ما كتبه الزائر.\n\n" +
     "البيع الذكي الصادق: اربط حاجة الزائر بما يقدّمه محمد — مواقع وتطبيقات ويب احترافية سريعة، صفحات هبوط تبيع فعلًا، لوحات تحكّم، تصميم واجهات، ومنظومة MoPlayer. أبرز الفائدة والنتيجة للزائر، بثقة وبدون مبالغة أو وعود مخترعة.\n\n" +
     "تحويل الزائر إلى عميل: عندما يظهر اهتمام حقيقي بمشروع، اجمع بلطف الاسم + وسيلة تواصل (بريد إلكتروني أو رقم واتساب)، ثم شجّعه يتواصل مع محمد مباشرة لإتمام الاتفاق ووجّهه لصفحة التواصل /ar/contact، وطمئنه أن محمد سيرد عليه شخصيًا ويتفق معه على التفاصيل. اجعل خطوة التواصل تبدو سهلة ومربحة له.\n\n" +
@@ -47,6 +50,9 @@ const siteContext = {
     "Personality: smart, warm, confident; you talk in clear natural language and converse like a real person — never a bot repeating canned lines. You read the visitor's intent and answer it directly.\n\n" +
     "Your goals, in order: (1) understand exactly what the visitor needs; (2) genuinely help and give value; (3) show how Mohammad can achieve their goal; (4) gently lead them to contact Mohammad to make a deal.\n\n" +
     "Conversation style: introduce yourself as Mo Ai only in the first message, briefly. Keep replies short and clear (usually 2–5 lines), no filler. Be conversational: ask one smart follow-up at a time to uncover the need (project type, its goal, the audience, rough timeline or budget). Don't dump long lists at once.\n\n" +
+    "Language: ALWAYS reply in the SAME language the visitor writes in — Arabic, English, or German. Detect their language from their message and match it. Use simple, clear, easy words anyone can understand. If they write in German, reply in clear simple German.\n\n" +
+    "Tone: cheerful, friendly AND professional at once — make the conversation enjoyable, polished and engaging. You may use a fitting emoji sparingly (e.g. ✨ 👋 🚀) for warmth, without overdoing it.\n\n" +
+    "Links (important): whenever you point the visitor to a page, write it as a Markdown link with the full https://moalfarras.space URL so it is clickable and takes them straight there — e.g. [Talk to Mohammad](https://moalfarras.space/en/contact), [MoPlayer Pro page](https://moalfarras.space/en/apps/moplayer2), or [activation page](https://moalfarras.space/en/activate?product=moplayer2). Never write a link as plain text, and make the link text descriptive.\n\n" +
     "Very important: NEVER say the visitor's message is 'unclear' or ask them to rephrase as long as it contains an understandable request. Even if it's short, infer the intent, engage with it immediately and give value, then ask at most one short follow-up only if truly needed. Avoid generic menu-style replies; respond specifically to what the visitor wrote.\n\n" +
     "Honest smart selling: connect the visitor's need to what Mohammad offers — fast professional websites and web apps, landing pages that actually convert, dashboards, UI design, and the MoPlayer ecosystem. Highlight the benefit and outcome for the visitor, with confidence and without exaggeration or invented promises.\n\n" +
     "Turning visitors into clients: when real interest in a project appears, gently collect the name + a contact method (email or WhatsApp number), then encourage them to reach Mohammad directly to close the deal and point them to /en/contact, reassuring them that Mohammad will reply personally and agree the details. Make contacting feel easy and worth it.\n\n" +
@@ -94,6 +100,80 @@ function conversationUuid(value: unknown) {
     return raw;
   }
   return randomUUID();
+}
+
+export type AssistantLang = "ar" | "en" | "de";
+
+/** Detect the language the visitor is writing in (Arabic / German / English). */
+export function detectLanguage(text: string): AssistantLang {
+  if (/[؀-ۿ]/.test(text)) return "ar";
+  if (
+    /[äöüßÄÖÜ]/.test(text) ||
+    /\b(ich|und|möchte|brauche|nicht|eine?|für|kann|webseite|seite|erstellen|kosten|guten|hallo|danke|bitte|wie|was|mein|sehr|website erstellen)\b/i.test(text)
+  ) {
+    return "de";
+  }
+  return "en";
+}
+
+// Contextual quick-reply suggestions: change with the conversation topic so the
+// chips under the chat stay relevant (and in the visitor's language).
+const SUGGESTIONS: Record<string, Record<AssistantLang, string[]>> = {
+  web: {
+    ar: ["كم يستغرق إنشاء الموقع؟", "هل يكون متجاوبًا مع الجوال؟", "أريد أن أرى أعمال محمد"],
+    en: ["How long does a website take?", "Will it be mobile-friendly?", "Show me Mohammad's work"],
+    de: ["Wie lange dauert eine Website?", "Ist sie für Handys optimiert?", "Zeig mir Mohammads Arbeiten"],
+  },
+  store: {
+    ar: ["هل يدعم الدفع الإلكتروني؟", "هل فيه لوحة تحكم للمتجر؟", "كم منتجًا يمكن إضافته؟"],
+    en: ["Does it support online payments?", "Is there a store dashboard?", "How many products can I add?"],
+    de: ["Werden Online-Zahlungen unterstützt?", "Gibt es ein Shop-Dashboard?", "Wie viele Produkte kann ich hinzufügen?"],
+  },
+  app: {
+    ar: ["هل فيه لوحة تحكم أدمن؟", "هل يمكن ربطه بقاعدة بيانات؟", "كم يستغرق التطوير؟"],
+    en: ["Is there an admin dashboard?", "Can it connect to a database?", "How long does development take?"],
+    de: ["Gibt es ein Admin-Dashboard?", "Kann es an eine Datenbank angebunden werden?", "Wie lange dauert die Entwicklung?"],
+  },
+  moplayer: {
+    ar: ["كيف أفعّل MoPlayer على التلفزيون؟", "من أين أحمّل أحدث إصدار؟", "ما الفرق بين Pro و Classic؟"],
+    en: ["How do I activate MoPlayer on TV?", "Where do I download the latest version?", "Pro vs Classic — what's the difference?"],
+    de: ["Wie aktiviere ich MoPlayer am TV?", "Wo lade ich die neueste Version herunter?", "Pro oder Classic — der Unterschied?"],
+  },
+  price: {
+    ar: ["ما الذي يحدّد السعر؟", "كيف أحصل على عرض سعر؟", "أريد التواصل مع محمد"],
+    en: ["What affects the price?", "How do I get a quote?", "I want to contact Mohammad"],
+    de: ["Was beeinflusst den Preis?", "Wie bekomme ich ein Angebot?", "Ich möchte Mohammad kontaktieren"],
+  },
+  contact: {
+    ar: ["كيف أتواصل مع محمد مباشرة؟", "ما هي طرق التواصل؟", "أريد بدء مشروع الآن"],
+    en: ["How do I contact Mohammad directly?", "What are the contact options?", "I want to start a project now"],
+    de: ["Wie kontaktiere ich Mohammad direkt?", "Welche Kontaktmöglichkeiten gibt es?", "Ich möchte jetzt starten"],
+  },
+  default: {
+    ar: ["أريد موقعًا احترافيًا", "أريد متجرًا إلكترونيًا", "كيف أتواصل مع محمد؟"],
+    en: ["I want a professional website", "I want an online store", "How do I contact Mohammad?"],
+    de: ["Ich möchte eine professionelle Website", "Ich möchte einen Online-Shop", "Wie kontaktiere ich Mohammad?"],
+  },
+};
+
+/** Pick contextual follow-up chips from the visitor's recent turns, in the given language. */
+export function suggestFollowups(messages: AssistantMessage[], lang: AssistantLang): string[] {
+  // Detect the topic from the VISITOR's own words (not the assistant reply, which
+  // mentions many things and would skew the topic).
+  const recent = messages
+    .filter((m) => m.role === "user")
+    .slice(-2)
+    .map((m) => m.content)
+    .join("\n")
+    .toLowerCase();
+  let topic = "default";
+  if (/moplayer|classic|كلاسيك|برو|تفعيل|activ|iptv|m3u|xtream/.test(recent)) topic = "moplayer";
+  else if (/store|shop|webshop|ecommerce|e-commerce|متجر|تسوق|بيع|online[- ]?shop/.test(recent)) topic = "store";
+  else if (/web ?app|dashboard|admin|نظام|تطبيق|لوحة تحكم|منصة|anwendung|\bsystem\b/.test(recent)) topic = "app";
+  else if (/price|cost|quote|budget|سعر|تكلفة|كلفة|قديش|ميزانية|preis|kosten|angebot/.test(recent)) topic = "price";
+  else if (/website|web ?site|landing|موقع|صفحة|webseite|homepage|\bseite\b/.test(recent)) topic = "web";
+  else if (/contact|تواصل|اتصل|kontakt|whatsapp|واتساب/.test(recent)) topic = "contact";
+  return SUGGESTIONS[topic][lang];
 }
 
 /** Best-effort name extraction from "my name is X" / "اسمي X". Conservative. */
@@ -313,40 +393,6 @@ async function callGemini(messages: AssistantMessage[], locale: AssistantLocale)
   return reply ? { fallback: false, model, provider: "gemini", reply } : null;
 }
 
-function anthropicBaseUrl() {
-  return (process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com").replace(/\/+$/, "");
-}
-
-async function callAnthropic(messages: AssistantMessage[], locale: AssistantLocale): Promise<ProviderResult | null> {
-  const apiKey = process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
-
-  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5-20250929";
-  const res = await fetch(`${anthropicBaseUrl()}/v1/messages`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "anthropic-version": "2023-06-01",
-      "x-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      model,
-      system: siteContext[locale],
-      max_tokens: 900,
-      temperature: 0.6,
-      messages: messages
-        .filter((message) => message.role !== "system")
-        .map((message) => ({ role: message.role === "assistant" ? "assistant" : "user", content: message.content })),
-    }),
-  });
-
-  if (!res.ok) return null;
-  const data = (await res.json()) as { content?: Array<{ text?: string; type?: string }> };
-  const reply = data.content?.map((part) => part.text ?? "").join("").trim();
-  return reply ? { fallback: false, model, provider: "anthropic", reply } : null;
-}
-
 /**
  * Generic OpenAI-compatible provider (e.g. a self-hosted gateway). Configured via
  * CUSTOM_AI_BASE_URL + CUSTOM_AI_API_KEY (+ CUSTOM_AI_MODEL). Used as a resilient
@@ -391,13 +437,13 @@ export async function answerSiteAssistant(messages: AssistantMessage[], locale: 
   // offline fallback for when every provider is unreachable (see end of fn).
   // Fixed quality order, Gemini-first: Gemini is the verified working,
   // high-quality provider (free tier, resets daily); the synterolink gateway is
-  // the functional backup; OpenAI + Anthropic remain in the chain and
-  // auto-activate the moment their billing/keys are restored. We intentionally do
-  // NOT read AI_ASSISTANT_PROVIDER here: the production value points at the
-  // out-of-quota OpenAI account, which would otherwise starve every request with
-  // a doomed 429 first. A failing/absent provider falls through to the next, then
-  // to the grounded/local canned reply. No key is ever removed — only ordered.
-  const providers = [callGemini, callOpenAICompatible, callOpenAI, callAnthropic];
+  // the functional backup; OpenAI stays in the chain and auto-activates the
+  // moment its billing is restored. (Anthropic was removed — its key was
+  // genuinely invalid.) We intentionally do NOT read AI_ASSISTANT_PROVIDER here:
+  // the production value points at the out-of-quota OpenAI account, which would
+  // otherwise starve every request with a doomed 429 first. A failing/absent
+  // provider falls through to the next, then to the canned reply.
+  const providers = [callGemini, callOpenAICompatible, callOpenAI];
 
   for (const provider of providers) {
     try {

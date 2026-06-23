@@ -5084,6 +5084,23 @@ html[dir="rtl"] .mo-ai-widget {
   font-size: 0.86rem;
 }
 
+.mo-ai-link {
+  color: var(--brand-blue);
+  font-weight: 800;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand-blue) 45%, transparent);
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+  border-radius: 3px;
+  padding: 0 1px;
+  word-break: break-word;
+}
+
+.mo-ai-link:hover {
+  color: #fff;
+  background: color-mix(in srgb, var(--brand-blue) 30%, transparent);
+  border-color: transparent;
+}
+
 .mo-ai-bubble-assistant {
   border-start-start-radius: 5px;
   background: color-mix(in srgb, var(--brand-blue) 9%, color-mix(in srgb, var(--site-bg) 72%, #0b1020));

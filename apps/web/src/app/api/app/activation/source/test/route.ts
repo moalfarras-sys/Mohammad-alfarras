@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
+import { getActivationRequest } from "@/lib/activation-store";
 import { normalizeProviderSource, testProviderSource } from "@/lib/provider-source-security";
 import { rateLimit } from "@/lib/request-guard";
-import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
@@ -13,19 +13,11 @@ function json(body: unknown, init?: ResponseInit) {
 }
 
 async function getActivatedDevice(code: string, productSlug: string) {
-  const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("activation_requests")
-    .select("public_device_id, product_slug, status, expires_at")
-    .eq("device_code", code)
-    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
-    .maybeSingle();
-
-  if (error) return { error: "Activation lookup failed." };
+  const data = await getActivationRequest(code, productSlug);
   if (!data) return { error: "Activation code was not found.", status: 404 };
   if (data.status !== "activated") return { error: "Activate the device before adding a source.", status: 409 };
-  if (new Date(data.expires_at).getTime() <= Date.now()) return { error: "Activation code expired.", status: 410 };
-  return { publicDeviceId: data.public_device_id };
+  if (new Date(data.expiresAt).getTime() <= Date.now()) return { error: "Activation code expired.", status: 410 };
+  return { publicDeviceId: data.publicDeviceId };
 }
 
 export async function POST(request: Request) {

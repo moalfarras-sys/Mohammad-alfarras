@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import {
+  deleteDeviceSettings,
+  getActivationRequest,
+  readDeviceSetting,
+  setActivationStatus,
+} from "@/lib/activation-store";
+import {
   deviceSourceAuthSettingKey,
   deviceSourceQueueSettingKey,
   providerSourceQueueBelongsToProduct,
@@ -9,7 +15,6 @@ import {
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
 import { rateLimit } from "@/lib/request-guard";
-import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
@@ -18,20 +23,12 @@ function json(body: unknown, init?: ResponseInit) {
   return response;
 }
 
-async function sourceDeliveryStatus(
-  supabase: ReturnType<typeof createSupabaseAdminClient>,
-  value: unknown,
-  publicDeviceId: string,
-  productSlug: string,
-) {
+async function sourceDeliveryStatus(value: unknown, publicDeviceId: string, productSlug: string) {
   const queue = (value ?? {}) as Partial<ProviderSourceQueueValue>;
   if (queue.publicDeviceId !== publicDeviceId) return { pending: false, status: "none" };
   if (!providerSourceQueueBelongsToProduct(queue, productSlug)) return { pending: false, status: "none" };
   if (providerSourceQueueExpired(queue)) {
-    await supabase
-      .from("app_settings")
-      .delete()
-      .in("key", [deviceSourceQueueSettingKey(publicDeviceId), deviceSourceAuthSettingKey(publicDeviceId)]);
+    await deleteDeviceSettings(deviceSourceQueueSettingKey(publicDeviceId), deviceSourceAuthSettingKey(publicDeviceId));
     return { pending: false, status: "expired" };
   }
   if (queue.status === "pending") return { pending: true, status: "source_sent" };
@@ -51,54 +48,29 @@ export async function GET(request: Request) {
   const productSlug = resolveManagedAppSlug(searchParams.get("product") ?? searchParams.get("productSlug"));
 
   if (!isValidActivationCode(code)) {
-    return json(
-      {
-        status: "invalid",
-        message: "Invalid activation code format.",
-      },
-      { status: 400 },
-    );
+    return json({ status: "invalid", message: "Invalid activation code format." }, { status: 400 });
   }
 
-  const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("activation_requests")
-    .select("id, public_device_id, device_code, product_slug, status, expires_at, activated_at")
-    .eq("device_code", code)
-    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
-    .maybeSingle();
-
-  if (error) {
-    return json({ status: "error", message: "Activation lookup failed." }, { status: 500 });
-  }
-
+  const data = await getActivationRequest(code, productSlug);
   if (!data) {
     return json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
   }
 
-  const isExpired = new Date(data.expires_at).getTime() <= Date.now();
+  const isExpired = new Date(data.expiresAt).getTime() <= Date.now();
   if (isExpired && data.status === "waiting") {
-    await supabase
-      .from("activation_requests")
-      .update({ status: "expired", updated_at: new Date().toISOString() })
-      .eq("id", data.id);
-    return json({ status: "expired", code, expiresAt: data.expires_at }, { status: 410 });
+    await setActivationStatus(code, "expired");
+    return json({ status: "expired", code, expiresAt: data.expiresAt }, { status: 410 });
   }
 
   if (data.status === "activated") {
-    const { data: sourceRow } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", deviceSourceQueueSettingKey(data.public_device_id))
-      .maybeSingle();
-
-    const source = await sourceDeliveryStatus(supabase, sourceRow?.value, data.public_device_id, productSlug);
+    const sourceRow = await readDeviceSetting<unknown>(deviceSourceQueueSettingKey(data.publicDeviceId));
+    const source = await sourceDeliveryStatus(sourceRow, data.publicDeviceId, productSlug);
     return json({
       status: "activated",
       code,
       productSlug,
-      publicDeviceId: data.public_device_id,
-      activatedAt: data.activated_at,
+      publicDeviceId: data.publicDeviceId,
+      activatedAt: data.activatedAt,
       sourcePending: source.pending,
       sourceStatus: source.status,
       sourceMessage: source.message,
@@ -110,7 +82,7 @@ export async function GET(request: Request) {
       status: "pending",
       code,
       productSlug,
-      expiresAt: data.expires_at,
+      expiresAt: data.expiresAt,
       message: "Activation is waiting for confirmation.",
     },
     { status: 202 },

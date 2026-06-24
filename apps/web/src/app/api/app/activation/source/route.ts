@@ -3,6 +3,13 @@ import { randomUUID } from "node:crypto";
 
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import {
+  deleteDeviceSettings,
+  getActivationRequest,
+  readDeviceSetting,
+  secondsUntil,
+  writeDeviceSetting,
+} from "@/lib/activation-store";
+import {
   decryptProviderSource,
   deviceSourceAuthSettingKey,
   deviceSourceQueueSettingKey,
@@ -22,7 +29,6 @@ import {
   testProviderSource,
 } from "@/lib/provider-source-security";
 import { rateLimit } from "@/lib/request-guard";
-import { createSupabaseAdminClient } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
 function json(body: unknown, init?: ResponseInit) {
@@ -32,38 +38,22 @@ function json(body: unknown, init?: ResponseInit) {
 }
 
 async function activatedDeviceByCode(code: string, productSlug: string) {
-  const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("activation_requests")
-    .select("public_device_id, product_slug, status, expires_at")
-    .eq("device_code", code)
-    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
-    .maybeSingle();
-
-  if (error) return { error: "Activation lookup failed." };
+  const data = await getActivationRequest(code, productSlug);
   if (!data) return { error: "Activation code was not found.", status: 404 };
   if (data.status !== "activated") return { error: "Activate the device before adding a source.", status: 409 };
-  if (new Date(data.expires_at).getTime() <= Date.now()) return { error: "Activation code expired.", status: 410 };
-  return { publicDeviceId: data.public_device_id };
+  if (new Date(data.expiresAt).getTime() <= Date.now()) return { error: "Activation code expired.", status: 410 };
+  return { publicDeviceId: data.publicDeviceId };
 }
 
 async function verifiedDeviceByToken(publicDeviceId: string, token: string) {
-  const supabase = createSupabaseAdminClient();
   const tokenHash = hashSourcePullToken(token);
   const authKey = deviceSourceAuthSettingKey(publicDeviceId);
-  const { data, error } = await supabase
-    .from("app_settings")
-    .select("value")
-    .eq("key", authKey)
-    .maybeSingle();
-
-  if (error) return { error: "Device lookup failed." };
-  const value = (data?.value ?? {}) as { publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string };
-  if (value.expiresAt && new Date(value.expiresAt).getTime() <= Date.now()) {
-    await supabase.from("app_settings").delete().in("key", [authKey, deviceSourceQueueSettingKey(publicDeviceId)]);
+  const value = await readDeviceSetting<{ publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string }>(authKey);
+  if (value?.expiresAt && new Date(value.expiresAt).getTime() <= Date.now()) {
+    await deleteDeviceSettings(authKey, deviceSourceQueueSettingKey(publicDeviceId));
     return { error: "Device token expired. Create a new QR activation.", status: 410 };
   }
-  if (value.publicDeviceId !== publicDeviceId || value.sourcePullTokenHash !== tokenHash) {
+  if (!value || value.publicDeviceId !== publicDeviceId || value.sourcePullTokenHash !== tokenHash) {
     return { error: "Device token was not accepted.", status: 401 };
   }
   return { publicDeviceId };
@@ -111,7 +101,6 @@ export async function POST(request: Request) {
     }
     const normalizedSource = test.normalizedSource ?? source;
 
-    const supabase = createSupabaseAdminClient();
     const now = new Date().toISOString();
     const queueValue: ProviderSourceQueueValue = {
       id: randomUUID(),
@@ -129,19 +118,10 @@ export async function POST(request: Request) {
       expiresAt: pendingProviderSourceExpiresAt(),
     };
 
-    const { error } = await supabase.from("app_settings").upsert(
-      {
-        key: deviceSourceQueueSettingKey(activated.publicDeviceId),
-        value: queueValue,
-        description: "Server-only encrypted one-device provider source queue.",
-        updated_at: now,
-      },
-      { onConflict: "key" },
-    );
-
-    if (error) {
-      return json({ ok: false, message: "Could not save source for the device." }, { status: 500 });
-    }
+    await writeDeviceSetting(deviceSourceQueueSettingKey(activated.publicDeviceId), queueValue, {
+      ttlSeconds: secondsUntil(queueValue.expiresAt, 20 * 60),
+      description: "Server-only encrypted one-device provider source queue.",
+    });
 
     return json({
       ok: true,
@@ -183,18 +163,9 @@ export async function GET(request: Request) {
     return json({ status: "unauthorized", message: verified.error }, { status: verified.status ?? 500 });
   }
 
-  const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
-    .from("app_settings")
-    .select("value")
-    .eq("key", deviceSourceQueueSettingKey(publicDeviceId))
-    .maybeSingle();
-
-  if (error) {
-    return json({ status: "error", message: "Could not read pending source." }, { status: 500 });
-  }
-
-  const queue = readQueueValue(data?.value);
+  const key = deviceSourceQueueSettingKey(publicDeviceId);
+  const authKey = deviceSourceAuthSettingKey(publicDeviceId);
+  const queue = readQueueValue(await readDeviceSetting<unknown>(key));
   if (
     !queue ||
     queue.publicDeviceId !== publicDeviceId ||
@@ -204,14 +175,13 @@ export async function GET(request: Request) {
     return json({ status: "empty" });
   }
 
-  const key = deviceSourceQueueSettingKey(publicDeviceId);
   if (providerSourceQueueExpired(queue)) {
-    await supabase.from("app_settings").delete().in("key", [key, deviceSourceAuthSettingKey(publicDeviceId)]);
+    await deleteDeviceSettings(key, authKey);
     return json({ status: "empty", message: "Pending source expired. Create a new QR activation." });
   }
 
   if (!queue.encryptedPayload) {
-    await supabase.from("app_settings").delete().in("key", [key, deviceSourceAuthSettingKey(publicDeviceId)]);
+    await deleteDeviceSettings(key, authKey);
     return json({ status: "empty" });
   }
 
@@ -219,30 +189,30 @@ export async function GET(request: Request) {
   try {
     source = publicProviderSource(decryptProviderSource(queue.encryptedPayload));
   } catch {
-    await supabase.from("app_settings").delete().in("key", [key, deviceSourceAuthSettingKey(publicDeviceId)]);
+    await deleteDeviceSettings(key, authKey);
     return json({ status: "error", message: "Pending source could not be read. Create a new QR activation." }, { status: 500 });
   }
 
   const now = new Date().toISOString();
   const receiptQueue = { ...queue };
   delete receiptQueue.encryptedPayload;
-  const { error: receiptError } = await supabase.from("app_settings").upsert(
-    {
+  const receiptExpiresAt = fetchedProviderSourceReceiptExpiresAt();
+  try {
+    await writeDeviceSetting(
       key,
-      value: {
+      {
         ...receiptQueue,
         status: "fetched",
         pulledAt: now,
         updatedAt: now,
-        expiresAt: fetchedProviderSourceReceiptExpiresAt(),
+        expiresAt: receiptExpiresAt,
       },
-      description: "Short-lived provider source delivery receipt. Sensitive source payload is removed after first fetch.",
-      updated_at: now,
-    },
-    { onConflict: "key" },
-  );
-
-  if (receiptError) {
+      {
+        ttlSeconds: secondsUntil(receiptExpiresAt, 5 * 60),
+        description: "Short-lived provider source delivery receipt. Sensitive source payload is removed after first fetch.",
+      },
+    );
+  } catch {
     return json({ status: "error", message: "Could not clear pending source after fetch." }, { status: 500 });
   }
 

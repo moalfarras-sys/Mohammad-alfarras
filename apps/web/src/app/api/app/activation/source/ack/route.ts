@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { deleteDeviceSettings, readDeviceSetting } from "@/lib/activation-store";
 import {
   deviceSourceAuthSettingKey,
   deviceSourceQueueSettingKey,
@@ -11,7 +12,6 @@ import {
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
 import { rateLimit } from "@/lib/request-guard";
-import { createSupabaseAdminClient } from "@/lib/supabase/client";
 
 function readQueueValue(value: unknown): ProviderSourceQueueValue | null {
   const candidate = (value ?? {}) as Partial<ProviderSourceQueueValue>;
@@ -47,51 +47,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, message: "Invalid source acknowledgement." }, { status: 400 });
   }
 
-  const supabase = createSupabaseAdminClient();
-  const { data: auth, error: deviceError } = await supabase
-    .from("app_settings")
-    .select("value")
-    .eq("key", deviceSourceAuthSettingKey(publicDeviceId))
-    .maybeSingle();
+  const key = deviceSourceQueueSettingKey(publicDeviceId);
+  const authKey = deviceSourceAuthSettingKey(publicDeviceId);
 
-  if (deviceError) {
-    return NextResponse.json({ ok: false, message: "Device lookup failed." }, { status: 500 });
-  }
-  const authValue = (auth?.value ?? {}) as { publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string };
-  if (authValue.publicDeviceId !== publicDeviceId || authValue.sourcePullTokenHash !== hashSourcePullToken(token)) {
+  const authValue = await readDeviceSetting<{ publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string }>(authKey);
+  if (!authValue || authValue.publicDeviceId !== publicDeviceId || authValue.sourcePullTokenHash !== hashSourcePullToken(token)) {
     return NextResponse.json({ ok: false, message: "Device token was not accepted." }, { status: 401 });
   }
 
-  const key = deviceSourceQueueSettingKey(publicDeviceId);
-  const authKey = deviceSourceAuthSettingKey(publicDeviceId);
   if (authValue.expiresAt && new Date(authValue.expiresAt).getTime() <= Date.now()) {
-    await supabase.from("app_settings").delete().in("key", [key, authKey]);
+    await deleteDeviceSettings(key, authKey);
     return NextResponse.json({ ok: true, status, alreadyCleared: true });
   }
-  const { data: queueData, error: queueReadError } = await supabase
-    .from("app_settings")
-    .select("value")
-    .eq("key", key)
-    .maybeSingle();
 
-  if (queueReadError) {
-    return NextResponse.json({ ok: false, message: "Could not read source acknowledgement state." }, { status: 500 });
-  }
-
-  const queue = readQueueValue(queueData?.value);
+  const queue = readQueueValue(await readDeviceSetting<unknown>(key));
   if (!queue || queue.publicDeviceId !== publicDeviceId || queue.id !== sourceId) {
-    await supabase.from("app_settings").delete().eq("key", authKey);
+    await deleteDeviceSettings(authKey);
     return NextResponse.json({ ok: true, status, alreadyCleared: true });
   }
 
   if (providerSourceQueueExpired(queue)) {
-    await supabase.from("app_settings").delete().in("key", [key, authKey]);
+    await deleteDeviceSettings(key, authKey);
     return NextResponse.json({ ok: true, status, alreadyCleared: true });
   }
 
-  const { error } = await supabase.from("app_settings").delete().in("key", [key, authKey]);
-
-  if (error) {
+  try {
+    await deleteDeviceSettings(key, authKey);
+  } catch {
     return NextResponse.json({ ok: false, message: "Could not acknowledge source import." }, { status: 500 });
   }
 

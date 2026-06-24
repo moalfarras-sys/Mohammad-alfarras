@@ -60,12 +60,12 @@
     <dimen name="tv_corner_radius_large">12dp</dimen>
 
     <!-- Dock (TV-optimized for 720p) -->
-    <dimen name="dock_horizontal_margin">200dp</dimen>
-    <dimen name="dock_bottom_margin">12dp</dimen>
+    <dimen name="dock_horizontal_margin">150dp</dimen>
+    <dimen name="dock_bottom_margin">14dp</dimen>
     <dimen name="dock_corner_radius">26dp</dimen>
-    <dimen name="dock_height">54dp</dimen>
-    <dimen name="dock_icon_size">21dp</dimen>
-    <dimen name="dock_label_size">8.5sp</dimen>
+    <dimen name="dock_height">66dp</dimen>
+    <dimen name="dock_icon_size">28dp</dimen>
+    <dimen name="dock_label_size">11sp</dimen>
     <dimen name="preview_panel_width">400dp</dimen>
     <dimen name="top_bar_height">44dp</dimen>
     <dimen name="home_brand_logo_size">32dp</dimen>

@@ -68,7 +68,7 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
     }
 
     val posterSize: Flow<PosterSize> = context.tvUiDataStore.data.map { prefs ->
-        PosterSize.fromStorage(prefs[POSTER_SIZE_KEY] ?: PosterSize.SMALL.storageValue)
+        PosterSize.fromStorage(prefs[POSTER_SIZE_KEY] ?: PosterSize.MEDIUM.storageValue)
     }
 
     val layoutStyle: Flow<LayoutStyle> = context.tvUiDataStore.data.map { prefs ->
@@ -118,10 +118,12 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
     }
 
     fun posterMetrics(size: PosterSize): PosterMetrics {
+        // Bumped ~30% across the board for a bolder, more cinematic grid. Title text grew too so
+        // it stays legible at 10ft. MEDIUM is the new default (see posterSize flow above).
         return when (size) {
-            PosterSize.SMALL -> PosterMetrics(widthDp = 78, heightDp = 117, contentHeightDp = 160, titleTextSp = 9.2f)
-            PosterSize.MEDIUM -> PosterMetrics(widthDp = 90, heightDp = 135, contentHeightDp = 180, titleTextSp = 9.7f)
-            PosterSize.LARGE -> PosterMetrics(widthDp = 104, heightDp = 156, contentHeightDp = 204, titleTextSp = 10.2f)
+            PosterSize.SMALL -> PosterMetrics(widthDp = 92, heightDp = 138, contentHeightDp = 182, titleTextSp = 11f)
+            PosterSize.MEDIUM -> PosterMetrics(widthDp = 104, heightDp = 156, contentHeightDp = 202, titleTextSp = 11.5f)
+            PosterSize.LARGE -> PosterMetrics(widthDp = 122, heightDp = 183, contentHeightDp = 232, titleTextSp = 12.5f)
         }
     }
 }

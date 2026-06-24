@@ -41,9 +41,9 @@
     <!-- Cards - Standard for 1080p -->
     <dimen name="card_margin">6dp</dimen>
     <dimen name="card_poster_width">90dp</dimen>
-    <dimen name="card_poster_height">135dp</dimen>
-    <dimen name="card_content_height">180dp</dimen>
-    <dimen name="content_row_items_height">202dp</dimen>
+    <dimen name="card_poster_height">156dp</dimen>
+    <dimen name="card_content_height">202dp</dimen>
+    <dimen name="content_row_items_height">238dp</dimen>
     <dimen name="card_title_size">9.5sp</dimen>
     
     <!-- Flip Clock - Standard -->

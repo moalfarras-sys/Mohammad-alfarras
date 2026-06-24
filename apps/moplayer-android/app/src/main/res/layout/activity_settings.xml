@@ -50,7 +50,7 @@
                     android:textColor="@color/cinematic_text_primary"
                     android:textSize="@dimen/settings_title_size"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/dmsans_medium"
                     android:letterSpacing="0" />
 
             </LinearLayout>

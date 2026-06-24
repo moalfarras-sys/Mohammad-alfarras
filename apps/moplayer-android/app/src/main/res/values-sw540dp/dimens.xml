@@ -41,9 +41,9 @@
     <!-- Cards - Optimized for 720p -->
     <dimen name="card_margin">5dp</dimen>
     <dimen name="card_poster_width">84dp</dimen>
-    <dimen name="card_poster_height">126dp</dimen>
-    <dimen name="card_content_height">168dp</dimen>
-    <dimen name="content_row_items_height">190dp</dimen>
+    <dimen name="card_poster_height">156dp</dimen>
+    <dimen name="card_content_height">202dp</dimen>
+    <dimen name="content_row_items_height">238dp</dimen>
     <dimen name="card_title_size">9sp</dimen>
     
     <!-- Flip Clock - Smaller for 720p -->

@@ -2,10 +2,10 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="#22FFFFFF" />
+            <solid android:color="#2600E5FF" />
             <stroke
-                android:width="1.4dp"
-                android:color="@color/moplayer_orange_light" />
+                android:width="2dp"
+                android:color="@color/cinematic_cyan" />
             <corners android:radius="18dp" />
             <padding
                 android:left="8dp"

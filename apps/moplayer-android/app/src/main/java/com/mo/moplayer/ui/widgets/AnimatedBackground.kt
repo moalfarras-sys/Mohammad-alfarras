@@ -104,6 +104,11 @@ class AnimatedBackground @JvmOverloads constructor(
     // Space background color (deep ink)
     private val spaceBlack = Color.parseColor("#020510")
     private val solidBlack = Color.parseColor("#05070D")
+
+    // Clean cinematic gradient stops — a rich navy crown easing to near-black so content and the
+    // dock stay legible. This is the static base shown whenever there is no city wallpaper.
+    private val cinematicTop = Color.parseColor("#0C1B36")
+    private val cinematicBottom = Color.parseColor("#04060D")
     
     // Custom background image
     private var customBitmap: Bitmap? = null
@@ -210,13 +215,11 @@ class AnimatedBackground @JvmOverloads constructor(
      */
     private fun normalizeTheme(theme: Int): Int {
         return when (theme) {
-            0 -> BackgroundManager.THEME_SOLID
-            1 -> BackgroundManager.THEME_STARFIELD
-            2 -> BackgroundManager.THEME_GALAXY
-            3 -> BackgroundManager.THEME_NEBULA
             4, 10 -> BackgroundManager.THEME_CUSTOM_IMAGE
             11 -> BackgroundManager.THEME_CITY_WALLPAPER
-            in 5..9 -> BackgroundManager.THEME_STARFIELD  // Map old themes to starfield
+            // Animated space themes (starfield / galaxy / nebula) were retired: they hurt
+            // performance on weak TV boxes and read as visual noise. They now resolve to the
+            // clean static cinematic gradient. Custom image + city wallpaper are kept.
             else -> BackgroundManager.THEME_SOLID
         }
     }
@@ -557,7 +560,7 @@ class AnimatedBackground @JvmOverloads constructor(
     }
     
     private fun drawSolid(canvas: Canvas) {
-        drawAmbientBase(canvas, solidBlack, solidBlack)
+        drawAmbientBase(canvas, cinematicTop, cinematicBottom)
     }
     
     private fun drawStarfield(canvas: Canvas) {
@@ -666,33 +669,48 @@ class AnimatedBackground @JvmOverloads constructor(
     }
 
     private fun drawAmbientBase(canvas: Canvas, topBase: Int, bottomBase: Int) {
-        canvas.drawColor(topBase)
-
+        // Vertical cinematic wash: navy crown easing to near-black so content stays legible.
+        canvas.drawColor(bottomBase)
         backgroundPaint.shader = LinearGradient(
             0f,
             0f,
             0f,
             viewHeight,
             intArrayOf(
-                blendColor(topBase, primaryColor, 0.18f),
-                blendColor(topBase, secondaryColor, 0.08f),
-                blendColor(bottomBase, horizonAccentColor, 0.12f)
+                blendColor(topBase, primaryColor, 0.10f),
+                topBase,
+                bottomBase
             ),
-            floatArrayOf(0f, 0.58f, 1f),
+            floatArrayOf(0f, 0.42f, 1f),
             Shader.TileMode.CLAMP
         )
         canvas.drawRect(0f, 0f, viewWidth, viewHeight, backgroundPaint)
 
+        // Soft cyan accent glow, upper-right — premium, with gentle stops to avoid TV banding.
         backgroundPaint.shader = RadialGradient(
+            viewWidth * 0.82f,
+            -viewHeight * 0.08f,
             viewWidth * 0.72f,
-            viewHeight * 0.2f,
-            viewWidth * 0.6f,
             intArrayOf(
-                Color.argb(54, Color.red(primaryColor), Color.green(primaryColor), Color.blue(primaryColor)),
-                Color.argb(18, Color.red(secondaryColor), Color.green(secondaryColor), Color.blue(secondaryColor)),
+                Color.argb(44, Color.red(primaryColor), Color.green(primaryColor), Color.blue(primaryColor)),
+                Color.argb(14, Color.red(primaryColor), Color.green(primaryColor), Color.blue(primaryColor)),
                 Color.TRANSPARENT
             ),
-            floatArrayOf(0f, 0.52f, 1f),
+            floatArrayOf(0f, 0.55f, 1f),
+            Shader.TileMode.CLAMP
+        )
+        canvas.drawRect(0f, 0f, viewWidth, viewHeight, backgroundPaint)
+
+        // Faint violet counter-glow, lower-left, for depth.
+        backgroundPaint.shader = RadialGradient(
+            viewWidth * 0.10f,
+            viewHeight * 1.05f,
+            viewWidth * 0.62f,
+            intArrayOf(
+                Color.argb(30, Color.red(secondaryColor), Color.green(secondaryColor), Color.blue(secondaryColor)),
+                Color.TRANSPARENT
+            ),
+            floatArrayOf(0f, 1f),
             Shader.TileMode.CLAMP
         )
         canvas.drawRect(0f, 0f, viewWidth, viewHeight, backgroundPaint)
@@ -760,11 +778,9 @@ class AnimatedBackground @JvmOverloads constructor(
     }
     
     fun resumeAnimation() {
-        if (!animationRunning && shouldAnimate && currentTheme != BackgroundManager.THEME_SOLID) {
-            animationRunning = true
-            lastFrameTime = System.currentTimeMillis()
-            Choreographer.getInstance().postFrameCallback(frameCallback)
-        }
+        // No-op by design. The animated space themes were removed; the base is now a static
+        // cinematic gradient and the city/custom wallpaper is a static bitmap, so there is no
+        // per-frame loop to resume. Kept for API compatibility with existing call sites.
     }
     
     fun pauseAnimation() {

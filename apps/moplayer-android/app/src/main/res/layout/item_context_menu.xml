@@ -44,7 +44,7 @@
             android:layout_weight="1"
             android:textColor="@color/htc_text_primary"
             android:textSize="17sp"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/dmsans_medium"
             tools:text="إضافة للمفضلة" />
 
         <!-- Arrow indicator -->

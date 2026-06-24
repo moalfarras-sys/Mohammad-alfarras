@@ -8,7 +8,7 @@
     android:background="@drawable/bg_epg_chip"
     android:clickable="true"
     android:focusable="true"
-    android:fontFamily="sans-serif-medium"
+    android:fontFamily="@font/dmsans_medium"
     android:gravity="center"
     android:maxLines="1"
     android:ellipsize="end"

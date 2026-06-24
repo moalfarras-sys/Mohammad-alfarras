@@ -5,15 +5,17 @@ import android.view.animation.Interpolator
 import android.view.animation.PathInterpolator
 
 object TvCinematicTokens {
-    const val FOCUS_SCALE = 1.08f
-    const val FOCUS_IN_DURATION_MS = 220L
-    const val FOCUS_OUT_DURATION_MS = 200L
+    // Kept in lock-step with LiquidGlassTokens so the Movies/Series grids get the same bold,
+    // unmistakable D-pad focus as the Home rows.
+    const val FOCUS_SCALE = 1.12f
+    const val FOCUS_IN_DURATION_MS = 200L
+    const val FOCUS_OUT_DURATION_MS = 180L
     const val ENTER_EXIT_DURATION_MS = 280L
-    const val CARD_ELEVATION_REST = 4f
-    const val CARD_ELEVATION_FOCUSED = 18f
-    const val CARD_TRANSLATION_Y_FOCUSED = -6f
-    const val DOCK_SCALE = 1.06f
-    const val BUTTON_SCALE = 1.04f
+    const val CARD_ELEVATION_REST = 3f
+    const val CARD_ELEVATION_FOCUSED = 22f
+    const val CARD_TRANSLATION_Y_FOCUSED = -8f
+    const val DOCK_SCALE = 1.14f
+    const val BUTTON_SCALE = 1.06f
 
     val FOCUS_INTERPOLATOR: Interpolator = PathInterpolator(0.22f, 1f, 0.36f, 1f)
     val EXIT_INTERPOLATOR: Interpolator = DecelerateInterpolator()

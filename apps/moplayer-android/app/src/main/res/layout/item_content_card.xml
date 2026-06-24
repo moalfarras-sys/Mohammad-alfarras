@@ -88,7 +88,7 @@
                     android:textColor="@color/cinematic_text_primary"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/dmsans_medium"
                     tools:text="8.5" />
             </FrameLayout>
 
@@ -103,7 +103,7 @@
                 android:paddingVertical="3dp"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="9sp"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:visibility="gone"
                 tools:text="2024"
                 tools:visibility="visible" />
@@ -120,7 +120,7 @@
                 android:textColor="@color/cinematic_bg_base"
                 android:textSize="8sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-black"
+                android:fontFamily="@font/outfit_extrabold"
                 android:visibility="gone"
                 tools:text="4K"
                 tools:visibility="visible" />
@@ -153,7 +153,7 @@
             android:includeFontPadding="false"
             android:textColor="@color/cinematic_text_primary"
             android:textSize="@dimen/card_title_size"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/dmsans_medium"
             android:lineSpacingMultiplier="1.06"
             android:alpha="0.96"
             tools:text="Movie Title Here" />

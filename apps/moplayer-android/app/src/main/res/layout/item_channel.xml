@@ -45,7 +45,7 @@
                 android:textColor="@color/htc_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 tools:text="125" />
         </FrameLayout>
 
@@ -88,7 +88,7 @@
                 android:textColor="@color/htc_text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 tools:text="Discovery Channel HD" />
 
             <!-- EPG Info (Now Playing) -->

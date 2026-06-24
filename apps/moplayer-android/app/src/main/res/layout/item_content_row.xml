@@ -20,9 +20,9 @@
         android:textColor="@color/cinematic_text_primary"
         android:textSize="@dimen/home_row_title_size"
         android:textStyle="bold"
-        android:fontFamily="sans-serif-medium"
-        android:letterSpacing="0"
-        android:alpha="0.94"
+        android:fontFamily="@font/outfit"
+        android:letterSpacing="0.01"
+        android:alpha="1"
         tools:text="New Movies" />
 
     <androidx.recyclerview.widget.RecyclerView

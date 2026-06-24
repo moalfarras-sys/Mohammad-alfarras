@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_login_premium_2"
+    android:background="@color/cinematic_bg_base"
     android:clipChildren="false"
     android:clipToPadding="false">
 
@@ -800,7 +800,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:alpha="0.85"
-        android:fontFamily="sans-serif-light"
+        android:fontFamily="@font/dmsans_regular"
         android:letterSpacing="0.08"
         android:text="Designed by Moalfarras"
         android:textColor="@color/color_text_primary_80"

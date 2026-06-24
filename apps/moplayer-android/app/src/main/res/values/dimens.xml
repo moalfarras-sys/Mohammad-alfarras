@@ -58,10 +58,10 @@
     <!-- Home -->
     <dimen name="home_poster_width">156dp</dimen>
     <dimen name="home_poster_height">234dp</dimen>
-    <dimen name="dock_height">54dp</dimen>
-    <dimen name="dock_icon_size">20dp</dimen>
-    <dimen name="dock_label_size">8sp</dimen>
-    <dimen name="dock_horizontal_margin">236dp</dimen>
+    <dimen name="dock_height">66dp</dimen>
+    <dimen name="dock_icon_size">28dp</dimen>
+    <dimen name="dock_label_size">11sp</dimen>
+    <dimen name="dock_horizontal_margin">180dp</dimen>
     <dimen name="dock_bottom_margin">10dp</dimen>
     <dimen name="dock_corner_radius">22dp</dimen>
     <dimen name="home_top_action_size">36dp</dimen>
@@ -102,7 +102,7 @@
     <!-- Card Sizes -->
     <dimen name="card_poster_width">@dimen/cinematic_poster_width</dimen>
     <dimen name="card_poster_height">@dimen/cinematic_poster_height</dimen>
-    <dimen name="card_content_height">178dp</dimen>
+    <dimen name="card_content_height">202dp</dimen>
     <dimen name="content_row_items_height">@dimen/cinematic_row_height</dimen>
     <dimen name="card_title_size">@dimen/text_caption</dimen>
     <dimen name="card_focus_scale">@dimen/focus_scale</dimen>
@@ -144,7 +144,7 @@
     <dimen name="login_app_name_size">42sp</dimen>
     <dimen name="login_tagline_size">16sp</dimen>
     <dimen name="login_feature_icon_size">56dp</dimen>
-    <dimen name="home_row_title_size">16sp</dimen>
+    <dimen name="home_row_title_size">18sp</dimen>
     <dimen name="live_category_width">200dp</dimen>
     <dimen name="live_channel_item_height">72dp</dimen>
     

@@ -28,7 +28,7 @@
         android:layout_weight="1"
         android:layout_marginStart="@dimen/spacing_md"
         android:textColor="@color/htc_text_primary"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="@font/dmsans_medium"
         android:textSize="@dimen/settings_category_text_size"
         tools:text="Server Settings" />
 

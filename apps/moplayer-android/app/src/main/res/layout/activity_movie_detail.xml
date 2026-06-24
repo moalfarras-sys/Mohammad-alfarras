@@ -144,7 +144,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="34sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:maxLines="2"
                 android:ellipsize="end"
                 android:lineSpacingMultiplier="1.05"
@@ -212,7 +212,7 @@
                 android:ellipsize="end"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="15sp"
-                android:fontFamily="sans-serif"
+                android:fontFamily="@font/dmsans_regular"
                 android:alpha="0.88"
                 tools:text="When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice." />
 

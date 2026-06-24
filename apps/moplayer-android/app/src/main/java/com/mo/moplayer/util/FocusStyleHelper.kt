@@ -14,11 +14,11 @@ import android.graphics.drawable.LayerDrawable
 object FocusStyleHelper {
     
     private const val CARD_CORNER_RADIUS = 20f
-    private const val FOCUS_BORDER_WIDTH = 2f
-    private const val OUTER_GLOW_WIDTH = 6f
-    private const val INNER_HIGHLIGHT_WIDTH = 1f
+    private const val FOCUS_BORDER_WIDTH = 3f
+    private const val OUTER_GLOW_WIDTH = 11f
+    private const val INNER_HIGHLIGHT_WIDTH = 1.5f
     private const val INNER_HIGHLIGHT_INSET = 4
-    private const val INNER_CORNER_RADIUS = 14f
+    private const val INNER_CORNER_RADIUS = 16f
     
     /**
      * Creates a 3-layer focus border drawable:
@@ -59,7 +59,7 @@ object FocusStyleHelper {
             setStroke(
                 OUTER_GLOW_WIDTH.toInt(),
                 Color.argb(
-                    72,
+                    130,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
@@ -107,17 +107,17 @@ object FocusStyleHelper {
             cornerRadius = 20f
 
             gradientType = GradientDrawable.RADIAL_GRADIENT
-            gradientRadius = 200f
+            gradientRadius = 240f
 
             colors = intArrayOf(
                 Color.argb(
-                    64,
+                    150,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
                 ),
                 Color.argb(
-                    20,
+                    56,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
@@ -189,31 +189,34 @@ object FocusStyleHelper {
     fun createChannelFocusBorder(accentColor: Int): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = 8f
-            setStroke(2, accentColor)
-            setColor(Color.TRANSPARENT)
+            cornerRadius = 10f
+            setStroke(3, accentColor)
+            setColor(
+                Color.argb(
+                    28,
+                    Color.red(accentColor),
+                    Color.green(accentColor),
+                    Color.blue(accentColor)
+                )
+            )
         }
     }
-    
+
     /**
-     * Creates a channel focus glow (used in LiveTV)
+     * Creates a channel focus glow (used in LiveTV). A left-anchored accent wash plus a brighter
+     * leading edge so the focused channel row reads instantly across the room.
      */
     fun createChannelFocusGlow(accentColor: Int): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = 8f
-            
+            cornerRadius = 10f
+
             gradientType = GradientDrawable.LINEAR_GRADIENT
             orientation = GradientDrawable.Orientation.LEFT_RIGHT
-            
+
             colors = intArrayOf(
-                Color.TRANSPARENT,
-                Color.argb(
-                    40, // 16% alpha
-                    Color.red(accentColor),
-                    Color.green(accentColor),
-                    Color.blue(accentColor)
-                ),
+                Color.argb(120, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)),
+                Color.argb(60, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)),
                 Color.TRANSPARENT
             )
         }

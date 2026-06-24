@@ -112,7 +112,7 @@
                 android:clickable="true"
                 android:ellipsize="end"
                 android:focusable="true"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:gravity="center"
                 android:maxLines="2"
                 android:nextFocusLeft="@id/footballWidget"
@@ -175,7 +175,7 @@
                     android:textColor="@color/cinematic_text_primary"
                     android:textSize="@dimen/home_brand_title_size"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/outfit_bold"
                     android:letterSpacing="0" />
 
                 <TextView
@@ -185,7 +185,7 @@
                     android:text="Premium TV"
                     android:textColor="@color/moplayer_orange_light"
                     android:textSize="@dimen/home_brand_tagline_size"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/dmsans_medium"
                     android:letterSpacing="0" />
             </LinearLayout>
 
@@ -241,7 +241,7 @@
             android:textColor="@color/moplayer_orange_light"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/dmsans_medium"
             android:visibility="gone"
             android:focusable="true"
             android:nextFocusUp="@id/btnSearch"
@@ -279,7 +279,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="17sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0"
                 android:lineSpacingMultiplier="1.05"
                 android:shadowColor="#CC000000"
@@ -319,7 +319,7 @@
                         android:textColor="@color/cinematic_text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
+                        android:fontFamily="@font/dmsans_medium"
                         tools:text="8.5" />
 
                     <View
@@ -338,7 +338,7 @@
                     android:textColor="@color/moplayer_orange"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/dmsans_medium"
                     android:visibility="gone"
                     tools:text="2008" />
 
@@ -354,7 +354,7 @@
                     android:textColor="@color/moplayer_orange"
                     android:textSize="9sp"
                     android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
+                    android:fontFamily="@font/dmsans_medium"
                     tools:text="MOVIE" />
 
             </LinearLayout>
@@ -398,7 +398,7 @@
                 android:id="@+id/tvHomeEmptyEyebrow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0"
                 android:text="@string/home_empty_eyebrow"
                 android:textColor="@color/moplayer_orange"
@@ -410,7 +410,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="@string/home_empty_title"
@@ -497,7 +497,7 @@
                 android:text="@string/nav_home"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -532,7 +532,7 @@
                 android:text="@string/nav_live"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -567,7 +567,7 @@
                 android:text="@string/nav_movies"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -602,7 +602,7 @@
                 android:text="@string/nav_series"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -637,7 +637,7 @@
                 android:text="@string/nav_favorites"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -672,7 +672,7 @@
                 android:text="@string/nav_search"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -707,7 +707,7 @@
                 android:text="@string/nav_settings"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="sans-serif-medium"
+                android:fontFamily="@font/dmsans_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -748,7 +748,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
+                android:fontFamily="@font/dmsans_medium" />
 
             <TextView
                 android:layout_width="wrap_content"

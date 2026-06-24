@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:text="@string/weather_debug_title"
             android:textColor="@color/htc_text_primary"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/dmsans_medium"
             android:textSize="24sp"
             android:textStyle="bold" />
 

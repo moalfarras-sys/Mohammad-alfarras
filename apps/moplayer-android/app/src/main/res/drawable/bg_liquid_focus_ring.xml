@@ -3,6 +3,6 @@
     <corners android:radius="@dimen/cinematic_radius_card" />
     <solid android:color="@android:color/transparent" />
     <stroke
-        android:width="2dp"
-        android:color="#D000B8C7" />
+        android:width="3dp"
+        android:color="#F200E5FF" />
 </shape>

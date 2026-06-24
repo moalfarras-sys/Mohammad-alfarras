@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Vertical gradient from bottom -->
+    <!-- Bottom wash so the content rows stay readable over any backdrop -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:type="linear"
                 android:angle="90"
-                android:startColor="#F0000000"
-                android:centerColor="#70000000"
+                android:startColor="#F2000000"
+                android:centerColor="#99000000"
                 android:endColor="#00000000" />
         </shape>
     </item>
-    <!-- Horizontal gradient from left for text readability -->
+    <!-- Right-edge wash — the preview info panel lives here, so darken the right not the left -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:type="linear"
                 android:angle="0"
-                android:startColor="#90000000"
-                android:endColor="#00000000" />
+                android:startColor="#00000000"
+                android:centerColor="#33000000"
+                android:endColor="#AA000000" />
         </shape>
     </item>
-    <!-- Top subtle fade -->
+    <!-- Top fade keeps the signal widgets legible -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:type="linear"
                 android:angle="270"
-                android:startColor="#50000000"
+                android:startColor="#66000000"
                 android:endColor="#00000000" />
         </shape>
     </item>

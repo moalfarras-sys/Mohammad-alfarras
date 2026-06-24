@@ -39,6 +39,11 @@
         <item name="buttonStyle">@style/Widget.MoPlayer.Button</item>
         <item name="materialCardViewStyle">@style/Widget.MoPlayer.MaterialCard</item>
         <item name="materialButtonStyle">@style/Widget.MoPlayer.MaterialButton</item>
+
+        <!-- Brand typography — DM Sans is the global body face; views opt into Outfit for headings.
+             Applied via AppCompat view inflation so unstyled TextViews/Buttons pick it up app-wide. -->
+        <item name="android:fontFamily">@font/dmsans</item>
+        <item name="fontFamily">@font/dmsans</item>
     </style>
 
     <style name="Theme.MoPlayer.Splash" parent="Theme.MoPlayer">
@@ -121,7 +126,7 @@
     <!-- Base TextAppearance (Premium Font) -->
     <style name="TextAppearance.MoPlayer" parent="TextAppearance.AppCompat">
         <item name="android:textColor">@color/cinematic_text_primary</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">@font/dmsans</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 
@@ -177,7 +182,7 @@
         <item name="android:textSize">34sp</item>
         <item name="android:textColor">@color/cinematic_text_primary</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">@font/outfit</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
 
@@ -186,7 +191,7 @@
         <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/cinematic_text_primary</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">@font/outfit</item>
     </style>
 
     <!-- Section Header Text -->
@@ -194,7 +199,7 @@
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/cinematic_text_primary</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">@font/outfit</item>
         <item name="android:letterSpacing">0.02</item>
     </style>
 

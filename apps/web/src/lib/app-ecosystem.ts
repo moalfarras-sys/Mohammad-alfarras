@@ -151,13 +151,13 @@ const fallbackSupportRequests: AppSupportRequest[] = [];
 
 const fallbackReleases: AppRelease[] = [
   {
-    id: "release-moplayer-2-2-16",
+    id: "release-moplayer-2-4-0",
     product_slug: "moplayer",
-    slug: "moplayer-2.2.16",
-    version_name: "2.2.16",
-    version_code: 22,
+    slug: "moplayer-2.4.0",
+    version_name: "2.4.0",
+    version_code: 24,
     release_notes:
-      "MoPlayer Classic 2.2.16 keeps the 2.2.15 speed and football-data fixes, removes the duplicate Home watch-history row, and keeps only the working Continue watching row with resume progress.",
+      "MoPlayer Classic 2.4.0 is a premium visual + performance pass: a brand typography system (Outfit headings, DM Sans body), bigger and bolder content posters with an unmistakable cyan D-pad focus, larger and clearer bottom dock, and a clean cinematic gradient background that replaces the old animated particle layers — much smoother on weak Android TV boxes. Live TV and the top widgets get stronger focus, the home poster rows no longer overlap, and the sign-in screen drops a heavy redundant background image to cut memory use on low-RAM devices.",
     compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     published_at: now,
     is_published: true,
@@ -165,8 +165,8 @@ const fallbackReleases: AppRelease[] = [
     updated_at: now,
     assets: [
       {
-        id: "asset-moplayer-2-2-16-universal",
-        release_id: "release-moplayer-2-2-16",
+        id: "asset-moplayer-2-4-0-universal",
+        release_id: "release-moplayer-2-4-0",
         asset_type: "apk",
         label: "Recommended TV APK",
         abi: "universal",
@@ -174,8 +174,8 @@ const fallbackReleases: AppRelease[] = [
         storage_path: null,
         external_url: moplayerDownloadUrls.universal,
         mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 52792635,
-        checksum_sha256: "79701639678373dda3b44c07347c22bd799975767a2eb260943c50609f1f9a0d",
+        file_size_bytes: 53204181,
+        checksum_sha256: "8528124db43df511973d9e0764ce66250efe34e63c9adbd2ede1bfc291a6c946",
         is_primary: true,
         created_at: now,
       },

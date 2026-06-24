@@ -42,8 +42,8 @@
     <dimen name="card_margin">8dp</dimen>
     <dimen name="card_poster_width">104dp</dimen>
     <dimen name="card_poster_height">156dp</dimen>
-    <dimen name="card_content_height">204dp</dimen>
-    <dimen name="content_row_items_height">228dp</dimen>
+    <dimen name="card_content_height">202dp</dimen>
+    <dimen name="content_row_items_height">238dp</dimen>
     <dimen name="card_title_size">10sp</dimen>
     
     <!-- Flip Clock - Larger for 4K -->

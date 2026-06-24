@@ -6,7 +6,7 @@
     android:button="@null"
     android:drawableEnd="@drawable/selector_radio_quality"
     android:drawablePadding="12dp"
-    android:fontFamily="sans-serif"
+    android:fontFamily="@font/dmsans_regular"
     android:minHeight="44dp"
     android:paddingHorizontal="12dp"
     android:paddingVertical="8dp"

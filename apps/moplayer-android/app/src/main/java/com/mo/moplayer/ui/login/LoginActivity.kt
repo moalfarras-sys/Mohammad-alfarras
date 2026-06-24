@@ -1618,6 +1618,18 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
+        // Weak TV boxes: a continuous 4-track infinite pulse on every focused method icon causes
+        // visible jank during sign-in. Settle on a single static lift instead.
+        if (DevicePerformance.isLow(this)) {
+            icon.animate()
+                .scaleX(1.08f)
+                .scaleY(1.08f)
+                .translationY(-3f)
+                .setDuration(160)
+                .start()
+            return
+        }
+
         val scaleX = ObjectAnimator.ofFloat(icon, View.SCALE_X, 1f, 1.08f, 1f).apply {
             duration = 1200
             repeatCount = ObjectAnimator.INFINITE

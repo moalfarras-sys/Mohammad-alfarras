@@ -124,7 +124,7 @@
                         android:textColor="@color/moplayer_orange"
                         android:textSize="@dimen/tv_episode_number"
                         android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
+                        android:fontFamily="@font/dmsans_medium"
                         tools:text="E1" />
 
                     <TextView

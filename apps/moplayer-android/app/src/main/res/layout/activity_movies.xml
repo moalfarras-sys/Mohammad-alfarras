@@ -35,7 +35,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
+                android:fontFamily="@font/dmsans_medium" />
 
             <!-- Category List -->
             <androidx.recyclerview.widget.RecyclerView

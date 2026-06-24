@@ -38,7 +38,7 @@
             android:maxLines="2"
             android:textColor="@color/htc_text_primary"
             android:textSize="13sp"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/dmsans_medium"
             android:lineSpacingMultiplier="1.1"
             tools:text="Sports" />
 

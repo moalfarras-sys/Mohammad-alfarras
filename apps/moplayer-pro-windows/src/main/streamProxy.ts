@@ -1,9 +1,26 @@
 import http from "node:http";
 import { once } from "node:events";
+import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { mkdir, rename, stat, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 const PLAYLIST_BYTES_LIMIT = 12 * 1024 * 1024;
+const IMAGE_USER_AGENT = "MoPlayer Pro Windows/1.0";
+
+function imageContentType(ext: string) {
+  switch (ext) {
+    case "png": return "image/png";
+    case "webp": return "image/webp";
+    case "gif": return "image/gif";
+    case "avif": return "image/avif";
+    case "bmp": return "image/bmp";
+    case "svg": return "image/svg+xml";
+    default: return "image/jpeg";
+  }
+}
 
 function looksLikePlaylistTarget(target: string, contentType: string) {
   const path = target.split("?")[0].toLowerCase();
@@ -51,9 +68,18 @@ function rewritePlaylist(body: string, baseUrl: string, proxyBase: string) {
 export class StreamProxy {
   private server: http.Server | null = null;
   private baseUrl = "";
+  private imageCacheDir = "";
+
+  /** Where posters/logos are persisted so they survive across launches. */
+  setImageCacheDir(dir: string) {
+    this.imageCacheDir = dir;
+  }
 
   async start() {
     if (this.server && this.baseUrl) return this.baseUrl;
+    if (this.imageCacheDir) {
+      await mkdir(this.imageCacheDir, { recursive: true }).catch(() => undefined);
+    }
     this.server = http.createServer((request, response) => {
       void this.handle(request, response);
     });
@@ -75,6 +101,10 @@ export class StreamProxy {
     });
     try {
       const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+      if (requestUrl.pathname === "/img") {
+        await this.handleImage(requestUrl, response, abort);
+        return;
+      }
       if (requestUrl.pathname !== "/proxy") {
         response.writeHead(404).end("Not found");
         return;
@@ -159,6 +189,71 @@ export class StreamProxy {
       } else {
         response.destroy();
       }
+    }
+  }
+
+  /**
+   * Persistent on-disk cache for posters and channel logos. Serves from disk when
+   * present, otherwise fetches once, stores it, and streams it back. Any failure
+   * (no cache dir, fetch error, disk error) falls back to the original URL so an
+   * image can never disappear because of the cache.
+   */
+  private async handleImage(requestUrl: URL, response: http.ServerResponse, abort: AbortController) {
+    const target = requestUrl.searchParams.get("url");
+    const fallback = () => {
+      if (response.headersSent) { response.destroy(); return; }
+      if (target) response.writeHead(302, { Location: target }).end();
+      else response.writeHead(400).end("Invalid image URL");
+    };
+    if (!target || !/^https?:\/\//i.test(target) || !this.imageCacheDir) { fallback(); return; }
+
+    const key = createHash("sha1").update(target).digest("hex");
+    const ext = target.split("?")[0].toLowerCase().match(/\.(png|jpe?g|webp|gif|avif|bmp|svg)$/)?.[1] ?? "jpg";
+    const file = path.join(this.imageCacheDir, `${key}.${ext}`);
+    const headers: Record<string, string> = {
+      "Content-Type": imageContentType(ext),
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Access-Control-Allow-Origin": "*",
+    };
+
+    try {
+      const info = await stat(file);
+      if (info.size > 0) {
+        response.writeHead(200, { ...headers, "Content-Length": String(info.size) });
+        await pipeline(createReadStream(file), response);
+        return;
+      }
+    } catch {
+      // Not cached yet — fetch it below.
+    }
+
+    const upstream = await fetch(target, {
+      headers: { "User-Agent": IMAGE_USER_AGENT, Accept: "image/*,*/*" },
+      redirect: "follow",
+      signal: abort.signal,
+    }).catch(() => null);
+    if (!upstream) {
+      if (abort.signal.aborted) { response.destroy(); return; }
+      fallback();
+      return;
+    }
+    if (!upstream.ok || !upstream.body) { fallback(); return; }
+    const buffer = Buffer.from(await upstream.arrayBuffer());
+    // Best-effort atomic write — a cache failure must never break the image.
+    try {
+      const tmp = `${file}.tmp`;
+      await writeFile(tmp, buffer);
+      await rename(tmp, file);
+    } catch {
+      // disk full / locked — still serve the bytes we already have in memory
+    }
+    if (!response.headersSent) {
+      response.writeHead(200, {
+        ...headers,
+        "Content-Type": upstream.headers.get("content-type") ?? headers["Content-Type"],
+        "Content-Length": String(buffer.length),
+      });
+      response.end(buffer);
     }
   }
 

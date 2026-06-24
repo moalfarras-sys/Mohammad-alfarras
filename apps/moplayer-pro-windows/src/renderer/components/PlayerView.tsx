@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   AudioLines,
   Captions,
-  CircleDot,
   FastForward,
   Gauge,
   ListVideo,
@@ -40,6 +39,7 @@ import {
   streamCandidates,
   VOD_START_TIMEOUT_MS,
 } from "../lib/playback";
+import { posterSrc } from "../lib/imageCache";
 
 type PlayerLabels = {
   failedStream: string;
@@ -60,8 +60,6 @@ type PlayerLabels = {
   allCategories: string;
   search: string;
   noResults: string;
-  recordLabel: string;
-  recordingLabel: string;
   sleepTimer: string;
   pipLabel: string;
   aspectLabel: string;
@@ -109,7 +107,7 @@ function formatTime(value: number) {
 function RelatedPoster({ src }: { src: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <span className="related-fallback"><Play size={14} /></span>;
-  return <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+  return <img src={posterSrc(src)} alt="" loading="lazy" onError={() => setFailed(true)} />;
 }
 
 function formatClock(unixSecs: number) {
@@ -150,7 +148,6 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
   const [panelFilter, setPanelFilter] = useState("");
   const [fitMode, setFitMode] = useState<"contain" | "cover" | "fill">(fit);
   const [sleepMinutes, setSleepMinutes] = useState(0);
-  const [recordingPath, setRecordingPath] = useState("");
 
   const isLive = item.type === "live";
 
@@ -163,28 +160,6 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
     }, sleepMinutes * 60 * 1000);
     return () => window.clearTimeout(timer);
   }, [sleepMinutes]);
-
-  // Stop any active recording when leaving the channel or the player.
-  useEffect(() => {
-    setRecordingPath("");
-    return () => {
-      void window.moPlayer.app.stopRecording();
-    };
-  }, [item.id]);
-
-  const toggleRecording = async () => {
-    if (recordingPath) {
-      await window.moPlayer.app.stopRecording();
-      setRecordingPath("");
-      return;
-    }
-    // Record the raw TS variant — a single continuous stream that muxes cleanly to disk.
-    const recordUrl = /\.m3u8($|\?)/i.test(item.streamUrl) && /\/live\//i.test(item.streamUrl)
-      ? item.streamUrl.replace(/\.m3u8($|\?.*)/i, ".ts")
-      : item.streamUrl;
-    const path = await window.moPlayer.app.startRecording(recordUrl, item.title);
-    if (path) setRecordingPath(path);
-  };
 
   const togglePictureInPicture = async () => {
     const video = videoRef.current;
@@ -707,16 +682,6 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
             </select>
           </label>
         ) : null}
-        {isLive ? (
-          <button
-            className={`round-control ${recordingPath ? "is-recording" : ""}`}
-            onClick={() => void toggleRecording()}
-            aria-label={labels.recordLabel}
-            title={recordingPath ? `${labels.recordingLabel} — ${recordingPath}` : labels.recordLabel}
-          >
-            <CircleDot />
-          </button>
-        ) : null}
         <button className="round-control" onClick={() => void togglePictureInPicture()} aria-label={labels.pipLabel} title={labels.pipLabel}>
           <PictureInPicture2 />
         </button>
@@ -731,10 +696,6 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
           </select>
         </label>
       </div>
-
-      {recordingPath ? (
-        <span className="rec-indicator"><CircleDot size={13} /> {labels.recordingLabel}</span>
-      ) : null}
 
       {zapDigits ? (
         <div className="zap-overlay" aria-hidden="true">

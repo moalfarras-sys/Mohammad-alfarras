@@ -34,6 +34,18 @@ const qaMultiCount = Number(/^multi-([1-4])$/.exec(qaScreen)?.[1] ?? 0);
 if (/^\d{2,5}$/.test(qaDebugPort)) {
   app.commandLine.appendSwitch("remote-debugging-port", qaDebugPort);
 }
+
+// Keep HD/4K live playback smooth and light on the CPU by leaning on the GPU.
+// PlatformHEVCDecoderSupport lets H.265 feeds (common on 4K sports channels) decode
+// in hardware where the OS ships the codec, instead of stuttering on software decode;
+// D3D11VideoDecoder keeps the decode path on the GPU on Windows.
+app.commandLine.appendSwitch(
+  "enable-features",
+  "PlatformHEVCDecoderSupport,D3D11VideoDecoder",
+);
+// Persist posters, channel logos, and stream segments in a large on-disk cache so
+// they load instantly on the next launch instead of re-downloading from the server.
+app.commandLine.appendSwitch("disk-cache-size", String(600 * 1024 * 1024));
 const packageVersion = app.getVersion() || "1.0.0";
 const qaFixtureDataPath = qaUserData || path.join(tmpdir(), "moplayer-pro-windows-qa");
 if (qaFixture || qaUserData) {
@@ -43,7 +55,6 @@ const store = new AppStore(packageVersion, qaFixture ? qaFixtureDataPath : qaUse
 const streamProxy = new StreamProxy();
 
 let mainWindow: BrowserWindow | null = null;
-let recordingAbort: AbortController | null = null;
 
 // Full in-app updates: packaged NSIS installs only. Portable builds, dev runs,
 // and screenshot/smoke QA fall back to the website download banner instead.
@@ -93,7 +104,7 @@ function createWindow(state = store.publicState()) {
     minWidth: 1024,
     minHeight: 660,
     backgroundColor: "#060608",
-    title: "MoPlayer Pro",
+    title: "MoPlayer PC",
     show: false,
     titleBarStyle: "hidden",
     titleBarOverlay: {
@@ -107,6 +118,10 @@ function createWindow(state = store.publicState()) {
       nodeIntegration: false,
       sandbox: true,
       webSecurity: true,
+      // Never throttle the renderer's media/timer loop when the window is
+      // backgrounded or occluded — that throttling is what makes live streams
+      // (especially multi-view tiles) stutter when the app loses focus.
+      backgroundThrottling: false,
     },
   });
 
@@ -298,7 +313,7 @@ function installIpc() {
   });
   ipcMain.handle("app:exportLogs", async () => {
     const options = {
-      title: "Export MoPlayer Pro logs",
+      title: "Export MoPlayer PC logs",
       defaultPath: "moplayer-pro-logs.txt",
       filters: [{ name: "Text logs", extensions: ["txt", "log"] }],
     };
@@ -348,52 +363,6 @@ function installIpc() {
     return Boolean(mainWindow?.isAlwaysOnTop());
   });
 
-  // Live DVR: stream the raw feed straight to a file the user picks.
-  ipcMain.handle("app:startRecording", async (_event, url: string, suggestedName: string): Promise<string | null> => {
-    if (recordingAbort) return null;
-    const safeName = suggestedName.replace(/[\\/:*?"<>|]+/g, " ").trim().slice(0, 80) || "recording";
-    const options = {
-      title: "Record stream",
-      defaultPath: `${safeName}.ts`,
-      filters: [{ name: "MPEG-TS video", extensions: ["ts"] }],
-    };
-    const target = mainWindow
-      ? await dialog.showSaveDialog(mainWindow, options)
-      : await dialog.showSaveDialog(options);
-    if (target.canceled || !target.filePath) return null;
-    const filePath = target.filePath;
-    const abort = new AbortController();
-    recordingAbort = abort;
-    void (async () => {
-      try {
-        const upstream = await fetch(url, {
-          headers: { "User-Agent": "MoPlayer Pro Windows/1.0" },
-          redirect: "follow",
-          signal: abort.signal,
-        });
-        if (!upstream.ok || !upstream.body) throw new Error(`HTTP ${upstream.status}`);
-        const { createWriteStream } = await import("node:fs");
-        const { Readable } = await import("node:stream");
-        const { pipeline } = await import("node:stream/promises");
-        await pipeline(
-          Readable.fromWeb(upstream.body as Parameters<typeof Readable.fromWeb>[0]),
-          createWriteStream(filePath),
-        );
-      } catch (error) {
-        if (!abort.signal.aborted) {
-          await store.log(`Recording failed: ${String(error)}`);
-        }
-      } finally {
-        if (recordingAbort === abort) recordingAbort = null;
-      }
-    })();
-    await store.log(`Recording started to ${filePath}`);
-    return filePath;
-  });
-  ipcMain.handle("app:stopRecording", () => {
-    recordingAbort?.abort();
-    recordingAbort = null;
-  });
   ipcMain.handle("app:checkWindowsUpdate", () => readWindowsUpdateInfo());
   ipcMain.handle("app:checkForUpdates", async () => {
     if (!updaterSupported) return { supported: false };
@@ -472,6 +441,7 @@ function installIpc() {
   ipcMain.handle("net:json", (_event, request: NetRequest) => requestJson(request));
   ipcMain.handle("net:text", (_event, request: NetRequest) => requestText(request));
   ipcMain.handle("stream:proxyUrl", (_event, url: string) => streamProxy.proxyUrl(url));
+  ipcMain.handle("stream:base", () => streamProxy.start());
 }
 
 app.whenReady().then(async () => {
@@ -482,6 +452,7 @@ app.whenReady().then(async () => {
   if (qaLanguage) {
     state = await store.updateSettings({ language: qaLanguage });
   }
+  streamProxy.setImageCacheDir(path.join(app.getPath("userData"), "image-cache"));
   await streamProxy.start();
   installIpc();
   if (updaterSupported) {

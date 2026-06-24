@@ -1,8 +1,8 @@
-version: 1.0.2
+version: 1.0.3
 files:
-  - url: https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pc-v1.0.2/MoPlayer-PC-Setup.exe
-    sha512: AuGg9dveZxOeP9yOOr1kqaBU1H81FaLE+6p5nTLb2sBZHZ2xgU48Z8DarnxSR+a0bsJrCW6YSF++d8yRgUs74w==
-    size: 115599485
-path: https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pc-v1.0.2/MoPlayer-PC-Setup.exe
-sha512: AuGg9dveZxOeP9yOOr1kqaBU1H81FaLE+6p5nTLb2sBZHZ2xgU48Z8DarnxSR+a0bsJrCW6YSF++d8yRgUs74w==
-releaseDate: '2026-06-12T17:10:47.358Z'
+  - url: https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pc-v1.0.3/MoPlayer-PC-Setup.exe
+    sha512: arCltu2CGMlT+SIRAHeAQuAu/wpDEvG9oOHb3lPxPxyu8UgbKQvvYHTunXGfNzHwXV+mH390wUb86QTCQvJlCg==
+    size: 115550941
+path: https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pc-v1.0.3/MoPlayer-PC-Setup.exe
+sha512: arCltu2CGMlT+SIRAHeAQuAu/wpDEvG9oOHb3lPxPxyu8UgbKQvvYHTunXGfNzHwXV+mH390wUb86QTCQvJlCg==
+releaseDate: '2026-06-24T10:20:35.636Z'

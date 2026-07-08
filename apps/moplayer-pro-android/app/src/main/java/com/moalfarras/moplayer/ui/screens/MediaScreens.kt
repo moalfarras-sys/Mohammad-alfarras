@@ -78,7 +78,6 @@ import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.domain.model.LiveEpgSnapshot
 import com.moalfarras.moplayer.domain.model.MediaItem
-import com.moalfarras.moplayer.ui.components.AtmosphericBackground
 import com.moalfarras.moplayer.ui.components.ChannelRow
 import com.moalfarras.moplayer.ui.components.CinematicBackdrop
 import com.moalfarras.moplayer.ui.i18n.LocalStrings

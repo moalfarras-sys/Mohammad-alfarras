@@ -603,34 +603,39 @@ abstract class MoPlayerDatabase : RoomDatabase() {
             serverDao().touch(serverId, System.currentTimeMillis())
             return@withTransaction
         }
-        val hasExistingPlaybackState = existingForTypes > 0
-        val mergedMedia = if (!hasExistingPlaybackState) {
-            media
+        // Snapshot favorites/resume once (only when re-syncing a section that already has rows),
+        // then fold the overlay in PER CHUNK below — never build a second full copy of the section
+        // (mirrors replaceServerContent; keeps peak memory at one 5k chunk on weak boxes).
+        val playbackState = if (existingForTypes > 0) {
+            mediaDao().playbackStateForTypes(serverId, normalizedTypes).associateBy { "${it.type.name}:${it.id}" }
         } else {
-            val playbackState = mediaDao().playbackStateForTypes(serverId, normalizedTypes).associateBy { "${it.type.name}:${it.id}" }
-            media.map { item ->
-                val key = "${item.type.name}:${item.id}"
-                val previous = playbackState[key]
-                if (previous == null) {
-                    item
-                } else {
-                    item.copy(
-                        isFavorite = previous.isFavorite,
-                        watchPositionMs = previous.watchPositionMs,
-                        watchDurationMs = previous.watchDurationMs,
-                        lastPlayedAt = previous.lastPlayedAt,
-                    )
-                }
-            }
+            null
         }
 
         categoryDao().deleteForServerTypes(serverId, normalizedTypes)
         mediaDao().deleteForServerTypes(serverId, normalizedTypes)
         mediaSearchDao().deleteForServerTypes(serverId, normalizedTypes)
         categoryDao().insertAll(categories)
-        mergedMedia.chunked(5_000).forEach { chunk ->
-            mediaDao().insertAll(chunk)
-            mediaSearchDao().insertAll(chunk.map { it.toSearchEntity() })
+        media.chunked(5_000).forEach { chunk ->
+            val mergedChunk = if (playbackState == null) {
+                chunk
+            } else {
+                chunk.map { item ->
+                    val previous = playbackState["${item.type.name}:${item.id}"]
+                    if (previous == null) {
+                        item
+                    } else {
+                        item.copy(
+                            isFavorite = previous.isFavorite,
+                            watchPositionMs = previous.watchPositionMs,
+                            watchDurationMs = previous.watchDurationMs,
+                            lastPlayedAt = previous.lastPlayedAt,
+                        )
+                    }
+                }
+            }
+            mediaDao().insertAll(mergedChunk)
+            mediaSearchDao().insertAll(mergedChunk.map { it.toSearchEntity() })
         }
         if (accountInfo != null) accountInfoDao().upsert(accountInfo)
         if (serverInfo != null) serverInfoDao().upsert(serverInfo)

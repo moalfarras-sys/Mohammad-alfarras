@@ -259,25 +259,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-6-3",
+      id: "release-moplayer2-v2-6-4",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.6.3-full",
-      version_name: "2.6.3",
-      version_code: 66,
+      slug: "moplayer2-v2.6.4-full",
+      version_name: "2.6.4",
+      version_code: 67,
       release_notes:
-        "MoPlayer Pro 2.6.3: faster cold start (Home shelves no longer query the database in the background when you open straight into Live/Movies/Series/Favorites/Search), lower memory during library refresh on weak devices, and a leaner build. Includes 2.6.2's per-title trailers and upcoming-first football widget.",
+        "MoPlayer Pro 2.6.4: import your own subtitle file (.srt/.vtt/.ass/.ttml) for a movie or episode that has none, and a clear Off option to disable subtitles. Multi-language movies/series keep exposing their embedded audio tracks and subtitles. Builds on 2.6.3 (faster cold start) and 2.6.2 (per-title trailers, upcoming football).",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-6-3-universal",
-          release_id: "release-moplayer2-v2-6-3",
+          id: "asset-moplayer2-v2-6-4-universal",
+          release_id: "release-moplayer2-v2-6-4",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.3/app-universal-release.apk",
-          file_size_bytes: 49439423,
-          checksum_sha256: "f509e1429b1d1f24e8ee9dc8b0f6669b4064e5465014ee372b4b9867559fc3d2",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.4/app-universal-release.apk",
+          file_size_bytes: 49443390,
+          checksum_sha256: "80a90bc157e7da77a6597c03aa19d297c17270ee1e8acd8c4efa147a23a01883",
         },
       ],
     },

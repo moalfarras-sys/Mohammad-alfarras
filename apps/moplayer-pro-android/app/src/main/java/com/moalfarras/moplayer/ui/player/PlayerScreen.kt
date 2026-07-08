@@ -18,6 +18,8 @@ import android.view.TextureView
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.AnimationSpec
@@ -67,6 +69,7 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Warning
@@ -345,6 +348,9 @@ fun PlayerScreen(
     var liveFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var liveOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
     var media3SurfaceAttempt by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
+    // A user-imported external subtitle (SAF-picked .srt/.vtt) for a VOD that ships without captions.
+    var externalSubtitle by remember(item.id) { mutableStateOf<android.net.Uri?>(null) }
+    var externalSubtitleNonce by remember(item.id) { mutableIntStateOf(0) }
     // VOD black screen watchdog: track when VOD reaches READY but hasn't rendered first frame
     var vodReadyAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
     var vodFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
@@ -977,6 +983,21 @@ fun PlayerScreen(
         exoPlayer.playWhenReady = true
     }
 
+    // Subtitle import is hoisted into its own composable helper (below) so the launcher + IO + Media3
+    // re-apply live in a SEPARATE method — keeping this already-huge PlayerScreen method under the
+    // API-23 ART bytecode-verifier limit (adding it inline here made the method fail verification).
+    val importSubtitle = rememberSubtitleImport(
+        exoPlayer = exoPlayer,
+        item = item,
+        request = playbackRequest,
+        isLive = isLive,
+        useLibVlc = useLibVlc,
+        performancePolicy = performancePolicy,
+        onImported = { uri -> externalSubtitle = uri; if (useLibVlc) externalSubtitleNonce++ },
+        onFail = { launchMessage = strings.playerSubtitleImportFailed },
+        beforeLaunch = { wakeControls() },
+    )
+
     fun switchTo(target: AppMediaItem?) {
         if (target == null || target.samePlayable(item) || liveSwitchLocked) return
         if (target.type == ContentType.LIVE) {
@@ -1161,7 +1182,7 @@ fun PlayerScreen(
                                         runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
                                     }
                                     LiveOverlayTab.SUBTITLES -> {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).setShowDisableOption(true).build().show() }
                                     }
                                     LiveOverlayTab.FAVORITES -> {
                                         onTripleOk()
@@ -1321,6 +1342,8 @@ fun PlayerScreen(
                 onPaused = { isPlaying = false },
                 onError = ::handleLibVlcLiveError,
                 playPauseNonce = libVlcPlayPauseNonce,
+                externalSubtitlePath = externalSubtitle?.toString(),
+                externalSubtitleNonce = externalSubtitleNonce,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
@@ -1490,7 +1513,7 @@ fun PlayerScreen(
                     }
                 },
                 onAudio = { runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() } },
-                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).build().show() } },
+                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).setShowDisableOption(true).build().show() } },
                 onVideo = { runCatching { TrackSelectionDialogBuilder(context, strings.playerQuality, exoPlayer, C.TRACK_TYPE_VIDEO).build().show() } },
                 onResize = ::cycleVideoSizeMode,
                 onFavorite = {
@@ -1718,7 +1741,11 @@ fun PlayerScreen(
                                         runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
                                     }
                                     SmallControlButton(Icons.Rounded.Subtitles, strings.playerSubtitles, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).setShowDisableOption(true).build().show() }
+                                    }
+                                    // Import an external subtitle file for a movie/episode that has none.
+                                    if (!isLive) {
+                                        SmallControlButton(Icons.Rounded.UploadFile, strings.playerAddSubtitle, accent) { importSubtitle() }
                                     }
                                     SmallControlButton(Icons.Rounded.HighQuality, strings.playerQuality, accent) {
                                         runCatching { TrackSelectionDialogBuilder(context, strings.playerQuality, exoPlayer, C.TRACK_TYPE_VIDEO).build().show() }
@@ -2487,6 +2514,8 @@ private fun LibVlcPlayerView(
     onPaused: () -> Unit,
     onError: (String) -> Unit,
     playPauseNonce: Int,
+    externalSubtitlePath: String? = null,
+    externalSubtitleNonce: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -2630,6 +2659,20 @@ private fun LibVlcPlayerView(
         if (released.get()) return@LaunchedEffect
         runCatching {
             if (mediaPlayer.isPlaying) mediaPlayer.pause() else mediaPlayer.play()
+        }
+    }
+
+    // Apply a user-imported external subtitle to the live LibVLC player (no rebuild). Guarded so a
+    // failure is a silent no-op, never a native crash during teardown.
+    LaunchedEffect(externalSubtitleNonce) {
+        if (externalSubtitleNonce == 0 || released.get()) return@LaunchedEffect
+        val path = externalSubtitlePath ?: return@LaunchedEffect
+        runCatching {
+            mediaPlayer.addSlave(
+                org.videolan.libvlc.interfaces.IMedia.Slave.Type.Subtitle,
+                android.net.Uri.parse(path),
+                true,
+            )
         }
     }
 
@@ -3263,6 +3306,7 @@ private fun buildPlayableMediaItem(
     item: AppMediaItem,
     isLive: Boolean,
     liveProfile: LivePlaybackProfile,
+    externalSubtitle: MediaItem.SubtitleConfiguration? = null,
 ): MediaItem {
     val liveConfiguration = if (isLive) {
         MediaItem.LiveConfiguration.Builder()
@@ -3282,9 +3326,117 @@ private fun buildPlayableMediaItem(
         .setTag(item.title)
         .apply {
             if (liveConfiguration != null) setLiveConfiguration(liveConfiguration)
+            // A user-imported .srt/.vtt for a VOD with no built-in captions. DefaultMediaSourceFactory
+            // (the non-HLS VOD branch) merges it into the timeline as a selectable text track.
+            if (externalSubtitle != null) setSubtitleConfigurations(listOf(externalSubtitle))
         }
         .build()
 }
+
+/**
+ * Self-contained subtitle-import helper. Lives in its OWN composable method (not inlined into the
+ * enormous PlayerScreen composable, which would push that method past the API-23 ART verifier limit
+ * and crash with VerifyError on old TV boxes). Returns a lambda that opens the system file picker;
+ * on pick it copies the file to cache, notifies the caller, and — for Media3 VOD — re-applies the
+ * current stream with the subtitle merged in and forces the text track on.
+ */
+@Composable
+private fun rememberSubtitleImport(
+    exoPlayer: ExoPlayer,
+    item: AppMediaItem,
+    request: StreamRequest,
+    isLive: Boolean,
+    useLibVlc: Boolean,
+    performancePolicy: PerformancePolicy,
+    onImported: (android.net.Uri) -> Unit,
+    onFail: () -> Unit,
+    beforeLaunch: () -> Unit,
+): () -> Unit {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { picked ->
+        val uri = picked ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            val cached = withContext(Dispatchers.IO) { copySubtitleToCache(context, uri) }
+            if (cached == null) {
+                onFail()
+                return@launch
+            }
+            val fileUri = android.net.Uri.fromFile(cached)
+            onImported(fileUri)
+            if (!useLibVlc && !isLive) {
+                runCatching {
+                    val pos = exoPlayer.currentPosition.coerceAtLeast(0)
+                    exoPlayer.stop()
+                    exoPlayer.setMediaItem(
+                        buildPlayableMediaItem(
+                            request,
+                            item,
+                            isLive,
+                            livePlaybackProfile(
+                                isPerformanceMode = performancePolicy.isPerformance,
+                                policyLiveBufferMs = performancePolicy.liveBufferMs,
+                                maxVideoHeight = performancePolicy.maxVideoHeight,
+                            ),
+                            externalSubtitleConfiguration(fileUri),
+                        ),
+                        pos,
+                    )
+                    exoPlayer.prepare()
+                    exoPlayer.playWhenReady = true
+                    exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                        .setPreferredTextLanguage("und")
+                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                        .build()
+                }
+            }
+        }
+    }
+    return {
+        beforeLaunch()
+        runCatching {
+            launcher.launch(
+                arrayOf(
+                    "application/x-subrip",
+                    "text/vtt",
+                    "application/ttml+xml",
+                    "text/plain",
+                    "application/octet-stream",
+                    "*/*",
+                ),
+            )
+        }.onFailure { onFail() }
+    }
+}
+
+/** Build a Media3 SubtitleConfiguration from an imported local subtitle file uri. */
+private fun externalSubtitleConfiguration(uri: android.net.Uri): MediaItem.SubtitleConfiguration {
+    val name = (uri.lastPathSegment ?: "").lowercase()
+    val mime = when {
+        name.endsWith(".vtt") -> MimeTypes.TEXT_VTT
+        name.endsWith(".ttml") || name.endsWith(".dfxp") || name.endsWith(".xml") -> MimeTypes.APPLICATION_TTML
+        name.endsWith(".ssa") || name.endsWith(".ass") -> MimeTypes.TEXT_SSA
+        else -> MimeTypes.APPLICATION_SUBRIP // .srt and unknown default
+    }
+    return MediaItem.SubtitleConfiguration.Builder(uri)
+        .setMimeType(mime)
+        .setLanguage("und")
+        .setLabel("Imported")
+        .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+        .build()
+}
+
+/** Copy a picked subtitle (content://) into cache and return a file:// path usable by both engines. */
+private fun copySubtitleToCache(context: android.content.Context, uri: android.net.Uri): java.io.File? = runCatching {
+    val seg = uri.lastPathSegment ?: "sub"
+    val ext = listOf(".srt", ".vtt", ".ass", ".ssa", ".ttml", ".dfxp", ".sub")
+        .firstOrNull { seg.lowercase().endsWith(it) } ?: ".srt"
+    val out = java.io.File(context.cacheDir, "imported-subtitle$ext")
+    context.contentResolver.openInputStream(uri)?.use { input ->
+        out.outputStream().use { input.copyTo(it) }
+    } ?: return null
+    out
+}.getOrNull()
 
 internal data class StreamRequest(
     val uri: String,

@@ -121,6 +121,14 @@ private fun LoginBackdropLayer(settings: AppSettings, reduceMotion: Boolean = fa
         }
     }
     Box(Modifier.fillMaxSize()) {
+        // Branded cinematic base so the sign-in screen never falls back to flat black while the
+        // city image loads, fails, or when the device is offline.
+        Image(
+            painter = painterResource(R.drawable.bg_cinematic),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
         if (backdropUrl != null) {
             AsyncImage(
                 model = backdropUrl,

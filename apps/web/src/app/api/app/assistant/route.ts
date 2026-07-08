@@ -25,15 +25,18 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  // Mirror the real answer chain in answerSiteAssistant (gemini → custom → openai
+  // → local): AI_ASSISTANT_PROVIDER and Anthropic are intentionally not part of it.
+  const providers = {
+    gemini: Boolean(process.env.GEMINI_API_KEY),
+    custom: Boolean(process.env.CUSTOM_AI_API_KEY && process.env.CUSTOM_AI_BASE_URL),
+    openai: Boolean(process.env.OPENAI_API_KEY),
+  };
   return NextResponse.json({
     ok: true,
     fallback: false,
     ready: true,
-    provider: process.env.AI_ASSISTANT_PROVIDER || (process.env.GEMINI_API_KEY ? "gemini" : process.env.OPENAI_API_KEY ? "openai" : "local"),
-    providers: {
-      openai: Boolean(process.env.OPENAI_API_KEY),
-      gemini: Boolean(process.env.GEMINI_API_KEY),
-      anthropic: Boolean(process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY),
-    },
+    provider: providers.gemini ? "gemini" : providers.custom ? "custom" : providers.openai ? "openai" : "local",
+    providers,
   });
 }

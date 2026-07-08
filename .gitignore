@@ -54,7 +54,7 @@ moplayer_database_copy.db
 
 # Large universal MoPlayer APK is published through release metadata / external hosting,
 # not bundled into Vercel public output.
-apps/web/public/downloads/moplayer/app-sideload-universal-release.apk
+apps/web/public/downloads/**/*.apk
 apps/web/public/downloads/moplayer/windows/*.exe
 apps/web/public/downloads/moplayer/windows/*.blockmap
 

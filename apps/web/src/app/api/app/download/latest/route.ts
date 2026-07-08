@@ -1,7 +1,7 @@
 import { after, NextResponse } from "next/server";
 
 import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
-import { downloadEventFromRequest, recordDownload } from "@/lib/download-counter";
+import { downloadEventFromRequest, recordDownload, shouldCountDownload } from "@/lib/download-counter";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -60,17 +60,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "MoPlayer PC release file not configured" }, { status: 404, headers: { "Cache-Control": "no-store" } });
     }
     const target = external ?? new URL(`/downloads/moplayer/windows/${fileName}`, request.url);
-    after(() =>
-      recordDownload(
-        product,
-        "windows",
-        downloadEventFromRequest(request, {
-          fileName,
-          targetUrl: String(target),
-          metadata: { portable },
-        }),
-      ),
-    );
+    if (shouldCountDownload(request)) {
+      after(() =>
+        recordDownload(
+          product,
+          "windows",
+          downloadEventFromRequest(request, {
+            fileName,
+            targetUrl: String(target),
+            metadata: { portable },
+          }),
+        ),
+      );
+    }
     return NextResponse.redirect(target, {
       headers: {
         "Cache-Control": "no-store",
@@ -100,18 +102,20 @@ export async function GET(request: Request) {
 
   const target = new URL(resolved.redirectUrl, request.url);
 
-  after(() =>
-    recordDownload(
-      product,
-      platform,
-      downloadEventFromRequest(request, {
-        releaseSlug: latest.slug,
-        assetId: resolved.asset.id,
-        fileName: resolved.filename,
-        targetUrl: resolved.redirectUrl,
-      }),
-    ),
-  );
+  if (shouldCountDownload(request)) {
+    after(() =>
+      recordDownload(
+        product,
+        platform,
+        downloadEventFromRequest(request, {
+          releaseSlug: latest.slug,
+          assetId: resolved.asset.id,
+          fileName: resolved.filename,
+          targetUrl: resolved.redirectUrl,
+        }),
+      ),
+    );
+  }
   return NextResponse.redirect(target, {
     headers: {
       "Cache-Control": "no-store",

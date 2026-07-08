@@ -11,7 +11,7 @@ import { getNavigation } from "@/content/navigation";
 import { siteIdentity, youtubeChannel } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
-import { isLocale, withLocale } from "@/lib/i18n";
+import { isLocale } from "@/lib/i18n";
 import { legalFooterLinks, legalPagesPublished, type LegalPagesSetting } from "@/lib/legal-pages";
 import { getLiveYoutubeChannelStats } from "@/lib/youtube-live";
 
@@ -26,42 +26,12 @@ function siteCopy(locale: "ar" | "en") {
     return {
       brandName: "\u0645\u062d\u0645\u062f \u0627\u0644\u0641\u0631\u0627\u0633",
       tagline: "\u0648\u064a\u0628 | \u062a\u0637\u0628\u064a\u0642\u0627\u062a | \u0645\u062d\u062a\u0648\u0649 | \u0644\u0648\u062c\u0633\u062a\u064a\u0627\u062a",
-      links: [
-        { id: "home", label: "\u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629", href: withLocale(locale, "") },
-        { id: "work", label: "\u0627\u0644\u0623\u0639\u0645\u0627\u0644", href: withLocale(locale, "work") },
-        { id: "apps", label: "\u0627\u0644\u062a\u0637\u0628\u064a\u0642\u0627\u062a", href: withLocale(locale, "apps") },
-        { id: "youtube", label: "\u064a\u0648\u062a\u064a\u0648\u0628", href: withLocale(locale, "youtube") },
-        { id: "cv", label: "\u0627\u0644\u0633\u064a\u0631\u0629", href: withLocale(locale, "cv") },
-        { id: "contact", label: "\u062a\u0648\u0627\u0635\u0644", href: withLocale(locale, "contact") },
-      ],
-      footer: {
-        title: "\u0644\u062f\u064a\u0643 \u0645\u0634\u0631\u0648\u0639 \u064a\u062d\u062a\u0627\u062c \u0623\u0646 \u064a\u064f\u0641\u0647\u0645 \u0623\u0633\u0631\u0639 \u0648\u064a\u064f\u0648\u062b\u0642 \u0628\u0647 \u0623\u0643\u062b\u0631\u061f",
-        body: "\u0645\u0648\u0627\u0642\u0639\u060c \u062a\u0637\u0628\u064a\u0642\u0627\u062a\u060c MoPlayer\u060c \u0645\u062d\u062a\u0648\u0649 \u062a\u0642\u0646\u064a\u060c \u0648\u0633\u0631\u062f \u0639\u0645\u0644\u064a \u0645\u0628\u0646\u064a \u0639\u0644\u0649 \u062e\u0628\u0631\u0629 \u0644\u0648\u062c\u0633\u062a\u064a\u0629 \u062d\u0642\u064a\u0642\u064a\u0629.",
-        cta: "\u0627\u0628\u062f\u0623 \u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629",
-      },
-      portfolioDescription:
-        "\u0623\u0639\u0645\u0627\u0644 \u0645\u062d\u0645\u062f \u0627\u0644\u0641\u0631\u0627\u0633: \u0645\u0634\u0627\u0631\u064a\u0639\u060c \u062f\u0631\u0627\u0633\u0627\u062a \u062d\u0627\u0644\u0629\u060c \u0648\u0645\u0646\u062a\u062c\u0627\u062a \u0631\u0642\u0645\u064a\u0629 \u062f\u0627\u062e\u0644 \u0645\u0648\u0642\u0639 \u0634\u062e\u0635\u064a \u0648\u0645\u0647\u0646\u064a \u0648\u0627\u0636\u062d \u0627\u0644\u0628\u0646\u064a\u0629.",
     };
   }
 
   return {
-      brandName: siteIdentity.name.en,
-      tagline: siteIdentity.tagline.en,
-    links: [
-      { id: "home", label: "Home", href: withLocale(locale, "") },
-      { id: "work", label: "Work", href: withLocale(locale, "work") },
-      { id: "apps", label: "Apps", href: withLocale(locale, "apps") },
-      { id: "youtube", label: "YouTube", href: withLocale(locale, "youtube") },
-      { id: "cv", label: "CV", href: withLocale(locale, "cv") },
-      { id: "contact", label: "Contact", href: withLocale(locale, "contact") },
-    ],
-    footer: {
-      title: "Have a project that needs to be understood faster and trusted sooner?",
-      body: "Websites, apps, MoPlayer, Arabic tech content, and practical business storytelling shaped by real logistics experience.",
-      cta: "Start the conversation",
-    },
-    portfolioDescription:
-      "Selected work by Mohammad Alfarras: websites, case studies, and product surfaces inside a personal professional website.",
+    brandName: siteIdentity.name.en,
+    tagline: siteIdentity.tagline.en,
   };
 }
 

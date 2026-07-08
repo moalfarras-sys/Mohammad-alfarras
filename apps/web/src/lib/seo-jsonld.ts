@@ -105,6 +105,8 @@ export function creativeWorkJsonLd(project: {
 
 export function softwareApplicationJsonLd(params: {
   locale: Locale;
+  /** Page path under the locale root, e.g. "apps/moplayer/classic" — keeps each product's @id unique. */
+  path: string;
   name: string;
   description: string;
   version: string;
@@ -117,7 +119,8 @@ export function softwareApplicationJsonLd(params: {
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "@id": `${BASE_URL}/${params.locale}/apps/moplayer#software`,
+    "@id": `${BASE_URL}/${params.locale}/${params.path}#software`,
+    url: `${BASE_URL}/${params.locale}/${params.path}`,
     name: params.name,
     description: params.description,
     applicationCategory: "MultimediaApplication",

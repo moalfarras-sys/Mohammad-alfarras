@@ -138,6 +138,7 @@ export default async function AppProductRoute({
   ]);
   const software = softwareApplicationJsonLd({
     locale: loc,
+    path: `apps/${productSlug}`,
     name: normalizedEcosystem.product.product_name,
     description,
     version: latest?.version_name || normalizedEcosystem.product.default_download_label,

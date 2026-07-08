@@ -88,6 +88,13 @@ const copy = {
     sendOk: "Sent. Import starts automatically on the TV.",
     sendFail: "Could not send the source.",
     sendUnavailable: "Could not send right now. Try again in a moment.",
+    sourceRateLimited: "Too many attempts. Wait a minute, then try again.",
+    // Device import (after send)
+    importingTitle: "Importing on your device…",
+    importingBody: "We sent your source. {product} is importing it now — keep the device on, this page updates by itself.",
+    importFailedTitle: "Import did not finish",
+    importFailedBody: "The device could not import the source.",
+    importRetryHint: "Check the details, then send the source again.",
   },
   ar: {
     back: "العودة إلى MoPlayer",
@@ -150,18 +157,28 @@ const copy = {
     sendOk: "تم الإرسال. يبدأ الاستيراد تلقائياً على التلفزيون.",
     sendFail: "تعذّر إرسال المصدر.",
     sendUnavailable: "تعذّر الإرسال حالياً. حاول بعد قليل.",
+    sourceRateLimited: "محاولات كثيرة. انتظر دقيقة ثم حاول مرة أخرى.",
+    // Device import (after send)
+    importingTitle: "جارٍ الاستيراد على الجهاز…",
+    importingBody: "أرسلنا مصدرك ويستورده {product} الآن — أبقِ الجهاز مفتوحاً وستتحدّث هذه الصفحة تلقائياً.",
+    importFailedTitle: "لم يكتمل الاستيراد",
+    importFailedBody: "تعذّر على الجهاز استيراد المصدر.",
+    importRetryHint: "راجع البيانات ثم أرسل المصدر مرة أخرى.",
   },
 } as const;
 
 type Status = "waiting" | "pending" | "invalid" | "activated" | "expired" | "backend" | "rateLimited";
 type SourceType = "xtream" | "m3u";
 type SourceState = "idle" | "testing" | "ok" | "sending" | "sent" | "error";
+// Device-side import result after a send: pending until the device reports back, timeout keeps the old "Done" card.
+type ImportStatus = "pending" | "imported" | "failed" | "revoked" | "timeout";
 
 type StatusPayload = {
   status?: string;
   expiresAt?: string;
   activatedAt?: string;
   sourceStatus?: string;
+  sourceMessage?: string;
   message?: string;
 };
 
@@ -203,6 +220,8 @@ export function MoPlayerActivationPage({
   const [sourceType, setSourceType] = useState<SourceType>("xtream");
   const [sourceState, setSourceState] = useState<SourceState>("idle");
   const [sourceMessage, setSourceMessage] = useState("");
+  const [importStatus, setImportStatus] = useState<ImportStatus>("pending");
+  const [importMessage, setImportMessage] = useState("");
   const [sourceName, setSourceName] = useState("");
   const [serverUrl, setServerUrl] = useState("");
   const [username, setUsername] = useState("");
@@ -238,6 +257,44 @@ export function MoPlayerActivationPage({
     // Run once for a QR-provided initial code.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // After a successful send, poll the status endpoint (~every 4s, up to ~2 minutes)
+  // until the device reports the import result.
+  useEffect(() => {
+    if (sourceState !== "sent" || importStatus !== "pending") return;
+    let cancelled = false;
+    let polls = 0;
+    const poll = async () => {
+      polls += 1;
+      try {
+        const response = await fetch(
+          `/api/app/activation/status?code=${encodeURIComponent(`MO-${code}`)}&product=${encodeURIComponent(productSlug)}`,
+          { method: "GET", cache: "no-store" },
+        );
+        const payload = (await response.json().catch(() => null)) as StatusPayload | null;
+        if (cancelled) return;
+        const deviceStatus = payload?.sourceStatus;
+        if (deviceStatus === "imported") {
+          setImportStatus("imported");
+          return;
+        }
+        if (deviceStatus === "failed" || deviceStatus === "revoked") {
+          setImportStatus(deviceStatus);
+          setImportMessage(payload?.sourceMessage ? safeMessage(payload.sourceMessage) : "");
+          return;
+        }
+      } catch {
+        // Transient network issue — keep polling until the budget runs out.
+      }
+      if (!cancelled && polls >= 30) setImportStatus("timeout");
+    };
+    void poll();
+    const timer = setInterval(() => void poll(), 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [sourceState, importStatus, code, productSlug]);
 
   async function refreshStatus() {
     if (!allowed.test(code)) {
@@ -325,6 +382,11 @@ export function MoPlayerActivationPage({
         body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
       });
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      if (response.status === 429) {
+        setSourceState("error");
+        setSourceMessage(t.sourceRateLimited);
+        return;
+      }
       const ok = response.ok && payload?.ok;
       setSourceState(ok ? "ok" : "error");
       setSourceMessage(ok ? t.testOk : safeMessage(payload?.message || t.testFail));
@@ -345,9 +407,16 @@ export function MoPlayerActivationPage({
         body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
       });
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      if (response.status === 429) {
+        setSourceState("error");
+        setSourceMessage(t.sourceRateLimited);
+        return;
+      }
       if (response.ok && payload?.ok) {
         setSourceState("sent");
         setSourceMessage(t.sendOk);
+        setImportStatus("pending");
+        setImportMessage("");
         setPassword("");
         await refreshStatus();
       } else {
@@ -363,6 +432,8 @@ export function MoPlayerActivationPage({
   function resetSource() {
     setSourceState("idle");
     setSourceMessage("");
+    setImportStatus("pending");
+    setImportMessage("");
     setServerUrl("");
     setUsername("");
     setPassword("");
@@ -463,8 +534,31 @@ export function MoPlayerActivationPage({
           ) : null}
         </section>
 
-        {/* STEP 2 — Add subscription / Done */}
-        {sent ? (
+        {/* STEP 2 — Add subscription / Importing / Done */}
+        {sent && importStatus === "pending" ? (
+          <section className="mo-act-card mo-act-done" aria-live="polite">
+            <span className="mo-act-done-icon">
+              <Loader2 className="h-7 w-7 animate-spin" />
+            </span>
+            <h2>{t.importingTitle}</h2>
+            <p>{fill(t.importingBody)}</p>
+          </section>
+        ) : sent && (importStatus === "failed" || importStatus === "revoked") ? (
+          <section className="mo-act-card mo-act-done" aria-live="polite">
+            <span className="mo-act-done-icon">
+              <AlertCircle className="h-7 w-7" />
+            </span>
+            <h2>{t.importFailedTitle}</h2>
+            <p>{importMessage || t.importFailedBody}</p>
+            <div className="mo-act-msg is-error">
+              <AlertCircle className="h-4 w-4" />
+              {t.importRetryHint}
+            </div>
+            <button type="button" onClick={resetSource} className="mo-act-btn">
+              {t.sendAnother}
+            </button>
+          </section>
+        ) : sent ? (
           <section className="mo-act-card mo-act-done" aria-live="polite">
             <span className="mo-act-done-icon">
               <Sparkles className="h-7 w-7" />

@@ -252,10 +252,12 @@ export function MoPlayerPcLanding({
                 {isAr ? "قيد الصيانة" : "Under maintenance"}
               </span>
             ) : downloadHref ? (
-              <Link href={downloadHref} className="group relative px-6 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 text-white font-bold text-sm overflow-hidden shadow-[0_4px_25px_rgba(230,74,25,0.3)] hover:shadow-[0_6px_35px_rgba(230,74,25,0.5)] transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2">
+              // Plain <a> like the other download buttons: a Next Link would
+              // prefetch the download API and inflate the counter.
+              <a href={downloadHref} className="group relative px-6 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 text-white font-bold text-sm overflow-hidden shadow-[0_4px_25px_rgba(230,74,25,0.3)] hover:shadow-[0_6px_35px_rgba(230,74,25,0.5)] transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2">
                 <Download className="h-4 w-4 relative z-10" />
                 <span className="relative z-10">{hubCopy.primaryCta}</span>
-              </Link>
+              </a>
             ) : (
               <span className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 font-bold text-sm backdrop-blur-sm">
                 {c.releasePending}

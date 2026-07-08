@@ -12,6 +12,18 @@ const nextConfig: NextConfig = {
       // Friendly Pro aliases -> canonical moplayer2 URL (protects old links and typos).
       { source: "/:locale(en|ar)/apps/moplayerpro", destination: "/:locale/apps/moplayer2", permanent: true },
       { source: "/:locale(en|ar)/apps/moplayer-pro", destination: "/:locale/apps/moplayer2", permanent: true },
+      // Mo AI is a floating widget, not a page: old /ai URLs land on home with
+      // the chat auto-opened (?ai=open is consumed by the widget loader).
+      { source: "/:locale(en|ar)/ai", destination: "/:locale?ai=open", permanent: false },
+      // Nested MoPlayer aliases the owner expects to work.
+      { source: "/:locale(en|ar)/apps/moplayer/pro", destination: "/:locale/apps/moplayer2", permanent: true },
+      { source: "/:locale(en|ar)/apps/moplayer/pc", destination: "/:locale/apps/moplayer-pc", permanent: true },
+      // Legacy static APK URLs: binaries moved to GitHub Releases (free Vercel
+      // bandwidth); the download API 307s old clients to the current asset.
+      { source: "/downloads/moplayer2/app-release.apk", destination: "/api/app/download/latest?product=moplayer2", permanent: false },
+      { source: "/downloads/moplayer/app-sideload-universal-release.apk", destination: "/api/app/download/latest?product=moplayer", permanent: false },
+      { source: "/downloads/moplayer/app-sideload-arm64-v8a-release.apk", destination: "/api/app/download/latest?product=moplayer", permanent: false },
+      { source: "/downloads/moplayer/app-sideload-armeabi-v7a-release.apk", destination: "/api/app/download/latest?product=moplayer", permanent: false },
     ];
   },
   turbopack: {

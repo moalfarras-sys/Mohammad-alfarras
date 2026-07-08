@@ -1,8 +1,10 @@
+import { randomInt } from "crypto";
+
 import { NextResponse } from "next/server";
 
 import { conversationUuid, hashAssistantOtpCode } from "@/lib/ai-assistant";
 import { sendTransactionalMail } from "@/lib/mailer";
-import { rateLimit } from "@/lib/request-guard";
+import { rateLimit, serverHmac } from "@/lib/request-guard";
 import { createSupabaseAdminClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 
 export async function POST(request: Request) {
@@ -14,12 +16,24 @@ export async function POST(request: Request) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
+
+  // Also throttle per destination mailbox (hashed into the bucket key) so one
+  // address can't be flooded with codes: 3 per 10 minutes on top of the IP limit.
+  const limitedByEmail = await rateLimit({
+    request,
+    bucket: `assistant-otp-email:${serverHmac(email, "REQUEST_GUARD_SECRET").slice(0, 16)}`,
+    limit: 3,
+    windowSeconds: 10 * 60,
+  });
+  if (limitedByEmail) return limitedByEmail;
+
   if (!hasSupabasePublicEnv()) {
     return NextResponse.json({ error: "Verification is not configured" }, { status: 503 });
   }
 
   const conversationId = conversationUuid(body.conversationId);
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  // crypto.randomInt: OTPs must come from a CSPRNG, not the guessable Math.random().
+  const code = String(randomInt(100000, 1000000));
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
   const supabase = createSupabaseAdminClient();
 

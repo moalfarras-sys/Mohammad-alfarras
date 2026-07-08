@@ -83,6 +83,9 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
     pro: appVisuals.pro.downloads,
     pc: appVisuals.pc.downloads,
   };
+  // Same availability rule the classic landing applies to its own download button.
+  const classicAvailable =
+    classic.runtimeConfig?.enabled !== false && classic.runtimeConfig?.maintenanceMode !== true;
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "التطبيقات" : "Apps", path: `/${loc}/apps` },
@@ -108,7 +111,7 @@ export default async function AppsRoute({ params }: { params: Promise<{ locale: 
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
-      <AppsShowcasePage locale={loc} siteImages={model.siteImages} appVisuals={appVisuals} downloadStats={publicDownloadStats} />
+      <AppsShowcasePage locale={loc} siteImages={model.siteImages} appVisuals={appVisuals} downloadStats={publicDownloadStats} classicAvailable={classicAvailable} />
       <SiteOffersSection model={model} placement="apps" />
     </>
   );

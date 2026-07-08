@@ -104,10 +104,11 @@ async function checkYoutube(): Promise<HealthCheck> {
 
 export async function GET() {
   const supabase = getSupabaseEnv();
+  // Mirrors the real assistant chain in lib/ai-assistant.ts: gemini → custom → openai → local.
   const assistantProviders = {
-    openai: Boolean(process.env.OPENAI_API_KEY),
     gemini: Boolean(process.env.GEMINI_API_KEY),
-    anthropic: Boolean(process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_API_KEY),
+    custom: Boolean(process.env.CUSTOM_AI_API_KEY && process.env.CUSTOM_AI_BASE_URL),
+    openai: Boolean(process.env.OPENAI_API_KEY),
   };
 
   const [weather, football, youtube, classic, pro] = await Promise.all([

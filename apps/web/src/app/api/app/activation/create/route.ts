@@ -83,27 +83,31 @@ export async function POST(request: Request) {
     }
   }
 
-  await expireDeviceWaitingRequests(publicDeviceId, productSlug);
+  try {
+    await expireDeviceWaitingRequests(publicDeviceId, productSlug);
 
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    const code = createActivationCode();
-    const expiresAt = activationExpiresAt();
-    const stored = await createActivationRequest({
-      publicDeviceId,
-      productSlug,
-      code,
-      expiresAt,
-      userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
-    });
-
-    if (stored) {
-      return json({
-        status: "waiting",
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const code = createActivationCode();
+      const expiresAt = activationExpiresAt();
+      const stored = await createActivationRequest({
+        publicDeviceId,
+        productSlug,
         code,
         expiresAt,
-        ttlSeconds: 15 * 60,
+        userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? null,
       });
+
+      if (stored) {
+        return json({
+          status: "waiting",
+          code,
+          expiresAt,
+          ttlSeconds: 15 * 60,
+        });
+      }
     }
+  } catch {
+    return json({ status: "error", message: "Could not create activation code." }, { status: 500 });
   }
 
   return json({ status: "error", message: "Could not create activation code." }, { status: 500 });

@@ -46,6 +46,7 @@ const fallbackConfigs = {
     backgroundUrl: "/images/moplayer-pro-home.webp",
     syncIntervalMinutes: 60,
     sourceProtocolFallback: true,
+    trailerPreviewEnabled: true,
     footballProviderMode: "auto",
     footballLeagueIds: [39, 140, 135, 78, 61, 2, 3, 848, 1, 15],
     footballLeagueKeywords: ["world cup", "fifa", "champions league", "europa", "premier", "la liga", "serie a", "bundesliga", "ligue 1"],

@@ -109,7 +109,8 @@ fun HomeScreen(
         ?: homeMovies.firstOrNull()
         ?: homeSeries.firstOrNull()
     var showAiAssistant by remember { mutableStateOf(false) }
-    var aiChat by remember { mutableStateOf(listOf(AiChatMessage(freeAiIntro(allContent, football), false))) }
+    val aiIntroRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    var aiChat by remember { mutableStateOf(listOf(AiChatMessage(freeAiIntro(allContent, football, aiIntroRtl), false))) }
     var aiInput by remember { mutableStateOf("") }
     var surpriseSeed by remember { mutableIntStateOf(0) }
     var aiTvAction by remember { mutableIntStateOf(0) }
@@ -1195,6 +1196,7 @@ private fun AiAssistantPanel(
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
     val s = if (tv.isTv) 1f else tv.factor
+    val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
     val picks = remember(allContent, football, seed, mode) { aiPicks(allContent, football, seed, mode) }
     val latestMovies = remember(allContent) { latestOfType(allContent, ContentType.MOVIE) }
     val latestSeries = remember(allContent) {
@@ -1235,8 +1237,8 @@ private fun AiAssistantPanel(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size((22 * s).dp))
                     Column {
-                        Text("Mo AI Assistant", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
-                        Text("Suggestions · Chat · AI", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
+                        Text(if (isArabic) "المساعد الذكي" else "Smart assistant", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
+                        Text(if (isArabic) "اقتراحات · محادثة" else "Suggestions · Chat", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
                     }
                 }
                 IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, null, tint = Color.White) }
@@ -1287,9 +1289,9 @@ private fun AiAssistantPanel(
 
             if (tv.isTv) {
                 val lastAssistantLine = if (chat.size == 1 && !chat.first().mine) {
-                    freeAiIntro(allContent, football)
+                    freeAiIntro(allContent, football, isArabic)
                 } else {
-                    chat.lastOrNull { !it.mine }?.text ?: freeAiIntro(allContent, football)
+                    chat.lastOrNull { !it.mine }?.text ?: freeAiIntro(allContent, football, isArabic)
                 }
                 Text(
                     lastAssistantLine,
@@ -1540,9 +1542,14 @@ private fun AiQuickButton(
     }
 }
 
-private fun freeAiIntro(content: List<MediaItem>, football: List<FootballMatch>): String {
-    val matchLine = if (football.isNotEmpty()) " I can also show today's matches." else "."
-    return "Hi, I am Mo AI inside the app. I read your local library and can suggest from ${content.size} items.$matchLine"
+private fun freeAiIntro(content: List<MediaItem>, football: List<FootballMatch>, isArabic: Boolean): String {
+    return if (isArabic) {
+        val matchLine = if (football.isNotEmpty()) " ويمكنني أيضاً عرض مباريات اليوم." else "."
+        "مرحباً، أنا مساعدك الذكي داخل التطبيق. أقرأ مكتبتك المحلية وأقترح لك من ${content.size} عنصراً.$matchLine"
+    } else {
+        val matchLine = if (football.isNotEmpty()) " I can also show today's matches." else "."
+        "Hi, I'm your smart assistant inside the app. I read your local library and can suggest from ${content.size} items.$matchLine"
+    }
 }
 
 private fun aiPicks(content: List<MediaItem>, football: List<FootballMatch>, seed: Int, mode: AiSuggestionMode): List<MediaItem> {

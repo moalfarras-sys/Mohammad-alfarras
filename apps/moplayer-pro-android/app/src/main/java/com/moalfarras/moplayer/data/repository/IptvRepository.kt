@@ -14,6 +14,7 @@ import com.moalfarras.moplayer.data.network.PlaylistService
 import com.moalfarras.moplayer.data.network.SupabaseService
 import com.moalfarras.moplayer.data.network.XtreamService
 import com.moalfarras.moplayer.data.network.NetworkModule
+import com.moalfarras.moplayer.data.network.WebApiEndpoint
 import com.moalfarras.moplayer.data.network.WebActivationCreateRequestDto
 import com.moalfarras.moplayer.data.network.WebActivationSourceAckRequestDto
 import com.moalfarras.moplayer.data.network.WebProviderSourceDto
@@ -44,9 +45,12 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import okhttp3.ResponseBody
+import org.json.JSONObject
 import java.io.InterruptedIOException
 import java.net.ConnectException
+import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
+import java.net.URL
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -295,6 +299,104 @@ class IptvRepository(
             }
         }
         return enriched
+    }
+
+    /**
+     * Resolve a YouTube video id to preview as a muted trailer for [item]. Priority:
+     *  1. The provider's own `youtube_trailer` — movies (get_vod_info, cached) AND series
+     *     (get_series_info info.youtube_trailer, fetched on demand).
+     *  2. A YouTube search fallback served by the website (`/api/app/trailer`), where the API key
+     *     stays server-side and results are cached, so the device never holds a key or burns quota.
+     * Returns null when nothing is available. Runs off the main thread and only ever talks to the
+     * panel's JSON API (get_vod_info / get_series_info) or YouTube's own hosts — never the live
+     * stream socket — so it cannot consume a provider's (often single) streaming connection slot.
+     */
+    suspend fun resolveTrailerYoutubeId(server: ServerProfile, item: MediaItem): String? = withContext(Dispatchers.IO) {
+        if (server.kind == LoginKind.XTREAM) {
+            when (item.type) {
+                ContentType.MOVIE -> {
+                    val cached = runCatching {
+                        refreshVodDetails(server, item)
+                        database.vodDetailsDao().get(server.id, item.id)?.youtubeTrailer
+                    }.getOrNull()
+                    extractYoutubeId(cached)?.let { return@withContext it }
+                }
+                ContentType.SERIES -> {
+                    val providerId = runCatching {
+                        val seriesId = item.seriesId.ifBlank { item.id }
+                        if (seriesId.isBlank()) return@runCatching null
+                        val credentials = savedXtreamCredentials(server)
+                        val api = xtreamFactory(credentials.baseUrl)
+                        val root = fetchSeriesInfoObject(api, credentials.username, credentials.password, seriesId)
+                        XtreamSupport.seriesTrailerYoutubeId(root)
+                    }.getOrNull()
+                    extractYoutubeId(providerId)?.let { return@withContext it }
+                }
+                else -> {}
+            }
+        }
+        if (item.type == ContentType.MOVIE || item.type == ContentType.SERIES) {
+            return@withContext searchTrailerOnWeb(item.title, item.type, trailerSearchYear(item))
+        }
+        null
+    }
+
+    /** Force the YouTube-search fallback, skipping the provider trailer. Used when a provider trailer
+     *  turns out to be non-embeddable and the preview reports it cannot play. */
+    suspend fun searchTrailerYoutubeId(item: MediaItem): String? = withContext(Dispatchers.IO) {
+        if (item.type != ContentType.MOVIE && item.type != ContentType.SERIES) return@withContext null
+        searchTrailerOnWeb(item.title, item.type, trailerSearchYear(item))
+    }
+
+    private fun trailerSearchYear(item: MediaItem): String =
+        item.releaseDate.trim().take(4).takeIf { it.length == 4 && it.all(Char::isDigit) }.orEmpty()
+
+    /** Pull the 11-char YouTube id out of a bare id or any common watch/embed/share URL. */
+    private fun extractYoutubeId(raw: String?): String? {
+        val value = raw?.trim().orEmpty()
+        if (value.isBlank()) return null
+        if (Regex("^[A-Za-z0-9_-]{11}$").matches(value)) return value
+        val patterns = listOf(
+            Regex("[?&]v=([A-Za-z0-9_-]{11})"),
+            Regex("youtu\\.be/([A-Za-z0-9_-]{11})"),
+            Regex("/embed/([A-Za-z0-9_-]{11})"),
+            Regex("/shorts/([A-Za-z0-9_-]{11})"),
+        )
+        for (pattern in patterns) {
+            pattern.find(value)?.let { return it.groupValues[1] }
+        }
+        return null
+    }
+
+    private fun searchTrailerOnWeb(title: String, type: ContentType, year: String): String? {
+        val cleanTitle = title.trim()
+        if (cleanTitle.isBlank()) return null
+        val typeParam = if (type == ContentType.SERIES) "series" else "movie"
+        val path = buildString {
+            append("/api/app/trailer?title=").append(URLEncoder.encode(cleanTitle, StandardCharsets.UTF_8.name()))
+            append("&type=").append(typeParam)
+            append("&product=").append(BuildConfig.APP_PRODUCT_SLUG)
+            if (year.isNotBlank()) append("&year=").append(year)
+        }
+        WebApiEndpoint.candidateUrls(path).forEach { urlString ->
+            val id = runCatching {
+                val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 7_000
+                    readTimeout = 7_000
+                    setRequestProperty("Accept", "application/json")
+                }
+                try {
+                    if (connection.responseCode !in 200..299) return@runCatching null
+                    val body = connection.inputStream.bufferedReader().use { it.readText() }
+                    JSONObject(body).optString("videoId", "").trim().ifBlank { null }
+                } finally {
+                    connection.disconnect()
+                }
+            }.getOrNull()
+            if (!id.isNullOrBlank()) return id
+        }
+        return null
     }
 
     suspend fun toggleFavorite(item: MediaItem) {

@@ -84,7 +84,10 @@ import com.moalfarras.moplayer.ui.components.CinematicBackdrop
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
+import com.moalfarras.moplayer.ui.components.LocalPreviewTrailer
+import com.moalfarras.moplayer.ui.components.LocalTrailerErrorReporter
 import com.moalfarras.moplayer.ui.components.MediaPoster
+import com.moalfarras.moplayer.ui.components.YoutubeTrailerSurface
 import com.moalfarras.moplayer.ui.components.backdropUrlFrom
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
@@ -832,6 +835,23 @@ fun PreviewPane(
                 AsyncImage(previewArt, item.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(visuals.accent.copy(alpha = 0.22f), Color(0xFF101827)))))
+            }
+            // Muted autoplay trailer, layered over the backdrop once it has resolved for THIS item.
+            // It fades itself in over the art; the scrim + title/description below stay on top, so the
+            // existing preview look is untouched — the trailer is purely an added layer.
+            val trailer = LocalPreviewTrailer.current
+            val showTrailer = previewEnabled &&
+                performancePolicy?.enablePreviewPane != false &&
+                performancePolicy?.reduceMotion != true &&
+                trailer.youtubeId.isNotBlank() &&
+                trailer.itemKey == mediaKey(item)
+            if (showTrailer) {
+                val reportTrailerError = LocalTrailerErrorReporter.current
+                YoutubeTrailerSurface(
+                    trailer.youtubeId,
+                    Modifier.fillMaxSize(),
+                    onError = { reportTrailerError(trailer.itemKey) },
+                )
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0x22000000), Color(0xEE01040A)))))
             Column(Modifier.align(Alignment.BottomStart).padding((20 * tv.factor).dp), verticalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)) {

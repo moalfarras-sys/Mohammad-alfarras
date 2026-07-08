@@ -572,6 +572,11 @@ internal object XtreamSupport {
         return Triple(enrichedSeries, seasonEntities, episodeItems)
     }
 
+    /** The provider's own trailer id for a series, from a get_series_info root ("info.youtube_trailer").
+     *  enrichSeries otherwise discards it; the trailer resolver reads it on demand. */
+    fun seriesTrailerYoutubeId(root: JsonObject): String =
+        root.objectOrNull("info")?.string("youtube_trailer").orEmpty()
+
     fun parseXmltv(
         serverId: Long,
         xml: String,

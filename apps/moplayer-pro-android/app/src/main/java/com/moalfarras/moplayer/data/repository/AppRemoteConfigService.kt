@@ -28,6 +28,7 @@ class AppRemoteConfigService {
                 privacyUrl = config.optString("privacyUrl", "https://moalfarras.space/privacy"),
                 syncIntervalMinutes = config.optInt("syncIntervalMinutes", 60).coerceIn(15, 360),
                 sourceProtocolFallback = config.optBoolean("sourceProtocolFallback", true),
+                trailerPreviewEnabled = config.optBoolean("trailerPreviewEnabled", true),
                 footballProviderMode = config.optString("footballProviderMode", "auto").ifBlank { "auto" },
                 weatherEnabled = config.optJSONObject("widgets")?.optBoolean("weather", true) ?: true,
                 footballEnabled = config.optJSONObject("widgets")?.optBoolean("football", true) ?: true,
@@ -97,6 +98,8 @@ data class AppRemoteConfig(
     val privacyUrl: String = "https://moalfarras.space/privacy",
     val syncIntervalMinutes: Int = 60,
     val sourceProtocolFallback: Boolean = true,
+    /** Admin master switch for the focus-dwell trailer preview (provider trailer + YouTube fallback). */
+    val trailerPreviewEnabled: Boolean = true,
     val footballProviderMode: String = "auto",
     val weatherEnabled: Boolean = true,
     val footballEnabled: Boolean = true,

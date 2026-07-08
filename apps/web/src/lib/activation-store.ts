@@ -59,6 +59,24 @@ async function redisDel(...keys: string[]): Promise<void> {
   if (real.length) await redis(["DEL", ...real]);
 }
 
+/**
+ * Atomically increment a counter and set its TTL on first use. Returns the new count, or null when
+ * Upstash is not configured (caller then applies no enforcement rather than failing closed). Used
+ * for a global daily budget (e.g. capping paid YouTube search-quota spend across all devices).
+ */
+export async function incrementDailyCounter(key: string, ttlSeconds: number): Promise<number | null> {
+  if (!activationStoreUsesRedis()) return null;
+  try {
+    const count = await redis<number>(["INCR", key]);
+    if (count === 1 && ttlSeconds > 0) {
+      await redis(["EXPIRE", key, String(Math.ceil(ttlSeconds))]);
+    }
+    return count;
+  } catch {
+    return null;
+  }
+}
+
 function secondsUntil(iso: string | undefined, fallbackSeconds: number): number {
   if (!iso) return fallbackSeconds;
   const ms = new Date(iso).getTime() - Date.now();

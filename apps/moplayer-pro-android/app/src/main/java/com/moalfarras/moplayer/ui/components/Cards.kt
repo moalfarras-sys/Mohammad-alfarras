@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,9 +49,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import coil3.size.Size
 import com.moalfarras.moplayerpro.BuildConfig
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import com.moalfarras.moplayerpro.R
@@ -79,6 +82,13 @@ private val LaneBringIntoViewSpec = object : BringIntoViewSpec {
 // ─────────────────────────────────────────────────────────────────────────────
 // MEDIA POSTER — Premium Glass Card
 // ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Target decode size for poster art, provided from the device performance policy at the app
+ * root. Capping the decode (e.g. 320x480 on weak boxes) keeps bitmap memory + decode time low
+ * on a poster grid instead of decoding full-size art. Defaults to a mid value if not provided.
+ */
+val LocalPosterImageSize = staticCompositionLocalOf { Size(420, 640) }
+
 @Composable
 fun MediaPoster(
     item: MediaItem,
@@ -91,6 +101,7 @@ fun MediaPoster(
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
     val qualityBadge = remember(item.title, item.streamUrl) { item.qualityBadge() }
     val width = posterWidth ?: tv.posterWidth
     FocusGlow(
@@ -139,7 +150,9 @@ fun MediaPoster(
                             RoundedCornerShape(tv.cardRadius - 6.dp),
                         ),
                 ) {
-                    val posterModel = item.posterUrl.ifBlank { item.backdropUrl }.optimizedPosterUrl()
+                    val posterModel = remember(item.posterUrl, item.backdropUrl) {
+                        item.posterUrl.ifBlank { item.backdropUrl }.optimizedPosterUrl()
+                    }
                     if (posterModel.isBlank()) {
                         PosterFallback(
                             title = item.title,
@@ -219,7 +232,7 @@ fun MediaPoster(
                             .padding(horizontal = (9 * tv.factor).dp, vertical = (4 * tv.factor).dp),
                     ) {
                         Text(
-                            "● LIVE",
+                            "● ${strings.badgeLive}",
                             color = Color.White,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.ExtraBold,
@@ -250,7 +263,7 @@ fun MediaPoster(
                                 modifier = Modifier.size((10 * tv.factor).dp),
                             )
                             Text(
-                                "Catch-up",
+                                strings.badgeCatchup,
                                 color = visuals.textPrimary,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 maxLines = 1,
@@ -277,7 +290,7 @@ fun MediaPoster(
                                 modifier = Modifier.size((11 * tv.factor).dp),
                             )
                             Text(
-                                if (item.type == ContentType.SERIES) "SERIES" else "VOD",
+                                if (item.type == ContentType.SERIES) strings.badgeSeries else strings.badgeVod,
                                 color = visuals.accent,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold),
                                 maxLines = 1,
@@ -304,7 +317,7 @@ fun MediaPoster(
                     }
                     item.addedAtLabel()?.let { addedLabel ->
                         Text(
-                            "Added $addedLabel",
+                            "${strings.addedPrefix} $addedLabel",
                             color = Color(0xB8FFFFFF),
                             style = MaterialTheme.typography.labelSmall,
                             maxLines = 1,
@@ -447,6 +460,7 @@ fun ChannelRow(
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
     FocusGlow(
         modifier = modifier.fillMaxWidth().height((58 * tv.factor).dp),
         cornerRadius = tv.cardRadius,
@@ -509,7 +523,7 @@ fun ChannelRow(
                     )
                     val meta = buildList {
                         if (item.serverOrder != Int.MAX_VALUE) add("#${item.serverOrder}")
-                        item.addedAtLabel()?.let { add("Added $it") }
+                        item.addedAtLabel()?.let { add("${strings.addedPrefix} $it") }
                         if (item.categoryName.isNotBlank()) add(item.categoryName)
                     }.joinToString(" • ")
                     if (meta.isNotBlank()) {
@@ -541,7 +555,7 @@ fun ChannelRow(
                                 modifier = Modifier.size((13 * tv.factor).dp),
                             )
                             Text(
-                                "Catch-up",
+                                strings.badgeCatchup,
                                 color = visuals.textPrimary,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 maxLines = 1,
@@ -596,9 +610,11 @@ private fun RemotePosterImage(
         )
     } else {
         val context = LocalContext.current
-        val request = remember(context, model) {
+        val posterSize = LocalPosterImageSize.current
+        val request = remember(context, model, posterSize) {
             ImageRequest.Builder(context)
                 .data(model)
+                .size(posterSize)
                 .memoryCacheKey(model)
                 .diskCacheKey(model)
                 .build()
@@ -742,6 +758,7 @@ private fun GlassSectionTitle(title: String) {
 fun SurpriseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
     val buttonHeight = if (tv.isLowHeightLandscape) 48.dp else (64 * tv.factor).dp
     FocusGlow(
         modifier = modifier
@@ -786,7 +803,7 @@ fun SurpriseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
                     modifier = Modifier.size((20 * tv.factor).dp),
                 )
                 Text(
-                    "Quick play",
+                    strings.quickPlay,
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                 )

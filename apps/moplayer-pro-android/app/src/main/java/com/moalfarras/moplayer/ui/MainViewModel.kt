@@ -139,6 +139,9 @@ class MainViewModel(
     private var seriesPrefetchKey = ""
     private var moviePrefetchJob: Job? = null
     private var moviePrefetchKey = ""
+    private var liveDnsPrewarmJob: Job? = null
+    private var liveDnsPrewarmKey = ""
+    private val prewarmedHosts = java.util.Collections.synchronizedSet(mutableSetOf<String>())
     private var restoredLastSection = false
     private var startupRefreshKey = ""
     private var lastFocusUpdateAt = 0L
@@ -603,6 +606,7 @@ class MainViewModel(
         }
         scheduleSeriesDetailsPrefetch(item)
         scheduleMovieDetailsPrefetch(item)
+        scheduleLiveDnsPrewarm(item)
     }
 
     private fun scheduleSeriesDetailsPrefetch(item: MediaItem?) {
@@ -651,6 +655,34 @@ class MainViewModel(
                 ?: return@launch
             if (server.kind != LoginKind.XTREAM) return@launch
             runCatching { iptv.refreshVodDetails(server, movieItem) }
+        }
+    }
+
+    /**
+     * Warm the OS DNS cache for a focused live channel's stream host so pressing OK skips the
+     * DNS lookup and the channel opens faster. Crucially this only RESOLVES the host — it opens
+     * no socket/stream — so it never consumes a provider's (often single) connection slot.
+     * Providers usually serve every channel from one host, so this resolves once per session.
+     */
+    private fun scheduleLiveDnsPrewarm(item: MediaItem?) {
+        val liveItem = item?.takeIf { it.type == ContentType.LIVE }
+        if (liveItem == null) {
+            liveDnsPrewarmKey = ""
+            liveDnsPrewarmJob?.cancel()
+            liveDnsPrewarmJob = null
+            return
+        }
+        val host = runCatching { java.net.URI(liveItem.streamUrl).host }.getOrNull()
+            ?.takeIf { it.isNotBlank() } ?: return
+        if (host in prewarmedHosts) return
+        if (host == liveDnsPrewarmKey && liveDnsPrewarmJob?.isActive == true) return
+        liveDnsPrewarmKey = host
+        liveDnsPrewarmJob?.cancel()
+        liveDnsPrewarmJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            delay(LIVE_DNS_PREWARM_DELAY_MS)
+            if (!internal.value.focusedItem.matchesMedia(liveItem)) return@launch
+            runCatching { java.net.InetAddress.getAllByName(host) }
+            prewarmedHosts.add(host)
         }
     }
 
@@ -1664,3 +1696,5 @@ private fun String.urlDecode(): String =
 private const val SMART_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000L
 private const val SERIES_DETAIL_PREFETCH_DELAY_MS = 380L
 private const val MOVIE_DETAIL_PREFETCH_DELAY_MS = 520L
+// Short settle delay so quickly scrolling past channels doesn't fire a DNS resolve for each.
+private const val LIVE_DNS_PREWARM_DELAY_MS = 250L

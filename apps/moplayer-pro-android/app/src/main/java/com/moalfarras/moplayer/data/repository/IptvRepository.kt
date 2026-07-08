@@ -62,6 +62,11 @@ internal const val SERIES_DETAIL_WRITE_BATCH_SIZE = 1_000
 private const val LIBRARY_PAGING_MAX_PAGES = 10
 private const val SERIES_DETAIL_FETCH_ATTEMPTS = 2
 private const val SERIES_DETAIL_RETRY_DELAY_MS = 450L
+// Bulk Xtream list calls (get_live_streams / get_vod_streams / get_series) are the heaviest
+// requests of a sync; a single transient timeout used to abort the whole section. Retry them a
+// few times with linear backoff so a flaky/overloaded panel does not force a full re-login.
+private const val BULK_FETCH_ATTEMPTS = 3
+private const val BULK_FETCH_BACKOFF_MS = 1_500L
 private const val VOD_DETAIL_STALE_MS = 7L * 24L * 60L * 60L * 1000L
 
 internal fun largeLibraryPagingConfig(
@@ -1327,8 +1332,13 @@ class IptvRepository(
         val (categories, items) = coroutineScope {
             val categoriesDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to categoryAction)) }
             val streamsDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to streamAction)) }
-            val parsedCategories = XtreamSupport.parseCategories(json, serverId, type, categoriesDeferred.await())
-            parsedCategories to parseItems(parsedCategories, streamsDeferred.await())
+            val categoriesArray = categoriesDeferred.await()
+            val streamsArray = streamsDeferred.await()
+            // Map the JSON off the caller's (Main) dispatcher — see loadXtream note.
+            withContext(Dispatchers.Default) {
+                val parsedCategories = XtreamSupport.parseCategories(json, serverId, type, categoriesArray)
+                parsedCategories to parseItems(parsedCategories, streamsArray)
+            }
         }
         ensureXtreamSectionIsComplete(type, categories, items)
         val now = System.currentTimeMillis()
@@ -1454,27 +1464,38 @@ class IptvRepository(
         val vodDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to "get_vod_streams")) }
         progress(LoadProgress("Loading series", 62, 100))
         val seriesDeferred = async { playerApiArray(api, credentials.username, credentials.password, mapOf("action" to "get_series")) }
-        val liveItems = XtreamSupport.parseLiveStreams(
-            json = json,
-            serverId = serverId,
-            credentials = credentials,
-            allowedFormats = accountSnapshot.allowedOutputFormats,
-            categories = liveCategories.associate { it.id to it.name },
-            array = liveDeferred.await(),
-        )
-        val vodItems = XtreamSupport.parseVodStreams(
-            json = json,
-            serverId = serverId,
-            credentials = credentials,
-            categories = vodCategories.associate { it.id to it.name },
-            array = vodDeferred.await(),
-        )
-        val seriesItems = XtreamSupport.parseSeries(
-            json = json,
-            serverId = serverId,
-            categories = seriesCategories.associate { it.id to it.name },
-            array = seriesDeferred.await(),
-        )
+        // Parse the large Xtream arrays (tens of thousands of items) off the caller's
+        // dispatcher. Interactive login/refresh collect on Dispatchers.Main, and walking three
+        // big JSON trees + mapping ~80k objects there froze the UI / risked ANR on weak Android
+        // TV boxes. Await the (IO-backed) network first, then map on Dispatchers.Default.
+        val liveArray = liveDeferred.await()
+        val vodArray = vodDeferred.await()
+        val seriesArray = seriesDeferred.await()
+        val (liveItems, vodItems, seriesItems) = withContext(Dispatchers.Default) {
+            Triple(
+                XtreamSupport.parseLiveStreams(
+                    json = json,
+                    serverId = serverId,
+                    credentials = credentials,
+                    allowedFormats = accountSnapshot.allowedOutputFormats,
+                    categories = liveCategories.associate { it.id to it.name },
+                    array = liveArray,
+                ),
+                XtreamSupport.parseVodStreams(
+                    json = json,
+                    serverId = serverId,
+                    credentials = credentials,
+                    categories = vodCategories.associate { it.id to it.name },
+                    array = vodArray,
+                ),
+                XtreamSupport.parseSeries(
+                    json = json,
+                    serverId = serverId,
+                    categories = seriesCategories.associate { it.id to it.name },
+                    array = seriesArray,
+                ),
+            )
+        }
         ensureXtreamSectionIsComplete(ContentType.LIVE, liveCategories, liveItems)
         ensureXtreamSectionIsComplete(ContentType.MOVIE, vodCategories, vodItems)
         ensureXtreamSectionIsComplete(ContentType.SERIES, seriesCategories, seriesItems)
@@ -1567,9 +1588,24 @@ class IptvRepository(
 
     private suspend fun rawPlayerElement(api: XtreamService, query: Map<String, String>): JsonElement =
         withContext(Dispatchers.IO) {
-            // API 23 can throw from kotlinx.serialization's stream decoder on some TV images.
-            // Decode from a materialized body so old Android TV boxes can sync Xtream reliably.
-            api.rawPlayerApi(query).use { body -> json.parseToJsonElement(body.string()) }
+            var lastFailure: Throwable? = null
+            repeat(BULK_FETCH_ATTEMPTS) { attempt ->
+                try {
+                    // API 23 can throw from kotlinx.serialization's stream decoder on some TV
+                    // images. Decode from a materialized body so old Android TV boxes sync reliably.
+                    return@withContext api.rawPlayerApi(query).use { body -> json.parseToJsonElement(body.string()) }
+                } catch (throwable: Throwable) {
+                    if (throwable is CancellationException) throw throwable
+                    lastFailure = throwable
+                    // Only retry transient network failures (timeouts / dropped connections);
+                    // auth/parse failures fail fast so bad credentials are reported immediately.
+                    if (attempt == BULK_FETCH_ATTEMPTS - 1 || !throwable.isRetryableXtreamDetailFailure()) {
+                        throw throwable
+                    }
+                    delay(BULK_FETCH_BACKOFF_MS * (attempt + 1))
+                }
+            }
+            throw lastFailure ?: IllegalStateException("Xtream request failed")
         }
 
     private suspend fun playerApiObject(

@@ -265,13 +265,13 @@ fun HomeScreen(
                     }
                 }
                 if (homeContinue.isNotEmpty()) {
-                    item { MediaLane("Continue watching", homeContinue, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue", maxItems = HOME_SHELF_LIMIT) }
+                    item { MediaLane(strings.railContinueWatching, homeContinue, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue", maxItems = HOME_SHELF_LIMIT) }
                 }
                 if (homeMovies.isNotEmpty()) {
-                    item { MediaLane("Latest movies", homeMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies", maxItems = HOME_SHELF_LIMIT) }
+                    item { MediaLane(strings.railLatestMovies, homeMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies", maxItems = HOME_SHELF_LIMIT) }
                 }
                 if (homeSeries.isNotEmpty()) {
-                    item { MediaLane("Latest series", homeSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries", maxItems = HOME_SHELF_LIMIT) }
+                    item { MediaLane(strings.railLatestSeries, homeSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries", maxItems = HOME_SHELF_LIMIT) }
                 }
             }
             HomeNotificationOverlay(
@@ -321,15 +321,10 @@ fun HomeScreen(
     // ═══════════════════════════════════════════════════════════════════
     // TV / ANDROID TV LAYOUT — Cinematic 2026 with Atmospheric Weather
     // ═══════════════════════════════════════════════════════════════════
-    val tvZone = remember(weather.timeZoneId) { weather.timeZoneId.toZoneId() }
-    var tvNow by remember(tvZone) { mutableStateOf(ZonedDateTime.now(tvZone)) }
-    LaunchedEffect(tvZone) {
-        while (true) {
-            kotlinx.coroutines.delay(1000)
-            tvNow = ZonedDateTime.now(tvZone)
-        }
-    }
-    val tvClock = tvNow.format(DateTimeFormatter.ofPattern("HH:mm"))
+    // (Removed a dead per-second clock ticker here: it recomposed the whole Home screen
+    // every second on TV yet its output was never rendered — the visible hero clock is
+    // driven by HeroWeatherInline's own ticker. Letting Home reach idle avoids constant
+    // wasted redraws on weak boxes.)
     val tvListState = rememberLazyListState()
     val tvRestoreIndex = remember(
         restoreFocusItem,
@@ -418,13 +413,13 @@ fun HomeScreen(
                 }
             }
             if (homeContinue.isNotEmpty()) {
-                item { MediaLane("Resume", homeContinue, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue", maxItems = HOME_SHELF_LIMIT, compact = true, showTitle = false, posterWidthOverride = (94 * tv.factor).dp) }
+                item { MediaLane(strings.railResume, homeContinue, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue", maxItems = HOME_SHELF_LIMIT, compact = true, showTitle = false, posterWidthOverride = (94 * tv.factor).dp) }
             }
             if (homeMovies.isNotEmpty()) {
-                item { MediaLane("Movies", homeMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies", maxItems = HOME_SHELF_LIMIT, compact = true) }
+                item { MediaLane(strings.navMovies, homeMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies", maxItems = HOME_SHELF_LIMIT, compact = true) }
             }
             if (homeSeries.isNotEmpty()) {
-                item { MediaLane("Series", homeSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries", maxItems = HOME_SHELF_LIMIT, compact = true) }
+                item { MediaLane(strings.navSeries, homeSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries", maxItems = HOME_SHELF_LIMIT, compact = true) }
             }
         }
         // Top scrim keeps the boxless hero readable as content scrolls beneath it.

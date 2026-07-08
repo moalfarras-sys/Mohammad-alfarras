@@ -210,6 +210,7 @@ private fun MoPlayerApp(
     CompositionLocalProvider(
         LocalLayoutDirection provides if (appLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
         LocalStrings provides stringsFor(appLanguage),
+        com.moalfarras.moplayer.ui.components.LocalPosterImageSize provides performancePolicy.posterImageSize,
     ) {
     MoTheme(accent = accent) {
         BackHandler {

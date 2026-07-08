@@ -3,6 +3,7 @@ package com.moalfarras.moplayer.data.network
 import android.os.Build
 import com.moalfarras.moplayerpro.BuildConfig
 import kotlinx.serialization.json.Json
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -20,8 +21,26 @@ object NetworkModule {
         explicitNulls = false
     }
 
+    // A stable, player-style identity for provider ingestion (Xtream player_api, M3U, xmltv).
+    // Many IPTV panels reject the default "okhttp/x.y" agent as a bot; sending an explicit UA
+    // that matches the playback identity keeps sync and playback consistent, so a panel that
+    // allows one allows the other. Only applied when the request has no User-Agent already,
+    // so per-stream/player-set agents are never overridden.
+    private const val INGEST_USER_AGENT =
+        "MoPlayerPro/${BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
+
+    private val userAgentInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        if (request.header("User-Agent") != null) {
+            chain.proceed(request)
+        } else {
+            chain.proceed(request.newBuilder().header("User-Agent", INGEST_USER_AGENT).build())
+        }
+    }
+
     val okHttp: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .addInterceptor(userAgentInterceptor)
             .connectTimeout(12, TimeUnit.SECONDS)
             // readTimeout is the max gap between bytes, not the total transfer time, so a
             // healthy multi-MB Xtream sync or video segment keeps flowing without tripping
@@ -79,6 +98,20 @@ object NetworkModule {
             .build()
     }
 
+    // Client for the app's own API (moalfarras.space). Its modern Let's Encrypt / ISRG chain is
+    // covered by res/xml/network_security_config (which bundles the ISRG root) on API 24+, but
+    // Network Security Config is unsupported on API < 24 — there the stale system CA store
+    // rejects the chain ("Trust anchor for certification path not found"), which broke QR
+    // activation, device config, and downloads on Android 6.0 (API 23) TV boxes. Trust the app
+    // host on those legacy devices so those features work there too.
+    private val webApiOkHttp: OkHttpClient by lazy {
+        if (Build.VERSION.SDK_INT < 24) {
+            okHttp.newBuilder().trustLegacyTvCertificates().build()
+        } else {
+            okHttp
+        }
+    }
+
     private fun OkHttpClient.Builder.trustLegacyTvCertificates(): OkHttpClient.Builder {
         val trustManager = object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
@@ -104,7 +137,7 @@ object NetworkModule {
     val webWeatherService: WebWeatherService by lazy { retrofit("https://example.com/").create(WebWeatherService::class.java) }
     val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
     val webApiService: SupabaseService by lazy {
-        retrofit(WebApiEndpoint.primaryBaseUrl.ifBlank { "https://moalfarras.space" }).create(SupabaseService::class.java)
+        retrofit(WebApiEndpoint.primaryBaseUrl.ifBlank { "https://moalfarras.space" }, webApiOkHttp).create(SupabaseService::class.java)
     }
 
     val sportsDbService: SportsDbService by lazy {

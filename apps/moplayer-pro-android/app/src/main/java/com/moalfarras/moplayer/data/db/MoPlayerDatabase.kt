@@ -538,20 +538,6 @@ abstract class MoPlayerDatabase : RoomDatabase() {
             return@withTransaction
         }
         val playbackState = mediaDao().playbackState(serverId).associateBy { "${it.type.name}:${it.id}" }
-        val mergedMedia = media.map { item ->
-            val key = "${item.type.name}:${item.id}"
-            val previous = playbackState[key]
-            if (previous == null) {
-                item
-            } else {
-                item.copy(
-                    isFavorite = previous.isFavorite,
-                    watchPositionMs = previous.watchPositionMs,
-                    watchDurationMs = previous.watchDurationMs,
-                    lastPlayedAt = previous.lastPlayedAt,
-                )
-            }
-        }
         categoryDao().deleteForServer(serverId)
         mediaDao().deleteForServer(serverId)
         mediaSearchDao().deleteForServer(serverId)
@@ -561,9 +547,26 @@ abstract class MoPlayerDatabase : RoomDatabase() {
         seasonDao().deleteForServer(serverId)
         syncStateDao().deleteForServer(serverId)
         categoryDao().insertAll(categories)
-        mergedMedia.chunked(5_000).forEach { chunk ->
-            mediaDao().insertAll(chunk)
-            mediaSearchDao().insertAll(chunk.map { it.toSearchEntity() })
+        // Apply the favorite/watch-position overlay per chunk during insertion instead of
+        // building a full second copy of the whole catalog first. On a 40k+ item library this
+        // keeps only a 5k-item copy live at a time, cutting peak memory + GC so a background
+        // sync does not stutter the UI the user is browsing.
+        media.chunked(5_000).forEach { chunk ->
+            val mergedChunk = chunk.map { item ->
+                val previous = playbackState["${item.type.name}:${item.id}"]
+                if (previous == null) {
+                    item
+                } else {
+                    item.copy(
+                        isFavorite = previous.isFavorite,
+                        watchPositionMs = previous.watchPositionMs,
+                        watchDurationMs = previous.watchDurationMs,
+                        lastPlayedAt = previous.lastPlayedAt,
+                    )
+                }
+            }
+            mediaDao().insertAll(mergedChunk)
+            mediaSearchDao().insertAll(mergedChunk.map { it.toSearchEntity() })
         }
         if (accountInfo != null) accountInfoDao().upsert(accountInfo)
         if (serverInfo != null) serverInfoDao().upsert(serverInfo)

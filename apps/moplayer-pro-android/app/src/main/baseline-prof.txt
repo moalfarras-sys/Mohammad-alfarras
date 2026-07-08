@@ -1,0 +1,17 @@
+# Baseline profile for MoPlayer Pro — AOT-compiles the app's own hot paths so cold start,
+# first browse scroll, and player start are faster on weak/old Android TV. Installed at
+# first run by androidx.profileinstaller (already a dependency); consumed by ART on API 24+.
+#
+# NOTE: This is a hand-authored blanket profile over the app package (the heavy Compose /
+# Media3 / Room dependencies already ship their own generated profiles). For a fully
+# optimal, method-precise profile, generate one with a Macrobenchmark BaselineProfileGenerator
+# run on an API 31+ device/emulator and replace this file with the generated output.
+#
+# Format: H=Hot, S=Startup, P=Post-startup; L… is the class descriptor; ** matches any
+# characters including '/'.
+
+# All app methods marked hot + startup + post-startup.
+HSPLcom/moalfarras/moplayer/**;->**(**)**
+
+# Ensure the app classes themselves are included in the profile image.
+Lcom/moalfarras/moplayer/**;

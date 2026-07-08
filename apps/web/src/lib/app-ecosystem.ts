@@ -259,25 +259,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-24",
+      id: "release-moplayer2-v2-6-0",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.24-full",
-      version_name: "2.5.24",
-      version_code: 62,
+      slug: "moplayer2-v2.6.0-full",
+      version_name: "2.6.0",
+      version_code: 63,
       release_notes:
-        "MoPlayer Pro 2.5.24 fixes cold-start M3U link imports, Android 6 Xtream JSON sync, and old-TV HTTPS playback. It keeps the 2.5.23 Xtream/M3U/QR source loading, URL normalization, smart first-run loading, and VOD detail refresh improvements.",
+        "MoPlayer Pro 2.6.0 adds an in-app trailer preview: after a few seconds on a movie or series, a muted trailer autoplays inside the preview pane (the provider's trailer or a YouTube search result), inline without leaving the app, with an admin on/off toggle. It also fixes Arabic typography (Cairo) and polishes the smart assistant, and keeps all 2.5.24 source-loading, sync and playback improvements.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-24-universal",
-          release_id: "release-moplayer2-v2-5-24",
+          id: "asset-moplayer2-v2-6-0-universal",
+          release_id: "release-moplayer2-v2-6-0",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-release.apk",
-          file_size_bytes: 49276472,
-          checksum_sha256: "3f63482fcb021c8fc6c9eb9ff79e02b43b75fe71932e8958eaf1f7a91bf8dd67",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.0/app-universal-release.apk",
+          file_size_bytes: 49436375,
+          checksum_sha256: "28c351262b7692d93fac1edac01efb38260f395fb7a15d9781dc0f1fc40caead",
         },
       ],
     },

@@ -14,6 +14,14 @@
 -dontwarn retrofit2.**
 -dontwarn okhttp3.internal.platform.**
 
+# ── WebView JavaScript bridge (trailer preview IFrame) ───────────────
+# The trailer WebView's @JavascriptInterface methods (onPlaying/onError) are
+# only ever invoked from JS, so shrinking/obfuscation would otherwise drop or
+# rename them and the trailer would never reveal or fall back. Keep them intact.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
 # ── Media3 / ExoPlayer ───────────────────────────────────────────────
 -keep class androidx.media3.** { *; }
 

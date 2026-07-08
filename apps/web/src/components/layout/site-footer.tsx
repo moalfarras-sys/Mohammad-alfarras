@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp } from "lucide-react";
 
+import { AssistantTrigger } from "@/components/site/assistant-trigger";
 import { socialLinks } from "@/content/site";
 import type { Locale } from "@/types/cms";
 
@@ -26,10 +27,10 @@ export function SiteFooter({
   const isAr = locale === "ar";
   const year = new Date().getFullYear();
   const productLinks = [
+    { id: "apps", label: isAr ? "كل التطبيقات" : "All apps", href: `/${locale}/apps` },
     { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "activate", label: isAr ? "التفعيل" : "Activate", href: `/${locale}/activate` },
     { id: "support", label: isAr ? "الدعم" : "Support", href: `/${locale}/support` },
-    { id: "assistant", label: "Mo Ai", href: `/${locale}/ai` },
   ];
   // Privacy + Impressum always appear (Impressum is a legal requirement for a
   // Germany-based commercial site); any extra published legal links follow.
@@ -72,7 +73,7 @@ export function SiteFooter({
           <div className="fresh-footer-grid">
             <div>
               <p className="fresh-eyebrow">{isAr ? "التنقل" : "Navigation"}</p>
-              {links.slice(0, 6).map((item) => (
+              {links.map((item) => (
                 <Link key={item.id} href={item.href} prefetch={false}>
                   {item.label}
                 </Link>
@@ -85,6 +86,7 @@ export function SiteFooter({
                   {item.label}
                 </Link>
               ))}
+              <AssistantTrigger className="mo-ai-inline-trigger">Mo AI</AssistantTrigger>
             </div>
             <div>
               <p className="fresh-eyebrow">{isAr ? "القنوات" : "Channels"}</p>

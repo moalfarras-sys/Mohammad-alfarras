@@ -1044,16 +1044,23 @@ async function getFallbackFootballMatches(config: FootballRuntimeConfig): Promis
   return null;
 }
 
+// CDN cache for data-bearing responses: absorbs the TV widgets polling in lockstep
+// without hammering the upstream providers, while staying fresh enough for live scores.
+const FOOTBALL_CACHE_HEADERS = { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" };
+
 export async function GET() {
   const config = await readFootballRuntimeConfig();
   if (config.providerMode === "off") {
-    return NextResponse.json({ primaryMatch: null, matches: [], recentResults: [], upcomingFixtures: [], source: "disabled", newsMessage: config.newsMessage });
+    return NextResponse.json(
+      { primaryMatch: null, matches: [], recentResults: [], upcomingFixtures: [], source: "disabled", newsMessage: config.newsMessage },
+      { headers: FOOTBALL_CACHE_HEADERS },
+    );
   }
 
   if (!config.sportmonksToken || config.providerMode === "free") {
     if (config.providerMode !== "paid") {
       const fallback = await getFallbackFootballMatches(config);
-      if (fallback) return NextResponse.json(fallback);
+      if (fallback) return NextResponse.json(fallback, { headers: FOOTBALL_CACHE_HEADERS });
     }
     return NextResponse.json({
       primaryMatch: null,
@@ -1118,11 +1125,11 @@ export async function GET() {
       source: "sportmonks",
       mode: liveMatches.length > 0 ? "live" : "results",
       newsMessage: config.newsMessage,
-    });
+    }, { headers: FOOTBALL_CACHE_HEADERS });
   } catch {
     if (config.providerMode !== "paid") {
       const fallback = await getFallbackFootballMatches(config);
-      if (fallback) return NextResponse.json(fallback);
+      if (fallback) return NextResponse.json(fallback, { headers: FOOTBALL_CACHE_HEADERS });
     }
     return NextResponse.json({
       primaryMatch: null,

@@ -142,6 +142,23 @@ export function downloadEventFromRequest(
   };
 }
 
+const botUserAgent =
+  /bot|crawl|spider|slurp|curl\/|wget\/|python-requests|httpx\/|axios\/|headless|monitor|uptime|pingdom|facebookexternalhit|preview/i;
+
+/**
+ * The counter should reflect real user downloads, not router prefetches,
+ * HEAD-style probes, or crawler hits on the redirect endpoint.
+ */
+export function shouldCountDownload(request: Request): boolean {
+  if (request.method !== "GET") return false;
+  if (request.headers.get("next-router-prefetch") || request.headers.get("x-middleware-prefetch")) return false;
+  const purpose = request.headers.get("purpose") || request.headers.get("sec-purpose") || "";
+  if (purpose.includes("prefetch")) return false;
+  const userAgent = request.headers.get("user-agent") || "";
+  if (!userAgent || botUserAgent.test(userAgent)) return false;
+  return true;
+}
+
 export async function recordDownload(slug: string, platform?: string | null, event?: DownloadEventInput): Promise<void> {
   const normalizedPlatform = normalizePlatform(platform);
   try {

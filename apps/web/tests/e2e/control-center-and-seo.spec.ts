@@ -8,7 +8,7 @@ test.describe("public site smoke", () => {
     await expect(
       page.getByRole("navigation").first().getByRole("link", { name: "AI", exact: true }),
     ).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /فتح مساعد Mo Ai/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /تحدّث مع Mo AI/ })).toBeVisible();
   });
 
   test("English work surface loads", async ({ page }) => {
@@ -21,7 +21,7 @@ test.describe("public site smoke", () => {
     const caseStudyLink = page.locator(".work-spotlight-media");
     await expect(caseStudyLink).toHaveAttribute("href", /^\/en\/work\/.+/);
 
-    await page.getByRole("button", { name: /Ask Mo Ai about this project/i }).click();
+    await page.getByRole("button", { name: /Ask the assistant about this project/i }).click();
     await expect(page.locator(".mo-ai-panel")).toBeVisible();
     await expect(page.locator(".mo-ai-form input")).toHaveValue(/Explain the .+ project/, {
       timeout: 10_000,
@@ -97,20 +97,26 @@ test.describe("search indexing signals", () => {
     const response = await request.get("/ar/about");
     expect(response.ok()).toBe(true);
 
+    // The site is Arabic-first: x-default always points at the /ar variant.
     const body = await response.text();
-    expect(body).toContain('<link rel="canonical" href="https://moalfarras.space/ar/about"');
-    expect(body).toContain(
-      '<link rel="alternate" hrefLang="x-default" href="https://moalfarras.space/en/about"',
+    expect(body).toMatch(
+      /<link rel="canonical" href="https:\/\/moalfarras\.space\/ar\/about"/i,
+    );
+    expect(body).toMatch(
+      /<link rel="alternate" hreflang="x-default" href="https:\/\/moalfarras\.space\/ar\/about"/i,
+    );
+    expect(body).toMatch(
+      /<link rel="alternate" hreflang="en" href="https:\/\/moalfarras\.space\/en\/about"/i,
     );
   });
 
-  test("retired assistant pages permanently redirect to the localized home", async ({
+  test("retired assistant pages redirect home and auto-open the chat widget", async ({
     request,
   }) => {
     for (const locale of ["ar", "en"]) {
       const response = await request.get(`/${locale}/ai`, { maxRedirects: 0 });
-      expect(response.status()).toBe(308);
-      expect(response.headers().location).toBe(`/${locale}`);
+      expect(response.status()).toBe(307);
+      expect(response.headers().location).toBe(`/${locale}?ai=open`);
     }
   });
 });

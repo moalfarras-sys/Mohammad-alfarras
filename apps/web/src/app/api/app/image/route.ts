@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { rateLimit } from "@/lib/request-guard";
+
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const PRIVATE_HOST_PATTERNS = [
   /^localhost$/i,
@@ -46,6 +48,14 @@ async function fetchImageWithGuardedRedirects(initialUrl: string, init: RequestI
 }
 
 export async function GET(request: Request) {
+  // No host allowlist on purpose: both TV apps proxy user-playlist and Xtream
+  // artwork (stream_icon / movie_image / tvg-logo) from arbitrary provider hosts
+  // through this route (Pro Cards.kt optimizedPosterUrl, Classic ImageUrlNormalizer),
+  // so closing the host set would blank their posters. Abuse is contained instead
+  // by the per-IP rate limit plus the SSRF, image-only, size and timeout guards.
+  const limited = await rateLimit({ request, bucket: "app-image", limit: 60, windowSeconds: 60 });
+  if (limited) return limited;
+
   const target = new URL(request.url).searchParams.get("url")?.trim() ?? "";
   if (!isAllowedImageUrl(target)) {
     return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });

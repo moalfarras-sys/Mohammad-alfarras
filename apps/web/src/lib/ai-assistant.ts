@@ -74,7 +74,8 @@ export function normalizeMessages(value: unknown): AssistantMessage[] {
     .map((item) => {
       if (!item || typeof item !== "object") return null;
       const role = "role" in item ? String(item.role) : "";
-      const content = "content" in item ? String(item.content ?? "").trim() : "";
+      // Cap each message so oversized bodies cannot burn LLM tokens/cost.
+      const content = "content" in item ? String(item.content ?? "").trim().slice(0, 2000) : "";
       if (!content || !["user", "assistant", "system"].includes(role)) return null;
       return { role: role as AssistantMessage["role"], content };
     })

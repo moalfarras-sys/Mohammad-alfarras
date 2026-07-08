@@ -11,6 +11,12 @@ type LimitInput = {
   windowSeconds: number;
 };
 
+// Rate limiting prefers Upstash Redis (atomic INCR + EXPIRE, self-expiring keys,
+// stays enforced during Supabase outages — the same store activation uses). The
+// Supabase path below remains only as a fallback for environments without Redis.
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
 function clientAddress(request: Request) {
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -26,8 +32,56 @@ function fingerprint(input: string) {
     .slice(0, 32);
 }
 
+async function redis<T = unknown>(command: (string | number)[]): Promise<T> {
+  const res = await fetch(UPSTASH_URL as string, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${UPSTASH_TOKEN as string}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(command),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`Upstash command failed: HTTP ${res.status}`);
+  }
+  const data = (await res.json()) as { result: T };
+  return data.result;
+}
+
+/** Returns a 429 response when limited, null when allowed or Redis unavailable but handled. */
+async function rateLimitWithRedis(key: string, input: LimitInput): Promise<NextResponse | null | "unavailable"> {
+  try {
+    const count = await redis<number>(["INCR", key]);
+    if (count === 1) {
+      await redis(["EXPIRE", key, String(input.windowSeconds)]);
+    }
+    if (count > input.limit) {
+      let ttl = await redis<number>(["TTL", key]);
+      if (ttl < 0) {
+        // A lost EXPIRE would otherwise lock the bucket forever — re-arm it.
+        await redis(["EXPIRE", key, String(input.windowSeconds)]);
+        ttl = input.windowSeconds;
+      }
+      return NextResponse.json(
+        { ok: false, error: "rate_limited", retryAfterSeconds: Math.max(1, ttl) },
+        { status: 429 },
+      );
+    }
+    return null;
+  } catch {
+    return "unavailable";
+  }
+}
+
 export async function rateLimit(input: LimitInput): Promise<NextResponse | null> {
   const key = `rate_limit:${input.bucket}:${fingerprint(clientAddress(input.request))}`;
+
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    const verdict = await rateLimitWithRedis(key, input);
+    if (verdict !== "unavailable") return verdict;
+  }
+
   const now = Date.now();
   const resetAt = now + input.windowSeconds * 1000;
 

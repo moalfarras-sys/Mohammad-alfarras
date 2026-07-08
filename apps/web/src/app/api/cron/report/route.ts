@@ -50,12 +50,14 @@ async function saveInboxReport(input: { title: string; body: string; payload: Re
  * by CRON_SECRET. Returns the compiled numbers so it can be verified directly.
  */
 export async function GET(request: Request) {
-  // Only Vercel Cron (which sets x-vercel-cron) or a caller with CRON_SECRET
-  // may trigger this — otherwise the public URL could be hit to spam the inbox.
+  // Vercel Cron sends `Authorization: Bearer CRON_SECRET` automatically when the
+  // env var is set, so the bearer check is the only trustworthy gate — anyone can
+  // spoof an x-vercel-cron header and spam the inbox through the public URL.
   const secret = process.env.CRON_SECRET;
-  const isVercelCron = request.headers.get("x-vercel-cron") !== null;
-  const hasSecret = Boolean(secret) && request.headers.get("authorization") === `Bearer ${secret}`;
-  if (!isVercelCron && !hasSecret) {
+  if (!secret) {
+    return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 503 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

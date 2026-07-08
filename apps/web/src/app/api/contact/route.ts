@@ -114,6 +114,10 @@ export async function POST(request: Request) {
       } catch (error) {
         attachment = { ...base, error: error instanceof Error ? error.message : "upload failed" };
       }
+    } else {
+      // Storage env missing: still record that a valid file arrived so the owner
+      // email/DB shows the attachment instead of silently dropping it.
+      attachment = { ...base, error: "storage-not-configured" };
     }
   }
 

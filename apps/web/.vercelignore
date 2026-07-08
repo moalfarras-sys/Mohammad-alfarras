@@ -14,3 +14,4 @@ keystore.properties
 *.keystore
 *.jks
 
+public/downloads/**/*.apk

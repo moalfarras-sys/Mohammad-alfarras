@@ -124,6 +124,7 @@ export default async function MoPlayerClassicRoute({
   ]);
   const software = softwareApplicationJsonLd({
     locale: loc,
+    path: "apps/moplayer/classic",
     name: "MoPlayer Classic",
     description: meta.description,
     version: latest?.version_name || "v2 full",

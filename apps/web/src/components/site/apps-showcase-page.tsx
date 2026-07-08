@@ -162,6 +162,7 @@ export function AppsShowcasePage({
   siteImages,
   appVisuals,
   downloadStats,
+  classicAvailable = true,
 }: {
   locale: Locale;
   siteImages?: Record<string, string>;
@@ -171,9 +172,14 @@ export function AppsShowcasePage({
     pc?: AppVisual;
   };
   downloadStats?: DownloadSummary;
+  classicAvailable?: boolean;
 }) {
   const c = repairMojibakeDeep(copy[locale]);
   const isAr = locale === "ar";
+  // Mirrors moplayer-landing: when the classic runtime config disables the app
+  // or turns on maintenance, download CTAs become inert chips.
+  const releasePendingLabel = isAr ? "تحت الصيانة" : "Release pending";
+  const classicDownloadHref = "/api/app/download/latest?product=moplayer";
   const appsHero = siteImages?.apps_hero?.trim() || "/images/moplayer-hero-3d-final.png";
   const appsHeroIcon = appVisuals?.pro?.icon || appVisuals?.classic?.icon || appVisuals?.pc?.icon || "/images/moplayer-icon-512.png";
   const downloadMetricLabel = isAr ? "تحميلات رسمية" : "official downloads";
@@ -377,10 +383,26 @@ export function AppsShowcasePage({
                       </span>
                     ) : null}
                   </div>
-                  <Link href={app.href.startsWith("/api/") ? app.href : withLocale(locale, app.href)} className="apps-card-link">
-                    {app.href.startsWith("/api/") ? <Download className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
-                    {app.cta}
-                  </Link>
+                  {app.href.startsWith("/api/") ? (
+                    // Plain <a>: a Next Link would prefetch the download API and
+                    // inflate the counter without a real click.
+                    classicAvailable ? (
+                      <a href={app.href} className="apps-card-link">
+                        <Download className="h-4 w-4" />
+                        {app.cta}
+                      </a>
+                    ) : (
+                      <span className="apps-card-link" aria-disabled="true">
+                        <Download className="h-4 w-4" />
+                        {releasePendingLabel}
+                      </span>
+                    )
+                  ) : (
+                    <Link href={withLocale(locale, app.href)} className="apps-card-link">
+                      <ArrowUpRight className="h-4 w-4" />
+                      {app.cta}
+                    </Link>
+                  )}
                 </div>
               </motion.article>
             ))}
@@ -420,10 +442,19 @@ export function AppsShowcasePage({
               <KeyRound className="h-4 w-4" />
               {c.primary}
             </Link>
-            <Link href="/api/app/download/latest?product=moplayer" className="apps-button apps-button-ghost">
-              <Download className="h-4 w-4" />
-              {c.download}
-            </Link>
+            {classicAvailable ? (
+              // Plain <a>: a Next Link would prefetch the download API and
+              // inflate the counter without a real click.
+              <a href={classicDownloadHref} className="apps-button apps-button-ghost">
+                <Download className="h-4 w-4" />
+                {c.download}
+              </a>
+            ) : (
+              <span className="apps-button apps-button-ghost" aria-disabled="true">
+                <Download className="h-4 w-4" />
+                {releasePendingLabel}
+              </span>
+            )}
           </div>
         </section>
       </main>

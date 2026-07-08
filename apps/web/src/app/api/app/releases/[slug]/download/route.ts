@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { after, NextResponse } from "next/server";
 
 import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
-import { downloadEventFromRequest, productFromReleaseSlug, recordDownload } from "@/lib/download-counter";
+import { downloadEventFromRequest, productFromReleaseSlug, recordDownload, shouldCountDownload } from "@/lib/download-counter";
 
 export async function GET(
   request: Request,
@@ -48,18 +48,20 @@ export async function GET(
     redirectUrl = new URL(redirectUrl, origin).toString();
   }
 
-  after(() =>
-    recordDownload(
-      product,
-      null,
-      downloadEventFromRequest(request, {
-        releaseSlug: slug,
-        assetId: resolved.asset.id,
-        fileName: resolved.filename,
-        targetUrl: redirectUrl,
-      }),
-    ),
-  );
+  if (shouldCountDownload(request)) {
+    after(() =>
+      recordDownload(
+        product,
+        null,
+        downloadEventFromRequest(request, {
+          releaseSlug: slug,
+          assetId: resolved.asset.id,
+          fileName: resolved.filename,
+          targetUrl: redirectUrl,
+        }),
+      ),
+    );
+  }
   return NextResponse.redirect(redirectUrl, {
     headers: {
       "Cache-Control": "no-store",

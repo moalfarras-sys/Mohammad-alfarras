@@ -26,7 +26,6 @@ const localizedRoutes: RouteDef[] = [
   { path: "/apps/moplayer-ios", priority: 0.82, changeFrequency: "weekly" },
   { path: "/apps/moplayer-pc", priority: 0.86, changeFrequency: "weekly" },
   { path: "/youtube", priority: 0.8, changeFrequency: "weekly" },
-  { path: "/ai", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.7, changeFrequency: "monthly" },
   { path: "/support", priority: 0.55, changeFrequency: "monthly" },
   { path: "/privacy", priority: 0.45, changeFrequency: "yearly" },
@@ -69,17 +68,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // lists a /work/<slug> that 404s, nor hides a real one.
   const workModel = await buildSiteModel({ locale: "ar", slug: "work" });
   const seenSlugs = new Set<string>();
+  // The project model carries no per-project update date, so every /work URL
+  // shares the site-wide lastModified stamp.
   const projectRoutes = workModel.projects
     .filter((project) => project.slug && !seenSlugs.has(project.slug) && seenSlugs.add(project.slug))
-    .map((project) => ({ slug: project.slug, updatedAt: undefined as Date | undefined }));
+    .map((project) => ({ slug: project.slug }));
 
   const localizedProjects = (["ar", "en"] as const).flatMap((locale) =>
     projectRoutes.map<MetadataRoute.Sitemap[number]>((project) => ({
       url: `${BASE}/${locale}/work/${project.slug}`,
-      lastModified:
-        project.updatedAt && !Number.isNaN(project.updatedAt.getTime())
-          ? project.updatedAt
-          : new Date(siteLastModified),
+      lastModified: new Date(siteLastModified),
       changeFrequency: "monthly",
       priority: 0.82,
       alternates: {

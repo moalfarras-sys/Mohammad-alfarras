@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.core.Adaptive
@@ -32,7 +33,13 @@ data class TvScale(
 @Composable
 fun rememberTvScale(): TvScale {
     val configuration = LocalConfiguration.current
-    val isTv = Adaptive.isTv
+    val context = LocalContext.current
+    // Compute the TV/leanback check once per composition instance instead of on every
+    // recomposition. The @Composable Adaptive.isTv getter probes UiModeManager +
+    // PackageManager features (~4 system lookups); rememberTvScale runs in nearly every
+    // card, so doing this per recomposition made D-pad focus/scroll churn on weak boxes.
+    // Device form factor does not change during a session.
+    val isTv = remember(context) { Adaptive.isTv(context) }
     val w = configuration.screenWidthDp
     val h = configuration.screenHeightDp
     val shortest = minOf(w, h)
@@ -46,7 +53,10 @@ fun rememberTvScale(): TvScale {
             val factor = minOf(widthFactor, heightFactor).coerceIn(0.66f, 1.22f)
             TvScale(
                 factor = factor,
-                contentPadding = (30 * factor).dp,
+                // ~4% horizontal safe-area margin so edge posters/text are not clipped by
+                // the overscan on older Android TVs (5% is the platform guideline; 30dp≈2.8%
+                // at 1080p was too tight). safeDrawingPadding covers insets, not TV overscan.
+                contentPadding = (42 * factor).dp,
                 dockPadding = (18 * factor).dp,
                 laneSpacing = (15 * factor).dp,
                 cardRadius = (16f * factor).coerceAtLeast(12f).dp,

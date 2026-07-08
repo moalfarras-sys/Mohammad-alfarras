@@ -182,6 +182,16 @@ private fun MoPlayerApp(
     val performancePolicy = remember(state.settings, devicePerformance) {
         Adaptive.performancePolicy(state.settings, devicePerformance)
     }
+    // The preview-pane trailer only resolves when the pane is on, motion isn't reduced, and the
+    // admin switch is enabled — so it never fires network on weak boxes where the pane is hidden.
+    val trailerPreviewCapable = performancePolicy.enablePreviewPane &&
+        !performancePolicy.reduceMotion &&
+        state.settings.trailerPreviewEnabled
+    LaunchedEffect(trailerPreviewCapable) { viewModel.setTrailerPreviewCapable(trailerPreviewCapable) }
+    val previewTrailer = remember(state.focusedTrailer) {
+        state.focusedTrailer?.let { com.moalfarras.moplayer.ui.components.PreviewTrailer(it.itemKey, it.youtubeId) }
+            ?: com.moalfarras.moplayer.ui.components.PreviewTrailer()
+    }
     var lastExitBackAt by remember { mutableLongStateOf(0L) }
 
     fun requestBack() {
@@ -210,6 +220,9 @@ private fun MoPlayerApp(
     CompositionLocalProvider(
         LocalLayoutDirection provides if (appLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
         LocalStrings provides stringsFor(appLanguage),
+        com.moalfarras.moplayer.ui.components.LocalPosterImageSize provides performancePolicy.posterImageSize,
+        com.moalfarras.moplayer.ui.components.LocalPreviewTrailer provides previewTrailer,
+        com.moalfarras.moplayer.ui.components.LocalTrailerErrorReporter provides viewModel::reportTrailerUnplayable,
     ) {
     MoTheme(accent = accent) {
         BackHandler {

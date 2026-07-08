@@ -512,6 +512,7 @@ export async function saveRuntimeConfigAction(formData: FormData) {
       backgroundUrl: String(formData.get("backgroundUrl") ?? "/images/moplayer-tv-banner-final.png"),
       syncIntervalMinutes: optionalNumber(formData, "syncIntervalMinutes"),
       sourceProtocolFallback: formData.get("sourceProtocolFallback") === "on",
+      trailerPreviewEnabled: formData.get("trailerPreviewEnabled") === "on",
       footballProviderMode: String(formData.get("footballProviderMode") ?? "").trim() || undefined,
       ...(footballLeagueIds ? { footballLeagueIds } : {}),
       ...(footballLeagueKeywords ? { footballLeagueKeywords } : {}),

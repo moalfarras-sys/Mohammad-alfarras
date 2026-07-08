@@ -14,8 +14,6 @@ const api: MoPlayerApi = {
     pickPlaylistFile: () => ipcRenderer.invoke("app:pickPlaylistFile"),
     openDataFolder: () => ipcRenderer.invoke("app:openDataFolder"),
     setAlwaysOnTop: (value: boolean) => ipcRenderer.invoke("app:setAlwaysOnTop", value),
-    startRecording: (url: string, suggestedName: string) => ipcRenderer.invoke("app:startRecording", url, suggestedName),
-    stopRecording: () => ipcRenderer.invoke("app:stopRecording"),
     checkWindowsUpdate: () => ipcRenderer.invoke("app:checkWindowsUpdate"),
     checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
     installUpdate: () => ipcRenderer.invoke("app:installUpdate"),
@@ -51,6 +49,7 @@ const api: MoPlayerApi = {
   },
   stream: {
     proxyUrl: (url: string) => ipcRenderer.invoke("stream:proxyUrl", url),
+    base: () => ipcRenderer.invoke("stream:base"),
   },
 };
 

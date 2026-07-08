@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Sideload distribution only: allows the in-app updater to install a newer
+         APK downloaded from the website. Google Play prohibits this, so it must
+         never be merged into the "play" flavor. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+</manifest>

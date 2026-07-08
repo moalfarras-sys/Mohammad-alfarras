@@ -134,7 +134,13 @@ export async function POST(request: Request) {
       tone: "info",
     });
     try {
-      if (hasSmtp) await sendMail({ to: email, subject: receiptSubject, text: receiptSubject, html: receiptHtml });
+      if (hasSmtp) {
+        await sendMail({ to: email, subject: receiptSubject, text: receiptSubject, html: receiptHtml });
+      } else if (hasResend && resendKey && resendFrom) {
+        const { Resend } = await import("resend");
+        const resend = new Resend(resendKey);
+        await resend.emails.send({ from: resendFrom, to: [email], subject: receiptSubject, html: receiptHtml });
+      }
     } catch {
       // receipt is best-effort
     }

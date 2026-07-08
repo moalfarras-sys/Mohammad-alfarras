@@ -12,7 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.moalfarras.moplayerpro.R
@@ -103,17 +105,31 @@ object MoMotion {
     val damping   = 0.62f // Spring damping ratio
 }
 
+// Latin brand faces (English / LTR UI).
 private val DisplayFamily = FontFamily(
     Font(R.font.manrope, FontWeight.ExtraBold),
     Font(R.font.manrope, FontWeight.Bold),
-    Font(R.font.cairo, FontWeight.Bold),
 )
 
 private val BodyFamily = FontFamily(
     Font(R.font.manrope, FontWeight.Medium),
     Font(R.font.manrope, FontWeight.SemiBold),
+)
+
+// Arabic faces (Cairo) for the RTL UI. Compose matches a FontFamily by weight ONLY, with no
+// per-script glyph fallback between fonts in the same family — so mixing Manrope (Latin-only) and
+// Cairo at the same weights silently shadowed Cairo and left Arabic on a system fallback. Selecting
+// a Cairo-only family for Arabic makes it actually render in Cairo; Cairo also covers Latin
+// (numbers, English titles), so mixed strings still shape correctly.
+private val ArabicDisplayFamily = FontFamily(
+    Font(R.font.cairo, FontWeight.ExtraBold),
+    Font(R.font.cairo, FontWeight.Bold),
+)
+
+private val ArabicBodyFamily = FontFamily(
     Font(R.font.cairo, FontWeight.Medium),
     Font(R.font.cairo, FontWeight.SemiBold),
+    Font(R.font.cairo, FontWeight.Bold),
 )
 
 private fun colors(accent: Color): ColorScheme = darkColorScheme(
@@ -132,20 +148,24 @@ private fun colors(accent: Color): ColorScheme = darkColorScheme(
     error              = Color(0xFFFF4D6D),
 )
 
-private fun appTypography(scale: Float) = Typography(
-    displayLarge   = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.ExtraBold, fontSize = (52 * scale).sp, lineHeight = (56 * scale).sp),
-    displayMedium  = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.ExtraBold, fontSize = (42 * scale).sp, lineHeight = (46 * scale).sp),
-    headlineLarge  = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.Bold,      fontSize = (34 * scale).sp, lineHeight = (38 * scale).sp),
-    headlineMedium = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.Bold,      fontSize = (28 * scale).sp, lineHeight = (32 * scale).sp),
-    titleLarge     = TextStyle(fontFamily = DisplayFamily, fontWeight = FontWeight.Bold,      fontSize = (22 * scale).sp, lineHeight = (26 * scale).sp),
-    titleMedium    = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.SemiBold,  fontSize = (18 * scale).sp, lineHeight = (22 * scale).sp),
-    bodyLarge      = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.Medium,    fontSize = (16 * scale).sp, lineHeight = (24 * scale).sp),
-    bodyMedium     = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.Medium,    fontSize = (14 * scale).sp, lineHeight = (21 * scale).sp),
-    bodySmall      = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.Medium,    fontSize = (12 * scale).sp, lineHeight = (18 * scale).sp),
-    labelLarge     = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.Bold,      fontSize = (15 * scale).sp, lineHeight = (18 * scale).sp),
-    labelMedium    = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.SemiBold,  fontSize = (13 * scale).sp, lineHeight = (16 * scale).sp),
-    labelSmall     = TextStyle(fontFamily = BodyFamily,    fontWeight = FontWeight.SemiBold,  fontSize = (11 * scale).sp, lineHeight = (14 * scale).sp),
-)
+private fun appTypography(scale: Float, arabic: Boolean): Typography {
+    val display = if (arabic) ArabicDisplayFamily else DisplayFamily
+    val body = if (arabic) ArabicBodyFamily else BodyFamily
+    return Typography(
+        displayLarge   = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (52 * scale).sp, lineHeight = (56 * scale).sp),
+        displayMedium  = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (42 * scale).sp, lineHeight = (46 * scale).sp),
+        headlineLarge  = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (34 * scale).sp, lineHeight = (38 * scale).sp),
+        headlineMedium = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (28 * scale).sp, lineHeight = (32 * scale).sp),
+        titleLarge     = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (22 * scale).sp, lineHeight = (26 * scale).sp),
+        titleMedium    = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (18 * scale).sp, lineHeight = (22 * scale).sp),
+        bodyLarge      = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (16 * scale).sp, lineHeight = (24 * scale).sp),
+        bodyMedium     = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (14 * scale).sp, lineHeight = (21 * scale).sp),
+        bodySmall      = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (12 * scale).sp, lineHeight = (18 * scale).sp),
+        labelLarge     = TextStyle(fontFamily = body,    fontWeight = FontWeight.Bold,      fontSize = (15 * scale).sp, lineHeight = (18 * scale).sp),
+        labelMedium    = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (13 * scale).sp, lineHeight = (16 * scale).sp),
+        labelSmall     = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (11 * scale).sp, lineHeight = (14 * scale).sp),
+    )
+}
 
 @Immutable
 data class MoVisuals(
@@ -215,10 +235,12 @@ fun MoTheme(
         error = EmberRose,
     )
     
+    val arabic = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val typography = remember(typeScale, arabic) { appTypography(typeScale, arabic) }
     androidx.compose.runtime.CompositionLocalProvider(LocalMoVisuals provides visuals) {
         MaterialTheme(
             colorScheme = colors(clamped),
-            typography  = appTypography(typeScale),
+            typography  = typography,
             content     = content,
         )
     }

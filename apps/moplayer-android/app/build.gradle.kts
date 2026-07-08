@@ -106,9 +106,15 @@ android {
     productFlavors {
         create("play") {
             dimension = "distribution"
+            // Google Play prohibits in-app APK self-updates. The Play build must
+            // not run the updater and must not declare REQUEST_INSTALL_PACKAGES
+            // (that permission is added only via src/sideload/AndroidManifest.xml).
+            buildConfigField("boolean", "SIDELOAD_UPDATES", "false")
         }
         create("sideload") {
             dimension = "distribution"
+            // Sideload builds ship the download-and-install-newer-APK updater.
+            buildConfigField("boolean", "SIDELOAD_UPDATES", "true")
         }
     }
 

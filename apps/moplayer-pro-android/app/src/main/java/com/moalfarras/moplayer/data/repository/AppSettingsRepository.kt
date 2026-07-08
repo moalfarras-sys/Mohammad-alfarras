@@ -28,6 +28,7 @@ private val Context.settingsDataStore by preferencesDataStore("mo_settings")
 
 class AppSettingsRepository(private val context: Context) {
     private val previewKey = booleanPreferencesKey("preview_enabled")
+    private val trailerPreviewKey = booleanPreferencesKey("trailer_preview_enabled")
     private val accentKey = longPreferencesKey("accent_color")
     private val accentModeKey = stringPreferencesKey("accent_mode")
     private val backgroundModeKey = stringPreferencesKey("background_mode")
@@ -71,6 +72,7 @@ class AppSettingsRepository(private val context: Context) {
         val storedLibraryMode = prefs[libraryModeKey] ?: LibraryMode.ACTIVE_SOURCE.name
         AppSettings(
             previewEnabled = prefs[previewKey] ?: true,
+            trailerPreviewEnabled = prefs[trailerPreviewKey] ?: true,
             accentColor = prefs[accentKey] ?: 0xFFFF9248,
             accentMode = AccentMode.CUSTOM,
             backgroundMode = prefs[backgroundModeKey].toEnum(BackgroundMode.AUTO),
@@ -174,6 +176,7 @@ class AppSettingsRepository(private val context: Context) {
 
     suspend fun applyRemoteConfig(config: AppRemoteConfig) {
         context.settingsDataStore.edit { prefs ->
+            prefs[trailerPreviewKey] = config.trailerPreviewEnabled
             prefs[showWeatherWidgetKey] = config.weatherEnabled
             prefs[showFootballWidgetKey] = config.footballEnabled
             if (config.weatherCity.isNotBlank()) {

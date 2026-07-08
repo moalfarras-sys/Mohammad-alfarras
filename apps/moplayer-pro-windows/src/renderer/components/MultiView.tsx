@@ -15,6 +15,7 @@ import {
   mpegtsPlaybackConfig,
   streamCandidates,
 } from "../lib/playback";
+import { posterSrc } from "../lib/imageCache";
 
 type MultiLabels = {
   multiView: string;
@@ -436,7 +437,7 @@ export function MultiViewScreen({ labels, channels, connectionLimit = 0, onExpan
                     setPickerFor(null);
                   }}
                 >
-                  {channel.posterUrl ? <img src={channel.posterUrl} alt="" loading="lazy" /> : <Tv size={16} />}
+                  {channel.posterUrl ? <img src={posterSrc(channel.posterUrl)} alt="" loading="lazy" /> : <Tv size={16} />}
                   <span>
                     <strong>{channel.title}</strong>
                     <small>{channel.categoryName}</small>

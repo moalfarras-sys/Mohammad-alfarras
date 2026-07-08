@@ -593,7 +593,10 @@ fun PlayerScreen(
                 }
                 if (isLive &&
                     (performancePolicy.isPerformance || playbackRequest.uri.hasLiveTsHint()) &&
-                    shouldAutoUseLibVlc(playbackRequest) &&
+                    // After a Media3 decoder/parse failure, fall back to LibVLC even for https
+                    // sources: LibVLC is the only software path for HEVC/AC3/EAC3/DTS (no FFmpeg
+                    // extension bundled), and Media3 has already failed here — nothing to lose.
+                    isLibVlcSafeForRequest(playbackRequest) &&
                     shouldFallbackToLibVlc(error) &&
                     !triedLibVlcForLive
                 ) {
@@ -610,7 +613,7 @@ fun PlayerScreen(
                 if (isLive && switchToCompatibleAlternative("Switching to a safer quality")) {
                     return@buildPlayer
                 }
-                if (isLive && shouldAutoUseLibVlc(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
+                if (isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
                     triedLibVlcForLive = true
                     forceLibVlcForLive = true
                     playbackError = null
@@ -621,7 +624,7 @@ fun PlayerScreen(
                 if (!isLive && switchToVodFallbackStream(error)) {
                     return@buildPlayer
                 }
-                if (!isLive && shouldAutoUseLibVlc(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForVod) {
+                if (!isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForVod) {
                     triedLibVlcForVod = true
                     forceLibVlcForVod = true
                     route = "auto"
@@ -1155,10 +1158,10 @@ fun PlayerScreen(
                                         cycleVideoSizeMode()
                                     }
                                     LiveOverlayTab.AUDIO -> {
-                                        runCatching { TrackSelectionDialogBuilder(context, "Audio", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
                                     }
                                     LiveOverlayTab.SUBTITLES -> {
-                                        runCatching { TrackSelectionDialogBuilder(context, "Subtitles", exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
                                     }
                                     LiveOverlayTab.FAVORITES -> {
                                         onTripleOk()
@@ -1388,7 +1391,7 @@ fun PlayerScreen(
                 ) {
                     CircularProgressIndicator(color = accent, modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
                     Text(
-                        if (isLive) "Opening channel..." else "Loading...",
+                        if (isLive) strings.playerOpening else strings.playerLoading,
                         color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                     )
                 }
@@ -1410,7 +1413,7 @@ fun PlayerScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(Icons.Rounded.Warning, null, tint = Color(0xFFFFD166), modifier = Modifier.size(24.dp))
-                            Text("Could not play stream", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(strings.playerCouldNotPlay, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                         }
                         Text(message, color = Color(0xCCF5E6D0), fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1486,9 +1489,9 @@ fun PlayerScreen(
                         internalEngine = InternalPlaybackEngine.MEDIA3
                     }
                 },
-                onAudio = { runCatching { TrackSelectionDialogBuilder(context, "Audio", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() } },
-                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, "Subtitles", exoPlayer, C.TRACK_TYPE_TEXT).build().show() } },
-                onVideo = { runCatching { TrackSelectionDialogBuilder(context, "Quality", exoPlayer, C.TRACK_TYPE_VIDEO).build().show() } },
+                onAudio = { runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() } },
+                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).build().show() } },
+                onVideo = { runCatching { TrackSelectionDialogBuilder(context, strings.playerQuality, exoPlayer, C.TRACK_TYPE_VIDEO).build().show() } },
                 onResize = ::cycleVideoSizeMode,
                 onFavorite = {
                     onTripleOk()
@@ -1646,7 +1649,7 @@ fun PlayerScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 if (isLive && previousItem != null) {
-                                    ControlButton(Icons.Rounded.SkipPrevious, "Previous", accent) { switchTo(previousItem) }
+                                    ControlButton(Icons.Rounded.SkipPrevious, strings.playerPrevious, accent) { switchTo(previousItem) }
                                     Spacer(Modifier.width(10.dp))
                                 } else if (!isLive) {
                                     ControlButton(Icons.Rounded.Replay10, "-10", accent) {
@@ -1672,7 +1675,7 @@ fun PlayerScreen(
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        if (isPlaying) "Pause" else "Play",
+                                        if (isPlaying) strings.playerPause else strings.playerPlay,
                                         color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp,
                                     )
                                 }
@@ -1694,7 +1697,7 @@ fun PlayerScreen(
 
                                 if (isLive && nextItem != null) {
                                     Spacer(Modifier.width(10.dp))
-                                    ControlButton(Icons.Rounded.SkipNext, "Next", accent) { switchTo(nextItem) }
+                                    ControlButton(Icons.Rounded.SkipNext, strings.playerNext, accent) { switchTo(nextItem) }
                                 } else if (!isLive) {
                                     Spacer(Modifier.width(10.dp))
                                     ControlButton(Icons.Rounded.Forward10, "+10", accent) {
@@ -1710,25 +1713,25 @@ fun PlayerScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    SmallControlButton(Icons.Rounded.Refresh, "Retry", accent, ::retryPlayback)
-                                    SmallControlButton(Icons.Rounded.Audiotrack, "Audio", accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, "Audio", exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
+                                    SmallControlButton(Icons.Rounded.Refresh, strings.retry, accent, ::retryPlayback)
+                                    SmallControlButton(Icons.Rounded.Audiotrack, strings.playerAudio, accent) {
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
                                     }
-                                    SmallControlButton(Icons.Rounded.Subtitles, "Subtitles", accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, "Subtitles", exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
+                                    SmallControlButton(Icons.Rounded.Subtitles, strings.playerSubtitles, accent) {
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).build().show() }
                                     }
-                                    SmallControlButton(Icons.Rounded.HighQuality, "Quality", accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, "Quality", exoPlayer, C.TRACK_TYPE_VIDEO).build().show() }
+                                    SmallControlButton(Icons.Rounded.HighQuality, strings.playerQuality, accent) {
+                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerQuality, exoPlayer, C.TRACK_TYPE_VIDEO).build().show() }
                                     }
-                                    SmallControlButton(Icons.Rounded.Tune, "Aspect", accent) {
+                                    SmallControlButton(Icons.Rounded.Tune, strings.playerAspect, accent) {
                                         cycleVideoSizeMode()
                                     }
                                     if (canCast) {
-                                        SmallControlButton(Icons.Rounded.Cast, "Cast", accent) {
+                                        SmallControlButton(Icons.Rounded.Cast, strings.playerCast, accent) {
                                             launchCastFallback(context, streamRequest.uri)
                                         }
                                     }
-                                    SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, "Open external", accent) { route = null }
+                                    SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, strings.playerOpenExternal, accent) { route = null }
                                 }
                                 Text(
                                     if (isLive) "▲▼ Channel  •  OK Guide  •  Back Hide" else "◄► Focus  •  OK Select  •  Back Hide",
@@ -2045,6 +2048,7 @@ private fun LiveOverlayActionPanel(
     onExternal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = LocalStrings.current
     GlassPanel(modifier = modifier, radius = 18.dp, blur = 14.dp, highlighted = true, glow = accent.copy(alpha = 0.06f)) {
         Column(
             Modifier.fillMaxSize().padding(14.dp),
@@ -2073,7 +2077,7 @@ private fun LiveOverlayActionPanel(
             )
             when (selectedTab) {
                 LiveOverlayTab.CHANNELS, LiveOverlayTab.GROUPS -> {
-                    LiveQualityModeButton("Open external", false, accent, onExternal)
+                    LiveQualityModeButton(strings.playerOpenExternal, false, accent, onExternal)
                     LiveQualityModeButton("Track quality", false, accent, onVideo)
                 }
                 LiveOverlayTab.VIDEO_SIZE -> {
@@ -2098,12 +2102,12 @@ private fun LiveOverlayActionPanel(
                     LiveQualityModeButton("Video quality", false, accent, onVideo)
                 }
                 LiveOverlayTab.SUBTITLES -> {
-                    LiveQualityModeButton("Subtitles", true, accent, onSubtitles)
+                    LiveQualityModeButton(strings.playerSubtitles, true, accent, onSubtitles)
                     LiveQualityModeButton("Video quality", false, accent, onVideo)
                 }
                 LiveOverlayTab.FAVORITES -> {
                     LiveQualityModeButton(if (favoriteMarked) "Remove favorite" else "Add favorite", favoriteMarked, accent, onFavorite)
-                    LiveQualityModeButton("Open external", false, accent, onExternal)
+                    LiveQualityModeButton(strings.playerOpenExternal, false, accent, onExternal)
                 }
             }
             Spacer(Modifier.weight(1f))
@@ -2304,6 +2308,7 @@ private fun PlayerRoutePicker(
     onDismiss: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
     val autoFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(120)
@@ -2321,7 +2326,7 @@ private fun PlayerRoutePicker(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    "Choose player",
+                    strings.playerChooseTitle,
                     color = Color.White,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
@@ -2334,7 +2339,7 @@ private fun PlayerRoutePicker(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    "Choose Media3 or an external player before playback starts.",
+                    strings.playerChooseHint,
                     color = Color(0x99FFFFFF),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -2365,10 +2370,10 @@ private fun PlayerRoutePicker(
                     }
                 }
                 OutlinedButton(onClick = { onSelect("external") }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Generic")
+                    Text(strings.playerGeneric)
                 }
                 OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         }
@@ -2384,6 +2389,7 @@ private fun ExternalLaunchScreen(
     onPickAnother: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val strings = LocalStrings.current
     val retryFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(120)
@@ -2404,9 +2410,9 @@ private fun ExternalLaunchScreen(
                 Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                 Text(message, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyLarge)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = onRetrySame, modifier = Modifier.focusRequester(retryFocus)) { Text("Retry") }
-                    OutlinedButton(onClick = onUseMedia3) { Text("Use Media3") }
-                    OutlinedButton(onClick = onPickAnother) { Text("Choose another") }
+                    Button(onClick = onRetrySame, modifier = Modifier.focusRequester(retryFocus)) { Text(strings.retry) }
+                    OutlinedButton(onClick = onUseMedia3) { Text(strings.playerUseMedia3) }
+                    OutlinedButton(onClick = onPickAnother) { Text(strings.playerChooseAnother) }
                     OutlinedButton(onClick = onBack) { Text("Back") }
                 }
             }

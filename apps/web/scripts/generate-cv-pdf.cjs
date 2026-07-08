@@ -3,9 +3,9 @@ const { chromium } = require(path.resolve('apps/web/node_modules/playwright'));
 const OUT = path.resolve('apps/web/public/cv');
 (async () => {
   const browser = await chromium.launch();
-  for (const loc of ['ar', 'en']) {
+  for (const loc of ['ar', 'en', 'de']) {
     const page = await browser.newPage();
-    await page.goto(`http://localhost:3000/${loc}/cv-print`, { waitUntil: 'networkidle', timeout: 60000 });
+    await page.goto(`http://localhost:3000/cv-print/${loc}`, { waitUntil: 'networkidle', timeout: 60000 });
     await page.waitForSelector('.cvp-page', { timeout: 30000 });
     await page.emulateMedia({ media: 'print' });
     await page.waitForTimeout(800);

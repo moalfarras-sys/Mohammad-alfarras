@@ -11,6 +11,8 @@ const PRIVATE_HOST_PATTERNS = [
   /^\[?::1\]?$/i,
 ];
 
+const MAX_REDIRECTS = 4;
+
 function isAllowedImageUrl(value: string) {
   try {
     const url = new URL(value);
@@ -19,6 +21,28 @@ function isAllowedImageUrl(value: string) {
   } catch {
     return false;
   }
+}
+
+// Follow redirects manually so every hop is re-validated. With redirect:"follow"
+// a public host could 302 the proxy to an internal address (169.254.169.254, LAN);
+// re-checking each Location against isAllowedImageUrl closes that SSRF bypass.
+async function fetchImageWithGuardedRedirects(initialUrl: string, init: RequestInit): Promise<Response> {
+  let currentUrl = initialUrl;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+    const response = await fetch(currentUrl, { ...init, redirect: "manual" });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location) return response;
+      const nextUrl = new URL(location, currentUrl).toString();
+      if (!isAllowedImageUrl(nextUrl)) {
+        throw new Error("Blocked redirect to a disallowed host");
+      }
+      currentUrl = nextUrl;
+      continue;
+    }
+    return response;
+  }
+  throw new Error("Too many redirects");
 }
 
 export async function GET(request: Request) {
@@ -30,9 +54,8 @@ export async function GET(request: Request) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);
   try {
-    const upstream = await fetch(target, {
+    const upstream = await fetchImageWithGuardedRedirects(target, {
       signal: controller.signal,
-      redirect: "follow",
       headers: {
         Accept: "image/jpeg,image/png,image/*;q=0.8,*/*;q=0.5",
         "Accept-Language": "en-US,en;q=0.9,ar;q=0.8",

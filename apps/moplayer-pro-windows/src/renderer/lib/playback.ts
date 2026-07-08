@@ -39,8 +39,10 @@ export function hlsPlaybackConfig(mode: "main" | "multi", isLive: boolean): Part
     enableWorker: true,
     startFragPrefetch: true,
     backBufferLength: isLive ? (multi ? 3 : 12) : 60,
-    maxBufferLength: isLive ? (multi ? 10 : 18) : 30,
-    maxMaxBufferLength: isLive ? (multi ? 18 : 36) : 90,
+    // A deeper forward buffer on the single live view rides out network jitter
+    // without buffering on screen; multi-view stays lean to keep memory in check.
+    maxBufferLength: isLive ? (multi ? 10 : 30) : 30,
+    maxMaxBufferLength: isLive ? (multi ? 18 : 60) : 90,
     maxBufferSize: multi ? 24 * 1024 * 1024 : 64 * 1024 * 1024,
     liveSyncDurationCount: 3,
     liveMaxLatencyDurationCount: 8,
@@ -65,9 +67,12 @@ export function mpegtsPlaybackConfig(isLive: boolean) {
     enableStashBuffer: true,
     stashInitialSize: isLive ? 128 * 1024 : 384 * 1024,
     lazyLoad: !isLive,
+    // Chase the live edge, but only correct on real drift. The old 2.5s ceiling
+    // had the player constantly speeding up / nudging the playhead, which surfaced
+    // as micro-stutter and audio glitches on jittery IPTV feeds.
     liveBufferLatencyChasing: isLive,
-    liveBufferLatencyMaxLatency: 2.5,
-    liveBufferLatencyMinRemain: 0.8,
+    liveBufferLatencyMaxLatency: 6,
+    liveBufferLatencyMinRemain: 1.5,
     autoCleanupSourceBuffer: true,
     autoCleanupMaxBackwardDuration: isLive ? 24 : 180,
     autoCleanupMinBackwardDuration: isLive ? 8 : 120,

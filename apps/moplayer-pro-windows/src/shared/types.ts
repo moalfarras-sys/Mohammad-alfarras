@@ -1,5 +1,5 @@
 export const APP_PRODUCT_SLUG = "moplayer2";
-export const APP_NAME = "MoPlayer Pro";
+export const APP_NAME = "MoPlayer PC";
 export const WEB_BASE_URL = "https://moalfarras.space";
 export const ACTIVATION_URL = `${WEB_BASE_URL}/activate?product=${APP_PRODUCT_SLUG}`;
 
@@ -234,8 +234,6 @@ export type MoPlayerApi = {
     pickPlaylistFile(): Promise<PlaylistFilePick | null>;
     openDataFolder(): Promise<void>;
     setAlwaysOnTop(value: boolean): Promise<boolean>;
-    startRecording(url: string, suggestedName: string): Promise<string | null>;
-    stopRecording(): Promise<void>;
     checkWindowsUpdate(): Promise<WindowsUpdateInfo | null>;
     /** Triggers an electron-updater check. supported=false means use the metadata fallback. */
     checkForUpdates(): Promise<{ supported: boolean }>;
@@ -267,5 +265,6 @@ export type MoPlayerApi = {
   };
   stream: {
     proxyUrl(url: string): Promise<string>;
+    base(): Promise<string>;
   };
 };

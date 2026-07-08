@@ -69,6 +69,7 @@ import tvBanner from "./assets/moplayer-tv-banner.png";
 import markLogo from "./assets/moplayer-mark.png";
 import { labelsFor, type Labels } from "./copy";
 import { byNewest, hostLabel } from "./lib/hash";
+import { posterSrc } from "./lib/imageCache";
 import { parseM3u } from "./lib/m3u";
 import {
   applyHiddenCategories,
@@ -1375,32 +1376,46 @@ function ScreenContent(props: {
     const heroArt = rows.movies.find((item) => item.posterUrl)?.posterUrl
       ?? rows.series.find((item) => item.posterUrl)?.posterUrl
       ?? "";
+    const spotlightItems = [rows.movies[0], rows.series[0], rows.movies[1], rows.series[1], rows.movies[2], rows.series[2], rows.live[0]]
+      .filter((item): item is MediaItem => Boolean(item && (item.posterUrl || item.backdropUrl)))
+      .filter((item, position, list) => list.findIndex((other) => other.id === item.id) === position)
+      .slice(0, 6);
+    const hasWeather = Boolean(weather && !weather.error && typeof weather.temp_c === "number");
+    const hasFootball = Boolean(football?.primaryMatch || football?.matches?.length);
+    const showWeather = state.settings.showWeatherWidget && hasWeather;
+    const showFootball = state.settings.showFootballWidget && hasFootball;
+    const browseFor = (item: MediaItem) => goScreen(item.type === "movie" ? "movies" : item.type === "series" ? "series" : "live");
     return (
       <section className="page-stack home-screen">
-        <div className="hero-panel is-premium">
-          {heroArt ? <img className="hero-backdrop" src={heroArt} alt="" /> : null}
-          <div className="hero-overlay" />
-          <div className="hero-copy">
-            <div className="hero-header-row">
-              <h2>{library ? labels.welcomeBack : labels.noContent}</h2>
-              <img className="hero-logo-small" src={markLogo} alt={APP_NAME} />
-            </div>
-            <p className="hero-subtitle">{activeSource ? sourceStatusLine(activeSource, labels) : labels.legal}</p>
-
-            {!library ? (
-              <div className="button-row">
-                <button className="primary-button is-small" onClick={refreshLibrary} disabled={syncBusy}>
-                  {syncBusy ? <Loader2 className="spin" size={14} /> : <RefreshCw size={14} />} {labels.sync}
-                </button>
-                <button className="ghost-button is-small" onClick={onAddSource}><Plus size={14} /> {labels.addSource}</button>
+        {library && spotlightItems.length ? (
+          <SpotlightHero items={spotlightItems} labels={labels} onPlay={playItem} onBrowse={browseFor} fallbackArt={heroArt || tvBanner} />
+        ) : (
+          <div className="hero-panel is-premium">
+            {heroArt ? <img className="hero-backdrop" src={heroArt} alt="" /> : null}
+            <div className="hero-overlay" />
+            <div className="hero-copy">
+              <div className="hero-header-row">
+                <h2>{library ? labels.welcomeBack : labels.noContent}</h2>
+                <img className="hero-logo-small" src={markLogo} alt={APP_NAME} />
               </div>
-            ) : null}
+              <p className="hero-subtitle">{activeSource ? sourceStatusLine(activeSource, labels) : labels.legal}</p>
+              {!library ? (
+                <div className="button-row">
+                  <button className="primary-button is-small" onClick={refreshLibrary} disabled={syncBusy}>
+                    {syncBusy ? <Loader2 className="spin" size={14} /> : <RefreshCw size={14} />} {labels.sync}
+                  </button>
+                  <button className="ghost-button is-small" onClick={onAddSource}><Plus size={14} /> {labels.addSource}</button>
+                </div>
+              ) : null}
+            </div>
           </div>
-          <div className="hero-widgets">
-            {state.settings.showWeatherWidget ? <WeatherCard labels={labels} weather={weather} /> : null}
-            {state.settings.showFootballWidget ? <FootballCard labels={labels} football={football} onOpen={() => goScreen("matches")} /> : null}
+        )}
+        {showWeather || showFootball ? (
+          <div className="home-widgets-strip">
+            {showWeather ? <WeatherCard labels={labels} weather={weather} /> : null}
+            {showFootball ? <FootballCard labels={labels} football={football} onOpen={() => goScreen("matches")} /> : null}
           </div>
-        </div>
+        ) : null}
         <div className="hub-grid">
           <HubCard icon={Tv} title={labels.live} count={formatCount(counts.live)} onClick={() => goScreen("live")} accent="live" />
           <HubCard icon={Film} title={labels.movies} count={formatCount(counts.movies)} onClick={() => goScreen("movies")} />
@@ -2278,6 +2293,80 @@ function MatchesScreen({ labels, initial }: { labels: Labels; initial: FootballW
   );
 }
 
+/** Cinematic auto-rotating hero that showcases the newest server content. */
+function SpotlightHero({ items, labels, onPlay, onBrowse, fallbackArt }: {
+  items: MediaItem[];
+  labels: Labels;
+  onPlay: (item: MediaItem) => void;
+  onBrowse: (item: MediaItem) => void;
+  fallbackArt: string;
+}) {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = items.length;
+  const active = items[Math.min(index, count - 1)] ?? null;
+
+  useEffect(() => {
+    if (paused || count < 2) return undefined;
+    const timer = window.setInterval(() => setIndex((value) => (value + 1) % count), 6800);
+    return () => window.clearInterval(timer);
+  }, [paused, count]);
+
+  if (!active) return null;
+  const go = (step: number) => setIndex((value) => (value + step + count) % count);
+  const typeLabel = active.type === "movie" ? labels.movies : active.type === "series" ? labels.series : labels.live;
+
+  return (
+    <section
+      className="spotlight"
+      tabIndex={0}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowRight") { event.preventDefault(); go(1); }
+        else if (event.key === "ArrowLeft") { event.preventDefault(); go(-1); }
+        else if (event.key === "Enter") { event.preventDefault(); onPlay(active); }
+      }}
+    >
+      {items.map((item, slide) => (
+        <div
+          key={item.id}
+          className={`spotlight-art ${slide === index ? "is-active" : ""}`}
+          style={{ backgroundImage: `url("${posterSrc(item.backdropUrl || item.posterUrl || fallbackArt)}")` }}
+          aria-hidden={slide !== index}
+        />
+      ))}
+      <div className="spotlight-scrim" />
+      <div className="spotlight-body">
+        <span className="spotlight-kicker"><Star size={12} fill="currentColor" /> {labels.latestAdditions}</span>
+        <h2 className="spotlight-title">{active.title}</h2>
+        <div className="spotlight-meta">
+          <span className="spotlight-chip">{typeLabel}</span>
+          {active.categoryName ? <span className="spotlight-cat">{active.categoryName}</span> : null}
+          {active.rating ? <span className="spotlight-rating"><Star size={11} fill="currentColor" /> {active.rating}</span> : null}
+        </div>
+        {active.description ? <p className="spotlight-desc">{active.description}</p> : null}
+        <div className="spotlight-actions">
+          <button className="spotlight-play" onClick={() => onPlay(active)}><Play size={17} fill="currentColor" /> {labels.watchNow}</button>
+          <button className="spotlight-browse" onClick={() => onBrowse(active)}><LayoutGrid size={15} /> {labels.browseAll}</button>
+        </div>
+      </div>
+      {active.posterUrl ? <span className="spotlight-poster"><img src={posterSrc(active.posterUrl)} alt="" /></span> : null}
+      {count > 1 ? (
+        <>
+          <button className="spotlight-nav is-prev" onClick={() => go(-1)} aria-label="Previous"><ChevronLeft size={20} /></button>
+          <button className="spotlight-nav is-next" onClick={() => go(1)} aria-label="Next"><ChevronRight size={20} /></button>
+          <div className="spotlight-dots">
+            {items.map((item, slide) => (
+              <button key={item.id} className={slide === index ? "is-on" : ""} onClick={() => setIndex(slide)} aria-label={`Slide ${slide + 1}`} />
+            ))}
+          </div>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 function MediaRow({ title, items, onPlay, onFavorite, poster = false, onMore, moreLabel }: {
   title: string;
   items: MediaItem[];
@@ -2328,7 +2417,7 @@ function MediaGrid({ labels, items, onPlay, onFavorite, onPreview, poster = fals
 function PosterImage({ src, poster }: { src: string; poster: boolean }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <MonitorPlay size={poster ? 40 : 26} />;
-  return <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+  return <img src={posterSrc(src)} alt="" loading="lazy" onError={() => setFailed(true)} />;
 }
 
 function MediaCard({ item, onPlay, onFavorite, onPreview, poster }: { item: MediaItem; onPlay: (item: MediaItem) => void; onFavorite: (item: MediaItem) => void; onPreview?: (item: MediaItem) => void; poster: boolean }) {

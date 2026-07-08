@@ -232,5 +232,11 @@ export function webPageJsonLd(params: {
  * <script type="application/ld+json"> tag. Use with dangerouslySetInnerHTML.
  */
 export function jsonLdString(data: Record<string, unknown> | Record<string, unknown>[]) {
-  return JSON.stringify(repairMojibakeDeep(data));
+  // Escape the characters that could break out of the <script> tag when the
+  // output is injected via dangerouslySetInnerHTML. A CMS-sourced string
+  // containing "</script>" would otherwise close the tag early (stored XSS).
+  return JSON.stringify(repairMojibakeDeep(data)).replace(
+    /[<>&]/g,
+    (ch) => "\\u" + ch.charCodeAt(0).toString(16).padStart(4, "0"),
+  );
 }

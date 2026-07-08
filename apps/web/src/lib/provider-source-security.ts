@@ -81,6 +81,29 @@ function encryptionKey() {
   return createHash("sha256").update(serverSecret()).digest();
 }
 
+// SSRF guard: reject provider URLs that point at loopback / link-local / private
+// ranges. Real IPTV providers are always public hosts, so this cannot block a
+// legitimate source, but it stops the server-side "test source" fetch from being
+// abused to reach internal services or the cloud metadata endpoint (169.254.169.254).
+const PRIVATE_HOST_PATTERNS = [
+  /^localhost$/i,
+  /^0\./,
+  /^127\./,
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[0-1])\./,
+  /^169\.254\./,
+  /^::1$/i,
+  /^fc[0-9a-f]{2}:/i,
+  /^fd[0-9a-f]{2}:/i,
+  /^fe80:/i,
+];
+
+function isPrivateHostname(hostname: string) {
+  const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  return PRIVATE_HOST_PATTERNS.some((pattern) => pattern.test(host));
+}
+
 function normalizeHttpUrl(value: unknown, fieldName: string) {
   let raw = String(value ?? "").trim();
   if (raw && !/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) {
@@ -99,6 +122,10 @@ function normalizeHttpUrl(value: unknown, fieldName: string) {
 
   if (!url.hostname) {
     throw new Error(`${fieldName} must include a host.`);
+  }
+
+  if (isPrivateHostname(url.hostname)) {
+    throw new Error(`${fieldName} points to a private or local address, which is not allowed.`);
   }
 
   return url.toString().replace(/\/$/, "");

@@ -1401,6 +1401,11 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun setupUpdatePanel() {
+        // In-app APK update is sideload-only; hide the whole panel on the Play build.
+        if (!BuildConfig.SIDELOAD_UPDATES) {
+            binding.panelUpdate.visibility = View.GONE
+            return
+        }
         binding.tvInstalledVersion.text = getString(
             R.string.settings_update_version_value,
             BuildConfig.VERSION_NAME,

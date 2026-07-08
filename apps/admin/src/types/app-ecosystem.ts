@@ -229,6 +229,8 @@ export type AppRuntimeConfig = {
   backgroundUrl: string;
   syncIntervalMinutes?: number;
   sourceProtocolFallback?: boolean;
+  /** Master switch for the in-app focus-dwell trailer preview (provider trailer + YouTube fallback). */
+  trailerPreviewEnabled?: boolean;
   footballProviderMode?: string;
   footballLeagueIds?: number[];
   footballLeagueKeywords?: string[];

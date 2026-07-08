@@ -67,6 +67,8 @@ data class UiState(
     val error: String? = null,
     val selectedCategoryId: String = "",
     val focusedItem: MediaItem? = null,
+    /** A resolved trailer for the currently focused movie/series, shown in the preview pane. */
+    val focusedTrailer: FocusedTrailer? = null,
     val restoreFocusItem: MediaItem? = null,
     val seriesDetail: MediaItem? = null,
     val seriesDetailsLoading: Boolean = false,
@@ -85,6 +87,13 @@ data class UiState(
     /** False until the stored servers/settings have been read once, so the UI can show a splash
      *  instead of flashing the sign-in screen on cold start while an account is already saved. */
     val initialized: Boolean = false,
+)
+
+/** A trailer resolved for a focused item. [itemKey] is "type:serverId:id" so the pane can confirm
+ *  the trailer still belongs to the item under focus before it plays. */
+data class FocusedTrailer(
+    val itemKey: String,
+    val youtubeId: String,
 )
 
 private data class CategoryQueryKey(
@@ -139,6 +148,18 @@ class MainViewModel(
     private var seriesPrefetchKey = ""
     private var moviePrefetchJob: Job? = null
     private var moviePrefetchKey = ""
+    private var liveDnsPrewarmJob: Job? = null
+    private var liveDnsPrewarmKey = ""
+    private val prewarmedHosts = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+    private var trailerPreviewJob: Job? = null
+    private var trailerPreviewKey = ""
+    private var seriesDetailTrailerJob: Job? = null
+    // Items whose provider trailer failed to play and were already retried once with the web-search
+    // fallback — stops an error -> search -> error loop from re-searching endlessly.
+    private val trailerFallbackTried = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+    // Set from the UI once the device tier + performance mode allow a preview-pane trailer. Kept as
+    // a plain flag so trailer resolution never fires (no network) on weak boxes where the pane is off.
+    @Volatile private var trailerPreviewCapable = false
     private var restoredLastSection = false
     private var startupRefreshKey = ""
     private var lastFocusUpdateAt = 0L
@@ -603,6 +624,110 @@ class MainViewModel(
         }
         scheduleSeriesDetailsPrefetch(item)
         scheduleMovieDetailsPrefetch(item)
+        scheduleLiveDnsPrewarm(item)
+        scheduleTrailerPreview(item)
+    }
+
+    /** Called by the UI whenever the resolved performance policy changes: true only when the
+     *  preview pane is on, motion isn't reduced, and the admin trailer switch is enabled. */
+    fun setTrailerPreviewCapable(capable: Boolean) {
+        if (trailerPreviewCapable == capable) return
+        trailerPreviewCapable = capable
+        if (!capable) {
+            trailerPreviewKey = ""
+            trailerPreviewJob?.cancel()
+            trailerPreviewJob = null
+            seriesDetailTrailerJob?.cancel()
+            seriesDetailTrailerJob = null
+            if (internal.value.focusedTrailer != null) internal.update { it.copy(focusedTrailer = null) }
+        }
+    }
+
+    /**
+     * Called by the preview WebView when the IFrame reports it cannot play a trailer (e.g. embedding
+     * disabled / video removed). Retries ONCE with the YouTube-search fallback for the same item;
+     * if that also fails the trailer is simply dropped. The tried-set caps it at a single retry so
+     * a provider -> search -> error sequence can never loop.
+     */
+    fun reportTrailerUnplayable(itemKey: String) {
+        val current = internal.value.focusedTrailer ?: return
+        if (current.itemKey != itemKey) return
+        val target = listOfNotNull(internal.value.focusedItem, internal.value.seriesDetail)
+            .firstOrNull { "${it.type}:${it.serverId}:${it.id}" == itemKey }
+        internal.update { it.copy(focusedTrailer = null) }
+        if (target == null || itemKey in trailerFallbackTried) return
+        trailerFallbackTried.add(itemKey)
+        viewModelScope.launch {
+            val id = runCatching { iptv.searchTrailerYoutubeId(target) }.getOrNull()
+            if (id.isNullOrBlank() || id == current.youtubeId) return@launch
+            val stillFocused = internal.value.focusedItem?.let { "${it.type}:${it.serverId}:${it.id}" } == itemKey
+            val stillDetail = internal.value.seriesDetail?.let { "${it.type}:${it.serverId}:${it.id}" } == itemKey
+            if (!stillFocused && !stillDetail) return@launch
+            internal.update { it.copy(focusedTrailer = FocusedTrailer(itemKey, id)) }
+        }
+    }
+
+    /**
+     * After ~4s of dwell on a movie/series, resolve a trailer (provider first, YouTube-search
+     * fallback) and surface it so the preview pane can autoplay it muted. A new focus cancels the
+     * pending job and hides any showing trailer immediately, so the pane never lags behind focus.
+     */
+    private fun scheduleTrailerPreview(item: MediaItem?) {
+        // Episodes never produce a trailer, and inside SeriesDetail we must NOT let episode focus
+        // clear the series' own trailer (scheduled separately), so treat episode focus as a no-op.
+        if (item?.type == ContentType.EPISODE) return
+        val target = item?.takeIf { it.type == ContentType.MOVIE || it.type == ContentType.SERIES }
+        val key = target?.let { "${it.type}:${it.serverId}:${it.id}" }.orEmpty()
+        if (key != trailerPreviewKey && internal.value.focusedTrailer != null) {
+            internal.update { it.copy(focusedTrailer = null) }
+        }
+        if (target == null || !trailerPreviewCapable || !uiState.value.settings.trailerPreviewEnabled) {
+            trailerPreviewKey = ""
+            trailerPreviewJob?.cancel()
+            trailerPreviewJob = null
+            return
+        }
+        if (key == trailerPreviewKey && trailerPreviewJob?.isActive == true) return
+        trailerPreviewKey = key
+        trailerFallbackTried.remove(key)
+        trailerPreviewJob?.cancel()
+        trailerPreviewJob = viewModelScope.launch {
+            delay(TRAILER_PREVIEW_DWELL_MS)
+            if (!internal.value.focusedItem.matchesMedia(target)) return@launch
+            val server = iptv.server(target.serverId)
+                ?: uiState.value.activeServer?.takeIf { active -> active.id == target.serverId }
+                ?: return@launch
+            val youtubeId = runCatching { iptv.resolveTrailerYoutubeId(server, target) }.getOrNull()
+            if (youtubeId.isNullOrBlank()) return@launch
+            // Focus may have moved during the network resolve; only show if still on this item.
+            if (!internal.value.focusedItem.matchesMedia(target)) return@launch
+            internal.update { it.copy(focusedTrailer = FocusedTrailer(key, youtubeId)) }
+        }
+    }
+
+    /**
+     * The SeriesDetail preview pane shows the SERIES while D-pad focus lives on its episodes, so the
+     * focus-driven [scheduleTrailerPreview] can't drive it. This tracks the trailer against
+     * `state.seriesDetail` (not `focusedItem`) with its OWN job, so episode focus never cancels it.
+     */
+    private fun scheduleSeriesDetailTrailer(series: MediaItem?) {
+        seriesDetailTrailerJob?.cancel()
+        seriesDetailTrailerJob = null
+        val target = series?.takeIf { it.type == ContentType.SERIES } ?: return
+        if (!trailerPreviewCapable || !uiState.value.settings.trailerPreviewEnabled) return
+        val key = "${target.type}:${target.serverId}:${target.id}"
+        trailerFallbackTried.remove(key)
+        seriesDetailTrailerJob = viewModelScope.launch {
+            delay(TRAILER_PREVIEW_DWELL_MS)
+            if (!internal.value.seriesDetail.matchesMedia(target)) return@launch
+            val server = iptv.server(target.serverId)
+                ?: uiState.value.activeServer?.takeIf { active -> active.id == target.serverId }
+                ?: return@launch
+            val youtubeId = runCatching { iptv.resolveTrailerYoutubeId(server, target) }.getOrNull()
+            if (youtubeId.isNullOrBlank()) return@launch
+            if (!internal.value.seriesDetail.matchesMedia(target)) return@launch
+            internal.update { it.copy(focusedTrailer = FocusedTrailer(key, youtubeId)) }
+        }
     }
 
     private fun scheduleSeriesDetailsPrefetch(item: MediaItem?) {
@@ -651,6 +776,34 @@ class MainViewModel(
                 ?: return@launch
             if (server.kind != LoginKind.XTREAM) return@launch
             runCatching { iptv.refreshVodDetails(server, movieItem) }
+        }
+    }
+
+    /**
+     * Warm the OS DNS cache for a focused live channel's stream host so pressing OK skips the
+     * DNS lookup and the channel opens faster. Crucially this only RESOLVES the host — it opens
+     * no socket/stream — so it never consumes a provider's (often single) connection slot.
+     * Providers usually serve every channel from one host, so this resolves once per session.
+     */
+    private fun scheduleLiveDnsPrewarm(item: MediaItem?) {
+        val liveItem = item?.takeIf { it.type == ContentType.LIVE }
+        if (liveItem == null) {
+            liveDnsPrewarmKey = ""
+            liveDnsPrewarmJob?.cancel()
+            liveDnsPrewarmJob = null
+            return
+        }
+        val host = runCatching { java.net.URI(liveItem.streamUrl).host }.getOrNull()
+            ?.takeIf { it.isNotBlank() } ?: return
+        if (host in prewarmedHosts) return
+        if (host == liveDnsPrewarmKey && liveDnsPrewarmJob?.isActive == true) return
+        liveDnsPrewarmKey = host
+        liveDnsPrewarmJob?.cancel()
+        liveDnsPrewarmJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            delay(LIVE_DNS_PREWARM_DELAY_MS)
+            if (!internal.value.focusedItem.matchesMedia(liveItem)) return@launch
+            runCatching { java.net.InetAddress.getAllByName(host) }
+            prewarmedHosts.add(host)
         }
     }
 
@@ -727,6 +880,10 @@ class MainViewModel(
     }
 
     fun navigateBack() {
+        // Leaving a screen with a preview pane: stop and drop any trailer so it never lingers into
+        // the next screen (e.g. the series-detail trailer carrying back into the grid).
+        seriesDetailTrailerJob?.cancel()
+        seriesDetailTrailerJob = null
         internal.update { state ->
             when (state.section) {
                 AppSection.SERIES_DETAIL -> {
@@ -737,6 +894,7 @@ class MainViewModel(
                         seriesDetailsLoading = false,
                         focusedItem = f,
                         restoreFocusItem = f,
+                        focusedTrailer = null,
                         selectedCategoryId = c,
                         dockFocusSection = null,
                     )
@@ -748,6 +906,7 @@ class MainViewModel(
                         dockFocusSection = state.section,
                         focusedItem = null,
                         restoreFocusItem = null,
+                        focusedTrailer = null,
                         seriesDetailsLoading = false,
                         selectedCategoryId = "",
                     )
@@ -1372,18 +1531,24 @@ class MainViewModel(
     private fun openSeries(item: MediaItem) {
         val cur = internal.value
         persistSnapshot(cur.section, cur.focusedItem, cur.selectedCategoryId)
+        // Drop any grid-resolved trailer + its pending job so it can't carry into the detail pane;
+        // the detail screen gets its own trailer scheduled below (keyed on seriesDetail, not focus).
+        trailerPreviewJob?.cancel()
+        trailerPreviewKey = ""
         internal.update {
             it.copy(
                 seriesDetail = item,
                 seriesDetailsLoading = true,
                 focusedItem = item,
                 restoreFocusItem = item,
+                focusedTrailer = null,
                 section = AppSection.SERIES_DETAIL,
                 returnSection = AppSection.SERIES_DETAIL,
                 error = null,
             )
         }
         saveLastSection(AppSection.SERIES)
+        scheduleSeriesDetailTrailer(item)
         viewModelScope.launch {
             val seriesServer = iptv.server(item.serverId) ?: uiState.value.activeServer
             if (seriesServer == null) {
@@ -1664,3 +1829,7 @@ private fun String.urlDecode(): String =
 private const val SMART_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000L
 private const val SERIES_DETAIL_PREFETCH_DELAY_MS = 380L
 private const val MOVIE_DETAIL_PREFETCH_DELAY_MS = 520L
+// Short settle delay so quickly scrolling past channels doesn't fire a DNS resolve for each.
+private const val LIVE_DNS_PREWARM_DELAY_MS = 250L
+// Dwell before a focused movie/series autoplays its trailer in the preview pane.
+private const val TRAILER_PREVIEW_DWELL_MS = 4_000L

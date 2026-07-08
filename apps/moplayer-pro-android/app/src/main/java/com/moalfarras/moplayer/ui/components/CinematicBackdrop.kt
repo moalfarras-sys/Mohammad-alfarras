@@ -1,5 +1,6 @@
 package com.moalfarras.moplayer.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,9 +12,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.size.Size
+import com.moalfarras.moplayerpro.R
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 
@@ -61,6 +64,14 @@ fun CinematicBackdrop(
         }
     }
     Box(modifier.fillMaxSize()) {
+        // Branded cinematic base — always present so loading / offline / failed-image states
+        // still look premium instead of falling back to flat black on weak or disconnected TVs.
+        Image(
+            painter = painterResource(R.drawable.bg_cinematic),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
         if (imageRequest != null) {
             AsyncImage(
                 model = imageRequest,

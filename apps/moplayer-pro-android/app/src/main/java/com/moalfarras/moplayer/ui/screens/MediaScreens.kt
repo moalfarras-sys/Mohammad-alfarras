@@ -81,9 +81,13 @@ import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.components.AtmosphericBackground
 import com.moalfarras.moplayer.ui.components.ChannelRow
 import com.moalfarras.moplayer.ui.components.CinematicBackdrop
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
+import com.moalfarras.moplayer.ui.components.LocalPreviewTrailer
+import com.moalfarras.moplayer.ui.components.LocalTrailerErrorReporter
 import com.moalfarras.moplayer.ui.components.MediaPoster
+import com.moalfarras.moplayer.ui.components.YoutubeTrailerSurface
 import com.moalfarras.moplayer.ui.components.backdropUrlFrom
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
@@ -152,7 +156,7 @@ fun LiveScreen(
                 ).focusGroup(),
                 horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
             ) {
-                CategoryRail("Live TV", categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
+                CategoryRail(LocalStrings.current.navLive, categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.18f))
                 GlassPanel(Modifier.fillMaxHeight().weight(0.60f), radius = tv.cardRadius, blur = 18.dp) {
                     Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp)) {
                         ReceiverHeader(current, focusedEpg, performancePolicy.reduceMotion)
@@ -166,7 +170,7 @@ fun LiveScreen(
                 Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.contentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                HeaderRow("Live TV", Icons.Rounded.LiveTv)
+                HeaderRow(LocalStrings.current.navLive, Icons.Rounded.LiveTv)
                 CategoryPills(categories, selectedCategoryId, onCategory, onAllCategories)
                 PagingChannelList(channels, restoreFocusItem ?: current, onFocus, onPlay, onFavorite)
             }
@@ -244,8 +248,8 @@ fun FavoritesScreen(
         CinematicBackdrop(backdrop, showParticles = performancePolicy.enableParticles, imageSize = performancePolicy.backdropImageSize)
         if (items.itemCount == 0) {
             EmptyState(
-                title = "No favorites yet",
-                message = "Hold OK or press OK three times to add channels and movies here.",
+                title = LocalStrings.current.noFavoritesTitle,
+                message = LocalStrings.current.noFavoritesHint,
                 modifier = Modifier.fillMaxSize().padding(tv.contentPadding),
             )
             return@Box
@@ -263,7 +267,7 @@ fun FavoritesScreen(
                 GlassPanel(Modifier.fillMaxHeight().weight(0.18f), radius = tv.cardRadius, blur = 20.dp) {
                     Column(Modifier.fillMaxSize().padding(tv.panelPadding), verticalArrangement = Arrangement.spacedBy((14 * tv.factor).dp)) {
                         Icon(Icons.Rounded.Favorite, null, tint = visuals.accent, modifier = Modifier.size((36 * tv.factor).dp))
-                        Text("Favorites", color = Color.White, style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold))
+                        Text(LocalStrings.current.navFavorites, color = Color.White, style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold))
                         Text("Saved channels, movies, and series live here.", color = Color(0xB8E3BC78), style = MaterialTheme.typography.bodyLarge, lineHeight = 24.sp)
                         GlassTag("${items.itemCount} items", Icons.Rounded.Bookmark)
                     }
@@ -277,7 +281,7 @@ fun FavoritesScreen(
                 Modifier.fillMaxSize().padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.contentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                HeaderRow("Favorites", Icons.Rounded.Favorite)
+                HeaderRow(LocalStrings.current.navFavorites, Icons.Rounded.Favorite)
                 PosterGrid(items, restoreFocusItem, onFocus, onPlay, onFavorite, Modifier.fillMaxSize())
             }
         }
@@ -316,7 +320,7 @@ fun SeriesDetailsScreen(
             PreviewPane(series, Modifier.fillMaxHeight().weight(0.32f), live = false, previewEnabled = performancePolicy.enablePreviewPane, performancePolicy = performancePolicy)
             Column(Modifier.fillMaxHeight().weight(0.68f), verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp)) {
                 Text(
-                    "Seasons",
+                    LocalStrings.current.seasonsTitle,
                     color = Color.White,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                     modifier = Modifier.padding(start = 2.dp),
@@ -358,7 +362,7 @@ fun SeriesDetailsScreen(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
-                                        "Season $season",
+                                        "${LocalStrings.current.seasonPrefix} $season",
                                         color = if (isSelected) Color(0xFF15110A) else Color.White,
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = (15 * tv.factor).sp,
@@ -375,7 +379,7 @@ fun SeriesDetailsScreen(
                         Box(Modifier.fillMaxSize().padding(tv.panelPadding), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 CircularProgressIndicator(color = visuals.accent)
-                                Text("Loading seasons and episodes...", color = Color.White, fontWeight = FontWeight.Bold)
+                                Text(LocalStrings.current.loadingSeasonsEpisodes, color = Color.White, fontWeight = FontWeight.Bold)
                             }
                         }
                     } else if (episodes.isEmpty()) {
@@ -614,7 +618,7 @@ private fun ReceiverHeader(item: MediaItem?, liveEpg: LiveEpgSnapshot, reduceMot
         ) {
             Icon(Icons.Rounded.LiveTv, null, tint = visuals.accent, modifier = Modifier.size((28 * tv.factor).dp))
             Column(Modifier.weight(1f)) {
-                Text(item?.title ?: "Live TV", color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(item?.title ?: LocalStrings.current.navLive, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     current?.let { c -> "${epgClock(c.startAt)} - ${epgClock(c.endAt)}  •  ${c.title}" }
                         ?: item?.description.orEmpty().ifBlank { "Ready" },
@@ -822,7 +826,7 @@ fun PreviewPane(
         Box(Modifier.fillMaxSize().padding((6 * tv.factor).dp).clip(RoundedCornerShape(tv.cardRadius - 6.dp)).background(Color(0x661E1814))) {
             if (item == null) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Choose an item to preview", color = Color(0x88FFFFFF), style = MaterialTheme.typography.bodyMedium)
+                    Text(LocalStrings.current.previewChooseItem, color = Color(0x88FFFFFF), style = MaterialTheme.typography.bodyMedium)
                 }
                 return@Box
             }
@@ -831,6 +835,23 @@ fun PreviewPane(
                 AsyncImage(previewArt, item.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(visuals.accent.copy(alpha = 0.22f), Color(0xFF101827)))))
+            }
+            // Muted autoplay trailer, layered over the backdrop once it has resolved for THIS item.
+            // It fades itself in over the art; the scrim + title/description below stay on top, so the
+            // existing preview look is untouched — the trailer is purely an added layer.
+            val trailer = LocalPreviewTrailer.current
+            val showTrailer = previewEnabled &&
+                performancePolicy?.enablePreviewPane != false &&
+                performancePolicy?.reduceMotion != true &&
+                trailer.youtubeId.isNotBlank() &&
+                trailer.itemKey == mediaKey(item)
+            if (showTrailer) {
+                val reportTrailerError = LocalTrailerErrorReporter.current
+                YoutubeTrailerSurface(
+                    trailer.youtubeId,
+                    Modifier.fillMaxSize(),
+                    onError = { reportTrailerError(trailer.itemKey) },
+                )
             }
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0x22000000), Color(0xEE01040A)))))
             Column(Modifier.align(Alignment.BottomStart).padding((20 * tv.factor).dp), verticalArrangement = Arrangement.spacedBy((6 * tv.factor).dp)) {
@@ -842,7 +863,7 @@ fun PreviewPane(
                         Text(item.rating, color = Color(0xFFFFCC44), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
                     }
                 }
-                Text(item.description.ifBlank { if (live) "Press OK to play" else "Content details will appear here" }, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                Text(item.description.ifBlank { if (live) LocalStrings.current.pressOkToPlay else "Content details will appear here" }, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium, maxLines = 4, overflow = TextOverflow.Ellipsis)
                 if (item.durationSecs > 0) Text(formatDuration(item.durationSecs), color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodySmall)
                 liveEpg.current?.let {
                     Text("Now: ${it.title}", color = visuals.accent, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -900,7 +921,7 @@ private fun SeasonSection(
             Row(Modifier.fillMaxWidth().padding(horizontal = (16 * tv.factor).dp, vertical = (12 * tv.factor).dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Rounded.Layers, null, tint = if (isExpanded) visuals.accent else Color.White, modifier = Modifier.size((18 * tv.factor).dp))
-                    Text("Season $seasonNumber", color = Color.White, style = MaterialTheme.typography.titleLarge)
+                    Text("${LocalStrings.current.seasonPrefix} $seasonNumber", color = Color.White, style = MaterialTheme.typography.titleLarge)
                     Text("${episodes.size} episodes", color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodyMedium)
                 }
                 Icon(if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = Color(0x99FFFFFF))

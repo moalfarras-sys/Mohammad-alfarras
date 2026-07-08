@@ -587,6 +587,7 @@ private fun TvSettingsLayout(
     onDeleteServer: (Long) -> Unit,
 ) {
     val tv = rememberTvScale()
+    val s = LocalStrings.current
     var selectedPane by rememberSaveable { mutableIntStateOf(0) }
     val unlocked = !settings.hasParentalPin || settingsUnlocked
     val firstPaneFocus = remember { FocusRequester() }
@@ -605,14 +606,14 @@ private fun TvSettingsLayout(
         ) {
             SettingsHeader()
             Spacer(Modifier.height((16 * tv.factor).dp))
-            SettingsPaneButton("Look & Home", Icons.Rounded.Palette, selectedPane == 0, focusRequester = firstPaneFocus) { selectedPane = 0 }
-            SettingsPaneButton("Playback", Icons.Rounded.Tv, selectedPane == 1) { selectedPane = 1 }
-            SettingsPaneButton("Live TV", Icons.Rounded.LiveTv, selectedPane == 2) { selectedPane = 2 }
-            SettingsPaneButton("Accounts", Icons.Rounded.AccountCircle, selectedPane == 3) { selectedPane = 3 }
-            SettingsPaneButton("Storage", Icons.Rounded.DeleteSweep, selectedPane == 4) { selectedPane = 4 }
-            SettingsPaneButton("Family lock", Icons.Rounded.Lock, selectedPane == 5) { selectedPane = 5 }
+            SettingsPaneButton(s.paneLookHome, Icons.Rounded.Palette, selectedPane == 0, focusRequester = firstPaneFocus) { selectedPane = 0 }
+            SettingsPaneButton(s.panePlayback, Icons.Rounded.Tv, selectedPane == 1) { selectedPane = 1 }
+            SettingsPaneButton(s.navLive, Icons.Rounded.LiveTv, selectedPane == 2) { selectedPane = 2 }
+            SettingsPaneButton(s.paneAccounts, Icons.Rounded.AccountCircle, selectedPane == 3) { selectedPane = 3 }
+            SettingsPaneButton(s.paneStorage, Icons.Rounded.DeleteSweep, selectedPane == 4) { selectedPane = 4 }
+            SettingsPaneButton(s.paneFamilyLock, Icons.Rounded.Lock, selectedPane == 5) { selectedPane = 5 }
             Spacer(Modifier.weight(1f))
-            SettingsPaneButton("About", Icons.Rounded.Info, selectedPane == 6) { selectedPane = 6 }
+            SettingsPaneButton(s.paneAbout, Icons.Rounded.Info, selectedPane == 6) { selectedPane = 6 }
         }
 
         GlassPanel(
@@ -1218,7 +1219,7 @@ private fun AppearanceSettingsCard(
     var customUrl by remember(settings.customBackgroundUrl) { mutableStateOf(settings.customBackgroundUrl) }
     val content = @Composable {
         Column(Modifier.padding(if (isTv) 0.dp else tv.panelPadding), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SectionHeader("Appearance")
+            SectionHeader(s.secAppearance)
 
             AppearanceLabeledChoiceRow(
                 title = s.settingsLanguageTitle,
@@ -1233,26 +1234,26 @@ private fun AppearanceSettingsCard(
             )
 
             AppearanceLabeledChoiceRow(
-                title = "Interface theme",
+                title = s.setInterfaceTheme,
                 hint = "Cinematic favors content posters; City uses urban backdrops; Calm keeps the UI quieter.",
                 items = listOf(
-                    ThemePreset.CINEMATIC_AUTO to "Cinematic",
-                    ThemePreset.CITY to "City",
-                    ThemePreset.CALM to "Calm",
+                    ThemePreset.CINEMATIC_AUTO to s.themeCinematic,
+                    ThemePreset.CITY to s.themeCity,
+                    ThemePreset.CALM to s.themeCalm,
                 ),
                 selected = settings.themePreset,
                 onSelected = onThemePreset,
             )
 
             AppearanceLabeledChoiceRow(
-                title = "Background image source",
+                title = s.setBackgroundSource,
                 hint = "Auto shows a daily city image based on your detected or selected city. Dynamic uses movie/series art after login.",
                 items = listOf(
-                    BackgroundMode.AUTO to "Auto city",
-                    BackgroundMode.DYNAMIC_CONTENT to "Dynamic poster",
-                    BackgroundMode.CITY_ROTATION to "Daily city",
-                    BackgroundMode.CUSTOM_URL to "URL",
-                    BackgroundMode.NONE to "No image",
+                    BackgroundMode.AUTO to s.bgAutoCity,
+                    BackgroundMode.DYNAMIC_CONTENT to s.bgDynamicPoster,
+                    BackgroundMode.CITY_ROTATION to s.bgDailyCity,
+                    BackgroundMode.CUSTOM_URL to s.bgUrl,
+                    BackgroundMode.NONE to s.bgNoImage,
                 ),
                 selected = settings.backgroundMode,
                 onSelected = onBackgroundMode,
@@ -1276,30 +1277,30 @@ private fun AppearanceSettingsCard(
             }
 
             AppearanceLabeledChoiceRow(
-                title = "Background motion",
+                title = s.setBackgroundMotion,
                 hint = "Particle and motion intensity behind home content.",
                 items = listOf(
-                    MotionLevel.LOW to "Low",
-                    MotionLevel.BALANCED to "Balanced",
-                    MotionLevel.RICH to "Rich",
+                    MotionLevel.LOW to s.motionLow,
+                    MotionLevel.BALANCED to s.motionBalanced,
+                    MotionLevel.RICH to s.motionRich,
                 ),
                 selected = settings.motionLevel,
                 onSelected = onMotionLevel,
             )
 
-            SectionHeader("Performance")
+            SectionHeader(s.secPerformance)
             AppearanceSubsection(
                 title = "Automatic device profile",
                 description = "Detected display: ${devicePerformanceInfo.displayQualityLabel} (${devicePerformanceInfo.displayMaxWidth}x${devicePerformanceInfo.displayMaxHeight}). Current profile: ${performancePolicy.mode.label()} up to ${performancePolicy.maxVideoHeight}p.",
             )
             AppearanceLabeledChoiceRow(
-                title = "Performance mode",
+                title = s.setPerformanceMode,
                 hint = "Auto chooses the best safe quality for the device. Performance targets 720p, Balanced 1080p, and Quality unlocks 4K/8K when the TV and stream support it.",
                 items = listOf(
-                    PerformanceMode.AUTO to "Auto",
-                    PerformanceMode.PERFORMANCE to "Performance",
-                    PerformanceMode.BALANCED to "Balanced",
-                    PerformanceMode.QUALITY to "Quality",
+                    PerformanceMode.AUTO to s.perfAuto,
+                    PerformanceMode.PERFORMANCE to s.perfPerformance,
+                    PerformanceMode.BALANCED to s.perfBalanced,
+                    PerformanceMode.QUALITY to s.perfQuality,
                 ),
                 selected = settings.performanceMode,
                 onSelected = onPerformanceMode,
@@ -1312,9 +1313,9 @@ private fun AppearanceSettingsCard(
                 )
             }
 
-            SectionHeader("Colors")
+            SectionHeader(s.secColors)
             AppearanceSubsection(
-                title = "Accent color",
+                title = s.setAccentColor,
                 description = "Choose one fixed accent color for the whole app.",
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1355,7 +1356,7 @@ private fun AppearanceSettingsCard(
 
             SectionHeader("Weather, clock, and matches")
             AppearanceSubsection(
-                title = "Home top widgets",
+                title = s.setHomeWidgets,
                 description = "Shown on the home card and can be hidden to save space or reduce visual noise.",
             )
             SettingSwitch("Show weather", settings.showWeatherWidget, Icons.Rounded.Cloud, onShowWeatherWidget)

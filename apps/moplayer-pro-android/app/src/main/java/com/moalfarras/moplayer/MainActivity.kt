@@ -182,10 +182,11 @@ private fun MoPlayerApp(
     val performancePolicy = remember(state.settings, devicePerformance) {
         Adaptive.performancePolicy(state.settings, devicePerformance)
     }
-    // The preview-pane trailer only resolves when the pane is on, motion isn't reduced, and the
-    // admin switch is enabled — so it never fires network on weak boxes where the pane is hidden.
+    // The preview-pane trailer resolves only when the pane is actually shown (off on weak/LOW
+    // boxes) and the admin switch is on. NOTE: it is deliberately NOT gated on reduceMotion — a
+    // muted trailer is content, not the decorative particle/aurora motion that reduceMotion calms;
+    // gating on it wrongly killed the trailer on every mid-tier TV (tvCalmMotion => reduceMotion).
     val trailerPreviewCapable = performancePolicy.enablePreviewPane &&
-        !performancePolicy.reduceMotion &&
         state.settings.trailerPreviewEnabled
     LaunchedEffect(trailerPreviewCapable) { viewModel.setTrailerPreviewCapable(trailerPreviewCapable) }
     val previewTrailer = remember(state.focusedTrailer) {

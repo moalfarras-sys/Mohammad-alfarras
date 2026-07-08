@@ -259,25 +259,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-6-0",
+      id: "release-moplayer2-v2-6-1",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.6.0-full",
-      version_name: "2.6.0",
-      version_code: 63,
+      slug: "moplayer2-v2.6.1-full",
+      version_name: "2.6.1",
+      version_code: 64,
       release_notes:
-        "MoPlayer Pro 2.6.0 adds an in-app trailer preview: after a few seconds on a movie or series, a muted trailer autoplays inside the preview pane (the provider's trailer or a YouTube search result), inline without leaving the app, with an admin on/off toggle. It also fixes Arabic typography (Cairo) and polishes the smart assistant, and keeps all 2.5.24 source-loading, sync and playback improvements.",
+        "MoPlayer Pro 2.6.1 makes the in-app trailer preview actually play: it now works on all Android TVs (not only top-tier), uses an embeddable YouTube source so trailers play reliably inline, and fixes the in-app player origin YouTube was rejecting. The catalog also refreshes about every 3 hours in the background so new movies and series appear sooner. Includes the 2.6.0 trailer feature, Cairo Arabic typography, and all 2.5.24 improvements.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-6-0-universal",
-          release_id: "release-moplayer2-v2-6-0",
+          id: "asset-moplayer2-v2-6-1-universal",
+          release_id: "release-moplayer2-v2-6-1",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.0/app-universal-release.apk",
-          file_size_bytes: 49436375,
-          checksum_sha256: "28c351262b7692d93fac1edac01efb38260f395fb7a15d9781dc0f1fc40caead",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.1/app-universal-release.apk",
+          file_size_bytes: 49436453,
+          checksum_sha256: "99d4e7ebc72957ae15ec0b63630719002b6a7c190e3867e7a06a71d826344486",
         },
       ],
     },

@@ -1826,7 +1826,9 @@ private fun String.urlEncode(): String =
 private fun String.urlDecode(): String =
     runCatching { URLDecoder.decode(this, StandardCharsets.UTF_8.name()) }.getOrDefault(this)
 
-private const val SMART_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000L
+// Silently pull newest catalog additions when the app is opened and >3h have passed since the last
+// sync (mirrors LibraryRefreshWorker) — content stays fresh without a full re-sync on every open.
+private const val SMART_REFRESH_INTERVAL_MS = 3 * 60 * 60 * 1000L
 private const val SERIES_DETAIL_PREFETCH_DELAY_MS = 380L
 private const val MOVIE_DETAIL_PREFETCH_DELAY_MS = 520L
 // Short settle delay so quickly scrolling past channels doesn't fire a DNS resolve for each.

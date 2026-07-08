@@ -145,7 +145,9 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                         private fun keepInside(url: String): Boolean = !(
                             url.startsWith("https://www.youtube.com") ||
                                 url.startsWith("https://youtube.com") ||
+                                url.startsWith("https://www.youtube-nocookie.com") ||
                                 url.startsWith("https://www.google.com") ||
+                                url.startsWith("https://moalfarras.space") ||
                                 url.startsWith("about:") ||
                                 url.startsWith("data:")
                             )
@@ -177,7 +179,10 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                 }
             }.getOrNull() ?: return@AndroidView View(ctx)
             webViewRef.value = view
-            view.loadDataWithBaseURL("https://www.youtube.com", trailerHtml(youtubeId), "text/html", "utf-8", null)
+            // Base URL must be a REAL registered https origin (not a youtube.com spoof) or YouTube's
+            // IFrame origin check rejects playback with error 150/152. Use the app's own domain and
+            // pass the same value as the player `origin` so the enablejsapi handshake matches.
+            view.loadDataWithBaseURL(TRAILER_ORIGIN, trailerHtml(youtubeId), "text/html", "utf-8", null)
             view
         },
         onRelease = { released ->
@@ -198,6 +203,10 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
         },
     )
 }
+
+/** A real registered https origin used as the WebView base URL AND the IFrame `origin` playerVar.
+ *  YouTube rejects playback (error 150/152) when the page origin is a youtube.com spoof. */
+private const val TRAILER_ORIGIN = "https://moalfarras.space"
 
 /** Self-contained IFrame Player API page. Center-cropped (cover) to match the backdrop's crop. */
 private fun trailerHtml(youtubeId: String): String {
@@ -226,15 +235,17 @@ private fun trailerHtml(youtubeId: String): String {
     player=new YT.Player('p',{
       videoId:'$safeId',
       playerVars:{autoplay:1,mute:1,controls:0,rel:0,modestbranding:1,playsinline:1,
-        fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:'$safeId'},
+        fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:'$safeId',origin:'$TRAILER_ORIGIN'},
       events:{
-        'onReady':function(e){ try{e.target.mute();e.target.playVideo();}catch(err){} },
+        'onReady':function(e){ console.log('MOTRAILER ready'); try{e.target.mute();e.target.playVideo();}catch(err){} },
         'onStateChange':function(e){
+          console.log('MOTRAILER state='+e.data);
           if(e.data===YT.PlayerState.PLAYING && window.MoTrailerBridge){
             try{MoTrailerBridge.onPlaying();}catch(err){}
           }
         },
         'onError':function(e){
+          console.log('MOTRAILER error='+e.data);
           if(window.MoTrailerBridge){ try{MoTrailerBridge.onError();}catch(err){} }
         }
       }

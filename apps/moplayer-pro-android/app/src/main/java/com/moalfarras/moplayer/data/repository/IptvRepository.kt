@@ -303,40 +303,40 @@ class IptvRepository(
 
     /**
      * Resolve a YouTube video id to preview as a muted trailer for [item]. Priority:
-     *  1. The provider's own `youtube_trailer` — movies (get_vod_info, cached) AND series
-     *     (get_series_info info.youtube_trailer, fetched on demand).
-     *  2. A YouTube search fallback served by the website (`/api/app/trailer`), where the API key
-     *     stays server-side and results are cached, so the device never holds a key or burns quota.
+     *  1. A YouTube search via the website (`/api/app/trailer`) — the endpoint filters to
+     *     `videoEmbeddable=true`, so its result ALWAYS plays inside the IFrame. Key stays
+     *     server-side, results are cached, so the device never holds a key or burns quota.
+     *  2. The provider's own `youtube_trailer` as a fallback if search returns nothing — movies
+     *     (get_vod_info, cached) and series (get_series_info). NOTE: many Xtream panels store a
+     *     youtube_trailer whose video has embedding disabled (IFrame error 150/152 → won't play),
+     *     which is exactly why search is tried first.
      * Returns null when nothing is available. Runs off the main thread and only ever talks to the
-     * panel's JSON API (get_vod_info / get_series_info) or YouTube's own hosts — never the live
-     * stream socket — so it cannot consume a provider's (often single) streaming connection slot.
+     * website / YouTube hosts (or the panel's JSON API for the fallback) — never the live stream
+     * socket — so it cannot consume a provider's (often single) streaming connection slot.
      */
     suspend fun resolveTrailerYoutubeId(server: ServerProfile, item: MediaItem): String? = withContext(Dispatchers.IO) {
+        if (item.type != ContentType.MOVIE && item.type != ContentType.SERIES) return@withContext null
+        // 1) Embeddable YouTube search first — guaranteed to play, and avoids the mount→error→dispose
+        //    churn that a non-embeddable provider trailer causes.
+        searchTrailerOnWeb(item.title, item.type, trailerSearchYear(item))?.let { return@withContext it }
+        // 2) Provider trailer only if search found nothing.
         if (server.kind == LoginKind.XTREAM) {
-            when (item.type) {
-                ContentType.MOVIE -> {
-                    val cached = runCatching {
-                        refreshVodDetails(server, item)
-                        database.vodDetailsDao().get(server.id, item.id)?.youtubeTrailer
-                    }.getOrNull()
-                    extractYoutubeId(cached)?.let { return@withContext it }
-                }
-                ContentType.SERIES -> {
-                    val providerId = runCatching {
-                        val seriesId = item.seriesId.ifBlank { item.id }
-                        if (seriesId.isBlank()) return@runCatching null
-                        val credentials = savedXtreamCredentials(server)
-                        val api = xtreamFactory(credentials.baseUrl)
-                        val root = fetchSeriesInfoObject(api, credentials.username, credentials.password, seriesId)
-                        XtreamSupport.seriesTrailerYoutubeId(root)
-                    }.getOrNull()
-                    extractYoutubeId(providerId)?.let { return@withContext it }
-                }
-                else -> {}
+            val providerId = when (item.type) {
+                ContentType.MOVIE -> runCatching {
+                    refreshVodDetails(server, item)
+                    database.vodDetailsDao().get(server.id, item.id)?.youtubeTrailer
+                }.getOrNull()
+                ContentType.SERIES -> runCatching {
+                    val seriesId = item.seriesId.ifBlank { item.id }
+                    if (seriesId.isBlank()) return@runCatching null
+                    val credentials = savedXtreamCredentials(server)
+                    val api = xtreamFactory(credentials.baseUrl)
+                    val root = fetchSeriesInfoObject(api, credentials.username, credentials.password, seriesId)
+                    XtreamSupport.seriesTrailerYoutubeId(root)
+                }.getOrNull()
+                else -> null
             }
-        }
-        if (item.type == ContentType.MOVIE || item.type == ContentType.SERIES) {
-            return@withContext searchTrailerOnWeb(item.title, item.type, trailerSearchYear(item))
+            extractYoutubeId(providerId)?.let { return@withContext it }
         }
         null
     }

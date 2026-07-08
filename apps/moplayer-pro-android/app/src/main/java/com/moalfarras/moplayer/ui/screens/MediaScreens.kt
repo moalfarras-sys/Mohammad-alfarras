@@ -847,8 +847,9 @@ fun PreviewPane(
             if (showTrailer) {
                 val reportTrailerError = LocalTrailerErrorReporter.current
                 YoutubeTrailerSurface(
-                    trailer.youtubeId,
-                    Modifier.fillMaxSize(),
+                    itemKey = trailer.itemKey,
+                    youtubeId = trailer.youtubeId,
+                    modifier = Modifier.fillMaxSize(),
                     onError = { reportTrailerError(trailer.itemKey) },
                 )
             }

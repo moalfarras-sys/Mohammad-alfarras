@@ -377,6 +377,9 @@ class IptvRepository(
             append("&type=").append(typeParam)
             append("&product=").append(BuildConfig.APP_PRODUCT_SLUG)
             if (year.isNotBlank()) append("&year=").append(year)
+            // Automatic cache-busting: each app release uses distinct URLs, so no intermediate
+            // HTTP/CDN cache can ever serve a previous version's (possibly wrong) trailer mapping.
+            append("&v=").append(BuildConfig.VERSION_CODE)
         }
         WebApiEndpoint.candidateUrls(path).forEach { urlString ->
             val id = runCatching {
@@ -385,6 +388,7 @@ class IptvRepository(
                     connectTimeout = 7_000
                     readTimeout = 7_000
                     setRequestProperty("Accept", "application/json")
+                    useCaches = false
                 }
                 try {
                     if (connection.responseCode !in 200..299) return@runCatching null

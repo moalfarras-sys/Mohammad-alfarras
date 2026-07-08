@@ -14,23 +14,45 @@ const DAILY_SEARCH_BUDGET = 90;
 
 type CacheMode = "hit" | "miss" | "none";
 
-function normalizeTitle(value: string): string {
+// Strip release-quality noise (4K/FHD/CAM/x265/…) and separators so searches and cache keys
+// reflect the actual title, not the panel's file naming.
+function cleanTitle(value: string): string {
   return value
+    .replace(
+      /\b(4k|8k|2160p|1080p|720p|480p|fhd|uhd|hdr|hd|sd|cam|camrip|hdcam|web-?dl|web-?rip|bluray|blu-ray|brrip|hdrip|dvdrip|x264|x265|h\.?264|h\.?265|hevc|10bit|vip)\b/gi,
+      " ",
+    )
+    .replace(/[[\](){}<>|_+•·]+/g, " ")
+    .replace(/\s*[-–—:]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Unicode-aware: keeps Arabic (and every other script). The previous [^a-z0-9] version stripped
+// non-Latin titles to "" — so EVERY Arabic movie collapsed onto ONE cache key and the first
+// resolved trailer was served for all of them (the "same trailer everywhere" bug).
+function normalizeTitle(value: string): string {
+  return cleanTitle(value)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .replace(/\s+/g, " ");
+    .normalize("NFKC")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function cacheKey(title: string, type: string, year: string): string {
-  return `yt:trailer:${type}:${normalizeTitle(title)}${year ? `:${year}` : ""}`;
+  const normalized = normalizeTitle(title);
+  // Never allow an empty key segment — hash the raw title instead of letting titles collide.
+  const safe = normalized || `raw-${Buffer.from(title, "utf8").toString("base64url").slice(0, 48)}`;
+  return `yt:trailer:${type}:${safe}${year ? `:${year}` : ""}`;
 }
 
 function trailerResponse(body: unknown, cache: CacheMode) {
   const res = NextResponse.json(body, { status: 200 });
   if (cache === "hit") {
-    // A real title -> id mapping is stable; let the CDN + client hold it for a long time.
-    res.headers.set("Cache-Control", "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800");
+    // CDN keeps hits for a month (purged automatically on every deploy), but DEVICES only for an
+    // hour — so a bad cached mapping can always be flushed server-side without waiting on clients.
+    res.headers.set("Cache-Control", "public, max-age=3600, s-maxage=2592000, stale-while-revalidate=604800");
   } else if (cache === "miss") {
     // "No trailer exists yet" — re-check daily so a later-published trailer can surface.
     res.headers.set("Cache-Control", "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400");
@@ -80,8 +102,13 @@ export async function GET(request: Request) {
     return trailerResponse({ videoId: null, reason: "budget" }, "none");
   }
 
-  const kind = type === "series" ? "tv series" : "movie";
-  const query = `${title} ${kind} official trailer${year ? ` ${year}` : ""}`;
+  // Search with the CLEANED title (quality junk hurts relevance) and language-matched terms —
+  // Arabic titles find their trailers under "اعلان/تريلر", not "official trailer".
+  const cleaned = cleanTitle(title) || title;
+  const arabic = /[؀-ۿ]/.test(cleaned);
+  const kind = type === "series" ? (arabic ? "مسلسل" : "tv series") : (arabic ? "فيلم" : "movie");
+  const trailerTerm = arabic ? "اعلان تريلر" : "official trailer";
+  const query = `${cleaned} ${kind} ${trailerTerm}${year ? ` ${year}` : ""}`;
 
   try {
     const res = await fetch(

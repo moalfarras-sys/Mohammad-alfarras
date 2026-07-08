@@ -16,6 +16,10 @@ const eslintConfig = defineConfig([
     "MOA/**",
     "legacy_static/**",
     "app-next/**",
+    // Node-only build/generation scripts (CommonJS) — not part of the app bundle,
+    // so the browser/TS ruleset (e.g. no-require-imports) must not apply to them.
+    "scripts/**",
+    "**/*.cjs",
   ]),
 ]);
 

@@ -366,8 +366,8 @@ export function MoPlayer2Landing({
         </div>
       </section>
 
-      {/* Universal Download Hero Card */}
-      {latest && primaryAsset ? (
+      {/* Universal Download Hero Card — gated on downloadHref so it hides in maintenance/disabled mode */}
+      {downloadHref && primaryAsset ? (
         <section className="relative py-16 px-6 sm:px-12 z-10">
           <div className="max-w-5xl mx-auto rounded-[3rem] overflow-hidden border border-[#f4b860]/30 bg-gradient-to-br from-[#f4b860]/10 to-black p-6 md:p-10 flex flex-col md:flex-row items-center gap-8 shadow-[0_0_80px_rgba(244,184,96,0.15)] relative">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(244,184,96,0.15),transparent_50%)]" />
@@ -384,7 +384,7 @@ export function MoPlayer2Landing({
                   : "This is the easiest option for modern televisions and common Android TV boxes."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                 <a href={`/api/app/releases/${latest.slug}/download`} className="px-6 py-3 rounded-xl bg-white text-black font-extrabold hover:bg-[#f4b860] hover:text-black transition-all shadow-lg flex items-center justify-center gap-3">
+                 <a href={downloadHref} className="px-6 py-3 rounded-xl bg-white text-black font-extrabold hover:bg-[#f4b860] hover:text-black transition-all shadow-lg flex items-center justify-center gap-3">
                    <Download className="h-5 w-5" />
                    {primaryAsset.label || (isAr ? "ملف APK موحد" : "Universal TV APK")}
                  </a>

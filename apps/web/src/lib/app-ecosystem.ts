@@ -15,8 +15,12 @@ import type {
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
+// APK binaries are hosted on GitHub Releases (off the git repo / Vercel bundle).
+// NOTE: production download URLs come from Supabase (app_release_assets); this is
+// only the offline fallback used when Supabase is unreachable.
 const moplayerDownloadUrls = {
-  universal: "/downloads/moplayer/app-sideload-universal-release.apk",
+  universal:
+    "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-sideload-universal-release.apk",
 };
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
@@ -270,7 +274,8 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
           release_id: "release-moplayer2-v2-5-24",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
-          external_url: "/downloads/moplayer2/app-release.apk",
+          external_url:
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-release.apk",
           file_size_bytes: 49276472,
           checksum_sha256: "3f63482fcb021c8fc6c9eb9ff79e02b43b75fe71932e8958eaf1f7a91bf8dd67",
         },

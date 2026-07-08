@@ -32,14 +32,6 @@ fun backdropUrlFrom(vararg items: MediaItem?): String? {
     return null
 }
 
-fun backdropUrlFromList(items: List<MediaItem>, focused: MediaItem? = null): String? {
-    focused?.let { backdropUrlFrom(it) }?.let { return it }
-    for (item in items) {
-        backdropUrlFrom(item)?.let { return it }
-    }
-    return null
-}
-
 /**
  * Cinematic Backdrop: sharp full-bleed image + light gradients for UI contrast.
  * (Older builds used heavy blur + low alpha, which made TV backgrounds look muddy.)

@@ -166,13 +166,12 @@ private fun MoPlayerApp(
     val movieCategories by viewModel.movieCategories.collectAsState()
     val seriesCategories by viewModel.seriesCategories.collectAsState()
     val media = viewModel.selectedMedia.collectAsLazyPagingItems()
-    val latestLive = viewModel.latestLive.collectAsLazyPagingItems()
-    val latestMovies = viewModel.latestMovies.collectAsLazyPagingItems()
-    val latestSeries = viewModel.latestSeries.collectAsLazyPagingItems()
-    val continueWatching = viewModel.continueWatching.collectAsLazyPagingItems()
     val favorites = viewModel.favorites.collectAsLazyPagingItems()
-    val recentLive = viewModel.recentLive.collectAsLazyPagingItems()
     val searchResults = viewModel.searchResults.collectAsLazyPagingItems()
+    // The 5 Home shelves (continueWatching/recentLive/latestLive/latestMovies/latestSeries) are
+    // collected INSIDE the HOME branch below, not here — so a cold start restored into Live/Movies/
+    // Series/Favorites/Search fires zero home-shelf Room queries. cachedIn(viewModelScope) makes the
+    // first HOME entry (and every re-entry) replay instantly.
     val seriesEpisodes by viewModel.seriesEpisodes.collectAsState(initial = emptyList())
     val focusedLiveEpg by viewModel.focusedLiveEpg.collectAsState()
     val accent = Color(state.settings.accentColor)
@@ -311,7 +310,16 @@ private fun MoPlayerApp(
                             },
                     ) {
                         when (state.section) {
-                            AppSection.HOME -> HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null)
+                            AppSection.HOME -> {
+                                // Collected here (not at the root) so these Room queries only run
+                                // when Home is actually shown; cachedIn keeps re-entry instant.
+                                val continueWatching = viewModel.continueWatching.collectAsLazyPagingItems()
+                                val recentLive = viewModel.recentLive.collectAsLazyPagingItems()
+                                val latestLive = viewModel.latestLive.collectAsLazyPagingItems()
+                                val latestMovies = viewModel.latestMovies.collectAsLazyPagingItems()
+                                val latestSeries = viewModel.latestSeries.collectAsLazyPagingItems()
+                                HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null)
+                            }
                             AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, focusedLiveEpg, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.MOVIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_movies), movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.SERIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_series), seriesCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)

@@ -842,7 +842,6 @@ fun PreviewPane(
             val trailer = LocalPreviewTrailer.current
             val showTrailer = previewEnabled &&
                 performancePolicy?.enablePreviewPane != false &&
-                performancePolicy?.reduceMotion != true &&
                 trailer.youtubeId.isNotBlank() &&
                 trailer.itemKey == mediaKey(item)
             if (showTrailer) {

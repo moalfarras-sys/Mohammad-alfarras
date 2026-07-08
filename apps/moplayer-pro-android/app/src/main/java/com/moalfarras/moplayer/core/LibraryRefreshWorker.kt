@@ -27,6 +27,9 @@ class LibraryRefreshWorker(
     }
 
     private companion object {
-        const val SMART_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000L
+        // Refresh the catalog every ~3h so newly-added movies/series surface promptly. Still
+        // background-only + battery/network/storage-constrained + chunked-merge, so it stays silent
+        // and light on weak boxes; the worker wakes hourly but only syncs past this staleness.
+        const val SMART_REFRESH_INTERVAL_MS = 3 * 60 * 60 * 1000L
     }
 }

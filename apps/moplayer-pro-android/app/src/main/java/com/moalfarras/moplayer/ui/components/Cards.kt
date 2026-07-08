@@ -600,12 +600,14 @@ private fun RemotePosterImage(
     modifier: Modifier = Modifier,
 ) {
     val model = remember(url) { url.optimizedPosterUrl() }
-    val fallback = painterResource(R.drawable.ic_splash_logo)
+    // A subtle dark placeholder for loading / missing / failed art — much cleaner in a grid
+    // than flashing the full app logo in every cell.
+    val placeholder = painterResource(R.drawable.poster_placeholder)
     if (model.isBlank()) {
         Image(
-            painter = fallback,
+            painter = placeholder,
             contentDescription = contentDescription,
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.Crop,
             modifier = modifier,
         )
     } else {
@@ -623,9 +625,9 @@ private fun RemotePosterImage(
             model = request,
             contentDescription = contentDescription,
             contentScale = contentScale,
-            placeholder = fallback,
-            error = fallback,
-            fallback = fallback,
+            placeholder = placeholder,
+            error = placeholder,
+            fallback = placeholder,
             modifier = modifier,
         )
     }

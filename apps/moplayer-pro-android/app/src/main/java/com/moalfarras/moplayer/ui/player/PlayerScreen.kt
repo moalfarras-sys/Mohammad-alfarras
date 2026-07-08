@@ -2308,6 +2308,7 @@ private fun PlayerRoutePicker(
     onDismiss: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
     val autoFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(120)
@@ -2325,7 +2326,7 @@ private fun PlayerRoutePicker(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    "Choose player",
+                    strings.playerChooseTitle,
                     color = Color.White,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
@@ -2338,7 +2339,7 @@ private fun PlayerRoutePicker(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    "Choose Media3 or an external player before playback starts.",
+                    strings.playerChooseHint,
                     color = Color(0x99FFFFFF),
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -2369,10 +2370,10 @@ private fun PlayerRoutePicker(
                     }
                 }
                 OutlinedButton(onClick = { onSelect("external") }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Generic")
+                    Text(strings.playerGeneric)
                 }
                 OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         }
@@ -2410,8 +2411,8 @@ private fun ExternalLaunchScreen(
                 Text(message, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyLarge)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(onClick = onRetrySame, modifier = Modifier.focusRequester(retryFocus)) { Text(strings.retry) }
-                    OutlinedButton(onClick = onUseMedia3) { Text("Use Media3") }
-                    OutlinedButton(onClick = onPickAnother) { Text("Choose another") }
+                    OutlinedButton(onClick = onUseMedia3) { Text(strings.playerUseMedia3) }
+                    OutlinedButton(onClick = onPickAnother) { Text(strings.playerChooseAnother) }
                     OutlinedButton(onClick = onBack) { Text("Back") }
                 }
             }

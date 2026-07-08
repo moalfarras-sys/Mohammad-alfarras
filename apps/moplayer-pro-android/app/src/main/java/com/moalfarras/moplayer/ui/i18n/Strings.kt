@@ -144,6 +144,11 @@ class Strings(
     val playerCouldNotPlay: String,
     val playerOpening: String,
     val playerLoading: String,
+    val playerChooseTitle: String,
+    val playerChooseHint: String,
+    val playerGeneric: String,
+    val playerUseMedia3: String,
+    val playerChooseAnother: String,
 )
 
 val EnStrings = Strings(
@@ -243,6 +248,11 @@ val EnStrings = Strings(
     playerCouldNotPlay = "Could not play stream",
     playerOpening = "Opening channel…",
     playerLoading = "Loading…",
+    playerChooseTitle = "Choose player",
+    playerChooseHint = "Choose Media3 or an external player before playback starts.",
+    playerGeneric = "Generic",
+    playerUseMedia3 = "Use Media3",
+    playerChooseAnother = "Choose another",
 )
 
 val ArStrings = Strings(
@@ -342,4 +352,9 @@ val ArStrings = Strings(
     playerCouldNotPlay = "تعذّر تشغيل البث",
     playerOpening = "جارٍ فتح القناة…",
     playerLoading = "جارٍ التحميل…",
+    playerChooseTitle = "اختر المشغّل",
+    playerChooseHint = "اختر Media3 أو مشغّلاً خارجياً قبل بدء التشغيل.",
+    playerGeneric = "عام",
+    playerUseMedia3 = "استخدام Media3",
+    playerChooseAnother = "اختيار آخر",
 )

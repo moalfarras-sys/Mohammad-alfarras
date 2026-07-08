@@ -455,7 +455,10 @@ class HomeActivity : BaseTvActivity() {
         silentRefreshStarted = true
         smartRefreshManager.startForegroundRefresh(lifecycleScope)
         viewModel.refreshSubscriptionOnce()
-        checkForAppUpdate()
+        // In-app APK self-update is a sideload-only feature (Play policy).
+        if (com.mo.moplayer.BuildConfig.SIDELOAD_UPDATES) {
+            checkForAppUpdate()
+        }
     }
 
     private fun checkForAppUpdate() {

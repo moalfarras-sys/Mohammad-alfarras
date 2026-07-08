@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -1317,17 +1318,28 @@ private fun QrActivationPanel(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(panelSpacing),
     ) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val brandLogo = remember { android.graphics.BitmapFactory.decodeResource(context.resources, R.drawable.ic_splash_logo) }
         if (session?.verificationUrlComplete?.isNotBlank() == true) {
-            Image(
-                bitmap = remember(session.verificationUrlComplete) { qrBitmap(session.verificationUrlComplete, 360).asImageBitmap() },
-                contentDescription = "QR activation code",
+            // Branded QR on a bright plate with a soft champagne frame + glow — premium, and the
+            // centered MoPlayer mark makes it instantly recognizable while staying scannable.
+            Box(
                 modifier = Modifier
-                    .size(qrSize)
-                    .clip(RoundedCornerShape((18 * tv.factor).dp))
+                    .shadow((22 * tv.factor).dp, RoundedCornerShape((26 * tv.factor).dp), spotColor = Color(0xFFF1CC83))
+                    .clip(RoundedCornerShape((26 * tv.factor).dp))
                     .background(Color.White)
+                    .border((2 * tv.factor).dp, Color(0x66F1CC83), RoundedCornerShape((26 * tv.factor).dp))
                     .padding(qrPadding),
-            )
-            Text(session.userCode, color = Color.White, fontSize = codeFont, fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
+            ) {
+                Image(
+                    bitmap = remember(session.verificationUrlComplete) {
+                        brandedQrBitmap(session.verificationUrlComplete, 512, brandLogo).asImageBitmap()
+                    },
+                    contentDescription = "QR activation code",
+                    modifier = Modifier.size(qrSize),
+                )
+            }
+            Text(session.userCode, color = Color.White, fontSize = codeFont, fontWeight = FontWeight.ExtraBold, letterSpacing = 3.sp)
             Text(session.verificationUrl, color = Color(0xCCE3BC78), fontSize = smallFont, textAlign = TextAlign.Center, maxLines = 2)
             val statusText = when (session.status) {
                 DeviceActivationStatus.WAITING -> "${s.activationWaiting} - ${session.secondsRemaining} ${s.secondsShort}"
@@ -1345,42 +1357,68 @@ private fun QrActivationPanel(
             Text(s.loginCreateQrHint, color = Color(0xAAFFFFFF), fontSize = (13 * tv.factor).sp, textAlign = TextAlign.Center)
         }
         GlassActionButton(s.loginRefreshQr, Icons.Rounded.Refresh, true, tv, onRefresh)
-        if (tv.isTv) {
-            Text(
-                s.loginManualCode,
-                color = Color(0xCCE3BC78),
-                fontSize = (12 * tv.factor).sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            GlassTextField(
-                value = manualCode,
-                onValue = onManualCode,
-                label = s.loginActivationCode,
-                tv = tv,
-                icon = Icons.Rounded.Key,
-            )
-            GlassActionButton(s.loginUseCode, Icons.Rounded.Verified, manualCode.length >= 6, tv, onSubmitManual)
-        } else {
-            GlassTextField(
-                value = manualCode,
-                onValue = onManualCode,
-                label = s.loginManualCode,
-                tv = tv,
-                icon = Icons.Rounded.Key,
-            )
-            GlassActionButton(s.loginUseCode, Icons.Rounded.Verified, manualCode.length >= 6, tv, onSubmitManual)
-        }
     }
 }
 
-private fun qrBitmap(value: String, size: Int): android.graphics.Bitmap {
-    val matrix = QRCodeWriter().encode(value, BarcodeFormat.QR_CODE, size, size)
-    val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
-    for (x in 0 until size) {
-        for (y in 0 until size) {
-            bitmap.setPixel(x, y, if (matrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+/**
+ * Modern, branded QR: high error-correction (H = 30% recovery) so a centered app logo never
+ * breaks scanning, rounded data modules, styled rounded finder eyes, and the MoPlayer mark in
+ * the middle. Rendered at module resolution (not per-pixel) so it stays crisp and premium.
+ */
+private fun brandedQrBitmap(value: String, sizePx: Int, logo: android.graphics.Bitmap?): android.graphics.Bitmap {
+    val code = com.google.zxing.qrcode.encoder.Encoder.encode(
+        value,
+        com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.H,
+        mapOf(com.google.zxing.EncodeHintType.CHARACTER_SET to "UTF-8"),
+    )
+    val matrix = code.matrix
+    val modules = matrix.width
+    val quiet = 2
+    val cell = sizePx.toFloat() / (modules + quiet * 2)
+    val bitmap = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    canvas.drawColor(android.graphics.Color.WHITE)
+    val dark = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.parseColor("#0B0B0C")
+    }
+    val white = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.WHITE
+    }
+    fun inFinder(mx: Int, my: Int): Boolean =
+        (mx < 7 && my < 7) || (mx >= modules - 7 && my < 7) || (mx < 7 && my >= modules - 7)
+    // Data modules as soft rounded squares (high fill → reliable scan, modern look).
+    val r = cell * 0.30f
+    for (my in 0 until modules) {
+        for (mx in 0 until modules) {
+            if (matrix.get(mx, my).toInt() != 1 || inFinder(mx, my)) continue
+            val left = (quiet + mx) * cell
+            val top = (quiet + my) * cell
+            canvas.drawRoundRect(left, top, left + cell, top + cell, r, r, dark)
         }
+    }
+    // Styled rounded finder eyes at the three corners.
+    fun finder(cx: Int, cy: Int) {
+        val x = (quiet + cx) * cell
+        val y = (quiet + cy) * cell
+        val o = 7 * cell
+        canvas.drawRoundRect(x, y, x + o, y + o, cell * 1.7f, cell * 1.7f, dark)
+        canvas.drawRoundRect(x + cell, y + cell, x + o - cell, y + o - cell, cell * 1.2f, cell * 1.2f, white)
+        canvas.drawRoundRect(x + 2 * cell, y + 2 * cell, x + o - 2 * cell, y + o - 2 * cell, cell * 0.9f, cell * 0.9f, dark)
+    }
+    finder(0, 0)
+    finder(modules - 7, 0)
+    finder(0, modules - 7)
+    // Center logo (aspect-preserved) on a white rounded plate; ~22% is safe under H recovery.
+    if (logo != null) {
+        val box = sizePx * 0.22f
+        val c = sizePx / 2f
+        val plate = box / 2f + cell * 1.1f
+        canvas.drawRoundRect(c - plate, c - plate, c + plate, c + plate, plate * 0.34f, plate * 0.34f, white)
+        val aspect = logo.width.toFloat() / logo.height.toFloat()
+        val w = if (aspect >= 1f) box else box * aspect
+        val h = if (aspect >= 1f) box / aspect else box
+        val dst = android.graphics.RectF(c - w / 2f, c - h / 2f, c + w / 2f, c + h / 2f)
+        canvas.drawBitmap(logo, null, dst, android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG or android.graphics.Paint.ANTI_ALIAS_FLAG))
     }
     return bitmap
 }

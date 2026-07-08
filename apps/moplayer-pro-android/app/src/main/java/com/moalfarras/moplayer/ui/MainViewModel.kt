@@ -465,6 +465,15 @@ class MainViewModel(
     init {
         applyRemoteRuntimeConfig()
         refreshWidgets()
+        // Keep the match/weather widgets fresh without any user action: every 2 minutes while a
+        // match is live (running score/minute), otherwise every 15 minutes — light JSON calls that
+        // ride the site's CDN cache, so weak boxes feel nothing.
+        viewModelScope.launch {
+            while (true) {
+                delay(if (football.value.any { it.isLive }) 2 * 60_000L else 15 * 60_000L)
+                refreshWidgets()
+            }
+        }
         viewModelScope.launch {
             combine(uiState, liveCategories, movieCategories, seriesCategories) { state, live, movies, series ->
                 val categoryIds = when (state.section) {
@@ -523,12 +532,20 @@ class MainViewModel(
         val validRestoredFocus = restoredFocus?.takeIf { focus ->
             validRestoredCategory.isBlank() || focus.categoryId == validRestoredCategory
         }
+        // A trailer (or a pending resolve) from the previous section must never leak into the new
+        // one — clear everything so each section starts from its own fresh dwell.
+        trailerPreviewJob?.cancel()
+        trailerPreviewJob = null
+        trailerPreviewKey = ""
+        seriesDetailTrailerJob?.cancel()
+        seriesDetailTrailerJob = null
         internal.update {
             it.copy(
                 section = section,
                 returnSection = section,
                 focusedItem = validRestoredFocus,
                 restoreFocusItem = validRestoredFocus,
+                focusedTrailer = null,
                 selectedCategoryId = validRestoredCategory,
                 dockFocusSection = null,
                 error = null,
@@ -676,7 +693,12 @@ class MainViewModel(
         // Episodes never produce a trailer, and inside SeriesDetail we must NOT let episode focus
         // clear the series' own trailer (scheduled separately), so treat episode focus as a no-op.
         if (item?.type == ContentType.EPISODE) return
-        val target = item?.takeIf { it.type == ContentType.MOVIE || it.type == ContentType.SERIES }
+        // Only sections that actually render the preview pane may resolve trailers — dwelling on a
+        // Home/Search shelf must not burn search quota (or leak state) for a pane that isn't there.
+        val paneSection = internal.value.section == AppSection.MOVIES ||
+            internal.value.section == AppSection.SERIES ||
+            internal.value.section == AppSection.FAVORITES
+        val target = item?.takeIf { paneSection && (it.type == ContentType.MOVIE || it.type == ContentType.SERIES) }
         val key = target?.let { "${it.type}:${it.serverId}:${it.id}" }.orEmpty()
         if (key != trailerPreviewKey && internal.value.focusedTrailer != null) {
             internal.update { it.copy(focusedTrailer = null) }

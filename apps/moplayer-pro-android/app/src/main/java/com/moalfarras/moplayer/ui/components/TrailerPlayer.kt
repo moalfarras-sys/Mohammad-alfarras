@@ -63,6 +63,7 @@ val LocalTrailerErrorReporter = compositionLocalOf<(String) -> Unit> { {} }
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun YoutubeTrailerSurface(
+    itemKey: String,
     youtubeId: String,
     modifier: Modifier = Modifier,
     onError: () -> Unit = {},
@@ -72,8 +73,10 @@ fun YoutubeTrailerSurface(
     // YouTube's modern embed JS, so skip them entirely — the pane just keeps showing its backdrop.
     val supported = remember { isModernWebViewAvailable(context) }
     if (!supported) return
-    // A new id fully recreates the WebView (old one released) instead of reusing a stale player.
-    key(youtubeId) {
+    // Key on the ITEM as well as the video id: moving focus to a different movie always tears the
+    // player down and starts fresh, even when two titles happen to resolve to the same trailer —
+    // the pane can never keep "the old trailer" across items.
+    key(itemKey, youtubeId) {
         TrailerWebView(youtubeId, modifier, onError)
     }
 }
@@ -179,6 +182,13 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                 }
             }.getOrNull() ?: return@AndroidView View(ctx)
             webViewRef.value = view
+            // Automatic cache hygiene: once per app session, drop any WebView disk cache left over
+            // from older sessions/versions so the player never replays stale cached state. The
+            // trailer WebViews are the app's only WebViews, so this is always safe.
+            if (!trailerWebCacheCleared) {
+                trailerWebCacheCleared = true
+                runCatching { view.clearCache(true) }
+            }
             // Base URL must be a REAL registered https origin (not a youtube.com spoof) or YouTube's
             // IFrame origin check rejects playback with error 150/152. Use the app's own domain and
             // pass the same value as the player `origin` so the enablejsapi handshake matches.
@@ -207,6 +217,9 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
 /** A real registered https origin used as the WebView base URL AND the IFrame `origin` playerVar.
  *  YouTube rejects playback (error 150/152) when the page origin is a youtube.com spoof. */
 private const val TRAILER_ORIGIN = "https://moalfarras.space"
+
+/** One-shot per process: the first trailer WebView clears any stale disk cache automatically. */
+private var trailerWebCacheCleared = false
 
 /** Self-contained IFrame Player API page. Center-cropped (cover) to match the backdrop's crop. */
 private fun trailerHtml(youtubeId: String): String {

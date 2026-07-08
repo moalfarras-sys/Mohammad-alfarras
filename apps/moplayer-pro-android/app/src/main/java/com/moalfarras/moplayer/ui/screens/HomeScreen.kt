@@ -1,6 +1,7 @@
 package com.moalfarras.moplayer.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -147,7 +148,8 @@ fun HomeScreen(
     }
     val topFootballMatches = remember(football, settings.footballMaxMatches, settings.showFootballWidget, performancePolicy.enableWidgets) {
         if (settings.showFootballWidget && performancePolicy.enableWidgets) {
-            football.take(settings.footballMaxMatches.coerceIn(1, 3))
+            // Honor the user's full 1..8 "match count" setting (was silently capped at 3).
+            football.take(settings.footballMaxMatches.coerceIn(1, 8))
         } else {
             emptyList()
         }
@@ -446,7 +448,7 @@ fun HomeScreen(
             HomeHero(
                 highlightedItem = highlightedHomeItem,
                 weather = weather,
-                match = topFootballMatches.firstOrNull(),
+                matches = topFootballMatches,
                 phase = homeNotificationPhase,
                 notificationTitle = settings.homeNotificationTitle,
                 activeServer = activeServer,
@@ -498,7 +500,7 @@ private val HeroTextShadow = Shadow(color = Color(0xB3000000), offset = Offset(0
 private fun HomeHero(
     highlightedItem: MediaItem?,
     weather: WeatherSnapshot,
-    match: FootballMatch?,
+    matches: List<FootballMatch>,
     phase: HomeNotificationPhase,
     notificationTitle: String,
     activeServer: ServerProfile?,
@@ -572,8 +574,26 @@ private fun HomeHero(
                 }
             }
 
-            if (showWidgets && match != null) {
-                HeroMatchStrip(match, accent, !reduceMotion, isArabic)
+            if (showWidgets && matches.isNotEmpty()) {
+                // Rotate through the widget's matches (live first, then upcoming with kickoff
+                // times) every ~8s with a soft crossfade — every match gets screen time instead of
+                // only the first one. A single match renders exactly as before.
+                var matchIndex by remember(matches) { mutableIntStateOf(0) }
+                LaunchedEffect(matches) {
+                    if (matches.size > 1) {
+                        while (true) {
+                            kotlinx.coroutines.delay(8_000L)
+                            matchIndex = (matchIndex + 1) % matches.size
+                        }
+                    }
+                }
+                Crossfade(
+                    targetState = matches[matchIndex % matches.size],
+                    animationSpec = tween(if (reduceMotion) 0 else 600),
+                    label = "matchRotation",
+                ) { match ->
+                    HeroMatchStrip(match, accent, !reduceMotion, isArabic)
+                }
             }
         }
     }

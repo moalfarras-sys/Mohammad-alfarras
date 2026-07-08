@@ -138,6 +138,10 @@ data class FootballMatch(
     val homeBadge: String = "",
     val awayBadge: String = "",
     val newsMessage: String = "",
+    /** Kickoff instant in epoch millis (0 when unknown) — enables staleness + upcoming ordering. */
+    val kickoffEpochMs: Long = 0L,
+    /** True for FT/AET/PEN — lets the widget drop long-finished games instead of showing them. */
+    val isFinished: Boolean = false,
 )
 
 @Immutable

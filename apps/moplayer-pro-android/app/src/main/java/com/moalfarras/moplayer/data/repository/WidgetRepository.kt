@@ -166,12 +166,8 @@ class WidgetRepository(
             val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.US))
             val dayMatches = sportsDbService.eventsDay(today).events.orEmpty()
                 .mapNotNull { it.toFootballMatch() }
-                .sortedWith(
-                    compareByDescending<FootballMatch> { it.isLive }
-                        .thenByDescending { isPreferredLeague(it.league) }
-                        .thenByDescending { it.score.isNotBlank() },
-                )
-            if (dayMatches.isNotEmpty()) return@runCatching dayMatches.take(maxMatches)
+                .forWidget(maxMatches)
+            if (dayMatches.isNotEmpty()) return@runCatching dayMatches
 
             // Nothing today → show the nearest upcoming fixtures from popular leagues.
             val upcoming = ArrayList<SportsDbEventDto>()
@@ -182,9 +178,8 @@ class WidgetRepository(
                 if (upcoming.size >= maxMatches * 2) break
             }
             upcoming
-                .sortedBy { it.strTimestamp ?: it.dateEvent ?: "" }
                 .mapNotNull { it.toFootballMatch() }
-                .take(maxMatches)
+                .forWidget(maxMatches)
         }.getOrElse { emptyList() }
     }
 
@@ -195,15 +190,40 @@ class WidgetRepository(
                 val candidates = (response.importantMatches.ifEmpty { response.matches })
                     .mapNotNull { it.toFootballMatch(response.newsMessage) }
                     .filter { isPreferredLeague(it.league) }
-                    .sortedWith(
-                        compareByDescending<FootballMatch> { it.isLive }
-                            .thenByDescending { isPreferredLeague(it.league) }
-                            .thenBy { kickoffSortKey(it.minute) },
-                    )
-                    .take(maxMatches)
+                    .forWidget(maxMatches)
                 candidates.takeIf { it.isNotEmpty() }
             }.getOrNull()
         }.orEmpty()
+    }
+
+    /**
+     * The widget contract: LIVE matches first, then UPCOMING ordered by soonest kickoff, then the
+     * freshest recent results — and finished games older than ~5h (kickoff + play time + grace)
+     * are dropped entirely so the ticker never dwells on stale scores. Falls back to the unfiltered
+     * list when everything is stale, so the widget never goes blank between matchdays.
+     */
+    private fun List<FootballMatch>.forWidget(maxMatches: Int, nowMs: Long = System.currentTimeMillis()): List<FootballMatch> {
+        val fresh = filterNot { it.isFinished && it.kickoffEpochMs > 0 && nowMs - it.kickoffEpochMs > STALE_FINISHED_MS }
+        val pool = fresh.ifEmpty { this }
+        return pool
+            .sortedWith(
+                compareBy<FootballMatch> {
+                    when {
+                        it.isLive -> 0
+                        !it.isFinished -> 1
+                        else -> 2
+                    }
+                }.thenBy {
+                    // Live: most recently started first; upcoming: soonest kickoff first;
+                    // finished: most recent first. Unknown kickoffs sort last within their group.
+                    when {
+                        it.kickoffEpochMs <= 0 -> Long.MAX_VALUE
+                        it.isFinished || it.isLive -> nowMs - it.kickoffEpochMs
+                        else -> it.kickoffEpochMs - nowMs
+                    }
+                },
+            )
+            .take(maxMatches)
     }
 
     private fun WebFootballMatchDto.toFootballMatch(newsMessage: String = ""): FootballMatch? {
@@ -227,6 +247,10 @@ class WidgetRepository(
             homeBadge = homeLogo.trim(),
             awayBadge = awayLogo.trim(),
             newsMessage = newsMessage.trim(),
+            kickoffEpochMs = kickoffEpochMs(date),
+            isFinished = status.equals("FT", ignoreCase = true) ||
+                status.equals("AET", ignoreCase = true) ||
+                status.equals("PEN", ignoreCase = true),
         )
     }
 
@@ -238,6 +262,7 @@ class WidgetRepository(
         val awayScore = intAwayScore?.trim().orEmpty()
         val hasScore = homeScore.isNotBlank() && awayScore.isNotBlank()
         val live = isLiveStatus(strStatus, strProgress)
+        val statusNorm = strStatus.trim().lowercase(Locale.US)
         return FootballMatch(
             league = strLeague.trim().ifBlank { "Football" },
             home = homeName,
@@ -247,6 +272,8 @@ class WidgetRepository(
             isLive = live,
             homeBadge = strHomeTeamBadge.trim(),
             awayBadge = strAwayTeamBadge.trim(),
+            kickoffEpochMs = kickoffEpochMs(strTimestamp),
+            isFinished = statusNorm.contains("finished") || statusNorm == "ft" || statusNorm == "aet" || statusNorm == "pen",
         )
     }
 
@@ -312,4 +339,21 @@ class WidgetRepository(
             time.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US))
         }.getOrDefault("Time TBD")
     }
+
+    /** Kickoff instant in epoch millis (0 when unknown/unparseable) — mirrors kickoffTime parsing. */
+    private fun kickoffEpochMs(timestamp: String?): Long {
+        val ts = timestamp?.trim().orEmpty()
+        if (ts.isBlank()) return 0L
+        return runCatching {
+            if (ts.contains('+') || ts.endsWith("Z", ignoreCase = true)) {
+                OffsetDateTime.parse(ts).toInstant().toEpochMilli()
+            } else {
+                LocalDateTime.parse(ts.take(19)).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            }
+        }.getOrDefault(0L)
+    }
 }
+
+// Kickoff + full match + generous grace: a finished game older than this is history, not ticker
+// material — the widget prefers what's live or coming next.
+private const val STALE_FINISHED_MS = 5 * 60 * 60 * 1000L

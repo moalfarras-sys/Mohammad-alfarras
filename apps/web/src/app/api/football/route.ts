@@ -160,6 +160,14 @@ function isFinishedStatus(status: string) {
   return ["FT", "AET", "PEN"].includes(status);
 }
 
+// A finished match older than this is history, not widget material — it must never crowd out
+// live or upcoming fixtures in the lists the TV widgets read.
+const STALE_FINISHED_MS = 48 * 60 * 60 * 1000;
+
+function isStaleFinished(match: Match) {
+  return isFinishedStatus(match.status) && Date.now() - matchTimestamp(match) > STALE_FINISHED_MS;
+}
+
 function isUpcomingStatus(status: string) {
   return ["NS", "TBD", "SCHEDULED", "TIMED"].includes(status);
 }
@@ -210,17 +218,26 @@ function buildFootballPayload(
   const unique = uniqueMatches(matches);
   if (unique.length === 0) return null;
 
+  // Widgets should see live + upcoming + recent — stale finished games only crowd them out.
+  // Fall back to the unfiltered pool so a between-matchdays lull never blanks the widget.
+  const freshPool = unique.filter((match) => !isStaleFinished(match));
+  const pool = freshPool.length ? freshPool : unique;
+
   const previousDay = sortByDateDesc(unique.filter((match) => dateOnly(match.date) === isoDate(-1))).slice(0, 20);
   const today = sortForWidget(unique.filter((match) => dateOnly(match.date) === isoDate(0))).slice(0, 30);
   const nextDay = sortByDateAsc(unique.filter((match) => dateOnly(match.date) === isoDate(1))).slice(0, 20);
   const liveMatches = unique.filter((match) => isLiveStatus(match.status));
   const recentResults = sortByDateDesc(unique.filter((match) => isFinishedStatus(match.status))).slice(0, 20);
   const upcomingFixtures = sortByDateAsc(unique.filter((match) => isUpcomingStatus(match.status) || matchTimestamp(match) >= Date.now())).slice(0, 32);
+  const freshResults = recentResults.filter((match) => !isStaleFinished(match));
   // upcomingFixtures/recentResults are subsets of `unique`, so re-dedupe after concatenating.
-  const prioritized = uniqueMatches(sortForWidget(liveMatches.length ? liveMatches : [...upcomingFixtures, ...recentResults, ...unique])).slice(0, config.maxMatches);
-  const important = sortForWidget(unique).slice(0, Math.max(24, config.maxMatches));
+  const prioritized = uniqueMatches(sortForWidget(liveMatches.length ? liveMatches : [...upcomingFixtures, ...freshResults, ...pool])).slice(0, config.maxMatches);
+  const important = sortForWidget(pool).slice(0, Math.max(24, config.maxMatches));
   const cup = sortByDateAsc(uniqueMatches(worldCupMatches)).map(stripPriority);
-  const primary = prioritized[0] ?? sortForWidget(unique)[0];
+  // The widget-facing important list must lead with live/next cup fixtures, not the tournament's
+  // month-old finished games (the full chronological schedule stays in `worldCupMatches`).
+  const cupWidget = sortForWidget(uniqueMatches(worldCupMatches).filter((match) => !isStaleFinished(match)));
+  const primary = prioritized[0] ?? sortForWidget(pool)[0];
   if (!primary) return null;
 
   return {
@@ -229,7 +246,7 @@ function buildFootballPayload(
     previousDay: publicMatches(previousDay),
     today: publicMatches(today),
     nextDay: publicMatches(nextDay),
-    importantMatches: publicMatches(worldCupMatches.length ? uniqueMatches([...worldCupMatches, ...important]) : important),
+    importantMatches: publicMatches(cupWidget.length ? uniqueMatches([...cupWidget, ...important]) : important),
     recentResults: publicMatches(recentResults),
     upcomingFixtures: publicMatches(upcomingFixtures),
     ...(cup.length ? { worldCupMatches: cup } : {}),
@@ -542,10 +559,10 @@ async function fetchSportMonks(path: string, token: string) {
   return response.json();
 }
 
-async function fetchApiFootball(path: string, apiKey: string) {
+async function fetchApiFootball(path: string, apiKey: string, revalidate = 120) {
   const response = await fetch(`${API_FOOTBALL_BASE_URL}${path}`, {
     headers: { "x-apisports-key": apiKey },
-    next: { revalidate: 120 },
+    next: { revalidate },
   });
 
   if (!response.ok) {
@@ -584,8 +601,16 @@ async function fetchTheSportsDb(path: string) {
   return response.json();
 }
 
+function espnDateRange(fromOffset = -1, toOffset = 7) {
+  return `${isoDate(fromOffset).replace(/-/g, "")}-${isoDate(toOffset).replace(/-/g, "")}`;
+}
+
 async function fetchEspnScoreboard(source: EspnScoreboardSource) {
-  const response = await fetch(`${ESPN_SCOREBOARD_BASE_URL}/${source.slug}/scoreboard?${source.query}`, {
+  // League scoreboards default to "today only", which starves the widget of upcoming fixtures
+  // between matchdays. Ask for a rolling yesterday..+7d window instead (keyless, free) so NS
+  // fixtures with kickoff times are always available; the World Cup source keeps its own range.
+  const query = source.fullSchedule ? source.query : `${source.query}&dates=${espnDateRange()}`;
+  const response = await fetch(`${ESPN_SCOREBOARD_BASE_URL}/${source.slug}/scoreboard?${query}`, {
     next: { revalidate: source.fullSchedule ? 900 : 300 },
   });
 
@@ -935,29 +960,44 @@ async function getApiFootballMatches(config: FootballRuntimeConfig) {
     .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 8);
 
-  if (liveMatches.length === 0 && recentResults.length === 0 && upcomingFixtures.length === 0) {
+  // Rescue each list independently: a lone finished match from yesterday must not suppress the
+  // upcoming-fixtures fetch (that gate was why the widget could show only one stale FT game).
+  // 900s revalidate keeps these per-league fallback calls well inside the daily quota.
+  const needRecent = liveMatches.length === 0 && recentResults.length === 0;
+  const needUpcoming = liveMatches.length === 0 && upcomingFixtures.length === 0;
+  if (needRecent || needUpcoming) {
     const season = apiFootballSeason();
     const leaguePayloads = await Promise.allSettled(
       TOP_LEAGUE_IDS.flatMap((leagueId) => [
-        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&last=3`, apiFootballKey),
-        fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&next=3`, apiFootballKey),
+        ...(needRecent ? [fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&last=3`, apiFootballKey, 900)] : []),
+        ...(needUpcoming ? [fetchApiFootball(`/fixtures?league=${leagueId}&season=${season}&next=3`, apiFootballKey, 900)] : []),
       ]),
     );
     const leagueFixtures = leaguePayloads.flatMap((result) =>
       result.status === "fulfilled" ? ((result.value.response ?? []) as ApiFootballFixture[]) : [],
     );
     const mapped = leagueFixtures.map((item) => mapApiFootballFixture(item, config));
-    recentResults = mapped
-      .filter((match) => match.homeGoals !== null && match.awayGoals !== null)
-      .sort((a, b) => b.priority - a.priority || new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 12);
-    upcomingFixtures = mapped
-      .filter((match) => match.homeGoals === null || match.awayGoals === null)
-      .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 8);
+    if (needRecent) {
+      recentResults = mapped
+        .filter((match) => match.homeGoals !== null && match.awayGoals !== null)
+        .sort((a, b) => b.priority - a.priority || new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 12);
+    }
+    if (needUpcoming) {
+      upcomingFixtures = mapped
+        .filter((match) => match.homeGoals === null || match.awayGoals === null)
+        .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 8);
+    }
   }
 
-  const matches = uniqueMatches(liveMatches.length > 0 ? liveMatches : [...recentResults, ...upcomingFixtures])
+  // Live first; otherwise upcoming + fresh results. Stale finished games are a last resort only,
+  // so the widget prefers "what's next" over "what ended days ago" without ever going blank.
+  const freshRecent = recentResults.filter((match) => !isStaleFinished(match));
+  const widgetPool = [...upcomingFixtures, ...freshRecent];
+  const matches = uniqueMatches(
+    liveMatches.length > 0 ? liveMatches : widgetPool.length > 0 ? widgetPool : [...recentResults, ...upcomingFixtures],
+  )
     .sort((a, b) => b.priority - a.priority || new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, config.maxMatches)
     .map(stripPriority);

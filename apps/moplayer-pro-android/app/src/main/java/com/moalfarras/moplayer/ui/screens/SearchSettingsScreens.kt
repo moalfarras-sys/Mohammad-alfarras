@@ -1235,7 +1235,7 @@ private fun AppearanceSettingsCard(
 
             AppearanceLabeledChoiceRow(
                 title = s.setInterfaceTheme,
-                hint = "Cinematic favors content posters; City uses urban backdrops; Calm keeps the UI quieter.",
+                hint = s.descTheme,
                 items = listOf(
                     ThemePreset.CINEMATIC_AUTO to s.themeCinematic,
                     ThemePreset.CITY to s.themeCity,
@@ -1247,7 +1247,7 @@ private fun AppearanceSettingsCard(
 
             AppearanceLabeledChoiceRow(
                 title = s.setBackgroundSource,
-                hint = "Auto shows a daily city image based on your detected or selected city. Dynamic uses movie/series art after login.",
+                hint = s.descBgSource,
                 items = listOf(
                     BackgroundMode.AUTO to s.bgAutoCity,
                     BackgroundMode.DYNAMIC_CONTENT to s.bgDynamicPoster,
@@ -1278,7 +1278,7 @@ private fun AppearanceSettingsCard(
 
             AppearanceLabeledChoiceRow(
                 title = s.setBackgroundMotion,
-                hint = "Particle and motion intensity behind home content.",
+                hint = s.descMotion,
                 items = listOf(
                     MotionLevel.LOW to s.motionLow,
                     MotionLevel.BALANCED to s.motionBalanced,
@@ -1295,7 +1295,7 @@ private fun AppearanceSettingsCard(
             )
             AppearanceLabeledChoiceRow(
                 title = s.setPerformanceMode,
-                hint = "Auto chooses the best safe quality for the device. Performance targets 720p, Balanced 1080p, and Quality unlocks 4K/8K when the TV and stream support it.",
+                hint = s.descPerformance,
                 items = listOf(
                     PerformanceMode.AUTO to s.perfAuto,
                     PerformanceMode.PERFORMANCE to s.perfPerformance,
@@ -1316,7 +1316,7 @@ private fun AppearanceSettingsCard(
             SectionHeader(s.secColors)
             AppearanceSubsection(
                 title = s.setAccentColor,
-                description = "Choose one fixed accent color for the whole app.",
+                description = s.descAccentColor,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 MoAccentPresets.forEach { preset ->
@@ -1357,7 +1357,7 @@ private fun AppearanceSettingsCard(
             SectionHeader("Weather, clock, and matches")
             AppearanceSubsection(
                 title = s.setHomeWidgets,
-                description = "Shown on the home card and can be hidden to save space or reduce visual noise.",
+                description = s.descHomeWidgets,
             )
             SettingSwitch("Show weather", settings.showWeatherWidget, Icons.Rounded.Cloud, onShowWeatherWidget)
             SettingSwitch("Show clock", settings.showClockWidget, Icons.Rounded.Schedule, onShowClockWidget)

@@ -180,6 +180,12 @@ class Strings(
     val paneStorage: String,
     val paneFamilyLock: String,
     val paneAbout: String,
+    val descTheme: String,
+    val descBgSource: String,
+    val descMotion: String,
+    val descPerformance: String,
+    val descAccentColor: String,
+    val descHomeWidgets: String,
 )
 
 val EnStrings = Strings(
@@ -314,6 +320,12 @@ val EnStrings = Strings(
     paneStorage = "Storage",
     paneFamilyLock = "Family lock",
     paneAbout = "About",
+    descTheme = "Cinematic favors content posters; City uses urban backdrops; Calm keeps the UI quieter.",
+    descBgSource = "Auto shows a daily city image based on your detected or selected city. Dynamic uses movie/series art after login.",
+    descMotion = "Particle and motion intensity behind home content.",
+    descPerformance = "Auto chooses the best safe quality for the device. Performance targets 720p, Balanced 1080p, and Quality unlocks 4K/8K when the TV and stream support it.",
+    descAccentColor = "Choose one fixed accent color for the whole app.",
+    descHomeWidgets = "Shown on the home card and can be hidden to save space or reduce visual noise.",
 )
 
 val ArStrings = Strings(
@@ -448,4 +460,10 @@ val ArStrings = Strings(
     paneStorage = "التخزين",
     paneFamilyLock = "قفل العائلة",
     paneAbout = "حول",
+    descTheme = "سينمائي يبرز البوسترات؛ مدينة يستخدم خلفيات حضرية؛ هادئ يبقي الواجهة أهدأ.",
+    descBgSource = "«تلقائي» يعرض صورة مدينة يومياً حسب مدينتك المكتشفة أو المختارة. «ديناميكي» يستخدم صور الأفلام/المسلسلات بعد الدخول.",
+    descMotion = "شدّة الحركة والجزيئات خلف محتوى الرئيسية.",
+    descPerformance = "«تلقائي» يختار أفضل جودة آمنة للجهاز. «أداء» يستهدف 720p، «متوازن» 1080p، و«جودة» يفتح 4K/8K عند دعم التلفزيون والبث.",
+    descAccentColor = "اختر لون لكنة ثابتاً واحداً لكامل التطبيق.",
+    descHomeWidgets = "تظهر على بطاقة الرئيسية ويمكن إخفاؤها لتوفير مساحة أو تقليل التشويش البصري.",
 )

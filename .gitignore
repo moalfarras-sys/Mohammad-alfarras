@@ -44,6 +44,9 @@ apps/moplayer-dashboard/dist/
 artifacts/
 output/
 tmp-admin/
+tmp_live/
+tmp_ai_test2/
+.moplayer-qa/
 current_state.png
 tv-emulator-login.png
 m3u_test_playlist.txt

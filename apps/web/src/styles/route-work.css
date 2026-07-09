@@ -1540,3 +1540,62 @@
     flex: 1 1 100%;
   }
 }
+
+/* ── Cinematic pass (mow-*): staged hero entrance + gallery depth ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .work-exhibition-hero .fresh-eyebrow,
+  .work-exhibition-hero h1,
+  .work-exhibition-hero p:not(.fresh-eyebrow),
+  .work-scroll-cue {
+    animation: mowRise 0.88s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+
+  .work-exhibition-hero .fresh-eyebrow { animation-delay: 0.05s; }
+  .work-exhibition-hero h1 { animation-delay: 0.17s; }
+  .work-exhibition-hero p:not(.fresh-eyebrow) { animation-delay: 0.34s; }
+  .work-scroll-cue { animation-delay: 0.52s; }
+
+  .work-project-card {
+    animation: osReveal both linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+}
+
+.work-project-card {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+}
+
+.work-project-card:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.44),
+    0 0 46px color-mix(in srgb, var(--os-cyan) 14%, transparent);
+}
+
+.work-project-card .work-project-image,
+.work-spotlight-media .work-project-image {
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.work-project-card:hover .work-project-image,
+.work-spotlight-media:hover .work-project-image {
+  transform: scale(1.05);
+}
+
+/* mow-specific values (24px/6px blur) so lightningcss cannot dedupe this
+   against sibling route keyframes and freeze the animation. */
+@keyframes mowRise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}

@@ -518,3 +518,62 @@
     animation-range: entry 0% cover 40%;
   }
 }
+
+/* ── Cinematic pass (moc-*): staged hero entrance + panel focus glow ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .contact-live-status,
+  .contact-hero h1,
+  .contact-hero-copy > p:not(.fresh-eyebrow),
+  .contact-chip-row {
+    animation: mocRise 0.86s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+
+  .contact-live-status { animation-delay: 0.05s; }
+  .contact-hero h1 { animation-delay: 0.16s; }
+  .contact-hero-copy > p:not(.fresh-eyebrow) { animation-delay: 0.33s; }
+  .contact-chip-row { animation-delay: 0.48s; }
+
+  .contact-social-card,
+  .contact-form-panel,
+  .contact-orbit-card {
+    animation: osReveal both linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 38%;
+  }
+}
+
+.contact-social-card {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+}
+
+.contact-social-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
+  box-shadow:
+    0 28px 76px rgba(0, 0, 0, 0.42),
+    0 0 40px color-mix(in srgb, var(--os-cyan) 13%, transparent);
+}
+
+/* The direct-line form glows softly while the visitor is writing. */
+.contact-form-panel:focus-within {
+  border-color: color-mix(in srgb, var(--os-cyan) 48%, var(--os-glass-border));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.44),
+    0 0 52px color-mix(in srgb, var(--os-cyan) 18%, transparent);
+}
+
+/* moc-specific values (25px/4px blur): never identical to sibling route
+   keyframes or lightningcss dedupes them across chunks. */
+@keyframes mocRise {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}

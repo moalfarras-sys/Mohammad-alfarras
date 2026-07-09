@@ -357,11 +357,12 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
   home.primary = heroFromCms(cmsHero.primary, home.primary, defaultHero.primary);
   home.secondary = heroFromCms(cmsHero.secondary, home.secondary, defaultHero.secondary);
 
+  // Every service card shows a real shipped example, not abstract shapes.
   const modes = [
-    { icon: Code2, tone: "cyan", title: isAr ? "موقع تعريفي احترافي" : "Professional business website", detail: isAr ? "هوية · موقع · ثقة" : "Brand / Web / Trust", body: isAr ? "موقع يشرح بوضوح مين أنت، شو بتقدّم، وليش يثق فيك العميل من أول زيارة." : "A clear website that explains who you are, what you offer, and why visitors should trust you." },
-    { icon: Compass, tone: "violet", title: isAr ? "صفحة هبوط لمنتج أو حملة" : "Landing page for a product or campaign", detail: isAr ? "حملة · منتج · طلب" : "Campaign / Product / CTA", body: isAr ? "صفحة واحدة مركّزة تقود الزائر لخطوة محددة: طلب، تسجيل، تحميل، أو تواصل — بدون تشتيت." : "A focused path that moves visitors toward inquiry, signup, download, or contact without clutter." },
-    { icon: Cpu, tone: "gold", title: isAr ? "متجر أو تطبيق ويب" : "Web app or interface", detail: isAr ? "واجهة · تجربة · منتج" : "UI / UX / Product", body: isAr ? "واجهة منظّمة لمتجر، لوحة تحكم، أو تطبيق ويب — سهلة الاستخدام وقابلة للتطوير." : "A structured interface for a product, dashboard, or interactive experience that can grow." },
-    { icon: MonitorPlay, tone: "red", title: isAr ? "MoPlayer ودعم التطبيقات" : "MoPlayer / product support", detail: isAr ? "أندرويد · إعداد · دعم" : "Android TV / Setup / Support", body: isAr ? "صفحات تطبيق، تفعيل، تحميل، وشرح بسيط يخلّي أي مستخدم يفهم الخطوة التالية." : "Product pages, activation, downloads, and clear support flows that normal users can follow." },
+    { icon: Code2, tone: "cyan", image: "/images/projects/intelligent-umzuege-home.webp", imageAlt: isAr ? "مثال موقع تعريفي احترافي لشركة — تصميم محمد الفراس" : "Real business website example designed by Mohammad Alfarras", title: isAr ? "موقع تعريفي احترافي" : "Professional business website", detail: isAr ? "هوية · موقع · ثقة" : "Brand / Web / Trust", body: isAr ? "موقع يشرح بوضوح مين أنت، شو بتقدّم، وليش يثق فيك العميل من أول زيارة." : "A clear website that explains who you are, what you offer, and why visitors should trust you." },
+    { icon: Compass, tone: "violet", image: "/images/projects/mbkservice-home.webp", imageAlt: isAr ? "مثال صفحة هبوط لخدمة تجمع الطلبات — تصميم مواقع" : "Landing page example that converts visitors into requests", title: isAr ? "صفحة هبوط لمنتج أو حملة" : "Landing page for a product or campaign", detail: isAr ? "حملة · منتج · طلب" : "Campaign / Product / CTA", body: isAr ? "صفحة واحدة مركّزة تقود الزائر لخطوة محددة: طلب، تسجيل، تحميل، أو تواصل — بدون تشتيت." : "A focused path that moves visitors toward inquiry, signup, download, or contact without clutter." },
+    { icon: Cpu, tone: "gold", image: "/images/projects/alhasakah-home.webp", imageAlt: isAr ? "مثال بوابة محتوى وتطبيق ويب عربي" : "Arabic web portal and web app interface example", title: isAr ? "متجر أو تطبيق ويب" : "Web app or interface", detail: isAr ? "واجهة · تجربة · منتج" : "UI / UX / Product", body: isAr ? "واجهة منظّمة لمتجر، لوحة تحكم، أو تطبيق ويب — سهلة الاستخدام وقابلة للتطوير." : "A structured interface for a product, dashboard, or interactive experience that can grow." },
+    { icon: MonitorPlay, tone: "red", image: "/images/moplayer-pro-home.webp", imageAlt: isAr ? "واجهة MoPlayer Pro على شاشة التلفزيون" : "MoPlayer Pro Android TV interface", title: isAr ? "MoPlayer ودعم التطبيقات" : "MoPlayer / product support", detail: isAr ? "أندرويد · إعداد · دعم" : "Android TV / Setup / Support", body: isAr ? "صفحات تطبيق، تفعيل، تحميل، وشرح بسيط يخلّي أي مستخدم يفهم الخطوة التالية." : "Product pages, activation, downloads, and clear support flows that normal users can follow." },
   ];
 
   const story = [
@@ -383,9 +384,9 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
     [isAr ? "تواصل" : "Contact", isAr ? "ابدأ محادثة عن موقع، صفحة هبوط، واجهة، أو دعم MoPlayer." : "Start a conversation about a website, landing page, interface, or MoPlayer support.", "contact", Mail],
   ] as const;
   const featuredWork = [
-    { title: "Schnell Sicher Umzug", type: isAr ? "موقع شركة نقل" : "Moving company website", problem: isAr ? "الخدمة تحتاج وضوحًا سريعًا ومسار طلب بسيطًا." : "The service needed faster clarity and a simple request path.", role: isAr ? "هيكلة المحتوى، واجهة، ومسار تواصل." : "Content structure, interface, and contact flow.", result: isAr ? "موقع يشرح الخدمات ويقود الزائر للطلب بثقة." : "A site that explains services and guides visitors toward inquiry." },
-    { title: "A&D Fahrzeugtransporte", type: isAr ? "نقل وسحب سيارات" : "Vehicle transport", problem: isAr ? "الزائر يحتاج قرارًا سريعًا في حالات طارئة." : "Visitors need fast decisions in urgent situations.", role: isAr ? "تصميم مباشر للثقة والاتصال." : "Direct-response design for trust and contact.", result: isAr ? "تصنيف خدمات واضح مع دعوات تواصل قوية." : "Clear service categories with strong contact cues." },
-    { title: "MoPlayer", type: isAr ? "منتج Android TV" : "Android TV product", problem: isAr ? "التطبيق يحتاج عرضًا وتفعيلًا وتنزيلًا مفهومًا." : "The app needs clear presentation, activation, and download flow.", role: isAr ? "نظام منتج من الموقع إلى التطبيق." : "Product system from website to app.", result: isAr ? "مسار منتج مستقل يربط التحميل والتفعيل والدعم." : "A product path connecting download, activation, and support." },
+    { title: "Schnell Sicher Umzug", image: "/images/projects/schnell-home.webp", type: isAr ? "موقع شركة نقل" : "Moving company website", problem: isAr ? "الخدمة تحتاج وضوحًا سريعًا ومسار طلب بسيطًا." : "The service needed faster clarity and a simple request path.", role: isAr ? "هيكلة المحتوى، واجهة، ومسار تواصل." : "Content structure, interface, and contact flow.", result: isAr ? "موقع يشرح الخدمات ويقود الزائر للطلب بثقة." : "A site that explains services and guides visitors toward inquiry." },
+    { title: "A&D Fahrzeugtransporte", image: "/images/projects/adtransporte-home.webp", type: isAr ? "نقل وسحب سيارات" : "Vehicle transport", problem: isAr ? "الزائر يحتاج قرارًا سريعًا في حالات طارئة." : "Visitors need fast decisions in urgent situations.", role: isAr ? "تصميم مباشر للثقة والاتصال." : "Direct-response design for trust and contact.", result: isAr ? "تصنيف خدمات واضح مع دعوات تواصل قوية." : "Clear service categories with strong contact cues." },
+    { title: "MoPlayer", image: "/images/moplayer-classic-promo.png", type: isAr ? "منتج Android TV" : "Android TV product", problem: isAr ? "التطبيق يحتاج عرضًا وتفعيلًا وتنزيلًا مفهومًا." : "The app needs clear presentation, activation, and download flow.", role: isAr ? "نظام منتج من الموقع إلى التطبيق." : "Product system from website to app.", result: isAr ? "مسار منتج مستقل يربط التحميل والتفعيل والدعم." : "A product path connecting download, activation, and support." },
   ];
   const moplayerApps = isAr
     ? [
@@ -499,10 +500,13 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
             const Icon = mode.icon;
             return (
               <article className={`os-mode-card os-mode-${mode.tone} magnetic-surface`} key={mode.title}>
+                <div className="os-mode-media">
+                  <Image src={mode.image} alt={mode.imageAlt} fill sizes="(max-width: 900px) 94vw, 420px" className="fresh-image" />
+                  <span className="os-mode-media-chip">{mode.detail}</span>
+                </div>
                 <div className="os-mode-card-top"><span className="fresh-card-icon"><Icon /></span><span>{mode.detail}</span></div>
                 <h3>{mode.title}</h3>
                 <p>{mode.body}</p>
-                <div className="os-mode-visual" aria-hidden="true"><span /><span /><span /></div>
               </article>
             );
           })}
@@ -534,6 +538,9 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
         <div className="os-home-case-grid">
           {featuredWork.map((item, index) => (
             <article className="fresh-card os-home-case-card" key={item.title}>
+              <div className="os-case-media">
+                <Image src={item.image} alt={`${item.title} — ${item.type}`} fill sizes="(max-width: 900px) 94vw, 400px" className="fresh-image" />
+              </div>
               <span className="os-home-card-kicker">0{index + 1} / {item.type}</span>
               <h3>{item.title}</h3>
               <dl>

@@ -6449,3 +6449,75 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     animation: none !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Rich home visuals (mor-*): real example screenshots inside the
+   service cards and featured-work cards.
+   ══════════════════════════════════════════════════════════════════ */
+
+.os-mode-media,
+.os-case-media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 14px;
+  border: 1px solid color-mix(in srgb, var(--os-cyan) 20%, var(--os-glass-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--os-surface-strong) 88%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.os-mode-media img,
+.os-case-media img {
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.os-mode-card:hover .os-mode-media img,
+.os-home-case-card:hover .os-case-media img {
+  transform: scale(1.06);
+}
+
+/* Soft bottom fade keeps the screenshot from fighting the card text. */
+.os-mode-media::after,
+.os-case-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(4, 9, 20, 0.55));
+  pointer-events: none;
+}
+
+.os-mode-media-chip {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  inset-inline-start: 10px;
+  border: 1px solid color-mix(in srgb, var(--os-cyan) 34%, transparent);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, #04101f 78%, transparent);
+  color: var(--os-text);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+/* The old chip row above the title duplicates the media chip — hide the
+   text half, keep the icon as the tone accent. */
+.os-mode-card .os-mode-card-top > span:last-child {
+  display: none;
+}
+
+.os-mode-card .os-mode-card-top {
+  margin-top: 2px;
+}
+
+@media (max-width: 760px) {
+  .os-mode-media,
+  .os-case-media {
+    border-radius: 14px;
+    margin-bottom: 12px;
+  }
+}

@@ -41,6 +41,10 @@ class AppSettingsRepository(private val context: Context) {
     private val showWeatherWidgetKey = booleanPreferencesKey("show_weather_widget")
     private val showClockWidgetKey = booleanPreferencesKey("show_clock_widget")
     private val showFootballWidgetKey = booleanPreferencesKey("show_football_widget")
+
+    // User's own trailer switch — intentionally ABSENT from applyRemoteConfig so a remote sync
+    // can never flip the user's choice (unlike trailerPreviewKey, which is admin-owned).
+    private val showTrailerPreviewsKey = booleanPreferencesKey("show_trailer_previews")
     private val weatherModeKey = stringPreferencesKey("weather_mode")
     private val manualWeatherEffectKey = stringPreferencesKey("manual_weather_effect")
     private val weatherCityOverrideKey = stringPreferencesKey("weather_city_override")
@@ -73,6 +77,7 @@ class AppSettingsRepository(private val context: Context) {
         AppSettings(
             previewEnabled = prefs[previewKey] ?: true,
             trailerPreviewEnabled = prefs[trailerPreviewKey] ?: true,
+            showTrailerPreviews = prefs[showTrailerPreviewsKey] ?: true,
             accentColor = prefs[accentKey] ?: 0xFFFF9248,
             accentMode = AccentMode.CUSTOM,
             backgroundMode = prefs[backgroundModeKey].toEnum(BackgroundMode.AUTO),
@@ -156,6 +161,10 @@ class AppSettingsRepository(private val context: Context) {
 
     suspend fun setShowFootballWidget(value: Boolean) {
         context.settingsDataStore.edit { it[showFootballWidgetKey] = value }
+    }
+
+    suspend fun setShowTrailerPreviews(value: Boolean) {
+        context.settingsDataStore.edit { it[showTrailerPreviewsKey] = value }
     }
 
     suspend fun setWeatherMode(value: WeatherMode) {

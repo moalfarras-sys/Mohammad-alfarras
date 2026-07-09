@@ -149,6 +149,8 @@ data class AppSettings(
     val previewEnabled: Boolean = true,
     /** Admin-controlled: autoplay a muted trailer in the preview pane after a short focus dwell. */
     val trailerPreviewEnabled: Boolean = true,
+    /** User-controlled Settings switch for the same trailer autoplay — never touched by remote config. */
+    val showTrailerPreviews: Boolean = true,
     val accentColor: Long = 0xFFFF9248,
     val accentMode: AccentMode = AccentMode.CUSTOM,
     val backgroundMode: BackgroundMode = BackgroundMode.AUTO,

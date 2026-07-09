@@ -259,25 +259,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-6-4",
+      id: "release-moplayer2-v2-6-5",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.6.4-full",
-      version_name: "2.6.4",
-      version_code: 67,
+      slug: "moplayer2-v2.6.5-full",
+      version_name: "2.6.5",
+      version_code: 68,
       release_notes:
-        "MoPlayer Pro 2.6.4: import your own subtitle file (.srt/.vtt/.ass/.ttml) for a movie or episode that has none, and a clear Off option to disable subtitles. Multi-language movies/series keep exposing their embedded audio tracks and subtitles. Builds on 2.6.3 (faster cold start) and 2.6.2 (per-title trailers, upcoming football).",
+        "MoPlayer Pro 2.6.5: trailers fixed and faster — a broken empty-result id no longer blocks playback or the provider fallback, trailers start after 2 seconds (was 4), they now work on ALL devices including weak boxes, and a new Settings switch (Live TV → Trailer previews) lets you turn them on/off. Includes 2.6.4's subtitle import and all earlier fixes.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-6-4-universal",
-          release_id: "release-moplayer2-v2-6-4",
+          id: "asset-moplayer2-v2-6-5-universal",
+          release_id: "release-moplayer2-v2-6-5",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.4/app-universal-release.apk",
-          file_size_bytes: 49443390,
-          checksum_sha256: "80a90bc157e7da77a6597c03aa19d297c17270ee1e8acd8c4efa147a23a01883",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.5/app-universal-release.apk",
+          file_size_bytes: 49443176,
+          checksum_sha256: "4ab045fa64e9e77bbc791a11e6c03a8916fdeb01baf699ef76a2d707e66f1de1",
         },
       ],
     },

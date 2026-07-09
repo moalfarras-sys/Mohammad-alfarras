@@ -69,6 +69,9 @@ fun YoutubeTrailerSurface(
     onError: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    // Defense in depth: never mount the player with a malformed id (e.g. the literal string "null"
+    // from a bad JSON parse) — YouTube throws "Invalid video id" and the pane looks broken.
+    if (!Regex("^[A-Za-z0-9_-]{11}$").matches(youtubeId)) return
     // Ancient system WebViews (e.g. the frozen Chrome 44 on bare AOSP API 23 images) can't run
     // YouTube's modern embed JS, so skip them entirely — the pane just keeps showing its backdrop.
     val supported = remember { isModernWebViewAvailable(context) }

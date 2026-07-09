@@ -513,7 +513,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .contact-social-card,
   .contact-form-panel {
-    animation: osReveal both linear;
+    animation: osReveal3d both linear;
     animation-timeline: view();
     animation-range: entry 0% cover 40%;
   }
@@ -537,7 +537,7 @@
   .contact-social-card,
   .contact-form-panel,
   .contact-orbit-card {
-    animation: osReveal both linear;
+    animation: osReveal3d both linear;
     animation-timeline: view();
     animation-range: entry 0% cover 38%;
   }

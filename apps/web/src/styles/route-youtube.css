@@ -700,3 +700,39 @@
     min-width: 0;
   }
 }
+
+/* ── Cinematic pass (moyt-*): 3D scroll reveal + play-glow for video cards ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .yt2-card {
+    animation: osReveal3d both linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 38%;
+  }
+}
+
+.yt2-card {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+}
+
+.yt2-card:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, #ff4d4d 42%, var(--os-glass-border));
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    0 0 44px rgba(255, 60, 60, 0.14);
+}
+
+.yt2-card .yt2-card-thumb img,
+.yt2-card .yt2-card-thumb {
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.yt2-card:hover .yt2-card-thumb img {
+  transform: scale(1.06);
+}
+
+.yt2-card:hover .yt2-card-play {
+  transform: scale(1.12);
+  box-shadow: 0 0 34px rgba(255, 60, 60, 0.55);
+}

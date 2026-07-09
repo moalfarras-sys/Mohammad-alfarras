@@ -1126,3 +1126,34 @@
     animation: none;
   }
 }
+
+/* ── Cinematic pass (mocv-*): 3D scroll reveal for the CV story surfaces ── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .cv-count-card,
+  .cv-story-card,
+  .cv-proof-card,
+  .cv-experience-card {
+    animation: osReveal3d both linear;
+    animation-timeline: view();
+    animation-range: entry 0% cover 38%;
+  }
+}
+
+.cv-count-card,
+.cv-story-card,
+.cv-proof-card,
+.cv-experience-card {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+}
+
+.cv-count-card:hover,
+.cv-story-card:hover,
+.cv-proof-card:hover,
+.cv-experience-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
+  box-shadow:
+    0 28px 76px rgba(0, 0, 0, 0.42),
+    0 0 40px color-mix(in srgb, var(--os-cyan) 13%, transparent);
+}

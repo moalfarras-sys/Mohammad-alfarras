@@ -1557,7 +1557,7 @@
   .work-scroll-cue { animation-delay: 0.52s; }
 
   .work-project-card {
-    animation: osReveal both linear;
+    animation: osReveal3d both linear;
     animation-timeline: view();
     animation-range: entry 0% cover 40%;
   }

@@ -503,7 +503,8 @@
 
 .work-project-hovered,
 .work-project-card:hover {
-  transform: translateY(-4px) scale(1.01);
+  translate: 0 -4px;
+  scale: 1.01;
   border-color: rgba(220, 235, 255, 0.3);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.086), rgba(255, 255, 255, 0.022)),
@@ -1564,11 +1565,11 @@
 }
 
 .work-project-card {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
 }
 
 .work-project-card:hover {
-  transform: translateY(-6px);
+  translate: 0 -6px;
   border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
   box-shadow:
     0 34px 90px rgba(0, 0, 0, 0.44),

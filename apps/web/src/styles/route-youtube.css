@@ -191,7 +191,8 @@
 }
 
 .yt2-subscribe:hover {
-  transform: translateY(-3px) scale(1.02);
+  translate: 0 -3px;
+  scale: 1.02;
   box-shadow: 0 24px 64px rgba(255, 0, 45, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -212,7 +213,7 @@
 }
 
 .yt2-watch:hover {
-  transform: translateY(-2px);
+  translate: 0 -2px;
   border-color: var(--yt-red);
   background: rgba(255, 0, 45, 0.16);
 }
@@ -407,11 +408,11 @@
   border-radius: 20px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.35));
   box-shadow: var(--os-shadow-soft);
-  transition: transform var(--os-motion-fast), border-color var(--os-motion-fast), box-shadow var(--os-motion-fast);
+  transition: translate var(--os-motion-fast), border-color var(--os-motion-fast), box-shadow var(--os-motion-fast);
 }
 
 .yt2-card:hover {
-  transform: translateY(-6px);
+  translate: 0 -6px;
   border-color: var(--yt-red-glow);
   box-shadow: var(--os-shadow-soft), 0 20px 54px rgba(255, 0, 45, 0.24);
 }
@@ -515,11 +516,11 @@
   background:
     radial-gradient(circle at top left, rgba(255, 0, 45, 0.16), transparent 48%),
     rgba(0, 0, 0, 0.4);
-  transition: transform var(--os-motion-fast), border-color var(--os-motion-fast);
+  transition: translate var(--os-motion-fast), border-color var(--os-motion-fast);
 }
 
 .yt2-series-card:hover {
-  transform: translateY(-5px);
+  translate: 0 -5px;
   border-color: var(--yt-red-glow);
 }
 
@@ -712,11 +713,11 @@
 }
 
 .yt2-card {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
 }
 
 .yt2-card:hover {
-  transform: translateY(-6px);
+  translate: 0 -6px;
   border-color: color-mix(in srgb, #ff4d4d 42%, var(--os-glass-border));
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.45),

@@ -272,7 +272,7 @@
 }
 
 .cv-floating-badges span:hover {
-  transform: translateY(-2px);
+  translate: 0 -2px;
   border-color: color-mix(in srgb, var(--cv-accent) 40%, var(--os-glass-border));
 }
 
@@ -389,7 +389,7 @@
 }
 
 .cv-count-card:hover {
-  transform: translateY(-4px);
+  translate: 0 -4px;
   border-color: color-mix(in srgb, var(--cv-accent) 42%, var(--os-glass-border));
   box-shadow: 0 22px 80px color-mix(in srgb, var(--cv-accent) 14%, transparent);
 }
@@ -626,7 +626,7 @@
 }
 
 .cv-channel-cta:hover {
-  transform: translateY(-2px);
+  translate: 0 -2px;
   border-color: var(--cv-accent);
   background: color-mix(in srgb, var(--cv-accent) 20%, transparent);
 }
@@ -645,7 +645,7 @@
 
 .cv-language-badge:hover,
 .cv-experience-card:hover {
-  transform: translateY(-4px);
+  translate: 0 -4px;
   border-color: color-mix(in srgb, var(--cv-accent) 42%, var(--os-glass-border));
   box-shadow: 0 22px 80px rgba(72, 216, 255, 0.12);
 }
@@ -802,7 +802,7 @@
 }
 
 .cv-process-step:hover {
-  transform: translateY(-5px);
+  translate: 0 -5px;
   border-color: color-mix(in srgb, var(--cv-accent) 42%, var(--os-glass-border));
   box-shadow: 0 22px 80px color-mix(in srgb, var(--cv-accent) 14%, transparent);
 }
@@ -1144,14 +1144,14 @@
 .cv-story-card,
 .cv-proof-card,
 .cv-experience-card {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
 }
 
 .cv-count-card:hover,
 .cv-story-card:hover,
 .cv-proof-card:hover,
 .cv-experience-card:hover {
-  transform: translateY(-5px);
+  translate: 0 -5px;
   border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
   box-shadow:
     0 28px 76px rgba(0, 0, 0, 0.42),

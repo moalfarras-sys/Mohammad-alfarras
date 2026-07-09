@@ -312,7 +312,7 @@
 }
 
 .contact-social-card:hover {
-  transform: translateY(-4px) rotateX(2deg);
+  translate: 0 -4px;
   border-color: color-mix(in srgb, var(--contact-tone) 56%, var(--os-glass-border));
   box-shadow:
     var(--os-shadow-soft),
@@ -501,7 +501,7 @@
 }
 
 .contact-social-card:hover {
-  transform: translateY(-4px);
+  translate: 0 -4px;
   border-color: color-mix(in srgb, var(--contact-tone) 50%, var(--os-glass-border));
   box-shadow: 0 18px 44px color-mix(in srgb, var(--contact-tone) 22%, transparent);
 }
@@ -544,11 +544,11 @@
 }
 
 .contact-social-card {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
 }
 
 .contact-social-card:hover {
-  transform: translateY(-5px);
+  translate: 0 -5px;
   border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
   box-shadow:
     0 28px 76px rgba(0, 0, 0, 0.42),

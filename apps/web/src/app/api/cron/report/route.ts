@@ -27,6 +27,50 @@ async function recentLeads(sinceIso: string): Promise<Lead[]> {
   }
 }
 
+/**
+ * Best-effort retention cleanup piggybacking on the cron schedule. Every delete
+ * is guarded individually so a missing table (env without the migration) or a
+ * transient Supabase error never blocks the report itself.
+ */
+async function cleanupExpiredRows(): Promise<Record<string, number>> {
+  const removed: Record<string, number> = {};
+  try {
+    const supabase = createSupabaseAdminClient();
+
+    const retention: Array<{ table: string; column: string; days: number }> = [
+      { table: "app_device_events", column: "created_at", days: 30 },
+      { table: "app_diagnostic_reports", column: "created_at", days: 60 },
+    ];
+    for (const rule of retention) {
+      try {
+        const cutoff = new Date(Date.now() - rule.days * 86_400_000).toISOString();
+        const { error, count } = await supabase.from(rule.table).delete({ count: "exact" }).lt(rule.column, cutoff);
+        if (!error) removed[rule.table] = count ?? 0;
+      } catch {
+        // Skip this table and keep going — cleanup must never fail the report.
+      }
+    }
+
+    try {
+      // Legacy Supabase-backed rate-limit buckets (the limiter is Upstash-first now,
+      // Supabase only absorbs writes when Redis is unreachable). Buckets untouched
+      // for 24h are long past any rate-limit window.
+      const cutoff = new Date(Date.now() - 86_400_000).toISOString();
+      const { error, count } = await supabase
+        .from("app_settings")
+        .delete({ count: "exact" })
+        .like("key", "rate_limit:%")
+        .lt("updated_at", cutoff);
+      if (!error) removed["app_settings_rate_limit"] = count ?? 0;
+    } catch {
+      // Same best-effort contract as above.
+    }
+  } catch {
+    // Missing Supabase env — nothing to clean up against.
+  }
+  return removed;
+}
+
 async function saveInboxReport(input: { title: string; body: string; payload: Record<string, unknown> }) {
   try {
     const supabase = createSupabaseAdminClient();
@@ -62,7 +106,12 @@ export async function GET(request: Request) {
   }
 
   const sinceIso = new Date(Date.now() - PERIOD_DAYS * 86_400_000).toISOString();
-  const [downloads, visits, leads] = await Promise.all([readDownloadCounts(), readVisitCount(), recentLeads(sinceIso)]);
+  const [downloads, visits, leads, cleanup] = await Promise.all([
+    readDownloadCounts(),
+    readVisitCount(),
+    recentLeads(sinceIso),
+    cleanupExpiredRows(),
+  ]);
 
   const rows: Array<[string, string]> = [
     ["إجمالي التحميلات", String(downloads.total)],
@@ -109,6 +158,7 @@ export async function GET(request: Request) {
       downloads: { total: downloads.total, ...downloads.counts },
       visits: visits.total,
       leads: leads.length,
+      cleanup,
     },
   });
 
@@ -121,6 +171,7 @@ export async function GET(request: Request) {
       downloads: { total: downloads.total, ...downloads.counts },
       visits: visits.total,
       leads: leads.length,
+      cleanup,
     },
     { headers: { "Cache-Control": "no-store" } },
   );

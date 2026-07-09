@@ -107,11 +107,8 @@ function cmsProjectToExhibition(project: SiteProject, locale: Locale): Exhibitio
   };
 }
 
-function copy(locale: Locale, cmsProjects?: SiteProject[]) {
+function copy(locale: Locale, cmsProjects: SiteProject[]) {
   const ar = locale === "ar";
-  const projects = cmsProjects?.length
-    ? cmsProjects.map((project) => cmsProjectToExhibition(project, locale))
-    : undefined;
   return {
     eyebrow: ar ? "معرض الأعمال" : "Digital Exhibition",
     title: ar ? "مشاريع وأعمال مختارة." : "Selected Engineering Work.",
@@ -140,106 +137,7 @@ function copy(locale: Locale, cmsProjects?: SiteProject[]) {
       : "If your project needs a convincing website, product surface, or interface that makes the next step obvious, send the idea.",
     ctaPrimary: ar ? "ابدأ مشروعك" : "Start a project",
     ctaSecondary: ar ? "شاهد MoPlayer" : "Explore MoPlayer",
-    projects:
-      projects ??
-      ([
-        {
-          id: "moplayer",
-          slug: "moplayer",
-          title: "MoPlayer",
-          label: ar ? "تطبيق Android TV / IPTV" : "Android TV / IPTV Product",
-          description: ar
-            ? "منظومة منتج تجمع تطبيق Android TV، التفعيل، مصادر IPTV، الإصدارات، والدعم ضمن تجربة واضحة."
-            : "A product ecosystem connecting Android TV, activation, IPTV sources, release flow, and support into one clear experience.",
-          image: "/images/moplayer-tv-banner-final.png",
-          caseStudyHref: withLocale(locale, "work/moplayer"),
-          liveHref: withLocale(locale, "apps/moplayer"),
-          categories: ["all", "apps"],
-          tags: ["Android TV", "IPTV", "Activation", "Product UI"],
-          tone: "red",
-          mockup: "tv",
-          featured: true,
-        },
-        {
-          id: "seel",
-          slug: "seeltransport",
-          title: "SEEL Transport",
-          label: ar ? "موقع نقل وخدمات" : "Transport / Service Website",
-          description: ar
-            ? "موقع خدمات نقل منظم يعرض الخدمة، الثقة، الصور، والتواصل بطريقة مناسبة للجوال والعملاء."
-            : "A structured transport service website shaped around service clarity, trust, visual proof, and mobile-friendly contact.",
-          image: "/images/projects/seel-home-case.png",
-          caseStudyHref: withLocale(locale, "work/seeltransport"),
-          categories: ["all", "web", "logistics"],
-          tags: ["Service UX", "Responsive", "Logistics", "Trust"],
-          tone: "cyan",
-          mockup: "desktop",
-        },
-        {
-          id: "schnell",
-          slug: "schnellsicherumzug",
-          title: "Schnell Sicher Umzug",
-          label: ar ? "موقع شركة نقل" : "Moving Company Website",
-          description: ar
-            ? "تجربة موقع لشركة نقل تشرح الخدمات بسرعة وتوجه العميل نحو طلب عرض أو تواصل مباشر."
-            : "A moving-company experience that explains services quickly and guides visitors toward quote requests and direct contact.",
-          image: "/images/projects/schnell-home-case.png",
-          caseStudyHref: withLocale(locale, "work/schnellsicherumzug"),
-          liveHref: "https://schnellsicherumzug.de/",
-          categories: ["all", "web", "logistics"],
-          tags: ["Web Design", "Moving", "Lead Flow", "Mobile UX"],
-          tone: "gold",
-          mockup: "desktop",
-        },
-        {
-          id: "intelligent",
-          slug: "intelligent-umzuege",
-          title: "Intelligent Umzüge",
-          label: ar ? "موقع خدمات انتقال" : "Relocation Website",
-          description: ar
-            ? "صفحة نقل تركز على وضوح الأسعار، المعاينة، واتساب، والثقة قبل طلب العرض."
-            : "A relocation website focused on pricing clarity, inspection flow, WhatsApp contact, and trust before inquiry.",
-          image: "/images/projects/intelligent-umzuege-home.png",
-          caseStudyHref: withLocale(locale, "work/intelligent-umzuege"),
-          liveHref: "https://www.intelligent-umzuege.de/",
-          categories: ["all", "web", "logistics"],
-          tags: ["Pricing UX", "WhatsApp", "Conversion", "Service Design"],
-          tone: "violet",
-          mockup: "desktop",
-        },
-        {
-          id: "adtransporte",
-          slug: "ad-fahrzeugtransporte",
-          title: "A&D Fahrzeugtransporte",
-          label: ar ? "سحب ونقل مركبات" : "Towing / Vehicle Logistics",
-          description: ar
-            ? "موقع مباشر لخدمات السحب ونقل السيارات، مصمم للسرعة والثقة والتواصل في الحالات العاجلة."
-            : "A direct-response website for towing and vehicle logistics, designed for urgency, trust, and fast contact.",
-          image: "/images/projects/adtransporte-home.png",
-          caseStudyHref: withLocale(locale, "work/ad-fahrzeugtransporte"),
-          liveHref: "https://www.adtransporte.de/",
-          categories: ["all", "web", "logistics"],
-          tags: ["Emergency UX", "Transport", "Local SEO", "Direct CTA"],
-          tone: "cyan",
-          mockup: "desktop",
-        },
-        {
-          id: "ecosystem",
-          slug: "moalfarras-space",
-          title: "moalfarras.space",
-          label: ar ? "موقع شخصي متكامل" : "Personal Website & Platform",
-          description: ar
-            ? "منظومة شخصية تربط الأعمال، يوتيوب، MoPlayer، التفعيل، السيرة، والتواصل ضمن هوية واحدة."
-            : "A personal platform connecting work, YouTube, MoPlayer, activation, CV, and contact into one identity.",
-          image: "/images/hero_tech.png",
-          caseStudyHref: withLocale(locale, "work/moalfarras-space"),
-          liveHref: withLocale(locale, ""),
-          categories: ["all", "web", "apps"],
-          tags: ["Web Design", "Arabic & English", "Design System", "Admin"],
-          tone: "violet",
-          mockup: "phone",
-        },
-      ] as ExhibitionProject[]),
+    projects: cmsProjects.map((project) => cmsProjectToExhibition(project, locale)),
   };
 }
 
@@ -255,7 +153,7 @@ export function WorkDigitalExhibition({
   projects,
 }: {
   locale: Locale;
-  projects?: SiteProject[];
+  projects: SiteProject[];
 }) {
   const t = useMemo(() => copy(locale, projects), [locale, projects]);
   const [active, setActive] = useState<ProjectCategory>("all");

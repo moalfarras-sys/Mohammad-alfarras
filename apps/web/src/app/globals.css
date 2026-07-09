@@ -137,6 +137,13 @@ body {
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Arabic hero headlines use the brand Arabic face: Cairo carries true 800-900
+   glyphs (the old system-stack fallback existed to dodge faux-bold). */
+.liquid-site[dir="rtl"] .critical-hero-title,
+.liquid-site[dir="rtl"] .os-wow-hero-copy h1 {
+  font-family: var(--font-arabic), ui-sans-serif, system-ui, sans-serif;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -4714,10 +4721,12 @@ html[dir="rtl"] .fresh-section-head h1,
   pointer-events: none;
 }
 
+/* justify-items stays `end`: inline-end is the outer screen edge in BOTH
+   directions (right in LTR, left in RTL), so the FAB hugs the corner even
+   when the teaser bubble widens the grid. */
 html[dir="rtl"] .mo-ai-widget {
   right: auto;
   left: max(18px, env(safe-area-inset-left));
-  justify-items: start;
 }
 
 .mo-ai-dock,

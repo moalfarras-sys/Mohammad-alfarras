@@ -5552,7 +5552,7 @@ html[dir="rtl"] .mo-ai-panel {
   .apps-flow-card,
   .services-command-page .fresh-grid-3 .fresh-card,
   .services-step-card {
-    animation: osReveal both linear;
+    animation: osReveal3d both linear;
     animation-timeline: view();
     animation-range: entry 0% cover 42%;
   }
@@ -6138,5 +6138,106 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
 
   .services-process-grid::before {
     inset-inline-start: -8px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Coverflow cinema upgrade (cfx-*) + shared 3D scroll reveal.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Breathing ambient floor glow under the stage. */
+.cf-stage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  width: min(72%, 620px);
+  height: 34%;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--brand-blue) 30%, transparent),
+    color-mix(in srgb, #8b5cf6 14%, transparent) 55%,
+    transparent 75%
+  );
+  filter: blur(34px);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* Cinematic floor reflection (Chromium/Android — harmless elsewhere). */
+.cf-slide-img {
+  -webkit-box-reflect: below 10px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.16));
+}
+
+/* One glass sheen sweeps the card that just came to the front. */
+.cf-slide-active {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.cf-slide-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: linear-gradient(
+    105deg,
+    transparent 0 32%,
+    rgba(255, 255, 255, 0.22) 46%,
+    transparent 60% 100%
+  );
+  transform: translateX(-120%);
+  animation: cfxSheen 1.1s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cf-stage::before {
+    animation: cfxAmbient 5.5s ease-in-out infinite;
+  }
+}
+
+@keyframes cfxAmbient {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes cfxSheen {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+/* Shared 3D scroll reveal: cards tilt up from the page as they enter.
+   Same safety net as osReveal — without timeline support it fills to the
+   visible end state instantly. */
+@keyframes osReveal3d {
+  from {
+    opacity: 0;
+    transform: perspective(900px) translateY(34px) rotateX(9deg) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) translateY(0) rotateX(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-stage::before,
+  .cf-slide-active::after {
+    animation: none !important;
+  }
+
+  .cf-slide-img {
+    -webkit-box-reflect: none;
   }
 }

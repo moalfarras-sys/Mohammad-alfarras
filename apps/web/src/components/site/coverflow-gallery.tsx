@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CoverflowImage = { id?: string; src: string; alt: string; label?: string };
 
@@ -28,6 +28,7 @@ export function CoverflowGallery({
   const active = total > 0 ? Math.min(rawActive, total - 1) : 0;
   const dragRef = useRef<{ x: number; moved: boolean } | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
 
   const go = useCallback(
     (dir: number) => {
@@ -36,6 +37,19 @@ export function CoverflowGallery({
     },
     [total],
   );
+
+  // Gentle autoplay: advance every 5s, pause while the visitor hovers,
+  // touches, or focuses the gallery, and never run under reduced motion or
+  // in a hidden tab. One interval per mount — no re-arming, no stacking.
+  useEffect(() => {
+    if (total < 2) return;
+    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => {
+      if (pausedRef.current || document.hidden || dragRef.current) return;
+      setActive((prev) => (prev + 1) % total);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [total]);
 
   // Keyboard navigation when the gallery has focus.
   const onKeyDown = useCallback(
@@ -90,6 +104,10 @@ export function CoverflowGallery({
       aria-label={isAr ? "معرض صور ثلاثي الأبعاد" : "3D image gallery"}
       tabIndex={0}
       onKeyDown={onKeyDown}
+      onPointerEnter={() => (pausedRef.current = true)}
+      onPointerLeave={() => (pausedRef.current = false)}
+      onFocus={() => (pausedRef.current = true)}
+      onBlur={() => (pausedRef.current = false)}
     >
       <div
         ref={stageRef}
@@ -106,11 +124,12 @@ export function CoverflowGallery({
           if (offset < -total / 2) offset += total;
           const abs = Math.abs(offset);
           const hidden = abs > 2;
+          // Deeper cinema arc: side cards sink down and back while turning away.
           const style = {
-            transform: `translateX(${offset * 56}%) translateZ(${-abs * 140}px) rotateY(${offset * -38}deg) scale(${
-              offset === 0 ? 1 : 0.82
+            transform: `translateX(${offset * 54}%) translateY(${abs * 14}px) translateZ(${-abs * 175}px) rotateY(${offset * -42}deg) scale(${
+              offset === 0 ? 1 : 0.8
             })`,
-            opacity: hidden ? 0 : offset === 0 ? 1 : abs === 1 ? 0.78 : 0.4,
+            opacity: hidden ? 0 : offset === 0 ? 1 : abs === 1 ? 0.74 : 0.36,
             zIndex: 50 - abs,
             pointerEvents: hidden ? ("none" as const) : ("auto" as const),
           };

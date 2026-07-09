@@ -562,7 +562,7 @@ select {
 }
 
 .fresh-button:hover {
-  transform: translateY(-1px);
+  translate: 0 -1px;
   border-color: var(--line-strong);
 }
 
@@ -829,7 +829,7 @@ html[dir="rtl"] .fresh-section-head h1 {
 .fresh-project:hover,
 .fresh-feature:hover,
 .fresh-form:hover {
-  transform: translateY(-2px);
+  translate: 0 -2px;
   border-color: color-mix(in srgb, var(--brand-blue) 34%, var(--line));
   box-shadow:
     0 28px 86px rgba(0, 0, 0, 0.3),
@@ -1151,7 +1151,7 @@ html[dir="rtl"] .fresh-section-head h1 {
 }
 
 .case-study-navigator > a:hover {
-  transform: translateY(-2px);
+  translate: 0 -2px;
   border-color: color-mix(in srgb, var(--brand-blue) 40%, var(--line));
   background: color-mix(in srgb, var(--brand-blue) 8%, var(--panel));
 }
@@ -2596,7 +2596,7 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .os-home-explore-card:hover {
-  transform: translateY(-3px);
+  translate: 0 -3px;
   border-color: color-mix(in srgb, var(--os-cyan) 36%, var(--os-glass-border));
   box-shadow: var(--os-shadow-soft), var(--os-shadow-glow);
 }
@@ -2681,13 +2681,14 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .os-home-case-card:hover {
-  transform: translateY(-4px);
+  translate: 0 -4px;
   border-color: color-mix(in srgb, var(--os-cyan) 30%, var(--os-glass-border));
   box-shadow: var(--os-shadow-soft), var(--os-shadow-glow);
 }
 
 .os-home-explore-card:hover {
-  transform: translateY(-6px) scale(1.012);
+  translate: 0 -6px;
+  scale: 1.012;
 }
 
 .os-home-explore-card::after,
@@ -2947,7 +2948,8 @@ html[dir="rtl"] .fresh-section-head h1,
 .fresh-nav-link:hover,
 .fresh-nav-cta:hover,
 .magnetic-surface:hover {
-  transform: translateY(-2px) scale(1.012);
+  translate: 0 -2px;
+  scale: 1.012;
 }
 
 .fresh-button:hover::after,
@@ -3174,7 +3176,8 @@ html[dir="rtl"] .fresh-section-head h1,
 }
 
 .os-mode-card:hover {
-  transform: translateY(-7px) scale(1.025);
+  translate: 0 -7px;
+  scale: 1.025;
 }
 
 .os-mode-card-top {
@@ -4385,7 +4388,8 @@ html[dir="rtl"] .fresh-section-head h1,
 .apps-card:hover,
 .moplayer-feature-card:hover,
 .moplayer-info-card:hover {
-  transform: translateY(-4px) scale(1.01);
+  translate: 0 -4px;
+  scale: 1.01;
   border-color: rgba(220, 235, 255, 0.28);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
@@ -5655,7 +5659,7 @@ html[dir="rtl"] .mo-ai-panel {
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 .cf-btn:hover {
-  transform: translateY(-2px);
+  translate: 0 -2px;
   border-color: color-mix(in srgb, var(--brand-blue) 55%, transparent);
   background: color-mix(in srgb, var(--brand-blue) 12%, transparent);
 }
@@ -5933,14 +5937,14 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
 .os-home-explore-card,
 .os-home-case-card,
 .os-moplayer-app-card {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
 }
 
 .os-mode-card:hover,
 .os-home-explore-card:hover,
 .os-home-case-card:hover,
 .os-moplayer-app-card:hover {
-  transform: translateY(-5px);
+  translate: 0 -5px;
   border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.4),
@@ -6094,12 +6098,12 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
 /* Hover lift, matching the home card language. */
 .services-command-page .fresh-grid-3 .fresh-card,
 .services-step-card {
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: translate 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
 }
 
 .services-command-page .fresh-grid-3 .fresh-card:hover,
 .services-step-card:hover {
-  transform: translateY(-5px);
+  translate: 0 -5px;
   border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.4),
@@ -6239,5 +6243,209 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
 
   .cf-slide-img {
     -webkit-box-reflect: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Phase 4 — visible-everywhere polish (mog-*).
+   Living global backdrop, flowing primary buttons, touch feedback,
+   selective glass on mobile, crisper cards on small screens.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Living backdrop on EVERY page: two color orbs drifting behind content.
+   Fixed + transform-only, pre-blurred gradients — cheap on weak phones. */
+.liquid-site::before,
+.liquid-site::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.liquid-site::before {
+  top: -12%;
+  inset-inline-start: -14%;
+  width: min(52vw, 640px);
+  aspect-ratio: 1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--brand-blue) 17%, transparent),
+    transparent 72%
+  );
+  filter: blur(50px);
+}
+
+.liquid-site::after {
+  bottom: -16%;
+  inset-inline-end: -12%;
+  width: min(44vw, 540px);
+  aspect-ratio: 1;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, #8b5cf6 15%, transparent),
+    transparent 74%
+  );
+  filter: blur(46px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .liquid-site::before {
+    animation: mogOrbA 34s ease-in-out infinite alternate;
+  }
+
+  .liquid-site::after {
+    animation: mogOrbB 28s ease-in-out infinite alternate;
+  }
+}
+
+/* Primary buttons: flowing gradient + breathing glow — alive on touch too. */
+.fresh-button-primary {
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--brand-blue) 34%, #0b1f3a),
+    color-mix(in srgb, #8b5cf6 30%, #141031) 45%,
+    color-mix(in srgb, var(--brand-amber) 30%, #241a08) 75%,
+    color-mix(in srgb, var(--brand-blue) 34%, #0b1f3a)
+  );
+  background-size: 260% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fresh-button-primary {
+    animation: mogButtonFlow 7s linear infinite, mogButtonGlow 3.2s ease-in-out infinite;
+  }
+}
+
+/* Touch feedback: cards and buttons visibly press on tap (composable
+   `scale`, so scroll-reveal transforms cannot swallow it). */
+.fresh-button:active,
+.fresh-card:active,
+.os-mode-card:active,
+.os-home-explore-card:active,
+.os-moplayer-app-card:active,
+.work-project-card:active,
+.yt2-card:active,
+.contact-social-card:active,
+.mobile-dock-link:active,
+.cf-btn:active {
+  scale: 0.965;
+  transition: scale 0.12s ease;
+}
+
+/* Active dock item: breathing beacon so the phone nav feels alive. */
+.mobile-dock-link-active svg {
+  animation: mogDockPulse 2.4s ease-in-out infinite;
+}
+
+@media (max-width: 760px) {
+  /* The blanket blur-kill keeps big panels cheap — but small fixed
+     surfaces can afford real glass, and they are what the thumb touches. */
+  .liquid-site .fresh-nav,
+  .liquid-site .mobile-bottom-dock,
+  .liquid-site .mo-ai-panel,
+  .liquid-site .mo-ai-teaser,
+  .liquid-site .fresh-drawer {
+    backdrop-filter: blur(16px) saturate(1.15) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(1.15) !important;
+  }
+
+  /* Deterministic faux-glass for the dock: reads premium even where
+     backdrop-filter is unavailable or disabled. */
+  .liquid-site .mobile-bottom-dock {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03)),
+      color-mix(in srgb, var(--os-surface-strong) 94%, transparent);
+    border-color: rgba(160, 214, 255, 0.28);
+  }
+
+  /* Crisper cards on phones: brighter edge + inner top light. */
+  .fresh-card,
+  .os-mode-card,
+  .os-home-explore-card,
+  .os-home-case-card,
+  .os-moplayer-app-card,
+  .work-project-card,
+  .yt2-card,
+  .contact-social-card,
+  .cv-count-card,
+  .cv-story-card {
+    border-color: rgba(160, 214, 255, 0.24);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 18px 50px rgba(0, 0, 0, 0.38);
+  }
+
+  .liquid-site::before {
+    width: 92vw;
+    filter: blur(38px);
+  }
+
+  .liquid-site::after {
+    width: 76vw;
+    filter: blur(34px);
+  }
+}
+
+@keyframes mogOrbA {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(9vw, 12vh, 0) scale(1.15);
+  }
+  100% {
+    transform: translate3d(-4vw, 26vh, 0) scale(0.95);
+  }
+}
+
+@keyframes mogOrbB {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-10vw, -22vh, 0) scale(1.2);
+  }
+}
+
+@keyframes mogButtonFlow {
+  to {
+    background-position: -260% 0;
+  }
+}
+
+@keyframes mogButtonGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 14px 38px color-mix(in srgb, var(--brand-blue) 18%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--brand-blue) 22%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 16px 46px color-mix(in srgb, var(--brand-blue) 34%, transparent),
+      0 0 26px color-mix(in srgb, #8b5cf6 22%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--brand-blue) 38%, transparent);
+  }
+}
+
+@keyframes mogDockPulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+    scale: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 9px color-mix(in srgb, var(--os-cyan) 75%, transparent));
+    scale: 1.12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-site::before,
+  .liquid-site::after,
+  .fresh-button-primary,
+  .mobile-dock-link-active svg {
+    animation: none !important;
   }
 }

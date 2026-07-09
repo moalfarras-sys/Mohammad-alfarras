@@ -6521,3 +6521,214 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     margin-bottom: 12px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   CALM-PREMIUM RETUNE (calm-*) — appended last so it wins by source order.
+   Direction: fewer accents (cyan-dominant), soft floating surfaces over
+   outlined boxes, motion once (kill perpetual loops), imagery framed like a
+   product — a quieter, more expensive 2026 dark look. No DOM/identity change.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Hero aurora: cyan-only, softer. Drops the violet + gold fields. ── */
+.os-home-hero::before {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--os-cyan) 20%, transparent),
+    transparent 72%
+  );
+  filter: blur(80px);
+  opacity: 0.55;
+}
+
+.os-home-hero::after {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--os-cyan) 12%, transparent),
+    transparent 74%
+  );
+  filter: blur(72px);
+  opacity: 0.4;
+}
+
+/* ── 2. Headline: calm static white → faint-cyan. No perpetual sheen. ── */
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .os-wow-hero h1 {
+    background: linear-gradient(
+      180deg,
+      #ffffff 0%,
+      color-mix(in srgb, var(--os-cyan) 20%, #ffffff) 100%
+    );
+    background-size: auto;
+    background-position: 0 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* ── 3. Living orbs sitewide: cyan-only, quieter. Drops the violet orb. ── */
+.liquid-site::before {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--brand-blue) 11%, transparent),
+    transparent 72%
+  );
+  filter: blur(64px);
+  opacity: 0.5;
+}
+
+.liquid-site::after {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--brand-blue) 7%, transparent),
+    transparent 74%
+  );
+  filter: blur(60px);
+  opacity: 0.36;
+}
+
+/* ── 4. Primary button: one calm cyan surface, static, single soft glow. ── */
+.fresh-button-primary {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--os-cyan) 24%, #0a1a2e),
+    color-mix(in srgb, var(--os-cyan) 12%, #0a1626)
+  );
+  background-size: auto;
+  border: 1px solid color-mix(in srgb, var(--os-cyan) 38%, transparent);
+  box-shadow: 0 12px 32px -12px color-mix(in srgb, var(--os-cyan) 55%, transparent);
+  transition: background 0.25s ease, box-shadow 0.25s ease, translate 0.2s ease;
+}
+
+.fresh-button-primary:hover {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--os-cyan) 34%, #0b1f34),
+    color-mix(in srgb, var(--os-cyan) 18%, #0a1626)
+  );
+  box-shadow: 0 16px 40px -12px color-mix(in srgb, var(--os-cyan) 70%, transparent);
+  translate: 0 -2px;
+}
+
+/* ── 5. Soft floating cards: less outline, real elevation, gentle hover. ── */
+.os-mode-card,
+.os-home-explore-card,
+.os-home-case-card,
+.os-moplayer-app-card,
+.services-command-page .fresh-grid-3 .fresh-card {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    color-mix(in srgb, var(--os-surface-strong) 82%, transparent);
+  box-shadow: 0 24px 60px -34px rgba(0, 0, 0, 0.9);
+}
+
+.os-mode-card:hover,
+.os-home-explore-card:hover,
+.os-home-case-card:hover,
+.os-moplayer-app-card:hover,
+.services-command-page .fresh-grid-3 .fresh-card:hover {
+  translate: 0 -6px;
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 40px 90px -40px rgba(0, 0, 0, 0.95),
+    0 0 0 1px color-mix(in srgb, var(--os-cyan) 22%, transparent);
+}
+
+/* ── 6. Imagery framed like a product: slim browser chrome + calm filter. ── */
+.os-mode-media,
+.os-case-media {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 22px 46px -26px rgba(0, 0, 0, 0.85);
+}
+
+/* Neutral browser chrome bar over the screenshot's own loud header. */
+.os-mode-media::before,
+.os-case-media::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  inset-inline: 0;
+  height: 26px;
+  background:
+    radial-gradient(circle 3px at 15px 13px, rgba(255, 120, 120, 0.75) 46%, transparent 52%),
+    radial-gradient(circle 3px at 29px 13px, rgba(240, 200, 100, 0.7) 46%, transparent 52%),
+    radial-gradient(circle 3px at 43px 13px, rgba(120, 220, 150, 0.7) 46%, transparent 52%),
+    linear-gradient(180deg, rgba(8, 14, 26, 0.96), rgba(8, 14, 26, 0.74));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  pointer-events: none;
+}
+
+.os-mode-media img,
+.os-case-media img {
+  filter: saturate(0.9) contrast(1.02) brightness(0.97);
+}
+
+/* Move the tone chip below the chrome so it sits on the image, not the bar. */
+.os-mode-media-chip {
+  top: auto;
+  bottom: 10px;
+  inset-inline-start: 10px;
+  background: color-mix(in srgb, #04101f 82%, transparent);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ── 7. Motion once: kill the perpetual loops that read as "busy". ── */
+@media (prefers-reduced-motion: no-preference) {
+  .os-wow-hero h1 {
+    animation: mohRise 1s cubic-bezier(0.19, 1, 0.22, 1) both 0.16s;
+  }
+
+  .fresh-button-primary {
+    animation: none;
+  }
+
+  .mobile-dock-link-active svg {
+    animation: none;
+  }
+}
+
+/* Active dock item: a calm static cyan glow instead of a nervous pulse. */
+.mobile-dock-link-active svg {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--os-cyan) 55%, transparent));
+}
+
+/* ── 8. Mobile hero: right-sized headline, calmer height. ── */
+@media (max-width: 760px) {
+  .os-wow-hero-copy {
+    min-height: 0;
+    padding: clamp(22px, 6vw, 34px);
+  }
+
+  .os-wow-hero h1,
+  [dir="rtl"] .os-wow-hero h1 {
+    font-size: clamp(1.95rem, 8.2vw, 2.75rem);
+    line-height: 1.2;
+    margin-top: 16px;
+  }
+
+  .os-wow-hero .os-home-lede {
+    font-size: 0.97rem;
+    line-height: 1.75;
+  }
+
+  /* Calmer card edge on phones (overrides the brighter phase-4 edge). */
+  .fresh-card,
+  .os-mode-card,
+  .os-home-explore-card,
+  .os-home-case-card,
+  .os-moplayer-app-card,
+  .work-project-card,
+  .yt2-card,
+  .contact-social-card,
+  .cv-count-card,
+  .cv-story-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 48px -30px rgba(0, 0, 0, 0.9);
+  }
+}

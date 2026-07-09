@@ -7,6 +7,7 @@ import {
   breadcrumbJsonLd,
   jsonLdString,
   personExpandedJsonLd,
+  professionalServiceJsonLd,
   profilePageJsonLd,
 } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
@@ -31,6 +32,7 @@ export default async function LocaleHome({ params }: { params: Promise<{ locale:
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(profilePageJsonLd(loc)) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(personExpandedJsonLd(loc)) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(professionalServiceJsonLd(loc)) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       <SitePage locale={loc} slug="home" />
     </>

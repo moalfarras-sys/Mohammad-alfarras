@@ -64,6 +64,50 @@ export function personExpandedJsonLd(locale: Locale) {
   };
 }
 
+/**
+ * ProfessionalService entity for the home page: tells search engines the site
+ * offers website design/development, in which languages, and for which regions
+ * (Arabic-speaking markets + Germany/Europe).
+ */
+export function professionalServiceJsonLd(locale: Locale) {
+  const isAr = locale === "ar";
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": `${BASE_URL}/#service`,
+    name: isAr ? "محمد الفراس — تصميم وتطوير مواقع" : `${SITE_NAME} — Website Design & Development`,
+    url: `${BASE_URL}/${locale}`,
+    image: `${BASE_URL}/images/protofeilnew.jpeg`,
+    description: isAr
+      ? "تصميم مواقع احترافية، صفحات هبوط، متاجر إلكترونية وتطبيقات ويب سريعة بالعربية والإنجليزية والألمانية."
+      : "Professional website design, landing pages, online stores, and fast web apps in Arabic, English, and German.",
+    founder: { "@id": `${BASE_URL}/#person` },
+    availableLanguage: ["ar", "en", "de"],
+    areaServed: [
+      { "@type": "Country", name: "Syria" },
+      { "@type": "Country", name: "Germany" },
+      { "@type": "AdministrativeArea", name: isAr ? "الوطن العربي" : "Middle East & North Africa" },
+      { "@type": "AdministrativeArea", name: "Europe" },
+    ],
+    address: { "@type": "PostalAddress", addressCountry: "DE" },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: isAr ? "خدمات الويب" : "Web services",
+      itemListElement: [
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: isAr ? "تصميم موقع تعريفي احترافي" : "Professional business website design" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: isAr ? "تصميم صفحة هبوط" : "Landing page design" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: isAr ? "متجر إلكتروني أو تطبيق ويب" : "Online store or web app" } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: isAr ? "صفحات منتجات ودعم التطبيقات" : "Product pages and app support flows" } },
+      ],
+    },
+    sameAs: [
+      "https://www.youtube.com/@Moalfarras",
+      "https://github.com/moalfarras-sys",
+      "https://de.linkedin.com/in/mohammad-alfarras-525531262",
+    ],
+  };
+}
+
 export function collectionPageJsonLd(
   locale: Locale,
   slug: string,

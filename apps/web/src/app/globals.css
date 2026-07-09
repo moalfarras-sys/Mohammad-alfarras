@@ -5826,3 +5826,211 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
 @media (prefers-reduced-motion: reduce) {
   .pw-progress-bar, .pw-card-opt, .pw-btn-primary { transition: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Home cinematic pass — one orchestrated hero moment (moh-*).
+   Aurora depth behind the glass panels, staged boot sequence for the
+   hero copy, gradient sheen on the headline, slow 3D drift on the
+   visual panel. Unique moh- keyframe names (lightningcss dedup gotcha).
+   ══════════════════════════════════════════════════════════════════ */
+
+.os-home-hero {
+  position: relative;
+}
+
+/* Signature aurora: two blurred color fields breathing behind the glass. */
+.os-home-hero::before,
+.os-home-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.os-home-hero::before {
+  top: -18%;
+  inset-inline-start: -8%;
+  width: min(58vw, 720px);
+  aspect-ratio: 1.4;
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--os-cyan) 34%, transparent), transparent 70%),
+    radial-gradient(closest-side at 70% 70%, color-mix(in srgb, var(--os-violet) 30%, transparent), transparent 72%);
+  filter: blur(70px);
+  opacity: 0.8;
+}
+
+.os-home-hero::after {
+  bottom: -22%;
+  inset-inline-end: -10%;
+  width: min(48vw, 560px);
+  aspect-ratio: 1.2;
+  background:
+    radial-gradient(closest-side, color-mix(in srgb, var(--os-gold) 26%, transparent), transparent 70%),
+    radial-gradient(closest-side at 30% 30%, color-mix(in srgb, var(--os-cyan) 20%, transparent), transparent 74%);
+  filter: blur(64px);
+  opacity: 0.6;
+}
+
+/* Headline: heavy Cairo glyphs carrying a quiet metal-sheen gradient. */
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .os-wow-hero h1 {
+    background: linear-gradient(
+      95deg,
+      var(--os-text) 0%,
+      #e6fbff 30%,
+      color-mix(in srgb, var(--os-cyan) 82%, #ffffff) 50%,
+      #d9ccff 72%,
+      var(--os-text) 100%
+    );
+    background-size: 230% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .os-home-hero::before {
+    animation: mohAuroraA 26s ease-in-out infinite alternate;
+  }
+
+  .os-home-hero::after {
+    animation: mohAuroraB 21s ease-in-out infinite alternate;
+  }
+
+  /* Boot sequence: badge → headline → lede → facts → actions → panel. */
+  .os-wow-hero-copy .os-command-badge,
+  .os-wow-hero .os-home-lede,
+  .os-wow-hero-copy .os-home-proof-row,
+  .os-wow-hero-copy .fresh-actions {
+    animation: mohRise 0.9s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+
+  .os-wow-hero-copy .os-command-badge { animation-delay: 0.05s; }
+  .os-wow-hero .os-home-lede { animation-delay: 0.32s; }
+  .os-wow-hero-copy .os-home-proof-row { animation-delay: 0.46s; }
+  .os-wow-hero-copy .fresh-actions { animation-delay: 0.6s; }
+
+  .os-wow-hero h1 {
+    animation:
+      mohRise 1s cubic-bezier(0.19, 1, 0.22, 1) both 0.16s,
+      mohTitleSheen 8s ease-in-out infinite 1.4s;
+  }
+
+  .os-wow-visual {
+    animation:
+      mohPanelIn 1.15s cubic-bezier(0.19, 1, 0.22, 1) both 0.34s,
+      mohPanelDrift 13s ease-in-out infinite 2s;
+  }
+}
+
+/* Quiet lift for the content cards below the hero (hover only). */
+.os-mode-card,
+.os-home-explore-card,
+.os-home-case-card,
+.os-moplayer-app-card {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+}
+
+.os-mode-card:hover,
+.os-home-explore-card:hover,
+.os-home-case-card:hover,
+.os-moplayer-app-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--os-cyan) 45%, var(--os-glass-border));
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.4),
+    0 0 44px color-mix(in srgb, var(--os-cyan) 14%, transparent);
+}
+
+/* Fade the marquee edges so the loop reads as an endless band. */
+.os-stack-marquee {
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+@media (max-width: 760px) {
+  /* Cheaper aurora on phones: smaller fields, lighter blur raster. */
+  .os-home-hero::before {
+    width: 88vw;
+    filter: blur(46px);
+    opacity: 0.65;
+  }
+
+  .os-home-hero::after {
+    width: 70vw;
+    filter: blur(40px);
+    opacity: 0.5;
+  }
+}
+
+@keyframes mohAuroraA {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6vw, 4vh, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-3vw, 7vh, 0) scale(0.94);
+  }
+}
+
+@keyframes mohAuroraB {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-6vw, -5vh, 0) scale(1.16);
+  }
+}
+
+@keyframes mohRise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes mohTitleSheen {
+  0%,
+  55%,
+  100% {
+    background-position: 100% 0;
+  }
+  22%,
+  34% {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes mohPanelIn {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translateY(38px) rotateX(4deg) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translateY(0) rotateX(0) scale(1);
+  }
+}
+
+@keyframes mohPanelDrift {
+  0%,
+  100% {
+    transform: perspective(1200px) rotateY(0deg) rotateX(0deg) translateY(0);
+  }
+  30% {
+    transform: perspective(1200px) rotateY(-2.2deg) rotateX(1.4deg) translateY(-6px);
+  }
+  65% {
+    transform: perspective(1200px) rotateY(1.8deg) rotateX(-1deg) translateY(-2px);
+  }
+}

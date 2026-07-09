@@ -5692,6 +5692,9 @@ html[dir="rtl"] .mo-ai-panel {
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--muted);
+  /* "3 / 7" must read left-to-right even inside an RTL page, otherwise the
+     bidi algorithm flips it to a confusing "7 / 3". */
+  direction: ltr;
 }
 @media (prefers-reduced-motion: reduce) {
   .cf-stage {
@@ -5699,6 +5702,42 @@ html[dir="rtl"] .mo-ai-panel {
   }
   .cf-slide {
     transition: opacity 0.3s ease;
+  }
+}
+
+/* ── Gallery refine: bigger, more comfortable active card + clearer nav ── */
+@media (max-width: 760px) {
+  /* The active screenshot should dominate the phone, not float small in the
+     middle with wide faded peeks. Larger card + a touch taller stage. */
+  .cf-stage {
+    height: clamp(248px, 62vw, 320px);
+  }
+
+  .cf-slide {
+    width: min(84vw, 360px);
+  }
+
+  /* Bigger, easier-to-tap pagination dots. */
+  .cf-dots {
+    gap: 9px;
+  }
+
+  .cf-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .cf-dot-active {
+    width: 24px;
+  }
+
+  .cf-btn {
+    width: 46px;
+    height: 46px;
+  }
+
+  .cf-live {
+    font-size: 0.82rem;
   }
 }
 

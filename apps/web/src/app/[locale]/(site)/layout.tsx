@@ -7,6 +7,7 @@ import { LocaleDocumentSync } from "@/components/layout/locale-document-sync";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { CardTilt } from "@/components/site/card-tilt";
+import { ScrollReveal } from "@/components/site/scroll-reveal";
 import { VisitBeacon } from "@/components/site/visit-beacon";
 import { getNavigation } from "@/content/navigation";
 import { siteIdentity, youtubeChannel } from "@/content/site-data";
@@ -197,6 +198,7 @@ export default async function SiteLayout({
 
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
         <main id="main-content">{children}</main>
+        <ScrollReveal />
         <CardTilt />
         <LazySiteAssistant locale={locale} />
         <CookieBanner locale={locale} />

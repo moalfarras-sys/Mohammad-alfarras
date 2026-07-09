@@ -48,7 +48,21 @@ export function SiteNavbar({
   const nextLocale = locale === "ar" ? "en" : "ar";
   const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${nextLocale}`;
   const isAr = locale === "ar";
-  const mobileDockLinks = links;
+  // The mobile dock shows 5 short, non-truncated essentials; the rest stay in
+  // the hamburger drawer. Seven long labels were being clipped ("السيرة الذ…").
+  const dockShortLabels: Record<string, { ar: string; en: string }> = {
+    home: { ar: "الرئيسية", en: "Home" },
+    work: { ar: "الأعمال", en: "Work" },
+    services: { ar: "الخدمات", en: "Services" },
+    apps: { ar: "MoPlayer", en: "MoPlayer" },
+    contact: { ar: "تواصل", en: "Contact" },
+  };
+  const mobileDockLinks = (["home", "work", "services", "apps", "contact"] as const)
+    .map((id) => {
+      const item = links.find((link) => link.id === id);
+      return item ? { ...item, label: dockShortLabels[id][isAr ? "ar" : "en"] } : null;
+    })
+    .filter((item): item is (typeof links)[number] => item !== null);
   const ctaLabel = isAr ? "ابدأ مشروعك" : "Start Project";
   const dockLabel = isAr ? "التنقل السريع" : "Quick navigation";
   const hideMobileDock = Boolean(pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"));

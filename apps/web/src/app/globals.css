@@ -6925,3 +6925,89 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     padding: 14px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   UNIFIED VISUAL IDENTITY (idn-*).
+   The site had no shared rhythm — every page invented its own section
+   spacing, hero offset, and section-head gap (5 mechanisms, values from
+   88–160px hero-top, 22–96px section gaps). This layer maps them ALL to one
+   clamp-based token scale so the whole site reads as designed by one hand.
+   Appended last → wins by source order; the tuned route files stay untouched.
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* One rhythm scale. clamp() self-tightens on mobile — no per-page overrides. */
+  --site-nav-offset: clamp(96px, 8vw, 128px);
+  --space-hero-top: clamp(96px, 8vw, 128px);
+  --space-section: clamp(48px, 6vw, 84px);
+  --space-section-head: clamp(20px, 2.4vw, 30px);
+}
+
+/* Route CSS (route-*.css) is imported per page and loads AFTER globals, so
+   these overrides are scoped under .liquid-site (always an ancestor) to win on
+   specificity (0,2,0 > 0,1,0) regardless of load order — no route file edits. */
+
+/* 1 — Every page starts the same distance below the fixed navbar. */
+.liquid-site .fresh-page,
+.liquid-site .cv-blueprint,
+.liquid-site .work-exhibition,
+.liquid-site .mp2-page {
+  padding-top: var(--space-hero-top);
+}
+
+/* 2 — One gap between stacked sections, whatever mechanism the page used. */
+.liquid-site .fresh-section {
+  margin-top: var(--space-section);
+}
+
+.liquid-site .yt2 {
+  gap: var(--space-section);
+}
+
+.liquid-site .apps-section,
+.liquid-site .apps-flow,
+.liquid-site .activation-wizard,
+.liquid-site .moplayer-section,
+.liquid-site .mp2-section {
+  padding-block: var(--space-section);
+}
+
+.liquid-site .cv-game-stats,
+.liquid-site .cv-story-card,
+.liquid-site .cv-journey,
+.liquid-site .cv-skills,
+.liquid-site .cv-languages,
+.liquid-site .cv-deep-dive,
+.liquid-site .cv-youtube-dashboard,
+.liquid-site .cv-final-cta {
+  margin-top: var(--space-section);
+}
+
+/* 3 — One gap between a section's title block and its content. */
+.liquid-site .fresh-section-head,
+.liquid-site .apps-section-head,
+.liquid-site .moplayer-section-head,
+.liquid-site .mp2-section-head,
+.liquid-site .contact-form-head {
+  margin-bottom: var(--space-section-head);
+}
+
+/* 4 — Resolve the duplicate .fresh-section-head h1 (4.35rem vs 3.15rem):
+   one clear section-title scale used wherever SectionHeader renders an h1. */
+.liquid-site .fresh-section-head h1 {
+  font-size: clamp(2rem, 4.4vw, 3.35rem);
+  line-height: 1.08;
+}
+
+/* On phones keep the homepage aligned with the same token rhythm. */
+@media (max-width: 760px) {
+  .liquid-site.os-home .fresh-section,
+  .os-home .fresh-section {
+    margin-top: var(--space-section);
+  }
+
+  .liquid-site.os-home .fresh-section-head,
+  .os-home .fresh-section-head {
+    margin-bottom: var(--space-section-head);
+  }
+}

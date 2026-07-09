@@ -181,12 +181,13 @@ private fun MoPlayerApp(
     val performancePolicy = remember(state.settings, devicePerformance) {
         Adaptive.performancePolicy(state.settings, devicePerformance)
     }
-    // The preview-pane trailer resolves only when the pane is actually shown (off on weak/LOW
-    // boxes) and the admin switch is on. NOTE: it is deliberately NOT gated on reduceMotion — a
-    // muted trailer is content, not the decorative particle/aurora motion that reduceMotion calms;
-    // gating on it wrongly killed the trailer on every mid-tier TV (tvCalmMotion => reduceMotion).
-    val trailerPreviewCapable = performancePolicy.enablePreviewPane &&
-        state.settings.trailerPreviewEnabled
+    // Trailer capability = the ADMIN remote switch AND the user's own Settings switch — and nothing
+    // else. Deliberately NOT gated on the performance tier (enablePreviewPane hard-off on LOW made
+    // trailers dead on every weak box) nor on reduceMotion (that wrongly killed mid-tier TVs): a
+    // muted trailer is content, is only created after a focus dwell, and old WebViews are already
+    // guarded inside YoutubeTrailerSurface. Users who feel lag can switch it off in Settings.
+    val trailerPreviewCapable = state.settings.trailerPreviewEnabled &&
+        state.settings.showTrailerPreviews
     LaunchedEffect(trailerPreviewCapable) { viewModel.setTrailerPreviewCapable(trailerPreviewCapable) }
     val previewTrailer = remember(state.focusedTrailer) {
         state.focusedTrailer?.let { com.moalfarras.moplayer.ui.components.PreviewTrailer(it.itemKey, it.youtubeId) }
@@ -343,7 +344,7 @@ private fun MoPlayerApp(
                                 }
                             }
                             AppSection.SEARCH -> SearchScreen(state.searchQuery, state.settings.searchHistory, viewModel.searchResults, state.restoreFocusItem, viewModel::setSearch, viewModel::clearSearchHistory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.SETTINGS -> SettingsScreen(state.settings, performancePolicy, devicePerformance, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setVideoSizeMode, viewModel::setLibraryMode, viewModel::setLanguage, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setPerformanceMode, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer)
+                            AppSection.SETTINGS -> SettingsScreen(state.settings, performancePolicy, devicePerformance, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setVideoSizeMode, viewModel::setLibraryMode, viewModel::setLanguage, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setPerformanceMode, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer, viewModel::setShowTrailerPreviews)
                             AppSection.PLAYER -> LaunchedEffect(Unit) { viewModel.closePlayer() }
                         }
                         androidx.compose.animation.AnimatedVisibility(

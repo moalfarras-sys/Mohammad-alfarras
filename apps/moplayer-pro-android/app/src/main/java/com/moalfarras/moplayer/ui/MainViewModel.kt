@@ -1429,6 +1429,10 @@ class MainViewModel(
         viewModelScope.launch { settingsRepo.setShowFootballWidget(value) }
     }
 
+    fun setShowTrailerPreviews(value: Boolean) {
+        viewModelScope.launch { settingsRepo.setShowTrailerPreviews(value) }
+    }
+
     fun setWeatherMode(value: WeatherMode) {
         viewModelScope.launch {
             settingsRepo.setWeatherMode(value)
@@ -1855,5 +1859,6 @@ private const val SERIES_DETAIL_PREFETCH_DELAY_MS = 380L
 private const val MOVIE_DETAIL_PREFETCH_DELAY_MS = 520L
 // Short settle delay so quickly scrolling past channels doesn't fire a DNS resolve for each.
 private const val LIVE_DNS_PREWARM_DELAY_MS = 250L
-// Dwell before a focused movie/series autoplays its trailer in the preview pane.
-private const val TRAILER_PREVIEW_DWELL_MS = 4_000L
+// Dwell before a focused movie/series autoplays its trailer in the preview pane. 2s feels
+// responsive while still long enough that D-pad browsing past titles never triggers a resolve.
+private const val TRAILER_PREVIEW_DWELL_MS = 2_000L

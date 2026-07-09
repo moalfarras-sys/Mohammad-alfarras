@@ -12,7 +12,7 @@ const MISS_TTL_SECONDS = 60 * 60 * 24; // 1 day
 // spike or abuse from exhausting the quota and dark-caching every title. Tunable.
 const DAILY_SEARCH_BUDGET = 90;
 
-type CacheMode = "hit" | "miss" | "none";
+type CacheMode = "hit" | "miss" | "soft" | "none";
 
 // Strip release-quality noise (4K/FHD/CAM/x265/…) and separators so searches and cache keys
 // reflect the actual title, not the panel's file naming.
@@ -56,12 +56,21 @@ function trailerResponse(body: unknown, cache: CacheMode) {
   } else if (cache === "miss") {
     // "No trailer exists yet" — re-check daily so a later-published trailer can surface.
     res.headers.set("Cache-Control", "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400");
+  } else if (cache === "soft") {
+    // Transient failure (quota exhausted, YouTube 5xx): cache BRIEFLY so a fleet of devices
+    // dwelling every ~2s stops hammering the API during an outage, yet recovery is minutes away.
+    res.headers.set("Cache-Control", "public, max-age=60, s-maxage=180, stale-while-revalidate=120");
   } else {
-    // Transient / soft-fail — never cache, so a momentary failure can't dark a title for weeks.
+    // Config errors (no title/key) — never cache.
     res.headers.set("Cache-Control", "no-store");
   }
   return res;
 }
+
+// While this flag exists (set on a YouTube 429/403), skip searches entirely instead of burning
+// the daily budget and latency on calls that are guaranteed to fail.
+const QUOTA_COOLDOWN_KEY = "yt:trailer:quota-cooldown";
+const QUOTA_COOLDOWN_SECONDS = 900;
 
 /**
  * GET /api/app/trailer?title=&type=movie|series&year=&product=
@@ -95,11 +104,22 @@ export async function GET(request: Request) {
     // A cache read failure just means we fall through to a live search.
   }
 
+  // During a quota outage every search is a guaranteed failure — short-circuit until the
+  // cooldown flag expires so devices stop burning budget/latency for nothing.
+  try {
+    const coolingDown = await readDeviceSetting<{ down: boolean }>(QUOTA_COOLDOWN_KEY);
+    if (coolingDown?.down) {
+      return trailerResponse({ videoId: null, reason: "quota_cooldown" }, "soft");
+    }
+  } catch {
+    // Flag unreadable — proceed with the normal path.
+  }
+
   // Global daily budget check BEFORE spending a 100-unit search. null => Upstash absent, no cap.
   const budgetKey = `yt:trailer:budget:${new Date().toISOString().slice(0, 10)}`;
   const used = await incrementDailyCounter(budgetKey, MISS_TTL_SECONDS);
   if (used !== null && used > DAILY_SEARCH_BUDGET) {
-    return trailerResponse({ videoId: null, reason: "budget" }, "none");
+    return trailerResponse({ videoId: null, reason: "budget" }, "soft");
   }
 
   // Search with the CLEANED title (quality junk hurts relevance) and language-matched terms —
@@ -119,7 +139,22 @@ export async function GET(request: Request) {
       // re-queries YouTube instead of re-reading a 30-day-stale empty Data Cache entry.
       { next: { revalidate: MISS_TTL_SECONDS } },
     );
-    if (!res.ok) return trailerResponse({ videoId: null, reason: "search_failed" }, "none");
+    if (!res.ok) {
+      // Quota exhaustion (429, or 403 quotaExceeded): raise the cooldown flag so the next
+      // ~15 minutes of requests skip the API instead of hammering a guaranteed failure.
+      if (res.status === 429 || res.status === 403) {
+        try {
+          await writeDeviceSetting(
+            QUOTA_COOLDOWN_KEY,
+            { down: true },
+            { ttlSeconds: QUOTA_COOLDOWN_SECONDS, description: "YouTube search quota cooldown." },
+          );
+        } catch {
+          // Best effort — the soft cache still throttles.
+        }
+      }
+      return trailerResponse({ videoId: null, reason: "search_failed" }, "soft");
+    }
     const data = (await res.json()) as { items?: Array<{ id?: { videoId?: string } }> };
     const videoId = data.items?.find((item) => item.id?.videoId)?.id?.videoId ?? null;
 

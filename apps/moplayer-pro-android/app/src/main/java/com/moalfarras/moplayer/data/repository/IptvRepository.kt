@@ -393,7 +393,15 @@ class IptvRepository(
                 try {
                     if (connection.responseCode !in 200..299) return@runCatching null
                     val body = connection.inputStream.bufferedReader().use { it.readText() }
-                    JSONObject(body).optString("videoId", "").trim().ifBlank { null }
+                    val json = JSONObject(body)
+                    // CRITICAL: optString on a JSON null returns the STRING "null" — which then
+                    // reached the player as a bogus video id ("Invalid video id") AND blocked the
+                    // provider-trailer fallback. Check isNull first, then strictly validate the id.
+                    if (json.isNull("videoId")) {
+                        null
+                    } else {
+                        extractYoutubeId(json.optString("videoId", ""))
+                    }
                 } finally {
                     connection.disconnect()
                 }

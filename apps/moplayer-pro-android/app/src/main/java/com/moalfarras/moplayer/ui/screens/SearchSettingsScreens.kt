@@ -392,6 +392,10 @@ fun SettingsScreen(
     onLogout: () -> Unit,
     onActivateServer: (Long) -> Unit,
     onDeleteServer: (Long) -> Unit,
+    // Appended LAST on purpose: MainActivity invokes SettingsScreen positionally with ~43 args and
+    // the list has runs of same-typed (Boolean) -> Unit callbacks — a mid-list insertion would still
+    // compile with every later switch silently wired to the wrong setting.
+    onShowTrailerPreviews: (Boolean) -> Unit,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -459,6 +463,7 @@ fun SettingsScreen(
                         PlayerSettingsCard(
                             settings = settings,
                             onPreview = onPreview,
+                            onShowTrailerPreviews = onShowTrailerPreviews,
                             onParental = onParental,
                             onAutoPlayLastLive = onAutoPlayLastLive,
                             onHideEmptyCategories = onHideEmptyCategories,
@@ -496,6 +501,7 @@ fun SettingsScreen(
                 activeServer = activeServer,
                 servers = servers,
                 onPreview = onPreview,
+                onShowTrailerPreviews = onShowTrailerPreviews,
                 onParental = onParental,
                 onAutoPlayLastLive = onAutoPlayLastLive,
                 onHideEmptyCategories = onHideEmptyCategories,
@@ -547,6 +553,7 @@ private fun TvSettingsLayout(
     activeServer: ServerProfile?,
     servers: List<ServerProfile>,
     onPreview: (Boolean) -> Unit,
+    onShowTrailerPreviews: (Boolean) -> Unit,
     onParental: (Boolean) -> Unit,
     onAutoPlayLastLive: (Boolean) -> Unit,
     onHideEmptyCategories: (Boolean) -> Unit,
@@ -658,7 +665,7 @@ private fun TvSettingsLayout(
                         1 -> {
                             item { LibraryModeCard(settings.libraryMode, isTv = true, onLibraryMode = onLibraryMode) }
                             item {
-                                PlayerSettingsCard(settings, isTv = true, onPreview, onParental, onAutoPlayLastLive, onHideEmptyCategories, onHideChannelsWithoutLogo, onPlayer, onVideoSizeMode)
+                                PlayerSettingsCard(settings, isTv = true, onPreview, onShowTrailerPreviews, onParental, onAutoPlayLastLive, onHideEmptyCategories, onHideChannelsWithoutLogo, onPlayer, onVideoSizeMode)
                             }
                             item { SortOptionRow(settings.defaultSort, compact = false, onSort = onSort) }
                         }
@@ -667,6 +674,7 @@ private fun TvSettingsLayout(
                                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                                     SectionHeader("Live TV settings")
                                     SettingSwitch("Channel preview", settings.previewEnabled, Icons.Rounded.Visibility, onPreview)
+                                    SettingSwitch(LocalStrings.current.setShowTrailerPreviews, settings.showTrailerPreviews, Icons.Rounded.Movie, onShowTrailerPreviews)
                                     SettingSwitch("Auto-play last live channel", settings.autoPlayLastLive, Icons.Rounded.PlayArrow, onAutoPlayLastLive)
                                     SettingSwitch("Hide empty categories", settings.hideEmptyCategories, Icons.Rounded.FolderOff, onHideEmptyCategories)
                                     SettingSwitch("Hide channels without logo", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)
@@ -914,6 +922,7 @@ private fun PlayerSettingsCard(
     settings: AppSettings,
     isTv: Boolean = false,
     onPreview: (Boolean) -> Unit,
+    onShowTrailerPreviews: (Boolean) -> Unit,
     onParental: (Boolean) -> Unit,
     onAutoPlayLastLive: (Boolean) -> Unit,
     onHideEmptyCategories: (Boolean) -> Unit,
@@ -983,6 +992,7 @@ private fun PlayerSettingsCard(
             if (!isTv) {
                 SectionHeader("Live TV")
                 SettingSwitch("Channel preview", settings.previewEnabled, Icons.Rounded.Visibility, onPreview)
+                SettingSwitch(LocalStrings.current.setShowTrailerPreviews, settings.showTrailerPreviews, Icons.Rounded.Movie, onShowTrailerPreviews)
                 SettingSwitch("Auto-play last live channel", settings.autoPlayLastLive, Icons.Rounded.PlayArrow, onAutoPlayLastLive)
                 SettingSwitch("Hide empty categories", settings.hideEmptyCategories, Icons.Rounded.FolderOff, onHideEmptyCategories)
                 SettingSwitch("Hide channels without logo", settings.hideChannelsWithoutLogo, Icons.Rounded.ImageNotSupported, onHideChannelsWithoutLogo)

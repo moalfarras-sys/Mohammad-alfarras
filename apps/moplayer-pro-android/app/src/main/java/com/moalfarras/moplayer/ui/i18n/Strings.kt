@@ -188,6 +188,7 @@ class Strings(
     val descPerformance: String,
     val descAccentColor: String,
     val descHomeWidgets: String,
+    val setShowTrailerPreviews: String,
 )
 
 val EnStrings = Strings(
@@ -330,6 +331,7 @@ val EnStrings = Strings(
     descPerformance = "Auto chooses the best safe quality for the device. Performance targets 720p, Balanced 1080p, and Quality unlocks 4K/8K when the TV and stream support it.",
     descAccentColor = "Choose one fixed accent color for the whole app.",
     descHomeWidgets = "Shown on the home card and can be hidden to save space or reduce visual noise.",
+    setShowTrailerPreviews = "Trailer previews",
 )
 
 val ArStrings = Strings(
@@ -472,4 +474,5 @@ val ArStrings = Strings(
     descPerformance = "«تلقائي» يختار أفضل جودة آمنة للجهاز. «أداء» يستهدف 720p، «متوازن» 1080p، و«جودة» يفتح 4K/8K عند دعم التلفزيون والبث.",
     descAccentColor = "اختر لون لكنة ثابتاً واحداً لكامل التطبيق.",
     descHomeWidgets = "تظهر على بطاقة الرئيسية ويمكن إخفاؤها لتوفير مساحة أو تقليل التشويش البصري.",
+    setShowTrailerPreviews = "مقاطع التريلر",
 )

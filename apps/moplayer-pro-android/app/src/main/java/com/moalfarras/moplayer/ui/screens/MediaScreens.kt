@@ -839,9 +839,10 @@ fun PreviewPane(
             // It fades itself in over the art; the scrim + title/description below stay on top, so the
             // existing preview look is untouched — the trailer is purely an added layer.
             val trailer = LocalPreviewTrailer.current
-            val showTrailer = previewEnabled &&
-                performancePolicy?.enablePreviewPane != false &&
-                trailer.youtubeId.isNotBlank() &&
+            // No pane/tier gate here: focusedTrailer is only populated when the ViewModel's
+            // capability gate (admin + user Settings switches) passed, and is cleared the moment it
+            // drops — the pane always composes, so the trailer has a surface on every device tier.
+            val showTrailer = trailer.youtubeId.isNotBlank() &&
                 trailer.itemKey == mediaKey(item)
             if (showTrailer) {
                 val reportTrailerError = LocalTrailerErrorReporter.current

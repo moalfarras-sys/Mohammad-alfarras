@@ -450,24 +450,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-5-24",
+      id: "release-moplayer2-v2-6-5",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.5.24-full",
-      version_name: "2.5.24",
-      version_code: 62,
+      slug: "moplayer2-v2.6.5-full",
+      version_name: "2.6.5",
+      version_code: 68,
       release_notes:
-        "MoPlayer Pro 2.5.24 fixes cold-start M3U link imports, Android 6 Xtream JSON sync, and old-TV HTTPS playback. It keeps the 2.5.23 Xtream/M3U/QR source loading, URL normalization, smart first-run loading, and VOD detail refresh improvements.",
+        "MoPlayer Pro 2.6.5: trailers fixed and faster — a broken empty-result id no longer blocks playback or the provider fallback, trailers start after 2 seconds (was 4), they now work on ALL devices including weak boxes, and a new Settings switch (Live TV → Trailer previews) lets you turn them on/off. Includes 2.6.4's subtitle import and all earlier fixes.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-5-24-universal",
-          release_id: "release-moplayer2-v2-5-24",
+          id: "asset-moplayer2-v2-6-5-universal",
+          release_id: "release-moplayer2-v2-6-5",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-release.apk",
-          file_size_bytes: 49276472,
-          checksum_sha256: "3f63482fcb021c8fc6c9eb9ff79e02b43b75fe71932e8958eaf1f7a91bf8dd67",
+            "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com/moplayer-pro/android/2.6.5/app-universal-release.apk",
+          file_size_bytes: 49443176,
+          checksum_sha256: "4ab045fa64e9e77bbc791a11e6c03a8916fdeb01baf699ef76a2d707e66f1de1",
         },
       ],
     },
@@ -479,8 +479,8 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
   moplayer2: {
     ...fallbackRuntimeConfig,
     minimumVersionCode: 50,
-    latestVersionName: "2.5.24",
-    latestVersionCode: 62,
+    latestVersionName: "2.6.5",
+    latestVersionCode: 68,
     downloaderCode: "4608937",
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",

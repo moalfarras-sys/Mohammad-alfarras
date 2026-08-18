@@ -1,6 +1,6 @@
 {
   "name": "moplayer-pc",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "MoPlayer Pro Windows desktop app",
   "author": "Mohammad Alfarras",
@@ -24,7 +24,8 @@
     "smoke": "node scripts/smoke.mjs",
     "qa:screens": "node scripts/qa-screens.mjs",
     "qa:stream-proxy": "npm run build:electron && node scripts/qa-stream-proxy.mjs",
-    "release:meta": "node scripts/write-release-meta.mjs"
+    "release:meta": "node scripts/write-release-meta.mjs",
+    "release:upload": "node scripts/upload-release-blob.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",

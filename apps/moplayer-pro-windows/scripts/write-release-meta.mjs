@@ -8,8 +8,12 @@ import pkg from "../package.json" with { type: "json" };
 const SETUP_NAME = "MoPlayer-PC-Setup.exe";
 const PORTABLE_NAME = "MoPlayer-PC-Portable.exe";
 const LEGACY_NAMES = ["MoPlayer-Pro-Setup.exe", "MoPlayer-Pro-Portable.exe"];
-const RELEASE_REPO = "moalfarras-sys/Mohammad-alfarras";
-const RELEASE_TAG = `moplayer-pc-v${pkg.version}`;
+// Public binary host: Vercel Blob store "moplayer-downloads" (the GitHub repo
+// went private, so GitHub Releases URLs are no longer publicly reachable).
+// Upload with `npm run release:upload` before deploying the website.
+const RELEASE_BASE_URL =
+  process.env.MOPLAYER_RELEASE_BASE_URL ?? "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com";
+const RELEASE_PREFIX = `moplayer/windows/${pkg.version}`;
 
 const outDir = path.resolve("..", "..", "apps", "web", "public", "downloads", "moplayer", "windows");
 const appRoot = path.resolve(".");
@@ -53,16 +57,16 @@ const metadata = {
   platform: "windows",
   file: SETUP_NAME,
   portableFile: PORTABLE_NAME,
-  // Public binary host: GitHub Releases (Vercel cannot serve >100 MB static files).
-  downloadUrl: `https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${SETUP_NAME}`,
-  portableDownloadUrl: `https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}/${PORTABLE_NAME}`,
+  // Public binary host: Vercel Blob (Vercel cannot serve >100 MB static files).
+  downloadUrl: `${RELEASE_BASE_URL}/${RELEASE_PREFIX}/${SETUP_NAME}`,
+  portableDownloadUrl: `${RELEASE_BASE_URL}/${RELEASE_PREFIX}/${PORTABLE_NAME}`,
   fileSizeBytes: setup?.sizeBytes ?? null,
   portableFileSizeBytes: portable?.sizeBytes ?? null,
   sha256: setup?.sha256 ?? null,
   portableSha256: portable?.sha256 ?? null,
   releaseDate: new Date().toISOString().slice(0, 10),
   systemRequirements: "Windows 10 / Windows 11 x64",
-  notes: "MoPlayer PC for Windows. Installer and portable builds are hosted on GitHub Releases; the website download API redirects there.",
+  notes: "MoPlayer PC for Windows. Installer and portable builds are hosted on Vercel Blob storage; the website download API redirects there.",
   productSlug: "moplayer2",
 };
 
@@ -70,7 +74,7 @@ await mkdir(outDir, { recursive: true });
 await writeFile(path.join(outDir, "latest-windows.json"), `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
 
 // electron-updater feed: rewrite the channel file so the installed app fetches
-// the metadata from the website but downloads the binary from GitHub Releases.
+// the metadata from the website but downloads the binary from Vercel Blob.
 const channelPath = path.join(releaseDir, "latest.yml");
 if (existsSync(channelPath)) {
   const channel = await readFile(channelPath, "utf8");
@@ -79,7 +83,7 @@ if (existsSync(channelPath)) {
     `url: ${metadata.downloadUrl}`,
   ).replace(new RegExp(`^path: ${SETUP_NAME}$`, "m"), `path: ${metadata.downloadUrl}`);
   await writeFile(path.join(outDir, "latest.yml"), rewritten, "utf8");
-  console.log("latest.yml feed written with absolute GitHub asset URLs.");
+  console.log("latest.yml feed written with absolute Vercel Blob asset URLs.");
 } else {
   console.warn("WARNING: latest.yml not found in release dir; in-app auto-update feed not refreshed.");
 }

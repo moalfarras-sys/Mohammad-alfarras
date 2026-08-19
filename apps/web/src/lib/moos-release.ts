@@ -9,6 +9,10 @@ export type MoosEdition = {
   image: string;
   recommended?: boolean;
   summary?: string;
+  /** Site-relative path of the official installer script for this edition. */
+  installer?: string;
+  /** Extra flag the installer needs for this edition (e.g. "--nvidia"). */
+  installerArgs?: string;
 };
 
 export type MoosIso = {
@@ -55,12 +59,17 @@ function mapEditions(raw: unknown): MoosEdition[] {
       const name = asString(record.name);
       const image = asString(record.image);
       if (!id || !name || !image) return null;
+      const installer = asString(record.installer);
       return {
         id,
         name,
         image,
         recommended: record.recommended === true,
         summary: asString(record.summary) || undefined,
+        // Only site-relative installer paths are accepted, so a CMS edit can
+        // never point the install button at a third-party script.
+        installer: installer.startsWith("/") ? installer : undefined,
+        installerArgs: asString(record.installerArgs) || undefined,
       };
     })
     .filter((item): item is MoosEdition => Boolean(item));

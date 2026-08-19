@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
       // Mo AI is a floating widget, not a page: old /ai URLs land on home with
       // the chat auto-opened (?ai=open is consumed by the widget loader).
       { source: "/:locale(en|ar)/ai", destination: "/:locale?ai=open", permanent: false },
+      // MoOS is its own top-level section; keep every plausible alias pointing at it.
+      { source: "/:locale(en|ar)/apps/moos", destination: "/:locale/moos", permanent: true },
+      { source: "/moos", destination: "/ar/moos", permanent: false },
       // Nested MoPlayer aliases the owner expects to work.
       { source: "/:locale(en|ar)/apps/moplayer/pro", destination: "/:locale/apps/moplayer2", permanent: true },
       { source: "/:locale(en|ar)/apps/moplayer/pc", destination: "/:locale/apps/moplayer-pc", permanent: true },

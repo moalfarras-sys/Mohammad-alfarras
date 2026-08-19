@@ -2,30 +2,35 @@
   "system": "MoOS",
   "channel": "latest",
   "base": "Fedora Atomic (bootc / OSTree) · KDE Plasma 6 (Wayland)",
+  "shell": "MoOS UI2 · Horizon",
   "repoUrl": "https://github.com/moalfarras-sys/moos-image",
   "signingKeyUrl": "https://raw.githubusercontent.com/moalfarras-sys/moos-image/main/cosign.pub",
-  "releaseDate": "2026-08-19",
+  "releaseDate": "2026-08-18",
   "editions": [
     {
       "id": "desktop",
       "name": "MoOS Desktop",
       "image": "ghcr.io/moalfarras-sys/moos:latest",
       "recommended": true,
-      "summary": "The general desktop image — signed, atomic, and always up to date. Recommended for most machines (Intel / AMD / Nouveau)."
+      "installer": "/downloads/moos/moos-install.sh",
+      "summary": "The public desktop edition — signed, atomic, always current. For Intel, AMD and Nouveau machines."
     },
     {
       "id": "nvidia",
       "name": "MoOS Desktop · NVIDIA",
       "image": "ghcr.io/moalfarras-sys/moos-nvidia:latest",
       "recommended": false,
-      "summary": "Same desktop with the open NVIDIA driver layered in — for machines with a modern NVIDIA GPU."
+      "installer": "/downloads/moos/moos-install.sh",
+      "installerArgs": "--nvidia",
+      "summary": "The same desktop with the open NVIDIA driver layered in, for modern NVIDIA GPUs."
     },
     {
       "id": "cloud",
       "name": "MoOS Cloud",
       "image": "ghcr.io/moalfarras-sys/moos-cloud:latest",
       "recommended": false,
-      "summary": "The 24/7 server edition for a cheap VPS: no games or Android layer, SSH-first, browser-reachable desktop. Same signed update train."
+      "installer": "/downloads/moos/moos-cloud-install.sh",
+      "summary": "The 24/7 server edition for any cheap VPS: SSH-first, no games layer, reachable from the browser."
     }
   ],
   "iso": {
@@ -33,7 +38,7 @@
     "url": "",
     "sizeBytes": 0,
     "sha256": "",
-    "notes": "The bootable USB ISO is built on request from the published image. Permanent hosting is being finalized — until then, install MoOS from the signed container image with the one command shown on this page."
+    "notes": "A bootable USB image for machines with no Linux yet. It is built from the same published image; permanent hosting is being finalized."
   },
   "maintenance": false
 }

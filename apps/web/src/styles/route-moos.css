@@ -1,0 +1,858 @@
+/* ═══════════════════════════════════════════════════════════
+   MoOS — the operating-system section
+   Site tokens (--bg #060912, --primary #5bdcff) carry the page;
+   MoOS's own teal (#4ED7C8) is the product accent on top.
+   ═══════════════════════════════════════════════════════════ */
+
+.moos-page {
+  --moos-teal: #4ed7c8;
+  --moos-glow: rgba(78, 215, 200, 0.55);
+  --moos-blue: #78afff;
+  --moos-line: rgba(120, 220, 210, 0.16);
+  --moos-card: rgba(10, 22, 26, 0.62);
+
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  min-height: 100svh;
+  padding-top: calc(var(--site-nav-offset, 88px) + 12px);
+  color: #eaf6f4;
+  background:
+    radial-gradient(ellipse at 78% -4%, rgba(78, 215, 200, 0.16), transparent 40rem),
+    radial-gradient(ellipse at 8% 42%, rgba(120, 175, 255, 0.1), transparent 34rem),
+    linear-gradient(180deg, #05100f 0%, #060c14 52%, #05090f 100%);
+}
+
+.moos-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: radial-gradient(circle at 50% 12%, black, transparent 72%);
+}
+
+.moos-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.moos-section {
+  padding-block: clamp(3.2rem, 7vw, 6.5rem);
+}
+
+.moos-section + .moos-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── shared atoms ─────────────────────────────────────────── */
+.moos-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  border: 1px solid rgba(78, 215, 200, 0.28);
+  border-radius: 999px;
+  background: rgba(78, 215, 200, 0.09);
+  color: #a8f1e8;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px);
+}
+
+.moos-page[dir="rtl"] .moos-badge {
+  letter-spacing: 0;
+}
+
+.moos-eyebrow {
+  display: block;
+  color: rgba(168, 241, 232, 0.72);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 0.9rem;
+}
+
+.moos-page[dir="rtl"] .moos-eyebrow {
+  letter-spacing: 0.02em;
+}
+
+.moos-h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.9rem, 3.4vw, 3rem);
+  line-height: 1.14;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.moos-page[dir="rtl"] .moos-h2 {
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.moos-lede {
+  margin: 0.9rem 0 0;
+  max-width: 62ch;
+  color: rgba(233, 245, 243, 0.66);
+  font-size: clamp(1rem, 1.25vw, 1.12rem);
+  line-height: 1.8;
+}
+
+.moos-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background: var(--moos-card);
+  backdrop-filter: blur(18px);
+}
+
+/* ── hero ─────────────────────────────────────────────────── */
+.moos-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 3.4rem);
+  padding-block: clamp(1.6rem, 3.5vw, 3rem) clamp(2.4rem, 5vw, 4rem);
+}
+
+.moos-hero-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(1.6rem, 4vw, 3.4rem);
+  align-items: center;
+}
+
+.moos-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.moos-logo-row img {
+  width: clamp(52px, 6vw, 68px);
+  height: auto;
+  filter: drop-shadow(0 6px 26px rgba(94, 130, 255, 0.45));
+}
+
+.moos-wordmark {
+  font-size: clamp(2.6rem, 5.2vw, 4.4rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  background: linear-gradient(120deg, #ffffff 22%, var(--moos-teal) 62%, var(--moos-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.moos-hero h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.9rem, 3.3vw, 2.85rem);
+  line-height: 1.16;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.moos-page[dir="rtl"] .moos-hero h1 {
+  letter-spacing: 0;
+  line-height: 1.34;
+}
+
+.moos-hero-sub {
+  margin: 1rem 0 0;
+  max-width: 56ch;
+  color: rgba(233, 245, 243, 0.68);
+  font-size: clamp(1rem, 1.3vw, 1.14rem);
+  line-height: 1.8;
+}
+
+.moos-spec-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.4rem;
+}
+
+.moos-spec {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.42rem 0.85rem;
+  color: rgba(233, 245, 243, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.moos-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.8rem;
+}
+
+.moos-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 14px;
+  padding: 0.92rem 1.5rem;
+  font-size: 0.94rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.moos-btn:hover {
+  transform: translateY(-2px);
+}
+
+.moos-btn-primary {
+  color: #04302c;
+  background: linear-gradient(120deg, #7cf0e2, var(--moos-teal) 55%, #35b9ae);
+  box-shadow: 0 12px 38px rgba(78, 215, 200, 0.26);
+}
+
+.moos-btn-primary:hover {
+  box-shadow: 0 16px 48px rgba(78, 215, 200, 0.4);
+}
+
+.moos-btn-ghost {
+  color: #eaf6f4;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.moos-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(78, 215, 200, 0.35);
+}
+
+.moos-btn[aria-disabled="true"] {
+  color: rgba(233, 245, 243, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  cursor: default;
+}
+
+.moos-btn[aria-disabled="true"]:hover {
+  transform: none;
+}
+
+/* Screenshot frames — the real system, presented like a device shot */
+.moos-shot {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #040b0d;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(78, 215, 200, 0.08);
+}
+
+.moos-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.moos-shot-glow::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -60% -20%;
+  height: 60%;
+  background: radial-gradient(ellipse at center, rgba(78, 215, 200, 0.22), transparent 70%);
+  pointer-events: none;
+}
+
+.moos-hero-shot {
+  transform: perspective(1600px) rotateY(-4deg) rotateX(1.5deg);
+}
+
+.moos-page[dir="rtl"] .moos-hero-shot {
+  transform: perspective(1600px) rotateY(4deg) rotateX(1.5deg);
+}
+
+.moos-shot-caption {
+  margin-top: 0.75rem;
+  color: rgba(233, 245, 243, 0.42);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ── proof strip ──────────────────────────────────────────── */
+.moos-proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.moos-proof-item {
+  padding: 1.15rem 1.25rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.moos-proof-item strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.moos-proof-item span {
+  display: block;
+  margin-top: 0.3rem;
+  color: rgba(233, 245, 243, 0.55);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ── feature grid ─────────────────────────────────────────── */
+.moos-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.moos-feature {
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    transform 0.3s ease;
+}
+
+.moos-feature:hover {
+  transform: translateY(-3px);
+  border-color: rgba(78, 215, 200, 0.28);
+  background: rgba(78, 215, 200, 0.05);
+}
+
+.moos-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: rgba(78, 215, 200, 0.12);
+  color: var(--moos-teal);
+}
+
+.moos-feature h3 {
+  margin: 1rem 0 0;
+  color: #fff;
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.moos-feature p {
+  margin: 0.5rem 0 0;
+  color: rgba(233, 245, 243, 0.62);
+  font-size: 0.94rem;
+  line-height: 1.75;
+}
+
+/* ── split showcase (screenshot + copy) ───────────────────── */
+.moos-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: clamp(1.8rem, 4vw, 3.6rem);
+  align-items: center;
+}
+
+.moos-split-reverse {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+}
+
+.moos-split-reverse .moos-split-media {
+  order: 2;
+}
+
+.moos-bullets {
+  margin: 1.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.moos-bullets li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  color: rgba(233, 245, 243, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.moos-bullets svg {
+  flex-shrink: 0;
+  margin-top: 0.28rem;
+  color: var(--moos-teal);
+}
+
+/* ── editions ─────────────────────────────────────────────── */
+.moos-editions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.moos-edition {
+  display: flex;
+  flex-direction: column;
+  /* Grid/flex children default to min-width:auto, which lets the nowrap
+     terminal line push the card past its track. Pin it to 0 all the way down
+     so the command scrolls inside its own box instead. */
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.5rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.moos-edition:hover {
+  transform: translateY(-3px);
+  border-color: rgba(78, 215, 200, 0.3);
+}
+
+.moos-edition-featured {
+  border-color: rgba(78, 215, 200, 0.4);
+  background: linear-gradient(180deg, rgba(78, 215, 200, 0.09), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 20px 60px rgba(78, 215, 200, 0.1);
+}
+
+.moos-edition-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.moos-edition h3 {
+  margin: 1rem 0 0;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.moos-edition p {
+  margin: 0.55rem 0 0;
+  flex: 1;
+  color: rgba(233, 245, 243, 0.62);
+  font-size: 0.92rem;
+  line-height: 1.72;
+}
+
+.moos-pill {
+  border: 1px solid rgba(78, 215, 200, 0.35);
+  border-radius: 999px;
+  background: rgba(78, 215, 200, 0.12);
+  color: #a8f1e8;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.moos-page[dir="rtl"] .moos-pill {
+  letter-spacing: 0;
+}
+
+.moos-edition-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 0.55rem;
+  margin-top: 1.2rem;
+}
+
+.moos-edition-actions .moos-btn {
+  width: 100%;
+  padding-block: 0.78rem;
+  font-size: 0.88rem;
+}
+
+/* ── terminal / copy command ──────────────────────────────── */
+.moos-term {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  gap: 0.5rem;
+  border: 1px solid var(--moos-line);
+  border-radius: 14px;
+  background: rgba(4, 14, 16, 0.85);
+  padding: 0.45rem 0.45rem 0.45rem 0.9rem;
+}
+
+.moos-page[dir="rtl"] .moos-term {
+  padding: 0.45rem 0.9rem 0.45rem 0.45rem;
+}
+
+.moos-term-code {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+  padding-block: 0.4rem;
+}
+
+.moos-term code {
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.8rem;
+  color: #bfeee7;
+  scrollbar-width: none;
+}
+
+.moos-term code::-webkit-scrollbar {
+  display: none;
+}
+
+.moos-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(78, 215, 200, 0.28);
+  border-radius: 10px;
+  background: rgba(78, 215, 200, 0.12);
+  color: #a8f1e8;
+  padding-inline: 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.moos-copy:hover {
+  background: rgba(78, 215, 200, 0.22);
+}
+
+/* ── theme family ─────────────────────────────────────────── */
+.moos-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.moos-theme {
+  position: relative;
+  margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #050c11;
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.moos-theme:hover {
+  transform: translateY(-3px);
+  border-color: rgba(78, 215, 200, 0.4);
+}
+
+.moos-theme img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  object-fit: cover;
+}
+
+.moos-theme figcaption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 1.6rem 0.85rem 0.6rem;
+  background: linear-gradient(180deg, transparent, rgba(3, 10, 12, 0.88));
+}
+
+.moos-theme figcaption span {
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.moos-theme figcaption em {
+  color: rgba(233, 245, 243, 0.55);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* ── apps strip ───────────────────────────────────────────── */
+.moos-apps {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(1.6rem, 4vw, 3rem);
+  align-items: center;
+}
+
+.moos-apps-media {
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(6, 16, 18, 0.7);
+  padding: 1.2rem;
+}
+
+.moos-apps-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── cloud band ───────────────────────────────────────────── */
+.moos-cloud {
+  border-radius: 28px;
+  border: 1px solid rgba(120, 175, 255, 0.22);
+  background:
+    radial-gradient(ellipse at 82% 6%, rgba(120, 175, 255, 0.16), transparent 30rem),
+    linear-gradient(140deg, rgba(120, 175, 255, 0.08), rgba(255, 255, 255, 0.02));
+  padding: clamp(1.6rem, 3.6vw, 2.8rem);
+}
+
+.moos-cloud-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(1.4rem, 3vw, 2.6rem);
+  align-items: center;
+}
+
+.moos-cloud-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(120, 175, 255, 0.16);
+  color: var(--moos-blue);
+}
+
+.moos-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 1.2rem;
+  color: #fff;
+}
+
+.moos-price strong {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.moos-price span {
+  color: rgba(233, 245, 243, 0.55);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* ── update / rollback pair ───────────────────────────────── */
+.moos-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.moos-duo-card {
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.moos-duo-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.4rem;
+  color: #fff;
+  font-size: 1.02rem;
+  font-weight: 800;
+}
+
+.moos-duo-card h3 svg {
+  color: var(--moos-teal);
+}
+
+.moos-duo-card p {
+  margin: 0 0 1rem;
+  color: rgba(233, 245, 243, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+/* ── ISO band ─────────────────────────────────────────────── */
+.moos-iso {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: center;
+  border-radius: 22px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.025);
+  padding: clamp(1.2rem, 2.6vw, 1.8rem);
+}
+
+.moos-iso-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(233, 245, 243, 0.7);
+}
+
+.moos-iso h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.moos-iso p {
+  margin: 0.35rem 0 0;
+  color: rgba(233, 245, 243, 0.58);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+/* ── final CTA ────────────────────────────────────────────── */
+.moos-final {
+  text-align: center;
+  border-radius: 28px;
+  border: 1px solid rgba(78, 215, 200, 0.2);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(78, 215, 200, 0.14), transparent 26rem),
+    rgba(255, 255, 255, 0.025);
+  padding: clamp(2.2rem, 5vw, 3.6rem) clamp(1.2rem, 4vw, 3rem);
+}
+
+.moos-final .moos-lede {
+  margin-inline: auto;
+}
+
+.moos-final .moos-cta-row {
+  justify-content: center;
+}
+
+.moos-note {
+  margin-top: 1.2rem;
+  color: rgba(233, 245, 243, 0.4);
+  font-size: 0.8rem;
+}
+
+/* ── responsive ───────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .moos-hero-top,
+  .moos-split,
+  .moos-split-reverse,
+  .moos-apps,
+  .moos-cloud-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .moos-split-reverse .moos-split-media {
+    order: 0;
+  }
+
+  .moos-editions,
+  .moos-proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moos-theme-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .moos-hero-shot,
+  .moos-page[dir="rtl"] .moos-hero-shot {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .moos-features,
+  .moos-duo,
+  .moos-editions,
+  .moos-proof {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .moos-theme-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moos-iso {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: start;
+  }
+
+  .moos-cta-row .moos-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moos-btn,
+  .moos-feature,
+  .moos-edition {
+    transition: none;
+  }
+
+  .moos-btn:hover,
+  .moos-feature:hover,
+  .moos-edition:hover {
+    transform: none;
+  }
+}

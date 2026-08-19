@@ -7252,3 +7252,17 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     font-size: 0.8rem;
   }
 }
+
+/* Last of the sub-12px labels at 390px: the logo-card caption, the profile
+   card's discipline line, and the mode-card top chip — all unclassed spans
+   inheriting an 11.5px scale. */
+@media (max-width: 760px) {
+  .os-home-logo-card span,
+  .os-mode-card-top span,
+  .os-home-profile-card span,
+  .os-wow-visual figcaption,
+  .os-home-photo-caption span {
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+}

@@ -7198,3 +7198,32 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
   line-height: 1.55;
   color: color-mix(in srgb, var(--text) 68%, transparent);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Mobile readability floor.
+
+   Measured on a 390px viewport: form labels rendered at 11.84px and the
+   project-card meta lines at 11.52px. Below ~12px Arabic loses its
+   diacritic detail on a phone and the labels above inputs became the
+   hardest thing on the page to read. Nothing here changes the desktop
+   scale — it only stops small text going under the floor on phones.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .fresh-field-label,
+  .fresh-field-hint,
+  .apps-card-title-row span,
+  .work-card-type,
+  .work-spotlight-tabs button span,
+  .work-card-tags span,
+  .os-moplayer-app-label span {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .work-card-meta,
+  .work-card-meta span,
+  .work-spotlight-meta,
+  .fresh-card-eyebrow {
+    font-size: 0.78rem;
+  }
+}

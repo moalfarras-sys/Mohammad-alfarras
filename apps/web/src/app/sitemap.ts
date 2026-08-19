@@ -1,9 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { buildSiteModel } from "@/components/site/site-model";
-import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { siteLastModified } from "@/content/site-data";
-import { legalPagesPublished, type LegalPagesSetting } from "@/lib/legal-pages";
 
 const BASE = "https://moalfarras.space";
 
@@ -33,18 +31,15 @@ const localizedRoutes: RouteDef[] = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const snapshot = await readSnapshot();
-  const legalPages = getSiteSetting<LegalPagesSetting>(snapshot, "legal_pages", {});
+  // All four legal pages ship their full text in the code and are live, so all
+  // four belong in the sitemap. They used to be omitted whenever the CMS flag
+  // was unset, which — after the database went away — meant Google only ever
+  // saw them as 404s.
   const legalRoutes: RouteDef[] = [
-    // Impressum is always live and indexable; the rest follow the publish flag.
     { path: "/impressum", priority: 0.35, changeFrequency: "yearly" },
-    ...(legalPagesPublished(legalPages)
-      ? [
-          { path: "/terms", priority: 0.35, changeFrequency: "yearly" as const },
-          { path: "/app-disclaimer", priority: 0.35, changeFrequency: "yearly" as const },
-          { path: "/download-disclaimer", priority: 0.35, changeFrequency: "yearly" as const },
-        ]
-      : []),
+    { path: "/terms", priority: 0.35, changeFrequency: "yearly" },
+    { path: "/app-disclaimer", priority: 0.35, changeFrequency: "yearly" },
+    { path: "/download-disclaimer", priority: 0.35, changeFrequency: "yearly" },
   ];
 
   const localized = (["ar", "en"] as const).flatMap((locale) =>

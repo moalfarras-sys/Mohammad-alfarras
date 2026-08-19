@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LegalPage } from "@/components/site/legal-page";
 import { SITE_URL } from "@/content/site";
-import { legalPageContent, legalPagesPublished, type LegalPageSlug, type LegalPagesSetting } from "@/lib/legal-pages";
+import { legalPageContent, type LegalPageSlug, type LegalPagesSetting } from "@/lib/legal-pages";
 import { readSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
 import { resolveSiteImages, siteImage } from "@/lib/site-images";
@@ -28,7 +28,6 @@ export async function generateLegalMetadata(slug: LegalPageSlug, { params }: Rou
     description: content.description,
     // The Impressum is a permanent legal page and is always available + indexable;
     // the other legal pages stay noindex until published in admin.
-    robots: slug === "impressum" || legalPagesPublished(setting) ? undefined : { index: false, follow: false },
     alternates: {
       canonical,
       languages: {
@@ -64,9 +63,11 @@ export async function renderLegalPage(slug: LegalPageSlug, { params }: RoutePara
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const setting = await readLegalSetting();
-  // The Impressum must always be reachable (legal requirement + linked in every
-  // footer). The other legal pages stay gated behind the admin publish flag.
-  if (slug !== "impressum" && !legalPagesPublished(setting)) notFound();
+  // Every legal page ships its full text in lib/legal-pages.ts — only the
+  // Impressum needs owner-supplied details. The publish gate used to hide the
+  // rest behind a CMS flag, and once that database went away all three
+  // hard-404'd: Google reported them as "not found" and they were the site's
+  // only crawl errors. They are static content, so they are simply live.
   const snapshot = await readSnapshot();
   const siteImages = resolveSiteImages(snapshot);
   const heroImage = siteImage(siteImages, "legal_hero", "/images/hero_tech.png");

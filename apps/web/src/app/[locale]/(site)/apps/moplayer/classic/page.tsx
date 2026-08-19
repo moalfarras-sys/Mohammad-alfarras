@@ -19,16 +19,16 @@ const SITE_URL = "https://moalfarras.space";
 
 const localizedMeta = {
   ar: {
-    title: "MoPlayer Classic للأندرويد",
+    title: "تحميل MoPlayer Classic APK — أندرويد و Android TV",
     socialTitle: "MoPlayer Classic — تطبيق أندرويد سريع وخفيف",
     description:
-      "MoPlayer Classic هو تطبيق أندرويد وAndroid TV خفيف وسريع، مناسب للأجهزة الضعيفة، مع تحميل APK رسمي وإرشادات تثبيت وتفعيل واضحة.",
+      "حمّل MoPlayer Classic APK مجاناً: نسخة خفيفة وسريعة لأندرويد و Android TV تعمل حتى على الأجهزة الضعيفة، مع دعم Xtream و M3U وشرح التثبيت والتفعيل خطوة بخطوة.",
   },
   en: {
-    title: "MoPlayer Classic",
+    title: "Download MoPlayer Classic APK — Android & Android TV",
     socialTitle: "MoPlayer Classic — fast, lightweight Android player",
     description:
-      "MoPlayer Classic is the lightweight Android and Android TV player for normal and low-power devices, with official APK downloads and clear setup guidance.",
+      "Download MoPlayer Classic APK free: the lightweight Android and Android TV player that still runs well on low-power boxes, with Xtream and M3U support and step-by-step install and activation guidance.",
   },
 } as const;
 

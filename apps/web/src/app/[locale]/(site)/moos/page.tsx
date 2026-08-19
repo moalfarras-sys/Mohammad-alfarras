@@ -20,12 +20,12 @@ export async function generateMetadata({
   const copy =
     locale === "ar"
       ? {
-          title: "نظام MoOS",
+          title: "نظام MoOS — نظام تشغيل عربي مجاني للكمبيوتر",
           description:
             "MoOS نظام تشغيل حقيقي للكمبيوتر بواجهة عربية أصيلة، مبني على Fedora Atomic و KDE Plasma 6، بتحديثات موقّعة وتراجع فوري. حمّل النسخة العامة أو نسخة الكلاود مجاناً.",
         }
       : {
-          title: "MoOS — the operating system",
+          title: "MoOS — a free Arabic-native desktop operating system",
           description:
             "MoOS is a real desktop operating system with a natively Arabic interface, built on Fedora Atomic and KDE Plasma 6, with signed updates and instant rollback. Download the public or cloud edition free.",
         };
@@ -35,8 +35,36 @@ export async function generateMetadata({
   const image = `${SITE_URL}/images/moos/desktop-dark.webp`;
   const keywords =
     locale === "ar"
-      ? ["نظام MoOS", "نظام تشغيل عربي", "توزيعة لينكس", "Fedora Atomic", "KDE Plasma", "bootc", "نظام تشغيل مجاني", "محمد الفراس"]
-      : ["MoOS", "operating system", "Arabic Linux distro", "Fedora Atomic", "KDE Plasma", "bootc", "immutable OS", "Mohammad Alfarras"];
+      ? [
+          "نظام MoOS",
+          "MoOS",
+          "نظام تشغيل عربي",
+          "نظام تشغيل مجاني",
+          "توزيعة لينكس عربية",
+          "تحميل نظام تشغيل",
+          "بديل ويندوز",
+          "لينكس للمبتدئين",
+          "Fedora Atomic",
+          "KDE Plasma",
+          "bootc",
+          "نظام تشغيل للسيرفر",
+          "نظام تشغيل سحابي",
+          "محمد الفراس",
+        ]
+      : [
+          "MoOS",
+          "Arabic Linux distro",
+          "free operating system",
+          "download Linux OS",
+          "Fedora Atomic",
+          "KDE Plasma 6",
+          "bootc",
+          "immutable OS",
+          "atomic Linux desktop",
+          "Linux for Arabic users",
+          "cloud server OS",
+          "Mohammad Alfarras",
+        ];
 
   return {
     title: copy.title,

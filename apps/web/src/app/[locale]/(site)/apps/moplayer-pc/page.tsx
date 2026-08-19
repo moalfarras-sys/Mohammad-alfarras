@@ -22,12 +22,14 @@ export async function generateMetadata({
   const copy =
     locale === "ar"
       ? {
-          title: "MoPlayer PC لويندوز",
-          description: "مشغل مكتبي متكامل وقوي مصمم لنظام التشغيل Windows.",
+          title: "تحميل MoPlayer PC لويندوز — مثبّت ونسخة محمولة",
+          description:
+            "حمّل MoPlayer PC مجاناً لويندوز 10 و 11: مشغّل IPTV مكتبي يدعم Xtream و M3U، بمثبّت رسمي ونسخة محمولة تعمل بدون تثبيت، مع تحديث تلقائي وتفعيل من الموقع.",
         }
       : {
-          title: "MoPlayer PC",
-          description: "A fully integrated desktop player built natively for Windows.",
+          title: "Download MoPlayer PC for Windows — installer & portable",
+          description:
+            "Download MoPlayer PC free for Windows 10 and 11: a desktop IPTV player with Xtream and M3U support, an official installer plus a portable build that needs no install, automatic updates and website activation.",
         };
 
   const canonical = `${SITE_URL}/${locale}/apps/moplayer-pc`;
@@ -48,8 +50,31 @@ export async function generateMetadata({
 
   const keywords =
     locale === "ar"
-      ? ["MoPlayer PC", "مشغل IPTV لويندوز", "مشغل وسائط ويندوز", "مشغل M3U للكمبيوتر", "مشغل Xtream ويندوز", "تحميل مشغل للكمبيوتر", "محمد الفراس"]
-      : ["MoPlayer PC", "Windows IPTV player", "desktop M3U player", "Xtream Windows player", "download IPTV player for PC", "Mohammad Alfarras"];
+      ? [
+          "تحميل MoPlayer PC",
+          "MoPlayer للكمبيوتر",
+          "مشغل IPTV لويندوز",
+          "برنامج IPTV للكمبيوتر",
+          "مشغل M3U للكمبيوتر",
+          "مشغل Xtream ويندوز",
+          "تحميل مشغل IPTV مجاني",
+          "برنامج تشغيل قنوات للكمبيوتر",
+          "نسخة محمولة بدون تثبيت",
+          "ويندوز 10",
+          "ويندوز 11",
+          "محمد الفراس",
+        ]
+      : [
+          "download MoPlayer PC",
+          "Windows IPTV player",
+          "desktop M3U player",
+          "Xtream Windows player",
+          "free IPTV player for PC",
+          "portable IPTV player",
+          "IPTV player Windows 11",
+          "IPTV player Windows 10",
+          "Mohammad Alfarras",
+        ];
 
   return {
     title: copy.title,

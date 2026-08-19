@@ -133,7 +133,9 @@ export default async function SiteLayout({
   const siteUrl = "https://moalfarras.space";
   const navLinks = getNavigation(locale);
   const legalPages = getSiteSetting<LegalPagesSetting>(snapshot, "legal_pages", {});
-  const footerLegalLinks = legalPagesPublished(legalPages) ? legalFooterLinks(locale) : [];
+  // Live unconditionally: every legal page carries its own text, and the CMS
+  // flag that used to gate them no longer has a database behind it.
+  const footerLegalLinks = legalFooterLinks(locale);
 
   // A locale-specific VIEW of the one Person entity declared in the root
   // layout. Three separate blocks used to claim the same @id with different

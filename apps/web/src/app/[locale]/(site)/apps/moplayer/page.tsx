@@ -12,20 +12,63 @@ import type { Locale } from "@/types/cms";
 
 const SITE_URL = "https://moalfarras.space";
 
+// Search Console, Aug 2026: "moplayer" brings 54 impressions at position 4.2
+// and ZERO clicks. The old title ("تطبيقات MoPlayer") named the page instead of
+// answering the search — someone typing "moplayer" wants to download it and
+// wants to know it is free. The title now leads with the action and the price,
+// and the description states platform, sources and cost in the first line,
+// because that is all Google shows.
 const localizedMeta = {
   ar: {
-    title: "تطبيقات MoPlayer",
-    socialTitle: "MoPlayer — عائلة تطبيقات Android وWindows والتلفزيون",
+    title: "تحميل MoPlayer مجاناً — أندرويد و Android TV وويندوز",
+    socialTitle: "MoPlayer — تحميل مجاني لأندرويد و Android TV وويندوز",
     description:
-      "بوابة MoPlayer الجديدة تجمع Classic وPro وPC، وتجهز مكانا واضحا لتطبيقات iOS وApple TV وLG وSamsung القادمة.",
-    keywords: ["MoPlayer", "عائلة تطبيقات MoPlayer", "مشغل IPTV", "Android TV", "مشغل ويندوز", "iOS", "تفعيل", "محمد الفراس"],
+      "حمّل MoPlayer مجاناً: مشغّل IPTV لأجهزة أندرويد و Android TV وويندوز، يدعم Xtream و M3U وتفعيل QR. تحميل رسمي مباشر بدون اشتراك — التطبيق مشغّل فقط ولا يوفّر قنوات.",
+    keywords: [
+      "تحميل MoPlayer",
+      "MoPlayer",
+      "تنزيل MoPlayer",
+      "MoPlayer APK",
+      "مشغل IPTV",
+      "مشغل IPTV للاندرويد",
+      "مشغل Android TV",
+      "تطبيق IPTV مجاني",
+      "مشغل M3U",
+      "مشغل Xtream",
+      "تشغيل قوائم M3U",
+      "برنامج IPTV للكمبيوتر",
+      "مشغل IPTV ويندوز",
+      "تفعيل MoPlayer",
+      "MoPlayer Pro",
+      "MoPlayer Classic",
+      "MoPlayer PC",
+      "mo tv تنزيل",
+      "محمد الفراس",
+    ],
   },
   en: {
-    title: "MoPlayer Apps",
-    socialTitle: "MoPlayer — Android, Windows, and TV product family",
+    title: "Download MoPlayer Free — Android, Android TV & Windows",
+    socialTitle: "MoPlayer — free download for Android, Android TV and Windows",
     description:
-      "The MoPlayer hub brings Classic, Pro, PC, and iOS together with clear activation, download, support, and player-only legal guidance.",
-    keywords: ["MoPlayer", "IPTV player family", "Android TV player", "Windows IPTV player", "iOS IPTV player", "activation", "Mohammad Alfarras"],
+      "Download MoPlayer free: an IPTV player for Android, Android TV and Windows with Xtream, M3U and QR activation. Official direct download, no subscription — the app is a player only and provides no channels.",
+    keywords: [
+      "download MoPlayer",
+      "MoPlayer",
+      "MoPlayer APK",
+      "MoPlayer download",
+      "IPTV player",
+      "Android TV IPTV player",
+      "free IPTV player",
+      "M3U player",
+      "Xtream player",
+      "IPTV player for Windows",
+      "IPTV player for PC",
+      "MoPlayer Pro",
+      "MoPlayer Classic",
+      "MoPlayer PC",
+      "MoPlayer activation",
+      "Mohammad Alfarras",
+    ],
   },
 } as const;
 

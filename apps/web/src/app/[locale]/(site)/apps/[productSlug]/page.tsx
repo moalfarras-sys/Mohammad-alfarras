@@ -21,14 +21,14 @@ const SITE_URL = "https://moalfarras.space";
 const productMetadata = {
   moplayer2: {
     ar: {
-      title: "MoPlayer Pro للتلفزيون",
+      title: "تحميل MoPlayer Pro APK — Android TV و Fire TV",
       description:
-        "مشغل وسائط مميز لأجهزة Android TV وFire TV، مخصص لمصادر Xtream وM3U التي يملك المستخدم حق الوصول إليها.",
+        "حمّل MoPlayer Pro APK مجاناً: مشغّل IPTV متقدّم لأجهزة Android TV و Fire TV، يدعم Xtream و M3U وتفعيل QR وواجهة ريموت سريعة. تحميل رسمي مباشر بدون اشتراك.",
     },
     en: {
-      title: "MoPlayer Pro",
+      title: "Download MoPlayer Pro APK — Android TV & Fire TV",
       description:
-        "A premium Android TV and Fire TV media player for Xtream and M3U sources the user is authorized to access.",
+        "Download MoPlayer Pro APK free: an advanced IPTV player for Android TV and Fire TV with Xtream, M3U, QR activation and a fast remote-first interface. Official direct download, no subscription.",
     },
   },
 } as const;
@@ -62,8 +62,34 @@ export async function generateMetadata({
 
   const keywords =
     locale === "ar"
-      ? ["MoPlayer Pro", "مشغل IPTV لأجهزة Android TV", "مشغل Fire TV", "مشغل Xtream", "تفعيل MoPlayer Pro", "تطبيق بث للتلفزيون", "محمد الفراس"]
-      : ["MoPlayer Pro", "Android TV IPTV player", "Fire TV player", "Xtream Codes player", "premium IPTV app", "MoPlayer activation", "Mohammad Alfarras"];
+      ? [
+          "تحميل MoPlayer Pro",
+          "MoPlayer Pro APK",
+          "تنزيل MoPlayer Pro",
+          "مشغل IPTV لأجهزة Android TV",
+          "مشغل Fire TV",
+          "مشغل Xtream",
+          "مشغل M3U للتلفزيون",
+          "تطبيق IPTV للتلفزيون",
+          "برنامج بث مباشر للتلفزيون",
+          "تفعيل MoPlayer Pro",
+          "تفعيل QR",
+          "تطبيق بث للتلفزيون",
+          "محمد الفراس",
+        ]
+      : [
+          "download MoPlayer Pro",
+          "MoPlayer Pro APK",
+          "Android TV IPTV player",
+          "Fire TV IPTV player",
+          "Xtream Codes player",
+          "M3U player for TV",
+          "free IPTV app for Android TV",
+          "premium IPTV app",
+          "MoPlayer activation",
+          "QR activation",
+          "Mohammad Alfarras",
+        ];
 
   return {
     title,

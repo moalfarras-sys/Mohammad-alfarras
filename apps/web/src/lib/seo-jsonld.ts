@@ -158,6 +158,9 @@ export function softwareApplicationJsonLd(params: {
   targetSdk?: string | number;
   downloadUrl?: string;
   featureList?: string[];
+  /** Android is the default; Windows and iOS builds pass their own. */
+  operatingSystem?: string;
+  requirements?: string;
 }) {
   const defaults = ["Kotlin", "Android TV", "Room", "Retrofit", "libVLC"];
   return {
@@ -168,11 +171,12 @@ export function softwareApplicationJsonLd(params: {
     name: params.name,
     description: params.description,
     applicationCategory: "MultimediaApplication",
-    operatingSystem: "Android 7.0+, Android TV",
+    operatingSystem: params.operatingSystem ?? "Android 7.0+, Android TV",
     softwareVersion: params.version,
     fileSize: params.fileSize,
     downloadUrl: params.downloadUrl,
-    softwareRequirements: params.targetSdk ? `Android SDK ${params.targetSdk}+` : "Android 7.0+",
+    softwareRequirements:
+      params.requirements ?? (params.targetSdk ? `Android SDK ${params.targetSdk}+` : "Android 7.0+"),
     featureList: params.featureList?.length ? params.featureList : defaults,
     offers: {
       "@type": "Offer",

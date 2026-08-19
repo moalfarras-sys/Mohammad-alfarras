@@ -20,6 +20,7 @@ import { SITE_URL } from "@/content/site";
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { isLocale } from "@/lib/i18n";
+import { breadcrumbJsonLd, jsonLdString, softwareApplicationJsonLd } from "@/lib/seo-jsonld";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -194,9 +195,28 @@ export default async function MoPlayerIosPage({
   const isAr = loc === "ar";
   const ecosystem = await readAppEcosystem("moplayer2");
   const ios = iosPageRuntime(loc, ecosystem.runtimeConfig?.ios);
+  // The iOS page carried no product schema; the build is real and in App Store
+  // preparation, so it is described as such rather than as a shipped download.
+  const software = softwareApplicationJsonLd({
+    locale: loc,
+    path: "apps/moplayer-ios",
+    name: "MoPlayer iOS",
+    description: c.subtitle,
+    version: "1.0.0",
+    operatingSystem: "iOS 16.0+",
+    requirements: "iPhone running iOS 16 or newer",
+    featureList: ["Xtream", "M3U", "QR activation", "Legal demo mode", "Favorites", "Continue watching"],
+  });
+  const breadcrumb = breadcrumbJsonLd(loc, [
+    { name: isAr ? "الرئيسية" : "Home", path: `/${loc}` },
+    { name: isAr ? "التطبيقات" : "Apps", path: `/${loc}/apps` },
+    { name: "MoPlayer iOS", path: `/${loc}/apps/moplayer-ios` },
+  ]);
 
   return (
     <main dir={isAr ? "rtl" : "ltr"} className="min-h-screen overflow-hidden bg-[#050506] text-white">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(software) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       <section className="relative px-5 pb-12 pt-28 md:pb-16 md:pt-36">
         <Image
           src="/images/moplayer-pro-bg.png"

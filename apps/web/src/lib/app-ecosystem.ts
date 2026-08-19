@@ -15,14 +15,16 @@ import type {
 } from "@/types/app-ecosystem";
 
 const now = new Date().toISOString();
-// APK binaries are hosted on Vercel Blob (store: moplayer-downloads) — off the
-// git repo / Vercel bundle. GitHub Releases stopped being reachable when the
-// repo went private, so Blob is the public binary host now.
+// APK binaries are served from GitHub Releases: free, with unlimited bandwidth
+// for a public repo, so downloads can never exhaust a paid quota. The repo has
+// gone private once before and took every link down with it, so each URL has a
+// Vercel Blob mirror in lib/download-mirror.ts that takes over automatically
+// when GitHub is unreachable.
 // NOTE: production download URLs come from Supabase (app_release_assets); this is
 // only the offline fallback used when Supabase is unreachable.
 const moplayerDownloadUrls = {
   universal:
-    "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com/moplayer/android/2.4.0/app-sideload-universal-release.apk",
+    "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-sideload-universal-release.apk",
 };
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
@@ -277,7 +279,7 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com/moplayer-pro/android/2.6.5/app-universal-release.apk",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.5/app-universal-release.apk",
           file_size_bytes: 49443176,
           checksum_sha256: "4ab045fa64e9e77bbc791a11e6c03a8916fdeb01baf699ef76a2d707e66f1de1",
         },

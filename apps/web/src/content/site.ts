@@ -12,6 +12,19 @@ export { siteIdentity, socialLinks };
 
 export const SITE_URL = "https://moalfarras.space";
 
+/**
+ * Google Search Console verification token.
+ *
+ * Paste ONLY the token here — the value of `content="..."` from the meta tag
+ * Google shows you, e.g. "AbC123_xyz...", not the whole `<meta>` element.
+ *
+ * There is also a GOOGLE_SITE_VERIFICATION variable on Vercel, but it has been
+ * set since April and no verification tag has ever reached the live HTML, so
+ * this committed constant is the reliable path: it is part of the build and
+ * cannot silently go missing. It wins over the environment variable when set.
+ */
+export const GOOGLE_SITE_VERIFICATION = "";
+
 export type { Localized };
 
 export function localized<T>(value: Localized<T>, locale: Locale): T {

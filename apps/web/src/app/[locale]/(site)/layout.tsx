@@ -37,16 +37,6 @@ function siteCopy(locale: "ar" | "en") {
   };
 }
 
-function safePortraitSrc(path: string | null | undefined) {
-  if (!path) return "/images/protofeilnew.jpeg";
-  const value = path.trim().toLowerCase();
-  if (!value) return "/images/protofeilnew.jpeg";
-  if (value.includes("service_") || value.includes("moplayer") || value.includes("logo")) {
-    return "/images/protofeilnew.jpeg";
-  }
-  return path;
-}
-
 function safeLogoSrc(path: string | null | undefined) {
   if (!path) return "/images/logo.png";
   const value = path.trim().toLowerCase();
@@ -118,7 +108,6 @@ export default async function SiteLayout({
 
   const snapshot = await readSnapshot();
   const brandMedia = resolveBrandAssetPaths(snapshot);
-  const portraitSrc = safePortraitSrc(brandMedia.profilePortrait);
   const logoSrc = safeLogoSrc(brandMedia.logo);
 
   const siteStatus = getSiteSetting(snapshot, "site_status", {
@@ -146,19 +135,17 @@ export default async function SiteLayout({
   const legalPages = getSiteSetting<LegalPagesSetting>(snapshot, "legal_pages", {});
   const footerLegalLinks = legalPagesPublished(legalPages) ? legalFooterLinks(locale) : [];
 
+  // A locale-specific VIEW of the one Person entity declared in the root
+  // layout. Three separate blocks used to claim the same @id with different
+  // name/url/image values, which is exactly how you stop Google from resolving
+  // an entity: it now references the canonical node and adds only the
+  // localized alternate name and the language-specific job title.
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": `${siteUrl}/#person`,
-    name: copy.brandName,
-    url: `${siteUrl}/${locale}`,
-    image: portraitSrc.startsWith("http") ? portraitSrc : `${siteUrl}${portraitSrc}`,
-    sameAs: [
-      "https://www.youtube.com/@Moalfarras",
-      "https://github.com/moalfarras-sys",
-      "https://de.linkedin.com/in/mohammad-alfarras-525531262",
-      "https://www.instagram.com/moalfarras",
-    ],
+    alternateName: copy.brandName,
+    mainEntityOfPage: `${siteUrl}/${locale}`,
     jobTitle:
       locale === "ar"
         ? "\u0645\u0637\u0648\u0631 \u0648\u064a\u0628 \u0648\u0645\u0635\u0645\u0645 \u0648\u0635\u0627\u0646\u0639 \u0645\u062d\u062a\u0648\u0649 \u062a\u0642\u0646\u064a"

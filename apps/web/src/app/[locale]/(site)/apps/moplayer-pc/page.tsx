@@ -6,6 +6,7 @@ import { normalizePublicImagePath } from "@/lib/asset-url";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
 import { isLocale } from "@/lib/i18n";
+import { breadcrumbJsonLd, jsonLdString, softwareApplicationJsonLd } from "@/lib/seo-jsonld";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 
 const SITE_URL = "https://moalfarras.space";
@@ -92,12 +93,40 @@ export default async function MoPlayerPcRoute({ params }: { params: Promise<{ lo
     readDownloadCounts(),
   ]);
 
+  const loc = locale as "en" | "ar";
+  const isAr = loc === "ar";
+  // This is a download page with a version, a size and a download URL, and it
+  // was the only product page emitting no product schema at all.
+  const software = softwareApplicationJsonLd({
+    locale: loc,
+    path: "apps/moplayer-pc",
+    name: "MoPlayer PC",
+    description: isAr
+      ? "مشغل مكتبي لويندوز يشغّل مصادر M3U و Xtream التي يضيفها المستخدم، بمثبّت ونسخة محمولة."
+      : "A Windows desktop player for your own M3U and Xtream sources, with an installer and a portable build.",
+    version: windowsRelease?.version ?? "1.0.4",
+    fileSize: windowsRelease?.fileSizeBytes ? `${Math.round(windowsRelease.fileSizeBytes / 1024 / 1024)} MB` : undefined,
+    downloadUrl: `${SITE_URL}/api/app/download/latest?product=moplayer-pc&platform=windows`,
+    operatingSystem: windowsRelease?.systemRequirements ?? "Windows 10, Windows 11",
+    requirements: "Windows 10 or newer (x64)",
+    featureList: ["Xtream", "M3U", "QR activation", "Portable build", "Multi-view"],
+  });
+  const breadcrumb = breadcrumbJsonLd(loc, [
+    { name: isAr ? "الرئيسية" : "Home", path: `/${loc}` },
+    { name: isAr ? "التطبيقات" : "Apps", path: `/${loc}/apps` },
+    { name: "MoPlayer PC", path: `/${loc}/apps/moplayer-pc` },
+  ]);
+
   return (
-    <MoPlayerPcLanding
-      ecosystem={ecosystem}
-      locale={locale as "en" | "ar"}
-      windowsRelease={windowsRelease}
-      downloadStats={publicDownloadStats(downloadCounts, "moplayer2", "windows")}
-    />
+    <>
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(software) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
+      <MoPlayerPcLanding
+        ecosystem={ecosystem}
+        locale={loc}
+        windowsRelease={windowsRelease}
+        downloadStats={publicDownloadStats(downloadCounts, "moplayer2", "windows")}
+      />
+    </>
   );
 }

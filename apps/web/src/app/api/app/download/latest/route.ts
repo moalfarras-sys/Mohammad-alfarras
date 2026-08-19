@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 
 import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
 import { downloadEventFromRequest, recordDownload, shouldCountDownload } from "@/lib/download-counter";
+import { mirrorFor, resolveDownloadTarget } from "@/lib/download-mirror";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -100,7 +101,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Release asset not found" }, { status: 404 });
   }
 
-  const target = new URL(resolved.redirectUrl, request.url);
+  // Prefer the free host, but never hand a visitor a dead link: if GitHub is
+  // unreachable (the repo has been private before) the Blob mirror takes over.
+  const resolvedUrl = await resolveDownloadTarget(resolved.redirectUrl, mirrorFor(resolved.redirectUrl));
+  const target = new URL(resolvedUrl, request.url);
 
   if (shouldCountDownload(request)) {
     after(() =>

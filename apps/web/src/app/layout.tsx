@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 
+import { GOOGLE_SITE_VERIFICATION } from "@/content/site";
 import { siteFontClassName } from "@/lib/fonts";
 
 import "./globals.css";
@@ -62,7 +63,8 @@ export const metadata: Metadata = {
     apple: [{ url: "/images/site-icon-180.png", type: "image/png", sizes: "180x180" }],
   },
   verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    // Committed token first (see content/site.ts), env var as the fallback.
+    google: GOOGLE_SITE_VERIFICATION || process.env.GOOGLE_SITE_VERIFICATION || undefined,
   },
   category: "technology",
 };

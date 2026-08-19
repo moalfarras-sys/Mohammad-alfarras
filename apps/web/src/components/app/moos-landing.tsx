@@ -11,7 +11,7 @@ import {
   Cpu,
   Disc3,
   Download,
-  Github,
+  GitBranch,
   Layers,
   Monitor,
   RefreshCw,
@@ -217,7 +217,7 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
                 </span>
               )}
               <a href={repoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-bold text-white/80 transition-all hover:-translate-y-0.5 hover:border-[#4ED7C8]/30 hover:bg-white/10">
-                <Github className="h-4 w-4" /> {t.viewRepo}
+                <GitBranch className="h-4 w-4" /> {t.viewRepo}
               </a>
             </div>
           </motion.div>
@@ -385,7 +385,7 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
             <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/60">{t.footBody}</p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <a href={repoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[#4ED7C8]/25 bg-[#4ED7C8]/10 px-5 py-2.5 text-sm font-bold text-[#A8F1E8] transition-colors hover:bg-[#4ED7C8]/20">
-                <Github className="h-4 w-4" /> {t.viewRepo} <ArrowUpRight className="h-3.5 w-3.5" />
+                <GitBranch className="h-4 w-4" /> {t.viewRepo} <ArrowUpRight className="h-3.5 w-3.5" />
               </a>
               <Link href={`/${locale}/apps`} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-bold text-white/80 transition-colors hover:bg-white/10">
                 {isAr ? "بقية التطبيقات" : "More apps"}

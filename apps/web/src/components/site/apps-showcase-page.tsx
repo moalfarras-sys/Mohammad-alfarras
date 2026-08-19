@@ -43,17 +43,6 @@ const copy = {
     quickPreview: "Quick preview",
     appCards: [
       {
-        title: "MoOS",
-        label: "Desktop operating system",
-        body: "A personal OS built on Fedora Atomic and KDE Plasma 6 — signed atomic updates, a cloud edition, and Arabic-native. Install with one command.",
-        badges: ["Real OS", "Signed updates", "Free & open"],
-        cta: "Open MoOS",
-        href: "apps/moos",
-        image: "/images/moos/moos-desktop-dark.webp",
-        icon: "/images/moos/moos-desktop-light.webp",
-        accent: "metal",
-      },
-      {
         title: "MoPlayer",
         label: "Android TV / IPTV player",
         body: "A cinematic TV-first media product with activation, source setup, widgets, and official release handling.",
@@ -122,17 +111,6 @@ const copy = {
       "كل جزء له وظيفة واضحة: شرح المنتج، توجيه المستخدم للإعداد، وجعل مسار التفعيل مفهومًا على الجوال والتلفزيون.",
     quickPreview: "معاينة سريعة",
     appCards: [
-      {
-        title: "MoOS",
-        label: "نظام تشغيل للكمبيوتر",
-        body: "نظام تشغيل شخصي مبني على Fedora Atomic و KDE Plasma 6 — تحديثات ذرّية موقّعة، نسخة سحابية، وعربية أصيلة. ثبّته بأمر واحد.",
-        badges: ["نظام حقيقي", "تحديثات موقّعة", "مجاني ومفتوح"],
-        cta: "افتح MoOS",
-        href: "apps/moos",
-        image: "/images/moos/moos-desktop-dark.webp",
-        icon: "/images/moos/moos-desktop-light.webp",
-        accent: "metal",
-      },
       {
         title: "MoPlayer",
         label: "مشغل Android TV / IPTV",
@@ -261,7 +239,22 @@ export function AppsShowcasePage({
     downloads: 0,
     version: "1.0.0",
   };
-  const appCards = [moplayerClassicCard, moplayer2Card, moplayerPcCard, moplayerIosCard];
+  const moosCard = {
+    title: "MoOS",
+    label: isAr ? "نظام تشغيل للكمبيوتر" : "Desktop operating system",
+    body: isAr
+      ? "نظام تشغيل شخصي مبني على Fedora Atomic و KDE Plasma 6 — تحديثات ذرّية موقّعة، نسخة سحابية، وعربية أصيلة. ثبّته بأمر واحد."
+      : "A personal OS on Fedora Atomic and KDE Plasma 6 — signed atomic updates, a cloud edition, and Arabic-native. Install with one command.",
+    badges: isAr ? ["نظام حقيقي", "تحديثات موقّعة", "مجاني ومفتوح"] : ["Real OS", "Signed updates", "Free & open"],
+    cta: isAr ? "افتح MoOS" : "Open MoOS",
+    href: "apps/moos",
+    image: "/images/moos/moos-desktop-dark.webp",
+    icon: "/images/moos/moos-icon.svg",
+    accent: "metal",
+    downloads: 0,
+    version: isAr ? "مستمر" : "Rolling",
+  };
+  const appCards = [moosCard, moplayerClassicCard, moplayer2Card, moplayerPcCard, moplayerIosCard];
 
   return (
     <PageShell className="apps-lux-page">
@@ -394,10 +387,12 @@ export function AppsShowcasePage({
                     ))}
                   </div>
                   <div className="apps-card-metrics">
-                    <span>
-                      <strong>{formatDownloadNumber(app.downloads, locale)}</strong>
-                      {downloadMetricLabel}
-                    </span>
+                    {app.downloads > 0 ? (
+                      <span>
+                        <strong>{formatDownloadNumber(app.downloads, locale)}</strong>
+                        {downloadMetricLabel}
+                      </span>
+                    ) : null}
                     {app.version ? (
                       <span>
                         <strong>{app.version}</strong>

@@ -14,7 +14,7 @@ import { siteIdentity, youtubeChannel } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
-import { legalFooterLinks, legalPagesPublished, type LegalPagesSetting } from "@/lib/legal-pages";
+import { legalFooterLinks } from "@/lib/legal-pages";
 import { getLiveYoutubeChannelStats } from "@/lib/youtube-live";
 
 export const revalidate = 30;
@@ -132,7 +132,6 @@ export default async function SiteLayout({
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
   const navLinks = getNavigation(locale);
-  const legalPages = getSiteSetting<LegalPagesSetting>(snapshot, "legal_pages", {});
   // Live unconditionally: every legal page carries its own text, and the CMS
   // flag that used to gate them no longer has a database behind it.
   const footerLegalLinks = legalFooterLinks(locale);

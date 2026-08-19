@@ -1187,3 +1187,12 @@
 .work-spotlight-tabs button {
   scroll-snap-align: start;
 }
+
+/* The project tab captions rendered at 10.56px on a phone — the smallest text
+   on the site and the label people read while choosing a project. */
+@media (max-width: 760px) {
+  .work-spotlight-tabs button small {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+}

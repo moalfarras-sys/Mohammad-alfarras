@@ -171,38 +171,17 @@ export function WorkDigitalExhibition({
   return (
     <main className="work-exhibition">
       <section className="work-exhibition-hero">
-        <motion.p
-          className="fresh-eyebrow"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-        >
-          {t.eyebrow}
-        </motion.p>
-        <motion.h1
-          initial="hidden"
-          animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
-        >
-          {t.title.split(" ").map((word) => (
-            <motion.span
-              key={word}
-              variants={{
-                hidden: { opacity: 0, y: 38, filter: "blur(10px)" },
-                show: { opacity: 1, y: 0, filter: "blur(0px)" },
-              }}
-            >
+        {/* The hero reveal is CSS, not framer: this h1 is the LCP element and a
+            JS-gated opacity:0 held the whole headline blank until hydration. */}
+        <p className="fresh-eyebrow moh-hero-rise">{t.eyebrow}</p>
+        <h1>
+          {t.title.split(" ").map((word, index) => (
+            <span key={`${word}-${index}`} className="moh-hero-word" style={{ animationDelay: `${index * 0.06}s` }}>
               {word}
-            </motion.span>
+            </span>
           ))}
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.55 }}
-        >
-          {t.subtitle}
-        </motion.p>
+        </h1>
+        <p className="moh-hero-rise moh-hero-delay-3">{t.subtitle}</p>
         <motion.div
           className="work-scroll-cue"
           animate={{ y: [0, 9, 0] }}

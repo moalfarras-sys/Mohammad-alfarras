@@ -260,12 +260,9 @@ export function AppsShowcasePage({
     <PageShell className="apps-lux-page">
       <main className="apps-showcase" dir={isAr ? "rtl" : "ltr"}>
         <section className="apps-hero">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="apps-hero-copy"
-          >
+          {/* CSS entrance, not framer: this block holds the LCP h1, and a
+              JS-gated opacity:0 kept it invisible until hydration. */}
+          <div className="apps-hero-copy moh-hero-rise">
             <span className="apps-kicker">
               <BadgeCheck className="h-4 w-4" />
               {c.eyebrow}
@@ -310,14 +307,9 @@ export function AppsShowcasePage({
                 </div>
               </div>
             ) : null}
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, rotate: isAr ? -4 : 4 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            className="apps-hero-device"
-          >
+          <div className="apps-hero-device moh-hero-fade moh-hero-delay-1">
             <div className="apps-device-orbit" />
             <Image
               src={appsHero}
@@ -336,7 +328,7 @@ export function AppsShowcasePage({
               </div>
               <Tv className="h-5 w-5" />
             </div>
-          </motion.div>
+          </div>
         </section>
 
         <section className="apps-section">

@@ -275,22 +275,24 @@ export function MoPlayer2Landing({
       {/* Hero Section */}
       <section className="relative pt-24 md:pt-32 pb-16 px-6 sm:px-12 max-w-7xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-10">
         <div className="flex-1 text-center lg:text-start z-10">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, type: "spring" }} className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#f4b860]/30 bg-[#f4b860]/10 backdrop-blur-md mb-5 md:mb-8 shadow-[0_0_20px_rgba(244,184,96,0.15)]">
+          {/* Hero entrance is CSS: the h1 is the LCP element, and gating it on
+              framer hydration left it invisible for seconds on a phone. */}
+          <div className="moh-hero-rise inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#f4b860]/30 bg-[#f4b860]/10 backdrop-blur-md mb-5 md:mb-8 shadow-[0_0_20px_rgba(244,184,96,0.15)]">
             <Sparkles className="h-5 w-5 text-[#f4b860]" />
             <span className="text-sm font-bold tracking-widest uppercase text-[#f4b860]">{heroBadge}</span>
-          </motion.div>
-          
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-[#fdf2e3] to-[#f4b860]/60 mb-4 md:mb-6 leading-[1.1] drop-shadow-sm">
+          </div>
+
+          <h1 className="moh-hero-rise moh-hero-delay-1 text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-[#fdf2e3] to-[#f4b860]/60 mb-4 md:mb-6 leading-[1.1] drop-shadow-sm">
             {heroTitle}
-          </motion.h1>
-          
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-base md:text-xl text-white/90 mb-3 md:mb-4 font-semibold leading-relaxed">
+          </h1>
+
+          <p className="moh-hero-rise moh-hero-delay-2 text-base md:text-xl text-white/90 mb-3 md:mb-4 font-semibold leading-relaxed">
             {heroSub}
-          </motion.p>
-          
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-base md:text-lg text-white/60 mb-4 md:mb-6 max-w-2xl leading-relaxed font-light mx-auto lg:mx-0">
+          </p>
+
+          <p className="moh-hero-rise moh-hero-delay-3 text-base md:text-lg text-white/60 mb-4 md:mb-6 max-w-2xl leading-relaxed font-light mx-auto lg:mx-0">
             {heroBody}
-          </motion.p>
+          </p>
 
           {appUnavailable ? (
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.34 }} className="mb-4 md:mb-6 max-w-2xl rounded-3xl border border-amber-400/30 bg-amber-400/10 px-5 py-4 text-start text-amber-100 backdrop-blur-xl">

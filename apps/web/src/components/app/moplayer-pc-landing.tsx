@@ -213,19 +213,21 @@ export function MoPlayerPcLanding({
       {/* Hero */}
       <section className="relative min-h-[70vh] flex items-center justify-center pt-24 md:pt-28 pb-16 px-6 z-10">
         <motion.div style={{ y: yHero, opacity: opacityHero }} className="max-w-5xl mx-auto w-full text-center">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="mb-4 md:mb-6 inline-block">
+          {/* CSS hero entrance — see the note on the apps hero: framer's
+              initial opacity:0 delayed the LCP text until hydration. */}
+          <div className="moh-hero-fade mb-4 md:mb-6 inline-block">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-orange-600/30 bg-orange-600/8 text-orange-300 text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
               <Cpu className="h-3.5 w-3.5" /> {isAr ? "نسخة الكمبيوتر" : "Windows Desktop Edition"}
             </span>
-          </motion.div>
-          
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-5 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/40">
+          </div>
+
+          <h1 className="moh-hero-rise moh-hero-delay-1 text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-5 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/40">
             {productName}
-          </motion.h1>
-          
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="text-sm md:text-base text-orange-300/60 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-10">
+          </h1>
+
+          <p className="moh-hero-rise moh-hero-delay-2 text-sm md:text-base text-orange-300/60 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-10">
             {hubCopy.headline}
-          </motion.p>
+          </p>
           
           {windowsRelease?.maintenance ? (
             <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-3 text-amber-200 text-sm font-semibold">

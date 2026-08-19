@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRight, Clock3, Mail, MapPin, MessageCircle, MonitorPlay, Network, ShieldCheck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { LiquidContactForm } from "@/components/site/liquid-contact-form";
 import { socialLinks } from "@/content/site";
@@ -119,19 +119,29 @@ function formatTime(locale: Locale, timeZone: string, date: Date) {
   }).format(date);
 }
 
-function TimezoneWidget({ locale }: { locale: Locale }) {
-  const [now, setNow] = useState(() => new Date());
-  const t = repairMojibakeDeep(copy[locale]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 30_000);
+// The live clock is client-only state: rendering a real time during SSR
+// guaranteed a hydration mismatch (React #418), because the server's clock and
+// the visitor's clock are never the same instant. The server snapshot is null,
+// so the markup matches on both sides and the time fills in after mount.
+const clockStore = {
+  subscribe(onChange: () => void) {
+    const timer = window.setInterval(onChange, 30_000);
     return () => window.clearInterval(timer);
-  }, []);
+  },
+  // A 30s bucket, so the snapshot stays referentially stable between ticks.
+  getSnapshot: () => Math.floor(Date.now() / 30_000),
+  getServerSnapshot: () => null,
+};
+
+function TimezoneWidget({ locale }: { locale: Locale }) {
+  const tick = useSyncExternalStore(clockStore.subscribe, clockStore.getSnapshot, clockStore.getServerSnapshot);
+  const now = useMemo(() => (tick === null ? null : new Date()), [tick]);
+  const t = repairMojibakeDeep(copy[locale]);
 
   const times = useMemo(
     () => [
-      { city: t.germany, zone: "Europe/Berlin", time: formatTime(locale, "Europe/Berlin", now) },
-      { city: t.syria, zone: "Asia/Damascus", time: formatTime(locale, "Asia/Damascus", now) },
+      { city: t.germany, zone: "Europe/Berlin", time: now ? formatTime(locale, "Europe/Berlin", now) : "--:--" },
+      { city: t.syria, zone: "Asia/Damascus", time: now ? formatTime(locale, "Asia/Damascus", now) : "--:--" },
     ],
     [locale, now, t.germany, t.syria],
   );

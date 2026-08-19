@@ -119,18 +119,19 @@ export function MoPlayerLanding({
       {/* Hero Section */}
       <section className="relative pt-24 md:pt-32 pb-16 px-6 sm:px-12 max-w-6xl mx-auto z-10 flex flex-col lg:flex-row items-center gap-12">
         <div className="flex-1 text-center lg:text-start z-10">
-          <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/8 backdrop-blur-sm mb-4 md:mb-6">
+          {/* CSS hero entrance so the headline paints without waiting for JS. */}
+          <div className="moh-hero-rise inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/8 backdrop-blur-sm mb-4 md:mb-6">
             <ShieldCheck className="h-4 w-4 text-blue-400" />
             <span className="text-xs font-bold tracking-widest uppercase text-blue-400">{text(ecosystem.product.hero_badge, t.badge)}</span>
-          </motion.div>
-          
-          <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-blue-300/60 mb-4 md:mb-5 leading-[1.1]">
+          </div>
+
+          <h1 className="moh-hero-rise moh-hero-delay-1 text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-blue-300/60 mb-4 md:mb-5 leading-[1.1]">
             {productName}
-          </motion.h1>
-          
-          <motion.p initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="text-sm md:text-base text-white/60 mb-5 md:mb-8 max-w-lg leading-relaxed mx-auto lg:mx-0">
+          </h1>
+
+          <p className="moh-hero-rise moh-hero-delay-2 text-sm md:text-base text-white/60 mb-5 md:mb-8 max-w-lg leading-relaxed mx-auto lg:mx-0">
             {productHero}
-          </motion.p>
+          </p>
 
           {appUnavailable ? (
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mb-4 md:mb-5 max-w-lg rounded-2xl border border-amber-400/25 bg-amber-400/10 px-5 py-4 text-start text-amber-100">

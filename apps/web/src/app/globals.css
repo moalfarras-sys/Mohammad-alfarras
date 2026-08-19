@@ -7011,3 +7011,81 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     margin-bottom: var(--space-section-head);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Hero entrance without a JavaScript gate.
+
+   Above-the-fold heroes used framer-motion with initial={{opacity:0}},
+   so the headline stayed invisible until React had hydrated. On a phone
+   that pushed LCP to ~3.5s and the page looked blank while loading.
+   These run from the very first paint, with no JS involved, and the
+   element is already visible in the server HTML.
+
+   Unique keyframe names on purpose: lightningcss dedupes identical
+   @keyframes across route chunks, which can freeze the animation on a
+   route whose chunk did not win the dedupe.
+   ═══════════════════════════════════════════════════════════════════ */
+@keyframes mohHeroRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mohHeroFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.moh-hero-rise,
+.moh-hero-fade {
+  /* Visible by default: if the animation never runs, nothing is hidden. */
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .moh-hero-rise {
+    animation: mohHeroRise 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .moh-hero-fade {
+    animation: mohHeroFade 0.5s ease-out both;
+  }
+
+  .moh-hero-delay-1 { animation-delay: 0.08s; }
+  .moh-hero-delay-2 { animation-delay: 0.16s; }
+  .moh-hero-delay-3 { animation-delay: 0.24s; }
+}
+
+/* Per-word headline reveal, CSS-driven so the words exist and paint on the
+   server render; the delay is set inline per word. */
+@keyframes mohHeroWord {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.moh-hero-word {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .moh-hero-word {
+    animation: mohHeroWord 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}

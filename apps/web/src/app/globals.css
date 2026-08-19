@@ -7266,3 +7266,24 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     line-height: 1.5;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Phone fixes found by looking at the rendered page, not the code.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  /* The footer bio was clamped to two lines and cut mid-sentence — it read
+     "…وصناعة محتوى تقني عربي واضح…" with the thought unfinished. It is three
+     short lines in full; there is no reason to truncate it. */
+  .fresh-footer-brand p {
+    display: block;
+    -webkit-line-clamp: none;
+    overflow: visible;
+  }
+
+  /* The last row of footer links sat underneath the fixed bottom dock, so
+     WhatsApp / التفعيل / الدعم were unreachable. Clear the dock plus the
+     floating assistant. */
+  body {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 124px);
+  }
+}

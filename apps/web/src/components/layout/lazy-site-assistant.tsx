@@ -26,8 +26,18 @@ const SiteAssistantWidget = dynamic(
 const teaserKey = "mo-ai-teaser:dismissed";
 
 const teaserCopy = {
-  ar: { text: "أهلًا، أنا Mo AI 👋 كيف أقدر أساعدك؟", open: "تحدّث مع Mo AI", dismiss: "إخفاء الرسالة" },
-  en: { text: "Hi, I'm Mo AI 👋 How can I help?", open: "Chat with Mo AI", dismiss: "Hide message" },
+  ar: {
+    title: "مساعد Mo AI",
+    text: "اسأل عن الخدمات، التطبيقات، أو التفعيل.",
+    open: "تحدّث مع Mo AI",
+    dismiss: "إخفاء الرسالة",
+  },
+  en: {
+    title: "Mo AI assistant",
+    text: "Ask about services, the apps, or activation.",
+    open: "Chat with Mo AI",
+    dismiss: "Hide message",
+  },
 } as const;
 
 export function LazySiteAssistant({ locale }: { locale: Locale }) {
@@ -112,7 +122,8 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
       {teaser ? (
         <div className="mo-ai-teaser" role="status">
           <button type="button" className="mo-ai-teaser-text" onClick={openChat}>
-            {t.text}
+            <strong>{t.title}</strong>
+            <span>{t.text}</span>
           </button>
           <button type="button" className="mo-ai-teaser-close" onClick={dismissTeaser} aria-label={t.dismiss}>
             <X size={13} />

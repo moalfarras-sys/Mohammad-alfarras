@@ -1173,3 +1173,17 @@
     filter: blur(0);
   }
 }
+
+/* The project tab strip scrolls horizontally with a hidden scrollbar, which
+   left no hint that more projects exist past the edge. A soft fade on the
+   trailing edge signals it without adding chrome. */
+.work-spotlight-tabs {
+  -webkit-mask-image: linear-gradient(to left, transparent 0, #000 26px, #000 calc(100% - 26px), transparent 100%);
+  mask-image: linear-gradient(to left, transparent 0, #000 26px, #000 calc(100% - 26px), transparent 100%);
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 8px;
+}
+
+.work-spotlight-tabs button {
+  scroll-snap-align: start;
+}

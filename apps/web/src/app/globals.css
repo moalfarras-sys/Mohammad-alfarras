@@ -7089,3 +7089,112 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     animation: mohHeroWord 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Typography correction pass — measured, not guessed.
+
+   The hero headline resolved to 100.8px (7vw) inside a 633px copy
+   column, so the Arabic sentence broke over SEVEN lines and pushed the
+   hero to 1254px — taller than the viewport it is supposed to greet
+   people with. Arabic sets longer than the Latin display sizes these
+   scales were tuned for, so the headline is sized against the column it
+   actually lives in.
+   ═══════════════════════════════════════════════════════════════════ */
+.os-wow-hero h1,
+[dir="rtl"] .os-wow-hero h1 {
+  font-size: clamp(2.2rem, 3.5vw, 3.35rem);
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+[dir="ltr"] .os-wow-hero h1 {
+  /* Latin is narrower per character and carries the tighter display look. */
+  font-size: clamp(2.4rem, 4.3vw, 4.1rem);
+  line-height: 1.03;
+  letter-spacing: -0.03em;
+}
+
+/* The copy column gets the room the headline needs; the visual keeps enough
+   width to stay a hero image rather than a thumbnail. */
+@media (min-width: 1100px) {
+  .os-wow-hero {
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  }
+}
+
+.os-home-lede {
+  /* A readable measure instead of a full-width run of text. */
+  max-width: 60ch;
+}
+
+/* The stack marquee was a giant outlined buzzword ticker running forever,
+   clipped mid-word at both edges so it read as a rendering fault. Kept as a
+   quiet, legible strip: real words, no infinite motion, no fake outline. */
+.os-stack-marquee div {
+  animation: none;
+  flex-wrap: wrap;
+  width: auto;
+  gap: 10px 14px;
+  justify-content: flex-start;
+}
+
+.os-stack-marquee span {
+  color: color-mix(in srgb, var(--os-text) 72%, transparent);
+  -webkit-text-stroke: 0;
+  font-size: clamp(0.82rem, 1vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  border: 1px solid color-mix(in srgb, var(--os-text) 14%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--os-text) 5%, transparent);
+  padding: 0.5rem 0.95rem;
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
+}
+
+.os-stack-marquee span:hover {
+  color: var(--os-text);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  border-color: color-mix(in srgb, var(--os-cyan) 42%, transparent);
+  background: color-mix(in srgb, var(--os-cyan) 10%, transparent);
+}
+
+/* The edge mask existed to fade a scrolling loop into the container. With a
+   static wrapped strip it only clipped the first and last chip, so it goes. */
+.os-stack-marquee {
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* ── Mo AI teaser: same bubble, cleaner typography ──────────────────────
+   Two lines instead of one long run — the assistant's name, then what it
+   can actually do — so the bubble reads as an offer rather than a greeting
+   that repeats the obvious. Slightly wider so nothing wraps awkwardly. */
+.mo-ai-teaser {
+  max-width: min(310px, calc(100vw - 96px));
+  align-items: stretch;
+}
+
+.mo-ai-teaser-text {
+  display: grid;
+  gap: 2px;
+  padding-block: 12px;
+}
+
+.mo-ai-teaser-text strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+.mo-ai-teaser-text span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--text) 68%, transparent);
+}

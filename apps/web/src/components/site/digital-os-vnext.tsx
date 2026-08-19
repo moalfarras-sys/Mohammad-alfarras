@@ -576,7 +576,10 @@ function HomePageV2({ model }: { model: SiteViewModel }) {
 
       <section className="fresh-section os-stack-section" aria-label={home.stackTitle}>
         <div className="os-stack-head"><p className="fresh-eyebrow">{home.stackEyebrow}</p><h2>{home.stackTitle}</h2></div>
-        <div className="os-stack-marquee"><div>{[...stack, ...stack].map((item, index) => <span key={`${item}-${index}`}>{item}</span>)}</div></div>
+        {/* One pass, not two: the list was duplicated to feed a seamless
+            infinite scroll. The strip no longer scrolls, so the second copy
+            just repeated every capability on screen. */}
+        <div className="os-stack-marquee"><div>{stack.map((item) => <span key={item}>{item}</span>)}</div></div>
       </section>
 
       <section className="fresh-section os-moplayer-showcase">

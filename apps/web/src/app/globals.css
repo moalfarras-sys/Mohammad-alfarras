@@ -7287,3 +7287,28 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     padding-bottom: calc(env(safe-area-inset-bottom) + 124px);
   }
 }
+
+/* Final sub-12px sweep on phones, from measuring every text leaf with an
+   uncached browser and following each one's DOM chain:
+     11.52  .work-card-chrome captions ("تطبيق ANDROID TV جديد")
+      9.92  .work-mockup-toolbar titles — the smallest text anywhere
+     10.56  .fresh-field-label (a narrower rule was still winning)
+     11.52  .os-home-id-card discipline line, .yt2-stat labels           */
+@media (max-width: 760px) {
+  .work-card-chrome span,
+  .work-card-chrome div,
+  .work-mockup-toolbar small,
+  .work-mockup-toolbar span,
+  .os-home-id-card span,
+  .yt2-stat span,
+  .yt2-stat small {
+    font-size: 0.78rem !important;
+    line-height: 1.45;
+  }
+
+  .fresh-field label .fresh-field-label,
+  label.fresh-field .fresh-field-label,
+  .fresh-field-label {
+    font-size: 0.8rem !important;
+  }
+}

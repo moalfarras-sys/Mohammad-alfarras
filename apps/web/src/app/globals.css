@@ -7227,3 +7227,28 @@ html[dir="rtl"] .pw-rtl-flip { transform: scaleX(-1); }
     font-size: 0.78rem;
   }
 }
+
+/* Remaining sub-12px text found by measuring every leaf node at 390px:
+   the navbar tagline (11.2), section/card eyebrows (11.5), the mode-card
+   media chip (10.88), app platform labels (11.2), the MoPlayer gateway-code
+   note (11) and the contact form labels, which a narrower rule had pushed
+   down to 10.56. All lifted to a 12.5-13px floor on phones only. */
+@media (max-width: 760px) {
+  .site-navbar small,
+  .fresh-footer small,
+  header small,
+  .os-mode-media-chip,
+  .os-moplayer-app-label,
+  .os-story-card span,
+  .yt-metric-label,
+  [class*="text-[11px]"] {
+    font-size: 0.78rem !important;
+    line-height: 1.5;
+  }
+
+  .fresh-field-label,
+  .fresh-field-label span,
+  span.fresh-field-label {
+    font-size: 0.8rem;
+  }
+}

@@ -13,7 +13,6 @@ import {
   jsonLdString,
   softwareApplicationJsonLd,
 } from "@/lib/seo-jsonld";
-import "@/styles/route-moplayer-pro.css";
 import type { Locale } from "@/types/cms";
 import { isManagedAppSlug, managedApps } from "@moalfarras/shared/app-products";
 

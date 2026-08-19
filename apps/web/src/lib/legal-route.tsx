@@ -37,6 +37,26 @@ export async function generateLegalMetadata(slug: LegalPageSlug, { params }: Rou
         "x-default": `${SITE_URL}/ar/${slug}`,
       },
     },
+    // Without these the legal pages inherited the root layout's card, so a
+    // shared Impressum link showed the site-root title and og:url — which
+    // contradicted its own canonical.
+    openGraph: {
+      type: "website",
+      url: canonical,
+      title: `${content.title} | Mohammad Alfarras`,
+      description: content.description,
+      siteName: "Mohammad Alfarras | محمد الفراس",
+      locale: loc === "ar" ? "ar_SA" : "en_US",
+      images: [{ url: `${SITE_URL}/opengraph-image`, width: 1200, height: 630, alt: content.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: "@Moalfarras",
+      creator: "@Moalfarras",
+      title: `${content.title} | Mohammad Alfarras`,
+      description: content.description,
+      images: [`${SITE_URL}/opengraph-image`],
+    },
   };
 }
 

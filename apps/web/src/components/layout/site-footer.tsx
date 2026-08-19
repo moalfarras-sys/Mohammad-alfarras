@@ -28,9 +28,13 @@ export function SiteFooter({
   const year = new Date().getFullYear();
   const productLinks = [
     { id: "apps", label: isAr ? "كل التطبيقات" : "All apps", href: `/${locale}/apps` },
+    { id: "moos", label: isAr ? "نظام MoOS" : "MoOS", href: `/${locale}/moos` },
     { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "activate", label: isAr ? "التفعيل" : "Activate", href: `/${locale}/activate` },
     { id: "support", label: isAr ? "الدعم" : "Support", href: `/${locale}/support` },
+    // /about is in the sitemap at priority 0.85 but had no inbound link
+    // anywhere on the site, which is the worst of both worlds for crawling.
+    { id: "about", label: isAr ? "عن محمد" : "About", href: `/${locale}/about` },
   ];
   // Privacy + Impressum always appear (Impressum is a legal requirement for a
   // Germany-based commercial site); any extra published legal links follow.

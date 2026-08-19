@@ -13,7 +13,6 @@ import {
   jsonLdString,
   softwareApplicationJsonLd,
 } from "@/lib/seo-jsonld";
-import "@/styles/route-moplayer-classic.css";
 import type { Locale } from "@/types/cms";
 
 const SITE_URL = "https://moalfarras.space";

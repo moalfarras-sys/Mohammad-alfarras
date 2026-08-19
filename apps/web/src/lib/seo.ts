@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import type { Metadata } from "next";
 
 import { seoData } from "@/content/seo-data";
@@ -46,14 +48,7 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       title: resolvedTitle,
       description: copy.description,
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [
-        {
-          url: absoluteImageUrl(copy.image),
-          width: 1200,
-          height: 630,
-          alt: resolvedTitle,
-        },
-      ],
+      images: [{ ...(await socialImage(copy.image)), alt: resolvedTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -61,9 +56,45 @@ export async function pageMetadata(locale: Locale, slug: string): Promise<Metada
       creator: "@Moalfarras",
       title: resolvedTitle,
       description: copy.description,
-      images: [{ url: absoluteImageUrl(copy.image), alt: resolvedTitle }],
+      images: [{ ...(await socialImage(copy.image)), alt: resolvedTitle }],
     },
   };
+}
+
+/** The site's generated share card — a real 1200×630 PNG. */
+const GENERATED_CARD = { url: `${BASE_URL}/opengraph-image`, width: 1200, height: 630 };
+const socialImageCache = new Map<string, { url: string; width: number; height: number }>();
+
+/**
+ * Resolve a page image into a share card that is actually shaped like one.
+ *
+ * Every page used to declare 1200×630 regardless of the real file, so a
+ * portrait photo (843×1264) was handed to Facebook and LinkedIn inside a
+ * 1.91:1 box and got cropped through the subject's face. Dimensions are now
+ * measured from the file, and anything not landscape enough falls back to the
+ * generated branded card instead of being cropped.
+ */
+async function socialImage(path: string) {
+  if (/^https?:\/\//i.test(path)) return { url: path, width: 1200, height: 630 };
+  const cached = socialImageCache.get(path);
+  if (cached) return cached;
+
+  let resolved = GENERATED_CARD;
+  try {
+    const { default: sharp } = await import("sharp");
+    const filePath = join(process.cwd(), "public", path.replace(/^\//, ""));
+    const { width, height } = await sharp(filePath).metadata();
+    if (width && height) {
+      const ratio = width / height;
+      // 1.91:1 is the target; anything squarer than 3:2 crops badly.
+      resolved = ratio >= 1.5 ? { url: absoluteImageUrl(path), width, height } : GENERATED_CARD;
+    }
+  } catch {
+    // Unreadable file (or sharp unavailable): the generated card is always safe.
+  }
+
+  socialImageCache.set(path, resolved);
+  return resolved;
 }
 
 function absoluteImageUrl(path: string) {

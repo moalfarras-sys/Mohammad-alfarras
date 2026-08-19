@@ -287,7 +287,10 @@ export function AppsShowcasePage({
                 </span>
               ))}
             </div>
-            {downloadStats ? (
+            {/* Only shown once there is something to show: while the counter
+                store is unreachable every figure reads 0, and a wall of zeros
+                sells the products worse than no counter at all. */}
+            {downloadStats && downloadStats.total > 0 ? (
               <div className="apps-download-strip">
                 <div className="apps-download-total">
                   <span>{isAr ? "تحميلات التطبيقات" : "App downloads"}</span>
@@ -298,12 +301,14 @@ export function AppsShowcasePage({
                     ["MoPlayer Classic", downloadStats.classic],
                     ["MoPlayer Pro", downloadStats.pro],
                     ["MoPlayer PC", downloadStats.pc],
-                  ].map(([label, value]) => (
-                    <span key={label}>
-                      <strong>{formatDownloadNumber(Number(value), locale)}</strong>
-                      {label}
-                    </span>
-                  ))}
+                  ]
+                    .filter(([, value]) => Number(value) > 0)
+                    .map(([label, value]) => (
+                      <span key={label}>
+                        <strong>{formatDownloadNumber(Number(value), locale)}</strong>
+                        {label}
+                      </span>
+                    ))}
                 </div>
               </div>
             ) : null}

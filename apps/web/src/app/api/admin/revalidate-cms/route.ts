@@ -33,8 +33,14 @@ export async function POST(request: Request) {
       "/cv",
       "/privacy",
       "/terms",
-      "/legal",
+      // "/legal" was revalidated for years but no such route exists; the real
+      // legal routes are these, and /moos, /about and the iOS page were missing.
+      "/app-disclaimer",
+      "/download-disclaimer",
       "/impressum",
+      "/moos",
+      "/about",
+      "/apps/moplayer-ios",
     ]) {
       revalidatePath(`/${locale}${path}`);
     }

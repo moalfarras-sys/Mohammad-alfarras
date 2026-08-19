@@ -144,8 +144,12 @@ export async function generateMetadata({
   const c = repairMojibakeDeep(copy[loc]);
   const canonical = `${SITE_URL}/${loc}/apps/moplayer-ios`;
   const socialImage = `${SITE_URL}/images/moplayer-pro-home.webp`;
+  // No manual brand suffix: the root template already appends
+  // " | Mohammad Alfarras", and both locales previously rendered the identical
+  // English title "MoPlayer iOS | Moalfarras | Mohammad Alfarras".
+  const pageTitle = loc === "ar" ? "MoPlayer للآيفون" : "MoPlayer iOS";
   return {
-    title: `${c.title} | Moalfarras`,
+    title: pageTitle,
     description: c.subtitle,
     keywords:
       loc === "ar"
@@ -160,18 +164,18 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: c.title,
+      title: `${pageTitle} | Mohammad Alfarras`,
       description: c.subtitle,
       url: canonical,
       type: "website",
       locale: loc === "ar" ? "ar_SA" : "en_US",
-      images: [{ url: socialImage, width: 1600, height: 900, alt: c.title }],
+      images: [{ url: socialImage, width: 1586, height: 992, alt: pageTitle }],
     },
     twitter: {
       card: "summary_large_image",
       site: "@Moalfarras",
       creator: "@Moalfarras",
-      title: c.title,
+      title: `${pageTitle} | Mohammad Alfarras`,
       description: c.subtitle,
       images: [socialImage],
     },

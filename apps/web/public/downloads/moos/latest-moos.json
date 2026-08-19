@@ -1,0 +1,39 @@
+{
+  "system": "MoOS",
+  "channel": "latest",
+  "base": "Fedora Atomic (bootc / OSTree) · KDE Plasma 6 (Wayland)",
+  "repoUrl": "https://github.com/moalfarras-sys/moos-image",
+  "signingKeyUrl": "https://raw.githubusercontent.com/moalfarras-sys/moos-image/main/cosign.pub",
+  "releaseDate": "2026-08-19",
+  "editions": [
+    {
+      "id": "desktop",
+      "name": "MoOS Desktop",
+      "image": "ghcr.io/moalfarras-sys/moos:latest",
+      "recommended": true,
+      "summary": "The general desktop image — signed, atomic, and always up to date. Recommended for most machines (Intel / AMD / Nouveau)."
+    },
+    {
+      "id": "nvidia",
+      "name": "MoOS Desktop · NVIDIA",
+      "image": "ghcr.io/moalfarras-sys/moos-nvidia:latest",
+      "recommended": false,
+      "summary": "Same desktop with the open NVIDIA driver layered in — for machines with a modern NVIDIA GPU."
+    },
+    {
+      "id": "cloud",
+      "name": "MoOS Cloud",
+      "image": "ghcr.io/moalfarras-sys/moos-cloud:latest",
+      "recommended": false,
+      "summary": "The 24/7 server edition for a cheap VPS: no games or Android layer, SSH-first, browser-reachable desktop. Same signed update train."
+    }
+  ],
+  "iso": {
+    "available": false,
+    "url": "",
+    "sizeBytes": 0,
+    "sha256": "",
+    "notes": "The bootable USB ISO is built on request from the published image. Permanent hosting is being finalized — until then, install MoOS from the signed container image with the one command shown on this page."
+  },
+  "maintenance": false
+}

@@ -43,6 +43,17 @@ const copy = {
     quickPreview: "Quick preview",
     appCards: [
       {
+        title: "MoOS",
+        label: "Desktop operating system",
+        body: "A personal OS built on Fedora Atomic and KDE Plasma 6 — signed atomic updates, a cloud edition, and Arabic-native. Install with one command.",
+        badges: ["Real OS", "Signed updates", "Free & open"],
+        cta: "Open MoOS",
+        href: "apps/moos",
+        image: "/images/moos/moos-desktop-dark.webp",
+        icon: "/images/moos/moos-desktop-light.webp",
+        accent: "metal",
+      },
+      {
         title: "MoPlayer",
         label: "Android TV / IPTV player",
         body: "A cinematic TV-first media product with activation, source setup, widgets, and official release handling.",
@@ -111,6 +122,17 @@ const copy = {
       "كل جزء له وظيفة واضحة: شرح المنتج، توجيه المستخدم للإعداد، وجعل مسار التفعيل مفهومًا على الجوال والتلفزيون.",
     quickPreview: "معاينة سريعة",
     appCards: [
+      {
+        title: "MoOS",
+        label: "نظام تشغيل للكمبيوتر",
+        body: "نظام تشغيل شخصي مبني على Fedora Atomic و KDE Plasma 6 — تحديثات ذرّية موقّعة، نسخة سحابية، وعربية أصيلة. ثبّته بأمر واحد.",
+        badges: ["نظام حقيقي", "تحديثات موقّعة", "مجاني ومفتوح"],
+        cta: "افتح MoOS",
+        href: "apps/moos",
+        image: "/images/moos/moos-desktop-dark.webp",
+        icon: "/images/moos/moos-desktop-light.webp",
+        accent: "metal",
+      },
       {
         title: "MoPlayer",
         label: "مشغل Android TV / IPTV",

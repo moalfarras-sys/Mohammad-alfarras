@@ -12,6 +12,7 @@ Last updated: 2026-09-15
 - Replaced internal locale navigation through `window.location.assign` with the Next.js router.
 - Removed five obsolete root-level QA scratch scripts and cleaned related stylesheet whitespace.
 - Updated GitHub Actions checkout/setup actions to their Node 24 generation.
+- Enabled GitHub Dependabot vulnerability alerts and automated security updates; secret scanning and push protection remain enabled.
 
 ## Important files changed
 
@@ -42,7 +43,7 @@ Last updated: 2026-09-15
 ## Remaining attention
 
 - The separate MoOS Live ISO workflow `34885449896` boots but fails its installation test. The public ISO endpoint correctly remains unavailable (`503`) and must not be advertised as ready until that workflow passes.
-- GitHub `main` is not branch-protected, and Dependabot vulnerability alerts/security updates are disabled. Enable these repository policies when the desired merge/alert policy is agreed.
+- GitHub `main` is not branch-protected. Enable protection only after agreeing on required reviews and checks so the current production flow is not accidentally blocked.
 - GitHub Actions currently validates web/admin/dashboard only; Android and Windows remain local/release-workflow gates.
 - Physical-device playback and full installer execution were not performed in this pass; builds, CI, manifests, scripts, downloads, hashes, and HTTP production behavior were verified.
 

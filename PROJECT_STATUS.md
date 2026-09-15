@@ -13,6 +13,7 @@ Last updated: 2026-09-15
 - Removed five obsolete root-level QA scratch scripts and cleaned related stylesheet whitespace.
 - Updated GitHub Actions checkout/setup actions to their Node 24 generation.
 - Enabled GitHub Dependabot vulnerability alerts and automated security updates; secret scanning and push protection remain enabled.
+- Refreshed the three stale app-level npm lockfiles that caused 108 newly visible Dependabot alerts, and removed the unused admin `@tailwindcss/vite` dependency. Root, web, admin, and Windows audits now each report zero known vulnerabilities.
 
 ## Important files changed
 
@@ -34,7 +35,7 @@ Last updated: 2026-09-15
 - `npm run verify:android:classic`: passed.
 - `npm run verify:android:pro`: passed after restoring the required layout resource.
 - `bash -n` passed for both MoOS installer scripts.
-- `npm audit`: 0 vulnerabilities.
+- `npm audit`: 0 vulnerabilities at the workspace root and independently for the web, admin, and Windows lockfiles.
 - GitHub Next App CI run `34963527067`: passed for web, admin, and dashboard.
 - Vercel Git deployments from commit `d7dd2e8d` reached Ready for both public and admin production projects.
 - The current Classic 2.4.0, Pro 2.6.5, and Windows 1.0.4 artifacts respond successfully and match the published sizes/checksums.

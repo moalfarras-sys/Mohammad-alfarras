@@ -45,24 +45,20 @@
   "overrides": {
     "esbuild": "^0.28.1",
     "hono": "^4.12.16",
-    "postcss": "^8.5.13",
+    "postcss": "^8.5.28",
+    "js-yaml": "^5.4.2",
+    "baseline-browser-mapping": "^2.11.0",
+    "docx": {
+      "nanoid": "^5.1.16"
+    },
     "@modelcontextprotocol/sdk": {
       "hono": "^4.12.16"
     },
     "autoprefixer": {
-      "postcss": "^8.5.13"
+      "postcss": "^8.5.28"
     },
     "next": {
-      "postcss": "^8.5.13"
-    },
-    "next@16.2.4": {
-      "postcss": "^8.5.13"
-    },
-    "next@16.2.6": {
-      "postcss": "^8.5.13"
-    },
-    "next@16.2.9": {
-      "postcss": "^8.5.13"
+      "postcss": "^8.5.28"
     },
     "resend": {
       "svix": "^1.92.2"

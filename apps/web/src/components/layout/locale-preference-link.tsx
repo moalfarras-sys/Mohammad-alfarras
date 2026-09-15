@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ComponentProps, MouseEvent } from "react";
 
 /** Persists locale choice for client-side UX hints. */
 export function LocalePreferenceLink(props: ComponentProps<typeof Link>) {
+  const router = useRouter();
   const { href, onClick, prefetch = false, ...rest } = props;
   return (
     <Link
@@ -21,7 +23,7 @@ export function LocalePreferenceLink(props: ComponentProps<typeof Link>) {
         onClick?.(e);
         if (!e.defaultPrevented && typeof href === "string" && !href.includes("?") && window.location.search) {
           e.preventDefault();
-          window.location.assign(`${href}${window.location.search}${window.location.hash}`);
+          router.push(`${href}${window.location.search}${window.location.hash}`);
         }
       }}
       {...rest}

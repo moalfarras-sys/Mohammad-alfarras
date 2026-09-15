@@ -72,6 +72,7 @@ _backups/
 **/focus*.xml
 **/view*.xml
 !apps/moplayer-android/app/src/main/res/layout/view_*.xml
+!apps/moplayer-pro-android/app/src/main/res/layout/view_*.xml
 **/window_dump*.xml
 **/home_*.png
 **/login_*.png

@@ -36,7 +36,7 @@ export const youtubeChannel = {
   },
 } as const;
 
-export const siteLastModified = "2026-06-13";
+export const siteLastModified = "2026-09-28";
 
 export const languageLevels = {
   en: [

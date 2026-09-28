@@ -73,6 +73,22 @@ test.describe("legacy public admin redirects", () => {
 });
 
 test.describe("search indexing signals", () => {
+  test("legacy static-export index files permanently redirect to canonical pages", async ({
+    request,
+  }) => {
+    const cases = [
+      ["/index.html", "/ar"],
+      ["/ar/index.html", "/ar"],
+      ["/en/index.html", "/en"],
+    ] as const;
+
+    for (const [path, destination] of cases) {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status()).toBe(308);
+      expect(response.headers().location).toBe(destination);
+    }
+  });
+
   test("sitemap only advertises final indexable public pages", async ({ request }) => {
     const response = await request.get("/sitemap.xml");
     expect(response.ok()).toBe(true);
@@ -90,7 +106,7 @@ test.describe("search indexing signals", () => {
       /<url>\s*<loc>https:\/\/moalfarras\.space\/en<\/loc>[\s\S]*?<\/url>/,
     )?.[0];
     expect(homeEntry).toBeTruthy();
-    expect(homeEntry).toContain("<lastmod>2026-06-13T00:00:00.000Z</lastmod>");
+    expect(homeEntry).toContain("<lastmod>2026-09-28T00:00:00.000Z</lastmod>");
   });
 
   test("localized pages publish self-canonical language alternates", async ({ request }) => {

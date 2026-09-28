@@ -21,6 +21,12 @@ export function proxy(request: NextRequest) {
   if (host === "www.moalfarras.space") {
     const url = request.nextUrl.clone();
     url.hostname = "moalfarras.space";
+    if (pathname === "/index.html") {
+      url.pathname = `/${defaultLocale}`;
+    } else {
+      const localizedIndex = pathname.match(/^\/(en|ar)\/index\.html$/);
+      if (localizedIndex) url.pathname = `/${localizedIndex[1]}`;
+    }
     return NextResponse.redirect(url, 308);
   }
 

@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@moalfarras/shared"],
   async redirects() {
     return [
+      // Retire legacy static-export entrypoints that Google still crawls.
+      // Keep them as permanent redirects instead of serving a soft/hard 404.
+      { source: "/index.html", destination: "/ar", permanent: true },
+      { source: "/:locale(en|ar)/index.html", destination: "/:locale", permanent: true },
       { source: "/:locale(en|ar)/admin", destination: adminAppUrl, permanent: true },
       { source: "/:locale(en|ar)/admin/:path*", destination: `${adminAppUrl}/website`, permanent: true },
       // Friendly Pro aliases -> canonical moplayer2 URL (protects old links and typos).

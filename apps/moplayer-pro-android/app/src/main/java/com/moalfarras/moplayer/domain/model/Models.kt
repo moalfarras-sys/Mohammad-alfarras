@@ -176,6 +176,11 @@ data class AppSettings(
     val hideChannelsWithoutLogo: Boolean = false,
     val searchHistory: List<String> = emptyList(),
     val languageTag: String = "system",
+    /**
+     * Navigation saved by the previous session, for restoring the last screen at start. Read once
+     * when settings collection starts; focus moves during the session do not update these fields
+     * (see AppSettingsRepository.readNavigationState for the live value).
+     */
     val lastSection: String = "HOME",
     val lastFocusState: String = "",
     val lastCategoryState: String = "",
@@ -187,6 +192,13 @@ data class AppSettings(
     val homeNotificationMessage: String = "",
     /** Optional yyyy-MM-dd target for a repurposable countdown (defaults to the World Cup schedule). */
     val homeNotificationTargetDate: String = "",
+)
+
+/** Where the user was: restorable section plus the encoded focus and category per section. */
+data class NavigationSnapshot(
+    val section: String = "HOME",
+    val focusState: String = "",
+    val categoryState: String = "",
 )
 
 @Immutable

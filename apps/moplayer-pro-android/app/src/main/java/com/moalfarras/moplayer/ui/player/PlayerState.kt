@@ -194,7 +194,7 @@ internal class PlaybackAttemptState(
     /** Bumped to load the current request into the Media3 player again (manual retry). */
     var media3ReloadNonce by mutableIntStateOf(0)
 
-    /** Latest VOD position, used when the player is rebuilt (fallback URL, surface, retry). */
+    /** Latest VOD position, used when the stream is opened again (fallback URL, engine switch, retry). */
     var resumePositionMs: Long = resumePositionMs
 }
 

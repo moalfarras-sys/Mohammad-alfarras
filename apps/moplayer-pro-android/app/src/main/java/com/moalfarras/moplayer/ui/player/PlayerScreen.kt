@@ -510,8 +510,10 @@ fun PlayerScreen(
             onProgress(item, ui.duration, ui.duration)
         }
         // An episode with a next one offers it (with a countdown) instead of the Replay controls.
-        ui.nextEpisodeDismissed = false
-        ui.showControls = ui.nextEpisode == null
+        // A cancel stands until Replay (the stream re-opened on return from Home ends again), and
+        // a next episode found only after this ending is not put over the controls.
+        if (ui.nextEpisode == null) ui.nextEpisodeDismissed = true
+        ui.showControls = ui.nextEpisodeDismissed
         session.lastInteraction = System.currentTimeMillis()
     }
 
@@ -715,7 +717,13 @@ fun PlayerScreen(
             isLive -> handleLibVlcFailure()
             // Ended before anything played: the stream could not be opened.
             !attempt.vodFirstFrameRendered && !attempt.audioOnly -> retryLibVlcVod(offlineAwareIssue(PlaybackIssueKind.GENERIC))
-            reachedEnd -> markVodEnded()
+            reachedEnd -> {
+                markVodEnded()
+                // Ended is not "wants to play": LibVLC would otherwise re-open the stream from the
+                // start on return from Home (under the next-episode card, saving over "watched").
+                session.vlcTransportSeq += 1
+                attempt.vlcTransport = VlcTransportCommand(session.vlcTransportSeq, play = false)
+            }
             // Cut off long before the known length: continue from the last position once.
             else -> retryLibVlcVod(PlaybackIssue(PlaybackIssueKind.VOD_INTERRUPTED))
         }
@@ -904,6 +912,8 @@ fun PlayerScreen(
             if (jumpToLiveEdge) exoPlayer.seekToDefaultPosition()
             Util.handlePlayButtonAction(exoPlayer)
         }
+        // Replay: its ending offers the next episode again.
+        if (attempt.vodEnded) ui.nextEpisodeDismissed = false
         attempt.vodEnded = false
     }
 
@@ -2189,7 +2199,6 @@ private fun rememberSubtitleImport(
                         isLive = false,
                         performancePolicy = performancePolicy,
                         startPositionMs = exoPlayer.currentPosition.coerceAtLeast(0),
-                        keepTrackOverrides = true,
                         externalSubtitle = externalSubtitleConfiguration(fileUri, importedLabel),
                     )
                     exoPlayer.prepare()
@@ -2210,7 +2219,7 @@ private fun rememberSubtitleImport(
 }
 
 /** Build a Media3 SubtitleConfiguration from an imported local subtitle file uri. */
-private fun externalSubtitleConfiguration(uri: Uri, label: String): MediaItem.SubtitleConfiguration {
+internal fun externalSubtitleConfiguration(uri: Uri, label: String): MediaItem.SubtitleConfiguration {
     val name = (uri.lastPathSegment ?: "").lowercase()
     val mime = when {
         name.endsWith(".vtt") -> MimeTypes.TEXT_VTT

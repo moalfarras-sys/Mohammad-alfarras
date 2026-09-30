@@ -121,6 +121,9 @@ internal class Media3Engine private constructor(
 ) {
     private var loads = 0
 
+    /** The channel or episode the player holds; its track picks stay while it is re-opened. */
+    private var loadedItem: AppMediaItem? = null
+
     /**
      * Replaces whatever is loaded with [request] for [item], without preparing it: the caller
      * prepares once the app is in the foreground and any LibVLC teardown finished. stop() first
@@ -134,7 +137,6 @@ internal class Media3Engine private constructor(
         isLive: Boolean,
         performancePolicy: PerformancePolicy,
         startPositionMs: Long,
-        keepTrackOverrides: Boolean = false,
         externalSubtitle: MediaItem.SubtitleConfiguration? = null,
     ) {
         loads += 1
@@ -142,14 +144,16 @@ internal class Media3Engine private constructor(
         // Before stop(): its IDLE event already belongs to the old load and is dropped.
         events.beginLoad(loadId)
         player.stop()
-        if (!keepTrackOverrides) {
+        if (loadedItem?.samePlayable(item) != true) {
             // Track picks, "subtitles off" and an imported subtitle's language belong to the
-            // previous channel or episode; the quality caps (live quality mode) stay.
+            // previous channel or episode; re-opening the same one (retry, other URL or format,
+            // subtitle import) keeps them. The quality caps (live quality mode) stay.
             player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
                 .clearOverrides()
                 .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
                 .setPreferredTextLanguage(null)
                 .build()
+            loadedItem = item
         }
         val liveProfile = liveProfileFor(context, performancePolicy)
         val mediaItem = buildPlayableMediaItem(request, item, isLive, liveProfile, loadId, externalSubtitle)

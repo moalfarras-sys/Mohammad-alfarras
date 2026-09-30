@@ -113,7 +113,10 @@ internal class PlayerItemUiState(isLive: Boolean, isFavorite: Boolean, positionM
     /** Episodes: the one after this, looked up when it starts (null: none, or not an episode). */
     var nextEpisode by mutableStateOf<AppMediaItem?>(null)
 
-    /** The viewer cancelled the next-episode countdown for the current ending. */
+    /**
+     * No next-episode card for the current ending: the viewer cancelled it, or no next episode was
+     * known when it ended. Replay clears it.
+     */
     var nextEpisodeDismissed by mutableStateOf(false)
 }
 

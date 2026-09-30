@@ -14,6 +14,8 @@ import androidx.media3.common.C
 import androidx.media3.session.MediaSession
 import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
+import com.moalfarras.moplayer.ui.i18n.player
 
 // The Media3 side of PlayerScreen, kept out of that (very large) composable: API 23's ART
 // verifier rejects oversized methods.
@@ -58,9 +60,10 @@ internal fun rememberMedia3Engine(
 /**
  * Loads the current request into the session's player when the item, the request (other format,
  * redirect, fallback URL), the player or [PlaybackAttemptState.media3ReloadNonce] changes. The
- * outgoing VOD position (either engine) is saved first. The start waits for a LibVLC player that is
- * still closing its connection, and never happens in the background: Media3LifecycleBinding
- * prepares the loaded stream when the app returns.
+ * outgoing VOD position (either engine) is saved first, and a subtitle the viewer imported for
+ * this VOD is loaded with it again. The start waits for a LibVLC player that is still closing its
+ * connection, and never happens in the background: Media3LifecycleBinding prepares the loaded
+ * stream when the app returns.
  */
 @Composable
 internal fun Media3LoadEffect(
@@ -76,13 +79,22 @@ internal fun Media3LoadEffect(
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val importedSubtitleLabel = LocalStrings.current.player.importedSubtitle
     DisposableEffect(engine, item.id, request, attempt.media3ReloadNonce) {
         // A scrub preview belongs to what played before; the new load starts at resumePositionMs.
         session.pendingSeekTarget = C.TIME_UNSET
         val cancelStart = if (engine == null) {
             {}
         } else {
-            engine.load(context, request, item, isLive, performancePolicy, if (isLive) C.TIME_UNSET else attempt.resumePositionMs)
+            engine.load(
+                context,
+                request,
+                item,
+                isLive,
+                performancePolicy,
+                if (isLive) C.TIME_UNSET else attempt.resumePositionMs,
+                ui.externalSubtitle?.takeUnless { isLive }?.let { externalSubtitleConfiguration(it, importedSubtitleLabel) },
+            )
             VlcCore.afterTeardowns(LIBVLC_TEARDOWN_WAIT_MS) {
                 if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) engine.player.prepare()
             }

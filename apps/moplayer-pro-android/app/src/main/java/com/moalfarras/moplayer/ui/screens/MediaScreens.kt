@@ -54,11 +54,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -107,12 +112,12 @@ import com.moalfarras.moplayer.ui.i18n.home
 import com.moalfarras.moplayer.ui.i18n.ltr
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 
 /** Focus must rest this long on a title before the full-screen backdrop follows it. */
 private const val BACKDROP_SETTLE_MS = 280L
@@ -1051,51 +1056,69 @@ private fun LivePreviewPane(item: MediaItem?, epg: LiveEpgSnapshot, modifier: Mo
             val logoWidth = maxWidth
             val logoHeight = maxWidth * 9f / 16f
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(tv.u(8f))) {
-                ChannelLogo(
-                    item = item,
-                    width = logoWidth,
-                    height = logoHeight,
-                    cornerRadius = tv.u(12f),
-                    monogramSize = (logoHeight.value * 0.34f).sp,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    LiveBadge(strings.badgeLive)
-                    if (item.serverOrder != Int.MAX_VALUE) {
-                        Text(
-                            h.channelNumber(item.serverOrder),
-                            color = Color.White.copy(alpha = 0.72f),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            maxLines = 1,
-                        )
+                // The details take whatever height is left above the hint and clip there, so on a
+                // 960x540dp TV a long EPG description can no longer push the hint off the pane.
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .clipToBounds()
+                        .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                        .drawWithContent {
+                            drawContent()
+                            // Fade the last lines out instead of cutting a line in half.
+                            drawRect(
+                                brush = Brush.verticalGradient(0.84f to Color.Black, 1f to Color.Transparent),
+                                blendMode = BlendMode.DstIn,
+                            )
+                        },
+                    verticalArrangement = Arrangement.spacedBy(tv.u(8f)),
+                ) {
+                    ChannelLogo(
+                        item = item,
+                        width = logoWidth,
+                        height = logoHeight,
+                        cornerRadius = tv.u(12f),
+                        monogramSize = (logoHeight.value * 0.34f).sp,
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LiveBadge(strings.badgeLive)
+                        if (item.serverOrder != Int.MAX_VALUE) {
+                            Text(
+                                h.channelNumber(item.serverOrder),
+                                color = Color.White.copy(alpha = 0.72f),
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1,
+                            )
+                        }
                     }
-                }
-                Text(
-                    item.title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (item.categoryName.isNotBlank()) {
                     Text(
-                        item.categoryName,
-                        color = visuals.accent,
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 1,
+                        item.title,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-                Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.10f)))
-                val current = epg.current
-                if (current != null) {
-                    EpgBlock(h.epgNow, current, h, nowMs = nowMs, showProgress = true, descriptionLines = 3)
-                    epg.next?.takeIf { it.title.isNotBlank() }?.let { next ->
-                        EpgBlock(h.epgNext, next, h, nowMs = nowMs, showProgress = false, descriptionLines = 0)
+                    if (item.categoryName.isNotBlank()) {
+                        Text(
+                            item.categoryName,
+                            color = visuals.accent,
+                            style = MaterialTheme.typography.labelLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
-                } else {
-                    Text(h.epgNone, color = Color.White.copy(alpha = 0.60f), style = MaterialTheme.typography.bodyMedium, maxLines = 3)
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.10f)))
+                    val current = epg.current
+                    if (current != null) {
+                        EpgBlock(h.epgNow, current, h, nowMs = nowMs, showProgress = true, descriptionLines = 2)
+                        epg.next?.takeIf { it.title.isNotBlank() }?.let { next ->
+                            EpgBlock(h.epgNext, next, h, nowMs = nowMs, showProgress = false, descriptionLines = 0)
+                        }
+                    } else {
+                        Text(h.epgNone, color = Color.White.copy(alpha = 0.60f), style = MaterialTheme.typography.bodyMedium, maxLines = 3)
+                    }
                 }
-                Spacer(Modifier.weight(1f))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Rounded.PlayArrow, null, tint = visuals.accent, modifier = Modifier.size(18.dp))
                     Text(strings.pressOkToPlay, color = Color.White.copy(alpha = 0.70f), style = MaterialTheme.typography.labelMedium, maxLines = 1)

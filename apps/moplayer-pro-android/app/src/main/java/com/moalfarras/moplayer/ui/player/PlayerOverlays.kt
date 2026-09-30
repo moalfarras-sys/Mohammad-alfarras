@@ -255,13 +255,15 @@ internal fun LiveZapOverlay(
         }
 
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.28f))) {
+            // Full safe-area height: on a 960x540dp TV the header card, tabs and group pills take
+            // ~200dp, and at 80% height the channel list had room for fewer than two rows.
             GlassPanel(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = SafeHorizontal, vertical = SafeVertical)
                     .widthIn(max = 1180.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f),
+                    .fillMaxHeight(),
                 radius = 24.dp,
                 highlighted = true,
                 glow = accent.copy(alpha = 0.14f),

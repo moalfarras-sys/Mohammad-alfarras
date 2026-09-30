@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import kotlin.math.cos
 import kotlin.math.sin
@@ -56,7 +57,7 @@ fun AnimatedLoginBackground(modifier: Modifier = Modifier) {
         )
 
         // Layer 2: Sweeping Studio Lights & Glass Refractions
-        Canvas(Modifier.fillMaxSize()) {
+        Canvas(Modifier.fillMaxSize().graphicsLayer()) {
             val w = size.width
             val h = size.height
             val accent = visuals.accent

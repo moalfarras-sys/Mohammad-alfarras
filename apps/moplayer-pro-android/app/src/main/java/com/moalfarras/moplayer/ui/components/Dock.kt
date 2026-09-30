@@ -1,37 +1,64 @@
 package com.moalfarras.moplayer.ui.components
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.ui.AppSection
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
+import com.moalfarras.moplayer.ui.theme.DOCK_BUTTON_HEIGHT
+import com.moalfarras.moplayer.ui.theme.DOCK_ROW_VERTICAL_PADDING
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 
 private data class DockItem(val section: AppSection, val label: String, val icon: ImageVector)
 
+/**
+ * Floating navigation dock. Entering it with the D-pad always lands on the current section
+ * (never on the geometrically nearest button). Exactly one pill is expanded at a time — the
+ * focused button while the dock has focus, otherwise the current section — so the centered dock
+ * never shifts while moving.
+ */
 @Composable
 fun BottomDock(
     selected: AppSection,
@@ -52,25 +79,13 @@ fun BottomDock(
         DockItem(AppSection.FAVORITES, s.navFavorites, Icons.Rounded.Favorite),
         DockItem(AppSection.SETTINGS, s.navSettings, Icons.Rounded.Settings),
     )
-
-    val frSearch = remember { FocusRequester() }
-    val frHome = remember { FocusRequester() }
-    val frLive = remember { FocusRequester() }
-    val frMovies = remember { FocusRequester() }
-    val frSeries = remember { FocusRequester() }
-    val frFav = remember { FocusRequester() }
-    val frSettings = remember { FocusRequester() }
-
+    val requesters = remember { AppSection.entries.associateWith { FocusRequester() } }
     fun focusRequesterFor(section: AppSection): FocusRequester = when (section) {
-        AppSection.SEARCH -> frSearch
-        AppSection.HOME -> frHome
-        AppSection.LIVE -> frLive
-        AppSection.MOVIES -> frMovies
-        AppSection.SERIES, AppSection.SERIES_DETAIL -> frSeries
-        AppSection.FAVORITES -> frFav
-        AppSection.SETTINGS -> frSettings
-        else -> frHome
+        AppSection.SERIES_DETAIL -> requesters.getValue(AppSection.SERIES)
+        AppSection.PLAYER -> requesters.getValue(AppSection.HOME)
+        else -> requesters.getValue(section)
     }
+    var dockHasFocus by remember { mutableStateOf(false) }
 
     LaunchedEffect(restoreFocusSection) {
         restoreFocusSection?.let {
@@ -84,7 +99,6 @@ fun BottomDock(
         modifier = modifier.fillMaxWidth(if (tv.isLowHeightLandscape) 0.68f else if (tv.isCompact) 0.86f else 0.72f),
         radius = 999.dp,
         highlighted = true,
-        blur = 20.dp,
         glow = visuals.accent.copy(alpha = 0.08f),
         contentAlignment = Alignment.Center,
     ) {
@@ -92,18 +106,26 @@ fun BottomDock(
             horizontalArrangement = Arrangement.spacedBy((6 * tv.factor).dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                    .then(if (tv.isCompact) Modifier.horizontalScroll(scrollState) else Modifier)
-                .padding(horizontal = ((if (tv.isCompact) 10f else 14f) * tv.factor).dp, vertical = (5 * tv.factor).dp),
+                .onFocusChanged { dockHasFocus = it.hasFocus }
+                .focusProperties {
+                    onEnter = { runCatching { focusRequesterFor(selected).requestFocus() } }
+                }
+                .focusGroup()
+                .then(if (tv.isCompact) Modifier.horizontalScroll(scrollState) else Modifier)
+                .padding(
+                    horizontal = ((if (tv.isCompact) 10f else 14f) * tv.factor).dp,
+                    vertical = (DOCK_ROW_VERTICAL_PADDING * tv.factor).coerceAtLeast(7f).dp,
+                ),
         ) {
             items.forEach { item ->
                 val active = when (item.section) {
                     AppSection.SERIES -> selected == AppSection.SERIES || selected == AppSection.SERIES_DETAIL
-                    AppSection.FAVORITES -> selected == AppSection.FAVORITES
                     else -> selected == item.section
                 }
                 DockButton(
                     item = item,
                     active = active,
+                    dockHasFocus = dockHasFocus,
                     factor = tv.factor,
                     focusRequester = focusRequesterFor(item.section),
                 ) { if (item.section == AppSection.SEARCH) onSearch() else onSelect(item.section) }
@@ -116,46 +138,50 @@ fun BottomDock(
 private fun DockButton(
     item: DockItem,
     active: Boolean,
+    dockHasFocus: Boolean,
     factor: Float,
     focusRequester: FocusRequester,
     onClick: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
-    val activeWidth = if (factor < 1f) 96f else 112f * factor
-    val idleWidth = if (factor < 1f) 42f else 48f * factor
-    val buttonHeight = if (factor < 1f) 42f else 46f * factor
+    var focused by remember { mutableStateOf(false) }
+    val expanded = if (dockHasFocus) focused else active
+    val expandedWidth = if (factor < 1f) 104f else 118f * factor
+    val idleWidth = if (factor < 1f) 44f else 48f * factor
+    val buttonHeight = if (factor < 1f) 42f else DOCK_BUTTON_HEIGHT * factor
     val width by animateDpAsState(
-        if (active) activeWidth.dp else idleWidth.dp,
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = 340f),
+        if (expanded) expandedWidth.dp else idleWidth.dp,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 420f),
         label = "dock-w",
-    )
-    val lift by animateDpAsState(
-        if (active) (-8 * factor).dp else 0.dp,
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = 340f),
-        label = "dock-lift",
-    )
-    val scale by animateFloatAsState(
-        if (active) 1.08f else 1f,
-        animationSpec = spring(dampingRatio = 0.60f, stiffness = 340f),
-        label = "dock-scale",
     )
 
     FocusGlow(
         modifier = Modifier
+            .onFocusChanged { focused = it.isFocused }
             .width(width)
-            .height(buttonHeight.dp)
-            .graphicsLayer { translationY = lift.toPx(); scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(999.dp)),
+            .height(buttonHeight.dp),
         cornerRadius = 999.dp,
         focusRequester = focusRequester,
         onClick = onClick,
+        focusedScale = FocusScale.Button,
+        glowElevation = 10.dp,
     ) {
+        val hasFocus = LocalFocusGlowFocused.current
+        val contentColor = when {
+            hasFocus -> Color(0xFF15110D)
+            active -> visuals.accent
+            else -> Color(0xCCFFFFFF)
+        }
         Box(
             modifier = Modifier
                 .matchParentSize()
+                .clip(RoundedCornerShape(999.dp))
                 .background(
-                    if (active) Brush.linearGradient(listOf(visuals.accent.copy(alpha = 0.30f), visuals.accent.copy(alpha = 0.12f)))
-                    else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                    when {
+                        hasFocus -> Color.White.copy(alpha = 0.94f)
+                        active -> visuals.accent.copy(alpha = 0.16f)
+                        else -> Color.Transparent
+                    },
                 ),
             contentAlignment = Alignment.Center,
         ) {
@@ -167,21 +193,22 @@ private fun DockButton(
                     Icon(
                         item.icon,
                         contentDescription = item.label,
-                        tint = if (active) visuals.accent else Color(0xCCFFFFFF),
-                        modifier = Modifier.size((18 * factor).dp),
+                        tint = contentColor,
+                        modifier = Modifier.size(maxOf(18f, 20 * factor).dp),
                     )
-                    if (active) {
-                        Spacer(Modifier.width((6 * factor).dp))
+                    if (expanded) {
+                        Spacer(Modifier.width(6.dp))
                         Text(
                             item.label,
-                            color = Color.White,
+                            color = contentColor,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.ExtraBold),
+                            maxLines = 1,
                         )
                     }
                 }
-                // Active indicator dot
-                if (active) {
-                    Box(Modifier.width((20 * factor).dp).height((3 * factor).dp).clip(RoundedCornerShape(999.dp)).background(visuals.accent)) {}
+                // Current-section indicator; stays on the active button while focus moves.
+                if (active && !hasFocus) {
+                    Box(Modifier.width(16.dp).height(3.dp).clip(RoundedCornerShape(999.dp)).background(visuals.accent))
                 }
             }
         }

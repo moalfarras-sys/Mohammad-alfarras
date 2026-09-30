@@ -22,39 +22,34 @@ import kotlin.math.sin
 // Animated, hand-drawn weather glyph (used by the Home hero weather cluster)
 // ────────────────────────────────────────────────────────────────────────
 
+/** 72 s is a common multiple of the 18 s spin, 1.5 s fall and 2.4 s flash periods. */
+private const val GLYPH_CYCLE_MS = 72_000
+
 @Composable
 fun WeatherGlyph(condition: String, color: Color, animate: Boolean, modifier: Modifier = Modifier) {
     // Skip the spinning/falling/flashing transitions entirely when motion is off so the
-    // glyph stops driving frames (before, the three transitions kept running even though
-    // their values were forced to 0, which kept the home screen awake).
-    val (spin, fall, flash) = if (animate) {
+    // glyph stops driving frames. When they run, their values are read only while drawing, so
+    // the glyph redraws each frame without recomposing.
+    val motion: State<Float>? = if (animate) {
         val transition = rememberInfiniteTransition(label = "glyph")
-        val rawSpin by transition.animateFloat(
-            initialValue = 0f,
-            targetValue = 360f,
-            animationSpec = infiniteRepeatable(tween(18_000, easing = LinearEasing)),
-            label = "spin",
-        )
-        val rawFall by transition.animateFloat(
+        transition.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)),
-            label = "fall",
+            animationSpec = infiniteRepeatable(tween(GLYPH_CYCLE_MS, easing = LinearEasing)),
+            label = "glyph-cycle",
         )
-        val rawFlash by transition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(2400, easing = LinearEasing)),
-            label = "flash",
-        )
-        Triple(rawSpin, rawFall, rawFlash)
     } else {
-        Triple(0f, 0f, 0f)
+        null
     }
 
     Canvas(modifier) {
         val w = size.width
         val h = size.height
+        // One shared cycle drives the three effects at their original periods (18 s / 1.5 s / 2.4 s).
+        val t = (motion?.value ?: 0f) * GLYPH_CYCLE_MS
+        val spin = if (motion == null) 0f else (t / 18_000f % 1f) * 360f
+        val fall = if (motion == null) 0f else t / 1_500f % 1f
+        val flash = if (motion == null) 0f else t / 2_400f % 1f
         when {
             condition.contains("thunder") || condition.contains("storm") -> drawStormGlyph(w, h, color, fall, flash)
             condition.contains("rain") || condition.contains("drizzle") || condition.contains("shower") -> drawRainGlyph(w, h, color, fall)

@@ -583,7 +583,8 @@ fun MediaPoster(
 
             val badge = when {
                 isLive -> "● ${strings.badgeLive}"
-                art == ArtState.Failed -> listOf(typeLabel(item.type, strings.home), quality).filter { it.isNotBlank() }.joinToString(" · ")
+                // One short label: "MOVIE · FHD" was truncated to "MOVIE ·" on 100dp phone posters.
+                art == ArtState.Failed -> quality.ifBlank { typeLabel(item.type, strings.home) }
                 else -> quality
             }
             if (badge.isNotBlank()) {

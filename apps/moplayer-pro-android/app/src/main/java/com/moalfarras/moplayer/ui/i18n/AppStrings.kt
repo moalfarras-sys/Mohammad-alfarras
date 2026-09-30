@@ -8,6 +8,8 @@ package com.moalfarras.moplayer.ui.i18n
 class AppStrings(
     // App shell
     val pressBackAgainToExit: String,
+    val preparingLibrary: String,
+    val preparingLibraryHint: String,
     val refreshChipHint: String,
     val syncOverlayHint: String,
     val errorTitle: String,
@@ -84,6 +86,8 @@ class AppStrings(
 
 internal val EnAppStrings = AppStrings(
     pressBackAgainToExit = "Press Back again to exit MoPlayer Pro",
+    preparingLibrary = "Preparing your library…",
+    preparingLibraryHint = "The first start after an update can take a few seconds.",
     refreshChipHint = "Your saved library stays playable while this refresh runs.",
     syncOverlayHint = "Saving the server on this device for a fast start and smooth browsing.",
     errorTitle = "Something went wrong",
@@ -155,6 +159,8 @@ internal val EnAppStrings = AppStrings(
 
 internal val ArAppStrings = AppStrings(
     pressBackAgainToExit = "اضغط رجوع مرة أخرى للخروج من MoPlayer Pro",
+    preparingLibrary = "جارٍ تجهيز مكتبتك…",
+    preparingLibraryHint = "قد يستغرق التشغيل الأول بعد التحديث بضع ثوانٍ.",
     refreshChipHint = "تبقى مكتبتك المحفوظة قابلة للتشغيل أثناء هذا التحديث.",
     syncOverlayHint = "نحفظ الخادم على هذا الجهاز لتشغيل أسرع وتصفّح سلس.",
     errorTitle = "حدث خطأ",

@@ -1,23 +1,24 @@
 package com.moalfarras.moplayer
 
-import android.os.Build
-import android.os.Bundle
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
+import android.os.Bundle
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,28 +45,13 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import com.moalfarras.moplayer.ui.i18n.AppLanguage
-import com.moalfarras.moplayer.ui.i18n.I18n
-import com.moalfarras.moplayer.ui.i18n.LocalStrings
-import com.moalfarras.moplayer.ui.i18n.app
-import com.moalfarras.moplayer.ui.i18n.ltr
-import com.moalfarras.moplayer.ui.i18n.settings
-import com.moalfarras.moplayer.ui.i18n.stringsFor
-import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -73,10 +59,21 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.moalfarras.moplayer.core.AppGraph
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.moalfarras.moplayer.core.Adaptive
+import com.moalfarras.moplayer.core.AppGraph
 import com.moalfarras.moplayer.core.isImportablePlaylistLink
 import com.moalfarras.moplayer.data.repository.DeviceStateStore
 import com.moalfarras.moplayer.data.repository.visibleAppBlock
@@ -88,11 +85,17 @@ import com.moalfarras.moplayer.ui.MainViewModel
 import com.moalfarras.moplayer.ui.components.BottomDock
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
+import com.moalfarras.moplayer.ui.i18n.AppLanguage
+import com.moalfarras.moplayer.ui.i18n.I18n
+import com.moalfarras.moplayer.ui.i18n.LocalStrings
+import com.moalfarras.moplayer.ui.i18n.app
+import com.moalfarras.moplayer.ui.i18n.ltr
+import com.moalfarras.moplayer.ui.i18n.settings
+import com.moalfarras.moplayer.ui.i18n.stringsFor
 import com.moalfarras.moplayer.ui.player.PlayerScreen
 import com.moalfarras.moplayer.ui.screens.AppBlockScreen
 import com.moalfarras.moplayer.ui.screens.AppUpdateEffects
 import com.moalfarras.moplayer.ui.screens.ExitDialog
-import com.moalfarras.moplayer.ui.screens.SubscriptionExpiredDialog
 import com.moalfarras.moplayer.ui.screens.FavoritesScreen
 import com.moalfarras.moplayer.ui.screens.HomeScreen
 import com.moalfarras.moplayer.ui.screens.LiveScreen
@@ -101,13 +104,13 @@ import com.moalfarras.moplayer.ui.screens.PosterScreen
 import com.moalfarras.moplayer.ui.screens.SearchScreen
 import com.moalfarras.moplayer.ui.screens.SeriesDetailsScreen
 import com.moalfarras.moplayer.ui.screens.SettingsScreen
+import com.moalfarras.moplayer.ui.screens.SubscriptionExpiredDialog
 import com.moalfarras.moplayer.ui.screens.rememberUpdateManager
 import com.moalfarras.moplayer.ui.shouldHandleLaunchIntent
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.MoTheme
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import com.moalfarras.moplayerpro.BuildConfig
-import androidx.paging.compose.LazyPagingItems
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -334,7 +337,23 @@ private fun MoPlayerApp(
                         .background(Color(0xFF0A0908)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(color = accent)
+                    // Normally gone in well under a second. The first start after an update runs
+                    // the one-time library migration (several seconds on big catalogs), so explain
+                    // the wait instead of leaving a bare spinner.
+                    var slowStart by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        delay(SLOW_START_HINT_MS)
+                        slowStart = true
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        CircularProgressIndicator(color = accent)
+                        AnimatedVisibility(visible = slowStart, enter = fadeIn()) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(appStrings.preparingLibrary, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                                Text(appStrings.preparingLibraryHint, color = Color.White.copy(alpha = 0.66f), style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
                 }
             }
             appBlock != null -> AppBlockScreen(
@@ -781,3 +800,6 @@ private fun NoticeOverlay(message: String, onDismiss: () -> Unit) {
 
 /** Routine errors dismiss themselves after this long. */
 private const val ERROR_BANNER_MS = 6_000L
+
+/** How long the startup splash may show a bare spinner before it explains the wait. */
+private const val SLOW_START_HINT_MS = 1_200L

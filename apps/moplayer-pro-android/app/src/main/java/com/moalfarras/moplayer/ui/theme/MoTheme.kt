@@ -173,7 +173,7 @@ private fun appTypography(scale: Float, arabic: Boolean, isTv: Boolean): Typogra
     val display = if (arabic) ArabicDisplayFamily else DisplayFamily
     val body = if (arabic) ArabicBodyFamily else BodyFamily
     // labelSmall is the smallest style in the app (badges, metadata); keep it at the 12sp TV floor.
-    val labelSmallSize = if (isTv) maxOf(11 * scale, TV_MIN_SECONDARY_SP * scale) else 11 * scale
+    val labelSmallSize = (if (isTv) TV_MIN_SECONDARY_SP else 11f) * scale
     return Typography(
         displayLarge   = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (52 * scale).sp, lineHeight = (56 * scale).sp),
         displayMedium  = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (42 * scale).sp, lineHeight = (46 * scale).sp),

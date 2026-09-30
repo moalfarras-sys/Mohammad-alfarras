@@ -1164,14 +1164,16 @@ private fun VodPreviewPane(item: MediaItem?, modifier: Modifier, showArt: Boolea
                         monogramSize = (maxWidth.value * 0.26f).sp,
                     )
                 } else {
+                    // Channel logos (favorites grid) are shown whole on a neutral stage, never cropped.
+                    val isLogo = item.type == ContentType.LIVE
                     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(visuals.surfaceHigh, visuals.surface))))
                     RemoteArtImage(
                         url = artUrl,
                         contentDescription = item.title,
-                        contentScale = ContentScale.Crop,
+                        contentScale = if (isLogo) ContentScale.Fit else ContentScale.Crop,
                         slotWidth = maxWidth,
                         slotHeight = maxHeight,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = if (isLogo) Modifier.fillMaxSize().padding(maxWidth * 0.16f) else Modifier.fillMaxSize(),
                         onFailed = { artFailed = true },
                     )
                 }

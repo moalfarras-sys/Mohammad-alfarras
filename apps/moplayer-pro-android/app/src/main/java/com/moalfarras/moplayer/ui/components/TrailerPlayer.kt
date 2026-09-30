@@ -151,6 +151,9 @@ private fun TrailerWebView(
     LaunchedEffect(webView, trailer?.youtubeId) {
         val web = webView ?: return@LaunchedEffect
         val id = trailer?.youtubeId
+        // Hide until the new request reports PLAYING: re-requesting a video that played before
+        // (back to the same title after a stop) must not reveal the stopped player right away.
+        playingId = null
         if (id == null) {
             web.evaluateJavascript("window.moStop&&moStop()", null)
             return@LaunchedEffect

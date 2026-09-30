@@ -151,6 +151,9 @@ fun LiveScreen(
     val categoryTitle = remember(categories, selectedCategoryId, h) {
         categories.firstOrNull { it.id == selectedCategoryId }?.name ?: h.allChannels
     }
+    // One-shot per screen entry: when the saved channel lies beyond the loaded pages, focus the
+    // first visible channel instead of leaving the screen without focus.
+    var entryFocusPending by remember { mutableStateOf(tv.isTv) }
 
     CompositionLocalProvider(LocalReduceMotion provides performancePolicy.reduceMotion) {
         Box(Modifier.fillMaxSize()) {
@@ -162,6 +165,7 @@ fun LiveScreen(
                     Modifier
                         .fillMaxSize()
                         .padding(horizontal = tv.contentPadding, vertical = tv.verticalSafePadding)
+                        .onFocusChanged { if (it.hasFocus) entryFocusPending = false }
                         .focusGroup(),
                     horizontalArrangement = Arrangement.spacedBy(tv.u(12f)),
                 ) {
@@ -176,6 +180,7 @@ fun LiveScreen(
                                 onPlay = onPlay,
                                 onFavorite = onFavorite,
                                 contentPadding = PaddingValues(horizontal = tv.u(4f), vertical = tv.u(6f)),
+                                entryFocus = entryFocusPending,
                             )
                         }
                     }
@@ -579,6 +584,7 @@ private fun PagingChannelList(
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
     contentPadding: PaddingValues = PaddingValues(vertical = 4.dp),
+    entryFocus: Boolean = false,
 ) {
     val tv = rememberTvScale()
     val listState = rememberLazyListState()
@@ -588,12 +594,19 @@ private fun PagingChannelList(
     }
     var handledRestoreKey by remember { mutableStateOf<String?>(null) }
     var pendingFocusIndex by remember { mutableStateOf<Int?>(null) }
+    val refreshDone = items.loadState.refresh is LoadState.NotLoading
     LaunchedEffect(restoreIndex, targetKey) {
         val index = restoreIndex ?: return@LaunchedEffect
         if (handledRestoreKey == targetKey) return@LaunchedEffect
         handledRestoreKey = targetKey
         listState.scrollToPivotIfNeeded(index)
         if (tv.isTv) pendingFocusIndex = index
+    }
+    // Entry fallback (same contract as PosterGrid): nothing restorable in the loaded pages ->
+    // focus the first visible channel once the real data is in.
+    LaunchedEffect(entryFocus, refreshDone, restoreIndex) {
+        if (!entryFocus || !refreshDone || restoreIndex != null || pendingFocusIndex != null) return@LaunchedEffect
+        if (items.itemCount > 0) pendingFocusIndex = listState.firstVisibleItemIndex.coerceIn(0, items.itemCount - 1)
     }
     CompositionLocalProvider(LocalBringIntoViewSpec provides rememberTvBringIntoViewSpec()) {
         LazyColumn(

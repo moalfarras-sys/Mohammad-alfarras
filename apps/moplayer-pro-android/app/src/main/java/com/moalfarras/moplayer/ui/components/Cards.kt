@@ -133,15 +133,29 @@ internal fun hasCatchup(value: String): Boolean {
     return v.isNotEmpty() && v != "0" && v != "false" && v != "no" && v != "none"
 }
 
-/** Shrinks TMDB poster URLs to w342; every other URL is returned unchanged (loaded directly). */
-internal fun String.optimizedPosterUrl(): String = trim()
-    .replace("/w600_and_h900_bestv2/", "/w342/")
-    .replace("/w780/", "/w342/")
-    .replace("/w500/", "/w342/")
-    .replace("/original/", "/w342/")
+/**
+ * Shrinks TMDB poster URLs to w342; every other URL is returned unchanged (loaded directly).
+ * Only TMDB hosts are rewritten: a provider path that happens to contain "/original/" or
+ * "/w500/" has no w342 variant.
+ */
+internal fun String.optimizedPosterUrl(): String {
+    val url = trim()
+    if (!isTmdbUrl(url)) return url
+    return url
+        .replace("/w600_and_h900_bestv2/", "/w342/")
+        .replace("/w780/", "/w342/")
+        .replace("/w500/", "/w342/")
+        .replace("/original/", "/w342/")
+}
 
 private fun isTmdbHost(host: String): Boolean =
     host.equals("image.tmdb.org", ignoreCase = true) || host.endsWith(".tmdb.org", ignoreCase = true)
+
+/** True for an http(s) URL served by TMDB's image CDN (the only host with sized path variants). */
+internal fun isTmdbUrl(url: String): Boolean {
+    if (!url.contains("tmdb.org", ignoreCase = true)) return false
+    return isTmdbHost(runCatching { URI(url.trim()).host.orEmpty() }.getOrDefault(""))
+}
 
 /**
  * The website image proxy URL for a provider image, or null when the image must not go through

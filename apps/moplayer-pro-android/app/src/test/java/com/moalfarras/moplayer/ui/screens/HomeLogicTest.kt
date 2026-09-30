@@ -152,6 +152,19 @@ class HomeLogicTest {
     }
 
     @Test
+    fun accountSummaryAcceptsExpiryInEpochSeconds() {
+        val now = 1_700_000_000_000L
+        val server = ServerProfile(
+            name = "x",
+            kind = LoginKind.XTREAM,
+            baseUrl = "http://h",
+            accountStatus = "Active",
+            expiryDate = now / 1000L + 10L * 86_400L + 1L,
+        )
+        assertTrue(accountSummary(server, en, now).contains("10 days left"))
+    }
+
+    @Test
     fun heroMetaForChannelsAndMovies() {
         val channel = item("c1", ContentType.LIVE).copy(categoryName = "Sports", serverOrder = 12)
         val meta = heroMeta(channel, en, EnStrings)

@@ -48,7 +48,10 @@ fun backdropUrlFrom(vararg items: MediaItem?, preferCachedPoster: Boolean = fals
 }
 
 /** TMDB "original" backdrops are 4K+ files; a full-bleed background never needs more than w1280. */
-internal fun String.downsizedBackdropUrl(): String = trim().replace("/original/", "/w1280/")
+internal fun String.downsizedBackdropUrl(): String {
+    val url = trim()
+    return if (isTmdbUrl(url)) url.replace("/original/", "/w1280/") else url
+}
 
 private const val BACKDROP_CROSSFADE_MS = 260
 private val CinematicFallback = Color(0xFF0B0908)

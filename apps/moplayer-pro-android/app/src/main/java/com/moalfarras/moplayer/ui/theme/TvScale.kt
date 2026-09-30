@@ -7,9 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moalfarras.moplayer.core.Adaptive
 
 @Immutable
@@ -41,15 +39,6 @@ data class TvScale(
 ) {
     /** A length designed on the 960x540dp TV canvas, normalized to this screen. */
     fun u(value: Float): Dp = (value * canvas).dp
-
-    /**
-     * A font size that follows [factor] but never drops below [minSp] on a TV, so secondary
-     * text stays readable from ~3 m. Phones keep the plain scaled value.
-     */
-    fun textSp(base: Float, minSp: Float = TV_MIN_SECONDARY_SP): TextUnit {
-        val scaled = base * factor
-        return if (isTv) maxOf(scaled, minSp * canvas).sp else scaled.sp
-    }
 }
 
 /** Smallest secondary text on the TV canvas (labels, metadata). Body text uses 14sp and up. */

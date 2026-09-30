@@ -258,7 +258,13 @@ fun HomeScreen(
     val highlightedItem = focusedHomeItem ?: rows.firstOrNull()?.items?.firstOrNull()
 
     var showAssistant by remember { mutableStateOf(false) }
-    var assistantChat by remember(h) { mutableStateOf(listOf(AiChatMessage(h.assistantIntro(allContent.size, football.isNotEmpty()), false))) }
+    // The intro follows the loaded rows: Home first composes before the paging rows arrive, so an
+    // intro frozen at that moment would keep announcing "0 items" for the whole visit.
+    var assistantConversation by remember(h) { mutableStateOf(emptyList<AiChatMessage>()) }
+    val hasMatches = football.isNotEmpty()
+    val assistantChat = remember(h, allContent.size, hasMatches, assistantConversation) {
+        listOf(AiChatMessage(h.assistantIntro(allContent.size, hasMatches), false)) + assistantConversation
+    }
     var assistantInput by remember { mutableStateOf("") }
     var surpriseSeed by remember { mutableIntStateOf(0) }
     var assistantMode by remember { mutableStateOf(AiSuggestionMode.SURPRISE) }
@@ -266,13 +272,13 @@ fun HomeScreen(
         val clean = message.trim()
         if (clean.isNotBlank()) {
             assistantMode = aiModeFor(clean)
-            assistantChat = assistantChat + AiChatMessage(clean, true) + AiChatMessage(aiReplyForQuery(clean, allContent, football, h), false)
+            assistantConversation = assistantConversation + AiChatMessage(clean, true) + AiChatMessage(aiReplyForQuery(clean, allContent, football, h), false)
         }
     }
     val onAssistantMode: (AiSuggestionMode) -> Unit = { mode ->
         assistantMode = mode
         surpriseSeed++
-        assistantChat = assistantChat + AiChatMessage(mode.label(h), true) + AiChatMessage(aiReplyForMode(mode, allContent, football, h), false)
+        assistantConversation = assistantConversation + AiChatMessage(mode.label(h), true) + AiChatMessage(aiReplyForMode(mode, allContent, football, h), false)
     }
 
     val contentBackdropUrl = remember(continueWatching, latestMovies, latestSeries) {
@@ -685,9 +691,11 @@ internal fun accountSummary(server: ServerProfile, h: HomeStrings, nowMs: Long):
         "banned", "disabled" -> h.accountDisabled
         else -> server.accountStatus.trim().isolate()
     }
+    // Same normalization as ServerProfile.subscriptionInactive: older rows may hold epoch seconds.
+    val expiryMs = if (server.expiryDate in 1 until 100_000_000_000L) server.expiryDate * 1000L else server.expiryDate
     return buildList {
         add(status)
-        if (server.expiryDate > 0) add(h.accountDaysLeft(((server.expiryDate - nowMs) / 86_400_000L).coerceAtLeast(0)))
+        if (expiryMs > 0) add(h.accountDaysLeft(((expiryMs - nowMs) / 86_400_000L).coerceAtLeast(0)))
         if (server.maxConnections > 0) add(h.accountConnections(server.activeConnections, server.maxConnections))
     }.joinToString("  ·  ")
 }

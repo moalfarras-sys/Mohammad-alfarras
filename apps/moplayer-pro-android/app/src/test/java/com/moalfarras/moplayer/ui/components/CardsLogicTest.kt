@@ -45,6 +45,19 @@ class CardsLogicTest {
     }
 
     @Test
+    fun sizeRewritesOnlyTouchTmdbUrls() {
+        // A provider CDN whose path happens to contain a TMDB size segment has no w342 variant.
+        val providerOriginal = "http://panel.example/images/original/cover.jpg"
+        assertEquals(providerOriginal, providerOriginal.optimizedPosterUrl())
+        assertEquals("http://panel.example/w500/cover.jpg", "http://panel.example/w500/cover.jpg".optimizedPosterUrl())
+        assertEquals(providerOriginal, providerOriginal.downsizedBackdropUrl())
+        assertEquals("https://image.tmdb.org/t/p/w1280/b.jpg", "https://image.tmdb.org/t/p/original/b.jpg".downsizedBackdropUrl())
+        // Unparseable provider URLs (spaces are common in M3U logos) pass through untouched.
+        assertEquals("http://panel.example/logo name.png", " http://panel.example/logo name.png ".optimizedPosterUrl())
+        assertFalse(isTmdbUrl("http://tmdb.org.evil.example/original/a.jpg"))
+    }
+
+    @Test
     fun proxyUrlOnlyForProviderImages() {
         val base = "https://moalfarras.space"
         val proxied = imageProxyUrl("http://panel.example/logo.png", base)

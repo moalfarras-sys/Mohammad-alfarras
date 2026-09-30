@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Resource shrinking must keep the license notices even before a screen references them. -->
+<!-- Settings > About reads the open-source notices by name (Resources.getIdentifier), which
+     resource shrinking cannot see; keep them in release builds. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:keep="@raw/third_party_notices" />

@@ -410,6 +410,8 @@ private fun MoPlayerApp(
                     onProgress = viewModel::updatePlaybackProgress,
                     relatedItems = relatedItems,
                     onPlayItem = viewModel::play,
+                    // Automatic switches to another feed of the same channel stay out of history.
+                    onSwitchVariant = viewModel::playWithoutHistory,
                     onTripleOk = { viewModel.toggleFavorite(playing) },
                     accent = accent,
                     preferredPlayer = state.settings.preferredPlayer,

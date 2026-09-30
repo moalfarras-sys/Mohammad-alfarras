@@ -4,15 +4,15 @@ Last updated: 2026-09-30
 
 ## Production state
 
-- Pull request [#35](https://github.com/moalfarras-sys/Mohammad-alfarras/pull/35) was merged into `main` as `f8d1444ffb1a65ddc2e7e9c040713bac4e023130`.
-- GitHub Actions run `36770984855` (Next App CI on `main`) and the pull-request run `36770707753` passed.
-- Vercel production deployments succeeded for the public site (`6769134929`) and admin (`6769116686`).
-- Live checks returned HTTP 200 for `/en`, `/ar`, both MoPlayer Pro product pages, `/en/activate?product=moplayer2`, the config API and `admin.moalfarras.space` (login).
-- Live MoPlayer Pro config and `/api/app/releases/latest` now return version `2.7.1`, version code `70`, 56,171,853 bytes and SHA-256 `380e29c1…74fd6`. The latest-download route answers 307 to the `moplayer-pro-v2.7.1` GitHub Release asset. MoPlayer Classic stays at `2.4.0` / `24`.
-- In-app update verified on the Android TV emulator: the published 2.7.0 showed "Version 2.7.1 is available", downloaded and verified the APK, asked once for the install permission, installed 2.7.1 and kept the account and settings.
+- Pull request [#36](https://github.com/moalfarras-sys/Mohammad-alfarras/pull/36) was merged into `main` as `1f30b1f0be14a2ad46231bd4cf47489e538ab920` (MoPlayer Pro 2.7.2 / code 71). The previous release, 2.7.1, came from [#35](https://github.com/moalfarras-sys/Mohammad-alfarras/pull/35) (`f8d1444`).
+- GitHub Actions run `36777213065` (Next App CI on `main`) and the pull-request run `36777022305` passed.
+- Vercel production deployments succeeded for the public site (`6770159388`) and admin (`6770167039`).
+- Live checks returned HTTP 200 for `/en`, `/ar`, `/en/apps/moplayer2`, `/en/activate?product=moplayer2`, the config API and `admin.moalfarras.space`.
+- Live MoPlayer Pro config now returns version `2.7.2`, version code `71`, 56,178,347 bytes and SHA-256 `8b5595ec…677a`, with `forceUpdate` false. The latest-download route answers 307 to the `moplayer-pro-v2.7.2` GitHub Release asset.
+- In-app update verified on the Android TV emulator: 2.7.1 (from its GitHub Release) showed "Version 2.7.2 is available", downloaded and verified the APK, installed 2.7.2, and reopened with the new Interface size setting.
 - The bilingual MoOS redesign is live. Its ISO remains unavailable in the live manifest because the configured Blob URL returns HTTP 403.
 
-## MoPlayer Pro 2.7.2 changes (prepared on `fix/moplayer-pro-2.7.2-tv-scale`)
+## MoPlayer Pro 2.7.2 changes
 
 - Reported on a real TV after 2.7.1: the interface was too large and group names were cut off. Reproduced on the emulator by simulating 240 dpi, 400 dpi and a 1.3 system font scale.
 - `ui/theme/TvDisplayScale.kt` lays the TV interface out on one grid on every TV (960x540dp design canvas widened by the viewer's interface size), and keeps the system font scale between 0.9 and 1.1. 240/320/400 dpi now render pixel-identically.

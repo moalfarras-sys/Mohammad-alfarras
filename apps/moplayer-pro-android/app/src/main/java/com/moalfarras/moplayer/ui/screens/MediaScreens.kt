@@ -267,9 +267,9 @@ fun PosterScreen(
     val backdrop = rememberSettledBackdrop(focused, firstItem, performancePolicy.enableFocusBackdropUpdates)
     // One-shot per screen entry: focus the grid (or the rail when the grid is empty) until
     // anything on the screen has focus. A category change never pulls focus off the rail.
-    var screenHasFocus by remember { mutableStateOf(false) }
+    // Cleared synchronously by the focus callback, so the grid can never fire its entry fallback
+    // after something (a restored poster, the rail) already took focus.
     var entryFocusPending by remember { mutableStateOf(tv.isTv) }
-    LaunchedEffect(screenHasFocus) { if (screenHasFocus) entryFocusPending = false }
 
     CompositionLocalProvider(LocalReduceMotion provides performancePolicy.reduceMotion) {
         Box(Modifier.fillMaxSize()) {
@@ -280,7 +280,7 @@ fun PosterScreen(
                     Modifier
                         .fillMaxSize()
                         .padding(horizontal = tv.contentPadding, vertical = tv.verticalSafePadding)
-                        .onFocusChanged { screenHasFocus = it.hasFocus }
+                        .onFocusChanged { if (it.hasFocus) entryFocusPending = false }
                         .focusGroup(),
                     horizontalArrangement = Arrangement.spacedBy(tv.u(12f)),
                 ) {
@@ -328,9 +328,9 @@ fun FavoritesScreen(
     val items = itemsFlow.collectAsLazyPagingItems()
     val firstItem = if (items.itemCount > 0) items.peek(0) else null
     val backdrop = rememberSettledBackdrop(focused, firstItem, performancePolicy.enableFocusBackdropUpdates)
-    var screenHasFocus by remember { mutableStateOf(false) }
+    // Cleared synchronously by the focus callback, so the grid can never fire its entry fallback
+    // after something (a restored poster, the rail) already took focus.
     var entryFocusPending by remember { mutableStateOf(tv.isTv) }
-    LaunchedEffect(screenHasFocus) { if (screenHasFocus) entryFocusPending = false }
 
     CompositionLocalProvider(LocalReduceMotion provides performancePolicy.reduceMotion) {
         Box(Modifier.fillMaxSize()) {
@@ -348,7 +348,7 @@ fun FavoritesScreen(
                     Modifier
                         .fillMaxSize()
                         .padding(horizontal = tv.contentPadding, vertical = tv.verticalSafePadding)
-                        .onFocusChanged { screenHasFocus = it.hasFocus }
+                        .onFocusChanged { if (it.hasFocus) entryFocusPending = false }
                         .focusGroup(),
                     horizontalArrangement = Arrangement.spacedBy(tv.u(12f)),
                 ) {

@@ -1865,6 +1865,7 @@ fun PlayerScreen(
                 },
                 onPlay = ::playFromPanel,
                 onClose = ::closeLiveZap,
+                onScrolled = { session.lastInteraction = System.currentTimeMillis() },
             )
         } else {
             VodSeekPreview(visible = session.seekPreviewVisible && !ui.showControls && !errorVisible, ui = ui, accent = accent)

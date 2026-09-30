@@ -141,7 +141,6 @@ class LivePanelTest {
         assertEquals(5, browser.channelCount)
         assertEquals(3, browser.selectedIndex)
         assertEquals("n4", browser.selectedChannel()?.id)
-        assertTrue(browser.isCurrent(3))
         assertEquals(mapOf("news" to 5, "sports" to 3, "" to 8), browser.counts)
     }
 

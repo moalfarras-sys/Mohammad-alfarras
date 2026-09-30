@@ -249,8 +249,6 @@ internal class LiveBrowser(private val source: LivePanelSource, private val scop
 
     fun rowAt(index: Int): AppMediaItem? = pages[index / LIVE_PANEL_PAGE_SIZE]?.getOrNull(index % LIVE_PANEL_PAGE_SIZE)
 
-    fun isCurrent(index: Int): Boolean = currentKey != null && keys.getOrNull(index) == currentKey
-
     /** Loads the pages around [index] that are not on hand yet, and forgets far-away ones. */
     fun ensureRows(index: Int) {
         val groupKeys = keys

@@ -213,10 +213,13 @@ internal fun LiveZapOverlay(
     onCategory: (String) -> Unit,
     onPlay: (AppMediaItem) -> Unit,
     onClose: () -> Unit,
+    /** The group or channel list scrolled (a touch fling, or following the D-pad): the panel's idle timer starts again. */
+    onScrolled: () -> Unit,
 ) {
     val strings = LocalStrings.current
     val ps = strings.player
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val currentOnScrolled by rememberUpdatedState(onScrolled)
 
     AnimatedVisibility(
         visible = miniVisible,
@@ -265,6 +268,10 @@ internal fun LiveZapOverlay(
         // Rows scrolled into view by touch are loaded like the ones around the D-pad selection.
         LaunchedEffect(browser, channelListState) {
             snapshotFlow { channelListState.firstVisibleItemIndex }.collect { first -> browser.ensureRows(first + 4) }
+        }
+        // Browsing a long list by touch is using the panel: it must not close under the finger.
+        LaunchedEffect(channelListState, groupListState) {
+            snapshotFlow { channelListState.firstVisibleItemIndex to groupListState.firstVisibleItemIndex }.collect { currentOnScrolled() }
         }
 
         // Only the panel's side is darkened; the picture stays visible on the other side.

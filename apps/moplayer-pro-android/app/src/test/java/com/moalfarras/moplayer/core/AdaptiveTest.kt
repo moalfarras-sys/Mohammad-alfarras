@@ -66,15 +66,18 @@ class AdaptiveTest {
     }
 
     @Test
-    fun autoAllows4kOnA4kTvWithA4kDecoder() {
-        val box = device(width = 3840, height = 2160)
+    fun autoAllows4kOnA4kTvWithA4kDecoderAndA256MbHeap() {
+        val box = device(width = 3840, height = 2160, memoryClassMb = 256, totalRamMb = 3_900)
         assertEquals(DevicePerformanceTier.MID, box.tier)
         assertEquals(2160, policy(box).maxVideoHeight)
         assertEquals("4K", box.displayQualityLabel)
-        // A 128 MB heap cannot buffer 4K segments safely: automatic stays at 1080p, Quality may still pick 4K.
-        val smallHeapBox = device(width = 3840, height = 2160, memoryClassMb = 128)
-        assertEquals(1080, policy(smallHeapBox).maxVideoHeight)
-        assertEquals(2160, policy(smallHeapBox, PerformanceMode.QUALITY).maxVideoHeight)
+        // A 2160 cap selects the 45 s live buffer, which 128/192 MB heaps cannot hold for 4K:
+        // automatic stays at 1080p there, Quality chosen by the user may still pick 4K.
+        listOf(128, 192).forEach { heap ->
+            val smallerHeapBox = device(width = 3840, height = 2160, memoryClassMb = heap)
+            assertEquals(1080, policy(smallerHeapBox).maxVideoHeight)
+            assertEquals(2160, policy(smallerHeapBox, PerformanceMode.QUALITY).maxVideoHeight)
+        }
     }
 
     @Test

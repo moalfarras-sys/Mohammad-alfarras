@@ -95,8 +95,10 @@ data class PerformancePolicy(
 private const val LOW_TOTAL_RAM_MB = 1_500
 private const val HIGH_TOTAL_RAM_MB = 3_500
 private const val LOW_MEMORY_CLASS_MB = 128
-private const val AUTO_4K_MIN_MEMORY_CLASS_MB = 192
 private const val HIGH_MEMORY_CLASS_MB = 256
+// A 2160 cap switches the live player to its 45 s buffer profile, and Media3 keeps those segments
+// in the Java heap (100+ MB for a 4K stream), which a 192 MB heap cannot hold next to the UI.
+private const val AUTO_4K_MIN_MEMORY_CLASS_MB = HIGH_MEMORY_CLASS_MB
 
 /**
  * UI tier from memory, CPU and decoder facts. Only genuinely weak hardware is LOW: low-RAM
@@ -224,8 +226,9 @@ object Adaptive {
             else -> settings.performanceMode
         }
         val deviceCap = info.videoCapHeight
-        // Media3 buffers segments in the Java heap; below a 192 MB heap automatic mode stays at
-        // 1080p so a 4K stream cannot exhaust it.
+        // Media3 buffers segments in the Java heap; below a 256 MB heap automatic mode stays at
+        // 1080p so a 4K stream cannot exhaust it (single-variant 4K streams still play, only
+        // HLS/DASH ladders are held at 1080p).
         val automaticCap = if (info.memoryClassMb >= AUTO_4K_MIN_MEMORY_CLASS_MB) deviceCap else minOf(1080, deviceCap)
         // Small heaps get smaller artwork so browsing big grids does not churn the image cache.
         val smallHeap = info.memoryClassMb <= LOW_MEMORY_CLASS_MB
@@ -266,7 +269,7 @@ object Adaptive {
                 backdropImageSize = if (smallHeap) Size(1280, 720) else Size(1920, 1080),
                 posterImageSize = if (smallHeap) Size(320, 480) else Size(420, 640),
                 liveBufferMs = 8_000,
-                // Automatic: 4K on a 4K TV whose decoder handles it. Balanced chosen by the user keeps 1080p.
+                // Automatic: 4K on a 4K TV whose decoder and heap handle it. Balanced chosen by the user keeps 1080p.
                 maxVideoHeight = if (automatic) automaticCap else minOf(1080, deviceCap),
             )
             PerformanceMode.QUALITY -> PerformancePolicy(
@@ -323,9 +326,11 @@ object Adaptive {
         return DisplayCapability(width.coerceAtLeast(1), height.coerceAtLeast(1))
     }
 
+    // Display.getHdrCapabilities() exists from API 24; minSdk is 23.
     @Suppress("DEPRECATION")
     private fun supportsHdr(display: Display?): Boolean =
-        display != null && runCatching { display.hdrCapabilities?.supportedHdrTypes?.isNotEmpty() == true }.getOrDefault(false)
+        display != null && Build.VERSION.SDK_INT >= 24 &&
+            runCatching { display.hdrCapabilities?.supportedHdrTypes?.isNotEmpty() == true }.getOrDefault(false)
 
     private val probedVideoMimes = listOf("video/hevc", "video/x-vnd.on2.vp9", "video/av01", "video/avc")
     private val standardSizes = listOf(7680 to 4320, 3840 to 2160, 1920 to 1080, 1280 to 720)

@@ -76,6 +76,7 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayer.core.PerformancePolicy
+import com.moalfarras.moplayer.core.PlaybackActivity
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
@@ -118,6 +119,10 @@ fun PlayerScreen(
     videoSizeMode: VideoSizeMode = VideoSizeMode.AUTO,
     onVideoSizeMode: (VideoSizeMode) -> Unit = {},
     performancePolicy: PerformancePolicy,
+    /** Automatic same-channel variant switches (recovery), kept apart from viewer zaps so they can skip history. */
+    onSwitchVariant: (AppMediaItem) -> Unit = onPlayItem,
+    /** Title of the programme on air for a live channel, from the local guide (null when unknown). */
+    liveNowTitle: suspend (AppMediaItem) -> String? = { null },
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -147,15 +152,25 @@ fun PlayerScreen(
     }
     // Where a cancelled player picker returns when it was opened from playback (null: leave the player).
     var routeBeforePicker by remember(item.id) { mutableStateOf<String?>(null) }
+    // A live channel whose other Xtream format worked earlier in this app session opens in that one.
+    val rememberedLiveFormat = remember(item.id, streamRequest) {
+        if (isLive) LiveFormatMemory.get(item.liveRecoveryKey()) else null
+    }
     var internalEngine by remember(item.id, route, streamRequest.uri, performancePolicy.mode) {
-        mutableStateOf(if (route == "auto") preferredAutoEngine(streamRequest, isLive, performancePolicy) else InternalPlaybackEngine.MEDIA3)
+        mutableStateOf(
+            if (route == "auto") preferredAutoEngine(rememberedLiveFormat ?: streamRequest, isLive, performancePolicy) else InternalPlaybackEngine.MEDIA3,
+        )
     }
     val session = remember { PlayerSessionState() }
     val ui = remember(item.id) {
         PlayerItemUiState(isLive, item.isFavorite, item.watchPositionMs.coerceAtLeast(0), item.watchDurationMs.coerceAtLeast(1L))
     }
     val attempt = remember(item.id, streamRequest.uri) {
-        PlaybackAttemptState(preferredLiveAutoEngine(streamRequest, performancePolicy), item.watchPositionMs.coerceAtLeast(0))
+        PlaybackAttemptState(
+            preferredLiveAutoEngine(rememberedLiveFormat ?: streamRequest, performancePolicy),
+            item.watchPositionMs.coerceAtLeast(0),
+            rememberedLiveFormat,
+        )
     }
     var selectedVideoSizeMode by remember(item.id, videoSizeMode) { mutableStateOf(videoSizeMode) }
     var liveQualityMode by remember(performancePolicy.mode) {
@@ -171,7 +186,7 @@ fun PlayerScreen(
         ui.launchMessage = null
         val resolvedRoute = route ?: return@LaunchedEffect
         if (resolvedRoute == "media3" || resolvedRoute == "auto") return@LaunchedEffect
-        val result = openExternalPlayer(context, streamRequest, item.title, resolvedRoute, ps)
+        val result = openExternalPlayer(context, streamRequest, item.title, resolvedRoute, ps, if (isLive) 0L else attempt.resumePositionMs)
         if (result.success) onBack(0, 0) else ui.launchMessage = result.message
     }
 
@@ -215,14 +230,16 @@ fun PlayerScreen(
         attempt.forceHlsForLiveRedirect,
         attempt.forceLibVlcForLive,
         attempt.vodFallbackRequest,
+        attempt.liveFormatRequest,
         isLive,
     ) {
         if (!isLive) {
             attempt.vodFallbackRequest ?: streamRequest
         } else {
+            val liveBase = attempt.liveFormatRequest ?: streamRequest
             // LibVLC follows redirects itself, so an immediate VLC start keeps the original link.
             val keepOriginalForImmediateVlc = attempt.forceLibVlcForLive && !attempt.forceHlsForLiveRedirect
-            val resolved = if (keepOriginalForImmediateVlc) streamRequest else attempt.resolvedLiveRequest ?: streamRequest
+            val resolved = if (keepOriginalForImmediateVlc) liveBase else attempt.resolvedLiveRequest ?: liveBase
             if (attempt.forceHlsForLiveRedirect) resolved.copy(mimeType = MimeTypes.APPLICATION_M3U8) else resolved
         }
     }
@@ -248,6 +265,8 @@ fun PlayerScreen(
     }
 
     fun markPlaying() {
+        if (isLive && !attempt.wasPlaying) LiveFormatMemory.remember(item.liveRecoveryKey(), attempt.liveFormatRequest)
+        attempt.liveFormatTrial = null
         attempt.wasPlaying = true
         attempt.liveOpeningGuard = false
         if (attempt.reconnectingSince > 0L) {
@@ -304,9 +323,69 @@ fun PlayerScreen(
         session.recoveryNoticeNonce++
         attempt.triedCompatibleLiveAlternative = true
         telemetry("same-channel variant: ${alternative.title}")
-        onPlayItem(alternative)
+        onSwitchVariant(alternative)
         return true
     }
+
+    /** Opens this channel from scratch in [request], one of its two Xtream formats. */
+    fun openLiveFormat(request: StreamRequest) {
+        // The original link is stored as "no override".
+        attempt.liveFormatRequest = request.takeUnless { it.uri == streamRequest.uri }
+        attempt.resolvedLiveRequest = null
+        attempt.forceHlsForLiveRedirect = false
+        attempt.liveRedirectHint = null
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.liveFirstFrameRendered = false
+        attempt.liveReadyWithoutVideoAt = 0L
+    }
+
+    /**
+     * The same channel once in its other Xtream container (.ts <-> .m3u8), before any engine or
+     * channel change. [cause] is what failed on the current link (null: it stalled).
+     */
+    fun swapLiveFormat(cause: PlaybackFailureClass?) {
+        val current = attempt.liveFormatRequest ?: streamRequest
+        val alternate = alternateLiveFormatRequest(current) ?: return
+        attempt.liveFormatSwapped = true
+        attempt.liveFormatTrial = liveFormatSwapTrial(current, cause)
+        openLiveFormat(alternate)
+        attempt.liveConsecutiveFailures = 0
+        telemetry("live format -> ${alternate.uri.safeStreamLabel()}")
+    }
+
+    /**
+     * The other format failed or stalled before a first frame too: the swap is over, and the link
+     * it replaced comes back when [reopen] (steps that open the same link again). Returns the trial.
+     */
+    fun endLiveFormatTrial(reopen: Boolean): LiveFormatSwapTrial? {
+        val trial = attempt.liveFormatTrial ?: return null
+        attempt.liveFormatTrial = null
+        if (reopen) {
+            openLiveFormat(trial.previous)
+            telemetry("other live format failed too; back to ${trial.previous.uri.safeStreamLabel()}")
+        }
+        return trial
+    }
+
+    /**
+     * The other format failed where the link before the swap had only stalled: that link gets
+     * another go and the stall watchdog carries on. With any other swap on trial, failure handlers
+     * continue from the failure the swap was made for (the trial's cause), without the swap.
+     */
+    fun retryStalledLinkAfterFailedSwap(): Boolean {
+        val trial = attempt.liveFormatTrial
+        if (trial == null || trial.cause != null) return false
+        endLiveFormatTrial(reopen = true)
+        return true
+    }
+
+    fun canSwapLiveFormatNow(httpStatus: Int?): Boolean = canSwapLiveFormat(
+        wasPlaying = attempt.wasPlaying,
+        alreadySwapped = attempt.liveFormatSwapped,
+        hasAlternate = alternateLiveFormatRequest(attempt.liveFormatRequest ?: streamRequest) != null,
+        httpStatus = httpStatus,
+    )
 
     fun retryMedia3WithAlternateSurface(): Boolean {
         if (!isLive || useLibVlc || attempt.media3SurfaceAttempt >= MEDIA3_SURFACE_RETRY_LIMIT) return false
@@ -388,16 +467,21 @@ fun PlayerScreen(
 
     fun handleLiveEnded() {
         telemetry("live stream ended by server")
+        if (retryStalledLinkAfterFailedSwap()) return
+        val trialCause = attempt.liveFormatTrial?.cause
         val step = liveErrorRecoveryStep(
-            failure = PlaybackFailureClass.TRANSIENT,
+            failure = trialCause ?: PlaybackFailureClass.TRANSIENT,
             wasPlaying = attempt.wasPlaying,
             reconnectWindowExpired = reconnectWindowExpired(),
-            startupRetryAvailable = attempt.startupEndedRetries < 1,
+            startupRetryAvailable = trialCause == null && attempt.startupEndedRetries < 1,
             canForceHls = false,
-            canSwitchEngine = !useLibVlc && !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest),
+            canSwitchEngine = !useLibVlc && !attempt.triedLibVlcForLive &&
+                isLibVlcSafeForRequest(playbackRequest) && !playbackRequest.hasHeadersLibVlcCannotSend(),
             canRetrySurface = false,
             permanentReconnectAvailable = false,
+            canSwapFormat = canSwapLiveFormatNow(null),
         )
+        endLiveFormatTrial(reopen = step.reopensSameLink())
         when (step) {
             LiveRecoveryStep.RECONNECT_IN_PLACE -> if (attempt.wasPlaying) {
                 startReconnect()
@@ -406,6 +490,7 @@ fun PlayerScreen(
                 attempt.isBuffering = true
                 attempt.reconnectNonce++
             }
+            LiveRecoveryStep.SWAP_FORMAT -> swapLiveFormat(PlaybackFailureClass.TRANSIENT)
             LiveRecoveryStep.SWITCH_ENGINE -> switchLiveEngine(toLibVlc = true)
             LiveRecoveryStep.SIBLING_VARIANT -> if (!switchToCompatibleAlternative()) showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
             else -> showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
@@ -469,6 +554,45 @@ fun PlayerScreen(
         }
     }
 
+    /** Media3 found no decoder for any audio track: LibVLC decodes it in software, otherwise say why it is silent. */
+    fun onAudioUnsupported(mimeTypes: List<String>) {
+        telemetry("no audio decoder: ${mimeTypes.joinToString()}")
+        val action = unsupportedAudioAction(
+            onLibVlc = useLibVlc,
+            libVlcCanPlay = (!isLive || route == "auto") &&
+                isLibVlcSafeForRequest(playbackRequest) &&
+                !playbackRequest.hasHeadersLibVlcCannotSend(),
+            triedLibVlc = if (isLive) attempt.triedLibVlcForLive else attempt.triedLibVlcForVod,
+            alreadyNotified = attempt.audioUnsupportedNotified,
+        )
+        when (action) {
+            UnsupportedAudioAction.SWITCH_ENGINE -> if (isLive) switchLiveEngine(toLibVlc = true) else switchVodEngine(toLibVlc = true)
+            UnsupportedAudioAction.NOTIFY -> {
+                attempt.audioUnsupportedNotified = true
+                session.recoveryNotice = ps.audioUnsupported
+                session.recoveryNoticeNonce++
+            }
+            UnsupportedAudioAction.NONE -> Unit
+        }
+    }
+
+    fun onLibVlcTimeline(timeMs: Long, lengthMs: Long, seekable: Boolean) {
+        attempt.libVlcSeekable = seekable
+        if (isLive) return
+        if (lengthMs > 0L) ui.duration = lengthMs
+        if (timeMs > 0L) {
+            attempt.resumePositionMs = timeMs
+            // A scrub preview or a just-committed seek owns the bar until LibVLC reports the new time.
+            if (session.pendingSeekTarget == C.TIME_UNSET && SystemClock.uptimeMillis() - session.lastSeekAt > 1_000L) {
+                ui.currentPosition = timeMs
+            }
+        }
+    }
+
+    fun saveLibVlcProgress() {
+        if (!isLive && ui.duration > 1L && attempt.resumePositionMs > 0L) onProgress(item, attempt.resumePositionMs, ui.duration)
+    }
+
     fun handleMedia3Error(error: PlaybackException) {
         session.userZapInFlight = false
         val httpStatus = httpStatusOf(error.cause)
@@ -479,22 +603,36 @@ fun PlayerScreen(
                 "cause=${error.cause?.javaClass?.simpleName.orEmpty()}; ${playbackRequest.uri.safeStreamLabel()}",
         )
         if (isLive) {
+            if (retryStalledLinkAfterFailedSwap()) return
+            val trialCause = attempt.liveFormatTrial?.cause
+            val stepFailure = trialCause ?: failure
             val step = liveErrorRecoveryStep(
-                failure = failure,
+                failure = stepFailure,
                 wasPlaying = attempt.wasPlaying,
                 reconnectWindowExpired = reconnectWindowExpired(),
                 startupRetryAvailable = false,
-                canForceHls = streamRequest.uri.hasLiveTsHint() &&
+                // A ".ts" (or extensionless) link that Media3 could not recognise is usually HLS.
+                canForceHls = trialCause == null &&
+                    (playbackRequest.uri.hasLiveTsHint() || playbackRequest.mimeType == null) &&
                     !attempt.forceHlsForLiveRedirect &&
                     attempt.resolvedLiveRequest == null &&
                     error.cause.hasUnrecognizedInputFormat(),
-                canSwitchEngine = !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest),
+                // LibVLC cannot send Cookie/Origin/bearer headers: for those streams it is only
+                // worth trying when the container or codec (not the server) was the problem.
+                canSwitchEngine = !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest) &&
+                    (stepFailure == PlaybackFailureClass.FORMAT || !playbackRequest.hasHeadersLibVlcCannotSend()),
                 canRetrySurface = attempt.media3SurfaceAttempt < MEDIA3_SURFACE_RETRY_LIMIT && isDecoderFailure(error.errorCode),
                 permanentReconnectAvailable = attempt.reconnectAttempt < LIVE_PERMANENT_RECONNECT_LIMIT,
+                // Another container cannot help a decoder or audio-output failure.
+                canSwapFormat = canSwapLiveFormatNow(httpStatus) &&
+                    !isDecoderFailure(error.errorCode) &&
+                    error.errorCode != PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED,
             )
+            endLiveFormatTrial(reopen = step.reopensSameLink())
             when (step) {
                 LiveRecoveryStep.RECONNECT_IN_PLACE -> startReconnect()
                 LiveRecoveryStep.FORCE_HLS -> applyLiveRedirect()
+                LiveRecoveryStep.SWAP_FORMAT -> swapLiveFormat(failure)
                 LiveRecoveryStep.SWITCH_ENGINE -> switchLiveEngine(toLibVlc = true)
                 LiveRecoveryStep.ALTERNATE_SURFACE -> retryMedia3WithAlternateSurface()
                 LiveRecoveryStep.SIBLING_VARIANT -> if (!switchToCompatibleAlternative()) showError(issue)
@@ -510,23 +648,39 @@ fun PlayerScreen(
         }
     }
 
+    /** LibVLC VOD: one in-place re-open from the last position after a mid-play error or cut-off. */
+    fun retryLibVlcVod(issue: PlaybackIssue) {
+        if (attempt.vodFirstFrameRendered && attempt.libVlcVodRetries < 1) {
+            attempt.libVlcVodRetries += 1
+            attempt.isBuffering = true
+            attempt.libVlcRetryNonce++
+            telemetry("libvlc vod re-open from ${attempt.resumePositionMs / 1000}s")
+        } else {
+            showError(issue)
+        }
+    }
+
     fun handleLibVlcFailure() {
         session.userZapInFlight = false
         telemetry("libvlc error; ${playbackRequest.uri.safeStreamLabel()}")
         if (!isLive) {
-            showError(offlineAwareIssue(PlaybackIssueKind.GENERIC))
+            retryLibVlcVod(offlineAwareIssue(PlaybackIssueKind.GENERIC))
             return
         }
+        if (retryStalledLinkAfterFailedSwap()) return
+        val trialCause = attempt.liveFormatTrial?.cause
         val step = liveErrorRecoveryStep(
-            failure = PlaybackFailureClass.TRANSIENT,
+            failure = trialCause ?: PlaybackFailureClass.TRANSIENT,
             wasPlaying = attempt.wasPlaying,
             reconnectWindowExpired = reconnectWindowExpired(),
-            startupRetryAvailable = attempt.liveConsecutiveFailures < 2,
+            startupRetryAvailable = trialCause == null && attempt.liveConsecutiveFailures < 2,
             canForceHls = false,
             canSwitchEngine = !attempt.triedMedia3ForLive && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true),
             canRetrySurface = false,
             permanentReconnectAvailable = false,
+            canSwapFormat = canSwapLiveFormatNow(null),
         )
+        endLiveFormatTrial(reopen = step.reopensSameLink())
         when (step) {
             LiveRecoveryStep.RECONNECT_IN_PLACE -> if (attempt.wasPlaying) {
                 startReconnect()
@@ -535,9 +689,21 @@ fun PlayerScreen(
                 attempt.isBuffering = true
                 attempt.libVlcRetryNonce++
             }
+            LiveRecoveryStep.SWAP_FORMAT -> swapLiveFormat(PlaybackFailureClass.TRANSIENT)
             LiveRecoveryStep.SWITCH_ENGINE -> switchLiveEngine(toLibVlc = false)
             LiveRecoveryStep.SIBLING_VARIANT -> if (!switchToCompatibleAlternative()) showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
             else -> showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
+        }
+    }
+
+    fun onLibVlcEnded(reachedEnd: Boolean) {
+        when {
+            isLive -> handleLibVlcFailure()
+            // Ended before anything played: the stream could not be opened.
+            !attempt.vodFirstFrameRendered && !attempt.audioOnly -> retryLibVlcVod(offlineAwareIssue(PlaybackIssueKind.GENERIC))
+            reachedEnd -> markVodEnded()
+            // Cut off long before the known length: continue from the last position once.
+            else -> retryLibVlcVod(PlaybackIssue(PlaybackIssueKind.VOD_INTERRUPTED))
         }
     }
 
@@ -556,9 +722,11 @@ fun PlayerScreen(
                 onPlayerError = ::handleMedia3Error,
                 onDurationChanged = { duration -> if (duration > 0) ui.duration = duration },
                 onTracksResolved = ::onTracksResolved,
+                onAudioUnsupported = ::onAudioUnsupported,
                 onLoadFailure = { finalUri, contentType, error ->
-                    if (isLive && streamRequest.uri.hasLiveTsHint() && error.hasUnrecognizedInputFormat()) {
-                        attempt.liveRedirectHint = redirectedStreamRequest(streamRequest, finalUri, contentType)
+                    val base = attempt.liveFormatRequest ?: streamRequest
+                    if (isLive && (base.uri.hasLiveTsHint() || base.mimeType == null) && error.hasUnrecognizedInputFormat()) {
+                        attempt.liveRedirectHint = redirectedStreamRequest(base, finalUri, contentType)
                     }
                 },
             ),
@@ -566,21 +734,33 @@ fun PlayerScreen(
     }
 
     // Compose disposes the previous key's effect (releasing the old player and closing its
-    // connection) before this body runs, so a zap never holds two provider connections.
+    // connection) before this body runs, so a zap never holds two provider connections. A LibVLC
+    // player that is still closing its stream in the background is waited for (bounded) too.
     DisposableEffect(exoPlayer) {
         // A scrub preview belongs to the player it was made on; the new one starts at resumePositionMs.
         session.pendingSeekTarget = C.TIME_UNSET
-        if (!useLibVlc) {
+        val cancelStart = if (useLibVlc) {
+            {}
+        } else {
+            // The item and play intent are set now, so Media3LifecycleBinding sees them; only the
+            // load waits. Home pressed meanwhile: the binding prepares on return, not in the background.
             exoPlayer.setMediaItem(
-                buildPlayableMediaItem(playbackRequest, item, isLive, performancePolicy.liveProfile()),
+                buildPlayableMediaItem(playbackRequest, item, isLive, liveProfileFor(context, performancePolicy)),
                 if (isLive) C.TIME_UNSET else attempt.resumePositionMs,
             )
             exoPlayer.playWhenReady = true
-            exoPlayer.prepare()
+            VlcCore.afterTeardowns(LIBVLC_TEARDOWN_WAIT_MS) {
+                if (isForeground()) exoPlayer.prepare()
+            }
         }
         onDispose {
-            if (!isLive && exoPlayer.duration > 0) {
-                onProgress(item, exoPlayer.currentPosition.coerceAtLeast(0), exoPlayer.duration)
+            cancelStart()
+            if (!isLive) {
+                if (useLibVlc) {
+                    saveLibVlcProgress()
+                } else if (exoPlayer.duration > 0) {
+                    onProgress(item, exoPlayer.currentPosition.coerceAtLeast(0), exoPlayer.duration)
+                }
             }
             exoPlayer.release()
         }
@@ -629,10 +809,12 @@ fun PlayerScreen(
     }
 
     LaunchedEffect(exoPlayer) {
-        if (isLive || useLibVlc) return@LaunchedEffect
+        if (isLive) return@LaunchedEffect
         while (true) {
             delay(12_000)
-            if (exoPlayer.duration > 0 && exoPlayer.currentPosition > 0) {
+            if (useLibVlc) {
+                saveLibVlcProgress()
+            } else if (exoPlayer.duration > 0 && exoPlayer.currentPosition > 0) {
                 onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
             }
         }
@@ -655,11 +837,25 @@ fun PlayerScreen(
         session.lastInteraction = System.currentTimeMillis()
     }
 
+    fun seekEngineTo(target: Long) {
+        if (useLibVlc) {
+            // LibVLC reports the new time a moment later; leaving right away must save the target.
+            attempt.resumePositionMs = target
+            session.vlc.seekTo(target)
+        } else {
+            exoPlayer.seekTo(target)
+        }
+    }
+
+    fun vodPositionMs(): Long = if (useLibVlc) attempt.resumePositionMs else exoPlayer.currentPosition.coerceAtLeast(0L)
+
+    fun vodDurationMs(): Long = if (useLibVlc) ui.duration.takeIf { it > 1L } ?: 0L else exoPlayer.duration.coerceAtLeast(0L)
+
     fun commitPendingSeek() {
         val target = session.pendingSeekTarget
         if (target == C.TIME_UNSET) return
         session.pendingSeekTarget = C.TIME_UNSET
-        if (!useLibVlc) exoPlayer.seekTo(target)
+        seekEngineTo(target)
     }
 
     /**
@@ -668,7 +864,8 @@ fun PlayerScreen(
      */
     fun seekVodBy(stepMs: Long, repeatCount: Int, revealControls: Boolean) {
         if (isLive) return
-        if (useLibVlc) {
+        if (useLibVlc && !attempt.libVlcSeekable) {
+            // Not seekable (yet): a server without range support, or the stream is still opening.
             session.showTransientMessage(ps.seekUnavailable)
             return
         }
@@ -681,14 +878,15 @@ fun PlayerScreen(
         }
         session.lastSeekDirection = direction
         session.lastSeekAt = now
-        val base = if (session.pendingSeekTarget != C.TIME_UNSET) session.pendingSeekTarget else exoPlayer.currentPosition
-        val knownDuration = exoPlayer.duration.takeIf { it > 0 } ?: ui.duration.takeIf { it > 1 }
+        val current = if (useLibVlc) ui.currentPosition else exoPlayer.currentPosition
+        val base = if (session.pendingSeekTarget != C.TIME_UNSET) session.pendingSeekTarget else current
+        val knownDuration = vodDurationMs().takeIf { it > 0 } ?: ui.duration.takeIf { it > 1 }
         val target = vodSeekTarget(base, stepMs, repeatCount, knownDuration)
         session.seekSessionMs += target - base.coerceAtLeast(0L)
         ui.currentPosition = target
         if (repeatCount == 0) {
             session.pendingSeekTarget = C.TIME_UNSET
-            exoPlayer.seekTo(target)
+            seekEngineTo(target)
         } else {
             session.pendingSeekTarget = target
             session.seekCommitNonce++
@@ -699,10 +897,12 @@ fun PlayerScreen(
     }
 
     fun seekToFraction(fraction: Float) {
-        val duration = exoPlayer.duration.takeIf { it > 0 } ?: return
+        val duration = vodDurationMs().takeIf { it > 0 } ?: return
+        if (useLibVlc && !attempt.libVlcSeekable) return
         val target = (duration * fraction).toLong().coerceIn(0L, (duration - 2_000L).coerceAtLeast(0L))
         session.pendingSeekTarget = C.TIME_UNSET
-        exoPlayer.seekTo(target)
+        session.lastSeekAt = SystemClock.uptimeMillis()
+        seekEngineTo(target)
         ui.currentPosition = target
         wakeControls()
     }
@@ -727,6 +927,8 @@ fun PlayerScreen(
         attempt.userPaused = false
         attempt.pausedAt = 0L
         if (useLibVlc) {
+            // Replay after the end starts over; a long live pause re-opens at the edge.
+            if (attempt.vodEnded) attempt.resumePositionMs = 0L
             if (jumpToLiveEdge || attempt.vodEnded) attempt.libVlcRetryNonce++ else sendVlcTransport(play = true)
         } else {
             if (jumpToLiveEdge) exoPlayer.seekToDefaultPosition()
@@ -738,7 +940,8 @@ fun PlayerScreen(
     fun togglePlayPause() {
         val resume = when {
             attempt.vodEnded || attempt.userPaused -> true
-            useLibVlc -> false
+            // Paused by something else (audio focus loss, Home): the next OK plays again.
+            useLibVlc -> !session.isPlaying && !attempt.isBuffering
             else -> Util.shouldShowPlayButton(exoPlayer)
         }
         if (resume) resumePlayback() else pausePlayback()
@@ -775,6 +978,9 @@ fun PlayerScreen(
         attempt.userPaused = false
         attempt.wasPlaying = false
         attempt.triedCompatibleLiveAlternative = false
+        attempt.liveFormatSwapped = false
+        attempt.liveFormatTrial = null
+        attempt.libVlcVodRetries = 0
         session.liveAutoRecoveryAttempts = 0
         session.liveAutoRecoveryVisited = emptySet()
         session.userZapInFlight = false
@@ -861,7 +1067,7 @@ fun PlayerScreen(
 
     fun leavePlayer() {
         commitPendingSeek()
-        if (isLive || useLibVlc) onBack(0, 0) else onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
+        if (isLive) onBack(0, 0) else onBack(vodPositionMs(), vodDurationMs())
     }
 
     /** VLC / MX / system chooser for the current stream; Back or Cancel in the picker returns here. */
@@ -894,6 +1100,10 @@ fun PlayerScreen(
             C.TRACK_TYPE_TEXT -> strings.playerSubtitles
             else -> strings.playerQuality
         }
+        if (useLibVlc) {
+            showLibVlcTrackDialog(context, title, trackType, session.vlc, ps) { session.showTransientMessage(ps.noOtherTracks) }
+            return
+        }
         runCatching {
             TrackSelectionDialogBuilder(context, title, exoPlayer, trackType)
                 .apply { if (trackType == C.TRACK_TYPE_TEXT) setShowDisableOption(true) }
@@ -924,9 +1134,12 @@ fun PlayerScreen(
         zapList.categoryId = categories[(index + direction).floorMod(categories.size)].id
     }
 
+    /** Left/Right walk the tabs in screen order and stop at the ends (no wrap from groups to favorites). */
     fun selectLiveOverlayTab(direction: Int) {
         val current = LiveOverlayTabs.indexOf(ui.liveOverlayTab).coerceAtLeast(0)
-        ui.liveOverlayTab = LiveOverlayTabs[(current + direction).floorMod(LiveOverlayTabs.size)]
+        val next = (current + direction).coerceIn(0, LiveOverlayTabs.lastIndex)
+        if (next == current) return
+        ui.liveOverlayTab = LiveOverlayTabs[next]
         ui.liveActionIndex = 0
     }
 
@@ -1300,6 +1513,7 @@ fun PlayerScreen(
     }
 
     PlayerSessionTimers(session)
+    PlaybackActivityBinding()
 
     LaunchedEffect(session.userZapInFlight) {
         if (session.userZapInFlight) {
@@ -1386,8 +1600,7 @@ fun PlayerScreen(
             when {
                 reconnecting -> liveReconnectDelayMs(attempt.reconnectAttempt) + LIVE_MIDSTREAM_STALL_MS
                 midStream -> LIVE_MIDSTREAM_STALL_MS
-                performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26 -> 3_500L
-                else -> 5_000L
+                else -> liveStartupStallDelayMs(performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26, useLibVlc)
             },
         )
         if (!isForeground() || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused) return@LaunchedEffect
@@ -1397,19 +1610,29 @@ fun PlayerScreen(
             return@LaunchedEffect
         }
         when {
-            !useLibVlc && shouldAutoUseLibVlc(playbackRequest) && !attempt.triedLibVlcForLive -> switchLiveEngine(toLibVlc = true)
+            // Some panels list both formats but only really serve one per channel.
+            canSwapLiveFormatNow(null) -> swapLiveFormat(cause = null)
+            // The steps below open the same link again: after a failed format swap, the listed one.
+            !useLibVlc && shouldAutoUseLibVlc(playbackRequest) && !attempt.triedLibVlcForLive -> {
+                endLiveFormatTrial(reopen = true)
+                switchLiveEngine(toLibVlc = true)
+            }
             useLibVlc && attempt.liveConsecutiveFailures < liveStallRecoveryLimit -> {
+                endLiveFormatTrial(reopen = true)
                 attempt.liveConsecutiveFailures += 1
                 attempt.libVlcRetryNonce++
             }
-            !useLibVlc && retryMedia3WithAlternateSurface() -> Unit
+            !useLibVlc && retryMedia3WithAlternateSurface() -> endLiveFormatTrial(reopen = true)
             !useLibVlc && attempt.liveConsecutiveFailures < liveStallRecoveryLimit -> {
                 attempt.liveConsecutiveFailures += 1
-                runCatching {
-                    exoPlayer.stop()
-                    exoPlayer.seekToDefaultPosition()
-                    exoPlayer.playWhenReady = true
-                    exoPlayer.prepare()
+                // Going back to the listed link rebuilds the player anyway.
+                if (endLiveFormatTrial(reopen = true) == null) {
+                    runCatching {
+                        exoPlayer.stop()
+                        exoPlayer.seekToDefaultPosition()
+                        exoPlayer.playWhenReady = true
+                        exoPlayer.prepare()
+                    }
                 }
             }
             else -> if (!switchToCompatibleAlternative()) showError(offlineAwareIssue(PlaybackIssueKind.UNSTABLE))
@@ -1508,35 +1731,27 @@ fun PlayerScreen(
             LibVlcPlayerView(
                 request = playbackRequest,
                 title = item.title,
+                isLive = isLive,
+                weakDevice = performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26,
+                maxVideoHeight = performancePolicy.maxVideoHeight,
+                // Explicit SD channels are usually 576i/480i broadcast feeds.
+                deinterlace = isLive && item.liveTitleQualityRank() == 1,
+                startPositionMs = libVlcStartPositionMs(attempt.resumePositionMs, ui.duration),
                 resizeMode = selectedVideoSizeMode.toResizeMode(),
                 retryNonce = attempt.libVlcRetryNonce,
                 transport = attempt.vlcTransport,
-                onBuffering = { buffering ->
-                    val rendered = if (isLive) attempt.liveFirstFrameRendered else attempt.vodFirstFrameRendered
-                    attempt.isBuffering = buffering || !(rendered || attempt.audioOnly)
-                },
-                onPlaying = {
-                    session.isPlaying = true
-                    val rendered = if (isLive) attempt.liveFirstFrameRendered else attempt.vodFirstFrameRendered
-                    attempt.isBuffering = !(rendered || attempt.audioOnly)
-                    attempt.playbackError = null
-                },
-                onVideoOutput = {
-                    onFirstFrame()
-                    attempt.isBuffering = false
-                    attempt.playbackError = null
-                    attempt.liveConsecutiveFailures = 0
-                },
-                onAudioOnly = {
-                    attempt.audioOnly = true
-                    attempt.isBuffering = false
-                    attempt.liveReadyWithoutVideoAt = 0L
-                    attempt.liveConsecutiveFailures = 0
-                    markPlaying()
-                },
-                onPaused = { session.isPlaying = false },
-                onEndReached = { if (isLive) handleLibVlcFailure() else markVodEnded() },
-                onError = ::handleLibVlcFailure,
+                controller = session.vlc,
+                callbacks = libVlcCallbacks(
+                    isLive = isLive,
+                    attempt = attempt,
+                    session = session,
+                    onFirstFrame = ::onFirstFrame,
+                    markPlaying = ::markPlaying,
+                    onTimeline = ::onLibVlcTimeline,
+                    onStopped = ::saveLibVlcProgress,
+                    onEnded = ::onLibVlcEnded,
+                    onError = ::handleLibVlcFailure,
+                ),
                 externalSubtitlePath = ui.externalSubtitle?.toString(),
                 externalSubtitleNonce = ui.externalSubtitleNonce,
                 modifier = Modifier.fillMaxSize(),
@@ -1609,6 +1824,7 @@ fun PlayerScreen(
                 currentItem = item,
                 currentStatus = liveStatus,
                 channelNumberOf = zapList.channelNumberOf,
+                nowTitleOf = liveNowTitle,
                 categories = zapList.categories,
                 selectedCategoryId = zapList.categoryId,
                 selectedTab = ui.liveOverlayTab,
@@ -1653,7 +1869,7 @@ fun PlayerScreen(
                 canCast = canCast,
                 accent = accent,
                 playPauseFocusRequester = playPauseFocusRequester,
-                onSeekToFraction = if (!isTv && !useLibVlc) ::seekToFraction else null,
+                onSeekToFraction = if (!isTv) ::seekToFraction else null,
                 onSeekBy = { step -> seekVodBy(step, 0, revealControls = true) },
                 onPlayPause = {
                     togglePlayPause()
@@ -1699,6 +1915,50 @@ fun PlayerScreen(
             )
         }
     }
+}
+
+/**
+ * LibVLC events mapped onto the attempt state. Built outside PlayerScreen so its lambdas do not
+ * grow that (very large) method: API 23's ART verifier rejects oversized methods.
+ */
+private fun libVlcCallbacks(
+    isLive: Boolean,
+    attempt: PlaybackAttemptState,
+    session: PlayerSessionState,
+    onFirstFrame: () -> Unit,
+    markPlaying: () -> Unit,
+    onTimeline: (timeMs: Long, lengthMs: Long, seekable: Boolean) -> Unit,
+    onStopped: () -> Unit,
+    onEnded: (reachedEnd: Boolean) -> Unit,
+    onError: () -> Unit,
+): LibVlcCallbacks {
+    fun rendered() = attempt.audioOnly || if (isLive) attempt.liveFirstFrameRendered else attempt.vodFirstFrameRendered
+    return LibVlcCallbacks(
+        onBuffering = { buffering -> attempt.isBuffering = buffering || !rendered() },
+        onPlaying = {
+            session.isPlaying = true
+            attempt.isBuffering = !rendered()
+            attempt.playbackError = null
+        },
+        onVideoOutput = {
+            onFirstFrame()
+            attempt.isBuffering = false
+            attempt.playbackError = null
+            attempt.liveConsecutiveFailures = 0
+        },
+        onAudioOnly = {
+            attempt.audioOnly = true
+            attempt.isBuffering = false
+            attempt.liveReadyWithoutVideoAt = 0L
+            attempt.liveConsecutiveFailures = 0
+            markPlaying()
+        },
+        onPaused = { session.isPlaying = false },
+        onTimeline = onTimeline,
+        onStopped = onStopped,
+        onEndReached = onEnded,
+        onError = onError,
+    )
 }
 
 /**
@@ -1772,7 +2032,9 @@ private fun Media3LifecycleBinding(
     val currentOnSaveProgress by rememberUpdatedState(onSaveProgress)
     DisposableEffect(lifecycleOwner, exoPlayer, enabled) {
         if (!enabled) return@DisposableEffect onDispose { }
-        var resumeOnStart = false
+        // A player set up while the app was in the background was not loaded (see the start
+        // effect in PlayerScreen): the first ON_START does it.
+        var resumeOnStart = !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_STOP -> {
@@ -1783,7 +2045,9 @@ private fun Media3LifecycleBinding(
                     exoPlayer.stop()
                 }
                 Lifecycle.Event.ON_START -> {
-                    if (resumeOnStart && exoPlayer.playbackState == Player.STATE_IDLE && exoPlayer.playerError == null) {
+                    if (resumeOnStart && exoPlayer.playbackState == Player.STATE_IDLE && exoPlayer.playerError == null &&
+                        exoPlayer.playWhenReady && exoPlayer.mediaItemCount > 0
+                    ) {
                         if (currentIsLive) exoPlayer.seekToDefaultPosition()
                         exoPlayer.playWhenReady = true
                         exoPlayer.prepare()
@@ -1795,6 +2059,31 @@ private fun Media3LifecycleBinding(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+}
+
+/**
+ * Tells background library/EPG sync that someone is watching, so it yields to playback: active
+ * while the player is open and the app is in the foreground. Not keyed on the item, so zapping
+ * never flips it.
+ */
+@Composable
+private fun PlaybackActivityBinding() {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        // addObserver replays ON_START when the screen is already started.
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> PlaybackActivity.setActive(true)
+                Lifecycle.Event.ON_STOP -> PlaybackActivity.setActive(false)
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            PlaybackActivity.setActive(false)
+        }
     }
 }
 
@@ -1888,7 +2177,13 @@ private fun rememberSubtitleImport(
                 runCatching {
                     val position = exoPlayer.currentPosition.coerceAtLeast(0)
                     exoPlayer.setMediaItem(
-                        buildPlayableMediaItem(request, item, isLive, performancePolicy.liveProfile(), externalSubtitleConfiguration(fileUri, importedLabel)),
+                        buildPlayableMediaItem(
+                            request,
+                            item,
+                            isLive,
+                            liveProfileFor(context, performancePolicy),
+                            externalSubtitleConfiguration(fileUri, importedLabel),
+                        ),
                         position,
                     )
                     exoPlayer.prepare()
@@ -1946,17 +2241,18 @@ private fun openExternalPlayer(
     title: String,
     route: String,
     strings: PlayerStrings,
+    positionMs: Long,
 ): ExternalLaunchResult {
-    val packageNames = when (route) {
-        "vlc" -> listOf("org.videolan.vlc")
-        "mx" -> listOf("com.mxtech.videoplayer.ad", "com.mxtech.videoplayer.pro")
-        else -> emptyList()
-    }
+    val packageNames = EXTERNAL_PLAYER_PACKAGES[route].orEmpty()
     val baseIntent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(Uri.parse(request.uri), "video/*")
+        // Players cannot take an Authorization header, but VLC, MX and Just Player honour URL credentials.
+        setDataAndType(Uri.parse(uriWithBasicCredentials(request.uri, request.headers)), "video/*")
         putExtra("title", title)
+        // Resume point, understood by VLC, MX Player and Just Player (milliseconds).
+        if (positionMs > 0L) putExtra("position", positionMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+        // MX Player's header contract (User-Agent, Referer, ...): alternating names and values.
+        externalPlayerHeaders(request.headers)?.let { putExtra("headers", it) }
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        request.headers.forEach { (key, value) -> putExtra(key, value) }
     }
     if (route == "external") {
         val chooser = Intent.createChooser(baseIntent, strings.chooseVideoPlayer).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -1965,16 +2261,22 @@ private fun openExternalPlayer(
             ExternalLaunchResult(true, strings.externalOpened)
         } catch (_: ActivityNotFoundException) {
             ExternalLaunchResult(false, strings.noExternalPlayer)
+        } catch (_: RuntimeException) {
+            // A local file:// link cannot leave the app on Android 7+ (FileUriExposedException).
+            ExternalLaunchResult(false, strings.externalFailed)
         }
     }
-    // Launch directly: with targetSdk 30+ and no <queries>, getPackageInfo() cannot see VLC/MX and
-    // throws even when they are installed, while startActivity() needs no package visibility and
-    // throws ActivityNotFoundException only when the player is really missing.
+    // Launch directly: startActivity() needs no package visibility and throws
+    // ActivityNotFoundException only when the player is really missing.
     packageNames.forEach { packageName ->
         try {
             context.startActivity(Intent(baseIntent).setPackage(packageName))
             return ExternalLaunchResult(true, strings.externalOpenedTitle.fill(title.isolate()))
-        } catch (_: Exception) {
+        } catch (_: ActivityNotFoundException) {
+            // Not installed: try the next package.
+        } catch (_: RuntimeException) {
+            // Not exported to us (SecurityException), or a local file:// link that Android 7+
+            // refuses to hand to another app (FileUriExposedException): try the next package.
         }
     }
     return ExternalLaunchResult(

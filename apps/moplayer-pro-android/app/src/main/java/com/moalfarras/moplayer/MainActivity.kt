@@ -416,6 +416,15 @@ private fun MoPlayerApp(
                     videoSizeMode = state.settings.videoSizeMode,
                     onVideoSizeMode = viewModel::setVideoSizeMode,
                     performancePolicy = performancePolicy,
+                    // Stored guide only (no network per row): the programme on air, if any.
+                    liveNowTitle = { channel ->
+                        state.servers.firstOrNull { it.id == channel.serverId }?.let { server ->
+                            AppGraph.get(context).iptvRepository.localLiveEpg(server, channel, limit = 1)
+                                ?.current
+                                ?.takeIf { it.startAt <= System.currentTimeMillis() }
+                                ?.title
+                        }
+                    },
                 )
             }
             else -> {

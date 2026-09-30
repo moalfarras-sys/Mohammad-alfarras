@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +64,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
@@ -73,6 +76,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -94,6 +98,7 @@ import com.moalfarras.moplayer.ui.i18n.isolate
 import com.moalfarras.moplayer.ui.i18n.ltr
 import com.moalfarras.moplayer.ui.i18n.player
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.util.Locale
 import kotlin.math.abs
@@ -102,7 +107,8 @@ import kotlin.math.abs
 private val SafeHorizontal = 48.dp
 private val SafeVertical = 27.dp
 
-internal enum class LiveOverlayTab { CHANNELS, GROUPS, VIDEO_SIZE, AUDIO, SUBTITLES, FAVORITES }
+/** In on-screen order: the groups column sits before (left of, in Arabic right of) the channels. */
+internal enum class LiveOverlayTab { GROUPS, CHANNELS, VIDEO_SIZE, AUDIO, SUBTITLES, FAVORITES }
 
 internal val LiveOverlayTabs = LiveOverlayTab.entries
 
@@ -173,6 +179,19 @@ private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
 
 // ── Live ─────────────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Fixed row heights (FocusGlow adds 2dp on each side) keep at least seven channels on screen on a
+ * 960x540dp TV: the list gets ~352dp and each row takes 40 + 4 + 4dp spacing.
+ */
+private val LiveChannelRowHeight = 40.dp
+private val LiveGroupRowHeight = 38.dp
+
+/**
+ * The live menu: a side panel (TiviMate-style) over the start of the picture, so the channel keeps
+ * playing on the other side. A one-line header with the current channel, the tab chips, and then
+ * either groups | channels (with the programme on air) or the current tab's actions. Everything
+ * is mirrored in Arabic. Keys are handled by PlayerScreen by index; rows are also tappable.
+ */
 @kotlin.OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun LiveZapOverlay(
@@ -183,6 +202,7 @@ internal fun LiveZapOverlay(
     currentItem: AppMediaItem,
     currentStatus: LiveCardStatus,
     channelNumberOf: (AppMediaItem) -> Int?,
+    nowTitleOf: suspend (AppMediaItem) -> String?,
     categories: List<LiveZapCategory>,
     selectedCategoryId: String,
     selectedTab: LiveOverlayTab,
@@ -202,6 +222,7 @@ internal fun LiveZapOverlay(
 ) {
     val strings = LocalStrings.current
     val ps = strings.player
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     AnimatedVisibility(
         visible = miniVisible,
@@ -227,170 +248,149 @@ internal fun LiveZapOverlay(
         modifier = Modifier.fillMaxSize(),
     ) {
         val channelListState = rememberLazyListState()
-        val categoryRowState = rememberLazyListState()
+        val groupListState = rememberLazyListState()
         val tabRowState = rememberLazyListState()
         val selectedCategoryIndex = categories.indexOfFirst { it.id == selectedCategoryId }
+        // Programme titles looked up while the panel is open (null: nothing in the guide).
+        val nowTitles = remember { HashMap<String, String?>() }
+        val listsActive = selectedTab == LiveOverlayTab.CHANNELS || selectedTab == LiveOverlayTab.GROUPS
 
-        // Keep the selected channel near the middle, and only move the list when it leaves a
-        // comfortable zone, so neighbours above and below stay visible while zapping.
-        LaunchedEffect(selectedIndex, items) {
-            if (selectedIndex !in items.indices) return@LaunchedEffect
-            val viewport = snapshotFlow { channelListState.layoutInfo.viewportSize.height }.first { it > 0 }
-            val info = channelListState.layoutInfo
-            val row = info.visibleItemsInfo.firstOrNull { it.index == selectedIndex }
-            val rowSize = row?.size ?: info.visibleItemsInfo.firstOrNull()?.size ?: 0
-            val comfortable = row != null && row.offset >= rowSize && row.offset + row.size <= viewport - rowSize
-            if (!comfortable) channelListState.scrollToItem(selectedIndex, -(viewport / 2 - rowSize / 2))
+        LaunchedEffect(selectedIndex, items, listsActive) {
+            if (listsActive) keepSelectionInView(channelListState, selectedIndex, items.size)
         }
-        LaunchedEffect(selectedCategoryIndex, categories.size) {
-            if (selectedCategoryIndex < 0) return@LaunchedEffect
-            val info = categoryRowState.layoutInfo
-            val fullyVisible = info.visibleItemsInfo.any {
-                it.index == selectedCategoryIndex && it.offset >= 0 && it.offset + it.size <= info.viewportEndOffset
-            }
-            if (!fullyVisible) categoryRowState.scrollToItem((selectedCategoryIndex - 1).coerceAtLeast(0))
+        LaunchedEffect(selectedCategoryIndex, categories.size, listsActive) {
+            if (listsActive) keepSelectionInView(groupListState, selectedCategoryIndex, categories.size)
         }
         LaunchedEffect(selectedTab) {
-            tabRowState.scrollToItem((selectedTab.ordinal - 1).coerceAtLeast(0))
+            tabRowState.scrollToItem((LiveOverlayTabs.indexOf(selectedTab) - 1).coerceAtLeast(0))
         }
 
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.28f))) {
-            // Full safe-area height: on a 960x540dp TV the header card, tabs and group pills take
-            // ~200dp, and at 80% height the channel list had room for fewer than two rows.
-            GlassPanel(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
+        // Only the panel's side is darkened; the picture stays visible on the other side.
+        val scrim = listOf(Color.Black.copy(alpha = 0.62f), Color.Black.copy(alpha = 0.30f), Color.Transparent)
+        Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(if (isRtl) scrim.reversed() else scrim))) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
                     .padding(horizontal = SafeHorizontal, vertical = SafeVertical)
-                    .widthIn(max = 1180.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                radius = 24.dp,
-                highlighted = true,
-                glow = accent.copy(alpha = 0.14f),
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.70f),
             ) {
-                Column(
-                    Modifier.fillMaxSize().padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                GlassPanel(
+                    modifier = Modifier.widthIn(max = 660.dp).fillMaxWidth().fillMaxHeight(),
+                    radius = 22.dp,
+                    highlighted = true,
+                    glow = accent.copy(alpha = 0.12f),
                 ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                    Column(
+                        Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        LiveInfoCard(
+                        LiveOverlayHeader(
                             item = currentItem,
                             channelNumber = channelNumberOf(currentItem),
                             status = currentStatus,
+                            counter = "${selectedIndex.coerceAtLeast(0) + 1}/${items.size.coerceAtLeast(1)}",
                             accent = accent,
-                            modifier = Modifier.weight(1f),
+                            showCloseButton = showCloseButton,
+                            onClose = onClose,
                         )
-                        Column(
-                            Modifier.width(200.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            horizontalAlignment = Alignment.End,
+                        LazyRow(
+                            state = tabRowState,
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Text(
-                                "${selectedIndex.coerceAtLeast(0) + 1}/${items.size.coerceAtLeast(1)}".ltr(),
-                                color = accent,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                            )
-                            Text(ps.liveMenu, color = Color(0xCCFFFFFF), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            Text(videoSizeLabel, color = Color(0x99FFFFFF), fontSize = 12.sp, maxLines = 1)
+                            items(LiveOverlayTabs, key = { it.name }) { tab ->
+                                LiveOverlayTabChip(
+                                    label = tab.label(strings),
+                                    selected = selectedTab == tab,
+                                    accent = accent,
+                                    onClick = { onTab(tab) },
+                                )
+                            }
                         }
-                        if (showCloseButton) {
-                            SmallControlButton(Icons.Rounded.Close, ps.close, accent, onClose)
-                        }
-                    }
-
-                    LazyRow(
-                        state = tabRowState,
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(LiveOverlayTabs, key = { it.name }) { tab ->
-                            LiveOverlayTabChip(
-                                label = tab.label(strings),
-                                selected = selectedTab == tab,
-                                accent = accent,
-                                onClick = { onTab(tab) },
-                            )
-                        }
-                    }
-
-                    LazyRow(
-                        state = categoryRowState,
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(categories, key = { it.id }) { category ->
-                            LiveCategoryPill(
-                                category = category,
-                                selected = category.id == selectedCategoryId,
-                                emphasized = selectedTab == LiveOverlayTab.GROUPS,
-                                accent = accent,
-                                onClick = { onCategory(category.id) },
-                            )
-                        }
-                    }
-
-                    Row(
-                        Modifier.weight(1f).fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    ) {
-                        Column(Modifier.weight(1f).fillMaxHeight()) {
-                            Text(
-                                categories.getOrNull(selectedCategoryIndex)?.name ?: ps.tabChannels,
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                            )
-                            if (items.isEmpty()) {
-                                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Text(ps.noChannelsInGroup, color = Color(0xCCFFFFFF), fontSize = 14.sp)
+                        if (listsActive) {
+                            Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                LazyColumn(
+                                    state = groupListState,
+                                    modifier = Modifier.weight(0.36f).fillMaxHeight(),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    contentPadding = PaddingValues(vertical = 4.dp),
+                                ) {
+                                    items(categories, key = { it.id }) { category ->
+                                        LiveGroupRow(
+                                            category = category,
+                                            selected = category.id == selectedCategoryId,
+                                            highlighted = category.id == selectedCategoryId && selectedTab == LiveOverlayTab.GROUPS,
+                                            accent = accent,
+                                            onClick = { onCategory(category.id) },
+                                        )
+                                    }
                                 }
-                            } else {
-                                CompositionLocalProvider(LocalBringIntoViewSpec provides PlayerEdgeBringIntoViewSpec) {
-                                    LazyColumn(
-                                        modifier = Modifier.weight(1f).fillMaxWidth(),
-                                        state = channelListState,
-                                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                                        contentPadding = PaddingValues(vertical = 6.dp),
-                                    ) {
-                                        itemsIndexed(items, key = { _, channel -> "${channel.serverId}-${channel.id}-${channel.type}" }) { index, channel ->
-                                            LiveChannelRow(
-                                                channel = channel,
-                                                number = channelNumberOf(channel),
-                                                selected = index == selectedIndex && selectedTab == LiveOverlayTab.CHANNELS,
-                                                current = channel.samePlayable(currentItem),
-                                                accent = accent,
-                                                onFocus = { onSelectIndex(index) },
-                                                onPlay = { onPlay(channel) },
-                                            )
+                                Box(Modifier.weight(0.64f).fillMaxHeight()) {
+                                    if (items.isEmpty()) {
+                                        Text(
+                                            ps.noChannelsInGroup,
+                                            color = Color(0xCCFFFFFF),
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.align(Alignment.Center),
+                                        )
+                                    } else {
+                                        CompositionLocalProvider(LocalBringIntoViewSpec provides PlayerEdgeBringIntoViewSpec) {
+                                            LazyColumn(
+                                                modifier = Modifier.fillMaxSize(),
+                                                state = channelListState,
+                                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                                contentPadding = PaddingValues(vertical = 4.dp),
+                                            ) {
+                                                itemsIndexed(items, key = { _, channel -> channel.zapRowKey() }) { index, channel ->
+                                                    val rowKey = channel.zapRowKey()
+                                                    val nowTitle by produceState(nowTitles[rowKey], rowKey) {
+                                                        if (!nowTitles.containsKey(rowKey)) {
+                                                            val title = lookUpNowTitle(nowTitleOf, channel)
+                                                            nowTitles[rowKey] = title
+                                                            value = title
+                                                        }
+                                                    }
+                                                    LiveChannelRow(
+                                                        channel = channel,
+                                                        number = channelNumberOf(channel),
+                                                        nowTitle = nowTitle,
+                                                        selected = index == selectedIndex,
+                                                        highlighted = index == selectedIndex && selectedTab == LiveOverlayTab.CHANNELS,
+                                                        current = channel.samePlayable(currentItem),
+                                                        accent = accent,
+                                                        onFocus = { onSelectIndex(index) },
+                                                        onPlay = { onPlay(channel) },
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
+                            Text(
+                                if (selectedTab == LiveOverlayTab.GROUPS) ps.hintGroups else ps.hintChannels,
+                                color = Color(0x99FFFFFF),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        } else {
+                            LiveOverlayActionPanel(
+                                title = selectedTab.label(strings),
+                                hint = when (selectedTab) {
+                                    LiveOverlayTab.VIDEO_SIZE -> ps.hintCurrent.fill(videoSizeLabel)
+                                    LiveOverlayTab.AUDIO -> ps.hintAudio
+                                    LiveOverlayTab.SUBTITLES -> ps.hintSubtitles
+                                    else -> if (favoriteMarked) ps.favoriteSaved else ps.favoriteNotSaved
+                                },
+                                actions = actions,
+                                selectedActionIndex = selectedActionIndex,
+                                accent = accent,
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                            )
                         }
-
-                        LiveOverlayActionPanel(
-                            title = selectedTab.label(strings),
-                            hint = when (selectedTab) {
-                                LiveOverlayTab.CHANNELS -> ps.hintChannels
-                                LiveOverlayTab.GROUPS -> ps.hintGroups
-                                LiveOverlayTab.VIDEO_SIZE -> ps.hintCurrent.fill(videoSizeLabel)
-                                LiveOverlayTab.AUDIO -> ps.hintAudio
-                                LiveOverlayTab.SUBTITLES -> ps.hintSubtitles
-                                LiveOverlayTab.FAVORITES -> if (favoriteMarked) ps.favoriteSaved else ps.favoriteNotSaved
-                            },
-                            actions = actions,
-                            selectedActionIndex = selectedActionIndex,
-                            accent = accent,
-                            modifier = Modifier.fillMaxHeight().width(280.dp),
-                        )
                     }
                 }
             }
@@ -398,9 +398,126 @@ internal fun LiveZapOverlay(
     }
 }
 
+private fun AppMediaItem.zapRowKey(): String = "$serverId-$id-$type"
+
+/** The guide lookup for one row; a failure just means no programme line. */
+private suspend fun lookUpNowTitle(nowTitleOf: suspend (AppMediaItem) -> String?, channel: AppMediaItem): String? =
+    try {
+        nowTitleOf(channel)?.takeIf { it.isNotBlank() }
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        null
+    }
+
+/**
+ * Scrolls only when the selection leaves a comfortable zone (one row from either edge), then puts
+ * it near the middle, so neighbours above and below stay visible while zapping through the list.
+ */
+private suspend fun keepSelectionInView(state: LazyListState, index: Int, count: Int) {
+    if (index !in 0 until count) return
+    val viewport = snapshotFlow { state.layoutInfo.viewportSize.height }.first { it > 0 }
+    val info = state.layoutInfo
+    val row = info.visibleItemsInfo.firstOrNull { it.index == index }
+    val rowSize = row?.size ?: info.visibleItemsInfo.firstOrNull()?.size ?: 0
+    val comfortable = row != null && row.offset >= rowSize && row.offset + row.size <= viewport - rowSize
+    if (!comfortable) state.scrollToItem(index, -(viewport / 2 - rowSize / 2))
+}
+
+/** Current channel in one line: live badge, number, name, signal or status, and the list position. */
+@Composable
+private fun LiveOverlayHeader(
+    item: AppMediaItem,
+    channelNumber: Int?,
+    status: LiveCardStatus,
+    counter: String,
+    accent: Color,
+    showCloseButton: Boolean,
+    onClose: () -> Unit,
+) {
+    val strings = LocalStrings.current
+    Row(
+        Modifier.fillMaxWidth().height(32.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LiveBadge(status, strings)
+        channelNumber?.let {
+            Text(formatChannelNumber(it).ltr(), color = accent, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        Text(
+            item.title.isolate(),
+            color = Color.White,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            liveStatusLine(status, strings),
+            color = if (status.hasError) Color(0xFFFFB4AB) else Color(0xDDE3BC78),
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 150.dp),
+        )
+        Text(counter.ltr(), color = accent, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+        if (showCloseButton) {
+            FocusGlow(cornerRadius = 999.dp, onClick = onClose, modifier = Modifier.size(32.dp)) {
+                Box(
+                    Modifier.fillMaxSize().clip(RoundedCornerShape(999.dp)).background(Color(0x2BFFFFFF)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Rounded.Close, strings.player.close, tint = Color.White, modifier = Modifier.size(18.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LiveBadge(status: LiveCardStatus, strings: Strings) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = when {
+            status.hasError -> Color(0xFFB3261E)
+            status.paused -> Color(0xFF4A5363)
+            else -> Color(0xFFE5243B)
+        },
+    ) {
+        Row(
+            Modifier.padding(horizontal = 9.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (status.paused) Icon(Icons.Rounded.Pause, null, tint = Color.White, modifier = Modifier.size(13.dp))
+            Text(liveBadgeLabel(status, strings), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+}
+
+private fun liveBadgeLabel(status: LiveCardStatus, strings: Strings): String = when {
+    status.paused -> strings.player.paused
+    status.opening || status.reconnecting -> strings.player.badgeLoading
+    else -> strings.badgeLive
+}
+
+private fun liveStatusLine(status: LiveCardStatus, strings: Strings): String {
+    val ps = strings.player
+    return when {
+        status.hasError -> ps.notAvailable
+        status.reconnecting -> if (status.waitingForNetwork) ps.waitingForNetwork else ps.reconnecting
+        status.opening -> strings.playerOpening
+        status.audioOnly -> listOf(ps.radio, status.signal).filter { it.isNotBlank() }.joinToString(" | ")
+        status.signal.isNotBlank() -> status.signal
+        else -> strings.liveNow
+    }
+}
+
 @Composable
 private fun LiveOverlayTabChip(label: String, selected: Boolean, accent: Color, onClick: () -> Unit) {
-    FocusGlow(cornerRadius = 999.dp, onClick = onClick, modifier = Modifier.height(40.dp)) {
+    FocusGlow(cornerRadius = 999.dp, onClick = onClick, modifier = Modifier.height(34.dp)) {
         Box(
             Modifier
                 .clip(RoundedCornerShape(999.dp))
@@ -410,7 +527,7 @@ private fun LiveOverlayTabChip(label: String, selected: Boolean, accent: Color, 
                     shape = RoundedCornerShape(999.dp),
                 )
                 .background(if (selected) accent.copy(alpha = 0.24f) else Color(0x18FFFFFF))
-                .padding(horizontal = 16.dp, vertical = 9.dp),
+                .padding(horizontal = 14.dp, vertical = 7.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -504,28 +621,42 @@ private fun LiveActionButton(label: String, selected: Boolean, highlighted: Bool
 }
 
 @Composable
-private fun LiveCategoryPill(
+private fun LiveGroupRow(
     category: LiveZapCategory,
     selected: Boolean,
-    emphasized: Boolean,
+    highlighted: Boolean,
     accent: Color,
     onClick: () -> Unit,
 ) {
-    FocusGlow(cornerRadius = 999.dp, onClick = onClick) {
+    val shape = RoundedCornerShape(10.dp)
+    FocusGlow(cornerRadius = 10.dp, onClick = onClick) {
         Row(
             Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .border(
-                    width = if (selected && emphasized) 2.dp else 0.dp,
-                    color = if (selected && emphasized) Color.White else Color.Transparent,
-                    shape = RoundedCornerShape(999.dp),
+                .fillMaxWidth()
+                .height(LiveGroupRowHeight)
+                .clip(shape)
+                .border(width = if (highlighted) 2.dp else 0.dp, color = if (highlighted) Color.White else Color.Transparent, shape = shape)
+                .background(
+                    when {
+                        highlighted -> accent.copy(alpha = 0.34f)
+                        selected -> accent.copy(alpha = 0.18f)
+                        else -> Color.Transparent
+                    },
                 )
-                .background(if (selected) accent.copy(alpha = 0.28f) else Color(0x22FFFFFF))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(category.name.isolate(), color = if (selected) Color.White else Color(0xE6FFFFFF), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                category.name.isolate(),
+                color = if (selected) Color.White else Color(0xE6FFFFFF),
+                fontSize = 14.sp,
+                lineHeight = 17.sp,
+                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
             Text(category.count.toString().ltr(), color = Color(0x99FFFFFF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
@@ -574,14 +705,7 @@ internal fun LiveInfoCard(
                 )
                 if (status != null) {
                     Text(
-                        when {
-                            status.hasError -> ps.notAvailable
-                            status.reconnecting -> if (status.waitingForNetwork) ps.waitingForNetwork else ps.reconnecting
-                            status.opening -> strings.playerOpening
-                            status.audioOnly -> listOf(ps.radio, status.signal).filter { it.isNotBlank() }.joinToString(" | ")
-                            status.signal.isNotBlank() -> status.signal
-                            else -> strings.liveNow
-                        },
+                        liveStatusLine(status, strings),
                         color = if (status.hasError) Color(0xFFFFB4AB) else Color(0xDDE3BC78),
                         fontSize = 13.sp,
                         maxLines = 1,
@@ -589,84 +713,81 @@ internal fun LiveInfoCard(
                     )
                 }
             }
-            if (status != null) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = when {
-                        status.hasError -> Color(0xFFB3261E)
-                        status.paused -> Color(0xFF4A5363)
-                        else -> Color(0xFFE5243B)
-                    },
-                ) {
-                    Row(
-                        Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        if (status.paused) Icon(Icons.Rounded.Pause, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                        Text(
-                            when {
-                                status.paused -> ps.paused
-                                status.opening || status.reconnecting -> ps.badgeLoading
-                                else -> strings.badgeLive
-                            },
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
-                    }
-                }
-            }
+            if (status != null) LiveBadge(status, strings)
         }
     }
 }
 
+/**
+ * One channel: number, logo, name and the programme on air. [highlighted] is the D-pad selection
+ * while the channel column is active (strong ring); [selected] alone keeps a soft mark on it
+ * while the groups column or another tab has the keys.
+ */
 @Composable
 private fun LiveChannelRow(
     channel: AppMediaItem,
     number: Int?,
+    nowTitle: String?,
     selected: Boolean,
+    highlighted: Boolean,
     current: Boolean,
     accent: Color,
     onFocus: () -> Unit,
     onPlay: () -> Unit,
 ) {
     val ps = LocalStrings.current.player
-    FocusGlow(cornerRadius = 12.dp, onFocused = onFocus, onClick = onPlay) {
+    val shape = RoundedCornerShape(10.dp)
+    FocusGlow(cornerRadius = 10.dp, onFocused = onFocus, onClick = onPlay) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .border(
-                    width = if (selected) 2.dp else 0.dp,
-                    color = if (selected) accent else Color.Transparent,
-                    shape = RoundedCornerShape(12.dp),
-                )
+                .height(LiveChannelRowHeight)
+                .clip(shape)
+                .border(width = if (highlighted) 2.dp else 0.dp, color = if (highlighted) Color.White else Color.Transparent, shape = shape)
                 .background(
                     when {
-                        selected -> accent.copy(alpha = 0.24f)
-                        current -> Color(0x22FFFFFF)
+                        highlighted -> accent.copy(alpha = 0.34f)
+                        selected -> accent.copy(alpha = 0.16f)
+                        current -> Color(0x1FFFFFFF)
                         else -> Color.Transparent
                     },
                 )
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 number?.let(::formatChannelNumber)?.ltr().orEmpty(),
-                color = if (selected) Color.White else Color(0xB3FFFFFF),
+                color = if (highlighted) Color.White else Color(0xB3FFFFFF),
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                modifier = Modifier.widthIn(min = 40.dp),
+                fontSize = 12.sp,
+                modifier = Modifier.widthIn(min = 34.dp),
             )
-            ChannelLogo(channel, Modifier.size(38.dp), accent)
-            Column(Modifier.weight(1f)) {
-                Text(channel.title.isolate(), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(channel.categoryName.ifBlank { ps.liveTvFallback }.isolate(), color = Color(0xA6FFFFFF), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            ChannelLogo(channel, Modifier.size(30.dp), accent)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                // Explicit line heights: the theme's body style (24sp lines) would not fit two lines in the row.
+                Text(
+                    channel.title.isolate(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    lineHeight = 17.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (!nowTitle.isNullOrBlank()) {
+                    Text(
+                        nowTitle.isolate(),
+                        color = Color(0xB3FFFFFF),
+                        fontSize = 12.sp,
+                        lineHeight = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             if (current) {
-                Text(ps.badgeNow, color = accent, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                Icon(Icons.Rounded.PlayArrow, ps.badgeNow, tint = accent, modifier = Modifier.size(18.dp))
             }
         }
     }
@@ -1198,6 +1319,12 @@ internal fun PlayerTouchLayer(
 internal fun PlayerRoutePicker(title: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
     val visuals = LocalMoVisuals.current
     val strings = LocalStrings.current
+    val context = LocalContext.current
+    val installedApps = remember(context) {
+        installedExternalPlayers { packageName ->
+            runCatching { context.packageManager.getPackageInfo(packageName, 0) }.isSuccess
+        }
+    }
     val autoFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(120)
@@ -1216,9 +1343,16 @@ internal fun PlayerRoutePicker(title: String, onSelect: (String) -> Unit, onDism
                     PlayerPillButton(strings.player.routeAuto, null, true, visuals.accent, autoFocus, Modifier.weight(1f)) { onSelect("auto") }
                     PlayerPillButton("Media3", null, false, visuals.accent, modifier = Modifier.weight(1f)) { onSelect("media3") }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PlayerPillButton("VLC", null, false, visuals.accent, modifier = Modifier.weight(1f)) { onSelect("vlc") }
-                    PlayerPillButton("MX", null, false, visuals.accent, modifier = Modifier.weight(1f)) { onSelect("mx") }
+                // Installed player apps only (the built-in VLC engine is part of Auto).
+                installedApps.chunked(2).forEach { routes ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        routes.forEach { app ->
+                            PlayerPillButton(externalPlayerLabel(app, strings.player), null, false, visuals.accent, modifier = Modifier.weight(1f)) {
+                                onSelect(app)
+                            }
+                        }
+                        if (routes.size == 1) Spacer(Modifier.weight(1f))
+                    }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PlayerPillButton(strings.playerGeneric, null, false, visuals.accent, modifier = Modifier.weight(1f)) { onSelect("external") }
@@ -1227,6 +1361,12 @@ internal fun PlayerRoutePicker(title: String, onSelect: (String) -> Unit, onDism
             }
         }
     }
+}
+
+private fun externalPlayerLabel(route: String, strings: PlayerStrings): String = when (route) {
+    "vlc" -> strings.vlcApp
+    "mx" -> strings.mxApp
+    else -> strings.justPlayerApp
 }
 
 @Composable

@@ -9,12 +9,9 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 object NetworkModule {
     val json: Json = Json {
@@ -29,7 +26,7 @@ object NetworkModule {
     // allows one allows the other. Only applied when the request has no User-Agent already,
     // so per-stream/player-set agents are never overridden.
     private const val INGEST_USER_AGENT =
-        "MoPlayerPro/${BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
+        "MoPlayerPro/${BuildConfig.VERSION_NAME} AndroidTV Media3/1.11 LibVLC/3.7"
 
     private val userAgentInterceptor = Interceptor { chain ->
         val request = chain.request()
@@ -93,9 +90,9 @@ object NetworkModule {
             // first byte, so leave headroom for Xtream on-demand channels to start.
             .readTimeout(20, TimeUnit.SECONDS)
             .apply {
-                if (Build.VERSION.SDK_INT < 26) {
-                    trustLegacyTvCertificates()
-                }
+                // Android 6-7.1 TV boxes ship stale CA stores: add the bundled Let's Encrypt roots
+                // (most IPTV panels use them) to the platform ones. Never trust everything.
+                if (Build.VERSION.SDK_INT < 26) trustBundledRoots()
             }
             .build()
     }
@@ -137,19 +134,6 @@ object NetworkModule {
             init(null, arrayOf(trustManager), null)
         }
         return sslSocketFactory(sslContext.socketFactory, trustManager)
-    }
-
-    private fun OkHttpClient.Builder.trustLegacyTvCertificates(): OkHttpClient.Builder {
-        val trustManager = object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
-            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
-            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-        }
-        val sslContext = SSLContext.getInstance("TLS").apply {
-            init(null, arrayOf(trustManager), SecureRandom())
-        }
-        return sslSocketFactory(sslContext.socketFactory, trustManager)
-            .hostnameVerifier { _, _ -> true }
     }
 
     private fun retrofit(baseUrl: String, client: OkHttpClient = okHttp): Retrofit =

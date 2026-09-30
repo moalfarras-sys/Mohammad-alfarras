@@ -156,11 +156,27 @@ class PlayerScreenLiveTest {
     }
 
     @Test
+    fun extensionlessNetworkLinksCanStillFallBackToVlc() {
+        // Xtream output=ts short links, tokenised restreams and bare M3U lines: LibVLC probes them.
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("http://host:8080/user/pass/12345")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://cdn.test/play?token=abc")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("udp://@239.0.0.1:1234")))
+        assertFalse(isVlcFriendlyContainer(parseStreamRequest("file:///sdcard/x")))
+        assertFalse(isVlcFriendlyContainer(parseStreamRequest("content://media/external/video/1")))
+        assertEquals("mmsh", "MMSH://radio.test/stream".networkScheme())
+    }
+
+    @Test
     fun legacyContainersStartWithVlcForFasterFallback() {
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/legacy.flv")))
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/archive.avi")))
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/dvd.vob")))
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("rtmp://example.com/live/1")))
+        // Schemes Media3 cannot open at all.
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("rtp://239.0.0.1:5004")))
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("mms://radio.test/live")))
+        assertFalse(shouldStartWithLibVlc(parseStreamRequest("udp://@239.0.0.1:1234")))
+        assertFalse(shouldStartWithLibVlc(parseStreamRequest("http://host:8080/user/pass/12345")))
     }
 
     @Test
@@ -288,7 +304,7 @@ class PlayerScreenLiveTest {
         val profile = livePlaybackProfile(
             isPerformanceMode = true,
             policyLiveBufferMs = 6_000,
-            maxVideoHeight = 720,
+            largeBuffer = true,
             sdkInt = 36,
         )
 
@@ -305,17 +321,27 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun livePlaybackProfileKeepsRoomFor4kQualityMode() {
+    fun livePlaybackProfileKeepsRoomForLargeBuffersOnRoomyHeaps() {
         val profile = livePlaybackProfile(
             isPerformanceMode = false,
             policyLiveBufferMs = 10_000,
-            maxVideoHeight = 2160,
+            largeBuffer = true,
             sdkInt = 36,
         )
 
         assertTrue(profile.maxBufferMs >= 40_000)
         assertTrue(profile.targetOffsetMs >= 8_000L)
         assertTrue(profile.maxOffsetMs >= 24_000L)
+    }
+
+    @Test
+    fun theLargeLiveBufferFollowsTheHeapNotThe4kDisplayCap() {
+        // A 4K TV box with a 192 MB heap no longer gets the 45 s profile.
+        assertFalse(hasRoomForLargeLiveBuffer(memoryClassMb = 192, isLowRam = false))
+        assertTrue(hasRoomForLargeLiveBuffer(memoryClassMb = 256, isLowRam = false))
+        assertFalse(hasRoomForLargeLiveBuffer(memoryClassMb = 512, isLowRam = true))
+        val normal = livePlaybackProfile(isPerformanceMode = false, policyLiveBufferMs = 10_000, largeBuffer = false, sdkInt = 36)
+        assertTrue(normal.maxBufferMs <= 30_000)
     }
 
     @Test

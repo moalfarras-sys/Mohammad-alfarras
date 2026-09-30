@@ -179,9 +179,12 @@ private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
 
 // ── Live ─────────────────────────────────────────────────────────────────────────────────────
 
-/** Fixed row heights keep at least seven channels on screen on a 960x540dp TV. */
-private val LiveChannelRowHeight = 44.dp
-private val LiveGroupRowHeight = 40.dp
+/**
+ * Fixed row heights (FocusGlow adds 2dp on each side) keep at least seven channels on screen on a
+ * 960x540dp TV: the list gets ~352dp and each row takes 40 + 4 + 4dp spacing.
+ */
+private val LiveChannelRowHeight = 40.dp
+private val LiveGroupRowHeight = 38.dp
 
 /**
  * The live menu: a side panel (TiviMate-style) over the start of the picture, so the channel keeps
@@ -369,6 +372,7 @@ internal fun LiveZapOverlay(
                                 if (selectedTab == LiveOverlayTab.GROUPS) ps.hintGroups else ps.hintChannels,
                                 color = Color(0x99FFFFFF),
                                 fontSize = 12.sp,
+                                lineHeight = 16.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -647,6 +651,7 @@ private fun LiveGroupRow(
                 category.name.isolate(),
                 color = if (selected) Color.White else Color(0xE6FFFFFF),
                 fontSize = 14.sp,
+                lineHeight = 17.sp,
                 fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -760,16 +765,25 @@ private fun LiveChannelRow(
             )
             ChannelLogo(channel, Modifier.size(30.dp), accent)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                // Explicit line heights: the theme's body style (24sp lines) would not fit two lines in the row.
                 Text(
                     channel.title.isolate(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
+                    lineHeight = 17.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (!nowTitle.isNullOrBlank()) {
-                    Text(nowTitle.isolate(), color = Color(0xB3FFFFFF), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        nowTitle.isolate(),
+                        color = Color(0xB3FFFFFF),
+                        fontSize = 12.sp,
+                        lineHeight = 15.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
             if (current) {

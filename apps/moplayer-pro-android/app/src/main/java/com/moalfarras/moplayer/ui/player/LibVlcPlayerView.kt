@@ -245,29 +245,22 @@ internal fun LibVlcPlayerView(
         }
     }
 
-    // The video view is attached once and stays attached across streams and retries.
-    DisposableEffect(player, videoTexture) {
-        val p = player
-        val texture = videoTexture
-        state.texture = texture
-        if (p != null && texture != null && !state.released.get() && state.attachedTexture !== texture) {
-            val attached = runCatching {
-                if (state.attachedTexture != null) p.vlcVout.detachViews()
-                p.vlcVout.setVideoView(texture)
-                p.vlcVout.attachViews()
-            }.isSuccess
-            state.attachedTexture = if (attached) texture else null
-            state.lastSizing = null
-            if (attached) applySizing(force = true) else cb.onError()
-        }
-        onDispose { }
-    }
-
     DisposableEffect(player, videoTexture, request.uri, retryNonce, reopenKey) {
         val p = player
         val lib = libVlc
-        if (p == null || lib == null || state.attachedTexture == null || state.released.get()) {
+        val texture = videoTexture
+        if (p == null || lib == null || texture == null || state.released.get()) {
             return@DisposableEffect onDispose { }
+        }
+        state.texture = texture
+        // The video view stays attached across streams and retries; a failed attach is retried
+        // by the next session (retry, reconnect) instead of leaving the engine without a surface.
+        if (state.attachedTexture !== texture) {
+            if (!attachVlcViews(p, texture, state)) {
+                cb.onError()
+                return@DisposableEffect onDispose { }
+            }
+            applySizing(force = true)
         }
         val session = VlcSessionFlags()
         state.timeMs = 0L
@@ -347,17 +340,18 @@ internal fun LibVlcPlayerView(
         state.wantsPlay.set(true)
         focus.request()
         worker.run {
-            if (state.released.get() || !session.active) {
+            try {
+                if (state.released.get() || !session.active) return@run
+                // Let an earlier player close its connection first (one-connection Xtream lines).
+                VlcCore.awaitTeardowns(LIBVLC_TEARDOWN_WAIT_MS)
+                p.setEventListener(null)
+                // Closes the previous stream (and its socket) before the next one opens.
+                p.stop()
+                p.media = media
+            } finally {
+                // The player holds its own reference; an unreleased Media leaks native memory.
                 media.release()
-                return@run
             }
-            // Let an earlier player close its connection first (one-connection Xtream lines).
-            VlcCore.awaitTeardowns(LIBVLC_TEARDOWN_WAIT_MS)
-            p.setEventListener(null)
-            // Closes the previous stream (and its socket) before the next one opens.
-            p.stop()
-            p.media = media
-            media.release()
             if (!session.active || state.released.get()) return@run
             p.setEventListener(listener)
             p.play()
@@ -446,6 +440,20 @@ internal fun LibVlcPlayerView(
         },
         modifier = modifier,
     )
+}
+
+/** Main thread: points the player's video output at [texture] (AWindow is main-thread only). */
+private fun attachVlcViews(player: MediaPlayer, texture: TextureView, state: VlcViewState): Boolean {
+    val attached = runCatching {
+        // An AWindow that is still attached (also after a half-failed attach) throws "Can't set
+        // view when already attached"; detaching a detached window is a no-op.
+        player.vlcVout.detachViews()
+        player.vlcVout.setVideoView(texture)
+        player.vlcVout.attachViews()
+    }.isSuccess
+    state.attachedTexture = if (attached) texture else null
+    state.lastSizing = null
+    return attached
 }
 
 /**

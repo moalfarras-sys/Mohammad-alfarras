@@ -149,9 +149,12 @@ internal fun libVlcMediaOptions(config: LibVlcMediaConfig): List<String> = build
 /** Resume points closer to the start than this are not worth a seek. */
 internal const val LIBVLC_MIN_RESUME_MS = 5_000L
 
-/** A VOD EndReached this close to the known length is a real ending, anything earlier is a cut-off. */
+/**
+ * A VOD EndReached this close to the known length is a real ending, anything earlier is a cut-off.
+ * Without a known length (some servers send none) there is nothing to compare, so it counts as the end.
+ */
 internal fun libVlcReachedEnd(timeMs: Long, lengthMs: Long): Boolean =
-    lengthMs > 0 && timeMs >= lengthMs - 15_000L
+    lengthMs <= 0L || timeMs >= lengthMs - 15_000L
 
 /**
  * Where a LibVLC VOD session starts: the last known position, unless it is too early to matter

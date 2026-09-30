@@ -648,6 +648,8 @@ fun PlayerScreen(
     fun onLibVlcEnded(reachedEnd: Boolean) {
         when {
             isLive -> handleLibVlcFailure()
+            // Ended before anything played: the stream could not be opened.
+            !attempt.vodFirstFrameRendered && !attempt.audioOnly -> retryLibVlcVod(offlineAwareIssue(PlaybackIssueKind.GENERIC))
             reachedEnd -> markVodEnded()
             // Cut off long before the known length: continue from the last position once.
             else -> retryLibVlcVod(PlaybackIssue(PlaybackIssueKind.VOD_INTERRUPTED))

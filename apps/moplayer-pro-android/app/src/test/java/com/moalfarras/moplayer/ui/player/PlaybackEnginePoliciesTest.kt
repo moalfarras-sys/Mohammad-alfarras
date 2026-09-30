@@ -170,7 +170,7 @@ class PlaybackEnginePoliciesTest {
     fun vodEndAndResumeRules() {
         assertTrue(libVlcReachedEnd(timeMs = 5_990_000L, lengthMs = 6_000_000L))
         assertFalse(libVlcReachedEnd(timeMs = 1_200_000L, lengthMs = 6_000_000L))
-        assertFalse(libVlcReachedEnd(timeMs = 1_200_000L, lengthMs = 0L))
+        assertTrue(libVlcReachedEnd(timeMs = 1_200_000L, lengthMs = 0L))
         assertEquals(0L, libVlcStartPositionMs(resumeMs = 3_000L, knownLengthMs = 6_000_000L))
         assertEquals(600_000L, libVlcStartPositionMs(resumeMs = 600_000L, knownLengthMs = 6_000_000L))
         // Resuming in the last 30 s would end at once: start over.

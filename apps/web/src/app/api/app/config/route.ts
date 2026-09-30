@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { releaseAssetDownloadUrl, selectReleaseAsset } from "@/lib/release-asset-selection";
 import { createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
 
@@ -134,21 +135,22 @@ type LatestRelease = {
   version_code?: number | string | null;
   release_notes?: string | null;
   assets?: Array<{
+    id?: string | null;
     abi?: string | null;
     external_url?: string | null;
     file_size_bytes?: number | string | null;
     checksum_sha256?: string | null;
     is_primary?: boolean | null;
+    created_at?: string | null;
   }> | null;
 };
 
+// Size, checksum and download URL all come from the one asset the download route serves; the URL
+// pins that asset so the file always matches the SHA-256 the app verifies.
 function releaseUpdate(product: string, fallbackConfig: object, latestRelease: LatestRelease | null): Record<string, unknown> {
   if (!latestRelease) return {};
   const versionCode = Number(latestRelease.version_code) || Number((fallbackConfig as { minimumVersionCode?: number }).minimumVersionCode) || 0;
-  const primaryAsset =
-    latestRelease.assets?.find((asset) => asset.is_primary) ??
-    latestRelease.assets?.find((asset) => asset.abi === "universal") ??
-    latestRelease.assets?.[0];
+  const updateAsset = selectReleaseAsset(latestRelease.assets);
   return {
     latestVersionName: String(latestRelease.version_name ?? ""),
     latestVersionCode: versionCode,
@@ -157,9 +159,9 @@ function releaseUpdate(product: string, fallbackConfig: object, latestRelease: L
       ...updateFallback(fallbackConfig),
       latestVersionName: String(latestRelease.version_name ?? ""),
       latestVersionCode: versionCode,
-      downloadUrl: `/api/app/download/latest?product=${product}`,
-      apkSizeBytes: primaryAsset?.file_size_bytes ? Number(primaryAsset.file_size_bytes) : undefined,
-      checksumSha256: primaryAsset?.checksum_sha256 ?? undefined,
+      downloadUrl: releaseAssetDownloadUrl(product, updateAsset?.id),
+      apkSizeBytes: updateAsset?.file_size_bytes ? Number(updateAsset.file_size_bytes) : undefined,
+      checksumSha256: updateAsset?.checksum_sha256 ?? undefined,
       releaseNotes: latestRelease.release_notes ?? undefined,
     },
   };
@@ -204,10 +206,11 @@ export async function GET(request: Request) {
 
   const settingsValue =
     typeof settingsRecord.value === "object" && settingsRecord.value ? (settingsRecord.value as Record<string, unknown>) : {};
+  const releaseConfig = releaseUpdate(product, fallbackConfig, latestRelease);
   const config: Record<string, unknown> = {
     ...fallbackConfig,
     ...settingsValue,
-    ...releaseUpdate(product, fallbackConfig, latestRelease),
+    ...releaseConfig,
     ...(latestRelease
       ? {
           latestVersionName: String(latestRelease.version_name ?? ""),
@@ -219,10 +222,10 @@ export async function GET(request: Request) {
           update: {
             ...updateFallback(fallbackConfig),
             ...(typeof settingsValue.update === "object" && settingsValue.update ? settingsValue.update : {}),
-            ...(releaseUpdate(product, fallbackConfig, latestRelease).update as Record<string, unknown>),
+            // Release values (pinned downloadUrl, size, checksum) always win over saved settings.
+            ...(releaseConfig.update as Record<string, unknown>),
             latestVersionName: String(latestRelease.version_name ?? ""),
             latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-            downloadUrl: `/api/app/download/latest?product=${product}`,
           },
         }
       : {}),

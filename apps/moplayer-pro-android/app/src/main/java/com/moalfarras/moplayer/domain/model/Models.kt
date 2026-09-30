@@ -176,6 +176,11 @@ data class AppSettings(
     val hideChannelsWithoutLogo: Boolean = false,
     val searchHistory: List<String> = emptyList(),
     val languageTag: String = "system",
+    /**
+     * Navigation saved by the previous session, for restoring the last screen at start. Read once
+     * when settings collection starts; focus moves during the session do not update these fields
+     * (see AppSettingsRepository.readNavigationState for the live value).
+     */
     val lastSection: String = "HOME",
     val lastFocusState: String = "",
     val lastCategoryState: String = "",
@@ -187,6 +192,13 @@ data class AppSettings(
     val homeNotificationMessage: String = "",
     /** Optional yyyy-MM-dd target for a repurposable countdown (defaults to the World Cup schedule). */
     val homeNotificationTargetDate: String = "",
+)
+
+/** Where the user was: restorable section plus the encoded focus and category per section. */
+data class NavigationSnapshot(
+    val section: String = "HOME",
+    val focusState: String = "",
+    val categoryState: String = "",
 )
 
 @Immutable
@@ -217,12 +229,17 @@ data class DeviceActivationSession(
     val userCode: String,
     val verificationUrl: String,
     val verificationUrlComplete: String,
+    /** Local wall-clock end of the countdown: receipt time plus the server's relative TTL. */
     val expiresAt: Long,
     val intervalSeconds: Int,
     val status: DeviceActivationStatus = DeviceActivationStatus.WAITING,
     val error: String = "",
     val publicDeviceId: String = "",
     val sourcePullToken: String = "",
+    /** Same deadline on SystemClock.elapsedRealtime(), immune to a wrong or changing TV clock. */
+    val expiresAtElapsed: Long = 0L,
+    /** Until when a source can still arrive once the phone confirmed the code (elapsedRealtime). */
+    val sourceDeadlineElapsed: Long = 0L,
 ) {
     val secondsRemaining: Long
         get() = ((expiresAt - System.currentTimeMillis()) / 1000L).coerceAtLeast(0)

@@ -21,6 +21,15 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- External players the player picker offers only when installed (package visibility on
+         Android 11+). Keep in sync with EXTERNAL_PLAYER_PACKAGES. -->
+    <queries>
+        <package android:name="org.videolan.vlc" />
+        <package android:name="com.mxtech.videoplayer.ad" />
+        <package android:name="com.mxtech.videoplayer.pro" />
+        <package android:name="com.brouken.player" />
+    </queries>
+
     <application
         android:name="com.moalfarras.moplayer.MoPlayerApplication"
         android:allowBackup="false"
@@ -47,7 +56,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-        <!-- IPTV: landscape-only on phones, tablets, TV, TV boxes (reverse-landscape allowed). -->
+        <!-- IPTV: landscape-only (reverse-landscape allowed). With targetSdk 36, Android 16 ignores
+             the orientation lock on large screens (smallest width >= 600dp); the property below keeps
+             the tested landscape behaviour there until tablet portrait layouts are verified. The
+             opt-out stops working at targetSdk 37, so remove it before that bump. TVs and phones
+             are unaffected. -->
         <activity
             android:name="com.moalfarras.moplayer.MainActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
@@ -59,15 +72,46 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <property
+                android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+                android:value="true" />
+            <!-- Playlist links only (m3u:// and m3u8:// schemes). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="m3u" />
+                <data android:scheme="m3u8" />
+            </intent-filter>
+            <!-- Web playlist links: .m3u/.m3u8 files and Xtream get.php/playlist.php/player_api.php.
+                 A host is required, otherwise Android ignores every path and treats the app as a
+                 browser for all web links. pathPattern does not backtrack ('.*' stops at the first
+                 match of the next character), so extra dots and folders need their own entries;
+                 pathSuffix would need API 31. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-                <data android:scheme="m3u" />
-                <data android:scheme="m3u8" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.m3u" />
+                <data android:pathPattern=".*\\..*\\.m3u" />
+                <data android:pathPattern=".*\\..*\\..*\\.m3u" />
+                <data android:pathPattern=".*\\.m3u8" />
+                <data android:pathPattern=".*\\..*\\.m3u8" />
+                <data android:pathPattern=".*\\..*\\..*\\.m3u8" />
+                <data android:pathPattern="/get\\.php" />
+                <data android:pathPattern="/.*/get\\.php" />
+                <data android:pathPattern="/playlist\\.php" />
+                <data android:pathPattern="/.*/playlist\\.php" />
+                <data android:pathPattern="/player_api\\.php" />
+                <data android:pathPattern="/.*/player_api\\.php" />
             </intent-filter>
         </activity>
+        <!-- PackageInstaller session results for in-app updates. -->
+        <receiver
+            android:name="com.moalfarras.moplayer.core.UpdateInstallReceiver"
+            android:exported="false" />
     </application>
 </manifest>

@@ -1,4 +1,5 @@
 import { readSiteSetting, upsertSiteSetting } from "@/lib/content/store";
+import { selectReleaseAsset } from "@/lib/release-asset-selection";
 import { hasDatabaseUrl, queryRows } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
@@ -263,25 +264,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-6-5",
+      id: "release-moplayer2-v2-7-0",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.6.5-full",
-      version_name: "2.6.5",
-      version_code: 68,
+      slug: "moplayer2-2.7.0",
+      version_name: "2.7.0",
+      version_code: 69,
       release_notes:
-        "MoPlayer Pro 2.6.5: trailers fixed and faster — a broken empty-result id no longer blocks playback or the provider fallback, trailers start after 2 seconds (was 4), they now work on ALL devices including weak boxes, and a new Settings switch (Live TV → Trailer previews) lets you turn them on/off. Includes 2.6.4's subtitle import and all earlier fixes.",
+        "MoPlayer Pro 2.7.0 rebuilds the TV-first experience with a faster indexed library, streaming Xtream/M3U/XMLTV sync, safer QR activation, a session-persistent Media3/LibVLC player, quicker channel zapping, next-episode playback, a verified in-app updater, and complete Arabic/English navigation and error states.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-6-5-universal",
-          release_id: "release-moplayer2-v2-6-5",
+          id: "asset-moplayer2-v2-7-0-universal",
+          release_id: "release-moplayer2-v2-7-0",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.5/app-universal-release.apk",
-          file_size_bytes: 49443176,
-          checksum_sha256: "4ab045fa64e9e77bbc791a11e6c03a8916fdeb01baf699ef76a2d707e66f1de1",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.0/app-universal-release.apk",
+          file_size_bytes: 56170203,
+          checksum_sha256: "3c26275744b0947a3e1f1b8fb8708de4335bf292a1410bb62cf6be63651042ff",
         },
       ],
     },
@@ -592,18 +593,14 @@ export async function saveSupportRequest(input: {
   }
 }
 
-function pickReleaseAsset(assets: AppReleaseAsset[], preferredAbi?: string | null) {
-  const normalizedAbi = preferredAbi?.trim().toLowerCase();
-  if (normalizedAbi) {
-    const exact = assets.find((item) => item.abi?.toLowerCase() === normalizedAbi);
-    if (exact) return exact;
-  }
-  const universal = assets.find((item) => item.abi?.toLowerCase() === "universal");
-  if (universal) return universal;
-  return assets.find((item) => item.is_primary) ?? assets[0];
+// An explicit asset id (from the config's downloadUrl) pins the exact file whose checksum was
+// advertised; it only counts when it belongs to this release.
+function pickReleaseAsset(assets: AppReleaseAsset[], preferredAbi?: string | null, assetId?: string | null) {
+  const pinned = assetId ? assets.find((item) => item.id === assetId) : undefined;
+  return pinned ?? selectReleaseAsset(assets, preferredAbi);
 }
 
-export async function resolveDownloadBySlug(slug: string, preferredAbi?: string | null) {
+export async function resolveDownloadBySlug(slug: string, preferredAbi?: string | null, assetId?: string | null) {
   try {
     const supabase = createSupabaseAdminClient();
     const { data: release, error: releaseError } = await supabase
@@ -624,7 +621,8 @@ export async function resolveDownloadBySlug(slug: string, preferredAbi?: string 
     if (assetError || !assetRows?.length) throw assetError ?? new Error("Release asset not found");
 
     const normalizedAssets = assetRows.map((item) => normalizeAsset(item));
-    const primary = pickReleaseAsset(normalizedAssets, preferredAbi);
+    const primary = pickReleaseAsset(normalizedAssets, preferredAbi, assetId);
+    if (!primary) return null;
     if (primary.external_url) {
       return {
         filename: `${release.slug}.apk`,
@@ -649,7 +647,7 @@ export async function resolveDownloadBySlug(slug: string, preferredAbi?: string 
     const legacySets = await Promise.all(managedApps.map((app) => readLegacyAppSettings(app.slug)));
     const release = legacySets.flatMap((set) => set.releases).find((item) => item.slug === slug);
     if (!release) return null;
-    const asset = pickReleaseAsset(release.assets, preferredAbi);
+    const asset = pickReleaseAsset(release.assets, preferredAbi, assetId);
     if (!asset?.external_url) return null;
     return {
       filename: `${release.slug}.apk`,

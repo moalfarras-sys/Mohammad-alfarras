@@ -28,13 +28,26 @@ export async function POST(request: Request) {
     return json({ status: "invalid", message: "Invalid activation code format." }, { status: 400 });
   }
 
+  // Confirmation stays scoped to one product; a code from the other app is reported, never activated here.
   const data = await getActivationRequest(code, productSlug);
   if (!data) {
+    const other = await getActivationRequest(code, null);
+    if (other) {
+      return json(
+        {
+          status: "wrong_product",
+          code,
+          productSlug: resolveManagedAppSlug(other.productSlug),
+          message: "This activation code belongs to another MoPlayer app.",
+        },
+        { status: 409 },
+      );
+    }
     return json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
   }
 
-  if (new Date(data.expiresAt).getTime() <= Date.now()) {
-    await setActivationStatus(code, "expired");
+  if (data.status === "expired" || new Date(data.expiresAt).getTime() <= Date.now()) {
+    if (data.status === "waiting") await setActivationStatus(code, "expired");
     return json({ status: "expired", code, expiresAt: data.expiresAt }, { status: 410 });
   }
 

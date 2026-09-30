@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { deleteDeviceSettings, readDeviceSetting } from "@/lib/activation-store";
+import { deleteDeviceSettings, readDeviceSetting, secondsUntil, writeDeviceSetting } from "@/lib/activation-store";
 import {
+  acknowledgedProviderSourceReceipt,
   deviceSourceAuthSettingKey,
   deviceSourceQueueSettingKey,
   hashSourcePullToken,
@@ -9,16 +10,19 @@ import {
   normalizePublicDeviceId,
   normalizeSourcePullToken,
   providerSourceQueueExpired,
-  type ProviderSourceQueueValue,
+  type ProviderSourceReceipt,
 } from "@/lib/provider-source-security";
 import { rateLimit } from "@/lib/request-guard";
 
-function readQueueValue(value: unknown): ProviderSourceQueueValue | null {
-  const candidate = (value ?? {}) as Partial<ProviderSourceQueueValue>;
+type QueueRow = Pick<ProviderSourceReceipt, "id" | "publicDeviceId" | "sourceType" | "status" | "createdAt"> &
+  Partial<ProviderSourceReceipt> & { encryptedPayload?: string };
+
+function readQueueValue(value: unknown): QueueRow | null {
+  const candidate = (value ?? {}) as Partial<QueueRow>;
   if (typeof candidate.id !== "string" || typeof candidate.publicDeviceId !== "string") {
     return null;
   }
-  return candidate as ProviderSourceQueueValue;
+  return candidate as QueueRow;
 }
 
 export async function POST(request: Request) {
@@ -52,6 +56,17 @@ export async function POST(request: Request) {
 
   const authValue = await readDeviceSetting<{ publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string }>(authKey);
   if (!authValue || authValue.publicDeviceId !== publicDeviceId || authValue.sourcePullTokenHash !== hashSourcePullToken(token)) {
+    // The first ack removes the device token, so a repeated ack for the same source is answered from the
+    // receipt it left behind. Nothing is changed, and the receipt holds no source details.
+    const receipt = readQueueValue(await readDeviceSetting<unknown>(key));
+    if (
+      receipt &&
+      receipt.publicDeviceId === publicDeviceId &&
+      receipt.id === sourceId &&
+      (receipt.status === "imported" || receipt.status === "failed")
+    ) {
+      return NextResponse.json({ ok: true, status: receipt.status, alreadyAcknowledged: true });
+    }
     return NextResponse.json({ ok: false, message: "Device token was not accepted." }, { status: 401 });
   }
 
@@ -71,8 +86,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, status, alreadyCleared: true });
   }
 
+  // Replace the queue row with a short-lived, non-sensitive receipt (import result only) so the
+  // activation page can show "Imported on your TV" or the device's error, then retire the token.
+  const receipt = acknowledgedProviderSourceReceipt(queue, { status, message: body.message });
   try {
-    await deleteDeviceSettings(key, authKey);
+    await writeDeviceSetting(key, receipt, {
+      ttlSeconds: secondsUntil(receipt.expiresAt, 10 * 60),
+      description: "Short-lived provider source import receipt. Holds the import status only, never the source.",
+    });
+  } catch {
+    // Never leave the queue row behind when the receipt cannot replace it.
+    try {
+      await deleteDeviceSettings(key);
+    } catch {
+      return NextResponse.json({ ok: false, message: "Could not acknowledge source import." }, { status: 500 });
+    }
+  }
+
+  try {
+    await deleteDeviceSettings(authKey);
   } catch {
     return NextResponse.json({ ok: false, message: "Could not acknowledge source import." }, { status: 500 });
   }

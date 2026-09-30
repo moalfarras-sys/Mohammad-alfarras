@@ -3,16 +3,15 @@ package com.moalfarras.moplayer.data.network
 import android.os.Build
 import com.moalfarras.moplayerpro.BuildConfig
 import kotlinx.serialization.json.Json
+import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 object NetworkModule {
     val json: Json = Json {
@@ -27,7 +26,7 @@ object NetworkModule {
     // allows one allows the other. Only applied when the request has no User-Agent already,
     // so per-stream/player-set agents are never overridden.
     private const val INGEST_USER_AGENT =
-        "MoPlayerPro/${BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
+        "MoPlayerPro/${BuildConfig.VERSION_NAME} AndroidTV Media3/1.11 LibVLC/3.7"
 
     private val userAgentInterceptor = Interceptor { chain ->
         val request = chain.request()
@@ -35,6 +34,23 @@ object NetworkModule {
             chain.proceed(request)
         } else {
             chain.proceed(request.newBuilder().header("User-Agent", INGEST_USER_AGENT).build())
+        }
+    }
+
+    // Separate request budgets so poster/logo loading and library/EPG sync can never queue in
+    // front of stream opens, which stay on the base client's default dispatcher. The connection
+    // pool is still shared, so keep-alive reuse is unaffected.
+    private val syncDispatcher: Dispatcher by lazy {
+        Dispatcher().apply {
+            maxRequests = 16
+            maxRequestsPerHost = 6
+        }
+    }
+
+    private val imageDispatcher: Dispatcher by lazy {
+        Dispatcher().apply {
+            maxRequests = 24
+            maxRequestsPerHost = 6
         }
     }
 
@@ -51,6 +67,11 @@ object NetworkModule {
             // Backstop for the whole call (large library syncs can legitimately run long).
             .callTimeout(8, TimeUnit.MINUTES)
             .retryOnConnectionFailure(true)
+            .apply {
+                // Android 6 has no Network Security Config and no ISRG root in its store: add the
+                // bundled Let's Encrypt roots to the platform ones (never trust-all).
+                if (Build.VERSION.SDK_INT < 24) trustBundledRoots()
+            }
             .build()
     }
 
@@ -60,16 +81,25 @@ object NetworkModule {
             // socket on weak Wi-Fi. Keep playback finite, but do not fail an otherwise
             // playable stream at the same 12s API threshold shown in user error reports.
             .connectTimeout(14, TimeUnit.SECONDS)
+            // Media streams are open-ended (a live MPEG-TS body never ends). callTimeout covers
+            // reading the whole body, so any finite value cuts live TS mid-stream and forces a
+            // buffer drain and rebuffer. Rely on connect and read timeouts, like Media3's own
+            // DefaultHttpDataSource.
+            .callTimeout(0, TimeUnit.MILLISECONDS)
+            // A dead socket should fail well before 45s. readTimeout also covers the wait for the
+            // first byte, so leave headroom for Xtream on-demand channels to start.
+            .readTimeout(20, TimeUnit.SECONDS)
             .apply {
-                if (Build.VERSION.SDK_INT < 26) {
-                    trustLegacyTvCertificates()
-                }
+                // Android 6-7.1 TV boxes ship stale CA stores: add the bundled Let's Encrypt roots
+                // (most IPTV panels use them) to the platform ones. Never trust everything.
+                if (Build.VERSION.SDK_INT < 26) trustBundledRoots()
             }
             .build()
     }
 
     private val xtreamOkHttp: OkHttpClient by lazy {
         okHttp.newBuilder()
+            .dispatcher(syncDispatcher)
             // Huge Xtream panels often answer get_series_info slower than bulk library calls.
             // This keeps the UI from failing at exactly 12s while read/call caps still prevent
             // a dead panel from blocking the app for minutes.
@@ -80,49 +110,30 @@ object NetworkModule {
 
     private val playlistOkHttp: OkHttpClient by lazy {
         okHttp.newBuilder()
-            // M3U playlists stream as one large text body; allow a slightly longer stall
-            // window than the API client while still bailing out well before the old 5 min.
+            .dispatcher(syncDispatcher)
+            // M3U playlists and XMLTV guides stream as one large body; allow a slightly longer
+            // stall window than the API client while still bailing out well before 5 minutes.
             .readTimeout(90, TimeUnit.SECONDS)
             .callTimeout(8, TimeUnit.MINUTES)
             .build()
     }
 
+    /** Poster/logo client for Coil: its own dispatcher; platform trust (plus bundled roots on API < 24). */
     val imageOkHttp: OkHttpClient by lazy {
-        // Scoped to public poster/logo images. Some Android TV 7.x devices ship stale CA stores
-        // and fail modern CDN/Vercel chains even when normal playback and APIs work.
         okHttp.newBuilder()
-            .trustLegacyTvCertificates()
+            .dispatcher(imageDispatcher)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(45, TimeUnit.SECONDS)
             .callTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 
-    // Client for the app's own API (moalfarras.space). Its modern Let's Encrypt / ISRG chain is
-    // covered by res/xml/network_security_config (which bundles the ISRG root) on API 24+, but
-    // Network Security Config is unsupported on API < 24 — there the stale system CA store
-    // rejects the chain ("Trust anchor for certification path not found"), which broke QR
-    // activation, device config, and downloads on Android 6.0 (API 23) TV boxes. Trust the app
-    // host on those legacy devices so those features work there too.
-    private val webApiOkHttp: OkHttpClient by lazy {
-        if (Build.VERSION.SDK_INT < 24) {
-            okHttp.newBuilder().trustLegacyTvCertificates().build()
-        } else {
-            okHttp
-        }
-    }
-
-    private fun OkHttpClient.Builder.trustLegacyTvCertificates(): OkHttpClient.Builder {
-        val trustManager = object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
-            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
-            override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
-        }
+    private fun OkHttpClient.Builder.trustBundledRoots(): OkHttpClient.Builder {
+        val trustManager = PlatformPlusBundledTrustManager()
         val sslContext = SSLContext.getInstance("TLS").apply {
-            init(null, arrayOf(trustManager), SecureRandom())
+            init(null, arrayOf(trustManager), null)
         }
         return sslSocketFactory(sslContext.socketFactory, trustManager)
-            .hostnameVerifier { _, _ -> true }
     }
 
     private fun retrofit(baseUrl: String, client: OkHttpClient = okHttp): Retrofit =
@@ -133,11 +144,12 @@ object NetworkModule {
             .build()
 
     val playlistService: PlaylistService by lazy { retrofit("https://example.com/", playlistOkHttp).create(PlaylistService::class.java) }
-    val weatherService: WeatherService by lazy { retrofit("https://api.weatherapi.com/").create(WeatherService::class.java) }
     val webWeatherService: WebWeatherService by lazy { retrofit("https://example.com/").create(WebWeatherService::class.java) }
     val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
+    // The app's own API (QR activation). Verified by the platform store plus the bundled ISRG roots
+    // on API < 24, and by Network Security Config (which bundles the same roots) on API 24+.
     val webApiService: SupabaseService by lazy {
-        retrofit(WebApiEndpoint.primaryBaseUrl.ifBlank { "https://moalfarras.space" }, webApiOkHttp).create(SupabaseService::class.java)
+        retrofit(WebApiEndpoint.primaryBaseUrl.ifBlank { "https://moalfarras.space" }).create(SupabaseService::class.java)
     }
 
     val sportsDbService: SportsDbService by lazy {
@@ -145,7 +157,13 @@ object NetworkModule {
     }
     val webFootballService: WebFootballService by lazy { retrofit("https://example.com/").create(WebFootballService::class.java) }
 
-    fun xtream(baseUrl: String): XtreamService = retrofit(baseUrl, xtreamOkHttp).create(XtreamService::class.java)
+    private val xtreamServices = ConcurrentHashMap<String, XtreamService>()
+
+    /** One Retrofit service per panel base URL, reused instead of rebuilt for every call. */
+    fun xtream(baseUrl: String): XtreamService =
+        xtreamServices.getOrPut(baseUrl.ensureTrailingSlash()) {
+            retrofit(baseUrl, xtreamOkHttp).create(XtreamService::class.java)
+        }
 
     val supabaseService: SupabaseService? by lazy {
         if (BuildConfig.SUPABASE_URL.isBlank() || BuildConfig.SUPABASE_ANON_KEY.isBlank()) {
@@ -156,8 +174,4 @@ object NetworkModule {
     }
 
     private fun String.ensureTrailingSlash(): String = if (endsWith('/')) this else "$this/"
-}
-
-object ApiKeys {
-    val weather: String = BuildConfig.WEATHER_API_KEY
 }

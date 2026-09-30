@@ -165,10 +165,16 @@ export class StreamProxy {
       response.writeHead(status, {
         "Content-Type": contentType,
         "Access-Control-Allow-Origin": "*",
+        // Never let Chromium persist live segments. Cached IPTV chunks can keep
+        // the player behind the live edge, consume hundreds of megabytes, and
+        // make a provider-side discontinuity look like a local playback freeze.
+        // Posters and channel logos use the separate /img disk cache instead.
+        "Cache-Control": "no-store",
+        Pragma: "no-cache",
+        Expires: "0",
         ...(upstream.headers.get("content-length") ? { "Content-Length": upstream.headers.get("content-length") as string } : {}),
         ...(upstream.headers.get("content-range") ? { "Content-Range": upstream.headers.get("content-range") as string } : {}),
         ...(upstream.headers.get("accept-ranges") ? { "Accept-Ranges": upstream.headers.get("accept-ranges") as string } : {}),
-        ...(upstream.headers.get("cache-control") ? { "Cache-Control": upstream.headers.get("cache-control") as string } : {}),
         ...(upstream.headers.get("etag") ? { ETag: upstream.headers.get("etag") as string } : {}),
         ...(upstream.headers.get("last-modified") ? { "Last-Modified": upstream.headers.get("last-modified") as string } : {}),
       });

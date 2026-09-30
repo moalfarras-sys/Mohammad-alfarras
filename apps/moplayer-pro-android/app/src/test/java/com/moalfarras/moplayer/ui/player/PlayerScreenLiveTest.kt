@@ -5,6 +5,7 @@ import androidx.media3.common.PlaybackException
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -79,15 +80,16 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun malformedLiveErrorsCanFallbackToLibVlc() {
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, null))
+    fun decoderAndContainerErrorsAreFormatFailuresThatAnotherEngineMayPlay() {
+        assertEquals(PlaybackFailureClass.FORMAT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, null, null))
+        assertEquals(PlaybackFailureClass.FORMAT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null, null))
     }
 
     @Test
-    fun transientLiveNetworkErrorsCanFallbackToLibVlc() {
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, null))
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
+    fun networkErrorsAreTransientAndRetryTheSameStream() {
+        assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null, null))
+        assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, null, null))
+        assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 503, null))
     }
 
     @Test
@@ -131,10 +133,15 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun vodStreamFallbackOnlyHandlesContainerOrHttpShapeErrors() {
-        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
-        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null))
-        assertEquals(false, shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
+    fun vodStreamFallbackOnlyWalksExtensionsForWrongContainerErrors() {
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 404, null))
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 415, null))
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null, null))
+        // Auth, removal and server errors are not extension problems: no request storm to a dead account.
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 403, null))
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 401, null))
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 503, null))
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null, null))
     }
 
     @Test
@@ -149,38 +156,34 @@ class PlayerScreenLiveTest {
     }
 
     @Test
+    fun extensionlessNetworkLinksCanStillFallBackToVlc() {
+        // Xtream output=ts short links, tokenised restreams and bare M3U lines: LibVLC probes them.
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("http://host:8080/user/pass/12345")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("https://cdn.test/play?token=abc")))
+        assertTrue(isVlcFriendlyContainer(parseStreamRequest("udp://@239.0.0.1:1234")))
+        assertFalse(isVlcFriendlyContainer(parseStreamRequest("file:///sdcard/x")))
+        assertFalse(isVlcFriendlyContainer(parseStreamRequest("content://media/external/video/1")))
+        assertEquals("mmsh", "MMSH://radio.test/stream".networkScheme())
+    }
+
+    @Test
     fun legacyContainersStartWithVlcForFasterFallback() {
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/legacy.flv")))
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/archive.avi")))
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("https://example.com/dvd.vob")))
         assertTrue(shouldStartWithLibVlc(parseStreamRequest("rtmp://example.com/live/1")))
+        // Schemes Media3 cannot open at all.
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("rtp://239.0.0.1:5004")))
+        assertTrue(shouldStartWithLibVlc(parseStreamRequest("mms://radio.test/live")))
+        assertFalse(shouldStartWithLibVlc(parseStreamRequest("udp://@239.0.0.1:1234")))
+        assertFalse(shouldStartWithLibVlc(parseStreamRequest("http://host:8080/user/pass/12345")))
     }
 
     @Test
-    fun liveFailureMessageIsReadableEnglish() {
-        val message = livePlaybackFailureMessage()
-
-        assertTrue(message.contains("Live stream"))
-        assertTrue(message.contains("Try again"))
-    }
-
-    @Test
-    fun liveNoVideoFrameMessageExplainsSmartRetry() {
-        val message = liveNoVideoFrameMessage()
-
-        assertTrue(message.contains("did not render video"))
-        assertTrue(message.contains("safer live qualities"))
-    }
-
-    @Test
-    fun liveQualityRankUsesChannelTitleBeforeCategoryLabel() {
-        val item = liveItem(
-            id = "1",
-            title = "BEIN SPORTS 1 HD",
-            categoryName = "BEIN SPORT FHD",
-        )
-
-        assertEquals(2, item.liveQualityRank())
+    fun liveQualityRankComesFromTheChannelLabelNotItsGroup() {
+        assertEquals(2, liveItem(id = "1", title = "BEIN SPORTS 1 HD", categoryName = "BEIN SPORT FHD").liveTitleQualityRank())
+        // An unlabelled channel in an "FHD" group is not an FHD channel.
+        assertEquals(2, liveItem(id = "2", title = "BEIN SPORTS 1", categoryName = "BEIN SPORT FHD").liveTitleQualityRank())
     }
 
     @Test
@@ -205,11 +208,18 @@ class PlayerScreenLiveTest {
         val second = listOf(current, hd, sd, other).bestCompatibleLiveAlternative(
             current = current,
             maxVideoHeight = 720,
-            excludedKeys = setOf("1:sd:http://example.test/live/sd.ts"),
+            excludedKeys = setOf("1:hd:http://example.test/live/hd.ts"),
         )
 
-        assertEquals("sd", first?.id)
-        assertEquals("hd", second?.id)
+        // FHD falls back to HD before SD, and never to another channel ("BEIN SPORTS 5").
+        assertEquals("hd", first?.id)
+        assertEquals("sd", second?.id)
+        val exhausted = listOf(current, hd, sd, other).bestCompatibleLiveAlternative(
+            current = current,
+            maxVideoHeight = 720,
+            excludedKeys = setOf("1:hd:http://example.test/live/hd.ts", "1:sd:http://example.test/live/sd.ts"),
+        )
+        assertNull(exhausted)
     }
 
     @Test
@@ -274,9 +284,13 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun liveDoesNotDowngrade4kUnlessPerformanceModeNeedsIt() {
-        assertEquals(false, shouldAutoDowngradeLiveQuality(false, itemQualityRank = 4, maxVideoHeight = 1080))
-        assertEquals(true, shouldAutoDowngradeLiveQuality(true, itemQualityRank = 4, maxVideoHeight = 1080))
+    fun a4kChannelOnAWeakBoxIsNeverSwappedForAnotherChannel() {
+        // Performance mode caps at 720p, but with no same-name feed the user's pick stays as is.
+        val current = liveItem(id = "uhd", title = "SPORT ONE 4K", serverOrder = 1)
+        val unrelatedSd = liveItem(id = "sd", title = "NEWS 24 SD", serverOrder = 2)
+        val unrelatedHd = liveItem(id = "hd", title = "MOVIES HD", serverOrder = 3)
+
+        assertNull(listOf(current, unrelatedSd, unrelatedHd).bestCompatibleLiveAlternative(current, maxVideoHeight = 720))
     }
 
     @Test
@@ -290,7 +304,7 @@ class PlayerScreenLiveTest {
         val profile = livePlaybackProfile(
             isPerformanceMode = true,
             policyLiveBufferMs = 6_000,
-            maxVideoHeight = 720,
+            largeBuffer = true,
             sdkInt = 36,
         )
 
@@ -307,17 +321,27 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun livePlaybackProfileKeepsRoomFor4kQualityMode() {
+    fun livePlaybackProfileKeepsRoomForLargeBuffersOnRoomyHeaps() {
         val profile = livePlaybackProfile(
             isPerformanceMode = false,
             policyLiveBufferMs = 10_000,
-            maxVideoHeight = 2160,
+            largeBuffer = true,
             sdkInt = 36,
         )
 
         assertTrue(profile.maxBufferMs >= 40_000)
         assertTrue(profile.targetOffsetMs >= 8_000L)
         assertTrue(profile.maxOffsetMs >= 24_000L)
+    }
+
+    @Test
+    fun theLargeLiveBufferFollowsTheHeapNotThe4kDisplayCap() {
+        // A 4K TV box with a 192 MB heap no longer gets the 45 s profile.
+        assertFalse(hasRoomForLargeLiveBuffer(memoryClassMb = 192, isLowRam = false))
+        assertTrue(hasRoomForLargeLiveBuffer(memoryClassMb = 256, isLowRam = false))
+        assertFalse(hasRoomForLargeLiveBuffer(memoryClassMb = 512, isLowRam = true))
+        val normal = livePlaybackProfile(isPerformanceMode = false, policyLiveBufferMs = 10_000, largeBuffer = false, sdkInt = 36)
+        assertTrue(normal.maxBufferMs <= 30_000)
     }
 
     @Test

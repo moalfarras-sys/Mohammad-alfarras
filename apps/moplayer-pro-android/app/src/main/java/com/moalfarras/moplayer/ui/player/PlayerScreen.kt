@@ -2,280 +2,111 @@
 
 package com.moalfarras.moplayer.ui.player
 
-import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
-import android.net.Uri
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.content.pm.PackageManager
-import android.os.PowerManager
-import android.view.LayoutInflater
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.Uri
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent as AndroidKeyEvent
-import android.view.TextureView
+import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.BringIntoViewSpec
-import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
-import androidx.compose.material.icons.rounded.Audiotrack
-import androidx.compose.material.icons.rounded.Cast
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Forward10
-
-import androidx.compose.material.icons.rounded.HighQuality
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
-
-import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.rounded.UploadFile
-import androidx.compose.material.icons.rounded.Subtitles
-import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import com.moalfarras.moplayer.ui.components.GlassPanel
-import com.moalfarras.moplayer.ui.components.FocusGlow
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.viewinterop.AndroidView
-import com.moalfarras.moplayer.core.PerformancePolicy
-import com.moalfarras.moplayerpro.R
-import androidx.media3.common.C
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.common.ParserException
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.common.Format
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.HttpDataSource
-import androidx.media3.exoplayer.DefaultLoadControl
-import androidx.media3.exoplayer.DefaultLivePlaybackSpeedControl
-import androidx.media3.exoplayer.DefaultRenderersFactory
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.DefaultHlsExtractorFactory
-import androidx.media3.exoplayer.hls.HlsMediaSource
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.UnrecognizedInputFormatException
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
-import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
-import androidx.media3.extractor.DefaultExtractorsFactory
-import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory
-import androidx.media3.datasource.okhttp.OkHttpDataSource
-import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import coil3.compose.AsyncImage
-import com.moalfarras.moplayer.data.network.NetworkModule
+import androidx.lifecycle.compose.currentStateAsState
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.util.Util
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import androidx.media3.ui.TrackSelectionDialogBuilder
+import com.moalfarras.moplayer.core.Adaptive
+import com.moalfarras.moplayer.core.PerformancePolicy
+import com.moalfarras.moplayer.core.PlaybackActivity
+import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
-import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
-import kotlinx.coroutines.delay
+import com.moalfarras.moplayer.ui.i18n.PlayerStrings
+import com.moalfarras.moplayer.ui.i18n.fill
+import com.moalfarras.moplayer.ui.i18n.isolate
+import com.moalfarras.moplayer.ui.i18n.ltr
+import com.moalfarras.moplayer.ui.i18n.player
+import com.moalfarras.moplayerpro.R
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.Request
-import org.videolan.libvlc.LibVLC
-import org.videolan.libvlc.Media
-import org.videolan.libvlc.MediaPlayer
-import android.os.Build
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
-import java.util.LinkedHashMap
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
-private val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
-private const val LIVE_STALL_RECOVERY_LIMIT = 4
-private const val LIVE_AUTO_RECOVERY_SWITCH_LIMIT = 2
-private const val MEDIA3_SURFACE_RETRY_LIMIT = 2
-private const val LIBVLC_LIVE_CACHE_MS = 900
-private const val LIBVLC_FILE_CACHE_MS = 2_000
-private const val LIVE_NO_VIDEO_FAST_MS = 2_200L
-private const val LIVE_NO_VIDEO_DEFAULT_MS = 3_200L
-private const val VOD_NO_VIDEO_FAST_MS = 3_500L
-private const val VOD_NO_VIDEO_DEFAULT_MS = 5_000L
+private val VideoSizeModes = listOf(VideoSizeMode.AUTO, VideoSizeMode.FIT, VideoSizeMode.FILL, VideoSizeMode.ZOOM)
 
-enum class LiveQualityMode { AUTO, BEST, ULTRA, STABLE }
-private enum class InternalPlaybackEngine { MEDIA3, LIBVLC }
-private enum class LiveOverlayTab(val label: String) {
-    CHANNELS("Channels"),
-    GROUPS("Groups"),
-    VIDEO_SIZE("Video Size"),
-    AUDIO("Audio"),
-    SUBTITLES("Subtitles"),
-    FAVORITES("Favorites"),
-}
-
-private val LiveOverlayTabs = listOf(
-    LiveOverlayTab.CHANNELS,
-    LiveOverlayTab.GROUPS,
-    LiveOverlayTab.VIDEO_SIZE,
-    LiveOverlayTab.AUDIO,
-    LiveOverlayTab.SUBTITLES,
-    LiveOverlayTab.FAVORITES,
+/** Keys whose auto-repeat must not toggle anything again while the player root owns the press. */
+private val PlayerToggleKeys = setOf(
+    Key.Enter,
+    Key.DirectionCenter,
+    Key.NumPadEnter,
+    Key.Spacebar,
+    Key.MediaPlay,
+    Key.MediaPause,
+    Key.MediaPlayPause,
 )
 
-private fun VideoSizeMode.toResizeMode(): Int = when (this) {
-    VideoSizeMode.AUTO, VideoSizeMode.FIT -> AspectRatioFrameLayout.RESIZE_MODE_FIT
-    VideoSizeMode.FILL -> AspectRatioFrameLayout.RESIZE_MODE_FILL
-    VideoSizeMode.ZOOM -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-}
-
-private fun VideoSizeMode.displayLabel(): String = when (this) {
-    VideoSizeMode.AUTO -> "Auto"
-    VideoSizeMode.FIT -> "Fit"
-    VideoSizeMode.FILL -> "Fill"
-    VideoSizeMode.ZOOM -> "Zoom"
-}
-
-internal data class LivePlaybackProfile(
-    val minBufferMs: Int,
-    val maxBufferMs: Int,
-    val bufferForPlaybackMs: Int,
-    val bufferForPlaybackAfterRebufferMs: Int,
-    val targetOffsetMs: Long,
-    val minOffsetMs: Long,
-    val maxOffsetMs: Long,
-    val minPlaybackSpeed: Float,
-    val maxPlaybackSpeed: Float,
-)
-
-@kotlin.OptIn(ExperimentalFoundationApi::class)
-private val PlayerEdgeBringIntoViewSpec = object : BringIntoViewSpec {
-    override val scrollAnimationSpec: AnimationSpec<Float> = snap()
-
-    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
-        val itemStart = offset
-        val itemEnd = offset + size
-        return when {
-            itemStart < 0f -> itemStart
-            itemEnd > containerSize -> itemEnd - containerSize
-            else -> 0f
-        }
-    }
-}
-
-private fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: PerformancePolicy? = null): InternalPlaybackEngine {
-    if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice()) {
-        return InternalPlaybackEngine.LIBVLC
-    }
-    val uri = request.uri.lowercase(Locale.US)
-    // Both LibVLC branches require x86-unsafe build; on x86 emulators (and rare Atom boxes)
-    // we always fall through to Media3 to avoid the AWindow surface-attach crash.
-    if (uri.startsWith("rtsp://") && isLibVlcSafeOnThisDevice()) return InternalPlaybackEngine.LIBVLC
-    if ((performancePolicy?.isPerformance == true || Build.VERSION.SDK_INT < 26) &&
-        (request.uri.hasLiveTsHint() || request.mimeType == MimeTypes.VIDEO_MP2T) &&
-        isLibVlcSafeOnThisDevice()
-    ) {
-        return InternalPlaybackEngine.LIBVLC
-    }
-    return when (request.mimeType) {
-        MimeTypes.APPLICATION_M3U8,
-        MimeTypes.APPLICATION_MPD,
-        MimeTypes.APPLICATION_SS -> InternalPlaybackEngine.MEDIA3
-        else -> InternalPlaybackEngine.MEDIA3
-    }
-}
-
-private fun preferredAutoEngine(request: StreamRequest, isLive: Boolean, performancePolicy: PerformancePolicy): InternalPlaybackEngine =
-    if (isLive) {
-        preferredLiveAutoEngine(request, performancePolicy)
-    } else if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice()) {
-        InternalPlaybackEngine.LIBVLC
-    } else {
-        InternalPlaybackEngine.MEDIA3
-    }
-
-@OptIn(UnstableApi::class)
 @Composable
 fun PlayerScreen(
     item: AppMediaItem,
@@ -289,13 +120,26 @@ fun PlayerScreen(
     videoSizeMode: VideoSizeMode = VideoSizeMode.AUTO,
     onVideoSizeMode: (VideoSizeMode) -> Unit = {},
     performancePolicy: PerformancePolicy,
+    /** Automatic same-channel variant switches (recovery), kept apart from viewer zaps so they can skip history. */
+    onSwitchVariant: (AppMediaItem) -> Unit = onPlayItem,
+    /** Title of the programme on air for a live channel, from the local guide (null when unknown). */
+    liveNowTitle: suspend (AppMediaItem) -> String? = { null },
+    /** Episodes: the one after it in its series (null at the end), offered when it ends. */
+    nextEpisode: suspend (AppMediaItem) -> AppMediaItem? = { null },
+    /** The library's live groups (the Live screen's list), for the live panel's group column. */
+    liveGroups: List<Category> = emptyList(),
+    /** The live panel's access to the library: any group's channels, channel numbers, playing in a group. */
+    livePanelSource: LivePanelSource,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val strings = LocalStrings.current
+    val ps = strings.player
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val isTv = remember(context) { Adaptive.isTv(context) }
     val isLive = item.type == ContentType.LIVE
+    val latestRelated by rememberUpdatedState(relatedItems)
     val streamRequest = remember(item.streamUrl) { parseStreamRequest(item.streamUrl) }
-    val canCast = remember(streamRequest.uri) { canLaunchCast(context, streamRequest.uri) }
     val normalizedPreferred = remember(preferredPlayer, performancePolicy.mode, streamRequest.uri, streamRequest.mimeType, isLive) {
         when (preferredPlayer) {
             "internal" -> "auto"
@@ -303,7 +147,6 @@ fun PlayerScreen(
             else -> preferredPlayer.ifBlank { "media3" }
         }
     }
-
     var route by remember(item.id, normalizedPreferred, performancePolicy.mode) {
         mutableStateOf(
             when {
@@ -314,167 +157,71 @@ fun PlayerScreen(
             },
         )
     }
-    var internalEngine by remember(item.id, route, streamRequest.uri, performancePolicy.mode) {
-        mutableStateOf(if (route == "auto") preferredAutoEngine(streamRequest, isLive, performancePolicy) else InternalPlaybackEngine.MEDIA3)
+    // Where a cancelled player picker returns when it was opened from playback (null: leave the player).
+    var routeBeforePicker by remember(item.id) { mutableStateOf<String?>(null) }
+    // A live channel whose other Xtream format worked earlier in this app session opens in that one.
+    val rememberedLiveFormat = remember(item.id, streamRequest) {
+        if (isLive) LiveFormatMemory.get(item.liveRecoveryKey()) else null
     }
-    var launchMessage by remember(item.id) { mutableStateOf<String?>(null) }
-    var externalLaunchNonce by remember(item.id) { mutableIntStateOf(0) }
-    var isPlaying by remember { mutableStateOf(true) }
-    var currentPosition by remember { mutableLongStateOf(item.watchPositionMs.coerceAtLeast(0)) }
-    var duration by remember { mutableLongStateOf(item.watchDurationMs.coerceAtLeast(1L)) }
-    var showControls by remember(item.id, isLive) { mutableStateOf(!isLive) }
-    var showLiveZap by remember(item.id) { mutableStateOf(false) }
-    var liveOverlayTab by remember(item.id) { mutableStateOf(LiveOverlayTab.CHANNELS) }
-    var showMiniInfo by remember(item.id) { mutableStateOf(isLive) }
-    var isBuffering by remember { mutableStateOf(true) }
-    var playbackError by remember { mutableStateOf<String?>(null) }
-    var lastInteraction by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var seekJump by remember { mutableIntStateOf(0) }
-    var lastSeekAt by remember { mutableLongStateOf(0L) }
-    var seekStreak by remember { mutableIntStateOf(0) }
-    val videoSizeModes = remember { listOf(VideoSizeMode.AUTO, VideoSizeMode.FIT, VideoSizeMode.FILL, VideoSizeMode.ZOOM) }
+    var internalEngine by remember(item.id, route, streamRequest.uri, performancePolicy.mode) {
+        mutableStateOf(
+            if (route == "auto") preferredAutoEngine(rememberedLiveFormat ?: streamRequest, isLive, performancePolicy) else InternalPlaybackEngine.MEDIA3,
+        )
+    }
+    val session = remember { PlayerSessionState() }
+    val ui = remember(item.id) {
+        PlayerItemUiState(isLive, item.isFavorite, item.watchPositionMs.coerceAtLeast(0), item.watchDurationMs.coerceAtLeast(1L))
+    }
+    val attempt = remember(item.id, streamRequest.uri) {
+        PlaybackAttemptState(
+            preferredLiveAutoEngine(rememberedLiveFormat ?: streamRequest, performancePolicy),
+            item.watchPositionMs.coerceAtLeast(0),
+            rememberedLiveFormat,
+        )
+    }
     var selectedVideoSizeMode by remember(item.id, videoSizeMode) { mutableStateOf(videoSizeMode) }
-    var favoriteMarked by remember(item.id, item.type) { mutableStateOf(item.isFavorite) }
     var liveQualityMode by remember(performancePolicy.mode) {
         mutableStateOf(if (performancePolicy.isPerformance) LiveQualityMode.STABLE else LiveQualityMode.AUTO)
     }
-    var playbackSignal by remember(item.id, isLive) { mutableStateOf(if (isLive) "Smart Auto" else "") }
-    var libVlcRetryNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
-    var libVlcPlayPauseNonce by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
-    var liveSwitchLocked by remember(item.id) { mutableStateOf(false) }
-    var lastLiveSwitchAt by remember { mutableLongStateOf(0L) }
-    var liveLastPlayingAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
-    var liveReadyWithoutVideoAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
-    var liveFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var liveOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var media3SurfaceAttempt by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
-    // A user-imported external subtitle (SAF-picked .srt/.vtt) for a VOD that ships without captions.
-    var externalSubtitle by remember(item.id) { mutableStateOf<android.net.Uri?>(null) }
-    var externalSubtitleNonce by remember(item.id) { mutableIntStateOf(0) }
-    // VOD black screen watchdog: track when VOD reaches READY but hasn't rendered first frame
-    var vodReadyAt by remember(item.id, streamRequest.uri) { mutableLongStateOf(0L) }
-    var vodFirstFrameRendered by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var vodOpeningGuard by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var liveConsecutiveFailures by remember(item.id, streamRequest.uri) { mutableIntStateOf(0) }
-    var liveAutoRecoveryAttempts by remember { mutableIntStateOf(0) }
-    var liveAutoRecoveryVisited by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var triedMedia3ForLive by remember(item.id, streamRequest.uri) {
-        mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.MEDIA3)
-    }
-    var triedLibVlcForLive by remember(item.id, streamRequest.uri) {
-        mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.LIBVLC)
-    }
-    var forceLibVlcForLive by remember(item.id, streamRequest.uri) {
-        mutableStateOf(preferredLiveAutoEngine(streamRequest, performancePolicy) == InternalPlaybackEngine.LIBVLC)
-    }
-    var triedLibVlcForVod by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var forceLibVlcForVod by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var triedCompatibleLiveAlternative by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    var resolvedLiveRequest by remember(item.id, streamRequest.uri) { mutableStateOf<StreamRequest?>(null) }
-    var vodFallbackRequest by remember(item.id, streamRequest.uri) { mutableStateOf<StreamRequest?>(null) }
-    var vodFallbackVisitedUris by remember(item.id, streamRequest.uri) { mutableStateOf<Set<String>>(emptySet()) }
-    var liveRedirectResolved by remember(item.id, streamRequest.uri) {
-        mutableStateOf(!isLive || !streamRequest.uri.hasLiveTsHint())
-    }
-    var forceHlsForLiveRedirect by remember(item.id, streamRequest.uri) { mutableStateOf(false) }
-    val playbackRequest = remember(streamRequest, resolvedLiveRequest, liveRedirectResolved, forceHlsForLiveRedirect, forceLibVlcForLive, vodFallbackRequest, isLive) {
-        if (!isLive) {
-            vodFallbackRequest ?: streamRequest
-        } else {
-            val keepOriginalForImmediateVlc = forceLibVlcForLive && !forceHlsForLiveRedirect
-            val resolved = if (liveRedirectResolved && !keepOriginalForImmediateVlc) resolvedLiveRequest ?: streamRequest else streamRequest
-            if (forceHlsForLiveRedirect) resolved.copy(mimeType = MimeTypes.APPLICATION_M3U8) else resolved
-        }
-    }
-    val liveStallRecoveryLimit = remember(performancePolicy.mode) {
-        if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 1 else LIVE_STALL_RECOVERY_LIMIT
-    }
     val playerFocusRequester = remember { FocusRequester() }
     val playPauseFocusRequester = remember { FocusRequester() }
-    val performanceStatus = remember(performancePolicy.mode, internalEngine, route, isLive) {
-        if (performancePolicy.isPerformance) {
-            val engine = if (route == "auto" && internalEngine == InternalPlaybackEngine.LIBVLC) "VLC live" else "Media3 stable"
-            "Performance mode | $engine | ${performancePolicy.maxVideoHeight}p cap"
-        } else {
-            ""
-        }
-    }
+    val errorFocusRequester = remember { FocusRequester() }
+    val liveStallRecoveryLimit = if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 1 else LIVE_STALL_RECOVERY_LIMIT
+    val videoSizeLabel = selectedVideoSizeMode.displayLabel(ps)
 
-    val resizeMode = selectedVideoSizeMode.toResizeMode()
-    val videoSizeLabel = selectedVideoSizeMode.displayLabel()
-
-    fun cycleVideoSizeMode() {
-        val current = videoSizeModes.indexOf(selectedVideoSizeMode).let { if (it >= 0) it else 0 }
-        val next = videoSizeModes[(current + 1) % videoSizeModes.size]
-        selectedVideoSizeMode = next
-        onVideoSizeMode(next)
-    }
-
-    LaunchedEffect(item.id, route, externalLaunchNonce) {
-        launchMessage = null
+    LaunchedEffect(item.id, route, ui.externalLaunchNonce) {
+        ui.launchMessage = null
         val resolvedRoute = route ?: return@LaunchedEffect
         if (resolvedRoute == "media3" || resolvedRoute == "auto") return@LaunchedEffect
-        val externalResult = openExternalPlayer(context, streamRequest, item.title, resolvedRoute)
-        if (externalResult.success) {
-            onBack(0, 0)
-        } else {
-            launchMessage = externalResult.message
-        }
-    }
-
-    LaunchedEffect(item.id, streamRequest.uri, isLive) {
-        // Start live playback INSTANTLY with the direct stream. Almost every IPTV live URL is
-        // a direct MPEG-TS that Media3 plays natively, so blocking startup on an HTTP probe
-        // just adds dead time before the first frame (the slow "Opening channel..."). We mark
-        // the request resolved up front and probe in the background, swapping the source only
-        // if the server actually redirects a ".ts" URL to a real HLS/DASH manifest (rare).
-        resolvedLiveRequest = streamRequest
-        liveRedirectResolved = true
-        if (!isLive || !streamRequest.uri.hasLiveTsHint()) return@LaunchedEffect
-        val probed = resolveLiveRedirectRequest(streamRequest)
-        if (probed.uri != streamRequest.uri && (
-                probed.mimeType == MimeTypes.APPLICATION_M3U8 ||
-                    probed.mimeType == MimeTypes.APPLICATION_MPD ||
-                    probed.mimeType == MimeTypes.APPLICATION_SS
-                )
-        ) {
-            resolvedLiveRequest = probed
-        }
-    }
-
-    LaunchedEffect(isLive, liveRedirectResolved, playbackRequest.uri, playbackRequest.mimeType) {
-        if (isLive &&
-            liveRedirectResolved &&
-            Build.VERSION.SDK_INT < 26 &&
-            playbackRequest.mimeType == MimeTypes.APPLICATION_M3U8 &&
-            route == "auto" &&
-            shouldAutoUseLibVlc(playbackRequest)
-        ) {
-            forceLibVlcForLive = true
-            internalEngine = InternalPlaybackEngine.LIBVLC
-            triedLibVlcForLive = true
-        }
+        val result = openExternalPlayer(context, streamRequest, item.title, resolvedRoute, ps, if (isLive) 0L else attempt.resumePositionMs)
+        if (result.success) onBack(0, 0) else ui.launchMessage = result.message
     }
 
     if (route == null) {
         PlayerRoutePicker(
             title = item.title,
-            onSelect = { route = it },
-            onDismiss = { onBack(0, 0) },
+            onSelect = { selected ->
+                routeBeforePicker = null
+                route = selected
+            },
+            onDismiss = {
+                val previous = routeBeforePicker
+                routeBeforePicker = null
+                if (previous != null) route = previous else onBack(0, 0)
+            },
         )
         return
     }
-
     if (route != "media3" && route != "auto") {
         ExternalLaunchScreen(
             title = item.title,
-            message = launchMessage ?: "Opening external player...",
+            message = ui.launchMessage ?: ps.openingExternal,
             onRetrySame = {
-                launchMessage = null
-                externalLaunchNonce++
+                ui.launchMessage = null
+                ui.externalLaunchNonce++
             },
             onUseMedia3 = {
-                launchMessage = null
+                ui.launchMessage = null
                 route = "media3"
                 internalEngine = InternalPlaybackEngine.MEDIA3
             },
@@ -484,641 +231,1501 @@ fun PlayerScreen(
         return
     }
 
-    fun switchToCompatibleAlternative(reason: String): Boolean {
-        if (!isLive || triedCompatibleLiveAlternative || liveSwitchLocked) return false
-        val visited = liveAutoRecoveryVisited + item.liveRecoveryKey()
-        if (liveAutoRecoveryAttempts >= LIVE_AUTO_RECOVERY_SWITCH_LIMIT) {
-            liveAutoRecoveryVisited = visited
+    val playbackRequest = remember(
+        streamRequest,
+        attempt.resolvedLiveRequest,
+        attempt.forceHlsForLiveRedirect,
+        attempt.forceLibVlcForLive,
+        attempt.vodFallbackRequest,
+        attempt.liveFormatRequest,
+        isLive,
+    ) {
+        if (!isLive) {
+            attempt.vodFallbackRequest ?: streamRequest
+        } else {
+            val liveBase = attempt.liveFormatRequest ?: streamRequest
+            // LibVLC follows redirects itself, so an immediate VLC start keeps the original link.
+            val keepOriginalForImmediateVlc = attempt.forceLibVlcForLive && !attempt.forceHlsForLiveRedirect
+            val resolved = if (keepOriginalForImmediateVlc) liveBase else attempt.resolvedLiveRequest ?: liveBase
+            if (attempt.forceHlsForLiveRedirect) resolved.copy(mimeType = MimeTypes.APPLICATION_M3U8) else resolved
+        }
+    }
+    val useLibVlc = route == "auto" && (
+        internalEngine == InternalPlaybackEngine.LIBVLC ||
+            (if (isLive) attempt.forceLibVlcForLive else attempt.forceLibVlcForVod)
+        )
+
+    // ── Failure handling (no ExoPlayer reference needed) ────────────────────────────────────
+
+    fun isForeground(): Boolean = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+
+    fun telemetry(summary: String) = PlaybackTelemetryStore.event(item.id, item.title, isLive, summary)
+
+    fun offlineAwareIssue(kind: PlaybackIssueKind): PlaybackIssue =
+        if (context.hasInternetConnection()) PlaybackIssue(kind) else PlaybackIssue(PlaybackIssueKind.NO_INTERNET)
+
+    fun showError(issue: PlaybackIssue) {
+        attempt.isBuffering = false
+        attempt.reconnectingSince = 0L
+        attempt.playbackError = issue
+        telemetry("error shown: ${issue.kind}${issue.httpStatus?.let { " http=$it" }.orEmpty()}; ${playbackRequest.uri.safeStreamLabel()}")
+    }
+
+    fun markPlaying() {
+        if (isLive && !attempt.wasPlaying) LiveFormatMemory.remember(item.liveRecoveryKey(), attempt.liveFormatRequest)
+        attempt.liveFormatTrial = null
+        attempt.wasPlaying = true
+        attempt.liveOpeningGuard = false
+        if (attempt.reconnectingSince > 0L) {
+            attempt.reconnectingSince = 0L
+            attempt.reconnectAttempt = 0
+            telemetry("reconnected")
+        }
+        session.liveAutoRecoveryAttempts = 0
+        session.liveAutoRecoveryVisited = emptySet()
+        session.userZapInFlight = false
+    }
+
+    fun reconnectWindowExpired(): Boolean =
+        attempt.reconnectingSince > 0L &&
+            session.networkAvailable &&
+            SystemClock.elapsedRealtime() - attempt.reconnectingSince > LIVE_RECONNECT_WINDOW_MS
+
+    /** Keeps the same channel and engine and re-opens it with backoff (see the reconnect effect). */
+    fun startReconnect() {
+        if (reconnectWindowExpired()) {
+            showError(offlineAwareIssue(PlaybackIssueKind.UNSTABLE))
+            return
+        }
+        if (attempt.reconnectingSince == 0L) {
+            attempt.reconnectingSince = SystemClock.elapsedRealtime()
+            telemetry("reconnecting; ${playbackRequest.uri.safeStreamLabel()}")
+        }
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.reconnectNonce++
+    }
+
+    /** Last resort before the error card: a lower-quality feed of the SAME channel, announced on screen. */
+    fun switchToCompatibleAlternative(): Boolean {
+        if (!isLive || attempt.triedCompatibleLiveAlternative || session.userZapInFlight) return false
+        val visited = session.liveAutoRecoveryVisited + item.liveRecoveryKey()
+        if (session.liveAutoRecoveryAttempts >= LIVE_AUTO_RECOVERY_SWITCH_LIMIT) {
+            session.liveAutoRecoveryVisited = visited
             return false
         }
-        val alternative = relatedItems.bestCompatibleLiveAlternative(
+        val alternative = latestRelated.bestCompatibleLiveAlternative(
             current = item,
             maxVideoHeight = performancePolicy.maxVideoHeight,
             excludedKeys = visited,
-        ) ?: run {
-            liveAutoRecoveryVisited = visited
+        )
+        if (alternative == null) {
+            session.liveAutoRecoveryVisited = visited
             return false
         }
-        liveAutoRecoveryAttempts += 1
-        liveAutoRecoveryVisited = visited + alternative.liveRecoveryKey()
-        triedCompatibleLiveAlternative = true
-        liveSwitchLocked = true
-        playbackError = null
-        isBuffering = true
-        liveFirstFrameRendered = false
-        liveReadyWithoutVideoAt = 0L
-        playbackSignal = "$reason $liveAutoRecoveryAttempts/$LIVE_AUTO_RECOVERY_SWITCH_LIMIT"
-        onPlayItem(alternative)
+        session.liveAutoRecoveryAttempts += 1
+        session.liveAutoRecoveryVisited = visited + alternative.liveRecoveryKey()
+        session.nextSwitchIsRecovery = true
+        session.recoveryNotice = ps.recoveredNotice.fill(item.title.isolate(), alternative.title.isolate())
+        session.recoveryNoticeNonce++
+        attempt.triedCompatibleLiveAlternative = true
+        telemetry("same-channel variant: ${alternative.title}")
+        onSwitchVariant(alternative)
         return true
     }
 
-    val useLibVlc = route == "auto" && when {
-        isLive -> internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForLive
-        else -> internalEngine == InternalPlaybackEngine.LIBVLC || forceLibVlcForVod
+    /** Opens this channel from scratch in [request], one of its two Xtream formats. */
+    fun openLiveFormat(request: StreamRequest) {
+        // The original link is stored as "no override".
+        attempt.liveFormatRequest = request.takeUnless { it.uri == streamRequest.uri }
+        attempt.resolvedLiveRequest = null
+        attempt.forceHlsForLiveRedirect = false
+        attempt.liveRedirectHint = null
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.liveFirstFrameRendered = false
+        attempt.liveReadyWithoutVideoAt = 0L
     }
 
-    fun retryMedia3WithAlternateSurface(reason: String): Boolean {
-        if (!isLive || useLibVlc || media3SurfaceAttempt >= MEDIA3_SURFACE_RETRY_LIMIT) return false
-        media3SurfaceAttempt += 1
-        playbackError = null
-        isBuffering = true
-        liveOpeningGuard = true
-        liveFirstFrameRendered = false
-        liveReadyWithoutVideoAt = 0L
-        liveConsecutiveFailures = 0
-        liveSwitchLocked = false
-        playbackSignal = "$reason ${media3SurfaceAttempt}/$MEDIA3_SURFACE_RETRY_LIMIT"
+    /**
+     * The same channel once in its other Xtream container (.ts <-> .m3u8), before any engine or
+     * channel change. [cause] is what failed on the current link (null: it stalled).
+     */
+    fun swapLiveFormat(cause: PlaybackFailureClass?) {
+        val current = attempt.liveFormatRequest ?: streamRequest
+        val alternate = alternateLiveFormatRequest(current) ?: return
+        attempt.liveFormatSwapped = true
+        attempt.liveFormatTrial = liveFormatSwapTrial(current, cause)
+        openLiveFormat(alternate)
+        attempt.liveConsecutiveFailures = 0
+        telemetry("live format -> ${alternate.uri.safeStreamLabel()}")
+    }
+
+    /**
+     * The other format failed or stalled before a first frame too: the swap is over, and the link
+     * it replaced comes back when [reopen] (steps that open the same link again). Returns the trial.
+     */
+    fun endLiveFormatTrial(reopen: Boolean): LiveFormatSwapTrial? {
+        val trial = attempt.liveFormatTrial ?: return null
+        attempt.liveFormatTrial = null
+        if (reopen) {
+            openLiveFormat(trial.previous)
+            telemetry("other live format failed too; back to ${trial.previous.uri.safeStreamLabel()}")
+        }
+        return trial
+    }
+
+    /**
+     * The other format failed where the link before the swap had only stalled: that link gets
+     * another go and the stall watchdog carries on. With any other swap on trial, failure handlers
+     * continue from the failure the swap was made for (the trial's cause), without the swap.
+     */
+    fun retryStalledLinkAfterFailedSwap(): Boolean {
+        val trial = attempt.liveFormatTrial
+        if (trial == null || trial.cause != null) return false
+        endLiveFormatTrial(reopen = true)
         return true
     }
 
-    fun switchToVodFallbackStream(error: PlaybackException): Boolean {
-        if (isLive || useLibVlc || !shouldTryVodStreamFallback(error)) return false
-        val visited = vodFallbackVisitedUris + playbackRequest.uri
-        val alternative = nextVodFallbackRequest(
-            baseRequest = streamRequest,
-            currentRequest = playbackRequest,
-            item = item,
-            attemptedUris = visited,
-        ) ?: return false
-        vodFallbackVisitedUris = visited + alternative.uri
-        vodFallbackRequest = alternative
-        playbackError = null
-        isBuffering = true
-        vodFirstFrameRendered = false
-        vodReadyAt = 0L
-        vodOpeningGuard = true
-        playbackSignal = "Trying ${alternative.uri.playableExtensionLabel()} source"
+    fun canSwapLiveFormatNow(httpStatus: Int?): Boolean = canSwapLiveFormat(
+        wasPlaying = attempt.wasPlaying,
+        alreadySwapped = attempt.liveFormatSwapped,
+        hasAlternate = alternateLiveFormatRequest(attempt.liveFormatRequest ?: streamRequest) != null,
+        httpStatus = httpStatus,
+    )
+
+    fun retryMedia3WithAlternateSurface(): Boolean {
+        if (!isLive || useLibVlc || attempt.media3SurfaceAttempt >= MEDIA3_SURFACE_RETRY_LIMIT) return false
+        attempt.media3SurfaceAttempt += 1
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.liveOpeningGuard = true
+        attempt.liveFirstFrameRendered = false
+        attempt.liveReadyWithoutVideoAt = 0L
+        attempt.liveConsecutiveFailures = 0
+        attempt.userPaused = false
+        // The escalation step: a fresh player (new decoders) on the other surface type.
+        session.media3Generation++
+        telemetry("switching video surface ${attempt.media3SurfaceAttempt}/$MEDIA3_SURFACE_RETRY_LIMIT")
         return true
     }
 
-    val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, liveRedirectResolved, useLibVlc, performancePolicy.mode, media3SurfaceAttempt) {
-        buildPlayer(
-            context = context,
-            request = playbackRequest,
-            item = item,
-            isLive = isLive,
-            performancePolicy = performancePolicy,
-            onIsPlayingChanged = { isPlaying = it },
-            onPlaybackStateChanged = { state ->
-                isBuffering = state == Player.STATE_BUFFERING || state == Player.STATE_IDLE
-                if (state == Player.STATE_READY) {
-                    liveLastPlayingAt = System.currentTimeMillis()
-                    liveReadyWithoutVideoAt = if (isLive) System.currentTimeMillis() else 0L
-                    liveConsecutiveFailures = 0
-                    liveSwitchLocked = false
-                    playbackError = null
-                    // VOD watchdog: mark ready time if first frame hasn't rendered yet
-                    if (!isLive && !vodFirstFrameRendered && vodReadyAt == 0L) {
-                        vodReadyAt = System.currentTimeMillis()
-                    }
-                }
-            },
-            onRenderedFirstFrame = {
-                liveFirstFrameRendered = true
-                liveReadyWithoutVideoAt = 0L
-                liveAutoRecoveryAttempts = 0
-                liveAutoRecoveryVisited = emptySet()
-                // VOD watchdog: first frame arrived, clear watchdog
-                vodFirstFrameRendered = true
-                vodReadyAt = 0L
-                vodOpeningGuard = false
-            },
-            onPlayerError = { error ->
-                liveSwitchLocked = false
-                if (isLive &&
-                    streamRequest.uri.hasLiveTsHint() &&
-                    !forceHlsForLiveRedirect &&
-                    error.cause is UnrecognizedInputFormatException
-                ) {
-                    forceHlsForLiveRedirect = true
-                    playbackError = null
-                    isBuffering = true
-                    liveFirstFrameRendered = false
-                    liveReadyWithoutVideoAt = 0L
-                    return@buildPlayer
-                }
-                if (isLive &&
-                    (performancePolicy.isPerformance || playbackRequest.uri.hasLiveTsHint()) &&
-                    // After a Media3 decoder/parse failure, fall back to LibVLC even for https
-                    // sources: LibVLC is the only software path for HEVC/AC3/EAC3/DTS (no FFmpeg
-                    // extension bundled), and Media3 has already failed here — nothing to lose.
-                    isLibVlcSafeForRequest(playbackRequest) &&
-                    shouldFallbackToLibVlc(error) &&
-                    !triedLibVlcForLive
-                ) {
-                    triedLibVlcForLive = true
-                    forceLibVlcForLive = true
-                    playbackError = null
-                    isBuffering = true
-                    internalEngine = InternalPlaybackEngine.LIBVLC
-                    return@buildPlayer
-                }
-                if (isLive && retryMedia3WithAlternateSurface("Switching video surface")) {
-                    return@buildPlayer
-                }
-                if (isLive && switchToCompatibleAlternative("Switching to a safer quality")) {
-                    return@buildPlayer
-                }
-                if (isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForLive) {
-                    triedLibVlcForLive = true
-                    forceLibVlcForLive = true
-                    playbackError = null
-                    isBuffering = true
-                    internalEngine = InternalPlaybackEngine.LIBVLC
-                    return@buildPlayer
-                }
-                if (!isLive && switchToVodFallbackStream(error)) {
-                    return@buildPlayer
-                }
-                if (!isLive && isLibVlcSafeForRequest(playbackRequest) && shouldFallbackToLibVlc(error) && !triedLibVlcForVod) {
-                    triedLibVlcForVod = true
-                    forceLibVlcForVod = true
-                    route = "auto"
-                    playbackError = null
-                    isBuffering = true
-                    vodFirstFrameRendered = false
-                    vodReadyAt = 0L
-                    vodOpeningGuard = true
-                    internalEngine = InternalPlaybackEngine.LIBVLC
-                    return@buildPlayer
-                }
-                playbackError = explainPlaybackError(context, error, playbackRequest.uri, isLive)
-                PlaybackTelemetryStore.record(
-                    PlaybackTelemetrySnapshot(
-                        mediaId = item.id,
-                        title = item.title,
-                        isLive = isLive,
-                        collectedAt = System.currentTimeMillis(),
-                        statsSummary = "error=${error.errorCodeName}; cause=${error.cause?.javaClass?.simpleName.orEmpty()}; ${streamRequest.uri.safeStreamLabel()}",
-                    ),
-                )
-            },
-            onDurationChanged = { latestDuration ->
-                duration = latestDuration.coerceAtLeast(1L)
-            },
-            startPlayback = !useLibVlc && liveRedirectResolved,
+    fun switchLiveEngine(toLibVlc: Boolean) {
+        if (toLibVlc) {
+            attempt.triedLibVlcForLive = true
+            attempt.forceLibVlcForLive = true
+            internalEngine = InternalPlaybackEngine.LIBVLC
+        } else {
+            attempt.triedMedia3ForLive = true
+            attempt.forceLibVlcForLive = false
+            internalEngine = InternalPlaybackEngine.MEDIA3
+        }
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.liveFirstFrameRendered = false
+        attempt.liveReadyWithoutVideoAt = 0L
+        attempt.liveConsecutiveFailures = 0
+        attempt.audioOnly = false
+        attempt.userPaused = false
+        telemetry("live engine -> ${if (toLibVlc) "LibVLC" else "Media3"}")
+    }
+
+    fun switchVodEngine(toLibVlc: Boolean) {
+        attempt.triedLibVlcForVod = true
+        attempt.forceLibVlcForVod = toLibVlc
+        route = if (toLibVlc) "auto" else "media3"
+        if (toLibVlc) internalEngine = InternalPlaybackEngine.LIBVLC
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.vodFirstFrameRendered = false
+        attempt.vodReadyAt = 0L
+        attempt.vodOpeningGuard = true
+        attempt.vodEnded = false
+        attempt.audioOnly = false
+        attempt.userPaused = false
+        telemetry("vod engine -> ${if (toLibVlc) "LibVLC" else "Media3"}")
+    }
+
+    fun switchToVodFallbackStream(errorCode: Int, httpStatus: Int?, cause: Throwable?): Boolean {
+        if (isLive || useLibVlc || attempt.vodFallbackSwitches >= VOD_EXTENSION_FALLBACK_LIMIT) return false
+        if (!shouldTryVodStreamFallback(errorCode, httpStatus, cause)) return false
+        val visited = attempt.vodFallbackVisitedUris + playbackRequest.uri
+        val alternative = nextVodFallbackRequest(streamRequest, playbackRequest, item, visited) ?: return false
+        attempt.vodFallbackVisitedUris = visited + alternative.uri
+        attempt.vodFallbackSwitches += 1
+        attempt.vodFallbackRequest = alternative
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.vodFirstFrameRendered = false
+        attempt.vodReadyAt = 0L
+        attempt.vodOpeningGuard = true
+        telemetry("vod container fallback -> ${alternative.uri.safeStreamLabel()}")
+        return true
+    }
+
+    /** A ".ts" link that is really HLS/DASH: reopen what Media3 actually reached. */
+    fun applyLiveRedirect() {
+        val hint = attempt.liveRedirectHint
+        if (hint != null && hint.isManifest()) attempt.resolvedLiveRequest = hint else attempt.forceHlsForLiveRedirect = true
+        attempt.playbackError = null
+        attempt.isBuffering = true
+        attempt.liveFirstFrameRendered = false
+        attempt.liveReadyWithoutVideoAt = 0L
+        telemetry("live .ts link serves a manifest; reopening as ${hint?.mimeType ?: MimeTypes.APPLICATION_M3U8}")
+    }
+
+    fun handleLiveEnded() {
+        telemetry("live stream ended by server")
+        if (retryStalledLinkAfterFailedSwap()) return
+        val trialCause = attempt.liveFormatTrial?.cause
+        val step = liveErrorRecoveryStep(
+            failure = trialCause ?: PlaybackFailureClass.TRANSIENT,
+            wasPlaying = attempt.wasPlaying,
+            reconnectWindowExpired = reconnectWindowExpired(),
+            startupRetryAvailable = trialCause == null && attempt.startupEndedRetries < 1,
+            canForceHls = false,
+            canSwitchEngine = !useLibVlc && !attempt.triedLibVlcForLive &&
+                isLibVlcSafeForRequest(playbackRequest) && !playbackRequest.hasHeadersLibVlcCannotSend(),
+            canRetrySurface = false,
+            permanentReconnectAvailable = false,
+            canSwapFormat = canSwapLiveFormatNow(null),
         )
-    }
-
-    DisposableEffect(exoPlayer, item.id) {
-        onDispose {
-            if (!isLive && exoPlayer.duration > 0) {
-                onProgress(item, exoPlayer.currentPosition.coerceAtLeast(0), exoPlayer.duration.coerceAtLeast(0))
+        endLiveFormatTrial(reopen = step.reopensSameLink())
+        when (step) {
+            LiveRecoveryStep.RECONNECT_IN_PLACE -> if (attempt.wasPlaying) {
+                startReconnect()
+            } else {
+                attempt.startupEndedRetries += 1
+                attempt.isBuffering = true
+                attempt.reconnectNonce++
             }
-            exoPlayer.release()
+            LiveRecoveryStep.SWAP_FORMAT -> swapLiveFormat(PlaybackFailureClass.TRANSIENT)
+            LiveRecoveryStep.SWITCH_ENGINE -> switchLiveEngine(toLibVlc = true)
+            LiveRecoveryStep.SIBLING_VARIANT -> if (!switchToCompatibleAlternative()) showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
+            else -> showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
         }
     }
 
-    // MediaSession: wire the player to the platform media controller so hardware media
-    // keys (TV remote play/pause/next/prev/FF/RW, Bluetooth headphones, watch controls)
-    // are routed correctly even when this activity isn't focused.
-    DisposableEffect(exoPlayer, item.id) {
-        val session = runCatching {
-            androidx.media3.session.MediaSession.Builder(context, exoPlayer)
-                .setId("MoPlayerPro-${item.id}-${System.currentTimeMillis()}")
-                .build()
-        }.getOrNull()
-        onDispose {
-            runCatching { session?.release() }
+    fun markVodEnded() {
+        if (attempt.vodEnded) return
+        attempt.vodEnded = true
+        attempt.isBuffering = false
+        if (ui.duration > 1) {
+            // Watched: later saves (leaving, the next episode) must not store an earlier position.
+            attempt.resumePositionMs = ui.duration
+            onProgress(item, ui.duration, ui.duration)
         }
+        // An episode with a next one offers it (with a countdown) instead of the Replay controls.
+        // A cancel stands until Replay (the stream re-opened on return from Home ends again), and
+        // a next episode found only after this ending is not put over the controls.
+        if (ui.nextEpisode == null) ui.nextEpisodeDismissed = true
+        ui.showControls = ui.nextEpisodeDismissed
+        session.lastInteraction = System.currentTimeMillis()
     }
 
-    // Reinforce screen-on/wake while the player is on screen so TV boxes never go to sleep
-    // mid-stream, even on Lifecycle.ON_STOP false alarms or screensaver triggers.
-    DisposableEffect(item.id) {
-        val activity = context.findActivity()
-        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        val wakeLock = powerManager
-            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MoPlayerPro::Playback")
-            ?.apply {
-                setReferenceCounted(false)
-                runCatching { acquire(6 * 60 * 60 * 1000L) } // safety cap: 6h per session
+    fun onMedia3State(state: Int) {
+        attempt.isBuffering = state == Player.STATE_BUFFERING || state == Player.STATE_IDLE
+        when (state) {
+            Player.STATE_READY -> {
+                val now = SystemClock.elapsedRealtime()
+                if (isLive && !attempt.liveFirstFrameRendered && !attempt.audioOnly) attempt.liveReadyWithoutVideoAt = now
+                if (!isLive && !attempt.vodFirstFrameRendered && !attempt.audioOnly && attempt.vodReadyAt == 0L) attempt.vodReadyAt = now
+                attempt.liveConsecutiveFailures = 0
+                attempt.playbackError = null
+                attempt.vodEnded = false
+                session.userZapInFlight = false
+                // Audio-only streams never render a first frame, so READY is their "playing again".
+                if (attempt.audioOnly && attempt.reconnectingSince > 0L) markPlaying()
             }
-        onDispose {
-            runCatching { if (wakeLock?.isHeld == true) wakeLock.release() }
-            // Leave the activity-level KEEP_SCREEN_ON flag in place; it is already requested
-            // at MainActivity start and other screens benefit from it as well.
+            Player.STATE_ENDED -> if (isLive) {
+                attempt.isBuffering = true
+                handleLiveEnded()
+            } else {
+                markVodEnded()
+            }
         }
     }
 
-    LaunchedEffect(exoPlayer, item.id) {
+    fun onFirstFrame() {
+        attempt.liveFirstFrameRendered = true
+        attempt.liveReadyWithoutVideoAt = 0L
+        attempt.vodFirstFrameRendered = true
+        attempt.vodReadyAt = 0L
+        attempt.vodOpeningGuard = false
+        markPlaying()
+    }
+
+    fun onMedia3FirstFrame(player: ExoPlayer) {
+        session.zapProbe.onFirstFrame(player)
+        onFirstFrame()
+    }
+
+    fun onTracksResolved(hasVideo: Boolean, hasAudio: Boolean) {
+        val audioOnly = isAudioOnlyTracks(tracksEmpty = false, hasVideo = hasVideo, hasAudio = hasAudio)
+        if (audioOnly && !attempt.audioOnly) {
+            attempt.audioOnly = true
+            attempt.liveReadyWithoutVideoAt = 0L
+            attempt.vodReadyAt = 0L
+            markPlaying()
+            telemetry("audio-only stream")
+        } else if (hasVideo && attempt.audioOnly) {
+            attempt.audioOnly = false
+            val now = SystemClock.elapsedRealtime()
+            if (isLive && !attempt.liveFirstFrameRendered) attempt.liveReadyWithoutVideoAt = now
+            if (!isLive && !attempt.vodFirstFrameRendered) attempt.vodReadyAt = now
+        }
+    }
+
+    /** Media3 found no decoder for any audio track: LibVLC decodes it in software, otherwise say why it is silent. */
+    fun onAudioUnsupported(mimeTypes: List<String>) {
+        telemetry("no audio decoder: ${mimeTypes.joinToString()}")
+        val action = unsupportedAudioAction(
+            onLibVlc = useLibVlc,
+            libVlcCanPlay = (!isLive || route == "auto") &&
+                isLibVlcSafeForRequest(playbackRequest) &&
+                !playbackRequest.hasHeadersLibVlcCannotSend(),
+            triedLibVlc = if (isLive) attempt.triedLibVlcForLive else attempt.triedLibVlcForVod,
+            alreadyNotified = attempt.audioUnsupportedNotified,
+        )
+        when (action) {
+            UnsupportedAudioAction.SWITCH_ENGINE -> if (isLive) switchLiveEngine(toLibVlc = true) else switchVodEngine(toLibVlc = true)
+            UnsupportedAudioAction.NOTIFY -> {
+                attempt.audioUnsupportedNotified = true
+                session.recoveryNotice = ps.audioUnsupported
+                session.recoveryNoticeNonce++
+            }
+            UnsupportedAudioAction.NONE -> Unit
+        }
+    }
+
+    fun onLibVlcTimeline(timeMs: Long, lengthMs: Long, seekable: Boolean) {
+        attempt.libVlcSeekable = seekable
+        if (isLive) return
+        if (lengthMs > 0L) ui.duration = lengthMs
+        if (timeMs > 0L) {
+            attempt.resumePositionMs = timeMs
+            // A scrub preview or a just-committed seek owns the bar until LibVLC reports the new time.
+            if (session.pendingSeekTarget == C.TIME_UNSET && SystemClock.uptimeMillis() - session.lastSeekAt > 1_000L) {
+                ui.currentPosition = timeMs
+            }
+        }
+    }
+
+    fun saveLibVlcProgress() {
+        if (!isLive && ui.duration > 1L && attempt.resumePositionMs > 0L) onProgress(item, attempt.resumePositionMs, ui.duration)
+    }
+
+    fun handleMedia3Error(error: PlaybackException) {
+        session.userZapInFlight = false
+        val httpStatus = httpStatusOf(error.cause)
+        val failure = classifyPlaybackFailure(error.errorCode, httpStatus, error.cause)
+        val issue = classifyPlaybackIssue(error.errorCode, httpStatus, error.cause, context.hasInternetConnection(), isLive)
+        telemetry(
+            "media3 ${error.errorCodeName}; http=${httpStatus ?: "-"}; class=$failure; " +
+                "cause=${error.cause?.javaClass?.simpleName.orEmpty()}; ${playbackRequest.uri.safeStreamLabel()}",
+        )
+        if (isLive) {
+            if (retryStalledLinkAfterFailedSwap()) return
+            val trialCause = attempt.liveFormatTrial?.cause
+            val stepFailure = trialCause ?: failure
+            val step = liveErrorRecoveryStep(
+                failure = stepFailure,
+                wasPlaying = attempt.wasPlaying,
+                reconnectWindowExpired = reconnectWindowExpired(),
+                startupRetryAvailable = false,
+                // A ".ts" (or extensionless) link that Media3 could not recognise is usually HLS.
+                canForceHls = trialCause == null &&
+                    (playbackRequest.uri.hasLiveTsHint() || playbackRequest.mimeType == null) &&
+                    !attempt.forceHlsForLiveRedirect &&
+                    attempt.resolvedLiveRequest == null &&
+                    error.cause.hasUnrecognizedInputFormat(),
+                // LibVLC cannot send Cookie/Origin/bearer headers: for those streams it is only
+                // worth trying when the container or codec (not the server) was the problem.
+                canSwitchEngine = !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest) &&
+                    (stepFailure == PlaybackFailureClass.FORMAT || !playbackRequest.hasHeadersLibVlcCannotSend()),
+                canRetrySurface = attempt.media3SurfaceAttempt < MEDIA3_SURFACE_RETRY_LIMIT && isDecoderFailure(error.errorCode),
+                permanentReconnectAvailable = attempt.reconnectAttempt < LIVE_PERMANENT_RECONNECT_LIMIT,
+                // Another container cannot help a decoder or audio-output failure.
+                canSwapFormat = canSwapLiveFormatNow(httpStatus) &&
+                    !isDecoderFailure(error.errorCode) &&
+                    error.errorCode != PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED,
+            )
+            endLiveFormatTrial(reopen = step.reopensSameLink())
+            when (step) {
+                LiveRecoveryStep.RECONNECT_IN_PLACE -> startReconnect()
+                LiveRecoveryStep.FORCE_HLS -> applyLiveRedirect()
+                LiveRecoveryStep.SWAP_FORMAT -> swapLiveFormat(failure)
+                LiveRecoveryStep.SWITCH_ENGINE -> switchLiveEngine(toLibVlc = true)
+                LiveRecoveryStep.ALTERNATE_SURFACE -> retryMedia3WithAlternateSurface()
+                LiveRecoveryStep.SIBLING_VARIANT -> if (!switchToCompatibleAlternative()) showError(issue)
+                LiveRecoveryStep.SHOW_ERROR -> showError(issue)
+            }
+            return
+        }
+        when {
+            switchToVodFallbackStream(error.errorCode, httpStatus, error.cause) -> Unit
+            failure == PlaybackFailureClass.FORMAT && !attempt.triedLibVlcForVod && isLibVlcSafeForRequest(playbackRequest) ->
+                switchVodEngine(toLibVlc = true)
+            else -> showError(issue)
+        }
+    }
+
+    /** LibVLC VOD: one in-place re-open from the last position after a mid-play error or cut-off. */
+    fun retryLibVlcVod(issue: PlaybackIssue) {
+        if (attempt.vodFirstFrameRendered && attempt.libVlcVodRetries < 1) {
+            attempt.libVlcVodRetries += 1
+            attempt.isBuffering = true
+            attempt.libVlcRetryNonce++
+            telemetry("libvlc vod re-open from ${attempt.resumePositionMs / 1000}s")
+        } else {
+            showError(issue)
+        }
+    }
+
+    fun handleLibVlcFailure() {
+        session.userZapInFlight = false
+        telemetry("libvlc error; ${playbackRequest.uri.safeStreamLabel()}")
+        if (!isLive) {
+            retryLibVlcVod(offlineAwareIssue(PlaybackIssueKind.GENERIC))
+            return
+        }
+        if (retryStalledLinkAfterFailedSwap()) return
+        val trialCause = attempt.liveFormatTrial?.cause
+        val step = liveErrorRecoveryStep(
+            failure = trialCause ?: PlaybackFailureClass.TRANSIENT,
+            wasPlaying = attempt.wasPlaying,
+            reconnectWindowExpired = reconnectWindowExpired(),
+            startupRetryAvailable = trialCause == null && attempt.liveConsecutiveFailures < 2,
+            canForceHls = false,
+            canSwitchEngine = !attempt.triedMedia3ForLive && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true),
+            canRetrySurface = false,
+            permanentReconnectAvailable = false,
+            canSwapFormat = canSwapLiveFormatNow(null),
+        )
+        endLiveFormatTrial(reopen = step.reopensSameLink())
+        when (step) {
+            LiveRecoveryStep.RECONNECT_IN_PLACE -> if (attempt.wasPlaying) {
+                startReconnect()
+            } else {
+                attempt.liveConsecutiveFailures += 1
+                attempt.isBuffering = true
+                attempt.libVlcRetryNonce++
+            }
+            LiveRecoveryStep.SWAP_FORMAT -> swapLiveFormat(PlaybackFailureClass.TRANSIENT)
+            LiveRecoveryStep.SWITCH_ENGINE -> switchLiveEngine(toLibVlc = false)
+            LiveRecoveryStep.SIBLING_VARIANT -> if (!switchToCompatibleAlternative()) showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
+            else -> showError(offlineAwareIssue(PlaybackIssueKind.LIVE_STOPPED))
+        }
+    }
+
+    fun onLibVlcEnded(reachedEnd: Boolean) {
+        when {
+            isLive -> handleLibVlcFailure()
+            // Ended before anything played: the stream could not be opened.
+            !attempt.vodFirstFrameRendered && !attempt.audioOnly -> retryLibVlcVod(offlineAwareIssue(PlaybackIssueKind.GENERIC))
+            reachedEnd -> {
+                markVodEnded()
+                // Ended is not "wants to play": LibVLC would otherwise re-open the stream from the
+                // start on return from Home (under the next-episode card, saving over "watched").
+                session.vlcTransportSeq += 1
+                attempt.vlcTransport = VlcTransportCommand(session.vlcTransportSeq, play = false)
+            }
+            // Cut off long before the known length: continue from the last position once.
+            else -> retryLibVlcVod(PlaybackIssue(PlaybackIssueKind.VOD_INTERRUPTED))
+        }
+    }
+
+    // ── Media3 player: one per session (none while LibVLC plays); each item or request is a load ──
+
+    // A plain (not composable) function, so these lambdas are not memoized in PlayerScreen's body.
+    fun media3Callbacks() = Media3Callbacks(
+        onIsPlayingChanged = { playing -> session.isPlaying = playing },
+        onPlaybackStateChanged = ::onMedia3State,
+        onRenderedFirstFrame = ::onMedia3FirstFrame,
+        onPlayerError = ::handleMedia3Error,
+        onDurationChanged = { duration -> if (duration > 0) ui.duration = duration },
+        onTracksResolved = ::onTracksResolved,
+        onAudioUnsupported = ::onAudioUnsupported,
+        onLoadFailure = { finalUri, contentType, error ->
+            val base = attempt.liveFormatRequest ?: streamRequest
+            if (isLive && (base.uri.hasLiveTsHint() || base.mimeType == null) && error.hasUnrecognizedInputFormat()) {
+                attempt.liveRedirectHint = redirectedStreamRequest(base, finalUri, contentType)
+            }
+        },
+    )
+
+    val engine = rememberMedia3Engine(
+        enabled = !useLibVlc,
+        isLive = isLive,
+        performancePolicy = performancePolicy,
+        generation = session.media3Generation,
+        callbacks = media3Callbacks(),
+    )
+    val exoPlayer = engine?.player
+    Media3LoadEffect(engine, item, playbackRequest, isLive, performancePolicy, attempt, ui, session, onProgress)
+
+    Media3LifecycleBinding(exoPlayer = exoPlayer, isLive = isLive) { position, duration ->
+        onProgress(item, position, duration)
+    }
+
+    // Keyed on the item's state holders as well: the player outlives them across zaps.
+    LaunchedEffect(exoPlayer, ui, attempt) {
         while (true) {
-            currentPosition = exoPlayer.currentPosition.coerceAtLeast(0)
-            duration = exoPlayer.duration.coerceAtLeast(duration)
-            val signalFallback = if (isLive) performanceStatus.ifBlank { "Smart Auto" } else performanceStatus
-            playbackSignal = playbackSignal(exoPlayer.videoFormat, signalFallback)
-            // Auto-hide only when the video is actively playing AND the player engine confirms
-            // playback (so a stale isPlaying=true racing with onIsPlayingChanged won't hide
-            // controls during a pause). Give the user more time on TVs since D-pad is slower.
-            val engineReportsPlaying = runCatching { exoPlayer.isPlaying }.getOrDefault(isPlaying)
-            val effectivelyPlaying = isPlaying && engineReportsPlaying
-            val autoHideMs = if (isLive) 4_000L else 8_000L
-            if (showControls && effectivelyPlaying && System.currentTimeMillis() - lastInteraction > autoHideMs) {
-                showControls = false
+            if (exoPlayer != null) {
+                val position = exoPlayer.currentPosition.coerceAtLeast(0)
+                if (!isLive) {
+                    if (session.pendingSeekTarget == C.TIME_UNSET) ui.currentPosition = position
+                    if (exoPlayer.duration > 0) ui.duration = exoPlayer.duration
+                    if (exoPlayer.playbackState != Player.STATE_IDLE && position > 0) attempt.resumePositionMs = position
+                }
+                ui.playbackSignal = exoPlayer.videoFormat.videoSignal()
+            } else {
+                ui.playbackSignal = "VLC"
+            }
+            val engineReportsPlaying = exoPlayer?.isPlaying ?: session.isPlaying
+            if (ui.showControls && session.isPlaying && engineReportsPlaying && !attempt.vodEnded &&
+                System.currentTimeMillis() - session.lastInteraction > 8_000L
+            ) {
+                ui.showControls = false
             }
             delay(400)
         }
     }
 
     LaunchedEffect(exoPlayer, item.id) {
+        if (isLive) return@LaunchedEffect
         while (true) {
-            if (!isLive && exoPlayer.duration > 0 && exoPlayer.currentPosition > 0) {
+            delay(12_000)
+            if (exoPlayer == null) {
+                saveLibVlcProgress()
+            } else if (exoPlayer.duration > 0 && exoPlayer.currentPosition > 0) {
                 onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
             }
-            delay(12_000)
         }
     }
 
-    DisposableEffect(lifecycleOwner, exoPlayer, useLibVlc) {
-        var resumeMedia3OnStart = false
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                    if (!useLibVlc) {
-                        exoPlayer.playWhenReady = false
-                        exoPlayer.pause()
-                    }
-                }
-                Lifecycle.Event.ON_STOP -> {
-                    resumeMedia3OnStart = !useLibVlc && exoPlayer.playWhenReady
-                    if (!useLibVlc) {
-                        exoPlayer.playWhenReady = false
-                        exoPlayer.stop()
-                    }
-                }
-                Lifecycle.Event.ON_START -> {
-                    if (resumeMedia3OnStart && !useLibVlc) {
-                        exoPlayer.prepare()
-                        exoPlayer.playWhenReady = true
-                        exoPlayer.play()
-                    }
-                    resumeMedia3OnStart = false
-                }
-                else -> Unit
+    LaunchedEffect(exoPlayer, liveQualityMode, performancePolicy.mode) {
+        if (isLive && exoPlayer != null) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
+    }
+
+    // ── Channel list data ───────────────────────────────────────────────────────────────────
+
+    val zapList = rememberLiveZapList(item, relatedItems, isLive)
+    val previousItem = zapList.previousItem
+    val nextItem = zapList.nextItem
+    val browser = rememberLiveBrowser(livePanelSource, liveGroups)
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+
+    // ── Viewer actions ──────────────────────────────────────────────────────────────────────
+
+    fun wakeControls() {
+        ui.showControls = true
+        session.lastInteraction = System.currentTimeMillis()
+    }
+
+    fun seekEngineTo(target: Long) {
+        if (useLibVlc) {
+            // LibVLC reports the new time a moment later; leaving right away must save the target.
+            attempt.resumePositionMs = target
+            session.vlc.seekTo(target)
+        } else {
+            exoPlayer?.seekTo(target)
+        }
+    }
+
+    fun vodPositionMs(): Long = if (exoPlayer == null) attempt.resumePositionMs else exoPlayer.currentPosition.coerceAtLeast(0L)
+
+    fun vodDurationMs(): Long = if (exoPlayer == null) ui.duration.takeIf { it > 1L } ?: 0L else exoPlayer.duration.coerceAtLeast(0L)
+
+    fun commitPendingSeek() {
+        val target = session.pendingSeekTarget
+        if (target == C.TIME_UNSET) return
+        session.pendingSeekTarget = C.TIME_UNSET
+        seekEngineTo(target)
+    }
+
+    /**
+     * One seek step. A discrete press or button click seeks at once; held keys only move the
+     * preview and commit once they stop, so a scrub is one range request instead of dozens.
+     */
+    fun seekVodBy(stepMs: Long, repeatCount: Int, revealControls: Boolean) {
+        if (isLive) return
+        if (useLibVlc && !attempt.libVlcSeekable) {
+            // Not seekable (yet): a server without range support, or the stream is still opening.
+            session.showTransientMessage(ps.seekUnavailable)
+            return
+        }
+        val now = SystemClock.uptimeMillis()
+        val direction = if (stepMs > 0) 1 else -1
+        val continuing = direction == session.lastSeekDirection && now - session.lastSeekAt < 700L
+        if (!continuing) {
+            commitPendingSeek()
+            session.seekSessionMs = 0L
+        }
+        session.lastSeekDirection = direction
+        session.lastSeekAt = now
+        val current = exoPlayer?.currentPosition ?: ui.currentPosition
+        val base = if (session.pendingSeekTarget != C.TIME_UNSET) session.pendingSeekTarget else current
+        val knownDuration = vodDurationMs().takeIf { it > 0 } ?: ui.duration.takeIf { it > 1 }
+        val target = vodSeekTarget(base, stepMs, repeatCount, knownDuration)
+        session.seekSessionMs += target - base.coerceAtLeast(0L)
+        ui.currentPosition = target
+        if (repeatCount == 0) {
+            session.pendingSeekTarget = C.TIME_UNSET
+            seekEngineTo(target)
+        } else {
+            session.pendingSeekTarget = target
+            session.seekCommitNonce++
+        }
+        session.seekPillMs = session.seekSessionMs
+        session.seekPillNonce++
+        if (revealControls) wakeControls() else session.seekPreviewNonce++
+    }
+
+    fun seekToFraction(fraction: Float) {
+        val duration = vodDurationMs().takeIf { it > 0 } ?: return
+        if (useLibVlc && !attempt.libVlcSeekable) return
+        val target = (duration * fraction).toLong().coerceIn(0L, (duration - 2_000L).coerceAtLeast(0L))
+        session.pendingSeekTarget = C.TIME_UNSET
+        session.lastSeekAt = SystemClock.uptimeMillis()
+        seekEngineTo(target)
+        ui.currentPosition = target
+        wakeControls()
+    }
+
+    fun sendVlcTransport(play: Boolean) {
+        session.vlcTransportSeq += 1
+        attempt.vlcTransport = VlcTransportCommand(session.vlcTransportSeq, play)
+    }
+
+    fun pausePlayback() {
+        if (attempt.vodEnded) return
+        attempt.userPaused = true
+        attempt.pausedAt = SystemClock.elapsedRealtime()
+        if (exoPlayer == null) sendVlcTransport(play = false) else Util.handlePauseButtonAction(exoPlayer)
+        if (isLive) ui.showMiniInfo = true
+    }
+
+    fun resumePlayback() {
+        val pausedFor = if (attempt.pausedAt > 0L) SystemClock.elapsedRealtime() - attempt.pausedAt else 0L
+        // After a long live pause the buffer is minutes behind (or already outside the window).
+        val jumpToLiveEdge = isLive && pausedFor > LIVE_PAUSE_JUMP_TO_EDGE_MS
+        attempt.userPaused = false
+        attempt.pausedAt = 0L
+        if (exoPlayer == null) {
+            // Replay after the end starts over; a long live pause re-opens at the edge.
+            if (attempt.vodEnded) attempt.resumePositionMs = 0L
+            if (jumpToLiveEdge || attempt.vodEnded) attempt.libVlcRetryNonce++ else sendVlcTransport(play = true)
+        } else {
+            if (jumpToLiveEdge) exoPlayer.seekToDefaultPosition()
+            Util.handlePlayButtonAction(exoPlayer)
+        }
+        // Replay: its ending offers the next episode again.
+        if (attempt.vodEnded) ui.nextEpisodeDismissed = false
+        attempt.vodEnded = false
+    }
+
+    fun togglePlayPause() {
+        val resume = when {
+            attempt.vodEnded || attempt.userPaused -> true
+            // Paused by something else (audio focus loss, Home): the next OK plays again.
+            exoPlayer == null -> !session.isPlaying && !attempt.isBuffering
+            else -> Util.shouldShowPlayButton(exoPlayer)
+        }
+        if (resume) resumePlayback() else pausePlayback()
+    }
+
+    fun retryPlayback() {
+        val surfaceSwitched = attempt.media3SurfaceAttempt != 0
+        if (!isLive && exoPlayer != null) {
+            attempt.resumePositionMs = exoPlayer.currentPosition.takeIf { it > 0 } ?: attempt.resumePositionMs
+        }
+        attempt.playbackError = null
+        ui.launchMessage = null
+        attempt.isBuffering = true
+        attempt.forceHlsForLiveRedirect = false
+        attempt.resolvedLiveRequest = null
+        attempt.liveRedirectHint = null
+        attempt.liveFirstFrameRendered = false
+        attempt.liveReadyWithoutVideoAt = 0L
+        attempt.liveConsecutiveFailures = 0
+        attempt.startupEndedRetries = 0
+        attempt.media3SurfaceAttempt = 0
+        attempt.vodFallbackRequest = null
+        attempt.vodFallbackVisitedUris = emptySet()
+        attempt.vodFallbackSwitches = 0
+        attempt.vodReadyAt = 0L
+        attempt.vodFirstFrameRendered = false
+        attempt.vodEnded = false
+        attempt.reconnectingSince = 0L
+        attempt.reconnectAttempt = 0
+        attempt.userPaused = false
+        attempt.wasPlaying = false
+        attempt.triedCompatibleLiveAlternative = false
+        attempt.liveFormatSwapped = false
+        attempt.liveFormatTrial = null
+        attempt.libVlcVodRetries = 0
+        session.liveAutoRecoveryAttempts = 0
+        session.liveAutoRecoveryVisited = emptySet()
+        session.userZapInFlight = false
+        if (isLive) {
+            attempt.triedMedia3ForLive = !useLibVlc
+            attempt.triedLibVlcForLive = useLibVlc
+            attempt.forceLibVlcForLive = useLibVlc
+        } else {
+            attempt.triedLibVlcForVod = useLibVlc
+            attempt.forceLibVlcForVod = useLibVlc
+        }
+        telemetry("manual retry")
+        if (useLibVlc) {
+            attempt.libVlcRetryNonce++
+            return
+        }
+        // The (possibly reset) request is loaded again, at the live edge or resumePositionMs; after
+        // a surface switch on a fresh player on the default surface.
+        if (surfaceSwitched) session.media3Generation++
+        attempt.media3ReloadNonce++
+    }
+
+    fun tryOtherVodEngine() {
+        switchVodEngine(toLibVlc = !useLibVlc)
+    }
+
+    /**
+     * A zap or episode change the viewer asked for. [panelGroupId]: picked in the live panel's
+     * group of that id, which CH+/CH- walk from then on.
+     */
+    fun switchTo(target: AppMediaItem?, panelGroupId: String? = null) {
+        if (target == null || target.samePlayable(item)) return
+        commitPendingSeek()
+        session.zapProbe.begin("${target.type} ${target.id} '${target.title}'", session.lastKeyDownAt, exoPlayer)
+        session.pendingZapItem = null
+        session.zapKeyHeld = false
+        if (target.type == ContentType.LIVE) {
+            session.lastLiveSwitchAt = System.currentTimeMillis()
+            session.lastZapCommitAt = SystemClock.uptimeMillis()
+            session.zapSettling = true
+            session.userZapInFlight = true
+            session.liveAutoRecoveryAttempts = 0
+            session.liveAutoRecoveryVisited = emptySet()
+            session.recoveryNotice = null
+        }
+        if (panelGroupId != null) livePanelSource.playInGroup(target, panelGroupId) else onPlayItem(target)
+    }
+
+    fun commitPendingZap() {
+        val target = session.pendingZapItem ?: return
+        session.pendingZapItem = null
+        session.zapKeyHeld = false
+        // Home pressed inside the coalescing window: tuning now would start playback in the
+        // background, where the lifecycle stop that already ran can no longer silence it.
+        if (!isForeground()) return
+        if (target.samePlayable(item)) ui.showMiniInfo = true else switchTo(target)
+    }
+
+    /**
+     * CH+/CH-/Up/Down with the list closed. The first press tunes immediately; auto-repeat and
+     * rapid presses only move the on-screen target, and the latest target is tuned on key-up or
+     * after [ZAP_COALESCE_MS] of quiet — so no provider connection is opened per passing channel.
+     */
+    fun zapBy(direction: Int, repeatCount: Int) {
+        val list = latestRelated
+        val base = session.pendingZapItem ?: item
+        val baseIndex = list.indexOfFirst { it.samePlayable(base) }
+        val target = liveZapTargetIndex(baseIndex, direction, list.size)?.let(list::get) ?: return
+        ui.showControls = false
+        ui.showLiveZap = false
+        val now = SystemClock.uptimeMillis()
+        if (repeatCount == 0 && session.pendingZapItem == null && now - session.lastZapCommitAt >= ZAP_COALESCE_MS) {
+            switchTo(target)
+        } else {
+            if (repeatCount > 0) session.zapKeyHeld = true
+            session.pendingZapItem = target
+            session.pendingZapNonce++
+            ui.showMiniInfo = true
+        }
+    }
+
+    fun recallPreviousChannel() {
+        val previous = session.previousChannel ?: return
+        if (!previous.samePlayable(item)) switchTo(previous)
+    }
+
+    fun leavePlayer() {
+        commitPendingSeek()
+        if (isLive) onBack(0, 0) else onBack(vodPositionMs(), vodDurationMs())
+    }
+
+    /** VLC / MX / system chooser for the current stream; Back or Cancel in the picker returns here. */
+    fun openPlayerPicker() {
+        routeBeforePicker = route
+        route = null
+    }
+
+    fun cycleVideoSizeMode() {
+        val current = VideoSizeModes.indexOf(selectedVideoSizeMode).coerceAtLeast(0)
+        val next = VideoSizeModes[(current + 1) % VideoSizeModes.size]
+        selectedVideoSizeMode = next
+        onVideoSizeMode(next)
+    }
+
+    fun setLiveQualityMode(mode: LiveQualityMode) {
+        liveQualityMode = mode
+        // Quality modes steer Media3's track selection; LibVLC has no equivalent.
+        if (isLive && useLibVlc && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true)) switchLiveEngine(toLibVlc = false)
+    }
+
+    fun toggleFavorite() {
+        onTripleOk()
+        ui.favoriteMarked = !ui.favoriteMarked
+    }
+
+    fun showTrackDialog(trackType: Int) {
+        val title = when (trackType) {
+            C.TRACK_TYPE_AUDIO -> strings.playerAudio
+            C.TRACK_TYPE_TEXT -> strings.playerSubtitles
+            else -> strings.playerQuality
+        }
+        if (exoPlayer == null) {
+            showLibVlcTrackDialog(context, title, trackType, session.vlc, ps) { session.showTransientMessage(ps.noOtherTracks) }
+            return
+        }
+        runCatching {
+            TrackSelectionDialogBuilder(context, title, exoPlayer, trackType)
+                .apply { if (trackType == C.TRACK_TYPE_TEXT) setShowDisableOption(true) }
+                .build()
+                .show()
+        }
+    }
+
+    fun closeLiveZap() {
+        ui.showLiveZap = false
+    }
+
+    /** The panel opens on the group CH+/CH- walk, with the playing channel selected. */
+    fun openLiveZap() {
+        browser.open(item)
+        ui.liveOverlayTab = LiveOverlayTab.CHANNELS
+        ui.liveActionIndex = 0
+        ui.showLiveZap = true
+        ui.showMiniInfo = false
+        ui.showControls = false
+        session.lastInteraction = System.currentTimeMillis()
+    }
+
+    /** OK or a tap on a panel channel: it plays, and CH+/CH- walk the group it was picked in. */
+    fun playFromPanel(channel: AppMediaItem) {
+        val groupId = browser.loadedGroupId ?: return
+        closeLiveZap()
+        ui.showMiniInfo = true
+        if (channel.samePlayable(item)) livePanelSource.playInGroup(channel, groupId) else switchTo(channel, groupId)
+    }
+
+    /** Left/Right walk the tabs in screen order and stop at the ends (no wrap from groups to favorites). */
+    fun selectLiveOverlayTab(direction: Int) {
+        val current = LiveOverlayTabs.indexOf(ui.liveOverlayTab).coerceAtLeast(0)
+        val next = (current + direction).coerceIn(0, LiveOverlayTabs.lastIndex)
+        if (next == current) return
+        ui.liveOverlayTab = LiveOverlayTabs[next]
+        ui.liveActionIndex = 0
+    }
+
+    fun liveOverlayActions(): List<LiveOverlayAction> = when (ui.liveOverlayTab) {
+        LiveOverlayTab.VIDEO_SIZE -> listOf(
+            LiveOverlayAction("${ps.changeSize} · $videoSizeLabel", true, ::cycleVideoSizeMode),
+            LiveOverlayAction(ps.qualitySmart, liveQualityMode == LiveQualityMode.AUTO) { setLiveQualityMode(LiveQualityMode.AUTO) },
+            LiveOverlayAction(ps.qualityStable, liveQualityMode == LiveQualityMode.STABLE) { setLiveQualityMode(LiveQualityMode.STABLE) },
+            LiveOverlayAction("4K", liveQualityMode == LiveQualityMode.BEST) { setLiveQualityMode(LiveQualityMode.BEST) },
+            LiveOverlayAction("8K", liveQualityMode == LiveQualityMode.ULTRA) { setLiveQualityMode(LiveQualityMode.ULTRA) },
+            LiveOverlayAction(ps.videoQuality, false) { showTrackDialog(C.TRACK_TYPE_VIDEO) },
+        )
+        LiveOverlayTab.AUDIO -> listOf(LiveOverlayAction(ps.audioTracks, false) { showTrackDialog(C.TRACK_TYPE_AUDIO) })
+        LiveOverlayTab.SUBTITLES -> listOf(LiveOverlayAction(strings.playerSubtitles, false) { showTrackDialog(C.TRACK_TYPE_TEXT) })
+        LiveOverlayTab.FAVORITES -> listOf(
+            LiveOverlayAction(if (ui.favoriteMarked) ps.removeFavorite else ps.addFavorite, ui.favoriteMarked, ::toggleFavorite),
+            LiveOverlayAction(ps.externalPlayer, false, ::openPlayerPicker),
+        )
+        LiveOverlayTab.CHANNELS, LiveOverlayTab.GROUPS -> emptyList()
+    }
+    val overlayActions = if (isLive && ui.showLiveZap) liveOverlayActions() else emptyList()
+
+    /** Up/Down (or CH+/-) inside the list: channels, groups, or the current tab's actions. */
+    fun moveOverlaySelection(direction: Int) {
+        when (ui.liveOverlayTab) {
+            LiveOverlayTab.GROUPS -> browser.moveGroup(direction)
+            LiveOverlayTab.CHANNELS -> browser.moveSelection(direction)
+            else -> if (overlayActions.isNotEmpty()) {
+                ui.liveActionIndex = (ui.liveActionIndex + direction).floorMod(overlayActions.size)
             }
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+
+    fun activateOverlaySelection() {
+        when (ui.liveOverlayTab) {
+            // Nothing while the group or the row is still loading (a few ms): OK again plays it.
+            LiveOverlayTab.CHANNELS -> browser.selectedChannel()?.let(::playFromPanel)
+            LiveOverlayTab.GROUPS -> {
+                browser.settleGroup()
+                ui.liveOverlayTab = LiveOverlayTab.CHANNELS
+            }
+            else -> overlayActions.getOrNull(ui.liveActionIndex)?.onClick?.invoke()
+        }
+    }
+
+    fun appendChannelDigit(digit: Int) {
+        if (session.numberBuffer.length >= NUMBER_ENTRY_MAX_DIGITS) return
+        ui.showLiveZap = false
+        session.numberBuffer += digit.toString()
+        session.numberNonce++
+    }
+
+    fun tuneTypedChannel(number: Int, target: AppMediaItem?) {
+        when {
+            target == null -> session.showTransientMessage(ps.channelNotFound.fill(number.toString().ltr()))
+            target.samePlayable(item) -> ui.showMiniInfo = true
+            else -> switchTo(target)
+        }
+    }
+
+    fun commitNumberEntry() {
+        val typed = session.numberBuffer
+        session.numberBuffer = ""
+        if (!isForeground()) return
+        val number = typed.toIntOrNull() ?: return
+        val target = resolveChannelNumber(latestRelated, number, zapList.providerNumbers)
+        if (target == null && zapList.providerNumbers) {
+            // Not in the list CH+/CH- walk: the channel with that provider number anywhere in the
+            // library, which then zaps through its own group.
+            browser.findChannelByNumber(number) { found -> if (isForeground()) tuneTypedChannel(number, found) }
+        } else {
+            tuneTypedChannel(number, target)
+        }
+    }
+
+    fun onNetworkRestored() {
+        if (!isLive || !isForeground()) return
+        when {
+            attempt.reconnectingSince > 0L -> {
+                attempt.reconnectingSince = SystemClock.elapsedRealtime()
+                attempt.reconnectAttempt = 0
+                attempt.reconnectNonce++
+            }
+            attempt.playbackError?.isTransient == true -> retryPlayback()
+        }
+    }
+
+    /** The ended episode's next-episode card is on screen (it owns D-pad, OK and Back). */
+    fun nextEpisodeOffered(): Boolean =
+        attempt.vodEnded && attempt.playbackError == null && ui.nextEpisode != null && !ui.nextEpisodeDismissed
+
+    /** Back or Cancel on the next-episode card: the ended controls (Replay) come back instead. */
+    fun dismissNextEpisode() {
+        ui.nextEpisodeDismissed = true
+        wakeControls()
+    }
+
+    /** The next-episode card's answer: play [next] now, or null for Cancel. */
+    fun answerNextEpisode(next: AppMediaItem?) {
+        if (next == null) dismissNextEpisode() else switchTo(next)
+    }
+
+    fun onScreenTap() {
+        // The error card's scrim does not consume touches; a tap on it must not open the list
+        // (or wake controls) underneath, where OK and the D-pad would then act invisibly. The
+        // next-episode card is answered with its own buttons.
+        if (attempt.playbackError != null || nextEpisodeOffered()) return
+        if (isLive) {
+            if (ui.showLiveZap) closeLiveZap() else openLiveZap()
+        } else if (ui.showControls) {
+            ui.showControls = false
+        } else {
+            wakeControls()
+        }
+    }
+
+    // ── Remote keys ─────────────────────────────────────────────────────────────────────────
+
+    fun handleLiveKey(event: KeyEvent, keyCode: Int, repeatCount: Int): Boolean {
+        val errorShown = attempt.playbackError != null
+        digitForKeyCode(keyCode)?.let { digit ->
+            if (repeatCount == 0) appendChannelDigit(digit)
+            return true
+        }
+        if (session.numberBuffer.isNotEmpty() &&
+            (event.key == Key.Enter || event.key == Key.DirectionCenter || event.key == Key.NumPadEnter)
+        ) {
+            commitNumberEntry()
+            return true
+        }
+        val zapDirection = liveZapDirectionForKeyCode(keyCode)
+        if (zapDirection != 0) {
+            if (ui.showLiveZap) {
+                moveOverlaySelection(zapDirection)
+                session.lastInteraction = System.currentTimeMillis()
+            } else {
+                zapBy(zapDirection, repeatCount)
+            }
+            return true
+        }
+        when (keyCode) {
+            AndroidKeyEvent.KEYCODE_LAST_CHANNEL -> {
+                if (repeatCount == 0) recallPreviousChannel()
+                return true
+            }
+            AndroidKeyEvent.KEYCODE_GUIDE, AndroidKeyEvent.KEYCODE_MENU -> {
+                if (repeatCount == 0 && !errorShown) {
+                    if (ui.showLiveZap) closeLiveZap() else openLiveZap()
+                }
+                return true
+            }
+            AndroidKeyEvent.KEYCODE_INFO -> {
+                ui.showMiniInfo = true
+                return true
+            }
+        }
+        return when (event.key) {
+            Key.Enter, Key.DirectionCenter, Key.NumPadEnter -> when {
+                // The focused error-card button takes OK.
+                errorShown && !ui.showLiveZap -> false
+                ui.showLiveZap -> {
+                    activateOverlaySelection()
+                    true
+                }
+                session.pendingZapItem != null -> {
+                    commitPendingZap()
+                    true
+                }
+                attempt.userPaused -> {
+                    resumePlayback()
+                    true
+                }
+                else -> {
+                    openLiveZap()
+                    true
+                }
+            }
+            Key.DirectionLeft, Key.DirectionRight -> when {
+                errorShown && !ui.showLiveZap -> false
+                ui.showLiveZap -> {
+                    // Tabs are laid out right-to-left in Arabic: Right moves the highlight right.
+                    val physical = if (event.key == Key.DirectionRight) 1 else -1
+                    selectLiveOverlayTab(if (isRtl) -physical else physical)
+                    true
+                }
+                else -> {
+                    ui.showMiniInfo = true
+                    true
+                }
+            }
+            Key.MediaPlay -> {
+                if (errorShown) retryPlayback() else resumePlayback()
+                true
+            }
+            Key.MediaPause -> {
+                if (!errorShown) pausePlayback()
+                true
+            }
+            Key.MediaPlayPause, Key.Spacebar -> {
+                if (errorShown) retryPlayback() else togglePlayPause()
+                true
+            }
+            else -> false
+        }
+    }
+
+    fun handleVodKey(event: KeyEvent, keyCode: Int, repeatCount: Int): Boolean {
+        if (attempt.playbackError != null) {
+            // D-pad and OK belong to the error card buttons; Play retries.
+            return when (event.key) {
+                Key.MediaPlay, Key.MediaPlayPause -> {
+                    retryPlayback()
+                    true
+                }
+                else -> false
+            }
+        }
+        if (nextEpisodeOffered()) {
+            // D-pad and OK belong to Play now / Cancel; Next plays it now (Back cancels, see BackHandler).
+            if (keyCode != AndroidKeyEvent.KEYCODE_MEDIA_NEXT) return false
+            if (repeatCount == 0) switchTo(ui.nextEpisode)
+            return true
+        }
+        when (keyCode) {
+            AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                seekVodBy(30_000L, repeatCount, revealControls = ui.showControls)
+                return true
+            }
+            AndroidKeyEvent.KEYCODE_MEDIA_REWIND -> {
+                seekVodBy(-30_000L, repeatCount, revealControls = ui.showControls)
+                return true
+            }
+            AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> {
+                if (repeatCount == 0) switchTo(nextItem)
+                return nextItem != null
+            }
+            AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                if (repeatCount == 0) switchTo(previousItem)
+                return previousItem != null
+            }
+        }
+        when (event.key) {
+            Key.MediaPlay -> {
+                resumePlayback()
+                wakeControls()
+                return true
+            }
+            Key.MediaPause -> {
+                pausePlayback()
+                wakeControls()
+                return true
+            }
+            Key.MediaPlayPause -> {
+                togglePlayPause()
+                wakeControls()
+                return true
+            }
+        }
+        if (!ui.showControls) {
+            return when (event.key) {
+                Key.Enter, Key.DirectionCenter, Key.NumPadEnter, Key.Spacebar -> {
+                    togglePlayPause()
+                    wakeControls()
+                    true
+                }
+                // Seek without opening the full controls, so held keys keep seeking (and accelerate).
+                Key.DirectionLeft -> {
+                    seekVodBy(-10_000L, repeatCount, revealControls = false)
+                    true
+                }
+                Key.DirectionRight -> {
+                    seekVodBy(10_000L, repeatCount, revealControls = false)
+                    true
+                }
+                Key.DirectionUp, Key.DirectionDown -> {
+                    wakeControls()
+                    true
+                }
+                else -> if (keyCode == AndroidKeyEvent.KEYCODE_MENU || keyCode == AndroidKeyEvent.KEYCODE_INFO) {
+                    wakeControls()
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        // Controls visible: D-pad and OK move focus and click inside the control island.
+        return false
+    }
+
+    fun handleKeyDown(event: KeyEvent): Boolean {
+        val native = event.nativeKeyEvent
+        when (event.key) {
+            // Volume and mute keep their system behaviour on every device.
+            Key.VolumeUp, Key.VolumeDown, Key.VolumeMute -> return false
+        }
+        if (native.repeatCount > 0 && event.key in PlayerToggleKeys && session.ownedKey == event.key) return true
+        session.lastInteraction = System.currentTimeMillis()
+        session.lastKeyDownAt = native.eventTime
+        if (isPlayerBackKey(native.keyCode)) {
+            // Acting on the press would close the live panel (or the controls) under the focused
+            // row, so the release would reach no one and Android would run Back a second time. The
+            // release runs it once, through BackHandler, like the back gesture (see handleKeyUp).
+            if (native.repeatCount == 0) session.ownedKey = event.key
+            return true
+        }
+        val handled = if (isLive) {
+            handleLiveKey(event, native.keyCode, native.repeatCount)
+        } else {
+            handleVodKey(event, native.keyCode, native.repeatCount)
+        }
+        if (handled && native.repeatCount == 0) session.ownedKey = event.key
+        return handled
+    }
+
+    fun handleKeyUp(event: KeyEvent): Boolean {
+        val keyCode = event.nativeKeyEvent.keyCode
+        if (isLive && session.zapKeyHeld && liveZapDirectionForKeyCode(keyCode) != 0) commitPendingZap()
+        if (!isLive && session.pendingSeekTarget != C.TIME_UNSET &&
+            (event.key == Key.DirectionLeft || event.key == Key.DirectionRight ||
+                keyCode == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD || keyCode == AndroidKeyEvent.KEYCODE_MEDIA_REWIND)
+        ) {
+            commitPendingSeek()
+        }
+        // Swallow the release of a press the root consumed so it cannot click whatever gained focus meanwhile.
+        val owned = session.ownedKey == event.key
+        if (owned) session.ownedKey = null
+        if (owned && isPlayerBackKey(keyCode) && !event.nativeKeyEvent.isCanceled) backDispatcher?.onBackPressed()
+        return owned
+    }
+
+    // The only Back path: remote Back/Escape (on release, above), the back gesture and system Back.
+    BackHandler {
+        when (
+            playerBackStep(
+                numberEntry = session.numberBuffer.isNotEmpty(),
+                errorShown = attempt.playbackError != null,
+                livePanelOpen = isLive && ui.showLiveZap,
+                nextEpisodeOffered = !isLive && nextEpisodeOffered(),
+                vodControlsShown = !isLive && ui.showControls,
+            )
+        ) {
+            PlayerBackStep.CLEAR_NUMBER -> session.numberBuffer = ""
+            PlayerBackStep.CLOSE_LIVE_PANEL -> closeLiveZap()
+            PlayerBackStep.DISMISS_NEXT_EPISODE -> dismissNextEpisode()
+            PlayerBackStep.HIDE_CONTROLS -> ui.showControls = false
+            PlayerBackStep.LEAVE -> leavePlayer()
+        }
+    }
+
+    // ── Effects: focus, timers, watchdogs, reconnects ──────────────────────────────────────
+
+    val errorVisible = attempt.playbackError != null
+    val currentExoPlayer by rememberUpdatedState(exoPlayer)
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateAsState()
+    val isStarted = lifecycleState.isAtLeast(Lifecycle.State.STARTED)
 
     LaunchedEffect(item.id) {
         runCatching { playerFocusRequester.requestFocus() }
     }
 
-    // When VOD controls appear, push focus to Play/Pause button. Use a tiny delay so the
-    // button is composed first, but small enough that the user never sees an unfocused row.
-    LaunchedEffect(showControls, item.id) {
-        if (showControls && !isLive) {
+    LaunchedEffect(ui, ui.showControls) {
+        if (isLive) return@LaunchedEffect
+        if (ui.showControls) {
             delay(40)
             runCatching { playPauseFocusRequester.requestFocus() }
-        }
-    }
-
-    // VOD black screen watchdog: if READY but no first frame, switch engines quickly.
-    LaunchedEffect(vodReadyAt, vodFirstFrameRendered, item.id, streamRequest.uri) {
-        if (isLive || vodFirstFrameRendered || vodReadyAt <= 0L) return@LaunchedEffect
-        delay(vodNoVideoWatchdogDelayMs(performancePolicy.isPerformance))
-        if (vodReadyAt > 0L && !vodFirstFrameRendered && playbackError == null) {
-            if (shouldAutoUseLibVlc(playbackRequest) && !triedLibVlcForVod) {
-                triedLibVlcForVod = true
-                forceLibVlcForVod = true
-                route = "auto"
-                internalEngine = InternalPlaybackEngine.LIBVLC
-                isBuffering = true
-                vodReadyAt = 0L
-                vodOpeningGuard = true
-            } else {
-                playbackError = "The video connected but could not render any frames. Try again, switch quality, or use an external player."
-                isBuffering = false
-            }
-        }
-    }
-
-    LaunchedEffect(useLibVlc, exoPlayer) {
-        if (useLibVlc) {
-            exoPlayer.pause()
-            exoPlayer.stop()
-        }
-    }
-
-    LaunchedEffect(isLive, playbackRequest.uri, item.id, media3SurfaceAttempt) {
-        if (isLive) {
-            liveOpeningGuard = true
-            delay(10_000)
-            liveOpeningGuard = false
         } else {
-            liveOpeningGuard = false
+            // Take focus off the control island before it fades out, so the next key reaches the player.
+            runCatching { playerFocusRequester.requestFocus() }
         }
+    }
+
+    LaunchedEffect(errorVisible) {
+        if (errorVisible) {
+            ui.showLiveZap = false
+            ui.showControls = false
+            delay(80)
+            runCatching { errorFocusRequester.requestFocus() }
+        } else {
+            runCatching { playerFocusRequester.requestFocus() }
+        }
+    }
+
+    LaunchedEffect(isLive, playbackRequest.uri, item.id, attempt.media3SurfaceAttempt) {
+        if (!isLive) return@LaunchedEffect
+        attempt.liveOpeningGuard = true
+        delay(10_000)
+        attempt.liveOpeningGuard = false
     }
 
     LaunchedEffect(isLive, playbackRequest.uri, item.id) {
-        if (!isLive) {
-            vodOpeningGuard = true
-            delay(7_000)
-            vodOpeningGuard = false
-        } else {
-            vodOpeningGuard = false
-        }
+        if (isLive) return@LaunchedEffect
+        attempt.vodOpeningGuard = true
+        delay(7_000)
+        attempt.vodOpeningGuard = false
     }
 
-    LaunchedEffect(liveSwitchLocked, item.id, streamRequest.uri) {
-        if (liveSwitchLocked) {
+    PlayerSessionTimers(session)
+    PlaybackActivityBinding()
+
+    LaunchedEffect(session.userZapInFlight) {
+        if (session.userZapInFlight) {
             delay(1_200)
-            liveSwitchLocked = false
+            session.userZapInFlight = false
         }
     }
 
-    LaunchedEffect(seekJump) {
-        if (seekJump != 0) {
-            delay(900)
-            seekJump = 0
+    LaunchedEffect(session.seekCommitNonce) {
+        if (session.seekCommitNonce == 0) return@LaunchedEffect
+        delay(300)
+        commitPendingSeek()
+    }
+
+    LaunchedEffect(session.pendingZapNonce) {
+        if (session.pendingZapItem == null) return@LaunchedEffect
+        delay(ZAP_COALESCE_MS)
+        commitPendingZap()
+    }
+
+    LaunchedEffect(session.numberNonce) {
+        if (session.numberBuffer.isEmpty()) return@LaunchedEffect
+        delay(NUMBER_ENTRY_COMMIT_MS)
+        commitNumberEntry()
+    }
+
+    // Remember the channel we came from for LAST_CHANNEL (automatic variant switches don't count).
+    LaunchedEffect(item.id, item.serverId) {
+        if (!isLive) return@LaunchedEffect
+        val last = session.lastSeenLiveItem
+        if (last != null && !last.samePlayable(item) && !session.nextSwitchIsRecovery) session.previousChannel = last
+        session.nextSwitchIsRecovery = false
+        session.lastSeenLiveItem = item
+    }
+
+    LaunchedEffect(ui, ui.showMiniInfo, ui.showLiveZap, attempt.userPaused, session.pendingZapItem) {
+        if (ui.showMiniInfo && !ui.showLiveZap && !attempt.userPaused && session.pendingZapItem == null) {
+            delay(2_600)
+            ui.showMiniInfo = false
         }
     }
 
-    LaunchedEffect(isLive, isBuffering, playbackError, item.id, streamRequest.uri, useLibVlc, liveConsecutiveFailures, media3SurfaceAttempt, exoPlayer) {
-        if (!isLive || !isBuffering || playbackError != null) return@LaunchedEffect
-        delay(if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 3_500 else 5_000)
-        if (isBuffering && playbackError == null) {
-            if (isLive && !useLibVlc && shouldAutoUseLibVlc(playbackRequest) && !triedLibVlcForLive) {
-                triedLibVlcForLive = true
-                internalEngine = InternalPlaybackEngine.LIBVLC
-            } else if (useLibVlc && liveConsecutiveFailures < liveStallRecoveryLimit) {
-                liveConsecutiveFailures += 1
-                libVlcRetryNonce++
-            } else if (!useLibVlc && retryMedia3WithAlternateSurface("Switching video surface")) {
-                return@LaunchedEffect
-            } else if (!useLibVlc && liveConsecutiveFailures < liveStallRecoveryLimit) {
-                liveConsecutiveFailures += 1
-                runCatching {
-                    exoPlayer.seekToDefaultPosition()
-                    exoPlayer.prepare()
-                    exoPlayer.play()
-                }
-            } else {
-                isBuffering = false
-                if (!switchToCompatibleAlternative("Switching to a safer quality")) {
-                    playbackError = "The stream is unstable or taking too long to recover. Try again or switch quality/player."
-                }
-            }
+    LaunchedEffect(ui, ui.showLiveZap) {
+        if (!ui.showLiveZap) return@LaunchedEffect
+        snapshotFlow { session.lastInteraction }.collectLatest {
+            delay(15_000)
+            closeLiveZap()
         }
     }
 
-    LaunchedEffect(isLive, liveReadyWithoutVideoAt, liveFirstFrameRendered, item.id, streamRequest.uri, useLibVlc, media3SurfaceAttempt, exoPlayer) {
-        if (!isLive || useLibVlc || liveReadyWithoutVideoAt <= 0L) return@LaunchedEffect
-        delay(liveNoVideoWatchdogDelayMs(performancePolicy.isPerformance))
-        if (liveReadyWithoutVideoAt > 0L && !liveFirstFrameRendered && playbackError == null) {
-            if ((performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) && shouldAutoUseLibVlc(playbackRequest) && !triedLibVlcForLive) {
-                triedLibVlcForLive = true
-                forceLibVlcForLive = true
-                internalEngine = InternalPlaybackEngine.LIBVLC
-                isBuffering = true
-                liveSwitchLocked = false
-            } else if (retryMedia3WithAlternateSurface("Switching video surface")) {
-                return@LaunchedEffect
-            } else if (shouldAutoUseLibVlc(playbackRequest) && !triedLibVlcForLive) {
-                triedLibVlcForLive = true
-                forceLibVlcForLive = true
-                internalEngine = InternalPlaybackEngine.LIBVLC
-                isBuffering = true
-                liveSwitchLocked = false
-            } else {
-                isBuffering = false
-                liveSwitchLocked = false
-                if (!switchToCompatibleAlternative("Switching to a safer quality")) {
-                    playbackError = liveNoVideoFrameMessage()
-                }
-            }
-        }
-    }
-
-    fun wakeControls() {
-        showControls = true
-        lastInteraction = System.currentTimeMillis()
-    }
-
-    fun seekVodBy(deltaMs: Long, labelSeconds: Int) {
-        if (isLive) return
-        if (useLibVlc) {
-            wakeControls()
-            return
-        }
-        // Accelerate consecutive seeks: holding LEFT/RIGHT or hammering FF/RW jumps farther.
-        // Streak resets after 700ms of idle. Multipliers: 1x → 2x → 4x → 8x (capped).
-        val now = System.currentTimeMillis()
-        val sameDirection = (deltaMs > 0) == (labelSeconds > 0)
-        seekStreak = if (sameDirection && now - lastSeekAt < 700L) (seekStreak + 1).coerceAtMost(3) else 0
-        lastSeekAt = now
-        val multiplier = 1 shl seekStreak  // 1, 2, 4, 8
-        val effectiveDelta = deltaMs * multiplier
-        val effectiveLabel = labelSeconds * multiplier
-        val knownDuration = exoPlayer.duration.takeIf { it > 0 } ?: duration.takeIf { it > 0 } ?: C.TIME_UNSET
-        val current = exoPlayer.currentPosition.coerceAtLeast(0L)
-        val target = if (knownDuration != C.TIME_UNSET) {
-            (current + effectiveDelta).coerceIn(0L, knownDuration)
+    // VOD black-screen watchdog: READY but no first frame.
+    LaunchedEffect(attempt, attempt.vodReadyAt, attempt.vodFirstFrameRendered, attempt.audioOnly) {
+        if (isLive || attempt.vodFirstFrameRendered || attempt.audioOnly || attempt.vodReadyAt <= 0L) return@LaunchedEffect
+        delay(vodNoVideoWatchdogDelayMs(performancePolicy.isPerformance))
+        if (!isForeground() || attempt.vodFirstFrameRendered || attempt.audioOnly || attempt.playbackError != null) return@LaunchedEffect
+        if (shouldAutoUseLibVlc(playbackRequest) && !attempt.triedLibVlcForVod) {
+            switchVodEngine(toLibVlc = true)
         } else {
-            (current + effectiveDelta).coerceAtLeast(0L)
+            showError(PlaybackIssue(PlaybackIssueKind.VOD_NO_FRAMES))
         }
-        exoPlayer.seekTo(target)
-        currentPosition = target
-        seekJump = effectiveLabel
-        wakeControls()
     }
 
-    fun toggleVodPlayPause() {
-        if (isLive) return
-        if (useLibVlc) {
-            libVlcPlayPauseNonce++
-            wakeControls()
-            return
-        }
-        if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
-        wakeControls()
-    }
-
-    fun retryPlayback() {
-        playbackError = null
-        launchMessage = null
-        isBuffering = true
-        forceHlsForLiveRedirect = false
-        liveFirstFrameRendered = false
-        liveReadyWithoutVideoAt = 0L
-        liveConsecutiveFailures = 0
-        liveAutoRecoveryAttempts = 0
-        liveAutoRecoveryVisited = emptySet()
-        media3SurfaceAttempt = 0
-        liveSwitchLocked = false
-        vodFallbackRequest = null
-        vodFallbackVisitedUris = emptySet()
-        // Reset VOD watchdog on retry
-        vodReadyAt = 0L
-        vodFirstFrameRendered = false
-        if (isLive) {
-            triedMedia3ForLive = !useLibVlc
-            triedLibVlcForLive = useLibVlc
-            forceLibVlcForLive = useLibVlc
-        } else {
-            triedLibVlcForVod = useLibVlc
-            forceLibVlcForVod = useLibVlc
-        }
-        if (useLibVlc) {
-            libVlcRetryNonce++
-            return
-        }
-        exoPlayer.stop()
-        exoPlayer.setMediaItem(
-            buildPlayableMediaItem(
-                playbackRequest,
-                item,
-                isLive,
-                livePlaybackProfile(
-                    isPerformanceMode = performancePolicy.isPerformance,
-                    policyLiveBufferMs = performancePolicy.liveBufferMs,
-                    maxVideoHeight = performancePolicy.maxVideoHeight,
-                ),
-            ),
-            if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0),
+    // Live stall watchdog. Before the first frame it walks the startup chain; once the channel
+    // has played, a long stall is a dropped connection and is reconnected in place. It also
+    // supervises each reconnect, so a re-opened stream that just sits buffering is retried too.
+    // Keyed on isStarted: the stop in the background already made isBuffering true, so without
+    // it the stream re-opened on return from Home would run unsupervised.
+    LaunchedEffect(
+        attempt,
+        attempt.isBuffering,
+        attempt.playbackError,
+        attempt.liveConsecutiveFailures,
+        attempt.media3SurfaceAttempt,
+        attempt.userPaused,
+        attempt.reconnectNonce,
+        useLibVlc,
+        exoPlayer,
+        isStarted,
+    ) {
+        if (!isLive || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused) return@LaunchedEffect
+        val reconnecting = attempt.reconnectingSince > 0L
+        val midStream = reconnecting || attempt.wasPlaying
+        delay(
+            when {
+                reconnecting -> liveReconnectDelayMs(attempt.reconnectAttempt) + LIVE_MIDSTREAM_STALL_MS
+                midStream -> LIVE_MIDSTREAM_STALL_MS
+                else -> liveStartupStallDelayMs(performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26, useLibVlc)
+            },
         )
-        exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        if (!isForeground() || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused) return@LaunchedEffect
+        if (midStream) {
+            // Offline this only shows "Waiting for network…"; the reconnect runs when it returns.
+            startReconnect()
+            return@LaunchedEffect
+        }
+        when {
+            // Some panels list both formats but only really serve one per channel.
+            canSwapLiveFormatNow(null) -> swapLiveFormat(cause = null)
+            // The steps below open the same link again: after a failed format swap, the listed one.
+            !useLibVlc && shouldAutoUseLibVlc(playbackRequest) && !attempt.triedLibVlcForLive -> {
+                endLiveFormatTrial(reopen = true)
+                switchLiveEngine(toLibVlc = true)
+            }
+            useLibVlc && attempt.liveConsecutiveFailures < liveStallRecoveryLimit -> {
+                endLiveFormatTrial(reopen = true)
+                attempt.liveConsecutiveFailures += 1
+                attempt.libVlcRetryNonce++
+            }
+            !useLibVlc && retryMedia3WithAlternateSurface() -> endLiveFormatTrial(reopen = true)
+            !useLibVlc && attempt.liveConsecutiveFailures < liveStallRecoveryLimit -> {
+                attempt.liveConsecutiveFailures += 1
+                // Going back to the listed link loads it again anyway.
+                if (endLiveFormatTrial(reopen = true) == null) {
+                    runCatching {
+                        exoPlayer?.apply {
+                            stop()
+                            seekToDefaultPosition()
+                            playWhenReady = true
+                            prepare()
+                        }
+                    }
+                }
+            }
+            else -> if (!switchToCompatibleAlternative()) showError(offlineAwareIssue(PlaybackIssueKind.UNSTABLE))
+        }
     }
 
-    // Subtitle import is hoisted into its own composable helper (below) so the launcher + IO + Media3
-    // re-apply live in a SEPARATE method — keeping this already-huge PlayerScreen method under the
-    // API-23 ART bytecode-verifier limit (adding it inline here made the method fail verification).
+    // Live no-video watchdog: READY without a rendered frame (audio-only streams are exempt).
+    LaunchedEffect(attempt, attempt.liveReadyWithoutVideoAt, attempt.liveFirstFrameRendered, attempt.audioOnly, attempt.userPaused, useLibVlc, exoPlayer) {
+        if (!isLive || useLibVlc || attempt.liveReadyWithoutVideoAt <= 0L || attempt.liveFirstFrameRendered ||
+            attempt.audioOnly || attempt.userPaused
+        ) {
+            return@LaunchedEffect
+        }
+        delay(liveNoVideoWatchdogDelayMs(performancePolicy.isPerformance))
+        if (!isForeground() || attempt.liveReadyWithoutVideoAt <= 0L || attempt.liveFirstFrameRendered ||
+            attempt.audioOnly || attempt.playbackError != null
+        ) {
+            return@LaunchedEffect
+        }
+        when {
+            (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) &&
+                shouldAutoUseLibVlc(playbackRequest) && !attempt.triedLibVlcForLive -> switchLiveEngine(toLibVlc = true)
+            retryMedia3WithAlternateSurface() -> Unit
+            shouldAutoUseLibVlc(playbackRequest) && !attempt.triedLibVlcForLive -> switchLiveEngine(toLibVlc = true)
+            else -> if (!switchToCompatibleAlternative()) showError(PlaybackIssue(PlaybackIssueKind.NO_VIDEO))
+        }
+    }
+
+    // In-place reconnect (same channel, same engine) with 1/2/4/8/15 s backoff.
+    LaunchedEffect(attempt, attempt.reconnectNonce) {
+        if (attempt.reconnectNonce == 0) return@LaunchedEffect
+        delay(liveReconnectDelayMs(attempt.reconnectAttempt))
+        if (!isForeground() || !session.networkAvailable || attempt.playbackError != null) return@LaunchedEffect
+        attempt.reconnectAttempt += 1
+        telemetry("reconnect attempt ${attempt.reconnectAttempt}")
+        val player = currentExoPlayer
+        if (player == null) {
+            attempt.libVlcRetryNonce++
+        } else {
+            runCatching {
+                player.stop()
+                player.seekToDefaultPosition()
+                player.playWhenReady = true
+                player.prepare()
+            }
+        }
+    }
+
+    // Back from Home or the screensaver while a reconnect was pending: try again right away.
+    LaunchedEffect(isStarted) {
+        if (!isStarted || !isLive || attempt.reconnectingSince == 0L) return@LaunchedEffect
+        attempt.reconnectingSince = SystemClock.elapsedRealtime()
+        attempt.reconnectAttempt = 0
+        attempt.reconnectNonce++
+    }
+
+    NetworkAvailabilityEffect(enabled = isLive) { available ->
+        session.networkAvailable = available
+        if (available) onNetworkRestored()
+    }
+
     val importSubtitle = rememberSubtitleImport(
-        exoPlayer = exoPlayer,
+        engine = engine,
         item = item,
         request = playbackRequest,
         isLive = isLive,
-        useLibVlc = useLibVlc,
         performancePolicy = performancePolicy,
-        onImported = { uri -> externalSubtitle = uri; if (useLibVlc) externalSubtitleNonce++ },
-        onFail = { launchMessage = strings.playerSubtitleImportFailed },
-        beforeLaunch = { wakeControls() },
+        onImported = { uri ->
+            ui.externalSubtitle = uri
+            if (useLibVlc) ui.externalSubtitleNonce++
+        },
+        onFail = { session.showTransientMessage(strings.playerSubtitleImportFailed) },
+        beforeLaunch = ::wakeControls,
     )
-
-    fun switchTo(target: AppMediaItem?) {
-        if (target == null || target.samePlayable(item) || liveSwitchLocked) return
-        if (target.type == ContentType.LIVE) {
-            val now = System.currentTimeMillis()
-            if (now - lastLiveSwitchAt < 160L) return
-            lastLiveSwitchAt = now
-            liveSwitchLocked = true
-            isBuffering = true
-            liveFirstFrameRendered = false
-            liveReadyWithoutVideoAt = 0L
-            liveAutoRecoveryAttempts = 0
-            liveAutoRecoveryVisited = emptySet()
-            playbackError = null
-        }
-        if (!isLive && exoPlayer.duration > 0) {
-            onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
-        }
-        onPlayItem(target)
+    val canCast by produceState(initialValue = false, streamRequest.uri, isLive) {
+        value = !isLive && withContext(Dispatchers.IO) { canLaunchCast(context, streamRequest.uri) }
     }
 
-    fun handleLibVlcLiveError(message: String) {
-        if (!isLive) {
-            isBuffering = false
-            playbackError = message
-            return
-        }
-
-        val now = System.currentTimeMillis()
-        val recentlyPlaying = isPlaying || (liveLastPlayingAt > 0L && now - liveLastPlayingAt < 10_000L)
-        liveConsecutiveFailures += 1
-        playbackError = null
-
-        if (recentlyPlaying && liveConsecutiveFailures > 3) {
-            isBuffering = false
-            if (!switchToCompatibleAlternative("Switching to a safer quality")) {
-                playbackError = livePlaybackFailureMessage()
-            }
-            return
-        }
-
-        if (liveConsecutiveFailures <= 2 || recentlyPlaying) {
-            isBuffering = !recentlyPlaying
-            libVlcRetryNonce++
-            return
-        }
-
-        if (!triedMedia3ForLive && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true)) {
-            triedMedia3ForLive = true
-            forceLibVlcForLive = false
-            playbackError = null
-            isBuffering = true
-            internalEngine = InternalPlaybackEngine.MEDIA3
-            return
-        }
-
-        isBuffering = false
-        if (!switchToCompatibleAlternative("Switching to a safer quality")) {
-            playbackError = message
-        }
-    }
-
-    BackHandler {
-        when {
-            isLive && showLiveZap -> showLiveZap = false
-            isLive -> onBack(0, 0)
-            showControls -> showControls = false
-            else -> onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
-        }
-    }
-
-    val currentIndex = remember(item.id, item.type, item.serverId, relatedItems) {
-        relatedItems.indexOfFirst { it.samePlayable(item) }
-    }
-    val previousItem = liveZapTargetIndex(currentIndex, -1, relatedItems.size)?.let(relatedItems::get)
-    val nextItem = liveZapTargetIndex(currentIndex, 1, relatedItems.size)?.let(relatedItems::get)
-    val liveZapCategories = remember(relatedItems) { relatedItems.toLiveZapCategories() }
-    var liveZapCategoryId by remember(item.id, relatedItems) { mutableStateOf(item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }) }
-    val displayedLiveZapItems = remember(relatedItems, liveZapCategoryId) {
-        val filtered = when (liveZapCategoryId) {
-            LIVE_ZAP_ALL_CATEGORY_ID -> relatedItems
-            LIVE_ZAP_UNCATEGORIZED_ID -> relatedItems.filter { it.categoryId.isBlank() }
-            else -> relatedItems.filter { it.categoryId == liveZapCategoryId }
-        }
-        filtered.ifEmpty { relatedItems }
-    }
-    val displayedCurrentIndex = remember(item.id, item.type, item.serverId, item.categoryId, displayedLiveZapItems) {
-        displayedLiveZapItems.indexOfFirst { it.samePlayable(item) }
-    }
-    var liveZapIndex by remember(item.id, liveZapCategoryId, displayedLiveZapItems.size) {
-        mutableIntStateOf(displayedCurrentIndex.coerceAtLeast(0))
-    }
-
-    fun selectLiveZapCategory(direction: Int) {
-        if (liveZapCategories.isEmpty()) return
-        val currentCategoryIndex = liveZapCategories.indexOfFirst { it.id == liveZapCategoryId }.let { if (it >= 0) it else 0 }
-        val nextCategory = liveZapCategories[(currentCategoryIndex + direction).floorMod(liveZapCategories.size)]
-        liveZapCategoryId = nextCategory.id
-        liveZapIndex = 0
-    }
-
-    fun selectLiveOverlayTab(direction: Int) {
-        val current = LiveOverlayTabs.indexOf(liveOverlayTab).let { if (it >= 0) it else 0 }
-        liveOverlayTab = LiveOverlayTabs[(current + direction).floorMod(LiveOverlayTabs.size)]
-    }
-
-    LaunchedEffect(exoPlayer, liveQualityMode, performancePolicy.mode) {
-        if (isLive) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
-    }
-
-    LaunchedEffect(isLive, item.id, item.title, performancePolicy.mode, performancePolicy.maxVideoHeight, relatedItems) {
-        if (isLive && shouldAutoDowngradeLiveQuality(performancePolicy.isPerformance, item.liveQualityRank(), performancePolicy.maxVideoHeight)) {
-            switchToCompatibleAlternative("Auto quality")
-        }
-    }
-
-    LaunchedEffect(showMiniInfo, item.id) {
-        if (showMiniInfo && !showLiveZap) {
-            delay(2600)
-            showMiniInfo = false
-        }
-    }
+    // ── UI ──────────────────────────────────────────────────────────────────────────────────
 
     Box(
         Modifier
@@ -1127,184 +1734,10 @@ fun PlayerScreen(
             .focusRequester(playerFocusRequester)
             .focusable()
             .onPreviewKeyEvent { event ->
-                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-
-                when {
-                    // ── LIVE TV: Receiver-style remote ──────────────────
-                    isLive -> when (event.key) {
-                        Key.DirectionUp, Key.ChannelUp -> {
-                            if (showLiveZap) {
-                                if (liveOverlayTab == LiveOverlayTab.GROUPS) {
-                                    selectLiveZapCategory(-1)
-                                } else if (displayedLiveZapItems.isNotEmpty()) {
-                                    liveZapIndex = (liveZapIndex - 1).floorMod(displayedLiveZapItems.size)
-                                }
-                            } else {
-                                showLiveZap = false
-                                showControls = false
-                                showMiniInfo = true
-                                switchTo(previousItem)
-                            }
-                            true
-                        }
-                        Key.DirectionDown, Key.ChannelDown -> {
-                            if (showLiveZap) {
-                                if (liveOverlayTab == LiveOverlayTab.GROUPS) {
-                                    selectLiveZapCategory(1)
-                                } else if (displayedLiveZapItems.isNotEmpty()) {
-                                    liveZapIndex = (liveZapIndex + 1).floorMod(displayedLiveZapItems.size)
-                                }
-                            } else {
-                                showLiveZap = false
-                                showControls = false
-                                showMiniInfo = true
-                                switchTo(nextItem)
-                            }
-                            true
-                        }
-                        Key.Enter, Key.DirectionCenter -> {
-                            if (showLiveZap) {
-                                when (liveOverlayTab) {
-                                    LiveOverlayTab.CHANNELS -> {
-                                        displayedLiveZapItems.getOrNull(liveZapIndex)?.let { selected ->
-                                            if (!selected.samePlayable(item)) switchTo(selected)
-                                        }
-                                        showLiveZap = false
-                                        showMiniInfo = true
-                                    }
-                                    LiveOverlayTab.GROUPS -> {
-                                        liveOverlayTab = LiveOverlayTab.CHANNELS
-                                    }
-                                    LiveOverlayTab.VIDEO_SIZE -> {
-                                        cycleVideoSizeMode()
-                                    }
-                                    LiveOverlayTab.AUDIO -> {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
-                                    }
-                                    LiveOverlayTab.SUBTITLES -> {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).setShowDisableOption(true).build().show() }
-                                    }
-                                    LiveOverlayTab.FAVORITES -> {
-                                        onTripleOk()
-                                        favoriteMarked = !favoriteMarked
-                                    }
-                                }
-                            } else {
-                                liveZapCategoryId = item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }
-                                liveZapIndex = displayedCurrentIndex.coerceAtLeast(0)
-                                liveOverlayTab = LiveOverlayTab.CHANNELS
-                                showLiveZap = true
-                                showMiniInfo = false
-                            }
-                            showControls = false
-                            lastInteraction = System.currentTimeMillis()
-                            true
-                        }
-                        Key.Back, Key.Escape -> {
-                            if (showLiveZap) { showLiveZap = false; true }
-                            else { onBack(0, 0); true }
-                        }
-                        Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause, Key.Spacebar -> {
-                            if (useLibVlc) {
-                                libVlcPlayPauseNonce++
-                            } else {
-                                if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
-                            }
-                            true
-                        }
-                        Key.DirectionLeft, Key.DirectionRight -> {
-                            if (showLiveZap) {
-                                selectLiveOverlayTab(if (event.key == Key.DirectionLeft) -1 else 1)
-                            } else {
-                                showMiniInfo = true
-                            }
-                            true
-                        }
-                        else -> false
-                    }
-
-                    // ── VOD: Standard player remote ──────────────────────
-                    else -> {
-                        val nativeKey = event.key.nativeKeyCode
-                        val isFastForwardKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD
-                        val isRewindKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_REWIND
-                        val isNextKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_NEXT
-                        val isPreviousKey = nativeKey == AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS
-
-                        if (!showControls) {
-                            when (event.key) {
-                                Key.Back, Key.Escape -> {
-                                    onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
-                                    return@onPreviewKeyEvent true
-                                }
-                                Key.Enter, Key.DirectionCenter, Key.NumPadEnter, Key.Spacebar,
-                                Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause -> {
-                                    toggleVodPlayPause()
-                                    return@onPreviewKeyEvent true
-                                }
-                                Key.DirectionLeft -> {
-                                    seekVodBy(-10_000L, -10)
-                                    return@onPreviewKeyEvent true
-                                }
-                                Key.DirectionRight -> {
-                                    seekVodBy(10_000L, 10)
-                                    return@onPreviewKeyEvent true
-                                }
-                                else -> {
-                                    when {
-                                        isFastForwardKey -> seekVodBy(30_000L, 30)
-                                        isRewindKey -> seekVodBy(-30_000L, -30)
-                                        isNextKey && nextItem != null -> switchTo(nextItem)
-                                        isPreviousKey && previousItem != null -> switchTo(previousItem)
-                                        else -> wakeControls()
-                                    }
-                                    lastInteraction = System.currentTimeMillis()
-                                    return@onPreviewKeyEvent true
-                                }
-                            }
-                        }
-                        // Controls ARE visible — pass D-pad navigation through to Compose focus
-                        // so the user can move focus left/right between buttons (Play, Audio,
-                        // Subtitles, Quality, etc.). Dedicated -10/+10 buttons + media FF/RW
-                        // keys handle seeking.
-                        when (event.key) {
-                            Key.Back, Key.Escape -> { showControls = false; true }
-                            Key.MediaPlayPause, Key.MediaPlay, Key.MediaPause -> {
-                                toggleVodPlayPause()
-                                true
-                            }
-                            Key.DirectionLeft, Key.DirectionRight,
-                            Key.DirectionUp, Key.DirectionDown,
-                            Key.Enter, Key.DirectionCenter, Key.NumPadEnter, Key.Spacebar -> {
-                                lastInteraction = System.currentTimeMillis()
-                                false // CRITICAL: pass through so FocusGlow/Button handles it
-                            }
-                            else -> {
-                                when {
-                                    isFastForwardKey -> {
-                                        seekVodBy(30_000L, 30)
-                                        true
-                                    }
-                                    isRewindKey -> {
-                                        seekVodBy(-30_000L, -30)
-                                        true
-                                    }
-                                    isNextKey && nextItem != null -> {
-                                        switchTo(nextItem)
-                                        true
-                                    }
-                                    isPreviousKey && previousItem != null -> {
-                                        switchTo(previousItem)
-                                        true
-                                    }
-                                    else -> {
-                                        lastInteraction = System.currentTimeMillis()
-                                        false
-                                    }
-                                }
-                            }
-                        }
-                    }
+                when (event.type) {
+                    KeyEventType.KeyDown -> handleKeyDown(event)
+                    KeyEventType.KeyUp -> handleKeyUp(event)
+                    else -> false
                 }
             },
     ) {
@@ -1312,1339 +1745,334 @@ fun PlayerScreen(
             LibVlcPlayerView(
                 request = playbackRequest,
                 title = item.title,
-                resizeMode = resizeMode,
-                retryNonce = libVlcRetryNonce,
-                onBuffering = { buffering ->
-                    isBuffering = buffering || (if (isLive) !liveFirstFrameRendered else !vodFirstFrameRendered)
-                },
-                onPlaying = {
-                    isPlaying = true
-                    isBuffering = if (isLive) !liveFirstFrameRendered else !vodFirstFrameRendered
-                    liveLastPlayingAt = System.currentTimeMillis()
-                    liveConsecutiveFailures = 0
-                    liveSwitchLocked = false
-                    playbackError = null
-                    playbackSignal = if (isLive) "VLC - Live" else "VLC - Video"
-                },
-                onVideoOutput = {
-                    if (isLive) {
-                        liveFirstFrameRendered = true
-                        liveReadyWithoutVideoAt = 0L
-                    } else {
-                        vodFirstFrameRendered = true
-                        vodReadyAt = 0L
-                        vodOpeningGuard = false
-                    }
-                    isBuffering = false
-                    playbackError = null
-                    playbackSignal = if (isLive) "VLC - Live" else "VLC - Video"
-                },
-                onPaused = { isPlaying = false },
-                onError = ::handleLibVlcLiveError,
-                playPauseNonce = libVlcPlayPauseNonce,
-                externalSubtitlePath = externalSubtitle?.toString(),
-                externalSubtitleNonce = externalSubtitleNonce,
+                isLive = isLive,
+                weakDevice = performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26,
+                maxVideoHeight = performancePolicy.maxVideoHeight,
+                // Explicit SD channels are usually 576i/480i broadcast feeds.
+                deinterlace = isLive && item.liveTitleQualityRank() == 1,
+                startPositionMs = libVlcStartPositionMs(attempt.resumePositionMs, ui.duration),
+                resizeMode = selectedVideoSizeMode.toResizeMode(),
+                retryNonce = attempt.libVlcRetryNonce,
+                transport = attempt.vlcTransport,
+                controller = session.vlc,
+                callbacks = libVlcCallbacks(
+                    isLive = isLive,
+                    attempt = attempt,
+                    session = session,
+                    onFirstFrame = ::onFirstFrame,
+                    markPlaying = ::markPlaying,
+                    onTimeline = ::onLibVlcTimeline,
+                    onStopped = ::saveLibVlcProgress,
+                    onEnded = ::onLibVlcEnded,
+                    onError = ::handleLibVlcFailure,
+                ),
+                externalSubtitlePath = ui.externalSubtitle?.toString(),
+                externalSubtitleNonce = ui.externalSubtitleNonce,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            val useTextureView = shouldUseTextureViewForMedia3(
-                sdkInt = Build.VERSION.SDK_INT,
+            Media3Surface(
+                exoPlayer = exoPlayer,
+                surfaceAttempt = attempt.media3SurfaceAttempt,
                 isPerformanceMode = performancePolicy.isPerformance,
-                supportedAbis = Build.SUPPORTED_ABIS,
-                surfaceAttempt = media3SurfaceAttempt,
-            )
-            key(useTextureView, media3SurfaceAttempt) {
-                AndroidView(
-                    factory = {
-                        val playerView = if (useTextureView) {
-                            LayoutInflater.from(it).inflate(R.layout.view_player_texture, null) as PlayerView
-                        } else {
-                            PlayerView(it)
-                        }
-                        playerView.apply {
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                            )
-                            minimumWidth = 1
-                            minimumHeight = 1
-                            useController = false
-                            this.resizeMode = resizeMode
-                            setKeepContentOnPlayerReset(true)
-                            setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
-                            setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
-                            setEnableComposeSurfaceSyncWorkaround(true)
-                            keepScreenOn = true
-                            player = exoPlayer
-                            post {
-                                requestLayout()
-                                invalidate()
-                            }
-                        }
-                    },
-                    update = {
-                        if (it.layoutParams?.width != ViewGroup.LayoutParams.MATCH_PARENT ||
-                            it.layoutParams?.height != ViewGroup.LayoutParams.MATCH_PARENT
-                        ) {
-                            it.layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                            )
-                        }
-                        it.resizeMode = resizeMode
-                        it.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
-                        it.keepScreenOn = true
-                        it.requestLayout()
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-        }
-
-        if ((isBuffering || liveOpeningGuard || vodOpeningGuard) && playbackError == null && (!isLive || System.currentTimeMillis() - lastLiveSwitchAt > 900L)) {
-            GlassPanel(
-                radius = 999.dp,
-                blur = 16.dp,
-                modifier = Modifier.align(Alignment.Center),
-            ) {
-                Row(
-                    Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    CircularProgressIndicator(color = accent, modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
-                    Text(
-                        if (isLive) strings.playerOpening else strings.playerLoading,
-                        color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-        }
-
-        playbackError?.let { message ->
-            Box(
-                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.75f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                GlassPanel(radius = 22.dp, blur = 20.dp, modifier = Modifier.padding(32.dp).widthIn(max = 560.dp)) {
-                    Column(
-                        Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(Icons.Rounded.Warning, null, tint = Color(0xFFFFD166), modifier = Modifier.size(24.dp))
-                            Text(strings.playerCouldNotPlay, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                        }
-                        Text(message, color = Color(0xCCF5E6D0), fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
-                                onClick = ::retryPlayback,
-                                colors = ButtonDefaults.buttonColors(containerColor = accent),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                            ) {
-                                Icon(Icons.Rounded.Refresh, null, tint = Color.Black, modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text(strings.retry, color = Color.Black, fontSize = 13.sp)
-                            }
-                            if (isLibVlcSafeForRequest(playbackRequest)) {
-                                OutlinedButton(onClick = { route = "vlc" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("VLC", fontSize = 12.sp) }
-                            }
-                            if (isLive) {
-                                OutlinedButton(
-                                    onClick = {
-                                        playbackError = null
-                                        isBuffering = true
-                                        route = "auto"
-                                        internalEngine = if (isLibVlcSafeForRequest(playbackRequest)) InternalPlaybackEngine.LIBVLC else InternalPlaybackEngine.MEDIA3
-                                    },
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                ) { Text("Internal", fontSize = 12.sp) }
-                            }
-                            OutlinedButton(onClick = { route = "mx" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("MX", fontSize = 12.sp) }
-                            OutlinedButton(onClick = { route = "external" }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text("External", fontSize = 12.sp) }
-                            OutlinedButton(onClick = { onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0)) }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) { Text(strings.back, fontSize = 12.sp) }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── iOS 26-Inspired Floating Controls ──────────────────────────
-        if (isLive) {
-            LiveZapOverlay(
-                visible = showLiveZap,
-                miniVisible = showMiniInfo && !showLiveZap,
-                currentItem = item,
-                categories = liveZapCategories,
-                selectedCategoryId = liveZapCategoryId,
-                selectedTab = liveOverlayTab,
-                items = displayedLiveZapItems,
-                selectedIndex = liveZapIndex,
-                currentIndex = currentIndex,
-                isBuffering = isBuffering,
-                error = playbackError,
-                signal = playbackSignal,
-                qualityMode = liveQualityMode,
-                videoSizeLabel = videoSizeLabel,
-                favoriteMarked = favoriteMarked,
-                accent = accent,
-                onSelectIndex = { index -> liveZapIndex = index },
-                onTab = { liveOverlayTab = it },
-                onCategory = { categoryId ->
-                    liveZapCategoryId = categoryId
-                    liveZapIndex = 0
-                },
-                onPlay = { selected ->
-                    showLiveZap = false
-                    showMiniInfo = true
-                    switchTo(selected)
-                },
-                onQualityMode = {
-                    liveQualityMode = it
-                    if (isLive && useLibVlc && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true)) {
-                        forceLibVlcForLive = false
-                        triedMedia3ForLive = true
-                        playbackError = null
-                        isBuffering = true
-                        internalEngine = InternalPlaybackEngine.MEDIA3
-                    }
-                },
-                onAudio = { runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() } },
-                onSubtitles = { runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).setShowDisableOption(true).build().show() } },
-                onVideo = { runCatching { TrackSelectionDialogBuilder(context, strings.playerQuality, exoPlayer, C.TRACK_TYPE_VIDEO).build().show() } },
-                onResize = ::cycleVideoSizeMode,
-                onFavorite = {
-                    onTripleOk()
-                    favoriteMarked = !favoriteMarked
-                },
-                onExternal = { route = null },
+                resizeMode = selectedVideoSizeMode.toResizeMode(),
             )
         }
 
-        AnimatedVisibility(
-            visible = showControls && !isLive,
-            enter = fadeIn(tween(250)),
-            exit = fadeOut(tween(400)),
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Box(Modifier.fillMaxSize()) {
-                // Cinematic dim — gradient from edges
-                Box(
-                    Modifier.fillMaxSize().background(
-                        Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.00f to Color.Black.copy(alpha = 0.65f),
-                                0.15f to Color.Black.copy(alpha = 0.10f),
-                                0.85f to Color.Black.copy(alpha = 0.10f),
-                                1.00f to Color.Black.copy(alpha = 0.70f),
-                            ),
-                        ),
-                    ),
-                )
+        if (attempt.audioOnly && !errorVisible) AudioOnlyBackdrop(item, accent)
+        if (errorVisible && (!attempt.wasPlaying || attempt.audioOnly)) FailedStartBackdrop(accent)
 
-                // ── Top: Floating Info Capsule ──────────────────────
-                GlassPanel(
-                    radius = 999.dp,
-                    blur = 20.dp,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 24.dp)
-                        .widthIn(max = 700.dp),
-                ) {
-                    Row(
-                        Modifier.padding(horizontal = 22.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        // Live badge or play icon
-                        if (isLive) {
-                            Surface(
-                                shape = RoundedCornerShape(999.dp),
-                                color = Color(0xFFFF3B4D),
-                                modifier = Modifier.height(24.dp),
-                            ) {
-                                Text(
-                                    " LIVE ",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                )
-                            }
-                        }
-                        Text(
-                            item.title,
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Text(
-                            videoSizeLabel,
-                            color = accent.copy(alpha = 0.8f),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                }
+        PlayerTouchLayer(
+            isLive = isLive,
+            onTap = ::onScreenTap,
+            onDoubleTap = { forward -> seekVodBy(if (forward) 10_000L else -10_000L, 0, revealControls = true) },
+            onVerticalSwipe = { direction -> if (!ui.showLiveZap && !errorVisible) zapBy(direction, 0) },
+        )
 
-                // ── Bottom: Control Island ──────────────────────────
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(start = 28.dp, end = 28.dp, bottom = 24.dp)
-                        .widthIn(max = 860.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    // Seek Bar (VOD only) — read-only progress; seek via -10/+10 buttons or media FF/RW
-                    if (!isLive) {
-                        GlassPanel(radius = 999.dp, blur = 16.dp, modifier = Modifier.fillMaxWidth()) {
-                            val progress = if (duration > 0) {
-                                (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
-                            } else {
-                                0f
-                            }
-                            Row(
-                                Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                Text(formatTime(currentPosition), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Box(
-                                    Modifier
-                                        .weight(1f)
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(999.dp))
-                                        .background(Color(0x33FFFFFF)),
-                                ) {
-                                    Box(
-                                        Modifier
-                                            .fillMaxWidth(progress)
-                                            .fillMaxHeight()
-                                            .clip(RoundedCornerShape(999.dp))
-                                            .background(
-                                                Brush.horizontalGradient(
-                                                    listOf(accent.copy(alpha = 0.78f), accent),
-                                                ),
-                                            ),
-                                    )
-                                    // Thumb dot at the current playback position
-                                    Box(
-                                        Modifier
-                                            .fillMaxHeight()
-                                            .fillMaxWidth(progress),
-                                        contentAlignment = Alignment.CenterEnd,
-                                    ) {
-                                        Box(
-                                            Modifier
-                                                .size(14.dp)
-                                                .clip(RoundedCornerShape(999.dp))
-                                                .background(Color.White)
-                                                .border(2.dp, accent, RoundedCornerShape(999.dp)),
-                                        )
-                                    }
-                                }
-                                Text(formatTime(duration), color = Color(0x99FFFFFF), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-
-                    GlassPanel(
-                        radius = 22.dp,
-                        blur = 20.dp,
-                        modifier = Modifier.fillMaxWidth(),
-                        glow = accent.copy(alpha = 0.04f),
-                    ) {
-                        Column(
-                            Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            // Primary Controls Row
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                if (isLive && previousItem != null) {
-                                    ControlButton(Icons.Rounded.SkipPrevious, strings.playerPrevious, accent) { switchTo(previousItem) }
-                                    Spacer(Modifier.width(10.dp))
-                                } else if (!isLive) {
-                                    ControlButton(Icons.Rounded.Replay10, "-10", accent) {
-                                        seekVodBy(-10_000L, -10)
-                                    }
-                                    Spacer(Modifier.width(8.dp))
-                                }
-
-                                Button(
-                                    onClick = {
-                                        toggleVodPlayPause()
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = accent),
-                                    shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier
-                                        .height(52.dp)
-                                        .focusRequester(playPauseFocusRequester),
-                                    contentPadding = PaddingValues(horizontal = 22.dp),
-                                ) {
-                                    Icon(
-                                        if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                                        null, tint = Color.Black, modifier = Modifier.size(28.dp),
-                                    )
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        if (isPlaying) strings.playerPause else strings.playerPlay,
-                                        color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp,
-                                    )
-                                }
-
-                                Spacer(Modifier.width(10.dp))
-
-                                // Favorite button
-                                Button(
-                                    onClick = { onTripleOk(); favoriteMarked = !favoriteMarked; wakeControls() },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (favoriteMarked) accent.copy(alpha = 0.2f) else Color(0x22FFFFFF),
-                                    ),
-                                    shape = RoundedCornerShape(16.dp),
-                                    modifier = Modifier.height(52.dp),
-                                    contentPadding = PaddingValues(horizontal = 14.dp),
-                                ) {
-                                    Icon(Icons.Rounded.Favorite, null, tint = if (favoriteMarked) accent else Color.White, modifier = Modifier.size(22.dp))
-                                }
-
-                                if (isLive && nextItem != null) {
-                                    Spacer(Modifier.width(10.dp))
-                                    ControlButton(Icons.Rounded.SkipNext, strings.playerNext, accent) { switchTo(nextItem) }
-                                } else if (!isLive) {
-                                    Spacer(Modifier.width(10.dp))
-                                    ControlButton(Icons.Rounded.Forward10, "+10", accent) {
-                                        seekVodBy(10_000L, 10)
-                                    }
-                                }
-                            }
-
-                            // Secondary Controls — compact icon strip
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    SmallControlButton(Icons.Rounded.Refresh, strings.retry, accent, ::retryPlayback)
-                                    SmallControlButton(Icons.Rounded.Audiotrack, strings.playerAudio, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerAudio, exoPlayer, C.TRACK_TYPE_AUDIO).build().show() }
-                                    }
-                                    SmallControlButton(Icons.Rounded.Subtitles, strings.playerSubtitles, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerSubtitles, exoPlayer, C.TRACK_TYPE_TEXT).setShowDisableOption(true).build().show() }
-                                    }
-                                    // Import an external subtitle file for a movie/episode that has none.
-                                    if (!isLive) {
-                                        SmallControlButton(Icons.Rounded.UploadFile, strings.playerAddSubtitle, accent) { importSubtitle() }
-                                    }
-                                    SmallControlButton(Icons.Rounded.HighQuality, strings.playerQuality, accent) {
-                                        runCatching { TrackSelectionDialogBuilder(context, strings.playerQuality, exoPlayer, C.TRACK_TYPE_VIDEO).build().show() }
-                                    }
-                                    SmallControlButton(Icons.Rounded.Tune, strings.playerAspect, accent) {
-                                        cycleVideoSizeMode()
-                                    }
-                                    if (canCast) {
-                                        SmallControlButton(Icons.Rounded.Cast, strings.playerCast, accent) {
-                                            launchCastFallback(context, streamRequest.uri)
-                                        }
-                                    }
-                                    SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, strings.playerOpenExternal, accent) { route = null }
-                                }
-                                Text(
-                                    if (isLive) "▲▼ Channel  •  OK Guide  •  Back Hide" else "◄► Focus  •  OK Select  •  Back Hide",
-                                    color = Color(0x77FFFFFF),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── Seek Jump Indicator — floating pill ─────────────────────
-        AnimatedVisibility(
-            visible = seekJump != 0,
-            enter = fadeIn(tween(100)),
-            exit = fadeOut(tween(300)),
+        val showOpening = !errorVisible && attempt.reconnectingSince == 0L && !attempt.userPaused && (
+            attempt.isBuffering ||
+                (isLive && attempt.liveOpeningGuard && !attempt.liveFirstFrameRendered && !attempt.audioOnly) ||
+                (!isLive && attempt.vodOpeningGuard && !attempt.vodFirstFrameRendered)
+            )
+        OpeningPill(
+            visible = showOpening,
+            suppressForZap = isLive && session.zapSettling,
+            switchKey = session.lastLiveSwitchAt,
+            onSettled = { session.zapSettling = false },
+            label = when {
+                isLive && !attempt.liveFirstFrameRendered && !attempt.audioOnly -> strings.playerOpening
+                !isLive && !attempt.vodFirstFrameRendered -> strings.playerLoading
+                else -> ps.buffering
+            },
+            accent = accent,
             modifier = Modifier.align(Alignment.Center),
-        ) {
-            GlassPanel(radius = 999.dp, blur = 16.dp) {
-                Text(
-                    text = "${if (seekJump > 0) "+" else ""}${seekJump}s",
-                    color = Color.White,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 14.dp),
-                )
+        )
+
+        TopNoticeStack(Modifier.align(Alignment.TopCenter)) {
+            if (attempt.reconnectingSince > 0L && !errorVisible) {
+                StatusPill(if (session.networkAvailable) ps.reconnecting else ps.waitingForNetwork, accent)
             }
+            session.recoveryNotice?.let { InfoChip(it, accent) }
+            session.transientMessage?.let { InfoChip(it, accent) }
         }
-    }
-}
 
-@kotlin.OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun LiveZapOverlay(
-    visible: Boolean,
-    miniVisible: Boolean,
-    currentItem: AppMediaItem,
-    categories: List<LiveZapCategory>,
-    selectedCategoryId: String,
-    selectedTab: LiveOverlayTab,
-    items: List<AppMediaItem>,
-    selectedIndex: Int,
-    currentIndex: Int,
-    isBuffering: Boolean,
-    error: String?,
-    signal: String,
-    qualityMode: LiveQualityMode,
-    videoSizeLabel: String,
-    favoriteMarked: Boolean,
-    accent: Color,
-    onSelectIndex: (Int) -> Unit,
-    onTab: (LiveOverlayTab) -> Unit,
-    onCategory: (String) -> Unit,
-    onPlay: (AppMediaItem) -> Unit,
-    onQualityMode: (LiveQualityMode) -> Unit,
-    onAudio: () -> Unit,
-    onSubtitles: () -> Unit,
-    onVideo: () -> Unit,
-    onResize: () -> Unit,
-    onFavorite: () -> Unit,
-    onExternal: () -> Unit,
-) {
-    val channelListState = rememberLazyListState()
-
-    LaunchedEffect(visible, selectedIndex, items.size) {
-        if (visible && selectedIndex in items.indices) {
-            channelListState.scrollToItem(selectedIndex)
+        if (session.numberBuffer.isNotEmpty()) {
+            // Start corner like the other overlays: top right in Arabic.
+            NumberEntryOverlay(session.numberBuffer, accent, Modifier.align(Alignment.TopStart).safeCornerPadding())
         }
-    }
 
-    AnimatedVisibility(
-        visible = miniVisible,
-        enter = fadeIn(tween(120)),
-        exit = fadeOut(tween(220)),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart) {
-            LiveInfoCard(
-                item = currentItem,
-                channelNumber = currentIndex.takeIf { it >= 0 }?.plus(1),
-                isBuffering = isBuffering,
-                error = error,
-                signal = signal,
+        if (isLive) {
+            val liveStatus = LiveCardStatus(
+                opening = !errorVisible && !attempt.liveFirstFrameRendered && !attempt.audioOnly &&
+                    (attempt.isBuffering || attempt.liveOpeningGuard),
+                reconnecting = attempt.reconnectingSince > 0L,
+                waitingForNetwork = !session.networkAvailable,
+                paused = attempt.userPaused,
+                audioOnly = attempt.audioOnly,
+                hasError = errorVisible,
+                signal = ui.playbackSignal,
+            )
+            LiveZapOverlay(
+                visible = ui.showLiveZap,
+                miniVisible = (ui.showMiniInfo || attempt.userPaused || session.pendingZapItem != null) && !ui.showLiveZap && !errorVisible,
+                miniItem = session.pendingZapItem ?: item,
+                miniStatus = if (session.pendingZapItem != null) null else liveStatus,
+                currentItem = item,
+                currentStatus = liveStatus,
+                channelNumberOf = zapList.channelNumberOf,
+                providerNumbers = zapList.providerNumbers,
+                nowTitleOf = liveNowTitle,
+                browser = browser,
+                selectedTab = ui.liveOverlayTab,
+                videoSizeLabel = videoSizeLabel,
+                favoriteMarked = ui.favoriteMarked,
+                actions = overlayActions,
+                selectedActionIndex = ui.liveActionIndex,
                 accent = accent,
-                modifier = Modifier.padding(start = 34.dp, bottom = 34.dp).widthIn(max = 560.dp),
-            )
-        }
-    }
-
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(tween(120)),
-        exit = fadeOut(tween(180)),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.24f))) {
-            GlassPanel(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 36.dp, vertical = 28.dp)
-                    .fillMaxWidth(0.88f)
-                    .fillMaxHeight(0.78f)
-                    .widthIn(max = 1120.dp),
-                radius = 24.dp,
-                blur = 18.dp,
-                highlighted = true,
-                glow = accent.copy(alpha = 0.14f),
-            ) {
-                Column(
-                    Modifier.fillMaxSize().padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        LiveInfoCard(
-                            item = currentItem,
-                            channelNumber = currentIndex.takeIf { it >= 0 }?.plus(1),
-                            isBuffering = isBuffering,
-                            error = error,
-                            signal = signal,
-                            accent = accent,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Column(
-                            Modifier.width(228.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                            horizontalAlignment = Alignment.End,
-                        ) {
-                            Text(
-                                "${selectedIndex.coerceAtLeast(0) + 1}/${items.size.coerceAtLeast(1)}",
-                                color = accent,
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                            )
-                            Text(
-                                "Live menu",
-                                color = Color(0xB8FFFFFF),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                            Text(
-                                videoSizeLabel,
-                                color = Color(0x88FFFFFF),
-                                fontSize = 11.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-
-                    LazyRow(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(LiveOverlayTabs, key = { it.name }) { tab ->
-                            LiveOverlayTabChip(
-                                label = tab.label,
-                                selected = selectedTab == tab,
-                                accent = accent,
-                                onClick = { onTab(tab) },
-                            )
-                        }
-                    }
-
-                    val selectedCategory = categories.firstOrNull { it.id == selectedCategoryId }
-                    LazyRow(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(categories, key = { it.id }) { category ->
-                            LiveCategoryPill(
-                                category = category,
-                                selected = category.id == selectedCategoryId,
-                                accent = accent,
-                                onClick = { onCategory(category.id) },
-                            )
-                        }
-                    }
-
-                    Row(
-                        Modifier.weight(1f).fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    ) {
-                        Column(Modifier.weight(1f).fillMaxHeight()) {
-                            Row(
-                                Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    selectedCategory?.name ?: "Channels",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Text(
-                                    selectedTab.label,
-                                    color = Color(0x99FFFFFF),
-                                    fontSize = 12.sp,
-                                    maxLines = 1,
-                                )
-                            }
-
-                            if (items.isEmpty()) {
-                                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                    Text("No channels in this group", color = Color(0xCCFFFFFF), fontSize = 13.sp)
-                                }
-                            } else {
-                                CompositionLocalProvider(LocalBringIntoViewSpec provides PlayerEdgeBringIntoViewSpec) {
-                                    LazyColumn(
-                                        modifier = Modifier.weight(1f).fillMaxWidth(),
-                                        state = channelListState,
-                                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                                        contentPadding = PaddingValues(bottom = 8.dp),
-                                    ) {
-                                        itemsIndexed(items, key = { _, channel -> "${channel.serverId}-${channel.id}-${channel.type}" }) { index, channel ->
-                                            val isSelected = index == selectedIndex
-                                            val isCurrent = channel.id == currentItem.id && channel.serverId == currentItem.serverId
-                                            LiveChannelRow(
-                                                channel = channel,
-                                                index = index,
-                                                selected = isSelected,
-                                                current = isCurrent,
-                                                accent = accent,
-                                                onFocus = {
-                                                    onSelectIndex(index)
-                                                },
-                                                onPlay = { onPlay(channel) },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        LiveOverlayActionPanel(
-                            selectedTab = selectedTab,
-                            qualityMode = qualityMode,
-                            videoSizeLabel = videoSizeLabel,
-                            favoriteMarked = favoriteMarked,
-                            accent = accent,
-                            onQualityMode = onQualityMode,
-                            onVideo = onVideo,
-                            onResize = onResize,
-                            onAudio = onAudio,
-                            onSubtitles = onSubtitles,
-                            onFavorite = onFavorite,
-                            onExternal = onExternal,
-                            modifier = Modifier.fillMaxHeight().width(278.dp),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LiveOverlayTabChip(
-    label: String,
-    selected: Boolean,
-    accent: Color,
-    onClick: () -> Unit,
-) {
-    FocusGlow(cornerRadius = 999.dp, onClick = onClick, modifier = Modifier.height(38.dp)) {
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .border(
-                    width = if (selected) 1.5.dp else 1.dp,
-                    color = if (selected) accent else Color(0x26FFFFFF),
-                    shape = RoundedCornerShape(999.dp),
-                )
-                .background(if (selected) accent.copy(alpha = 0.20f) else Color(0x18FFFFFF))
-                .padding(horizontal = 14.dp, vertical = 9.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                label,
-                color = if (selected) accent else Color(0xE6FFFFFF),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.ExtraBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-private fun LiveOverlayActionPanel(
-    selectedTab: LiveOverlayTab,
-    qualityMode: LiveQualityMode,
-    videoSizeLabel: String,
-    favoriteMarked: Boolean,
-    accent: Color,
-    onQualityMode: (LiveQualityMode) -> Unit,
-    onVideo: () -> Unit,
-    onResize: () -> Unit,
-    onAudio: () -> Unit,
-    onSubtitles: () -> Unit,
-    onFavorite: () -> Unit,
-    onExternal: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val strings = LocalStrings.current
-    GlassPanel(modifier = modifier, radius = 18.dp, blur = 14.dp, highlighted = true, glow = accent.copy(alpha = 0.06f)) {
-        Column(
-            Modifier.fillMaxSize().padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                selectedTab.label,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                when (selectedTab) {
-                    LiveOverlayTab.CHANNELS -> "Fast channel switching"
-                    LiveOverlayTab.GROUPS -> "Live groups"
-                    LiveOverlayTab.VIDEO_SIZE -> "Current: $videoSizeLabel"
-                    LiveOverlayTab.AUDIO -> "Available audio tracks"
-                    LiveOverlayTab.SUBTITLES -> "Available subtitles"
-                    LiveOverlayTab.FAVORITES -> if (favoriteMarked) "Saved as favorite" else "Not in favorites"
+                isTv = isTv,
+                onSelectIndex = { index ->
+                    browser.selectIndex(index)
+                    session.lastInteraction = System.currentTimeMillis()
                 },
-                color = Color(0xB8FFFFFF),
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
+                onTab = { tab ->
+                    ui.liveOverlayTab = tab
+                    ui.liveActionIndex = 0
+                    session.lastInteraction = System.currentTimeMillis()
+                },
+                onCategory = { groupId ->
+                    browser.selectGroup(groupId, settle = false)
+                    session.lastInteraction = System.currentTimeMillis()
+                },
+                onPlay = ::playFromPanel,
+                onClose = ::closeLiveZap,
+                onScrolled = { session.lastInteraction = System.currentTimeMillis() },
             )
-            when (selectedTab) {
-                LiveOverlayTab.CHANNELS, LiveOverlayTab.GROUPS -> {
-                    LiveQualityModeButton(strings.playerOpenExternal, false, accent, onExternal)
-                    LiveQualityModeButton("Track quality", false, accent, onVideo)
-                }
-                LiveOverlayTab.VIDEO_SIZE -> {
-                    Text(
-                        "Current: $videoSizeLabel",
-                        color = accent,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                    LiveQualityModeButton("Cycle size", true, accent, onResize)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        LiveQualityModeButton("Smart", qualityMode == LiveQualityMode.AUTO, accent) { onQualityMode(LiveQualityMode.AUTO) }
-                        LiveQualityModeButton("Stable", qualityMode == LiveQualityMode.STABLE, accent) { onQualityMode(LiveQualityMode.STABLE) }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        LiveQualityModeButton("4K", qualityMode == LiveQualityMode.BEST, accent) { onQualityMode(LiveQualityMode.BEST) }
-                        LiveQualityModeButton("8K", qualityMode == LiveQualityMode.ULTRA, accent) { onQualityMode(LiveQualityMode.ULTRA) }
-                    }
-                }
-                LiveOverlayTab.AUDIO -> {
-                    LiveQualityModeButton("Audio tracks", true, accent, onAudio)
-                    LiveQualityModeButton("Video quality", false, accent, onVideo)
-                }
-                LiveOverlayTab.SUBTITLES -> {
-                    LiveQualityModeButton(strings.playerSubtitles, true, accent, onSubtitles)
-                    LiveQualityModeButton("Video quality", false, accent, onVideo)
-                }
-                LiveOverlayTab.FAVORITES -> {
-                    LiveQualityModeButton(if (favoriteMarked) "Remove favorite" else "Add favorite", favoriteMarked, accent, onFavorite)
-                    LiveQualityModeButton(strings.playerOpenExternal, false, accent, onExternal)
-                }
-            }
-            Spacer(Modifier.weight(1f))
-        }
-    }
-}
-
-private data class LiveZapCategory(
-    val id: String,
-    val name: String,
-    val count: Int,
-)
-
-private const val LIVE_ZAP_ALL_CATEGORY_ID = "__all__"
-private const val LIVE_ZAP_UNCATEGORIZED_ID = "__uncategorized__"
-
-private fun List<AppMediaItem>.toLiveZapCategories(): List<LiveZapCategory> {
-    if (isEmpty()) return emptyList()
-    val allCategory = LiveZapCategory(LIVE_ZAP_ALL_CATEGORY_ID, "All", size)
-    val grouped = groupBy { it.categoryId.ifBlank { LIVE_ZAP_UNCATEGORIZED_ID } }
-    val itemCategories = grouped.map { (id, channels) ->
-        LiveZapCategory(
-            id = id,
-            name = channels.firstOrNull()?.categoryName?.ifBlank { "Live TV" } ?: "Live TV",
-            count = channels.size,
-        )
-    }
-    return listOf(allCategory) + itemCategories
-}
-
-@Composable
-private fun LiveCategoryPill(
-    category: LiveZapCategory,
-    selected: Boolean,
-    accent: Color,
-    onClick: () -> Unit,
-) {
-    FocusGlow(cornerRadius = 999.dp, onClick = onClick) {
-        Row(
-            Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(if (selected) accent.copy(alpha = 0.24f) else Color(0x22FFFFFF))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(category.name, color = if (selected) accent else Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(category.count.toString(), color = Color(0x99FFFFFF), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun LiveInfoCard(
-    item: AppMediaItem,
-    channelNumber: Int?,
-    isBuffering: Boolean,
-    error: String?,
-    signal: String,
-    accent: Color,
-    modifier: Modifier = Modifier,
-) {
-    GlassPanel(modifier = modifier, radius = 18.dp, blur = 16.dp, highlighted = true, glow = accent.copy(alpha = 0.08f)) {
-        Row(
-            Modifier.fillMaxWidth().padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ChannelLogo(item, Modifier.size(58.dp), accent)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        channelNumber?.let { "%03d".format(it) } ?: "LIVE",
-                        color = accent,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 13.sp,
-                    )
-                    Text(
-                        item.categoryName.ifBlank { "Live TV" },
-                        color = Color(0xB8FFFFFF),
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Text(
-                    item.title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    when {
-                        error != null -> "Retry or use an external player"
-                        isBuffering -> "Opening channel..."
-                        signal.isNotBlank() -> signal
-                        else -> "Live now"
-                    },
-                    color = if (error != null) Color(0xFFFFB4AB) else Color(0xCCE3BC78),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Surface(shape = RoundedCornerShape(999.dp), color = if (error != null) Color(0xFFB3261E) else Color(0xFFFF3B4D)) {
-                Text(
-                    if (isBuffering) "LOAD" else "LIVE",
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LiveChannelRow(
-    channel: AppMediaItem,
-    index: Int,
-    selected: Boolean,
-    current: Boolean,
-    accent: Color,
-    onFocus: () -> Unit,
-    onPlay: () -> Unit,
-) {
-    FocusGlow(cornerRadius = 12.dp, onFocused = onFocus, onClick = onPlay) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    when {
-                        selected -> accent.copy(alpha = 0.22f)
-                        current -> Color(0x22FFFFFF)
-                        else -> Color.Transparent
-                    },
-                )
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("%03d".format(index + 1), color = if (selected) accent else Color(0x99FFFFFF), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            ChannelLogo(channel, Modifier.size(34.dp), accent)
-            Column(Modifier.weight(1f)) {
-                Text(channel.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(channel.categoryName.ifBlank { "Live TV" }, color = Color(0x99FFFFFF), fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            if (current) {
-                Text("ON", color = accent, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChannelLogo(item: AppMediaItem, modifier: Modifier, accent: Color) {
-    Box(
-        modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color(0x33111111)),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (item.posterUrl.isNotBlank()) {
-            AsyncImage(model = item.posterUrl, contentDescription = item.title, modifier = Modifier.fillMaxSize())
         } else {
-            Text(
-                item.title.take(1).uppercase(Locale.getDefault()),
-                color = accent,
-                fontWeight = FontWeight.ExtraBold,
+            VodSeekPreview(visible = session.seekPreviewVisible && !ui.showControls && !errorVisible, ui = ui, accent = accent)
+            VodControls(
+                visible = ui.showControls && !errorVisible,
+                title = item.title,
+                videoSizeLabel = videoSizeLabel,
+                ui = ui,
+                showPlay = attempt.userPaused || (!session.isPlaying && !attempt.isBuffering),
+                ended = attempt.vodEnded,
+                favoriteMarked = ui.favoriteMarked,
+                canCast = canCast,
+                accent = accent,
+                isTv = isTv,
+                playPauseFocusRequester = playPauseFocusRequester,
+                onSeekToFraction = if (!isTv) ::seekToFraction else null,
+                onSeekBy = { step -> seekVodBy(step, 0, revealControls = true) },
+                onPlayPause = {
+                    togglePlayPause()
+                    wakeControls()
+                },
+                onRetry = ::retryPlayback,
+                onAudio = { showTrackDialog(C.TRACK_TYPE_AUDIO) },
+                onSubtitles = { showTrackDialog(C.TRACK_TYPE_TEXT) },
+                onAddSubtitle = importSubtitle,
+                onQuality = { showTrackDialog(C.TRACK_TYPE_VIDEO) },
+                onAspect = ::cycleVideoSizeMode,
+                onFavorite = {
+                    toggleFavorite()
+                    wakeControls()
+                },
+                onCast = { launchCastFallback(context, streamRequest.uri, ps) },
+                onExternal = ::openPlayerPicker,
+            )
+            SeekJumpPill(
+                visible = session.seekPillVisible,
+                offsetMs = session.seekPillMs,
+                modifier = Modifier.align(Alignment.Center).offset(y = (-96).dp),
+            )
+            NextEpisodeOffer(
+                item = item,
+                ui = ui,
+                visible = nextEpisodeOffered(),
+                accent = accent,
+                lookup = nextEpisode,
+                onAnswer = ::answerNextEpisode,
+            )
+        }
+
+        attempt.playbackError?.let { issue ->
+            val actions = buildList {
+                add(PlayerErrorAction(ps.retry, Icons.Rounded.Refresh, true, ::retryPlayback))
+                if (isLive) {
+                    nextItem?.let { next -> add(PlayerErrorAction(ps.nextChannel, Icons.Rounded.SkipNext, false) { switchTo(next) }) }
+                } else if (useLibVlc || isLibVlcSafeForRequest(playbackRequest)) {
+                    add(PlayerErrorAction(ps.otherEngine, Icons.Rounded.SwapHoriz, false, ::tryOtherVodEngine))
+                }
+                add(PlayerErrorAction(ps.externalPlayer, Icons.AutoMirrored.Rounded.OpenInNew, false, ::openPlayerPicker))
+                add(PlayerErrorAction(strings.back, Icons.AutoMirrored.Rounded.ArrowBack, false, ::leavePlayer))
+            }
+            PlaybackErrorCard(
+                title = strings.playerCouldNotPlay,
+                message = ps.issueText(issue),
+                actions = actions,
+                firstActionFocus = errorFocusRequester,
+                accent = accent,
             )
         }
     }
 }
 
-@Composable
-private fun LiveQualityModeButton(label: String, selected: Boolean, accent: Color, onClick: () -> Unit) {
-    FocusGlow(cornerRadius = 999.dp, onClick = onClick, modifier = Modifier.height(34.dp)) {
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(if (selected) accent.copy(alpha = 0.24f) else Color(0x22FFFFFF))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(label, color = if (selected) accent else Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
-        }
-    }
+/**
+ * LibVLC events mapped onto the attempt state. Built outside PlayerScreen so its lambdas do not
+ * grow that (very large) method: API 23's ART verifier rejects oversized methods.
+ */
+private fun libVlcCallbacks(
+    isLive: Boolean,
+    attempt: PlaybackAttemptState,
+    session: PlayerSessionState,
+    onFirstFrame: () -> Unit,
+    markPlaying: () -> Unit,
+    onTimeline: (timeMs: Long, lengthMs: Long, seekable: Boolean) -> Unit,
+    onStopped: () -> Unit,
+    onEnded: (reachedEnd: Boolean) -> Unit,
+    onError: () -> Unit,
+): LibVlcCallbacks {
+    fun rendered() = attempt.audioOnly || if (isLive) attempt.liveFirstFrameRendered else attempt.vodFirstFrameRendered
+    return LibVlcCallbacks(
+        onBuffering = { buffering -> attempt.isBuffering = buffering || !rendered() },
+        onPlaying = {
+            session.isPlaying = true
+            attempt.isBuffering = !rendered()
+            attempt.playbackError = null
+        },
+        onVideoOutput = {
+            session.zapProbe.onFirstFrame(media3Player = null)
+            onFirstFrame()
+            attempt.isBuffering = false
+            attempt.playbackError = null
+            attempt.liveConsecutiveFailures = 0
+        },
+        onAudioOnly = {
+            attempt.audioOnly = true
+            attempt.isBuffering = false
+            attempt.liveReadyWithoutVideoAt = 0L
+            attempt.liveConsecutiveFailures = 0
+            markPlaying()
+        },
+        onPaused = { session.isPlaying = false },
+        onTimeline = onTimeline,
+        onStopped = onStopped,
+        onEndReached = onEnded,
+        onError = onError,
+    )
 }
 
+/**
+ * Media3 video surface. The PlayerView is re-bound to the current ExoPlayer on every update: the
+ * player is rebuilt as the surface-retry escalation (and on engine or performance-mode changes),
+ * while the view is recreated when the surface type changes, also on a zap back to the default
+ * surface. Without the re-bind a new player renders into no surface (black or frozen picture with
+ * sound) until a watchdog forces a rebuild.
+ */
 @Composable
-private fun PlayerRoutePicker(
-    title: String,
-    onSelect: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val visuals = LocalMoVisuals.current
-    val strings = LocalStrings.current
-    val autoFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(120)
-        runCatching { autoFocus.requestFocus() }
-    }
-    Dialog(onDismissRequest = onDismiss) {
-        GlassPanel(
-            modifier = Modifier.fillMaxWidth(),
-            radius = 26.dp,
-            highlighted = true,
-            glow = visuals.glow,
-        ) {
-            Column(
-                Modifier.padding(horizontal = 22.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Text(
-                    strings.playerChooseTitle,
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    title,
-                    color = Color(0xCCE3BC78),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    strings.playerChooseHint,
-                    color = Color(0x99FFFFFF),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+private fun Media3Surface(exoPlayer: ExoPlayer?, surfaceAttempt: Int, isPerformanceMode: Boolean, resizeMode: Int) {
+    val useTextureView = shouldUseTextureViewForMedia3(
+        sdkInt = Build.VERSION.SDK_INT,
+        isPerformanceMode = isPerformanceMode,
+        supportedAbis = Build.SUPPORTED_ABIS,
+        surfaceAttempt = surfaceAttempt,
+    )
+    key(useTextureView, surfaceAttempt) {
+        AndroidView(
+            factory = { viewContext ->
+                val playerView = if (useTextureView) {
+                    LayoutInflater.from(viewContext).inflate(R.layout.view_player_texture, null) as PlayerView
+                } else {
+                    PlayerView(viewContext)
+                }
+                playerView.apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    minimumWidth = 1
+                    minimumHeight = 1
+                    useController = false
+                    this.resizeMode = resizeMode
+                    // The last frame stays until the next channel's first frame instead of flashing black.
+                    setKeepContentOnPlayerReset(true)
+                    setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
+                    setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    setEnableComposeSurfaceSyncWorkaround(true)
+                    keepScreenOn = true
+                    player = exoPlayer
+                }
+            },
+            update = { view ->
+                if (view.player !== exoPlayer) view.player = exoPlayer
+                if (view.layoutParams?.width != ViewGroup.LayoutParams.MATCH_PARENT ||
+                    view.layoutParams?.height != ViewGroup.LayoutParams.MATCH_PARENT
                 ) {
-                    Button(
-                        onClick = { onSelect("auto") },
-                        colors = ButtonDefaults.buttonColors(containerColor = visuals.accent, contentColor = Color.Black),
-                        modifier = Modifier.weight(1f).focusRequester(autoFocus),
-                    ) {
-                        Text("Auto")
-                    }
-                    OutlinedButton(onClick = { onSelect("media3") }, modifier = Modifier.weight(1f)) {
-                        Text("Media3")
-                    }
+                    view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 }
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(onClick = { onSelect("vlc") }, modifier = Modifier.weight(1f)) {
-                        Text("VLC")
-                    }
-                    OutlinedButton(onClick = { onSelect("mx") }, modifier = Modifier.weight(1f)) {
-                        Text("MX")
-                    }
-                }
-                OutlinedButton(onClick = { onSelect("external") }, modifier = Modifier.fillMaxWidth()) {
-                    Text(strings.playerGeneric)
-                }
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text(strings.cancel)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExternalLaunchScreen(
-    title: String,
-    message: String,
-    onRetrySame: () -> Unit,
-    onUseMedia3: () -> Unit,
-    onPickAnother: () -> Unit,
-    onBack: () -> Unit,
-) {
-    val strings = LocalStrings.current
-    val retryFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(120)
-        runCatching { retryFocus.requestFocus() }
-    }
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF010408), Color(0xFF070F1C)),
-                ),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        OverlayCard(modifier = Modifier.padding(24.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
-                Text(message, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyLarge)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = onRetrySame, modifier = Modifier.focusRequester(retryFocus)) { Text(strings.retry) }
-                    OutlinedButton(onClick = onUseMedia3) { Text(strings.playerUseMedia3) }
-                    OutlinedButton(onClick = onPickAnother) { Text(strings.playerChooseAnother) }
-                    OutlinedButton(onClick = onBack) { Text("Back") }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ControlButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    accent: Color,
-    onClick: () -> Unit,
-) {
-    FocusGlow(
-        cornerRadius = 18.dp,
-        onClick = onClick,
-        modifier = Modifier.clip(RoundedCornerShape(18.dp)),
-    ) {
-        GlassPanel(
-            radius = 18.dp,
-            blur = 12.dp,
-            highlighted = true,
-            glow = accent.copy(alpha = 0.10f),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
-                Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SmallControlButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    accent: Color,
-    onClick: () -> Unit,
-) {
-    FocusGlow(
-        cornerRadius = 14.dp,
-        onClick = onClick,
-        modifier = Modifier.size(46.dp).clip(RoundedCornerShape(14.dp)),
-    ) {
-        GlassPanel(
-            radius = 14.dp,
-            blur = 10.dp,
-            highlighted = true,
-            glow = accent.copy(alpha = 0.06f),
+                view.resizeMode = resizeMode
+                view.keepScreenOn = true
+            },
+            onRelease = { view -> view.player = null },
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, label, tint = accent, modifier = Modifier.size(22.dp))
-        }
-    }
-}
-
-@Composable
-private fun LibVlcPlayerView(
-    request: StreamRequest,
-    title: String,
-    resizeMode: Int,
-    retryNonce: Int,
-    onBuffering: (Boolean) -> Unit,
-    onPlaying: () -> Unit,
-    onVideoOutput: () -> Unit,
-    onPaused: () -> Unit,
-    onError: (String) -> Unit,
-    playPauseNonce: Int,
-    externalSubtitlePath: String? = null,
-    externalSubtitleNonce: Int = 0,
-    modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val vlcOptions = remember {
-        arrayListOf(
-            "--network-caching=$LIBVLC_LIVE_CACHE_MS",
-            "--live-caching=$LIBVLC_LIVE_CACHE_MS",
-            "--file-caching=$LIBVLC_FILE_CACHE_MS",
-            "--avcodec-fast",
-            "--audio-resampler=soxr",
         )
     }
-    val libVlc = remember { LibVLC(context, vlcOptions) }
-    val mediaPlayer = remember { MediaPlayer(libVlc) }
-    val uiScope = rememberCoroutineScope()
-    var videoTexture by remember { mutableStateOf<TextureView?>(null) }
-    // Single source of truth for native teardown. Once the player/libVlc are released, no other
-    // effect may call into them again — a use-after-free on the LibVLC native objects is a hard
-    // SIGSEGV that runCatching cannot catch and takes the whole app down.
-    val released = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+}
 
-    // Registered FIRST so it disposes LAST: every other effect's onDispose (stop/detach) runs
-    // while the native player is still alive, and only then do we release it exactly once.
-    DisposableEffect(Unit) {
-        onDispose {
-            if (released.compareAndSet(false, true)) {
-                runCatching { mediaPlayer.setEventListener(null) }
-                runCatching { mediaPlayer.stop() }
-                runCatching { mediaPlayer.detachViews() }
-                runCatching { mediaPlayer.media = null }
-                runCatching { mediaPlayer.release() }
-                runCatching { libVlc.release() }
-            }
-        }
-    }
-
-    DisposableEffect(videoTexture, request.uri, retryNonce) {
-        val attachedTexture = videoTexture ?: return@DisposableEffect onDispose { }
-        if (released.get()) return@DisposableEffect onDispose { }
-        var activeSession = true
-        onBuffering(true)
-        // Guard against IllegalStateException("Can't set view when already attached") on some
-        // devices (notably the x86 Android TV emulator): the AWindow keeps its previous
-        // surface state across recompositions, so we must detach and clear the view before
-        // attaching the new texture. Wrap in runCatching so a transient surface mismatch
-        // surfaces as a recoverable error instead of crashing the whole app.
-        val vlcOut = mediaPlayer.vlcVout
-        val attachOutcome = runCatching {
-            runCatching { vlcOut.detachViews() }
-            runCatching { mediaPlayer.detachViews() }
-            vlcOut.setVideoView(attachedTexture)
-            vlcOut.attachViews()
-        }
-        if (attachOutcome.isFailure) {
-            onError(livePlaybackFailureMessage())
-            return@DisposableEffect onDispose {
-                runCatching { mediaPlayer.detachViews() }
-            }
-        }
-        val media = Media(libVlc, Uri.parse(request.uri)).apply {
-            setHWDecoderEnabled(true, false)
-            addOption(":network-caching=$LIBVLC_LIVE_CACHE_MS")
-            addOption(":live-caching=$LIBVLC_LIVE_CACHE_MS")
-            addOption(":file-caching=$LIBVLC_FILE_CACHE_MS")
-            addOption(":http-reconnect")
-            addOption(":http-continuous")
-            addOption(":avcodec-fast")
-            addOption(":http-user-agent=${request.headers["User-Agent"] ?: APP_USER_AGENT}")
-            request.headers["Referer"]?.let { addOption(":http-referrer=$it") }
-            request.headers["Cookie"]?.let { addOption(":http-cookie=$it") }
-            request.headers["Origin"]?.let { addOption(":http-header=Origin: $it") }
-            request.headers["Authorization"]?.let { addOption(":http-header=Authorization: $it") }
-            addOption(":meta-title=$title")
-        }
-        mediaPlayer.media = media
-        media.release()
-        mediaPlayer.setEventListener { event ->
-            if (!activeSession) return@setEventListener
-            when (event.type) {
-                MediaPlayer.Event.Buffering -> uiScope.launchMainIfActive({ activeSession }) { onBuffering(event.buffering < 100f) }
-                MediaPlayer.Event.Playing -> uiScope.launchMainIfActive({ activeSession }) { onPlaying() }
-                MediaPlayer.Event.Vout -> if (event.voutCount > 0) {
-                    uiScope.launchMainIfActive({ activeSession }) { onVideoOutput() }
-                }
-                MediaPlayer.Event.Paused, MediaPlayer.Event.Stopped -> uiScope.launchMainIfActive({ activeSession }) { onPaused() }
-                MediaPlayer.Event.EndReached -> {
-                    uiScope.launchMainIfActive({ activeSession }) {
-                        onBuffering(true)
-                        onError(livePlaybackFailureMessage())
-                    }
-                }
-                MediaPlayer.Event.EncounteredError -> {
-                    uiScope.launchMainIfActive({ activeSession }) {
-                        onBuffering(true)
-                        onError(livePlaybackFailureMessage())
-                    }
-                }
-            }
-        }
-        mediaPlayer.play()
-
-        onDispose {
-            activeSession = false
-            if (!released.get()) {
-                runCatching { mediaPlayer.setEventListener(null) }
-                runCatching { mediaPlayer.stop() }
-                runCatching { mediaPlayer.detachViews() }
-                runCatching { mediaPlayer.media = null }
-            }
-        }
-    }
-
-    DisposableEffect(lifecycleOwner, mediaPlayer) {
-        var resumeOnStart = false
+/**
+ * Media3 lifecycle per the Media3 guidance for API 24+: keep playing through pause-only
+ * interruptions (Google TV side panel, dialogs), stop on ON_STOP and resume on ON_START only if
+ * playback was wanted. Deciding in ON_STOP (not after an ON_PAUSE pause) is what makes Home ->
+ * back resume instead of leaving VOD stuck in IDLE.
+ */
+@Composable
+private fun Media3LifecycleBinding(
+    exoPlayer: ExoPlayer?,
+    isLive: Boolean,
+    onSaveProgress: (positionMs: Long, durationMs: Long) -> Unit,
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentIsLive by rememberUpdatedState(isLive)
+    val currentOnSaveProgress by rememberUpdatedState(onSaveProgress)
+    DisposableEffect(lifecycleOwner, exoPlayer) {
+        if (exoPlayer == null) return@DisposableEffect onDispose { }
+        // A player set up while the app was in the background was not loaded (see
+        // Media3LoadEffect): the first ON_START does it.
+        var resumeOnStart = !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         val observer = LifecycleEventObserver { _, event ->
-            if (released.get()) return@LifecycleEventObserver
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                    runCatching { mediaPlayer.pause() }
-                    onPaused()
-                }
                 Lifecycle.Event.ON_STOP -> {
-                    resumeOnStart = runCatching { mediaPlayer.isPlaying }.getOrDefault(false)
-                    runCatching { mediaPlayer.stop() }
-                    onPaused()
+                    resumeOnStart = exoPlayer.playWhenReady && exoPlayer.playerError == null && exoPlayer.mediaItemCount > 0
+                    if (!currentIsLive && exoPlayer.duration > 0) {
+                        currentOnSaveProgress(exoPlayer.currentPosition.coerceAtLeast(0), exoPlayer.duration)
+                    }
+                    exoPlayer.stop()
                 }
                 Lifecycle.Event.ON_START -> {
-                    if (resumeOnStart) runCatching { mediaPlayer.play() }
+                    if (resumeOnStart && exoPlayer.playbackState == Player.STATE_IDLE && exoPlayer.playerError == null &&
+                        exoPlayer.playWhenReady && exoPlayer.mediaItemCount > 0
+                    ) {
+                        if (currentIsLive) exoPlayer.seekToDefaultPosition()
+                        exoPlayer.playWhenReady = true
+                        exoPlayer.prepare()
+                    }
                     resumeOnStart = false
                 }
                 else -> Unit
@@ -2653,706 +2081,107 @@ private fun LibVlcPlayerView(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-
-    LaunchedEffect(playPauseNonce) {
-        if (playPauseNonce == 0) return@LaunchedEffect
-        if (released.get()) return@LaunchedEffect
-        runCatching {
-            if (mediaPlayer.isPlaying) mediaPlayer.pause() else mediaPlayer.play()
-        }
-    }
-
-    // Apply a user-imported external subtitle to the live LibVLC player (no rebuild). Guarded so a
-    // failure is a silent no-op, never a native crash during teardown.
-    LaunchedEffect(externalSubtitleNonce) {
-        if (externalSubtitleNonce == 0 || released.get()) return@LaunchedEffect
-        val path = externalSubtitlePath ?: return@LaunchedEffect
-        runCatching {
-            mediaPlayer.addSlave(
-                org.videolan.libvlc.interfaces.IMedia.Slave.Type.Subtitle,
-                android.net.Uri.parse(path),
-                true,
-            )
-        }
-    }
-
-    AndroidView(
-        factory = { viewContext ->
-            TextureView(viewContext).apply {
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-                minimumWidth = 1
-                minimumHeight = 1
-                keepScreenOn = true
-                isOpaque = true
-                post { videoTexture = this }
-            }
-        },
-        update = { layout ->
-            if (layout.layoutParams?.width != ViewGroup.LayoutParams.MATCH_PARENT ||
-                layout.layoutParams?.height != ViewGroup.LayoutParams.MATCH_PARENT
-            ) {
-                layout.layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-            }
-            if (layout.width > 0 && layout.height > 0) {
-                runCatching { mediaPlayer.vlcVout.setWindowSize(layout.width, layout.height) }
-            }
-            when (resizeMode) {
-                AspectRatioFrameLayout.RESIZE_MODE_FILL -> {
-                    mediaPlayer.aspectRatio = if (layout.width > 0 && layout.height > 0) "${layout.width}:${layout.height}" else null
-                    mediaPlayer.scale = 0f
-                }
-                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> {
-                    mediaPlayer.aspectRatio = null
-                    mediaPlayer.scale = 1.18f
-                }
-                else -> {
-                    mediaPlayer.aspectRatio = null
-                    mediaPlayer.scale = 0f
-                }
-            }
-            layout.keepScreenOn = true
-            layout.requestLayout()
-        },
-        modifier = modifier,
-    )
-}
-
-private fun launchCastFallback(context: Context, streamUrl: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(streamUrl)).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        putExtra("android.intent.extra.TITLE", "Cast or open stream")
-    }
-    runCatching {
-        context.startActivity(Intent.createChooser(intent, "Cast to TV"))
-    }.recoverCatching {
-        context.startActivity(intent)
-    }
-}
-
-private fun canLaunchCast(context: Context, streamUrl: String): Boolean {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(streamUrl))
-    val flags = if (Build.VERSION.SDK_INT >= 23) PackageManager.MATCH_DEFAULT_ONLY else 0
-    return context.packageManager.queryIntentActivities(intent, flags).isNotEmpty()
-}
-
-private fun CoroutineScope.launchMainIfActive(isActiveSession: () -> Boolean, block: () -> Unit) {
-    if (!isActiveSession()) return
-    launch {
-        withContext(Dispatchers.Main.immediate) {
-            if (isActiveSession()) block()
-        }
-    }
-}
-
-private fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVideoHeight: Int = 2160) {
-    val defaultSelectorBuilder = (player.trackSelectionParameters as? DefaultTrackSelector.Parameters)
-        ?.buildUpon()
-        ?.setExceedVideoConstraintsIfNecessary(true)
-        ?.setExceedAudioConstraintsIfNecessary(true)
-        ?.setExceedRendererCapabilitiesIfNecessary(true)
-    val builder = defaultSelectorBuilder ?: player.trackSelectionParameters.buildUpon()
-    val maxWidth = when {
-        maxVideoHeight <= 720 -> 1280
-        maxVideoHeight <= 1080 -> 1920
-        maxVideoHeight <= 2160 -> 3840
-        else -> 7680
-    }
-    val liveCapHeight = liveSafeMaxVideoHeight(maxVideoHeight)
-    val liveCapWidth = when {
-        liveCapHeight <= 720 -> 1280
-        liveCapHeight <= 1080 -> 1920
-        liveCapHeight <= 2160 -> 3840
-        else -> 7680
-    }
-    when (mode) {
-        LiveQualityMode.AUTO -> builder
-            .setForceHighestSupportedBitrate(false)
-            .setMaxVideoSize(liveCapWidth, liveCapHeight)
-            .setMaxVideoBitrate(liveSafeMaxBitrate(liveCapHeight))
-        LiveQualityMode.BEST -> {
-            val bestHeight = if (Build.VERSION.SDK_INT < 26) maxVideoHeight.coerceAtMost(1080) else maxOf(maxVideoHeight, 2160).coerceAtMost(2160)
-            val bestWidth = if (bestHeight <= 1080) 1920 else 3840
-            builder
-                .setForceHighestSupportedBitrate(false)
-                .setMaxVideoSize(bestWidth, bestHeight)
-                .setMaxVideoBitrate(liveSafeMaxBitrate(bestHeight))
-        }
-        LiveQualityMode.ULTRA -> {
-            val ultraHeight = liveUltraMaxVideoHeight(maxVideoHeight)
-            val ultraWidth = when {
-                ultraHeight <= 2160 -> 3840
-                else -> 7680
-            }
-            builder
-                .setForceHighestSupportedBitrate(false)
-                .setMaxVideoSize(ultraWidth, ultraHeight)
-                .setMaxVideoBitrate(liveSafeMaxBitrate(ultraHeight))
-        }
-        LiveQualityMode.STABLE -> builder
-            .setForceHighestSupportedBitrate(false)
-            .setMaxVideoSize(maxWidth.coerceAtMost(1280), maxVideoHeight.coerceAtMost(720))
-            .setMaxVideoBitrate(2_500_000)
-    }
-    player.trackSelectionParameters = builder.build()
-}
-
-private fun playbackSignal(format: Format?, fallback: String = ""): String {
-    if (format == null) return fallback
-    val quality = when {
-        format.width >= 7680 || format.height >= 4320 -> "8K"
-        format.width >= 3840 || format.height >= 2160 -> "4K"
-        format.width >= 1920 || format.height >= 1080 -> "FHD"
-        format.width >= 1280 || format.height >= 720 -> "HD"
-        format.width > 0 || format.height > 0 -> "SD"
-        else -> ""
-    }
-    val hdr = if (format.colorInfo != null) "HDR" else ""
-    val codec = format.sampleMimeType?.substringAfter("video/")?.uppercase(Locale.US).orEmpty()
-    return listOf(quality, hdr, codec, fallback).filter { it.isNotBlank() }.joinToString(" | ")
-}
-
-private fun liveSafeMaxVideoHeight(policyHeight: Int): Int = when {
-    Build.VERSION.SDK_INT < 26 -> policyHeight.coerceAtMost(720)
-    policyHeight <= 720 -> 720
-    policyHeight <= 1080 -> 1080
-    policyHeight <= 2160 -> 2160
-    else -> 4320
-}
-
-internal fun liveSafeMaxBitrate(videoHeight: Int): Int = when {
-    videoHeight <= 720 -> 6_000_000
-    videoHeight <= 1080 -> 12_000_000
-    videoHeight <= 2160 -> 50_000_000
-    else -> 120_000_000
-}
-
-internal fun livePlaybackProfile(
-    isPerformanceMode: Boolean,
-    policyLiveBufferMs: Int,
-    maxVideoHeight: Int,
-    sdkInt: Int = Build.VERSION.SDK_INT,
-): LivePlaybackProfile {
-    val legacyOrLowPower = isPerformanceMode || sdkInt < 26
-    return when {
-        legacyOrLowPower -> LivePlaybackProfile(
-            minBufferMs = policyLiveBufferMs.coerceIn(3_500, 6_000),
-            maxBufferMs = 18_000,
-            bufferForPlaybackMs = 500,
-            bufferForPlaybackAfterRebufferMs = 1_200,
-            targetOffsetMs = 5_500L,
-            minOffsetMs = 3_000L,
-            maxOffsetMs = 16_000L,
-            minPlaybackSpeed = 0.96f,
-            maxPlaybackSpeed = 1.06f,
-        )
-        maxVideoHeight >= 2160 -> LivePlaybackProfile(
-            minBufferMs = policyLiveBufferMs.coerceIn(7_000, 10_000),
-            maxBufferMs = 45_000,
-            bufferForPlaybackMs = 900,
-            bufferForPlaybackAfterRebufferMs = 2_400,
-            targetOffsetMs = 8_500L,
-            minOffsetMs = 5_000L,
-            maxOffsetMs = 25_000L,
-            minPlaybackSpeed = 0.97f,
-            maxPlaybackSpeed = 1.04f,
-        )
-        else -> LivePlaybackProfile(
-            minBufferMs = policyLiveBufferMs.coerceIn(5_000, 8_000),
-            maxBufferMs = 30_000,
-            bufferForPlaybackMs = 650,
-            bufferForPlaybackAfterRebufferMs = 1_800,
-            targetOffsetMs = 7_000L,
-            minOffsetMs = 4_000L,
-            maxOffsetMs = 20_000L,
-            minPlaybackSpeed = 0.97f,
-            maxPlaybackSpeed = 1.05f,
-        )
-    }
-}
-
-private fun liveUltraMaxVideoHeight(policyHeight: Int): Int = when {
-    Build.VERSION.SDK_INT < 26 -> 720
-    Build.VERSION.SDK_INT < 29 -> maxOf(policyHeight, 2160).coerceAtMost(2160)
-    else -> maxOf(policyHeight, 4320).coerceAtMost(4320)
-}
-
-private fun isLibVlcSafeOnThisDevice(): Boolean {
-    return Build.SUPPORTED_ABIS.none { abi ->
-        abi.equals("x86", ignoreCase = true) || abi.equals("x86_64", ignoreCase = true)
-    }
-}
-
-internal fun shouldUseTextureViewForMedia3(
-    sdkInt: Int,
-    isPerformanceMode: Boolean,
-    supportedAbis: Array<String>,
-    surfaceAttempt: Int = 0,
-): Boolean {
-    val isX86 = supportedAbis.any { abi ->
-        abi.equals("x86", ignoreCase = true) || abi.equals("x86_64", ignoreCase = true)
-    }
-    val preferredTextureView = sdkInt < 26 || isX86
-    return if (surfaceAttempt % 2 == 0) preferredTextureView else !preferredTextureView
-}
-
-internal fun shouldForceAsyncCodecQueueing(sdkInt: Int): Boolean =
-    sdkInt in 23..30
-
-internal fun liveTsExtractorFlags(): Int =
-    DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES or
-        DefaultTsPayloadReaderFactory.FLAG_DETECT_ACCESS_UNITS
-
-internal fun shouldAutoDowngradeLiveQuality(
-    isPerformanceMode: Boolean,
-    itemQualityRank: Int,
-    maxVideoHeight: Int,
-): Boolean =
-    isPerformanceMode && itemQualityRank > liveMaxAllowedRank(maxVideoHeight)
-
-private fun isLibVlcSafeForRequest(request: StreamRequest): Boolean {
-    // Hard-disable LibVLC on x86/x86_64 (emulator + niche Atom boxes): the AWindow surface
-    // attach path is fragile there and produces "Can't set view when already attached" on
-    // recomposition, crashing the app. Real TV hardware is arm/arm64, so this only affects
-    // QA emulators — Media3 handles HLS/TS perfectly on x86 anyway.
-    if (!isLibVlcSafeOnThisDevice()) return false
-    return isVlcFriendlyContainer(request)
-}
-
-private fun shouldAutoUseLibVlc(request: StreamRequest): Boolean =
-    isLibVlcSafeForRequest(request) && !request.uri.startsWith("https://", ignoreCase = true)
-
-internal fun isVlcFriendlyContainer(request: StreamRequest): Boolean {
-    val lowerUri = request.uri.lowercase(Locale.US).substringBefore('?')
-    return request.uri.startsWith("rtsp://", ignoreCase = true) ||
-        request.uri.startsWith("rtmp://", ignoreCase = true) ||
-        request.mimeType in setOf(
-            MimeTypes.APPLICATION_M3U8,
-            MimeTypes.APPLICATION_MPD,
-            MimeTypes.APPLICATION_SS,
-            MimeTypes.VIDEO_MP2T,
-            MimeTypes.VIDEO_MP4,
-            MimeTypes.VIDEO_QUICK_TIME,
-            MimeTypes.VIDEO_MATROSKA,
-            MimeTypes.VIDEO_WEBM,
-            MimeTypes.VIDEO_FLV,
-            MimeTypes.VIDEO_OGG,
-            MimeTypes.VIDEO_AVI,
-            MimeTypes.VIDEO_MPEG,
-            MimeTypes.VIDEO_PS,
-        ) ||
-        request.uri.hasLiveTsHint() ||
-        lowerUri.endsWith(".avi") ||
-        lowerUri.endsWith(".mov") ||
-        lowerUri.endsWith(".m4v") ||
-        lowerUri.endsWith(".3gp") ||
-        lowerUri.endsWith(".3g2") ||
-        lowerUri.endsWith(".ogv") ||
-        lowerUri.endsWith(".ogg") ||
-        lowerUri.endsWith(".mpg") ||
-        lowerUri.endsWith(".mpeg") ||
-        lowerUri.endsWith(".vob") ||
-        lowerUri.endsWith(".asf") ||
-        lowerUri.endsWith(".wmv") ||
-        lowerUri.endsWith(".divx")
-}
-
-internal fun shouldStartWithLibVlc(request: StreamRequest): Boolean {
-    val lowerUri = request.uri.lowercase(Locale.US).substringBefore('?')
-    return request.uri.startsWith("rtmp://", ignoreCase = true) ||
-        request.mimeType in setOf(
-            MimeTypes.VIDEO_FLV,
-            MimeTypes.VIDEO_AVI,
-            MimeTypes.VIDEO_MPEG,
-            MimeTypes.VIDEO_PS,
-            MimeTypes.VIDEO_OGG,
-        ) ||
-        lowerUri.endsWith(".avi") ||
-        lowerUri.endsWith(".flv") ||
-        lowerUri.endsWith(".f4v") ||
-        lowerUri.endsWith(".mpg") ||
-        lowerUri.endsWith(".mpeg") ||
-        lowerUri.endsWith(".vob") ||
-        lowerUri.endsWith(".asf") ||
-        lowerUri.endsWith(".wmv") ||
-        lowerUri.endsWith(".divx")
-}
-
-private fun AppMediaItem.samePlayable(other: AppMediaItem): Boolean =
-    id == other.id && type == other.type && serverId == other.serverId
-
-internal fun List<AppMediaItem>.bestCompatibleLiveAlternative(
-    current: AppMediaItem,
-    maxVideoHeight: Int,
-    excludedKeys: Set<String> = emptySet(),
-): AppMediaItem? {
-    if (current.type != ContentType.LIVE) return null
-    val allowedRank = liveMaxAllowedRank(maxVideoHeight)
-    val currentBase = current.liveBaseTitle()
-    return asSequence()
-        .filter { candidate ->
-            candidate.type == ContentType.LIVE &&
-                !candidate.samePlayable(current) &&
-                candidate.liveRecoveryKey() !in excludedKeys &&
-                candidate.serverId == current.serverId &&
-                candidate.categoryId == current.categoryId &&
-                candidate.liveBaseTitle() == currentBase &&
-                candidate.liveQualityRank() <= allowedRank
-        }
-        .sortedWith(
-            compareBy<AppMediaItem> { it.liveQualityRank() }
-                .thenBy { it.serverOrder }
-                .thenBy { it.title.lowercase(Locale.US) },
-        )
-        .firstOrNull()
-        ?: asSequence()
-            .filter { candidate ->
-                candidate.type == ContentType.LIVE &&
-                    !candidate.samePlayable(current) &&
-                    candidate.liveRecoveryKey() !in excludedKeys &&
-                    candidate.serverId == current.serverId &&
-                    candidate.liveBaseTitle() == currentBase &&
-                    candidate.liveQualityRank() <= allowedRank
-            }
-            .sortedWith(
-                compareBy<AppMediaItem> { it.liveQualityRank() }
-                    .thenBy { it.serverOrder }
-                    .thenBy { it.title.lowercase(Locale.US) },
-            )
-            .firstOrNull()
-        ?: asSequence()
-            .filter { candidate ->
-                candidate.type == ContentType.LIVE &&
-                    !candidate.samePlayable(current) &&
-                    candidate.liveRecoveryKey() !in excludedKeys &&
-                    candidate.serverId == current.serverId &&
-                    candidate.categoryId == current.categoryId &&
-                    candidate.liveQualityRank() <= allowedRank
-            }
-            .sortedWith(
-                compareBy<AppMediaItem> { it.liveQualityRank() }
-                    .thenBy { if (it.serverOrder > current.serverOrder) 0 else 1 }
-                    .thenBy { kotlin.math.abs(it.serverOrder - current.serverOrder) }
-                    .thenBy { it.title.lowercase(Locale.US) },
-            )
-            .firstOrNull()
-        ?: asSequence()
-            .filter { candidate ->
-                candidate.type == ContentType.LIVE &&
-                    !candidate.samePlayable(current) &&
-                    candidate.liveRecoveryKey() !in excludedKeys &&
-                    candidate.serverId == current.serverId &&
-                    candidate.liveQualityRank() <= allowedRank
-            }
-            .sortedWith(
-                compareBy<AppMediaItem> { it.liveQualityRank() }
-                    .thenBy { if (it.serverOrder > current.serverOrder) 0 else 1 }
-                    .thenBy { kotlin.math.abs(it.serverOrder - current.serverOrder) }
-                    .thenBy { it.title.lowercase(Locale.US) },
-            )
-            .firstOrNull()
-}
-
-private fun liveMaxAllowedRank(maxVideoHeight: Int): Int = when {
-    maxVideoHeight < 720 -> 1
-    maxVideoHeight < 1080 -> 2
-    maxVideoHeight < 2160 -> 3
-    else -> 4
-}
-
-internal fun AppMediaItem.liveQualityRank(): Int =
-    liveQualityRankFromText("$title $containerExtension")
-        ?: liveQualityRankFromText(categoryName)
-        ?: 2
-
-internal fun AppMediaItem.liveBaseTitle(): String =
-    title.uppercase(Locale.US)
-        .replace(Regex("\\b(8K|4K|UHD|FHD|FULL\\s*HD|HD|SD|2160P?|1080P?|720P?|576P?|480P?|360P?)\\b"), " ")
-        .replace(Regex("\\b(EVENT|BACKUP|ALT|VIP|HEVC|H265|H264|50FPS|60FPS)\\b"), " ")
-        .replace(Regex("[^A-Z0-9]+"), " ")
-        .trim()
-
-private fun AppMediaItem.liveRecoveryKey(): String =
-    "${serverId}:${id}:${streamUrl.substringBefore('?')}"
-
-private fun liveQualityRankFromText(raw: String): Int? {
-    val value = raw.uppercase(Locale.US)
-    return when {
-        "8K" in value || "4320" in value -> 5
-        "4K" in value || "UHD" in value || "2160" in value -> 4
-        "FHD" in value || "FULL HD" in value || "1080" in value -> 3
-        Regex("""\bHD\b""").containsMatchIn(value) || "720" in value -> 2
-        Regex("""\bSD\b""").containsMatchIn(value) || "480" in value || "360" in value -> 1
-        else -> null
-    }
-}
-
-private fun Int.floorMod(size: Int): Int = ((this % size) + size) % size
-
-internal fun liveZapTargetIndex(currentIndex: Int, direction: Int, size: Int): Int? {
-    if (size <= 0 || currentIndex !in 0 until size || direction == 0) return null
-    return (currentIndex + direction).floorMod(size)
-}
-
-private fun Int.playbackStateLabel(): String = when (this) {
-    Player.STATE_IDLE -> "IDLE"
-    Player.STATE_BUFFERING -> "BUFFERING"
-    Player.STATE_READY -> "READY"
-    Player.STATE_ENDED -> "ENDED"
-    else -> toString()
-}
-
-@Composable
-private fun OverlayCard(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    GlassPanel(modifier = modifier, radius = 28.dp) {
-        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp), content = content)
-    }
-}
-
-@OptIn(UnstableApi::class)
-private fun buildPlayer(
-    context: Context,
-    request: StreamRequest,
-    item: AppMediaItem,
-    isLive: Boolean,
-    onIsPlayingChanged: (Boolean) -> Unit,
-    onPlaybackStateChanged: (Int) -> Unit,
-    onRenderedFirstFrame: () -> Unit,
-    onPlayerError: (PlaybackException) -> Unit,
-    onDurationChanged: (Long) -> Unit,
-    startPlayback: Boolean = true,
-    performancePolicy: PerformancePolicy,
-): ExoPlayer {
-    val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
-    // Receiver-style live: quick startup with enough buffer for real-world IPTV jitter.
-    val liveProfile = livePlaybackProfile(
-        isPerformanceMode = performancePolicy.isPerformance,
-        policyLiveBufferMs = performancePolicy.liveBufferMs,
-        maxVideoHeight = performancePolicy.maxVideoHeight,
-    )
-    val liveLoadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(
-            liveProfile.minBufferMs,
-            liveProfile.maxBufferMs,
-            liveProfile.bufferForPlaybackMs,
-            liveProfile.bufferForPlaybackAfterRebufferMs,
-        )
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
-    // VOD: generous buffer for smooth 4K/8K playback
-    val vodLoadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(16_000, 60_000, 1_500, 4_000)
-        .setPrioritizeTimeOverSizeThresholds(true)
-        .build()
-    val requestHeaders = request.headers.filterKeys { !it.equals("User-Agent", ignoreCase = true) }
-    val httpFactory = OkHttpDataSource.Factory(NetworkModule.playbackOkHttp)
-        .setUserAgent(request.headers["User-Agent"] ?: APP_USER_AGENT)
-        .setDefaultRequestProperties(requestHeaders)
-    val tsExtractorFlags = liveTsExtractorFlags()
-    val extractorsFactory = DefaultExtractorsFactory()
-        .setTsExtractorFlags(tsExtractorFlags)
-    val mediaSourceFactory = if (isRtsp) {
-        DefaultMediaSourceFactory(context, extractorsFactory)
-    } else {
-        DefaultMediaSourceFactory(httpFactory, extractorsFactory)
-    }
-    if (isLive) {
-        mediaSourceFactory.setLiveTargetOffsetMs(liveProfile.targetOffsetMs)
-        mediaSourceFactory.setLiveMinOffsetMs(liveProfile.minOffsetMs)
-        mediaSourceFactory.setLiveMaxOffsetMs(liveProfile.maxOffsetMs)
-        mediaSourceFactory.setLiveMinSpeed(liveProfile.minPlaybackSpeed)
-        mediaSourceFactory.setLiveMaxSpeed(liveProfile.maxPlaybackSpeed)
-    }
-    val liveVideoHeight = if (isLive) liveSafeMaxVideoHeight(performancePolicy.maxVideoHeight) else performancePolicy.maxVideoHeight
-    val liveVideoWidth = when {
-        liveVideoHeight <= 720 -> 1280
-        liveVideoHeight <= 1080 -> 1920
-        liveVideoHeight <= 2160 -> 3840
-        else -> 7680
-    }
-    val trackSelector = DefaultTrackSelector(context).apply {
-        val builder = buildUponParameters()
-            .setForceHighestSupportedBitrate(false)
-            .setAllowVideoNonSeamlessAdaptiveness(true)
-            .setAllowVideoMixedMimeTypeAdaptiveness(true)
-            .setAllowVideoMixedDecoderSupportAdaptiveness(true)
-            .setAllowAudioMixedMimeTypeAdaptiveness(true)
-            .setAllowAudioMixedSampleRateAdaptiveness(true)
-            .setAllowAudioMixedChannelCountAdaptiveness(true)
-            .setAllowAudioMixedDecoderSupportAdaptiveness(true)
-            .setMaxVideoSize(liveVideoWidth, liveVideoHeight)
-            .setExceedVideoConstraintsIfNecessary(true)
-            .setExceedAudioConstraintsIfNecessary(true)
-            .setExceedRendererCapabilitiesIfNecessary(true)
-        if (performancePolicy.isPerformance || isLive) {
-            builder
-                .setPreferredVideoMimeTypes(
-                    MimeTypes.VIDEO_H264,
-                    MimeTypes.VIDEO_H265,
-                    MimeTypes.VIDEO_AV1,
-                    MimeTypes.VIDEO_VP9,
-                    MimeTypes.VIDEO_MP4V,
-                )
-                .setMaxVideoBitrate(if (isLive) liveSafeMaxBitrate(liveVideoHeight) else 8_000_000)
-        }
-        parameters = builder.build()
-    }
-    val errorHandlingPolicy = object : DefaultLoadErrorHandlingPolicy() {
-        override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-            val attempt = loadErrorInfo.errorCount.coerceAtLeast(1)
-            return if (isLive) (attempt * 1_000L).coerceAtMost(4_000L) else (attempt * 1_500L).coerceAtMost(6_000L)
-        }
-        // Live: 6 segment retries (~18s worst case) is enough to ride out an encoder
-        // restart or brief CDN gap, but surfaces a truly dead stream fast so the app-level
-        // recovery (alternative quality / LibVLC fallback) can take over instead of the
-        // viewer staring at a frozen channel for nearly a minute (old value was 12 ≈ 55s).
-        override fun getMinimumLoadableRetryCount(dataType: Int): Int = if (isLive) 6 else 5
-    }
-    val renderersFactory = DefaultRenderersFactory(context)
-        .setEnableDecoderFallback(true)
-        .setEnableAudioOutputPlaybackParameters(true)
-        .setAllowedVideoJoiningTimeMs(if (isLive) 7_000L else 5_000L)
-    if (shouldForceAsyncCodecQueueing(Build.VERSION.SDK_INT)) {
-        renderersFactory.forceEnableMediaCodecAsynchronousQueueing()
-    }
-    return ExoPlayer.Builder(context, renderersFactory)
-        .setTrackSelector(trackSelector)
-        .setLoadControl(if (isLive) liveLoadControl else vodLoadControl)
-        .setLivePlaybackSpeedControl(
-            DefaultLivePlaybackSpeedControl.Builder()
-                .setFallbackMinPlaybackSpeed(liveProfile.minPlaybackSpeed)
-                .setFallbackMaxPlaybackSpeed(liveProfile.maxPlaybackSpeed)
-                .setTargetLiveOffsetIncrementOnRebufferMs((liveProfile.maxOffsetMs - liveProfile.targetOffsetMs).coerceAtLeast(3_000L))
-                .build(),
-        )
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .build(),
-            true,
-        )
-        .setMediaSourceFactory(mediaSourceFactory.setLoadErrorHandlingPolicy(errorHandlingPolicy))
-        .setSeekForwardIncrementMs(10_000)
-        .setSeekBackIncrementMs(10_000)
-        .build()
-        .apply {
-            // Keep CPU + Wi-Fi awake while playing so the TV/box does not idle to sleep.
-            setWakeMode(C.WAKE_MODE_NETWORK)
-            setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT)
-            addListener(object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) = onIsPlayingChanged(isPlaying)
-                override fun onRenderedFirstFrame() = onRenderedFirstFrame()
-                override fun onPlaybackStateChanged(playbackState: Int) {
-                    onPlaybackStateChanged(playbackState)
-                    if (this@apply.duration > 0) onDurationChanged(this@apply.duration)
-                    PlaybackTelemetryStore.record(
-                        PlaybackTelemetrySnapshot(
-                            mediaId = item.id,
-                            title = item.title,
-                            isLive = isLive,
-                            collectedAt = System.currentTimeMillis(),
-                            statsSummary = "state=${playbackState.playbackStateLabel()}; mime=${request.mimeType.orEmpty()}; headers=${request.headers.keys.joinToString()}",
-                        ),
-                    )
-                }
-                override fun onPlayerError(error: PlaybackException) {
-                    if (isLive && error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
-                        this@apply.seekToDefaultPosition()
-                        this@apply.prepare()
-                        this@apply.play()
-                    } else {
-                        onPlayerError(error)
-                    }
-                }
-                override fun onEvents(player: Player, events: Player.Events) {
-                    if (events.contains(Player.EVENT_TIMELINE_CHANGED) || events.contains(Player.EVENT_TRACKS_CHANGED)) {
-                        onDurationChanged(player.duration.coerceAtLeast(1L))
-                    }
-                }
-            })
-            if (startPlayback) {
-                val mediaItem = buildPlayableMediaItem(request, item, isLive, liveProfile)
-                if (!isRtsp && request.mimeType == MimeTypes.APPLICATION_M3U8) {
-                    val hlsMediaSource = HlsMediaSource.Factory(httpFactory)
-                        .setAllowChunklessPreparation(true)
-                        .setExtractorFactory(DefaultHlsExtractorFactory(tsExtractorFlags, true))
-                        .setLoadErrorHandlingPolicy(errorHandlingPolicy)
-                        .createMediaSource(mediaItem)
-                    if (isLive) {
-                        setMediaSource(hlsMediaSource)
-                    } else {
-                        setMediaSource(hlsMediaSource, item.watchPositionMs.coerceAtLeast(0))
-                    }
-                } else {
-                    setMediaItem(mediaItem, if (isLive) C.TIME_UNSET else item.watchPositionMs.coerceAtLeast(0))
-                }
-                playWhenReady = true
-                prepare()
-            }
-        }
-}
-
-private fun buildPlayableMediaItem(
-    request: StreamRequest,
-    item: AppMediaItem,
-    isLive: Boolean,
-    liveProfile: LivePlaybackProfile,
-    externalSubtitle: MediaItem.SubtitleConfiguration? = null,
-): MediaItem {
-    val liveConfiguration = if (isLive) {
-        MediaItem.LiveConfiguration.Builder()
-            .setTargetOffsetMs(liveProfile.targetOffsetMs)
-            .setMinOffsetMs(liveProfile.minOffsetMs)
-            .setMaxOffsetMs(liveProfile.maxOffsetMs)
-            .setMinPlaybackSpeed(liveProfile.minPlaybackSpeed)
-            .setMaxPlaybackSpeed(liveProfile.maxPlaybackSpeed)
-            .build()
-    } else {
-        null
-    }
-    return MediaItem.Builder()
-        .setUri(request.uri)
-        .setMimeType(request.mimeType)
-        .setMediaId(item.id)
-        .setTag(item.title)
-        .apply {
-            if (liveConfiguration != null) setLiveConfiguration(liveConfiguration)
-            // A user-imported .srt/.vtt for a VOD with no built-in captions. DefaultMediaSourceFactory
-            // (the non-HLS VOD branch) merges it into the timeline as a selectable text track.
-            if (externalSubtitle != null) setSubtitleConfigurations(listOf(externalSubtitle))
-        }
-        .build()
 }
 
 /**
- * Self-contained subtitle-import helper. Lives in its OWN composable method (not inlined into the
- * enormous PlayerScreen composable, which would push that method past the API-23 ART verifier limit
- * and crash with VerifyError on old TV boxes). Returns a lambda that opens the system file picker;
- * on pick it copies the file to cache, notifies the caller, and — for Media3 VOD — re-applies the
- * current stream with the subtitle merged in and forces the text track on.
+ * Tells background library/EPG sync that someone is watching, so it yields to playback: active
+ * while the player is open and the app is in the foreground. Not keyed on the item, so zapping
+ * never flips it.
+ */
+@Composable
+private fun PlaybackActivityBinding() {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        // addObserver replays ON_START when the screen is already started.
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> PlaybackActivity.setActive(true)
+                Lifecycle.Event.ON_STOP -> PlaybackActivity.setActive(false)
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            PlaybackActivity.setActive(false)
+        }
+    }
+}
+
+/** Session-level timers that only flip visibility flags. */
+@Composable
+private fun PlayerSessionTimers(session: PlayerSessionState) {
+    LaunchedEffect(session.seekPillNonce) {
+        if (session.seekPillNonce == 0) return@LaunchedEffect
+        session.seekPillVisible = true
+        delay(900)
+        session.seekPillVisible = false
+    }
+    LaunchedEffect(session.seekPreviewNonce) {
+        if (session.seekPreviewNonce == 0) return@LaunchedEffect
+        session.seekPreviewVisible = true
+        delay(2_500)
+        session.seekPreviewVisible = false
+    }
+    LaunchedEffect(session.transientMessageNonce) {
+        if (session.transientMessage == null) return@LaunchedEffect
+        delay(2_400)
+        session.transientMessage = null
+    }
+    LaunchedEffect(session.recoveryNoticeNonce) {
+        if (session.recoveryNotice == null) return@LaunchedEffect
+        delay(6_000)
+        session.recoveryNotice = null
+    }
+}
+
+/** Tracks internet availability while a live channel is open, so reconnects wait for the network and resume when it returns. */
+@Composable
+private fun NetworkAvailabilityEffect(enabled: Boolean, onAvailabilityChanged: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val currentCallback by rememberUpdatedState(onAvailabilityChanged)
+    DisposableEffect(enabled, context) {
+        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        if (!enabled || manager == null) return@DisposableEffect onDispose { }
+        val mainHandler = Handler(Looper.getMainLooper())
+        var active = true
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                mainHandler.post { if (active) currentCallback(true) }
+            }
+
+            override fun onLost(network: Network) {
+                mainHandler.post { if (active) currentCallback(context.hasInternetConnection()) }
+            }
+        }
+        val request = NetworkRequest.Builder().addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build()
+        val registered = runCatching { manager.registerNetworkCallback(request, callback) }.isSuccess
+        onDispose {
+            active = false
+            if (registered) runCatching { manager.unregisterNetworkCallback(callback) }
+        }
+    }
+}
+
+/**
+ * Subtitle import lives in its OWN composable so the launcher, IO and Media3 re-apply do not grow
+ * the PlayerScreen method (API 23 ART rejects oversized methods with a VerifyError). Returns a
+ * lambda that opens the system file picker; on pick it copies the file to cache, notifies the
+ * caller and, for Media3 VOD, re-applies the stream with the subtitle merged in.
  */
 @Composable
 private fun rememberSubtitleImport(
-    exoPlayer: ExoPlayer,
+    engine: Media3Engine?,
     item: AppMediaItem,
     request: StreamRequest,
     isLive: Boolean,
-    useLibVlc: Boolean,
     performancePolicy: PerformancePolicy,
-    onImported: (android.net.Uri) -> Unit,
+    onImported: (Uri) -> Unit,
     onFail: () -> Unit,
     beforeLaunch: () -> Unit,
 ): () -> Unit {
     val context = LocalContext.current
+    val importedLabel = LocalStrings.current.player.importedSubtitle
     val scope = rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { picked ->
         val uri = picked ?: return@rememberLauncherForActivityResult
@@ -3362,28 +2191,21 @@ private fun rememberSubtitleImport(
                 onFail()
                 return@launch
             }
-            val fileUri = android.net.Uri.fromFile(cached)
+            val fileUri = Uri.fromFile(cached)
             onImported(fileUri)
-            if (!useLibVlc && !isLive) {
+            if (engine != null && !isLive) {
                 runCatching {
-                    val pos = exoPlayer.currentPosition.coerceAtLeast(0)
-                    exoPlayer.stop()
-                    exoPlayer.setMediaItem(
-                        buildPlayableMediaItem(
-                            request,
-                            item,
-                            isLive,
-                            livePlaybackProfile(
-                                isPerformanceMode = performancePolicy.isPerformance,
-                                policyLiveBufferMs = performancePolicy.liveBufferMs,
-                                maxVideoHeight = performancePolicy.maxVideoHeight,
-                            ),
-                            externalSubtitleConfiguration(fileUri),
-                        ),
-                        pos,
+                    val exoPlayer = engine.player
+                    engine.load(
+                        context = context,
+                        request = request,
+                        item = item,
+                        isLive = false,
+                        performancePolicy = performancePolicy,
+                        startPositionMs = exoPlayer.currentPosition.coerceAtLeast(0),
+                        externalSubtitle = externalSubtitleConfiguration(fileUri, importedLabel),
                     )
                     exoPlayer.prepare()
-                    exoPlayer.playWhenReady = true
                     exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                         .setPreferredTextLanguage("und")
                         .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
@@ -3395,423 +2217,113 @@ private fun rememberSubtitleImport(
     return {
         beforeLaunch()
         runCatching {
-            launcher.launch(
-                arrayOf(
-                    "application/x-subrip",
-                    "text/vtt",
-                    "application/ttml+xml",
-                    "text/plain",
-                    "application/octet-stream",
-                    "*/*",
-                ),
-            )
+            launcher.launch(arrayOf("application/x-subrip", "text/vtt", "application/ttml+xml", "text/plain", "application/octet-stream", "*/*"))
         }.onFailure { onFail() }
     }
 }
 
 /** Build a Media3 SubtitleConfiguration from an imported local subtitle file uri. */
-private fun externalSubtitleConfiguration(uri: android.net.Uri): MediaItem.SubtitleConfiguration {
+internal fun externalSubtitleConfiguration(uri: Uri, label: String): MediaItem.SubtitleConfiguration {
     val name = (uri.lastPathSegment ?: "").lowercase()
     val mime = when {
         name.endsWith(".vtt") -> MimeTypes.TEXT_VTT
         name.endsWith(".ttml") || name.endsWith(".dfxp") || name.endsWith(".xml") -> MimeTypes.APPLICATION_TTML
         name.endsWith(".ssa") || name.endsWith(".ass") -> MimeTypes.TEXT_SSA
-        else -> MimeTypes.APPLICATION_SUBRIP // .srt and unknown default
+        else -> MimeTypes.APPLICATION_SUBRIP
     }
     return MediaItem.SubtitleConfiguration.Builder(uri)
         .setMimeType(mime)
         .setLanguage("und")
-        .setLabel("Imported")
+        .setLabel(label)
         .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
         .build()
 }
 
 /** Copy a picked subtitle (content://) into cache and return a file:// path usable by both engines. */
-private fun copySubtitleToCache(context: android.content.Context, uri: android.net.Uri): java.io.File? = runCatching {
-    val seg = uri.lastPathSegment ?: "sub"
-    val ext = listOf(".srt", ".vtt", ".ass", ".ssa", ".ttml", ".dfxp", ".sub")
-        .firstOrNull { seg.lowercase().endsWith(it) } ?: ".srt"
-    val out = java.io.File(context.cacheDir, "imported-subtitle$ext")
+private fun copySubtitleToCache(context: Context, uri: Uri): java.io.File? = runCatching {
+    val segment = uri.lastPathSegment ?: "sub"
+    val extension = listOf(".srt", ".vtt", ".ass", ".ssa", ".ttml", ".dfxp", ".sub")
+        .firstOrNull { segment.lowercase().endsWith(it) } ?: ".srt"
+    val out = java.io.File(context.cacheDir, "imported-subtitle$extension")
     context.contentResolver.openInputStream(uri)?.use { input ->
         out.outputStream().use { input.copyTo(it) }
     } ?: return null
     out
 }.getOrNull()
 
-internal data class StreamRequest(
-    val uri: String,
-    val headers: Map<String, String>,
-    val mimeType: String?,
-)
-
-internal fun liveNoVideoWatchdogDelayMs(isPerformanceMode: Boolean, sdkInt: Int = Build.VERSION.SDK_INT): Long =
-    if (isPerformanceMode || sdkInt < 26) LIVE_NO_VIDEO_FAST_MS else LIVE_NO_VIDEO_DEFAULT_MS
-
-internal fun vodNoVideoWatchdogDelayMs(isPerformanceMode: Boolean, sdkInt: Int = Build.VERSION.SDK_INT): Long =
-    if (isPerformanceMode || sdkInt < 26) VOD_NO_VIDEO_FAST_MS else VOD_NO_VIDEO_DEFAULT_MS
-
-internal fun shouldTryVodStreamFallback(error: PlaybackException): Boolean =
-    shouldTryVodStreamFallback(error.errorCode, error.cause)
-
-internal fun shouldTryVodStreamFallback(errorCode: Int, cause: Throwable?): Boolean {
-    var current = cause
-    while (current != null) {
-        if (current is ParserException || current is UnrecognizedInputFormatException) return true
-        current = current.cause
-    }
-    return errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
-        errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
-        errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED
-}
-
-internal fun vodFallbackRequests(baseRequest: StreamRequest, item: AppMediaItem): List<StreamRequest> {
-    if (item.type != ContentType.MOVIE && item.type != ContentType.EPISODE) return emptyList()
-    if (!baseRequest.uri.isXtreamVodEndpoint()) return emptyList()
-    val currentExtension = baseRequest.uri.mediaPathExtension()
-    val candidates = buildList {
-        add(item.containerExtension)
-        add(currentExtension)
-        if (item.type == ContentType.EPISODE) {
-            addAll(listOf("mkv", "mp4", "avi", "ts", "m3u8", "webm", "mov"))
-        } else {
-            addAll(listOf("mp4", "mkv", "avi", "mov", "webm", "ts", "m3u8"))
-        }
-    }
-        .map { it.normalizePlayableExtension() }
-        .filter { it.isNotBlank() && it != currentExtension }
-        .distinct()
-
-    return candidates
-        .mapNotNull { extension -> baseRequest.withReplacedPathExtension(extension) }
-        .distinctBy { it.uri }
-}
-
-internal fun nextVodFallbackRequest(
-    baseRequest: StreamRequest,
-    currentRequest: StreamRequest,
-    item: AppMediaItem,
-    attemptedUris: Set<String>,
-): StreamRequest? {
-    val visited = attemptedUris + currentRequest.uri
-    return vodFallbackRequests(baseRequest, item)
-        .firstOrNull { candidate -> candidate.uri !in visited }
-}
-
-private suspend fun resolveLiveRedirectRequest(request: StreamRequest): StreamRequest = withContext(Dispatchers.IO) {
-    runCatching {
-        val probe = Request.Builder()
-            .url(request.uri)
-            .get()
-            .header("User-Agent", request.headers["User-Agent"] ?: APP_USER_AGENT)
-            .header("Accept", "*/*")
-            .header("Range", request.headers["Range"] ?: "bytes=0-1024")
-            .apply {
-                request.headers.forEach { (key, value) ->
-                    if (!key.equals("Range", ignoreCase = true) && !key.equals("User-Agent", ignoreCase = true)) {
-                        header(key, value)
-                    }
-                }
-            }
-            .build()
-        NetworkModule.playbackOkHttp
-            .newBuilder()
-            .readTimeout(4, TimeUnit.SECONDS)
-            .callTimeout(6, TimeUnit.SECONDS)
-            .build()
-            .newCall(probe)
-            .execute()
-            .use { response ->
-                redirectedStreamRequest(
-                    request = request,
-                    finalUri = response.request.url.toString(),
-                    contentType = response.header("Content-Type").orEmpty(),
-                )
-            }
-    }.getOrDefault(request)
-}
-
-internal fun redirectedStreamRequest(request: StreamRequest, finalUri: String, contentType: String): StreamRequest {
-    val normalizedType = contentType.substringBefore(';').trim().lowercase(Locale.US)
-    val redirectedMimeType = when {
-        normalizedType.contains("mpegurl") || normalizedType.contains("m3u8") -> MimeTypes.APPLICATION_M3U8
-        normalizedType.contains("dash+xml") || normalizedType.contains("mpd") -> MimeTypes.APPLICATION_MPD
-        normalizedType.contains("mp2t") || normalizedType.contains("mpegts") -> MimeTypes.VIDEO_MP2T
-        normalizedType.contains("mp4") -> MimeTypes.VIDEO_MP4
-        normalizedType.contains("matroska") -> MimeTypes.VIDEO_MATROSKA
-        normalizedType.contains("webm") -> MimeTypes.VIDEO_WEBM
-        normalizedType.contains("x-flv") || normalizedType.contains("flv") -> MimeTypes.VIDEO_FLV
-        normalizedType.contains("x-msvideo") || normalizedType.contains("avi") -> MimeTypes.VIDEO_AVI
-        normalizedType.contains("mpeg") -> MimeTypes.VIDEO_MPEG
-        else -> inferMimeType(finalUri)
-    }
-    val resolvedUri = when (redirectedMimeType) {
-        MimeTypes.APPLICATION_M3U8,
-        MimeTypes.APPLICATION_MPD,
-        MimeTypes.APPLICATION_SS -> finalUri.ifBlank { request.uri }
-        else -> request.uri
-    }
-    return request.copy(
-        uri = resolvedUri,
-        mimeType = redirectedMimeType ?: request.mimeType,
-    )
-}
-
-private data class ExternalLaunchResult(
-    val success: Boolean,
-    val message: String,
-)
-
-internal fun parseStreamRequest(rawUrl: String): StreamRequest {
-    val parts = rawUrl.split("|", limit = 2)
-    val cleanUrl = parts.first().trim()
-    val headers = LinkedHashMap<String, String>()
-    if (parts.size > 1) {
-        parts[1]
-            .split("&")
-            .mapNotNull { token ->
-                val pair = token.split("=", limit = 2)
-                if (pair.size == 2) {
-                    decodeHeader(pair[0]) to decodeHeader(pair[1])
-                } else {
-                    null
-                }
-            }
-            .forEach { (key, value) -> headers[key] = value }
-    }
-    val normalizedHeaders = normalizeStreamHeaders(headers)
-    val mimeType = inferMimeType(cleanUrl)
-    return StreamRequest(
-        uri = cleanUrl,
-        headers = normalizedHeaders.ifEmpty { emptyMap() },
-        mimeType = mimeType,
-    )
-}
-
-private fun decodeHeader(value: String): String = runCatching {
-    URLDecoder.decode(value, StandardCharsets.UTF_8.name())
-}.getOrDefault(value)
-
-internal fun normalizeStreamHeaders(headers: Map<String, String>): Map<String, String> {
-    if (headers.isEmpty()) return emptyMap()
-    val normalized = LinkedHashMap<String, String>()
-    headers.forEach { (rawKey, rawValue) ->
-        val key = when (rawKey.trim().lowercase(Locale.US)) {
-            "user-agent", "useragent", "ua", "http-user-agent" -> "User-Agent"
-            "referer", "referrer", "http-referrer", "http-referer" -> "Referer"
-            "origin" -> "Origin"
-            "cookie", "cookies" -> "Cookie"
-            "authorization", "auth" -> "Authorization"
-            else -> rawKey.trim()
-        }
-        val value = rawValue.trim()
-        if (key.isNotBlank() && value.isNotBlank()) normalized[key] = value
-    }
-    return normalized
-}
-
-private fun String.isXtreamVodEndpoint(): Boolean {
-    val path = substringBefore('|').substringBefore('?').substringBefore('#').lowercase(Locale.US)
-    return "/series/" in path || "/movie/" in path
-}
-
-private fun String.mediaPathExtension(): String {
-    val path = substringBefore('|').substringBefore('?').substringBefore('#')
-    val lastSegment = path.substringAfterLast('/')
-    return lastSegment.substringAfterLast('.', "").normalizePlayableExtension()
-}
-
-private fun StreamRequest.withReplacedPathExtension(extension: String): StreamRequest? {
-    val cleanExtension = extension.normalizePlayableExtension()
-    if (cleanExtension.isBlank()) return null
-    val splitAt = uri.indexOfAny(charArrayOf('?', '#')).let { index -> if (index >= 0) index else uri.length }
-    val path = uri.substring(0, splitAt)
-    val suffix = uri.substring(splitAt)
-    val slash = path.lastIndexOf('/')
-    val dot = path.lastIndexOf('.')
-    if (dot <= slash || dot >= path.lastIndex) return null
-    val nextUri = path.substring(0, dot + 1) + cleanExtension + suffix
-    if (nextUri == uri) return null
-    return copy(uri = nextUri, mimeType = inferMimeType(nextUri))
-}
-
-private fun String.normalizePlayableExtension(): String = trim()
-    .trimStart('.')
-    .lowercase(Locale.US)
-    .let { value ->
-        when (value) {
-            "hls", "m3u", "m3u8" -> "m3u8"
-            "mpegts", "mpeg-ts", "ts" -> "ts"
-            "dash", "mpd" -> "mpd"
-            "smooth", "ism" -> "ism"
-            "matroska" -> "mkv"
-            "quicktime" -> "mov"
-            "mp4", "m4v", "mkv", "webm", "flv", "avi", "mov", "mpg", "mpeg", "vob", "3gp", "3g2" -> value
-            else -> ""
-        }
-    }
-
-private fun String.playableExtensionLabel(): String =
-    mediaPathExtension().ifBlank { "alternate" }.uppercase(Locale.US)
-
-internal fun inferMimeType(url: String): String? {
-    val normalizedFull = url.lowercase(Locale.US)
-    val normalized = normalizedFull.substringBefore('?')
-    val outputHint = Regex("""[?&](?:output|type|format|extension)=([^&#]+)""")
-        .find(normalizedFull)
-        ?.groupValues
-        ?.getOrNull(1)
-        ?.substringBefore('&')
-        ?.substringBefore('#')
-        .orEmpty()
-    return when {
-        normalized.startsWith("rtsp://") -> null
-        normalized.contains(".m3u8") || normalized.endsWith(".m3u") || outputHint == "m3u8" -> MimeTypes.APPLICATION_M3U8
-        normalized.contains(".mpd") || outputHint == "mpd" || outputHint == "dash" -> MimeTypes.APPLICATION_MPD
-        normalized.contains(".ism") || normalized.contains("manifest") || outputHint == "ism" || outputHint == "smoothstreaming" -> MimeTypes.APPLICATION_SS
-        normalized.endsWith(".ts") || normalized.endsWith(".m2ts") || outputHint == "ts" || outputHint == "mpegts" -> MimeTypes.VIDEO_MP2T
-        normalized.endsWith(".mp4") || normalized.endsWith(".m4v") -> MimeTypes.VIDEO_MP4
-        normalized.endsWith(".mov") -> MimeTypes.VIDEO_QUICK_TIME
-        normalized.endsWith(".mkv") -> MimeTypes.VIDEO_MATROSKA
-        normalized.endsWith(".webm") -> MimeTypes.VIDEO_WEBM
-        normalized.endsWith(".avi") -> MimeTypes.VIDEO_AVI
-        normalized.endsWith(".flv") || normalized.endsWith(".f4v") -> MimeTypes.VIDEO_FLV
-        normalized.endsWith(".ogg") || normalized.endsWith(".ogv") -> MimeTypes.VIDEO_OGG
-        normalized.endsWith(".mpg") || normalized.endsWith(".mpeg") -> MimeTypes.VIDEO_MPEG
-        normalized.endsWith(".vob") -> MimeTypes.VIDEO_PS
-        normalized.endsWith(".3gp") || normalized.endsWith(".3g2") -> "video/3gpp"
-        else -> null
-    }
-}
-
-private fun String.hasLiveTsHint(): Boolean {
-    val normalizedFull = lowercase(Locale.US)
-    val normalized = normalizedFull.substringBefore('?').substringBefore('#')
-    val outputHint = Regex("""[?&](?:output|type|format|extension)=([^&#]+)""")
-        .find(normalizedFull)
-        ?.groupValues
-        ?.getOrNull(1)
-        .orEmpty()
-    return normalized.endsWith(".ts") ||
-        normalized.endsWith(".m2ts") ||
-        outputHint == "ts" ||
-        outputHint == "mpegts"
-}
-
-internal fun shouldFallbackToLibVlc(error: PlaybackException): Boolean {
-    return shouldFallbackToLibVlc(error.errorCode, error.cause)
-}
-
-internal fun shouldFallbackToLibVlc(errorCode: Int, cause: Throwable?): Boolean {
-    return cause is ParserException ||
-        cause is UnrecognizedInputFormatException ||
-        errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
-        errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ||
-        errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
-        errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
-        errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ||
-        errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED ||
-        errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
-}
-
-internal fun livePlaybackFailureMessage(): String =
-    "Live stream stopped temporarily. Try again or open it in an external player."
-
-internal fun liveFallbackCannotOpenMessage(): String =
-    "The internal fallback player could not open this channel. The source may be blocked, expired, or require a different player."
-
-internal fun liveNoVideoFrameMessage(): String =
-    "The channel connected but did not render video. MoPlayer Pro tried safer live qualities; open another quality/channel or use the fallback player if this source is unstable."
-
-private fun explainPlaybackError(
-    context: Context,
-    error: PlaybackException,
-    uri: String,
-    isLive: Boolean,
-): String {
-    val cause = error.cause
-    return when {
-        !context.hasInternetConnection() -> "No internet connection is available right now."
-        cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode in 300..399 ->
-            "The link returns too many redirects or incompatible stream redirects."
-        cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 401 ->
-            "The server rejected access to the stream. The link may need authorization or special headers."
-        cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 403 ->
-            "The server blocked this link in the internal player."
-        cause is HttpDataSource.InvalidResponseCodeException && cause.responseCode == 404 ->
-            "The link is not working or no longer exists on the server."
-        cause is SocketTimeoutException ->
-            if (isLive) "The server is too slow or the channel is not responding right now." else "Connection timed out while loading the video."
-        cause is ConnectException -> "Could not connect to the server. Check the link or network."
-        cause is ParserException -> "The stream format is unsupported or the stream data is malformed."
-        error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "The server returned an invalid response for this stream."
-        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "Connection to the stream server failed."
-        error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "Connection to the stream server timed out."
-        error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> "The media file or container is not supported correctly."
-        else -> "Could not play the current link in Media3. Try again or open it in VLC or MX Player. (${uri.safeStreamLabel()})"
-    }
-}
-
-private fun String.safeStreamLabel(): String {
-    val withoutQuery = substringBefore('?')
-        .replace(Regex("username=[^&\\s/]+"), "username=***")
-        .replace(Regex("password=[^&\\s/]+"), "password=***")
-        .replace(Regex("""/(live|movie|series)/([^/]+)/([^/]+)/""", RegexOption.IGNORE_CASE), "/$1/***/***/")
-    return withoutQuery.takeLast(48)
-}
+private class ExternalLaunchResult(val success: Boolean, val message: String)
 
 private fun openExternalPlayer(
     context: Context,
     request: StreamRequest,
     title: String,
     route: String,
+    strings: PlayerStrings,
+    positionMs: Long,
 ): ExternalLaunchResult {
-    val packageNames = when (route) {
-        "vlc" -> listOf("org.videolan.vlc")
-        "mx" -> listOf("com.mxtech.videoplayer.ad", "com.mxtech.videoplayer.pro")
-        "external" -> emptyList()
-        else -> emptyList()
-    }
+    val packageNames = EXTERNAL_PLAYER_PACKAGES[route].orEmpty()
     val baseIntent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(Uri.parse(request.uri), "video/*")
+        // Players cannot take an Authorization header, but VLC, MX and Just Player honour URL credentials.
+        setDataAndType(Uri.parse(uriWithBasicCredentials(request.uri, request.headers)), "video/*")
         putExtra("title", title)
+        // Resume point, understood by VLC, MX Player and Just Player (milliseconds).
+        if (positionMs > 0L) putExtra("position", positionMs.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+        // MX Player's header contract (User-Agent, Referer, ...): alternating names and values.
+        externalPlayerHeaders(request.headers)?.let { putExtra("headers", it) }
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        request.headers.forEach { (key, value) -> putExtra(key, value) }
     }
-
     if (route == "external") {
-        val chooser = Intent.createChooser(baseIntent, "Choose video player")
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val chooser = Intent.createChooser(baseIntent, strings.chooseVideoPlayer).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return try {
             context.startActivity(chooser)
-            ExternalLaunchResult(true, "External player opened.")
+            ExternalLaunchResult(true, strings.externalOpened)
         } catch (_: ActivityNotFoundException) {
-            ExternalLaunchResult(false, "No external video player is installed on this device.")
+            ExternalLaunchResult(false, strings.noExternalPlayer)
+        } catch (_: RuntimeException) {
+            // A local file:// link cannot leave the app on Android 7+ (FileUriExposedException).
+            ExternalLaunchResult(false, strings.externalFailed)
         }
     }
-
+    // Launch directly: startActivity() needs no package visibility and throws
+    // ActivityNotFoundException only when the player is really missing.
     packageNames.forEach { packageName ->
         try {
-            context.packageManager.getPackageInfo(packageName, 0)
             context.startActivity(Intent(baseIntent).setPackage(packageName))
-            return ExternalLaunchResult(true, "$title opened in the external player.")
-        } catch (_: Exception) {
+            return ExternalLaunchResult(true, strings.externalOpenedTitle.fill(title.isolate()))
+        } catch (_: ActivityNotFoundException) {
+            // Not installed: try the next package.
+        } catch (_: RuntimeException) {
+            // Not exported to us (SecurityException), or a local file:// link that Android 7+
+            // refuses to hand to another app (FileUriExposedException): try the next package.
         }
     }
-
     return ExternalLaunchResult(
         success = false,
         message = when (route) {
-            "vlc" -> "VLC is not installed. Install it or use Media3 or another external player."
-            "mx" -> "MX Player is not installed. Install it or use Media3 or another external player."
-            else -> "Could not open the requested external player."
+            "vlc" -> strings.vlcMissing
+            "mx" -> strings.mxMissing
+            else -> strings.externalFailed
         },
     )
 }
 
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
+private fun launchCastFallback(context: Context, streamUrl: String, strings: PlayerStrings) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(streamUrl)).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        putExtra(Intent.EXTRA_TITLE, strings.castIntentTitle)
+    }
+    runCatching {
+        context.startActivity(Intent.createChooser(intent, strings.castChooserTitle).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }.recoverCatching {
+        context.startActivity(intent)
+    }
+}
+
+private fun canLaunchCast(context: Context, streamUrl: String): Boolean {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(streamUrl))
+    return runCatching {
+        context.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isNotEmpty()
+    }.getOrDefault(false)
 }
 
 private fun Context.hasInternetConnection(): Boolean {
@@ -3819,16 +2331,4 @@ private fun Context.hasInternetConnection(): Boolean {
     val network = manager.activeNetwork ?: return false
     val capabilities = manager.getNetworkCapabilities(network) ?: return false
     return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-}
-
-private fun formatTime(ms: Long): String {
-    if (ms <= 0) return "00:00"
-    val hours = TimeUnit.MILLISECONDS.toHours(ms)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(ms) % 60
-    return if (hours > 0) {
-        String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        String.format(Locale.US, "%02d:%02d", minutes, seconds)
-    }
 }

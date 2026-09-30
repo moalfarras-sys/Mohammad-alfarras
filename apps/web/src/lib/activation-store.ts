@@ -249,20 +249,27 @@ export async function createActivationRequest(input: {
   return Boolean(!error && data);
 }
 
-export async function getActivationRequest(code: string, productSlug: string): Promise<StoredActivationRequest | null> {
+/**
+ * Looks up an activation code. `productSlug === null` finds the code under any product: codes are
+ * globally unique (Redis SET NX key / unique device_code), so this is how a code typed on the bare
+ * /activate URL discovers which app it belongs to. Callers that act on the code stay product-scoped.
+ */
+export async function getActivationRequest(code: string, productSlug: string | null): Promise<StoredActivationRequest | null> {
   if (activationStoreUsesRedis()) {
     const record = await redisGetJson<StoredActivationRequest>(requestKey(code));
     if (!record) return null;
-    if (!productMatches(record.productSlug, productSlug)) return null;
-    return record;
+    if (productSlug !== null && !productMatches(record.productSlug, productSlug)) return null;
+    return { ...record, productSlug: record.productSlug || "moplayer" };
   }
   const supabase = createSupabaseAdminClient();
-  const { data } = await supabase
+  let query = supabase
     .from("activation_requests")
     .select("public_device_id, device_code, product_slug, status, expires_at, activated_at")
-    .eq("device_code", code)
-    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
-    .maybeSingle();
+    .eq("device_code", code);
+  if (productSlug !== null) {
+    query = query.or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`);
+  }
+  const { data } = await query.maybeSingle();
   if (!data) return null;
   return {
     publicDeviceId: data.public_device_id,

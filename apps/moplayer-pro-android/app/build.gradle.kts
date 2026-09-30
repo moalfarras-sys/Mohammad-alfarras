@@ -56,8 +56,8 @@ android {
         applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 68
-        versionName = "2.6.5"
+        versionCode = 69
+        versionName = "2.7.0"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')
@@ -67,7 +67,6 @@ android {
         }
         buildConfigField("String", "SUPABASE_URL", "\"${secretPropertyAny("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "EXPO_PUBLIC_SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secretPropertyAny("SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY", "EXPO_PUBLIC_SUPABASE_KEY")}\"")
-        buildConfigField("String", "WEATHER_API_KEY", "\"${secretProperty("WEATHER_API_KEY")}\"")
         buildConfigField("String", "ACTIVATION_URL", "\"$activationUrl\"")
         val webApiBaseUrl = secretProperty("WEB_API_BASE_URL").ifBlank { "https://moalfarras.space" }
         val appProductSlug = secretProperty("APP_PRODUCT_SLUG").ifBlank { "moplayer2" }
@@ -176,15 +175,22 @@ dependencies {
     implementation("androidx.tv:tv-material:1.1.0-rc01")
     implementation("androidx.leanback:leanback:1.2.0")
 
-    implementation("androidx.media3:media3-exoplayer:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-dash:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-smoothstreaming:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-rtsp:1.10.1")
-    implementation("androidx.media3:media3-ui:1.10.1")
-    implementation("androidx.media3:media3-session:1.10.1")
-    implementation("androidx.media3:media3-datasource-okhttp:1.10.1")
-    implementation("org.videolan.android:libvlc-all:3.6.2")
+    val media3Version = "1.11.1"
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-hls:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-dash:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-rtsp:$media3Version")
+    implementation("androidx.media3:media3-ui:$media3Version")
+    implementation("androidx.media3:media3-session:$media3Version")
+    implementation("androidx.media3:media3-datasource-okhttp:$media3Version")
+    // FFmpeg audio decoders (AC-3, E-AC-3, DTS, TrueHD, MP2, ...) for boxes without platform
+    // decoders or passthrough. LGPL build with 16 KB-aligned natives; it was built against Media3
+    // 1.9.0, so Gradle resolves its media3 dependencies to the version above, and the renderer is
+    // created defensively (IptvRenderersFactory) in case that ABI ever drifts.
+    implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.9.0+1")
+    // 3.6.3+ ships 16 KB-aligned native libraries; 3.7.x also carries FFmpeg 8.1.
+    implementation("org.videolan.android:libvlc-all:3.7.6")
     implementation("com.google.android.gms:play-services-cast-framework:22.1.0")
 
     implementation("com.squareup.retrofit2:retrofit:3.0.0")

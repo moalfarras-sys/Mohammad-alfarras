@@ -15,3 +15,22 @@ HSPLcom/moalfarras/moplayer/**;->**(**)**
 
 # Ensure the app classes themselves are included in the profile image.
 Lcom/moalfarras/moplayer/**;
+
+# Hot paths named explicitly so they stay covered if the blanket rules above are ever narrowed
+# or replaced by a generated profile.
+# Player: Media3 setup, LibVLC fallback view, retry/fallback policies, overlays and state.
+HSPLcom/moalfarras/moplayer/ui/player/**;->**(**)**
+Lcom/moalfarras/moplayer/ui/player/**;
+# Library sync: streaming Xtream/M3U JSON reader and the batched catalog writer.
+HSPLcom/moalfarras/moplayer/data/parser/JsonStreamReader;->**(**)**
+Lcom/moalfarras/moplayer/data/parser/JsonStreamReader;
+HSPLcom/moalfarras/moplayer/data/repository/CatalogWriter;->**(**)**
+Lcom/moalfarras/moplayer/data/repository/CatalogWriter;
+# D-pad focus treatment (FocusGlow lives in RemoteModifiers.kt) and the poster/channel cards.
+HSPLcom/moalfarras/moplayer/ui/components/RemoteModifiersKt**;->**(**)**
+Lcom/moalfarras/moplayer/ui/components/RemoteModifiersKt**;
+HSPLcom/moalfarras/moplayer/ui/components/CardsKt**;->**(**)**
+Lcom/moalfarras/moplayer/ui/components/CardsKt**;
+# First screen after start.
+HSPLcom/moalfarras/moplayer/ui/screens/HomeScreenKt**;->**(**)**
+Lcom/moalfarras/moplayer/ui/screens/HomeScreenKt**;

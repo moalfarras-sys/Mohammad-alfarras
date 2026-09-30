@@ -43,9 +43,10 @@ app.commandLine.appendSwitch(
   "enable-features",
   "PlatformHEVCDecoderSupport,D3D11VideoDecoder",
 );
-// Persist posters, channel logos, and stream segments in a large on-disk cache so
-// they load instantly on the next launch instead of re-downloading from the server.
-app.commandLine.appendSwitch("disk-cache-size", String(600 * 1024 * 1024));
+// Artwork has its own bounded persistent cache. Keep Chromium's generic cache
+// small: live media is explicitly no-store in StreamProxy and must never crowd
+// out RAM/disk with stale segments.
+app.commandLine.appendSwitch("disk-cache-size", String(96 * 1024 * 1024));
 const packageVersion = app.getVersion() || "1.0.0";
 const qaFixtureDataPath = qaUserData || path.join(tmpdir(), "moplayer-pro-windows-qa");
 if (qaFixture || qaUserData) {

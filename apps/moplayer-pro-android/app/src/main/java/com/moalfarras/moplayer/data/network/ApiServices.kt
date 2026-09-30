@@ -8,69 +8,33 @@ import retrofit2.http.Body
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.QueryMap
+import retrofit2.http.Streaming
 import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface PlaylistService {
+    /** Playlists and XMLTV guides; streamed so a 100 MB guide is never buffered in memory. */
+    @Streaming
     @GET
     suspend fun getText(@Url url: String): ResponseBody
 }
 
 interface XtreamService {
+    /** Small player_api calls (account, categories, get_vod_info, get_series_info). */
     @GET("player_api.php")
     suspend fun rawPlayerApi(
         @QueryMap query: Map<String, String>,
     ): ResponseBody
 
+    /**
+     * Bulk lists (get_live_streams / get_vod_streams / get_series). Streamed so the body is parsed
+     * item by item instead of being buffered, and the dispatcher slot is freed after the headers.
+     */
+    @Streaming
     @GET("player_api.php")
-    suspend fun liveCategories(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("action") action: String = "get_live_categories",
-    ): List<XtreamCategoryDto>
-
-    @GET("player_api.php")
-    suspend fun vodCategories(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("action") action: String = "get_vod_categories",
-    ): List<XtreamCategoryDto>
-
-    @GET("player_api.php")
-    suspend fun seriesCategories(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("action") action: String = "get_series_categories",
-    ): List<XtreamCategoryDto>
-
-    @GET("player_api.php")
-    suspend fun liveStreams(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("action") action: String = "get_live_streams",
-    ): List<XtreamLiveDto>
-
-    @GET("player_api.php")
-    suspend fun vodStreams(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("action") action: String = "get_vod_streams",
-    ): List<XtreamVodDto>
-
-    @GET("player_api.php")
-    suspend fun series(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("action") action: String = "get_series",
-    ): List<XtreamSeriesDto>
-
-    @GET("player_api.php")
-    suspend fun seriesInfo(
-        @Query("username") username: String,
-        @Query("password") password: String,
-        @Query("series_id") seriesId: String,
-        @Query("action") action: String = "get_series_info",
-    ): XtreamSeriesInfoResponseDto
+    suspend fun rawPlayerApiStream(
+        @QueryMap query: Map<String, String>,
+    ): ResponseBody
 
     @GET("player_api.php")
     suspend fun shortEpg(
@@ -81,20 +45,12 @@ interface XtreamService {
         @Query("action") action: String = "get_short_epg",
     ): ResponseBody
 
+    @Streaming
     @GET("xmltv.php")
     suspend fun xmltv(
         @Query("username") username: String,
         @Query("password") password: String,
     ): ResponseBody
-}
-
-interface WeatherService {
-    @GET("v1/current.json")
-    suspend fun current(
-        @Query("key") key: String,
-        @Query("q") query: String,
-        @Query("aqi") airQuality: String = "no",
-    ): WeatherResponseDto
 }
 
 interface WebWeatherService {

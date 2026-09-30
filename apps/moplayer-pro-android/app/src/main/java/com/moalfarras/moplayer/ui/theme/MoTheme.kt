@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayerpro.R
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -148,9 +150,30 @@ private fun colors(accent: Color): ColorScheme = darkColorScheme(
     error              = Color(0xFFFF4D6D),
 )
 
-private fun appTypography(scale: Float, arabic: Boolean): Typography {
+/**
+ * Material type scale factor. TVs report a 540dp short side, which the phone buckets treated as a
+ * small phone (0.90) — that pushed body text to ~12.6sp and labels to ~9.9sp, unreadable from the
+ * sofa. TVs therefore always use at least the full scale, normalized to the 960x540dp canvas so
+ * hdpi boxes (1280x720dp) render text at the same physical size.
+ */
+internal fun typeScaleFor(isTv: Boolean, widthDp: Int, heightDp: Int): Float {
+    if (isTv) return tvCanvasScale(widthDp, heightDp)
+    val shortestDp = minOf(widthDp, heightDp)
+    return when {
+        shortestDp < 360 -> 0.76f
+        shortestDp < 400 -> 0.80f
+        shortestDp < 480 -> 0.84f
+        shortestDp < 600 -> 0.90f
+        shortestDp < 720 -> 0.96f
+        else -> 1f
+    }
+}
+
+private fun appTypography(scale: Float, arabic: Boolean, isTv: Boolean): Typography {
     val display = if (arabic) ArabicDisplayFamily else DisplayFamily
     val body = if (arabic) ArabicBodyFamily else BodyFamily
+    // labelSmall is the smallest style in the app (badges, metadata); keep it at the 12sp TV floor.
+    val labelSmallSize = (if (isTv) TV_MIN_SECONDARY_SP else 11f) * scale
     return Typography(
         displayLarge   = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (52 * scale).sp, lineHeight = (56 * scale).sp),
         displayMedium  = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (42 * scale).sp, lineHeight = (46 * scale).sp),
@@ -163,7 +186,7 @@ private fun appTypography(scale: Float, arabic: Boolean): Typography {
         bodySmall      = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (12 * scale).sp, lineHeight = (18 * scale).sp),
         labelLarge     = TextStyle(fontFamily = body,    fontWeight = FontWeight.Bold,      fontSize = (15 * scale).sp, lineHeight = (18 * scale).sp),
         labelMedium    = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (13 * scale).sp, lineHeight = (16 * scale).sp),
-        labelSmall     = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (11 * scale).sp, lineHeight = (14 * scale).sp),
+        labelSmall     = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = labelSmallSize.sp, lineHeight = (labelSmallSize + 3 * scale).sp),
     )
 }
 
@@ -203,18 +226,12 @@ fun MoTheme(
     content: @Composable () -> Unit,
 ) {
     val configuration = LocalConfiguration.current
-    val shortestDp = minOf(configuration.screenWidthDp, configuration.screenHeightDp)
-    val typeScale = remember(shortestDp) {
-        when {
-            shortestDp < 360 -> 0.76f
-            shortestDp < 400 -> 0.80f
-            shortestDp < 480 -> 0.84f
-            shortestDp < 600 -> 0.90f
-            shortestDp < 720 -> 0.96f
-            else -> 1f
-        }
-    }
-    
+    val context = LocalContext.current
+    val isTv = remember(context) { Adaptive.isTv(context) }
+    val widthDp = configuration.screenWidthDp
+    val heightDp = configuration.screenHeightDp
+    val typeScale = remember(isTv, widthDp, heightDp) { typeScaleFor(isTv, widthDp, heightDp) }
+
     val clamped = accent
     val visuals = MoVisuals(
         accent  = clamped,
@@ -236,7 +253,7 @@ fun MoTheme(
     )
     
     val arabic = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val typography = remember(typeScale, arabic) { appTypography(typeScale, arabic) }
+    val typography = remember(typeScale, arabic, isTv) { appTypography(typeScale, arabic, isTv) }
     androidx.compose.runtime.CompositionLocalProvider(LocalMoVisuals provides visuals) {
         MaterialTheme(
             colorScheme = colors(clamped),

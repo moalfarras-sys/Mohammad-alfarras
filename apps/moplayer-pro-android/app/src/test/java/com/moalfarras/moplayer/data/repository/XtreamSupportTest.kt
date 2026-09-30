@@ -93,7 +93,6 @@ class XtreamSupportTest {
     fun cleansNullAndProtocolRelativePosterUrls() {
         val json = NetworkModule.json
         val vodItems = XtreamSupport.parseVodStreams(
-            json = json,
             serverId = 3,
             credentials = XtreamCredentials("http://iptv.example/", "user", "pass"),
             categories = mapOf("10" to "Movies"),

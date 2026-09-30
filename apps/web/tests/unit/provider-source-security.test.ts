@@ -1,12 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  acknowledgedProviderSourceReceipt,
+  fetchedProviderSourceReceipt,
   fetchedProviderSourceReceiptExpiresAt,
   normalizeProviderSource,
   pendingProviderSourceExpiresAt,
   providerSourceTestAllowsHandoff,
   providerSourceQueueBelongsToProduct,
   providerSourceQueueExpired,
+  sanitizeDeviceImportMessage,
   testProviderSource,
   type ProviderSourceQueueValue,
 } from "@/lib/provider-source-security";
@@ -100,6 +103,94 @@ describe("providerSourceQueueBelongsToProduct", () => {
     expect(providerSourceQueueExpired({ ...baseQueue, expiresAt: pendingExpiry }, now + 1)).toBe(false);
     expect(providerSourceQueueExpired({ ...baseQueue, expiresAt: pendingExpiry }, Date.parse(pendingExpiry))).toBe(true);
     expect(Date.parse(fetchedExpiry) - now).toBeLessThan(Date.parse(pendingExpiry) - now);
+  });
+});
+
+describe("provider source receipts", () => {
+  const now = Date.parse("2026-09-30T12:00:00.000Z");
+  const pendingQueue: ProviderSourceQueueValue = {
+    id: "src_pro",
+    publicDeviceId: "MO-D-ABCDEF12",
+    productSlug: "moplayer2",
+    sourceType: "xtream",
+    displayName: "iptv.example.com",
+    encryptedPayload: "aes-256-gcm:v1:iv:tag:secret",
+    encryptionVersion: "aes-256-gcm:v1",
+    status: "pending",
+    lastTestStatus: "failed",
+    lastTestMessage: "Provider says: user demo expired on iptv.example.com",
+    createdAt: "2026-09-30T11:58:00.000Z",
+    updatedAt: "2026-09-30T11:58:00.000Z",
+    expiresAt: "2026-09-30T12:18:00.000Z",
+  };
+  const sensitiveKeys = ["encryptedPayload", "displayName", "lastTestMessage", "encryptionVersion"];
+
+  it("keeps only delivery status after the device fetches the source", () => {
+    const receipt = fetchedProviderSourceReceipt(pendingQueue, now);
+
+    for (const key of sensitiveKeys) expect(receipt).not.toHaveProperty(key);
+    expect(receipt).toMatchObject({
+      id: "src_pro",
+      publicDeviceId: "MO-D-ABCDEF12",
+      productSlug: "moplayer2",
+      sourceType: "xtream",
+      status: "fetched",
+      pulledAt: "2026-09-30T12:00:00.000Z",
+    });
+    // Long enough for the first library sync that runs before the device acknowledges.
+    expect(Date.parse(receipt.expiresAt ?? "") - now).toBe(15 * 60 * 1000);
+    expect(providerSourceQueueBelongsToProduct(receipt, "moplayer2")).toBe(true);
+  });
+
+  it("records a short-lived import result without any source details", () => {
+    const fetched = fetchedProviderSourceReceipt(pendingQueue, now - 60_000);
+    const receipt = acknowledgedProviderSourceReceipt(fetched, { status: "imported", message: "ignored" }, now);
+
+    for (const key of sensitiveKeys) expect(receipt).not.toHaveProperty(key);
+    expect(receipt).toMatchObject({ status: "imported", importedAt: "2026-09-30T12:00:00.000Z", productSlug: "moplayer2" });
+    expect(receipt.failureMessage).toBeUndefined();
+    expect(receipt.pulledAt).toBe(fetched.pulledAt);
+    expect(Date.parse(receipt.expiresAt ?? "") - now).toBe(10 * 60 * 1000);
+  });
+
+  it("strips a raw queue down even if the payload is still present at ack time", () => {
+    const receipt = acknowledgedProviderSourceReceipt(
+      pendingQueue,
+      { status: "failed", message: "Login failed for http://demo:secret@iptv.example.com:8080/get.php?username=demo&password=secret" },
+      now,
+    );
+
+    for (const key of sensitiveKeys) expect(receipt).not.toHaveProperty(key);
+    expect(receipt.status).toBe("failed");
+    expect(receipt.failedAt).toBe("2026-09-30T12:00:00.000Z");
+    expect(receipt.failureMessage).toBe("Login failed for [link]");
+    expect(JSON.stringify(receipt)).not.toMatch(/secret|demo|example\.com/);
+  });
+
+  it("removes hosts, addresses and credentials from device messages", () => {
+    expect(sanitizeDeviceImportMessage("Could not reach the IPTV server")).toBe("Could not reach the IPTV server");
+    expect(sanitizeDeviceImportMessage("Timeout at 192.168.1.20:8080/player_api.php")).toBe("Timeout at [host]");
+    expect(sanitizeDeviceImportMessage("DNS failed for line.iptv-host.net:80")).toBe("DNS failed for [host]");
+    expect(sanitizeDeviceImportMessage("rejected username=demo password=hunter2")).toBe("rejected username=*** password=***");
+    expect(sanitizeDeviceImportMessage("auth demo:hunter2@panel failed")).toBe("auth [link] failed");
+    expect(sanitizeDeviceImportMessage("line one\nline\ttwo")).toBe("line one line two");
+    expect(sanitizeDeviceImportMessage("x".repeat(500))).toHaveLength(200);
+    expect(sanitizeDeviceImportMessage("   ")).toBeUndefined();
+    expect(sanitizeDeviceImportMessage(undefined)).toBeUndefined();
+  });
+
+  it("stays fast on oversized or pathological device messages", () => {
+    // The ack body is client-controlled; these inputs used to make the credential regex backtrack for minutes.
+    const started = performance.now();
+    sanitizeDeviceImportMessage("a:".repeat(50_000));
+    sanitizeDeviceImportMessage("a:".repeat(499));
+    sanitizeDeviceImportMessage(`${"x ".repeat(400)}${"a:".repeat(20_000)}`);
+    expect(performance.now() - started).toBeLessThan(250);
+  });
+
+  it("drops a word cut off by the input limit instead of keeping half a credential", () => {
+    expect(sanitizeDeviceImportMessage(`Import failed${" ".repeat(980)}demo:hunter2@panel`)).toBe("Import failed");
+    expect(sanitizeDeviceImportMessage(`${" ".repeat(990)}demo:hunter2@panel`)).toBeUndefined();
   });
 });
 

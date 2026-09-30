@@ -7,21 +7,24 @@ import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.JavascriptInterface
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +32,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.delay
 
 /**
  * A trailer resolved for the item currently under focus. Provided from the app state so
@@ -46,41 +50,53 @@ val LocalPreviewTrailer = compositionLocalOf { PreviewTrailer() }
  *  retry once with the YouTube-search fallback. Default no-op keeps the surface reusable/testable. */
 val LocalTrailerErrorReporter = compositionLocalOf<(String) -> Unit> { {} }
 
+private val YoutubeIdPattern = Regex("^[A-Za-z0-9_-]{11}$")
+
+/** Destroy the WebView (and its renderer process) after this long without a trailer to show. */
+private const val TRAILER_IDLE_RELEASE_MS = 25_000L
+
+/** Set when the WebView renderer crashed or was killed: trailers stay off for the rest of the session. */
+@Volatile
+private var trailerRendererLost = false
+
+/** True when [id] is a well-formed YouTube video id (never mount the player with e.g. "null"). */
+internal fun isValidYoutubeId(id: String): Boolean = YoutubeIdPattern.matches(id)
+
 /**
- * A muted, controls-free, inline YouTube trailer for the preview pane.
+ * The muted, controls-free, inline YouTube trailer of one preview pane.
  *
- * It hosts a [WebView] running YouTube's official IFrame Player API — a ToS-compliant embed — so
- * playback stays inside the app and never hands off to the YouTube app. The surface is:
- *  - non-focusable, so D-pad navigation across the grid is completely unaffected;
- *  - center-cropped to fill the pane the same way the backdrop image it sits over does;
- *  - faded in only once the video is actually playing, so the backdrop shows through while it
- *    buffers and the transition reads as a soft crossfade rather than a black flash;
- *  - fully paused with the lifecycle and destroyed on dispose, so it leaks nothing and stops
- *    the moment focus moves or the screen leaves composition.
+ * One WebView running YouTube's official IFrame Player API (a ToS-compliant embed) is created
+ * lazily for the first trailer and then reused: switching titles calls `loadVideoById` instead of
+ * rebuilding the WebView and re-downloading the player, and the HTTP/V8 caches stay warm. When no
+ * trailer is requested the video is stopped and faded out; after [TRAILER_IDLE_RELEASE_MS] the
+ * WebView is destroyed so its renderer process does not hold RAM on weak boxes.
  *
- * It only ever talks to YouTube's own hosts, so it can't consume the IPTV provider's live slot.
+ * The surface is non-focusable (D-pad navigation is unaffected), fades in only once the video
+ * actually plays, and only ever talks to YouTube's hosts — never to the IPTV provider.
  */
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun YoutubeTrailerSurface(
-    itemKey: String,
-    youtubeId: String,
+fun PreviewTrailerHost(
+    trailer: PreviewTrailer?,
     modifier: Modifier = Modifier,
-    onError: () -> Unit = {},
+    onError: (itemKey: String) -> Unit = {},
 ) {
     val context = LocalContext.current
-    // Defense in depth: never mount the player with a malformed id (e.g. the literal string "null"
-    // from a bad JSON parse) — YouTube throws "Invalid video id" and the pane looks broken.
-    if (!Regex("^[A-Za-z0-9_-]{11}$").matches(youtubeId)) return
     // Ancient system WebViews (e.g. the frozen Chrome 44 on bare AOSP API 23 images) can't run
-    // YouTube's modern embed JS, so skip them entirely — the pane just keeps showing its backdrop.
+    // YouTube's modern embed JS, so skip them entirely — the pane just keeps showing its art.
     val supported = remember { isModernWebViewAvailable(context) }
-    if (!supported) return
-    // Key on the ITEM as well as the video id: moving focus to a different movie always tears the
-    // player down and starts fresh, even when two titles happen to resolve to the same trailer —
-    // the pane can never keep "the old trailer" across items.
-    key(itemKey, youtubeId) {
-        TrailerWebView(youtubeId, modifier, onError)
+    if (!supported || trailerRendererLost) return
+    val requested = trailer?.takeIf { isValidYoutubeId(it.youtubeId) }
+    var active by remember { mutableStateOf(false) }
+    LaunchedEffect(requested != null) {
+        if (requested != null) {
+            active = true
+        } else {
+            delay(TRAILER_IDLE_RELEASE_MS)
+            active = false
+        }
+    }
+    if (active || requested != null) {
+        TrailerWebView(requested, modifier, onError, onRendererLost = { active = false })
     }
 }
 
@@ -101,28 +117,55 @@ private fun isModernWebViewAvailable(context: Context): Boolean {
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () -> Unit) {
-    val playing = remember { mutableStateOf(false) }
-    val alpha by animateFloatAsState(if (playing.value) 1f else 0f, tween(650), label = "trailerFade")
+private fun TrailerWebView(
+    trailer: PreviewTrailer?,
+    modifier: Modifier,
+    onError: (String) -> Unit,
+    onRendererLost: () -> Unit,
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    val webViewRef = remember { mutableStateOf<WebView?>(null) }
-    // Keep the latest onError without recreating the WebView (the bridge reads it live).
-    val onErrorState = rememberUpdatedState(onError)
-
-    // The surface is only ever revealed once the IFrame reports it is actually PLAYING (via the JS
-    // bridge). If the video is unavailable/embedding-disabled or the engine can't play it, no
-    // reveal happens and the backdrop underneath stays — a broken player is never shown.
+    var webView by remember { mutableStateOf<WebView?>(null) }
+    var pageLoaded by remember { mutableStateOf(false) }
+    // The video id the IFrame last reported as PLAYING; the surface is revealed only when it
+    // matches the requested trailer, so a late callback of the previous title can't flash it.
+    var playingId by remember { mutableStateOf<String?>(null) }
+    val currentTrailer by rememberUpdatedState(trailer)
+    val currentOnError by rememberUpdatedState(onError)
+    val currentOnRendererLost by rememberUpdatedState(onRendererLost)
+    val visible = trailer != null && playingId == trailer.youtubeId
+    val alpha by animateFloatAsState(if (visible) 1f else 0f, tween(if (visible) 550 else 180), label = "trailerFade")
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> webViewRef.value?.onPause()
-                Lifecycle.Event.ON_RESUME -> webViewRef.value?.onResume()
+                Lifecycle.Event.ON_PAUSE -> webView?.onPause()
+                Lifecycle.Event.ON_RESUME -> webView?.onResume()
                 else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Switch, stop or first-load the video whenever the requested trailer changes.
+    LaunchedEffect(webView, trailer?.youtubeId) {
+        val web = webView ?: return@LaunchedEffect
+        val id = trailer?.youtubeId
+        // Hide until the new request reports PLAYING: re-requesting a video that played before
+        // (back to the same title after a stop) must not reveal the stopped player right away.
+        playingId = null
+        if (id == null) {
+            web.evaluateJavascript("window.moStop&&moStop()", null)
+            return@LaunchedEffect
+        }
+        if (!pageLoaded) {
+            pageLoaded = true
+            // Base URL must be a REAL registered https origin (not a youtube.com spoof) or YouTube's
+            // IFrame origin check rejects playback with error 150/152.
+            web.loadDataWithBaseURL(TRAILER_ORIGIN, trailerHtml(id), "text/html", "utf-8", null)
+        } else {
+            web.evaluateJavascript("window.moLoad&&moLoad('$id')", null)
+        }
     }
 
     AndroidView(
@@ -138,6 +181,10 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,
                     )
+                    if (Build.VERSION.SDK_INT >= 26) {
+                        // Under memory pressure the system kills this renderer, never the app.
+                        setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_WAIVED, true)
+                    }
                     settings.apply {
                         javaScriptEnabled = true
                         domStorageEnabled = true
@@ -145,7 +192,10 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                         mediaPlaybackRequiresUserGesture = false
                         loadWithOverviewMode = true
                         useWideViewPort = true
-                        cacheMode = WebSettings.LOAD_NO_CACHE
+                        // The page itself is inline HTML and the title→video mapping is resolved
+                        // outside the WebView, so the normal HTTP cache is safe and keeps the
+                        // player scripts (and their compiled code) warm between titles.
+                        cacheMode = WebSettings.LOAD_DEFAULT
                     }
                     webViewClient = object : WebViewClient() {
                         private fun keepInside(url: String): Boolean = !(
@@ -164,38 +214,44 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                         @Deprecated("Kept for API < 24 which calls the String overload")
                         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean =
                             keepInside(url.orEmpty())
+
+                        // Without this the whole app dies when the renderer crashes or the low-memory
+                        // killer reclaims it. Drop the WebView and keep trailers off for the session.
+                        @RequiresApi(26)
+                        override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                            trailerRendererLost = true
+                            view?.let { gone ->
+                                (gone.parent as? ViewGroup)?.removeView(gone)
+                                runCatching { gone.destroy() }
+                            }
+                            webView = null
+                            currentOnRendererLost()
+                            return true
+                        }
                     }
                     addJavascriptInterface(
                         object {
                             // Called from the JS bridge thread. post() targets the WebView's main-thread
                             // handler, so the Compose state is only ever touched on the main thread.
                             @JavascriptInterface
-                            fun onPlaying() {
-                                post { playing.value = true }
+                            fun onPlaying(videoId: String?) {
+                                post { playingId = videoId }
                             }
 
                             // The IFrame reported it cannot play (embedding disabled / removed / etc.).
                             @JavascriptInterface
-                            fun onError() {
-                                post { onErrorState.value() }
+                            fun onError(videoId: String?) {
+                                post {
+                                    val current = currentTrailer
+                                    if (current != null && current.youtubeId == videoId) currentOnError(current.itemKey)
+                                }
                             }
                         },
                         "MoTrailerBridge",
                     )
                 }
             }.getOrNull() ?: return@AndroidView View(ctx)
-            webViewRef.value = view
-            // Automatic cache hygiene: once per app session, drop any WebView disk cache left over
-            // from older sessions/versions so the player never replays stale cached state. The
-            // trailer WebViews are the app's only WebViews, so this is always safe.
-            if (!trailerWebCacheCleared) {
-                trailerWebCacheCleared = true
-                runCatching { view.clearCache(true) }
-            }
-            // Base URL must be a REAL registered https origin (not a youtube.com spoof) or YouTube's
-            // IFrame origin check rejects playback with error 150/152. Use the app's own domain and
-            // pass the same value as the player `origin` so the enablejsapi handshake matches.
-            view.loadDataWithBaseURL(TRAILER_ORIGIN, trailerHtml(youtubeId), "text/html", "utf-8", null)
+            webView = view
             view
         },
         onRelease = { released ->
@@ -212,7 +268,9 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
                     web.destroy()
                 }
             }
-            webViewRef.value = null
+            webView = null
+            pageLoaded = false
+            playingId = null
         },
     )
 }
@@ -221,10 +279,11 @@ private fun TrailerWebView(youtubeId: String, modifier: Modifier, onError: () ->
  *  YouTube rejects playback (error 150/152) when the page origin is a youtube.com spoof. */
 private const val TRAILER_ORIGIN = "https://moalfarras.space"
 
-/** One-shot per process: the first trailer WebView clears any stale disk cache automatically. */
-private var trailerWebCacheCleared = false
-
-/** Self-contained IFrame Player API page. Center-cropped (cover) to match the backdrop's crop. */
+/**
+ * Self-contained IFrame Player API page. Center-cropped (cover) to match the art it sits over.
+ * `moLoad(id)` switches the video in place, `moStop()` stops it; every bridge callback carries
+ * the video id so the app can ignore callbacks that belong to a previous title.
+ */
 private fun trailerHtml(youtubeId: String): String {
     val safeId = youtubeId.filter { it.isLetterOrDigit() || it == '_' || it == '-' }.take(16)
     return """
@@ -234,7 +293,6 @@ private fun trailerHtml(youtubeId: String): String {
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <style>
   html,body{margin:0;padding:0;height:100%;width:100%;background:#000;overflow:hidden}
-  /* 16:9 player sized to cover an arbitrary pane, centered — same crop feel as the backdrop image. */
   #p{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
      height:100%;width:177.78vh;min-width:100%;min-height:56.25vw;
      border:0;pointer-events:none}
@@ -243,26 +301,41 @@ private fun trailerHtml(youtubeId: String): String {
 <body>
 <div id="p"></div>
 <script>
+  var player=null, ready=false, wanted='$safeId';
+  function currentId(){
+    try{ var d=player&&player.getVideoData&&player.getVideoData(); if(d&&d.video_id){ return d.video_id; } }catch(e){}
+    return wanted;
+  }
+  function moLoad(id){
+    wanted=id;
+    if(ready&&player){ try{ player.mute(); player.loadVideoById(id); }catch(e){} }
+  }
+  function moStop(){
+    if(ready&&player){ try{ player.stopVideo(); }catch(e){} }
+  }
   var tag=document.createElement('script');
   tag.src="https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
-  var player;
   function onYouTubeIframeAPIReady(){
     player=new YT.Player('p',{
-      videoId:'$safeId',
+      videoId:wanted,
       playerVars:{autoplay:1,mute:1,controls:0,rel:0,modestbranding:1,playsinline:1,
-        fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:'$safeId',origin:'$TRAILER_ORIGIN'},
+        fs:0,disablekb:1,iv_load_policy:3,origin:'$TRAILER_ORIGIN'},
       events:{
-        'onReady':function(e){ console.log('MOTRAILER ready'); try{e.target.mute();e.target.playVideo();}catch(err){} },
+        'onReady':function(e){
+          ready=true;
+          try{ e.target.mute(); if(currentId()!==wanted){ e.target.loadVideoById(wanted); } else { e.target.playVideo(); } }catch(err){}
+        },
         'onStateChange':function(e){
-          console.log('MOTRAILER state='+e.data);
           if(e.data===YT.PlayerState.PLAYING && window.MoTrailerBridge){
-            try{MoTrailerBridge.onPlaying();}catch(err){}
+            try{ MoTrailerBridge.onPlaying(currentId()); }catch(err){}
+          }
+          if(e.data===YT.PlayerState.ENDED){
+            try{ e.target.seekTo(0); e.target.playVideo(); }catch(err){}
           }
         },
         'onError':function(e){
-          console.log('MOTRAILER error='+e.data);
-          if(window.MoTrailerBridge){ try{MoTrailerBridge.onError();}catch(err){} }
+          if(window.MoTrailerBridge){ try{ MoTrailerBridge.onError(currentId()); }catch(err){} }
         }
       }
     });

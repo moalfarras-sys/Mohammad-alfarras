@@ -54,9 +54,11 @@ try {
   const response = await fetch(fileUrl, { headers: { Range: "bytes=2-5" } });
   assert.equal(response.status, 206);
   assert.equal(response.headers.get("content-range"), "bytes 2-5/10");
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("pragma"), "no-cache");
   assert.equal(await response.text(), "2345");
   assert.equal(rangeAcceptEncoding, "identity");
-  console.log("Stream proxy QA passed: HLS URI attributes and byte ranges.");
+  console.log("Stream proxy QA passed: HLS URI attributes, byte ranges, and no-store media responses.");
 } finally {
   proxy.close();
   upstream.close();

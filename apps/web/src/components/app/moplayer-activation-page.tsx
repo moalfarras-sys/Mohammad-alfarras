@@ -19,6 +19,15 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  adoptableActivationProduct,
+  IMPORT_POLL_BUDGET_MS,
+  importPollDelayMs,
+  importProgressIsFinal,
+  nextImportProgress,
+  type ActivationPageProduct,
+  type ImportProgress,
+} from "@/lib/activation-flow";
 import { cn } from "@/lib/cn";
 import { withLocale } from "@/lib/i18n";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
@@ -40,6 +49,7 @@ const copy = {
     step1Title: "Confirm your device code",
     step1Lead: "Open {product} on your device. A code starting with MO- appears on screen — type the four characters here.",
     fromQr: "Code detected automatically from the QR scan.",
+    productDetected: "This code belongs to {product}.",
     codeLabel: "Device code",
     confirm: "Confirm device",
     confirming: "Checking…",
@@ -67,9 +77,10 @@ const copy = {
     send: "Send to device",
     sending: "Sending…",
     // Done
-    doneTitle: "Done — your TV is ready",
-    doneBody: "Your source will appear on {product} in a few moments. You can close this page.",
-    sendAnother: "Send another source",
+    doneTitle: "Imported on your TV",
+    doneBody: "{product} imported your source and is ready to watch. You can close this page.",
+    sendAgain: "Send again",
+    startOver: "Start again with a new code",
     secure: "Secure: your source is encrypted and delivered only to your paired device via moalfarras.space.",
     needHelp: "Need help?",
     support: "Open support",
@@ -89,12 +100,22 @@ const copy = {
     sendFail: "Could not send the source.",
     sendUnavailable: "Could not send right now. Try again in a moment.",
     sourceRateLimited: "Too many attempts. Wait a minute, then try again.",
+    deviceNotReady: "Your TV is no longer waiting for a source. Open the activation screen on the TV, then start again with the new code.",
     // Device import (after send)
-    importingTitle: "Importing on your device…",
-    importingBody: "We sent your source. {product} is importing it now — keep the device on, this page updates by itself.",
+    waitingTvTitle: "Waiting for your TV…",
+    waitingTvBody: "Keep the activation screen open on {product}. It picks up the source automatically within a few seconds.",
+    importingTitle: "Importing on your TV…",
+    importingBody: "Your TV received the source and {product} is loading your channels. Large playlists can take a few minutes — this page updates by itself.",
     importFailedTitle: "Import did not finish",
-    importFailedBody: "The device could not import the source.",
-    importRetryHint: "Check the details, then send the source again.",
+    importFailedBody: "Your TV could not import the source.",
+    importRevokedBody: "The source was cancelled before your TV imported it.",
+    deviceSaid: "Your TV reported:",
+    importRetryHint: "Check the source details, then start again with the new code shown on your TV.",
+    sourceExpiredTitle: "Your TV did not pick up the source in time",
+    sourceExpiredBody: "For your security the source was deleted. Open the activation screen on your TV and start again with the new code.",
+    checkTvTitle: "Check your TV",
+    checkTvWaitingBody: "Your TV has not picked up the source yet. Make sure the activation screen is still open on {product}, then send the source again.",
+    checkTvFetchedBody: "Your TV received the source and may still be loading channels. Check the TV screen for the result.",
   },
   ar: {
     back: "العودة إلى MoPlayer",
@@ -109,6 +130,7 @@ const copy = {
     step1Title: "أكِّد كود الجهاز",
     step1Lead: "افتح {product} على جهازك. سيظهر كود يبدأ بـ MO- على الشاشة — أدخل الرموز الأربعة هنا.",
     fromQr: "تم جلب الكود تلقائياً من مسح رمز QR.",
+    productDetected: "هذا الكود خاص بـ {product}.",
     codeLabel: "كود الجهاز",
     confirm: "أكِّد الجهاز",
     confirming: "جارٍ التحقق…",
@@ -136,9 +158,10 @@ const copy = {
     send: "إرسال إلى الجهاز",
     sending: "جارٍ الإرسال…",
     // Done
-    doneTitle: "تم — تلفزيونك جاهز",
-    doneBody: "سيظهر مصدرك على {product} خلال لحظات. يمكنك إغلاق هذه الصفحة.",
-    sendAnother: "إرسال مصدر آخر",
+    doneTitle: "تم الاستيراد على تلفزيونك",
+    doneBody: "استورد {product} مصدرك وأصبح جاهزاً للمشاهدة. يمكنك إغلاق هذه الصفحة.",
+    sendAgain: "أرسل مرة أخرى",
+    startOver: "ابدأ من جديد بكود جديد",
     secure: "آمن: يُرسَل مصدرك مشفّراً إلى جهازك المرتبط فقط عبر moalfarras.space.",
     needHelp: "تحتاج مساعدة؟",
     support: "افتح الدعم",
@@ -158,29 +181,67 @@ const copy = {
     sendFail: "تعذّر إرسال المصدر.",
     sendUnavailable: "تعذّر الإرسال حالياً. حاول بعد قليل.",
     sourceRateLimited: "محاولات كثيرة. انتظر دقيقة ثم حاول مرة أخرى.",
+    deviceNotReady: "لم يعد تلفزيونك بانتظار مصدر. افتح شاشة التفعيل على التلفزيون ثم ابدأ من جديد بالكود الجديد.",
     // Device import (after send)
-    importingTitle: "جارٍ الاستيراد على الجهاز…",
-    importingBody: "أرسلنا مصدرك ويستورده {product} الآن — أبقِ الجهاز مفتوحاً وستتحدّث هذه الصفحة تلقائياً.",
+    waitingTvTitle: "بانتظار تلفزيونك…",
+    waitingTvBody: "أبقِ شاشة التفعيل مفتوحة في {product}، وسيستلم المصدر تلقائياً خلال ثوانٍ.",
+    importingTitle: "جارٍ الاستيراد على تلفزيونك…",
+    importingBody: "استلم تلفزيونك المصدر ويحمّل {product} قنواتك الآن. قد تستغرق القوائم الكبيرة بضع دقائق، وستتحدّث هذه الصفحة تلقائياً.",
     importFailedTitle: "لم يكتمل الاستيراد",
-    importFailedBody: "تعذّر على الجهاز استيراد المصدر.",
-    importRetryHint: "راجع البيانات ثم أرسل المصدر مرة أخرى.",
+    importFailedBody: "تعذّر على تلفزيونك استيراد المصدر.",
+    importRevokedBody: "أُلغي المصدر قبل أن يستورده تلفزيونك.",
+    deviceSaid: "رسالة التلفزيون:",
+    importRetryHint: "راجع بيانات المصدر، ثم ابدأ من جديد بالكود الجديد الظاهر على التلفزيون.",
+    sourceExpiredTitle: "لم يستلم تلفزيونك المصدر في الوقت المحدد",
+    sourceExpiredBody: "حُذف المصدر حفاظاً على أمانك. افتح شاشة التفعيل على التلفزيون وابدأ من جديد بالكود الجديد.",
+    checkTvTitle: "تحقّق من تلفزيونك",
+    checkTvWaitingBody: "لم يستلم تلفزيونك المصدر بعد. تأكد أن شاشة التفعيل ما زالت مفتوحة في {product}، ثم أرسل المصدر مرة أخرى.",
+    checkTvFetchedBody: "استلم تلفزيونك المصدر وقد يكون ما زال يحمّل القنوات. تحقّق من شاشة التلفزيون لمعرفة النتيجة.",
   },
 } as const;
 
 type Status = "waiting" | "pending" | "invalid" | "activated" | "expired" | "backend" | "rateLimited";
 type SourceType = "xtream" | "m3u";
 type SourceState = "idle" | "testing" | "ok" | "sending" | "sent" | "error";
-// Device-side import result after a send: pending until the device reports back, timeout keeps the old "Done" card.
-type ImportStatus = "pending" | "imported" | "failed" | "revoked" | "timeout";
 
 type StatusPayload = {
   status?: string;
+  productSlug?: string;
   expiresAt?: string;
   activatedAt?: string;
   sourceStatus?: string;
   sourceMessage?: string;
   message?: string;
 };
+
+type ApiResult = { response: Response; payload: StatusPayload | null };
+
+function statusUrl(code: string, product: ActivationPageProduct | null) {
+  const params = new URLSearchParams({ code: `MO-${code}` });
+  if (product) params.set("product", product);
+  return `/api/app/activation/status?${params.toString()}`;
+}
+
+async function readApiResult(request: Promise<Response>): Promise<ApiResult> {
+  const response = await request;
+  const payload = (await response.json().catch(() => null)) as StatusPayload | null;
+  return { response, payload };
+}
+
+function statusFromResult({ response, payload }: ApiResult): Status {
+  if (payload?.status === "activated") return "activated";
+  if (payload?.status === "expired") return "expired";
+  if (payload?.status === "invalid" || payload?.status === "wrong_product") return "invalid";
+  if (response.status === 429) return "rateLimited";
+  if (response.status === 202 || payload?.status === "pending") return "pending";
+  return "backend";
+}
+
+// The code expired or is gone (410/404), or the TV's handoff session ended: the TV must show a new
+// code. Said in the page language instead of the API's English message.
+function pairingEnded(response: Response, payload: { status?: string } | null) {
+  return response.status === 404 || response.status === 410 || payload?.status === "device_not_ready";
+}
 
 function normalizeCode(value: string) {
   return value
@@ -201,15 +262,18 @@ function safeMessage(value: string) {
 export function MoPlayerActivationPage({
   locale,
   initialCode = "",
-  productSlug = "moplayer",
+  productSlug,
 }: {
   locale: Locale;
   initialCode?: string;
-  productSlug?: "moplayer" | "moplayer2" | "moplayer-pc";
+  /** Omitted when the URL names no product: the page then detects the app from the code. */
+  productSlug?: ActivationPageProduct;
 }) {
   const isAr = locale === "ar";
-  const isPro = productSlug === "moplayer2";
-  const isPc = productSlug === "moplayer-pc";
+  const [product, setProduct] = useState<ActivationPageProduct | null>(productSlug ?? null);
+  const [productDetected, setProductDetected] = useState(false);
+  const isPro = product === "moplayer2";
+  const isPc = product === "moplayer-pc";
   const t = repairMojibakeDeep(copy[locale]);
   const productName = isPc ? "MoPlayer PC" : isPro ? "MoPlayer Pro" : "MoPlayer";
   const fill = (value: string) => value.replace(/\{product\}/g, productName);
@@ -220,7 +284,9 @@ export function MoPlayerActivationPage({
   const [sourceType, setSourceType] = useState<SourceType>("xtream");
   const [sourceState, setSourceState] = useState<SourceState>("idle");
   const [sourceMessage, setSourceMessage] = useState("");
-  const [importStatus, setImportStatus] = useState<ImportStatus>("pending");
+  const [sentAt, setSentAt] = useState(0);
+  const [importProgress, setImportProgress] = useState<ImportProgress>("waiting");
+  const [importTimedOut, setImportTimedOut] = useState(false);
   const [importMessage, setImportMessage] = useState("");
   const [sourceName, setSourceName] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -229,10 +295,12 @@ export function MoPlayerActivationPage({
   const [playlistUrl, setPlaylistUrl] = useState("");
   const [epgUrl, setEpgUrl] = useState("");
 
-  const cameFromQr = normalizeCode(initialCode).length === 4;
+  const qrCode = normalizeCode(initialCode);
+  const cameFromQr = qrCode.length === 4 && code === qrCode;
   const activated = status === "activated";
   const sent = sourceState === "sent";
-  const activeStep = sent ? 3 : activated ? 2 : 1;
+  // Step 2 only counts as done once the TV reports the import.
+  const activeStep = sent && importProgress === "imported" ? 3 : activated ? 2 : 1;
 
   const canSubmit =
     activated &&
@@ -258,43 +326,77 @@ export function MoPlayerActivationPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // After a successful send, poll the status endpoint (~every 4s, up to ~2 minutes)
-  // until the device reports the import result.
+  // After a send, follow the device: fetched → loading channels → imported/failed. The TV acks only
+  // after its first library sync, so keep polling (backing off) for up to ten minutes.
   useEffect(() => {
-    if (sourceState !== "sent" || importStatus !== "pending") return;
+    if (sourceState !== "sent" || !product || importTimedOut || importProgressIsFinal(importProgress)) return;
     let cancelled = false;
-    let polls = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const poll = async () => {
-      polls += 1;
+      if (Date.now() - sentAt >= IMPORT_POLL_BUDGET_MS) {
+        setImportTimedOut(true);
+        return;
+      }
       try {
-        const response = await fetch(
-          `/api/app/activation/status?code=${encodeURIComponent(`MO-${code}`)}&product=${encodeURIComponent(productSlug)}`,
-          { method: "GET", cache: "no-store" },
-        );
-        const payload = (await response.json().catch(() => null)) as StatusPayload | null;
+        const { payload } = await readApiResult(fetch(statusUrl(code, product), { method: "GET", cache: "no-store" }));
         if (cancelled) return;
-        const deviceStatus = payload?.sourceStatus;
-        if (deviceStatus === "imported") {
-          setImportStatus("imported");
-          return;
-        }
-        if (deviceStatus === "failed" || deviceStatus === "revoked") {
-          setImportStatus(deviceStatus);
-          setImportMessage(payload?.sourceMessage ? safeMessage(payload.sourceMessage) : "");
+        const next = nextImportProgress(importProgress, payload?.sourceStatus);
+        if (next !== importProgress) {
+          if (next === "failed") setImportMessage(payload?.sourceMessage ? safeMessage(payload.sourceMessage) : "");
+          // Changing the progress re-runs this effect, which schedules the next poll.
+          setImportProgress(next);
           return;
         }
       } catch {
         // Transient network issue — keep polling until the budget runs out.
       }
-      if (!cancelled && polls >= 30) setImportStatus("timeout");
+      if (!cancelled) timer = setTimeout(() => void poll(), importPollDelayMs(Date.now() - sentAt));
     };
-    void poll();
-    const timer = setInterval(() => void poll(), 4000);
+    timer = setTimeout(() => void poll(), importPollDelayMs(Date.now() - sentAt));
     return () => {
       cancelled = true;
-      clearInterval(timer);
+      if (timer) clearTimeout(timer);
     };
-  }, [sourceState, importStatus, code, productSlug]);
+  }, [sourceState, product, code, sentAt, importProgress, importTimedOut]);
+
+  // Codes are unique across apps, so the page follows the code: on the bare /activate URL (no product)
+  // or on the other app's page the API names the right app and the page switches to it.
+  function adoptProduct(next: ActivationPageProduct) {
+    setProduct(next);
+    setProductDetected(true);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("product", next);
+      window.history.replaceState(null, "", url);
+    } catch {
+      // The URL is only a convenience for reloads; the page keeps working without it.
+    }
+    return next;
+  }
+
+  async function lookupStatus(): Promise<ApiResult & { product: ActivationPageProduct | null }> {
+    let target = product;
+    let result = await readApiResult(fetch(statusUrl(code, target), { method: "GET", cache: "no-store" }));
+    const reported = adoptableActivationProduct(result.payload?.productSlug);
+    if (result.payload?.status === "wrong_product" && reported) {
+      target = adoptProduct(reported);
+      result = await readApiResult(fetch(statusUrl(code, target), { method: "GET", cache: "no-store" }));
+    } else if (!target && reported) {
+      target = adoptProduct(reported);
+    }
+    return { ...result, product: target };
+  }
+
+  function confirmRequest(target: ActivationPageProduct) {
+    const deviceName = target === "moplayer-pc" ? "MoPlayer PC" : target === "moplayer2" ? "MoPlayer Pro TV" : "MoPlayer TV";
+    return readApiResult(
+      fetch("/api/app/activation/confirm", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: `MO-${code}`, productSlug: target, deviceName }),
+      }),
+    );
+  }
 
   async function refreshStatus() {
     if (!allowed.test(code)) {
@@ -304,25 +406,7 @@ export function MoPlayerActivationPage({
 
     setChecking(true);
     try {
-      const response = await fetch(
-        `/api/app/activation/status?code=${encodeURIComponent(`MO-${code}`)}&product=${encodeURIComponent(productSlug)}`,
-        { method: "GET", cache: "no-store" },
-      );
-      const payload = (await response.json().catch(() => null)) as StatusPayload | null;
-
-      if (payload?.status === "activated") {
-        setStatus("activated");
-      } else if (payload?.status === "expired") {
-        setStatus("expired");
-      } else if (payload?.status === "invalid") {
-        setStatus("invalid");
-      } else if (response.status === 429) {
-        setStatus("rateLimited");
-      } else if (response.status === 202 || payload?.status === "pending") {
-        setStatus("pending");
-      } else {
-        setStatus("backend");
-      }
+      setStatus(statusFromResult(await lookupStatus()));
     } catch {
       setStatus("backend");
     } finally {
@@ -338,25 +422,21 @@ export function MoPlayerActivationPage({
 
     setChecking(true);
     try {
-      const response = await fetch("/api/app/activation/confirm", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, productSlug, deviceName: isPc ? "MoPlayer PC" : isPro ? "MoPlayer Pro TV" : "MoPlayer TV" }),
-      });
-      const payload = (await response.json().catch(() => null)) as StatusPayload | null;
-      if (response.ok && payload?.status === "activated") {
-        setStatus("activated");
-      } else if (payload?.status === "expired") {
-        setStatus("expired");
-      } else if (payload?.status === "invalid") {
-        setStatus("invalid");
-      } else if (response.status === 429) {
-        setStatus("rateLimited");
-      } else if (response.status === 202 || payload?.status === "pending") {
-        setStatus("pending");
-      } else {
-        setStatus("backend");
+      let target = product;
+      if (!target) {
+        const lookup = await lookupStatus();
+        if (!lookup.product || lookup.payload?.status !== "pending") {
+          setStatus(statusFromResult(lookup));
+          return;
+        }
+        target = lookup.product;
       }
+      let result = await confirmRequest(target);
+      const reported = adoptableActivationProduct(result.payload?.productSlug);
+      if (result.payload?.status === "wrong_product" && reported) {
+        result = await confirmRequest(adoptProduct(reported));
+      }
+      setStatus(statusFromResult(result));
     } catch {
       setStatus("backend");
     } finally {
@@ -379,9 +459,9 @@ export function MoPlayerActivationPage({
       const response = await fetch("/api/app/activation/source/test", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
+        body: JSON.stringify({ code: `MO-${code}`, productSlug: product ?? undefined, source: sourcePayload() }),
       });
-      const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; status?: string; message?: string } | null;
       if (response.status === 429) {
         setSourceState("error");
         setSourceMessage(t.sourceRateLimited);
@@ -389,7 +469,7 @@ export function MoPlayerActivationPage({
       }
       const ok = response.ok && payload?.ok;
       setSourceState(ok ? "ok" : "error");
-      setSourceMessage(ok ? t.testOk : safeMessage(payload?.message || t.testFail));
+      setSourceMessage(ok ? t.testOk : pairingEnded(response, payload) ? t.deviceNotReady : safeMessage(payload?.message || t.testFail));
     } catch {
       setSourceState("error");
       setSourceMessage(t.testUnavailable);
@@ -404,9 +484,9 @@ export function MoPlayerActivationPage({
       const response = await fetch("/api/app/activation/source", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: `MO-${code}`, productSlug, source: sourcePayload() }),
+        body: JSON.stringify({ code: `MO-${code}`, productSlug: product ?? undefined, source: sourcePayload() }),
       });
-      const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; status?: string; message?: string } | null;
       if (response.status === 429) {
         setSourceState("error");
         setSourceMessage(t.sourceRateLimited);
@@ -415,13 +495,14 @@ export function MoPlayerActivationPage({
       if (response.ok && payload?.ok) {
         setSourceState("sent");
         setSourceMessage(t.sendOk);
-        setImportStatus("pending");
+        setSentAt(Date.now());
+        setImportProgress("waiting");
+        setImportTimedOut(false);
         setImportMessage("");
         setPassword("");
-        await refreshStatus();
       } else {
         setSourceState("error");
-        setSourceMessage(safeMessage(payload?.message || t.sendFail));
+        setSourceMessage(pairingEnded(response, payload) ? t.deviceNotReady : safeMessage(payload?.message || t.sendFail));
       }
     } catch {
       setSourceState("error");
@@ -429,19 +510,60 @@ export function MoPlayerActivationPage({
     }
   }
 
+  // Back to the source form for another send; the details stay filled in except the password.
   function resetSource() {
     setSourceState("idle");
     setSourceMessage("");
-    setImportStatus("pending");
+    setImportProgress("waiting");
+    setImportTimedOut(false);
     setImportMessage("");
+  }
+
+  // A different code is a different pairing: the old result, and any send that followed it, no longer
+  // apply. This is also how "start again with the new code" works from the source form.
+  function changeCode(next: string) {
+    if (next === code) return;
+    setCode(next);
+    if (status === "waiting" && sourceState === "idle") return;
+    resetSource();
+    setStatus("waiting");
+    setProductDetected(false);
+  }
+
+  // Another send needs a fresh code from the TV's activation screen, so the flow restarts at step 1.
+  function startOver() {
+    resetSource();
     setServerUrl("");
     setUsername("");
     setPassword("");
     setPlaylistUrl("");
     setEpgUrl("");
     setSourceName("");
+    setCode("");
+    setStatus("waiting");
+    setProductDetected(false);
   }
 
+  // Shown when the send did not end in "imported": device failure, expired handoff, or no answer in time.
+  const importIssue =
+    importProgress === "failed" || importProgress === "revoked"
+      ? {
+          tone: "is-error",
+          icon: AlertCircle,
+          title: t.importFailedTitle,
+          body: `${importProgress === "revoked" ? t.importRevokedBody : t.importFailedBody} ${t.importRetryHint}`,
+          resend: false,
+        }
+      : importProgress === "expired"
+        ? { tone: "is-warn", icon: Clock3, title: t.sourceExpiredTitle, body: t.sourceExpiredBody, resend: false }
+        : {
+            tone: "is-warn",
+            icon: Tv,
+            title: t.checkTvTitle,
+            body: fill(importProgress === "fetched" ? t.checkTvFetchedBody : t.checkTvWaitingBody),
+            resend: importProgress !== "fetched",
+          };
+  const ImportIssueIcon = importIssue.icon;
   const StatusIcon = statusMeta.icon;
   const BackArrow = isAr ? ArrowRight : ArrowLeft;
   const NextArrow = isAr ? ArrowLeft : ArrowRight;
@@ -497,7 +619,7 @@ export function MoPlayerActivationPage({
               autoCapitalize="characters"
               spellCheck={false}
               aria-label={t.codeLabel}
-              onChange={(event) => setCode(normalizeCode(event.target.value))}
+              onChange={(event) => changeCode(normalizeCode(event.target.value))}
               placeholder="4C7K"
             />
           </div>
@@ -505,6 +627,12 @@ export function MoPlayerActivationPage({
             <p className="mo-act-hint">
               <CheckCircle2 className="h-4 w-4" />
               {t.fromQr}
+            </p>
+          ) : null}
+          {productDetected ? (
+            <p className="mo-act-hint">
+              <Tv className="h-4 w-4" />
+              {fill(t.productDetected)}
             </p>
           ) : null}
 
@@ -534,40 +662,49 @@ export function MoPlayerActivationPage({
           ) : null}
         </section>
 
-        {/* STEP 2 — Add subscription / Importing / Done */}
-        {sent && importStatus === "pending" ? (
+        {/* STEP 2 — Add source / Waiting for the TV / Imported / Problem */}
+        {sent && !importTimedOut && (importProgress === "waiting" || importProgress === "fetched") ? (
           <section className="mo-act-card mo-act-done" aria-live="polite">
             <span className="mo-act-done-icon">
               <Loader2 className="h-7 w-7 animate-spin" />
             </span>
-            <h2>{t.importingTitle}</h2>
-            <p>{fill(t.importingBody)}</p>
+            <h2>{importProgress === "fetched" ? t.importingTitle : t.waitingTvTitle}</h2>
+            <p>{fill(importProgress === "fetched" ? t.importingBody : t.waitingTvBody)}</p>
           </section>
-        ) : sent && (importStatus === "failed" || importStatus === "revoked") ? (
-          <section className="mo-act-card mo-act-done" aria-live="polite">
-            <span className="mo-act-done-icon">
-              <AlertCircle className="h-7 w-7" />
-            </span>
-            <h2>{t.importFailedTitle}</h2>
-            <p>{importMessage || t.importFailedBody}</p>
-            <div className="mo-act-msg is-error">
-              <AlertCircle className="h-4 w-4" />
-              {t.importRetryHint}
-            </div>
-            <button type="button" onClick={resetSource} className="mo-act-btn">
-              {t.sendAnother}
-            </button>
-          </section>
-        ) : sent ? (
+        ) : sent && importProgress === "imported" ? (
           <section className="mo-act-card mo-act-done" aria-live="polite">
             <span className="mo-act-done-icon">
               <Sparkles className="h-7 w-7" />
             </span>
             <h2>{t.doneTitle}</h2>
             <p>{fill(t.doneBody)}</p>
-            <button type="button" onClick={resetSource} className="mo-act-btn">
-              {t.sendAnother}
-            </button>
+          </section>
+        ) : sent ? (
+          <section className="mo-act-card" aria-live="polite">
+            <div className={cn("mo-act-status", importIssue.tone)}>
+              <ImportIssueIcon className="h-5 w-5" />
+              <div>
+                <strong>{importIssue.title}</strong>
+                <span>{importIssue.body}</span>
+              </div>
+            </div>
+            {importProgress === "failed" && importMessage ? (
+              <div className="mo-act-msg is-info">
+                <Tv className="h-4 w-4" />
+                <span>
+                  {t.deviceSaid} <bdi dir="auto">{importMessage}</bdi>
+                </span>
+              </div>
+            ) : null}
+            <div className="mo-act-actions">
+              <button
+                type="button"
+                onClick={importIssue.resend ? resetSource : startOver}
+                className={cn("mo-act-btn", importIssue.resend && "mo-act-btn-primary")}
+              >
+                {importIssue.resend ? t.sendAgain : t.startOver}
+              </button>
+            </div>
           </section>
         ) : (
           <section className={cn("mo-act-card", !activated && "is-locked")} aria-labelledby="mo-act-step2">

@@ -25,6 +25,12 @@
 # ── Media3 / ExoPlayer ───────────────────────────────────────────────
 -keep class androidx.media3.** { *; }
 
+# ── FFmpeg audio decoders (org.jellyfin.media3:media3-ffmpeg-decoder) ─
+# FfmpegAudioDecoder is called back from native code (JNI) and Media3 looks the renderer up by
+# reflection; keep the package whole and unrenamed so neither path breaks after shrinking.
+-keep class androidx.media3.decoder.ffmpeg.** { *; }
+-dontwarn androidx.media3.decoder.ffmpeg.**
+
 # ── LibVLC ────────────────────────────────────────────────────────────
 -keep class org.videolan.** { *; }
 -keep class libcore.io.** { *; }

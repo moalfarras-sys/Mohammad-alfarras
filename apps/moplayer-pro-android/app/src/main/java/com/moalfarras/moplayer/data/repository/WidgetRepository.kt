@@ -1,10 +1,8 @@
 package com.moalfarras.moplayer.data.repository
 
-import com.moalfarras.moplayer.data.network.ApiKeys
 import com.moalfarras.moplayer.data.network.FreeWeatherService
 import com.moalfarras.moplayer.data.network.SportsDbEventDto
 import com.moalfarras.moplayer.data.network.SportsDbService
-import com.moalfarras.moplayer.data.network.WeatherService
 import com.moalfarras.moplayer.data.network.WebApiEndpoint
 import com.moalfarras.moplayer.data.network.WebFootballMatchDto
 import com.moalfarras.moplayer.data.network.WebFootballService
@@ -26,7 +24,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class WidgetRepository(
-    private val weatherService: WeatherService,
     private val webWeatherService: WebWeatherService,
     private val freeWeatherService: FreeWeatherService,
     private val sportsDbService: SportsDbService,
@@ -46,16 +43,8 @@ class WidgetRepository(
         val requestedCity = cityOverride.trim()
         if (requestedCity.isBlank()) return ipWeather()
         fetchManagedWeather(requestedCity)?.let { return it }
-        fetchOpenMeteoCityWeather(requestedCity)?.let { return it }
-        require(ApiKeys.weather.isNotBlank()) { "No real weather provider is available for $requestedCity" }
-        val weather = weatherService.current(ApiKeys.weather, requestedCity)
-        return WeatherSnapshot(
-            city = weather.location.name.ifBlank { requestedCity },
-            condition = weather.current.condition.text.ifBlank { "Clear" },
-            temperatureC = weather.current.tempC,
-            iconUrl = weather.current.condition.icon,
-            timeZoneId = weather.location.tzId.ifBlank { ZoneId.systemDefault().id },
-        )
+        // No key-based provider ships in the APK: the site's /api/weather keeps its key server-side.
+        return fetchOpenMeteoCityWeather(requestedCity) ?: error("No weather provider answered for $requestedCity")
     }
 
     private suspend fun ipWeather(): WeatherSnapshot {
@@ -196,35 +185,6 @@ class WidgetRepository(
         }.orEmpty()
     }
 
-    /**
-     * The widget contract: LIVE matches first, then UPCOMING ordered by soonest kickoff, then the
-     * freshest recent results — and finished games older than ~5h (kickoff + play time + grace)
-     * are dropped entirely so the ticker never dwells on stale scores. Falls back to the unfiltered
-     * list when everything is stale, so the widget never goes blank between matchdays.
-     */
-    private fun List<FootballMatch>.forWidget(maxMatches: Int, nowMs: Long = System.currentTimeMillis()): List<FootballMatch> {
-        val fresh = filterNot { it.isFinished && it.kickoffEpochMs > 0 && nowMs - it.kickoffEpochMs > STALE_FINISHED_MS }
-        val pool = fresh.ifEmpty { this }
-        return pool
-            .sortedWith(
-                compareBy<FootballMatch> {
-                    when {
-                        it.isLive -> 0
-                        !it.isFinished -> 1
-                        else -> 2
-                    }
-                }.thenBy {
-                    // Live: most recently started first; upcoming: soonest kickoff first;
-                    // finished: most recent first. Unknown kickoffs sort last within their group.
-                    when {
-                        it.kickoffEpochMs <= 0 -> Long.MAX_VALUE
-                        it.isFinished || it.isLive -> nowMs - it.kickoffEpochMs
-                        else -> it.kickoffEpochMs - nowMs
-                    }
-                },
-            )
-            .take(maxMatches)
-    }
 
     private fun WebFootballMatchDto.toFootballMatch(newsMessage: String = ""): FootballMatch? {
         val homeName = homeTeam.trim()
@@ -357,3 +317,43 @@ class WidgetRepository(
 // Kickoff + full match + generous grace: a finished game older than this is history, not ticker
 // material — the widget prefers what's live or coming next.
 private const val STALE_FINISHED_MS = 5 * 60 * 60 * 1000L
+
+// Upcoming fixtures further away than this are not "what's on" and stay out of the widget.
+private const val UPCOMING_HORIZON_MS = 48 * 60 * 60 * 1000L
+
+/**
+ * Whether a match belongs in the Home football widget right now: live, kicking off within the
+ * next 48 h, or finished less than ~5 h after kickoff. Matches whose kickoff is unknown only
+ * qualify while live, so stale results (e.g. a finished tournament) can never linger.
+ */
+internal fun FootballMatch.isWidgetRelevant(nowMs: Long): Boolean = when {
+    isLive -> true
+    kickoffEpochMs <= 0L -> false
+    isFinished -> nowMs - kickoffEpochMs in 0..STALE_FINISHED_MS
+    else -> kickoffEpochMs - nowMs in -STALE_FINISHED_MS..UPCOMING_HORIZON_MS
+}
+
+/**
+ * The widget contract: LIVE matches first, then UPCOMING ordered by soonest kickoff, then the
+ * freshest recent results. Irrelevant matches are dropped — when nothing qualifies the list is
+ * empty and the Home widget hides instead of showing old scores.
+ */
+internal fun List<FootballMatch>.forWidget(maxMatches: Int, nowMs: Long = System.currentTimeMillis()): List<FootballMatch> =
+    filter { it.isWidgetRelevant(nowMs) }
+        .sortedWith(
+            compareBy<FootballMatch> {
+                when {
+                    it.isLive -> 0
+                    !it.isFinished -> 1
+                    else -> 2
+                }
+            }.thenBy {
+                // Live: most recently started first; upcoming: soonest kickoff first;
+                // finished: most recent first.
+                when {
+                    it.isFinished || it.isLive -> nowMs - it.kickoffEpochMs
+                    else -> it.kickoffEpochMs - nowMs
+                }
+            },
+        )
+        .take(maxMatches.coerceAtLeast(1))

@@ -33,6 +33,17 @@ class UpdateFlowLogicTest {
     }
 
     @Test
+    fun metadataNeverDeletesFilesAJobIsUsing() {
+        assertTrue(updateFilesInUse(UpdateState.Downloading(info, 10, 100, false)))
+        assertTrue(updateFilesInUse(UpdateState.Verifying(info)))
+        assertTrue(updateFilesInUse(UpdateState.Installing(info)))
+        assertFalse(updateFilesInUse(UpdateState.Idle))
+        assertFalse(updateFilesInUse(UpdateState.Available(info, 1L)))
+        assertFalse(updateFilesInUse(UpdateState.ReadyToInstall(info)))
+        assertFalse(updateFilesInUse(UpdateState.Failed(info, UpdateError.NETWORK)))
+    }
+
+    @Test
     fun downloadPercentIsUnknownWithoutATotal() {
         assertEquals(42, UpdateState.Downloading(info, 42, 100, false).percent)
         assertNull(UpdateState.Downloading(info, 42, -1, false).percent)

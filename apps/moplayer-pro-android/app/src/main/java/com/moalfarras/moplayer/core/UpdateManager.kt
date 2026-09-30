@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -80,9 +81,19 @@ sealed interface PendingInstallAction {
     /** The system's install confirmation for our committed session. */
     data class Confirm(val intent: Intent) : PendingInstallAction
 
-    /** The classic installer screen for [file], when the session API is not usable here. */
-    data class LegacyInstaller(val file: File) : PendingInstallAction
+    /**
+     * The classic installer screen, when the session API is not usable here. [intent] is built off
+     * the main thread, because on Android 6 that copies the whole APK to external storage.
+     */
+    data class LegacyInstaller(val intent: Intent) : PendingInstallAction
 }
+
+/**
+ * States in which a job is writing, reading or installing an update file: metadata that arrives
+ * meanwhile (possibly for another version) must not delete those files.
+ */
+internal fun updateFilesInUse(state: UpdateState): Boolean =
+    state is UpdateState.Downloading || state is UpdateState.Verifying || state is UpdateState.Installing
 
 /** The single action the primary update button performs in each state. */
 enum class UpdateAction { CHECK, DOWNLOAD, CANCEL, BUSY, INSTALL, ALLOW_INSTALLS, RETRY }
@@ -175,7 +186,7 @@ class UpdateManager(
         lastCheckedAt = SystemClock.elapsedRealtime()
         lastCheckedAtWallMs = System.currentTimeMillis()
         val checked = if (info.updateAvailable) UpdateState.Available(info, lastCheckedAtWallMs) else UpdateState.UpToDate(info, lastCheckedAtWallMs)
-        mutableState.update { current ->
+        val next = mutableState.updateAndGet { current ->
             when (current) {
                 UpdateState.Idle, is UpdateState.Checking, is UpdateState.UpToDate,
                 is UpdateState.Available, is UpdateState.CheckFailed -> checked
@@ -184,7 +195,11 @@ class UpdateManager(
                 else -> current
             }
         }
-        scope.launch { repository.deleteStaleFiles(info.latestVersionCode.takeIf { info.updateAvailable }) }
+        // A running transfer or install keeps its files (they may belong to another version);
+        // the next metadata update cleans up.
+        if (!updateFilesInUse(next)) {
+            scope.launch { repository.deleteStaleFiles(info.latestVersionCode.takeIf { info.updateAvailable }) }
+        }
     }
 
     /**
@@ -262,8 +277,24 @@ class UpdateManager(
         } catch (error: Exception) {
             // Some TV firmwares ship a broken session installer; the classic screen still works there.
             if (BuildConfig.DEBUG) Log.w(TAG, "Session install unavailable, using the system installer", error)
-            mutablePendingAction.value = PendingInstallAction.LegacyInstaller(apk)
+            offerLegacyInstaller(info, apk)
         }
+    }
+
+    /** Prepares the classic installer on this (IO) thread and hands it to the foreground activity. */
+    private fun offerLegacyInstaller(info: AppUpdateInfo, apk: File) {
+        val intent = try {
+            repository.legacyInstallIntent(apk)
+        } catch (error: UpdateException) {
+            mutableState.value = UpdateState.Failed(info, error.error, error.detail)
+            return
+        } catch (error: Exception) {
+            // FileProvider path or storage problems; this also runs in a bare scope.launch, where
+            // an escaping exception would crash the app.
+            mutableState.value = UpdateState.Failed(info, UpdateError.INSTALLER_UNAVAILABLE)
+            return
+        }
+        mutablePendingAction.value = PendingInstallAction.LegacyInstaller(intent)
     }
 
     /** Result of a committed session, delivered by [UpdateInstallReceiver]. */
@@ -315,21 +346,13 @@ class UpdateManager(
                 installerLaunchedAt = SystemClock.elapsedRealtime()
             }
             is PendingInstallAction.LegacyInstaller -> {
+                val opened = startActivity(activity, action.intent)
                 val info = mutableState.value.info ?: return
-                val intent = try {
-                    repository.legacyInstallIntent(action.file)
-                } catch (error: UpdateException) {
-                    mutableState.value = UpdateState.Failed(info, error.error, error.detail)
-                    return
-                } catch (error: IllegalArgumentException) {
-                    mutableState.value = UpdateState.Failed(info, UpdateError.INSTALLER_UNAVAILABLE)
-                    return
-                }
-                if (startActivity(activity, intent)) {
+                mutableState.value = if (opened) {
                     // The classic installer reports nothing back; let the user open it again.
-                    mutableState.value = UpdateState.ReadyToInstall(info, installerOpened = true)
+                    UpdateState.ReadyToInstall(info, installerOpened = true)
                 } else {
-                    mutableState.value = UpdateState.Failed(info, UpdateError.INSTALLER_UNAVAILABLE)
+                    UpdateState.Failed(info, UpdateError.INSTALLER_UNAVAILABLE)
                 }
             }
         }
@@ -342,7 +365,7 @@ class UpdateManager(
             if (apk == null) {
                 mutableState.value = UpdateState.Failed(info, UpdateError.INSTALLER_UNAVAILABLE)
             } else {
-                mutablePendingAction.value = PendingInstallAction.LegacyInstaller(apk)
+                offerLegacyInstaller(info, apk)
             }
         }
     }

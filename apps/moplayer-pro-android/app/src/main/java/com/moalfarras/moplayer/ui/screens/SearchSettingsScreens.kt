@@ -1966,8 +1966,8 @@ private fun AboutCard(isTv: Boolean = false) {
         SectionHeader(s.updateHeader)
         AppUpdatePanel(isTv)
         DiagnosticsRow(s.aboutVersion, "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-        DiagnosticsRow(u.aboutDeviceProfile, device.tier.label(strings) + deviceRamSuffix(device.totalRamMb, u) + " · " + device.displayQualityLabel)
-        DiagnosticsRow(u.aboutSystem, androidVersionLine(u))
+        DiagnosticsRow(u.aboutDeviceProfile, deviceProfileLine(device.tier.label(strings), device.totalRamMb, device.displayQualityLabel, u), ltrValue = false)
+        DiagnosticsRow(u.aboutSystem, androidVersionLine(u), ltrValue = false)
         DiagnosticsRow(s.aboutSupport, "www.moalfarras.space")
         SettingsButton(
             u.aboutLicenses,
@@ -1986,14 +1986,21 @@ private fun DevicePerformanceTier.label(strings: Strings): String = when (this) 
     DevicePerformanceTier.HIGH -> strings.perfQuality
 }
 
-private fun deviceRamSuffix(totalRamMb: Int, u: UpdateStrings): String =
-    if (totalRamMb <= 0) "" else " · " + u.aboutRam("%.1f".format(java.util.Locale.US, totalRamMb / 1024.0))
+/** "Balanced · 2.0 GB RAM · FHD": the localized tier, RAM (when known) and the LTR display label. */
+internal fun deviceProfileLine(tierLabel: String, totalRamMb: Int, displayQualityLabel: String, u: UpdateStrings): String {
+    val ram = if (totalRamMb <= 0) "" else " · " + u.aboutRam("%.1f".format(java.util.Locale.US, totalRamMb / 1024.0))
+    return tierLabel + ram + " · " + displayQualityLabel.ltr()
+}
 
+/**
+ * [ltrValue] for pure LTR data (versions, hosts). A localized sentence passes false: it isolates its
+ * own LTR parts, and an outer LTR isolate would reorder its Arabic words.
+ */
 @Composable
-private fun DiagnosticsRow(label: String, value: String) {
+private fun DiagnosticsRow(label: String, value: String, ltrValue: Boolean = true) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, color = Color(0x99FFFFFF), fontSize = 13.sp)
-        Text(value.ltr(), color = Color.White, fontSize = 14.sp)
+        Text(if (ltrValue) value.ltr() else value.isolate(), color = Color.White, fontSize = 14.sp)
     }
 }
 

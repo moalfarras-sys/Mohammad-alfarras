@@ -227,6 +227,9 @@ class UpdateRepository(private val context: Context) {
                 downloadOnce(info.downloadUrl, part, report)
                 break
             } catch (error: UpdateException) {
+                // Cancelling closes the socket, which surfaces here as a network error: report the
+                // cancellation instead, so a cancelled download never ends as "failed".
+                coroutineContext.ensureActive()
                 val retryable = error.error == UpdateError.NETWORK || error.error == UpdateError.STALLED
                 failuresWithoutProgress = if (part.length() > before) 1 else failuresWithoutProgress + 1
                 if (!retryable || failuresWithoutProgress > MAX_ATTEMPTS_WITHOUT_PROGRESS) throw error
@@ -389,6 +392,7 @@ class UpdateRepository(private val context: Context) {
      * The classic "open this APK" intent, used when the session API is unavailable. Android 7+
      * reads it through the FileProvider; Android 6's installer only accepts file:// URIs and cannot
      * read app-private files, so there the APK is copied to the app's external files directory.
+     * Blocking (that copy): call it off the main thread.
      */
     fun legacyInstallIntent(file: File): Intent {
         val intent = Intent(Intent.ACTION_VIEW)

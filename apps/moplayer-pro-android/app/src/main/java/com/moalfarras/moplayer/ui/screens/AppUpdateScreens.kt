@@ -391,6 +391,7 @@ fun AppUpdatePanel(isTv: Boolean) {
                 Text(u.lastChecked(formatClock(checkedAt)), color = Color(0x80FFFFFF), fontSize = tv.readableSp(12f, 12f))
             }
             val action = primaryUpdateAction(state)
+            val primaryFocus = remember { FocusRequester() }
             // The primary button keeps focus in every state: its label and action change instead
             // of it becoming disabled (a disabled control drops D-pad focus).
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().focusGroup()) {
@@ -399,16 +400,21 @@ fun AppUpdatePanel(isTv: Boolean) {
                     icon = updateActionIcon(action),
                     modifier = Modifier.weight(1.3f),
                     enabled = action != UpdateAction.BUSY,
+                    focusRequester = primaryFocus,
                     onClick = { performUpdateAction(action, state, manager, activity) },
                 )
-                if (action != UpdateAction.CHECK && action != UpdateAction.BUSY) {
+                // Only offered while it can run. Pressing it starts a check (BUSY), which removes
+                // this button, so focus moves to the primary button first instead of being lost.
+                if (action != UpdateAction.CHECK && action != UpdateAction.BUSY && action != UpdateAction.CANCEL) {
                     UpdateButton(
                         text = s.updateCheck,
                         icon = Icons.Rounded.Refresh,
                         modifier = Modifier.weight(1f),
                         primary = false,
-                        enabled = state !is UpdateState.Downloading,
-                        onClick = { manager.check(force = true) },
+                        onClick = {
+                            runCatching { primaryFocus.requestFocus() }
+                            manager.check(force = true)
+                        },
                     )
                 }
                 val downloadUrl = info?.downloadUrl

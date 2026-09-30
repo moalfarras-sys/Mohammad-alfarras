@@ -1657,7 +1657,7 @@ class MainViewModel(
 
     /**
      * Re-reads the admin config: at start, when the app returns to the foreground and periodically
-     * (throttled to [CONFIG_REFRESH_MS]), or right away with [force] (the block screen's retry).
+     * (throttled to [CONFIG_REFRESH_MS]), or right away with [force] (at start).
      */
     fun refreshRemoteConfig(force: Boolean = false) {
         if (remoteConfigJob?.isActive == true) return
@@ -1667,11 +1667,24 @@ class MainViewModel(
         remoteConfigJob = viewModelScope.launch { applyRemoteRuntimeConfig() }
     }
 
-    /** "Try again" on the maintenance/disabled screen. */
+    /** "Try again" on the maintenance/disabled screen: always answered by a request made after the press. */
     fun retryAppBlock() {
-        if (remoteConfigJob?.isActive == true) return
+        markBlockRechecking()
+        val running = remoteConfigJob?.takeIf { it.isActive }
+        lastRemoteConfigAttemptAt = android.os.SystemClock.elapsedRealtime()
+        remoteConfigJob = viewModelScope.launch {
+            if (running != null) {
+                // An automatic refresh was already under way (its answer may predate the press):
+                // let it finish, then ask again so the retry gets its own outcome.
+                running.join()
+                markBlockRechecking()
+            }
+            applyRemoteRuntimeConfig()
+        }
+    }
+
+    private fun markBlockRechecking() {
         internal.update { it.copy(appBlock = it.appBlock?.copy(recheck = BlockRecheck.CHECKING)) }
-        refreshRemoteConfig(force = true)
     }
 
     private suspend fun applyRemoteRuntimeConfig() {

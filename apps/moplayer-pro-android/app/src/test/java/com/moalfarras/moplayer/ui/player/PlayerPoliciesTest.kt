@@ -108,12 +108,18 @@ class PlayerPoliciesTest {
         forceHls: Boolean = false,
         engine: Boolean = false,
         surface: Boolean = false,
-    ) = liveErrorRecoveryStep(failure, wasPlaying, expired, startupRetry, forceHls, engine, surface)
+        permanentRetry: Boolean = false,
+    ) = liveErrorRecoveryStep(failure, wasPlaying, expired, startupRetry, forceHls, engine, surface, permanentRetry)
 
     @Test
-    fun permanentErrorsAlwaysShowTheErrorCard() {
+    fun permanentErrorsNeverHopEnginesOrChannels() {
+        // Opening a dead or refused channel fails fast, whatever else is available.
+        assertEquals(LiveRecoveryStep.SHOW_ERROR, step(PlaybackFailureClass.PERMANENT, forceHls = true, engine = true, permanentRetry = true))
+        // A channel that was playing gets a few in-place reopens (segment/token expiry, connection-limit race)...
+        assertEquals(LiveRecoveryStep.RECONNECT_IN_PLACE, step(PlaybackFailureClass.PERMANENT, wasPlaying = true, engine = true, surface = true, permanentRetry = true))
+        // ...then the error card once that budget or the reconnect window is used up.
         assertEquals(LiveRecoveryStep.SHOW_ERROR, step(PlaybackFailureClass.PERMANENT, wasPlaying = true, engine = true, surface = true))
-        assertEquals(LiveRecoveryStep.SHOW_ERROR, step(PlaybackFailureClass.PERMANENT, forceHls = true, engine = true))
+        assertEquals(LiveRecoveryStep.SHOW_ERROR, step(PlaybackFailureClass.PERMANENT, wasPlaying = true, expired = true, permanentRetry = true))
     }
 
     @Test

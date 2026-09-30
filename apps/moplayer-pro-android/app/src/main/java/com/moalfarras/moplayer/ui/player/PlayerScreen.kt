@@ -145,6 +145,8 @@ fun PlayerScreen(
             },
         )
     }
+    // Where a cancelled player picker returns when it was opened from playback (null: leave the player).
+    var routeBeforePicker by remember(item.id) { mutableStateOf<String?>(null) }
     var internalEngine by remember(item.id, route, streamRequest.uri, performancePolicy.mode) {
         mutableStateOf(if (route == "auto") preferredAutoEngine(streamRequest, isLive, performancePolicy) else InternalPlaybackEngine.MEDIA3)
     }
@@ -174,7 +176,18 @@ fun PlayerScreen(
     }
 
     if (route == null) {
-        PlayerRoutePicker(title = item.title, onSelect = { route = it }, onDismiss = { onBack(0, 0) })
+        PlayerRoutePicker(
+            title = item.title,
+            onSelect = { selected ->
+                routeBeforePicker = null
+                route = selected
+            },
+            onDismiss = {
+                val previous = routeBeforePicker
+                routeBeforePicker = null
+                if (previous != null) route = previous else onBack(0, 0)
+            },
+        )
         return
     }
     if (route != "media3" && route != "auto") {
@@ -383,6 +396,7 @@ fun PlayerScreen(
             canForceHls = false,
             canSwitchEngine = !useLibVlc && !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest),
             canRetrySurface = false,
+            permanentReconnectAvailable = false,
         )
         when (step) {
             LiveRecoveryStep.RECONNECT_IN_PLACE -> if (attempt.wasPlaying) {
@@ -476,6 +490,7 @@ fun PlayerScreen(
                     error.cause.hasUnrecognizedInputFormat(),
                 canSwitchEngine = !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest),
                 canRetrySurface = attempt.media3SurfaceAttempt < MEDIA3_SURFACE_RETRY_LIMIT && isDecoderFailure(error.errorCode),
+                permanentReconnectAvailable = attempt.reconnectAttempt < LIVE_PERMANENT_RECONNECT_LIMIT,
             )
             when (step) {
                 LiveRecoveryStep.RECONNECT_IN_PLACE -> startReconnect()
@@ -510,6 +525,7 @@ fun PlayerScreen(
             canForceHls = false,
             canSwitchEngine = !attempt.triedMedia3ForLive && !streamRequest.uri.startsWith("rtsp://", ignoreCase = true),
             canRetrySurface = false,
+            permanentReconnectAvailable = false,
         )
         when (step) {
             LiveRecoveryStep.RECONNECT_IN_PLACE -> if (attempt.wasPlaying) {
@@ -809,6 +825,9 @@ fun PlayerScreen(
         val target = session.pendingZapItem ?: return
         session.pendingZapItem = null
         session.zapKeyHeld = false
+        // Home pressed inside the coalescing window: tuning now would start playback in the
+        // background, where the lifecycle stop that already ran can no longer silence it.
+        if (!isForeground()) return
         if (target.samePlayable(item)) ui.showMiniInfo = true else switchTo(target)
     }
 
@@ -843,6 +862,12 @@ fun PlayerScreen(
     fun leavePlayer() {
         commitPendingSeek()
         if (isLive || useLibVlc) onBack(0, 0) else onBack(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
+    }
+
+    /** VLC / MX / system chooser for the current stream; Back or Cancel in the picker returns here. */
+    fun openPlayerPicker() {
+        routeBeforePicker = route
+        route = null
     }
 
     fun cycleVideoSizeMode() {
@@ -918,7 +943,7 @@ fun PlayerScreen(
         LiveOverlayTab.SUBTITLES -> listOf(LiveOverlayAction(strings.playerSubtitles, false) { showTrackDialog(C.TRACK_TYPE_TEXT) })
         LiveOverlayTab.FAVORITES -> listOf(
             LiveOverlayAction(if (ui.favoriteMarked) ps.removeFavorite else ps.addFavorite, ui.favoriteMarked, ::toggleFavorite),
-            LiveOverlayAction(ps.externalPlayer, false) { route = null },
+            LiveOverlayAction(ps.externalPlayer, false, ::openPlayerPicker),
         )
         LiveOverlayTab.CHANNELS, LiveOverlayTab.GROUPS -> emptyList()
     }
@@ -959,6 +984,7 @@ fun PlayerScreen(
     fun commitNumberEntry() {
         val typed = session.numberBuffer
         session.numberBuffer = ""
+        if (!isForeground()) return
         val number = typed.toIntOrNull() ?: return
         val target = resolveChannelNumber(latestRelated, number, zapList.providerNumbers)
         when {
@@ -981,6 +1007,9 @@ fun PlayerScreen(
     }
 
     fun onScreenTap() {
+        // The error card's scrim does not consume touches; a tap on it must not open the list
+        // (or wake controls) underneath, where OK and the D-pad would then act invisibly.
+        if (attempt.playbackError != null) return
         if (isLive) {
             if (ui.showLiveZap) closeLiveZap() else openLiveZap()
         } else if (ui.showControls) {
@@ -1336,6 +1365,8 @@ fun PlayerScreen(
     // Live stall watchdog. Before the first frame it walks the startup chain; once the channel
     // has played, a long stall is a dropped connection and is reconnected in place. It also
     // supervises each reconnect, so a re-opened stream that just sits buffering is retried too.
+    // Keyed on isStarted: the stop in the background already made isBuffering true, so without
+    // it the stream re-opened on return from Home would run unsupervised.
     LaunchedEffect(
         attempt,
         attempt.isBuffering,
@@ -1346,6 +1377,7 @@ fun PlayerScreen(
         attempt.reconnectNonce,
         useLibVlc,
         exoPlayer,
+        isStarted,
     ) {
         if (!isLive || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused) return@LaunchedEffect
         val reconnecting = attempt.reconnectingSince > 0L
@@ -1638,7 +1670,7 @@ fun PlayerScreen(
                     wakeControls()
                 },
                 onCast = { launchCastFallback(context, streamRequest.uri, ps) },
-                onExternal = { route = null },
+                onExternal = ::openPlayerPicker,
             )
             SeekJumpPill(
                 visible = session.seekPillVisible,
@@ -1655,7 +1687,7 @@ fun PlayerScreen(
                 } else if (useLibVlc || isLibVlcSafeForRequest(playbackRequest)) {
                     add(PlayerErrorAction(ps.otherEngine, Icons.Rounded.SwapHoriz, false, ::tryOtherVodEngine))
                 }
-                add(PlayerErrorAction(ps.externalPlayer, Icons.AutoMirrored.Rounded.OpenInNew, false) { route = null })
+                add(PlayerErrorAction(ps.externalPlayer, Icons.AutoMirrored.Rounded.OpenInNew, false, ::openPlayerPicker))
                 add(PlayerErrorAction(strings.back, Icons.AutoMirrored.Rounded.ArrowBack, false, ::leavePlayer))
             }
             PlaybackErrorCard(

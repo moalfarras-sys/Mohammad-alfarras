@@ -44,6 +44,13 @@ internal const val LIVE_MIDSTREAM_STALL_MS = 10_000L
 /** How long in-place live reconnects keep trying (while the network is up) before the error card shows. */
 internal const val LIVE_RECONNECT_WINDOW_MS = 120_000L
 
+/**
+ * In-place reopens a channel that was playing gets for a 401/403/404/410/451 before the error card.
+ * Mid-stream these are usually transient: an expired HLS segment or token, or the panel still
+ * counting the dropped connection against a one-connection line.
+ */
+internal const val LIVE_PERMANENT_RECONNECT_LIMIT = 3
+
 /** Rapid channel presses inside this window only move the on-screen target; the latest one is tuned. */
 internal const val ZAP_COALESCE_MS = 350L
 
@@ -274,7 +281,8 @@ internal enum class LiveRecoveryStep {
 /**
  * The next step after a live playback failure. A channel that was already playing is never moved
  * to another engine or channel for a network drop: it reconnects in place until the reconnect
- * window runs out. Permanent errors always go straight to the error card.
+ * window runs out. Permanent errors go straight to the error card when opening a channel; a channel
+ * that was playing first gets [LIVE_PERMANENT_RECONNECT_LIMIT] in-place reopens.
  */
 internal fun liveErrorRecoveryStep(
     failure: PlaybackFailureClass,
@@ -284,8 +292,14 @@ internal fun liveErrorRecoveryStep(
     canForceHls: Boolean,
     canSwitchEngine: Boolean,
     canRetrySurface: Boolean,
+    permanentReconnectAvailable: Boolean,
 ): LiveRecoveryStep = when (failure) {
-    PlaybackFailureClass.PERMANENT -> LiveRecoveryStep.SHOW_ERROR
+    PlaybackFailureClass.PERMANENT ->
+        if (wasPlaying && permanentReconnectAvailable && !reconnectWindowExpired) {
+            LiveRecoveryStep.RECONNECT_IN_PLACE
+        } else {
+            LiveRecoveryStep.SHOW_ERROR
+        }
     PlaybackFailureClass.TRANSIENT -> when {
         wasPlaying -> if (reconnectWindowExpired) LiveRecoveryStep.SHOW_ERROR else LiveRecoveryStep.RECONNECT_IN_PLACE
         startupRetryAvailable -> LiveRecoveryStep.RECONNECT_IN_PLACE

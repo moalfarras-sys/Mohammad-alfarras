@@ -124,7 +124,7 @@ fun PlayerScreen(
     val strings = LocalStrings.current
     val ps = strings.player
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val isTv = Adaptive.isTv
+    val isTv = remember(context) { Adaptive.isTv(context) }
     val isLive = item.type == ContentType.LIVE
     val latestRelated by rememberUpdatedState(relatedItems)
     val streamRequest = remember(item.streamUrl) { parseStreamRequest(item.streamUrl) }

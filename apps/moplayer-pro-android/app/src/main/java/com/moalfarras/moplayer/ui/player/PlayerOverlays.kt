@@ -20,12 +20,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -261,9 +259,9 @@ internal fun LiveZapOverlay(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = SafeHorizontal, vertical = SafeVertical)
+                    .widthIn(max = 1180.dp)
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
-                    .widthIn(max = 1180.dp),
+                    .fillMaxHeight(0.8f),
                 radius = 24.dp,
                 highlighted = true,
                 glow = accent.copy(alpha = 0.14f),
@@ -560,7 +558,6 @@ internal fun LiveInfoCard(
                     Text(
                         when {
                             status.hasError -> ps.notAvailable
-                            status.paused -> ps.paused
                             status.reconnecting -> if (status.waitingForNetwork) ps.waitingForNetwork else ps.reconnecting
                             status.opening -> strings.playerOpening
                             status.audioOnly -> listOf(ps.radio, status.signal).filter { it.isNotBlank() }.joinToString(" | ")
@@ -804,7 +801,7 @@ internal fun PlaybackErrorCard(
                 }
                 Text(message, color = Color(0xE6F5E6D0), fontSize = 15.sp, lineHeight = 21.sp, maxLines = 4, overflow = TextOverflow.Ellipsis)
                 Row(
-                    Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 6.dp),
+                    Modifier.horizontalScroll(rememberScrollState()).padding(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     actions.forEachIndexed { index, action ->
@@ -1241,7 +1238,7 @@ internal fun ExternalLaunchScreen(
                 Text(title.isolate(), color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                 Text(message, color = Color(0xDDE3BC78), style = MaterialTheme.typography.bodyLarge)
                 Row(
-                    Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 6.dp),
+                    Modifier.horizontalScroll(rememberScrollState()).padding(6.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     PlayerPillButton(strings.retry, Icons.Rounded.Refresh, true, accent, retryFocus, onClick = onRetrySame)

@@ -579,7 +579,10 @@ fun PlayerScreen(
                     (failure == PlaybackFailureClass.FORMAT || !playbackRequest.hasHeadersLibVlcCannotSend()),
                 canRetrySurface = attempt.media3SurfaceAttempt < MEDIA3_SURFACE_RETRY_LIMIT && isDecoderFailure(error.errorCode),
                 permanentReconnectAvailable = attempt.reconnectAttempt < LIVE_PERMANENT_RECONNECT_LIMIT,
-                canSwapFormat = canSwapLiveFormatNow(httpStatus),
+                // Another container cannot help a decoder or audio-output failure.
+                canSwapFormat = canSwapLiveFormatNow(httpStatus) &&
+                    !isDecoderFailure(error.errorCode) &&
+                    error.errorCode != PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED,
             )
             when (step) {
                 LiveRecoveryStep.RECONNECT_IN_PLACE -> startReconnect()

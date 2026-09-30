@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.moalfarras.moplayer.ui.i18n.AppLanguage
 import com.moalfarras.moplayer.ui.i18n.I18n
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
+import com.moalfarras.moplayer.ui.i18n.settings
 import com.moalfarras.moplayer.ui.i18n.stringsFor
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.compose.ui.Alignment
@@ -257,8 +258,9 @@ private fun MoPlayerApp(
                         onM3u = viewModel::loginM3u,
                         onM3uFile = viewModel::loginM3uText,
                         onXtream = viewModel::loginXtream,
-                        onActivationCode = viewModel::loginActivationCode,
                         onRefreshQr = { viewModel.refreshDeviceActivation() },
+                        onResumeQr = viewModel::resumeDeviceActivation,
+                        onStopQr = viewModel::stopDeviceActivation,
                     )
                     if (state.showExitDialog) {
                         ExitDialog(onDismiss = { viewModel.setExitDialog(false) }, onExit = finishApp)
@@ -322,8 +324,8 @@ private fun MoPlayerApp(
                                 HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null, favoriteLive = favorites.itemSnapshotList.items.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE }.take(30))
                             }
                             AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, focusedLiveEpg, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.MOVIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_movies), movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.SERIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_series), seriesCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
+                            AppSection.MOVIES -> PosterScreen(LocalStrings.current.navMovies, movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
+                            AppSection.SERIES -> PosterScreen(LocalStrings.current.navSeries, seriesCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.FAVORITES -> FavoritesScreen(viewModel.favorites, state.focusedItem, state.restoreFocusItem, performancePolicy.enablePreviewPane, performancePolicy, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.SERIES_DETAIL -> {
                                 val series = state.seriesDetail
@@ -344,7 +346,7 @@ private fun MoPlayerApp(
                                 }
                             }
                             AppSection.SEARCH -> SearchScreen(state.searchQuery, state.settings.searchHistory, viewModel.searchResults, state.restoreFocusItem, viewModel::setSearch, viewModel::clearSearchHistory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
-                            AppSection.SETTINGS -> SettingsScreen(state.settings, performancePolicy, devicePerformance, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setVideoSizeMode, viewModel::setLibraryMode, viewModel::setLanguage, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setPerformanceMode, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer, viewModel::setShowTrailerPreviews)
+                            AppSection.SETTINGS -> SettingsScreen(state.settings, performancePolicy, devicePerformance, state.settingsUnlocked, state.activeServer, state.servers, viewModel::setPreviewEnabled, viewModel::setParentalEnabled, viewModel::setAutoPlayLastLive, viewModel::setHideEmptyCategories, viewModel::setHideChannelsWithoutLogo, viewModel::setPreferredPlayer, viewModel::setVideoSizeMode, viewModel::setLibraryMode, viewModel::setLanguage, viewModel::setDefaultSort, viewModel::setAccentMode, viewModel::setAccentColor, viewModel::setBackgroundMode, viewModel::setCustomBackgroundUrl, viewModel::setThemePreset, viewModel::setMotionLevel, viewModel::setPerformanceMode, viewModel::setShowWeatherWidget, viewModel::setShowClockWidget, viewModel::setShowFootballWidget, viewModel::setWeatherMode, viewModel::setManualWeatherEffect, viewModel::setWeatherCityOverride, viewModel::setFootballMaxMatches, viewModel::refreshWidgets, viewModel::refreshServer, viewModel::testServerConnection, viewModel::clearWatchHistory, viewModel::clearEpgCache, viewModel::unlockSettings, viewModel::lockSettings, viewModel::setParentalPin, viewModel::changeParentalPin, viewModel::removeParentalPin, viewModel::logoutActiveServer, viewModel::activateServer, viewModel::deleteServer, viewModel::setShowTrailerPreviews, providerAccountCreatedAt = viewModel::providerAccountCreatedAt)
                             AppSection.PLAYER -> LaunchedEffect(Unit) { viewModel.closePlayer() }
                         }
                         androidx.compose.animation.AnimatedVisibility(
@@ -507,7 +509,7 @@ private fun ErrorOverlay(message: String) {
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.sync_error_title),
+                    text = LocalStrings.current.settings.syncErrorTitle,
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,

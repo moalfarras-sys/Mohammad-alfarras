@@ -593,6 +593,11 @@ class IptvRepository(
         database.serverDao().markActive(serverId, System.currentTimeMillis())
     }
 
+    /** The provider's own account creation time (Xtream user_info.created_at, ms), or 0 when unknown. */
+    suspend fun providerAccountCreatedAt(serverId: Long): Long = withContext(Dispatchers.IO) {
+        database.accountInfoDao().get(serverId)?.createdAt ?: 0L
+    }
+
     suspend fun clearWatchHistory(serverId: Long) = withContext(Dispatchers.IO) {
         database.mediaDao().clearProgress(serverId)
         database.mediaDao().clearRecentPlayback(serverId)

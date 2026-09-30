@@ -1,6 +1,11 @@
 package com.moalfarras.moplayer.data.repository
 
 import com.moalfarras.moplayer.domain.model.DeviceActivationSession
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -12,6 +17,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.util.concurrent.CountDownLatch
 import kotlin.random.Random
 
 class ActivationSupportTest {
@@ -116,5 +122,44 @@ class ActivationSupportTest {
         assertEquals(10_000_000L + ACTIVATION_SOURCE_WINDOW_MS - 600_000L, confirmed.expiresAt)
         // A second confirmation keeps the deadline.
         assertSame(confirmed, confirmed.confirmedByPhone(nowElapsed = 700_000L, nowWallMs = 10_100_000L))
+    }
+
+    @Test
+    fun oneTimeRequestAnswerReachesACallerCancelledMeanwhile() = runBlocking {
+        val started = CompletableDeferred<Unit>()
+        val release = CountDownLatch(1)
+        var delivered = -1
+        val caller = launch(Dispatchers.Default) {
+            delivered = runToCompletion(Dispatchers.IO) {
+                started.complete(Unit)
+                release.await()
+                42
+            }
+        }
+        started.await()
+        caller.cancel()
+        release.countDown()
+        caller.join()
+        assertEquals(42, delivered)
+    }
+
+    @Test
+    fun singleNonCancellableSwitchStillDropsTheAnswer() = runBlocking {
+        // Documents why runToCompletion nests the dispatcher switch.
+        val started = CompletableDeferred<Unit>()
+        val release = CountDownLatch(1)
+        var delivered = -1
+        val caller = launch(Dispatchers.Default) {
+            delivered = withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
+                started.complete(Unit)
+                release.await()
+                42
+            }
+        }
+        started.await()
+        caller.cancel()
+        release.countDown()
+        caller.join()
+        assertEquals(-1, delivered)
     }
 }

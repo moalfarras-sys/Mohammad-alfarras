@@ -52,8 +52,10 @@ import com.moalfarras.moplayerpro.BuildConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +78,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -562,7 +565,7 @@ class MainViewModel(
         viewModelScope.launch {
             val pending = loadPendingActivation()
             if (pending != null) {
-                if (loginJob?.isActive != true) startActivatedProfileLogin(pending.profile, pending.attempts)
+                if (loginJob?.isActive != true) startActivatedProfileLogin(pending.profile, pending)
                 return@launch
             }
             if (state.activeServer == null) return@launch
@@ -751,13 +754,16 @@ class MainViewModel(
         val section = state.section
         val focused = if (section in sectionsWithMediaFocus()) lastFocusedBySection[section] else null
         viewModelScope.launch {
-            if (section in sectionsWithMediaFocus()) writeNavigation(section, focused, state.selectedCategoryId)
-            try {
-                settingsRepo.flushNavigationState()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Exception) {
-                Log.w(TAG, "Navigation flush failed", failure)
+            // Leaving with Back finishes the activity: ON_DESTROY clears this ViewModel right after
+            // ON_STOP, and the flush has already cancelled the repository's own delayed write, so
+            // the write must not be cancelled with viewModelScope.
+            withContext(NonCancellable) {
+                if (section in sectionsWithMediaFocus()) writeNavigation(section, focused, state.selectedCategoryId)
+                try {
+                    settingsRepo.flushNavigationState()
+                } catch (failure: Exception) {
+                    Log.w(TAG, "Navigation flush failed", failure)
+                }
             }
         }
     }
@@ -1174,10 +1180,14 @@ class MainViewModel(
      */
     fun refreshDeviceActivation(deviceName: String = android.os.Build.MODEL ?: "Android TV") {
         activationJob?.cancel()
+        // The QR panel treats an error as new only when it is not the one it already showed.
+        // StateFlow drops a value equal to the current one, so a repeated identical failure would
+        // never be published: the previous error is cleared first.
+        internal.update { it.copy(error = it.blockingErrorOrNull()) }
         activationJob = viewModelScope.launch {
             val pending = loadPendingActivation()
             if (pending != null) {
-                if (loginJob?.isActive != true) startActivatedProfileLogin(pending.profile, pending.attempts)
+                if (loginJob?.isActive != true) startActivatedProfileLogin(pending.profile, pending)
                 return@launch
             }
             val deviceId = installDeviceId()
@@ -1262,6 +1272,10 @@ class MainViewModel(
                 Log.w(TAG, "Activation poll failed", failure)
                 ActivationPollResult.Transient()
             }
+            // The one-time source pull finishes even when polling was stopped meanwhile, and that
+            // source is still imported; any other answer of a stopped poll is stale (a newer code
+            // may be on screen already).
+            if (!currentCoroutineContext().isActive && result !is ActivationPollResult.SourceReady) return
             when (result) {
                 is ActivationPollResult.Waiting -> {
                     failures = 0
@@ -1329,15 +1343,17 @@ class MainViewModel(
      * again", or automatically at the next start). The website is acknowledged only after the
      * outcome is known, with a short non-sensitive code.
      */
-    private fun startActivatedProfileLogin(profile: ActivatedProfile, previousAttempts: Int = 0) {
+    private fun startActivatedProfileLogin(profile: ActivatedProfile, previous: PendingActivation? = null) {
         loginJob?.cancel()
         loginJobServerId = 0L
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             val strings = I18n.strings.app
-            val attempts = previousAttempts + 1
+            val attempts = (previous?.attempts ?: 0) + 1
+            // A retry keeps the first save time, so the source is kept at most a day in total.
+            val savedAt = previous?.savedAt ?: System.currentTimeMillis()
             val kept = try {
-                deviceState?.savePendingActivation(PendingActivation(profile, System.currentTimeMillis(), attempts)) == true
+                deviceState?.savePendingActivation(PendingActivation(profile, savedAt, attempts)) == true
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -2274,7 +2290,16 @@ class MainViewModel(
             if (snapshot == null && query.server.kind == LoginKind.XTREAM && !askedPanel) {
                 askedPanel = true
                 delay(LIVE_EPG_REMOTE_DEBOUNCE_MS)
-                snapshot = iptv.remoteLiveEpg(query.server, query.item)
+                // An exception here would end the stateIn collector in viewModelScope and crash
+                // the app (the answer is stored in Room, which can fail too).
+                snapshot = try {
+                    iptv.remoteLiveEpg(query.server, query.item)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    Log.w(TAG, "Live guide lookup failed", failure)
+                    null
+                }
             }
             emit(snapshot ?: LiveEpgSnapshot())
             // While the viewer stays on the channel, move on to the next programme when this one ends.
@@ -2443,7 +2468,8 @@ private fun DeviceActivationSession.pollIntervalMs(): Long = intervalSeconds.coe
 
 /**
  * A new String object with the same text. The QR panel tells a repeated failure from the one it
- * already showed by identity, so each failure is published as its own instance.
+ * already showed by identity, so each failure is published as its own instance. StateFlow still
+ * conflates equal values: the error must be cleared in between (see refreshDeviceActivation).
  */
 private fun String.freshInstance(): String = StringBuilder(this).toString()
 

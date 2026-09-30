@@ -1275,7 +1275,10 @@ class IptvRepository(
             "activated" -> {
                 val confirmed = session.confirmedByPhone(SystemClock.elapsedRealtime(), System.currentTimeMillis())
                 val sourceResponse = try {
-                    withContext(Dispatchers.IO) {
+                    // The website deletes the source when it answers this pull, so the answer must
+                    // reach the caller even if polling is stopped meanwhile (QR panel left, app in
+                    // the background, a new code requested).
+                    runToCompletion(Dispatchers.IO) {
                         webApiService.webDeviceActivationSource(
                             activationApiUrl(
                                 "source",

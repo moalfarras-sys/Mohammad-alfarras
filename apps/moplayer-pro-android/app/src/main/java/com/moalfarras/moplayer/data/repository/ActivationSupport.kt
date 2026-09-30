@@ -2,6 +2,9 @@ package com.moalfarras.moplayer.data.repository
 
 import com.moalfarras.moplayer.domain.model.ActivatedProfile
 import com.moalfarras.moplayer.domain.model.DeviceActivationSession
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -9,6 +12,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.HttpException
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 
 /** Which moalfarras.space activation route answered. */
@@ -117,6 +121,16 @@ internal fun activationRetryDelayMs(failures: Int, retryAfterMs: Long = 0L, rand
     val backoff = (base * jitter).toLong()
     return maxOf(backoff, retryAfterMs.coerceAtMost(ACTIVATION_RETRY_AFTER_CAP_MS))
 }
+
+/**
+ * Runs [block] on [context] and hands its result back even when the caller is cancelled
+ * meanwhile, for a request whose answer cannot be asked for again (the one-time QR source).
+ * The dispatcher switch is nested inside NonCancellable on purpose: a single
+ * `withContext(NonCancellable + dispatcher)` still drops the result on its way back to a
+ * cancelled caller.
+ */
+internal suspend fun <T> runToCompletion(context: CoroutineContext, block: suspend CoroutineScope.() -> T): T =
+    withContext(NonCancellable) { withContext(context, block) }
 
 /** The server's retry hint: a `Retry-After` header in seconds, else `retryAfterSeconds` in the JSON body. */
 internal fun parseRetryAfterMs(header: String?, body: String?): Long {

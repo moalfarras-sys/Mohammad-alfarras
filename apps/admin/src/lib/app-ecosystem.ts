@@ -450,24 +450,24 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-7-0",
+      id: "release-moplayer2-v2-7-1",
       product_slug: "moplayer2",
-      slug: "moplayer2-2.7.0",
-      version_name: "2.7.0",
-      version_code: 69,
+      slug: "moplayer2-2.7.1",
+      version_name: "2.7.1",
+      version_code: 70,
       release_notes:
-        "MoPlayer Pro 2.7.0 rebuilds the TV-first experience with a faster indexed library, streaming Xtream/M3U/XMLTV sync, safer QR activation, a session-persistent Media3/LibVLC player, quicker channel zapping, next-episode playback, a verified in-app updater, and complete Arabic/English navigation and error states.",
+        "MoPlayer Pro 2.7.1 is a stability update from real-server testing: the merged \"All playlists\" library no longer crashes when two sources share category ids, playback keeps working after a provider password change, movie details stay after a library sync, empty \"0\" ratings are hidden and provider descriptions show proper line breaks, QR activation is safer, and the TV screensaver can start on a paused, ended or failed stream. Includes everything from 2.7.0.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-7-0-universal",
-          release_id: "release-moplayer2-v2-7-0",
+          id: "asset-moplayer2-v2-7-1-universal",
+          release_id: "release-moplayer2-v2-7-1",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.0/app-universal-release.apk",
-          file_size_bytes: 56170203,
-          checksum_sha256: "3c26275744b0947a3e1f1b8fb8708de4335bf292a1410bb62cf6be63651042ff",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.1/app-universal-release.apk",
+          file_size_bytes: 56171853,
+          checksum_sha256: "380e29c18757858f296e62cd3be93579ddc9cb9578fdacbaa39193e649974fd6",
         },
       ],
     },
@@ -479,8 +479,8 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
   moplayer2: {
     ...fallbackRuntimeConfig,
     minimumVersionCode: 50,
-    latestVersionName: "2.7.0",
-    latestVersionCode: 69,
+    latestVersionName: "2.7.1",
+    latestVersionCode: 70,
     downloaderCode: "4608937",
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",
@@ -513,13 +513,13 @@ const fallbackRuntimeConfigBySlug: Record<string, AppRuntimeConfig> = {
       promoUrl: "https://moalfarras.space/en/apps/moplayer2",
     },
     update: {
-      latestVersionName: "2.7.0",
-      latestVersionCode: 69,
+      latestVersionName: "2.7.1",
+      latestVersionCode: 70,
       downloadUrl: "/api/app/download/latest?product=moplayer2",
-      apkSizeBytes: 56170203,
-      checksumSha256: "3c26275744b0947a3e1f1b8fb8708de4335bf292a1410bb62cf6be63651042ff",
+      apkSizeBytes: 56171853,
+      checksumSha256: "380e29c18757858f296e62cd3be93579ddc9cb9578fdacbaa39193e649974fd6",
       releaseNotes:
-        "MoPlayer Pro 2.7.0 adds the indexed library, streaming source sync, safer QR activation, persistent Media3/LibVLC playback, faster zapping, next-episode playback, a verified updater, and complete Arabic/English states.",
+        "MoPlayer Pro 2.7.1 fixes the merged-library crash, keeps playback working after a provider password change, keeps movie details after sync, cleans ratings and descriptions, makes QR activation safer and lets the TV screensaver start when playback stops.",
     },
     ios: {
       enabled: true,

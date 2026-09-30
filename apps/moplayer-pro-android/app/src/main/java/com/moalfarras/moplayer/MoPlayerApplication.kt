@@ -41,8 +41,10 @@ class MoPlayerApplication : Application(), SingletonImageLoader.Factory {
             ((activityManager?.memoryClass ?: 128) <= 128)
         val memoryCachePercent = if (isLowMemoryDevice) 0.12 else 0.22
         val diskCacheBytes = if (isLowMemoryDevice) LOW_MEMORY_DISK_CACHE_BYTES else DEFAULT_DISK_CACHE_BYTES
+        // Inherits imageOkHttp's own dispatcher, so a grid of slow logo hosts cannot hold request
+        // slots that stream opens (base client) or library sync (sync dispatcher) need.
         val client: OkHttpClient = NetworkModule.imageOkHttp.newBuilder()
-            .connectTimeout(20, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val req = chain.request()

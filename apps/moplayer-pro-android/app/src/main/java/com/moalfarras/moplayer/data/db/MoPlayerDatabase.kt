@@ -394,6 +394,76 @@ interface MediaDao {
 
     @Query("SELECT COUNT(*) FROM media WHERE serverId = :serverId")
     suspend fun countForServer(serverId: Long): Int
+
+    /** User state of the given rows, only for rows that have any (keep [ids] under ~500 per call). */
+    @Query(
+        """
+        SELECT id, type, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt FROM media
+        WHERE serverId = :serverId AND type = :type AND id IN (:ids)
+            AND (isFavorite = 1 OR watchPositionMs > 0 OR watchDurationMs > 0 OR lastPlayedAt > 0)
+        """
+    )
+    suspend fun userStateForIds(serverId: Long, type: ContentType, ids: List<String>): List<MediaStateSnapshot>
+
+    @Query("SELECT id FROM media WHERE serverId = :serverId AND type = :type")
+    suspend fun idsForServerType(serverId: Long, type: ContentType): List<String>
+
+    @Query("DELETE FROM media WHERE serverId = :serverId AND type = :type AND id IN (:ids)")
+    suspend fun deleteIds(serverId: Long, type: ContentType, ids: List<String>)
+
+    /** Metadata-only update for detail enrichment; never touches favorites, progress or lastPlayedAt. */
+    @Query(
+        """
+        UPDATE media SET title = :title, posterUrl = :posterUrl, backdropUrl = :backdropUrl,
+            description = :description, rating = :rating, durationSecs = :durationSecs,
+            `cast` = :cast, director = :director, genre = :genre, releaseDate = :releaseDate
+        WHERE serverId = :serverId AND id = :id AND type = :type
+        """
+    )
+    suspend fun updateMetadata(
+        serverId: Long,
+        id: String,
+        type: ContentType,
+        title: String,
+        posterUrl: String,
+        backdropUrl: String,
+        description: String,
+        rating: String,
+        durationSecs: Long,
+        cast: String,
+        director: String,
+        genre: String,
+        releaseDate: String,
+    ): Int
+
+    /** Guide channel ids of the live channels (XMLTV programmes are matched on tvg-id / epg_channel_id). */
+    @Query("SELECT DISTINCT tvgId FROM media WHERE serverId = :serverId AND type = 'LIVE' AND tvgId != ''")
+    suspend fun liveEpgKeys(serverId: Long): List<String>
+
+    /** Xtream used to store tv_archive = "0" as catch-up; clears those so no false badge shows. */
+    @Query("UPDATE media SET catchup = '' WHERE type = 'LIVE' AND catchup IN ('0', 'false', 'no', 'none', 'null')")
+    suspend fun clearDisabledCatchup(): Int
+
+    @Query(
+        """
+        SELECT id, type, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt FROM media
+        WHERE serverId = :serverId AND seriesId = :seriesId AND type = 'EPISODE'
+        """
+    )
+    suspend fun episodeState(serverId: Long, seriesId: String): List<MediaStateSnapshot>
+
+    @Query("DELETE FROM media WHERE serverId = :serverId AND seriesId = :seriesId AND type = 'EPISODE'")
+    suspend fun deleteEpisodesForSeries(serverId: Long, seriesId: String)
+
+    /** Episodes whose series left the panel and that carry no user state. */
+    @Query(
+        """
+        DELETE FROM media WHERE serverId = :serverId AND type = 'EPISODE'
+            AND isFavorite = 0 AND watchPositionMs = 0 AND lastPlayedAt = 0
+            AND seriesId NOT IN (SELECT id FROM media WHERE serverId = :serverId AND type = 'SERIES')
+        """
+    )
+    suspend fun deleteOrphanEpisodes(serverId: Long): Int
 }
 
 @Dao
@@ -406,6 +476,29 @@ interface MediaSearchDao {
 
     @Query("DELETE FROM media_search WHERE serverId = :serverId AND type IN (:types)")
     suspend fun deleteForServerTypes(serverId: Long, types: List<ContentType>)
+
+    @Query("DELETE FROM media_search WHERE serverId = :serverId AND type = :type AND id IN (:ids)")
+    suspend fun deleteIds(serverId: Long, type: ContentType, ids: List<String>)
+
+    /** Run before [MediaDao.deleteEpisodesForSeries]; it selects the ids from media. */
+    @Query(
+        """
+        DELETE FROM media_search WHERE serverId = :serverId AND type = 'EPISODE' AND id IN (
+            SELECT id FROM media WHERE serverId = :serverId AND type = 'EPISODE' AND seriesId = :seriesId
+        )
+        """
+    )
+    suspend fun deleteEpisodesForSeries(serverId: Long, seriesId: String)
+
+    /** Search rows whose media row no longer exists (after episode cleanup). */
+    @Query(
+        """
+        DELETE FROM media_search WHERE serverId = :serverId AND type = 'EPISODE' AND id NOT IN (
+            SELECT id FROM media WHERE serverId = :serverId AND type = 'EPISODE'
+        )
+        """
+    )
+    suspend fun deleteOrphanEpisodes(serverId: Long)
 }
 
 @Dao
@@ -457,6 +550,10 @@ interface SeasonDao {
 
     @Query("DELETE FROM seasons WHERE serverId = :serverId AND seriesId = :seriesId")
     suspend fun deleteForSeries(serverId: Long, seriesId: String)
+
+    /** When the episodes of a series were last fetched (seasons are stamped on every fetch). */
+    @Query("SELECT MAX(updatedAt) FROM seasons WHERE serverId = :serverId AND seriesId = :seriesId")
+    suspend fun cachedAt(serverId: Long, seriesId: String): Long?
 }
 
 @Dao
@@ -469,6 +566,10 @@ interface EpgDao {
 
     @Query("DELETE FROM epg_programs WHERE serverId = :serverId")
     suspend fun deleteForServer(serverId: Long)
+
+    /** Drops guide rows written before [stamp] (a finished refresh) and programmes that already ended. */
+    @Query("DELETE FROM epg_programs WHERE serverId = :serverId AND (updatedAt < :stamp OR (endAt > 0 AND endAt < :endedBefore))")
+    suspend fun deleteStale(serverId: Long, stamp: Long, endedBefore: Long)
 }
 
 @Dao

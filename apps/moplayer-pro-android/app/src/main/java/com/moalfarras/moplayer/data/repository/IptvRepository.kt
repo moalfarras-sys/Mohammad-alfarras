@@ -172,7 +172,8 @@ class IptvRepository(
 
     private val catchupRepaired = AtomicBoolean(false)
 
-    private class InFlightSync {
+    private class InFlightSync(val mode: SyncMode) {
+        val startedAt = System.currentTimeMillis()
         val progress = MutableStateFlow<LoadProgress?>(null)
         val done = CompletableDeferred<SyncOutcome>()
     }
@@ -339,16 +340,21 @@ class IptvRepository(
                 }
                 throw failure
             }
-            try {
-                loadSeriesDetails(server, series, seriesId, mode)
-                entry.complete(Unit)
-            } catch (throwable: Throwable) {
-                entry.completeExceptionally(throwable)
-                throw throwable
-            } finally {
+            // Unregistered before completing, so a waiter taking over after a cancellation
+            // cannot find (and spin on) the finished entry.
+            val release = {
                 synchronized(seriesRefreshes) {
                     if (seriesRefreshes[key] === entry) seriesRefreshes.remove(key)
                 }
+            }
+            try {
+                loadSeriesDetails(server, series, seriesId, mode)
+                release()
+                entry.complete(Unit)
+            } catch (throwable: Throwable) {
+                release()
+                entry.completeExceptionally(throwable)
+                throw throwable
             }
             return
         }
@@ -701,9 +707,9 @@ class IptvRepository(
     }
 
     /**
-     * Now/next from Xtream get_short_epg (one attempt, no retries). Empty answers are remembered
-     * for 20 minutes and failures for 3, so moving focus across channels without a guide does not
-     * send a request for every channel every time.
+     * Now/next from Xtream get_short_epg (one attempt, no retries). Answers with nothing current
+     * or upcoming are remembered for 20 minutes and failures for 3, so moving focus across
+     * channels without a guide does not send a request for every channel every time.
      */
     suspend fun remoteLiveEpg(server: ServerProfile, item: MediaItem): LiveEpgSnapshot {
         if (item.type != ContentType.LIVE || server.kind != LoginKind.XTREAM || item.id.isBlank()) return LiveEpgSnapshot()
@@ -725,7 +731,9 @@ class IptvRepository(
             rememberShortEpgMiss(missKey, now + SHORT_EPG_FAILURE_TTL_MS)
             return LiveEpgSnapshot()
         }
-        if (programs.isEmpty()) {
+        // Only finished programmes (a panel whose guide stopped updating) are useless too: the
+        // local lookup would miss them again, so remember the channel like an empty answer.
+        if (programs.none { it.endAt >= now }) {
             rememberShortEpgMiss(missKey, now + SHORT_EPG_EMPTY_TTL_MS)
             return LiveEpgSnapshot()
         }
@@ -811,7 +819,7 @@ class IptvRepository(
 
     private suspend fun importXmltv(server: ServerProfile, source: EpgSource, keys: Map<String, String>): Int =
         withContext(Dispatchers.IO) {
-            val temp = File.createTempFile("epg-${server.id}-", ".tmp")
+            val temp = scratchFile("epg-${server.id}.tmp")
             try {
                 val body = when (source) {
                     EpgSource.Xtream -> {
@@ -1080,27 +1088,33 @@ class IptvRepository(
      * Single-flight per server: when a sync of the same server is already running (a login and
      * the startup refresh, or the worker and the Settings button), the second caller follows its
      * progress and completes with it instead of downloading everything again. If the running
-     * sync is cancelled, a waiting caller takes over.
+     * sync is cancelled, a waiting caller takes over. A [SyncMode.FULL] caller that joined a
+     * [SyncMode.BACKGROUND] pass (which skips fresh sections and stops early for playback) then
+     * syncs the sections that pass did not refresh.
      *
      * Progress phases are localized. The last emission is (100, 100); failures are thrown as
      * [SyncException] with a localized message.
      */
     fun refreshServerFast(server: ServerProfile, mode: SyncMode = SyncMode.FULL): Flow<LoadProgress> = channelFlow {
+        // Sections synced at or after this time (by a joined background pass) are not synced again.
+        var freshSince = 0L
         while (true) {
-            val (entry, owner) = claimSync(server.id)
+            val (entry, owner) = claimSync(server.id, mode)
             if (owner) {
+                // The entry is released before it completes, so a waiter that wakes up (and may
+                // take over after a cancellation) never finds the finished entry still registered.
                 try {
-                    val outcome = runSync(server, mode) { progress ->
+                    val outcome = runSync(server, mode, freshSince) { progress ->
                         entry.progress.value = progress
                         send(progress)
                     }
+                    releaseSync(server.id, entry)
                     entry.done.complete(outcome)
                     send(readyProgress(outcome))
                 } catch (throwable: Throwable) {
+                    releaseSync(server.id, entry)
                     entry.done.completeExceptionally(throwable)
                     throw throwable
-                } finally {
-                    releaseSync(server.id, entry)
                 }
                 return@channelFlow
             }
@@ -1109,6 +1123,10 @@ class IptvRepository(
             relay.cancelAndJoin()
             val failure = result.exceptionOrNull()
             if (failure == null) {
+                if (mode == SyncMode.FULL && entry.mode == SyncMode.BACKGROUND) {
+                    freshSince = entry.startedAt
+                    continue
+                }
                 send(readyProgress(result.getOrThrow()))
                 return@channelFlow
             }
@@ -1227,12 +1245,12 @@ class IptvRepository(
         ) to null
     }
 
-    private fun claimSync(serverId: Long): Pair<InFlightSync, Boolean> = synchronized(inFlightSyncs) {
+    private fun claimSync(serverId: Long, mode: SyncMode): Pair<InFlightSync, Boolean> = synchronized(inFlightSyncs) {
         val running = inFlightSyncs[serverId]
         if (running != null) {
             running to false
         } else {
-            InFlightSync().also { inFlightSyncs[serverId] = it } to true
+            InFlightSync(mode).also { inFlightSyncs[serverId] = it } to true
         }
     }
 
@@ -1247,22 +1265,33 @@ class IptvRepository(
         return LoadProgress(if (outcome.partial) strings.readyPartial else strings.ready, 100, 100)
     }
 
-    private suspend fun runSync(server: ServerProfile, mode: SyncMode, progress: suspend (LoadProgress) -> Unit): SyncOutcome {
+    /** [freshSince] > 0: sections (or the playlist) synced at or after it are skipped. */
+    private suspend fun runSync(
+        server: ServerProfile,
+        mode: SyncMode,
+        freshSince: Long,
+        progress: suspend (LoadProgress) -> Unit,
+    ): SyncOutcome {
         // Always work from the stored row: callers may hold a snapshot taken before the last sync.
         val current = database.serverDao().getServer(server.id)?.toDomain() ?: throw ServerRemovedException()
         return when (current.kind) {
-            LoginKind.XTREAM -> syncXtream(current, mode, progress)
-            LoginKind.M3U -> if (isLocalPlaylist(current)) SyncOutcome(partial = false) else syncM3uSource(current, mode, progress)
+            LoginKind.XTREAM -> syncXtream(current, mode, freshSince, progress)
+            LoginKind.M3U -> if (isLocalPlaylist(current)) SyncOutcome(partial = false) else syncM3uSource(current, mode, freshSince, progress)
         }
     }
 
     /**
      * Xtream sync: account first (trying the http/https alternate only for transport failures),
      * then live, movies and series, each streamed and written in batches. A movie or series
-     * failure is recorded (with backoff) and does not fail the refresh; live and account
-     * failures do.
+     * failure (or an empty live list while channels are cached) is recorded with backoff and
+     * does not fail the refresh; other live failures and account rejections do.
      */
-    private suspend fun syncXtream(server: ServerProfile, mode: SyncMode, progress: suspend (LoadProgress) -> Unit): SyncOutcome {
+    private suspend fun syncXtream(
+        server: ServerProfile,
+        mode: SyncMode,
+        freshSince: Long,
+        progress: suspend (LoadProgress) -> Unit,
+    ): SyncOutcome {
         val strings = I18n.strings.sync
         val host = hostOf(server)
         progress(LoadProgress(strings.connecting, 2, 100))
@@ -1299,6 +1328,8 @@ class IptvRepository(
         var partial = false
         var executed = 0
         for (section in XTREAM_SECTIONS) {
+            // Just refreshed by the background pass this full refresh waited for.
+            if (freshSince > 0L && (state?.syncedAt(section.type) ?: 0L) >= freshSince) continue
             if (mode == SyncMode.BACKGROUND) {
                 val now = System.currentTimeMillis()
                 val syncedAt = state?.syncedAt(section.type) ?: 0L
@@ -1316,7 +1347,10 @@ class IptvRepository(
             } catch (throwable: Exception) {
                 val error = SyncFailures.classify(throwable, host)
                 recordSyncFailure(server.id, listOf(section.type.name), error, "xtream")
-                if (section.type == ContentType.LIVE || error.kind.isAccountRejection) throw error
+                // An empty live list with channels cached is suspicious (an overloaded panel), not
+                // fatal: the cached channels are kept and movies and series still refresh.
+                val liveFailed = section.type == ContentType.LIVE && error.kind != SyncErrorKind.EMPTY_LIBRARY
+                if (liveFailed || error.kind.isAccountRejection) throw error
                 partial = true
             }
         }
@@ -1529,8 +1563,16 @@ class IptvRepository(
         updatedAt = now,
     )
 
-    private suspend fun syncM3uSource(server: ServerProfile, mode: SyncMode, progress: suspend (LoadProgress) -> Unit): SyncOutcome {
+    private suspend fun syncM3uSource(
+        server: ServerProfile,
+        mode: SyncMode,
+        freshSince: Long,
+        progress: suspend (LoadProgress) -> Unit,
+    ): SyncOutcome {
         val host = hostOf(server)
+        if (freshSince > 0L && (database.syncStateDao().get(server.id)?.lastSyncAt ?: 0L) >= freshSince) {
+            return SyncOutcome(partial = false)
+        }
         if (mode == SyncMode.BACKGROUND) {
             val state = database.syncStateDao().get(server.id)
             val meta = SyncMeta.decode(state?.rawJson)
@@ -1577,7 +1619,7 @@ class IptvRepository(
         val strings = I18n.strings.sync
         progress(LoadProgress(strings.downloadingPlaylist, 10, 100))
         withContext(Dispatchers.IO) {
-            val temp = File.createTempFile("m3u-${server.id}-", ".tmp")
+            val temp = scratchFile("m3u-${server.id}.tmp")
             try {
                 val hash = playlistService.getText(url).use { body ->
                     val hashing = HashingSink.sha256(temp.sink())
@@ -2047,6 +2089,16 @@ private class CountingInputStream(input: InputStream) : FilterInputStream(input)
         super.read(buffer, offset, length).also { if (it > 0) count += it }
 
     override fun skip(byteCount: Long): Long = super.skip(byteCount).also { count += it }
+}
+
+/**
+ * Download scratch file in the app cache dir (`java.io.tmpdir` on Android). The name is fixed per
+ * server so a file left behind when the process is killed mid-download (guides can be 100+ MB)
+ * is overwritten by the next run instead of piling up; callers are single-flight per server.
+ */
+internal fun scratchFile(name: String, directory: File = File(System.getProperty("java.io.tmpdir").orEmpty().ifBlank { "." })): File {
+    directory.mkdirs()
+    return File(directory, name).also { it.delete() }
 }
 
 /**

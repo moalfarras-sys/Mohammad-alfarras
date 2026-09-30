@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { MoPlayerActivationPage } from "@/components/app/moplayer-activation-page";
+import { activationPageProduct } from "@/lib/activation-flow";
 import { readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
 import { resolveSiteImages, siteImage } from "@/lib/site-images";
@@ -33,8 +34,9 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
 
   const { product = "" } = await searchParams;
-  const isPro = product === "moplayer2";
-  const isPc = product === "moplayer-pc";
+  const pageProduct = activationPageProduct(product);
+  const isPro = pageProduct === "moplayer2";
+  const isPc = pageProduct === "moplayer-pc";
   const copy = isPc
     ? locale === "ar"
       ? {
@@ -110,17 +112,12 @@ export default async function ActivateRoute({
   if (!isLocale(locale)) notFound();
   const { code = "", device_code = "", product = "" } = await searchParams;
 
+  // Without ?product= the page detects the app from the code, so the short /activate URL works for Pro too.
   return (
     <MoPlayerActivationPage
       locale={locale as Locale}
       initialCode={code || device_code}
-      productSlug={
-        product === "moplayer-pc"
-          ? "moplayer-pc"
-          : product === "moplayer2"
-            ? "moplayer2"
-            : "moplayer"
-      }
+      productSlug={activationPageProduct(product)}
     />
   );
 }

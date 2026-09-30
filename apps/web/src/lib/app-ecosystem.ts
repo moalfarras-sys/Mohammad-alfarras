@@ -1,4 +1,5 @@
 import { readSiteSetting, upsertSiteSetting } from "@/lib/content/store";
+import { selectReleaseAsset } from "@/lib/release-asset-selection";
 import { hasDatabaseUrl, queryRows } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
@@ -592,18 +593,14 @@ export async function saveSupportRequest(input: {
   }
 }
 
-function pickReleaseAsset(assets: AppReleaseAsset[], preferredAbi?: string | null) {
-  const normalizedAbi = preferredAbi?.trim().toLowerCase();
-  if (normalizedAbi) {
-    const exact = assets.find((item) => item.abi?.toLowerCase() === normalizedAbi);
-    if (exact) return exact;
-  }
-  const universal = assets.find((item) => item.abi?.toLowerCase() === "universal");
-  if (universal) return universal;
-  return assets.find((item) => item.is_primary) ?? assets[0];
+// An explicit asset id (from the config's downloadUrl) pins the exact file whose checksum was
+// advertised; it only counts when it belongs to this release.
+function pickReleaseAsset(assets: AppReleaseAsset[], preferredAbi?: string | null, assetId?: string | null) {
+  const pinned = assetId ? assets.find((item) => item.id === assetId) : undefined;
+  return pinned ?? selectReleaseAsset(assets, preferredAbi);
 }
 
-export async function resolveDownloadBySlug(slug: string, preferredAbi?: string | null) {
+export async function resolveDownloadBySlug(slug: string, preferredAbi?: string | null, assetId?: string | null) {
   try {
     const supabase = createSupabaseAdminClient();
     const { data: release, error: releaseError } = await supabase
@@ -624,7 +621,8 @@ export async function resolveDownloadBySlug(slug: string, preferredAbi?: string 
     if (assetError || !assetRows?.length) throw assetError ?? new Error("Release asset not found");
 
     const normalizedAssets = assetRows.map((item) => normalizeAsset(item));
-    const primary = pickReleaseAsset(normalizedAssets, preferredAbi);
+    const primary = pickReleaseAsset(normalizedAssets, preferredAbi, assetId);
+    if (!primary) return null;
     if (primary.external_url) {
       return {
         filename: `${release.slug}.apk`,
@@ -649,7 +647,7 @@ export async function resolveDownloadBySlug(slug: string, preferredAbi?: string 
     const legacySets = await Promise.all(managedApps.map((app) => readLegacyAppSettings(app.slug)));
     const release = legacySets.flatMap((set) => set.releases).find((item) => item.slug === slug);
     if (!release) return null;
-    const asset = pickReleaseAsset(release.assets, preferredAbi);
+    const asset = pickReleaseAsset(release.assets, preferredAbi, assetId);
     if (!asset?.external_url) return null;
     return {
       filename: `${release.slug}.apk`,

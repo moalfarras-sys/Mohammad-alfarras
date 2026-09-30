@@ -43,6 +43,8 @@ export async function GET(request: Request) {
   const platform =
     url.searchParams.get("platform")?.toLowerCase() || (windowsProductAliases.has(rawProduct) ? "windows" : undefined);
   const abi = url.searchParams.get("abi");
+  // Set by /api/app/config so the in-app updater downloads the file whose SHA-256 it was given.
+  const assetId = url.searchParams.get("asset")?.trim().slice(0, 128) || null;
 
   if (product === "moplayer2" && platform === "windows") {
     const portable = url.searchParams.get("portable") === "1";
@@ -96,7 +98,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Release not found" }, { status: 404 });
   }
 
-  const resolved = await resolveDownloadBySlug(latest.slug, abi);
+  const resolved = await resolveDownloadBySlug(latest.slug, abi, assetId);
   if (!resolved) {
     return NextResponse.json({ error: "Release asset not found" }, { status: 404 });
   }

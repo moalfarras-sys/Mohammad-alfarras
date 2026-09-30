@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { isSmtpConfigured } from "@/lib/mailer";
+import { selectReleaseAsset } from "@/lib/release-asset-selection";
 import { getSupabaseEnv } from "@/lib/supabase/client";
 import { readWidgetProviderSettings } from "@/lib/widget-provider-settings";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
@@ -22,11 +23,7 @@ async function checkProduct(product: "moplayer" | "moplayer2"): Promise<HealthCh
   try {
     const ecosystem = await readAppEcosystem(product);
     const latest = ecosystem.releases[0] ?? null;
-    const primaryAsset =
-      latest?.assets?.find((asset) => asset.is_primary) ??
-      latest?.assets?.find((asset) => asset.abi === "universal") ??
-      latest?.assets?.[0] ??
-      null;
+    const primaryAsset = selectReleaseAsset(latest?.assets);
 
     return {
       ok: Boolean(ecosystem.product.slug && latest?.slug && primaryAsset?.external_url),

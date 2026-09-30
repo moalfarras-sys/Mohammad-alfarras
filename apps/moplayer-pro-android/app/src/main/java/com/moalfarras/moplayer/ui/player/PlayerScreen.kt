@@ -1967,9 +1967,11 @@ private fun openExternalPlayer(
             ExternalLaunchResult(false, strings.noExternalPlayer)
         }
     }
+    // Launch directly: with targetSdk 30+ and no <queries>, getPackageInfo() cannot see VLC/MX and
+    // throws even when they are installed, while startActivity() needs no package visibility and
+    // throws ActivityNotFoundException only when the player is really missing.
     packageNames.forEach { packageName ->
         try {
-            context.packageManager.getPackageInfo(packageName, 0)
             context.startActivity(Intent(baseIntent).setPackage(packageName))
             return ExternalLaunchResult(true, strings.externalOpenedTitle.fill(title.isolate()))
         } catch (_: Exception) {

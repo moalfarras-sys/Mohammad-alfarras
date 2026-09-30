@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -677,7 +678,7 @@ fun SettingsScreen(
         if (!tv.isTv) {
             // Phones and tablets: the same groups as the TV panes, in one scroll. Everything except
             // the lock card stays hidden while a PIN is set and settings are locked.
-            LazyColumn(contentModifier, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            LazyColumn(contentModifier.imePadding(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 item { SettingsHeader() }
                 if (!unlocked) {
                     item { LockedSettingsCard(isTv = false, onUnlock = onUnlockSettings) }
@@ -832,7 +833,7 @@ private fun TvSettingsLayout(
         ) {
             LazyColumn(
                 state = paneListState,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 22.dp).focusGroup(),
+                modifier = Modifier.fillMaxSize().imePadding().padding(horizontal = 28.dp, vertical = 22.dp).focusGroup(),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 if (!unlocked) {

@@ -1027,6 +1027,8 @@ class MainViewModel(
         activationJob = viewModelScope.launch {
             runCatching { iptv.createDeviceActivation(deviceName) }
                 .onFailure { throwable ->
+                    // Stopped by the QR panel (tab change / app in background): not an error to show.
+                    if (throwable is CancellationException) throw throwable
                     Log.w("MoPlayerActivation", "Could not create website QR activation", throwable)
                     internal.update {
                         it.copy(
@@ -1056,6 +1058,7 @@ class MainViewModel(
             delay(session.intervalSeconds.coerceAtLeast(3) * 1000L)
             val (updated, profile) = runCatching { iptv.pollDeviceActivation(session) }
                 .getOrElse { throwable ->
+                    if (throwable is CancellationException) throw throwable
                     session.copy(
                         status = DeviceActivationStatus.ERROR,
                         error = activationErrorMessage(throwable, "Could not continue activation right now. Refresh the QR code or try later."),
@@ -1485,6 +1488,9 @@ class MainViewModel(
         internal.update { it.copy(subscriptionExpired = false) }
         logoutActiveServer()
     }
+
+    /** Provider-side account creation time for Settings > Accounts (0 when the panel sent none). */
+    suspend fun providerAccountCreatedAt(serverId: Long): Long = iptv.providerAccountCreatedAt(serverId)
 
     fun activateServer(serverId: Long) {
         viewModelScope.launch {

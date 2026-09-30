@@ -7,19 +7,21 @@ import com.moalfarras.moplayer.data.network.WebApiEndpoint
 import java.net.URI
 import java.time.LocalDate
 
+// 1920x1080 matches the UI resolution of nearly all TV boxes (4K models usually draw the UI at
+// 1080p), so 2560x1440 only cost bandwidth and a ~15 MB decode on 1–2 GB devices.
 private val cityBackgroundUrls = listOf(
-    "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=2560&h=1440&q=86", // Dubai skyline
-    "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=2560&h=1440&q=86", // Dark architecture
-    "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1f?auto=format&fit=crop&w=2560&h=1440&q=86", // City skyline
-    "https://images.unsplash.com/photo-1502899576159-f224dc2349fa?auto=format&fit=crop&w=2560&h=1440&q=86", // Modern city
-    "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=2560&h=1440&q=86", // Night city street
-    "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=2560&h=1440&q=86", // Night cityscape
-    "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=2560&h=1440&q=86", // Premium residence
-    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2560&h=1440&q=86", // Business district
-    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=2560&h=1440&q=86", // Tokyo city
-    "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=2560&h=1440&q=86", // London city
-    "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=2560&h=1440&q=86", // Istanbul
-    "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=2560&h=1440&q=86", // Tower bridge
+    "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1920&h=1080&q=80", // Dubai skyline
+    "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1920&h=1080&q=80", // Dark architecture
+    "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1f?auto=format&fit=crop&w=1920&h=1080&q=80", // City skyline
+    "https://images.unsplash.com/photo-1502899576159-f224dc2349fa?auto=format&fit=crop&w=1920&h=1080&q=80", // Modern city
+    "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1920&h=1080&q=80", // Night city street
+    "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=1920&h=1080&q=80", // Night cityscape
+    "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1920&h=1080&q=80", // Premium residence
+    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&h=1080&q=80", // Business district
+    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1920&h=1080&q=80", // Tokyo city
+    "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1920&h=1080&q=80", // London city
+    "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1920&h=1080&q=80", // Istanbul
+    "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?auto=format&fit=crop&w=1920&h=1080&q=80", // Tower bridge
 )
 
 internal fun resolveHomeBackdropUrl(

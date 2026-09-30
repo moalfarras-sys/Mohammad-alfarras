@@ -1,69 +1,148 @@
 package com.moalfarras.moplayer.ui.screens
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
+import android.os.SystemClock
+import android.provider.OpenableColumns
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.EventNote
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Dns
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.QrCode2
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.RocketLaunch
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
-import com.moalfarras.moplayerpro.R
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.qrcode.QRCodeWriter
+import androidx.lifecycle.compose.LifecycleStartEffect
+import coil3.compose.AsyncImage
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.google.zxing.qrcode.encoder.Encoder
+import com.moalfarras.moplayer.MainActivity
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
 import com.moalfarras.moplayer.domain.model.DeviceActivationSession
@@ -71,53 +150,139 @@ import com.moalfarras.moplayer.domain.model.DeviceActivationStatus
 import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.ui.components.AnimatedLoginBackground
 import com.moalfarras.moplayer.ui.components.GlassPanel
-import com.moalfarras.moplayer.ui.i18n.I18n
+import com.moalfarras.moplayer.ui.components.TvTextField
+import com.moalfarras.moplayer.ui.components.rememberTvTextFieldController
+import com.moalfarras.moplayer.ui.i18n.ArStrings
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
-import com.moalfarras.moplayer.ui.theme.*
-import coil3.compose.AsyncImage
+import com.moalfarras.moplayer.ui.i18n.Strings
+import com.moalfarras.moplayer.ui.i18n.login
+import com.moalfarras.moplayer.ui.i18n.ltr
+import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
+import com.moalfarras.moplayer.ui.theme.MoTheme
+import com.moalfarras.moplayer.ui.theme.TvScale
+import com.moalfarras.moplayer.ui.theme.rememberTvScale
+import com.moalfarras.moplayerpro.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.LocalTime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-private enum class LoginMode { CHOOSE, M3U, XTREAM, ACTIVATION }
+private enum class LoginMode { CHOOSE, ACTIVATION, XTREAM, M3U }
+
+/** Playlist MIME types offered to the system document picker. */
+private val M3U_MIME_TYPES = arrayOf(
+    "audio/x-mpegurl",
+    "audio/mpegurl",
+    "application/x-mpegurl",
+    "application/vnd.apple.mpegurl",
+    "text/*",
+    "application/octet-stream",
+)
+
+/** Expired QR codes are regenerated automatically this many times in a row, then the user decides. */
+internal const val MAX_AUTO_QR_RENEWALS = 3
+private const val QR_QUIET_MODULES = 4
+private const val QR_CREATE_TIMEOUT_MS = 12_000L
+private val TV_OVERSCAN_H = 48.dp
+private val TV_OVERSCAN_V = 27.dp
+
+// ── Pure helpers (unit-tested) ─────────────────────────────────────────────
 
 /**
- * D-pad navigation for focused text fields/tabs. A focused Compose text field otherwise
- * swallows DPAD_UP/DOWN, trapping remote focus on the field (Sign-in becomes unreachable).
- * Intercepts up/down to move focus vertically; left/right stay for in-field cursor movement.
+ * A picked playlist is read into one String and then parsed, which needs several times the
+ * file size in heap. Refuse files that would not fit instead of failing with an OOM.
+ * An unknown size (<= 0) is allowed; the reader still catches OutOfMemoryError.
  */
-@Composable
-private fun rememberVerticalFocusNav(): (KeyEvent) -> Boolean {
-    val focusManager = LocalFocusManager.current
-    return remember(focusManager) {
-        { event: KeyEvent ->
-            if (event.type != KeyEventType.KeyDown) false
-            else when (event.key) {
-                Key.DirectionDown -> focusManager.moveFocus(FocusDirection.Down)
-                Key.DirectionUp -> focusManager.moveFocus(FocusDirection.Up)
-                else -> false
-            }
-        }
-    }
+internal fun playlistFitsInMemory(sizeBytes: Long, maxHeapBytes: Long): Boolean =
+    sizeBytes <= 0L || sizeBytes <= maxHeapBytes / 6
+
+/** "m:ss" with Latin digits, e.g. 754 -> "12:34". */
+internal fun formatCountdown(totalSeconds: Long): String {
+    val seconds = totalSeconds.coerceAtLeast(0L)
+    return String.format(Locale.US, "%d:%02d", seconds / 60, seconds % 60)
 }
+
+/** Readable form of the activation URL for the screen: no scheme, no "www.", no trailing slash. */
+internal fun displayActivationUrl(url: String): String =
+    url.trim().removePrefix("https://").removePrefix("http://").removePrefix("www.").trimEnd('/')
+
+/**
+ * Android 7–11 may list MoPlayer itself for a web link (the manifest handles http/https for M3U
+ * import), so the link goes through a chooser that excludes it. Android 12+ opens unverified web
+ * links in the browser directly; Android 6 has no exclusion extra.
+ */
+internal fun browserIntentNeedsChooser(sdkInt: Int): Boolean = sdkInt in 24..30
+
+internal enum class QrPhase { Creating, Waiting, Received, Renewing, Expired, Failed }
+
+internal fun shouldAutoRenewQr(status: DeviceActivationStatus?, renewalsSoFar: Int): Boolean =
+    status == DeviceActivationStatus.EXPIRED && renewalsSoFar < MAX_AUTO_QR_RENEWALS
+
+/**
+ * What the QR panel shows. [failed] is true when a new error arrived after the last code request
+ * while no code exists yet (create failed or timed out) or after the phone sent a source (the
+ * import failed); the user then gets a "Try again" button instead of an endless spinner.
+ */
+internal fun qrPhase(
+    status: DeviceActivationStatus?,
+    signingIn: Boolean,
+    failed: Boolean,
+    autoRenewing: Boolean,
+    renewalsSoFar: Int,
+): QrPhase = when {
+    signingIn -> QrPhase.Received
+    failed -> QrPhase.Failed
+    status == null -> if (autoRenewing) QrPhase.Renewing else QrPhase.Creating
+    status == DeviceActivationStatus.WAITING -> QrPhase.Waiting
+    status == DeviceActivationStatus.ACTIVATED -> QrPhase.Received
+    status == DeviceActivationStatus.EXPIRED ->
+        if (renewalsSoFar < MAX_AUTO_QR_RENEWALS) QrPhase.Renewing else QrPhase.Expired
+    else -> QrPhase.Failed
+}
+
+/** Whole pixels per QR module so every module edge lands on a pixel (crisp, no resampling). */
+internal fun qrCellPx(targetPx: Int, modules: Int, quietModules: Int = QR_QUIET_MODULES): Int =
+    (targetPx / (modules + 2 * quietModules)).coerceAtLeast(1)
+
+private fun FocusRequester.tryFocus() {
+    runCatching { requestFocus() }
+}
+
+// ── Screen ────────────────────────────────────────────────────────────────
+
+@Stable
+private class LoginForm {
+    var name by mutableStateOf("")
+    var m3u by mutableStateOf("")
+    var epgUrl by mutableStateOf("")
+    var url by mutableStateOf("")
+    var user by mutableStateOf("")
+    var pass by mutableStateOf("")
+    val canSubmitXtream: Boolean get() = url.isNotBlank() && user.isNotBlank() && pass.isNotBlank()
+    val canSubmitM3u: Boolean get() = m3u.isNotBlank()
+}
+
+private class LoginActions(
+    val selectMode: (LoginMode) -> Unit,
+    /** Returns false (and does nothing) when a required field is missing or a login is running. */
+    val submitXtream: () -> Boolean,
+    val submitM3u: () -> Boolean,
+    val pickFile: () -> Unit,
+    val refreshQr: () -> Unit,
+    val stopQr: () -> Unit,
+)
 
 @Composable
 private fun LoginBackdropLayer(settings: AppSettings, reduceMotion: Boolean = false) {
     val epochDay = LocalDate.now().toEpochDay()
-    val backdropUrl = remember(
-        settings.backgroundMode,
-        settings.customBackgroundUrl,
-        epochDay,
-    ) {
+    val backdropUrl = remember(settings.backgroundMode, settings.customBackgroundUrl, epochDay) {
         when (settings.backgroundMode) {
-            BackgroundMode.AUTO,
-            BackgroundMode.CUSTOM_URL,
-            BackgroundMode.CITY_ROTATION -> resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
-            BackgroundMode.DYNAMIC_CONTENT -> resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
             BackgroundMode.NONE -> null
+            else -> resolveHomeBackdropUrl(settings, contentBackdropUrl = null, epochDay = epochDay)
         }
     }
     Box(Modifier.fillMaxSize()) {
@@ -137,7 +302,6 @@ private fun LoginBackdropLayer(settings: AppSettings, reduceMotion: Boolean = fa
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        alpha = 1f
                         scaleX = 1.04f
                         scaleY = 1.04f
                     },
@@ -159,15 +323,7 @@ private fun LoginBackdropLayer(settings: AppSettings, reduceMotion: Boolean = fa
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                Color(0xC0050403),
-                                Color(0x55050403),
-                                Color(0xC0050403),
-                            ),
-                        ),
-                    ),
+                    .background(Brush.horizontalGradient(listOf(Color(0xC0050403), Color(0x55050403), Color(0xC0050403)))),
             )
         } else {
             Box(Modifier.fillMaxSize().background(Color(0xFF050403)))
@@ -188,375 +344,444 @@ fun LoginScreen(
     onM3u: (String, String, String) -> Unit,
     onM3uFile: (String, String, String) -> Unit,
     onXtream: (String, String, String, String) -> Unit,
-    onActivationCode: (String) -> Unit,
     onRefreshQr: () -> Unit,
+    onStopQr: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val tv = rememberTvScale()
-    var mode by remember { mutableStateOf(LoginMode.CHOOSE) }
-    var name by remember { mutableStateOf("") }
-    var m3u  by remember { mutableStateOf("") }
-    var epgUrl by remember { mutableStateOf("") }
-    var url  by remember { mutableStateOf("") }
-    var user by remember { mutableStateOf("") }
-    var pass by remember { mutableStateOf("") }
-    var activationCode by remember { mutableStateOf("") }
+    val strings = LocalStrings.current
+    var mode by rememberSaveable { mutableStateOf(LoginMode.CHOOSE) }
+    var lastChosen by rememberSaveable { mutableStateOf(LoginMode.ACTIVATION) }
+    val form = remember { LoginForm() }
     var fileMessage by remember { mutableStateOf<String?>(null) }
-    BackHandler(enabled = tv.isTv && mode != LoginMode.CHOOSE && loading == null) {
-        mode = LoginMode.CHOOSE
-        fileMessage = null
+    // Set when this screen started a login, so a failed attempt can return focus to Sign in.
+    var awaitingResult by remember { mutableStateOf(false) }
+
+    val selectMode: (LoginMode) -> Unit = { next ->
+        if (loading == null) {
+            if (next != LoginMode.CHOOSE) lastChosen = next
+            fileMessage = null
+            mode = next
+        }
     }
-    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            runCatching {
-                val fileName = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':') ?: "playlist.m3u"
-                val text = withContext(Dispatchers.IO) {
-                    context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
-                }
-                require(text.isNotBlank()) { I18n.strings.loginFileEmpty }
-                onM3uFile(name, fileName, text)
-            }.onFailure { throwable ->
-                fileMessage = throwable.message ?: I18n.strings.loginFileUnreadable
+    BackHandler(enabled = mode != LoginMode.CHOOSE && loading == null) { selectMode(LoginMode.CHOOSE) }
+
+    val importPlaylist: (Uri?) -> Unit = { uri ->
+        if (uri != null) {
+            scope.launch {
+                runCatching { readPlaylistFile(context, uri, strings) }
+                    .onSuccess { (fileName, text) ->
+                        fileMessage = null
+                        awaitingResult = true
+                        onM3uFile(form.name.trim(), fileName, text)
+                    }
+                    .onFailure { throwable ->
+                        fileMessage = if (throwable is OutOfMemoryError) {
+                            strings.login.fileTooLargeGeneric
+                        } else {
+                            throwable.message ?: strings.loginFileUnreadable
+                        }
+                    }
             }
         }
     }
+    val documentPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), importPlaylist)
+    val contentPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent(), importPlaylist)
+
+    val actions = LoginActions(
+        selectMode = selectMode,
+        submitXtream = {
+            if (loading == null && form.canSubmitXtream) {
+                awaitingResult = true
+                onXtream(form.name.trim(), form.url.trim(), form.user.trim(), form.pass)
+                true
+            } else {
+                false
+            }
+        },
+        submitM3u = {
+            if (loading == null && form.canSubmitM3u) {
+                awaitingResult = true
+                onM3u(form.name.trim(), form.m3u.trim(), form.epgUrl.trim())
+                true
+            } else {
+                false
+            }
+        },
+        pickFile = {
+            fileMessage = null
+            // Many Android TV builds ship without DocumentsUI; fall back to GET_CONTENT, then explain.
+            val opened = runCatching { documentPicker.launch(M3U_MIME_TYPES) }
+                .recoverCatching { contentPicker.launch("*/*") }
+            if (opened.isFailure) fileMessage = strings.login.filePickerUnavailable
+        },
+        refreshQr = onRefreshQr,
+        stopQr = onStopQr,
+    )
 
     if (!tv.isTv) {
         CompactLoginScreen(
             settings = settings,
             mode = mode,
-            name = name,
-            m3u = m3u,
-            epgUrl = epgUrl,
-            url = url,
-            user = user,
-            pass = pass,
-            activationCode = activationCode,
+            form = form,
             loading = loading,
             error = error,
             fileMessage = fileMessage,
+            activationSession = activationSession,
             reduceMotion = reduceMotion,
-            onMode = { mode = it },
-            onName = { name = it },
-            onM3u = { m3u = it },
-            onEpgUrl = { epgUrl = it },
-            onUrl = { url = it },
-            onUser = { user = it },
-            onPass = { pass = it },
-            onActivationCode = { activationCode = it.uppercase().filter { char -> char.isLetterOrDigit() || char == '-' }.take(18) },
-            submitM3u = { onM3u(name, m3u, epgUrl) },
-            submitM3uFile = { fileMessage = null; mode = LoginMode.M3U; filePicker.launch(arrayOf("audio/x-mpegurl", "application/vnd.apple.mpegurl", "text/*", "application/octet-stream")) },
-            submitXtream = { onXtream(name, url, user, pass) },
-            submitActivation = { if (activationCode.isBlank()) onRefreshQr() else onActivationCode(activationCode) },
+            actions = actions,
         )
         return
     }
 
     Box(Modifier.fillMaxSize()) {
         LoginBackdropLayer(settings, reduceMotion = reduceMotion)
-
-        // Top status bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = tv.contentPadding, vertical = (24 * tv.factor).dp)
-                .align(Alignment.TopCenter),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = TV_OVERSCAN_H, vertical = TV_OVERSCAN_V),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            TopStatusWidget(tv = tv)
-            DeveloperContactChip(tv = tv)
-        }
-
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            LoginGlassCard(
-                mode = mode, name = name, m3u = m3u, url = url, user = user, pass = pass, activationCode = activationCode,
-                epgUrl = epgUrl,
-                loading = loading, error = error, fileMessage = fileMessage, activationSession = activationSession,
-                reduceMotion = reduceMotion, tv = tv,
-                onMode = { mode = it }, onName = { name = it }, onM3u = { m3u = it }, onEpgUrl = { epgUrl = it },
-                onUrl = { url = it }, onUser = { user = it }, onPass = { pass = it },
-                onActivationCode = { activationCode = it.uppercase().filter { char -> char.isLetterOrDigit() || char == '-' }.take(18) },
-                submitM3u = { onM3u(name, m3u, epgUrl) },
-                submitM3uFile = { fileMessage = null; mode = LoginMode.M3U; filePicker.launch(arrayOf("audio/x-mpegurl", "application/vnd.apple.mpegurl", "text/*", "application/octet-stream")) },
-                submitXtream = { onXtream(name, url, user, pass) },
-                submitActivation = { if (activationCode.isBlank()) onRefreshQr() else onActivationCode(activationCode) },
-                submitQrRefresh = { onRefreshQr() },
-            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                LiveClockChip()
+            }
+            BoxWithConstraints(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .imePadding(),
+                contentAlignment = Alignment.Center,
+            ) {
+                val cardMaxHeight = maxHeight
+                if (mode == LoginMode.ACTIVATION) {
+                    TvActivationCard(
+                        session = activationSession,
+                        loading = loading,
+                        error = error,
+                        reduceMotion = reduceMotion,
+                        tv = tv,
+                        width = min(maxWidth, 920.dp),
+                        maxHeight = cardMaxHeight,
+                        actions = actions,
+                    )
+                } else {
+                    TvLoginCard(
+                        mode = mode,
+                        lastChosen = lastChosen,
+                        form = form,
+                        loading = loading,
+                        error = error,
+                        fileMessage = fileMessage,
+                        reduceMotion = reduceMotion,
+                        awaitingResult = awaitingResult,
+                        onResultSeen = { awaitingResult = false },
+                        tv = tv,
+                        width = min(maxWidth * 0.70f, 620.dp),
+                        maxHeight = cardMaxHeight,
+                        actions = actions,
+                    )
+                }
+            }
         }
     }
 }
 
+private suspend fun readPlaylistFile(context: Context, uri: Uri, strings: Strings): Pair<String, String> {
+    val (displayName, sizeBytes) = withContext(Dispatchers.IO) { queryOpenable(context, uri) }
+    if (!playlistFitsInMemory(sizeBytes, Runtime.getRuntime().maxMemory())) {
+        error(strings.login.fileTooLarge(sizeBytes / (1024L * 1024L)))
+    }
+    val text = withContext(Dispatchers.IO) {
+        context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
+    }
+    require(text.isNotBlank()) { strings.loginFileEmpty }
+    val fileName = displayName
+        ?: uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
+        ?: "playlist.m3u"
+    return fileName to text
+}
+
+private fun queryOpenable(context: Context, uri: Uri): Pair<String?, Long> = runCatching {
+    context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+        if (!cursor.moveToFirst()) return@use null to -1L
+        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+        val displayName = if (nameIndex >= 0 && !cursor.isNull(nameIndex)) cursor.getString(nameIndex) else null
+        val size = if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) cursor.getLong(sizeIndex) else -1L
+        displayName to size
+    } ?: (null to -1L)
+}.getOrDefault(null to -1L)
 
 @Composable
-private fun TopStatusWidget(tv: TvScale, modifier: Modifier = Modifier) {
-    val accent = LocalMoVisuals.current.accent
-    GlassPanel(modifier = modifier, radius = 999.dp, blur = 8.dp) {
-        Row(
-            modifier = Modifier
-                .background(Color(0x99120F0C))
-                .padding(horizontal = (20 * tv.factor).dp, vertical = (10 * tv.factor).dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
-        ) {
-            Icon(Icons.Rounded.Schedule, null, tint = accent, modifier = Modifier.size((18 * tv.factor).dp))
-            Text(LocalTime.now().withSecond(0).withNano(0).toString(), color = Color.White, fontSize = (15 * tv.factor).sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.width((1 * tv.factor).dp).height((16 * tv.factor).dp).background(Color(0x33FFFFFF)))
-            Icon(Icons.Rounded.CloudQueue, null, tint = Color(0xCCE3BC78), modifier = Modifier.size((18 * tv.factor).dp))
-            Text("Smart TV", color = Color(0xCCE3BC78), fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.Medium)
+private fun LiveClockChip() {
+    val visuals = LocalMoVisuals.current
+    val strings = LocalStrings.current
+    val locale = if (strings === ArStrings) Locale.forLanguageTag("ar") else Locale.US
+    var now by remember { mutableStateOf(LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            now = LocalDateTime.now()
+            delay(60_000L - System.currentTimeMillis() % 60_000L)
         }
+    }
+    val time = remember(now) { now.format(DateTimeFormatter.ofPattern("HH:mm", Locale.US)) }
+    val date = remember(now, locale) { now.format(DateTimeFormatter.ofPattern("EEEE d MMMM", locale)) }
+    Row(
+        modifier = Modifier
+            .background(Color(0x99120F0C), RoundedCornerShape(999.dp))
+            .border(1.dp, Color(0x33E3BC78), RoundedCornerShape(999.dp))
+            .padding(horizontal = 16.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(Icons.Rounded.Schedule, contentDescription = strings.login.clockDescription, tint = visuals.accent, modifier = Modifier.size(18.dp))
+        Text(time.ltr(), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Box(Modifier.width(1.dp).height(16.dp).background(Color(0x33FFFFFF)))
+        Text(date, color = Color(0xCCE3BC78), fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
     }
 }
 
-@Composable
-private fun DeveloperContactChip(tv: TvScale) {
-    val accent = LocalMoVisuals.current.accent
-    GlassPanel(radius = 999.dp, blur = 8.dp) {
-        Row(
-            modifier = Modifier
-                .background(Color(0x99120F0C))
-                .padding(horizontal = (16 * tv.factor).dp, vertical = (10 * tv.factor).dp),
-            horizontalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Rounded.Code, null, tint = accent, modifier = Modifier.size((18 * tv.factor).dp))
-            Icon(Icons.Rounded.Language, null, tint = Color.White, modifier = Modifier.size((18 * tv.factor).dp))
-            Icon(Icons.Rounded.AlternateEmail, null, tint = Color(0xCCE3BC78), modifier = Modifier.size((18 * tv.factor).dp))
-        }
-    }
-}
+// ── TV: chooser and forms ───────────────────────────────────────────────
 
 @Composable
-private fun LoginGlassCard(
-    mode: LoginMode, name: String, m3u: String, url: String, user: String, pass: String, activationCode: String,
-    epgUrl: String,
-    loading: LoadProgress?, error: String?, fileMessage: String?, activationSession: DeviceActivationSession?,
+private fun TvLoginCard(
+    mode: LoginMode,
+    lastChosen: LoginMode,
+    form: LoginForm,
+    loading: LoadProgress?,
+    error: String?,
+    fileMessage: String?,
     reduceMotion: Boolean,
+    awaitingResult: Boolean,
+    onResultSeen: () -> Unit,
     tv: TvScale,
-    onMode: (LoginMode) -> Unit,
-    onName: (String) -> Unit, onM3u: (String) -> Unit, onEpgUrl: (String) -> Unit, onUrl: (String) -> Unit,
-    onUser: (String) -> Unit, onPass: (String) -> Unit,
-    onActivationCode: (String) -> Unit,
-    submitM3u: () -> Unit, submitM3uFile: () -> Unit, submitXtream: () -> Unit, submitActivation: () -> Unit, submitQrRefresh: () -> Unit,
+    width: Dp,
+    maxHeight: Dp,
+    actions: LoginActions,
 ) {
     val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
-    val initialFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        delay(100)
-        runCatching { initialFocus.requestFocus() }
+    val strings = LocalStrings.current
+    val login = strings.login
+    val chooserFocus = remember { LoginMode.entries.associateWith { FocusRequester() } }
+    val signInFocus = remember { FocusRequester() }
+    val urlField = rememberTvTextFieldController()
+    val userField = rememberTvTextFieldController()
+    val passField = rememberTvTextFieldController()
+    val nameField = rememberTvTextFieldController()
+    val m3uField = rememberTvTextFieldController()
+    val epgField = rememberTvTextFieldController()
+    val m3uNameField = rememberTvTextFieldController()
+
+    fun focusFirstMissingXtream() {
+        when {
+            form.url.isBlank() -> urlField.focus()
+            form.user.isBlank() -> userField.focus()
+            form.pass.isBlank() -> passField.focus()
+            else -> signInFocus.tryFocus()
+        }
     }
+    val submitXtream = { if (!actions.submitXtream()) focusFirstMissingXtream() }
+    val submitM3u = { if (!actions.submitM3u()) m3uField.focus() }
+
+    // Focus follows the mode: the card of the method used last on the chooser, the first missing
+    // field in a form. Wait one frame so the new nodes are attached and placed.
+    LaunchedEffect(mode) {
+        withFrameNanos { }
+        when (mode) {
+            LoginMode.CHOOSE -> chooserFocus.getValue(lastChosen).tryFocus()
+            LoginMode.XTREAM -> focusFirstMissingXtream()
+            LoginMode.M3U -> if (form.m3u.isBlank()) m3uField.focus() else signInFocus.tryFocus()
+            LoginMode.ACTIVATION -> Unit
+        }
+    }
+    // After a failed sign-in keep the remote on the Sign-in button instead of losing focus.
+    LaunchedEffect(loading == null, error) {
+        if (awaitingResult && loading == null) {
+            onResultSeen()
+            if (error != null) signInFocus.tryFocus()
+        }
+    }
+
+    val isChoose = mode == LoginMode.CHOOSE
     GlassPanel(
-        modifier = if (tv.isTv) {
-            Modifier.width((660 * tv.factor).dp)
-        } else {
-            Modifier.fillMaxWidth().padding(horizontal = tv.contentPadding)
-        },
-        radius = (32 * tv.factor).dp,
-        blur = 10.dp,
+        modifier = Modifier
+            .width(width)
+            .heightIn(max = maxHeight),
+        radius = 28.dp,
         glow = visuals.accent.copy(alpha = 0.22f),
     ) {
-        val isActivationMode = mode == LoginMode.ACTIVATION
-        val isChooseMode = mode == LoginMode.CHOOSE
         Column(
             modifier = Modifier
                 .background(Color(0xCC120F0C))
-                .padding((22 * tv.factor).dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 26.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(((if (isActivationMode || isChooseMode) 10 else 14) * tv.factor).dp),
+            verticalArrangement = Arrangement.spacedBy(if (isChoose) 10.dp else 9.dp),
         ) {
-            PulsingLogo(tv, loading != null, compact = isActivationMode || isChooseMode, reduceMotion = reduceMotion)
-            Text(
-                "MoPlayer Pro",
-                color = Color.White,
-                fontSize = ((if (isActivationMode || isChooseMode) 24 else 28) * tv.factor).sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 2.sp,
-            )
-            Text(
-                when (mode) {
-                    LoginMode.CHOOSE -> s.loginChooseMethod
-                    LoginMode.ACTIVATION -> s.loginSubtitleActivation
-                    LoginMode.XTREAM -> s.loginSubtitleXtream
-                    LoginMode.M3U -> s.loginSubtitleM3u
-                },
-                color = Color(0xFFE8C985),
-                fontSize = ((if (isChooseMode) 16 else 13) * tv.factor).sp,
-                fontWeight = if (isChooseMode) FontWeight.Bold else FontWeight.Medium,
-                textAlign = TextAlign.Center,
-            )
-            if (isChooseMode) {
-                ServerPromiseStrip(tv = tv)
-            }
-
-            if (isChooseMode) {
-                LoginMethodChooser(tv = tv, firstFocus = initialFocus, onMode = onMode)
+            if (isChoose) {
+                PulsingLogo(tv, active = loading != null, reduceMotion = reduceMotion)
+                Text("MoPlayer Pro", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.5.sp)
+                Text(login.chooseTitle, color = Color(0xFFE8C985), fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                LoginMethodChooser(chooserFocus = chooserFocus, onMode = actions.selectMode)
+                LoginInfoRow()
             } else {
-                Spacer(Modifier.height(((if (isActivationMode) 0 else 4) * tv.factor).dp))
-                ModeDock(mode, tv, firstTabFocus = initialFocus, onMode = onMode)
-            }
-            if (mode == LoginMode.ACTIVATION) {
-                QrActivationPanel(
-                    session = activationSession,
-                    manualCode = activationCode,
-                    tv = tv,
-                    onManualCode = onActivationCode,
-                    onRefresh = submitQrRefresh,
-                    onSubmitManual = submitActivation,
-                )
-            }
-
-            if (mode != LoginMode.ACTIVATION && mode != LoginMode.CHOOSE) when (mode) {
-                LoginMode.M3U -> {
-                    GlassTextField(name, onName, s.loginName, tv, Icons.Rounded.Person)
-                    GlassTextField(m3u,  onM3u,  s.loginM3uUrl, tv, Icons.Rounded.Link, KeyboardType.Uri)
-                    GlassTextField(epgUrl, onEpgUrl, s.loginEpgUrlOptional, tv, Icons.AutoMirrored.Rounded.EventNote, KeyboardType.Uri)
-                    GlassActionButton(s.loginEnter, Icons.Rounded.RocketLaunch, loading == null && m3u.isNotBlank(), tv, submitM3u)
-                    Text(
-                        s.loginFileHintTv,
-                        color = Color(0xCCE3BC78),
-                        fontSize = (12 * tv.factor).sp,
-                        textAlign = TextAlign.Center,
-                    )
-                    GlassActionButton(s.loginPickM3uFile, Icons.Rounded.FolderOpen, loading == null, tv, submitM3uFile)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            if (mode == LoginMode.XTREAM) login.methodXtreamTitle else login.methodM3uTitle,
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                        Text(
+                            if (mode == LoginMode.XTREAM) login.xtreamSubtitle else login.m3uSubtitle,
+                            color = Color(0xFFE8C985),
+                            fontSize = 14.sp,
+                            maxLines = 2,
+                        )
+                    }
+                    ModeDock(mode = mode, selectedFocus = null, onMode = actions.selectMode)
                 }
-                LoginMode.XTREAM -> {
-                    GlassTextField(name, onName, s.loginName,        tv, Icons.Rounded.Person)
-                    GlassTextField(url,  onUrl,  s.loginServerUrl, tv, Icons.Rounded.Public, KeyboardType.Uri)
-                    GlassTextField(user, onUser, s.loginUser,         tv, Icons.Rounded.Person)
-                    GlassPasswordField(pass, onPass, s.loginPassword, tv, submitXtream)
-                    GlassActionButton(s.loginEnter, Icons.Rounded.RocketLaunch, loading == null && url.isNotBlank() && user.isNotBlank() && pass.isNotBlank(), tv, submitXtream)
-                }
-                LoginMode.ACTIVATION -> {
-                    GlassTextField(
-                        value = activationCode,
-                        onValue = onActivationCode,
-                        label = s.loginActivationCode,
-                        tv = tv,
-                        icon = Icons.Rounded.Key,
+                val busy = loading != null
+                if (mode == LoginMode.XTREAM) {
+                    TvTextField(
+                        value = form.url, onValueChange = { form.url = it }, label = login.fieldServerUrl,
+                        controller = urlField, icon = Icons.Rounded.Public, keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Next, onImeAction = { userField.edit() },
                     )
-                    Text(
-                        s.loginActivationHint,
-                        color = Color(0xAAE3BC78),
-                        fontSize = (12 * tv.factor).sp,
-                        textAlign = TextAlign.Center,
+                    TvTextField(
+                        value = form.user, onValueChange = { form.user = it }, label = login.fieldUsername,
+                        controller = userField, icon = Icons.Rounded.Person,
+                        imeAction = ImeAction.Next, onImeAction = { passField.edit() },
                     )
-                    GlassActionButton(s.loginActivateDevice, Icons.Rounded.Verified, loading == null && activationCode.length >= 6, tv, submitActivation)
+                    TvTextField(
+                        value = form.pass, onValueChange = { form.pass = it }, label = login.fieldPassword,
+                        controller = passField, icon = Icons.Rounded.Lock, keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done, onImeAction = submitXtream, password = true,
+                    )
+                    TvTextField(
+                        value = form.name, onValueChange = { form.name = it }, label = login.fieldDisplayName,
+                        controller = nameField, icon = Icons.Rounded.Person,
+                        imeAction = ImeAction.Done, onImeAction = submitXtream,
+                    )
+                    GlassActionButton(
+                        text = if (busy) login.signingIn else login.signIn,
+                        icon = Icons.Rounded.RocketLaunch,
+                        enabled = !busy,
+                        dimmed = busy || !form.canSubmitXtream,
+                        focusRequester = signInFocus,
+                        onClick = submitXtream,
+                    )
+                } else {
+                    TvTextField(
+                        value = form.m3u, onValueChange = { form.m3u = it }, label = login.fieldPlaylistUrl,
+                        controller = m3uField, icon = Icons.Rounded.Link, keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Done, onImeAction = submitM3u,
+                    )
+                    TvTextField(
+                        value = form.epgUrl, onValueChange = { form.epgUrl = it }, label = login.fieldEpgUrl,
+                        controller = epgField, icon = Icons.AutoMirrored.Rounded.EventNote, keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Done, onImeAction = submitM3u,
+                    )
+                    TvTextField(
+                        value = form.name, onValueChange = { form.name = it }, label = login.fieldDisplayName,
+                        controller = m3uNameField, icon = Icons.Rounded.Person,
+                        imeAction = ImeAction.Done, onImeAction = submitM3u,
+                    )
+                    GlassActionButton(
+                        text = if (busy) login.signingIn else login.signIn,
+                        icon = Icons.Rounded.RocketLaunch,
+                        enabled = !busy,
+                        dimmed = busy || !form.canSubmitM3u,
+                        focusRequester = signInFocus,
+                        onClick = submitM3u,
+                    )
                 }
-                LoginMode.CHOOSE -> Unit
-            }
-
-            if (loading != null) FluidLoadingBar(loading, tv, reduceMotion = reduceMotion)
-            if (error   != null) ErrorGlassCard(error, tv)
-            if (fileMessage != null) ErrorGlassCard(fileMessage, tv)
-            if (isChooseMode) {
-                Text(
-                    "Your server is cached on this device. Smart refresh keeps account, EPG and metadata current without forcing a full reload.",
-                    color = Color(0xB8F1CC83),
-                    fontSize = (12 * tv.factor).sp,
-                    lineHeight = (16 * tv.factor).sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = (8 * tv.factor).dp),
-                )
+                LoginStatusSlot(loading = loading, message = fileMessage ?: error, reduceMotion = reduceMotion)
+                if (mode == LoginMode.M3U) {
+                    GlassActionButton(
+                        text = login.pickFile,
+                        icon = Icons.Rounded.FolderOpen,
+                        enabled = !busy,
+                        secondary = true,
+                        onClick = actions.pickFile,
+                    )
+                    Text(login.fileHint, color = Color(0xCCE3BC78), fontSize = 13.sp, textAlign = TextAlign.Center)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ServerPromiseStrip(tv: TvScale) {
-    val visuals = LocalMoVisuals.current
+private fun LoginStatusSlot(loading: LoadProgress?, message: String?, reduceMotion: Boolean) {
+    if (loading == null && message == null) return
+    val requester = remember { BringIntoViewRequester() }
+    // Status text is not focusable, so scroll it into view explicitly when it appears.
+    LaunchedEffect(loading != null, message) {
+        if (loading != null || message != null) requester.bringIntoView()
+    }
+    Column(Modifier.fillMaxWidth().bringIntoViewRequester(requester)) {
+        when {
+            loading != null -> FluidLoadingBar(loading, reduceMotion = reduceMotion)
+            message != null -> ErrorGlassCard(message)
+        }
+    }
+}
+
+@Composable
+private fun LoginInfoRow() {
+    val login = LocalStrings.current.login
+    // Plain labels, deliberately without button chrome: nothing here is focusable.
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy((8 * tv.factor).dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        ServerPromiseChip(
-            label = "Local cache",
-            icon = Icons.Rounded.Storage,
-            tv = tv,
-            modifier = Modifier.weight(1f),
-        )
-        ServerPromiseChip(
-            label = "Smart refresh",
-            icon = Icons.Rounded.Sync,
-            tv = tv,
-            modifier = Modifier.weight(1f),
-        )
-        ServerPromiseChip(
-            label = "Fast startup",
-            icon = Icons.Rounded.Bolt,
-            tv = tv,
-            modifier = Modifier.weight(1f),
-        )
+        InfoLabel(Icons.Rounded.Storage, login.infoSavedLocally)
+        InfoLabel(Icons.Rounded.Sync, login.infoSmartRefresh)
+        InfoLabel(Icons.Rounded.Bolt, login.infoFastStartup)
     }
 }
 
 @Composable
-private fun ServerPromiseChip(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tv: TvScale,
-    modifier: Modifier = Modifier,
+private fun InfoLabel(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Icon(icon, contentDescription = null, tint = Color(0x99E3BC78), modifier = Modifier.size(16.dp))
+        Text(text, color = Color(0xB3EFE1C4), fontSize = 12.sp, maxLines = 1)
+    }
+}
+
+@Composable
+private fun LoginMethodChooser(
+    chooserFocus: Map<LoginMode, FocusRequester>?,
+    onMode: (LoginMode) -> Unit,
 ) {
-    val visuals = LocalMoVisuals.current
-    Surface(
-        modifier = modifier.height((38 * tv.factor).dp),
-        shape = RoundedCornerShape(999.dp),
-        color = Color(0xC31A1510),
-        border = BorderStroke(1.dp, visuals.accent.copy(alpha = 0.32f)),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = (12 * tv.factor).dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = visuals.accent,
-                modifier = Modifier.size((16 * tv.factor).dp),
-            )
-            Spacer(Modifier.width((6 * tv.factor).dp))
-            Text(
-                label,
-                color = Color(0xFFEFE1C4),
-                fontSize = (11 * tv.factor).sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-@Composable
-private fun LoginMethodChooser(tv: TvScale, firstFocus: FocusRequester, onMode: (LoginMode) -> Unit) {
+    val login = LocalStrings.current.login
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
+        modifier = Modifier.fillMaxWidth().focusGroup(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         LoginMethodCard(
-            title = "M3U",
-            subtitle = "Link or file, saved locally with optional EPG",
-            icon = Icons.AutoMirrored.Rounded.PlaylistPlay,
-            tv = tv,
-            modifier = Modifier.focusRequester(firstFocus),
-        ) { onMode(LoginMode.M3U) }
+            title = login.methodQrTitle,
+            subtitle = login.methodQrSubtitle,
+            icon = Icons.Rounded.QrCode2,
+            badge = login.recommended,
+            focusRequester = chooserFocus?.get(LoginMode.ACTIVATION),
+        ) { onMode(LoginMode.ACTIVATION) }
         LoginMethodCard(
-            title = "Xtream",
-            subtitle = "Full local cache, subscription and expiry info",
+            title = login.methodXtreamTitle,
+            subtitle = login.methodXtreamSubtitle,
             icon = Icons.Rounded.Dns,
-            tv = tv,
+            focusRequester = chooserFocus?.get(LoginMode.XTREAM),
         ) { onMode(LoginMode.XTREAM) }
         LoginMethodCard(
-            title = "QR Code",
-            subtitle = "Temporary code, then sync this TV securely",
-            icon = Icons.Rounded.QrCode2,
-            tv = tv,
-        ) { onMode(LoginMode.ACTIVATION) }
+            title = login.methodM3uTitle,
+            subtitle = login.methodM3uSubtitle,
+            icon = Icons.AutoMirrored.Rounded.PlaylistPlay,
+            focusRequester = chooserFocus?.get(LoginMode.M3U),
+        ) { onMode(LoginMode.M3U) }
     }
 }
 
@@ -564,103 +789,782 @@ private fun LoginMethodChooser(tv: TvScale, firstFocus: FocusRequester, onMode: 
 private fun LoginMethodCard(
     title: String,
     subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tv: TvScale,
-    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    focusRequester: FocusRequester?,
+    badge: String? = null,
     onClick: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (focused) 1.035f else 1f,
-        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow),
-        label = "method-card-scale",
-    )
+    val scale by animateFloatAsState(if (focused) 1.03f else 1f, label = "method-card-scale")
+    val shape = RoundedCornerShape(20.dp)
     Surface(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .height((96 * tv.factor).dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .heightIn(min = 64.dp)
+            .let { if (focusRequester != null) it.focusRequester(focusRequester) else it }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .shadow(
-                if (focused) 34.dp else 10.dp,
-                RoundedCornerShape((24 * tv.factor).dp),
+                if (focused) 24.dp else 6.dp,
+                shape,
                 clip = false,
-                ambientColor = visuals.accent.copy(alpha = if (focused) 0.38f else 0.12f),
-                spotColor = visuals.accent.copy(alpha = if (focused) 0.38f else 0.12f),
+                ambientColor = visuals.accent.copy(alpha = if (focused) 0.38f else 0.10f),
+                spotColor = visuals.accent.copy(alpha = if (focused) 0.38f else 0.10f),
             )
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .focusable(interactionSource = interaction),
-        shape = RoundedCornerShape((24 * tv.factor).dp),
-        color = if (focused) Color(0xF02A2118) else Color(0xE51E1914),
-        border = BorderStroke(
-            if (focused) 2.dp else 1.dp,
-            if (focused) visuals.accent else Color(0x55E3BC78),
-        ),
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+        shape = shape,
+        color = if (focused) Color(0xF22E2419) else Color(0xE51E1914),
+        border = BorderStroke(if (focused) 3.dp else 1.dp, if (focused) Color.White else Color(0x55E3BC78)),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = (20 * tv.factor).dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Box(
                 modifier = Modifier
-                    .size((54 * tv.factor).dp)
-                    .clip(RoundedCornerShape((18 * tv.factor).dp))
-                    .background(if (focused) visuals.accent.copy(alpha = 0.28f) else Color(0x332A2723)),
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (focused) visuals.accent.copy(alpha = 0.30f) else Color(0x332A2723)),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, null, tint = if (focused) Color.White else visuals.accent, modifier = Modifier.size((30 * tv.factor).dp))
+                Icon(icon, contentDescription = null, tint = if (focused) Color.White else visuals.accent, modifier = Modifier.size(26.dp))
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy((4 * tv.factor).dp)) {
-                Text(title, color = Color.White, fontSize = (20 * tv.factor).sp, fontWeight = FontWeight.ExtraBold)
-                Text(
-                    subtitle,
-                    color = Color(0xEDE3BC78),
-                    fontSize = (13 * tv.factor).sp,
-                    lineHeight = (17 * tv.factor).sp,
-                    maxLines = 2,
-                )
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(title, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+                    if (badge != null) {
+                        Text(
+                            badge,
+                            color = Color(0xFF1A1208),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .background(visuals.accent, RoundedCornerShape(999.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp),
+                        )
+                    }
+                }
+                Text(subtitle, color = Color(0xEDE3BC78), fontSize = 13.sp, lineHeight = 17.sp, maxLines = 2)
             }
-            Icon(Icons.Rounded.ChevronRight, null, tint = Color(0xCCE3BC78), modifier = Modifier.size((28 * tv.factor).dp))
+            Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = Color(0xCCE3BC78), modifier = Modifier.size(24.dp))
         }
     }
 }
 
 @Composable
+private fun ModeDock(mode: LoginMode, selectedFocus: FocusRequester?, onMode: (LoginMode) -> Unit) {
+    val login = LocalStrings.current.login
+    Row(
+        Modifier
+            .focusGroup()
+            .background(Color(0x881E1A16), RoundedCornerShape(999.dp))
+            .border(1.dp, Color(0x33E3BC78), RoundedCornerShape(999.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        listOf(
+            LoginMode.ACTIVATION to login.tabQr,
+            LoginMode.XTREAM to login.tabXtream,
+            LoginMode.M3U to login.tabM3u,
+        ).forEach { (tabMode, label) ->
+            val selected = mode == tabMode
+            ModeTab(label, selected, focusRequester = if (selected) selectedFocus else null) { onMode(tabMode) }
+        }
+    }
+}
+
+/** Selected = filled accent pill; focused = white ring and lift. Both can apply at once. */
+@Composable
+private fun ModeTab(text: String, selected: Boolean, focusRequester: FocusRequester?, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val accent = LocalMoVisuals.current.accent
+    val scale by animateFloatAsState(if (focused) 1.08f else 1f, label = "mode-tab-scale")
+    val background by animateColorAsState(
+        when {
+            selected -> accent
+            focused -> Color(0x40FFFFFF)
+            else -> Color.Transparent
+        },
+        label = "mode-tab-bg",
+    )
+    val shape = RoundedCornerShape(999.dp)
+    Box(
+        modifier = Modifier
+            .let { if (focusRequester != null) it.focusRequester(focusRequester) else it }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .background(background, shape)
+            .then(if (focused) Modifier.border(2.dp, Color.White, shape) else Modifier)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text,
+            color = when {
+                selected -> Color(0xFF1A1208)
+                focused -> Color.White
+                else -> Color(0xB3FFFFFF)
+            },
+            fontSize = 14.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+    }
+}
+
+/**
+ * Primary (gradient) or secondary (outlined) action. It stays focusable while disabled or busy so
+ * the remote never loses focus when a login starts: clicks are ignored while not [enabled], and
+ * [dimmed] only changes the look (Sign in stays clickable to point at the first missing field).
+ * The focus ring is drawn outside the dimmed layer so it is always fully visible.
+ */
+@Composable
+private fun GlassActionButton(
+    text: String,
+    icon: ImageVector,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    dimmed: Boolean = !enabled,
+    focusRequester: FocusRequester? = null,
+    secondary: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val visuals = LocalMoVisuals.current
+    val accent = visuals.accent
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val scale by animateFloatAsState(if (focused) 1.04f else 1f, label = "btn-scale")
+    val shape = RoundedCornerShape(999.dp)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 46.dp)
+            .let { if (focusRequester != null) it.focusRequester(focusRequester) else it }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(if (focused) 22.dp else 0.dp, shape, clip = false, ambientColor = accent.copy(alpha = 0.5f), spotColor = accent.copy(alpha = 0.5f))
+            .border(
+                width = if (focused) 3.dp else 1.dp,
+                color = if (focused) Color.White else if (secondary) Color(0x66E3BC78) else Color.Transparent,
+                shape = shape,
+            )
+            .clickable(interactionSource = interaction, indication = null) { if (enabled) onClick() }
+            .semantics { if (!enabled) disabled() }
+            .graphicsLayer { alpha = if (dimmed) 0.45f else 1f }
+            .then(
+                if (secondary) {
+                    Modifier.background(if (focused) accent.copy(alpha = 0.22f) else Color(0x331E1914), shape)
+                } else {
+                    Modifier.background(Brush.horizontalGradient(listOf(accent, visuals.accentB)), shape)
+                },
+            )
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            val content = if (secondary && !focused) visuals.accent else Color.White
+            Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(20.dp))
+            Text(text, color = content, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun PulsingLogo(tv: TvScale, active: Boolean, reduceMotion: Boolean = false) {
+    val pulse = if (!active || reduceMotion) {
+        1f
+    } else {
+        val transition = rememberInfiniteTransition(label = "logo-pulse")
+        val animatedPulse by transition.animateFloat(
+            initialValue = 0.90f,
+            targetValue = 1.06f,
+            animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "pulse",
+        )
+        animatedPulse
+    }
+    val accent = LocalMoVisuals.current.accent
+    val accentB = LocalMoVisuals.current.accentB
+    val logoWidth = if (tv.isTv) 80.dp else 72.dp
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(width = logoWidth, height = logoWidth * 0.72f)) {
+        if (active) {
+            Canvas(Modifier.fillMaxSize()) {
+                drawCircle(accent.copy(alpha = 0.15f), radius = size.minDimension * 0.60f * pulse)
+                drawCircle(accentB.copy(alpha = 0.10f), radius = size.minDimension * 0.44f * pulse)
+            }
+        }
+        Image(
+            painter = painterResource(R.drawable.brand_logo_ui),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = pulse
+                    scaleY = pulse
+                },
+        )
+    }
+}
+
+@Composable
+private fun FluidLoadingBar(progress: LoadProgress, reduceMotion: Boolean = false) {
+    val wave = if (reduceMotion) {
+        0.5f
+    } else {
+        val transition = rememberInfiniteTransition(label = "fluid-loading")
+        val animatedWave by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(1600, easing = LinearEasing)), label = "wave")
+        animatedWave
+    }
+    val accent = LocalMoVisuals.current.accent
+    val accentB = LocalMoVisuals.current.accentB
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(progress.phase, color = Color(0xCCE3BC78), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2)
+        Canvas(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(999.dp))) {
+            drawRoundRect(Color(0x222A231E), cornerRadius = CornerRadius(size.height))
+            val filled = size.width * progress.percent.coerceIn(0f, 1f)
+            drawRoundRect(
+                brush = Brush.linearGradient(
+                    listOf(accent.copy(alpha = 0.5f), accent, accentB.copy(alpha = 0.8f)),
+                    start = Offset(size.width * wave - size.width, 0f),
+                    end = Offset(size.width * wave, size.height),
+                ),
+                size = Size(filled, size.height),
+                cornerRadius = CornerRadius(size.height),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorGlassCard(error: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0x66401018), RoundedCornerShape(16.dp))
+            .border(1.dp, Color(0x88FF4D6D), RoundedCornerShape(16.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(Icons.Rounded.ErrorOutline, contentDescription = null, tint = Color(0xFFFF8FA3), modifier = Modifier.size(20.dp))
+        Text(
+            text = error,
+            color = Color(0xFFFFB3C0),
+            fontSize = 14.sp,
+            lineHeight = 19.sp,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+// ── QR activation ────────────────────────────────────────────────────────
+
+@Composable
+private fun TvActivationCard(
+    session: DeviceActivationSession?,
+    loading: LoadProgress?,
+    error: String?,
+    reduceMotion: Boolean,
+    tv: TvScale,
+    width: Dp,
+    maxHeight: Dp,
+    actions: LoginActions,
+) {
+    val visuals = LocalMoVisuals.current
+    val login = LocalStrings.current.login
+    val tabFocus = remember { FocusRequester() }
+    val refreshFocus = remember { FocusRequester() }
+    // Start on the selected QR tab: an accidental OK must not replace a code that is being scanned.
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        tabFocus.tryFocus()
+    }
+    GlassPanel(
+        modifier = Modifier
+            .width(width)
+            .heightIn(max = maxHeight),
+        radius = 28.dp,
+        glow = visuals.accent.copy(alpha = 0.22f),
+    ) {
+        Column(
+            modifier = Modifier
+                .background(Color(0xCC120F0C))
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 28.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(login.qrTitle, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(login.qrSubtitle, color = Color(0xFFE8C985), fontSize = 14.sp)
+                }
+                ModeDock(mode = LoginMode.ACTIVATION, selectedFocus = tabFocus, onMode = actions.selectMode)
+            }
+            QrActivationPanel(
+                session = session,
+                loading = loading,
+                error = error,
+                tv = tv,
+                wide = true,
+                reduceMotion = reduceMotion,
+                refreshFocus = refreshFocus,
+                onRefresh = actions.refreshQr,
+                onStop = actions.stopQr,
+            )
+        }
+    }
+}
+
+/**
+ * QR sign-in: creates a code when shown and stops polling when it leaves the screen (and, on TV,
+ * while the app is in the background). Expired codes are renewed automatically a few times.
+ * Phones keep polling in the background because the user finishes on this device's browser.
+ */
+@Composable
+private fun QrActivationPanel(
+    session: DeviceActivationSession?,
+    loading: LoadProgress?,
+    error: String?,
+    tv: TvScale,
+    wide: Boolean,
+    reduceMotion: Boolean,
+    refreshFocus: FocusRequester,
+    onRefresh: () -> Unit,
+    onStop: () -> Unit,
+) {
+    val context = LocalContext.current
+    val login = LocalStrings.current.login
+    val currentError by rememberUpdatedState(error)
+    val currentLoading by rememberUpdatedState(loading)
+    val currentSession by rememberUpdatedState(session)
+    val refresh by rememberUpdatedState(onRefresh)
+    val stop by rememberUpdatedState(onStop)
+    var renewals by remember { mutableIntStateOf(0) }
+    var autoRenewing by remember { mutableStateOf(false) }
+    var requestedAt by remember { mutableLongStateOf(0L) }
+    var errorAtRequest by remember { mutableStateOf<String?>(null) }
+    // Code that was on screen when a new one was requested; it is hidden until the new one arrives.
+    // A session that already exists when the panel appears is stale: its polling was stopped.
+    var staleCode by remember { mutableStateOf(session?.deviceCode) }
+    var browserMessage by remember { mutableStateOf<String?>(null) }
+
+    fun requestCode(manual: Boolean) {
+        if (manual) {
+            renewals = 0
+            autoRenewing = false
+        }
+        requestedAt = SystemClock.elapsedRealtime()
+        errorAtRequest = currentError
+        staleCode = currentSession?.deviceCode
+        browserMessage = null
+        refresh()
+    }
+
+    if (tv.isTv) {
+        LifecycleStartEffect(Unit) {
+            if (currentLoading == null) requestCode(manual = true)
+            onStopOrDispose { stop() }
+        }
+    } else {
+        DisposableEffect(Unit) {
+            if (currentLoading == null) requestCode(manual = true)
+            onDispose { stop() }
+        }
+    }
+
+    val current = session?.takeIf { it.deviceCode != staleCode }
+    var creationTimedOut by remember { mutableStateOf(false) }
+    LaunchedEffect(requestedAt, current == null) {
+        creationTimedOut = false
+        if (current == null && requestedAt > 0L) {
+            delay(QR_CREATE_TIMEOUT_MS)
+            creationTimedOut = true
+        }
+    }
+    LaunchedEffect(current?.deviceCode) {
+        if (current != null) autoRenewing = false
+    }
+    LaunchedEffect(current?.status, current?.deviceCode) {
+        if (shouldAutoRenewQr(current?.status, renewals)) {
+            renewals += 1
+            autoRenewing = true
+            requestCode(manual = false)
+        }
+    }
+    val newError = requestedAt > 0L && error != null && error !== errorAtRequest
+    val failed = (current == null && requestedAt > 0L && (newError || creationTimedOut)) ||
+        (current?.status == DeviceActivationStatus.ACTIVATED && loading == null && newError)
+    val phase = qrPhase(current?.status, loading != null, failed, autoRenewing, renewals)
+    LaunchedEffect(phase) {
+        if (tv.isTv && (phase == QrPhase.Failed || phase == QrPhase.Expired)) refreshFocus.tryFocus()
+    }
+    val failureMessage = current?.error?.takeIf { it.isNotBlank() } ?: error ?: login.qrFailedGeneric
+
+    // TV: the drawn symbol (whole-pixel modules, so slightly smaller than the box) stays >= 260dp,
+    // scannable from the couch; about half the screen height on a 540dp TV.
+    val qrSize = if (tv.isTv) {
+        (tv.shortestScreenDp * 0.52f).dp.coerceIn(280.dp, 380.dp)
+    } else {
+        (tv.shortestScreenDp * 0.42f).dp.coerceIn(150.dp, 240.dp)
+    }
+    val plate: @Composable () -> Unit = {
+        QrPlate(url = if (phase == QrPhase.Waiting) current?.verificationUrlComplete.orEmpty() else "", phase = phase, size = qrSize)
+    }
+    val details: @Composable () -> Unit = {
+        QrDetails(
+            session = current,
+            phase = phase,
+            loading = loading,
+            failureMessage = failureMessage,
+            browserMessage = browserMessage,
+            wide = wide,
+            reduceMotion = reduceMotion,
+            refreshFocus = refreshFocus,
+            onRefresh = { requestCode(manual = true) },
+            onOpenPage = { url ->
+                if (!openInBrowser(context, url)) browserMessage = login.qrNoBrowser(displayActivationUrl(url))
+            },
+        )
+    }
+    if (wide) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(32.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            plate()
+            Box(Modifier.weight(1f)) { details() }
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            plate()
+            details()
+        }
+    }
+}
+
+@Composable
+private fun QrPlate(url: String, phase: QrPhase, size: Dp) {
+    val login = LocalStrings.current.login
+    val visuals = LocalMoVisuals.current
+    val density = LocalDensity.current
+    val targetPx = with(density) { size.roundToPx() }
+    val qr = rememberQrBitmap(url, targetPx)
+    val shape = RoundedCornerShape(22.dp)
+    Box(
+        modifier = Modifier
+            .shadow(18.dp, shape, spotColor = Color(0xFFF1CC83))
+            .background(if (phase == QrPhase.Waiting) Color.White else Color(0xFF1E1914), shape)
+            .border(2.dp, Color(0x66F1CC83), shape)
+            .padding(8.dp)
+            .size(size),
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            phase == QrPhase.Waiting && qr != null -> Image(
+                bitmap = qr,
+                contentDescription = login.qrImageDescription,
+                filterQuality = FilterQuality.None,
+                modifier = Modifier.size(with(density) { qr.width.toDp() }),
+            )
+            phase == QrPhase.Received -> Icon(
+                Icons.Rounded.CheckCircle,
+                contentDescription = null,
+                tint = visuals.accent,
+                modifier = Modifier.size(size * 0.36f),
+            )
+            phase == QrPhase.Expired || phase == QrPhase.Failed -> Icon(
+                Icons.Rounded.QrCode2,
+                contentDescription = null,
+                tint = Color(0x55E3BC78),
+                modifier = Modifier.size(size * 0.5f),
+            )
+            else -> CircularProgressIndicator(
+                color = if (phase == QrPhase.Waiting) Color(0xFF0B0B0C) else visuals.accent,
+                modifier = Modifier.size(44.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun QrDetails(
+    session: DeviceActivationSession?,
+    phase: QrPhase,
+    loading: LoadProgress?,
+    failureMessage: String,
+    browserMessage: String?,
+    wide: Boolean,
+    reduceMotion: Boolean,
+    refreshFocus: FocusRequester,
+    onRefresh: () -> Unit,
+    onOpenPage: (String) -> Unit,
+) {
+    val login = LocalStrings.current.login
+    val tvText = wide
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = if (wide) Alignment.Start else Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (phase != QrPhase.Received) {
+            val steps = if (wide) {
+                listOf(login.qrStep1, login.qrStep2, login.qrStep3)
+            } else {
+                listOf(login.qrStep1Mobile, login.qrStep2, login.qrStep3Mobile)
+            }
+            steps.forEachIndexed { index, step -> QrStep(number = index + 1, text = step, large = tvText) }
+        }
+        if (phase == QrPhase.Waiting && session != null) {
+            Text(
+                login.qrCodeLabel,
+                color = Color(0xB3FFFFFF),
+                fontSize = if (tvText) 14.sp else 13.sp,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            Text(
+                session.userCode.ltr(),
+                color = Color.White,
+                fontSize = if (tvText) 36.sp else 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 3.sp,
+            )
+            Text(
+                "${login.qrOrVisit} ${displayActivationUrl(session.verificationUrl).ltr()}",
+                color = Color(0xFFE8C985),
+                fontSize = if (tvText) 16.sp else 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = if (wide) TextAlign.Start else TextAlign.Center,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                QrCountdown(expiresAt = session.expiresAt, large = tvText)
+                Text(login.qrWaiting, color = Color(0xB3FFFFFF), fontSize = if (tvText) 14.sp else 12.sp, maxLines = 1)
+            }
+        } else {
+            val status = when (phase) {
+                QrPhase.Creating -> login.qrCreating
+                QrPhase.Received -> login.qrReceived
+                QrPhase.Renewing -> login.qrRenewing
+                QrPhase.Expired -> login.qrExpired
+                QrPhase.Waiting -> login.qrWaiting
+                QrPhase.Failed -> failureMessage
+            }
+            val isProblem = phase == QrPhase.Failed || phase == QrPhase.Expired
+            Text(
+                status,
+                color = if (isProblem) Color(0xFFFFB3C0) else Color(0xCCFFFFFF),
+                fontSize = if (tvText) 16.sp else 14.sp,
+                fontWeight = if (isProblem) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 3,
+                textAlign = if (wide) TextAlign.Start else TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        if (phase == QrPhase.Received && loading != null) {
+            FluidLoadingBar(loading, reduceMotion = reduceMotion)
+        }
+        if (!wide && phase == QrPhase.Waiting && session != null) {
+            GlassActionButton(
+                text = login.qrOpenPage,
+                icon = Icons.AutoMirrored.Rounded.OpenInNew,
+                enabled = true,
+                onClick = { onOpenPage(session.verificationUrlComplete) },
+            )
+        }
+        if (browserMessage != null) {
+            Text(browserMessage, color = Color(0xFFFFB3C0), fontSize = 13.sp, textAlign = TextAlign.Center)
+        }
+        if (phase != QrPhase.Received) {
+            GlassActionButton(
+                text = if (phase == QrPhase.Failed) login.qrTryAgain else login.qrNewCode,
+                icon = Icons.Rounded.Refresh,
+                enabled = phase != QrPhase.Creating && phase != QrPhase.Renewing,
+                secondary = phase == QrPhase.Waiting,
+                focusRequester = refreshFocus,
+                modifier = if (wide) Modifier.widthIn(max = 280.dp) else Modifier,
+                onClick = onRefresh,
+            )
+        }
+    }
+}
+
+@Composable
+private fun QrStep(number: Int, text: String, large: Boolean) {
+    val accent = LocalMoVisuals.current.accent
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(
+            Modifier
+                .size(if (large) 26.dp else 22.dp)
+                .background(accent.copy(alpha = 0.22f), CircleShape)
+                .border(1.dp, accent.copy(alpha = 0.6f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(number.toString(), color = accent, fontSize = if (large) 14.sp else 12.sp, fontWeight = FontWeight.ExtraBold)
+        }
+        Text(text, color = Color(0xE6FFFFFF), fontSize = if (large) 15.sp else 13.sp, maxLines = 2)
+    }
+}
+
+/** Live mm:ss countdown; only this small composable recomposes every second. */
+@Composable
+private fun QrCountdown(expiresAt: Long, large: Boolean) {
+    val login = LocalStrings.current.login
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(expiresAt) {
+        while (true) {
+            now = System.currentTimeMillis()
+            delay(1_000L)
+        }
+    }
+    val secondsLeft = ((expiresAt - now) / 1_000L).coerceAtLeast(0L)
+    Row(
+        modifier = Modifier
+            .background(Color(0x33E3BC78), RoundedCornerShape(999.dp))
+            .padding(horizontal = 12.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(Icons.Rounded.Schedule, contentDescription = null, tint = Color(0xFFE8C985), modifier = Modifier.size(16.dp))
+        Text(
+            login.qrValidFor(formatCountdown(secondsLeft)),
+            color = Color(0xFFEFE1C4),
+            fontSize = if (large) 15.sp else 13.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+/** Builds the QR bitmap (and decodes the small centre logo) off the main thread. */
+@Composable
+private fun rememberQrBitmap(url: String, targetPx: Int): ImageBitmap? {
+    val context = LocalContext.current
+    val bitmap by produceState<ImageBitmap?>(initialValue = null, url, targetPx) {
+        value = null
+        if (url.isBlank() || targetPx <= 0) return@produceState
+        value = withContext(Dispatchers.Default) {
+            runCatching {
+                val logo = BitmapFactory.decodeResource(context.resources, R.drawable.brand_logo_ui)
+                try {
+                    brandedQrBitmap(url, targetPx, logo).asImageBitmap()
+                } finally {
+                    logo?.recycle()
+                }
+            }.getOrNull()
+        }
+    }
+    return bitmap
+}
+
+/**
+ * Branded QR with a 4-module quiet zone, rounded modules, styled finder eyes and the MoPlayer mark
+ * in the centre. The payload is ASCII, so no CHARACTER_SET hint (it would add an ECI header and a
+ * bigger symbol). Level Q keeps 25% recovery for the centre mark while the activation URL stays at
+ * version 6, which has no centre alignment pattern for the logo to cover.
+ */
+private fun brandedQrBitmap(value: String, targetPx: Int, logo: android.graphics.Bitmap?): android.graphics.Bitmap {
+    val code = Encoder.encode(value, ErrorCorrectionLevel.Q)
+    val matrix = code.matrix
+    val modules = matrix.width
+    val cell = qrCellPx(targetPx, modules)
+    val sizePx = cell * (modules + 2 * QR_QUIET_MODULES)
+    val bitmap = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    canvas.drawColor(android.graphics.Color.WHITE)
+    val dark = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF0B0B0C.toInt() }
+    val white = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.WHITE }
+    val origin = (QR_QUIET_MODULES * cell).toFloat()
+    val cellF = cell.toFloat()
+    fun inFinder(mx: Int, my: Int): Boolean =
+        (mx < 7 && my < 7) || (mx >= modules - 7 && my < 7) || (mx < 7 && my >= modules - 7)
+    val radius = cellF * 0.25f
+    for (my in 0 until modules) {
+        for (mx in 0 until modules) {
+            if (matrix.get(mx, my).toInt() != 1 || inFinder(mx, my)) continue
+            val left = origin + mx * cellF
+            val top = origin + my * cellF
+            canvas.drawRoundRect(left, top, left + cellF, top + cellF, radius, radius, dark)
+        }
+    }
+    fun finder(cx: Int, cy: Int) {
+        val x = origin + cx * cellF
+        val y = origin + cy * cellF
+        val outer = 7 * cellF
+        canvas.drawRoundRect(x, y, x + outer, y + outer, cellF * 1.7f, cellF * 1.7f, dark)
+        canvas.drawRoundRect(x + cellF, y + cellF, x + outer - cellF, y + outer - cellF, cellF * 1.2f, cellF * 1.2f, white)
+        canvas.drawRoundRect(x + 2 * cellF, y + 2 * cellF, x + outer - 2 * cellF, y + outer - 2 * cellF, cellF * 0.9f, cellF * 0.9f, dark)
+    }
+    finder(0, 0)
+    finder(modules - 7, 0)
+    finder(0, modules - 7)
+    if (logo != null) {
+        val box = modules * cellF * 0.18f
+        val center = sizePx / 2f
+        val plate = box / 2f + cellF
+        canvas.drawRoundRect(center - plate, center - plate, center + plate, center + plate, plate * 0.34f, plate * 0.34f, white)
+        val aspect = logo.width.toFloat() / logo.height.toFloat()
+        val w = if (aspect >= 1f) box else box * aspect
+        val h = if (aspect >= 1f) box / aspect else box
+        val dst = android.graphics.RectF(center - w / 2f, center - h / 2f, center + w / 2f, center + h / 2f)
+        canvas.drawBitmap(logo, null, dst, android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG or android.graphics.Paint.ANTI_ALIAS_FLAG))
+    }
+    return bitmap
+}
+
+/** Opens the activation page in a browser, never in MoPlayer itself. Returns false when nothing can open it. */
+private fun openInBrowser(context: Context, url: String): Boolean {
+    val view = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)
+    val intent = if (browserIntentNeedsChooser(Build.VERSION.SDK_INT)) {
+        Intent.createChooser(view, null)
+            .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, MainActivity::class.java)))
+    } else {
+        view
+    }
+    if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    return try {
+        context.startActivity(intent)
+        true
+    } catch (_: ActivityNotFoundException) {
+        false
+    } catch (_: SecurityException) {
+        false
+    }
+}
+
+// ── Phones and tablets ────────────────────────────────────────────────────
+
+@Composable
 private fun CompactLoginScreen(
     settings: AppSettings,
     mode: LoginMode,
-    name: String,
-    m3u: String,
-    epgUrl: String,
-    url: String,
-    user: String,
-    pass: String,
-    activationCode: String,
+    form: LoginForm,
     loading: LoadProgress?,
     error: String?,
     fileMessage: String?,
+    activationSession: DeviceActivationSession?,
     reduceMotion: Boolean,
-    onMode: (LoginMode) -> Unit,
-    onName: (String) -> Unit,
-    onM3u: (String) -> Unit,
-    onEpgUrl: (String) -> Unit,
-    onUrl: (String) -> Unit,
-    onUser: (String) -> Unit,
-    onPass: (String) -> Unit,
-    onActivationCode: (String) -> Unit,
-    submitM3u: () -> Unit,
-    submitM3uFile: () -> Unit,
-    submitXtream: () -> Unit,
-    submitActivation: () -> Unit,
+    actions: LoginActions,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
-    val useWideLayout = !tv.isTv && tv.maxOfWidthHeightDp >= 560
+    val login = LocalStrings.current.login
+    val useWideLayout = tv.maxOfWidthHeightDp >= 560
     val logoSize = when {
         tv.isLowHeightLandscape -> 44.dp
         tv.isCompact -> 52.dp
@@ -682,64 +1586,71 @@ private fun CompactLoginScreen(
         else -> 14.dp
     }
     val formSpacing = if (tv.isLowHeightLandscape) 6.dp else if (tv.isCompact) 8.dp else 12.dp
+    val refreshFocus = remember { FocusRequester() }
+    val busy = loading != null
 
     @Composable
     fun LoginFields(modifier: Modifier = Modifier) {
         Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(formSpacing)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                CompactModeButton("M3U", mode == LoginMode.M3U, Modifier.weight(1f)) { onMode(LoginMode.M3U) }
-                CompactModeButton("Xtream", mode == LoginMode.XTREAM, Modifier.weight(1f)) { onMode(LoginMode.XTREAM) }
-                CompactModeButton("QR", mode == LoginMode.ACTIVATION, Modifier.weight(1f)) { onMode(LoginMode.ACTIVATION) }
+            if (mode == LoginMode.CHOOSE) {
+                Text(login.chooseTitle, color = Color(0xFFE8C985), style = MaterialTheme.typography.titleMedium)
+                LoginMethodChooser(chooserFocus = null, onMode = actions.selectMode)
+                return@Column
             }
-            if (mode != LoginMode.ACTIVATION && mode != LoginMode.CHOOSE) {
-                CompactTextField(name, onName, s.loginName, Icons.Rounded.Person)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                CompactModeButton(login.tabQr, mode == LoginMode.ACTIVATION, Modifier.weight(1f)) { actions.selectMode(LoginMode.ACTIVATION) }
+                CompactModeButton(login.tabXtream, mode == LoginMode.XTREAM, Modifier.weight(1f)) { actions.selectMode(LoginMode.XTREAM) }
+                CompactModeButton(login.tabM3u, mode == LoginMode.M3U, Modifier.weight(1f)) { actions.selectMode(LoginMode.M3U) }
             }
             when (mode) {
-                LoginMode.CHOOSE -> {
-                    Text(s.loginChooseMethod, color = Color(0xCCE3BC78), style = MaterialTheme.typography.bodyMedium)
-                }
                 LoginMode.M3U -> {
-                    CompactTextField(m3u, onM3u, s.loginM3uUrl, Icons.Rounded.Link, KeyboardType.Uri)
-                    CompactTextField(epgUrl, onEpgUrl, s.loginEpgUrlOptional, Icons.AutoMirrored.Rounded.EventNote, KeyboardType.Uri)
+                    CompactTextField(form.m3u, { form.m3u = it }, login.fieldPlaylistUrl, Icons.Rounded.Link, KeyboardType.Uri, ImeAction.Next)
+                    CompactTextField(form.epgUrl, { form.epgUrl = it }, login.fieldEpgUrl, Icons.AutoMirrored.Rounded.EventNote, KeyboardType.Uri, ImeAction.Next)
+                    CompactTextField(form.name, { form.name = it }, login.fieldDisplayName, Icons.Rounded.Person, imeAction = ImeAction.Done, onDone = { actions.submitM3u() })
                     Button(
-                        onClick = submitM3u,
-                        enabled = loading == null && m3u.isNotBlank(),
+                        onClick = { actions.submitM3u() },
+                        enabled = !busy && form.canSubmitM3u,
                         modifier = Modifier.fillMaxWidth().height(fieldHeight),
-                    ) { Text(if (loading == null) s.loginEnter else loading.phase) }
+                    ) { Text(if (busy) login.signingIn else login.signIn) }
                     OutlinedButton(
-                        onClick = submitM3uFile,
-                        enabled = loading == null,
+                        onClick = actions.pickFile,
+                        enabled = !busy,
                         modifier = Modifier.fillMaxWidth().height(fieldHeight),
-                    ) { Text(s.loginPickM3uFile) }
-                    Text(s.loginFileHintMobile, color = Color(0xAAE3BC78), style = MaterialTheme.typography.bodySmall)
+                    ) { Text(login.pickFile) }
+                    Text(login.fileHint, color = Color(0xAAE3BC78), style = MaterialTheme.typography.bodySmall)
                 }
                 LoginMode.XTREAM -> {
-                    CompactTextField(url, onUrl, s.loginServerUrl, Icons.Rounded.Public, KeyboardType.Uri)
-                    CompactTextField(user, onUser, s.loginUsername, Icons.Rounded.Person)
-                    CompactPasswordField(pass, onPass)
+                    CompactTextField(form.url, { form.url = it }, login.fieldServerUrl, Icons.Rounded.Public, KeyboardType.Uri, ImeAction.Next)
+                    CompactTextField(form.user, { form.user = it }, login.fieldUsername, Icons.Rounded.Person, imeAction = ImeAction.Next)
+                    CompactPasswordField(form.pass, { form.pass = it }, onDone = { actions.submitXtream() })
+                    CompactTextField(form.name, { form.name = it }, login.fieldDisplayName, Icons.Rounded.Person, imeAction = ImeAction.Done, onDone = { actions.submitXtream() })
                     Button(
-                        onClick = submitXtream,
-                        enabled = loading == null && url.isNotBlank() && user.isNotBlank() && pass.isNotBlank(),
+                        onClick = { actions.submitXtream() },
+                        enabled = !busy && form.canSubmitXtream,
                         modifier = Modifier.fillMaxWidth().height(fieldHeight),
-                    ) { Text(if (loading == null) s.loginEnter else loading.phase) }
+                    ) { Text(if (busy) login.signingIn else login.signIn) }
                 }
                 LoginMode.ACTIVATION -> {
-                    CompactTextField(activationCode, onActivationCode, s.loginActivationCode, Icons.Rounded.Key)
-                    Button(
-                        onClick = submitActivation,
-                        enabled = loading == null && activationCode.length >= 6,
-                        modifier = Modifier.fillMaxWidth().height(fieldHeight),
-                    ) { Text(if (loading == null) s.loginActivateDevice else loading.phase) }
+                    QrActivationPanel(
+                        session = activationSession,
+                        loading = loading,
+                        error = error,
+                        tv = tv,
+                        wide = false,
+                        reduceMotion = reduceMotion,
+                        refreshFocus = refreshFocus,
+                        onRefresh = actions.refreshQr,
+                        onStop = actions.stopQr,
+                    )
                 }
+                LoginMode.CHOOSE -> Unit
             }
-            if (error != null) {
-                Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, maxLines = 4)
-            }
-            if (fileMessage != null) {
-                Text(fileMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, maxLines = 4)
+            if (mode != LoginMode.ACTIVATION) {
+                if (loading != null) FluidLoadingBar(loading, reduceMotion = reduceMotion)
+                val message = fileMessage ?: error
+                if (message != null && loading == null) {
+                    Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, maxLines = 4)
+                }
             }
         }
     }
@@ -749,73 +1660,70 @@ private fun CompactLoginScreen(
         Box(
             Modifier
                 .fillMaxSize()
+                .imePadding()
                 .padding(horizontal = outerPadH, vertical = outerPadV),
         ) {
-        if (useWideLayout) {
-            Row(
-                Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Column(
-                    Modifier
-                        .weight(0.32f)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            if (useWideLayout) {
+                Row(
+                    Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_splash_logo),
-                        contentDescription = "MoPlayer Pro",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(logoSize + 10.dp),
-                    )
-                    Text("MoPlayer Pro", color = Color.White, style = MaterialTheme.typography.headlineSmall)
-                    if (!tv.isLowHeightLandscape) {
-                        Text(
-                            "IPTV for TV and mobile",
-                            color = visuals.accent,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
+                    Column(
+                        Modifier
+                            .weight(0.32f)
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.brand_logo_ui),
+                            contentDescription = "MoPlayer Pro",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(logoSize + 10.dp),
                         )
+                        Text("MoPlayer Pro", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                        if (!tv.isLowHeightLandscape) {
+                            Text(login.tagline, color = visuals.accent, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                        }
+                    }
+                    Column(
+                        Modifier
+                            .weight(0.68f)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        LoginFields(Modifier.fillMaxWidth())
                     }
                 }
+            } else {
                 Column(
                     Modifier
-                        .weight(0.68f)
-                        .fillMaxHeight()
+                        .fillMaxSize()
+                        .widthIn(max = 560.dp)
+                        .align(Alignment.Center)
                         .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(formSpacing, Alignment.CenterVertically),
                 ) {
+                    Image(
+                        painter = painterResource(R.drawable.brand_logo_ui),
+                        contentDescription = "MoPlayer Pro",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(logoSize),
+                    )
+                    Text(
+                        "MoPlayer Pro",
+                        color = Color.White,
+                        style = if (tv.isLowHeightLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineLarge,
+                    )
+                    if (!(tv.isLowHeightLandscape && tv.isCompact)) {
+                        Text(login.tagline, color = visuals.accent, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                    }
                     LoginFields(Modifier.fillMaxWidth())
                 }
             }
-        } else {
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .widthIn(max = 560.dp)
-                    .align(Alignment.Center)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(formSpacing, Alignment.CenterVertically),
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_splash_logo),
-                    contentDescription = "MoPlayer Pro",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(logoSize),
-                )
-                Text(
-                    "MoPlayer Pro",
-                    color = Color.White,
-                    style = if (tv.isLowHeightLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineLarge,
-                )
-                if (!(tv.isLowHeightLandscape && tv.isCompact)) {
-                    Text("IPTV for TV and mobile", color = visuals.accent, style = MaterialTheme.typography.bodySmall, maxLines = 1)
-                }
-                LoginFields(Modifier.fillMaxWidth())
-            }
-        }
         }
     }
 }
@@ -823,7 +1731,6 @@ private fun CompactLoginScreen(
 @Composable
 private fun CompactModeButton(text: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.height(48.dp),
@@ -835,632 +1742,99 @@ private fun CompactModeButton(text: String, selected: Boolean, modifier: Modifie
 }
 
 @Composable
+private fun compactFieldColors() = TextFieldDefaults.colors(
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White,
+    focusedContainerColor = Color(0x332A2723),
+    unfocusedContainerColor = Color(0x222A2723),
+    focusedLabelColor = LocalMoVisuals.current.accent,
+    unfocusedLabelColor = Color(0xDDE3BC78),
+    focusedIndicatorColor = LocalMoVisuals.current.accent,
+    unfocusedIndicatorColor = Color(0x66E3BC78),
+    cursorColor = LocalMoVisuals.current.accent,
+)
+
+@Composable
 private fun CompactTextField(
     value: String,
     onValue: (String) -> Unit,
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     keyboardType: KeyboardType = KeyboardType.Text,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
+    imeAction: ImeAction = ImeAction.Next,
+    onDone: (() -> Unit)? = null,
 ) {
-    val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
     OutlinedTextField(
         value = value,
         onValueChange = onValue,
         label = { Text(label) },
         leadingIcon = { Icon(icon, null) },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = visualTransformation,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+        keyboardActions = if (onDone != null) KeyboardActions(onDone = { onDone() }) else KeyboardActions.Default,
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedContainerColor = Color(0x332A2723),
-            unfocusedContainerColor = Color(0x222A2723),
-            focusedLabelColor = visuals.accent,
-            unfocusedLabelColor = Color(0xDDE3BC78),
-            focusedIndicatorColor = visuals.accent,
-            unfocusedIndicatorColor = Color(0x66E3BC78),
-            cursorColor = visuals.accent,
-        ),
+        colors = compactFieldColors(),
     )
 }
 
 @Composable
-private fun ModeDock(mode: LoginMode, tv: TvScale, firstTabFocus: FocusRequester? = null, onMode: (LoginMode) -> Unit) {
-    GlassLoginPanel(radius = 999.dp) {
-        Row(Modifier.padding(5.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            ModeTab("M3U",    mode == LoginMode.M3U,    tv) { onMode(LoginMode.M3U) }
-            ModeTab("Xtream", mode == LoginMode.XTREAM, tv, focusRequester = firstTabFocus) { onMode(LoginMode.XTREAM) }
-            ModeTab("QR", mode == LoginMode.ACTIVATION, tv) { onMode(LoginMode.ACTIVATION) }
-        }
-    }
-}
-
-@Composable
-private fun ModeTab(text: String, selected: Boolean, tv: TvScale, focusRequester: FocusRequester? = null, onClick: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (focused) 1.14f else if (selected) 1.04f else 1f,
-        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow),
-        label = "tab",
-    )
-    val accent = LocalMoVisuals.current.accent
-    val bg by animateColorAsState(
-        if (selected || focused) accent.copy(alpha = 0.22f) else Color.Transparent, label = "tab-bg"
-    )
-    val navKeys = rememberVerticalFocusNav()
-    Box(
-        modifier = Modifier
-            .onPreviewKeyEvent(navKeys)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(999.dp))
-            .background(bg)
-            .let { if (focusRequester != null) it.focusRequester(focusRequester) else it }
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .focusable(interactionSource = interaction)
-            .padding(horizontal = (20 * tv.factor).dp, vertical = (11 * tv.factor).dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text, color = if (selected || focused) accent else Color(0xAAFFFFFF),
-            fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.Bold,
-        )
-    }
-}
-
-@Composable
-private fun GlassTextField(
-    value: String, onValue: (String) -> Unit, label: String,
-    tv: TvScale, icon: androidx.compose.ui.graphics.vector.ImageVector,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    val focused by interaction.collectIsFocusedAsState()
-    val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
-    val accent = visuals.accent
-    val border by animateColorAsState(if (focused) accent else Color(0x33E3BC78), label = "field-border")
-    val scale  by animateFloatAsState(
-        if (focused) 1.025f else 1f,
-        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium), label = "field-scale"
-    )
-    val navKeys = rememberVerticalFocusNav()
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .onPreviewKeyEvent(navKeys)
-            .height((56 * tv.factor).dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .shadow(if (focused) 24.dp else 0.dp, RoundedCornerShape(999.dp), clip = false,
-                ambientColor = accent.copy(alpha = 0.3f), spotColor = accent.copy(alpha = 0.3f)),
-        shape  = RoundedCornerShape(999.dp),
-        color  = if (focused) Color(0x552A2723) else Color(0x44312D28),
-        border = BorderStroke(if (focused) 1.5.dp else 1.dp, border),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = (26 * tv.factor).dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
-        ) {
-            Icon(icon, null, tint = if (focused) accent else Color(0xAAE3BC78), modifier = Modifier.size((28 * tv.factor).dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                if (value.isNotBlank()) {
-                    Text(
-                        label,
-                        color = if (focused) accent else Color(0xDDE3BC78),
-                        fontSize = (13 * tv.factor).sp,
-                        lineHeight = (17 * tv.factor).sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                    )
-                }
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValue,
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    interactionSource = interaction,
-                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                    visualTransformation = visualTransformation,
-                    textStyle = TextStyle(
-                        color = visuals.textPrimary,
-                        fontSize = (16 * tv.factor).sp,
-                        lineHeight = (22 * tv.factor).sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 0.sp,
-                    ),
-                    cursorBrush = SolidColor(accent),
-                    decorationBox = { innerTextField ->
-                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-                            if (value.isBlank()) {
-                                Text(
-                                    label,
-                                    color = Color(0x88E3BC78),
-                                    fontSize = (16 * tv.factor).sp,
-                                    lineHeight = (22 * tv.factor).sp,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                )
-                            }
-                            innerTextField()
-                        }
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun GlassPasswordField(
-    value: String, onValue: (String) -> Unit, label: String, tv: TvScale, onSubmit: (() -> Unit)? = null,
-) {
+private fun CompactPasswordField(value: String, onValue: (String) -> Unit, onDone: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
-    val interaction = remember { MutableInteractionSource() }
-    val focused by interaction.collectIsFocusedAsState()
-    val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
-    val accent = visuals.accent
-    val border by animateColorAsState(if (focused) accent else Color(0x33E3BC78), label = "pw-border")
-    val scale by animateFloatAsState(
-        if (focused) 1.025f else 1f,
-        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium), label = "pw-scale",
-    )
-    val verticalNavKeys = rememberVerticalFocusNav()
-    val navKeys = remember(verticalNavKeys, onSubmit) {
-        { event: KeyEvent ->
-            if (event.type == KeyEventType.KeyDown &&
-                (event.key == Key.Enter || event.key == Key.DirectionCenter)
-            ) {
-                onSubmit?.invoke()
-                onSubmit != null
-            } else {
-                verticalNavKeys(event)
-            }
-        }
-    }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .onPreviewKeyEvent(navKeys)
-            .height((56 * tv.factor).dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .shadow(if (focused) 24.dp else 0.dp, RoundedCornerShape(999.dp), clip = false,
-                ambientColor = accent.copy(alpha = 0.3f), spotColor = accent.copy(alpha = 0.3f)),
-        shape = RoundedCornerShape(999.dp),
-        color = if (focused) Color(0x552A2723) else Color(0x44312D28),
-        border = BorderStroke(if (focused) 1.5.dp else 1.dp, border),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = (26 * tv.factor).dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
-        ) {
-            Icon(Icons.Rounded.Lock, null, tint = if (focused) accent else Color(0xAAE3BC78), modifier = Modifier.size((28 * tv.factor).dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                if (value.isNotBlank()) {
-                    Text(
-                        label,
-                        color = if (focused) accent else Color(0xDDE3BC78),
-                        fontSize = (13 * tv.factor).sp,
-                        lineHeight = (17 * tv.factor).sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                    )
-                }
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValue,
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    interactionSource = interaction,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = if (onSubmit != null) ImeAction.Done else ImeAction.Default,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onSubmit?.invoke() },
-                    ),
-                    visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-                    textStyle = TextStyle(
-                        color = visuals.textPrimary,
-                        fontSize = (16 * tv.factor).sp,
-                        lineHeight = (22 * tv.factor).sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 0.sp,
-                    ),
-                    cursorBrush = SolidColor(accent),
-                    decorationBox = { innerTextField ->
-                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-                            if (value.isBlank()) {
-                                Text(
-                                    label,
-                                    color = Color(0x88E3BC78),
-                                    fontSize = (16 * tv.factor).sp,
-                                    lineHeight = (22 * tv.factor).sp,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                )
-                            }
-                            innerTextField()
-                        }
-                    },
-                )
-            }
-            IconButton(onClick = { visible = !visible }) {
-                Icon(
-                    if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                    contentDescription = if (visible) s.loginHidePassword else s.loginShowPassword,
-                    tint = if (focused) accent else Color(0xAAE3BC78),
-                )
-            }
-            if (onSubmit != null) {
-                IconButton(
-                    onClick = onSubmit,
-                    enabled = value.isNotBlank(),
-                ) {
-                    Icon(
-                        Icons.Rounded.RocketLaunch,
-                        contentDescription = s.loginEnter,
-                        tint = if (value.isNotBlank()) accent else Color(0x66E3BC78),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CompactPasswordField(value: String, onValue: (String) -> Unit) {
-    var visible by remember { mutableStateOf(false) }
-    val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
+    val strings = LocalStrings.current
     OutlinedTextField(
         value = value,
         onValueChange = onValue,
-        label = { Text(s.loginPasswordShort) },
+        label = { Text(strings.login.fieldPassword) },
         leadingIcon = { Icon(Icons.Rounded.Lock, null) },
         trailingIcon = {
             IconButton(onClick = { visible = !visible }) {
                 Icon(
                     if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                    contentDescription = if (visible) "Hide" else "Show",
+                    contentDescription = if (visible) strings.loginHidePassword else strings.loginShowPassword,
                 )
             }
         },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onDone() }),
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-            focusedContainerColor = Color(0x332A2723), unfocusedContainerColor = Color(0x222A2723),
-            focusedLabelColor = visuals.accent, unfocusedLabelColor = Color(0xDDE3BC78),
-            focusedIndicatorColor = visuals.accent, unfocusedIndicatorColor = Color(0x66E3BC78),
-            cursorColor = visuals.accent,
-        ),
+        colors = compactFieldColors(),
     )
 }
 
+@Preview(name = "Login TV 960x540 (typical Android TV)", device = "spec:width=960dp,height=540dp,dpi=320", showBackground = true)
 @Composable
-private fun GlassActionButton(
-    text: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
-    enabled: Boolean, tv: TvScale, onClick: () -> Unit,
-) {
-    val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current
-    val accent = visuals.accent
-    val interaction = remember { MutableInteractionSource() }
-    val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(
-        if (focused) 1.06f else 1f,
-        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow), label = "btn-scale"
-    )
-    val alpha = if (enabled) 1f else 0.40f
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height((48 * tv.factor).dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale; this.alpha = alpha }
-            .shadow(if (focused) 40.dp else 12.dp, RoundedCornerShape(999.dp), clip = false,
-                ambientColor = accent.copy(alpha = 0.5f), spotColor = accent.copy(alpha = 0.5f))
-            .clip(RoundedCornerShape(999.dp))
-            .background(
-                Brush.horizontalGradient(listOf(accent, visuals.accentB))
-            )
-            .clickable(enabled = enabled, interactionSource = interaction, indication = null, onClick = onClick)
-            .focusable(enabled = enabled, interactionSource = interaction),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp)) {
-            Icon(icon, null, tint = Color.White, modifier = Modifier.size((21 * tv.factor).dp))
-            Text(text, color = Color.White, fontSize = (16 * tv.factor).sp, fontWeight = FontWeight.ExtraBold)
-        }
-    }
-}
-
-// ── Local glass panel (self-contained, no dependency on GlassPanel component) ─
-@Composable
-private fun GlassLoginPanel(
-    modifier: Modifier = Modifier,
-    radius: Dp = 24.dp,
-    glow: Color = Color(0x1AE3BC78),
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        modifier = modifier
-            .shadow(28.dp, RoundedCornerShape(radius), clip = false, ambientColor = glow, spotColor = glow),
-        shape  = RoundedCornerShape(radius),
-        color  = Color(0x881E1A16),
-        border = BorderStroke(
-            1.dp,
-            Brush.linearGradient(
-                listOf(
-                    Color(0x33E3BC78),
-                    Color(0x1AFF5252),
-                    Color(0x22FFB366),
-                    Color(0x1AE3BC78),
-                ),
-                start = Offset(0f, 0f),
-                end   = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-            )
-        ),
-        content = content,
-    )
-}
-
-@Composable
-private fun PulsingLogo(tv: TvScale, active: Boolean, compact: Boolean = false, reduceMotion: Boolean = false) {
-    val pulse = if (!active || reduceMotion) {
-        1f
-    } else {
-        val transition = rememberInfiniteTransition(label = "logo-pulse")
-        val animatedPulse by transition.animateFloat(
-            initialValue = 0.88f, targetValue = 1.08f,
-            animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "pulse",
-        )
-        animatedPulse
-    }
-    val accent = LocalMoVisuals.current.accent
-    val accentB = LocalMoVisuals.current.accentB
-    val boxSize = if (compact) 96 else 140
-    val logoWidth = if (compact) 96 else 130
-    val logoHeight = if (compact) 60 else 82
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size((boxSize * tv.factor).dp)) {
-        if (active) {
-            Canvas(Modifier.fillMaxSize()) {
-                drawCircle(accent.copy(alpha = 0.15f), radius = size.minDimension * 0.48f * pulse)
-                drawCircle(accentB.copy(alpha = 0.10f), radius = size.minDimension * 0.34f * pulse)
-            }
-        }
-        Image(
-            painter = painterResource(R.drawable.ic_splash_logo),
-            contentDescription = null,
-            modifier = Modifier
-                .width((logoWidth * tv.factor).dp)
-                .height((logoHeight * tv.factor).dp)
-                .graphicsLayer { scaleX = if (active) pulse else 1f; scaleY = if (active) pulse else 1f },
-        )
-    }
-}
-
-@Composable
-private fun FluidLoadingBar(progress: LoadProgress, tv: TvScale, reduceMotion: Boolean = false) {
-    val wave = if (reduceMotion) {
-        0.5f
-    } else {
-        val transition = rememberInfiniteTransition(label = "fluid-loading")
-        val animatedWave by transition.animateFloat(
-            0f, 1f,
-            infiniteRepeatable(tween(1600, easing = LinearEasing)),
-            label = "wave",
-        )
-        animatedWave
-    }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy((8 * tv.factor).dp)) {
-        Text(progress.phase, color = Color(0xCCE3BC78), fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.SemiBold)
-        val accent = LocalMoVisuals.current.accent
-        val accentB = LocalMoVisuals.current.accentB
-        Canvas(
-            Modifier.fillMaxWidth().height((10 * tv.factor).dp).clip(RoundedCornerShape(999.dp))
-        ) {
-            drawRoundRect(Color(0x222A231E), cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height))
-            val filled = size.width * progress.percent.coerceIn(0f, 1f)
-            drawRoundRect(
-                brush = Brush.linearGradient(
-                    listOf(accent.copy(alpha = 0.5f), accent, accentB.copy(alpha = 0.8f)),
-                    start = Offset(size.width * wave - size.width, 0f),
-                    end   = Offset(size.width * wave, size.height),
-                ),
-                size = Size(filled, size.height),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ErrorGlassCard(error: String, tv: TvScale) {
-    GlassLoginPanel(radius = (18 * tv.factor).dp, glow = Color(0x44FF4D6D)) {
-        Text(
-            text = error,
-            color = Color(0xFFFF8FA3),
-            fontSize = (13 * tv.factor).sp,
-            lineHeight = (18 * tv.factor).sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding((14 * tv.factor).dp),
-        )
-    }
-}
-
-@Composable
-private fun QrActivationPanel(
-    session: DeviceActivationSession?,
-    manualCode: String,
-    tv: TvScale,
-    onManualCode: (String) -> Unit,
-    onRefresh: () -> Unit,
-    onSubmitManual: () -> Unit,
-) {
-    LaunchedEffect(Unit) {
-        if (session == null) onRefresh()
-    }
-    val s = LocalStrings.current
-    val panelSpacing = if (tv.isTv) (6 * tv.factor).dp else (12 * tv.factor).dp
-    val qrSize = if (tv.isTv) (142 * tv.factor).dp else (210 * tv.factor).dp
-    val qrPadding = if (tv.isTv) (6 * tv.factor).dp else (10 * tv.factor).dp
-    val codeFont = if (tv.isTv) (22 * tv.factor).sp else (30 * tv.factor).sp
-    val smallFont = if (tv.isTv) (10 * tv.factor).sp else (12 * tv.factor).sp
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(panelSpacing),
-    ) {
-        val context = androidx.compose.ui.platform.LocalContext.current
-        val brandLogo = remember { android.graphics.BitmapFactory.decodeResource(context.resources, R.drawable.ic_splash_logo) }
-        if (session?.verificationUrlComplete?.isNotBlank() == true) {
-            // Branded QR on a bright plate with a soft champagne frame + glow — premium, and the
-            // centered MoPlayer mark makes it instantly recognizable while staying scannable.
-            Box(
-                modifier = Modifier
-                    .shadow((22 * tv.factor).dp, RoundedCornerShape((26 * tv.factor).dp), spotColor = Color(0xFFF1CC83))
-                    .clip(RoundedCornerShape((26 * tv.factor).dp))
-                    .background(Color.White)
-                    .border((2 * tv.factor).dp, Color(0x66F1CC83), RoundedCornerShape((26 * tv.factor).dp))
-                    .padding(qrPadding),
-            ) {
-                Image(
-                    bitmap = remember(session.verificationUrlComplete) {
-                        brandedQrBitmap(session.verificationUrlComplete, 512, brandLogo).asImageBitmap()
-                    },
-                    contentDescription = "QR activation code",
-                    modifier = Modifier.size(qrSize),
-                )
-            }
-            Text(session.userCode, color = Color.White, fontSize = codeFont, fontWeight = FontWeight.ExtraBold, letterSpacing = 3.sp)
-            Text(session.verificationUrl, color = Color(0xCCE3BC78), fontSize = smallFont, textAlign = TextAlign.Center, maxLines = 2)
-            val statusText = when (session.status) {
-                DeviceActivationStatus.WAITING -> "${s.activationWaiting} - ${session.secondsRemaining} ${s.secondsShort}"
-                DeviceActivationStatus.ACTIVATED -> s.activationActivated
-                DeviceActivationStatus.EXPIRED -> s.activationExpired
-                DeviceActivationStatus.ERROR -> session.error.ifBlank { s.activationErrorGeneric }
-            }
-            Text(
-                statusText,
-                color = if (session.status == DeviceActivationStatus.ERROR) Color(0xFFFF8FA3) else Color(0xAAFFFFFF),
-                fontSize = smallFont,
-                textAlign = TextAlign.Center,
-            )
-        } else {
-            Text(s.loginCreateQrHint, color = Color(0xAAFFFFFF), fontSize = (13 * tv.factor).sp, textAlign = TextAlign.Center)
-        }
-        GlassActionButton(s.loginRefreshQr, Icons.Rounded.Refresh, true, tv, onRefresh)
-    }
-}
-
-/**
- * Modern, branded QR: high error-correction (H = 30% recovery) so a centered app logo never
- * breaks scanning, rounded data modules, styled rounded finder eyes, and the MoPlayer mark in
- * the middle. Rendered at module resolution (not per-pixel) so it stays crisp and premium.
- */
-private fun brandedQrBitmap(value: String, sizePx: Int, logo: android.graphics.Bitmap?): android.graphics.Bitmap {
-    val code = com.google.zxing.qrcode.encoder.Encoder.encode(
-        value,
-        com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.H,
-        mapOf(com.google.zxing.EncodeHintType.CHARACTER_SET to "UTF-8"),
-    )
-    val matrix = code.matrix
-    val modules = matrix.width
-    val quiet = 2
-    val cell = sizePx.toFloat() / (modules + quiet * 2)
-    val bitmap = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(bitmap)
-    canvas.drawColor(android.graphics.Color.WHITE)
-    val dark = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.parseColor("#0B0B0C")
-    }
-    val white = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.WHITE
-    }
-    fun inFinder(mx: Int, my: Int): Boolean =
-        (mx < 7 && my < 7) || (mx >= modules - 7 && my < 7) || (mx < 7 && my >= modules - 7)
-    // Data modules as soft rounded squares (high fill → reliable scan, modern look).
-    val r = cell * 0.30f
-    for (my in 0 until modules) {
-        for (mx in 0 until modules) {
-            if (matrix.get(mx, my).toInt() != 1 || inFinder(mx, my)) continue
-            val left = (quiet + mx) * cell
-            val top = (quiet + my) * cell
-            canvas.drawRoundRect(left, top, left + cell, top + cell, r, r, dark)
-        }
-    }
-    // Styled rounded finder eyes at the three corners.
-    fun finder(cx: Int, cy: Int) {
-        val x = (quiet + cx) * cell
-        val y = (quiet + cy) * cell
-        val o = 7 * cell
-        canvas.drawRoundRect(x, y, x + o, y + o, cell * 1.7f, cell * 1.7f, dark)
-        canvas.drawRoundRect(x + cell, y + cell, x + o - cell, y + o - cell, cell * 1.2f, cell * 1.2f, white)
-        canvas.drawRoundRect(x + 2 * cell, y + 2 * cell, x + o - 2 * cell, y + o - 2 * cell, cell * 0.9f, cell * 0.9f, dark)
-    }
-    finder(0, 0)
-    finder(modules - 7, 0)
-    finder(0, modules - 7)
-    // Center logo (aspect-preserved) on a white rounded plate; ~22% is safe under H recovery.
-    if (logo != null) {
-        val box = sizePx * 0.22f
-        val c = sizePx / 2f
-        val plate = box / 2f + cell * 1.1f
-        canvas.drawRoundRect(c - plate, c - plate, c + plate, c + plate, plate * 0.34f, plate * 0.34f, white)
-        val aspect = logo.width.toFloat() / logo.height.toFloat()
-        val w = if (aspect >= 1f) box else box * aspect
-        val h = if (aspect >= 1f) box / aspect else box
-        val dst = android.graphics.RectF(c - w / 2f, c - h / 2f, c + w / 2f, c + h / 2f)
-        canvas.drawBitmap(logo, null, dst, android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG or android.graphics.Paint.ANTI_ALIAS_FLAG))
-    }
-    return bitmap
-}
-
-@Preview(name = "Login Glass TV 1080p", device = "spec:width=1920dp,height=1080dp,dpi=320", showBackground = true)
-@Composable
-private fun LoginScreenPreview1080() {
+private fun LoginScreenPreviewTv() {
     MoTheme {
         LoginScreen(
-            loading = LoadProgress("جاري التحميل", 62, 100),
+            loading = null,
             error = null,
             activationSession = null,
             onM3u = { _, _, _ -> },
             onM3uFile = { _, _, _ -> },
             onXtream = { _, _, _, _ -> },
-            onActivationCode = {},
             onRefreshQr = {},
+            onStopQr = {},
         )
     }
 }
 
-@Preview(name = "Login Glass TV 720p", device = "spec:width=1280dp,height=720dp,dpi=213", showBackground = true)
+@Preview(name = "Login TV 1080p", device = "spec:width=1920dp,height=1080dp,dpi=320", showBackground = true)
 @Composable
-private fun LoginScreenPreview720() {
+private fun LoginScreenPreview1080() {
     MoTheme {
         LoginScreen(
-            loading = null,
-            error = "Server is reachable, but credentials were rejected.",
+            loading = LoadProgress("Loading", 62, 100),
+            error = null,
             activationSession = null,
             onM3u = { _, _, _ -> },
             onM3uFile = { _, _, _ -> },
             onXtream = { _, _, _, _ -> },
-            onActivationCode = {},
             onRefreshQr = {},
+            onStopQr = {},
         )
     }
 }

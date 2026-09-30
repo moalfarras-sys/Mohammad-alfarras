@@ -178,6 +178,20 @@ describe("provider source receipts", () => {
     expect(sanitizeDeviceImportMessage("   ")).toBeUndefined();
     expect(sanitizeDeviceImportMessage(undefined)).toBeUndefined();
   });
+
+  it("stays fast on oversized or pathological device messages", () => {
+    // The ack body is client-controlled; these inputs used to make the credential regex backtrack for minutes.
+    const started = performance.now();
+    sanitizeDeviceImportMessage("a:".repeat(50_000));
+    sanitizeDeviceImportMessage("a:".repeat(499));
+    sanitizeDeviceImportMessage(`${"x ".repeat(400)}${"a:".repeat(20_000)}`);
+    expect(performance.now() - started).toBeLessThan(250);
+  });
+
+  it("drops a word cut off by the input limit instead of keeping half a credential", () => {
+    expect(sanitizeDeviceImportMessage(`Import failed${" ".repeat(980)}demo:hunter2@panel`)).toBe("Import failed");
+    expect(sanitizeDeviceImportMessage(`${" ".repeat(990)}demo:hunter2@panel`)).toBeUndefined();
+  });
 });
 
 describe("testProviderSource", () => {

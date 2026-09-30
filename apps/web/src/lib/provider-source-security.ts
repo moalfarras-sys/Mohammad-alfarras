@@ -64,6 +64,7 @@ const FETCHED_SOURCE_RECEIPT_TTL_MS = 15 * 60 * 1000;
 // Lets the activation page show "Imported on your TV" or the device's error after the ack.
 const ACKNOWLEDGED_SOURCE_RECEIPT_TTL_MS = 10 * 60 * 1000;
 const DEVICE_IMPORT_MESSAGE_MAX_LENGTH = 200;
+const DEVICE_IMPORT_MESSAGE_INPUT_LIMIT = 1000;
 
 function serverSecret() {
   const dedicated = process.env.MOPLAYER_PROVIDER_ENCRYPTION_KEY;
@@ -332,13 +333,18 @@ export function acknowledgedProviderSourceReceipt(
  * anything that could identify the provider or its credentials is removed before it is stored.
  */
 export function sanitizeDeviceImportMessage(value: unknown): string | undefined {
-  const printable = Array.from(String(value ?? ""), (char) => {
+  // The ack body is client-controlled, so the regex work below is bounded. A word cut off by the
+  // limit could be half a credential, so it is dropped rather than kept.
+  const raw = String(value ?? "");
+  const bounded =
+    raw.length > DEVICE_IMPORT_MESSAGE_INPUT_LIMIT ? raw.slice(0, DEVICE_IMPORT_MESSAGE_INPUT_LIMIT).replace(/\S*$/, "") : raw;
+  const printable = Array.from(bounded, (char) => {
     const code = char.charCodeAt(0);
     return code < 32 || code === 127 ? " " : char;
   }).join("");
   const text = printable
     .replace(/[a-z][a-z0-9+.-]*:\/\/\S*/gi, "[link]")
-    .replace(/[^\s@/]+:[^\s@/]+@\S*/g, "[link]")
+    .replace(/[^\s@/:]+:[^\s@/]+@\S*/g, "[link]")
     .replace(/\b(username|user|password|pass|token|key)(?:\s*=\s*|:)\S+/gi, "$1=***")
     .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\S*/g, "[host]")
     .replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:\/\S*)?/gi, "[host]")

@@ -230,14 +230,31 @@ interface MediaDao {
     ): PagingSource<Int, MediaListRow> =
         mediaRowsPaging(MediaQueries.byType(serverId, type, MediaQueries.sortOptionOf(sortOption), hideNoLogo).toQuery())
 
-    /** Channels for CH+/CH- zapping, capped at [MediaQueries.LIVE_ZAP_LIMIT]; see [MediaQueries.liveZap]. */
-    fun observeLiveZapItems(
+    /** Ordered keys of a player zap list, read once per player session; see [MediaQueries.liveZapKeys]. */
+    suspend fun liveZapKeys(
         serverId: Long,
         categoryId: String,
+        favoritesOnly: Boolean,
         sortOption: String,
         hideNoLogo: Boolean,
-    ): Flow<List<MediaListRow>> =
-        observeMediaRows(MediaQueries.liveZap(serverId, categoryId, MediaQueries.sortOptionOf(sortOption), hideNoLogo).toQuery())
+    ): List<LiveZapKeyRow> =
+        liveZapKeyRows(
+            MediaQueries.liveZapKeys(serverId, categoryId, favoritesOnly, MediaQueries.sortOptionOf(sortOption), hideNoLogo).toQuery(),
+        )
+
+    /** Live channels of one source by id, in no particular order; see [MediaQueries.liveRowsByIds]. */
+    suspend fun liveRowsByIds(serverId: Long, ids: List<String>): List<MediaListRow> =
+        mediaRowsOnce(MediaQueries.liveRowsByIds(serverId, ids).toQuery())
+
+    /** One-shot ranked search (same rows and order as [searchPaging]). */
+    suspend fun searchRowsOnce(serverId: Long, query: String): List<MediaListRow> =
+        mediaRowsOnce(MediaQueries.search(serverId, query).toQuery())
+
+    @RawQuery
+    suspend fun liveZapKeyRows(query: SupportSQLiteQuery): List<LiveZapKeyRow>
+
+    @RawQuery
+    suspend fun mediaRowsOnce(query: SupportSQLiteQuery): List<MediaListRow>
 
     fun observeByCategoryPaging(
         serverId: Long,
@@ -252,9 +269,6 @@ interface MediaDao {
 
     @RawQuery(observedEntities = [MediaEntity::class])
     fun mediaRowsPaging(query: SupportSQLiteQuery): PagingSource<Int, MediaListRow>
-
-    @RawQuery(observedEntities = [MediaEntity::class])
-    fun observeMediaRows(query: SupportSQLiteQuery): Flow<List<MediaListRow>>
 
     /**
      * Newest first by [MediaEntity.sortAddedAt], ties by latest insert, so the

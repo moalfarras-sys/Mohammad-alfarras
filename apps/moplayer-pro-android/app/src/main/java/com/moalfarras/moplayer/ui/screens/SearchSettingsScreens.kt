@@ -137,6 +137,7 @@ import com.moalfarras.moplayer.ui.components.TvTextField
 import com.moalfarras.moplayer.ui.components.readableSp
 import com.moalfarras.moplayer.ui.components.rememberTvTextFieldController
 import com.moalfarras.moplayer.ui.i18n.ArStrings
+import com.moalfarras.moplayer.ui.i18n.app
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.i18n.SearchStrings
 import com.moalfarras.moplayer.ui.i18n.SettingsStrings
@@ -218,6 +219,8 @@ fun SearchScreen(
     onFocus: (MediaItem) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
+    /** A search the viewer committed (keyboard search key, voice, a history entry); saved to the history. */
+    onCommitSearch: (String) -> Unit = {},
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -253,7 +256,10 @@ fun SearchScreen(
     val voiceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val spokenText = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spokenText.isNullOrBlank()) onQuery(spokenText)
+            if (!spokenText.isNullOrBlank()) {
+                onQuery(spokenText)
+                onCommitSearch(spokenText)
+            }
         }
     }
     val startVoiceSearch = {
@@ -331,6 +337,7 @@ fun SearchScreen(
                     icon = Icons.Rounded.Search,
                     imeAction = ImeAction.Search,
                     onImeAction = {
+                        onCommitSearch(query)
                         keyboard?.hide()
                         focusManager.moveFocus(FocusDirection.Down)
                     },
@@ -349,7 +356,14 @@ fun SearchScreen(
             }
 
             when {
-                trimmedQuery.isEmpty() && history.isNotEmpty() -> SearchHistoryPanel(history, onQuery, onClearHistory)
+                trimmedQuery.isEmpty() && history.isNotEmpty() -> SearchHistoryPanel(
+                    history,
+                    { entry ->
+                        onQuery(entry)
+                        onCommitSearch(entry)
+                    },
+                    onClearHistory,
+                )
                 trimmedQuery.isEmpty() -> SearchMessagePanel(Icons.Rounded.TravelExplore, search.emptyTitle, search.emptyBody, highlighted = true)
                 trimmedQuery.length < 2 -> SearchMessagePanel(Icons.Rounded.Search, search.minChars, null, highlighted = false)
                 results.itemCount == 0 && results.loadState.refresh is LoadState.NotLoading ->
@@ -569,6 +583,8 @@ fun SettingsScreen(
     onShowTrailerPreviews: (Boolean) -> Unit,
     /** Provider-side account creation time (ms) for a server id, or 0 when the panel did not send one. */
     providerAccountCreatedAt: suspend (Long) -> Long = { 0L },
+    /** Wrong or temporarily blocked PIN entry, shown under the PIN fields. */
+    pinError: String? = null,
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -627,6 +643,7 @@ fun SettingsScreen(
         onRequestClearHistory = { pending = PendingSettingsAction.ClearHistory },
         providerAccountCreatedAt = providerAccountCreatedAt,
         focusCurrentPane = focusCurrentPane,
+        pinError = pinError,
     )
     val appearance: @Composable (Boolean) -> Unit = { isTv ->
         AppearanceSettingsCard(
@@ -678,7 +695,7 @@ fun SettingsScreen(
             LazyColumn(contentModifier.imePadding(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 item { SettingsHeader() }
                 if (!unlocked) {
-                    item { LockedSettingsCard(isTv = false, onUnlock = onUnlockSettings) }
+                    item { LockedSettingsCard(isTv = false, onUnlock = onUnlockSettings, pinError = pinError) }
                 } else {
                     item { SettingsGroupTitle(Icons.Rounded.Palette, LocalStrings.current.paneLookHome) }
                     item { appearance(false) }
@@ -765,6 +782,7 @@ private class SettingsPaneCallbacks(
     val providerAccountCreatedAt: suspend (Long) -> Long,
     /** TV: park focus on the open pane's rail button after the focused control disappeared. */
     val focusCurrentPane: () -> Unit,
+    val pinError: String?,
 )
 
 @Composable
@@ -834,7 +852,7 @@ private fun TvSettingsLayout(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 if (!unlocked) {
-                    item { LockedSettingsCard(isTv = true, onUnlock = onUnlockSettings) }
+                    item { LockedSettingsCard(isTv = true, onUnlock = onUnlockSettings, pinError = panes.pinError) }
                 } else {
                     item { SettingsPaneHero(selectedPane, activeServer, settings, performancePolicy) }
                     when (selectedPane) {
@@ -956,6 +974,7 @@ private fun FamilyLockSettings(settings: AppSettings, isTv: Boolean, panes: Sett
             onSetPin = panes.onSetParentalPin,
             onChangePin = panes.onChangeParentalPin,
             onRemovePin = panes.onRemoveParentalPin,
+            pinError = panes.pinError,
         )
     }
 }
@@ -1966,8 +1985,15 @@ private fun PinIssueText(pin: String, confirm: String) {
     )
 }
 
+/** A wrong or temporarily blocked PIN, next to the field instead of a screen-wide error. */
 @Composable
-private fun LockedSettingsCard(isTv: Boolean = false, onUnlock: (String) -> Unit) {
+private fun PinErrorText(message: String?) {
+    if (message.isNullOrBlank()) return
+    Text(message, color = Color(0xFFFF8FA3), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+}
+
+@Composable
+private fun LockedSettingsCard(isTv: Boolean = false, onUnlock: (String) -> Unit, pinError: String? = null) {
     val context = LocalContext.current
     val s = LocalStrings.current.settings
     var pin by remember { mutableStateOf("") }
@@ -1982,6 +2008,7 @@ private fun LockedSettingsCard(isTv: Boolean = false, onUnlock: (String) -> Unit
         SectionHeader(s.lockTitle)
         Text(s.lockBody, color = Color.White, fontSize = 15.sp)
         PinField(s.pinLabel, pin, imeAction = ImeAction.Done, onImeAction = unlock) { pin = it }
+        PinErrorText(pinError)
         SettingsButton(s.unlock, Modifier.fillMaxWidth(), icon = Icons.Rounded.Lock, enabled = pin.length >= 4, onClick = unlock)
         SettingsButton(
             s.forgotPin,
@@ -2018,6 +2045,7 @@ private fun PinSettingsCard(
     onSetPin: (String) -> Unit,
     onChangePin: (String, String) -> Unit,
     onRemovePin: (String) -> Unit,
+    pinError: String? = null,
 ) {
     val s = LocalStrings.current.settings
     var newPin by remember { mutableStateOf("") }
@@ -2078,6 +2106,7 @@ private fun PinSettingsCard(
                 onClick = remove,
             )
         }
+        PinErrorText(pinError)
         Text(s.pinRecoveryHint, color = Color(0xB3E3BC78), fontSize = 13.sp, lineHeight = 18.sp)
     }
 }
@@ -2319,7 +2348,12 @@ fun ExitDialog(onDismiss: () -> Unit, onExit: () -> Unit) {
  * the account (it deletes favourites and history on this device) needs a second confirmation.
  */
 @Composable
-fun SubscriptionExpiredDialog(onNewSignIn: () -> Unit, onDismiss: () -> Unit) {
+fun SubscriptionExpiredDialog(
+    onNewSignIn: () -> Unit,
+    onDismiss: () -> Unit,
+    onCheckAgain: (() -> Unit)? = null,
+    onUseAnotherSource: (() -> Unit)? = null,
+) {
     val strings = LocalStrings.current
     val s = strings.settings
     val tv = rememberTvScale()
@@ -2372,6 +2406,12 @@ fun SubscriptionExpiredDialog(onNewSignIn: () -> Unit, onDismiss: () -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     DialogButton(strings.subscriptionExpiredDismiss, Modifier.weight(1f), focusRequester = laterFocus, accent = true, onClick = onDismiss)
                     DialogButton(s.subscriptionRemoveAndSignIn, Modifier.weight(1.3f), onClick = { confirmRemove = true })
+                }
+                if (onCheckAgain != null || onUseAnotherSource != null) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        onCheckAgain?.let { DialogButton(strings.app.subscriptionCheckAgain, Modifier.weight(1f), onClick = it) }
+                        onUseAnotherSource?.let { DialogButton(strings.app.subscriptionUseAnotherSource, Modifier.weight(1.3f), onClick = it) }
+                    }
                 }
             }
         }

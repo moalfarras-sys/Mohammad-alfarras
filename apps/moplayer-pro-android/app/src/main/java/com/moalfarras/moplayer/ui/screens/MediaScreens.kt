@@ -78,6 +78,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.moalfarras.moplayer.core.PerformancePolicy
+import com.moalfarras.moplayer.data.repository.cleanPlot
+import com.moalfarras.moplayer.data.repository.cleanRating
 import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.EpgEntry
@@ -863,7 +865,8 @@ fun CategoryRail(
                     }
                     items(
                         categories.size,
-                        key = { categories[it].id },
+                        // Source-qualified: a merged library can list the same category id for two sources.
+                        key = { categories[it].let { c -> "${c.serverId}:${c.type}:${c.id}" } },
                         contentType = { "category" },
                     ) { index ->
                         val cat = categories[index]
@@ -905,7 +908,7 @@ private fun CategoryPills(
         modifier = Modifier.focusGroup(),
     ) {
         item { CategoryPill(h.allCategories, selectedCategoryId.isBlank(), onAllCategories) }
-        items(categories, key = { it.id }, contentType = { "category" }) { cat ->
+        items(categories, key = { "${it.serverId}:${it.type}:${it.id}" }, contentType = { "category" }) { cat ->
             CategoryPill(cat.name, selectedCategoryId == cat.id) { onCategory(cat) }
         }
     }
@@ -1239,11 +1242,14 @@ private fun VodPreviewPane(item: MediaItem?, modifier: Modifier, showArt: Boolea
                 overflow = TextOverflow.Ellipsis,
             )
             val meta = remember(item, h) { vodMetaLine(item, h) }
-            if (item.rating.isNotBlank() || meta.isNotBlank()) {
+            // Rows saved before 2.7.1 can still hold "0" ratings and escaped line breaks.
+            val rating = remember(item.rating) { item.rating.cleanRating() }
+            val plot = remember(item.description) { item.description.cleanPlot() }
+            if (rating.isNotBlank() || meta.isNotBlank()) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (item.rating.isNotBlank()) {
+                    if (rating.isNotBlank()) {
                         Icon(Icons.Rounded.Star, null, tint = Color(0xFFFFCC44), modifier = Modifier.size(15.dp))
-                        Text(item.rating.ltr(), color = Color(0xFFFFCC44), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                        Text(rating.ltr(), color = Color(0xFFFFCC44), style = MaterialTheme.typography.labelLarge, maxLines = 1)
                     }
                     if (meta.isNotBlank()) {
                         Text(meta, color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -1254,7 +1260,7 @@ private fun VodPreviewPane(item: MediaItem?, modifier: Modifier, showArt: Boolea
                 Text(item.genre, color = visuals.accent, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Text(
-                item.description.ifBlank { h.previewNoDescription },
+                plot.ifBlank { h.previewNoDescription },
                 color = Color(0xCCE3BC78),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 4,
@@ -1362,7 +1368,7 @@ private fun EpisodeRow(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        episode.description.ifBlank { h.episodeReady },
+                        episode.description.cleanPlot().ifBlank { h.episodeReady },
                         color = Color(0xB3E3BC78),
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 2,

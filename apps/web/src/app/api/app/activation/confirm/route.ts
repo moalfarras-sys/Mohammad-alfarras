@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     status: "activated",
     code,
     productSlug,
-    publicDeviceId: data.publicDeviceId,
-    activatedAt: now,
+    // No device id: anyone who sees a 4-character code must not learn the TV's pull identity.
+        activatedAt: now,
   });
 }

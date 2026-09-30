@@ -453,10 +453,17 @@ class IptvRepository(
         val cachedItem = withContext(Dispatchers.IO) {
             val details = database.vodDetailsDao().get(server.id, movie.id)
             val stored = database.mediaDao().get(server.id, movie.id, ContentType.MOVIE)?.toDomain()
-            if (details != null && stored != null && !isStale(details.updatedAt, System.currentTimeMillis(), VOD_DETAIL_STALE_MS)) {
-                stored
-            } else {
-                null
+            if (details == null || stored == null || isStale(details.updatedAt, System.currentTimeMillis(), VOD_DETAIL_STALE_MS)) {
+                return@withContext null
+            }
+            // A library sync rewrites the row from get_vod_streams, which usually has no plot, cast
+            // or duration: replay the cached get_vod_info onto it (writeMetadata skips unchanged rows).
+            val root = runCatching { json.parseToJsonElement(details.rawJson) as? JsonObject }.getOrNull()
+                ?: return@withContext stored
+            val (enriched, _) = XtreamSupport.enrichVod(json, server.id, stored, root)
+            database.withTransaction {
+                writeMetadata(enriched)
+                database.mediaDao().get(server.id, movie.id, ContentType.MOVIE)?.toDomain() ?: stored
             }
         }
         if (cachedItem != null) return cachedItem
@@ -1078,6 +1085,8 @@ class IptvRepository(
                 if (lines.hasNext()) lines.next() else null
             }
         }
+        // Re-importing a file saved before keeps its row: make it the active source again.
+        withContext(Dispatchers.IO) { database.serverDao().markActive(server.id, System.currentTimeMillis()) }
         send(LoadProgress(I18n.strings.sync.ready, 100, 100))
     }
 
@@ -1103,6 +1112,15 @@ class IptvRepository(
         )
         val serverId = upsertServer(server)
         database.serverDao().markActive(serverId, System.currentTimeMillis())
+        if (existing != null && (existing.password != server.password || existing.playlistUrl != server.playlistUrl)) {
+            // Stored stream URLs embed the old password: make the next pass (even a background
+            // one) re-download every section, and let series episodes be fetched again.
+            editSyncState(serverId, "xtream", createIfMissing = false) { state, meta ->
+                state.copy(liveSyncedAt = 0, vodSyncedAt = 0, seriesSyncedAt = 0) to
+                    meta.copy(failures = meta.failures - XTREAM_SECTIONS.map { it.type.name }.toSet())
+            }
+            withContext(Dispatchers.IO) { database.seasonDao().deleteForServer(serverId) }
+        }
         return database.serverDao().getServer(serverId)?.toDomain() ?: server.copy(id = serverId)
     }
 
@@ -1283,7 +1301,13 @@ class IptvRepository(
         }
         return when (statusResponse.status.lowercase(Locale.US)) {
             "activated" -> {
-                val confirmed = session.confirmedByPhone(SystemClock.elapsedRealtime(), System.currentTimeMillis())
+                // The website accepts a source only within the code's own 15 minutes, so the TV keeps
+                // that deadline until a source is actually queued; then it waits for the pull.
+                val confirmed = if (statusResponse.sourceStatus.equals("source_sent", ignoreCase = true)) {
+                    session.confirmedByPhone(SystemClock.elapsedRealtime(), System.currentTimeMillis())
+                } else {
+                    session
+                }
                 val sourceResponse = try {
                     // The website deletes the source when it answers this pull, so the answer must
                     // reach the caller even if polling is stopped meanwhile (QR panel left, app in

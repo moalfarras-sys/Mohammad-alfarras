@@ -1,5 +1,7 @@
 package com.moalfarras.moplayer.data.parser
 
+import com.moalfarras.moplayer.data.repository.cleanPlot
+import com.moalfarras.moplayer.data.repository.cleanRating
 import com.moalfarras.moplayer.data.repository.normalizeImageUrl
 import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.ContentType
@@ -373,8 +375,8 @@ class M3uParser {
             group = attrs["group-title"].orEmpty(),
             catchup = catchup,
             headers = headers,
-            description = attrs.firstValue("description", "desc", "plot", "overview", "tvg-description"),
-            rating = attrs.firstValue("rating", "tvg-rating", "imdb-rating", "rating_5based"),
+            description = attrs.firstValue("description", "desc", "plot", "overview", "tvg-description").cleanPlot(),
+            rating = attrs.firstValue("rating", "tvg-rating", "imdb-rating", "rating_5based").cleanRating(),
             genre = attrs.firstValue("genre", "tvg-genre"),
             releaseDate = attrs.firstValue("release-date", "releasedate", "release_date", "year"),
             durationSecs = parseDurationSeconds(attrs.firstValue("duration", "runtime", "length")),

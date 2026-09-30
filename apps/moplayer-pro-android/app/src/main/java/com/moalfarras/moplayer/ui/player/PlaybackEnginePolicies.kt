@@ -85,6 +85,33 @@ internal fun canSwapLiveFormat(wasPlaying: Boolean, alreadySwapped: Boolean, has
 internal fun alternateLiveFormatRequest(request: StreamRequest): StreamRequest? =
     alternateLiveFormatUrl(request.uri)?.let { uri -> request.copy(uri = uri, mimeType = inferMimeType(uri)) }
 
+/**
+ * A format swap on trial until the other format shows a first frame: [previous] is the link it
+ * replaced and [cause] what failed on that link (null: it only stalled).
+ */
+internal class LiveFormatSwapTrial(val previous: StreamRequest, val cause: PlaybackFailureClass?)
+
+/**
+ * The trial for a swap away from [previous]. Many lines only serve one container (the other one
+ * answers 403/404), so when the other format fails before a first frame too, the chain must go on
+ * from the link that was listed. After a 404/410 that link is gone, so there is nothing to go back to.
+ */
+internal fun liveFormatSwapTrial(previous: StreamRequest, cause: PlaybackFailureClass?): LiveFormatSwapTrial? =
+    if (cause == PlaybackFailureClass.PERMANENT) null else LiveFormatSwapTrial(previous, cause)
+
+/** Steps that open the same channel link again; a failed format swap is undone before them. */
+internal fun LiveRecoveryStep.reopensSameLink(): Boolean = when (this) {
+    LiveRecoveryStep.RECONNECT_IN_PLACE,
+    LiveRecoveryStep.FORCE_HLS,
+    LiveRecoveryStep.SWITCH_ENGINE,
+    LiveRecoveryStep.ALTERNATE_SURFACE,
+    -> true
+    LiveRecoveryStep.SWAP_FORMAT,
+    LiveRecoveryStep.SIBLING_VARIANT,
+    LiveRecoveryStep.SHOW_ERROR,
+    -> false
+}
+
 // ── LibVLC ───────────────────────────────────────────────────────────────────────────────────
 
 internal fun libVlcNetworkCacheMs(isLive: Boolean, weakDevice: Boolean): Int = when {
@@ -149,20 +176,24 @@ internal fun libVlcMediaOptions(config: LibVlcMediaConfig): List<String> = build
 /** Resume points closer to the start than this are not worth a seek. */
 internal const val LIBVLC_MIN_RESUME_MS = 5_000L
 
+/** The last stretch of a VOD that counts as its end, both for EndReached and for resuming. */
+private const val LIBVLC_END_SLACK_MS = 15_000L
+
 /**
  * A VOD EndReached this close to the known length is a real ending, anything earlier is a cut-off.
  * Without a known length (some servers send none) there is nothing to compare, so it counts as the end.
  */
 internal fun libVlcReachedEnd(timeMs: Long, lengthMs: Long): Boolean =
-    lengthMs <= 0L || timeMs >= lengthMs - 15_000L
+    lengthMs <= 0L || timeMs >= lengthMs - LIBVLC_END_SLACK_MS
 
 /**
  * Where a LibVLC VOD session starts: the last known position, unless it is too early to matter
- * or so close to the end that the title would finish at once (then it restarts).
+ * or already at the end (then it restarts). It uses the same end as [libVlcReachedEnd], so the
+ * re-open after a cut-off always continues where the stream stopped.
  */
 internal fun libVlcStartPositionMs(resumeMs: Long, knownLengthMs: Long): Long = when {
     resumeMs < LIBVLC_MIN_RESUME_MS -> 0L
-    knownLengthMs > 0 && resumeMs >= knownLengthMs - 30_000L -> 0L
+    knownLengthMs > 0 && resumeMs >= knownLengthMs - LIBVLC_END_SLACK_MS -> 0L
     else -> resumeMs
 }
 

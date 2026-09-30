@@ -127,6 +127,9 @@ internal class PlaybackAttemptState(
     /** Live: the one-shot format swap was used for this attempt. */
     var liveFormatSwapped: Boolean = false
 
+    /** Live: the swap is still on trial (no first frame yet); a failure of the other format undoes it. */
+    var liveFormatTrial: LiveFormatSwapTrial? = null
+
     var liveReadyWithoutVideoAt by mutableLongStateOf(0L)
     var liveFirstFrameRendered by mutableStateOf(false)
     var liveOpeningGuard by mutableStateOf(false)

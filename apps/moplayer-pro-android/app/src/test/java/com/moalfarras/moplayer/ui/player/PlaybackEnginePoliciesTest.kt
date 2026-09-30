@@ -95,6 +95,46 @@ class PlaybackEnginePoliciesTest {
         assertNull(alternateLiveFormatRequest(parseStreamRequest("http://panel.test/movie/user/pass/9.mp4")))
     }
 
+    @Test
+    fun aFailedFormatSwapGoesBackToTheListedLinkUnlessThatOneWasMissing() {
+        val ts = parseStreamRequest("http://panel.test:8080/live/user/pass/123.ts")
+        // A ts-only line answers 403/404 for .m3u8: a stalled, failing or unparsable .ts link comes back.
+        assertEquals(ts, liveFormatSwapTrial(ts, cause = null)?.previous)
+        assertNull(liveFormatSwapTrial(ts, cause = null)?.cause)
+        assertEquals(PlaybackFailureClass.TRANSIENT, liveFormatSwapTrial(ts, PlaybackFailureClass.TRANSIENT)?.cause)
+        assertEquals(PlaybackFailureClass.FORMAT, liveFormatSwapTrial(ts, PlaybackFailureClass.FORMAT)?.cause)
+        // A 404/410 original is gone: nothing to go back to.
+        assertNull(liveFormatSwapTrial(ts, PlaybackFailureClass.PERMANENT))
+    }
+
+    @Test
+    fun onlyStepsThatReopenTheSameLinkUndoAFailedSwap() {
+        val reopening = LiveRecoveryStep.entries.filter { it.reopensSameLink() }
+        assertEquals(
+            listOf(
+                LiveRecoveryStep.RECONNECT_IN_PLACE,
+                LiveRecoveryStep.FORCE_HLS,
+                LiveRecoveryStep.SWITCH_ENGINE,
+                LiveRecoveryStep.ALTERNATE_SURFACE,
+            ),
+            reopening,
+        )
+        // After a transient failure and a failed swap the chain goes on with the other engine, not the error card.
+        val step = liveErrorRecoveryStep(
+            failure = PlaybackFailureClass.TRANSIENT,
+            wasPlaying = false,
+            reconnectWindowExpired = false,
+            startupRetryAvailable = false,
+            canForceHls = false,
+            canSwitchEngine = true,
+            canRetrySurface = false,
+            permanentReconnectAvailable = false,
+            canSwapFormat = false,
+        )
+        assertEquals(LiveRecoveryStep.SWITCH_ENGINE, step)
+        assertTrue(step.reopensSameLink())
+    }
+
     // ── LibVLC options ──────────────────────────────────────────────────────────────────────
 
     private fun config(
@@ -173,9 +213,20 @@ class PlaybackEnginePoliciesTest {
         assertTrue(libVlcReachedEnd(timeMs = 1_200_000L, lengthMs = 0L))
         assertEquals(0L, libVlcStartPositionMs(resumeMs = 3_000L, knownLengthMs = 6_000_000L))
         assertEquals(600_000L, libVlcStartPositionMs(resumeMs = 600_000L, knownLengthMs = 6_000_000L))
-        // Resuming in the last 30 s would end at once: start over.
+        // Resuming in the last 15 s would end at once: start over.
         assertEquals(0L, libVlcStartPositionMs(resumeMs = 5_990_000L, knownLengthMs = 6_000_000L))
         assertEquals(600_000L, libVlcStartPositionMs(resumeMs = 600_000L, knownLengthMs = 0L))
+    }
+
+    @Test
+    fun aCutOffNearTheEndIsReopenedWhereItStoppedNotFromTheStart() {
+        val length = 6_000_000L
+        for (stoppedAt in listOf(5_960_000L, 5_975_000L, 5_984_999L)) {
+            assertFalse("cut off at $stoppedAt", libVlcReachedEnd(stoppedAt, length))
+            assertEquals(stoppedAt, libVlcStartPositionMs(stoppedAt, length))
+        }
+        assertTrue(libVlcReachedEnd(5_985_000L, length))
+        assertEquals(0L, libVlcStartPositionMs(5_985_000L, length))
     }
 
     @Test

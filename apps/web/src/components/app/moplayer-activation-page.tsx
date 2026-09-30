@@ -237,6 +237,12 @@ function statusFromResult({ response, payload }: ApiResult): Status {
   return "backend";
 }
 
+// The code expired or is gone (410/404), or the TV's handoff session ended: the TV must show a new
+// code. Said in the page language instead of the API's English message.
+function pairingEnded(response: Response, payload: { status?: string } | null) {
+  return response.status === 404 || response.status === 410 || payload?.status === "device_not_ready";
+}
+
 function normalizeCode(value: string) {
   return value
     .toUpperCase()
@@ -455,7 +461,7 @@ export function MoPlayerActivationPage({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ code: `MO-${code}`, productSlug: product ?? undefined, source: sourcePayload() }),
       });
-      const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; status?: string; message?: string } | null;
       if (response.status === 429) {
         setSourceState("error");
         setSourceMessage(t.sourceRateLimited);
@@ -463,7 +469,7 @@ export function MoPlayerActivationPage({
       }
       const ok = response.ok && payload?.ok;
       setSourceState(ok ? "ok" : "error");
-      setSourceMessage(ok ? t.testOk : safeMessage(payload?.message || t.testFail));
+      setSourceMessage(ok ? t.testOk : pairingEnded(response, payload) ? t.deviceNotReady : safeMessage(payload?.message || t.testFail));
     } catch {
       setSourceState("error");
       setSourceMessage(t.testUnavailable);
@@ -496,7 +502,7 @@ export function MoPlayerActivationPage({
         setPassword("");
       } else {
         setSourceState("error");
-        setSourceMessage(payload?.status === "device_not_ready" ? t.deviceNotReady : safeMessage(payload?.message || t.sendFail));
+        setSourceMessage(pairingEnded(response, payload) ? t.deviceNotReady : safeMessage(payload?.message || t.sendFail));
       }
     } catch {
       setSourceState("error");
@@ -511,6 +517,17 @@ export function MoPlayerActivationPage({
     setImportProgress("waiting");
     setImportTimedOut(false);
     setImportMessage("");
+  }
+
+  // A different code is a different pairing: the old result, and any send that followed it, no longer
+  // apply. This is also how "start again with the new code" works from the source form.
+  function changeCode(next: string) {
+    if (next === code) return;
+    setCode(next);
+    if (status === "waiting" && sourceState === "idle") return;
+    resetSource();
+    setStatus("waiting");
+    setProductDetected(false);
   }
 
   // Another send needs a fresh code from the TV's activation screen, so the flow restarts at step 1.
@@ -602,7 +619,7 @@ export function MoPlayerActivationPage({
               autoCapitalize="characters"
               spellCheck={false}
               aria-label={t.codeLabel}
-              onChange={(event) => setCode(normalizeCode(event.target.value))}
+              onChange={(event) => changeCode(normalizeCode(event.target.value))}
               placeholder="4C7K"
             />
           </div>

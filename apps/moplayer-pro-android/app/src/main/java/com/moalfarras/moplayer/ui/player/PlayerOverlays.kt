@@ -432,6 +432,16 @@ private fun LiveOverlayActionPanel(
     accent: Color,
     modifier: Modifier = Modifier,
 ) {
+    // On a 540dp-tall TV screen only one or two actions fit under the title and hint (the panel
+    // clips), so the list scrolls to keep the one Up/Down highlights on screen.
+    val actionListState = rememberLazyListState()
+    LaunchedEffect(selectedActionIndex, actions.size) {
+        if (selectedActionIndex !in actions.indices) return@LaunchedEffect
+        val info = actionListState.layoutInfo
+        val row = info.visibleItemsInfo.firstOrNull { it.index == selectedActionIndex }
+        val fullyVisible = row != null && row.offset >= info.viewportStartOffset && row.offset + row.size <= info.viewportEndOffset
+        if (!fullyVisible) actionListState.scrollToItem(selectedActionIndex)
+    }
     GlassPanel(modifier = modifier, radius = 18.dp, highlighted = true, glow = accent.copy(alpha = 0.06f)) {
         Column(
             Modifier.fillMaxSize().padding(14.dp),
@@ -439,14 +449,20 @@ private fun LiveOverlayActionPanel(
         ) {
             Text(title, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(hint, color = Color(0xCCFFFFFF), fontSize = 13.sp, lineHeight = 18.sp)
-            actions.forEachIndexed { index, action ->
-                LiveActionButton(
-                    label = action.label,
-                    selected = action.selected,
-                    highlighted = index == selectedActionIndex,
-                    accent = accent,
-                    onClick = action.onClick,
-                )
+            LazyColumn(
+                state = actionListState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                itemsIndexed(actions) { index, action ->
+                    LiveActionButton(
+                        label = action.label,
+                        selected = action.selected,
+                        highlighted = index == selectedActionIndex,
+                        accent = accent,
+                        onClick = action.onClick,
+                    )
+                }
             }
         }
     }

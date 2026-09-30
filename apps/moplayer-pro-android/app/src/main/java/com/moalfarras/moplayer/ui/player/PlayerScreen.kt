@@ -304,6 +304,7 @@ fun PlayerScreen(
         attempt.liveFirstFrameRendered = false
         attempt.liveReadyWithoutVideoAt = 0L
         attempt.liveConsecutiveFailures = 0
+        attempt.userPaused = false
         telemetry("switching video surface ${attempt.media3SurfaceAttempt}/$MEDIA3_SURFACE_RETRY_LIMIT")
         return true
     }
@@ -474,7 +475,7 @@ fun PlayerScreen(
                     attempt.resolvedLiveRequest == null &&
                     error.cause.hasUnrecognizedInputFormat(),
                 canSwitchEngine = !attempt.triedLibVlcForLive && isLibVlcSafeForRequest(playbackRequest),
-                canRetrySurface = attempt.media3SurfaceAttempt < MEDIA3_SURFACE_RETRY_LIMIT,
+                canRetrySurface = attempt.media3SurfaceAttempt < MEDIA3_SURFACE_RETRY_LIMIT && isDecoderFailure(error.errorCode),
             )
             when (step) {
                 LiveRecoveryStep.RECONNECT_IN_PLACE -> startReconnect()
@@ -551,6 +552,8 @@ fun PlayerScreen(
     // Compose disposes the previous key's effect (releasing the old player and closing its
     // connection) before this body runs, so a zap never holds two provider connections.
     DisposableEffect(exoPlayer) {
+        // A scrub preview belongs to the player it was made on; the new one starts at resumePositionMs.
+        session.pendingSeekTarget = C.TIME_UNSET
         if (!useLibVlc) {
             exoPlayer.setMediaItem(
                 buildPlayableMediaItem(playbackRequest, item, isLive, performancePolicy.liveProfile()),
@@ -1089,12 +1092,17 @@ fun PlayerScreen(
 
     fun handleVodKey(event: KeyEvent, keyCode: Int, repeatCount: Int): Boolean {
         if (attempt.playbackError != null) {
-            // D-pad and OK belong to the error card buttons.
-            return if (event.key == Key.Back || event.key == Key.Escape) {
-                leavePlayer()
-                true
-            } else {
-                false
+            // D-pad and OK belong to the error card buttons; Play retries.
+            return when (event.key) {
+                Key.Back, Key.Escape -> {
+                    leavePlayer()
+                    true
+                }
+                Key.MediaPlay, Key.MediaPlayPause -> {
+                    retryPlayback()
+                    true
+                }
+                else -> false
             }
         }
         when (keyCode) {
@@ -1326,7 +1334,8 @@ fun PlayerScreen(
     }
 
     // Live stall watchdog. Before the first frame it walks the startup chain; once the channel
-    // has played, a long stall is a dropped connection and is reconnected in place.
+    // has played, a long stall is a dropped connection and is reconnected in place. It also
+    // supervises each reconnect, so a re-opened stream that just sits buffering is retried too.
     LaunchedEffect(
         attempt,
         attempt.isBuffering,
@@ -1334,18 +1343,24 @@ fun PlayerScreen(
         attempt.liveConsecutiveFailures,
         attempt.media3SurfaceAttempt,
         attempt.userPaused,
-        attempt.reconnectingSince == 0L,
         attempt.reconnectNonce,
         useLibVlc,
         exoPlayer,
     ) {
-        if (!isLive || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused || attempt.reconnectingSince > 0L) {
-            return@LaunchedEffect
-        }
-        val midStream = attempt.wasPlaying
-        delay(if (midStream) LIVE_MIDSTREAM_STALL_MS else if (performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26) 3_500L else 5_000L)
+        if (!isLive || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused) return@LaunchedEffect
+        val reconnecting = attempt.reconnectingSince > 0L
+        val midStream = reconnecting || attempt.wasPlaying
+        delay(
+            when {
+                reconnecting -> liveReconnectDelayMs(attempt.reconnectAttempt) + LIVE_MIDSTREAM_STALL_MS
+                midStream -> LIVE_MIDSTREAM_STALL_MS
+                performancePolicy.isPerformance || Build.VERSION.SDK_INT < 26 -> 3_500L
+                else -> 5_000L
+            },
+        )
         if (!isForeground() || !attempt.isBuffering || attempt.playbackError != null || attempt.userPaused) return@LaunchedEffect
         if (midStream) {
+            // Offline this only shows "Waiting for network…"; the reconnect runs when it returns.
             startReconnect()
             return@LaunchedEffect
         }
@@ -1825,6 +1840,7 @@ private fun rememberSubtitleImport(
     beforeLaunch: () -> Unit,
 ): () -> Unit {
     val context = LocalContext.current
+    val importedLabel = LocalStrings.current.player.importedSubtitle
     val scope = rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { picked ->
         val uri = picked ?: return@rememberLauncherForActivityResult
@@ -1840,7 +1856,7 @@ private fun rememberSubtitleImport(
                 runCatching {
                     val position = exoPlayer.currentPosition.coerceAtLeast(0)
                     exoPlayer.setMediaItem(
-                        buildPlayableMediaItem(request, item, isLive, performancePolicy.liveProfile(), externalSubtitleConfiguration(fileUri)),
+                        buildPlayableMediaItem(request, item, isLive, performancePolicy.liveProfile(), externalSubtitleConfiguration(fileUri, importedLabel)),
                         position,
                     )
                     exoPlayer.prepare()
@@ -1862,7 +1878,7 @@ private fun rememberSubtitleImport(
 }
 
 /** Build a Media3 SubtitleConfiguration from an imported local subtitle file uri. */
-private fun externalSubtitleConfiguration(uri: Uri): MediaItem.SubtitleConfiguration {
+private fun externalSubtitleConfiguration(uri: Uri, label: String): MediaItem.SubtitleConfiguration {
     val name = (uri.lastPathSegment ?: "").lowercase()
     val mime = when {
         name.endsWith(".vtt") -> MimeTypes.TEXT_VTT
@@ -1873,7 +1889,7 @@ private fun externalSubtitleConfiguration(uri: Uri): MediaItem.SubtitleConfigura
     return MediaItem.SubtitleConfiguration.Builder(uri)
         .setMimeType(mime)
         .setLanguage("und")
-        .setLabel("Imported")
+        .setLabel(label)
         .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
         .build()
 }

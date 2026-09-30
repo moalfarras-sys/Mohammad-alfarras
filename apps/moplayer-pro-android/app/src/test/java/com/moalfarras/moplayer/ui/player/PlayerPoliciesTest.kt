@@ -43,6 +43,9 @@ class PlayerPoliciesTest {
         assertEquals(PlaybackFailureClass.FORMAT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED, null, null))
         assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 500, null))
         assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_TIMEOUT, null, null))
+        // Only decoder failures are worth a rebuild on the other surface type.
+        assertTrue(isDecoderFailure(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED))
+        assertFalse(isDecoderFailure(PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED))
     }
 
     @Test

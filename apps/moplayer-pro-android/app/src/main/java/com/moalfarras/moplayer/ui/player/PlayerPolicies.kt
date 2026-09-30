@@ -154,6 +154,9 @@ private fun isParsingError(errorCode: Int): Boolean = errorCode in 3000..3999
 
 private fun isDecoderError(errorCode: Int): Boolean = errorCode in 4000..4999
 
+/** Decoder failures are the only format problems a different video surface can fix. */
+internal fun isDecoderFailure(errorCode: Int): Boolean = isDecoderError(errorCode)
+
 internal fun classifyPlaybackFailure(errorCode: Int, httpStatus: Int?, cause: Throwable?): PlaybackFailureClass = when {
     httpStatus != null && httpStatus in PERMANENT_HTTP_STATUSES -> PlaybackFailureClass.PERMANENT
     errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ||

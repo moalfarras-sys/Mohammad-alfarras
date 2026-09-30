@@ -1,6 +1,8 @@
 package com.moalfarras.moplayer.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Fts4
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.moalfarras.moplayer.domain.model.ContentType
@@ -28,6 +30,13 @@ data class ServerEntity(
     val lastSyncSource: String,
     val epgUrl: String,
     val sourceKey: String,
+    /**
+     * When the user last chose this source (login, QR import, or switching accounts). The active
+     * source is the newest value here. Syncs only move [lastSyncAt], so a background refresh of
+     * another account can never switch the library back to it.
+     */
+    @ColumnInfo(defaultValue = "0")
+    val activatedAt: Long = 0,
 )
 
 @Entity(
@@ -51,24 +60,23 @@ data class CategoryEntity(
 @Entity(
     tableName = "media",
     primaryKeys = ["id", "serverId", "type"],
+    // Every index here serves a query in MediaDao/CategoryDao/MediaQueries; each extra one costs a
+    // B-tree update per row on every sync. Check EXPLAIN QUERY PLAN before adding one.
     indices = [
-        Index("serverId"),
-        Index("type"),
-        Index("categoryId"),
-        Index("categoryName"),
-        Index("title"),
-        Index("addedAt"),
-        Index("lastModifiedAt"),
-        Index("serverOrder"),
-        Index("seriesId"),
-        Index(value = ["serverId", "type", "categoryId"]),
-        Index(value = ["serverId", "type", "title"]),
+        // Grids in server order, zap list, per-type counts and deletes.
         Index(value = ["serverId", "type", "serverOrder"]),
-        Index(value = ["serverId", "type", "addedAt"]),
-        Index(value = ["serverId", "seriesId", "type"]),
-        Index(value = ["serverId", "isFavorite", "updatedAt"]),
-        Index(value = ["serverId", "watchPositionMs", "updatedAt"]),
+        // Category grids in server order and the non-empty-category EXISTS check.
+        Index(value = ["serverId", "type", "categoryId", "serverOrder"]),
+        // "Latest" shelves and the LATEST_ADDED sort.
+        Index(value = ["serverId", "type", "sortAddedAt"]),
+        // Recently played shelves, last played channel, RECENTLY_WATCHED sort.
         Index(value = ["serverId", "type", "lastPlayedAt"]),
+        // Episodes of a series.
+        Index(value = ["serverId", "seriesId", "type"]),
+        // Favorites shelf.
+        Index(value = ["serverId", "isFavorite", "updatedAt"]),
+        // Continue watching shelf.
+        Index(value = ["serverId", "watchPositionMs", "updatedAt"]),
     ],
 )
 data class MediaEntity(
@@ -104,6 +112,8 @@ data class MediaEntity(
     val releaseDate: String,
     val rawJson: String,
     val updatedAt: Long,
+    /** [addedAt], or [lastModifiedAt] when the provider sends no added date (Xtream series). Indexed for "Latest". */
+    val sortAddedAt: Long,
 )
 
 data class MediaListRow(
@@ -137,24 +147,30 @@ data class MediaListRow(
     val releaseDate: String,
 )
 
+/**
+ * Search copy of each media row, in [SearchText]-normalized form. It is the content table of
+ * [MediaSearchFts]; Room keeps the FTS index in sync with triggers, so rows must be written with
+ * insert/upsert/update/delete only. INSERT OR REPLACE would delete conflicting rows without firing
+ * the triggers and leave stale entries in the index.
+ */
 @Entity(
     tableName = "media_search",
     primaryKeys = ["serverId", "type", "id"],
-    indices = [
-        Index(value = ["serverId", "type"]),
-        Index(value = ["serverId", "title"]),
-        Index(value = ["serverId", "categoryName"]),
-        Index(value = ["serverId", "tvgId"]),
-    ],
 )
 data class MediaSearchEntity(
     val serverId: Long,
     val type: ContentType,
     val id: String,
+    /** Normalized title, used to rank title-prefix matches first. */
     val title: String,
-    val categoryName: String,
-    val tvgId: String,
-    val genre: String,
+    /** Normalized title, category, tvg-id, genre and year, plus extra prefix tokens. */
+    val searchText: String,
+)
+
+/** FTS4 index over `media_search.searchText` (external content, no duplicate text stored). */
+@Fts4(contentEntity = MediaSearchEntity::class)
+@Entity(tableName = "media_search_fts")
+data class MediaSearchFts(
     val searchText: String,
 )
 

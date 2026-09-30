@@ -590,7 +590,7 @@ class IptvRepository(
     }
 
     suspend fun activateServer(serverId: Long) = withContext(Dispatchers.IO) {
-        database.serverDao().touch(serverId, System.currentTimeMillis())
+        database.serverDao().markActive(serverId, System.currentTimeMillis())
     }
 
     suspend fun clearWatchHistory(serverId: Long) = withContext(Dispatchers.IO) {
@@ -763,6 +763,7 @@ class IptvRepository(
             sourceKey = key,
         )
         val serverId = upsertServer(server)
+        database.serverDao().markActive(serverId, System.currentTimeMillis())
         return database.serverDao().getServer(serverId)?.toDomain() ?: server.copy(id = serverId)
     }
 
@@ -822,6 +823,7 @@ class IptvRepository(
             sourceKey = key,
         )
         val serverId = upsertServer(server)
+        database.serverDao().markActive(serverId, System.currentTimeMillis())
         return database.serverDao().getServer(serverId)?.toDomain() ?: server.copy(id = serverId)
     }
 

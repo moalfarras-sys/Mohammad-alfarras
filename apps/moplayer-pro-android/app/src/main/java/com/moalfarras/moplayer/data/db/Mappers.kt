@@ -155,19 +155,18 @@ fun MediaItem.toEntity() = MediaEntity(
     releaseDate = releaseDate,
     rawJson = rawJson,
     updatedAt = System.currentTimeMillis(),
+    sortAddedAt = latestSortKey(addedAt, lastModifiedAt),
 )
+
+/** Sort key for "Latest": the added date, or the last-modified date when the provider sends none. */
+internal fun latestSortKey(addedAt: Long, lastModifiedAt: Long): Long = if (addedAt > 0) addedAt else lastModifiedAt
 
 fun MediaEntity.toSearchEntity() = MediaSearchEntity(
     serverId = serverId,
     type = type,
     id = id,
-    title = title,
-    categoryName = categoryName,
-    tvgId = tvgId,
-    genre = genre,
-    searchText = listOf(title, categoryName, tvgId, genre, releaseDate)
-        .filter { it.isNotBlank() }
-        .joinToString(" "),
+    title = SearchText.normalize(title),
+    searchText = SearchText.indexText(title, categoryName, tvgId, genre, releaseDate),
 )
 
 fun MediaItem.toSearchEntity() = toEntity().toSearchEntity()

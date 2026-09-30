@@ -69,6 +69,9 @@ internal class PlayerSessionState {
     /** Monotonic across engines and items so a new LibVLC view never replays an old command. */
     var vlcTransportSeq: Int = 0
 
+    /** Seek and track commands for the LibVLC view on screen (no-ops while Media3 plays). */
+    val vlc = LibVlcController()
+
     /** The key whose KeyDown the player root consumed; its KeyUp must not click a newly focused button. */
     var ownedKey: Key? = null
 
@@ -98,12 +101,31 @@ internal class PlayerItemUiState(isLive: Boolean, isFavorite: Boolean, positionM
 
 /** Recovery state of one stream request (item + URL): engines tried, watchdog markers, reconnects. */
 @Stable
-internal class PlaybackAttemptState(preferredLiveEngine: InternalPlaybackEngine, resumePositionMs: Long) {
+internal class PlaybackAttemptState(
+    preferredLiveEngine: InternalPlaybackEngine,
+    resumePositionMs: Long,
+    rememberedLiveFormat: StreamRequest? = null,
+) {
     var isBuffering by mutableStateOf(true)
     var playbackError by mutableStateOf<PlaybackIssue?>(null)
 
     var libVlcRetryNonce by mutableIntStateOf(0)
     var vlcTransport by mutableStateOf<VlcTransportCommand?>(null)
+
+    /** LibVLC reported the current stream as seekable (VOD over HTTP with range support). */
+    var libVlcSeekable: Boolean = false
+
+    /** In-place LibVLC VOD re-opens after an error or early end (continues from the last position). */
+    var libVlcVodRetries: Int = 0
+
+    /** The "audio format not supported" notice was shown for this stream. */
+    var audioUnsupportedNotified: Boolean = false
+
+    /** Live: the other Xtream container of this channel (.ts <-> .m3u8), or null for the original link. */
+    var liveFormatRequest by mutableStateOf(rememberedLiveFormat)
+
+    /** Live: the one-shot format swap was used for this attempt. */
+    var liveFormatSwapped: Boolean = false
 
     var liveReadyWithoutVideoAt by mutableLongStateOf(0L)
     var liveFirstFrameRendered by mutableStateOf(false)
@@ -150,6 +172,26 @@ internal class PlaybackAttemptState(preferredLiveEngine: InternalPlaybackEngine,
 
     /** Latest VOD position, used when the player is rebuilt (fallback URL, surface, retry). */
     var resumePositionMs: Long = resumePositionMs
+}
+
+/**
+ * The live container (.ts or .m3u8) that last worked for a channel, for this app process, so a
+ * channel whose default format fails is opened in the working one straight away next time.
+ */
+internal object LiveFormatMemory {
+    private const val MAX_CHANNELS = 256
+    private val formats = object : LinkedHashMap<String, StreamRequest>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, StreamRequest>?): Boolean = size > MAX_CHANNELS
+    }
+
+    @Synchronized
+    fun get(channelKey: String): StreamRequest? = formats[channelKey]
+
+    /** [request] null: the channel's original link works, so nothing needs remembering. */
+    @Synchronized
+    fun remember(channelKey: String, request: StreamRequest?) {
+        if (request == null) formats.remove(channelKey) else formats[channelKey] = request
+    }
 }
 
 /** The zap list as the live overlay shows it: groups, the filtered channels, numbering and the selection. */

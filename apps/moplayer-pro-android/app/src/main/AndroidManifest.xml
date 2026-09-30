@@ -21,6 +21,15 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- External players the player picker offers only when installed (package visibility on
+         Android 11+). Keep in sync with EXTERNAL_PLAYER_PACKAGES. -->
+    <queries>
+        <package android:name="org.videolan.vlc" />
+        <package android:name="com.mxtech.videoplayer.ad" />
+        <package android:name="com.mxtech.videoplayer.pro" />
+        <package android:name="com.brouken.player" />
+    </queries>
+
     <application
         android:name="com.moalfarras.moplayer.MoPlayerApplication"
         android:allowBackup="false"

@@ -176,15 +176,22 @@ dependencies {
     implementation("androidx.tv:tv-material:1.1.0-rc01")
     implementation("androidx.leanback:leanback:1.2.0")
 
-    implementation("androidx.media3:media3-exoplayer:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-dash:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-smoothstreaming:1.10.1")
-    implementation("androidx.media3:media3-exoplayer-rtsp:1.10.1")
-    implementation("androidx.media3:media3-ui:1.10.1")
-    implementation("androidx.media3:media3-session:1.10.1")
-    implementation("androidx.media3:media3-datasource-okhttp:1.10.1")
-    implementation("org.videolan.android:libvlc-all:3.6.2")
+    val media3Version = "1.11.1"
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-hls:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-dash:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3Version")
+    implementation("androidx.media3:media3-exoplayer-rtsp:$media3Version")
+    implementation("androidx.media3:media3-ui:$media3Version")
+    implementation("androidx.media3:media3-session:$media3Version")
+    implementation("androidx.media3:media3-datasource-okhttp:$media3Version")
+    // FFmpeg audio decoders (AC-3, E-AC-3, DTS, TrueHD, MP2, ...) for boxes without platform
+    // decoders or passthrough. LGPL build with 16 KB-aligned natives; it was built against Media3
+    // 1.9.0, so Gradle resolves its media3 dependencies to the version above, and the renderer is
+    // created defensively (IptvRenderersFactory) in case that ABI ever drifts.
+    implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.9.0+1")
+    // 3.6.3+ ships 16 KB-aligned native libraries; 3.7.x also carries FFmpeg 8.1.
+    implementation("org.videolan.android:libvlc-all:3.7.6")
     implementation("com.google.android.gms:play-services-cast-framework:22.1.0")
 
     implementation("com.squareup.retrofit2:retrofit:3.0.0")

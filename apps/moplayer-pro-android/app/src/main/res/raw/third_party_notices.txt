@@ -1,0 +1,36 @@
+MoPlayer Pro — third-party software notices
+
+MoPlayer Pro includes the following open-source components. Each one remains under its own
+license; the libraries under the GNU LGPL are linked dynamically as separate shared libraries
+(.so files), and you may replace them with your own builds.
+
+------------------------------------------------------------------------------------------------
+FFmpeg (audio decoders: AAC, AC-3, E-AC-3, DTS, TrueHD/MLP, MP2, MP3, FLAC, ALAC, Opus, Vorbis, PCM)
+  Packaged as: org.jellyfin.media3:media3-ffmpeg-decoder 1.9.0+1 (libffmpegJNI.so)
+  License: GNU Lesser General Public License, version 2.1 or later (LGPL-2.1+)
+           Built without --enable-gpl and without --enable-nonfree.
+  Source:  https://github.com/jellyfin/jellyfin-androidx-media
+           https://ffmpeg.org
+  License text: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+  FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg project.
+
+------------------------------------------------------------------------------------------------
+LibVLC for Android (VLC media engine)
+  Packaged as: org.videolan.android:libvlc-all 3.7.6 (libvlc.so, libvlcjni.so, libc++_shared.so)
+  License: GNU Lesser General Public License, version 2.1 or later (LGPL-2.1+)
+  Source:  https://code.videolan.org/videolan/libvlcjni
+           https://code.videolan.org/videolan/vlc
+  License text: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+  VLC is a trademark of VideoLAN.
+
+------------------------------------------------------------------------------------------------
+AndroidX Media3 (ExoPlayer, UI, session, HLS/DASH/SmoothStreaming/RTSP, OkHttp data source)
+  Packaged as: androidx.media3:* 1.11.1
+  License: Apache License, Version 2.0 (Apache-2.0)
+  Source:  https://github.com/androidx/media
+  License text: https://www.apache.org/licenses/LICENSE-2.0
+
+------------------------------------------------------------------------------------------------
+To obtain the complete corresponding source code of the LGPL components used in this build, use
+the source links above at the versions listed. Written requests can also be made to the app
+publisher through https://moalfarras.space.

@@ -105,6 +105,9 @@ internal enum class PlaybackIssueKind {
     LIVE_STOPPED,
     NO_VIDEO,
     VOD_NO_FRAMES,
+
+    /** A VOD stream ended long before its known length (again after one automatic re-open). */
+    VOD_INTERRUPTED,
     UNSTABLE,
     GENERIC,
 }
@@ -121,6 +124,7 @@ private val TRANSIENT_ISSUES = setOf(
     PlaybackIssueKind.TIMEOUT,
     PlaybackIssueKind.CONNECT_FAILED,
     PlaybackIssueKind.LIVE_STOPPED,
+    PlaybackIssueKind.VOD_INTERRUPTED,
     PlaybackIssueKind.UNSTABLE,
 )
 
@@ -228,6 +232,7 @@ internal fun PlayerStrings.issueText(issue: PlaybackIssue): String {
         PlaybackIssueKind.LIVE_STOPPED -> issueLiveStopped
         PlaybackIssueKind.NO_VIDEO -> issueNoVideo
         PlaybackIssueKind.VOD_NO_FRAMES -> issueVodNoFrames
+        PlaybackIssueKind.VOD_INTERRUPTED -> issueVodInterrupted
         PlaybackIssueKind.UNSTABLE -> issueUnstable
         PlaybackIssueKind.GENERIC -> issueGeneric
     }
@@ -265,6 +270,9 @@ internal enum class LiveRecoveryStep {
     /** A ".ts" link that really serves HLS: reopen it as HLS. */
     FORCE_HLS,
 
+    /** Open the same Xtream channel once in its other container (.ts <-> .m3u8). */
+    SWAP_FORMAT,
+
     /** Hand the same channel to the other engine (Media3 <-> LibVLC). */
     SWITCH_ENGINE,
 
@@ -281,8 +289,9 @@ internal enum class LiveRecoveryStep {
 /**
  * The next step after a live playback failure. A channel that was already playing is never moved
  * to another engine or channel for a network drop: it reconnects in place until the reconnect
- * window runs out. Permanent errors go straight to the error card when opening a channel; a channel
- * that was playing first gets [LIVE_PERMANENT_RECONNECT_LIMIT] in-place reopens.
+ * window runs out. Permanent errors go straight to the error card when opening a channel (after
+ * one try of the other Xtream format when [canSwapFormat]); a channel that was playing first gets
+ * [LIVE_PERMANENT_RECONNECT_LIMIT] in-place reopens. [canSwapFormat] is only true at startup.
  */
 internal fun liveErrorRecoveryStep(
     failure: PlaybackFailureClass,
@@ -293,21 +302,24 @@ internal fun liveErrorRecoveryStep(
     canSwitchEngine: Boolean,
     canRetrySurface: Boolean,
     permanentReconnectAvailable: Boolean,
+    canSwapFormat: Boolean = false,
 ): LiveRecoveryStep = when (failure) {
-    PlaybackFailureClass.PERMANENT ->
-        if (wasPlaying && permanentReconnectAvailable && !reconnectWindowExpired) {
-            LiveRecoveryStep.RECONNECT_IN_PLACE
-        } else {
-            LiveRecoveryStep.SHOW_ERROR
-        }
+    PlaybackFailureClass.PERMANENT -> when {
+        wasPlaying && permanentReconnectAvailable && !reconnectWindowExpired -> LiveRecoveryStep.RECONNECT_IN_PLACE
+        // A 404/410 for one container: panels that list m3u8 do not always generate HLS for every channel.
+        canSwapFormat -> LiveRecoveryStep.SWAP_FORMAT
+        else -> LiveRecoveryStep.SHOW_ERROR
+    }
     PlaybackFailureClass.TRANSIENT -> when {
         wasPlaying -> if (reconnectWindowExpired) LiveRecoveryStep.SHOW_ERROR else LiveRecoveryStep.RECONNECT_IN_PLACE
         startupRetryAvailable -> LiveRecoveryStep.RECONNECT_IN_PLACE
+        canSwapFormat -> LiveRecoveryStep.SWAP_FORMAT
         canSwitchEngine -> LiveRecoveryStep.SWITCH_ENGINE
         else -> LiveRecoveryStep.SIBLING_VARIANT
     }
     PlaybackFailureClass.FORMAT -> when {
         canForceHls -> LiveRecoveryStep.FORCE_HLS
+        canSwapFormat -> LiveRecoveryStep.SWAP_FORMAT
         canSwitchEngine -> LiveRecoveryStep.SWITCH_ENGINE
         canRetrySurface -> LiveRecoveryStep.ALTERNATE_SURFACE
         else -> LiveRecoveryStep.SIBLING_VARIANT
@@ -434,10 +446,14 @@ internal fun isLibVlcSafeOnThisDevice(): Boolean {
 internal fun isLibVlcSafeForRequest(request: StreamRequest): Boolean =
     isLibVlcSafeOnThisDevice() && isVlcFriendlyContainer(request)
 
+/** Automatic hand-offs to LibVLC skip streams that need headers LibVLC cannot send (Media3 sends them). */
 internal fun shouldAutoUseLibVlc(request: StreamRequest): Boolean =
-    isLibVlcSafeForRequest(request) && !request.uri.startsWith("https://", ignoreCase = true)
+    isLibVlcSafeForRequest(request) &&
+        !request.uri.startsWith("https://", ignoreCase = true) &&
+        !request.hasHeadersLibVlcCannotSend()
 
 internal fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: PerformancePolicy? = null): InternalPlaybackEngine {
+    if (request.hasHeadersLibVlcCannotSend()) return InternalPlaybackEngine.MEDIA3
     if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice()) return InternalPlaybackEngine.LIBVLC
     if (request.uri.startsWith("rtsp://", ignoreCase = true) && isLibVlcSafeOnThisDevice()) return InternalPlaybackEngine.LIBVLC
     if ((performancePolicy?.isPerformance == true || Build.VERSION.SDK_INT < 26) &&
@@ -452,20 +468,33 @@ internal fun preferredLiveAutoEngine(request: StreamRequest, performancePolicy: 
 internal fun preferredAutoEngine(request: StreamRequest, isLive: Boolean, performancePolicy: PerformancePolicy): InternalPlaybackEngine =
     if (isLive) {
         preferredLiveAutoEngine(request, performancePolicy)
-    } else if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice()) {
+    } else if (shouldStartWithLibVlc(request) && isLibVlcSafeOnThisDevice() && !request.hasHeadersLibVlcCannotSend()) {
         InternalPlaybackEngine.LIBVLC
     } else {
         InternalPlaybackEngine.MEDIA3
     }
 
+/**
+ * Whether LibVLC is a sensible engine for [request]. Network links whose type is unknown (common
+ * extensionless M3U lines, Xtream `output=ts` short links, tokenised restreams) qualify too:
+ * LibVLC probes the content itself. Local files and content URIs never do.
+ */
 internal fun isVlcFriendlyContainer(request: StreamRequest): Boolean {
     val lowerUri = request.uri.lowercase(Locale.US).substringBefore('?')
     return request.uri.startsWith("rtsp://", ignoreCase = true) ||
         request.uri.startsWith("rtmp://", ignoreCase = true) ||
         request.mimeType in VLC_FRIENDLY_MIME_TYPES ||
         request.uri.hasLiveTsHint() ||
-        VLC_FRIENDLY_EXTENSIONS.any { lowerUri.endsWith(it) }
+        VLC_FRIENDLY_EXTENSIONS.any { lowerUri.endsWith(it) } ||
+        (request.mimeType == null && request.uri.networkScheme() in LIBVLC_PROBE_SCHEMES)
 }
+
+private val LIBVLC_PROBE_SCHEMES = setOf("http", "https", "udp", "rtp", "mms", "mmsh", "srt")
+
+/** Schemes Media3 cannot open at all. */
+private val LIBVLC_ONLY_SCHEMES = setOf("rtp", "mms", "mmsh", "srt")
+
+internal fun String.networkScheme(): String = substringBefore("://", "").lowercase(Locale.US)
 
 private val VLC_FRIENDLY_MIME_TYPES = setOf(
     MimeTypes.APPLICATION_M3U8,
@@ -490,6 +519,7 @@ private val VLC_FRIENDLY_EXTENSIONS = listOf(
 internal fun shouldStartWithLibVlc(request: StreamRequest): Boolean {
     val lowerUri = request.uri.lowercase(Locale.US).substringBefore('?')
     return request.uri.startsWith("rtmp://", ignoreCase = true) ||
+        request.uri.networkScheme() in LIBVLC_ONLY_SCHEMES ||
         request.mimeType in LIBVLC_FIRST_MIME_TYPES ||
         LIBVLC_FIRST_EXTENSIONS.any { lowerUri.endsWith(it) }
 }
@@ -553,10 +583,15 @@ internal fun widthForHeight(height: Int): Int = when {
     else -> 7680
 }
 
+/**
+ * Live buffering. The large profile (45 s, deeper live offset) follows the heap budget
+ * ([hasRoomForLargeLiveBuffer]), not the display cap; Media3 also caps the bytes it holds
+ * ([playbackBufferBudget]), so a 4K stream cannot fill a small heap either way.
+ */
 internal fun livePlaybackProfile(
     isPerformanceMode: Boolean,
     policyLiveBufferMs: Int,
-    maxVideoHeight: Int,
+    largeBuffer: Boolean,
     sdkInt: Int = Build.VERSION.SDK_INT,
 ): LivePlaybackProfile {
     val legacyOrLowPower = isPerformanceMode || sdkInt < 26
@@ -572,7 +607,7 @@ internal fun livePlaybackProfile(
             minPlaybackSpeed = 0.96f,
             maxPlaybackSpeed = 1.06f,
         )
-        maxVideoHeight >= 2160 -> LivePlaybackProfile(
+        largeBuffer -> LivePlaybackProfile(
             minBufferMs = policyLiveBufferMs.coerceIn(7_000, 10_000),
             maxBufferMs = 45_000,
             bufferForPlaybackMs = 900,

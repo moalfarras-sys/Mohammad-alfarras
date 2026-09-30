@@ -143,6 +143,23 @@ class PlayerPoliciesTest {
     }
 
     @Test
+    fun theOtherLiveFormatIsTriedBeforeEnginesOrOtherChannels() {
+        fun swap(failure: PlaybackFailureClass, forceHls: Boolean = false, startupRetry: Boolean = false) =
+            liveErrorRecoveryStep(failure, false, false, startupRetry, forceHls, true, true, false, canSwapFormat = true)
+
+        // 404 for .m3u8 on a panel that only generates TS for this channel.
+        assertEquals(LiveRecoveryStep.SWAP_FORMAT, swap(PlaybackFailureClass.PERMANENT))
+        assertEquals(LiveRecoveryStep.SWAP_FORMAT, swap(PlaybackFailureClass.TRANSIENT))
+        assertEquals(LiveRecoveryStep.SWAP_FORMAT, swap(PlaybackFailureClass.FORMAT))
+        // A ".ts" link that serves HLS is reopened as HLS first; a quick same-engine retry comes first too.
+        assertEquals(LiveRecoveryStep.FORCE_HLS, swap(PlaybackFailureClass.FORMAT, forceHls = true))
+        assertEquals(LiveRecoveryStep.RECONNECT_IN_PLACE, swap(PlaybackFailureClass.TRANSIENT, startupRetry = true))
+        // Without the swap (already used, auth failure, not Xtream) the old chain is unchanged.
+        assertEquals(LiveRecoveryStep.SHOW_ERROR, step(PlaybackFailureClass.PERMANENT, engine = true))
+        assertEquals(LiveRecoveryStep.SWITCH_ENGINE, step(PlaybackFailureClass.FORMAT, engine = true))
+    }
+
+    @Test
     fun reconnectBackoffIsOneTwoFourEightThenCapped() {
         assertEquals(listOf(1_000L, 2_000L, 4_000L, 8_000L, 15_000L, 15_000L), (0..5).map(::liveReconnectDelayMs))
     }

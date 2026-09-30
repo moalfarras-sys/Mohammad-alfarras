@@ -14,9 +14,10 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.DefaultLivePlaybackSpeedControl
 import androidx.media3.exoplayer.DefaultLoadControl
-import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
@@ -31,13 +32,14 @@ import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.extractor.DefaultExtractorsFactory
+import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.data.network.NetworkModule
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
 import java.io.IOException
 
-internal val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.10 LibVLC/3.6"
+internal val APP_USER_AGENT = "MoPlayerPro/${com.moalfarras.moplayerpro.BuildConfig.VERSION_NAME} AndroidTV Media3/1.11 LibVLC/3.7"
 
 /** Player events PlayerScreen reacts to. All callbacks arrive on the main thread. */
 internal class Media3Callbacks(
@@ -48,6 +50,11 @@ internal class Media3Callbacks(
     val onDurationChanged: (Long) -> Unit,
     /** READY with resolved tracks: whether the stream has video and audio. */
     val onTracksResolved: (hasVideo: Boolean, hasAudio: Boolean) -> Unit,
+    /**
+     * The stream has audio but no renderer supports any of its tracks, so Media3 plays the
+     * picture silently without raising an error. Reported once per player, with the audio MIME types.
+     */
+    val onAudioUnsupported: (mimeTypes: List<String>) -> Unit,
     /** A failed load, with the URI reached after redirects and the response Content-Type. */
     val onLoadFailure: (finalUri: String, contentType: String, error: IOException) -> Unit,
 )
@@ -110,27 +117,26 @@ internal fun buildExoPlayer(
     callbacks: Media3Callbacks,
 ): ExoPlayer {
     val isRtsp = request.uri.startsWith("rtsp://", ignoreCase = true)
-    val liveProfile = livePlaybackProfile(
-        isPerformanceMode = performancePolicy.isPerformance,
-        policyLiveBufferMs = performancePolicy.liveBufferMs,
-        maxVideoHeight = performancePolicy.maxVideoHeight,
-    )
-    val loadControl = if (isLive) {
-        DefaultLoadControl.Builder()
-            .setBufferDurationsMs(
-                liveProfile.minBufferMs,
-                liveProfile.maxBufferMs,
-                liveProfile.bufferForPlaybackMs,
-                liveProfile.bufferForPlaybackAfterRebufferMs,
-            )
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-    } else {
-        DefaultLoadControl.Builder()
-            .setBufferDurationsMs(16_000, 60_000, 1_500, 4_000)
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-    }
+    val device = Adaptive.performanceInfo(context)
+    val liveProfile = liveProfileFor(context, performancePolicy)
+    val budget = playbackBufferBudget(device.memoryClassMb, device.isLowRam, device.tier, isLive)
+    val loadControl = DefaultLoadControl.Builder()
+        .apply {
+            if (isLive) {
+                setBufferDurationsMs(
+                    liveProfile.minBufferMs,
+                    liveProfile.maxBufferMs,
+                    liveProfile.bufferForPlaybackMs,
+                    liveProfile.bufferForPlaybackAfterRebufferMs,
+                )
+            } else {
+                setBufferDurationsMs(16_000, 60_000, 1_500, 4_000)
+            }
+        }
+        // The buffer lives on the Java heap: bound it by the heap, not only by time.
+        .setTargetBufferBytes(budget.targetBytes)
+        .setPrioritizeTimeOverSizeThresholds(budget.prioritizeTimeOverSize)
+        .build()
     val requestHeaders = request.headers.filterKeys { !it.equals("User-Agent", ignoreCase = true) }
     val httpFactory = OkHttpDataSource.Factory(NetworkModule.playbackOkHttp)
         .setUserAgent(request.headers["User-Agent"] ?: APP_USER_AGENT)
@@ -140,7 +146,9 @@ internal fun buildExoPlayer(
     val defaultFactory = if (isRtsp) {
         DefaultMediaSourceFactory(context, extractorsFactory)
     } else {
-        DefaultMediaSourceFactory(httpFactory, extractorsFactory)
+        // file:// and content:// (an imported subtitle) must not go through OkHttp, which rejects
+        // them as malformed URLs; DefaultDataSource routes them locally and http(s) to OkHttp.
+        DefaultMediaSourceFactory(DefaultDataSource.Factory(context, httpFactory), extractorsFactory)
     }
     if (isLive) {
         defaultFactory
@@ -184,7 +192,7 @@ internal fun buildExoPlayer(
         }
         parameters = builder.build()
     }
-    val renderersFactory = DefaultRenderersFactory(context)
+    val renderersFactory = IptvRenderersFactory(context)
         .setEnableDecoderFallback(true)
         .setEnableAudioOutputPlaybackParameters(true)
         .setAllowedVideoJoiningTimeMs(if (isLive) 7_000L else 5_000L)
@@ -259,19 +267,31 @@ private class Media3EventBridge(
         }
     }
 
+    private var audioUnsupportedReported = false
+
     override fun onEvents(player: Player, events: Player.Events) {
         if (events.contains(Player.EVENT_TIMELINE_CHANGED) || events.contains(Player.EVENT_TRACKS_CHANGED)) {
             callbacks.onDurationChanged(player.duration.coerceAtLeast(1L))
         }
         val tracksMayHaveSettled = events.contains(Player.EVENT_TRACKS_CHANGED) || events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)
-        if (tracksMayHaveSettled && player.playbackState == Player.STATE_READY && !player.currentTracks.isEmpty) {
-            callbacks.onTracksResolved(
-                player.currentTracks.containsType(C.TRACK_TYPE_VIDEO),
-                player.currentTracks.containsType(C.TRACK_TYPE_AUDIO),
-            )
+        val tracks = player.currentTracks
+        if (tracksMayHaveSettled && player.playbackState == Player.STATE_READY && !tracks.isEmpty) {
+            callbacks.onTracksResolved(tracks.containsType(C.TRACK_TYPE_VIDEO), tracks.containsType(C.TRACK_TYPE_AUDIO))
+            if (!audioUnsupportedReported &&
+                tracks.containsType(C.TRACK_TYPE_AUDIO) &&
+                !tracks.isTypeSupported(C.TRACK_TYPE_AUDIO, true)
+            ) {
+                audioUnsupportedReported = true
+                callbacks.onAudioUnsupported(tracks.audioMimeTypes())
+            }
         }
     }
 }
+
+private fun Tracks.audioMimeTypes(): List<String> =
+    groups.filter { it.type == C.TRACK_TYPE_AUDIO }
+        .flatMap { group -> (0 until group.length).mapNotNull { group.getTrackFormat(it).sampleMimeType } }
+        .distinct()
 
 /**
  * The media item for a request, with session metadata so Google TV "Now playing" and Bluetooth
@@ -333,11 +353,14 @@ internal fun buildPlayableMediaItem(
         .build()
 }
 
-internal fun PerformancePolicy.liveProfile(): LivePlaybackProfile = livePlaybackProfile(
-    isPerformanceMode = isPerformance,
-    policyLiveBufferMs = liveBufferMs,
-    maxVideoHeight = maxVideoHeight,
-)
+internal fun liveProfileFor(context: Context, policy: PerformancePolicy): LivePlaybackProfile {
+    val device = Adaptive.performanceInfo(context)
+    return livePlaybackProfile(
+        isPerformanceMode = policy.isPerformance,
+        policyLiveBufferMs = policy.liveBufferMs,
+        largeBuffer = hasRoomForLargeLiveBuffer(device.memoryClassMb, device.isLowRam),
+    )
+}
 
 internal fun applyLiveQualityMode(player: ExoPlayer, mode: LiveQualityMode, maxVideoHeight: Int = 2160) {
     val defaultSelectorBuilder = (player.trackSelectionParameters as? DefaultTrackSelector.Parameters)

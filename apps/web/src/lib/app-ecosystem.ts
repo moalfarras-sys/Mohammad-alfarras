@@ -264,25 +264,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-6-5",
+      id: "release-moplayer2-v2-7-0",
       product_slug: "moplayer2",
-      slug: "moplayer2-v2.6.5-full",
-      version_name: "2.6.5",
-      version_code: 68,
+      slug: "moplayer2-2.7.0",
+      version_name: "2.7.0",
+      version_code: 69,
       release_notes:
-        "MoPlayer Pro 2.6.5: trailers fixed and faster — a broken empty-result id no longer blocks playback or the provider fallback, trailers start after 2 seconds (was 4), they now work on ALL devices including weak boxes, and a new Settings switch (Live TV → Trailer previews) lets you turn them on/off. Includes 2.6.4's subtitle import and all earlier fixes.",
+        "MoPlayer Pro 2.7.0 rebuilds the TV-first experience with a faster indexed library, streaming Xtream/M3U/XMLTV sync, safer QR activation, a session-persistent Media3/LibVLC player, quicker channel zapping, next-episode playback, a verified in-app updater, and complete Arabic/English navigation and error states.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-6-5-universal",
-          release_id: "release-moplayer2-v2-6-5",
+          id: "asset-moplayer2-v2-7-0-universal",
+          release_id: "release-moplayer2-v2-7-0",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.5/app-universal-release.apk",
-          file_size_bytes: 49443176,
-          checksum_sha256: "4ab045fa64e9e77bbc791a11e6c03a8916fdeb01baf699ef76a2d707e66f1de1",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.0/app-universal-release.apk",
+          file_size_bytes: 56170203,
+          checksum_sha256: "3c26275744b0947a3e1f1b8fb8708de4335bf292a1410bb62cf6be63651042ff",
         },
       ],
     },

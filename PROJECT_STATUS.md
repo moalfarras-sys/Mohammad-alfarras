@@ -20,6 +20,10 @@ Last updated: 2026-09-30
 ## Verification completed so far
 
 - `npm run verify:windows`: passed on 2026-09-30 after preserving the 1.0.4 changes.
+- `npm run verify:production`: passed on the consolidated tree (web, admin, dashboard, Classic Android, and Pro Android).
+- `npm run verify:web` and `npm run verify:admin`: passed again after synchronizing the 2.7.0 fallback metadata.
+- MoPlayer Pro `assembleRelease --rerun-tasks` passed for version `2.7.0` / code `69`. The universal APK is 56,170,203 bytes with SHA-256 `3c26275744b0947a3e1f1b8fb8708de4335bf292a1410bb62cf6be63651042ff` and the established signing certificate SHA-256 `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`.
+- Removed the deprecated admin `baseUrl` option after TypeScript 6 rejected it; the existing explicit `@/* -> ./src/*` mapping continues to resolve correctly.
 - All 94 registered worktrees were inspected: 91 clean, two worktrees contained the now-preserved changes, and one stale temporary registration was prunable.
 - All local branch tips are ancestors of the MoPlayer Pro 2.7.0 consolidation tip.
 - All remote feature/release branches are merged into `origin/main` by ancestry or equivalent final tree content; there are no open GitHub pull requests.
@@ -27,9 +31,8 @@ Last updated: 2026-09-30
 
 ## Remaining release gates
 
-- Run the full web, admin, dashboard, Android, and Windows verification suite on the consolidated tree.
-- Build and verify the signed MoPlayer Pro 2.7.0 release artifact before publishing release metadata.
-- Push the integration branch, merge it into `main` only after CI passes, and verify Vercel production deployments and live routes.
+- Publish the three signed MoPlayer Pro 2.7.0 APKs to the matching GitHub Release after branch CI passes, then publish the universal asset as the current release metadata.
+- Push the integration branch, merge it into `main` after CI passes, and verify Vercel production deployments and live routes.
 - Do not enable the MoOS ISO until a replacement host passes HTTP 200, byte-range, exact-size, and SHA-256 checks.
 
 ## Handoff notes

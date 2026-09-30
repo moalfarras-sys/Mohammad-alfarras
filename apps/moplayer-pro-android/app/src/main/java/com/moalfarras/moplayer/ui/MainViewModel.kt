@@ -488,7 +488,8 @@ class MainViewModel(
      * Now/next for the channel focused in Live TV. The previous channel's guide is cleared at once;
      * the stored guide answers immediately, and only a channel the viewer rests on for
      * [LIVE_EPG_REMOTE_DEBOUNCE_MS] asks the panel (get_short_epg), so holding the D-pad never
-     * sends one request per channel. Channels are resolved to their own source in merged libraries.
+     * sends one request per channel. Channels are resolved to their own source in merged libraries,
+     * and the header moves on to the next programme when the current one ends.
      */
     val focusedLiveEpg: StateFlow<LiveEpgSnapshot> = uiState
         .map(::focusedLiveEpgQuery)
@@ -2261,20 +2262,25 @@ class MainViewModel(
 
     private fun liveEpgFor(query: FocusedLiveEpgQuery): Flow<LiveEpgSnapshot> = flow {
         emit(LiveEpgSnapshot())
-        val local = try {
-            iptv.localLiveEpg(query.server, query.item)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: Exception) {
-            null
+        var askedPanel = false
+        while (true) {
+            var snapshot = try {
+                iptv.localLiveEpg(query.server, query.item)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+            if (snapshot == null && query.server.kind == LoginKind.XTREAM && !askedPanel) {
+                askedPanel = true
+                delay(LIVE_EPG_REMOTE_DEBOUNCE_MS)
+                snapshot = iptv.remoteLiveEpg(query.server, query.item)
+            }
+            emit(snapshot ?: LiveEpgSnapshot())
+            // While the viewer stays on the channel, move on to the next programme when this one ends.
+            val endsAt = snapshot?.current?.endAt?.takeIf { it > 0L } ?: return@flow
+            delay((endsAt - System.currentTimeMillis()).coerceIn(EPG_ROLLOVER_MIN_MS, EPG_ROLLOVER_MAX_MS))
         }
-        if (local != null) {
-            emit(local)
-            return@flow
-        }
-        if (query.server.kind != LoginKind.XTREAM) return@flow
-        delay(LIVE_EPG_REMOTE_DEBOUNCE_MS)
-        emit(iptv.remoteLiveEpg(query.server, query.item))
     }
 
     // ── Auto-play ─────────────────────────────────────────────────────────
@@ -2567,6 +2573,9 @@ private const val LIVE_DNS_PREWARM_DELAY_MS = 250L
 private const val TRAILER_PREVIEW_DWELL_MS = 2_000L
 /** Dwell on a live channel before its guide is asked from the panel (get_short_epg). */
 private const val LIVE_EPG_REMOTE_DEBOUNCE_MS = 320L
+/** Bounds for re-reading the guide when the current programme ends (never a tight loop). */
+private const val EPG_ROLLOVER_MIN_MS = 15_000L
+private const val EPG_ROLLOVER_MAX_MS = 30L * 60L * 1000L
 /** Focus/category are written once the viewer pauses this long (and always on ON_STOP). */
 private const val NAV_PERSIST_DELAY_MS = 1_000L
 /** How long a failing QR code creation keeps retrying on network/5xx errors. */

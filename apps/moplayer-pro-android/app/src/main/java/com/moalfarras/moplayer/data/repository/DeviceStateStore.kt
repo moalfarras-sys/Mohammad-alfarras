@@ -16,10 +16,12 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.moalfarras.moplayer.domain.model.ActivatedProfile
 import com.moalfarras.moplayer.domain.model.LoginKind
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.IOException
@@ -94,14 +96,17 @@ class DeviceStateStore internal constructor(
 
     /** Seals and stores [pending]; false when it could not be kept (the import then runs unprotected). */
     suspend fun savePendingActivation(pending: PendingActivation): Boolean {
-        val sealed = sealer.seal(encodePendingActivation(pending).toByteArray(Charsets.UTF_8)) ?: return false
+        // Keystore work (and the first key generation) can take hundreds of ms on a TV box.
+        val sealed = withContext(Dispatchers.IO) {
+            sealer.seal(encodePendingActivation(pending).toByteArray(Charsets.UTF_8))
+        } ?: return false
         return edit { it[pendingActivationKey] = sealed }
     }
 
     /** The saved QR source, or null when there is none, it cannot be opened, or it is too old or tried too often. */
     suspend fun pendingActivation(nowMs: Long): PendingActivation? {
         val sealed = data.first()[pendingActivationKey] ?: return null
-        val pending = sealer.open(sealed)
+        val pending = withContext(Dispatchers.IO) { sealer.open(sealed) }
             ?.let { bytes -> decodePendingActivation(String(bytes, Charsets.UTF_8)) }
             ?.takeIf { pendingActivationUsable(it, nowMs) }
         if (pending == null) clearPendingActivation()

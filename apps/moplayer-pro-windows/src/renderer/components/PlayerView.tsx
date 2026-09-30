@@ -274,10 +274,13 @@ export function PlayerView({ item, related, zapList, channelGroups, allChannels,
           const hls = hlsRef.current;
           if (hls) {
             const livePosition = hls.liveSyncPosition;
-            if (livePosition && livePosition - video.currentTime > 4) {
-              video.currentTime = Math.max(0, livePosition - 0.5);
+            if (livePosition && Math.abs(livePosition - video.currentTime) > 0.5) {
+              video.currentTime = Math.max(0, livePosition);
             }
-            hls.startLoad(-1);
+            // Reset the fragment loader at the known-good live-sync position.
+            // Calling startLoad alone can leave a stalled in-flight request alive.
+            hls.stopLoad();
+            hls.startLoad(livePosition || -1);
           } else {
             const player = mpegtsRef.current;
             if (player) {

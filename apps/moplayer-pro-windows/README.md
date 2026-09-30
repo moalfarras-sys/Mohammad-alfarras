@@ -165,6 +165,12 @@ QR activation uses the website API as a short-lived handoff. The website queues 
 - Player keyboard controls include Space/K for play-pause, J/L and Left/Right for seeking, M for mute, F for fullscreen, number entry for live channel jumps, and mouse-wheel volume. Form controls no longer trigger player shortcuts while typing.
 - Multi-view supports arrow-key focus, Enter to expand, Delete to remove, duplicate-channel filtering, staggered startup, and a provider connection-limit warning.
 
+## 2026-07-09 Live Playback Stability
+
+- Version `1.0.4` prefers the Xtream HLS variant before raw MPEG-TS. HLS provides adaptive bitrate, a bounded media buffer, and gap recovery; TS is retained as an automatic fallback for providers without HLS.
+- Main-view HLS is intentionally more conservative: segment-boundary start, a four-segment live margin, a 45-second forward buffer, player-size quality capping, and native HLS gap/stall recovery.
+- The stream proxy now marks every media response `no-store`; only posters and logos use the separate image cache. This prevents stale live chunks from filling Chromium's disk cache and growing playback latency over time.
+
 ## Startup Troubleshooting
 
 If the app hangs on `Preparing MoPlayer Pro`, inspect `%APPDATA%\@moalfarras\moplayer-pro-windows\logs\app.log` first. The 2026-06-11 hang was caused by an ESM preload script being loaded by Electron as a classic preload script; the app now compiles preload from `src/preload.cts` to `dist-electron/preload.cjs`, and `build:electron` cleans stale preload output before every build.

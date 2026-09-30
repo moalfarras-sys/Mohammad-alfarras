@@ -1372,6 +1372,7 @@ class IptvRepository(
         val strings = I18n.strings.sync
         val writer = CatalogWriter(database, server.id)
         var meta = JsonObject(emptyMap())
+        var sawList = false
         var categories: List<Category> = emptyList()
         coroutineScope {
             val categoriesAsync = async {
@@ -1381,6 +1382,7 @@ class IptvRepository(
             api.rawPlayerApiStream(credentialsQuery(credentials.username, credentials.password, mapOf("action" to section.streamAction))).use { body ->
                 categories = categoriesAsync.await()
                 val names = categories.associate { it.id to it.name }
+                val liveOutput = defaultLiveExtension(account.allowedOutputFormats, credentials.playlistUrl)
                 writer.stageCategories(categories.map { it.toEntity() })
                 val counted = CountingInputStream(body.byteStream())
                 val total = body.contentLength()
@@ -1389,7 +1391,7 @@ class IptvRepository(
                 JsonStreamReader(InputStreamReader(counted, Charsets.UTF_8)).use { reader ->
                     while (true) {
                         val element = reader.next() ?: break
-                        val item = mapSectionItem(section.type, element, index++, server.id, credentials, account, names) ?: continue
+                        val item = mapSectionItem(section.type, element, index++, server.id, credentials, liveOutput, names) ?: continue
                         writer.add(item)
                         if (writer.accepted - reported >= CATALOG_WRITE_BATCH_SIZE) {
                             reported = writer.accepted
@@ -1404,11 +1406,12 @@ class IptvRepository(
                         }
                     }
                     meta = reader.meta
+                    sawList = reader.sawList
                 }
             }
         }
         if (writer.accepted == 0) {
-            rejectErrorResponse(meta, host)
+            rejectErrorResponse(meta, sawList, host)
             finishEmptySection(server.id, section.type, host, account)
         } else {
             writer.finish(listOf(section.type), categories.map { it.toEntity() }) {
@@ -1429,19 +1432,22 @@ class IptvRepository(
         index: Int,
         serverId: Long,
         credentials: XtreamCredentials,
-        account: XtreamAccountSnapshot,
+        liveOutput: String,
         categories: Map<String, String>,
     ): MediaItem? = when (type) {
-        ContentType.LIVE -> XtreamSupport.parseLiveStream(element, index, serverId, credentials, account.allowedOutputFormats, categories)
+        ContentType.LIVE -> XtreamSupport.parseLiveStream(element, index, serverId, credentials, liveOutput, categories)
         ContentType.MOVIE -> XtreamSupport.parseVodStream(element, index, serverId, credentials, categories)
         ContentType.SERIES -> XtreamSupport.parseSeriesEntry(element, index, serverId, categories)
         ContentType.EPISODE -> null
     }
 
-    /** A list call answered with an object instead of a list: an auth error or not an Xtream API. */
-    private fun rejectErrorResponse(meta: JsonObject, host: String) {
-        if (meta.isEmpty()) return
+    /**
+     * An empty list call: fine when a (possibly wrapped) empty list came back; an auth error or
+     * an object without any list means the account was rejected or this is not an Xtream API.
+     */
+    private fun rejectErrorResponse(meta: JsonObject, sawList: Boolean, host: String) {
         if ("user_info" in meta) XtreamSupport.requireAuthorizedAccount(meta, host)
+        if (sawList || meta.isEmpty()) return
         throw SyncException(SyncErrorKind.NOT_IPTV_API, host, detail = "list call returned an object: ${meta.keys.take(5)}")
     }
 

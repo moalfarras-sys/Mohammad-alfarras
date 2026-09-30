@@ -57,6 +57,13 @@ class JsonStreamReader(
     /** Top-level object fields that were not list items, e.g. `user_info` of an auth rejection. */
     val meta: JsonObject get() = JsonObject(metaFields)
 
+    /**
+     * True once a list was found (top level, inside a wrapper key, or index-keyed items), so an
+     * empty `{"status":"ok","data":[]}` can be told apart from an error object without items.
+     */
+    var sawList: Boolean = false
+        private set
+
     /** Reads a whole (small) document, e.g. an account or get_series_info response. */
     fun readDocument(): JsonElement {
         check(mode == Mode.NOT_STARTED) { "Reader already used" }
@@ -87,7 +94,7 @@ class JsonStreamReader(
         skipBomAndWhitespace()
         when (val c = peek()) {
             EOF -> mode = Mode.DONE
-            '['.code -> { pos++; mode = Mode.TOP_ARRAY; needComma = false }
+            '['.code -> { pos++; mode = Mode.TOP_ARRAY; needComma = false; sawList = true }
             '{'.code -> { pos++; mode = Mode.TOP_OBJECT; needComma = false }
             '"'.code -> { metaFields["message"] = JsonPrimitive(readString()); mode = Mode.DONE }
             'n'.code, 't'.code, 'f'.code -> { readLiteral(); mode = Mode.DONE }
@@ -161,10 +168,14 @@ class JsonStreamReader(
             pos++
             mode = Mode.NESTED_ARRAY
             needComma = false
+            sawList = true
             return null
         }
         val value = readValue(1)
-        if (next == '{'.code && key.isNotEmpty() && key.all { it in '0'..'9' }) return value
+        if (next == '{'.code && key.isNotEmpty() && key.all { it in '0'..'9' }) {
+            sawList = true
+            return value
+        }
         metaFields[key] = value
         return null
     }

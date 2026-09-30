@@ -10,8 +10,11 @@ import com.moalfarras.moplayer.data.db.toSearchEntity
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 
-/** Rows per write transaction while streaming a catalog in. */
-internal const val CATALOG_WRITE_BATCH_SIZE = 2_000
+/**
+ * Rows per write transaction while streaming a catalog in: about 5 MB of entities at a time, and
+ * few enough commits that screens observing the library are not re-queried too often.
+ */
+internal const val CATALOG_WRITE_BATCH_SIZE = 4_000
 
 /** SQLite on API 23 allows 999 bound variables; stay well below it for `IN (:ids)` lists. */
 private const val SQL_IN_CHUNK = 400

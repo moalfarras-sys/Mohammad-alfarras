@@ -94,6 +94,22 @@ class JsonStreamReaderTest {
     }
 
     @Test
+    fun reportsWhetherAListWasSeenSoEmptyListsDifferFromErrors() {
+        fun sawList(text: String): Boolean {
+            val reader = JsonStreamReader(StringReader(text))
+            while (reader.next() != null) Unit
+            return reader.sawList
+        }
+
+        assertTrue(sawList("[]"))
+        assertTrue(sawList("""{"status": "ok", "data": []}"""))
+        assertTrue(sawList("""{"7": {"id": 1}}"""))
+        assertFalse(sawList("""{"user_info": {"auth": 0}}"""))
+        assertFalse(sawList("""{"error": "Invalid action"}"""))
+        assertFalse(sawList(""))
+    }
+
+    @Test
     fun htmlBodiesAreReportedAsNotJson() {
         try {
             itemsOf("<!DOCTYPE html><html><body>Login</body></html>")

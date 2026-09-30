@@ -276,17 +276,23 @@ internal object XtreamSupport {
         allowedFormats: List<String>,
         categories: Map<String, String>,
         array: JsonArray,
-    ): List<MediaItem> = array.mapIndexedNotNull { index, item ->
-        parseLiveStream(item, index, serverId, credentials, allowedFormats, categories)
+    ): List<MediaItem> {
+        val defaultOutput = defaultLiveExtension(allowedFormats, credentials.playlistUrl)
+        return array.mapIndexedNotNull { index, item ->
+            parseLiveStream(item, index, serverId, credentials, defaultOutput, categories)
+        }
     }
 
-    /** Maps one get_live_streams element; non-objects and rows without a stream id return null. */
+    /**
+     * Maps one get_live_streams element; non-objects and rows without a stream id return null.
+     * [defaultOutput] comes from [defaultLiveExtension], computed once per list.
+     */
     fun parseLiveStream(
         element: JsonElement,
         index: Int,
         serverId: Long,
         credentials: XtreamCredentials,
-        allowedFormats: List<String>,
+        defaultOutput: String,
         categories: Map<String, String>,
     ): MediaItem? {
         val obj = element as? JsonObject ?: return null
@@ -294,12 +300,9 @@ internal object XtreamSupport {
         if (streamId.isBlank()) return null
         val categoryId = obj.string("category_id")
         val directSource = obj.string("direct_source")
-        val output = pickLiveExtension(
-            allowedFormats = allowedFormats,
-            streamExtension = obj.string("container_extension").ifBlank { obj.string("stream_type") },
-            directSource = directSource,
-            playlistUrl = credentials.playlistUrl,
-        )
+        val output = directSource.extractMediaExtension()
+            .ifBlank { obj.string("container_extension").ifBlank { obj.string("stream_type") }.normalizeLiveExtension() }
+            .ifBlank { defaultOutput }
         val addedAt = parseTimestamp(obj.string("added"))
         val lastModifiedAt = parseTimestamp(obj.string("last_modified"))
         return MediaItem(
@@ -912,6 +915,11 @@ internal fun pickLiveExtension(
     val metadataExtension = streamExtension.normalizeLiveExtension()
     if (metadataExtension.isNotBlank()) return metadataExtension
 
+    return defaultLiveExtension(allowedFormats, playlistUrl)
+}
+
+/** The live container when a stream names none: the saved link's `output=`, else the panel's formats. */
+internal fun defaultLiveExtension(allowedFormats: List<String>, playlistUrl: String): String {
     val playlistOutput = runCatching {
         URI(playlistUrl).rawQuery
             ?.split('&')

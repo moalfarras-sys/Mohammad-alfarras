@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
 import com.moalfarras.moplayer.data.repository.AppSettingsRepository
 import com.moalfarras.moplayer.data.repository.IptvRepository
+import com.moalfarras.moplayer.data.repository.SeriesRefreshMode
 import com.moalfarras.moplayer.data.repository.WidgetRepository
 import com.moalfarras.moplayer.domain.model.AccentMode
 import com.moalfarras.moplayer.domain.model.AppSettings
@@ -773,7 +774,9 @@ class MainViewModel(
                 ?: uiState.value.activeServer?.takeIf { active -> active.id == seriesItem.serverId }
                 ?: return@launch
             if (server.kind != LoginKind.XTREAM) return@launch
-            runCatching { iptv.refreshSeriesDetails(server, seriesItem) }
+            // Focus prefetch only fills an empty cache; revalidating stale episodes (and the
+            // grid reload their rewrite causes) is left to opening the series.
+            runCatching { iptv.refreshSeriesDetails(server, seriesItem, SeriesRefreshMode.IF_EMPTY) }
         }
     }
 

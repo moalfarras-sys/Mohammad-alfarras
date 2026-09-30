@@ -157,9 +157,14 @@ internal class LiveBrowser(private val source: LivePanelSource, private val scop
     fun updateLibraryGroups(groups: List<Category>) {
         val changed = libraryGroups.isNotEmpty() && groups != libraryGroups
         libraryGroups = groups
-        if (changed) {
-            keyCache.clear()
-            counts = emptyMap()
+        if (!changed) return
+        keyCache.clear()
+        countsJob?.cancel()
+        counts = emptyMap()
+        // What the panel already shows may have changed too.
+        if (loadedGroupId != null) {
+            loadGroup(groupId, settle = false)
+            loadCounts()
         }
     }
 
@@ -173,17 +178,17 @@ internal class LiveBrowser(private val source: LivePanelSource, private val scop
         } else {
             selectGroup(group, settle = false)
         }
-        if (counts.isEmpty() && countsJob?.isActive != true) {
-            countsJob = scope.launch {
-                val loaded = readOrEmpty(emptyMap()) { source.groupCounts() }
-                counts = loaded + counts
-            }
-        }
+        if (counts.isEmpty() && countsJob?.isActive != true) loadCounts()
     }
 
     /** Highlights [id]; its channels load at once, or after the highlight settles for held keys. */
     fun selectGroup(id: String, settle: Boolean) {
-        if (id == groupId && (id == loadedGroupId || keysJob?.isActive == true)) return
+        if (id == groupId && id == loadedGroupId) return
+        if (id == groupId && keysJob?.isActive == true) {
+            // Already on its way; a tap or OK does not wait for a settling highlight.
+            if (!settle && settling) loadGroup(id, settle = false)
+            return
+        }
         loadGroup(id, settle)
     }
 
@@ -194,7 +199,15 @@ internal class LiveBrowser(private val source: LivePanelSource, private val scop
 
     /** OK in the group column: a highlight still waiting to settle loads now. */
     fun settleGroup() {
-        if (settling) loadGroup(groupId, settle = false)
+        selectGroup(groupId, settle = false)
+    }
+
+    private fun loadCounts() {
+        countsJob = scope.launch {
+            val loaded = readOrEmpty(emptyMap()) { source.groupCounts() }
+            // Groups counted exactly while this ran (their keys were loaded) keep that count.
+            counts = loaded + counts
+        }
     }
 
     private fun loadGroup(id: String, settle: Boolean) {
@@ -251,9 +264,11 @@ internal class LiveBrowser(private val source: LivePanelSource, private val scop
             pageJobs[page] = scope.launch {
                 val rows = readOrEmpty(emptyList()) { source.rows(pageKeys) }
                 if (gen != generation) return@launch
+                pageJobs.remove(page)
+                // Nothing came back (a failed read): the page is asked for again on the next move.
+                if (rows.isEmpty()) return@launch
                 val byKey = rows.associateBy { LiveZapKey(it.serverId, it.id) }
                 pages[page] = pageKeys.map { byKey[it] }
-                pageJobs.remove(page)
             }
         }
         livePanelPagesToDrop(pages.keys, index / LIVE_PANEL_PAGE_SIZE).forEach { pages.remove(it) }

@@ -272,6 +272,40 @@ class LivePanelTest {
     }
 
     @Test
+    fun aLibraryChangeWhileAGroupIsShownReadsItAgain() = runTest {
+        val news = mutableListOf(channel("n1", "news"))
+        val source = FakeSource(mapOf("news" to news), zapGroup = "news")
+        val browser = browserFor(source)
+        browser.updateLibraryGroups(listOf(category("news")))
+        browser.open(news[0])
+        advanceUntilIdle()
+        assertEquals(1, browser.channelCount)
+
+        news += channel("n2", "news")
+        browser.updateLibraryGroups(listOf(category("news", name = "News HD")))
+        advanceUntilIdle()
+        assertEquals(2, browser.channelCount)
+        assertEquals("n1", browser.selectedChannel()?.id)
+        assertEquals(2, browser.counts["news"])
+    }
+
+    @Test
+    fun aTappedGroupDoesNotWaitForASettlingHighlight() = runTest {
+        val groups = mapOf("a" to listOf(channel("a1", "a")), "b" to listOf(channel("b1", "b")))
+        val source = FakeSource(groups, zapGroup = "a")
+        val browser = browserFor(source)
+        browser.updateLibraryGroups(listOf(category("a"), category("b")))
+        browser.open(groups.getValue("a").first())
+        advanceUntilIdle()
+        browser.moveGroup(1)
+        browser.selectGroup("b", settle = false)
+        runCurrent()
+        assertEquals("b", browser.loadedGroupId)
+        advanceUntilIdle()
+        assertEquals("b1", browser.selectedChannel()?.id)
+    }
+
+    @Test
     fun typedNumbersAreLookedUpInTheWholeLibrary() = runTest {
         val source = FakeSource(mapOf("news" to listOf(channel("n1", "news", number = 11)), "sports" to listOf(channel("s1", "sports", number = 42))))
         val browser = browserFor(source)

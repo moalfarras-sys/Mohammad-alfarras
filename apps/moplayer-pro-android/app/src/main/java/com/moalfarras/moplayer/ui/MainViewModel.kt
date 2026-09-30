@@ -1752,6 +1752,19 @@ class MainViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = MainViewModel(iptv, settingsRepo, widgets, remoteConfigService) as T
     }
+
+    // region Player: next episode (wave 2)
+
+    /**
+     * The episode after [episode] in its series, from the local library (season, then episode
+     * order), or null for the last episode, a non-episode or a series that is not stored.
+     */
+    suspend fun nextEpisodeAfter(episode: MediaItem): MediaItem? {
+        if (episode.type != ContentType.EPISODE || episode.seriesId.isBlank()) return null
+        return com.moalfarras.moplayer.ui.player.nextEpisodeFrom(iptv.episodes(episode.serverId, episode.seriesId), episode)
+    }
+
+    // endregion
 }
 
 private fun backgroundRefreshMessage(throwable: Throwable): String {

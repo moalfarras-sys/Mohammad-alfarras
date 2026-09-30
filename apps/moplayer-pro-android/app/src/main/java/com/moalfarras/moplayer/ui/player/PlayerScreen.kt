@@ -71,7 +71,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.moalfarras.moplayer.core.Adaptive
@@ -123,6 +122,8 @@ fun PlayerScreen(
     onSwitchVariant: (AppMediaItem) -> Unit = onPlayItem,
     /** Title of the programme on air for a live channel, from the local guide (null when unknown). */
     liveNowTitle: suspend (AppMediaItem) -> String? = { null },
+    /** Episodes: the one after it in its series (null at the end), offered when it ends. */
+    nextEpisode: suspend (AppMediaItem) -> AppMediaItem? = { null },
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -397,6 +398,8 @@ fun PlayerScreen(
         attempt.liveReadyWithoutVideoAt = 0L
         attempt.liveConsecutiveFailures = 0
         attempt.userPaused = false
+        // The escalation step: a fresh player (new decoders) on the other surface type.
+        session.media3Generation++
         telemetry("switching video surface ${attempt.media3SurfaceAttempt}/$MEDIA3_SURFACE_RETRY_LIMIT")
         return true
     }
@@ -501,8 +504,14 @@ fun PlayerScreen(
         if (attempt.vodEnded) return
         attempt.vodEnded = true
         attempt.isBuffering = false
-        if (ui.duration > 1) onProgress(item, ui.duration, ui.duration)
-        ui.showControls = true
+        if (ui.duration > 1) {
+            // Watched: later saves (leaving, the next episode) must not store an earlier position.
+            attempt.resumePositionMs = ui.duration
+            onProgress(item, ui.duration, ui.duration)
+        }
+        // An episode with a next one offers it (with a countdown) instead of the Replay controls.
+        ui.nextEpisodeDismissed = false
+        ui.showControls = ui.nextEpisode == null
         session.lastInteraction = System.currentTimeMillis()
     }
 
@@ -536,6 +545,11 @@ fun PlayerScreen(
         attempt.vodReadyAt = 0L
         attempt.vodOpeningGuard = false
         markPlaying()
+    }
+
+    fun onMedia3FirstFrame(player: ExoPlayer) {
+        session.zapProbe.onFirstFrame(player)
+        onFirstFrame()
     }
 
     fun onTracksResolved(hasVideo: Boolean, hasAudio: Boolean) {
@@ -707,87 +721,43 @@ fun PlayerScreen(
         }
     }
 
-    // ── Media3 player: built per stream (not loaded here), started after the old one is released ──
+    // ── Media3 player: one per session (none while LibVLC plays); each item or request is a load ──
 
-    val exoPlayer = remember(item.id, playbackRequest.uri, playbackRequest.mimeType, useLibVlc, performancePolicy.mode, attempt.media3SurfaceAttempt) {
-        buildExoPlayer(
-            context = context,
-            request = playbackRequest,
-            isLive = isLive,
-            performancePolicy = performancePolicy,
-            callbacks = Media3Callbacks(
-                onIsPlayingChanged = { playing -> session.isPlaying = playing },
-                onPlaybackStateChanged = ::onMedia3State,
-                onRenderedFirstFrame = ::onFirstFrame,
-                onPlayerError = ::handleMedia3Error,
-                onDurationChanged = { duration -> if (duration > 0) ui.duration = duration },
-                onTracksResolved = ::onTracksResolved,
-                onAudioUnsupported = ::onAudioUnsupported,
-                onLoadFailure = { finalUri, contentType, error ->
-                    val base = attempt.liveFormatRequest ?: streamRequest
-                    if (isLive && (base.uri.hasLiveTsHint() || base.mimeType == null) && error.hasUnrecognizedInputFormat()) {
-                        attempt.liveRedirectHint = redirectedStreamRequest(base, finalUri, contentType)
-                    }
-                },
-            ),
-        )
-    }
-
-    // Compose disposes the previous key's effect (releasing the old player and closing its
-    // connection) before this body runs, so a zap never holds two provider connections. A LibVLC
-    // player that is still closing its stream in the background is waited for (bounded) too.
-    DisposableEffect(exoPlayer) {
-        // A scrub preview belongs to the player it was made on; the new one starts at resumePositionMs.
-        session.pendingSeekTarget = C.TIME_UNSET
-        val cancelStart = if (useLibVlc) {
-            {}
-        } else {
-            // The item and play intent are set now, so Media3LifecycleBinding sees them; only the
-            // load waits. Home pressed meanwhile: the binding prepares on return, not in the background.
-            exoPlayer.setMediaItem(
-                buildPlayableMediaItem(playbackRequest, item, isLive, liveProfileFor(context, performancePolicy)),
-                if (isLive) C.TIME_UNSET else attempt.resumePositionMs,
-            )
-            exoPlayer.playWhenReady = true
-            VlcCore.afterTeardowns(LIBVLC_TEARDOWN_WAIT_MS) {
-                if (isForeground()) exoPlayer.prepare()
+    // A plain (not composable) function, so these lambdas are not memoized in PlayerScreen's body.
+    fun media3Callbacks() = Media3Callbacks(
+        onIsPlayingChanged = { playing -> session.isPlaying = playing },
+        onPlaybackStateChanged = ::onMedia3State,
+        onRenderedFirstFrame = ::onMedia3FirstFrame,
+        onPlayerError = ::handleMedia3Error,
+        onDurationChanged = { duration -> if (duration > 0) ui.duration = duration },
+        onTracksResolved = ::onTracksResolved,
+        onAudioUnsupported = ::onAudioUnsupported,
+        onLoadFailure = { finalUri, contentType, error ->
+            val base = attempt.liveFormatRequest ?: streamRequest
+            if (isLive && (base.uri.hasLiveTsHint() || base.mimeType == null) && error.hasUnrecognizedInputFormat()) {
+                attempt.liveRedirectHint = redirectedStreamRequest(base, finalUri, contentType)
             }
-        }
-        onDispose {
-            cancelStart()
-            if (!isLive) {
-                if (useLibVlc) {
-                    saveLibVlcProgress()
-                } else if (exoPlayer.duration > 0) {
-                    onProgress(item, exoPlayer.currentPosition.coerceAtLeast(0), exoPlayer.duration)
-                }
-            }
-            exoPlayer.release()
-        }
-    }
+        },
+    )
 
-    // MediaSession: hardware media keys and "Now playing" (title, group, artwork come from the
-    // MediaItem metadata). Only for Media3; LibVLC plays outside this ExoPlayer.
-    DisposableEffect(exoPlayer) {
-        val mediaSession = if (useLibVlc) {
-            null
-        } else {
-            runCatching {
-                MediaSession.Builder(context, exoPlayer)
-                    .setId("MoPlayerPro-${item.id}-${SystemClock.elapsedRealtimeNanos()}")
-                    .build()
-            }.getOrNull()
-        }
-        onDispose { runCatching { mediaSession?.release() } }
-    }
+    val engine = rememberMedia3Engine(
+        enabled = !useLibVlc,
+        isLive = isLive,
+        performancePolicy = performancePolicy,
+        generation = session.media3Generation,
+        callbacks = media3Callbacks(),
+    )
+    val exoPlayer = engine?.player
+    Media3LoadEffect(engine, item, playbackRequest, isLive, performancePolicy, attempt, ui, session, onProgress)
 
-    Media3LifecycleBinding(exoPlayer = exoPlayer, enabled = !useLibVlc, isLive = isLive) { position, duration ->
+    Media3LifecycleBinding(exoPlayer = exoPlayer, isLive = isLive) { position, duration ->
         onProgress(item, position, duration)
     }
 
-    LaunchedEffect(exoPlayer, useLibVlc) {
+    // Keyed on the item's state holders as well: the player outlives them across zaps.
+    LaunchedEffect(exoPlayer, ui, attempt) {
         while (true) {
-            if (!useLibVlc) {
+            if (exoPlayer != null) {
                 val position = exoPlayer.currentPosition.coerceAtLeast(0)
                 if (!isLive) {
                     if (session.pendingSeekTarget == C.TIME_UNSET) ui.currentPosition = position
@@ -798,7 +768,7 @@ fun PlayerScreen(
             } else {
                 ui.playbackSignal = "VLC"
             }
-            val engineReportsPlaying = if (useLibVlc) session.isPlaying else exoPlayer.isPlaying
+            val engineReportsPlaying = exoPlayer?.isPlaying ?: session.isPlaying
             if (ui.showControls && session.isPlaying && engineReportsPlaying && !attempt.vodEnded &&
                 System.currentTimeMillis() - session.lastInteraction > 8_000L
             ) {
@@ -808,11 +778,11 @@ fun PlayerScreen(
         }
     }
 
-    LaunchedEffect(exoPlayer) {
+    LaunchedEffect(exoPlayer, item.id) {
         if (isLive) return@LaunchedEffect
         while (true) {
             delay(12_000)
-            if (useLibVlc) {
+            if (exoPlayer == null) {
                 saveLibVlcProgress()
             } else if (exoPlayer.duration > 0 && exoPlayer.currentPosition > 0) {
                 onProgress(item, exoPlayer.currentPosition, exoPlayer.duration)
@@ -821,7 +791,7 @@ fun PlayerScreen(
     }
 
     LaunchedEffect(exoPlayer, liveQualityMode, performancePolicy.mode) {
-        if (isLive && !useLibVlc) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
+        if (isLive && exoPlayer != null) applyLiveQualityMode(exoPlayer, liveQualityMode, performancePolicy.maxVideoHeight)
     }
 
     // ── Channel list data ───────────────────────────────────────────────────────────────────
@@ -843,13 +813,13 @@ fun PlayerScreen(
             attempt.resumePositionMs = target
             session.vlc.seekTo(target)
         } else {
-            exoPlayer.seekTo(target)
+            exoPlayer?.seekTo(target)
         }
     }
 
-    fun vodPositionMs(): Long = if (useLibVlc) attempt.resumePositionMs else exoPlayer.currentPosition.coerceAtLeast(0L)
+    fun vodPositionMs(): Long = if (exoPlayer == null) attempt.resumePositionMs else exoPlayer.currentPosition.coerceAtLeast(0L)
 
-    fun vodDurationMs(): Long = if (useLibVlc) ui.duration.takeIf { it > 1L } ?: 0L else exoPlayer.duration.coerceAtLeast(0L)
+    fun vodDurationMs(): Long = if (exoPlayer == null) ui.duration.takeIf { it > 1L } ?: 0L else exoPlayer.duration.coerceAtLeast(0L)
 
     fun commitPendingSeek() {
         val target = session.pendingSeekTarget
@@ -878,7 +848,7 @@ fun PlayerScreen(
         }
         session.lastSeekDirection = direction
         session.lastSeekAt = now
-        val current = if (useLibVlc) ui.currentPosition else exoPlayer.currentPosition
+        val current = exoPlayer?.currentPosition ?: ui.currentPosition
         val base = if (session.pendingSeekTarget != C.TIME_UNSET) session.pendingSeekTarget else current
         val knownDuration = vodDurationMs().takeIf { it > 0 } ?: ui.duration.takeIf { it > 1 }
         val target = vodSeekTarget(base, stepMs, repeatCount, knownDuration)
@@ -916,7 +886,7 @@ fun PlayerScreen(
         if (attempt.vodEnded) return
         attempt.userPaused = true
         attempt.pausedAt = SystemClock.elapsedRealtime()
-        if (useLibVlc) sendVlcTransport(play = false) else Util.handlePauseButtonAction(exoPlayer)
+        if (exoPlayer == null) sendVlcTransport(play = false) else Util.handlePauseButtonAction(exoPlayer)
         if (isLive) ui.showMiniInfo = true
     }
 
@@ -926,7 +896,7 @@ fun PlayerScreen(
         val jumpToLiveEdge = isLive && pausedFor > LIVE_PAUSE_JUMP_TO_EDGE_MS
         attempt.userPaused = false
         attempt.pausedAt = 0L
-        if (useLibVlc) {
+        if (exoPlayer == null) {
             // Replay after the end starts over; a long live pause re-opens at the edge.
             if (attempt.vodEnded) attempt.resumePositionMs = 0L
             if (jumpToLiveEdge || attempt.vodEnded) attempt.libVlcRetryNonce++ else sendVlcTransport(play = true)
@@ -941,19 +911,15 @@ fun PlayerScreen(
         val resume = when {
             attempt.vodEnded || attempt.userPaused -> true
             // Paused by something else (audio focus loss, Home): the next OK plays again.
-            useLibVlc -> !session.isPlaying && !attempt.isBuffering
+            exoPlayer == null -> !session.isPlaying && !attempt.isBuffering
             else -> Util.shouldShowPlayButton(exoPlayer)
         }
         if (resume) resumePlayback() else pausePlayback()
     }
 
     fun retryPlayback() {
-        // A pending rebuild (other surface, fallback URL, redirect) starts the new player by itself.
-        val rebuildPending = attempt.media3SurfaceAttempt != 0 ||
-            attempt.vodFallbackRequest != null ||
-            attempt.forceHlsForLiveRedirect ||
-            attempt.resolvedLiveRequest != null
-        if (!isLive && !useLibVlc) {
+        val surfaceSwitched = attempt.media3SurfaceAttempt != 0
+        if (!isLive && exoPlayer != null) {
             attempt.resumePositionMs = exoPlayer.currentPosition.takeIf { it > 0 } ?: attempt.resumePositionMs
         }
         attempt.playbackError = null
@@ -997,12 +963,10 @@ fun PlayerScreen(
             attempt.libVlcRetryNonce++
             return
         }
-        if (rebuildPending) return
-        // Same player, same tuned MediaSource: stop() keeps the playlist, prepare() reopens it.
-        exoPlayer.stop()
-        if (isLive) exoPlayer.seekToDefaultPosition() else exoPlayer.seekTo(attempt.resumePositionMs)
-        exoPlayer.playWhenReady = true
-        exoPlayer.prepare()
+        // The (possibly reset) request is loaded again, at the live edge or resumePositionMs; after
+        // a surface switch on a fresh player on the default surface.
+        if (surfaceSwitched) session.media3Generation++
+        attempt.media3ReloadNonce++
     }
 
     fun tryOtherVodEngine() {
@@ -1013,6 +977,7 @@ fun PlayerScreen(
     fun switchTo(target: AppMediaItem?) {
         if (target == null || target.samePlayable(item)) return
         commitPendingSeek()
+        session.zapProbe.begin("${target.type} ${target.id} '${target.title}'", session.lastKeyDownAt, exoPlayer)
         session.pendingZapItem = null
         session.zapKeyHeld = false
         if (target.type == ContentType.LIVE) {
@@ -1100,7 +1065,7 @@ fun PlayerScreen(
             C.TRACK_TYPE_TEXT -> strings.playerSubtitles
             else -> strings.playerQuality
         }
-        if (useLibVlc) {
+        if (exoPlayer == null) {
             showLibVlcTrackDialog(context, title, trackType, session.vlc, ps) { session.showTransientMessage(ps.noOtherTracks) }
             return
         }
@@ -1219,10 +1184,26 @@ fun PlayerScreen(
         }
     }
 
+    /** The ended episode's next-episode card is on screen (it owns D-pad, OK and Back). */
+    fun nextEpisodeOffered(): Boolean =
+        attempt.vodEnded && attempt.playbackError == null && ui.nextEpisode != null && !ui.nextEpisodeDismissed
+
+    /** Back or Cancel on the next-episode card: the ended controls (Replay) come back instead. */
+    fun dismissNextEpisode() {
+        ui.nextEpisodeDismissed = true
+        wakeControls()
+    }
+
+    /** The next-episode card's answer: play [next] now, or null for Cancel. */
+    fun answerNextEpisode(next: AppMediaItem?) {
+        if (next == null) dismissNextEpisode() else switchTo(next)
+    }
+
     fun onScreenTap() {
         // The error card's scrim does not consume touches; a tap on it must not open the list
-        // (or wake controls) underneath, where OK and the D-pad would then act invisibly.
-        if (attempt.playbackError != null) return
+        // (or wake controls) underneath, where OK and the D-pad would then act invisibly. The
+        // next-episode card is answered with its own buttons.
+        if (attempt.playbackError != null || nextEpisodeOffered()) return
         if (isLive) {
             if (ui.showLiveZap) closeLiveZap() else openLiveZap()
         } else if (ui.showControls) {
@@ -1347,6 +1328,20 @@ fun PlayerScreen(
                 else -> false
             }
         }
+        if (nextEpisodeOffered()) {
+            // D-pad and OK belong to Play now / Cancel; Back cancels, Next plays it now.
+            return when {
+                event.key == Key.Back || event.key == Key.Escape -> {
+                    dismissNextEpisode()
+                    true
+                }
+                keyCode == AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> {
+                    if (repeatCount == 0) switchTo(ui.nextEpisode)
+                    true
+                }
+                else -> false
+            }
+        }
         when (keyCode) {
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
                 seekVodBy(30_000L, repeatCount, revealControls = ui.showControls)
@@ -1431,6 +1426,7 @@ fun PlayerScreen(
         }
         if (native.repeatCount > 0 && event.key in PlayerToggleKeys && session.ownedKey == event.key) return true
         session.lastInteraction = System.currentTimeMillis()
+        session.lastKeyDownAt = native.eventTime
         val handled = if (isLive) {
             handleLiveKey(event, native.keyCode, native.repeatCount)
         } else {
@@ -1459,6 +1455,7 @@ fun PlayerScreen(
         when {
             session.numberBuffer.isNotEmpty() -> session.numberBuffer = ""
             isLive && ui.showLiveZap -> closeLiveZap()
+            !isLive && nextEpisodeOffered() -> dismissNextEpisode()
             !isLive && ui.showControls && attempt.playbackError == null -> ui.showControls = false
             else -> leavePlayer()
         }
@@ -1468,7 +1465,6 @@ fun PlayerScreen(
 
     val errorVisible = attempt.playbackError != null
     val currentExoPlayer by rememberUpdatedState(exoPlayer)
-    val currentUseLibVlc by rememberUpdatedState(useLibVlc)
     val lifecycleState by lifecycleOwner.lifecycle.currentStateAsState()
     val isStarted = lifecycleState.isAtLeast(Lifecycle.State.STARTED)
 
@@ -1625,13 +1621,15 @@ fun PlayerScreen(
             !useLibVlc && retryMedia3WithAlternateSurface() -> endLiveFormatTrial(reopen = true)
             !useLibVlc && attempt.liveConsecutiveFailures < liveStallRecoveryLimit -> {
                 attempt.liveConsecutiveFailures += 1
-                // Going back to the listed link rebuilds the player anyway.
+                // Going back to the listed link loads it again anyway.
                 if (endLiveFormatTrial(reopen = true) == null) {
                     runCatching {
-                        exoPlayer.stop()
-                        exoPlayer.seekToDefaultPosition()
-                        exoPlayer.playWhenReady = true
-                        exoPlayer.prepare()
+                        exoPlayer?.apply {
+                            stop()
+                            seekToDefaultPosition()
+                            playWhenReady = true
+                            prepare()
+                        }
                     }
                 }
             }
@@ -1668,14 +1666,15 @@ fun PlayerScreen(
         if (!isForeground() || !session.networkAvailable || attempt.playbackError != null) return@LaunchedEffect
         attempt.reconnectAttempt += 1
         telemetry("reconnect attempt ${attempt.reconnectAttempt}")
-        if (currentUseLibVlc) {
+        val player = currentExoPlayer
+        if (player == null) {
             attempt.libVlcRetryNonce++
         } else {
             runCatching {
-                currentExoPlayer.stop()
-                currentExoPlayer.seekToDefaultPosition()
-                currentExoPlayer.playWhenReady = true
-                currentExoPlayer.prepare()
+                player.stop()
+                player.seekToDefaultPosition()
+                player.playWhenReady = true
+                player.prepare()
             }
         }
     }
@@ -1694,11 +1693,10 @@ fun PlayerScreen(
     }
 
     val importSubtitle = rememberSubtitleImport(
-        exoPlayer = exoPlayer,
+        engine = engine,
         item = item,
         request = playbackRequest,
         isLive = isLive,
-        useLibVlc = useLibVlc,
         performancePolicy = performancePolicy,
         onImported = { uri ->
             ui.externalSubtitle = uri
@@ -1893,6 +1891,14 @@ fun PlayerScreen(
                 offsetMs = session.seekPillMs,
                 modifier = Modifier.align(Alignment.Center).offset(y = (-96).dp),
             )
+            NextEpisodeOffer(
+                item = item,
+                ui = ui,
+                visible = nextEpisodeOffered(),
+                accent = accent,
+                lookup = nextEpisode,
+                onAnswer = ::answerNextEpisode,
+            )
         }
 
         attempt.playbackError?.let { issue ->
@@ -1941,6 +1947,7 @@ private fun libVlcCallbacks(
             attempt.playbackError = null
         },
         onVideoOutput = {
+            session.zapProbe.onFirstFrame(media3Player = null)
             onFirstFrame()
             attempt.isBuffering = false
             attempt.playbackError = null
@@ -1963,12 +1970,13 @@ private fun libVlcCallbacks(
 
 /**
  * Media3 video surface. The PlayerView is re-bound to the current ExoPlayer on every update: the
- * player is rebuilt per channel, per fallback and per redirect, while the view is only recreated
- * when the surface type changes. Without the re-bind the new player renders into no surface
- * (black or frozen picture with sound) until a watchdog forces a rebuild.
+ * player is rebuilt as the surface-retry escalation (and on engine or performance-mode changes),
+ * while the view is recreated when the surface type changes, also on a zap back to the default
+ * surface. Without the re-bind a new player renders into no surface (black or frozen picture with
+ * sound) until a watchdog forces a rebuild.
  */
 @Composable
-private fun Media3Surface(exoPlayer: ExoPlayer, surfaceAttempt: Int, isPerformanceMode: Boolean, resizeMode: Int) {
+private fun Media3Surface(exoPlayer: ExoPlayer?, surfaceAttempt: Int, isPerformanceMode: Boolean, resizeMode: Int) {
     val useTextureView = shouldUseTextureViewForMedia3(
         sdkInt = Build.VERSION.SDK_INT,
         isPerformanceMode = isPerformanceMode,
@@ -2022,18 +2030,17 @@ private fun Media3Surface(exoPlayer: ExoPlayer, surfaceAttempt: Int, isPerforman
  */
 @Composable
 private fun Media3LifecycleBinding(
-    exoPlayer: ExoPlayer,
-    enabled: Boolean,
+    exoPlayer: ExoPlayer?,
     isLive: Boolean,
     onSaveProgress: (positionMs: Long, durationMs: Long) -> Unit,
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentIsLive by rememberUpdatedState(isLive)
     val currentOnSaveProgress by rememberUpdatedState(onSaveProgress)
-    DisposableEffect(lifecycleOwner, exoPlayer, enabled) {
-        if (!enabled) return@DisposableEffect onDispose { }
-        // A player set up while the app was in the background was not loaded (see the start
-        // effect in PlayerScreen): the first ON_START does it.
+    DisposableEffect(lifecycleOwner, exoPlayer) {
+        if (exoPlayer == null) return@DisposableEffect onDispose { }
+        // A player set up while the app was in the background was not loaded (see
+        // Media3LoadEffect): the first ON_START does it.
         var resumeOnStart = !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -2150,11 +2157,10 @@ private fun NetworkAvailabilityEffect(enabled: Boolean, onAvailabilityChanged: (
  */
 @Composable
 private fun rememberSubtitleImport(
-    exoPlayer: ExoPlayer,
+    engine: Media3Engine?,
     item: AppMediaItem,
     request: StreamRequest,
     isLive: Boolean,
-    useLibVlc: Boolean,
     performancePolicy: PerformancePolicy,
     onImported: (Uri) -> Unit,
     onFail: () -> Unit,
@@ -2173,21 +2179,20 @@ private fun rememberSubtitleImport(
             }
             val fileUri = Uri.fromFile(cached)
             onImported(fileUri)
-            if (!useLibVlc && !isLive) {
+            if (engine != null && !isLive) {
                 runCatching {
-                    val position = exoPlayer.currentPosition.coerceAtLeast(0)
-                    exoPlayer.setMediaItem(
-                        buildPlayableMediaItem(
-                            request,
-                            item,
-                            isLive,
-                            liveProfileFor(context, performancePolicy),
-                            externalSubtitleConfiguration(fileUri, importedLabel),
-                        ),
-                        position,
+                    val exoPlayer = engine.player
+                    engine.load(
+                        context = context,
+                        request = request,
+                        item = item,
+                        isLive = false,
+                        performancePolicy = performancePolicy,
+                        startPositionMs = exoPlayer.currentPosition.coerceAtLeast(0),
+                        keepTrackOverrides = true,
+                        externalSubtitle = externalSubtitleConfiguration(fileUri, importedLabel),
                     )
                     exoPlayer.prepare()
-                    exoPlayer.playWhenReady = true
                     exoPlayer.trackSelectionParameters = exoPlayer.trackSelectionParameters.buildUpon()
                         .setPreferredTextLanguage("und")
                         .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)

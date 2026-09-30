@@ -75,6 +75,18 @@ internal class PlayerSessionState {
     /** The key whose KeyDown the player root consumed; its KeyUp must not click a newly focused button. */
     var ownedKey: Key? = null
 
+    /**
+     * Bumped to build a fresh Media3 player (the surface-retry escalation, a retry after one). The
+     * player otherwise stays across channel and episode changes.
+     */
+    var media3Generation by mutableIntStateOf(0)
+
+    /** Event time ([android.os.SystemClock.uptimeMillis]) of the last key press, for [zapProbe]. */
+    var lastKeyDownAt: Long = 0L
+
+    /** Debug builds: key press to first frame of each channel or episode change. */
+    val zapProbe = ZapLatencyProbe()
+
     fun showTransientMessage(message: String) {
         transientMessage = message
         transientMessageNonce++
@@ -97,6 +109,12 @@ internal class PlayerItemUiState(isLive: Boolean, isFavorite: Boolean, positionM
     var playbackSignal by mutableStateOf("")
     var currentPosition by mutableLongStateOf(positionMs)
     var duration by mutableLongStateOf(durationMs)
+
+    /** Episodes: the one after this, looked up when it starts (null: none, or not an episode). */
+    var nextEpisode by mutableStateOf<AppMediaItem?>(null)
+
+    /** The viewer cancelled the next-episode countdown for the current ending. */
+    var nextEpisodeDismissed by mutableStateOf(false)
 }
 
 /** Recovery state of one stream request (item + URL): engines tried, watchdog markers, reconnects. */
@@ -172,6 +190,9 @@ internal class PlaybackAttemptState(
 
     var userPaused by mutableStateOf(false)
     var pausedAt: Long = 0L
+
+    /** Bumped to load the current request into the Media3 player again (manual retry). */
+    var media3ReloadNonce by mutableIntStateOf(0)
 
     /** Latest VOD position, used when the player is rebuilt (fallback URL, surface, retry). */
     var resumePositionMs: Long = resumePositionMs

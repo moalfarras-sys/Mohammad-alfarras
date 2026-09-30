@@ -1,10 +1,8 @@
 package com.moalfarras.moplayer.data.repository
 
-import com.moalfarras.moplayer.data.network.ApiKeys
 import com.moalfarras.moplayer.data.network.FreeWeatherService
 import com.moalfarras.moplayer.data.network.SportsDbEventDto
 import com.moalfarras.moplayer.data.network.SportsDbService
-import com.moalfarras.moplayer.data.network.WeatherService
 import com.moalfarras.moplayer.data.network.WebApiEndpoint
 import com.moalfarras.moplayer.data.network.WebFootballMatchDto
 import com.moalfarras.moplayer.data.network.WebFootballService
@@ -26,7 +24,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class WidgetRepository(
-    private val weatherService: WeatherService,
     private val webWeatherService: WebWeatherService,
     private val freeWeatherService: FreeWeatherService,
     private val sportsDbService: SportsDbService,
@@ -46,16 +43,8 @@ class WidgetRepository(
         val requestedCity = cityOverride.trim()
         if (requestedCity.isBlank()) return ipWeather()
         fetchManagedWeather(requestedCity)?.let { return it }
-        fetchOpenMeteoCityWeather(requestedCity)?.let { return it }
-        require(ApiKeys.weather.isNotBlank()) { "No real weather provider is available for $requestedCity" }
-        val weather = weatherService.current(ApiKeys.weather, requestedCity)
-        return WeatherSnapshot(
-            city = weather.location.name.ifBlank { requestedCity },
-            condition = weather.current.condition.text.ifBlank { "Clear" },
-            temperatureC = weather.current.tempC,
-            iconUrl = weather.current.condition.icon,
-            timeZoneId = weather.location.tzId.ifBlank { ZoneId.systemDefault().id },
-        )
+        // No key-based provider ships in the APK: the site's /api/weather keeps its key server-side.
+        return fetchOpenMeteoCityWeather(requestedCity) ?: error("No weather provider answered for $requestedCity")
     }
 
     private suspend fun ipWeather(): WeatherSnapshot {

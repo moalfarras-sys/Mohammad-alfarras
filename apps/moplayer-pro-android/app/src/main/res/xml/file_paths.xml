@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Verified update APKs (filesDir/updates) for the Android 7+ system installer fallback. -->
+    <files-path
+        name="update_apks"
+        path="updates/" />
+    <!-- Android 6 fallback copy (its installer only reads file:// URIs outside app-private storage). -->
     <external-files-path
         name="updates"
         path="Download/" />

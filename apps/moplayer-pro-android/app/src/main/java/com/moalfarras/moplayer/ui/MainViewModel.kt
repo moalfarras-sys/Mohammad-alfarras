@@ -4,7 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.moalfarras.moplayer.data.repository.AppBlock
+import com.moalfarras.moplayer.data.repository.AppBlockReason
+import com.moalfarras.moplayer.data.repository.BlockRecheck
+import com.moalfarras.moplayer.data.repository.afterRecheck
+import com.moalfarras.moplayer.data.repository.AppRemoteConfig
 import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
+import com.moalfarras.moplayer.data.repository.appBlockFor
 import com.moalfarras.moplayer.data.repository.AppSettingsRepository
 import com.moalfarras.moplayer.data.repository.IptvRepository
 import com.moalfarras.moplayer.data.repository.SeriesRefreshMode
@@ -42,6 +48,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -84,7 +91,8 @@ data class UiState(
     val backgroundRefresh: LoadProgress? = null,
     val subscriptionExpired: Boolean = false,
     val subscriptionExpiredDismissedKey: String = "",
-    val appControlBlocked: Boolean = false,
+    /** Admin block (disabled, maintenance, forced update). Navigation, login and errors never clear it. */
+    val appBlock: AppBlock? = null,
     /** False until the stored servers/settings have been read once, so the UI can show a splash
      *  instead of flashing the sign-in screen on cold start while an account is already saved. */
     val initialized: Boolean = false,
@@ -167,6 +175,10 @@ class MainViewModel(
     private var lastFocusKey = ""
     private var lastPersistedNavigationKey = ""
     private var searchCommitJob: Job? = null
+    private var remoteConfigJob: Job? = null
+    private var lastRemoteConfigAttemptAt = 0L
+    private var lastRemoteConfigMessage = ""
+    private var lastWidgetConfigKey: List<Any>? = null
 
     private val lastFocusedBySection = mutableMapOf<AppSection, MediaItem?>()
     private val lastCategoryBySection = mutableMapOf<AppSection, String>()
@@ -464,7 +476,7 @@ class MainViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveEpgSnapshot())
 
     init {
-        applyRemoteRuntimeConfig()
+        refreshRemoteConfig(force = true)
         refreshWidgets()
         // Keep the match/weather widgets fresh without any user action: every 2 minutes while a
         // match is live (running score/minute), otherwise every 15 minutes — light JSON calls that
@@ -833,8 +845,10 @@ class MainViewModel(
     }
 
     fun play(item: MediaItem) {
-        if (uiState.value.appControlBlocked) {
-            showNotice(uiState.value.error ?: "MoPlayer Pro is temporarily unavailable.")
+        if (internal.value.appBlock != null) {
+            // The block screen explains why. A forced update let the current stream finish; the
+            // next zap or episode closes the player so the block screen shows.
+            if (internal.value.section == AppSection.PLAYER) closePlayer()
             return
         }
         viewModelScope.launch { iptv.notePlaybackStart(item) }
@@ -1641,47 +1655,63 @@ class MainViewModel(
             type == other.type &&
             serverId == other.serverId
 
-    private fun applyRemoteRuntimeConfig() {
-        viewModelScope.launch {
-            runCatching { remoteConfigService.fetchConfig() }
-                .onSuccess { config ->
-                    settingsRepo.applyRemoteConfig(config)
-                    val nextSettings = uiState.value.settings.copy(
-                        showWeatherWidget = config.weatherEnabled,
-                        showFootballWidget = config.footballEnabled,
-                        weatherMode = if (config.weatherCity.isNotBlank()) WeatherMode.CITY else uiState.value.settings.weatherMode,
-                        weatherCityOverride = config.weatherCity.takeIf { it.isNotBlank() } ?: uiState.value.settings.weatherCityOverride,
-                        footballMaxMatches = config.footballMaxMatches.coerceIn(1, 8),
-                    )
-                    weather.value = widgets.weather(nextSettings)
-                    football.value = widgets.football(nextSettings)
-                    val blockingMessage = when {
-                        !config.enabled -> config.message.ifBlank { "MoPlayer Pro is temporarily unavailable." }
-                        config.maintenanceMode -> config.message.ifBlank { "MoPlayer Pro is in maintenance mode." }
-                        config.forceUpdate && BuildConfig.VERSION_CODE < config.minimumVersionCode ->
-                            config.message.ifBlank { "A required MoPlayer Pro update is available." }
-                        else -> ""
-                    }
-                    internal.update { current ->
-                        if (blockingMessage.isNotBlank()) {
-                            current.copy(
-                                appControlBlocked = true,
-                                error = blockingMessage,
-                                notice = null,
-                                loading = null,
-                                playingItem = null,
-                                section = if (current.section == AppSection.PLAYER) current.returnSection.playerReturnSection() else current.section,
-                            )
-                        } else {
-                            current.copy(
-                                appControlBlocked = false,
-                                error = if (current.appControlBlocked) null else current.error,
-                                notice = config.message.takeIf { it.isNotBlank() } ?: current.notice,
-                            )
-                        }
-                    }
-                }
+    /**
+     * Re-reads the admin config: at start, when the app returns to the foreground and periodically
+     * (throttled to [CONFIG_REFRESH_MS]), or right away with [force] (the block screen's retry).
+     */
+    fun refreshRemoteConfig(force: Boolean = false) {
+        if (remoteConfigJob?.isActive == true) return
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (!force && lastRemoteConfigAttemptAt != 0L && now - lastRemoteConfigAttemptAt < CONFIG_REFRESH_MS) return
+        lastRemoteConfigAttemptAt = now
+        remoteConfigJob = viewModelScope.launch { applyRemoteRuntimeConfig() }
+    }
+
+    /** "Try again" on the maintenance/disabled screen. */
+    fun retryAppBlock() {
+        if (remoteConfigJob?.isActive == true) return
+        internal.update { it.copy(appBlock = it.appBlock?.copy(recheck = BlockRecheck.CHECKING)) }
+        refreshRemoteConfig(force = true)
+    }
+
+    private suspend fun applyRemoteRuntimeConfig() {
+        val config = remoteConfigService.fetchConfig()
+        if (config == null) {
+            // Offline or a server error: keep the last known block and every admin value (never
+            // replace them with defaults, which would lift a block or reset the kill switches).
+            internal.update { current ->
+                current.copy(appBlock = current.appBlock?.let { block -> block.copy(recheck = block.recheck.afterRecheck(reached = false)) })
+            }
+            return
         }
+        val block = appBlockFor(config, BuildConfig.VERSION_CODE)
+        val notice = config.message.takeIf { block == null && it.isNotBlank() && it != lastRemoteConfigMessage }
+        lastRemoteConfigMessage = config.message
+        internal.update { current ->
+            // Disabled and maintenance end playback now; a forced update lets the stream finish.
+            val leavePlayer = block != null && block.reason != AppBlockReason.FORCE_UPDATE && current.section == AppSection.PLAYER
+            current.copy(
+                appBlock = block?.copy(recheck = (current.appBlock?.recheck ?: BlockRecheck.NONE).afterRecheck(reached = true)),
+                playingItem = if (leavePlayer) null else current.playingItem,
+                section = if (leavePlayer) current.returnSection.playerReturnSection() else current.section,
+                notice = notice ?: current.notice,
+            )
+        }
+        // After the block: widget requests can take seconds and must not delay it.
+        if (settingsRepo.applyRemoteConfig(config)) viewModelScope.launch { refreshWidgetsForConfig(config) }
+    }
+
+    /**
+     * Refreshes the widgets from the stored settings (the user's choices merged with the admin's)
+     * when a widget-related admin value changed, instead of a hand-built copy that forced City mode.
+     */
+    private suspend fun refreshWidgetsForConfig(config: AppRemoteConfig) {
+        val key = listOf(config.weatherEnabled, config.footballEnabled, config.weatherCity, config.footballMaxMatches, config.footballProviderMode)
+        if (key == lastWidgetConfigKey) return
+        lastWidgetConfigKey = key
+        val merged = settingsRepo.settings.first()
+        weather.value = widgets.weather(merged)
+        football.value = widgets.football(merged)
     }
 
     private fun refreshEpgSilently() {
@@ -1753,6 +1783,9 @@ class MainViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T = MainViewModel(iptv, settingsRepo, widgets, remoteConfigService) as T
     }
 }
+
+/** Minimum gap between two automatic admin-config refreshes (foreground returns and the timer). */
+private const val CONFIG_REFRESH_MS = 10 * 60_000L
 
 private fun backgroundRefreshMessage(throwable: Throwable): String {
     val raw = throwable.message.orEmpty()

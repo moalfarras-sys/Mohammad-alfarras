@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.speech.RecognizerIntent
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -36,7 +35,6 @@ import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.DeleteSweep
-import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.FolderOff
 import androidx.compose.material.icons.rounded.History
@@ -59,7 +57,6 @@ import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SportsSoccer
 import androidx.compose.material.icons.rounded.Storage
-import androidx.compose.material.icons.rounded.SystemUpdateAlt
 import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material.icons.rounded.Visibility
@@ -109,12 +106,10 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import androidx.paging.insertSeparators
 import androidx.paging.map
+import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayer.core.DevicePerformanceInfo
 import com.moalfarras.moplayer.core.DevicePerformanceTier
 import com.moalfarras.moplayer.core.PerformancePolicy
-import com.moalfarras.moplayer.data.repository.AppUpdateInfo
-import com.moalfarras.moplayer.data.repository.UpdateInstallResult
-import com.moalfarras.moplayer.data.repository.UpdateRepository
 import com.moalfarras.moplayer.domain.model.AccentMode
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
@@ -141,10 +136,12 @@ import com.moalfarras.moplayer.ui.i18n.LocalStrings
 import com.moalfarras.moplayer.ui.i18n.SearchStrings
 import com.moalfarras.moplayer.ui.i18n.SettingsStrings
 import com.moalfarras.moplayer.ui.i18n.Strings
+import com.moalfarras.moplayer.ui.i18n.UpdateStrings
 import com.moalfarras.moplayer.ui.i18n.isolate
 import com.moalfarras.moplayer.ui.i18n.ltr
 import com.moalfarras.moplayer.ui.i18n.search
 import com.moalfarras.moplayer.ui.i18n.settings
+import com.moalfarras.moplayer.ui.i18n.update
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.MoAccentPresets
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
@@ -1221,17 +1218,7 @@ private fun PlayerSettingsCard(
     onPlayer: (String) -> Unit,
     onVideoSizeMode: (VideoSizeMode) -> Unit,
 ) {
-    val context = LocalContext.current
     val s = LocalStrings.current.settings
-    val updateRepository = remember(context) { UpdateRepository(context.applicationContext) }
-    var updateInfo by remember { mutableStateOf(AppUpdateInfo()) }
-    var updateStatus by remember { mutableStateOf(s.updateReady) }
-    var updateProgress by remember { mutableIntStateOf(0) }
-    val updateScope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        updateInfo = updateRepository.fetchUpdateInfo()
-        updateStatus = updateStatusFor(updateInfo, s)
-    }
     SettingsGroup(isTv) {
         SectionHeader(s.playerHeader)
         SettingsChoiceChips(
@@ -1257,138 +1244,8 @@ private fun PlayerSettingsCard(
             selected = settings.videoSizeMode,
             onSelect = onVideoSizeMode,
         )
-        SectionHeader(s.updateHeader)
-        UpdateSettingsPanel(
-            info = updateInfo,
-            status = updateStatus,
-            progress = updateProgress,
-            onCheck = {
-                updateScope.launch {
-                    updateStatus = s.updateChecking
-                    updateInfo = updateRepository.fetchUpdateInfo()
-                    updateStatus = updateStatusFor(updateInfo, s)
-                }
-            },
-            onInstall = {
-                if (!updateInfo.updateAvailable) {
-                    updateStatus = s.updateUpToDate
-                    return@UpdateSettingsPanel
-                }
-                updateScope.launch {
-                    updateProgress = 0
-                    updateStatus = s.updateDownloading
-                    when (val result = updateRepository.downloadAndOpenInstaller(updateInfo) { updateProgress = it }) {
-                        UpdateInstallResult.InstallerOpened -> updateStatus = s.updateInstallerOpened
-                        UpdateInstallResult.InstallPermissionRequired -> updateStatus = s.updatePermissionNeeded
-                        is UpdateInstallResult.Failed -> updateStatus = result.message.ifBlank { s.updateFailed }
-                    }
-                }
-            },
-            onOpenWeb = {
-                runCatching { updateRepository.openDownloadInBrowser(updateInfo) }
-                    .onFailure { Toast.makeText(context, s.updateOpenLinkFailed, Toast.LENGTH_LONG).show() }
-            },
-        )
     }
 }
-
-@Composable
-private fun UpdateSettingsPanel(
-    info: AppUpdateInfo,
-    status: String,
-    progress: Int,
-    onCheck: () -> Unit,
-    onInstall: () -> Unit,
-    onOpenWeb: () -> Unit,
-) {
-    val accent = LocalMoVisuals.current.accent
-    val s = LocalStrings.current.settings
-    GlassPanel(radius = 14.dp, highlighted = info.updateAvailable) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Rounded.SystemUpdateAlt, null, tint = accent, modifier = Modifier.size(26.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(s.updateTitle, color = Color.White, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.ExtraBold))
-                    Text(
-                        s.updateVersions(info.currentVersionName, info.latestVersionName),
-                        color = Color(0xB3FFFFFF),
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            Text(status, color = if (info.updateAvailable) accent else Color(0xB3FFFFFF), style = MaterialTheme.typography.bodySmall)
-            if (info.updateAvailable) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = accent.copy(alpha = 0.16f),
-                ) {
-                    Text(
-                        s.updateNotice(info.latestVersionName),
-                        color = accent,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    )
-                }
-            }
-            if (progress in 1..99) {
-                Text(s.updateDownloadingPercent(progress), color = Color.White, style = MaterialTheme.typography.labelMedium)
-            }
-            val details = info.apkSizeBytes?.let { s.updateDownloadSize(formatBytes(it)) }.orEmpty()
-            if (details.isNotBlank()) {
-                Text(details, color = Color(0x80FFFFFF), style = MaterialTheme.typography.bodySmall)
-            }
-            if (info.releaseNotes.isNotBlank()) {
-                Text(info.releaseNotes, color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodySmall, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            }
-            // FocusGlow-based controls: Material3 buttons only show a faint state layer on a TV remote.
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().focusGroup(),
-            ) {
-                SettingsButton(
-                    s.updateCheck,
-                    Modifier.weight(1f),
-                    icon = Icons.Rounded.Refresh,
-                    style = SettingsButtonStyle.Outlined,
-                    onClick = onCheck,
-                )
-                SettingsButton(
-                    if (info.updateAvailable) s.updateDownloadInstall else s.updateUpToDate,
-                    Modifier.weight(1f),
-                    icon = Icons.Rounded.Download,
-                    enabled = info.updateAvailable,
-                    onClick = onInstall,
-                )
-                FocusGlow(cornerRadius = 999.dp, onClick = onOpenWeb) {
-                    Box(
-                        Modifier
-                            .size(46.dp)
-                            .background(Color(0x331E1914), RoundedCornerShape(999.dp))
-                            .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(999.dp)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(Icons.AutoMirrored.Rounded.OpenInNew, s.updateOpenInBrowser, tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun formatBytes(bytes: Long): String {
-    val mb = bytes / 1024.0 / 1024.0
-    return "${"%.1f".format(java.util.Locale.US, mb)} MB"
-}
-
-private fun updateStatusFor(info: AppUpdateInfo, s: SettingsStrings): String =
-    if (info.updateAvailable) s.updateAvailable(info.latestVersionName) else s.updateUpToDate
 
 @Composable
 private fun LibraryModeCard(
@@ -2087,7 +1944,12 @@ private fun PinSettingsCard(
 @Composable
 private fun AboutCard(isTv: Boolean = false) {
     val visuals = LocalMoVisuals.current
-    val s = LocalStrings.current.settings
+    val strings = LocalStrings.current
+    val s = strings.settings
+    val u = strings.update
+    val context = LocalContext.current
+    val device = remember { Adaptive.performanceInfo(context) }
+    var showLicenses by remember { mutableStateOf(false) }
     SettingsGroup(isTv) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             Image(
@@ -2101,10 +1963,31 @@ private fun AboutCard(isTv: Boolean = false) {
             }
         }
         Text(s.aboutBody, color = Color(0xCCE3BC78), fontSize = 14.sp, lineHeight = 20.sp)
+        SectionHeader(s.updateHeader)
+        AppUpdatePanel(isTv)
+        DiagnosticsRow(s.aboutVersion, "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+        DiagnosticsRow(u.aboutDeviceProfile, device.tier.label(strings) + deviceRamSuffix(device.totalRamMb, u) + " · " + device.displayQualityLabel)
+        DiagnosticsRow(u.aboutSystem, androidVersionLine(u))
         DiagnosticsRow(s.aboutSupport, "www.moalfarras.space")
-        DiagnosticsRow(s.aboutVersion, BuildConfig.VERSION_NAME)
+        SettingsButton(
+            u.aboutLicenses,
+            Modifier.fillMaxWidth(),
+            icon = Icons.Rounded.Info,
+            style = SettingsButtonStyle.Outlined,
+            onClick = { showLicenses = true },
+        )
     }
+    if (showLicenses) LicensesDialog(onDismiss = { showLicenses = false })
 }
+
+private fun DevicePerformanceTier.label(strings: Strings): String = when (this) {
+    DevicePerformanceTier.LOW -> strings.perfPerformance
+    DevicePerformanceTier.MID -> strings.perfBalanced
+    DevicePerformanceTier.HIGH -> strings.perfQuality
+}
+
+private fun deviceRamSuffix(totalRamMb: Int, u: UpdateStrings): String =
+    if (totalRamMb <= 0) "" else " · " + u.aboutRam("%.1f".format(java.util.Locale.US, totalRamMb / 1024.0))
 
 @Composable
 private fun DiagnosticsRow(label: String, value: String) {

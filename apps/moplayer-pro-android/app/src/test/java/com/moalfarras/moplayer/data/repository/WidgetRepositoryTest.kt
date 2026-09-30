@@ -6,11 +6,6 @@ import com.moalfarras.moplayer.data.network.SportsDbService
 import com.moalfarras.moplayer.data.network.IpApiResponse
 import com.moalfarras.moplayer.data.network.OpenMeteoCurrent
 import com.moalfarras.moplayer.data.network.OpenMeteoResponse
-import com.moalfarras.moplayer.data.network.WeatherConditionDto
-import com.moalfarras.moplayer.data.network.WeatherCurrentDto
-import com.moalfarras.moplayer.data.network.WeatherLocationDto
-import com.moalfarras.moplayer.data.network.WeatherResponseDto
-import com.moalfarras.moplayer.data.network.WeatherService
 import com.moalfarras.moplayer.data.network.WebFootballResponseDto
 import com.moalfarras.moplayer.data.network.WebFootballService
 import com.moalfarras.moplayer.data.network.WebWeatherDto
@@ -29,9 +24,8 @@ import org.junit.Test
 class WidgetRepositoryTest {
     @Test
     fun manualWeatherIsPreviewOnlyAndDoesNotCallNetwork() = runTest {
-        val weatherService = FakeWeatherService()
         val freeWeatherService = FakeFreeWeatherService()
-        val repo = fakeRepo(weatherService = weatherService, freeWeatherService = freeWeatherService)
+        val repo = fakeRepo(freeWeatherService = freeWeatherService)
 
         val snapshot = repo.weather(
             AppSettings(
@@ -43,7 +37,6 @@ class WidgetRepositoryTest {
         assertEquals("Thunderstorm", snapshot.condition)
         assertTrue(snapshot.isManual)
         assertFalse(snapshot.hasRealWeather)
-        assertEquals(0, weatherService.calls)
         assertEquals(0, freeWeatherService.locationCalls)
         assertEquals(0, freeWeatherService.weatherCalls)
     }
@@ -62,7 +55,7 @@ class WidgetRepositoryTest {
     }
 
     @Test
-    fun cityWeatherUsesCityWhenWeatherApiIsUnavailable() = runTest {
+    fun cityWeatherUsesOpenMeteoWhenTheSiteWeatherIsUnavailable() = runTest {
         val repo = fakeRepo()
 
         val snapshot = repo.weather(
@@ -76,38 +69,30 @@ class WidgetRepositoryTest {
         assertFalse(snapshot.isManual)
         assertTrue(snapshot.hasRealWeather)
     }
+
+    @Test
+    fun cityWeatherWithoutAnyProviderIsEmptyNotAKeyedFallback() = runTest {
+        val repo = fakeRepo(freeWeatherService = FakeFreeWeatherService(geocodeResults = false))
+
+        val snapshot = repo.weather(AppSettings(weatherMode = WeatherMode.CITY, weatherCityOverride = "Dubai"))
+
+        assertFalse(snapshot.hasRealWeather)
+    }
 }
 
 private fun fakeRepo(
-    weatherService: FakeWeatherService = FakeWeatherService(),
     freeWeatherService: FakeFreeWeatherService = FakeFreeWeatherService(),
     sportsDbService: FakeSportsDbService = FakeSportsDbService(),
     webWeatherService: FakeWebWeatherService = FakeWebWeatherService(),
     webFootballService: FakeWebFootballService = FakeWebFootballService(),
 ) = WidgetRepository(
-    weatherService = weatherService,
     webWeatherService = webWeatherService,
     freeWeatherService = freeWeatherService,
     sportsDbService = sportsDbService,
     webFootballService = webFootballService,
 )
 
-private class FakeWeatherService : WeatherService {
-    var calls = 0
-
-    override suspend fun current(key: String, query: String, airQuality: String): WeatherResponseDto {
-        calls++
-        return WeatherResponseDto(
-            location = WeatherLocationDto(name = query, tzId = "Asia/Dubai"),
-            current = WeatherCurrentDto(
-                tempC = 31.0,
-                condition = WeatherConditionDto(text = "Sunny"),
-            ),
-        )
-    }
-}
-
-private class FakeFreeWeatherService : FreeWeatherService {
+private class FakeFreeWeatherService(private val geocodeResults: Boolean = true) : FreeWeatherService {
     var locationCalls = 0
     var weatherCalls = 0
 
@@ -122,6 +107,7 @@ private class FakeFreeWeatherService : FreeWeatherService {
     }
 
     override suspend fun geocodeCity(name: String, count: Int, language: String, format: String): OpenMeteoGeocodingResponse {
+        if (!geocodeResults) return OpenMeteoGeocodingResponse(results = emptyList())
         return OpenMeteoGeocodingResponse(
             results = listOf(
                 OpenMeteoGeocodingResult(

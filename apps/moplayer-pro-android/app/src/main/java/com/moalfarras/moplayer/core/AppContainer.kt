@@ -36,6 +36,9 @@ class AppContainer(context: Context) {
 
     val settingsRepository = AppSettingsRepository(appContext, applicationScope)
     val remoteConfigService = AppRemoteConfigService()
+
+    /** In-app updates: app-scoped so a download survives leaving Settings. */
+    val updateManager: UpdateManager by lazy { UpdateManager(appContext, remoteConfigService) }
     val iptvRepository = IptvRepository(
         database = database,
         playlistService = NetworkModule.playlistService,
@@ -45,7 +48,6 @@ class AppContainer(context: Context) {
         parser = M3uParser(),
     )
     val widgetRepository = WidgetRepository(
-        weatherService = NetworkModule.weatherService,
         webWeatherService = NetworkModule.webWeatherService,
         freeWeatherService = NetworkModule.freeWeatherService,
         sportsDbService = NetworkModule.sportsDbService,

@@ -1127,7 +1127,7 @@ internal fun SeekJumpPill(visible: Boolean, offsetMs: Long, modifier: Modifier =
         GlassPanel(radius = 999.dp) {
             val seconds = abs(offsetMs) / 1000L
             Text(
-                text = "${if (offsetMs < 0) "−" else "+"}${seconds}s".ltr(),
+                text = LocalStrings.current.player.seekSeconds.fill("${if (offsetMs < 0) "−" else "+"}$seconds").ltr(),
                 color = Color.White,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,

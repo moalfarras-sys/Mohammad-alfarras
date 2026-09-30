@@ -9,6 +9,7 @@ import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.i18n.ArStrings
 import com.moalfarras.moplayer.ui.i18n.EnStrings
+import com.moalfarras.moplayer.ui.i18n.fill
 import com.moalfarras.moplayer.ui.i18n.player
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -78,6 +79,8 @@ class PlayerPoliciesTest {
             assertFalse(kind.name, english.contains("%1"))
         }
         assertTrue(ArStrings.player.issueText(PlaybackIssue(PlaybackIssueKind.FORBIDDEN, 403)).contains("403"))
+        assertEquals("+30s", EnStrings.player.seekSeconds.fill("+30"))
+        assertEquals("−10 ث", ArStrings.player.seekSeconds.fill("−10"))
     }
 
     // ── Load retry policy ───────────────────────────────────────────────────────────────────

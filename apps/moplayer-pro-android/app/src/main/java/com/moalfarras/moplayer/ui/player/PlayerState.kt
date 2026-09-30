@@ -2,8 +2,6 @@ package com.moalfarras.moplayer.ui.player
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -221,40 +219,16 @@ internal object LiveFormatMemory {
     }
 }
 
-/** The zap list as the live overlay shows it: groups, the filtered channels, numbering and the selection. */
+/** The zap list CH+/CH- walk: the playing channel's neighbours and how its channels are numbered. */
 internal class LiveZapList(
-    val currentIndex: Int,
     val previousItem: AppMediaItem?,
     val nextItem: AppMediaItem?,
     val providerNumbers: Boolean,
-    val categories: List<LiveZapCategory>,
-    val displayedItems: List<AppMediaItem>,
-    val displayedCurrentIndex: Int,
     val channelNumberOf: (AppMediaItem) -> Int?,
-    private val categoryIdState: MutableState<String>,
-    private val selectedIndexState: MutableIntState,
-) {
-    var categoryId: String
-        get() = categoryIdState.value
-        set(value) {
-            categoryIdState.value = value
-        }
-
-    var selectedIndex: Int
-        get() = selectedIndexState.intValue
-        set(value) {
-            selectedIndexState.intValue = value
-        }
-}
+)
 
 @Composable
-internal fun rememberLiveZapList(
-    item: AppMediaItem,
-    relatedItems: List<AppMediaItem>,
-    isLive: Boolean,
-    allLabel: String,
-    fallbackGroupName: String,
-): LiveZapList {
+internal fun rememberLiveZapList(item: AppMediaItem, relatedItems: List<AppMediaItem>, isLive: Boolean): LiveZapList {
     val currentIndex = remember(item.id, item.type, item.serverId, relatedItems) {
         relatedItems.indexOfFirst { it.samePlayable(item) }
     }
@@ -265,33 +239,11 @@ internal fun rememberLiveZapList(
         val numberOf: (AppMediaItem) -> Int? = { channel -> liveChannelNumber(channel, indexByKey[channel.zapKey()] ?: -1, providerNumbers) }
         numberOf
     }
-    val categories = remember(relatedItems, allLabel, fallbackGroupName) { relatedItems.toLiveZapCategories(allLabel, fallbackGroupName) }
-    val categoryIdState = remember(item.id, relatedItems) { mutableStateOf(item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }) }
-    val categoryId = categoryIdState.value
-    val displayedItems = remember(relatedItems, categoryId) {
-        when (categoryId) {
-            LIVE_ZAP_ALL_CATEGORY_ID -> relatedItems
-            LIVE_ZAP_UNCATEGORIZED_ID -> relatedItems.filter { it.categoryId.isBlank() }
-            else -> relatedItems.filter { it.categoryId == categoryId }
-        }.ifEmpty { relatedItems }
-    }
-    val displayedCurrentIndex = remember(item.id, item.type, item.serverId, displayedItems) {
-        displayedItems.indexOfFirst { it.samePlayable(item) }
-    }
-    val selectedIndexState = remember(item.id, categoryId, displayedItems.size) {
-        mutableIntStateOf(displayedCurrentIndex.coerceAtLeast(0))
-    }
     return LiveZapList(
-        currentIndex = currentIndex,
         previousItem = liveZapTargetIndex(currentIndex, -1, relatedItems.size)?.let(relatedItems::get),
         nextItem = liveZapTargetIndex(currentIndex, 1, relatedItems.size)?.let(relatedItems::get),
         providerNumbers = providerNumbers,
-        categories = categories,
-        displayedItems = displayedItems,
-        displayedCurrentIndex = displayedCurrentIndex,
         channelNumberOf = channelNumberOf,
-        categoryIdState = categoryIdState,
-        selectedIndexState = selectedIndexState,
     )
 }
 

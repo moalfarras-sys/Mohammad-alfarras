@@ -274,6 +274,16 @@ class IptvRepository(
         keys.mapNotNull(found::get)
     }
 
+    /** Live channels per category id of [serverId] (0: the merged library), for the player's group list. */
+    suspend fun liveCategoryCounts(serverId: Long, hideNoLogo: Boolean): Map<String, Int> = withContext(Dispatchers.IO) {
+        database.mediaDao().liveCategoryCounts(serverId, hideNoLogo).associate { it.categoryId to it.channels }
+    }
+
+    /** Live channels whose provider number is [number] (usually one; one per source when merged). */
+    suspend fun liveByNumber(serverId: Long, number: Int, hideNoLogo: Boolean): List<MediaItem> = withContext(Dispatchers.IO) {
+        database.mediaDao().liveByNumber(serverId, number, hideNoLogo).map { it.toDomain() }
+    }
+
     fun latestLive(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
         config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE),
         pagingSourceFactory = { database.mediaDao().observeLatestPaging(serverId, listOf(ContentType.LIVE)) }

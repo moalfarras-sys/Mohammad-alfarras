@@ -211,19 +211,20 @@ internal fun classifyPlaybackIssue(
     else -> PlaybackIssue(PlaybackIssueKind.GENERIC)
 }
 
-/** Plain-language reason for the error card, with HTTP codes kept left-to-right inside Arabic text. */
+/**
+ * Plain-language reason for the error card. "HTTP 404" is one left-to-right isolate: with only the
+ * number isolated, Arabic text shows it as "(404 HTTP)".
+ */
 internal fun PlayerStrings.issueText(issue: PlaybackIssue): String {
-    val status = issue.httpStatus?.toString().orEmpty().ltr()
+    val code = (issue.httpStatus?.let { "HTTP $it" } ?: "HTTP").ltr()
     return when (issue.kind) {
         PlaybackIssueKind.NO_INTERNET -> issueNoInternet
-        PlaybackIssueKind.UNAUTHORIZED -> issueUnauthorized.fill(status)
-        PlaybackIssueKind.FORBIDDEN -> issueForbidden.fill(status)
-        PlaybackIssueKind.NOT_FOUND -> issueNotFound.fill(status)
-        PlaybackIssueKind.GONE -> issueGone.fill(status)
-        PlaybackIssueKind.BLOCKED -> issueBlocked.fill(status)
-        PlaybackIssueKind.SERVER_ERROR -> issueServerError.fill(
-            (issue.httpStatus?.let { "HTTP $it" } ?: "HTTP").ltr(),
-        )
+        PlaybackIssueKind.UNAUTHORIZED -> issueUnauthorized.fill(code)
+        PlaybackIssueKind.FORBIDDEN -> issueForbidden.fill(code)
+        PlaybackIssueKind.NOT_FOUND -> issueNotFound.fill(code)
+        PlaybackIssueKind.GONE -> issueGone.fill(code)
+        PlaybackIssueKind.BLOCKED -> issueBlocked.fill(code)
+        PlaybackIssueKind.SERVER_ERROR -> issueServerError.fill(code)
         PlaybackIssueKind.TIMEOUT -> issueTimeout
         PlaybackIssueKind.CONNECT_FAILED -> issueConnectFailed
         PlaybackIssueKind.UNSUPPORTED_FORMAT -> issueUnsupported
@@ -349,6 +350,34 @@ internal fun liveZapDirectionForKeyCode(keyCode: Int): Int = when (keyCode) {
     AndroidKeyEvent.KEYCODE_DPAD_DOWN -> 1
     else -> 0
 }
+
+/** What one Back does in the player, innermost layer first. */
+internal enum class PlayerBackStep { CLEAR_NUMBER, LEAVE, CLOSE_LIVE_PANEL, DISMISS_NEXT_EPISODE, HIDE_CONTROLS }
+
+/**
+ * The single Back path of the player (remote key, gesture or button): a typed channel number is
+ * cleared first; with the error card up Back leaves (its own Back button does the same); then the
+ * live panel closes, the next-episode card is cancelled, the VOD controls hide, and finally the
+ * player closes.
+ */
+internal fun playerBackStep(
+    numberEntry: Boolean,
+    errorShown: Boolean,
+    livePanelOpen: Boolean,
+    nextEpisodeOffered: Boolean,
+    vodControlsShown: Boolean,
+): PlayerBackStep = when {
+    numberEntry -> PlayerBackStep.CLEAR_NUMBER
+    errorShown -> PlayerBackStep.LEAVE
+    livePanelOpen -> PlayerBackStep.CLOSE_LIVE_PANEL
+    nextEpisodeOffered -> PlayerBackStep.DISMISS_NEXT_EPISODE
+    vodControlsShown -> PlayerBackStep.HIDE_CONTROLS
+    else -> PlayerBackStep.LEAVE
+}
+
+/** Back and Escape act once, on release, through the back dispatcher (see PlayerScreen's key handling). */
+internal fun isPlayerBackKey(keyCode: Int): Boolean =
+    keyCode == AndroidKeyEvent.KEYCODE_BACK || keyCode == AndroidKeyEvent.KEYCODE_ESCAPE
 
 internal fun digitForKeyCode(keyCode: Int): Int? = when (keyCode) {
     in AndroidKeyEvent.KEYCODE_0..AndroidKeyEvent.KEYCODE_9 -> keyCode - AndroidKeyEvent.KEYCODE_0

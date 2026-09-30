@@ -428,6 +428,8 @@ private fun MoPlayerApp(
                         }
                     },
                     nextEpisode = viewModel::nextEpisodeAfter,
+                    liveGroups = liveCategories,
+                    livePanelSource = viewModel.livePanelSource,
                 )
             }
             else -> {

@@ -88,6 +88,34 @@ class MediaQueriesTest {
     }
 
     @Test
+    fun liveGroupCountsAreOneGroupedPassOverTheCategoryIndex() {
+        val query = MediaQueries.liveCategoryCounts(4, hideNoLogo = false)
+        assertEquals(
+            "SELECT media.categoryId AS categoryId, COUNT(*) AS channels FROM media " +
+                "WHERE media.serverId = ? AND media.type = ? GROUP BY media.categoryId",
+            query.sql,
+        )
+        assertEquals(listOf<Any>(4L, "LIVE"), query.args)
+        val merged = MediaQueries.liveCategoryCounts(0, hideNoLogo = true)
+        assertTrue(merged.sql.contains("media.serverId IN (SELECT id FROM servers)"))
+        assertTrue(merged.sql.contains("media.posterUrl != ''"))
+        assertEquals(merged.placeholders(), merged.args.size)
+    }
+
+    @Test
+    fun channelNumberLookupBindsTheNumberAndReadsAFewRows() {
+        val query = MediaQueries.liveByNumber(6, 205, hideNoLogo = false)
+        assertTrue(query.sql, query.sql.startsWith("SELECT ${MediaQueries.ROW_COLUMNS} FROM media"))
+        assertTrue(query.sql, query.sql.contains("WHERE media.serverId = ? AND media.type = ? AND media.serverOrder = ?"))
+        assertTrue(query.sql, query.sql.endsWith("ORDER BY media.rowid LIMIT ${MediaQueries.LIVE_BY_NUMBER_LIMIT}"))
+        assertEquals(listOf<Any>(6L, "LIVE", 205), query.args)
+        val merged = MediaQueries.liveByNumber(0, 7, hideNoLogo = true)
+        assertTrue(merged.sql.contains("media.posterUrl != ''"))
+        assertEquals(listOf<Any>("LIVE", 7), merged.args)
+        assertEquals(merged.placeholders(), merged.args.size)
+    }
+
+    @Test
     fun unknownSortNameFallsBackToServerOrder() {
         assertEquals(SortOption.SERVER_ORDER, MediaQueries.sortOptionOf("NOPE"))
         assertEquals(SortOption.RATING, MediaQueries.sortOptionOf("RATING"))

@@ -147,8 +147,14 @@ describe("activation status product discovery (F046)", () => {
 
     const confirmed = await post(confirmPOST, { code: PRO_CODE, productSlug: "moplayer2" });
     expect(confirmed.status).toBe(200);
-    expect(await confirmed.json()).toMatchObject({ status: "activated", productSlug: "moplayer2" });
+    const confirmedBody = await confirmed.json();
+    expect(confirmedBody).toMatchObject({ status: "activated", productSlug: "moplayer2" });
+    expect(confirmedBody).not.toHaveProperty("publicDeviceId");
     expect(fake.requests.get(PRO_CODE)?.status).toBe("activated");
+
+    // Knowing the code must not reveal the device's pull identity either.
+    const polled = await status(`code=${PRO_CODE}&product=moplayer2`);
+    expect(await polled.json()).not.toHaveProperty("publicDeviceId");
   });
 });
 

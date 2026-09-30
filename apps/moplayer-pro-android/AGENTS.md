@@ -30,11 +30,21 @@ This folder is the MoPlayer Pro Android/Android TV app. It is not an independent
 
 ## Where To Edit
 
-- Player and fallback behavior: `app/src/main/java/com/moalfarras/moplayer/ui/player/PlayerScreen.kt`.
-- Main navigation/state: `app/src/main/java/com/moalfarras/moplayer/ui/MainViewModel.kt`.
-- Playlist/source parsing: `app/src/main/java/com/moalfarras/moplayer/data/parser`, `app/src/main/java/com/moalfarras/moplayer/data/repository`.
-- Network models: `app/src/main/java/com/moalfarras/moplayer/data/network`.
-- TV/home UI: `app/src/main/java/com/moalfarras/moplayer/ui/screens`, `app/src/main/java/com/moalfarras/moplayer/ui/components`.
+Paths below are under `app/src/main/java/com/moalfarras/moplayer/`.
+
+- Player (split in 2.7.0; keep `PlayerScreen` itself small, it is near the API 23 ART verifier method-size limit noted in its comments):
+  - `ui/player/PlayerScreen.kt`: the composable, remote keys, overlays wiring, zap coalescing, fallback chain.
+  - `ui/player/Media3Session.kt`, `Media3Playback.kt`: one persistent ExoPlayer per player session (reused across zaps, stale events dropped by per-load media id), sources, LoadControl, IPTV retry policy, FFmpeg audio renderer factory, MediaSession.
+  - `ui/player/LibVlcPlayerView.kt`, `VlcCore.kt`: LibVLC fallback; every native call runs on a serial worker, never on main.
+  - `ui/player/PlayerPolicies.kt`, `PlaybackEnginePolicies.kt`: pure, unit-tested decisions (failure classification, retry/reconnect delays, zap keys, channel numbers, format swap, buffer sizing).
+  - `ui/player/PlayerState.kt`, `PlayerOverlays.kt`, `NextEpisodeOffer.kt`: state holders and overlay UI.
+- Main navigation/state: `ui/MainViewModel.kt` (+ pure helpers in `ui/MainPolicies.kt`), app shell in `MainActivity.kt` (Back goes through the OnBackPressedDispatcher once per key release).
+- Sync: `data/repository/IptvRepository.kt`, `CatalogWriter.kt` (batched writes that keep favorites/progress), `XtreamSupport.kt`, `SyncErrors.kt` (typed, localized errors); streaming parsers in `data/parser` (`JsonStreamReader`, `M3uParser`, `XmltvStreamParser`).
+- QR activation: `IptvRepository` activation functions + `data/repository/ActivationSupport.kt`, `DeviceStateStore.kt` (stable device id, sealed one-time source). Keep the QR-only credential rule below.
+- Database: `data/db` (Room v9, FTS4 search via `SearchText`, whitelisted raw queries in `MediaQueries`). Never destructive migrations; export the schema.
+- Updates and remote config: `core/UpdateManager.kt`, `data/repository/UpdateRepository.kt`, `AppRemoteConfigService.kt`.
+- Strings: never add fields to `ui/i18n/Strings.kt`; each area has its own file (`PlayerStrings`, `HomeStrings`, `LoginStrings`, `SettingsStrings`, `SyncStrings`, `AppStrings`, `UpdateStrings`) with English and Arabic. Wrap LTR data in Arabic text with `ltr()`/`isolate()` from `ui/i18n/Bidi.kt`.
+- TV/home UI: `ui/screens`, `ui/components` (`FocusGlow`, `TvTextField`, `Cards`, `Dock`), `ui/theme` (`TvScale`).
 - Build/version/API config: `app/build.gradle.kts`.
 
 ## Modern Skills Required

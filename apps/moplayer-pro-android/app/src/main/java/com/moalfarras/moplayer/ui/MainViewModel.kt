@@ -2501,6 +2501,19 @@ class MainViewModel(
     private companion object {
         const val TAG = "MoPlayerMain"
     }
+
+    // region Player: next episode (wave 2)
+
+    /**
+     * The episode after [episode] in its series, from the local library (season, then episode
+     * order), or null for the last episode, a non-episode or a series that is not stored.
+     */
+    suspend fun nextEpisodeAfter(episode: MediaItem): MediaItem? {
+        if (episode.type != ContentType.EPISODE || episode.seriesId.isBlank()) return null
+        return com.moalfarras.moplayer.ui.player.nextEpisodeFrom(iptv.episodes(episode.serverId, episode.seriesId), episode)
+    }
+
+    // endregion
 }
 
 /** Minimum gap between two automatic admin-config refreshes (foreground returns and the timer). */

@@ -63,6 +63,13 @@ data class PlayerStrings(
     val sizeFill: String,
     val sizeZoom: String,
     val vodControlsHint: String,
+    // Next episode (VOD end of an episode)
+    val nextEpisode: String,
+    /** Countdown under the next episode; `%1$s` is the number of seconds left. */
+    val nextEpisodeCountdown: String,
+    val playNow: String,
+    /** Season and episode of the next episode; `%1$s` season, `%2$s` episode number. */
+    val episodeCode: String,
     // Route picker / external players
     val routeAuto: String,
     val vlcApp: String,
@@ -149,6 +156,10 @@ private val EnPlayerStrings = PlayerStrings(
     sizeFill = "Fill",
     sizeZoom = "Zoom",
     vodControlsHint = "◄► Move  •  OK Select  •  Back Hide",
+    nextEpisode = "Next episode",
+    nextEpisodeCountdown = "Starts in %1\$ss",
+    playNow = "Play now",
+    episodeCode = "S%1\$s E%2\$s",
     routeAuto = "Auto",
     vlcApp = "VLC app",
     mxApp = "MX Player app",
@@ -233,6 +244,10 @@ private val ArPlayerStrings = PlayerStrings(
     sizeFill = "ملء الشاشة",
     sizeZoom = "تكبير",
     vodControlsHint = "◄► تنقّل  •  OK اختيار  •  رجوع إخفاء",
+    nextEpisode = "الحلقة التالية",
+    nextEpisodeCountdown = "تبدأ خلال %1\$s ث",
+    playNow = "شغّل الآن",
+    episodeCode = "الموسم %1\$s · الحلقة %2\$s",
     routeAuto = "تلقائي",
     vlcApp = "تطبيق VLC",
     mxApp = "تطبيق MX Player",

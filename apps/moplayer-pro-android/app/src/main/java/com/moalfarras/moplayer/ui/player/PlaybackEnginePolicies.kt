@@ -41,6 +41,22 @@ internal fun playbackBufferBudget(
 internal fun hasRoomForLargeLiveBuffer(memoryClassMb: Int, isLowRam: Boolean): Boolean =
     !isLowRam && memoryClassMb >= 256
 
+// ── One Media3 player per session ────────────────────────────────────────────────────────────
+
+/**
+ * The mediaId of one load into the session's player: the item plus a per-player load counter, so
+ * a re-open of the same item (other format, redirect, retry) is told apart from the one before it.
+ */
+internal fun media3LoadId(itemId: String, loadNumber: Int): String = "$itemId#$loadNumber"
+
+/**
+ * Whether a player event belongs to an earlier load than [currentLoadId] (or to no load at all)
+ * and must not reach the item on screen. [eventMediaId] is the mediaId of the media the event
+ * came from, null when unknown.
+ */
+internal fun isStaleMedia3Event(eventMediaId: String?, currentLoadId: String?): Boolean =
+    currentLoadId == null || eventMediaId != currentLoadId
+
 // ── Unsupported audio (AC-3 / E-AC-3 / DTS on boxes without a decoder) ───────────────────────
 
 internal enum class UnsupportedAudioAction {

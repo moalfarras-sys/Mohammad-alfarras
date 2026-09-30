@@ -411,6 +411,29 @@ internal fun vodSeekTarget(baseMs: Long, stepMs: Long, repeatCount: Int, duratio
     return (baseMs.coerceAtLeast(0L) + (stepMs shl shift)).coerceIn(0L, maxPosition)
 }
 
+// ── VOD: next episode ────────────────────────────────────────────────────────────────────────
+
+/**
+ * The episode that follows [current] in its series, or null when [current] is the last one or is
+ * not in [episodes]. Order is the series screen's: seasons ascending (season 0 is listed with
+ * season 1), then episode number; ties keep the library order (by title).
+ */
+internal fun nextEpisodeIn(episodes: List<AppMediaItem>, current: AppMediaItem): AppMediaItem? {
+    val ordered = episodes
+        .filter { it.type == ContentType.EPISODE }
+        .sortedWith(compareBy<AppMediaItem>({ it.seasonNumber.coerceAtLeast(1) }, { it.seasonNumber }, { it.episodeNumber }))
+    val index = ordered.indexOfFirst { it.samePlayable(current) }
+    return if (index >= 0) ordered.getOrNull(index + 1) else null
+}
+
+/** "S1 E2" (Arabic: season and episode spelled out), or null when the provider sent no episode number. */
+internal fun PlayerStrings.episodeCodeLabel(episode: AppMediaItem): String? =
+    if (episode.episodeNumber > 0) {
+        episodeCode.fill(episode.seasonNumber.coerceAtLeast(1).toString().ltr(), episode.episodeNumber.toString().ltr())
+    } else {
+        null
+    }
+
 // ── Video signal label ───────────────────────────────────────────────────────────────────────
 
 internal fun videoSignalLabel(width: Int, height: Int, isHdr: Boolean, sampleMimeType: String?): String {

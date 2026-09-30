@@ -427,6 +427,7 @@ private fun MoPlayerApp(
                                 ?.title
                         }
                     },
+                    nextEpisode = viewModel::nextEpisodeAfter,
                 )
             }
             else -> {

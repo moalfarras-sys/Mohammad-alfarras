@@ -176,8 +176,8 @@ fun LiveScreen(
                         .focusGroup(),
                     horizontalArrangement = Arrangement.spacedBy(tv.u(12f)),
                 ) {
-                    CategoryRail(strings.navLive, categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.20f))
-                    GlassPanel(Modifier.fillMaxHeight().weight(0.52f), radius = tv.cardRadius) {
+                    CategoryRail(strings.navLive, categories, selectedCategoryId, onCategory, onAllCategories, Modifier.fillMaxHeight().weight(0.23f))
+                    GlassPanel(Modifier.fillMaxHeight().weight(0.49f), radius = tv.cardRadius) {
                         Column(Modifier.fillMaxSize().padding(tv.u(10f)), verticalArrangement = Arrangement.spacedBy(tv.u(8f))) {
                             LiveListHeader(categoryTitle)
                             PagingChannelList(
@@ -302,10 +302,10 @@ fun PosterScreen(
                         selectedCategoryId,
                         onCategory,
                         onAllCategories,
-                        Modifier.fillMaxHeight().weight(0.19f),
+                        Modifier.fillMaxHeight().weight(0.22f),
                         requestInitialFocus = entryFocusPending && gridEmpty,
                     )
-                    PosterGrid(items, restoreFocusItem, onFocus, onPlay, onFavorite, Modifier.fillMaxHeight().weight(0.55f), entryFocus = entryFocusPending)
+                    PosterGrid(items, restoreFocusItem, onFocus, onPlay, onFavorite, Modifier.fillMaxHeight().weight(0.52f), entryFocus = entryFocusPending)
                     PreviewPane(focused ?: firstItem, Modifier.fillMaxHeight().weight(0.26f), live = false, previewEnabled = previewEnabled, performancePolicy = performancePolicy)
                 }
             } else {
@@ -952,7 +952,9 @@ private fun CategoryChip(name: String, selected: Boolean, focusRequester: FocusR
                     selected -> visuals.accent
                     else -> Color.White.copy(alpha = 0.88f)
                 },
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Medium),
+                // Provider group names are long ("VIP | BEIN SPORTS 4K"): body size on two lines keeps
+                // them readable in the rail.
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Medium),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )

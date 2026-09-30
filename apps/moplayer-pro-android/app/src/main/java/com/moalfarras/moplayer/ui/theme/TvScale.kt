@@ -48,7 +48,8 @@ const val TV_MIN_SECONDARY_SP = 12f
  * TV scale factor. Standard Android TV configurations (1080p@xhdpi, 720p@tvdpi, the emulator)
  * report a 960x540dp canvas; the layout literals were tuned there at 0.66. Normalizing by the
  * canvas keeps hdpi boxes that report 1280x720dp at the same physical size instead of rendering
- * everything ~25% smaller.
+ * everything ~25% smaller. Under [TvDisplayScale] the configuration always reports that canvas, so
+ * this is 1:1; it only scales when the screen size was unknown.
  */
 internal fun tvScaleFactor(widthDp: Int, heightDp: Int): Float {
     val canvas = tvCanvasScale(widthDp, heightDp)

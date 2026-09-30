@@ -26,6 +26,7 @@ import com.moalfarras.moplayer.domain.model.NavigationSnapshot
 import com.moalfarras.moplayer.domain.model.PerformanceMode
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.domain.model.ThemePreset
+import com.moalfarras.moplayer.domain.model.UiScale
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
 import com.moalfarras.moplayer.domain.model.WeatherMode
 import kotlinx.coroutines.CoroutineScope
@@ -92,6 +93,7 @@ class AppSettingsRepository internal constructor(
     private val customBackgroundUrlKey = stringPreferencesKey("custom_background_url")
     private val remoteBackgroundUrlKey = stringPreferencesKey("remote_background_url")
     private val themePresetKey = stringPreferencesKey("theme_preset")
+    private val uiScaleKey = stringPreferencesKey("ui_scale")
     private val motionLevelKey = stringPreferencesKey("motion_level")
     private val performanceModeKey = stringPreferencesKey("performance_mode")
     private val videoSizeModeKey = stringPreferencesKey("video_size_mode")
@@ -154,6 +156,7 @@ class AppSettingsRepository internal constructor(
             customBackgroundUrl = prefs[customBackgroundUrlKey].orEmpty(),
             remoteBackgroundUrl = prefs[remoteBackgroundUrlKey].orEmpty(),
             themePreset = prefs[themePresetKey].toEnum(ThemePreset.CINEMATIC_AUTO),
+            uiScale = prefs[uiScaleKey].toEnum(UiScale.STANDARD),
             motionLevel = prefs[motionLevelKey].toEnum(MotionLevel.BALANCED),
             performanceMode = prefs[performanceModeKey].toEnum(PerformanceMode.AUTO),
             videoSizeMode = prefs[videoSizeModeKey].toEnum(VideoSizeMode.AUTO),
@@ -235,6 +238,10 @@ class AppSettingsRepository internal constructor(
 
     suspend fun setThemePreset(value: ThemePreset) {
         safeEdit { it[themePresetKey] = value.name }
+    }
+
+    suspend fun setUiScale(value: UiScale) {
+        safeEdit { it[uiScaleKey] = value.name }
     }
 
     suspend fun setMotionLevel(value: MotionLevel) {

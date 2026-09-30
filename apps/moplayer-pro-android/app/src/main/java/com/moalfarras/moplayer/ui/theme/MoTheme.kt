@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.moalfarras.moplayer.core.Adaptive
+import com.moalfarras.moplayer.domain.model.UiScale
 import com.moalfarras.moplayerpro.R
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -223,11 +224,24 @@ val LocalMoVisuals = staticCompositionLocalOf { MoVisuals() }
 @Composable
 fun MoTheme(
     accent: Color = GlassChampagne,
+    uiScale: UiScale = UiScale.STANDARD,
+    content: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val isTv = remember(context) { Adaptive.isTv(context) }
+    // First the TV grid, so the type scale below reads the normalized configuration.
+    TvDisplayScale(isTv, uiScale) {
+        MoThemeContent(accent, isTv, content)
+    }
+}
+
+@Composable
+private fun MoThemeContent(
+    accent: Color,
+    isTv: Boolean,
     content: @Composable () -> Unit,
 ) {
     val configuration = LocalConfiguration.current
-    val context = LocalContext.current
-    val isTv = remember(context) { Adaptive.isTv(context) }
     val widthDp = configuration.screenWidthDp
     val heightDp = configuration.screenHeightDp
     val typeScale = remember(isTv, widthDp, heightDp) { typeScaleFor(isTv, widthDp, heightDp) }

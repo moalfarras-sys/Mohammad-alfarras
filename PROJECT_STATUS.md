@@ -12,6 +12,14 @@ Last updated: 2026-09-30
 - In-app update verified on the Android TV emulator: the published 2.7.0 showed "Version 2.7.1 is available", downloaded and verified the APK, asked once for the install permission, installed 2.7.1 and kept the account and settings.
 - The bilingual MoOS redesign is live. Its ISO remains unavailable in the live manifest because the configured Blob URL returns HTTP 403.
 
+## MoPlayer Pro 2.7.2 changes (prepared on `fix/moplayer-pro-2.7.2-tv-scale`)
+
+- Reported on a real TV after 2.7.1: the interface was too large and group names were cut off. Reproduced on the emulator by simulating 240 dpi, 400 dpi and a 1.3 system font scale.
+- `ui/theme/TvDisplayScale.kt` lays the TV interface out on one grid on every TV (960x540dp design canvas widened by the viewer's interface size), and keeps the system font scale between 0.9 and 1.1. 240/320/400 dpi now render pixel-identically.
+- New Settings > Look & Home > Interface size: Compact (1.25x grid), Standard (1.12x, default), Large (1.0x, the 2.7.1 look).
+- Live and Movies/Series group rails are wider and use body-size text on up to two lines; a focused channel name that does not fit scrolls.
+- Release APKs must be built with `:app:assembleRelease` alone (or `-PincludeX86Abis=false`): a debug task in the same Gradle run adds x86/x86_64 and doubles the universal APK.
+
 ## MoPlayer Pro 2.7.1 changes
 
 - Merged "All playlists" library no longer crashes when two sources share a category id (source-qualified list keys, one row per id).
@@ -24,17 +32,18 @@ Last updated: 2026-09-30
 
 ## Released artifacts
 
-- GitHub Release: `moplayer-pro-v2.7.1`.
-- Universal APK: 56,171,853 bytes, SHA-256 `380e29c18757858f296e62cd3be93579ddc9cb9578fdacbaa39193e649974fd6`.
-- ARM64 APK: 34,934,202 bytes, SHA-256 `e3bbd5d99318125b7db4e4a262498bde5933fa0337deacb633e8cf7899cf1be2`.
-- ARMv7 APK: 31,215,776 bytes, SHA-256 `b60bd612d04b10d303cde35a7355577f225b627dc66a5993af30457ac84a2dd7`.
+- GitHub Release: `moplayer-pro-v2.7.2`.
+- Universal APK: 56,178,347 bytes, SHA-256 `8b5595ec9cc399a500f52896c4d7f7a09ba89951167a1e810c3d10c762ab677a`.
+- ARM64 APK: 34,940,701 bytes, SHA-256 `aae08c44a5dcbbe7aabf8e7359efbe654bab20a01002a2431bceb1bee07f478a`.
+- ARMv7 APK: 31,222,268 bytes, SHA-256 `bbc84b316dff53eda8515f2df98fc75e31235ffcbaf39165a4e3a754f8808da3`.
 - All APKs passed Android signature verification with certificate SHA-256 `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`.
+- Previous: `moplayer-pro-v2.7.1` (universal SHA-256 `380e29c1…74fd6`).
 
 ## Verification completed
 
 - `npm run verify:web` (typecheck, lint, build, 57 unit tests), `npm run verify:admin`, `npm run verify:moplayer-dashboard`: passed.
-- MoPlayer Classic `testSideloadDebugUnitTest` and MoPlayer Pro `testDebugUnitTest` (395 tests): passed. They were run with `gradlew.bat` directly because this shell does not search the current folder for executables.
-- `:app:assembleRelease`: passed for MoPlayer Pro 2.7.1 / code 70.
+- MoPlayer Classic `testSideloadDebugUnitTest` and MoPlayer Pro `testDebugUnitTest` (401 tests for 2.7.2): passed. They were run with `gradlew.bat` directly because this shell does not search the current folder for executables.
+- `:app:assembleRelease`: passed for MoPlayer Pro 2.7.2 / code 71 (ARM only).
 - Emulator QA (Android TV API 36, real Xtream provider): playlist-link import with confirmation, sync, search, live 4K playback, CH+ zapping on a one-connection line, movie playback and seek, series episode playback and resume, merged library browsing, and an in-place signed upgrade 2.7.0 → 2.7.1 that kept accounts, history and focus.
 - Known provider behaviour: empty DAZN "event slot" channels return an empty `.ts` body or an HLS list with an MKV placeholder; the player shows its error card with Next channel.
 - No secret, token, database password, signing key, test IPTV credential, or generated APK was committed.

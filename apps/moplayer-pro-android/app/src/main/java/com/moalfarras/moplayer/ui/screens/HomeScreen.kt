@@ -2,52 +2,86 @@ package com.moalfarras.moplayer.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Casino
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.LiveTv
+import androidx.compose.material.icons.rounded.Movie
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SmartToy
+import androidx.compose.material.icons.rounded.SportsSoccer
+import androidx.compose.material.icons.rounded.VideoLibrary
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
-import com.moalfarras.moplayerpro.R
+import com.moalfarras.moplayer.core.PerformancePolicy
+import com.moalfarras.moplayer.data.repository.isWidgetRelevant
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
 import com.moalfarras.moplayer.domain.model.ContentType
@@ -55,18 +89,122 @@ import com.moalfarras.moplayer.domain.model.FootballMatch
 import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.domain.model.MotionLevel
 import com.moalfarras.moplayer.domain.model.ServerProfile
-import com.moalfarras.moplayer.core.PerformancePolicy
-import com.moalfarras.moplayer.domain.model.ThemePreset
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
-import com.moalfarras.moplayer.ui.components.*
+import com.moalfarras.moplayer.ui.components.CinematicBackdrop
+import com.moalfarras.moplayer.ui.components.FocusGlow
+import com.moalfarras.moplayer.ui.components.FocusScale
+import com.moalfarras.moplayer.ui.components.GlassPanel
+import com.moalfarras.moplayer.ui.components.HomeNotificationAnnouncement
+import com.moalfarras.moplayer.ui.components.HomeNotificationPhase
+import com.moalfarras.moplayer.ui.components.LaneStyle
+import com.moalfarras.moplayer.ui.components.LivePulseDot
+import com.moalfarras.moplayer.ui.components.LocalFocusGlowFocused
+import com.moalfarras.moplayer.ui.components.LocalReduceMotion
+import com.moalfarras.moplayer.ui.components.MediaLane
+import com.moalfarras.moplayer.ui.components.WeatherGlyph
+import com.moalfarras.moplayer.ui.components.addedAtLabel
+import com.moalfarras.moplayer.ui.components.backdropUrlFrom
+import com.moalfarras.moplayer.ui.components.campaignTitle
+import com.moalfarras.moplayer.ui.components.rememberDecorativeMotion
+import com.moalfarras.moplayer.ui.components.rememberHomeNotificationPhase
+import com.moalfarras.moplayer.ui.components.rememberTvBringIntoViewSpec
+import com.moalfarras.moplayer.ui.components.scrollToPivotIfNeeded
+import com.moalfarras.moplayer.ui.i18n.HomeStrings
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
-import com.moalfarras.moplayer.ui.theme.*
+import com.moalfarras.moplayer.ui.i18n.Strings
+import com.moalfarras.moplayer.ui.i18n.home
+import com.moalfarras.moplayer.ui.i18n.isolate
+import com.moalfarras.moplayer.ui.i18n.ltr
+import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
+import com.moalfarras.moplayer.ui.theme.rememberTvScale
+import com.moalfarras.moplayerpro.R
+import kotlinx.coroutines.delay
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
+private const val HOME_SHELF_LIMIT = 15
+private const val MATCH_ROTATION_MS = 8_000L
+private const val HOME_NOTIFICATION_VISIBLE_MS = 14_000L
+
+private val Gold = Color(0xFFF1CC83)
+private val LiveRed = Color(0xFFFF4D5E)
+private val ClockFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
+/** Drop shadow applied to every hero string so it stays crisp on any backdrop — no cards needed. */
+private val HeroTextShadow = Shadow(color = Color(0xB3000000), offset = Offset(0f, 2f), blurRadius = 16f)
+
+/** Keeps the hero readable at the top and the rows readable at the bottom, over any photo. */
+private val HomeReadabilityScrim = Brush.verticalGradient(
+    0f to Color(0xE6070708),
+    0.30f to Color(0x99070708),
+    0.55f to Color(0x33070708),
+    1f to Color(0xB3070708),
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Home rows — Live TV leads (M10)
+// ─────────────────────────────────────────────────────────────────────────────
+
+internal enum class HomeRowKind { CONTINUE_LIVE, FAVORITE_CHANNELS, LIVE_TV, RESUME_VOD, LATEST_MOVIES, LATEST_SERIES, NEW_CHANNELS }
+
+internal data class HomeRow(val kind: HomeRowKind, val items: List<MediaItem>) {
+    val style: LaneStyle
+        get() = when (kind) {
+            HomeRowKind.CONTINUE_LIVE, HomeRowKind.FAVORITE_CHANNELS, HomeRowKind.LIVE_TV, HomeRowKind.NEW_CHANNELS -> LaneStyle.Channel
+            else -> LaneStyle.Poster
+        }
+}
+
+/**
+ * Home row order for an IPTV app: last watched channels, favorite channels, then resumable
+ * movies/series and the latest additions. A first-time user (nothing watched or favorited yet)
+ * still gets a Live TV row first. The trailing channel row is only called "recently added" when
+ * the source actually reports added dates.
+ */
+internal fun buildHomeRows(
+    recentLive: List<MediaItem>,
+    favoriteLive: List<MediaItem>,
+    latestLive: List<MediaItem>,
+    resume: List<MediaItem>,
+    latestMovies: List<MediaItem>,
+    latestSeries: List<MediaItem>,
+    limit: Int,
+): List<HomeRow> {
+    val rows = mutableListOf<HomeRow>()
+    val recent = recentLive.filter { it.type == ContentType.LIVE }.take(limit)
+    val favorites = favoriteLive.filter { it.type == ContentType.LIVE }.take(limit)
+    val live = latestLive.filter { it.type == ContentType.LIVE }.take(limit)
+    val personalLive = recent.isNotEmpty() || favorites.isNotEmpty()
+    if (recent.isNotEmpty()) rows += HomeRow(HomeRowKind.CONTINUE_LIVE, recent)
+    if (favorites.isNotEmpty()) rows += HomeRow(HomeRowKind.FAVORITE_CHANNELS, favorites)
+    if (!personalLive && live.isNotEmpty()) rows += HomeRow(HomeRowKind.LIVE_TV, live)
+    resume.filter { it.type != ContentType.LIVE }.take(limit).takeIf { it.isNotEmpty() }?.let { rows += HomeRow(HomeRowKind.RESUME_VOD, it) }
+    latestMovies.take(limit).takeIf { it.isNotEmpty() }?.let { rows += HomeRow(HomeRowKind.LATEST_MOVIES, it) }
+    latestSeries.take(limit).takeIf { it.isNotEmpty() }?.let { rows += HomeRow(HomeRowKind.LATEST_SERIES, it) }
+    if (personalLive && live.isNotEmpty()) {
+        val datedAdditions = live.any { !it.addedAtUnknown && it.addedAt > 0 }
+        rows += HomeRow(if (datedAdditions) HomeRowKind.NEW_CHANNELS else HomeRowKind.LIVE_TV, live)
+    }
+    return rows
+}
+
+private fun HomeRow.title(h: HomeStrings, strings: Strings): String = when (kind) {
+    HomeRowKind.CONTINUE_LIVE -> h.rowContinueLive
+    HomeRowKind.FAVORITE_CHANNELS -> h.rowFavoriteChannels
+    HomeRowKind.LIVE_TV -> h.rowLiveTv
+    HomeRowKind.NEW_CHANNELS -> h.rowNewChannels
+    HomeRowKind.RESUME_VOD -> h.rowResumeVod
+    HomeRowKind.LATEST_MOVIES -> strings.railLatestMovies
+    HomeRowKind.LATEST_SERIES -> strings.railLatestSeries
+}
+
+private fun MediaItem.sameHomeItem(target: MediaItem): Boolean =
+    id == target.id && type == target.type && serverId == target.serverId
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     weather: WeatherSnapshot,
@@ -86,50 +224,56 @@ fun HomeScreen(
     onFavorite: (MediaItem) -> Unit,
     accent: Color,
     syncing: Boolean = false,
+    favoriteLive: List<MediaItem> = emptyList(),
 ) {
     val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
     val strings = LocalStrings.current
-    val homeContinue = remember(continueWatching) { continueWatching.take(HOME_SHELF_LIMIT) }
-    val homeMovies = remember(latestMovies) { latestMovies.take(HOME_SHELF_LIMIT) }
-    val homeSeries = remember(latestSeries) { latestSeries.take(HOME_SHELF_LIMIT) }
-    val hasContent = homeContinue.isNotEmpty() || homeMovies.isNotEmpty() || homeSeries.isNotEmpty()
-    val firstFocusableHomeLane = when {
-        homeContinue.isNotEmpty() -> "continue"
-        homeMovies.isNotEmpty() -> "latestMovies"
-        homeSeries.isNotEmpty() -> "latestSeries"
-        else -> ""
+    val h = strings.home
+    val rows = remember(recentLive, favoriteLive, latestLive, continueWatching, latestMovies, latestSeries) {
+        buildHomeRows(recentLive, favoriteLive, latestLive, continueWatching, latestMovies, latestSeries, HOME_SHELF_LIMIT)
     }
-    val allContent = remember(continueWatching, recentLive, latestLive, latestMovies, latestSeries) {
-        (continueWatching + recentLive + latestLive + latestMovies + latestSeries)
-            .distinctBy { "${it.type}:${it.serverId}:${it.id}" }
+    val hasContent = rows.isNotEmpty()
+    val allContent = remember(rows) {
+        rows.flatMap { it.items }.distinctBy { "${it.type}:${it.serverId}:${it.id}" }
     }
+
+    // Initial focus is a one-shot for as long as Home stays composed: it is consumed by the first
+    // focus event anywhere in the content, so later VM focus updates (which clear the restore
+    // target and the dock flag) can never re-arm it and yank focus back to the first card.
+    var initialFocusDone by remember { mutableStateOf(false) }
     var focusedHomeItem by remember { mutableStateOf<MediaItem?>(null) }
-    val highlightedHomeItem = focusedHomeItem
-        ?: homeContinue.firstOrNull()
-        ?: homeMovies.firstOrNull()
-        ?: homeSeries.firstOrNull()
-    var showAiAssistant by remember { mutableStateOf(false) }
-    val aiIntroRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    var aiChat by remember { mutableStateOf(listOf(AiChatMessage(freeAiIntro(allContent, football, aiIntroRtl), false))) }
-    var aiInput by remember { mutableStateOf("") }
+    val wrappedOnFocus: (MediaItem) -> Unit = { item ->
+        initialFocusDone = true
+        focusedHomeItem = item
+        onFocus(item)
+    }
+    val pendingRestore = restoreFocusItem.takeIf { allowInitialContentFocus }
+    val restoreRowIndex = remember(pendingRestore, rows) {
+        pendingRestore?.let { target -> rows.indexOfFirst { row -> row.items.any { it.sameHomeItem(target) } }.takeIf { it >= 0 } }
+    }
+    val autoFocusRowIndex = if (allowInitialContentFocus && !initialFocusDone && restoreRowIndex == null && hasContent) 0 else null
+    val highlightedItem = focusedHomeItem ?: rows.firstOrNull()?.items?.firstOrNull()
+
+    var showAssistant by remember { mutableStateOf(false) }
+    var assistantChat by remember(h) { mutableStateOf(listOf(AiChatMessage(h.assistantIntro(allContent.size, football.isNotEmpty()), false))) }
+    var assistantInput by remember { mutableStateOf("") }
     var surpriseSeed by remember { mutableIntStateOf(0) }
-    var aiTvAction by remember { mutableIntStateOf(0) }
-    var aiMode by remember { mutableStateOf(AiSuggestionMode.SURPRISE) }
-    fun askAi(message: String) {
+    var assistantMode by remember { mutableStateOf(AiSuggestionMode.SURPRISE) }
+    fun askAssistant(message: String) {
         val clean = message.trim()
         if (clean.isNotBlank()) {
-            aiMode = aiModeFor(clean)
-            aiChat = aiChat + AiChatMessage(clean, true) + AiChatMessage(aiReply(clean, allContent, football), false)
+            assistantMode = aiModeFor(clean)
+            assistantChat = assistantChat + AiChatMessage(clean, true) + AiChatMessage(aiReplyForQuery(clean, allContent, football, h), false)
         }
+    }
+    val onAssistantMode: (AiSuggestionMode) -> Unit = { mode ->
+        assistantMode = mode
+        surpriseSeed++
+        assistantChat = assistantChat + AiChatMessage(mode.label(h), true) + AiChatMessage(aiReplyForMode(mode, allContent, football, h), false)
     }
 
     val contentBackdropUrl = remember(continueWatching, latestMovies, latestSeries) {
-        backdropUrlFrom(
-            continueWatching.firstOrNull(),
-            latestMovies.firstOrNull(),
-            latestSeries.firstOrNull(),
-        )
+        backdropUrlFrom(continueWatching.firstOrNull(), latestMovies.firstOrNull(), latestSeries.firstOrNull())
     }
     val selectedBackdrop = remember(settings.backgroundMode, settings.customBackgroundUrl, weather.city, contentBackdropUrl) {
         when (settings.backgroundMode) {
@@ -140,685 +284,510 @@ fun HomeScreen(
             BackgroundMode.NONE -> null
         }
     }
-    // Keep the photo layer strong; motion level mainly affects particles + atmosphere elsewhere.
+    // Keep the photo layer strong; motion level mainly affects particles elsewhere.
     val backdropAlpha = when (settings.motionLevel) {
         MotionLevel.LOW -> 0.90f
         MotionLevel.BALANCED -> 0.96f
         MotionLevel.RICH -> 1f
     }
-    val topFootballMatches = remember(football, settings.footballMaxMatches, settings.showFootballWidget, performancePolicy.enableWidgets) {
+    val showParticles = performancePolicy.enableParticles && settings.motionLevel != MotionLevel.LOW
+    val footballMatches = remember(football, settings.footballMaxMatches, settings.showFootballWidget, performancePolicy.enableWidgets) {
         if (settings.showFootballWidget && performancePolicy.enableWidgets) {
-            // Honor the user's full 1..8 "match count" setting (was silently capped at 3).
-            football.take(settings.footballMaxMatches.coerceIn(1, 8))
+            val now = System.currentTimeMillis()
+            football.filter { it.isWidgetRelevant(now) }.take(settings.footballMaxMatches.coerceIn(1, 8))
         } else {
             emptyList()
         }
     }
-    val wrappedOnFocus: (MediaItem) -> Unit = { item ->
-        focusedHomeItem = item
-        onFocus(item)
-    }
 
-    // Breathing animation for subtle ambient pulse. Skip the infinite transition entirely
-    // in reduce-motion mode so the home screen can reach idle instead of repainting every
-    // frame forever (previously the transition kept running even though its value was ignored).
-    val breathe = if (performancePolicy.reduceMotion) {
-        1f
-    } else {
-        val infiniteTransition = rememberInfiniteTransition(label = "home")
-        val animatedBreathe by infiniteTransition.animateFloat(
-            initialValue = 0.92f, targetValue = 1.0f,
-            animationSpec = infiniteRepeatable(tween(4000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "breathe",
-        )
-        animatedBreathe
-    }
-
-    // Home notifications are remote-configurable; World Cup 2026 is the first built-in campaign.
-    val homeNotificationPhase = rememberHomeNotificationPhase(settings.homeNotificationMode, settings.homeNotificationType, settings.homeNotificationTargetDate)
-    var showHomeNotification by remember(homeNotificationPhase) { mutableStateOf(homeNotificationPhase !is HomeNotificationPhase.Off) }
-    LaunchedEffect(homeNotificationPhase) {
-        if (homeNotificationPhase !is HomeNotificationPhase.Off) {
-            kotlinx.coroutines.delay(14_000)
-            showHomeNotification = false
+    // Home notifications are remote-configurable (admin campaign).
+    val notificationPhase = rememberHomeNotificationPhase(settings.homeNotificationMode, settings.homeNotificationType, settings.homeNotificationTargetDate)
+    var showNotification by remember(notificationPhase) { mutableStateOf(notificationPhase !is HomeNotificationPhase.Off) }
+    LaunchedEffect(notificationPhase) {
+        if (notificationPhase !is HomeNotificationPhase.Off) {
+            delay(HOME_NOTIFICATION_VISIBLE_MS)
+            showNotification = false
         }
     }
+    val leadingItems = 1 + if (hasContent) 0 else 1
 
-    // ═══════════════════════════════════════════════════════════════════
-    // MOBILE / PHONE LAYOUT
-    // ═══════════════════════════════════════════════════════════════════
-    if (!tv.isTv) {
-        val mobileZone = remember(weather.timeZoneId) { weather.timeZoneId.toZoneId() }
-        var mobileNow by remember(mobileZone) { mutableStateOf(ZonedDateTime.now(mobileZone)) }
-        LaunchedEffect(mobileZone) {
-            while (true) {
-                kotlinx.coroutines.delay(1000)
-                mobileNow = ZonedDateTime.now(mobileZone)
+    CompositionLocalProvider(LocalReduceMotion provides performancePolicy.reduceMotion) {
+        if (!tv.isTv) {
+            // ═══════════════════════════════════════════════════════════════
+            // PHONE / TABLET
+            // ═══════════════════════════════════════════════════════════════
+            val mobileListState = rememberLazyListState()
+            LaunchedEffect(restoreRowIndex) {
+                restoreRowIndex?.let { mobileListState.scrollToItem(leadingItems + it) }
             }
-        }
-        val mobileClock = mobileNow.format(DateTimeFormatter.ofPattern("HH:mm"))
-        val mobileListState = rememberLazyListState()
-        val mobileRestoreIndex = remember(
-            restoreFocusItem,
-            tv.isLowHeightLandscape,
-            hasContent,
-            continueWatching,
-            latestMovies,
-            latestSeries,
-        ) {
-            homeRestoreIndex(
-                target = restoreFocusItem,
-                leadingItems = 1 + (if (!tv.isLowHeightLandscape) 1 else 0) + (if (!hasContent) 1 else 0),
-                lanes = listOf(homeContinue, homeMovies, homeSeries),
-            )
-        }
-        LaunchedEffect(mobileRestoreIndex, restoreFocusItem?.id) {
-            if (mobileRestoreIndex != null) mobileListState.scrollToItem(mobileRestoreIndex)
-        }
-        Box(Modifier.fillMaxSize()) {
-            AtmosphericSkyGradient(
-                timeZoneId = weather.timeZoneId,
-                animate = settings.motionLevel != MotionLevel.LOW && !performancePolicy.reduceMotion,
-            )
-            CinematicBackdrop(
-                selectedBackdrop,
-                showParticles = performancePolicy.enableParticles && settings.motionLevel != MotionLevel.LOW,
-                imageSize = performancePolicy.backdropImageSize,
-                modifier = Modifier.graphicsLayer { alpha = backdropAlpha },
-            )
-            LazyColumn(
-                state = mobileListState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(tv.contentPadding, tv.contentPadding, tv.contentPadding, tv.bottomBarHeight),
-                verticalArrangement = Arrangement.spacedBy(tv.laneSpacing),
-            ) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_splash_logo),
-                            contentDescription = "MoPlayer Pro",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .height(if (tv.isLowHeightLandscape) 32.dp else 42.dp)
-                                .widthIn(max = if (tv.isLowHeightLandscape) 96.dp else 120.dp),
-                        )
-                        if (tv.isLowHeightLandscape) {
-                            AiHomeButton("Smart assistant", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth(0.50f)) { showAiAssistant = true }
-                        }
-                        if (performancePolicy.enableWidgets && (settings.showClockWidget || (settings.showWeatherWidget && weather.hasRealWeather))) {
-                            MobileWeatherChip(weather, visuals, mobileClock, settings.showWeatherWidget, settings.showClockWidget)
-                        }
-                    }
-                }
-                if (!tv.isLowHeightLandscape) item {
-                    AiHomeButton("Smart assistant", Icons.Rounded.AutoAwesome, Modifier.fillMaxWidth()) { showAiAssistant = true }
-                }
-                if (!hasContent) {
-                    item {
-                        EmptyState(
-                            title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
-                            message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
-                            modifier = Modifier.fillMaxWidth().height(220.dp),
-                        )
-                    }
-                }
-                if (homeContinue.isNotEmpty()) {
-                    item { MediaLane(strings.railContinueWatching, homeContinue, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue", maxItems = HOME_SHELF_LIMIT) }
-                }
-                if (homeMovies.isNotEmpty()) {
-                    item { MediaLane(strings.railLatestMovies, homeMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies", maxItems = HOME_SHELF_LIMIT) }
-                }
-                if (homeSeries.isNotEmpty()) {
-                    item { MediaLane(strings.railLatestSeries, homeSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries", maxItems = HOME_SHELF_LIMIT) }
-                }
-            }
-            HomeNotificationOverlay(
-                visible = showHomeNotification && performancePolicy.enableWidgets,
-                phase = homeNotificationPhase,
-                accent = accent,
-                title = settings.homeNotificationTitle,
-                message = settings.homeNotificationMessage,
-                reduceMotion = performancePolicy.reduceMotion,
-                maxWidth = 560.dp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = tv.bottomBarHeight + 16.dp, start = 16.dp, end = 16.dp),
-            )
-            if (showAiAssistant) {
-                AiAssistantPanel(
-                    allContent = allContent,
-                    football = football,
-                    seed = surpriseSeed,
-                    chat = aiChat,
-                    input = aiInput,
-                    compact = tv.isCompact || tv.isLowHeightLandscape,
-                    mode = aiMode,
-                    onInput = { aiInput = it },
-                    onSend = {
-                        val message = aiInput.trim()
-                        if (message.isNotBlank()) {
-                            askAi(message)
-                            aiInput = ""
-                        }
-                    },
-                    onQuickQuestion = ::askAi,
-                    onMode = { mode ->
-                        aiMode = mode
-                        surpriseSeed++
-                        aiChat = aiChat + AiChatMessage(mode.prompt, true) + AiChatMessage(aiReply(mode.prompt, allContent, football), false)
-                    },
-                    onPlay = onPlay,
-                    onClose = { showAiAssistant = false },
-                    modifier = Modifier.align(Alignment.Center),
+            Box(Modifier.fillMaxSize()) {
+                CinematicBackdrop(
+                    selectedBackdrop,
+                    showParticles = showParticles,
+                    imageSize = performancePolicy.backdropImageSize,
+                    imageAlpha = backdropAlpha,
                 )
-            }
-        }
-        return
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // TV / ANDROID TV LAYOUT — Cinematic 2026 with Atmospheric Weather
-    // ═══════════════════════════════════════════════════════════════════
-    // (Removed a dead per-second clock ticker here: it recomposed the whole Home screen
-    // every second on TV yet its output was never rendered — the visible hero clock is
-    // driven by HeroWeatherInline's own ticker. Letting Home reach idle avoids constant
-    // wasted redraws on weak boxes.)
-    val tvListState = rememberLazyListState()
-    val tvRestoreIndex = remember(
-        restoreFocusItem,
-        hasContent,
-        continueWatching,
-        recentLive,
-        latestLive,
-        latestMovies,
-        latestSeries,
-    ) {
-        homeRestoreIndex(
-            target = restoreFocusItem,
-            leadingItems = 1 + if (!hasContent) 1 else 0,
-            lanes = listOf(homeContinue, homeMovies, homeSeries),
-        )
-    }
-    LaunchedEffect(tvRestoreIndex, restoreFocusItem?.id) {
-        if (tvRestoreIndex != null) tvListState.scrollToItem(tvRestoreIndex)
-    }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .onPreviewKeyEvent { event ->
-                if (!showAiAssistant || !tv.isTv || event.type != KeyEventType.KeyUp) return@onPreviewKeyEvent false
-                when (event.key) {
-                    Key.DirectionDown, Key.DirectionRight -> {
-                        aiTvAction = (aiTvAction + 1) % 6
-                        true
+                LazyColumn(
+                    state = mobileListState,
+                    modifier = Modifier.fillMaxSize().padding(top = tv.contentPadding),
+                    contentPadding = PaddingValues(bottom = tv.bottomBarHeight + 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(tv.laneSpacing),
+                ) {
+                    item(key = "header") {
+                        MobileHomeHeader(
+                            weather = weather,
+                            settings = settings,
+                            widgetsEnabled = performancePolicy.enableWidgets,
+                            onAssistant = { showAssistant = true },
+                            modifier = Modifier.padding(horizontal = tv.contentPadding),
+                        )
                     }
-                    Key.DirectionUp, Key.DirectionLeft -> {
-                        aiTvAction = (aiTvAction + 5) % 6
-                        true
-                    }
-                    Key.Enter, Key.DirectionCenter -> {
-                        when (aiTvAction) {
-                            0 -> aiPicks(allContent, football, surpriseSeed, AiSuggestionMode.SURPRISE).firstOrNull()?.let(onPlay)
-                            1 -> askAi(AiSuggestionMode.MOVIES.prompt)
-                            2 -> askAi(AiSuggestionMode.SERIES.prompt)
-                            3 -> askAi(AiSuggestionMode.LIVE.prompt)
-                            4 -> askAi(AiSuggestionMode.SPORTS.prompt)
-                            else -> askAi(AiSuggestionMode.CONTINUE.prompt)
+                    if (!hasContent) {
+                        item(key = "empty") {
+                            EmptyState(
+                                title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
+                                message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
+                                modifier = Modifier.padding(horizontal = tv.contentPadding).fillMaxWidth().heightIn(min = 200.dp),
+                            )
                         }
-                        true
                     }
-                    Key.Back, Key.Escape -> {
-                        showAiAssistant = false
-                        true
+                    itemsIndexed(rows, key = { _, row -> row.kind.name }) { index, row ->
+                        MediaLane(
+                            title = row.title(h, strings),
+                            items = row.items,
+                            onFocus = wrappedOnFocus,
+                            onClick = onPlay,
+                            onFavorite = onFavorite,
+                            style = row.style,
+                            restoreFocusTarget = if (index == restoreRowIndex) pendingRestore else null,
+                            contentPadding = PaddingValues(horizontal = tv.contentPadding),
+                        )
                     }
-                    else -> false
                 }
-            },
-    ) {
-        AtmosphericSkyGradient(
-            timeZoneId = weather.timeZoneId,
-            animate = settings.motionLevel != MotionLevel.LOW && !performancePolicy.reduceMotion,
-        )
-        CinematicBackdrop(
-            selectedBackdrop,
-            showParticles = performancePolicy.enableParticles && settings.motionLevel != MotionLevel.LOW,
-            imageSize = performancePolicy.backdropImageSize,
-            modifier = Modifier.graphicsLayer { alpha = backdropAlpha },
-        )
-        LazyColumn(
-            state = tvListState,
-            verticalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = tv.contentPadding, top = (168 * tv.factor).dp, end = tv.contentPadding, bottom = 120.dp),
-        ) {
-            // Fast assistant — sits right above Continue watching for easy remote reach.
-            item {
-                HomeAssistantButton(reduceMotion = performancePolicy.reduceMotion) {
-                    aiTvAction = 0
-                    showAiAssistant = true
-                }
-            }
-            // ── CONTENT RAILS ───────────────────────────────────────────
-            if (!hasContent) {
-                item {
-                    EmptyState(
-                        title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
-                        message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
-                        modifier = Modifier.fillMaxWidth().height((260 * tv.factor).dp),
+                HomeNotificationOverlay(
+                    visible = showNotification && performancePolicy.enableWidgets,
+                    phase = notificationPhase,
+                    type = settings.homeNotificationType,
+                    title = settings.homeNotificationTitle,
+                    message = settings.homeNotificationMessage,
+                    reduceMotion = performancePolicy.reduceMotion,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = tv.bottomBarHeight + 16.dp, start = 16.dp, end = 16.dp)
+                        .widthIn(max = 560.dp),
+                )
+                if (showAssistant) {
+                    MobileAssistantPanel(
+                        allContent = allContent,
+                        football = football,
+                        seed = surpriseSeed,
+                        chat = assistantChat,
+                        input = assistantInput,
+                        compact = tv.isCompact || tv.isLowHeightLandscape,
+                        mode = assistantMode,
+                        onInput = { assistantInput = it },
+                        onSend = {
+                            val message = assistantInput.trim()
+                            if (message.isNotBlank()) {
+                                askAssistant(message)
+                                assistantInput = ""
+                            }
+                        },
+                        onMode = onAssistantMode,
+                        onPlay = onPlay,
+                        onClose = { showAssistant = false },
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
             }
-            if (homeContinue.isNotEmpty()) {
-                item { MediaLane(strings.railResume, homeContinue, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "continue", maxItems = HOME_SHELF_LIMIT, compact = true, showTitle = false, posterWidthOverride = (94 * tv.factor).dp) }
-            }
-            if (homeMovies.isNotEmpty()) {
-                item { MediaLane(strings.navMovies, homeMovies, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestMovies", maxItems = HOME_SHELF_LIMIT, compact = true) }
-            }
-            if (homeSeries.isNotEmpty()) {
-                item { MediaLane(strings.navSeries, homeSeries, wrappedOnFocus, onPlay, onFavorite, restoreFocusTarget = restoreFocusItem, autoFocusFirstItem = allowInitialContentFocus && firstFocusableHomeLane == "latestSeries", maxItems = HOME_SHELF_LIMIT, compact = true) }
-            }
+            return@CompositionLocalProvider
         }
-        // Top scrim keeps the boxless hero readable as content scrolls beneath it.
-        Box(
-            Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .height((205 * tv.factor).dp)
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color(0xF0070708),
-                        0.55f to Color(0xB3070708),
-                        1f to Color.Transparent,
-                    ),
-                ),
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .fillMaxWidth()
-                .padding(start = tv.contentPadding, top = (18 * tv.factor).dp, end = tv.contentPadding),
-        ) {
-            HomeHero(
-                highlightedItem = highlightedHomeItem,
-                weather = weather,
-                matches = topFootballMatches,
-                phase = homeNotificationPhase,
-                notificationTitle = settings.homeNotificationTitle,
-                activeServer = activeServer,
-                showWeather = settings.showWeatherWidget,
-                showClock = settings.showClockWidget,
-                showWidgets = performancePolicy.enableWidgets,
-                reduceMotion = performancePolicy.reduceMotion,
-                accent = accent,
+
+        // ═══════════════════════════════════════════════════════════════════
+        // ANDROID TV — hero (focused title + status) above scrolling rows
+        // ═══════════════════════════════════════════════════════════════════
+        val tvListState = rememberLazyListState()
+        LaunchedEffect(restoreRowIndex) {
+            restoreRowIndex?.let { tvListState.scrollToPivotIfNeeded(leadingItems + it) }
+        }
+        Box(Modifier.fillMaxSize()) {
+            CinematicBackdrop(
+                selectedBackdrop,
+                showParticles = showParticles,
+                imageSize = performancePolicy.backdropImageSize,
+                imageAlpha = backdropAlpha,
             )
-        }
-        if (showAiAssistant) {
-            AiAssistantPanel(
-                allContent = allContent,
-                football = football,
-                seed = surpriseSeed,
-                chat = aiChat,
-                input = aiInput,
-                compact = false,
-                selectedTvAction = aiTvAction,
-                mode = aiMode,
-                onInput = { aiInput = it },
-                onSend = {
-                    val message = aiInput.trim()
-                    if (message.isNotBlank()) {
-                        askAi(message)
-                        aiInput = ""
+            Box(Modifier.fillMaxSize().background(HomeReadabilityScrim))
+            Column(Modifier.fillMaxSize()) {
+                HomeHero(
+                    item = highlightedItem,
+                    weather = weather,
+                    matches = footballMatches,
+                    phase = notificationPhase,
+                    campaignType = settings.homeNotificationType,
+                    campaignTitleOverride = settings.homeNotificationTitle,
+                    activeServer = activeServer,
+                    showWeather = settings.showWeatherWidget,
+                    showClock = settings.showClockWidget,
+                    showWidgets = performancePolicy.enableWidgets,
+                    animate = !performancePolicy.reduceMotion,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = tv.contentPadding, end = tv.contentPadding, top = tv.verticalSafePadding),
+                )
+                Box(Modifier.fillMaxWidth().weight(1f)) {
+                    CompositionLocalProvider(LocalBringIntoViewSpec provides rememberTvBringIntoViewSpec()) {
+                        LazyColumn(
+                            state = tvListState,
+                            // Bottom padding lets the last row scroll clear of the floating dock.
+                            contentPadding = PaddingValues(top = tv.u(12f), bottom = tv.u(104f)),
+                            verticalArrangement = Arrangement.spacedBy(tv.u(16f)),
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            item(key = "smart-picks") {
+                                Box(Modifier.fillMaxWidth().padding(horizontal = tv.contentPadding)) {
+                                    SmartPicksButton(accent = accent, onClick = { showAssistant = true })
+                                }
+                            }
+                            if (!hasContent) {
+                                item(key = "empty") {
+                                    EmptyState(
+                                        title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
+                                        message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
+                                        modifier = Modifier.padding(horizontal = tv.contentPadding).fillMaxWidth().height(tv.u(200f)),
+                                    )
+                                }
+                            }
+                            itemsIndexed(rows, key = { _, row -> row.kind.name }) { index, row ->
+                                MediaLane(
+                                    title = row.title(h, strings),
+                                    items = row.items,
+                                    onFocus = wrappedOnFocus,
+                                    onClick = onPlay,
+                                    onFavorite = onFavorite,
+                                    style = row.style,
+                                    restoreFocusTarget = if (index == restoreRowIndex) pendingRestore else null,
+                                    autoFocusFirstItem = index == autoFocusRowIndex,
+                                    contentPadding = PaddingValues(horizontal = tv.contentPadding, vertical = tv.u(6f)),
+                                )
+                            }
+                        }
                     }
-                },
-                onQuickQuestion = ::askAi,
-                onMode = { mode ->
-                    aiMode = mode
-                    surpriseSeed++
-                    aiChat = aiChat + AiChatMessage(mode.prompt, true) + AiChatMessage(aiReply(mode.prompt, allContent, football), false)
-                },
-                onPlay = onPlay,
-                onClose = { showAiAssistant = false },
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = tv.contentPadding),
-            )
+                    // Soft edge where rows scroll under the hero.
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(tv.u(14f))
+                            .background(Brush.verticalGradient(listOf(Color(0x99070708), Color.Transparent))),
+                    )
+                }
+            }
+            if (showAssistant) {
+                TvAssistantDialog(
+                    picks = remember(allContent, football, surpriseSeed, assistantMode) { aiPicks(allContent, football, surpriseSeed, assistantMode) },
+                    latestMoviesCount = latestOfType(allContent, ContentType.MOVIE).size,
+                    latestSeriesCount = allContent.count { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }.coerceAtMost(3),
+                    lastReply = assistantChat.lastOrNull { !it.mine }?.text.orEmpty(),
+                    onMode = onAssistantMode,
+                    onPlay = { item ->
+                        showAssistant = false
+                        onPlay(item)
+                    },
+                    onClose = { showAssistant = false },
+                )
+            }
         }
     }
 }
 
-/** Drop shadow applied to every hero string so it stays crisp on any backdrop — no cards needed. */
-private val HeroTextShadow = Shadow(color = Color(0xB3000000), offset = Offset(0f, 2f), blurRadius = 16f)
+// ─────────────────────────────────────────────────────────────────────────────
+// TV hero
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun HomeHero(
-    highlightedItem: MediaItem?,
+    item: MediaItem?,
     weather: WeatherSnapshot,
     matches: List<FootballMatch>,
     phase: HomeNotificationPhase,
-    notificationTitle: String,
+    campaignType: String,
+    campaignTitleOverride: String,
     activeServer: ServerProfile?,
     showWeather: Boolean,
     showClock: Boolean,
     showWidgets: Boolean,
-    reduceMotion: Boolean,
-    accent: Color,
+    animate: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     val tv = rememberTvScale()
-    val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val strings = LocalStrings.current
+    val h = strings.home
     val showWeatherCluster = showClock || (showWeather && weather.hasRealWeather)
     CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.copy(shadow = HeroTextShadow)) {
-        Column(
-            Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy((16 * tv.factor).dp),
-        ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                // Brand mark + the auto-surfaced title of whatever is in focus.
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy((18 * tv.factor).dp),
-                    modifier = Modifier.weight(1f),
-                ) {
+        Row(modifier, verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(tv.u(24f))) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(tv.u(4f))) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(tv.u(10f))) {
                     Image(
-                        painter = painterResource(R.drawable.ic_splash_logo),
+                        painter = painterResource(R.drawable.ic_brand_mark),
                         contentDescription = "MoPlayer Pro",
                         contentScale = ContentScale.Fit,
-                        alignment = Alignment.CenterStart,
-                        modifier = Modifier.height((52 * tv.factor).dp),
+                        modifier = Modifier.height(tv.u(26f)),
                     )
-                    Column(verticalArrangement = Arrangement.spacedBy((3 * tv.factor).dp)) {
-                        Text(
-                            heroKicker(highlightedItem, isArabic),
-                            color = Color(0xFFF1CC83),
-                            fontSize = (13 * tv.factor).sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 2.sp,
-                            maxLines = 1,
-                        )
-                        Text(
-                            highlightedItem?.title?.takeIf { it.isNotBlank() }
-                                ?: if (isArabic) "أهلاً بك" else "Welcome back",
-                            color = Color.White,
-                            fontWeight = FontWeight.Black,
-                            fontSize = (34 * tv.factor).sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = (720 * tv.factor).dp),
-                        )
-                        AccountSummaryLine(activeServer, isArabic)
-                    }
+                    Box(Modifier.width(1.dp).height(tv.u(14f)).background(Color.White.copy(alpha = 0.30f)))
+                    Text(
+                        heroKicker(item, h),
+                        color = Gold,
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 1.4.sp),
+                        maxLines = 1,
+                    )
                 }
+                Text(
+                    item?.title?.takeIf { it.isNotBlank() } ?: h.heroWelcome,
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    heroMeta(item, h, strings),
+                    color = Color.White.copy(alpha = 0.80f),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(tv.u(6f))) {
+                if (showWidgets && showWeatherCluster) {
+                    HeroWeatherClock(weather, showWeather, showClock, animate)
+                }
+                AccountSummaryLine(activeServer)
                 if (showWidgets) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy((20 * tv.factor).dp),
-                    ) {
-                        if (showWeatherCluster) {
-                            HeroWeatherInline(weather, showWeather, showClock, !reduceMotion)
-                        }
-                        if (showWeatherCluster && phase !is HomeNotificationPhase.Off) {
-                            HeroDivider()
-                        }
-                        HeroCountdown(phase, notificationTitle, accent, !reduceMotion, isArabic)
+                    when {
+                        matches.isNotEmpty() -> FootballWidget(matches, animate)
+                        phase !is HomeNotificationPhase.Off -> CampaignPill(phase, campaignType, campaignTitleOverride, animate)
                     }
-                }
-            }
-
-            if (showWidgets && matches.isNotEmpty()) {
-                // Rotate through the widget's matches (live first, then upcoming with kickoff
-                // times) every ~8s with a soft crossfade — every match gets screen time instead of
-                // only the first one. A single match renders exactly as before.
-                var matchIndex by remember(matches) { mutableIntStateOf(0) }
-                LaunchedEffect(matches) {
-                    if (matches.size > 1) {
-                        while (true) {
-                            kotlinx.coroutines.delay(8_000L)
-                            matchIndex = (matchIndex + 1) % matches.size
-                        }
-                    }
-                }
-                Crossfade(
-                    targetState = matches[matchIndex % matches.size],
-                    animationSpec = tween(if (reduceMotion) 0 else 600),
-                    label = "matchRotation",
-                ) { match ->
-                    HeroMatchStrip(match, accent, !reduceMotion, isArabic)
                 }
             }
         }
     }
 }
 
+private fun heroKicker(item: MediaItem?, h: HomeStrings): String = when (item?.type) {
+    ContentType.LIVE -> h.kickerLive
+    ContentType.MOVIE -> h.kickerMovie
+    ContentType.SERIES -> h.kickerSeries
+    ContentType.EPISODE -> h.kickerEpisode
+    null -> h.rowLiveTv
+}
+
+/** One metadata line under the hero title: category + channel number, or rating/year/length/genre. */
+internal fun heroMeta(item: MediaItem?, h: HomeStrings, strings: Strings): String {
+    if (item == null) return h.heroWelcomeHint
+    val parts = if (item.type == ContentType.LIVE) {
+        listOfNotNull(
+            item.categoryName.takeIf { it.isNotBlank() }?.isolate(),
+            item.serverOrder.takeIf { it != Int.MAX_VALUE }?.let(h.channelNumber),
+        )
+    } else {
+        listOfNotNull(
+            item.rating.takeIf { it.isNotBlank() }?.let { "★ ${it.ltr()}" },
+            item.releaseDate.take(4).takeIf { it.length == 4 && it.all(Char::isDigit) }?.ltr(),
+            item.durationSecs.takeIf { it > 0 }?.let { formatDuration(it, h) },
+            item.genre.substringBefore(',').trim().takeIf { it.isNotBlank() }?.isolate(),
+            addedAtLabel(item, h.locale)?.let { "${strings.addedPrefix} $it" },
+        ).take(4)
+    }
+    return parts.joinToString("  •  ").ifBlank { typeLabelFor(item, h) }
+}
+
+private fun typeLabelFor(item: MediaItem, h: HomeStrings): String = when (item.type) {
+    ContentType.LIVE -> h.typeLive
+    ContentType.MOVIE -> h.typeMovie
+    ContentType.SERIES -> h.typeSeries
+    ContentType.EPISODE -> h.typeEpisode
+}
+
 @Composable
-private fun HeroDivider() {
+private fun HeroWeatherClock(weather: WeatherSnapshot, showWeather: Boolean, showClock: Boolean, animate: Boolean) {
     val tv = rememberTvScale()
-    Box(
-        Modifier
-            .height((50 * tv.factor).dp)
-            .width(1.dp)
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color.Transparent, Color.White.copy(alpha = 0.22f), Color.Transparent),
-                ),
-            ),
-    )
+    val hasWeather = showWeather && weather.hasRealWeather
+    val condColor = weatherConditionColor(weather.condition)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(tv.u(10f))) {
+        if (hasWeather) {
+            WeatherGlyph(weather.condition.lowercase(), condColor, animate = animate, modifier = Modifier.size(tv.u(28f)))
+            Text(
+                weatherLine(weather),
+                color = Color.White.copy(alpha = 0.92f),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = tv.u(170f)),
+            )
+        }
+        if (showClock) {
+            MinuteClock(
+                timeZoneId = weather.timeZoneId,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+            )
+        }
+    }
 }
 
-private fun heroKicker(item: MediaItem?, isArabic: Boolean): String = when (item?.type) {
-    ContentType.MOVIE -> if (isArabic) "فيلم" else "MOVIE"
-    ContentType.SERIES, ContentType.EPISODE -> if (isArabic) "مسلسل" else "SERIES"
-    ContentType.LIVE -> if (isArabic) "بث مباشر" else "LIVE TV"
-    else -> if (isArabic) "متابعة المشاهدة" else "CONTINUE WATCHING"
+private fun weatherLine(weather: WeatherSnapshot): String {
+    val temperature = "${weather.temperatureC.roundToInt()}°".ltr()
+    val place = weather.city.ifBlank { weather.condition }
+    return "$temperature · ${place.isolate()}"
+}
+
+/** Clock that ticks on minute boundaries — it never recomposes Home once per second. */
+@Composable
+private fun MinuteClock(timeZoneId: String, style: androidx.compose.ui.text.TextStyle, color: Color = Color.White) {
+    val zone = remember(timeZoneId) { timeZoneId.toZoneId() }
+    var now by remember(zone) { mutableStateOf(ZonedDateTime.now(zone)) }
+    LaunchedEffect(zone) {
+        while (true) {
+            delay(60_000L - System.currentTimeMillis() % 60_000L + 50L)
+            now = ZonedDateTime.now(zone)
+        }
+    }
+    Text(now.format(ClockFormatter).ltr(), color = color, style = style, maxLines = 1)
 }
 
 @Composable
-private fun AccountSummaryLine(server: ServerProfile?, isArabic: Boolean) {
-    if (server == null || (server.expiryDate <= 0 && server.maxConnections <= 0 && server.accountStatus.isBlank())) return
-    val now = remember { System.currentTimeMillis() }
-    val daysLeft = if (server.expiryDate > 0) ((server.expiryDate - now) / 86_400_000L).coerceAtLeast(0) else null
-    val expiry = server.expiryDate.takeIf { it > 0 }?.let {
-        DateTimeFormatter.ofPattern("yyyy-MM-dd").format(java.time.Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()))
-    }
-    val pieces = buildList {
-        add(server.accountStatus.ifBlank { if (isArabic) "نشط" else "Active" })
-        if (expiry != null && daysLeft != null) {
-            add(if (isArabic) "ينتهي $expiry - $daysLeft يوم" else "Expires $expiry - $daysLeft days")
-        }
-        if (server.maxConnections > 0) {
-            add(if (isArabic) "الاتصالات ${server.activeConnections}/${server.maxConnections}" else "Connections ${server.activeConnections}/${server.maxConnections}")
-        }
-    }
+private fun AccountSummaryLine(server: ServerProfile?) {
+    val h = LocalStrings.current.home
+    val summary = remember(server, h) { server?.let { accountSummary(it, h, System.currentTimeMillis()) }.orEmpty() }
+    if (summary.isBlank()) return
     Text(
-        pieces.joinToString("  |  "),
+        summary,
         color = Color(0xFFE3BC78),
         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.widthIn(max = 720.dp),
+        modifier = Modifier.widthIn(max = 420.dp),
+    )
+}
+
+/** "Active · 45 days left · Connections 0/2", localized and bidi-safe. Blank when nothing is known. */
+internal fun accountSummary(server: ServerProfile, h: HomeStrings, nowMs: Long): String {
+    if (server.expiryDate <= 0 && server.maxConnections <= 0 && server.accountStatus.isBlank()) return ""
+    val status = when (server.accountStatus.trim().lowercase(Locale.ROOT)) {
+        "", "active" -> h.accountActive
+        "expired" -> h.accountExpired
+        "banned", "disabled" -> h.accountDisabled
+        else -> server.accountStatus.trim().isolate()
+    }
+    return buildList {
+        add(status)
+        if (server.expiryDate > 0) add(h.accountDaysLeft(((server.expiryDate - nowMs) / 86_400_000L).coerceAtLeast(0)))
+        if (server.maxConnections > 0) add(h.accountConnections(server.activeConnections, server.maxConnections))
+    }.joinToString("  ·  ")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Football widget — live / upcoming only; hidden when nothing is relevant (M9)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun FootballWidget(matches: List<FootballMatch>, animate: Boolean) {
+    val tv = rememberTvScale()
+    val h = LocalStrings.current.home
+    var index by remember(matches) { mutableIntStateOf(0) }
+    LaunchedEffect(matches) {
+        if (matches.size > 1) {
+            while (true) {
+                delay(MATCH_ROTATION_MS)
+                index = (index + 1) % matches.size
+            }
+        }
+    }
+    val match = matches[index % matches.size]
+    val motion = rememberDecorativeMotion(animate && match.isLive, "football")
+    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(tv.u(3f))) {
+        Text(
+            listOf(h.footballTitle, match.league.trim()).filter { it.isNotBlank() }.joinToString(" · "),
+            color = Gold.copy(alpha = 0.85f),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 0.6.sp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = tv.u(320f)),
+        )
+        Crossfade(targetState = match, animationSpec = tween(if (animate) 450 else 0), label = "matchRotation") { shown ->
+            FootballScoreRow(shown, motion, h)
+        }
+    }
+}
+
+@Composable
+private fun FootballScoreRow(match: FootballMatch, motion: State<Float>?, h: HomeStrings) {
+    val tv = rememberTvScale()
+    val goals = remember(match.score) { parseScore(match.score) }
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color(0xB3121014))
+            .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(999.dp))
+            .padding(horizontal = tv.u(12f), vertical = tv.u(5f)),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(tv.u(8f)),
+    ) {
+        when {
+            match.isLive -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                LivePulseDot(motion, Modifier.size(8.dp), color = LiveRed)
+                Text(
+                    listOf(h.footballLive, match.minute.takeIf { it.isNotBlank() && it != "LIVE" }?.ltr()).filterNotNull().joinToString(" "),
+                    color = LiveRed,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black),
+                    maxLines = 1,
+                )
+            }
+            match.isFinished -> Text(h.footballFullTime, color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), maxLines = 1)
+            match.minute.isNotBlank() -> Text(match.minute.ltr(), color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), maxLines = 1)
+        }
+        // Nested row: in Arabic the teams mirror, and each team's goals stay next to that team.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(tv.u(6f))) {
+            TeamCrest(match.home, match.homeBadge)
+            TeamName(match.home)
+            if (goals != null) {
+                ScoreText(goals.first)
+                ScoreText("–")
+                ScoreText(goals.second)
+            } else {
+                Text(h.footballVersus, color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black))
+            }
+            TeamName(match.away)
+            TeamCrest(match.away, match.awayBadge)
+        }
+    }
+}
+
+/** "2-1" -> ("2", "1"); null for "", "VS" or anything that is not two numbers. */
+internal fun parseScore(score: String): Pair<String, String>? {
+    val parts = score.split('-', '–', ':', limit = 2).map { it.trim() }
+    if (parts.size != 2 || parts.any { it.isEmpty() || !it.all(Char::isDigit) }) return null
+    return parts[0] to parts[1]
+}
+
+@Composable
+private fun TeamName(name: String) {
+    val tv = rememberTvScale()
+    Text(
+        name,
+        color = Color.White,
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.widthIn(max = tv.u(110f)),
     )
 }
 
 @Composable
-private fun HomeAssistantButton(modifier: Modifier = Modifier, reduceMotion: Boolean = false, onClick: () -> Unit) {
-    val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
-    val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
-    // Gate the sheen so the assistant button stops pinning the home screen at ~36fps when
-    // motion is reduced; the static value keeps the same restful glow.
-    val sparkle = if (reduceMotion) {
-        0.85f
-    } else {
-        val transition = rememberInfiniteTransition(label = "assistant-sheen")
-        val raw by transition.animateFloat(
-            initialValue = 0.55f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "sparkle",
-        )
-        raw
-    }
-    FocusGlow(
-        modifier = modifier.height((58 * tv.factor).dp).widthIn(max = (340 * tv.factor).dp),
-        cornerRadius = (18 * tv.factor).dp,
-        onClick = onClick,
-    ) {
-        GlassPanel(
-            radius = (18 * tv.factor).dp,
-            highlighted = true,
-            blur = 14.dp,
-            glow = visuals.accent.copy(alpha = 0.28f * sparkle),
-        ) {
-            Row(
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(visuals.accent.copy(alpha = 0.20f), Color.Transparent),
-                        ),
-                    )
-                    .padding(horizontal = (18 * tv.factor).dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((13 * tv.factor).dp),
-            ) {
-                Box(
-                    Modifier
-                        .size((38 * tv.factor).dp)
-                        .clip(CircleShape)
-                        .background(visuals.accent.copy(alpha = 0.18f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Rounded.AutoAwesome, null, tint = visuals.accent, modifier = Modifier.size((22 * tv.factor).dp))
-                }
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        if (isArabic) "المساعد الذكي" else "Smart picks",
-                        color = Color.White,
-                        fontSize = (16 * tv.factor).sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                    )
-                    Text(
-                        if (isArabic) "اقتراحات فورية من مكتبتك" else "Instant picks from your library",
-                        color = Color(0xB8FFFFFF),
-                        fontSize = (10 * tv.factor).sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Icon(Icons.Rounded.ChevronRight, null, tint = Color(0xCCFFFFFF), modifier = Modifier.size((22 * tv.factor).dp))
-            }
-        }
-    }
+private fun ScoreText(value: String) {
+    Text(value, color = Color.White, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black), maxLines = 1)
 }
 
 @Composable
-private fun HeroMatchStrip(match: FootballMatch, accent: Color, animate: Boolean, isArabic: Boolean) {
-    val tv = rememberTvScale()
-    val pulse = if (animate && match.isLive) {
-        val pulseTransition = rememberInfiniteTransition(label = "hero-match")
-        val rawPulse by pulseTransition.animateFloat(
-            initialValue = 0.4f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "pulse",
-        )
-        rawPulse
-    } else 0.85f
-    val liveColor = Color(0xFFFF4D5E)
-    Row(
-        Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy((14 * tv.factor).dp),
-    ) {
-        // Status — live pulse + minute, or kickoff time.
-        if (match.isLive) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((7 * tv.factor).dp),
-            ) {
-                Box(
-                    Modifier
-                        .size((10 * tv.factor).dp)
-                        .drawBehind {
-                            drawCircle(liveColor.copy(alpha = 0.35f * pulse), radius = size.minDimension * 1.5f)
-                            drawCircle(liveColor.copy(alpha = pulse))
-                        },
-                )
-                Text(
-                    (if (isArabic) "مباشر" else "LIVE") + if (match.minute.isNotBlank()) "  ${match.minute}" else "",
-                    color = liveColor,
-                    fontSize = (14 * tv.factor).sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 0.5.sp,
-                    maxLines = 1,
-                )
-            }
-        } else if (match.minute.isNotBlank()) {
-            Text(
-                match.minute,
-                color = Color(0xCCFFFFFF),
-                fontSize = (14 * tv.factor).sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-            )
-        }
-        // League
-        Text(
-            match.league.ifBlank { if (isArabic) "مباراة" else "Match" }.uppercase(),
-            color = Color(0xCCF1CC83),
-            fontSize = (13 * tv.factor).sp,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = 0.6.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = (240 * tv.factor).dp),
-        )
-        Spacer(Modifier.weight(1f))
-        // Teams + score — the clear, bigger centrepiece.
-        HeroCrest(match.home, match.homeBadge)
-        Text(
-            match.home,
-            color = Color.White,
-            fontSize = (18 * tv.factor).sp,
-            fontWeight = FontWeight.ExtraBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = (200 * tv.factor).dp),
-        )
-        Text(
-            match.score.ifBlank { "VS" },
-            color = Color.White,
-            fontSize = (30 * tv.factor).sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp,
-            maxLines = 1,
-            modifier = Modifier.padding(horizontal = (6 * tv.factor).dp),
-        )
-        Text(
-            match.away,
-            color = Color.White,
-            fontSize = (18 * tv.factor).sp,
-            fontWeight = FontWeight.ExtraBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = (200 * tv.factor).dp),
-        )
-        HeroCrest(match.away, match.awayBadge)
-    }
-}
-
-@Composable
-private fun HeroCrest(name: String, badgeUrl: String) {
+private fun TeamCrest(name: String, badgeUrl: String) {
     val tv = rememberTvScale()
     val initials = remember(name) {
         name.split(' ', '-', '_').filter { it.isNotBlank() }.take(2)
@@ -826,176 +795,90 @@ private fun HeroCrest(name: String, badgeUrl: String) {
     }
     Box(
         Modifier
-            .size((40 * tv.factor).dp)
+            .size(tv.u(22f))
             .clip(CircleShape)
             .background(Brush.radialGradient(listOf(Color(0x40FFFFFF), Color(0x0A000000)))),
         contentAlignment = Alignment.Center,
     ) {
         if (badgeUrl.isNotBlank()) {
-            AsyncImage(model = badgeUrl, contentDescription = name, modifier = Modifier.fillMaxSize(0.74f))
+            AsyncImage(model = badgeUrl, contentDescription = name, modifier = Modifier.fillMaxSize(0.8f))
         } else {
-            Text(initials, color = Color.White, fontSize = (13 * tv.factor).sp, fontWeight = FontWeight.Black)
+            Text(initials, color = Color.White, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black), maxLines = 1)
         }
     }
 }
 
 @Composable
-private fun HeroWeatherInline(weather: WeatherSnapshot, showWeather: Boolean, showClock: Boolean, animate: Boolean = true) {
+private fun CampaignPill(phase: HomeNotificationPhase, type: String, titleOverride: String, animate: Boolean) {
     val tv = rememberTvScale()
-    val zoneId = remember(weather.timeZoneId) { weather.timeZoneId.toZoneId() }
-    var clock by remember(zoneId) { mutableStateOf(ZonedDateTime.now(zoneId)) }
-    LaunchedEffect(zoneId) {
-        while (true) {
-            kotlinx.coroutines.delay(1000)
-            clock = ZonedDateTime.now(zoneId)
-        }
-    }
-    val hasWeather = showWeather && weather.hasRealWeather
-    val condColor = weatherConditionColor(weather.condition)
+    val h = LocalStrings.current.home
+    val motion = rememberDecorativeMotion(animate && phase is HomeNotificationPhase.Live, "campaign-pill")
     Row(
+        Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color(0xB3121014))
+            .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(999.dp))
+            .padding(horizontal = tv.u(12f), vertical = tv.u(6f)),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
+        horizontalArrangement = Arrangement.spacedBy(tv.u(8f)),
     ) {
-        if (hasWeather) {
-            Box(
-                Modifier
-                    .size((50 * tv.factor).dp)
-                    .clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(condColor.copy(alpha = 0.32f), Color.Transparent))),
-                contentAlignment = Alignment.Center,
-            ) {
-                WeatherGlyph(
-                    weather.condition.lowercase(),
-                    condColor,
-                    animate = animate,
-                    modifier = Modifier.size((34 * tv.factor).dp),
-                )
-            }
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            if (showClock) {
-                Text(
-                    clock.format(DateTimeFormatter.ofPattern("HH:mm")),
-                    color = Color.White,
-                    fontSize = (36 * tv.factor).sp,
-                    fontWeight = FontWeight.Black,
-                    maxLines = 1,
-                )
-            }
-            if (hasWeather) {
-                Text(
-                    "${weather.temperatureC.roundToInt()}° · ${weather.city.ifBlank { weather.condition }}",
-                    color = Color.White.copy(alpha = 0.92f),
-                    fontSize = (14 * tv.factor).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = (210 * tv.factor).dp),
-                )
-            }
-        }
-    }
-}
-
-/**
- * Persistent, boxless campaign countdown (World Cup 2026 by default). Admin-driven
- * via [HomeNotificationPhase] + remote title, so it can be repurposed for any future event.
- */
-@Composable
-private fun HeroCountdown(
-    phase: HomeNotificationPhase,
-    titleOverride: String,
-    accent: Color,
-    animate: Boolean,
-    isArabic: Boolean,
-) {
-    if (phase is HomeNotificationPhase.Off) return
-    val tv = rememberTvScale()
-    val gold = Color(0xFFF1CC83)
-    val liveColor = Color(0xFFFF4D5E)
-    val pulse = if (animate) {
-        val transition = rememberInfiniteTransition(label = "wc-hero")
-        val rawPulse by transition.animateFloat(
-            initialValue = 0.45f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(950, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "wc-pulse",
+        Icon(Icons.Rounded.EmojiEvents, null, tint = Gold, modifier = Modifier.size(tv.u(18f)))
+        Text(
+            campaignTitle(type, titleOverride, h),
+            color = Color.White,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = tv.u(180f)),
         )
-        rawPulse
-    } else 0.85f
-    val label = titleOverride.ifBlank { if (isArabic) "كأس العالم 2026" else "World Cup 2026" }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy((10 * tv.factor).dp),
-    ) {
-        Box(
-            Modifier
-                .size((58 * tv.factor).dp)
-                .clip(CircleShape)
-                .background(Brush.radialGradient(listOf(gold.copy(alpha = 0.50f), gold.copy(alpha = 0.04f))))
-                .drawBehind {
-                    drawCircle(
-                        color = gold.copy(alpha = 0.55f * pulse),
-                        radius = size.minDimension * 0.5f,
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f * tv.factor),
-                    )
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("🏆", fontSize = (30 * tv.factor).sp)
-        }
-        Column(verticalArrangement = Arrangement.spacedBy((1 * tv.factor).dp)) {
-            Text(
-                label,
-                color = gold,
-                fontSize = (13 * tv.factor).sp,
-                fontWeight = FontWeight.ExtraBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = (210 * tv.factor).dp),
-            )
-            when (phase) {
-                is HomeNotificationPhase.Live -> Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy((7 * tv.factor).dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size((10 * tv.factor).dp)
-                            .drawBehind {
-                                drawCircle(liveColor.copy(alpha = 0.35f * pulse), radius = size.minDimension * 1.5f)
-                                drawCircle(liveColor.copy(alpha = pulse))
-                            },
-                    )
-                    Text(
-                        if (isArabic) "مباشر الآن" else "LIVE NOW",
-                        color = liveColor,
-                        fontSize = (17 * tv.factor).sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                    )
-                }
-                is HomeNotificationPhase.Countdown -> Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy((5 * tv.factor).dp),
-                ) {
-                    Text(
-                        phase.days.toString(),
-                        color = Color.White,
-                        fontSize = (34 * tv.factor).sp,
-                        fontWeight = FontWeight.Black,
-                        maxLines = 1,
-                    )
-                    Text(
-                        if (isArabic) "يوم" else "DAYS",
-                        color = Color(0xCCFFFFFF),
-                        fontSize = (13 * tv.factor).sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = (5 * tv.factor).dp),
-                    )
-                }
-                else -> Unit
+        when (phase) {
+            is HomeNotificationPhase.Live -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                LivePulseDot(motion, Modifier.size(8.dp), color = LiveRed)
+                Text(h.campaignLiveNow, color = LiveRed, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), maxLines = 1)
             }
+            is HomeNotificationPhase.Countdown -> Text(
+                h.campaignStartsIn(phase.days),
+                color = Gold,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                maxLines = 1,
+            )
+            else -> Unit
+        }
+    }
+}
+
+@Composable
+private fun SmartPicksButton(accent: Color, onClick: () -> Unit) {
+    val tv = rememberTvScale()
+    val h = LocalStrings.current.home
+    FocusGlow(
+        modifier = Modifier.heightIn(min = tv.u(40f)),
+        cornerRadius = 999.dp,
+        onClick = onClick,
+        focusedScale = FocusScale.Button,
+        glowElevation = 10.dp,
+    ) {
+        val focused = LocalFocusGlowFocused.current
+        val content = if (focused) Color(0xFF15110D) else Color.White
+        Row(
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(
+                    if (focused) {
+                        Brush.horizontalGradient(listOf(Color.White.copy(alpha = 0.95f), Color.White.copy(alpha = 0.95f)))
+                    } else {
+                        Brush.horizontalGradient(listOf(accent.copy(alpha = 0.26f), Color(0xB3121014)))
+                    },
+                )
+                .border(1.dp, if (focused) Color.Transparent else accent.copy(alpha = 0.38f), RoundedCornerShape(999.dp))
+                .padding(horizontal = tv.u(14f), vertical = tv.u(8f)),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(tv.u(10f)),
+        ) {
+            Icon(Icons.Rounded.AutoAwesome, null, tint = if (focused) Color(0xFF15110D) else accent, modifier = Modifier.size(tv.u(18f)))
+            Text(h.smartPicksTitle, color = content, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1)
+            Text(h.smartPicksSubtitle, color = content.copy(alpha = 0.72f), style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = content.copy(alpha = 0.8f), modifier = Modifier.size(tv.u(18f)))
         }
     }
 }
@@ -1004,11 +887,10 @@ private fun HeroCountdown(
 private fun HomeNotificationOverlay(
     visible: Boolean,
     phase: HomeNotificationPhase,
-    accent: Color,
+    type: String,
     title: String,
     message: String,
     reduceMotion: Boolean,
-    maxWidth: Dp,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -1019,131 +901,82 @@ private fun HomeNotificationOverlay(
     ) {
         HomeNotificationAnnouncement(
             phase = phase,
-            accent = accent,
+            type = type,
             titleOverride = title,
             messageOverride = message,
             animate = !reduceMotion,
-            modifier = Modifier
-                .heightIn(max = 72.dp)
-                .widthIn(max = maxWidth),
+            modifier = Modifier.heightIn(max = 76.dp),
         )
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────
-// Mobile Weather Chip (compact glass widget for phone/tablet)
-// ──────────────────────────────────────────────────────────────────────
-@Composable
-private fun MobileWeatherChip(weather: WeatherSnapshot, visuals: MoVisuals, clock: String, showWeather: Boolean = true, showClock: Boolean = true) {
-    val hasWeather = showWeather && weather.hasRealWeather
-    if (!hasWeather && !showClock) return
-    GlassPanel(radius = 16.dp, blur = 10.dp) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            // Mini weather condition indicator
-            if (hasWeather) {
-                Box(
-                    Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.radialGradient(
-                                listOf(
-                                    weatherConditionColor(weather.condition).copy(alpha = 0.4f),
-                                    Color.Transparent,
-                                ),
-                            ),
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        weatherConditionEmoji(weather.condition),
-                        fontSize = 18.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                if (showClock) Text(clock, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
-                if (hasWeather) {
-                    Text(
-                        "${weather.temperatureC.toInt()}°  ${weather.city}",
-                        color = visuals.accent,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-        }
-    }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Phone header
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ──────────────────────────────────────────────────────────────────────
-// Weather Condition Helpers
-// ──────────────────────────────────────────────────────────────────────
 @Composable
-private fun CompactWidgetCard(
+private fun MobileHomeHeader(
     weather: WeatherSnapshot,
-    clock: String,
-    showWeather: Boolean,
-    showClock: Boolean,
+    settings: AppSettings,
+    widgetsEnabled: Boolean,
+    onAssistant: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
-    val hasWeather = showWeather && weather.hasRealWeather
-    if (!hasWeather && !showClock) return
-    FocusGlow(modifier = modifier, cornerRadius = (18 * tv.factor).dp, onClick = {}) {
-        GlassPanel(radius = (18 * tv.factor).dp, highlighted = true) {
-            Row(
-                modifier = Modifier.padding(horizontal = (20 * tv.factor).dp, vertical = (16 * tv.factor).dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((12 * tv.factor).dp),
-            ) {
-                if (showClock) {
-                    Icon(Icons.Rounded.Schedule, null, tint = visuals.accent, modifier = Modifier.size((24 * tv.factor).dp))
-                    Text(clock, color = Color.White, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
-                }
-                if (hasWeather) {
-                    Text(weatherConditionEmoji(weather.condition), fontSize = (22 * tv.factor).sp)
-                    Text(
-                        "${weather.temperatureC.toInt()}°  ${weather.city}",
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+    val h = LocalStrings.current.home
+    val hasWeather = settings.showWeatherWidget && weather.hasRealWeather
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_brand_mark),
+            contentDescription = "MoPlayer Pro",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.height(34.dp),
+        )
+        Spacer(Modifier.weight(1f))
+        AssistantChipButton(h.assistantTitle, Icons.Rounded.AutoAwesome, onAssistant)
+        if (widgetsEnabled && (settings.showClockWidget || hasWeather)) {
+            GlassPanel(radius = 16.dp) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (hasWeather) {
+                        WeatherGlyph(weather.condition.lowercase(), weatherConditionColor(weather.condition), animate = false, modifier = Modifier.size(22.dp))
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        if (settings.showClockWidget) {
+                            MinuteClock(weather.timeZoneId, MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold))
+                        }
+                        if (hasWeather) {
+                            Text(weatherLine(weather), color = visuals.accent, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-private fun weatherConditionIcon(condition: String): androidx.compose.ui.graphics.vector.ImageVector {
-    val c = condition.lowercase()
-    return when {
-        c.contains("thunder") || c.contains("storm") -> Icons.Rounded.FlashOn
-        c.contains("rain") || c.contains("drizzle") || c.contains("shower") -> Icons.Rounded.WaterDrop
-        c.contains("snow") || c.contains("blizzard") -> Icons.Rounded.AcUnit
-        c.contains("fog") || c.contains("mist") || c.contains("haze") -> Icons.Rounded.Cloud
-        c.contains("cloud") || c.contains("overcast") -> Icons.Rounded.CloudQueue
-        else -> Icons.Rounded.WbSunny
-    }
-}
-
-private fun weatherConditionEmoji(condition: String): String {
-    val c = condition.lowercase()
-    return when {
-        c.contains("thunder") || c.contains("storm") -> "⛈️"
-        c.contains("rain") || c.contains("drizzle") || c.contains("shower") -> "🌧️"
-        c.contains("snow") || c.contains("blizzard") -> "❄️"
-        c.contains("fog") || c.contains("mist") || c.contains("haze") -> "🌫️"
-        c.contains("cloud") || c.contains("overcast") -> "☁️"
-        else -> "☀️"
+@Composable
+private fun AssistantChipButton(label: String, icon: ImageVector, onClick: () -> Unit) {
+    val visuals = LocalMoVisuals.current
+    FocusGlow(modifier = Modifier.height(40.dp), cornerRadius = 999.dp, onClick = onClick) {
+        Row(
+            Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(visuals.accent.copy(alpha = 0.18f))
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(icon, null, tint = visuals.accent, modifier = Modifier.size(18.dp))
+            Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -1159,438 +992,117 @@ private fun weatherConditionColor(condition: String): Color {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Smart picks assistant
+// ─────────────────────────────────────────────────────────────────────────────
+
 private data class AiChatMessage(val text: String, val mine: Boolean)
 
-private const val HOME_SHELF_LIMIT = 15
+internal enum class AiSuggestionMode { MOVIES, SERIES, LIVE, SPORTS, CONTINUE, SURPRISE }
 
-private enum class AiSuggestionMode(val prompt: String) {
-    MOVIES("Suggest new movies"),
-    SERIES("Suggest new series"),
-    LIVE("Suggest live channels"),
-    SPORTS("Show sports and football"),
-    CONTINUE("Continue watching"),
-    SURPRISE("Surprise me"),
+private fun AiSuggestionMode.label(h: HomeStrings): String = when (this) {
+    AiSuggestionMode.MOVIES -> h.assistantMovies
+    AiSuggestionMode.SERIES -> h.assistantSeries
+    AiSuggestionMode.LIVE -> h.assistantLive
+    AiSuggestionMode.SPORTS -> h.assistantSports
+    AiSuggestionMode.CONTINUE -> h.assistantContinue
+    AiSuggestionMode.SURPRISE -> h.assistantSurprise
 }
 
-@Composable
-private fun AiHomeButton(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
-    FocusGlow(modifier = modifier.height((48 * tv.factor).dp), cornerRadius = (14 * tv.factor).dp, onClick = onClick) {
-        GlassPanel(radius = (14 * tv.factor).dp, highlighted = true, glow = visuals.accent.copy(alpha = 0.18f)) {
-            Row(
-                Modifier.fillMaxSize().padding(horizontal = (14 * tv.factor).dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((9 * tv.factor).dp),
-            ) {
-                Icon(icon, null, tint = visuals.accent, modifier = Modifier.size((20 * tv.factor).dp))
-                Text(label, color = Color.White, fontSize = (14 * tv.factor).sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
-    }
-}
+private val ArabicDiacritics = Regex("[\\u064B-\\u0652\\u0670\\u0640]")
 
-@Composable
-private fun AiAssistantPanel(
-    allContent: List<MediaItem>,
-    football: List<FootballMatch>,
-    seed: Int,
-    chat: List<AiChatMessage>,
-    input: String,
-    compact: Boolean,
-    selectedTvAction: Int = 0,
-    mode: AiSuggestionMode,
-    onInput: (String) -> Unit,
-    onSend: () -> Unit,
-    onQuickQuestion: (String) -> Unit,
-    onMode: (AiSuggestionMode) -> Unit,
-    onPlay: (MediaItem) -> Unit,
-    onClose: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
-    val s = if (tv.isTv) 1f else tv.factor
-    val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val picks = remember(allContent, football, seed, mode) { aiPicks(allContent, football, seed, mode) }
-    val latestMovies = remember(allContent) { latestOfType(allContent, ContentType.MOVIE) }
-    val latestSeries = remember(allContent) {
-        allContent
-            .filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
-            .sortedByDescending { it.addedAt.takeIf { added -> added > 0 } ?: it.lastModifiedAt }
-            .take(3)
-    }
-    if (tv.isTv) {
-        Dialog(onDismissRequest = onClose) {
-            AiTvAssistantPanel(
-                picks = picks,
-                latestMoviesCount = latestMovies.size,
-                latestSeriesCount = latestSeries.size,
-                selectedAction = selectedTvAction,
-                onMovie = { onMode(AiSuggestionMode.MOVIES) },
-                onSeries = { onMode(AiSuggestionMode.SERIES) },
-                onLive = { onMode(AiSuggestionMode.LIVE) },
-                onSports = { onMode(AiSuggestionMode.SPORTS) },
-                onContinue = { onMode(AiSuggestionMode.CONTINUE) },
-                onSurprise = { picks.firstOrNull()?.let(onPlay) },
-                onClose = onClose,
-            )
-        }
-        return
-    }
-    val panelWidth = if (compact) 340.dp else if (tv.isTv) 430.dp else 390.dp
-    val panelHeight = if (compact) 380.dp else if (tv.isTv) 340.dp else 450.dp
-    GlassPanel(
-        modifier = modifier.widthIn(max = panelWidth).height(panelHeight),
-        radius = (18 * s).dp,
-        blur = 18.dp,
-        highlighted = true,
-        glow = visuals.accent.copy(alpha = 0.18f),
-    ) {
-        Column(Modifier.fillMaxSize().padding((12 * s).dp), verticalArrangement = Arrangement.spacedBy((6 * s).dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size((22 * s).dp))
-                    Column {
-                        Text(if (isArabic) "المساعد الذكي" else "Smart assistant", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (17 * s).sp)
-                        Text(if (isArabic) "اقتراحات · محادثة" else "Suggestions · Chat", color = Color(0xB8FFFFFF), fontSize = (10 * s).sp, maxLines = 1)
-                    }
-                }
-                IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, null, tint = Color.White) }
-            }
+/** Lower-cases and folds Arabic letter variants (أإآ→ا, ة→ه, ى→ي) and strips diacritics/tatweel. */
+internal fun normalizeForMatching(text: String): String =
+    text.lowercase(Locale.ROOT)
+        .replace(ArabicDiacritics, "")
+        .replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+        .replace('ة', 'ه')
+        .replace('ى', 'ي')
+        .trim()
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AiInfoPill("Movies", latestMovies.size.toString(), Modifier.weight(1f))
-                AiInfoPill("Series", latestSeries.size.toString(), Modifier.weight(1f))
-                AiInfoPill("All", allContent.size.toString(), Modifier.weight(1f))
-            }
+private val SportsKeywords = listOf("sport", "match", "football", "soccer", "رياضه", "مباراه", "مباريات", "كوره")
+private val MovieKeywords = listOf("movie", "film", "فيلم", "افلام", "فلم")
+private val SeriesKeywords = listOf("series", "episode", "مسلسل", "مسلسلات", "حلقه", "حلقات")
+private val LiveKeywords = listOf("live", "channel", "مباشر", "قناه", "قنوات", "بث")
+private val ContinueKeywords = listOf("continue", "watching", "resume", "تابع", "اكمل", "متابعه", "استكمل")
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AiQuickButton("Movies", Icons.Rounded.Movie, Modifier.weight(1f)) { onMode(AiSuggestionMode.MOVIES) }
-                AiQuickButton("Series", Icons.Rounded.VideoLibrary, Modifier.weight(1f)) { onMode(AiSuggestionMode.SERIES) }
-                AiQuickButton("Live", Icons.Rounded.LiveTv, Modifier.weight(1f)) { onMode(AiSuggestionMode.LIVE) }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AiQuickButton("Sports", Icons.Rounded.SportsSoccer, Modifier.weight(1f)) { onMode(AiSuggestionMode.SPORTS) }
-                AiQuickButton("Continue", Icons.Rounded.History, Modifier.weight(1f)) { onMode(AiSuggestionMode.CONTINUE) }
-                AiQuickButton("Surprise", Icons.Rounded.Casino, Modifier.weight(1f)) {
-                    onMode(AiSuggestionMode.SURPRISE)
-                    picks.firstOrNull()?.let(onPlay)
-                }
-            }
-
-            Text("Smart suggestions · ${mode.name.lowercase().replaceFirstChar { it.uppercase() }}", color = visuals.accent, fontWeight = FontWeight.Bold, fontSize = (12 * s).sp)
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                picks.take(if (tv.isTv || compact) 2 else 3).forEach { item -> AiSuggestionRow(item = item, onPlay = onPlay) }
-            }
-
-            val infoLine = when {
-                latestMovies.isNotEmpty() && latestSeries.isNotEmpty() -> "New: ${latestMovies.first().title} · ${latestSeries.first().title}"
-                latestMovies.isNotEmpty() -> "Latest movie: ${latestMovies.first().title}"
-                latestSeries.isNotEmpty() -> "Latest series: ${latestSeries.first().title}"
-                else -> "MoPlayer Pro supports your playlists and private server library."
-            }
-            Text(infoLine, color = Color(0xB8FFFFFF), fontSize = (11 * s).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-
-            if (football.isNotEmpty()) {
-                Text(
-                    "Today's matches: " + football.take(2).joinToString(" · ") { "${it.home} vs ${it.away}" },
-                    color = Color(0xCCE3BC78),
-                    fontSize = (11 * s).sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
-            if (tv.isTv) {
-                val lastAssistantLine = if (chat.size == 1 && !chat.first().mine) {
-                    freeAiIntro(allContent, football, isArabic)
-                } else {
-                    chat.lastOrNull { !it.mine }?.text ?: freeAiIntro(allContent, football, isArabic)
-                }
-                Text(
-                    lastAssistantLine,
-                    color = Color(0xDDFFFFFF),
-                    fontSize = 11.sp,
-                    lineHeight = 15.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else {
-                LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(chat.takeLast(2).size) { index ->
-                        val visibleChat = chat.takeLast(2)
-                        val message = visibleChat[index]
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = if (message.mine) Arrangement.End else Arrangement.Start) {
-                            GlassPanel(radius = 12.dp, highlighted = message.mine) {
-                                Text(
-                                    message.text,
-                                    color = Color.White,
-                                    fontSize = (11 * s).sp,
-                                    lineHeight = (15 * s).sp,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.widthIn(max = if (compact) 240.dp else 330.dp).padding(horizontal = 10.dp, vertical = 7.dp),
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = input,
-                        onValueChange = onInput,
-                        placeholder = { Text("Ask about a movie or series...") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = { Icon(Icons.Rounded.Mic, null, tint = visuals.accent) },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0x221A1814),
-                            unfocusedContainerColor = Color(0x221A1814),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                        ),
-                    )
-                    Button(onClick = onSend, enabled = input.isNotBlank()) { Icon(Icons.AutoMirrored.Rounded.Send, null) }
-                }
-            }
-        }
+/** Maps a free-text question (English or Arabic) to a suggestion mode. */
+internal fun aiModeFor(message: String): AiSuggestionMode {
+    val query = normalizeForMatching(message)
+    return when {
+        SportsKeywords.any { query.contains(it) } -> AiSuggestionMode.SPORTS
+        MovieKeywords.any { query.contains(it) } -> AiSuggestionMode.MOVIES
+        SeriesKeywords.any { query.contains(it) } -> AiSuggestionMode.SERIES
+        LiveKeywords.any { query.contains(it) } -> AiSuggestionMode.LIVE
+        ContinueKeywords.any { query.contains(it) } -> AiSuggestionMode.CONTINUE
+        else -> AiSuggestionMode.SURPRISE
     }
 }
 
-@Composable
-private fun AiTvAssistantPanel(
-    picks: List<MediaItem>,
-    latestMoviesCount: Int,
-    latestSeriesCount: Int,
-    selectedAction: Int,
-    onMovie: () -> Unit,
-    onSeries: () -> Unit,
-    onLive: () -> Unit,
-    onSports: () -> Unit,
-    onContinue: () -> Unit,
-    onSurprise: () -> Unit,
-    onClose: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val visuals = LocalMoVisuals.current
-    val firstFocus = remember { FocusRequester() }
-    val isArabic = LocalLayoutDirection.current == LayoutDirection.Rtl
-
-    LaunchedEffect(Unit) {
-        firstFocus.requestFocus()
-    }
-
-    GlassPanel(
-        modifier = modifier
-            .width(330.dp)
-            .height(316.dp)
-            .onPreviewKeyEvent { event ->
-                if (event.type == KeyEventType.KeyUp && (event.key == Key.Back || event.key == Key.Escape)) {
-                    onClose()
-                    true
-                } else {
-                    false
-                }
-            },
-        radius = 16.dp,
-        blur = 16.dp,
-        highlighted = true,
-        glow = visuals.accent.copy(alpha = 0.18f),
-    ) {
-        Column(
-            Modifier.fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size(22.dp))
-                    Text(if (isArabic) "المساعد الذكي" else "Smart assistant", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
-                }
-                AiIconButton(Icons.Rounded.Close, "Close", onClose)
-            }
-
-            Text(
-                if (isArabic) "أحدث الاقتراحات من مكتبتك" else "Latest picks from your library",
-                color = visuals.accent,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-            )
-            Text(
-                picks.firstOrNull()?.title ?: if (isArabic) "اختر إجراءً بالريموت" else "Choose an action with the remote",
-                color = Color(0xDDFFFFFF),
-                fontSize = 12.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            AiRemoteActionButton(
-                label = if (isArabic) "فاجئني" else "Surprise me",
-                icon = Icons.Rounded.Casino,
-                selected = selectedAction == 0,
-                modifier = Modifier.fillMaxWidth().focusRequester(firstFocus),
-                onClick = onSurprise,
-            )
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AiRemoteActionButton(if (isArabic) "أفلام $latestMoviesCount" else "Movies $latestMoviesCount", Icons.Rounded.Movie, selectedAction == 1, Modifier.weight(1f), onMovie)
-                AiRemoteActionButton(if (isArabic) "مسلسلات $latestSeriesCount" else "Series $latestSeriesCount", Icons.Rounded.VideoLibrary, selectedAction == 2, Modifier.weight(1f), onSeries)
-            }
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AiRemoteActionButton(if (isArabic) "مباشر" else "Live", Icons.Rounded.LiveTv, selectedAction == 3, Modifier.weight(1f), onLive)
-                AiRemoteActionButton(if (isArabic) "رياضة" else "Sports", Icons.Rounded.SportsSoccer, selectedAction == 4, Modifier.weight(1f), onSports)
-            }
-
-            AiRemoteActionButton(
-                label = if (isArabic) "المتابعة" else "Continue",
-                icon = Icons.Rounded.History,
-                selected = selectedAction == 5,
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onContinue,
-            )
-        }
-    }
+private fun poolFor(mode: AiSuggestionMode, content: List<MediaItem>): List<MediaItem> = when (mode) {
+    AiSuggestionMode.MOVIES -> content.filter { it.type == ContentType.MOVIE }
+    AiSuggestionMode.SERIES -> content.filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
+    AiSuggestionMode.LIVE -> content.filter { it.type == ContentType.LIVE }
+    AiSuggestionMode.SPORTS -> content.filter { isSportsItem(it) }
+    AiSuggestionMode.CONTINUE -> content.filter { it.lastPlayedAt > 0 || it.watchPositionMs > 0 }
+    AiSuggestionMode.SURPRISE -> content
 }
 
-@Composable
-private fun AiIconButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-) {
-    FocusGlow(modifier = Modifier.size(38.dp), cornerRadius = 10.dp, onClick = onClick) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription, tint = Color.White, modifier = Modifier.size(20.dp))
-        }
-    }
+private fun isSportsItem(item: MediaItem): Boolean {
+    val text = normalizeForMatching("${item.title} ${item.categoryName} ${item.genre}")
+    return text.contains("sport") || text.contains("football") || text.contains("bein") || text.contains("رياض")
 }
 
-@Composable
-private fun AiRemoteActionButton(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    selected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val visuals = LocalMoVisuals.current
-    FocusGlow(modifier = modifier.height(40.dp), cornerRadius = 10.dp, onClick = onClick) {
-        GlassPanel(
-            modifier = Modifier.fillMaxSize(),
-            radius = 10.dp,
-            highlighted = selected,
-            glow = if (selected) visuals.accent.copy(alpha = 0.22f) else Color.Transparent,
-        ) {
-            Row(
-                Modifier.fillMaxSize().padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Icon(icon, null, tint = if (selected) visuals.accent else Color(0xCCFFFFFF), modifier = Modifier.size(18.dp))
-                Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
-    }
-}
-
-@Composable
-private fun AiSuggestionRow(item: MediaItem, onPlay: (MediaItem) -> Unit) {
-    val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
-    val s = if (tv.isTv) 1f else tv.factor
-    FocusGlow(cornerRadius = 12.dp, onClick = { onPlay(item) }) {
-        Row(
-            Modifier.fillMaxWidth().height((42 * s).dp).padding(horizontal = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(typeIcon(item), null, tint = visuals.accent, modifier = Modifier.size((20 * s).dp))
-            Column(Modifier.weight(1f)) {
-                Text(item.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = (13 * s).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(aiReason(item), color = Color(0x99FFFFFF), fontSize = (10 * s).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size((20 * s).dp))
-        }
-    }
-}
-
-@Composable
-private fun AiInfoPill(label: String, value: String, modifier: Modifier = Modifier) {
-    val tv = rememberTvScale()
-    val s = if (tv.isTv) 1f else tv.factor
-    GlassPanel(modifier = modifier.height((34 * s).dp), radius = 10.dp) {
-        Row(
-            Modifier.fillMaxSize().padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Text(value, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = (12 * s).sp, maxLines = 1)
-            Spacer(Modifier.width(4.dp))
-            Text(label, color = Color(0xCCFFFFFF), fontSize = (10 * s).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-    }
-}
-
-@Composable
-private fun AiQuickButton(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val tv = rememberTvScale()
-    val visuals = LocalMoVisuals.current
-    val s = if (tv.isTv) 1f else tv.factor
-    FocusGlow(modifier = modifier.height((38 * s).dp), cornerRadius = 10.dp, onClick = onClick) {
-        Row(
-            Modifier.fillMaxSize().padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(icon, null, tint = visuals.accent, modifier = Modifier.size((16 * s).dp))
-            Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = (10 * s).sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-    }
-}
-
-private fun freeAiIntro(content: List<MediaItem>, football: List<FootballMatch>, isArabic: Boolean): String {
-    return if (isArabic) {
-        val matchLine = if (football.isNotEmpty()) " ويمكنني أيضاً عرض مباريات اليوم." else "."
-        "مرحباً، أنا مساعدك الذكي داخل التطبيق. أقرأ مكتبتك المحلية وأقترح لك من ${content.size} عنصراً.$matchLine"
+private fun matchesReply(football: List<FootballMatch>, h: HomeStrings): String =
+    if (football.isEmpty()) {
+        h.assistantNoMatches
     } else {
-        val matchLine = if (football.isNotEmpty()) " I can also show today's matches." else "."
-        "Hi, I'm your smart assistant inside the app. I read your local library and can suggest from ${content.size} items.$matchLine"
+        h.assistantTopMatches(football.take(3).joinToString(" • ") { "${it.home.isolate()} ${h.footballVersus} ${it.away.isolate()} ${it.score.ltr()}".trim() })
     }
+
+private fun bestOf(pool: List<MediaItem>): MediaItem? =
+    pool.maxByOrNull { (it.rating.toDoubleOrNull() ?: 0.0) + if (it.lastPlayedAt > 0) 1.0 else 0.0 }
+
+/** Reply for a quick-action button: routed by the mode itself, never by re-parsing its label. */
+internal fun aiReplyForMode(mode: AiSuggestionMode, content: List<MediaItem>, football: List<FootballMatch>, h: HomeStrings): String {
+    if (mode == AiSuggestionMode.SPORTS && football.isNotEmpty()) return matchesReply(football, h)
+    val best = bestOf(poolFor(mode, content).ifEmpty { if (mode == AiSuggestionMode.SPORTS) emptyList() else content })
+    return if (best == null) {
+        if (mode == AiSuggestionMode.SPORTS) matchesReply(football, h) else h.assistantNotFound
+    } else {
+        h.assistantSuggest(best.title, aiReason(best, h))
+    }
+}
+
+/** Reply for a typed question in either language; always answers in the app language. */
+internal fun aiReplyForQuery(message: String, content: List<MediaItem>, football: List<FootballMatch>, h: HomeStrings): String {
+    val mode = aiModeFor(message)
+    if (mode == AiSuggestionMode.SPORTS) return matchesReply(football, h)
+    val query = normalizeForMatching(message)
+    val pool = poolFor(mode, content).ifEmpty { content }
+    val best = pool.firstOrNull { query.length >= 2 && normalizeForMatching(it.title).contains(query) } ?: bestOf(pool)
+    return if (best == null) h.assistantNotFound else h.assistantSuggest(best.title, aiReason(best, h))
+}
+
+private fun aiReason(item: MediaItem, h: HomeStrings): String = when {
+    item.rating.isNotBlank() -> h.reasonRating(item.rating)
+    item.lastPlayedAt > 0 -> h.reasonRecent
+    item.categoryName.isNotBlank() -> h.reasonCategory(item.categoryName)
+    else -> h.reasonLibrary
 }
 
 private fun aiPicks(content: List<MediaItem>, football: List<FootballMatch>, seed: Int, mode: AiSuggestionMode): List<MediaItem> {
     if (content.isEmpty()) return emptyList()
     val pool = when (mode) {
-        AiSuggestionMode.MOVIES -> content.filter { it.type == ContentType.MOVIE }
-        AiSuggestionMode.SERIES -> content.filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
-        AiSuggestionMode.LIVE -> content.filter { it.type == ContentType.LIVE }
-        AiSuggestionMode.SPORTS -> content.filter {
-            val text = "${it.title} ${it.categoryName} ${it.genre}".lowercase()
-            text.contains("sport") || text.contains("football") || text.contains("bein") || text.contains("رياض")
-        }.ifEmpty {
+        AiSuggestionMode.SPORTS -> poolFor(mode, content).ifEmpty {
             football.flatMap { match ->
                 content.filter { item ->
                     val text = "${item.title} ${item.categoryName}".lowercase()
-                    text.contains(match.home.lowercase()) || text.contains(match.away.lowercase()) || text.contains("sport")
+                    text.contains(match.home.lowercase()) || text.contains(match.away.lowercase())
                 }
             }
         }
-        AiSuggestionMode.CONTINUE -> content.filter { it.lastPlayedAt > 0 || it.watchPositionMs > 0 }
-        AiSuggestionMode.SURPRISE -> content
+        else -> poolFor(mode, content)
     }.ifEmpty { content }
     val boosted = pool.sortedWith(
         compareByDescending<MediaItem> { it.rating.toDoubleOrNull() ?: 0.0 }
@@ -1607,80 +1119,250 @@ private fun latestOfType(content: List<MediaItem>, type: ContentType): List<Medi
         .sortedByDescending { it.addedAt.takeIf { added -> added > 0 } ?: it.lastModifiedAt }
         .take(3)
 
-private fun aiReply(message: String, content: List<MediaItem>, football: List<FootballMatch>): String {
-    val query = message.lowercase()
-    if (query.contains("match") || query.contains("football")) {
-        return if (football.isEmpty()) "No matches are visible right now. Try sports channels or say: surprise me." else
-            "Today's top matches: " + football.take(3).joinToString(" • ") { "${it.home} vs ${it.away} ${it.score}" }
-    }
-    val pool = when {
-        query.contains("movie") -> content.filter { it.type == ContentType.MOVIE }
-        query.contains("series") -> content.filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
-        query.contains("channel") || query.contains("live") -> content.filter { it.type == ContentType.LIVE }
-        else -> content
-    }
-    val best = pool.firstOrNull { it.title.contains(message, ignoreCase = true) }
-        ?: pool.maxByOrNull { (it.rating.toDoubleOrNull() ?: 0.0) + if (it.lastPlayedAt > 0) 1.0 else 0.0 }
-    return if (best == null) "I could not find a clear match. Try: movie, series, sports channel, or surprise me." else "I suggest: ${best.title}. ${aiReason(best)}"
-}
-
-private fun aiModeFor(message: String): AiSuggestionMode {
-    val query = message.lowercase()
-    return when {
-        query.contains("movie") || query.contains("film") -> AiSuggestionMode.MOVIES
-        query.contains("series") || query.contains("episode") -> AiSuggestionMode.SERIES
-        query.contains("live") || query.contains("channel") -> AiSuggestionMode.LIVE
-        query.contains("sport") || query.contains("match") || query.contains("football") -> AiSuggestionMode.SPORTS
-        query.contains("continue") || query.contains("watching") -> AiSuggestionMode.CONTINUE
-        else -> AiSuggestionMode.SURPRISE
-    }
-}
-
-private fun aiReason(item: MediaItem): String = when {
-    item.rating.isNotBlank() -> "Smart pick based on rating ${item.rating}"
-    item.lastPlayedAt > 0 -> "Good match because you watched something similar recently"
-    item.categoryName.isNotBlank() -> "From ${item.categoryName}"
-    else -> "Suggested from the server order"
-}
-
-private fun typeIcon(item: MediaItem): androidx.compose.ui.graphics.vector.ImageVector = when (item.type) {
+private fun typeIcon(item: MediaItem): ImageVector = when (item.type) {
     ContentType.LIVE -> Icons.Rounded.LiveTv
     ContentType.MOVIE -> Icons.Rounded.Movie
     ContentType.SERIES,
     ContentType.EPISODE -> Icons.Rounded.VideoLibrary
 }
 
-private fun homeRestoreIndex(
-    target: MediaItem?,
-    leadingItems: Int,
-    lanes: List<List<MediaItem>>,
-): Int? {
-    if (target == null) return null
-    var index = leadingItems
-    lanes.forEach { lane ->
-        if (lane.isNotEmpty()) {
-            if (lane.any { it.matchesHomeFocus(target) }) return index
-            index++
+@Composable
+private fun TvAssistantDialog(
+    picks: List<MediaItem>,
+    latestMoviesCount: Int,
+    latestSeriesCount: Int,
+    lastReply: String,
+    onMode: (AiSuggestionMode) -> Unit,
+    onPlay: (MediaItem) -> Unit,
+    onClose: () -> Unit,
+) {
+    val visuals = LocalMoVisuals.current
+    val h = LocalStrings.current.home
+    val firstFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        delay(60)
+        runCatching { firstFocus.requestFocus() }
+    }
+    Dialog(onDismissRequest = onClose) {
+        GlassPanel(
+            modifier = Modifier.width(380.dp).heightIn(min = 300.dp),
+            radius = 18.dp,
+            highlighted = true,
+            glow = visuals.accent.copy(alpha = 0.18f),
+        ) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size(24.dp))
+                    Text(h.assistantTitle, color = Color.White, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold), modifier = Modifier.weight(1f))
+                    AssistantIconButton(Icons.Rounded.Close, h.assistantClose, onClose)
+                }
+                Text(h.assistantTvHeadline, color = visuals.accent, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), maxLines = 1)
+                Text(
+                    lastReply.ifBlank { picks.firstOrNull()?.title ?: h.assistantTvHint },
+                    color = Color(0xDDFFFFFF),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                AssistantActionButton(h.assistantSurprise, Icons.Rounded.Casino, Modifier.fillMaxWidth().focusRequester(firstFocus)) {
+                    picks.firstOrNull()?.let(onPlay)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AssistantActionButton("${h.assistantMovies} ${latestMoviesCount.toString().ltr()}", Icons.Rounded.Movie, Modifier.weight(1f)) { onMode(AiSuggestionMode.MOVIES) }
+                    AssistantActionButton("${h.assistantSeries} ${latestSeriesCount.toString().ltr()}", Icons.Rounded.VideoLibrary, Modifier.weight(1f)) { onMode(AiSuggestionMode.SERIES) }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AssistantActionButton(h.assistantLive, Icons.Rounded.LiveTv, Modifier.weight(1f)) { onMode(AiSuggestionMode.LIVE) }
+                    AssistantActionButton(h.assistantSports, Icons.Rounded.SportsSoccer, Modifier.weight(1f)) { onMode(AiSuggestionMode.SPORTS) }
+                }
+                AssistantActionButton(h.assistantContinue, Icons.Rounded.History, Modifier.fillMaxWidth()) { onMode(AiSuggestionMode.CONTINUE) }
+            }
         }
     }
-    return null
 }
 
-private fun MediaItem.matchesHomeFocus(target: MediaItem): Boolean =
-    id == target.id && type == target.type && serverId == target.serverId
-
-private fun List<MediaItem>.homeLiveOrder(maxVideoHeight: Int): List<MediaItem> {
-    if (maxVideoHeight >= 2160 || size <= 1) return this
-    return sortedWith(
-        compareBy<MediaItem> { it.title.isLikely4kChannel() }
-            .thenBy { it.serverOrder }
-            .thenBy { it.title.lowercase() },
-    )
+@Composable
+private fun AssistantIconButton(icon: ImageVector, contentDescription: String, onClick: () -> Unit) {
+    FocusGlow(modifier = Modifier.size(40.dp), cornerRadius = 999.dp, onClick = onClick) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription, tint = Color.White, modifier = Modifier.size(20.dp))
+        }
+    }
 }
 
-private fun String.isLikely4kChannel(): Boolean {
-    val value = uppercase()
-    return "4K" in value || "UHD" in value || "2160" in value
+@Composable
+private fun AssistantActionButton(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val visuals = LocalMoVisuals.current
+    FocusGlow(modifier = modifier.heightIn(min = 44.dp), cornerRadius = 12.dp, onClick = onClick, focusedScale = FocusScale.Chip) {
+        val focused = LocalFocusGlowFocused.current
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 44.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(if (focused) Color.White.copy(alpha = 0.94f) else Color(0x33FFFFFF))
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(icon, null, tint = if (focused) Color(0xFF15110D) else visuals.accent, modifier = Modifier.size(18.dp))
+            Text(
+                label,
+                color = if (focused) Color(0xFF15110D) else Color.White,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MobileAssistantPanel(
+    allContent: List<MediaItem>,
+    football: List<FootballMatch>,
+    seed: Int,
+    chat: List<AiChatMessage>,
+    input: String,
+    compact: Boolean,
+    mode: AiSuggestionMode,
+    onInput: (String) -> Unit,
+    onSend: () -> Unit,
+    onMode: (AiSuggestionMode) -> Unit,
+    onPlay: (MediaItem) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val visuals = LocalMoVisuals.current
+    val h = LocalStrings.current.home
+    val picks = remember(allContent, football, seed, mode) { aiPicks(allContent, football, seed, mode) }
+    val latestMovies = remember(allContent) { latestOfType(allContent, ContentType.MOVIE) }
+    val latestSeries = remember(allContent) {
+        allContent
+            .filter { it.type == ContentType.SERIES || it.type == ContentType.EPISODE }
+            .sortedByDescending { it.addedAt.takeIf { added -> added > 0 } ?: it.lastModifiedAt }
+            .take(3)
+    }
+    GlassPanel(
+        modifier = modifier.widthIn(max = if (compact) 360.dp else 400.dp).heightIn(max = if (compact) 400.dp else 460.dp),
+        radius = 18.dp,
+        highlighted = true,
+        glow = visuals.accent.copy(alpha = 0.18f),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size(22.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(h.assistantTitle, color = Color.White, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold))
+                    Text(h.assistantSubtitle, color = Color(0xB8FFFFFF), style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                }
+                AssistantIconButton(Icons.Rounded.Close, h.assistantClose, onClose)
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AssistantInfoPill(h.assistantMovies, latestMovies.size, Modifier.weight(1f))
+                AssistantInfoPill(h.assistantSeries, latestSeries.size, Modifier.weight(1f))
+                AssistantInfoPill(h.assistantAll, allContent.size, Modifier.weight(1f))
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AssistantActionButton(h.assistantMovies, Icons.Rounded.Movie, Modifier.weight(1f)) { onMode(AiSuggestionMode.MOVIES) }
+                AssistantActionButton(h.assistantSeries, Icons.Rounded.VideoLibrary, Modifier.weight(1f)) { onMode(AiSuggestionMode.SERIES) }
+                AssistantActionButton(h.assistantLive, Icons.Rounded.LiveTv, Modifier.weight(1f)) { onMode(AiSuggestionMode.LIVE) }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AssistantActionButton(h.assistantSports, Icons.Rounded.SportsSoccer, Modifier.weight(1f)) { onMode(AiSuggestionMode.SPORTS) }
+                AssistantActionButton(h.assistantContinue, Icons.Rounded.History, Modifier.weight(1f)) { onMode(AiSuggestionMode.CONTINUE) }
+                AssistantActionButton(h.assistantSurprise, Icons.Rounded.Casino, Modifier.weight(1f)) {
+                    onMode(AiSuggestionMode.SURPRISE)
+                    picks.firstOrNull()?.let(onPlay)
+                }
+            }
+            Text(h.assistantSuggestionsFor(mode.label(h)), color = visuals.accent, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                picks.take(if (compact) 2 else 3).forEach { item -> AssistantSuggestionRow(item = item, onPlay = onPlay) }
+            }
+            val infoLine = when {
+                latestMovies.isNotEmpty() && latestSeries.isNotEmpty() -> h.assistantNewBoth(latestMovies.first().title, latestSeries.first().title)
+                latestMovies.isNotEmpty() -> h.assistantLatestMovie(latestMovies.first().title)
+                latestSeries.isNotEmpty() -> h.assistantLatestSeries(latestSeries.first().title)
+                else -> h.assistantLibraryInfo
+            }
+            Text(infoLine, color = Color(0xB8FFFFFF), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (football.isNotEmpty()) {
+                Text(
+                    h.assistantTodayMatches(football.take(2).joinToString(" · ") { "${it.home.isolate()} ${h.footballVersus} ${it.away.isolate()}" }),
+                    color = Color(0xCCE3BC78),
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            chat.takeLast(2).forEach { message ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = if (message.mine) Arrangement.End else Arrangement.Start) {
+                    GlassPanel(radius = 12.dp, highlighted = message.mine) {
+                        Text(
+                            message.text,
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = if (compact) 260.dp else 330.dp).padding(horizontal = 10.dp, vertical = 7.dp),
+                        )
+                    }
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = input,
+                    onValueChange = onInput,
+                    placeholder = { Text(h.assistantInputHint) },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color(0x221A1814),
+                        unfocusedContainerColor = Color(0x221A1814),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                    ),
+                )
+                Button(onClick = onSend, enabled = input.isNotBlank()) { Icon(Icons.AutoMirrored.Rounded.Send, null) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssistantSuggestionRow(item: MediaItem, onPlay: (MediaItem) -> Unit) {
+    val visuals = LocalMoVisuals.current
+    val h = LocalStrings.current.home
+    FocusGlow(cornerRadius = 12.dp, onClick = { onPlay(item) }, focusedScale = FocusScale.Row) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 44.dp).padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(typeIcon(item), null, tint = visuals.accent, modifier = Modifier.size(20.dp))
+            Column(Modifier.weight(1f)) {
+                Text(item.title, color = Color.White, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(aiReason(item, h), color = Color(0x99FFFFFF), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Icon(Icons.Rounded.PlayArrow, null, tint = Color.White, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+private fun AssistantInfoPill(label: String, value: Int, modifier: Modifier = Modifier) {
+    GlassPanel(modifier = modifier.heightIn(min = 34.dp), radius = 10.dp) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(value.toString(), color = Color.White, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1)
+            Spacer(Modifier.width(4.dp))
+            Text(label, color = Color(0xCCFFFFFF), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+        }
+    }
 }
 
 private fun String.toZoneId(): ZoneId =

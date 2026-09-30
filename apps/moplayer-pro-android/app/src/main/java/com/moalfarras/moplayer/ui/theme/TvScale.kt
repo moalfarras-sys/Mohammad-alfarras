@@ -7,7 +7,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.moalfarras.moplayer.core.Adaptive
 
 @Immutable
@@ -28,7 +30,49 @@ data class TvScale(
     val isLandscape: Boolean,
     /** جوال/تاب بالعرض مع ارتفاع منطقي محدود — واجهة أخف */
     val isLowHeightLandscape: Boolean,
-)
+    /**
+     * TV only: how many dp one unit of the 960x540dp TV design canvas is on this screen
+     * (1.0 on standard 1080p/720p TVs, ~1.33 on hdpi boxes that report 1280x720dp).
+     * Always 1.0 on phones and tablets.
+     */
+    val canvas: Float = 1f,
+    /** Overscan-safe vertical margin (27dp on the TV canvas, the 5% platform guideline). */
+    val verticalSafePadding: Dp = 0.dp,
+) {
+    /** A length designed on the 960x540dp TV canvas, normalized to this screen. */
+    fun u(value: Float): Dp = (value * canvas).dp
+
+    /**
+     * A font size that follows [factor] but never drops below [minSp] on a TV, so secondary
+     * text stays readable from ~3 m. Phones keep the plain scaled value.
+     */
+    fun textSp(base: Float, minSp: Float = TV_MIN_SECONDARY_SP): TextUnit {
+        val scaled = base * factor
+        return if (isTv) maxOf(scaled, minSp * canvas).sp else scaled.sp
+    }
+}
+
+/** Smallest secondary text on the TV canvas (labels, metadata). Body text uses 14sp and up. */
+const val TV_MIN_SECONDARY_SP = 12f
+
+/**
+ * TV scale factor. Standard Android TV configurations (1080p@xhdpi, 720p@tvdpi, the emulator)
+ * report a 960x540dp canvas; the layout literals were tuned there at 0.66. Normalizing by the
+ * canvas keeps hdpi boxes that report 1280x720dp at the same physical size instead of rendering
+ * everything ~25% smaller.
+ */
+internal fun tvScaleFactor(widthDp: Int, heightDp: Int): Float {
+    val canvas = tvCanvasScale(widthDp, heightDp)
+    return (canvas * TV_BASE_FACTOR).coerceIn(0.6f, 1.4f)
+}
+
+/** How many dp one 960x540dp canvas unit is, never below 1 so TV text is never shrunk. */
+internal fun tvCanvasScale(widthDp: Int, heightDp: Int): Float =
+    minOf(widthDp / TV_CANVAS_WIDTH_DP, heightDp / TV_CANVAS_HEIGHT_DP).coerceIn(1f, 2.1f)
+
+private const val TV_CANVAS_WIDTH_DP = 960f
+private const val TV_CANVAS_HEIGHT_DP = 540f
+private const val TV_BASE_FACTOR = 0.66f
 
 @Composable
 fun rememberTvScale(): TvScale {
@@ -48,19 +92,17 @@ fun rememberTvScale(): TvScale {
 
     return remember(w, h, isTv, configuration.orientation) {
         if (isTv) {
-            val widthFactor = w / 1920f
-            val heightFactor = h / 1080f
-            val factor = minOf(widthFactor, heightFactor).coerceIn(0.66f, 1.22f)
+            val factor = tvScaleFactor(w, h)
+            val canvas = tvCanvasScale(w, h)
             TvScale(
                 factor = factor,
-                // ~4% horizontal safe-area margin so edge posters/text are not clipped by
-                // the overscan on older Android TVs (5% is the platform guideline; 30dp≈2.8%
-                // at 1080p was too tight). safeDrawingPadding covers insets, not TV overscan.
-                contentPadding = (42 * factor).dp,
+                // 5% horizontal overscan-safe margin (48dp on the 960dp TV canvas). Backgrounds
+                // stay full-bleed; only text and controls respect it.
+                contentPadding = (48 * canvas).dp,
                 dockPadding = (18 * factor).dp,
                 laneSpacing = (15 * factor).dp,
                 cardRadius = (16f * factor).coerceAtLeast(12f).dp,
-                posterWidth = (128 * factor).dp,
+                posterWidth = (92 * canvas).dp,
                 panelPadding = (18 * factor).dp,
                 isTv = true,
                 isCompact = false,
@@ -69,16 +111,13 @@ fun rememberTvScale(): TvScale {
                 maxOfWidthHeightDp = longest,
                 isLandscape = true,
                 isLowHeightLandscape = false,
+                canvas = canvas,
+                verticalSafePadding = (27 * canvas).dp,
             )
         } else {
             val compact = shortest < 600
             val lowHeightLandscape = isLandscape && shortest < 430
             val factor = (longest / 640f).coerceIn(0.78f, 1.12f)
-            val dockH = when {
-                lowHeightLandscape -> 136.dp
-                compact -> 76.dp
-                else -> 88.dp
-            }
             TvScale(
                 factor = factor,
                 contentPadding = when {
@@ -109,12 +148,30 @@ fun rememberTvScale(): TvScale {
                 },
                 isTv = false,
                 isCompact = compact,
-                bottomBarHeight = dockH,
+                bottomBarHeight = mobileDockReserve(factor, lowHeightLandscape, compact),
                 shortestScreenDp = shortest,
                 maxOfWidthHeightDp = longest,
                 isLandscape = isLandscape,
                 isLowHeightLandscape = lowHeightLandscape,
+                verticalSafePadding = 0.dp,
             )
         }
     }
 }
+
+/**
+ * Space a phone/tablet screen reserves for the floating dock: the dock's button height plus its
+ * row padding, bottom margin and the lift of the active pill. Derived from the same numbers the
+ * dock uses so the two cannot drift apart (a flat 136dp used to waste ~15% of a landscape phone).
+ */
+internal fun mobileDockReserve(factor: Float, lowHeightLandscape: Boolean, compact: Boolean): Dp {
+    val button = DOCK_BUTTON_HEIGHT * factor
+    val rowPadding = 2 * DOCK_ROW_VERTICAL_PADDING * factor
+    val margin = if (compact || lowHeightLandscape) 10f else 18f
+    val reserve = button + rowPadding + margin + 8f
+    return reserve.coerceAtLeast(if (lowHeightLandscape) 76f else 80f).dp
+}
+
+/** Dock metrics shared by [mobileDockReserve] and the dock itself. */
+internal const val DOCK_BUTTON_HEIGHT = 46f
+internal const val DOCK_ROW_VERTICAL_PADDING = 8f

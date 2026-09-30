@@ -181,13 +181,13 @@ private fun MoPlayerApp(
     val performancePolicy = remember(state.settings, devicePerformance) {
         Adaptive.performancePolicy(state.settings, devicePerformance)
     }
-    // Trailer capability = the ADMIN remote switch AND the user's own Settings switch — and nothing
-    // else. Deliberately NOT gated on the performance tier (enablePreviewPane hard-off on LOW made
-    // trailers dead on every weak box) nor on reduceMotion (that wrongly killed mid-tier TVs): a
-    // muted trailer is content, is only created after a focus dwell, and old WebViews are already
-    // guarded inside YoutubeTrailerSurface. Users who feel lag can switch it off in Settings.
+    // Trailer capability = the ADMIN remote switch AND the user's own Settings switch, except in
+    // PERFORMANCE mode: a WebView renderer (100+ MB) next to playback is what a 1 GB box cannot
+    // afford. Not gated on reduceMotion (that wrongly killed mid-tier TVs); a muted trailer is only
+    // created after a focus dwell and old WebViews are guarded inside PreviewTrailerHost.
     val trailerPreviewCapable = state.settings.trailerPreviewEnabled &&
-        state.settings.showTrailerPreviews
+        state.settings.showTrailerPreviews &&
+        !performancePolicy.isPerformance
     LaunchedEffect(trailerPreviewCapable) { viewModel.setTrailerPreviewCapable(trailerPreviewCapable) }
     val previewTrailer = remember(state.focusedTrailer) {
         state.focusedTrailer?.let { com.moalfarras.moplayer.ui.components.PreviewTrailer(it.itemKey, it.youtubeId) }
@@ -319,7 +319,7 @@ private fun MoPlayerApp(
                                 val latestLive = viewModel.latestLive.collectAsLazyPagingItems()
                                 val latestMovies = viewModel.latestMovies.collectAsLazyPagingItems()
                                 val latestSeries = viewModel.latestSeries.collectAsLazyPagingItems()
-                                HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null)
+                                HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null, favoriteLive = favorites.itemSnapshotList.items.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE }.take(30))
                             }
                             AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, focusedLiveEpg, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.MOVIES -> PosterScreen(androidx.compose.ui.res.stringResource(com.moalfarras.moplayerpro.R.string.nav_movies), movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)

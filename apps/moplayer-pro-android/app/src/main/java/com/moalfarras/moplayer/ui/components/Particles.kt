@@ -1,16 +1,27 @@
 package com.moalfarras.moplayer.ui.components
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import kotlin.math.sin
 import kotlin.random.Random
 
-/** Subtle ambient sparks, kept sparse so media content stays dominant. */
+/**
+ * Subtle ambient sparks, kept sparse so media content stays dominant. The animation value is
+ * read only while drawing and the canvas has its own layer, so each frame redraws 12 dots
+ * instead of invalidating the backdrop underneath.
+ */
 @Composable
 fun FloatingParticles(modifier: Modifier = Modifier) {
     val visuals = LocalMoVisuals.current
@@ -30,19 +41,20 @@ fun FloatingParticles(modifier: Modifier = Modifier) {
     }
 
     val transition = rememberInfiniteTransition(label = "particles")
-    val animValue by transition.animateFloat(
+    val progress = transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(14_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "anim"
+        label = "anim",
     )
 
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(modifier = modifier.fillMaxSize().graphicsLayer()) {
         val w = size.width
         val h = size.height
+        val animValue = progress.value
 
         particles.forEachIndexed { index, p ->
             val color = when (p.colorIndex) {

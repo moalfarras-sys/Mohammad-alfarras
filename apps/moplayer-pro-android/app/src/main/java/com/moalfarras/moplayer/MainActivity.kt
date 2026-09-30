@@ -77,7 +77,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.core.AppGraph
 import com.moalfarras.moplayer.core.Adaptive
+import com.moalfarras.moplayer.core.isImportablePlaylistLink
 import com.moalfarras.moplayer.data.repository.DeviceStateStore
+import com.moalfarras.moplayer.data.repository.visibleAppBlock
 import com.moalfarras.moplayer.domain.model.DeviceActivationStatus
 import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.domain.model.MediaItem
@@ -87,6 +89,8 @@ import com.moalfarras.moplayer.ui.components.BottomDock
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
 import com.moalfarras.moplayer.ui.player.PlayerScreen
+import com.moalfarras.moplayer.ui.screens.AppBlockScreen
+import com.moalfarras.moplayer.ui.screens.AppUpdateEffects
 import com.moalfarras.moplayer.ui.screens.ExitDialog
 import com.moalfarras.moplayer.ui.screens.SubscriptionExpiredDialog
 import com.moalfarras.moplayer.ui.screens.FavoritesScreen
@@ -97,6 +101,7 @@ import com.moalfarras.moplayer.ui.screens.PosterScreen
 import com.moalfarras.moplayer.ui.screens.SearchScreen
 import com.moalfarras.moplayer.ui.screens.SeriesDetailsScreen
 import com.moalfarras.moplayer.ui.screens.SettingsScreen
+import com.moalfarras.moplayer.ui.screens.rememberUpdateManager
 import com.moalfarras.moplayer.ui.shouldHandleLaunchIntent
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.MoTheme
@@ -210,16 +215,7 @@ class MainActivity : ComponentActivity() {
     private fun extractIncomingPlaylistUrl(intent: Intent?): String? =
         intent?.dataString
             ?.trim()
-            ?.takeIf { it.isLikelyPlaylistUrl() }
-
-    private fun String.isLikelyPlaylistUrl(): Boolean {
-        if (startsWith("http://", ignoreCase = true) || startsWith("https://", ignoreCase = true)) return true
-        val lower = lowercase()
-        return ('.' in this && '/' in this) ||
-            "get.php" in lower ||
-            "player_api.php" in lower ||
-            "m3u" in lower
-    }
+            ?.takeIf { isImportablePlaylistLink(it) }
 }
 
 private fun LazyPagingItems<MediaItem>.snapshotItems(limit: Int = 30): List<MediaItem> =
@@ -286,7 +282,7 @@ private fun MoPlayerApp(
             state.showExitDialog -> viewModel.setExitDialog(false)
             state.section == AppSection.PLAYER && state.playingItem != null -> viewModel.closePlayer()
             state.activeServer != null && state.showSignIn -> viewModel.cancelSignIn()
-            state.activeServer != null && state.error != null && !state.appControlBlocked -> {
+            state.activeServer != null && state.error != null -> {
                 viewModel.clearError()
                 lastExitBackAt = 0L
             }
@@ -324,6 +320,10 @@ private fun MoPlayerApp(
         BackHandler {
             requestBack()
         }
+        val updateManager = rememberUpdateManager()
+        val playerOpen = state.section == AppSection.PLAYER && state.playingItem != null
+        AppUpdateEffects(updateManager, deferInstaller = playerOpen, onRefreshConfig = { viewModel.refreshRemoteConfig() })
+        val appBlock = visibleAppBlock(state.appBlock, playerOpen)
         when {
             !state.initialized -> {
                 // Brief splash while the saved account/library is read from disk, so a logged-in
@@ -337,6 +337,12 @@ private fun MoPlayerApp(
                     CircularProgressIndicator(color = accent)
                 }
             }
+            appBlock != null -> AppBlockScreen(
+                block = appBlock,
+                manager = updateManager,
+                onRetry = viewModel::retryAppBlock,
+                onExit = finishApp,
+            )
             signingIn -> {
                 Box(
                     Modifier
@@ -503,12 +509,10 @@ private fun MoPlayerApp(
                                     .padding(top = 18.dp, end = 22.dp),
                             )
                         }
+                        // Blocks (maintenance, forced update) render as AppBlockScreen above everything,
+                        // so an error here is always a routine, dismissible banner.
                         state.error?.let { error ->
-                            if (state.appControlBlocked) {
-                                ErrorOverlay(message = error)
-                            } else {
-                                ErrorBanner(message = error, onDismiss = viewModel::clearError)
-                            }
+                            ErrorBanner(message = error, onDismiss = viewModel::clearError)
                         }
                         state.notice?.let { notice ->
                             NoticeOverlay(message = notice, onDismiss = viewModel::clearNotice)
@@ -607,46 +611,6 @@ private fun SyncOverlay(progress: LoadProgress) {
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ErrorOverlay(message: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0x99080604), Color(0xDD050403)),
-                ),
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        GlassPanel(
-            modifier = Modifier.widthIn(min = 360.dp, max = 560.dp),
-            radius = 28.dp,
-            highlighted = true,
-            glow = Color(0x66FF6B6B),
-            contentAlignment = Alignment.Center,
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 34.dp, vertical = 30.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = LocalStrings.current.settings.syncErrorTitle,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = message,
-                    color = Color(0xFFFFB4AB),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
             }
         }
     }

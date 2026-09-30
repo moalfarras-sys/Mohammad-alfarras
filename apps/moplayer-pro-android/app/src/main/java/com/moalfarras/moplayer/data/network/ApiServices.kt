@@ -53,15 +53,6 @@ interface XtreamService {
     ): ResponseBody
 }
 
-interface WeatherService {
-    @GET("v1/current.json")
-    suspend fun current(
-        @Query("key") key: String,
-        @Query("q") query: String,
-        @Query("aqi") airQuality: String = "no",
-    ): WeatherResponseDto
-}
-
 interface WebWeatherService {
     @GET
     suspend fun weather(

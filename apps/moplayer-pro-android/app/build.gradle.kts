@@ -56,8 +56,8 @@ android {
         applicationId = "com.moalfarras.moplayerpro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 68
-        versionName = "2.6.5"
+        versionCode = 69
+        versionName = "2.7.0"
         val activationUrl = secretProperty("ACTIVATION_URL").ifBlank {
             secretPropertyAny("NEXT_PUBLIC_WEB_APP_URL", "NEXT_PUBLIC_ADMIN_APP_URL")
                 .trimEnd('/')
@@ -67,7 +67,6 @@ android {
         }
         buildConfigField("String", "SUPABASE_URL", "\"${secretPropertyAny("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "EXPO_PUBLIC_SUPABASE_URL")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secretPropertyAny("SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY", "EXPO_PUBLIC_SUPABASE_KEY")}\"")
-        buildConfigField("String", "WEATHER_API_KEY", "\"${secretProperty("WEATHER_API_KEY")}\"")
         buildConfigField("String", "ACTIVATION_URL", "\"$activationUrl\"")
         val webApiBaseUrl = secretProperty("WEB_API_BASE_URL").ifBlank { "https://moalfarras.space" }
         val appProductSlug = secretProperty("APP_PRODUCT_SLUG").ifBlank { "moplayer2" }

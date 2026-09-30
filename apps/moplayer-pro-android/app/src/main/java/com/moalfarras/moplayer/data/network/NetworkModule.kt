@@ -160,7 +160,6 @@ object NetworkModule {
             .build()
 
     val playlistService: PlaylistService by lazy { retrofit("https://example.com/", playlistOkHttp).create(PlaylistService::class.java) }
-    val weatherService: WeatherService by lazy { retrofit("https://api.weatherapi.com/").create(WeatherService::class.java) }
     val webWeatherService: WebWeatherService by lazy { retrofit("https://example.com/").create(WebWeatherService::class.java) }
     val freeWeatherService: FreeWeatherService by lazy { retrofit("https://example.com/").create(FreeWeatherService::class.java) }
     // The app's own API (QR activation). Verified by the platform store plus the bundled ISRG roots
@@ -191,8 +190,4 @@ object NetworkModule {
     }
 
     private fun String.ensureTrailingSlash(): String = if (endsWith('/')) this else "$this/"
-}
-
-object ApiKeys {
-    val weather: String = BuildConfig.WEATHER_API_KEY
 }

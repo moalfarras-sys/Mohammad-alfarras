@@ -7,7 +7,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.moalfarras.moplayer.data.repository.ActivationExpiry
 import com.moalfarras.moplayer.data.repository.ActivationPollResult
+import com.moalfarras.moplayer.data.repository.AppBlock
+import com.moalfarras.moplayer.data.repository.AppBlockReason
+import com.moalfarras.moplayer.data.repository.AppRemoteConfig
+import com.moalfarras.moplayer.data.repository.BlockRecheck
+import com.moalfarras.moplayer.data.repository.afterRecheck
 import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
+import com.moalfarras.moplayer.data.repository.appBlockFor
 import com.moalfarras.moplayer.data.repository.AppSettingsRepository
 import com.moalfarras.moplayer.data.repository.DeviceStateStore
 import com.moalfarras.moplayer.data.repository.IptvRepository
@@ -117,7 +123,8 @@ data class UiState(
     val pendingImportHost: String? = null,
     /** The sign-in screen is shown over a saved account to add another source ("Use another source"). */
     val showSignIn: Boolean = false,
-    val appControlBlocked: Boolean = false,
+    /** Admin block (disabled, maintenance, forced update). Navigation, login and errors never clear it. */
+    val appBlock: AppBlock? = null,
     /** False until the stored servers/settings have been read once, so the UI can show a splash
      *  instead of flashing the sign-in screen on cold start while an account is already saved. */
     val initialized: Boolean = false,
@@ -229,6 +236,10 @@ class MainViewModel(
 
     /** Cuts an activation back-off short when the network returns. */
     private val networkRegained = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private var remoteConfigJob: Job? = null
+    private var lastRemoteConfigAttemptAt = 0L
+    private var lastRemoteConfigMessage = ""
+    private var lastWidgetConfigKey: List<Any>? = null
 
     private val lastFocusedBySection = mutableMapOf<AppSection, MediaItem?>()
     private val lastCategoryBySection = mutableMapOf<AppSection, String>()
@@ -501,7 +512,7 @@ class MainViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LiveEpgSnapshot())
 
     init {
-        applyRemoteRuntimeConfig()
+        refreshRemoteConfig(force = true)
         refreshWidgets()
         // Keep the match/weather widgets fresh without any user action: every 2 minutes while a
         // match is live (running score/minute), otherwise every 15 minutes — light JSON calls that
@@ -601,7 +612,7 @@ class MainViewModel(
                 focusedTrailer = null,
                 selectedCategoryId = validRestoredCategory,
                 dockFocusSection = null,
-                error = it.blockingErrorOrNull(),
+                error = null,
                 pinError = null,
                 settingsUnlocked = if (section == AppSection.SETTINGS) !requirePin else it.settingsUnlocked,
                 seriesDetail = if (section == AppSection.SERIES || section == AppSection.HOME || section == AppSection.FAVORITES) null else it.seriesDetail,
@@ -655,7 +666,7 @@ class MainViewModel(
             val strings = I18n.strings.app
             try {
                 if (BuildConfig.DEBUG) Log.d("MoPlayerImport", "Starting imported playlist login")
-                internal.update { it.copy(loading = LoadProgress(strings.detectingSource, 8, 100), error = it.blockingErrorOrNull()) }
+                internal.update { it.copy(loading = LoadProgress(strings.detectingSource, 8, 100), error = null) }
                 val xtream = iptv.registerXtreamFromPlaylistUrl(strings.importedSourceName, url)
                 if (xtream != null) {
                     if (BuildConfig.DEBUG) Log.d("MoPlayerImport", "Imported playlist as Xtream source")
@@ -964,8 +975,10 @@ class MainViewModel(
     fun playWithoutHistory(item: MediaItem) = startPlayback(item, recordHistory = false)
 
     private fun startPlayback(item: MediaItem, recordHistory: Boolean) {
-        if (uiState.value.appControlBlocked) {
-            showNotice(uiState.value.error ?: I18n.strings.app.unavailable)
+        if (internal.value.appBlock != null) {
+            // The block screen explains why. A forced update let the current stream finish; the
+            // next zap or episode closes the player so the block screen shows.
+            if (internal.value.section == AppSection.PLAYER) closePlayer()
             return
         }
         val current = internal.value
@@ -1028,7 +1041,7 @@ class MainViewModel(
                 restoreFocusItem = focus,
                 selectedCategoryId = category.ifEmpty { it.selectedCategoryId },
                 dockFocusSection = null,
-                error = it.blockingErrorOrNull(),
+                error = null,
             )
         }
         saveLastSection(back)
@@ -1067,7 +1080,7 @@ class MainViewModel(
                     selectedCategoryId = originCategory,
                     // Home puts focus back on the shelf card only when the dock is not asked for.
                     dockFocusSection = null,
-                    error = state.blockingErrorOrNull(),
+                    error = null,
                 )
             }
         } else if (current.section in BACK_TO_HOME_SECTIONS) {
@@ -1081,7 +1094,7 @@ class MainViewModel(
                     focusedTrailer = null,
                     seriesDetailsLoading = false,
                     selectedCategoryId = "",
-                    error = state.blockingErrorOrNull(),
+                    error = null,
                     pinError = null,
                 )
             }
@@ -1094,7 +1107,7 @@ class MainViewModel(
             it.copy(
                 dockFocusSection = section,
                 restoreFocusItem = null,
-                error = it.blockingErrorOrNull(),
+                error = null,
             )
         }
     }
@@ -1113,7 +1126,7 @@ class MainViewModel(
             val strings = I18n.strings.app
             try {
                 // Progress (and a disabled Sign in button) from the first network probe on.
-                internal.update { it.copy(loading = LoadProgress(strings.detectingSource, 5, 100), error = it.blockingErrorOrNull()) }
+                internal.update { it.copy(loading = LoadProgress(strings.detectingSource, 5, 100), error = null) }
                 val xtream = iptv.registerXtreamFromPlaylistUrl(name, url)
                 if (xtream != null) {
                     openSourceAfterLogin(xtream, strings.serverReady, strings.serverCached)
@@ -1140,7 +1153,7 @@ class MainViewModel(
             val strings = I18n.strings.app
             try {
                 iptv.loginM3uText(name, sourceName, playlistText).collect { progress ->
-                    internal.update { it.copy(loading = progress, error = it.blockingErrorOrNull()) }
+                    internal.update { it.copy(loading = progress, error = null) }
                 }
                 finishLogin(notice = null)
             } catch (cancelled: CancellationException) {
@@ -1160,7 +1173,7 @@ class MainViewModel(
             val self = coroutineContext.job
             val strings = I18n.strings.app
             try {
-                internal.update { it.copy(loading = LoadProgress(strings.savingServer, 15, 100), error = it.blockingErrorOrNull()) }
+                internal.update { it.copy(loading = LoadProgress(strings.savingServer, 15, 100), error = null) }
                 val server = iptv.registerXtreamSource(name, baseUrl, username, password)
                 openSourceAfterLogin(server, strings.serverReady, strings.serverCached)
             } catch (cancelled: CancellationException) {
@@ -1183,7 +1196,7 @@ class MainViewModel(
         // The QR panel treats an error as new only when it is not the one it already showed.
         // StateFlow drops a value equal to the current one, so a repeated identical failure would
         // never be published: the previous error is cleared first.
-        internal.update { it.copy(error = it.blockingErrorOrNull()) }
+        internal.update { it.copy(error = null) }
         activationJob = viewModelScope.launch {
             val pending = loadPendingActivation()
             if (pending != null) {
@@ -1211,7 +1224,7 @@ class MainViewModel(
                     waitForRetry(activationRetryDelayMs(failures))
                     continue
                 }
-                internal.update { it.copy(activationSession = session, error = it.blockingErrorOrNull()) }
+                internal.update { it.copy(activationSession = session, error = null) }
                 pollDeviceActivation(session, pollNow = false)
                 return@launch
             }
@@ -1363,7 +1376,7 @@ class MainViewModel(
             try {
                 val server = when (profile.kind) {
                     LoginKind.XTREAM -> {
-                        internal.update { it.copy(loading = LoadProgress(strings.savingServer, 20, 100), error = it.blockingErrorOrNull()) }
+                        internal.update { it.copy(loading = LoadProgress(strings.savingServer, 20, 100), error = null) }
                         iptv.registerXtreamSource(
                             name = profile.name,
                             baseUrl = profile.baseUrl,
@@ -1373,7 +1386,7 @@ class MainViewModel(
                         )
                     }
                     LoginKind.M3U -> {
-                        internal.update { it.copy(loading = LoadProgress(strings.savingPlaylist, 20, 100), error = it.blockingErrorOrNull()) }
+                        internal.update { it.copy(loading = LoadProgress(strings.savingPlaylist, 20, 100), error = null) }
                         iptv.registerXtreamFromPlaylistUrl(profile.name, profile.playlistUrl)
                             ?: iptv.registerM3uSource(profile.name, profile.playlistUrl, profile.epgUrl)
                     }
@@ -1430,7 +1443,7 @@ class MainViewModel(
                     it.copy(
                         loading = progress,
                         backgroundRefresh = null,
-                        error = it.blockingErrorOrNull(),
+                        error = null,
                     )
                 }
             }
@@ -1476,7 +1489,7 @@ class MainViewModel(
                 section = AppSection.HOME,
                 returnSection = AppSection.HOME,
                 activationSession = null,
-                error = it.blockingErrorOrNull(),
+                error = null,
                 notice = notice ?: it.notice,
                 showSignIn = false,
             )
@@ -1645,7 +1658,7 @@ class MainViewModel(
 
     /** Dismisses a routine error; a maintenance or forced-update block cannot be dismissed. */
     fun clearError() {
-        internal.update { if (it.appControlBlocked) it else it.copy(error = null) }
+        internal.update { it.copy(error = null) }
     }
 
     fun showNotice(message: String) {
@@ -1953,14 +1966,14 @@ class MainViewModel(
 
     /** Opens the sign-in screen over the current account; nothing is deleted. */
     fun signInWithAnotherSource() {
-        internal.update { it.copy(showSignIn = true, error = it.blockingErrorOrNull()) }
+        internal.update { it.copy(showSignIn = true, error = null) }
     }
 
     /** Back from "Use another source" returns to the current account (unless an import is running). */
     fun cancelSignIn() {
         if (internal.value.loading != null) return
         stopDeviceActivation()
-        internal.update { it.copy(showSignIn = false, error = it.blockingErrorOrNull()) }
+        internal.update { it.copy(showSignIn = false, error = null) }
     }
 
     /** Removes the expired account and returns to the sign-in screen ("Remove & sign in again", confirmed in the dialog). */
@@ -1995,7 +2008,7 @@ class MainViewModel(
                 internal.update {
                     it.copy(
                         backgroundRefresh = LoadProgress(strings.refreshStarting, 0, 100),
-                        error = it.blockingErrorOrNull(),
+                        error = null,
                         notice = strings.refreshRunning,
                     )
                 }
@@ -2052,7 +2065,7 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 val message = iptv.testServerConnection(server)
-                internal.update { it.copy(notice = message, error = it.blockingErrorOrNull()) }
+                internal.update { it.copy(notice = message, error = null) }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -2078,7 +2091,7 @@ class MainViewModel(
                 focusedTrailer = null,
                 section = AppSection.SERIES_DETAIL,
                 returnSection = AppSection.SERIES_DETAIL,
-                error = it.blockingErrorOrNull(),
+                error = null,
             )
         }
         saveLastSection(AppSection.SERIES_DETAIL)
@@ -2130,46 +2143,31 @@ class MainViewModel(
             type == other.type &&
             serverId == other.serverId
 
-    private fun applyRemoteRuntimeConfig() {
-        viewModelScope.launch {
-            runCatching { remoteConfigService.fetchConfig() }
-                .onSuccess { config ->
-                    settingsRepo.applyRemoteConfig(config)
-                    val nextSettings = uiState.value.settings.copy(
-                        showWeatherWidget = config.weatherEnabled,
-                        showFootballWidget = config.footballEnabled,
-                        weatherMode = if (config.weatherCity.isNotBlank()) WeatherMode.CITY else uiState.value.settings.weatherMode,
-                        weatherCityOverride = config.weatherCity.takeIf { it.isNotBlank() } ?: uiState.value.settings.weatherCityOverride,
-                        footballMaxMatches = config.footballMaxMatches.coerceIn(1, 8),
-                    )
-                    weather.value = widgets.weather(nextSettings)
-                    football.value = widgets.football(nextSettings)
-                    val blockingMessage = when {
-                        !config.enabled -> config.message.ifBlank { "MoPlayer Pro is temporarily unavailable." }
-                        config.maintenanceMode -> config.message.ifBlank { "MoPlayer Pro is in maintenance mode." }
-                        config.forceUpdate && BuildConfig.VERSION_CODE < config.minimumVersionCode ->
-                            config.message.ifBlank { "A required MoPlayer Pro update is available." }
-                        else -> ""
-                    }
-                    internal.update { current ->
-                        if (blockingMessage.isNotBlank()) {
-                            current.copy(
-                                appControlBlocked = true,
-                                error = blockingMessage,
-                                notice = null,
-                                loading = null,
-                                playingItem = null,
-                                section = if (current.section == AppSection.PLAYER) current.returnSection.playerReturnSection() else current.section,
-                            )
-                        } else {
-                            current.copy(
-                                appControlBlocked = false,
-                                error = if (current.appControlBlocked) null else current.error,
-                                notice = config.message.takeIf { it.isNotBlank() } ?: current.notice,
-                            )
-                        }
-                    }
-                }
+    /**
+     * Re-reads the admin config: at start, when the app returns to the foreground and periodically
+     * (throttled to [CONFIG_REFRESH_MS]), or right away with [force] (at start).
+     */
+    fun refreshRemoteConfig(force: Boolean = false) {
+        if (remoteConfigJob?.isActive == true) return
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (!force && lastRemoteConfigAttemptAt != 0L && now - lastRemoteConfigAttemptAt < CONFIG_REFRESH_MS) return
+        lastRemoteConfigAttemptAt = now
+        remoteConfigJob = viewModelScope.launch { applyRemoteRuntimeConfig() }
+    }
+
+    /** "Try again" on the maintenance/disabled screen: always answered by a request made after the press. */
+    fun retryAppBlock() {
+        markBlockRechecking()
+        val running = remoteConfigJob?.takeIf { it.isActive }
+        lastRemoteConfigAttemptAt = android.os.SystemClock.elapsedRealtime()
+        remoteConfigJob = viewModelScope.launch {
+            if (running != null) {
+                // An automatic refresh was already under way (its answer may predate the press):
+                // let it finish, then ask again so the retry gets its own outcome.
+                running.join()
+                markBlockRechecking()
+            }
+            applyRemoteRuntimeConfig()
         }
     }
 
@@ -2194,6 +2192,50 @@ class MainViewModel(
             }
             loadZapWindow(session, zapWindowFor(session.keys.size, index, null))
         }
+    }
+
+    private fun markBlockRechecking() {
+        internal.update { it.copy(appBlock = it.appBlock?.copy(recheck = BlockRecheck.CHECKING)) }
+    }
+
+    private suspend fun applyRemoteRuntimeConfig() {
+        val config = remoteConfigService.fetchConfig()
+        if (config == null) {
+            // Offline or a server error: keep the last known block and every admin value (never
+            // replace them with defaults, which would lift a block or reset the kill switches).
+            internal.update { current ->
+                current.copy(appBlock = current.appBlock?.let { block -> block.copy(recheck = block.recheck.afterRecheck(reached = false)) })
+            }
+            return
+        }
+        val block = appBlockFor(config, BuildConfig.VERSION_CODE)
+        val notice = config.message.takeIf { block == null && it.isNotBlank() && it != lastRemoteConfigMessage }
+        lastRemoteConfigMessage = config.message
+        internal.update { current ->
+            // Disabled and maintenance end playback now; a forced update lets the stream finish.
+            val leavePlayer = block != null && block.reason != AppBlockReason.FORCE_UPDATE && current.section == AppSection.PLAYER
+            current.copy(
+                appBlock = block?.copy(recheck = (current.appBlock?.recheck ?: BlockRecheck.NONE).afterRecheck(reached = true)),
+                playingItem = if (leavePlayer) null else current.playingItem,
+                section = if (leavePlayer) current.returnSection.playerReturnSection() else current.section,
+                notice = notice ?: current.notice,
+            )
+        }
+        // After the block: widget requests can take seconds and must not delay it.
+        if (settingsRepo.applyRemoteConfig(config)) viewModelScope.launch { refreshWidgetsForConfig(config) }
+    }
+
+    /**
+     * Refreshes the widgets from the stored settings (the user's choices merged with the admin's)
+     * when a widget-related admin value changed, instead of a hand-built copy that forced City mode.
+     */
+    private suspend fun refreshWidgetsForConfig(config: AppRemoteConfig) {
+        val key = listOf(config.weatherEnabled, config.footballEnabled, config.weatherCity, config.footballMaxMatches, config.footballProviderMode)
+        if (key == lastWidgetConfigKey) return
+        lastWidgetConfigKey = key
+        val merged = settingsRepo.settings.first()
+        weather.value = widgets.weather(merged)
+        football.value = widgets.football(merged)
     }
 
     /** A zap inside the player: the window grows when the channel nears its end; the list itself stays frozen. */
@@ -2332,7 +2374,7 @@ class MainViewModel(
         val state = uiState.value
         val settings = state.settings
         val blocked = externalLaunch ||
-            state.appControlBlocked ||
+            state.appBlock != null ||
             state.loading != null ||
             state.playingItem != null ||
             state.pendingImportHost != null ||
@@ -2461,8 +2503,8 @@ class MainViewModel(
     }
 }
 
-/** A maintenance or forced-update message survives navigation; routine errors do not. */
-private fun UiState.blockingErrorOrNull(): String? = if (appControlBlocked) error else null
+/** Minimum gap between two automatic admin-config refreshes (foreground returns and the timer). */
+private const val CONFIG_REFRESH_MS = 10 * 60_000L
 
 private fun DeviceActivationSession.pollIntervalMs(): Long = intervalSeconds.coerceAtLeast(3) * 1000L
 

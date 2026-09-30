@@ -4,27 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class WeatherResponseDto(
-    val location: WeatherLocationDto = WeatherLocationDto(),
-    val current: WeatherCurrentDto = WeatherCurrentDto(),
-)
-
-@Serializable
-data class WeatherLocationDto(
-    val name: String = "",
-    @SerialName("tz_id") val tzId: String = "",
-)
-
-@Serializable
-data class WeatherCurrentDto(
-    @SerialName("temp_c") val tempC: Double = 0.0,
-    val condition: WeatherConditionDto = WeatherConditionDto(),
-)
-
-@Serializable
-data class WeatherConditionDto(val text: String = "", val icon: String = "")
-
-@Serializable
 data class SportsDbEventsDto(
     val events: List<SportsDbEventDto>? = null,
 )

@@ -192,14 +192,14 @@ data class SearchStrings(
 
 private val EnSettingsStrings = SettingsStrings(
     heroLookSubtitle = "Backgrounds, colors, widgets and TV performance.",
-    heroPlaybackSubtitle = "Player, video size, sorting and updates.",
+    heroPlaybackSubtitle = "Player, video size and sorting.",
     heroLiveSubtitle = "Channel previews, auto-play and cleaner categories.",
     heroAccountsActive = { name -> "$name is active" },
     heroAccountsEmpty = "Add an account or switch between saved ones.",
     heroStorageSubtitle = "Clear local history and guide data without touching your accounts.",
     heroLockOn = "PIN protection is on.",
     heroLockOff = "Create a PIN to protect settings and content filters.",
-    heroAboutSubtitle = "Version, support and app information.",
+    heroAboutSubtitle = "Updates, version, support and app information.",
     channelPreview = "Channel preview",
     autoPlayLastLive = "Play the last channel on start",
     hideEmptyCategories = "Hide empty categories",
@@ -356,14 +356,14 @@ private val EnSettingsStrings = SettingsStrings(
 
 private val ArSettingsStrings = SettingsStrings(
     heroLookSubtitle = "الخلفيات والألوان والودجات وأداء التلفزيون.",
-    heroPlaybackSubtitle = "المشغّل وحجم الصورة والترتيب والتحديثات.",
+    heroPlaybackSubtitle = "المشغّل وحجم الصورة والترتيب.",
     heroLiveSubtitle = "معاينة القنوات والتشغيل التلقائي وتصنيفات أنظف.",
     heroAccountsActive = { name -> "الحساب النشط: ${name.isolate()}" },
     heroAccountsEmpty = "أضف حسابًا أو بدّل بين الحسابات المحفوظة.",
     heroStorageSubtitle = "امسح السجل المحلي وبيانات الدليل دون المساس بحساباتك.",
     heroLockOn = "الحماية برمز PIN مفعّلة.",
     heroLockOff = "أنشئ رمز PIN لحماية الإعدادات وفلاتر المحتوى.",
-    heroAboutSubtitle = "الإصدار والدعم ومعلومات التطبيق.",
+    heroAboutSubtitle = "التحديثات والإصدار والدعم ومعلومات التطبيق.",
     channelPreview = "معاينة القناة",
     autoPlayLastLive = "تشغيل آخر قناة عند الفتح",
     hideEmptyCategories = "إخفاء التصنيفات الفارغة",

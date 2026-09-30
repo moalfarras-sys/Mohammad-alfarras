@@ -6,6 +6,16 @@ import com.moalfarras.moplayer.domain.model.SortOption
 /** SQL text plus its bind arguments, built from a whitelist so nothing user-typed reaches the SQL text. */
 internal data class MediaSql(val sql: String, val args: List<Any>)
 
+/** A channel of a player zap list: its key plus the text the parental filter checks. */
+data class LiveZapKeyRow(
+    val serverId: Long,
+    val id: String,
+    val title: String,
+    val categoryId: String,
+    val categoryName: String,
+    val description: String,
+)
+
 /**
  * Builders for the library queries whose ORDER BY depends on the user's sort option.
  *
@@ -19,7 +29,9 @@ internal data class MediaSql(val sql: String, val args: List<Any>)
  */
 internal object MediaQueries {
     const val SEARCH_RESULT_LIMIT = 500
-    const val LIVE_ZAP_LIMIT = 1_000
+
+    const val ZAP_KEY_COLUMNS = "media.serverId AS serverId, media.id AS id, media.title AS title, " +
+        "media.categoryId AS categoryId, media.categoryName AS categoryName, media.description AS description"
 
     const val ROW_COLUMNS = "media.id AS id, media.serverId AS serverId, media.type AS type, " +
         "media.categoryId AS categoryId, media.categoryName AS categoryName, media.title AS title, " +
@@ -60,12 +72,14 @@ internal object MediaQueries {
     }
 
     /**
-     * Channel list for CH+/CH- in the player. RECENTLY_WATCHED falls back to server order: that sort
-     * changes every time a channel is recorded as played, which made zapping bounce between the
-     * same two channels. Zapping needs a stable, receiver-like order.
+     * Ordered keys of a player zap list: one live category ([categoryId]), every live channel
+     * (blank), or the live favorites ([favoritesOnly], in the Favorites screen order). There is no
+     * row cap: the rows only carry the key plus the text the parental filter checks, and the player
+     * loads full rows for a window around the playing channel with [liveRowsByIds]. The order is
+     * the one the list on screen uses; the caller reads it once per player session, so history
+     * written while zapping cannot reorder it.
      */
-    fun liveZap(serverId: Long, categoryId: String, sort: SortOption, hideNoLogo: Boolean): MediaSql {
-        val zapSort = if (sort == SortOption.RECENTLY_WATCHED) SortOption.SERVER_ORDER else sort
+    fun liveZapKeys(serverId: Long, categoryId: String, favoritesOnly: Boolean, sort: SortOption, hideNoLogo: Boolean): MediaSql {
         val args = mutableListOf<Any>()
         val where = buildString {
             append(serverFilter(serverId, args))
@@ -75,11 +89,19 @@ internal object MediaQueries {
                 append(" AND media.categoryId = ?")
                 args += categoryId
             }
+            if (favoritesOnly) append(" AND media.isFavorite = 1")
             if (hideNoLogo) append(" AND media.posterUrl != ''")
         }
+        val order = if (favoritesOnly) "media.updatedAt DESC, media.rowid" else orderBy(sort, serverId, categoryId.isNotEmpty())
+        return MediaSql("SELECT $ZAP_KEY_COLUMNS FROM media WHERE $where ORDER BY $order", args)
+    }
+
+    /** Full rows of one source's live channels by id; callers keep [ids] well below 999 variables. */
+    fun liveRowsByIds(serverId: Long, ids: List<String>): MediaSql {
+        val placeholders = ids.joinToString(",") { "?" }
         return MediaSql(
-            "SELECT $ROW_COLUMNS FROM media WHERE $where ORDER BY ${orderBy(zapSort, serverId, categoryId.isNotEmpty())} LIMIT $LIVE_ZAP_LIMIT",
-            args,
+            "SELECT $ROW_COLUMNS FROM media WHERE media.serverId = ? AND media.type = ? AND media.id IN ($placeholders)",
+            listOf<Any>(serverId, ContentType.LIVE.name) + ids,
         )
     }
 

@@ -1,5 +1,7 @@
 package com.moalfarras.moplayer.data.repository
 
+import android.os.SystemClock
+import android.util.Log
 import androidx.room.withTransaction
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -21,6 +23,8 @@ import com.moalfarras.moplayer.data.network.WebProviderSourceDto
 import com.moalfarras.moplayer.data.network.WatchProgressDto
 import com.moalfarras.moplayer.core.PlaybackActivity
 import com.moalfarras.moplayer.data.db.EpgProgramEntity
+import com.moalfarras.moplayer.data.db.LiveHistoryDebouncer
+import com.moalfarras.moplayer.data.db.LiveZapKeyRow
 import com.moalfarras.moplayer.data.db.SyncStateEntity
 import com.moalfarras.moplayer.data.parser.JsonStreamReader
 import com.moalfarras.moplayer.data.parser.M3U_PARSER_VERSION
@@ -39,6 +43,7 @@ import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.ui.i18n.I18n
 import com.moalfarras.moplayer.ui.i18n.SyncStrings
+import com.moalfarras.moplayer.ui.i18n.app
 import com.moalfarras.moplayer.ui.i18n.isolate
 import com.moalfarras.moplayer.ui.i18n.sync
 import kotlinx.coroutines.CancellationException
@@ -54,7 +59,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -67,6 +71,7 @@ import okio.buffer
 import okio.sink
 import okio.source
 import org.json.JSONObject
+import retrofit2.HttpException
 import java.io.File
 import java.io.FilterInputStream
 import java.io.InputStream
@@ -76,7 +81,6 @@ import java.net.URL
 import java.net.URLEncoder
 import java.security.SecureRandom
 import java.nio.charset.StandardCharsets
-import java.time.Instant
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -108,6 +112,9 @@ private const val SHORT_EPG_EMPTY_TTL_MS = 20L * 60L * 1000L
 private const val SHORT_EPG_FAILURE_TTL_MS = 3L * 60L * 1000L
 private const val SHORT_EPG_CACHE_ENTRIES = 2_000
 private const val PLAYLIST_PROBE_BYTES = 8_192L
+private const val ACTIVATION_LOG_TAG = "MoPlayerActivation"
+/** Source acknowledgement: first try at once, then two retries for network, 429 or 5xx failures. */
+private val ACK_RETRY_DELAYS_MS = longArrayOf(0L, 2_000L, 6_000L)
 
 /** How much a library refresh downloads. */
 enum class SyncMode {
@@ -232,15 +239,40 @@ class IptvRepository(
         pagingData.map { entity -> entity.toDomain() }
     }
 
-    fun liveZapItems(
+    /**
+     * Ordered keys of the channels CH+/CH- walks through for [scope], with no row cap. [excluded]
+     * drops the channels the list on screen hides (parental filter). Read once per player session.
+     */
+    suspend fun liveZapKeys(
         serverId: Long,
-        categoryId: String,
-        sortOption: SortOption = SortOption.SERVER_ORDER,
-        hideNoLogo: Boolean = false,
-    ): Flow<List<MediaItem>> =
-        database.mediaDao()
-            .observeLiveZapItems(serverId, categoryId, sortOption.name, hideNoLogo)
-            .map { list -> list.map { entity -> entity.toDomain() } }
+        scope: LiveZapScope,
+        sortOption: SortOption,
+        hideNoLogo: Boolean,
+        excluded: (LiveZapKeyRow) -> Boolean = { false },
+    ): List<LiveZapKey> = withContext(Dispatchers.IO) {
+        val dao = database.mediaDao()
+        val rows = when (scope) {
+            is LiveZapScope.Category -> dao.liveZapKeys(serverId, scope.categoryId, false, sortOption.name, hideNoLogo)
+            LiveZapScope.AllChannels -> dao.liveZapKeys(serverId, "", false, sortOption.name, hideNoLogo)
+            LiveZapScope.Favorites -> dao.liveZapKeys(serverId, "", true, sortOption.name, hideNoLogo)
+            is LiveZapScope.Search -> dao.searchRowsOnce(serverId, scope.query)
+                .filter { it.type == ContentType.LIVE && (!hideNoLogo || it.posterUrl.isNotBlank()) }
+                .map { LiveZapKeyRow(it.serverId, it.id, it.title, it.categoryId, it.categoryName, it.description) }
+        }
+        rows.filterNot(excluded).map { LiveZapKey(it.serverId, it.id) }
+    }
+
+    /** Full rows for [keys], in the same order; channels removed since the keys were read are skipped. */
+    suspend fun liveZapRows(keys: List<LiveZapKey>): List<MediaItem> = withContext(Dispatchers.IO) {
+        val dao = database.mediaDao()
+        val found = HashMap<LiveZapKey, MediaItem>(keys.size * 2)
+        keys.groupBy({ it.serverId }, { it.id }).forEach { (serverId, ids) ->
+            ids.chunked(LIVE_ZAP_ROW_CHUNK).forEach { chunk ->
+                dao.liveRowsByIds(serverId, chunk).forEach { row -> found[LiveZapKey(row.serverId, row.id)] = row.toDomain() }
+            }
+        }
+        keys.mapNotNull(found::get)
+    }
 
     fun latestLive(serverId: Long): Flow<PagingData<MediaItem>> = Pager(
         config = largeLibraryPagingConfig(LIBRARY_SHELF_PAGE_SIZE),
@@ -600,6 +632,11 @@ class IptvRepository(
         database.mediaDao().markPlayed(item.serverId, item.id, item.type, System.currentTimeMillis())
     }
 
+    /** Forgets a live channel still waiting out its history dwell (the player closed before it). */
+    fun discardPendingLiveHistory() {
+        LiveHistoryDebouncer.shared.cancel()
+    }
+
     suspend fun updateWatch(item: MediaItem, positionMs: Long, durationMs: Long) {
         val safeDuration = durationMs.coerceAtLeast(0)
         val completion = if (safeDuration > 0) positionMs.toDouble() / safeDuration.toDouble() else 0.0
@@ -661,26 +698,46 @@ class IptvRepository(
         }
     }
 
+    /**
+     * Tells the website whether the QR-delivered source was imported, so the phone can show the
+     * result. Best effort: it never throws (apart from cancellation) and returns whether the server
+     * accepted it. Network failures, 429 and 5xx are retried twice; other answers are final (a 401
+     * is expected when an earlier acknowledgement already retired the token). [message] must be a
+     * short non-sensitive code, never a URL or credentials.
+     */
     suspend fun acknowledgeWebActivationSource(
         publicDeviceId: String,
         token: String,
         sourceId: String,
         imported: Boolean,
         message: String = "",
-    ) {
-        if (publicDeviceId.isBlank() || token.isBlank() || sourceId.isBlank()) return
-        withContext(Dispatchers.IO) {
-            webApiService.webDeviceActivationSourceAck(
-                url = activationApiUrl("source/ack"),
-                body = WebActivationSourceAckRequestDto(
-                    publicDeviceId = publicDeviceId,
-                    token = token,
-                    sourceId = sourceId,
-                    status = if (imported) "imported" else "failed",
-                    message = message.take(500),
-                ),
-            ).close()
+    ): Boolean {
+        if (publicDeviceId.isBlank() || token.isBlank() || sourceId.isBlank()) return false
+        val body = WebActivationSourceAckRequestDto(
+            publicDeviceId = publicDeviceId,
+            token = token,
+            sourceId = sourceId,
+            status = if (imported) "imported" else "failed",
+            message = message.take(120),
+        )
+        for (wait in ACK_RETRY_DELAYS_MS) {
+            if (wait > 0L) delay(wait)
+            try {
+                withContext(Dispatchers.IO) {
+                    webApiService.webDeviceActivationSourceAck(url = activationApiUrl("source/ack"), body = body).close()
+                }
+                return true
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                if (!isTransientActivationFailure(failure)) {
+                    Log.w(ACTIVATION_LOG_TAG, "Source acknowledgement refused (${(failure as? HttpException)?.code() ?: failure.javaClass.simpleName})")
+                    return false
+                }
+            }
         }
+        Log.w(ACTIVATION_LOG_TAG, "Source acknowledgement failed after retries")
+        return false
     }
 
     suspend fun lastWatchedLive(serverId: Long): MediaItem? =
@@ -1145,17 +1202,14 @@ class IptvRepository(
         }
     }
 
-    fun loginActivationCode(code: String): Flow<LoadProgress> = flow {
-        emit(LoadProgress("Use the QR activation screen", 0, 100))
-        error("Server import is only available from a fresh moalfarras.space QR activation.")
-    }
-
-    suspend fun resolveActivationProfile(code: String): ActivatedProfile {
-        error("Server import is only available from a fresh moalfarras.space QR activation.")
-    }
-
-    suspend fun createDeviceActivation(deviceName: String): DeviceActivationSession {
-        val publicDeviceId = publicDeviceId()
+    /**
+     * Creates a QR activation code for this install ([publicDeviceId] is stable per install, so the
+     * website expires this device's older waiting codes). The countdown is receipt time plus the
+     * server's relative TTL, on both the wall clock (display) and the monotonic clock (expiry
+     * checks): the server's absolute expiresAt is never compared with the TV clock, which is often
+     * wrong on boxes. A fresh source-pull token is minted for every code.
+     */
+    suspend fun createDeviceActivation(deviceName: String, publicDeviceId: String): DeviceActivationSession {
         val sourcePullToken = secureToken(32)
         val webResponse = withContext(Dispatchers.IO) {
             webApiService.createWebDeviceActivation(
@@ -1169,32 +1223,39 @@ class IptvRepository(
                 ),
             )
         }
+        val receivedElapsed = SystemClock.elapsedRealtime()
+        val receivedWall = System.currentTimeMillis()
         val webCode = webResponse.code.trim().uppercase(Locale.US)
-        require(webCode.isNotBlank()) { webResponse.message.ifBlank { "Activation backend did not return a code" } }
+        if (webCode.isBlank()) throw IllegalStateException("Activation backend did not return a code")
         val verificationUrl = BuildConfig.ACTIVATION_URL
-        val completeUrl = verificationUrl.withQueryParameter("code", webCode)
-        val expiresAt = webResponse.expiresAt.parseInstantOr(
-            System.currentTimeMillis() + webResponse.ttlSeconds.coerceAtLeast(60) * 1000L,
-        )
+        val ttlMs = activationTtlMs(webResponse.ttlSeconds)
         return DeviceActivationSession(
             deviceCode = webCode,
             userCode = webCode,
             verificationUrl = verificationUrl,
-            verificationUrlComplete = completeUrl,
-            expiresAt = expiresAt,
+            verificationUrlComplete = verificationUrl.withQueryParameter("code", webCode),
+            expiresAt = receivedWall + ttlMs,
             intervalSeconds = 5,
             status = DeviceActivationStatus.WAITING,
             publicDeviceId = publicDeviceId,
             sourcePullToken = sourcePullToken,
+            expiresAtElapsed = receivedElapsed + ttlMs,
+            sourceDeadlineElapsed = receivedElapsed + ACTIVATION_SOURCE_WINDOW_MS,
         )
     }
 
-    suspend fun pollDeviceActivation(session: DeviceActivationSession): Pair<DeviceActivationSession, ActivatedProfile?> {
-        if (System.currentTimeMillis() >= session.expiresAt) {
-            return session.copy(status = DeviceActivationStatus.EXPIRED, error = "Activation code expired") to null
+    /**
+     * One poll of [session]: the code status, then (once the phone confirmed it) the one-time
+     * source. Never throws apart from cancellation: transport failures, timeouts and 408/425/429/5xx
+     * come back as [ActivationPollResult.Transient] so the caller keeps the same code and backs off;
+     * 404/410 mean the code expired, a 401 from /source means the token was rejected.
+     */
+    suspend fun pollDeviceActivation(session: DeviceActivationSession): ActivationPollResult {
+        if (session.publicDeviceId.isBlank() || session.sourcePullToken.isBlank()) {
+            return ActivationPollResult.Invalid(0)
         }
-        if (session.publicDeviceId.isNotBlank() && session.sourcePullToken.isNotBlank()) {
-            val statusResponse = withContext(Dispatchers.IO) {
+        val statusResponse = try {
+            withContext(Dispatchers.IO) {
                 webApiService.webDeviceActivationStatus(
                     activationApiUrl(
                         "status",
@@ -1205,9 +1266,19 @@ class IptvRepository(
                     ),
                 )
             }
-            return when (statusResponse.status.lowercase(Locale.US)) {
-                "activated" -> {
-                    val sourceResponse = withContext(Dispatchers.IO) {
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            return activationFailureOutcome(failure, ActivationEndpoint.STATUS)
+        }
+        return when (statusResponse.status.lowercase(Locale.US)) {
+            "activated" -> {
+                val confirmed = session.confirmedByPhone(SystemClock.elapsedRealtime(), System.currentTimeMillis())
+                val sourceResponse = try {
+                    // The website deletes the source when it answers this pull, so the answer must
+                    // reach the caller even if polling is stopped meanwhile (QR panel left, app in
+                    // the background, a new code requested).
+                    runToCompletion(Dispatchers.IO) {
                         webApiService.webDeviceActivationSource(
                             activationApiUrl(
                                 "source",
@@ -1219,37 +1290,32 @@ class IptvRepository(
                             ),
                         )
                     }
-                    val profile = sourceResponse.source?.toActivatedProfile(
-                        sourceId = sourceResponse.sourceId,
-                        publicDeviceId = session.publicDeviceId,
-                        sourcePullToken = session.sourcePullToken,
-                    )
-                    if (profile != null) {
-                        session.copy(status = DeviceActivationStatus.ACTIVATED) to profile
-                    } else {
-                        val waitingMessage = sourceResponse.message.ifBlank {
-                            statusResponse.sourceMessage.ifBlank { "Waiting for playlist details" }
-                        }
-                        session.copy(status = DeviceActivationStatus.WAITING, error = waitingMessage) to null
-                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    return activationFailureOutcome(failure, ActivationEndpoint.SOURCE)
                 }
-                "expired" -> session.copy(status = DeviceActivationStatus.EXPIRED, error = "Activation code expired") to null
-                "error", "invalid" -> session.copy(
-                    status = DeviceActivationStatus.ERROR,
-                    error = statusResponse.message.ifBlank { "Activation failed" },
-                ) to null
-                else -> session.copy(
-                    status = DeviceActivationStatus.WAITING,
-                    expiresAt = statusResponse.expiresAt.parseInstantOr(session.expiresAt),
-                    error = statusResponse.message,
-                ) to null
+                val profile = sourceResponse.source?.toActivatedProfile(
+                    sourceId = sourceResponse.sourceId,
+                    publicDeviceId = session.publicDeviceId,
+                    sourcePullToken = session.sourcePullToken,
+                )
+                when {
+                    profile != null -> ActivationPollResult.SourceReady(
+                        confirmed.copy(status = DeviceActivationStatus.ACTIVATED, error = ""),
+                        profile,
+                    )
+                    // The website already handed the source out (to an earlier run of this app, or a
+                    // pull whose answer never arrived); by design it cannot be fetched a second time.
+                    statusResponse.sourceStatus.lowercase(Locale.US) == "source_fetched" ->
+                        ActivationPollResult.Waiting(confirmed.copy(error = I18n.strings.app.activationSourceNotReceived))
+                    else -> ActivationPollResult.Waiting(confirmed.copy(error = ""))
+                }
             }
+            "expired" -> ActivationPollResult.Expired(ActivationExpiry.CODE_EXPIRED)
+            "error", "invalid" -> ActivationPollResult.Invalid(0)
+            else -> ActivationPollResult.Waiting(session.copy(error = ""))
         }
-
-        return session.copy(
-            status = DeviceActivationStatus.ERROR,
-            error = "Refresh the QR code. Server details are delivered only through the website handoff.",
-        ) to null
     }
 
     private fun claimSync(serverId: Long, mode: SyncMode): Pair<InFlightSync, Boolean> = synchronized(inFlightSyncs) {
@@ -2136,17 +2202,8 @@ private fun sourceKey(kind: String, value: String): String {
     return "$kind:${digest.joinToString("") { "%02x".format(it) }}"
 }
 
-private fun shortUserCode(): String {
-    val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-    return buildString {
-        repeat(8) { index ->
-            if (index == 4) append('-')
-            append(alphabet[secureRandom.nextInt(alphabet.length)])
-        }
-    }
-}
-
-private fun publicDeviceId(): String {
+/** A new random device id in the website's format: MO-D- plus 24 of [A-Z0-9]. */
+internal fun publicDeviceId(): String {
     val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     return buildString {
         append("MO-D-")
@@ -2191,9 +2248,6 @@ private fun String.escapeLike(): String =
             }
         }
     }
-
-private fun String.parseInstantOr(fallback: Long): Long =
-    runCatching { Instant.parse(this).toEpochMilli() }.getOrDefault(fallback)
 
 private fun WebProviderSourceDto.toActivatedProfile(
     sourceId: String = "",

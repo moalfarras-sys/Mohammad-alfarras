@@ -49,4 +49,18 @@ class LiveHistoryDebouncerTest {
         scope.runCurrent()
         assertEquals(listOf("d"), written)
     }
+
+    @Test
+    fun aChannelClosedBeforeTheDwellIsNotRecorded() {
+        start("e")
+        scope.advanceTimeBy(4_000)
+        debouncer.cancel()
+        scope.advanceTimeBy(10_000)
+        scope.runCurrent()
+        assertEquals(emptyList<String>(), written)
+        start("f")
+        scope.advanceTimeBy(10_001)
+        scope.runCurrent()
+        assertEquals(listOf("f"), written)
+    }
 }

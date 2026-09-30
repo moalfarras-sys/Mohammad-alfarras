@@ -229,12 +229,17 @@ data class DeviceActivationSession(
     val userCode: String,
     val verificationUrl: String,
     val verificationUrlComplete: String,
+    /** Local wall-clock end of the countdown: receipt time plus the server's relative TTL. */
     val expiresAt: Long,
     val intervalSeconds: Int,
     val status: DeviceActivationStatus = DeviceActivationStatus.WAITING,
     val error: String = "",
     val publicDeviceId: String = "",
     val sourcePullToken: String = "",
+    /** Same deadline on SystemClock.elapsedRealtime(), immune to a wrong or changing TV clock. */
+    val expiresAtElapsed: Long = 0L,
+    /** Until when a source can still arrive once the phone confirmed the code (elapsedRealtime). */
+    val sourceDeadlineElapsed: Long = 0L,
 ) {
     val secondsRemaining: Long
         get() = ((expiresAt - System.currentTimeMillis()) / 1000L).coerceAtLeast(0)

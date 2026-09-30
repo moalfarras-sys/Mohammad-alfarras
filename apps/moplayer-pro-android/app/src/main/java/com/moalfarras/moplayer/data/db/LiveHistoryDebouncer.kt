@@ -31,6 +31,14 @@ class LiveHistoryDebouncer(
         }
     }
 
+    /** Drops a write still waiting out the dwell (the player closed, or history was cleared). */
+    fun cancel() {
+        synchronized(lock) {
+            pending?.cancel()
+            pending = null
+        }
+    }
+
     companion object {
         const val LIVE_HISTORY_DWELL_MS = 10_000L
 

@@ -50,6 +50,7 @@ import com.moalfarras.moplayer.domain.model.PerformanceMode
 import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.domain.model.ThemePreset
+import com.moalfarras.moplayer.domain.model.UiScale
 import com.moalfarras.moplayer.domain.model.WeatherMode
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
@@ -1840,6 +1841,10 @@ class MainViewModel(
 
     fun setThemePreset(value: ThemePreset) {
         viewModelScope.launch { settingsRepo.setThemePreset(value) }
+    }
+
+    fun setUiScale(value: UiScale) {
+        viewModelScope.launch { settingsRepo.setUiScale(value) }
     }
 
     fun setMotionLevel(value: MotionLevel) {

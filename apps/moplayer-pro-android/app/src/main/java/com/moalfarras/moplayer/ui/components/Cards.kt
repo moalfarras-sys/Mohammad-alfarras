@@ -2,6 +2,7 @@ package com.moalfarras.moplayer.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
@@ -783,7 +784,9 @@ fun ChannelRow(
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    // The focused row scrolls a name that does not fit, so it can always be read.
+                    overflow = if (focused) TextOverflow.Clip else TextOverflow.Ellipsis,
+                    modifier = if (focused) Modifier.basicMarquee(iterations = 2, initialDelayMillis = 900) else Modifier,
                 )
                 if (meta.isNotBlank()) {
                     Text(

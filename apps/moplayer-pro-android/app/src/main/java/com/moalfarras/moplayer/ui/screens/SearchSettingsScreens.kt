@@ -123,6 +123,7 @@ import com.moalfarras.moplayer.domain.model.PerformanceMode
 import com.moalfarras.moplayer.domain.model.ServerProfile
 import com.moalfarras.moplayer.domain.model.SortOption
 import com.moalfarras.moplayer.domain.model.ThemePreset
+import com.moalfarras.moplayer.domain.model.UiScale
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
 import com.moalfarras.moplayer.domain.model.WeatherMode
 import com.moalfarras.moplayer.ui.components.ChannelRow
@@ -582,6 +583,7 @@ fun SettingsScreen(
     providerAccountCreatedAt: suspend (Long) -> Long = { 0L },
     /** Wrong or temporarily blocked PIN entry, shown under the PIN fields. */
     pinError: String? = null,
+    onUiScale: (UiScale) -> Unit = {},
 ) {
     val tv = rememberTvScale()
     val visuals = LocalMoVisuals.current
@@ -652,6 +654,7 @@ fun SettingsScreen(
             onBackgroundMode = onBackgroundMode,
             onCustomBackgroundUrl = onCustomBackgroundUrl,
             onThemePreset = onThemePreset,
+            onUiScale = onUiScale,
             onMotionLevel = onMotionLevel,
             performancePolicy = performancePolicy,
             devicePerformanceInfo = devicePerformanceInfo,
@@ -1391,6 +1394,7 @@ private fun AppearanceSettingsCard(
     onFootballMaxMatches: (Int) -> Unit,
     onRefreshWidgets: () -> Unit,
     onLanguage: (String) -> Unit = {},
+    onUiScale: (UiScale) -> Unit = {},
 ) {
     val tv = rememberTvScale()
     val strings = LocalStrings.current
@@ -1423,6 +1427,20 @@ private fun AppearanceSettingsCard(
             selected = settings.themePreset,
             onSelected = onThemePreset,
         )
+
+        if (isTv) {
+            AppearanceLabeledChoiceRow(
+                title = strings.setInterfaceSize,
+                hint = strings.descInterfaceSize,
+                items = listOf(
+                    UiScale.COMPACT to strings.uiSizeCompact,
+                    UiScale.STANDARD to strings.uiSizeStandard,
+                    UiScale.LARGE to strings.uiSizeLarge,
+                ),
+                selected = settings.uiScale,
+                onSelected = onUiScale,
+            )
+        }
 
         AppearanceLabeledChoiceRow(
             title = strings.setBackgroundSource,

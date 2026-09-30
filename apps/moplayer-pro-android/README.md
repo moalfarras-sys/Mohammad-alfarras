@@ -8,7 +8,7 @@ Kotlin + Jetpack Compose IPTV client for Android TV first, with adaptive phone/t
 | **Namespace** | `com.moalfarras.moplayerpro` |
 | **applicationId** | `com.moalfarras.moplayerpro` (debug: `com.moalfarras.moplayerpro.debug`) |
 | **Product name** | `MoPlayer Pro` |
-| **Current release** | `2.7.1` / code `70` |
+| **Current release** | `2.7.2` / code `71` |
 
 Open this folder in Android Studio. Before AI-assisted edits, read [AGENTS.md](AGENTS.md). This app is connected to `apps/web`, `apps/admin`, `packages/shared`, and Supabase migrations.
 

@@ -14,6 +14,9 @@ enum class BackgroundMode { AUTO, DYNAMIC_CONTENT, CITY_ROTATION, CUSTOM_URL, NO
 
 enum class ThemePreset { CINEMATIC_AUTO, CITY, CALM }
 
+/** How large the TV interface is drawn (TV only; see ui/theme/TvDisplayScale.kt). */
+enum class UiScale { COMPACT, STANDARD, LARGE }
+
 enum class MotionLevel { LOW, BALANCED, RICH }
 
 enum class PerformanceMode { AUTO, PERFORMANCE, BALANCED, QUALITY }
@@ -157,6 +160,7 @@ data class AppSettings(
     val customBackgroundUrl: String = "",
     val remoteBackgroundUrl: String = "",
     val themePreset: ThemePreset = ThemePreset.CINEMATIC_AUTO,
+    val uiScale: UiScale = UiScale.STANDARD,
     val motionLevel: MotionLevel = MotionLevel.BALANCED,
     val performanceMode: PerformanceMode = PerformanceMode.AUTO,
     val videoSizeMode: VideoSizeMode = VideoSizeMode.AUTO,

@@ -259,6 +259,7 @@ private fun MoPlayerApp(
                         onM3uFile = viewModel::loginM3uText,
                         onXtream = viewModel::loginXtream,
                         onRefreshQr = { viewModel.refreshDeviceActivation() },
+                        onResumeQr = viewModel::resumeDeviceActivation,
                         onStopQr = viewModel::stopDeviceActivation,
                     )
                     if (state.showExitDialog) {

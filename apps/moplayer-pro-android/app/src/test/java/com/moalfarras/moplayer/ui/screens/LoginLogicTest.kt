@@ -61,6 +61,20 @@ class LoginLogicTest {
     }
 
     @Test
+    fun aWaitingCodeIsResumedInsteadOfReplacedWhileItHasTimeLeft() {
+        val now = 1_700_000_000_000L
+        assertTrue(canResumeQr(DeviceActivationStatus.WAITING, now + 10 * 60_000L, now))
+        assertTrue(canResumeQr(DeviceActivationStatus.WAITING, now + 45_000L, now))
+        // About to expire: a fresh code is better than one that dies while the phone is scanning.
+        assertFalse(canResumeQr(DeviceActivationStatus.WAITING, now + 44_999L, now))
+        assertFalse(canResumeQr(DeviceActivationStatus.WAITING, now - 1L, now))
+        assertFalse(canResumeQr(DeviceActivationStatus.EXPIRED, now + 10 * 60_000L, now))
+        assertFalse(canResumeQr(DeviceActivationStatus.ERROR, now + 10 * 60_000L, now))
+        assertFalse(canResumeQr(DeviceActivationStatus.ACTIVATED, now + 10 * 60_000L, now))
+        assertFalse(canResumeQr(null, now + 10 * 60_000L, now))
+    }
+
+    @Test
     fun qrPhaseFollowsSessionAndSignIn() {
         assertEquals(QrPhase.Creating, qrPhase(null, signingIn = false, failed = false, autoRenewing = false, renewalsSoFar = 0))
         assertEquals(QrPhase.Failed, qrPhase(null, signingIn = false, failed = true, autoRenewing = false, renewalsSoFar = 0))

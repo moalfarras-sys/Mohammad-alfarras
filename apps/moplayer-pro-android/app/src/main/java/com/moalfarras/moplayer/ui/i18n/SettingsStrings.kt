@@ -555,13 +555,20 @@ private val arabicAccentNames = mapOf(
     0xFF9B6BFFL to "بنفسجي",
 )
 
-/** Arabic count agreement for "N days left": 1, 2, 3–10 and 11+ take different forms. */
-internal fun arabicDaysLeft(days: Long): String = when {
-    days <= 0L -> "ينتهي اليوم"
-    days == 1L -> "متبقٍ يوم واحد"
-    days == 2L -> "متبقٍ يومان"
-    days in 3L..10L -> "متبقٍ ${days.toString().ltr()} أيام"
-    else -> "متبقٍ ${days.toString().ltr()} يومًا"
+/**
+ * Arabic count agreement for "N days left" (CLDR plural rules): 1 and 2 have their own words,
+ * then the last two digits decide: 3–10 → أيام, 11–99 → يومًا, 00–02 (100, 101, 200…) → يوم.
+ */
+internal fun arabicDaysLeft(days: Long): String {
+    val count = days.toString().ltr()
+    return when {
+        days <= 0L -> "ينتهي اليوم"
+        days == 1L -> "متبقٍ يوم واحد"
+        days == 2L -> "متبقٍ يومان"
+        days % 100 in 3L..10L -> "متبقٍ $count أيام"
+        days % 100 in 11L..99L -> "متبقٍ $count يومًا"
+        else -> "متبقٍ $count يوم"
+    }
 }
 
 internal fun arabicMatchesCount(count: Int): String = when {

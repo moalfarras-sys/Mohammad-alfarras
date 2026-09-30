@@ -38,6 +38,12 @@ class LoginSettingsStringsTest {
         assertEquals("متبقٍ يومان", arabicDaysLeft(2))
         assertEquals("متبقٍ ⁦5⁩ أيام", arabicDaysLeft(5))
         assertEquals("متبقٍ ⁦44⁩ يومًا", arabicDaysLeft(44))
+        // Above 99 the last two digits decide the form.
+        assertEquals("متبقٍ ⁦100⁩ يوم", arabicDaysLeft(100))
+        assertEquals("متبقٍ ⁦102⁩ يوم", arabicDaysLeft(102))
+        assertEquals("متبقٍ ⁦105⁩ أيام", arabicDaysLeft(105))
+        assertEquals("متبقٍ ⁦365⁩ يومًا", arabicDaysLeft(365))
+        assertEquals("متبقٍ ⁦300⁩ يوم", arabicDaysLeft(300))
         assertEquals("44 days left", EnStrings.settings.daysLeft(44))
         assertEquals("1 day left", EnStrings.settings.daysLeft(1))
     }

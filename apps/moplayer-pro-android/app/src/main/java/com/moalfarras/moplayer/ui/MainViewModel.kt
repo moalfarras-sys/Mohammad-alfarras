@@ -1052,6 +1052,18 @@ class MainViewModel(
         activationJob = null
     }
 
+    /**
+     * Polls the code that is still waiting again (QR panel back on screen) instead of creating a
+     * new one: /create expires the device's earlier codes and rotates the source-pull token, which
+     * would strand a source the phone already sent for the code on screen.
+     */
+    fun resumeDeviceActivation() {
+        if (activationJob?.isActive == true) return
+        val session = internal.value.activationSession ?: return
+        if (session.status != DeviceActivationStatus.WAITING) return
+        activationJob = viewModelScope.launch { pollDeviceActivation(session) }
+    }
+
     private suspend fun pollDeviceActivation(initial: DeviceActivationSession) {
         var session = initial
         while (true) {

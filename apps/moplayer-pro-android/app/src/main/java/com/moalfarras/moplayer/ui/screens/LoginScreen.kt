@@ -57,11 +57,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.EventNote
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.FolderOpen
@@ -187,6 +187,7 @@ private val M3U_MIME_TYPES = arrayOf(
 internal const val MAX_AUTO_QR_RENEWALS = 3
 private const val QR_QUIET_MODULES = 4
 private const val QR_CREATE_TIMEOUT_MS = 12_000L
+private const val QR_RESUME_MIN_REMAINING_MS = 45_000L
 private val TV_OVERSCAN_H = 48.dp
 private val TV_OVERSCAN_V = 27.dp
 
@@ -221,6 +222,14 @@ internal enum class QrPhase { Creating, Waiting, Received, Renewing, Expired, Fa
 
 internal fun shouldAutoRenewQr(status: DeviceActivationStatus?, renewalsSoFar: Int): Boolean =
     status == DeviceActivationStatus.EXPIRED && renewalsSoFar < MAX_AUTO_QR_RENEWALS
+
+/**
+ * When the QR panel comes back (tab re-opened, app back in the foreground) a code that is still
+ * waiting and not about to expire is polled again rather than replaced: the phone may be
+ * finishing that code right now, and a new code would expire it.
+ */
+internal fun canResumeQr(status: DeviceActivationStatus?, expiresAtMs: Long, nowMs: Long): Boolean =
+    status == DeviceActivationStatus.WAITING && expiresAtMs - nowMs >= QR_RESUME_MIN_REMAINING_MS
 
 /**
  * What the QR panel shows. [failed] is true when a new error arrived after the last code request
@@ -273,6 +282,7 @@ private class LoginActions(
     val submitM3u: () -> Boolean,
     val pickFile: () -> Unit,
     val refreshQr: () -> Unit,
+    val resumeQr: () -> Unit,
     val stopQr: () -> Unit,
 )
 
@@ -345,6 +355,7 @@ fun LoginScreen(
     onM3uFile: (String, String, String) -> Unit,
     onXtream: (String, String, String, String) -> Unit,
     onRefreshQr: () -> Unit,
+    onResumeQr: () -> Unit,
     onStopQr: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -417,6 +428,7 @@ fun LoginScreen(
             if (opened.isFailure) fileMessage = strings.login.filePickerUnavailable
         },
         refreshQr = onRefreshQr,
+        resumeQr = onResumeQr,
         stopQr = onStopQr,
     )
 
@@ -841,7 +853,7 @@ private fun LoginMethodCard(
                         Text(
                             badge,
                             color = Color(0xFF1A1208),
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.ExtraBold,
                             maxLines = 1,
                             modifier = Modifier
@@ -852,7 +864,7 @@ private fun LoginMethodCard(
                 }
                 Text(subtitle, color = Color(0xEDE3BC78), fontSize = 13.sp, lineHeight = 17.sp, maxLines = 2)
             }
-            Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = Color(0xCCE3BC78), modifier = Modifier.size(24.dp))
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color(0xCCE3BC78), modifier = Modifier.size(24.dp))
         }
     }
 }
@@ -1122,6 +1134,7 @@ private fun TvActivationCard(
                 reduceMotion = reduceMotion,
                 refreshFocus = refreshFocus,
                 onRefresh = actions.refreshQr,
+                onResume = actions.resumeQr,
                 onStop = actions.stopQr,
             )
         }
@@ -1129,8 +1142,9 @@ private fun TvActivationCard(
 }
 
 /**
- * QR sign-in: creates a code when shown and stops polling when it leaves the screen (and, on TV,
- * while the app is in the background). Expired codes are renewed automatically a few times.
+ * QR sign-in: shows a code when the panel appears and stops polling when it leaves the screen
+ * (and, on TV, while the app is in the background). Coming back resumes a code that is still
+ * waiting; otherwise a new one is created. Expired codes are renewed automatically a few times.
  * Phones keep polling in the background because the user finishes on this device's browser.
  */
 @Composable
@@ -1143,6 +1157,7 @@ private fun QrActivationPanel(
     reduceMotion: Boolean,
     refreshFocus: FocusRequester,
     onRefresh: () -> Unit,
+    onResume: () -> Unit,
     onStop: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -1151,13 +1166,14 @@ private fun QrActivationPanel(
     val currentLoading by rememberUpdatedState(loading)
     val currentSession by rememberUpdatedState(session)
     val refresh by rememberUpdatedState(onRefresh)
+    val resume by rememberUpdatedState(onResume)
     val stop by rememberUpdatedState(onStop)
     var renewals by remember { mutableIntStateOf(0) }
     var autoRenewing by remember { mutableStateOf(false) }
     var requestedAt by remember { mutableLongStateOf(0L) }
     var errorAtRequest by remember { mutableStateOf<String?>(null) }
     // Code that was on screen when a new one was requested; it is hidden until the new one arrives.
-    // A session that already exists when the panel appears is stale: its polling was stopped.
+    // A session that already exists when the panel appears stays hidden until it is resumed.
     var staleCode by remember { mutableStateOf(session?.deviceCode) }
     var browserMessage by remember { mutableStateOf<String?>(null) }
 
@@ -1173,14 +1189,28 @@ private fun QrActivationPanel(
         refresh()
     }
 
+    fun startOrResume() {
+        if (currentLoading != null) return
+        val existing = currentSession
+        if (existing != null && canResumeQr(existing.status, existing.expiresAt, System.currentTimeMillis())) {
+            requestedAt = SystemClock.elapsedRealtime()
+            errorAtRequest = currentError
+            staleCode = null
+            browserMessage = null
+            resume()
+        } else {
+            requestCode(manual = true)
+        }
+    }
+
     if (tv.isTv) {
         LifecycleStartEffect(Unit) {
-            if (currentLoading == null) requestCode(manual = true)
+            startOrResume()
             onStopOrDispose { stop() }
         }
     } else {
         DisposableEffect(Unit) {
-            if (currentLoading == null) requestCode(manual = true)
+            startOrResume()
             onDispose { stop() }
         }
     }
@@ -1640,6 +1670,7 @@ private fun CompactLoginScreen(
                         reduceMotion = reduceMotion,
                         refreshFocus = refreshFocus,
                         onRefresh = actions.refreshQr,
+                        onResume = actions.resumeQr,
                         onStop = actions.stopQr,
                     )
                 }
@@ -1817,6 +1848,7 @@ private fun LoginScreenPreviewTv() {
             onM3uFile = { _, _, _ -> },
             onXtream = { _, _, _, _ -> },
             onRefreshQr = {},
+            onResumeQr = {},
             onStopQr = {},
         )
     }
@@ -1834,6 +1866,7 @@ private fun LoginScreenPreview1080() {
             onM3uFile = { _, _, _ -> },
             onXtream = { _, _, _, _ -> },
             onRefreshQr = {},
+            onResumeQr = {},
             onStopQr = {},
         )
     }

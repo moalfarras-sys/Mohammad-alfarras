@@ -31,9 +31,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Download
@@ -63,11 +63,8 @@ import androidx.compose.material.icons.rounded.SystemUpdateAlt
 import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material.icons.rounded.Tv
 import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -1102,7 +1099,7 @@ private fun SettingsActionCard(
                     Text(title, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = tv.readableSp(16f, 15f))
                     Text(message, color = Color(0xB8FFFFFF), fontSize = tv.readableSp(13f, 13f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                Icon(Icons.Rounded.ChevronRight, null, tint = Color(0x99FFFFFF), modifier = Modifier.size(22.dp))
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = Color(0x99FFFFFF), modifier = Modifier.size(22.dp))
             }
         }
     }
@@ -1349,19 +1346,36 @@ private fun UpdateSettingsPanel(
             if (info.releaseNotes.isNotBlank()) {
                 Text(info.releaseNotes, color = Color(0x99FFFFFF), style = MaterialTheme.typography.bodySmall, maxLines = 3, overflow = TextOverflow.Ellipsis)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onCheck, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Rounded.Refresh, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(s.updateCheck)
-                }
-                Button(onClick = onInstall, enabled = info.updateAvailable, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Rounded.Download, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(if (info.updateAvailable) s.updateDownloadInstall else s.updateUpToDate)
-                }
-                IconButton(onClick = onOpenWeb) {
-                    Icon(Icons.AutoMirrored.Rounded.OpenInNew, s.updateOpenInBrowser, tint = Color.White)
+            // FocusGlow-based controls: Material3 buttons only show a faint state layer on a TV remote.
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().focusGroup(),
+            ) {
+                SettingsButton(
+                    s.updateCheck,
+                    Modifier.weight(1f),
+                    icon = Icons.Rounded.Refresh,
+                    style = SettingsButtonStyle.Outlined,
+                    onClick = onCheck,
+                )
+                SettingsButton(
+                    if (info.updateAvailable) s.updateDownloadInstall else s.updateUpToDate,
+                    Modifier.weight(1f),
+                    icon = Icons.Rounded.Download,
+                    enabled = info.updateAvailable,
+                    onClick = onInstall,
+                )
+                FocusGlow(cornerRadius = 999.dp, onClick = onOpenWeb) {
+                    Box(
+                        Modifier
+                            .size(46.dp)
+                            .background(Color(0x331E1914), RoundedCornerShape(999.dp))
+                            .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(999.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.AutoMirrored.Rounded.OpenInNew, s.updateOpenInBrowser, tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
                 }
             }
         }

@@ -20,17 +20,17 @@ describe("MoOS installer artifacts", () => {
     expect(script).toContain("ghcr.io/moalfarras-sys/moos");
   });
 
-  it("publishes a stable, checksummed bootable ISO", async () => {
+  it("does not publish an ISO until its download host is verified", async () => {
     const manifest = JSON.parse(await readFile(releaseManifestPath, "utf8")) as {
       iso: { available: boolean; url: string; sizeBytes: number; sha256: string };
     };
 
-    expect(manifest.iso.available).toBe(true);
-    expect(manifest.iso.url).toMatch(
-      /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/downloads\/moos\/MoOS-\d{4}-\d{2}-\d{2}-x86_64-[a-f0-9]{8}\.iso$/,
-    );
-    expect(manifest.iso.sizeBytes).toBe(5_884_149_760);
-    expect(manifest.iso.sha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(manifest.iso.url).toContain(manifest.iso.sha256.slice(0, 8));
+    expect(manifest.iso).toEqual({
+      available: false,
+      url: "",
+      sizeBytes: 0,
+      sha256: "",
+      notes: expect.any(String),
+    });
   });
 });

@@ -34,11 +34,11 @@
     }
   ],
   "iso": {
-    "available": true,
-    "url": "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com/downloads/moos/MoOS-2026-09-15-x86_64-46402764.iso",
-    "sizeBytes": 5884149760,
-    "sha256": "46402764e85dbe9086bceb2911d81935eb428d2a9b85f256c971e4a5f83f9528",
-    "notes": "Boot-proven x86_64 live and installation ISO from the signed generic image. Passed live boot, offline installation, installed boot, reboot, app smoke and clean poweroff in the release workflow."
+    "available": false,
+    "url": "",
+    "sizeBytes": 0,
+    "sha256": "",
+    "notes": "The boot-proven x86_64 ISO is ready, but its previous storage endpoint is unavailable. Download stays disabled until the same artifact is rehosted and its HTTP status, byte ranges, exact size, and SHA-256 are verified."
   },
   "maintenance": false
 }

@@ -76,6 +76,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -537,7 +540,7 @@ private fun HomeHero(
                     Text(
                         heroKicker(item, h),
                         color = Gold,
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 1.4.sp),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = latinTracking(1.4f)),
                         maxLines = 1,
                     )
                 }
@@ -571,6 +574,11 @@ private fun HomeHero(
         }
     }
 }
+
+/** Tracking for small caps-style labels; zero in Arabic, where letter spacing breaks cursive joining. */
+@Composable
+private fun latinTracking(value: Float): TextUnit =
+    if (LocalLayoutDirection.current == LayoutDirection.Rtl) 0.sp else value.sp
 
 private fun heroKicker(item: MediaItem?, h: HomeStrings): String = when (item?.type) {
     ContentType.LIVE -> h.kickerLive
@@ -707,7 +715,7 @@ private fun FootballWidget(matches: List<FootballMatch>, animate: Boolean) {
         Text(
             listOf(h.footballTitle, match.league.trim()).filter { it.isNotBlank() }.joinToString(" · "),
             color = Gold.copy(alpha = 0.85f),
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 0.6.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = latinTracking(0.6f)),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.widthIn(max = tv.u(320f)),
@@ -1145,12 +1153,12 @@ private fun TvAssistantDialog(
     }
     Dialog(onDismissRequest = onClose) {
         GlassPanel(
-            modifier = Modifier.width(380.dp).heightIn(min = 300.dp),
+            modifier = Modifier.width(420.dp).heightIn(min = 280.dp),
             radius = 18.dp,
             highlighted = true,
             glow = visuals.accent.copy(alpha = 0.18f),
         ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(Icons.Rounded.SmartToy, null, tint = visuals.accent, modifier = Modifier.size(24.dp))
                     Text(h.assistantTitle, color = Color.White, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold), modifier = Modifier.weight(1f))
@@ -1158,24 +1166,26 @@ private fun TvAssistantDialog(
                 }
                 Text(h.assistantTvHeadline, color = visuals.accent, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), maxLines = 1)
                 Text(
-                    lastReply.ifBlank { picks.firstOrNull()?.title ?: h.assistantTvHint },
+                    lastReply.ifBlank { h.assistantTvHint },
                     color = Color(0xDDFFFFFF),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                // The current suggestions are playable straight from the dialog.
+                picks.take(2).forEach { pick -> AssistantSuggestionRow(item = pick, onPlay = onPlay) }
                 AssistantActionButton(h.assistantSurprise, Icons.Rounded.Casino, Modifier.fillMaxWidth().focusRequester(firstFocus)) {
                     picks.firstOrNull()?.let(onPlay)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     AssistantActionButton("${h.assistantMovies} ${latestMoviesCount.toString().ltr()}", Icons.Rounded.Movie, Modifier.weight(1f)) { onMode(AiSuggestionMode.MOVIES) }
                     AssistantActionButton("${h.assistantSeries} ${latestSeriesCount.toString().ltr()}", Icons.Rounded.VideoLibrary, Modifier.weight(1f)) { onMode(AiSuggestionMode.SERIES) }
+                    AssistantActionButton(h.assistantLive, Icons.Rounded.LiveTv, Modifier.weight(1f)) { onMode(AiSuggestionMode.LIVE) }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AssistantActionButton(h.assistantLive, Icons.Rounded.LiveTv, Modifier.weight(1f)) { onMode(AiSuggestionMode.LIVE) }
                     AssistantActionButton(h.assistantSports, Icons.Rounded.SportsSoccer, Modifier.weight(1f)) { onMode(AiSuggestionMode.SPORTS) }
+                    AssistantActionButton(h.assistantContinue, Icons.Rounded.History, Modifier.weight(1f)) { onMode(AiSuggestionMode.CONTINUE) }
                 }
-                AssistantActionButton(h.assistantContinue, Icons.Rounded.History, Modifier.fillMaxWidth()) { onMode(AiSuggestionMode.CONTINUE) }
             }
         }
     }

@@ -34,6 +34,14 @@ class TvFocusLogicTest {
     }
 
     @Test
+    fun rtlRowsPivotFromTheRightEdge() {
+        // Item [250, 400) in a 1000px row: 600px from the right edge -> it must move right by 300px.
+        assertEquals(-300f, tvPivotScrollDistanceMirrored(offset = 250f, size = 150f, containerSize = 1000f, pivotFraction = 0.3f), 0.001f)
+        // Already 300px from the right edge: no scroll.
+        assertEquals(0f, tvPivotScrollDistanceMirrored(offset = 550f, size = 150f, containerSize = 1000f, pivotFraction = 0.3f), 0.001f)
+    }
+
+    @Test
     fun unmeasuredContainerNeverScrolls() {
         assertEquals(0f, tvPivotScrollDistance(offset = 500f, size = 100f, containerSize = 0f, pivotFraction = 0.3f), 0.001f)
     }

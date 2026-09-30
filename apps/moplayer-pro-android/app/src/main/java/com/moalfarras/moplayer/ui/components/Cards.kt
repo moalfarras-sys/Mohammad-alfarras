@@ -377,7 +377,7 @@ private fun CardBadge(text: String, modifier: Modifier = Modifier, live: Boolean
         Text(
             text,
             color = Color.White,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 0.2.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 0.sp),
             maxLines = 1,
         )
     }
@@ -864,7 +864,7 @@ fun MediaLane(
         if (showTitle) {
             SectionTitle(title, Modifier.padding(start = contentPadding.calculateStartPadding(layoutDirection)))
         }
-        CompositionLocalProvider(LocalBringIntoViewSpec provides rememberTvBringIntoViewSpec()) {
+        CompositionLocalProvider(LocalBringIntoViewSpec provides rememberTvBringIntoViewSpec(horizontal = true)) {
             LazyRow(
                 state = rowState,
                 horizontalArrangement = Arrangement.spacedBy(if (tv.isTv) tv.u(14f) else 12.dp),

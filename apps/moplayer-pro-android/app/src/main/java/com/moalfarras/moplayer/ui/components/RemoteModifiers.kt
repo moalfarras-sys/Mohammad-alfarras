@@ -38,7 +38,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
@@ -209,19 +211,40 @@ internal fun tvPivotScrollDistance(offset: Float, size: Float, containerSize: Fl
     return offset - desiredStart
 }
 
+/**
+ * Bring-into-view offsets arrive in physical coordinates (from the left edge for rows). In an
+ * RTL row the leading edge is on the right, so the pivot is measured from there by mirroring the
+ * item and negating the resulting distance.
+ */
+internal fun tvPivotScrollDistanceMirrored(offset: Float, size: Float, containerSize: Float, pivotFraction: Float): Float =
+    -tvPivotScrollDistance(containerSize - (offset + size), size, containerSize, pivotFraction)
+
 @OptIn(ExperimentalFoundationApi::class)
-class TvPivotBringIntoViewSpec(private val pivotFraction: Float) : BringIntoViewSpec {
+class TvPivotBringIntoViewSpec(
+    private val pivotFraction: Float,
+    private val mirrored: Boolean = false,
+) : BringIntoViewSpec {
     override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float =
-        tvPivotScrollDistance(offset, size, containerSize, pivotFraction)
+        if (mirrored) {
+            tvPivotScrollDistanceMirrored(offset, size, containerSize, pivotFraction)
+        } else {
+            tvPivotScrollDistance(offset, size, containerSize, pivotFraction)
+        }
 }
 
 /** Default pivot: 30% from the leading edge, the platform's TV list behaviour. */
 const val TV_PIVOT_FRACTION = 0.3f
 
+/**
+ * TV bring-into-view spec for a lazy list. Pass [horizontal] = true for rows so the pivot follows
+ * the reading direction in Arabic (right-to-left); vertical lists are never mirrored.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun rememberTvBringIntoViewSpec(pivotFraction: Float = TV_PIVOT_FRACTION): BringIntoViewSpec =
-    remember(pivotFraction) { TvPivotBringIntoViewSpec(pivotFraction) }
+fun rememberTvBringIntoViewSpec(horizontal: Boolean = false, pivotFraction: Float = TV_PIVOT_FRACTION): BringIntoViewSpec {
+    val mirrored = horizontal && LocalLayoutDirection.current == LayoutDirection.Rtl
+    return remember(pivotFraction, mirrored) { TvPivotBringIntoViewSpec(pivotFraction, mirrored) }
+}
 
 /** Scroll offset (px) that lands a restored item on the pivot line instead of the leading edge. */
 internal fun pivotScrollOffset(viewportSizePx: Int, pivotFraction: Float = TV_PIVOT_FRACTION): Int =

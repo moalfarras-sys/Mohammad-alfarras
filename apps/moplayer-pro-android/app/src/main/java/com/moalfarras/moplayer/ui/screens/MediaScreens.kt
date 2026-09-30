@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -466,7 +467,11 @@ fun SeriesDetailsScreen(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(tv.u(10f)),
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
-                        modifier = Modifier.fillMaxWidth().focusGroup(),
+                        // Coming up from the episodes always lands on the selected season.
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusProperties { onEnter = { runCatching { selectedSeasonFocus.requestFocus() } } }
+                            .focusGroup(),
                     ) {
                         items(seasons, key = { it }, contentType = { "season" }) { season ->
                             SeasonChip(
@@ -487,14 +492,17 @@ fun SeriesDetailsScreen(
                             }
                             episodes.isEmpty() -> EmptyState(h.episodesNotLoadedTitle, h.episodesNotLoadedBody, Modifier.fillMaxSize().padding(tv.panelPadding))
                             seasonEpisodes.isEmpty() -> EmptyState(h.noEpisodesInSeasonTitle(selectedSeason), h.noEpisodesInSeasonBody, Modifier.fillMaxSize().padding(tv.panelPadding))
-                            else -> RestoringEpisodeList(
-                                episodes = seasonEpisodes,
-                                restoreFocusItem = entryEpisode.takeIf { !entryConsumed },
-                                onFocus = wrappedOnFocus,
-                                onPlay = onPlay,
-                                onFavorite = onFavorite,
-                                modifier = Modifier.fillMaxSize().padding(horizontal = tv.u(10f)),
-                            )
+                            // Keyed by season so switching seasons starts at the top of the new list.
+                            else -> key(selectedSeason) {
+                                RestoringEpisodeList(
+                                    episodes = seasonEpisodes,
+                                    restoreFocusItem = entryEpisode.takeIf { !entryConsumed },
+                                    onFocus = wrappedOnFocus,
+                                    onPlay = onPlay,
+                                    onFavorite = onFavorite,
+                                    modifier = Modifier.fillMaxSize().padding(horizontal = tv.u(10f)),
+                                )
+                            }
                         }
                     }
                 }

@@ -19,6 +19,7 @@ import android.view.KeyEvent as AndroidKeyEvent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -76,6 +77,7 @@ import androidx.media3.ui.TrackSelectionDialogBuilder
 import com.moalfarras.moplayer.core.Adaptive
 import com.moalfarras.moplayer.core.PerformancePolicy
 import com.moalfarras.moplayer.core.PlaybackActivity
+import com.moalfarras.moplayer.domain.model.Category
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
@@ -124,6 +126,10 @@ fun PlayerScreen(
     liveNowTitle: suspend (AppMediaItem) -> String? = { null },
     /** Episodes: the one after it in its series (null at the end), offered when it ends. */
     nextEpisode: suspend (AppMediaItem) -> AppMediaItem? = { null },
+    /** The library's live groups (the Live screen's list), for the live panel's group column. */
+    liveGroups: List<Category> = emptyList(),
+    /** The live panel's access to the library: any group's channels, channel numbers, playing in a group. */
+    livePanelSource: LivePanelSource,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -804,9 +810,11 @@ fun PlayerScreen(
 
     // ── Channel list data ───────────────────────────────────────────────────────────────────
 
-    val zapList = rememberLiveZapList(item, relatedItems, isLive, ps.allChannels, ps.liveTvFallback)
+    val zapList = rememberLiveZapList(item, relatedItems, isLive)
     val previousItem = zapList.previousItem
     val nextItem = zapList.nextItem
+    val browser = rememberLiveBrowser(livePanelSource, liveGroups)
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     // ── Viewer actions ──────────────────────────────────────────────────────────────────────
 
@@ -983,8 +991,11 @@ fun PlayerScreen(
         switchVodEngine(toLibVlc = !useLibVlc)
     }
 
-    /** A zap or episode change the viewer asked for. */
-    fun switchTo(target: AppMediaItem?) {
+    /**
+     * A zap or episode change the viewer asked for. [panelGroupId]: picked in the live panel's
+     * group of that id, which CH+/CH- walk from then on.
+     */
+    fun switchTo(target: AppMediaItem?, panelGroupId: String? = null) {
         if (target == null || target.samePlayable(item)) return
         commitPendingSeek()
         session.zapProbe.begin("${target.type} ${target.id} '${target.title}'", session.lastKeyDownAt, exoPlayer)
@@ -999,7 +1010,7 @@ fun PlayerScreen(
             session.liveAutoRecoveryVisited = emptySet()
             session.recoveryNotice = null
         }
-        onPlayItem(target)
+        if (panelGroupId != null) livePanelSource.playInGroup(target, panelGroupId) else onPlayItem(target)
     }
 
     fun commitPendingZap() {
@@ -1091,9 +1102,9 @@ fun PlayerScreen(
         ui.showLiveZap = false
     }
 
+    /** The panel opens on the group CH+/CH- walk, with the playing channel selected. */
     fun openLiveZap() {
-        val homeCategory = item.categoryId.ifBlank { LIVE_ZAP_ALL_CATEGORY_ID }
-        if (homeCategory == zapList.categoryId) zapList.selectedIndex = zapList.displayedCurrentIndex.coerceAtLeast(0) else zapList.categoryId = homeCategory
+        browser.open(item)
         ui.liveOverlayTab = LiveOverlayTab.CHANNELS
         ui.liveActionIndex = 0
         ui.showLiveZap = true
@@ -1102,11 +1113,12 @@ fun PlayerScreen(
         session.lastInteraction = System.currentTimeMillis()
     }
 
-    fun selectLiveZapCategory(direction: Int) {
-        val categories = zapList.categories
-        if (categories.isEmpty()) return
-        val index = categories.indexOfFirst { it.id == zapList.categoryId }.coerceAtLeast(0)
-        zapList.categoryId = categories[(index + direction).floorMod(categories.size)].id
+    /** OK or a tap on a panel channel: it plays, and CH+/CH- walk the group it was picked in. */
+    fun playFromPanel(channel: AppMediaItem) {
+        val groupId = browser.loadedGroupId ?: return
+        closeLiveZap()
+        ui.showMiniInfo = true
+        if (channel.samePlayable(item)) livePanelSource.playInGroup(channel, groupId) else switchTo(channel, groupId)
     }
 
     /** Left/Right walk the tabs in screen order and stop at the ends (no wrap from groups to favorites). */
@@ -1140,10 +1152,8 @@ fun PlayerScreen(
     /** Up/Down (or CH+/-) inside the list: channels, groups, or the current tab's actions. */
     fun moveOverlaySelection(direction: Int) {
         when (ui.liveOverlayTab) {
-            LiveOverlayTab.GROUPS -> selectLiveZapCategory(direction)
-            LiveOverlayTab.CHANNELS -> if (zapList.displayedItems.isNotEmpty()) {
-                zapList.selectedIndex = (zapList.selectedIndex + direction).floorMod(zapList.displayedItems.size)
-            }
+            LiveOverlayTab.GROUPS -> browser.moveGroup(direction)
+            LiveOverlayTab.CHANNELS -> browser.moveSelection(direction)
             else -> if (overlayActions.isNotEmpty()) {
                 ui.liveActionIndex = (ui.liveActionIndex + direction).floorMod(overlayActions.size)
             }
@@ -1152,12 +1162,12 @@ fun PlayerScreen(
 
     fun activateOverlaySelection() {
         when (ui.liveOverlayTab) {
-            LiveOverlayTab.CHANNELS -> {
-                zapList.displayedItems.getOrNull(zapList.selectedIndex)?.let(::switchTo)
-                closeLiveZap()
-                ui.showMiniInfo = true
+            // Nothing while the group or the row is still loading (a few ms): OK again plays it.
+            LiveOverlayTab.CHANNELS -> browser.selectedChannel()?.let(::playFromPanel)
+            LiveOverlayTab.GROUPS -> {
+                browser.settleGroup()
+                ui.liveOverlayTab = LiveOverlayTab.CHANNELS
             }
-            LiveOverlayTab.GROUPS -> ui.liveOverlayTab = LiveOverlayTab.CHANNELS
             else -> overlayActions.getOrNull(ui.liveActionIndex)?.onClick?.invoke()
         }
     }
@@ -1169,16 +1179,26 @@ fun PlayerScreen(
         session.numberNonce++
     }
 
+    fun tuneTypedChannel(number: Int, target: AppMediaItem?) {
+        when {
+            target == null -> session.showTransientMessage(ps.channelNotFound.fill(number.toString().ltr()))
+            target.samePlayable(item) -> ui.showMiniInfo = true
+            else -> switchTo(target)
+        }
+    }
+
     fun commitNumberEntry() {
         val typed = session.numberBuffer
         session.numberBuffer = ""
         if (!isForeground()) return
         val number = typed.toIntOrNull() ?: return
         val target = resolveChannelNumber(latestRelated, number, zapList.providerNumbers)
-        when {
-            target == null -> session.showTransientMessage(ps.channelNotFound.fill(number.toString().ltr()))
-            target.samePlayable(item) -> ui.showMiniInfo = true
-            else -> switchTo(target)
+        if (target == null && zapList.providerNumbers) {
+            // Not in the list CH+/CH- walk: the channel with that provider number anywhere in the
+            // library, which then zaps through its own group.
+            browser.findChannelByNumber(number) { found -> if (isForeground()) tuneTypedChannel(number, found) }
+        } else {
+            tuneTypedChannel(number, target)
         }
     }
 
@@ -1231,17 +1251,11 @@ fun PlayerScreen(
             if (repeatCount == 0) appendChannelDigit(digit)
             return true
         }
-        if (session.numberBuffer.isNotEmpty()) {
-            when (event.key) {
-                Key.Enter, Key.DirectionCenter, Key.NumPadEnter -> {
-                    commitNumberEntry()
-                    return true
-                }
-                Key.Back, Key.Escape -> {
-                    session.numberBuffer = ""
-                    return true
-                }
-            }
+        if (session.numberBuffer.isNotEmpty() &&
+            (event.key == Key.Enter || event.key == Key.DirectionCenter || event.key == Key.NumPadEnter)
+        ) {
+            commitNumberEntry()
+            return true
         }
         val zapDirection = liveZapDirectionForKeyCode(keyCode)
         if (zapDirection != 0) {
@@ -1303,10 +1317,6 @@ fun PlayerScreen(
                     true
                 }
             }
-            Key.Back, Key.Escape -> {
-                if (ui.showLiveZap) closeLiveZap() else leavePlayer()
-                true
-            }
             Key.MediaPlay -> {
                 if (errorShown) retryPlayback() else resumePlayback()
                 true
@@ -1327,10 +1337,6 @@ fun PlayerScreen(
         if (attempt.playbackError != null) {
             // D-pad and OK belong to the error card buttons; Play retries.
             return when (event.key) {
-                Key.Back, Key.Escape -> {
-                    leavePlayer()
-                    true
-                }
                 Key.MediaPlay, Key.MediaPlayPause -> {
                     retryPlayback()
                     true
@@ -1339,18 +1345,10 @@ fun PlayerScreen(
             }
         }
         if (nextEpisodeOffered()) {
-            // D-pad and OK belong to Play now / Cancel; Back cancels, Next plays it now.
-            return when {
-                event.key == Key.Back || event.key == Key.Escape -> {
-                    dismissNextEpisode()
-                    true
-                }
-                keyCode == AndroidKeyEvent.KEYCODE_MEDIA_NEXT -> {
-                    if (repeatCount == 0) switchTo(ui.nextEpisode)
-                    true
-                }
-                else -> false
-            }
+            // D-pad and OK belong to Play now / Cancel; Next plays it now (Back cancels, see BackHandler).
+            if (keyCode != AndroidKeyEvent.KEYCODE_MEDIA_NEXT) return false
+            if (repeatCount == 0) switchTo(ui.nextEpisode)
+            return true
         }
         when (keyCode) {
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
@@ -1389,10 +1387,6 @@ fun PlayerScreen(
         }
         if (!ui.showControls) {
             return when (event.key) {
-                Key.Back, Key.Escape -> {
-                    leavePlayer()
-                    true
-                }
                 Key.Enter, Key.DirectionCenter, Key.NumPadEnter, Key.Spacebar -> {
                     togglePlayPause()
                     wakeControls()
@@ -1420,12 +1414,7 @@ fun PlayerScreen(
             }
         }
         // Controls visible: D-pad and OK move focus and click inside the control island.
-        return if (event.key == Key.Back || event.key == Key.Escape) {
-            ui.showControls = false
-            true
-        } else {
-            false
-        }
+        return false
     }
 
     fun handleKeyDown(event: KeyEvent): Boolean {
@@ -1437,6 +1426,13 @@ fun PlayerScreen(
         if (native.repeatCount > 0 && event.key in PlayerToggleKeys && session.ownedKey == event.key) return true
         session.lastInteraction = System.currentTimeMillis()
         session.lastKeyDownAt = native.eventTime
+        if (isPlayerBackKey(native.keyCode)) {
+            // Acting on the press would close the live panel (or the controls) under the focused
+            // row, so the release would reach no one and Android would run Back a second time. The
+            // release runs it once, through BackHandler, like the back gesture (see handleKeyUp).
+            if (native.repeatCount == 0) session.ownedKey = event.key
+            return true
+        }
         val handled = if (isLive) {
             handleLiveKey(event, native.keyCode, native.repeatCount)
         } else {
@@ -1458,16 +1454,26 @@ fun PlayerScreen(
         // Swallow the release of a press the root consumed so it cannot click whatever gained focus meanwhile.
         val owned = session.ownedKey == event.key
         if (owned) session.ownedKey = null
+        if (owned && isPlayerBackKey(keyCode) && !event.nativeKeyEvent.isCanceled) backDispatcher?.onBackPressed()
         return owned
     }
 
+    // The only Back path: remote Back/Escape (on release, above), the back gesture and system Back.
     BackHandler {
-        when {
-            session.numberBuffer.isNotEmpty() -> session.numberBuffer = ""
-            isLive && ui.showLiveZap -> closeLiveZap()
-            !isLive && nextEpisodeOffered() -> dismissNextEpisode()
-            !isLive && ui.showControls && attempt.playbackError == null -> ui.showControls = false
-            else -> leavePlayer()
+        when (
+            playerBackStep(
+                numberEntry = session.numberBuffer.isNotEmpty(),
+                errorShown = attempt.playbackError != null,
+                livePanelOpen = isLive && ui.showLiveZap,
+                nextEpisodeOffered = !isLive && nextEpisodeOffered(),
+                vodControlsShown = !isLive && ui.showControls,
+            )
+        ) {
+            PlayerBackStep.CLEAR_NUMBER -> session.numberBuffer = ""
+            PlayerBackStep.CLOSE_LIVE_PANEL -> closeLiveZap()
+            PlayerBackStep.DISMISS_NEXT_EPISODE -> dismissNextEpisode()
+            PlayerBackStep.HIDE_CONTROLS -> ui.showControls = false
+            PlayerBackStep.LEAVE -> leavePlayer()
         }
     }
 
@@ -1774,6 +1780,7 @@ fun PlayerScreen(
         }
 
         if (attempt.audioOnly && !errorVisible) AudioOnlyBackdrop(item, accent)
+        if (errorVisible && (!attempt.wasPlaying || attempt.audioOnly)) FailedStartBackdrop(accent)
 
         PlayerTouchLayer(
             isLive = isLive,
@@ -1810,7 +1817,8 @@ fun PlayerScreen(
         }
 
         if (session.numberBuffer.isNotEmpty()) {
-            NumberEntryOverlay(session.numberBuffer, accent, Modifier.align(Alignment.TopEnd).safeCornerPadding())
+            // Start corner like the other overlays: top right in Arabic.
+            NumberEntryOverlay(session.numberBuffer, accent, Modifier.align(Alignment.TopStart).safeCornerPadding())
         }
 
         if (isLive) {
@@ -1832,20 +1840,18 @@ fun PlayerScreen(
                 currentItem = item,
                 currentStatus = liveStatus,
                 channelNumberOf = zapList.channelNumberOf,
+                providerNumbers = zapList.providerNumbers,
                 nowTitleOf = liveNowTitle,
-                categories = zapList.categories,
-                selectedCategoryId = zapList.categoryId,
+                browser = browser,
                 selectedTab = ui.liveOverlayTab,
-                items = zapList.displayedItems,
-                selectedIndex = zapList.selectedIndex,
                 videoSizeLabel = videoSizeLabel,
                 favoriteMarked = ui.favoriteMarked,
                 actions = overlayActions,
                 selectedActionIndex = ui.liveActionIndex,
                 accent = accent,
-                showCloseButton = !isTv,
+                isTv = isTv,
                 onSelectIndex = { index ->
-                    zapList.selectedIndex = index
+                    browser.selectIndex(index)
                     session.lastInteraction = System.currentTimeMillis()
                 },
                 onTab = { tab ->
@@ -1853,15 +1859,11 @@ fun PlayerScreen(
                     ui.liveActionIndex = 0
                     session.lastInteraction = System.currentTimeMillis()
                 },
-                onCategory = { categoryId ->
-                    zapList.categoryId = categoryId
+                onCategory = { groupId ->
+                    browser.selectGroup(groupId, settle = false)
                     session.lastInteraction = System.currentTimeMillis()
                 },
-                onPlay = { selected ->
-                    closeLiveZap()
-                    ui.showMiniInfo = true
-                    switchTo(selected)
-                },
+                onPlay = ::playFromPanel,
                 onClose = ::closeLiveZap,
             )
         } else {
@@ -1876,6 +1878,7 @@ fun PlayerScreen(
                 favoriteMarked = ui.favoriteMarked,
                 canCast = canCast,
                 accent = accent,
+                isTv = isTv,
                 playPauseFocusRequester = playPauseFocusRequester,
                 onSeekToFraction = if (!isTv) ::seekToFraction else null,
                 onSeekBy = { step -> seekVodBy(step, 0, revealControls = true) },

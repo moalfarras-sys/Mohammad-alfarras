@@ -54,6 +54,7 @@ import com.moalfarras.moplayer.domain.model.VideoSizeMode
 import com.moalfarras.moplayer.domain.model.WeatherSnapshot
 import com.moalfarras.moplayer.ui.i18n.I18n
 import com.moalfarras.moplayer.ui.i18n.app
+import com.moalfarras.moplayer.ui.player.LivePanelSource
 import com.moalfarras.moplayerpro.BuildConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CancellationException
@@ -177,6 +178,8 @@ private data class SubscriptionPrompts(
 
 /** The player's zap list for one session: every channel's key (frozen) plus the loaded window. */
 private class ZapSession(
+    /** The list the keys were read from (the channel's own group when it was not in the one asked for). */
+    val scope: LiveZapScope,
     val keys: List<LiveZapKey>,
     val indexByKey: Map<LiveZapKey, Int>,
 ) {
@@ -974,7 +977,23 @@ class MainViewModel(
      */
     fun playWithoutHistory(item: MediaItem) = startPlayback(item, recordHistory = false)
 
-    private fun startPlayback(item: MediaItem, recordHistory: Boolean) {
+    /**
+     * A channel picked in the player's live panel from the group [categoryId] ("" for every
+     * channel): it plays, and CH+/CH- walk that group from now on. Picking the channel that
+     * already plays only changes what CH+/CH- walk.
+     */
+    fun playLiveInGroup(item: MediaItem, categoryId: String) {
+        val scope = if (categoryId.isBlank()) LiveZapScope.AllChannels else LiveZapScope.Category(categoryId)
+        val state = internal.value
+        if (state.section == AppSection.PLAYER && state.playingItem.matchesMedia(item)) {
+            if (zapSession?.scope != scope) startZapSession(item, scope)
+            return
+        }
+        startPlayback(item, recordHistory = true, zapScope = scope)
+    }
+
+    /** [zapScope]: the list CH+/CH- walk from now on (default: kept, or chosen from where playback starts). */
+    private fun startPlayback(item: MediaItem, recordHistory: Boolean, zapScope: LiveZapScope? = null) {
         if (internal.value.appBlock != null) {
             // The block screen explains why. A forced update let the current stream finish; the
             // next zap or episode closes the player so the block screen shows.
@@ -1007,8 +1026,10 @@ class MainViewModel(
             }
             state.copy(playingItem = item, returnSection = returnSection, section = AppSection.PLAYER)
         }
+        val newZapScope = zapScope?.takeIf { it != zapSession?.scope }
         when {
             item.type != ContentType.LIVE -> stopZapSession()
+            newZapScope != null -> startZapSession(item, newZapScope)
             entering -> startZapSession(
                 item,
                 liveZapScopeFor(current.section, current.selectedCategoryId, current.committedSearchQuery, item),
@@ -2264,34 +2285,107 @@ class MainViewModel(
         if (zapItems.value.isNotEmpty()) zapItems.value = emptyList()
     }
 
+    /** The active library as the player's live panel browses it (0: the merged library), or null without an account. */
+    private fun livePanelServerId(): Long? {
+        val state = uiState.value
+        return state.activeServer?.let { state.libraryServerId(it.id) }
+    }
+
+    /**
+     * The player's live panel: every live group of the active library with the Live screen's
+     * order and filters, any group's channels, and channel numbers across all groups.
+     */
+    val livePanelSource: LivePanelSource = object : LivePanelSource {
+        override fun zapGroupId(): String? = when (val scope = zapSession?.scope) {
+            is LiveZapScope.Category -> scope.categoryId
+            LiveZapScope.AllChannels -> ""
+            else -> null
+        }
+
+        override suspend fun groupKeys(groupId: String): List<LiveZapKey> {
+            val serverId = livePanelServerId() ?: return emptyList()
+            val scope = if (groupId.isBlank()) LiveZapScope.AllChannels else LiveZapScope.Category(groupId)
+            return liveKeys(serverId, scope, uiState.value.settings)
+        }
+
+        override suspend fun rows(keys: List<LiveZapKey>): List<MediaItem> = try {
+            iptv.liveZapRows(keys)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            Log.w(TAG, "Live panel rows unavailable", failure)
+            emptyList()
+        }
+
+        override suspend fun groupCounts(): Map<String, Int> {
+            val serverId = livePanelServerId() ?: return emptyMap()
+            val counts = try {
+                iptv.liveCategoryCounts(serverId, uiState.value.settings.hideChannelsWithoutLogo)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                Log.w(TAG, "Live group counts unavailable", failure)
+                return emptyMap()
+            }
+            // "" becomes the total: the listed groups plus channels without a group (groups the
+            // parental filter hides are left out; so is a hidden channel inside a listed group
+            // until that group is opened and counted exactly).
+            val listed = liveCategories.value.mapTo(HashSet()) { it.id }
+            val total = counts.entries.sumOf { (id, channels) -> if (listed.isEmpty() || id.isBlank() || id in listed) channels else 0 }
+            return counts + ("" to total)
+        }
+
+        override suspend fun channelByNumber(number: Int): MediaItem? {
+            if (number <= 0) return null
+            val serverId = livePanelServerId() ?: return null
+            val settings = uiState.value.settings
+            val found = try {
+                iptv.liveByNumber(serverId, number, settings.hideChannelsWithoutLogo)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                Log.w(TAG, "Channel number lookup failed", failure)
+                return null
+            }
+            val visible = found.filterNot { settings.parentalControlsEnabled && it.isAdultContent() }
+            val playingServer = internal.value.playingItem?.serverId
+            return visible.firstOrNull { it.serverId == playingServer } ?: visible.firstOrNull()
+        }
+
+        override fun playInGroup(item: MediaItem, groupId: String) = playLiveInGroup(item, groupId)
+    }
+
     /**
      * Reads the zap list's keys once. When the channel is not in the list it was started from
      * (a list that changed meanwhile, or a hidden row), its own group is used instead of leaving
      * CH+/CH- without neighbours.
      */
     private suspend fun loadZapSession(serverId: Long, scope: LiveZapScope, item: MediaItem, settings: AppSettings): ZapSession? {
-        val parental = settings.parentalControlsEnabled
-        suspend fun keysFor(target: LiveZapScope): List<LiveZapKey> = try {
-            iptv.liveZapKeys(serverId, target, settings.defaultSort, settings.hideChannelsWithoutLogo) { row ->
-                parental && isAdultText(row.title, row.description, row.categoryName, row.categoryId)
-            }
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (failure: Exception) {
-            Log.w(TAG, "Zap list unavailable", failure)
-            emptyList()
-        }
         val playing = LiveZapKey(item.serverId, item.id)
-        var keys = keysFor(scope)
+        var keys = liveKeys(serverId, scope, settings)
         var index = keys.indexMap()
         if (playing !in index) {
             val ownGroup = LiveZapScope.Category(item.categoryId)
             if (item.categoryId.isBlank() || scope == ownGroup) return null
-            keys = keysFor(ownGroup)
+            keys = liveKeys(serverId, ownGroup, settings)
             index = keys.indexMap()
             if (playing !in index) return null
+            return ZapSession(ownGroup, keys, index)
         }
-        return ZapSession(keys, index)
+        return ZapSession(scope, keys, index)
+    }
+
+    /** Ordered keys of a live list as the Live screen shows it (sort, logo and parental filters). */
+    private suspend fun liveKeys(serverId: Long, scope: LiveZapScope, settings: AppSettings): List<LiveZapKey> = try {
+        val parental = settings.parentalControlsEnabled
+        iptv.liveZapKeys(serverId, scope, settings.defaultSort, settings.hideChannelsWithoutLogo) { row ->
+            parental && isAdultText(row.title, row.description, row.categoryName, row.categoryId)
+        }
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failure: Exception) {
+        Log.w(TAG, "Zap list unavailable", failure)
+        emptyList()
     }
 
     private suspend fun loadZapWindow(session: ZapSession, window: ZapWindow) {

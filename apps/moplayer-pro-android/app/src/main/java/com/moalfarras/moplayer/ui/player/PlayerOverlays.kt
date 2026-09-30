@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -70,13 +71,16 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -139,18 +143,8 @@ internal class LiveOverlayAction(val label: String, val selected: Boolean, val o
 
 internal class PlayerErrorAction(val label: String, val icon: ImageVector, val primary: Boolean, val onClick: () -> Unit)
 
+/** A row of the live panel's group column; [count] is -1 while unknown. */
 internal data class LiveZapCategory(val id: String, val name: String, val count: Int)
-
-internal const val LIVE_ZAP_ALL_CATEGORY_ID = "__all__"
-internal const val LIVE_ZAP_UNCATEGORIZED_ID = "__uncategorized__"
-
-internal fun List<AppMediaItem>.toLiveZapCategories(allLabel: String, fallbackName: String): List<LiveZapCategory> {
-    if (isEmpty()) return emptyList()
-    val grouped = groupBy { it.categoryId.ifBlank { LIVE_ZAP_UNCATEGORIZED_ID } }
-    return listOf(LiveZapCategory(LIVE_ZAP_ALL_CATEGORY_ID, allLabel, size)) + grouped.map { (id, channels) ->
-        LiveZapCategory(id = id, name = channels.firstOrNull()?.categoryName?.ifBlank { fallbackName } ?: fallbackName, count = channels.size)
-    }
-}
 
 /** What the live info card says under the channel name. */
 internal data class LiveCardStatus(
@@ -189,8 +183,10 @@ private val LiveGroupRowHeight = 38.dp
 /**
  * The live menu: a side panel (TiviMate-style) over the start of the picture, so the channel keeps
  * playing on the other side. A one-line header with the current channel, the tab chips, and then
- * either groups | channels (with the programme on air) or the current tab's actions. Everything
- * is mirrored in Arabic. Keys are handled by PlayerScreen by index; rows are also tappable.
+ * either every live group of the library | the highlighted group's channels (with the programme
+ * on air), or the current tab's actions. Channels come from [browser] page by page, so a
+ * 30k-channel group scrolls like a small one. Everything is mirrored in Arabic. Keys are handled
+ * by PlayerScreen by index; rows are also tappable.
  */
 @kotlin.OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -202,18 +198,16 @@ internal fun LiveZapOverlay(
     currentItem: AppMediaItem,
     currentStatus: LiveCardStatus,
     channelNumberOf: (AppMediaItem) -> Int?,
+    providerNumbers: Boolean,
     nowTitleOf: suspend (AppMediaItem) -> String?,
-    categories: List<LiveZapCategory>,
-    selectedCategoryId: String,
+    browser: LiveBrowser,
     selectedTab: LiveOverlayTab,
-    items: List<AppMediaItem>,
-    selectedIndex: Int,
     videoSizeLabel: String,
     favoriteMarked: Boolean,
     actions: List<LiveOverlayAction>,
     selectedActionIndex: Int,
     accent: Color,
-    showCloseButton: Boolean,
+    isTv: Boolean,
     onSelectIndex: (Int) -> Unit,
     onTab: (LiveOverlayTab) -> Unit,
     onCategory: (String) -> Unit,
@@ -250,19 +244,27 @@ internal fun LiveZapOverlay(
         val channelListState = rememberLazyListState()
         val groupListState = rememberLazyListState()
         val tabRowState = rememberLazyListState()
-        val selectedCategoryIndex = categories.indexOfFirst { it.id == selectedCategoryId }
+        val groups = remember(browser.libraryGroups, browser.counts, ps.allChannels, ps.liveTvFallback) {
+            browser.groups(ps.allChannels, ps.liveTvFallback)
+        }
+        val selectedGroupIndex = groups.indexOfFirst { it.id == browser.groupId }
+        val channelCount = browser.channelCount
         // Programme titles looked up while the panel is open (null: nothing in the guide).
         val nowTitles = remember { HashMap<String, String?>() }
         val listsActive = selectedTab == LiveOverlayTab.CHANNELS || selectedTab == LiveOverlayTab.GROUPS
 
-        LaunchedEffect(selectedIndex, items, listsActive) {
-            if (listsActive) keepSelectionInView(channelListState, selectedIndex, items.size)
+        LaunchedEffect(browser.selectedIndex, channelCount, browser.loadedGroupId, listsActive) {
+            if (listsActive) keepSelectionInView(channelListState, browser.selectedIndex, channelCount)
         }
-        LaunchedEffect(selectedCategoryIndex, categories.size, listsActive) {
-            if (listsActive) keepSelectionInView(groupListState, selectedCategoryIndex, categories.size)
+        LaunchedEffect(selectedGroupIndex, groups.size, listsActive) {
+            if (listsActive) keepSelectionInView(groupListState, selectedGroupIndex, groups.size)
         }
         LaunchedEffect(selectedTab) {
             tabRowState.scrollToItem((LiveOverlayTabs.indexOf(selectedTab) - 1).coerceAtLeast(0))
+        }
+        // Rows scrolled into view by touch are loaded like the ones around the D-pad selection.
+        LaunchedEffect(browser, channelListState) {
+            snapshotFlow { channelListState.firstVisibleItemIndex }.collect { first -> browser.ensureRows(first + 4) }
         }
 
         // Only the panel's side is darkened; the picture stays visible on the other side.
@@ -289,15 +291,16 @@ internal fun LiveZapOverlay(
                             item = currentItem,
                             channelNumber = channelNumberOf(currentItem),
                             status = currentStatus,
-                            counter = "${selectedIndex.coerceAtLeast(0) + 1}/${items.size.coerceAtLeast(1)}",
+                            counter = "${browser.selectedIndex + 1}/${channelCount.coerceAtLeast(1)}",
                             accent = accent,
-                            showCloseButton = showCloseButton,
+                            showCloseButton = !isTv,
                             onClose = onClose,
                         )
                         LazyRow(
                             state = tabRowState,
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             items(LiveOverlayTabs, key = { it.name }) { tab ->
                                 LiveOverlayTabChip(
@@ -316,20 +319,21 @@ internal fun LiveZapOverlay(
                                     verticalArrangement = Arrangement.spacedBy(4.dp),
                                     contentPadding = PaddingValues(vertical = 4.dp),
                                 ) {
-                                    items(categories, key = { it.id }) { category ->
+                                    items(groups, key = { it.id }) { category ->
+                                        val selected = category.id == browser.groupId
                                         LiveGroupRow(
                                             category = category,
-                                            selected = category.id == selectedCategoryId,
-                                            highlighted = category.id == selectedCategoryId && selectedTab == LiveOverlayTab.GROUPS,
+                                            selected = selected,
+                                            highlighted = selected && selectedTab == LiveOverlayTab.GROUPS,
                                             accent = accent,
                                             onClick = { onCategory(category.id) },
                                         )
                                     }
                                 }
                                 Box(Modifier.weight(0.64f).fillMaxHeight()) {
-                                    if (items.isEmpty()) {
+                                    if (channelCount == 0) {
                                         Text(
-                                            ps.noChannelsInGroup,
+                                            if (browser.loading) strings.playerLoading else ps.noChannelsInGroup,
                                             color = Color(0xCCFFFFFF),
                                             fontSize = 14.sp,
                                             modifier = Modifier.align(Alignment.Center),
@@ -337,30 +341,24 @@ internal fun LiveZapOverlay(
                                     } else {
                                         CompositionLocalProvider(LocalBringIntoViewSpec provides PlayerEdgeBringIntoViewSpec) {
                                             LazyColumn(
-                                                modifier = Modifier.fillMaxSize(),
+                                                // The previous group stays, dimmed, until the highlighted one is loaded.
+                                                modifier = Modifier.fillMaxSize().alpha(if (browser.loading) 0.45f else 1f),
                                                 state = channelListState,
                                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                                 contentPadding = PaddingValues(vertical = 4.dp),
                                             ) {
-                                                itemsIndexed(items, key = { _, channel -> channel.zapRowKey() }) { index, channel ->
-                                                    val rowKey = channel.zapRowKey()
-                                                    val nowTitle by produceState(nowTitles[rowKey], rowKey) {
-                                                        if (!nowTitles.containsKey(rowKey)) {
-                                                            val title = lookUpNowTitle(nowTitleOf, channel)
-                                                            nowTitles[rowKey] = title
-                                                            value = title
-                                                        }
-                                                    }
-                                                    LiveChannelRow(
-                                                        channel = channel,
-                                                        number = channelNumberOf(channel),
-                                                        nowTitle = nowTitle,
-                                                        selected = index == selectedIndex,
-                                                        highlighted = index == selectedIndex && selectedTab == LiveOverlayTab.CHANNELS,
-                                                        current = channel.samePlayable(currentItem),
+                                                items(channelCount) { index ->
+                                                    LivePanelChannelRow(
+                                                        browser = browser,
+                                                        index = index,
+                                                        highlighted = index == browser.selectedIndex && selectedTab == LiveOverlayTab.CHANNELS,
+                                                        providerNumbers = providerNumbers,
+                                                        currentItem = currentItem,
+                                                        nowTitles = nowTitles,
+                                                        nowTitleOf = nowTitleOf,
                                                         accent = accent,
-                                                        onFocus = { onSelectIndex(index) },
-                                                        onPlay = { onPlay(channel) },
+                                                        onSelectIndex = onSelectIndex,
+                                                        onPlay = onPlay,
                                                     )
                                                 }
                                             }
@@ -369,7 +367,11 @@ internal fun LiveZapOverlay(
                                 }
                             }
                             Text(
-                                if (selectedTab == LiveOverlayTab.GROUPS) ps.hintGroups else ps.hintChannels,
+                                when {
+                                    touchHints(isTv) -> ps.hintPanelTouch
+                                    selectedTab == LiveOverlayTab.GROUPS -> ps.hintGroups
+                                    else -> ps.hintChannels
+                                },
                                 color = Color(0x99FFFFFF),
                                 fontSize = 12.sp,
                                 lineHeight = 16.sp,
@@ -395,6 +397,71 @@ internal fun LiveZapOverlay(
                 }
             }
         }
+    }
+}
+
+/** Touch screens (and a TV driven by touch or a mouse) get touch hints instead of remote-key hints. */
+@Composable
+private fun touchHints(isTv: Boolean): Boolean = !isTv || LocalInputModeManager.current.inputMode == InputMode.Touch
+
+/** Row [index] of the channel column: the channel once its page is loaded, a placeholder until then. */
+@Composable
+private fun LivePanelChannelRow(
+    browser: LiveBrowser,
+    index: Int,
+    highlighted: Boolean,
+    providerNumbers: Boolean,
+    currentItem: AppMediaItem,
+    nowTitles: HashMap<String, String?>,
+    nowTitleOf: suspend (AppMediaItem) -> String?,
+    accent: Color,
+    onSelectIndex: (Int) -> Unit,
+    onPlay: (AppMediaItem) -> Unit,
+) {
+    val channel = browser.rowAt(index)
+    if (channel == null) {
+        LiveChannelPlaceholderRow(highlighted, accent)
+        return
+    }
+    val rowKey = channel.zapRowKey()
+    val nowTitle by produceState(nowTitles[rowKey], rowKey) {
+        if (!nowTitles.containsKey(rowKey)) {
+            val title = lookUpNowTitle(nowTitleOf, channel)
+            nowTitles[rowKey] = title
+            value = title
+        }
+    }
+    LiveChannelRow(
+        channel = channel,
+        number = liveChannelNumber(channel, index, providerNumbers),
+        nowTitle = nowTitle,
+        selected = index == browser.selectedIndex,
+        highlighted = highlighted,
+        current = channel.samePlayable(currentItem),
+        accent = accent,
+        onFocus = { onSelectIndex(index) },
+        onPlay = { onPlay(channel) },
+    )
+}
+
+/** A channel row whose page is still loading: same size, so the list never jumps. */
+@Composable
+private fun LiveChannelPlaceholderRow(highlighted: Boolean, accent: Color) {
+    val shape = RoundedCornerShape(10.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(2.dp)
+            .height(LiveChannelRowHeight)
+            .clip(shape)
+            .border(width = if (highlighted) 2.dp else 0.dp, color = if (highlighted) Color.White else Color.Transparent, shape = shape)
+            .background(if (highlighted) accent.copy(alpha = 0.34f) else Color(0x10FFFFFF))
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(30.dp).clip(RoundedCornerShape(10.dp)).background(Color(0x1FFFFFFF)))
+        Box(Modifier.height(10.dp).fillMaxWidth(0.55f).clip(RoundedCornerShape(999.dp)).background(Color(0x1FFFFFFF)))
     }
 }
 
@@ -515,11 +582,17 @@ private fun liveStatusLine(status: LiveCardStatus, strings: Strings): String {
     }
 }
 
+/**
+ * No fixed height: the chip takes its label's height, so larger font scales and the taller Arabic
+ * font are never cut off at the bottom. The explicit line height replaces the theme's 24sp body
+ * lines, which alone were taller than the old 34dp chip.
+ */
 @Composable
 private fun LiveOverlayTabChip(label: String, selected: Boolean, accent: Color, onClick: () -> Unit) {
-    FocusGlow(cornerRadius = 999.dp, onClick = onClick, modifier = Modifier.height(34.dp)) {
+    FocusGlow(cornerRadius = 999.dp, onClick = onClick) {
         Box(
             Modifier
+                .heightIn(min = 30.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .border(
                     width = if (selected) 2.dp else 1.dp,
@@ -527,13 +600,14 @@ private fun LiveOverlayTabChip(label: String, selected: Boolean, accent: Color, 
                     shape = RoundedCornerShape(999.dp),
                 )
                 .background(if (selected) accent.copy(alpha = 0.24f) else Color(0x18FFFFFF))
-                .padding(horizontal = 14.dp, vertical = 7.dp),
+                .padding(horizontal = 14.dp, vertical = 5.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 label,
                 color = if (selected) Color.White else Color(0xE6FFFFFF),
                 fontSize = 13.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -657,7 +731,9 @@ private fun LiveGroupRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            Text(category.count.toString().ltr(), color = Color(0x99FFFFFF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            if (category.count >= 0) {
+                Text(category.count.toString().ltr(), color = Color(0x99FFFFFF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
@@ -809,6 +885,16 @@ internal fun ChannelLogo(item: AppMediaItem, modifier: Modifier, accent: Color) 
     }
 }
 
+/**
+ * Behind the error card of a channel or episode that failed before its first frame. The video
+ * view keeps the previous channel's last frame for seamless zaps; under an error it would look
+ * like the channel that failed.
+ */
+@Composable
+internal fun FailedStartBackdrop(accent: Color) {
+    Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(accent.copy(alpha = 0.10f), Color.Black))))
+}
+
 /** Radio / audio-only channels: show who is playing instead of a black screen. */
 @Composable
 internal fun AudioOnlyBackdrop(item: AppMediaItem, accent: Color, modifier: Modifier = Modifier) {
@@ -900,7 +986,7 @@ internal fun InfoChip(text: String, accent: Color, modifier: Modifier = Modifier
     }
 }
 
-/** Big channel number while the viewer types digits on the remote. */
+/** Big channel number while the viewer types digits on the remote; PlayerScreen puts it at the top start corner. */
 @Composable
 internal fun NumberEntryOverlay(digits: String, accent: Color, modifier: Modifier = Modifier) {
     val ps = LocalStrings.current.player
@@ -998,6 +1084,7 @@ internal fun VodControls(
     favoriteMarked: Boolean,
     canCast: Boolean,
     accent: Color,
+    isTv: Boolean,
     playPauseFocusRequester: FocusRequester,
     onSeekToFraction: ((Float) -> Unit)?,
     onSeekBy: (Long) -> Unit,
@@ -1140,7 +1227,15 @@ internal fun VodControls(
                                 if (canCast) SmallControlButton(Icons.Rounded.Cast, strings.playerCast, accent, onCast)
                                 SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, strings.playerOpenExternal, accent, onExternal)
                             }
-                            Text(ps.vodControlsHint, color = Color(0x99FFFFFF), fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                            Text(
+                                if (touchHints(isTv)) ps.vodControlsHintTouch else ps.vodControlsHint,
+                                color = Color(0x99FFFFFF),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false).padding(start = 12.dp),
+                            )
                         }
                     }
                 }
@@ -1464,5 +1559,5 @@ internal fun TopNoticeStack(modifier: Modifier = Modifier, content: @Composable 
     )
 }
 
-/** Top-end corner inside the TV safe area (the left corner in Arabic). */
+/** Keeps a corner overlay inside the TV safe area. */
 internal fun Modifier.safeCornerPadding(): Modifier = padding(horizontal = SafeHorizontal, vertical = SafeVertical)

@@ -16,6 +16,12 @@ data class LiveZapKeyRow(
     val description: String,
 )
 
+/** Number of live channels in one category (see [MediaQueries.liveCategoryCounts]). */
+data class LiveCategoryCountRow(
+    val categoryId: String,
+    val channels: Int,
+)
+
 /**
  * Builders for the library queries whose ORDER BY depends on the user's sort option.
  *
@@ -29,6 +35,9 @@ data class LiveZapKeyRow(
  */
 internal object MediaQueries {
     const val SEARCH_RESULT_LIMIT = 500
+
+    /** Rows a channel-number lookup reads at most (one per source in a merged library). */
+    const val LIVE_BY_NUMBER_LIMIT = 8
 
     const val ZAP_KEY_COLUMNS = "media.serverId AS serverId, media.id AS id, media.title AS title, " +
         "media.categoryId AS categoryId, media.categoryName AS categoryName, media.description AS description"
@@ -94,6 +103,40 @@ internal object MediaQueries {
         }
         val order = if (favoritesOnly) "media.updatedAt DESC, media.rowid" else orderBy(sort, serverId, categoryId.isNotEmpty())
         return MediaSql("SELECT $ZAP_KEY_COLUMNS FROM media WHERE $where ORDER BY $order", args)
+    }
+
+    /**
+     * Live channels per category id, for the group list of the player's channel panel. The
+     * (serverId, type, categoryId, serverOrder) index covers it unless [hideNoLogo] needs the row.
+     */
+    fun liveCategoryCounts(serverId: Long, hideNoLogo: Boolean): MediaSql {
+        val args = mutableListOf<Any>()
+        val where = buildString {
+            append(serverFilter(serverId, args))
+            append(" AND media.type = ?")
+            args += ContentType.LIVE.name
+            if (hideNoLogo) append(" AND media.posterUrl != ''")
+        }
+        return MediaSql(
+            "SELECT media.categoryId AS categoryId, COUNT(*) AS channels FROM media WHERE $where GROUP BY media.categoryId",
+            args,
+        )
+    }
+
+    /**
+     * Live channels carrying the provider number [number] (Xtream `num`, M3U `tvg-chno`), found
+     * through the (serverId, type, serverOrder) index. A merged library can hold one per source.
+     */
+    fun liveByNumber(serverId: Long, number: Int, hideNoLogo: Boolean): MediaSql {
+        val args = mutableListOf<Any>()
+        val where = buildString {
+            append(serverFilter(serverId, args))
+            append(" AND media.type = ? AND media.serverOrder = ?")
+            args += ContentType.LIVE.name
+            args += number
+            if (hideNoLogo) append(" AND media.posterUrl != ''")
+        }
+        return MediaSql("SELECT $ROW_COLUMNS FROM media WHERE $where ORDER BY media.rowid LIMIT $LIVE_BY_NUMBER_LIMIT", args)
     }
 
     /** Full rows of one source's live channels by id; callers keep [ids] well below 999 variables. */

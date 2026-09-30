@@ -246,12 +246,23 @@ interface MediaDao {
     suspend fun liveRowsByIds(serverId: Long, ids: List<String>): List<MediaListRow> =
         mediaRowsOnce(MediaQueries.liveRowsByIds(serverId, ids).toQuery())
 
+    /** Live channels per category id; see [MediaQueries.liveCategoryCounts]. */
+    suspend fun liveCategoryCounts(serverId: Long, hideNoLogo: Boolean): List<LiveCategoryCountRow> =
+        liveCategoryCountRows(MediaQueries.liveCategoryCounts(serverId, hideNoLogo).toQuery())
+
+    /** Live channels with one provider number; see [MediaQueries.liveByNumber]. */
+    suspend fun liveByNumber(serverId: Long, number: Int, hideNoLogo: Boolean): List<MediaListRow> =
+        mediaRowsOnce(MediaQueries.liveByNumber(serverId, number, hideNoLogo).toQuery())
+
     /** One-shot ranked search (same rows and order as [searchPaging]). */
     suspend fun searchRowsOnce(serverId: Long, query: String): List<MediaListRow> =
         mediaRowsOnce(MediaQueries.search(serverId, query).toQuery())
 
     @RawQuery
     suspend fun liveZapKeyRows(query: SupportSQLiteQuery): List<LiveZapKeyRow>
+
+    @RawQuery
+    suspend fun liveCategoryCountRows(query: SupportSQLiteQuery): List<LiveCategoryCountRow>
 
     @RawQuery
     suspend fun mediaRowsOnce(query: SupportSQLiteQuery): List<MediaListRow>

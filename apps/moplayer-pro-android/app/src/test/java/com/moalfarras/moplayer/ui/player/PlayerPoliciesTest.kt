@@ -10,6 +10,7 @@ import com.moalfarras.moplayer.domain.model.MediaItem
 import com.moalfarras.moplayer.ui.i18n.ArStrings
 import com.moalfarras.moplayer.ui.i18n.EnStrings
 import com.moalfarras.moplayer.ui.i18n.fill
+import com.moalfarras.moplayer.ui.i18n.ltr
 import com.moalfarras.moplayer.ui.i18n.player
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -81,6 +82,47 @@ class PlayerPoliciesTest {
         assertTrue(ArStrings.player.issueText(PlaybackIssue(PlaybackIssueKind.FORBIDDEN, 403)).contains("403"))
         assertEquals("+30s", EnStrings.player.seekSeconds.fill("+30"))
         assertEquals("−10 ث", ArStrings.player.seekSeconds.fill("−10"))
+    }
+
+    @Test
+    fun httpCodesStayInOneLeftToRightRunInArabic() {
+        // Isolating only the number showed "(404 HTTP)" in Arabic.
+        for (kind in listOf(PlaybackIssueKind.UNAUTHORIZED, PlaybackIssueKind.NOT_FOUND, PlaybackIssueKind.SERVER_ERROR)) {
+            val arabic = ArStrings.player.issueText(PlaybackIssue(kind, 404))
+            assertTrue(arabic, arabic.contains("(${"HTTP 404".ltr()})"))
+            val english = EnStrings.player.issueText(PlaybackIssue(kind, 404))
+            assertTrue(english, english.contains("(${"HTTP 404".ltr()})"))
+        }
+        assertTrue(ArStrings.player.issueText(PlaybackIssue(PlaybackIssueKind.SERVER_ERROR)).contains("(${"HTTP".ltr()})"))
+    }
+
+    // ── Back ─────────────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun backTakesOneStepInnermostLayerFirst() {
+        fun step(
+            number: Boolean = false,
+            error: Boolean = false,
+            panel: Boolean = false,
+            nextEpisode: Boolean = false,
+            controls: Boolean = false,
+        ) = playerBackStep(number, error, panel, nextEpisode, controls)
+
+        assertEquals(PlayerBackStep.CLEAR_NUMBER, step(number = true, error = true, panel = true))
+        // With the error card up Back leaves, as its own Back button does.
+        assertEquals(PlayerBackStep.LEAVE, step(error = true, panel = true, controls = true))
+        assertEquals(PlayerBackStep.CLOSE_LIVE_PANEL, step(panel = true))
+        assertEquals(PlayerBackStep.DISMISS_NEXT_EPISODE, step(nextEpisode = true, controls = true))
+        assertEquals(PlayerBackStep.HIDE_CONTROLS, step(controls = true))
+        assertEquals(PlayerBackStep.LEAVE, step())
+    }
+
+    @Test
+    fun backAndEscapeAreTheBackKeys() {
+        assertTrue(isPlayerBackKey(KeyEvent.KEYCODE_BACK))
+        assertTrue(isPlayerBackKey(KeyEvent.KEYCODE_ESCAPE))
+        assertFalse(isPlayerBackKey(KeyEvent.KEYCODE_DPAD_CENTER))
+        assertFalse(isPlayerBackKey(KeyEvent.KEYCODE_MEDIA_STOP))
     }
 
     // ── Load retry policy ───────────────────────────────────────────────────────────────────

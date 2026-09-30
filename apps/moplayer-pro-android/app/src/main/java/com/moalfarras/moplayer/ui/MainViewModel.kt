@@ -12,6 +12,7 @@ import com.moalfarras.moplayer.data.repository.AppBlockReason
 import com.moalfarras.moplayer.data.repository.AppRemoteConfig
 import com.moalfarras.moplayer.data.repository.BlockRecheck
 import com.moalfarras.moplayer.data.repository.afterRecheck
+import com.moalfarras.moplayer.data.repository.refreshXtreamStreamCredentials
 import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
 import com.moalfarras.moplayer.data.repository.appBlockFor
 import com.moalfarras.moplayer.data.repository.AppSettingsRepository
@@ -198,6 +199,8 @@ class MainViewModel(
     private var loginJob: Job? = null
     /** Server the running [loginJob] syncs (0 while unknown), so deleting that server can stop it first. */
     private var loginJobServerId = 0L
+    /** The running [loginJob] imports a QR-delivered source (its sealed copy must go with the account). */
+    private var loginJobIsActivation = false
     private var activationJob: Job? = null
     private var backgroundSyncJob: Job? = null
     private var backgroundSyncServerId = 0L
@@ -235,7 +238,6 @@ class MainViewModel(
     /** The app was opened by a playlist link: no auto-play of the last channel on this start. */
     @Volatile private var externalLaunch = false
     private val pinThrottle = PinAttemptThrottle()
-    private val fallbackDeviceId by lazy { publicDeviceId() }
 
     /** Cuts an activation back-off short when the network returns. */
     private val networkRegained = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -326,7 +328,7 @@ class MainViewModel(
                 flowOf(emptyList())
             } else {
                 iptv.categories(key.serverId, key.type, hideEmpty = key.hideEmpty, hideNoLogo = key.hideNoLogo)
-                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled) }
+                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled).distinctForLibrary(key.serverId) }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -349,7 +351,7 @@ class MainViewModel(
                 flowOf(emptyList())
             } else {
                 iptv.categories(key.serverId, key.type, hideEmpty = key.hideEmpty, hideNoLogo = key.hideNoLogo)
-                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled) }
+                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled).distinctForLibrary(key.serverId) }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -372,7 +374,7 @@ class MainViewModel(
                 flowOf(emptyList())
             } else {
                 iptv.categories(key.serverId, key.type, hideEmpty = key.hideEmpty, hideNoLogo = key.hideNoLogo)
-                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled) }
+                    .map { categories -> categories.filterParentalCategories(key.parentalControlsEnabled).distinctForLibrary(key.serverId) }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -664,6 +666,7 @@ class MainViewModel(
         stopDeviceActivation()
         loginJob?.cancel()
         loginJobServerId = 0L
+        loginJobIsActivation = false
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             val strings = I18n.strings.app
@@ -993,7 +996,8 @@ class MainViewModel(
     }
 
     /** [zapScope]: the list CH+/CH- walk from now on (default: kept, or chosen from where playback starts). */
-    private fun startPlayback(item: MediaItem, recordHistory: Boolean, zapScope: LiveZapScope? = null) {
+    private fun startPlayback(requested: MediaItem, recordHistory: Boolean, zapScope: LiveZapScope? = null) {
+        val item = requested.withCurrentXtreamCredentials(internal.value.servers)
         if (internal.value.appBlock != null) {
             // The block screen explains why. A forced update let the current stream finish; the
             // next zap or episode closes the player so the block screen shows.
@@ -1142,6 +1146,7 @@ class MainViewModel(
         stopDeviceActivation()
         loginJob?.cancel()
         loginJobServerId = 0L
+        loginJobIsActivation = false
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             val strings = I18n.strings.app
@@ -1169,6 +1174,7 @@ class MainViewModel(
         stopDeviceActivation()
         loginJob?.cancel()
         loginJobServerId = 0L
+        loginJobIsActivation = false
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             val strings = I18n.strings.app
@@ -1190,6 +1196,7 @@ class MainViewModel(
         stopDeviceActivation()
         loginJob?.cancel()
         loginJobServerId = 0L
+        loginJobIsActivation = false
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             val strings = I18n.strings.app
@@ -1224,7 +1231,8 @@ class MainViewModel(
                 if (loginJob?.isActive != true) startActivatedProfileLogin(pending.profile, pending)
                 return@launch
             }
-            val deviceId = installDeviceId()
+            // A fresh id per QR session: a code seen once must not identify this TV for later sessions.
+            val deviceId = publicDeviceId()
             val startedAt = SystemClock.elapsedRealtime()
             var failures = 0
             while (true) {
@@ -1352,15 +1360,6 @@ class MainViewModel(
         withTimeoutOrNull(delayMs) { networkRegained.first() }
     }
 
-    private suspend fun installDeviceId(): String = try {
-        deviceState?.installDeviceId() ?: fallbackDeviceId
-    } catch (cancelled: CancellationException) {
-        throw cancelled
-    } catch (failure: Exception) {
-        Log.w(TAG, "Install id unavailable", failure)
-        fallbackDeviceId
-    }
-
     private suspend fun loadPendingActivation(): PendingActivation? = try {
         deviceState?.pendingActivation(System.currentTimeMillis())
     } catch (cancelled: CancellationException) {
@@ -1380,6 +1379,7 @@ class MainViewModel(
     private fun startActivatedProfileLogin(profile: ActivatedProfile, previous: PendingActivation? = null) {
         loginJob?.cancel()
         loginJobServerId = 0L
+        loginJobIsActivation = true
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             val strings = I18n.strings.app
@@ -1927,10 +1927,27 @@ class MainViewModel(
     /** Stops every sync of [serverId] first, so nothing writes rows for it after the delete. */
     private suspend fun removeServer(serverId: Long) {
         startupRefreshJob?.cancel()
+        val login = loginJob?.takeIf { loginJobServerId == serverId }
+        val importingQr = login != null && loginJobIsActivation
         listOfNotNull(
             backgroundSyncJob?.takeIf { backgroundSyncServerId == serverId },
-            loginJob?.takeIf { loginJobServerId == serverId },
+            login,
         ).forEach { job -> withTimeoutOrNull(WORK_CANCEL_TIMEOUT_MS) { job.cancelAndJoin() } }
+        if (login != null && loginJob === login) {
+            // A cancelled login never clears its own progress: without this the sign-in screen
+            // stays disabled and the screen never sleeps. A QR import's sealed source is dropped
+            // with the account, otherwise it would be imported again at the next start.
+            if (importingQr) {
+                try {
+                    deviceState?.clearPendingActivation()
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    Log.w(TAG, "Could not clear the pending activation", failure)
+                }
+            }
+            internal.update { it.copy(loading = null) }
+        }
         try {
             iptv.deleteServer(serverId)
         } catch (cancelled: CancellationException) {
@@ -2023,6 +2040,7 @@ class MainViewModel(
         }
         loginJob?.cancel()
         loginJobServerId = server.id
+        loginJobIsActivation = false
         loginJob = viewModelScope.launch {
             val self = coroutineContext.job
             try {
@@ -2642,6 +2660,21 @@ private data class FocusSnapshot(
     val type: ContentType,
     val id: String,
 )
+
+/** Stored Xtream URLs carry the password of their last sync; play them with the account's current one. */
+private fun MediaItem.withCurrentXtreamCredentials(servers: List<ServerProfile>): MediaItem {
+    val server = servers.firstOrNull { it.id == serverId }?.takeIf { it.kind == LoginKind.XTREAM } ?: return this
+    val url = refreshXtreamStreamCredentials(streamUrl, server.baseUrl, server.username, server.password)
+    return if (url == streamUrl) this else copy(streamUrl = url)
+}
+
+/**
+ * A merged library (serverId <= 0) lists every source's categories, and M3U/Xtream category ids
+ * can repeat across sources. The merged filter matches the bare id, so each id is shown once
+ * (the same rule as the in-player group panel).
+ */
+internal fun List<Category>.distinctForLibrary(serverId: Long): List<Category> =
+    if (serverId > 0) this else distinctBy { it.id }
 
 private fun List<Category>.filterParentalCategories(enabled: Boolean): List<Category> =
     if (!enabled) this else filterNot { category -> adultKeywords.any { category.name.contains(it, ignoreCase = true) } }

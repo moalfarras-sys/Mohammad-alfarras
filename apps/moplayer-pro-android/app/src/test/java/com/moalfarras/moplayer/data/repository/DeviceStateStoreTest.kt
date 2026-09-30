@@ -44,18 +44,6 @@ class DeviceStateStoreTest {
     )
 
     @Test
-    fun installIdIsCreatedOnceInTheWebsiteFormat() = runTest {
-        val store = DeviceStateStore(MemoryStore(), FakeSealer())
-        val first = store.installDeviceId()
-        assertTrue(first, Regex("MO-D-[A-Z0-9]{24}").matches(first))
-        assertEquals(first, store.installDeviceId())
-        // A new process reading the same file keeps the id.
-        val backing = MemoryStore()
-        val id = DeviceStateStore(backing, FakeSealer()).installDeviceId()
-        assertEquals(id, DeviceStateStore(backing, FakeSealer()).installDeviceId())
-    }
-
-    @Test
     fun qrSourceIsKeptSealedUntilCleared() = runTest {
         val backing = MemoryStore()
         val store = DeviceStateStore(backing, FakeSealer())

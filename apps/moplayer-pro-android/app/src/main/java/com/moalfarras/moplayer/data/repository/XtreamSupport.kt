@@ -314,7 +314,7 @@ internal object XtreamSupport {
             title = obj.string("name"),
             streamUrl = directSource.ifBlank { credentials.streamUrl("live", streamId, output) },
             posterUrl = obj.imageUrl("stream_icon"),
-            description = obj.string("plot"),
+            description = obj.string("plot").cleanPlot(),
             addedAt = addedAt,
             lastModifiedAt = lastModifiedAt,
             addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
@@ -364,8 +364,8 @@ internal object XtreamSupport {
             streamUrl = directSource.ifBlank { credentials.streamUrl("movie", streamId, extension) },
             posterUrl = obj.imageUrl("stream_icon").ifBlank { obj.imageUrl("cover") },
             backdropUrl = obj.imageUrlOrJoin("backdrop_path"),
-            description = obj.string("plot"),
-            rating = obj.string("rating").ifBlank { obj.string("rating_5based") },
+            description = obj.string("plot").cleanPlot(),
+            rating = obj.string("rating").cleanRating().ifBlank { obj.string("rating_5based").cleanRating() },
             durationSecs = obj.durationSeconds("duration_secs", "duration"),
             addedAt = addedAt,
             lastModifiedAt = lastModifiedAt,
@@ -411,8 +411,8 @@ internal object XtreamSupport {
             streamUrl = "",
             posterUrl = obj.imageUrl("cover"),
             backdropUrl = obj.imageUrlOrJoin("backdrop_path"),
-            description = obj.string("plot"),
-            rating = obj.string("rating").ifBlank { obj.string("rating_5based") },
+            description = obj.string("plot").cleanPlot(),
+            rating = obj.string("rating").cleanRating().ifBlank { obj.string("rating_5based").cleanRating() },
             addedAt = addedAt,
             lastModifiedAt = lastModifiedAt,
             addedAtUnknown = addedAt <= 0 && lastModifiedAt <= 0,
@@ -436,8 +436,8 @@ internal object XtreamSupport {
         val movieData = root.objectOrNull("movie_data") ?: JsonObject(emptyMap())
         val movieImage = info.imageUrl("movie_image").ifBlank { current.posterUrl }
         val backdrop = info.imageUrlOrJoin("backdrop_path").ifBlank { current.backdropUrl }
-        val plot = info.string("plot").ifBlank { movieData.string("plot").ifBlank { current.description } }
-        val rating = info.string("rating").ifBlank { movieData.string("rating").ifBlank { current.rating } }
+        val plot = info.string("plot").cleanPlot().ifBlank { movieData.string("plot").cleanPlot().ifBlank { current.description } }
+        val rating = info.string("rating").cleanRating().ifBlank { movieData.string("rating").cleanRating().ifBlank { current.rating } }
         val durationSecs = info.durationSeconds("duration_secs", "duration")
             .takeIf { it > 0 }
             ?: movieData.durationSeconds("duration_secs", "duration").takeIf { it > 0 }
@@ -487,8 +487,8 @@ internal object XtreamSupport {
         val seriesId = current.seriesId.ifBlank { current.id }
         val enrichedSeries = current.copy(
             title = info.string("name").ifBlank { current.title },
-            description = info.string("plot").ifBlank { current.description },
-            rating = info.string("rating").ifBlank { current.rating },
+            description = info.string("plot").cleanPlot().ifBlank { current.description },
+            rating = info.string("rating").cleanRating().ifBlank { current.rating },
             posterUrl = info.imageUrl("cover_big").ifBlank { info.imageUrl("cover").ifBlank { current.posterUrl } },
             backdropUrl = info.imageUrlOrJoin("backdrop_path").ifBlank { current.backdropUrl },
             cast = info.stringOrJoin("cast").ifBlank { current.cast },
@@ -523,8 +523,8 @@ internal object XtreamSupport {
                     streamUrl = directSource.ifBlank { credentials.streamUrl("series", episodeId, extension) },
                     posterUrl = episodeInfo.imageUrl("cover_big").ifBlank { episodeInfo.imageUrl("movie_image").ifBlank { enrichedSeries.posterUrl } },
                     backdropUrl = enrichedSeries.backdropUrl,
-                    description = episodeInfo.string("plot"),
-                    rating = episodeInfo.string("rating").ifBlank { enrichedSeries.rating },
+                    description = episodeInfo.string("plot").cleanPlot(),
+                    rating = episodeInfo.string("rating").cleanRating().ifBlank { enrichedSeries.rating },
                     durationSecs = episodeInfo.durationSeconds("duration_secs", "duration")
                         .takeIf { it > 0 }
                         ?: obj.durationSeconds("duration_secs", "duration").takeIf { it > 0 }
@@ -699,6 +699,24 @@ private fun EpgProgramEntity.toEntry(): EpgEntry = EpgEntry(
     endAt = endAt,
     category = category,
 )
+
+/**
+ * Stored Xtream stream URLs embed the credentials that were valid at sync time
+ * (`{base}{kind}/{user}/{pass}/...`). When the provider changes the password and the viewer signs
+ * in again, catalog rows, episodes and history keep the old password until they are re-synced;
+ * this puts the account's current credentials into such a URL at play time. Other URLs (direct
+ * sources, other hosts, M3U links) are returned unchanged.
+ */
+internal fun refreshXtreamStreamCredentials(url: String, baseUrl: String, username: String, password: String): String {
+    if (baseUrl.isBlank() || username.isBlank()) return url
+    val base = if (baseUrl.endsWith('/')) baseUrl else "$baseUrl/"
+    if (!url.startsWith(base)) return url
+    val parts = url.substring(base.length).split('/', limit = 4)
+    if (parts.size < 4 || parts[0] !in XTREAM_STREAM_KINDS) return url
+    return "$base${parts[0]}/${username.asPathSegment()}/${password.asPathSegment()}/${parts[3]}"
+}
+
+private val XTREAM_STREAM_KINDS = setOf("live", "movie", "series", "timeshift")
 
 /** `{base}{kind}/{user}/{pass}/{id}.{ext}` with the credentials escaped as path segments. */
 private fun XtreamCredentials.streamUrl(kind: String, id: String, extension: String): String =

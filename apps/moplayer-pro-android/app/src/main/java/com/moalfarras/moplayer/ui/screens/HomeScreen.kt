@@ -11,6 +11,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -74,11 +74,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.core.PerformancePolicy
+import com.moalfarras.moplayer.data.repository.cleanRating
 import com.moalfarras.moplayer.data.repository.isWidgetRelevant
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.BackgroundMode
@@ -123,12 +124,12 @@ import com.moalfarras.moplayer.ui.i18n.ltr
 import com.moalfarras.moplayer.ui.theme.LocalMoVisuals
 import com.moalfarras.moplayer.ui.theme.rememberTvScale
 import com.moalfarras.moplayerpro.R
-import kotlinx.coroutines.delay
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 private const val HOME_SHELF_LIMIT = 15
 private const val MATCH_ROTATION_MS = 8_000L
@@ -617,7 +618,7 @@ internal fun heroMeta(item: MediaItem?, h: HomeStrings, strings: Strings): Strin
         )
     } else {
         listOfNotNull(
-            item.rating.takeIf { it.isNotBlank() }?.let { "★ ${it.ltr()}" },
+            item.rating.cleanRating().takeIf { it.isNotBlank() }?.let { "★ ${it.ltr()}" },
             item.releaseDate.take(4).takeIf { it.length == 4 && it.all(Char::isDigit) }?.ltr(),
             item.durationSecs.takeIf { it > 0 }?.let { formatDuration(it, h) },
             item.genre.substringBefore(',').trim().takeIf { it.isNotBlank() }?.isolate(),
@@ -1114,7 +1115,7 @@ internal fun aiReplyForQuery(message: String, content: List<MediaItem>, football
 }
 
 private fun aiReason(item: MediaItem, h: HomeStrings): String = when {
-    item.rating.isNotBlank() -> h.reasonRating(item.rating)
+    item.rating.cleanRating().isNotBlank() -> h.reasonRating(item.rating.cleanRating())
     item.lastPlayedAt > 0 -> h.reasonRecent
     item.categoryName.isNotBlank() -> h.reasonCategory(item.categoryName)
     else -> h.reasonLibrary

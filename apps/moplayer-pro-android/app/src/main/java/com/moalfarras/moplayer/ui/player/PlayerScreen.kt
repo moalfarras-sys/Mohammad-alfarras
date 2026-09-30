@@ -1741,6 +1741,9 @@ fun PlayerScreen(
                 }
             },
     ) {
+        // The screen stays on only while something plays, so the TV screensaver (and OLED
+        // burn-in protection) can start on a paused, ended or failed stream.
+        val keepAwake = attempt.playbackError == null && !attempt.vodEnded && !attempt.userPaused
         if (useLibVlc) {
             LibVlcPlayerView(
                 request = playbackRequest,
@@ -1752,6 +1755,7 @@ fun PlayerScreen(
                 deinterlace = isLive && item.liveTitleQualityRank() == 1,
                 startPositionMs = libVlcStartPositionMs(attempt.resumePositionMs, ui.duration),
                 resizeMode = selectedVideoSizeMode.toResizeMode(),
+                keepScreenOn = keepAwake,
                 retryNonce = attempt.libVlcRetryNonce,
                 transport = attempt.vlcTransport,
                 controller = session.vlc,
@@ -1776,6 +1780,7 @@ fun PlayerScreen(
                 surfaceAttempt = attempt.media3SurfaceAttempt,
                 isPerformanceMode = performancePolicy.isPerformance,
                 resizeMode = selectedVideoSizeMode.toResizeMode(),
+                keepScreenOn = keepAwake,
             )
         }
 
@@ -1990,7 +1995,7 @@ private fun libVlcCallbacks(
  * sound) until a watchdog forces a rebuild.
  */
 @Composable
-private fun Media3Surface(exoPlayer: ExoPlayer?, surfaceAttempt: Int, isPerformanceMode: Boolean, resizeMode: Int) {
+private fun Media3Surface(exoPlayer: ExoPlayer?, surfaceAttempt: Int, isPerformanceMode: Boolean, resizeMode: Int, keepScreenOn: Boolean) {
     val useTextureView = shouldUseTextureViewForMedia3(
         sdkInt = Build.VERSION.SDK_INT,
         isPerformanceMode = isPerformanceMode,
@@ -2016,7 +2021,7 @@ private fun Media3Surface(exoPlayer: ExoPlayer?, surfaceAttempt: Int, isPerforma
                     setShowBuffering(PlayerView.SHOW_BUFFERING_NEVER)
                     setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
                     setEnableComposeSurfaceSyncWorkaround(true)
-                    keepScreenOn = true
+                    this.keepScreenOn = keepScreenOn
                     player = exoPlayer
                 }
             },
@@ -2028,7 +2033,7 @@ private fun Media3Surface(exoPlayer: ExoPlayer?, surfaceAttempt: Int, isPerforma
                     view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 }
                 view.resizeMode = resizeMode
-                view.keepScreenOn = true
+                view.keepScreenOn = keepScreenOn
             },
             onRelease = { view -> view.player = null },
             modifier = Modifier.fillMaxSize(),

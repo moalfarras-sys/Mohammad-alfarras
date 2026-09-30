@@ -36,7 +36,6 @@ private val Context.deviceStateDataStore by preferencesDataStore(
     corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
 )
 
-private val installDeviceIdKey = stringPreferencesKey("install_device_id")
 private val pendingActivationKey = stringPreferencesKey("pending_activation_sealed")
 private val subscriptionSnoozesKey = stringPreferencesKey("subscription_prompt_snoozes")
 private val autoPlayArmedKey = booleanPreferencesKey("autoplay_armed")
@@ -73,25 +72,10 @@ class DeviceStateStore internal constructor(
 ) {
     constructor(context: Context) : this(context.applicationContext.deviceStateDataStore, KeystoreSourceSealer())
 
-    @Volatile
-    private var cachedDeviceId: String? = null
-
     private val data: Flow<Preferences> = store.data.catch { error ->
         if (error !is IOException) throw error
         Log.w(TAG, "Device state read failed", error)
         emit(emptyPreferences())
-    }
-
-    /** Stable id of this install, created on first use; a failed write still returns a usable id. */
-    suspend fun installDeviceId(): String {
-        cachedDeviceId?.let { return it }
-        var id = ""
-        edit { prefs ->
-            id = prefs[installDeviceIdKey]?.takeIf(::isPublicDeviceId) ?: publicDeviceId().also { prefs[installDeviceIdKey] = it }
-        }
-        if (id.isBlank()) id = publicDeviceId()
-        cachedDeviceId = id
-        return id
     }
 
     /** Seals and stores [pending]; false when it could not be kept (the import then runs unprotected). */
@@ -272,9 +256,6 @@ internal fun decodePendingActivation(text: String): PendingActivation? = runCatc
 internal fun pendingActivationUsable(pending: PendingActivation, nowMs: Long): Boolean =
     pending.attempts < PENDING_ACTIVATION_MAX_ATTEMPTS &&
         nowMs - pending.savedAt in 0 until PENDING_ACTIVATION_MAX_AGE_MS
-
-private fun isPublicDeviceId(value: String): Boolean =
-    value.length == 29 && value.startsWith("MO-D-") && value.drop(5).all { it in 'A'..'Z' || it in '0'..'9' }
 
 private const val MAX_SNOOZES = 20
 

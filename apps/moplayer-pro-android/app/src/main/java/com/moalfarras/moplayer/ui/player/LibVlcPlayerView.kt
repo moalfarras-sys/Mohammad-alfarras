@@ -120,6 +120,7 @@ internal fun LibVlcPlayerView(
     deinterlace: Boolean,
     startPositionMs: Long,
     resizeMode: Int,
+    keepScreenOn: Boolean,
     retryNonce: Int,
     transport: VlcTransportCommand?,
     controller: LibVlcController,
@@ -421,7 +422,7 @@ internal fun LibVlcPlayerView(
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 minimumWidth = 1
                 minimumHeight = 1
-                keepScreenOn = true
+                this.keepScreenOn = keepScreenOn
                 isOpaque = true
                 // PiP, rotation and the first real layout all change the size the picture must fit.
                 addOnLayoutChangeListener(View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applySizing(force = false) })
@@ -434,7 +435,7 @@ internal fun LibVlcPlayerView(
             ) {
                 view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             }
-            view.keepScreenOn = true
+            view.keepScreenOn = keepScreenOn
             // Runs again whenever the viewer changes the picture size mode.
             applyLibVlcSizing(state, worker, resizeMode, force = false)
         },

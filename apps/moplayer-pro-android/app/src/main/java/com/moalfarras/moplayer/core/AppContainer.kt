@@ -14,18 +14,27 @@ import com.moalfarras.moplayer.data.repository.AppSettingsRepository
 import com.moalfarras.moplayer.data.repository.AppRemoteConfigService
 import com.moalfarras.moplayer.data.repository.IptvRepository
 import com.moalfarras.moplayer.data.repository.WidgetRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.TimeUnit
 
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
     private val database = MoPlayerDatabase.get(appContext)
 
+    /** Process-lifetime scope for writes that must outlive a screen (debounced navigation state). */
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     init {
+        // The codec/display probe takes tens to hundreds of ms on old boxes; start it before the
+        // first frame asks for the performance policy.
+        Adaptive.prewarmPerformanceInfo(appContext)
         scheduleEpgRefresh(appContext)
         scheduleLibraryRefresh(appContext)
     }
 
-    val settingsRepository = AppSettingsRepository(appContext)
+    val settingsRepository = AppSettingsRepository(appContext, applicationScope)
     val remoteConfigService = AppRemoteConfigService()
     val iptvRepository = IptvRepository(
         database = database,

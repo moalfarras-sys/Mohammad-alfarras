@@ -264,25 +264,25 @@ const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer2: [
     {
       ...fallbackReleases[0],
-      id: "release-moplayer2-v2-7-1",
+      id: "release-moplayer2-v2-7-2",
       product_slug: "moplayer2",
-      slug: "moplayer2-2.7.1",
-      version_name: "2.7.1",
-      version_code: 70,
+      slug: "moplayer2-2.7.2",
+      version_name: "2.7.2",
+      version_code: 71,
       release_notes:
-        "MoPlayer Pro 2.7.1 is a stability update from real-server testing: the merged \"All playlists\" library no longer crashes when two sources share category ids, playback keeps working after a provider password change, movie details stay after a library sync, empty \"0\" ratings are hidden and provider descriptions show proper line breaks, QR activation is safer, and the TV screensaver can start on a paused, ended or failed stream. Includes everything from 2.7.0.",
+        "MoPlayer Pro 2.7.2 makes the TV interface the same size on every TV: TVs and boxes that report a different screen density or use a larger system font no longer get an oversized interface with cut-off names. Group lists are wider and show full names, long channel names scroll when focused, and Settings > Look & Home has a new Interface size option (Compact, Standard, Large). Includes everything from 2.7.1.",
       compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
       assets: [
         {
           ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-7-1-universal",
-          release_id: "release-moplayer2-v2-7-1",
+          id: "asset-moplayer2-v2-7-2-universal",
+          release_id: "release-moplayer2-v2-7-2",
           label: "MoPlayer Pro Universal Android TV APK",
           abi: "universal",
           external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.1/app-universal-release.apk",
-          file_size_bytes: 56171853,
-          checksum_sha256: "380e29c18757858f296e62cd3be93579ddc9cb9578fdacbaa39193e649974fd6",
+            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.2/app-universal-release.apk",
+          file_size_bytes: 56178347,
+          checksum_sha256: "8b5595ec9cc399a500f52896c4d7f7a09ba89951167a1e810c3d10c762ab677a",
         },
       ],
     },

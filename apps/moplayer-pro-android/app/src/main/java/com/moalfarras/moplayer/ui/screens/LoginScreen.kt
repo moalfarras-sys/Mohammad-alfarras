@@ -1253,6 +1253,9 @@ private fun QrActivationPanel(
     val plate: @Composable () -> Unit = {
         QrPlate(url = if (phase == QrPhase.Waiting) current?.verificationUrlComplete.orEmpty() else "", phase = phase, size = qrSize)
     }
+    // Phones are landscape-only and low (about 400dp), so a stacked layout pushed the code below
+    // the fold; they get the TV's side-by-side layout with phone-sized text.
+    val sideBySide = wide || tv.isLowHeightLandscape
     val details: @Composable () -> Unit = {
         QrDetails(
             session = current,
@@ -1263,16 +1266,17 @@ private fun QrActivationPanel(
             wide = wide,
             reduceMotion = reduceMotion,
             refreshFocus = refreshFocus,
+            alignStart = sideBySide,
             onRefresh = { requestCode(manual = true) },
             onOpenPage = { url ->
                 if (!openInBrowser(context, url)) browserMessage = login.qrNoBrowser(displayActivationUrl(url))
             },
         )
     }
-    if (wide) {
+    if (sideBySide) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(32.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (wide) 32.dp else 20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             plate()
@@ -1344,6 +1348,7 @@ private fun QrDetails(
     wide: Boolean,
     reduceMotion: Boolean,
     refreshFocus: FocusRequester,
+    alignStart: Boolean,
     onRefresh: () -> Unit,
     onOpenPage: (String) -> Unit,
 ) {
@@ -1351,7 +1356,7 @@ private fun QrDetails(
     val tvText = wide
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = if (wide) Alignment.Start else Alignment.CenterHorizontally,
+        horizontalAlignment = if (alignStart) Alignment.Start else Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (phase != QrPhase.Received) {
@@ -1381,7 +1386,7 @@ private fun QrDetails(
                 color = Color(0xFFE8C985),
                 fontSize = if (tvText) 16.sp else 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                textAlign = if (wide) TextAlign.Start else TextAlign.Center,
+                textAlign = if (alignStart) TextAlign.Start else TextAlign.Center,
             )
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 QrCountdown(expiresAt = session.expiresAt, large = tvText)
@@ -1403,7 +1408,7 @@ private fun QrDetails(
                 fontSize = if (tvText) 16.sp else 14.sp,
                 fontWeight = if (isProblem) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 3,
-                textAlign = if (wide) TextAlign.Start else TextAlign.Center,
+                textAlign = if (alignStart) TextAlign.Start else TextAlign.Center,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }

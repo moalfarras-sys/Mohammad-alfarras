@@ -59,7 +59,11 @@ export type ProviderSourceQueueValue = {
 const ENCRYPTION_PREFIX = "aes-256-gcm:v1";
 const MAX_TEST_BYTES = 192 * 1024;
 const PENDING_SOURCE_TTL_MS = 20 * 60 * 1000;
-const FETCHED_SOURCE_RECEIPT_TTL_MS = 5 * 60 * 1000;
+// Long enough for the device's first library sync, which runs before it acknowledges the import.
+const FETCHED_SOURCE_RECEIPT_TTL_MS = 15 * 60 * 1000;
+// Lets the activation page show "Imported on your TV" or the device's error after the ack.
+const ACKNOWLEDGED_SOURCE_RECEIPT_TTL_MS = 10 * 60 * 1000;
+const DEVICE_IMPORT_MESSAGE_MAX_LENGTH = 200;
 
 function serverSecret() {
   const dedicated = process.env.MOPLAYER_PROVIDER_ENCRYPTION_KEY;
@@ -263,6 +267,84 @@ export function fetchedProviderSourceReceiptExpiresAt(now = Date.now()) {
 export function providerSourceQueueExpired(queue: Partial<ProviderSourceQueueValue> | null | undefined, now = Date.now()) {
   if (!queue?.expiresAt) return false;
   return new Date(queue.expiresAt).getTime() <= now;
+}
+
+/** What stays server-side once the device has the source: delivery status only, never source details. */
+export type ProviderSourceReceipt = Pick<
+  ProviderSourceQueueValue,
+  "id" | "publicDeviceId" | "sourceType" | "status" | "createdAt" | "updatedAt"
+> &
+  Partial<
+    Pick<
+      ProviderSourceQueueValue,
+      "productSlug" | "lastTestStatus" | "expiresAt" | "pulledAt" | "importedAt" | "failedAt" | "failureMessage"
+    >
+  >;
+
+type ReceiptSource = Pick<ProviderSourceQueueValue, "id" | "publicDeviceId" | "sourceType" | "createdAt"> &
+  Partial<Pick<ProviderSourceQueueValue, "productSlug" | "lastTestStatus" | "pulledAt">>;
+
+// Allowlist, so the encrypted payload, the source label (it defaults to the provider host) and
+// provider-written test messages can never be carried into a receipt.
+function receiptBase(queue: ReceiptSource) {
+  return {
+    id: queue.id,
+    publicDeviceId: queue.publicDeviceId,
+    productSlug: queue.productSlug ?? "moplayer",
+    sourceType: queue.sourceType,
+    lastTestStatus: queue.lastTestStatus,
+    createdAt: queue.createdAt,
+    pulledAt: queue.pulledAt,
+  };
+}
+
+export function fetchedProviderSourceReceipt(queue: ReceiptSource, now = Date.now()): ProviderSourceReceipt {
+  const at = new Date(now).toISOString();
+  return {
+    ...receiptBase(queue),
+    status: "fetched",
+    pulledAt: at,
+    updatedAt: at,
+    expiresAt: fetchedProviderSourceReceiptExpiresAt(now),
+  };
+}
+
+export function acknowledgedProviderSourceReceipt(
+  queue: ReceiptSource,
+  result: { status: "imported" | "failed"; message?: unknown },
+  now = Date.now(),
+): ProviderSourceReceipt {
+  const at = new Date(now).toISOString();
+  const failed = result.status === "failed";
+  return {
+    ...receiptBase(queue),
+    status: result.status,
+    updatedAt: at,
+    expiresAt: new Date(now + ACKNOWLEDGED_SOURCE_RECEIPT_TTL_MS).toISOString(),
+    importedAt: failed ? undefined : at,
+    failedAt: failed ? at : undefined,
+    failureMessage: failed ? sanitizeDeviceImportMessage(result.message) : undefined,
+  };
+}
+
+/**
+ * The device's import error is shown on the public activation page and kept briefly server-side, so
+ * anything that could identify the provider or its credentials is removed before it is stored.
+ */
+export function sanitizeDeviceImportMessage(value: unknown): string | undefined {
+  const printable = Array.from(String(value ?? ""), (char) => {
+    const code = char.charCodeAt(0);
+    return code < 32 || code === 127 ? " " : char;
+  }).join("");
+  const text = printable
+    .replace(/[a-z][a-z0-9+.-]*:\/\/\S*/gi, "[link]")
+    .replace(/[^\s@/]+:[^\s@/]+@\S*/g, "[link]")
+    .replace(/\b(username|user|password|pass|token|key)(?:\s*=\s*|:)\S+/gi, "$1=***")
+    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\S*/g, "[host]")
+    .replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:\/\S*)?/gi, "[host]")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text ? text.slice(0, DEVICE_IMPORT_MESSAGE_MAX_LENGTH) : undefined;
 }
 
 export function normalizeSourcePullToken(value: unknown) {

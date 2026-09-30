@@ -14,7 +14,7 @@ import {
   deviceSourceAuthSettingKey,
   deviceSourceQueueSettingKey,
   encryptProviderSource,
-  fetchedProviderSourceReceiptExpiresAt,
+  fetchedProviderSourceReceipt,
   hashSourcePullToken,
   isValidPublicDeviceId,
   normalizePublicDeviceId,
@@ -43,6 +43,15 @@ async function activatedDeviceByCode(code: string, productSlug: string) {
   if (data.status !== "activated") return { error: "Activate the device before adding a source.", status: 409 };
   if (new Date(data.expiresAt).getTime() <= Date.now()) return { error: "Activation code expired.", status: 410 };
   return { publicDeviceId: data.publicDeviceId };
+}
+
+// The device can only pull a source while its QR session token is live; the import ack retires it.
+async function deviceCanReceiveSource(publicDeviceId: string) {
+  const auth = await readDeviceSetting<{ publicDeviceId?: string; sourcePullTokenHash?: string; expiresAt?: string }>(
+    deviceSourceAuthSettingKey(publicDeviceId),
+  );
+  if (!auth?.sourcePullTokenHash || auth.publicDeviceId !== publicDeviceId) return false;
+  return !auth.expiresAt || new Date(auth.expiresAt).getTime() > Date.now();
 }
 
 async function verifiedDeviceByToken(publicDeviceId: string, token: string) {
@@ -91,6 +100,16 @@ export async function POST(request: Request) {
   const activated = await activatedDeviceByCode(code, productSlug);
   if (!activated.publicDeviceId) {
     return json({ ok: false, message: activated.error }, { status: activated.status ?? 500 });
+  }
+  if (!(await deviceCanReceiveSource(activated.publicDeviceId))) {
+    return json(
+      {
+        ok: false,
+        status: "device_not_ready",
+        message: "Your TV is no longer waiting for a source. Open the activation screen on the TV and enter the new code.",
+      },
+      { status: 409 },
+    );
   }
 
   try {
@@ -193,25 +212,12 @@ export async function GET(request: Request) {
     return json({ status: "error", message: "Pending source could not be read. Create a new QR activation." }, { status: 500 });
   }
 
-  const now = new Date().toISOString();
-  const receiptQueue = { ...queue };
-  delete receiptQueue.encryptedPayload;
-  const receiptExpiresAt = fetchedProviderSourceReceiptExpiresAt();
+  const receipt = fetchedProviderSourceReceipt(queue);
   try {
-    await writeDeviceSetting(
-      key,
-      {
-        ...receiptQueue,
-        status: "fetched",
-        pulledAt: now,
-        updatedAt: now,
-        expiresAt: receiptExpiresAt,
-      },
-      {
-        ttlSeconds: secondsUntil(receiptExpiresAt, 5 * 60),
-        description: "Short-lived provider source delivery receipt. Sensitive source payload is removed after first fetch.",
-      },
-    );
+    await writeDeviceSetting(key, receipt, {
+      ttlSeconds: secondsUntil(receipt.expiresAt, 15 * 60),
+      description: "Short-lived provider source delivery receipt. Sensitive source payload is removed after first fetch.",
+    });
   } catch {
     return json({ status: "error", message: "Could not clear pending source after fetch." }, { status: 500 });
   }

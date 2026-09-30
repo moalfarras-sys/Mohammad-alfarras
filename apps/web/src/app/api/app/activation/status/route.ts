@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requestedActivationProduct } from "@/lib/activation-flow";
 import { isValidActivationCode, normalizeActivationCode } from "@/lib/activation-code";
 import {
   deleteDeviceSettings,
@@ -45,21 +46,38 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const code = normalizeActivationCode(searchParams.get("code"));
-  const productSlug = resolveManagedAppSlug(searchParams.get("product") ?? searchParams.get("productSlug"));
+  // No product (bare /activate URL, Classic TV app) means the code itself decides: codes are unique
+  // across products. An explicit product keeps the lookup scoped to that app.
+  const requestedProduct = requestedActivationProduct(searchParams.get("product") ?? searchParams.get("productSlug"));
 
   if (!isValidActivationCode(code)) {
     return json({ status: "invalid", message: "Invalid activation code format." }, { status: 400 });
   }
 
-  const data = await getActivationRequest(code, productSlug);
+  const data = await getActivationRequest(code, requestedProduct);
   if (!data) {
+    const other = requestedProduct ? await getActivationRequest(code, null) : null;
+    if (other) {
+      // Tell the page which app the code belongs to so it can switch; nothing about that device is returned.
+      return json(
+        {
+          status: "wrong_product",
+          code,
+          productSlug: resolveManagedAppSlug(other.productSlug),
+          message: "This activation code belongs to another MoPlayer app.",
+        },
+        { status: 409 },
+      );
+    }
     return json({ status: "invalid", code, message: "Activation code was not found." }, { status: 404 });
   }
 
-  const isExpired = new Date(data.expiresAt).getTime() <= Date.now();
-  if (isExpired && data.status === "waiting") {
-    await setActivationStatus(code, "expired");
-    return json({ status: "expired", code, expiresAt: data.expiresAt }, { status: 410 });
+  const productSlug = requestedProduct ?? resolveManagedAppSlug(data.productSlug);
+  // A code replaced by a newer one on the device is stored as "expired" too; it must not read as pending.
+  const waitingExpired = data.status === "waiting" && new Date(data.expiresAt).getTime() <= Date.now();
+  if (waitingExpired || data.status === "expired") {
+    if (waitingExpired) await setActivationStatus(code, "expired");
+    return json({ status: "expired", code, productSlug, expiresAt: data.expiresAt }, { status: 410 });
   }
 
   if (data.status === "activated") {

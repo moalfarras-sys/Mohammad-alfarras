@@ -60,6 +60,14 @@ object NetworkModule {
             // socket on weak Wi-Fi. Keep playback finite, but do not fail an otherwise
             // playable stream at the same 12s API threshold shown in user error reports.
             .connectTimeout(14, TimeUnit.SECONDS)
+            // Media streams are open-ended (a live MPEG-TS body never ends). callTimeout covers
+            // reading the whole body, so any finite value cuts live TS mid-stream and forces a
+            // buffer drain and rebuffer. Rely on connect and read timeouts, like Media3's own
+            // DefaultHttpDataSource.
+            .callTimeout(0, TimeUnit.MILLISECONDS)
+            // A dead socket should fail well before 45s. readTimeout also covers the wait for the
+            // first byte, so leave headroom for Xtream on-demand channels to start.
+            .readTimeout(20, TimeUnit.SECONDS)
             .apply {
                 if (Build.VERSION.SDK_INT < 26) {
                     trustLegacyTvCertificates()

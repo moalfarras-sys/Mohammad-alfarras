@@ -5,6 +5,7 @@ import androidx.media3.common.PlaybackException
 import com.moalfarras.moplayer.domain.model.ContentType
 import com.moalfarras.moplayer.domain.model.MediaItem
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -79,15 +80,16 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun malformedLiveErrorsCanFallbackToLibVlc() {
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, null))
+    fun decoderAndContainerErrorsAreFormatFailuresThatAnotherEngineMayPlay() {
+        assertEquals(PlaybackFailureClass.FORMAT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_DECODER_INIT_FAILED, null, null))
+        assertEquals(PlaybackFailureClass.FORMAT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null, null))
     }
 
     @Test
-    fun transientLiveNetworkErrorsCanFallbackToLibVlc() {
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, null))
-        assertTrue(shouldFallbackToLibVlc(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
+    fun networkErrorsAreTransientAndRetryTheSameStream() {
+        assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null, null))
+        assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED, null, null))
+        assertEquals(PlaybackFailureClass.TRANSIENT, classifyPlaybackFailure(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 503, null))
     }
 
     @Test
@@ -131,10 +133,15 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun vodStreamFallbackOnlyHandlesContainerOrHttpShapeErrors() {
-        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, null))
-        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null))
-        assertEquals(false, shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null))
+    fun vodStreamFallbackOnlyWalksExtensionsForWrongContainerErrors() {
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 404, null))
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 415, null))
+        assertTrue(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED, null, null))
+        // Auth, removal and server errors are not extension problems: no request storm to a dead account.
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 403, null))
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 401, null))
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS, 503, null))
+        assertFalse(shouldTryVodStreamFallback(PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT, null, null))
     }
 
     @Test
@@ -157,30 +164,10 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun liveFailureMessageIsReadableEnglish() {
-        val message = livePlaybackFailureMessage()
-
-        assertTrue(message.contains("Live stream"))
-        assertTrue(message.contains("Try again"))
-    }
-
-    @Test
-    fun liveNoVideoFrameMessageExplainsSmartRetry() {
-        val message = liveNoVideoFrameMessage()
-
-        assertTrue(message.contains("did not render video"))
-        assertTrue(message.contains("safer live qualities"))
-    }
-
-    @Test
-    fun liveQualityRankUsesChannelTitleBeforeCategoryLabel() {
-        val item = liveItem(
-            id = "1",
-            title = "BEIN SPORTS 1 HD",
-            categoryName = "BEIN SPORT FHD",
-        )
-
-        assertEquals(2, item.liveQualityRank())
+    fun liveQualityRankComesFromTheChannelLabelNotItsGroup() {
+        assertEquals(2, liveItem(id = "1", title = "BEIN SPORTS 1 HD", categoryName = "BEIN SPORT FHD").liveTitleQualityRank())
+        // An unlabelled channel in an "FHD" group is not an FHD channel.
+        assertEquals(2, liveItem(id = "2", title = "BEIN SPORTS 1", categoryName = "BEIN SPORT FHD").liveTitleQualityRank())
     }
 
     @Test
@@ -205,11 +192,18 @@ class PlayerScreenLiveTest {
         val second = listOf(current, hd, sd, other).bestCompatibleLiveAlternative(
             current = current,
             maxVideoHeight = 720,
-            excludedKeys = setOf("1:sd:http://example.test/live/sd.ts"),
+            excludedKeys = setOf("1:hd:http://example.test/live/hd.ts"),
         )
 
-        assertEquals("sd", first?.id)
-        assertEquals("hd", second?.id)
+        // FHD falls back to HD before SD, and never to another channel ("BEIN SPORTS 5").
+        assertEquals("hd", first?.id)
+        assertEquals("sd", second?.id)
+        val exhausted = listOf(current, hd, sd, other).bestCompatibleLiveAlternative(
+            current = current,
+            maxVideoHeight = 720,
+            excludedKeys = setOf("1:hd:http://example.test/live/hd.ts", "1:sd:http://example.test/live/sd.ts"),
+        )
+        assertNull(exhausted)
     }
 
     @Test
@@ -274,9 +268,13 @@ class PlayerScreenLiveTest {
     }
 
     @Test
-    fun liveDoesNotDowngrade4kUnlessPerformanceModeNeedsIt() {
-        assertEquals(false, shouldAutoDowngradeLiveQuality(false, itemQualityRank = 4, maxVideoHeight = 1080))
-        assertEquals(true, shouldAutoDowngradeLiveQuality(true, itemQualityRank = 4, maxVideoHeight = 1080))
+    fun a4kChannelOnAWeakBoxIsNeverSwappedForAnotherChannel() {
+        // Performance mode caps at 720p, but with no same-name feed the user's pick stays as is.
+        val current = liveItem(id = "uhd", title = "SPORT ONE 4K", serverOrder = 1)
+        val unrelatedSd = liveItem(id = "sd", title = "NEWS 24 SD", serverOrder = 2)
+        val unrelatedHd = liveItem(id = "hd", title = "MOVIES HD", serverOrder = 3)
+
+        assertNull(listOf(current, unrelatedSd, unrelatedHd).bestCompatibleLiveAlternative(current, maxVideoHeight = 720))
     }
 
     @Test

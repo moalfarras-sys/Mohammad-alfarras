@@ -195,6 +195,7 @@ private fun MoPlayerApp(
             ?: com.moalfarras.moplayer.ui.components.PreviewTrailer()
     }
     var lastExitBackAt by remember { mutableLongStateOf(0L) }
+    val homeContentFocus = remember { androidx.compose.ui.focus.FocusRequester() }
 
     fun requestBack() {
         val now = System.currentTimeMillis()
@@ -321,7 +322,7 @@ private fun MoPlayerApp(
                                 val latestLive = viewModel.latestLive.collectAsLazyPagingItems()
                                 val latestMovies = viewModel.latestMovies.collectAsLazyPagingItems()
                                 val latestSeries = viewModel.latestSeries.collectAsLazyPagingItems()
-                                HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null, favoriteLive = favorites.itemSnapshotList.items.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE }.take(30))
+                                HomeScreen(weather, football, continueWatching.snapshotItems(), recentLive.snapshotItems(), latestLive.snapshotItems(), latestMovies.snapshotItems(), latestSeries.snapshotItems(), state.activeServer, state.settings, performancePolicy, if (state.dockFocusSection == null) state.restoreFocusItem else null, state.dockFocusSection == null, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite, accent, state.backgroundRefresh != null || state.loading != null, favoriteLive = favorites.itemSnapshotList.items.filter { it.type == com.moalfarras.moplayer.domain.model.ContentType.LIVE }.take(30), contentFocusRequester = homeContentFocus)
                             }
                             AppSection.LIVE -> LiveScreen(liveCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, focusedLiveEpg, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
                             AppSection.MOVIES -> PosterScreen(LocalStrings.current.navMovies, movieCategories, viewModel.selectedMedia, state.focusedItem, state.restoreFocusItem, state.selectedCategoryId, performancePolicy.enablePreviewPane, performancePolicy, viewModel::selectCategory, viewModel::clearCategory, viewModel::focusItem, viewModel::play, viewModel::toggleFavorite)
@@ -363,6 +364,7 @@ private fun MoPlayerApp(
                                 onSelect = viewModel::select,
                                 onSearch = { viewModel.select(AppSection.SEARCH) },
                                 modifier = Modifier.padding(bottom = if (tv.isCompact) 10.dp else 18.dp),
+                                contentFocusRequester = homeContentFocus,
                             )
                         }
                         if (state.showExitDialog) {

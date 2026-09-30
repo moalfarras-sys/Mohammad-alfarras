@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -66,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -228,6 +230,9 @@ fun HomeScreen(
     accent: Color,
     syncing: Boolean = false,
     favoriteLive: List<MediaItem> = emptyList(),
+    // Shared with the dock: Up from the dock requests it, and the rows' focus restorer puts the
+    // remote back on the card that was focused before the user went down to the dock.
+    contentFocusRequester: FocusRequester? = null,
 ) {
     val tv = rememberTvScale()
     val strings = LocalStrings.current
@@ -451,7 +456,15 @@ fun HomeScreen(
                             // Bottom padding lets the last row scroll clear of the floating dock.
                             contentPadding = PaddingValues(top = tv.u(12f), bottom = tv.u(104f)),
                             verticalArrangement = Arrangement.spacedBy(tv.u(16f)),
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .then(
+                                    if (contentFocusRequester != null) {
+                                        Modifier.focusRequester(contentFocusRequester).focusRestorer().focusGroup()
+                                    } else {
+                                        Modifier
+                                    },
+                                ),
                         ) {
                             item(key = "smart-picks") {
                                 Box(Modifier.fillMaxWidth().padding(horizontal = tv.contentPadding)) {

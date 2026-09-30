@@ -66,6 +66,9 @@ fun BottomDock(
     onSelect: (AppSection) -> Unit,
     onSearch: () -> Unit,
     modifier: Modifier = Modifier,
+    // Up from any dock button goes here (the screen's content group). Compose's 2D search cannot
+    // always find the rows above the floating dock, which left the remote stuck on the dock.
+    contentFocusRequester: FocusRequester? = null,
 ) {
     val tv = rememberTvScale()
     val scrollState = rememberScrollState()
@@ -128,6 +131,7 @@ fun BottomDock(
                     dockHasFocus = dockHasFocus,
                     factor = tv.factor,
                     focusRequester = focusRequesterFor(item.section),
+                    upFocusRequester = contentFocusRequester,
                 ) { if (item.section == AppSection.SEARCH) onSearch() else onSelect(item.section) }
             }
         }
@@ -141,6 +145,7 @@ private fun DockButton(
     dockHasFocus: Boolean,
     factor: Float,
     focusRequester: FocusRequester,
+    upFocusRequester: FocusRequester?,
     onClick: () -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
@@ -158,6 +163,7 @@ private fun DockButton(
     FocusGlow(
         modifier = Modifier
             .onFocusChanged { focused = it.isFocused }
+            .then(if (upFocusRequester != null) Modifier.focusProperties { up = upFocusRequester } else Modifier)
             .width(width)
             .height(buttonHeight.dp),
         cornerRadius = 999.dp,

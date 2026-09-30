@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowUpRight,
+  Bot,
+  Box,
   Check,
   Cloud,
   Copy,
@@ -13,13 +15,16 @@ import {
   GitBranch,
   Languages,
   Layers,
+  Laptop,
   Monitor,
   Palette,
   RefreshCw,
   RotateCcw,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Terminal,
+  Usb,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -82,23 +87,27 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
   const desktopImage = desktop?.image ?? "ghcr.io/moalfarras-sys/moos:latest";
   const cloudImage = cloud?.image ?? "ghcr.io/moalfarras-sys/moos-cloud:latest";
   const isoReady = Boolean(release?.iso.available && release.iso.url);
+  const isoSha = release?.iso.sha256;
   const maintenance = Boolean(release?.maintenance);
 
   const t = isAr
     ? {
-        badge: "نظام تشغيل كامل",
-        h1: "الكمبيوتر يشتغل بنظامك أنت — بالعربية، وبتحديثات لا تكسر شيئاً.",
-        sub: "MoOS نظام تشغيل حقيقي للكمبيوتر، مبني على Fedora Atomic وواجهة KDE Plasma 6. كل نسخة تُبنى وتُوقَّع تلقائياً، وجهازك يسحب التحديث الموقّع ويطبّقه عند إعادة التشغيل — وإذا لم يعجبك، ترجع للنسخة السابقة بأمر واحد.",
+        badge: "نظام جديد · قيد التطوير النشط",
+        h1: "كمبيوترك، بطريقتك. عربي من الداخل، وذكي من أول تشغيل.",
+        sub: "MoOS نظام تشغيل جديد للكمبيوتر أبنيه فوق Fedora Atomic وKDE Plasma 6. يجمع سطح مكتب عربي أصيل، تطبيقات Linux، وتشغيل تطبيقات Android وWindows عبر طبقات توافق اختيارية، مع Mo AI وMo PC Remote داخل تجربة واحدة قابلة للتراجع.",
         specs: ["Fedora Atomic · bootc", "KDE Plasma 6 · Wayland", "تحديثات موقّعة بـ cosign", "عربية و RTL أصيلة", "مجاني ومفتوح"],
-        ctaMain: "حمّل النسخة العامة",
+        ctaMain: "حمّل ISO المجرّب",
+        ctaInstaller: "التثبيت من Linux",
+        ctaGuide: "كيف تثبّته؟",
         ctaCloud: "حمّل نسخة الكلاود",
         ctaRepo: "المصدر على GitHub",
         heroCaption: "سطح مكتب MoOS الحقيقي — لوحة Horizon مع الوقت والطقس وحالة الجهاز بالعربية",
+        heroSignals: ["Android عبر Waydroid", "Windows عبر Bottles", "تحكم من الجوال", "Mo AI محلي أو سحابي"],
         proof: [
-          { v: "١٦", l: "ثيماً رسمياً فاتحاً وداكناً" },
+          { v: "١٢", l: "ثيماً حقيقياً فاتحاً وداكناً" },
           { v: "٣", l: "نسخ: مكتب، NVIDIA، كلاود" },
-          { v: "يومياً", l: "بناء وتوقيع تلقائي" },
-          { v: "مجاناً", l: "بلا رسوم ولا حسابات" },
+          { v: "موقّع", l: "صور وتحديثات قابلة للتحقق" },
+          { v: "ISO", l: "إقلاع وتثبيت وإعادة تشغيل مجرّبة" },
         ],
         arabicEyebrow: "عربية من الجذر",
         arabicTitle: "أول نظام تشغيل تحسّ إنه مكتوب لك، مش مترجم لك",
@@ -111,24 +120,41 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
           "خطوط عربية واضحة على شاشات 4K و HiDPI",
         ],
         arabicCaption: "قائمة تطبيقات MoOS بالعربية الكاملة — لقطة حية من النظام",
-        safeEyebrow: "لا ينكسر",
-        safeTitle: "نظام يحدّث نفسه بأمان — وإذا صار خطأ، ترجع بأمر واحد",
+        worldEyebrow: "ثلاثة عوالم في مكان واحد",
+        worldTitle: "Linux في الأساس. Android وWindows عندما تحتاجهما.",
+        worldBody:
+          "الطبقات الإضافية اختيارية حتى يبقى النظام خفيفاً. فعّل ما يلزمك فقط، واعرف حدود التوافق قبل أن تبدأ — بعض التطبيقات والألعاب قد تحتاج إعداداً خاصاً أو لا تعمل.",
+        worlds: [
+          { icon: Box, t: "تطبيقات Linux", b: "تطبيقات Flatpak من Flathub ومتجر MoOS، مع عزل وتحديثات واضحة." },
+          { icon: Smartphone, t: "تطبيقات Android", b: "Waydroid يشغّل Android داخل حاوية. تنزيل أولي يقارب 1GB، بلا Google Play افتراضياً، وملفات APK تظهر في قائمة التطبيقات." },
+          { icon: Laptop, t: "تطبيقات Windows", b: "Bottles يدير Wine لتشغيل ملفات EXE في بيئة منفصلة. التوافق يختلف من برنامج لآخر، لذلك لا ندّعي أن كل برنامج سيعمل." },
+        ],
+        worldNote: "انقر ملف APK أو EXE بعد تجهيز طبقته؛ MoOS يفتح المسار الصحيح ويشرح الخطوة بدل أن يتركك أمام خطأ صامت.",
+        safeEyebrow: "تحديثات ذرّية",
+        safeTitle: "يتحدّث كصورة واحدة — وتبقى نسخة الرجوع جاهزة",
         safeBody:
-          "MoOS ليس توزيعة تقليدية تُحدَّث حزمة حزمة حتى تتعطّل. النظام صورة واحدة للقراءة فقط: تُبنى وتُوقَّع، وتُطبَّق كاملة عند إعادة التشغيل. لا تحديث نصف مكتمل، ولا جهاز يرفض الإقلاع بلا رجعة.",
+          "بدلاً من تبديل مئات الحزم داخل النظام العامل، يصل التحديث كصورة موقّعة وتُطبَّق بعد إعادة التشغيل. لا يوجد وعد بأن البرمجيات لا تخطئ، لكن هناك مسار تحقق ورجوع واضح إلى النسخة السابقة.",
         features: [
           { icon: ShieldCheck, t: "موقّع ومتحقَّق منه", b: "كل صورة موقّعة بـ cosign، والنظام المثبّت يرفض أي تحديث غير موقّع بمفتاح MoOS." },
           { icon: RotateCcw, t: "تراجع فوري", b: "النسخة السابقة تبقى محفوظة على القرص. أمر واحد أو خيار من قائمة الإقلاع وترجع كما كنت." },
           { icon: Sparkles, t: "واجهة Horizon الزجاجية", b: "لوحة معلومات، جزيرة وسائط، ودوك زجاجي — تصميم حديث يشتغل بسلاسة على أجهزة متواضعة." },
-          { icon: Layers, t: "تطبيقاتك جاهزة", b: "Mo AI، متجر Mo Store، MoPlayer، والتحكم عن بُعد Mo PC Remote — مبنية داخل النظام من أول إقلاع." },
+          { icon: Layers, t: "طبقات اختيارية", b: "تجهيز Android وWindows والألعاب يتم عند الطلب، حتى لا يحمل جهازك ما لا تحتاجه." },
         ],
         themesEyebrow: "شخصية النظام",
-        themesTitle: "١٦ ثيماً رسمياً — فاتح وداكن، بنفس الجودة",
+        themesTitle: "١٢ ثيماً حقيقياً — فاتح وداكن، بنفس اللغة البصرية",
         themesBody:
           "عائلة ثيمات كاملة مولّدة من نفس مصدر الألوان: الخلفية، النوافذ، الأيقونات، شاشة القفل، وحتى شاشة الإقلاع تتبدّل معاً بضغطة واحدة. اختر ما يريحك — النظام يبقى متناسقاً.",
         appsEyebrow: "تطبيقات MoOS",
-        appsTitle: "تطبيقات مصمّمة لهذا النظام، لا مستوردة",
+        appsTitle: "مركز واحد للجهاز، التطبيقات، والاتصال",
         appsBody:
-          "أيقونات وتطبيقات مبنية بنفس لغة التصميم الزجاجية — Mo AI للمساعدة، Mo Store للتثبيت، MoPlayer للمشاهدة، Mo PC Remote للتحكم من جوالك، مع الاستعادة والتحديث والإعدادات.",
+          "تطبيقات MoOS الأساسية تستخدم نفس لغة التصميم: Mo AI للمساعدة وإجراءات النظام الآمنة، متجر MoOS للتثبيت، Mo PC Remote للتحكم من الجوال، مع أدوات الاستعادة والتحديث والإعدادات.",
+        intelligenceEyebrow: "الذكاء والتحكم",
+        intelligenceTitle: "اسأل الجهاز من Mo AI. وتحكّم به من جوالك.",
+        aiTitle: "Mo AI — مساعد محلي أولاً",
+        aiBody: "واجهة واحدة لفهم حالة الجهاز، البحث عن تطبيقات، وتشغيل إجراءات نظام محددة وآمنة. العقل المحلي اختياري ويحتاج تنزيل نموذج أول مرة وقد يتأثر بقدرة الجهاز؛ ويمكن ربط مزوّد سحابي بمفتاحك من الإعدادات.",
+        remoteTitle: "Mo PC Remote — شاشة وفأرة ولوحة مفاتيح من الجوال",
+        remoteBody: "تشغّل الخدمة عندما تحتاجها ثم تفتح عنوان الاتصال من هاتفك على الشبكة. ترى سطح المكتب وتتحكم باللمس وتكتب بالعربية؛ الخدمة اختيارية وحالتها تُقرأ من الجهاز فعلياً.",
+        honestNote: "MoOS ما زال مشروعاً جديداً قيد التطوير. الميزات المعروضة موجودة في الصورة الحالية، لكن توافق الأجهزة والبرامج يحتاج اختباراً على جهازك.",
         editionsEyebrow: "التحميل",
         editionsTitle: "اختر نسختك وحمّل المثبّت الرسمي",
         editionsBody:
@@ -161,28 +187,41 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
         // Deliberately not release.iso.notes: the manifest note is English and
         // would leak into the Arabic page.
         isoBody:
-          "للأجهزة التي ليس عليها لينكس بعد. يُبنى من نفس النسخة المنشورة تماماً، والاستضافة الدائمة قيد الإنهاء — حتى ذلك الحين، المثبّت أعلاه يعطيك نفس النظام.",
+          "للأجهزة التي ليس عليها Linux بعد. هذه النسخة أقلعت وثُبّتت دون اتصال، ثم نجحت في الإقلاع من القرص وإعادة التشغيل وفحص التطبيقات والإطفاء ضمن بوابة الإصدار.",
         isoSoon: "قريباً",
         isoDownload: "حمّل ISO",
+        installEyebrow: "التثبيت خطوة بخطوة",
+        installTitle: "من ملف ISO إلى سطح مكتب MoOS",
+        installBody: "انسخ ملفاتك المهمة أولاً. التثبيت يغيّر أقسام القرص، لذلك اقرأ شاشة اختيار القرص بعناية ولا تجرّبه على جهازك الوحيد دون نسخة احتياطية.",
+        installSteps: [
+          { n: "01", t: "نزّل وتحقّق", b: "حمّل ISO من هذا الموقع وقارن SHA-256 قبل الكتابة على USB." },
+          { n: "02", t: "اكتب على USB", b: "استخدم Fedora Media Writer أو Rufus. لا تستخدم Ventoy مع هذه الصورة." },
+          { n: "03", t: "أقلع وجرّب", b: "اختر USB من قائمة الإقلاع وجرّب الجلسة الحية للتأكد من الشبكة والصوت والشاشة." },
+          { n: "04", t: "ثبّت ثم أعد التشغيل", b: "افتح مثبّت MoOS، راجع القرص والمنطقة الزمنية، أكمل التثبيت ثم انزع USB عند إعادة التشغيل." },
+        ],
+        checksumLabel: "SHA-256 الرسمي",
         finalTitle: "نظام تشغيل كامل، مجاناً",
         finalBody: "بلا رسوم، بلا حساب، بلا تتبّع. المصدر كامل ومفتوح، ومفتاح التوقيع علني — تقدر تتحقّق من كل شي بنفسك.",
         finalNote: "MoOS مشروع شخصي مفتوح المصدر من محمد الفراس.",
         maintenanceMsg: "MoOS قيد التحديث حالياً — التحميل سيعود قريباً.",
       }
     : {
-        badge: "A complete operating system",
-        h1: "Your computer, running your system — with updates that never break it.",
-        sub: "MoOS is a real desktop operating system built on Fedora Atomic with KDE Plasma 6. Every release is built and signed automatically; your machine pulls the signed image and applies it on reboot — and if you don't like it, one command puts you back.",
+        badge: "A new OS · actively developed",
+        h1: "Your computer, your way — Arabic-native and intelligent from first boot.",
+        sub: "MoOS is a new desktop operating system built on Fedora Atomic and KDE Plasma 6. It combines a native Arabic desktop, Linux apps, optional Android and Windows compatibility layers, Mo AI, and phone control in one rollback-ready experience.",
         specs: ["Fedora Atomic · bootc", "KDE Plasma 6 · Wayland", "cosign-signed updates", "Arabic & RTL native", "Free and open"],
-        ctaMain: "Download the public edition",
+        ctaMain: "Download the tested ISO",
+        ctaInstaller: "Install from Linux",
+        ctaGuide: "How do I install it?",
         ctaCloud: "Download the cloud edition",
         ctaRepo: "Source on GitHub",
         heroCaption: "The real MoOS desktop — the Horizon hub with time, weather and machine health",
+        heroSignals: ["Android via Waydroid", "Windows via Bottles", "Phone remote control", "Local or cloud Mo AI"],
         proof: [
-          { v: "16", l: "official light & dark themes" },
+          { v: "12", l: "real light & dark themes" },
           { v: "3", l: "editions: desktop, NVIDIA, cloud" },
-          { v: "Daily", l: "automated build and signing" },
-          { v: "Free", l: "no fees, no account" },
+          { v: "Signed", l: "verifiable images and updates" },
+          { v: "ISO", l: "boot, install and reboot tested" },
         ],
         arabicEyebrow: "Arabic from the root",
         arabicTitle: "The first OS that feels written for Arabic — not translated into it",
@@ -195,24 +234,40 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
           "Crisp Arabic typography on 4K and HiDPI displays",
         ],
         arabicCaption: "The MoOS launcher in full Arabic — a live screenshot from the system",
-        safeEyebrow: "It doesn't break",
-        safeTitle: "It updates itself safely — and one command undoes anything",
+        worldEyebrow: "Three worlds, one desktop",
+        worldTitle: "Linux at the core. Android and Windows when you need them.",
+        worldBody: "Compatibility layers stay optional so the base system remains lean. Enable only what you need and know the boundary: some apps and games can require extra setup or may not work.",
+        worlds: [
+          { icon: Box, t: "Linux apps", b: "Sandboxed Flatpak apps from Flathub and the MoOS store, with clear updates." },
+          { icon: Smartphone, t: "Android apps", b: "Waydroid runs Android in a container. The first setup downloads about 1GB, ships without Google Play by default, and places installed APKs in your launcher." },
+          { icon: Laptop, t: "Windows apps", b: "Bottles manages Wine for isolated EXE environments. Compatibility varies by program, so MoOS does not promise that every app will run." },
+        ],
+        worldNote: "After its layer is prepared, open an APK or EXE normally; MoOS routes it to the right flow and explains what is missing instead of failing silently.",
+        safeEyebrow: "Atomic updates",
+        safeTitle: "Updates arrive as one image — with the previous deployment ready",
         safeBody:
-          "MoOS isn't a traditional distro updated package by package until something snaps. The system is a single read-only image: built, signed, and applied whole on reboot. No half-finished update, no machine that refuses to boot with no way back.",
+          "Instead of replacing hundreds of packages inside a running system, updates arrive as a signed image and apply after reboot. Software can still fail; the difference is a clear verification and rollback path to the previous deployment.",
         features: [
           { icon: ShieldCheck, t: "Signed and verified", b: "Every image is cosign-signed, and the installed system refuses any update that isn't signed with the MoOS key." },
           { icon: RotateCcw, t: "Instant rollback", b: "The previous version stays on disk. One command — or one GRUB entry — and you're exactly where you were." },
           { icon: Sparkles, t: "The Horizon glass shell", b: "A live hub, a media island, and a glass dock — a modern desktop that still runs smoothly on modest hardware." },
-          { icon: Layers, t: "Your apps, already there", b: "Mo AI, Mo Store, MoPlayer and Mo PC Remote are built into the image and ready from the first boot." },
+          { icon: Layers, t: "Optional layers", b: "Android, Windows and gaming support are prepared on demand, so your machine carries only what you use." },
         ],
         themesEyebrow: "System personality",
-        themesTitle: "16 official themes — light and dark, same quality",
+        themesTitle: "12 real themes — light and dark, one visual language",
         themesBody:
           "A full theme family generated from one colour source: wallpaper, windows, icons, lock screen and even the boot splash change together in a single click. Pick what suits you — the system stays coherent.",
         appsEyebrow: "MoOS apps",
-        appsTitle: "Apps designed for this system, not imported into it",
+        appsTitle: "One control surface for the machine, apps and connection",
         appsBody:
-          "Icons and apps built in the same glass language — Mo AI to help, Mo Store to install, MoPlayer to watch, Mo PC Remote to drive it from your phone, plus recovery, updates and settings.",
+          "Core MoOS apps share one visual language: Mo AI for assistance and allow-listed system actions, the MoOS store for installs, Mo PC Remote for phone control, plus recovery, updates and settings.",
+        intelligenceEyebrow: "Intelligence and control",
+        intelligenceTitle: "Ask the machine through Mo AI. Control it from your phone.",
+        aiTitle: "Mo AI — local-first assistance",
+        aiBody: "One surface for machine status, app discovery and specific allow-listed system actions. The local brain is optional, downloads a model on first use, and depends on your hardware; you can also configure a cloud provider with your own key.",
+        remoteTitle: "Mo PC Remote — screen, mouse and keyboard from your phone",
+        remoteBody: "Start the service when you need it, then open its connection address from a phone on your network. View the desktop, use touch input and type Arabic; the service is optional and its status is read from the machine.",
+        honestNote: "MoOS is still a new, actively developed project. The capabilities shown here exist in the current image, but hardware and app compatibility still need testing on your machine.",
         editionsEyebrow: "Download",
         editionsTitle: "Pick your edition and download the official installer",
         editionsBody:
@@ -243,9 +298,19 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
         rollbackBody: "Didn't like an update? Go straight back to the previous version — or pick it from the boot menu.",
         isoTitle: "Bootable USB image",
         isoBody:
-          "For machines that don't run Linux yet. It is built from exactly the same published image; permanent hosting is being finalized — until then the installer above gives you the same system.",
+          "For machines that do not run Linux yet. This release passed live boot, offline installation, installed-disk boot, reboot, app smoke and clean poweroff in the release gate.",
         isoSoon: "Coming soon",
         isoDownload: "Download ISO",
+        installEyebrow: "Step-by-step install",
+        installTitle: "From ISO file to a MoOS desktop",
+        installBody: "Back up important files first. Installation changes disk partitions, so read the disk-selection screen carefully and do not test on your only machine without a backup.",
+        installSteps: [
+          { n: "01", t: "Download and verify", b: "Get the ISO from this site and compare its SHA-256 before writing the USB." },
+          { n: "02", t: "Write the USB", b: "Use Fedora Media Writer or Rufus. Do not use Ventoy with this image." },
+          { n: "03", t: "Boot and test", b: "Choose the USB in your boot menu and use the live session to check networking, sound and display." },
+          { n: "04", t: "Install and reboot", b: "Open the MoOS installer, confirm disk and timezone, finish, then remove the USB on reboot." },
+        ],
+        checksumLabel: "Official SHA-256",
         finalTitle: "A complete operating system, free",
         finalBody: "No fees, no account, no tracking. The full source is open and the signing key is public — you can verify every claim here yourself.",
         finalNote: "MoOS is an open-source personal project by Mohammad Alfarras.",
@@ -328,17 +393,17 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
               </div>
             ) : (
               <div className="moos-cta-row">
-                <a href={installerHref("desktop")} className="moos-btn moos-btn-primary">
+                <a href={isoReady ? isoHref : installerHref("desktop")} className="moos-btn moos-btn-primary">
                   <Download className="h-4 w-4" /> {t.ctaMain}
                 </a>
-                <a href={installerHref("cloud")} className="moos-btn moos-btn-ghost">
-                  <Cloud className="h-4 w-4" /> {t.ctaCloud}
+                <a href="#install" className="moos-btn moos-btn-ghost">
+                  <Usb className="h-4 w-4" /> {t.ctaGuide}
                 </a>
               </div>
             )}
           </div>
 
-          <div>
+          <div className="moos-hero-visual">
             <div className="moos-shot moos-shot-glow moos-hero-shot">
               <Image
                 src="/images/moos/desktop-dark.webp"
@@ -348,6 +413,13 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
                 priority
                 sizes="(max-width: 1000px) 100vw, 560px"
               />
+            </div>
+            <div className="moos-signal-cloud" aria-label={isAr ? "قدرات MoOS" : "MoOS capabilities"}>
+              {t.heroSignals.map((signal, index) => (
+                <span key={signal} className={`moos-signal moos-signal-${index + 1}`}>
+                  <span aria-hidden /> {signal}
+                </span>
+              ))}
             </div>
             <p className="moos-shot-caption">{t.heroCaption}</p>
           </div>
@@ -394,6 +466,28 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
             </ul>
           </div>
         </div>
+      </section>
+
+      {/* ─── Linux + Android + Windows ────────────────────── */}
+      <section className="moos-shell moos-section">
+        <span className="moos-eyebrow">{t.worldEyebrow}</span>
+        <h2 className="moos-h2">{t.worldTitle}</h2>
+        <p className="moos-lede">{t.worldBody}</p>
+        <div className="moos-worlds">
+          {t.worlds.map((world, index) => (
+            <article key={world.t} className={`moos-world moos-world-${index + 1}`}>
+              <span className="moos-world-number">0{index + 1}</span>
+              <span className="moos-feature-icon">
+                <world.icon className="h-5 w-5" />
+              </span>
+              <h3>{world.t}</h3>
+              <p>{world.b}</p>
+            </article>
+          ))}
+        </div>
+        <p className="moos-compat-note">
+          <Check className="h-4 w-4" /> {t.worldNote}
+        </p>
       </section>
 
       {/* ─── Safety / features ────────────────────────────── */}
@@ -474,6 +568,39 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
         </div>
       </section>
 
+      {/* ─── Mo AI + phone remote ─────────────────────────── */}
+      <section className="moos-shell moos-section">
+        <span className="moos-eyebrow">{t.intelligenceEyebrow}</span>
+        <h2 className="moos-h2">{t.intelligenceTitle}</h2>
+        <div className="moos-intelligence">
+          <article className="moos-intelligence-card moos-intelligence-ai">
+            <div className="moos-intelligence-head">
+              <span className="moos-orbit-icon"><Bot className="h-6 w-6" /></span>
+              <span className="moos-live-dot">{isAr ? "اختياري" : "Optional"}</span>
+            </div>
+            <h3>{t.aiTitle}</h3>
+            <p>{t.aiBody}</p>
+            <div className="moos-intelligence-flow" aria-hidden>
+              <span>{isAr ? "سؤال" : "Ask"}</span><i /><span>{isAr ? "فهم الجهاز" : "Read device"}</span><i /><span>{isAr ? "إجراء آمن" : "Safe action"}</span>
+            </div>
+          </article>
+          <article className="moos-intelligence-card moos-intelligence-remote">
+            <div className="moos-intelligence-head">
+              <span className="moos-orbit-icon"><Smartphone className="h-6 w-6" /></span>
+              <span className="moos-live-dot">{isAr ? "على شبكتك" : "On your network"}</span>
+            </div>
+            <h3>{t.remoteTitle}</h3>
+            <p>{t.remoteBody}</p>
+            <div className="moos-device-link" aria-hidden>
+              <span><Smartphone className="h-5 w-5" /></span>
+              <i /><i /><i />
+              <span><Monitor className="h-5 w-5" /></span>
+            </div>
+          </article>
+        </div>
+        <p className="moos-honest-note">{t.honestNote}</p>
+      </section>
+
       {/* ─── Editions / download ──────────────────────────── */}
       <section id="download" className="moos-shell moos-section" style={{ scrollMarginTop: "6rem" }}>
         <span className="moos-eyebrow">
@@ -534,6 +661,40 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
             copiedLabel={t.copied}
           />
         </div>
+      </section>
+
+      {/* ─── Install guide ────────────────────────────────── */}
+      <section id="install" className="moos-shell moos-section moos-install-section">
+        <div className="moos-install-heading">
+          <div>
+            <span className="moos-eyebrow"><Usb className="mb-0.5 inline h-3.5 w-3.5" /> {t.installEyebrow}</span>
+            <h2 className="moos-h2">{t.installTitle}</h2>
+            <p className="moos-lede">{t.installBody}</p>
+          </div>
+          {isoReady ? (
+            <a href={isoHref} className="moos-btn moos-btn-primary">
+              <Download className="h-4 w-4" /> {t.isoDownload}
+            </a>
+          ) : null}
+        </div>
+        <ol className="moos-install-steps">
+          {t.installSteps.map((step) => (
+            <li key={step.n}>
+              <span>{step.n}</span>
+              <h3>{step.t}</h3>
+              <p>{step.b}</p>
+            </li>
+          ))}
+        </ol>
+        {isoSha ? (
+          <div className="moos-checksum">
+            <div>
+              <strong>{t.checksumLabel}</strong>
+              <code dir="ltr">{isoSha}</code>
+            </div>
+            <CopyLine command={isoSha} copyLabel={t.copy} copiedLabel={t.copied} />
+          </div>
+        ) : null}
       </section>
 
       {/* ─── Cloud ────────────────────────────────────────── */}
@@ -625,7 +786,7 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
           <h2 className="moos-h2">{t.finalTitle}</h2>
           <p className="moos-lede">{t.finalBody}</p>
           <div className="moos-cta-row">
-            <a href={installerHref("desktop")} className="moos-btn moos-btn-primary">
+            <a href={isoReady ? isoHref : installerHref("desktop")} className="moos-btn moos-btn-primary">
               <Download className="h-4 w-4" /> {t.ctaMain}
             </a>
             <a href={repoUrl} target="_blank" rel="noreferrer" className="moos-btn moos-btn-ghost">

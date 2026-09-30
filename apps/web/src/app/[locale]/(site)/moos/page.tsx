@@ -22,12 +22,12 @@ export async function generateMetadata({
       ? {
           title: "نظام MoOS — نظام تشغيل عربي مجاني للكمبيوتر",
           description:
-            "MoOS نظام تشغيل حقيقي للكمبيوتر بواجهة عربية أصيلة، مبني على Fedora Atomic و KDE Plasma 6، بتحديثات موقّعة وتراجع فوري. حمّل النسخة العامة أو نسخة الكلاود مجاناً.",
+            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على Fedora Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMo AI والتحكم من الجوال. حمّل ISO المجرّب مجاناً.",
         }
       : {
           title: "MoOS — a free Arabic-native desktop operating system",
           description:
-            "MoOS is a real desktop operating system with a natively Arabic interface, built on Fedora Atomic and KDE Plasma 6, with signed updates and instant rollback. Download the public or cloud edition free.",
+            "Meet MoOS, a new Arabic-native operating system in active development, built on Fedora Atomic and KDE Plasma 6 with optional Android and Windows apps, Mo AI and phone control. Download the tested ISO free.",
         };
 
   const canonical = `${SITE_URL}/${locale}/moos`;
@@ -47,6 +47,10 @@ export async function generateMetadata({
           "Fedora Atomic",
           "KDE Plasma",
           "bootc",
+          "تشغيل تطبيقات أندرويد",
+          "تشغيل تطبيقات ويندوز",
+          "Mo AI",
+          "Mo PC Remote",
           "نظام تشغيل للسيرفر",
           "نظام تشغيل سحابي",
           "محمد الفراس",
@@ -61,6 +65,10 @@ export async function generateMetadata({
           "bootc",
           "immutable OS",
           "atomic Linux desktop",
+          "Android apps on Linux",
+          "Windows apps on Linux",
+          "Mo AI",
+          "Mo PC Remote",
           "Linux for Arabic users",
           "cloud server OS",
           "Mohammad Alfarras",
@@ -112,8 +120,8 @@ export default async function MoosRoute({ params }: { params: Promise<{ locale: 
     applicationCategory: "OperatingSystem",
     operatingSystem: "Fedora Atomic (bootc), KDE Plasma 6",
     description: isAr
-      ? "نظام تشغيل شخصي للكمبيوتر بواجهة عربية أصيلة، مبني على Fedora Atomic و KDE Plasma 6، بتحديثات موقّعة ونسخة سحابية."
-      : "A personal desktop operating system with a natively Arabic interface, built on Fedora Atomic and KDE Plasma 6, with signed updates and a cloud edition.",
+      ? "نظام تشغيل عربي جديد قيد التطوير مبني على Fedora Atomic وKDE Plasma 6، مع تحديثات موقّعة وطبقات اختيارية لتطبيقات Android وWindows وMo AI والتحكم من الجوال."
+      : "A new Arabic-native desktop operating system in active development, built on Fedora Atomic and KDE Plasma 6 with signed updates, optional Android and Windows app layers, Mo AI and phone control.",
     url: `${SITE_URL}/${locale}/moos`,
     image: `${SITE_URL}/images/moos/desktop-dark.webp`,
     inLanguage: ["ar", "en", "de"],

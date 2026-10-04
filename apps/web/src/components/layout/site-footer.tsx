@@ -7,7 +7,6 @@ import { socialLinks } from "@/content/site";
 import type { Locale } from "@/types/cms";
 
 type FooterLink = { id: string; label: string; href: string };
-export type FooterStat = { label: string; value: string };
 
 export function SiteFooter({
   locale,
@@ -15,14 +14,12 @@ export function SiteFooter({
   legalLinks = [],
   logoSrc,
   brandName,
-  stats = [],
 }: {
   locale: Locale;
   links: FooterLink[];
   legalLinks?: FooterLink[];
   logoSrc: string;
   brandName: string;
-  stats?: FooterStat[];
 }) {
   const isAr = locale === "ar";
   const year = new Date().getFullYear();
@@ -56,25 +53,15 @@ export function SiteFooter({
   return (
     <footer className="st-footer" dir={isAr ? "rtl" : "ltr"}>
       <div className="st-container">
-        <div className="st-footer-top">
-          <div className="st-footer-lead">
-            <p className="st-footer-kicker st-mono">{isAr ? "متاح لمشاريع مختارة" : "Open to selected projects"}</p>
-            <p className="st-footer-title">{isAr ? "لنبنِ شيئاً واضحاً معاً." : "Let's build something clear."}</p>
-            <a className="st-footer-mail" href={`mailto:${socialLinks.email}`}>
-              {socialLinks.email}
-              <ArrowUpRight size={20} aria-hidden />
-            </a>
-          </div>
-          {stats.length ? (
-            <dl className="st-footer-stats">
-              {stats.map((stat) => (
-                <div key={stat.label}>
-                  <dt>{stat.label}</dt>
-                  <dd>{stat.value}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
+        <div className="st-footer-top st-footer-top--compact">
+          <p className="st-footer-kicker st-mono">
+            <span className="st-pill-dot" aria-hidden="true" />
+            {isAr ? "متاح لمشاريع مختارة" : "Open to selected projects"}
+          </p>
+          <a className="st-footer-mail st-footer-mail--compact" href={`mailto:${socialLinks.email}`}>
+            {socialLinks.email}
+            <ArrowUpRight size={16} aria-hidden />
+          </a>
         </div>
 
         <div className="st-footer-grid">

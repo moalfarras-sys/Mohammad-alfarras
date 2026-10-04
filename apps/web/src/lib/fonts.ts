@@ -6,8 +6,12 @@ export const interFont = Manrope({
   subsets: ["latin"],
   weight: "variable",
   variable: "--font-inter",
-  display: "swap",
-  preload: false,
+  // Preloaded + "optional" (same strategy as the Arabic display face): a late swap
+  // re-wrapped the large v3 headlines and pushed hero media down (CLS 0.28 on /cv).
+  // If the file is not ready for first paint the size-adjusted fallback stays for
+  // that view and the cached font is used on the next one.
+  display: "optional",
+  preload: true,
 });
 
 // Arabic body face. Cairo is variable (200-1000), so real heavy glyphs render
@@ -41,8 +45,9 @@ export const serifAccentFont = Instrument_Serif({
   weight: "400",
   style: "italic",
   variable: "--font-serif",
-  display: "swap",
-  preload: false,
+  // Same reason: the accent word sits inside every hero headline.
+  display: "optional",
+  preload: true,
 });
 
 // Small technical labels: section indices, metadata, the route motif.

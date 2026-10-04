@@ -1,0 +1,370 @@
+/* Site v3 — Contact page (v3k-*). Imported only by /[locale]/contact. */
+
+.v3k-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: center;
+}
+
+/* ── portrait ── */
+.v3k-portrait-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 470px;
+  margin-inline: auto;
+}
+.v3k-portrait-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(79, 227, 255, 0.26), rgba(140, 123, 255, 0.14) 55%, transparent 74%);
+  filter: blur(34px);
+  animation: v3-breathe 7s ease-in-out infinite;
+}
+.v3k-portrait {
+  position: relative;
+  aspect-ratio: 843 / 1180;
+  overflow: hidden;
+  border: 1px solid rgba(160, 220, 255, 0.2);
+  border-radius: 34px;
+  background: var(--v3-deep);
+  box-shadow: var(--v3-shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.v3k-portrait-img {
+  object-position: 50% 12%;
+}
+.v3k-portrait-fade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 30%;
+  background: linear-gradient(to top, rgba(6, 10, 20, 0.85), transparent);
+  pointer-events: none;
+}
+.v3k-chip {
+  position: absolute;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--v3-glass-line);
+  border-radius: 16px;
+  background: var(--v3-panel-strong);
+  box-shadow: var(--v3-holo-glow);
+  color: var(--v3-text);
+  font-size: 0.86rem;
+  font-weight: 650;
+  white-space: nowrap;
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  animation: v3k-float 6s ease-in-out infinite;
+}
+.v3k-chip--a {
+  top: 8%;
+  inset-inline-end: -6%;
+}
+.v3k-chip--b {
+  bottom: 9%;
+  inset-inline-start: -6%;
+  animation-delay: -3s;
+}
+.v3k-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3ddc97;
+  box-shadow: 0 0 0 4px rgba(61, 220, 151, 0.18);
+}
+@keyframes v3k-float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ── methods ── */
+.v3k-methods {
+  display: grid;
+  gap: 12px;
+  margin-top: 30px;
+}
+.v3k-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--v3-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+[dir="rtl"] .v3k-label {
+  letter-spacing: 0;
+  font-size: 0.86rem;
+}
+.v3k-label--more {
+  margin-top: 10px;
+}
+.v3k-method {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px 16px 16px;
+  border: 1px solid var(--v3p-line);
+  border-radius: 22px;
+  background: var(--v3p-card);
+  color: var(--v3-text);
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 0.35s var(--v3-ease), transform 0.4s var(--v3-ease), box-shadow 0.4s var(--v3-ease);
+}
+[dir="rtl"] .v3k-method {
+  padding: 16px 16px 16px 20px;
+}
+.v3k-method::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(160, 240, 255, 0.12) 48%, transparent 62%);
+  transform: translateX(-100%);
+  transition: transform 0.9s var(--v3-ease);
+  pointer-events: none;
+}
+.v3k-method:hover {
+  transform: translateY(-3px);
+  border-color: rgba(79, 227, 255, 0.4);
+  box-shadow: 0 24px 60px -30px rgba(79, 227, 255, 0.55);
+}
+.v3k-method:hover::after {
+  transform: translateX(100%);
+}
+.v3k-method-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(79, 227, 255, 0.12);
+  color: var(--v3-holo);
+}
+.v3k-method--wa .v3k-method-icon {
+  background: rgba(37, 211, 102, 0.14);
+  color: #4ee38b;
+}
+.v3k-method-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.v3k-method-text strong {
+  font-size: 1.05rem;
+}
+.v3k-method-text bdi {
+  overflow: hidden;
+  color: #d6e4f4;
+  font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.12rem);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v3k-method-text small {
+  color: var(--v3-muted);
+  font-size: 0.82rem;
+}
+.v3k-method-arrow {
+  color: var(--v3-muted);
+  transition: transform 0.3s var(--v3-ease), color 0.3s;
+}
+.v3k-method:hover .v3k-method-arrow {
+  color: var(--v3-holo);
+  transform: translate(2px, -2px);
+}
+[dir="rtl"] .v3k-method-arrow {
+  transform: scaleX(-1);
+}
+[dir="rtl"] .v3k-method:hover .v3k-method-arrow {
+  transform: scaleX(-1) translate(2px, -2px);
+}
+.v3k-socials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.v3k-socials a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--v3p-line);
+  border-radius: 16px;
+  color: var(--v3-text);
+  text-decoration: none;
+  transition: border-color 0.3s var(--v3-ease), background 0.3s var(--v3-ease);
+}
+.v3k-socials a:hover {
+  border-color: rgba(79, 227, 255, 0.35);
+  background: rgba(79, 227, 255, 0.05);
+}
+.v3k-socials svg {
+  flex: none;
+  color: var(--v3-holo);
+}
+.v3k-socials span {
+  display: grid;
+  min-width: 0;
+}
+.v3k-socials strong {
+  font-size: 0.92rem;
+}
+.v3k-socials small {
+  overflow: hidden;
+  color: var(--v3-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── form ── */
+.v3k-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+.v3k-form.contact-form-panel {
+  padding: clamp(20px, 3vw, 36px);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(79, 227, 255, 0.1), transparent 40%),
+    linear-gradient(165deg, rgba(20, 32, 56, 0.92), rgba(8, 13, 25, 0.96));
+  /* An opaque panel needs no backdrop blur (cheaper on phones, no compositing artefacts). */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  /* The legacy route-contact scroll-timeline reveal would hide the form until it is in view. */
+  animation: none !important;
+}
+.v3k-aside {
+  position: sticky;
+  top: calc(var(--st-nav-h, 60px) + 28px);
+  display: grid;
+  gap: 14px;
+}
+.v3k-aside-media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--v3p-line);
+  border-radius: 24px;
+  box-shadow: var(--v3-shadow-lg);
+}
+.v3k-aside-block {
+  display: grid;
+  gap: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--v3p-line);
+  border-radius: 20px;
+  background: var(--v3p-card);
+}
+.v3k-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.v3k-times dt {
+  color: var(--v3-muted);
+  font-size: 0.84rem;
+}
+.v3k-times dd {
+  margin: 2px 0 0;
+  color: var(--v3-text);
+  font: 700 1.6rem/1.1 var(--st-font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.v3k-note {
+  margin: 0;
+  line-height: 1.65;
+}
+[dir="rtl"] .v3k-note {
+  line-height: 1.9;
+}
+
+.v3k-wizard {
+  padding-top: clamp(84px, 10vw, 150px);
+}
+
+@media (max-width: 1099px) {
+  .v3k-socials {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 899px) {
+  .v3k-hero-grid,
+  .v3k-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v3k-portrait-wrap {
+    max-width: 360px;
+  }
+  .v3k-chip--a {
+    inset-inline-end: -2%;
+  }
+  .v3k-chip--b {
+    inset-inline-start: -2%;
+  }
+  .v3k-aside {
+    position: static;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .v3k-socials {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .v3k-portrait-wrap {
+    max-width: 290px;
+  }
+  .v3k-socials {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .v3k-socials a {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 6px;
+    text-align: center;
+  }
+  .v3k-socials small {
+    display: none;
+  }
+  .v3k-chip {
+    padding: 8px 11px;
+    font-size: 0.78rem;
+  }
+  .v3k-method {
+    gap: 12px;
+  }
+  .v3k-method-icon {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3k-portrait-wrap::before,
+  .v3k-chip {
+    animation: none;
+  }
+  .v3k-method::after {
+    display: none;
+  }
+}

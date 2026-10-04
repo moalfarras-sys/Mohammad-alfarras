@@ -8,6 +8,7 @@ import { siteFontClassName } from "@/lib/fonts";
 import "./globals.css";
 import "@/styles/studio.css";
 import "@/styles/studio-shell.css";
+import "@/styles/v3-motion.css";
 import "@/styles/studio-pages.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "") || "https://moalfarras.space";

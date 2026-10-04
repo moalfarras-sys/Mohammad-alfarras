@@ -184,6 +184,9 @@
   .mo3-float-shot { width: 64px; }
   .mo3-float-label { font-size: 11.5px; }
   .mo3-float--launcher { bottom: 14%; }
+  /* The caption re-wrapped when the Arabic font arrived and shifted the hero copy;
+     the screenshot's alt text already carries it. */
+  .mo3-hero-visual .mo3-caption { display: none; }
 }
 
 /* ── film ── */

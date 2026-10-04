@@ -1157,8 +1157,13 @@ class LiveTvActivity : BaseTvActivity() {
         }
 
         // Update channel number and name
-        val channelIndex = viewModel.filteredChannels.value?.indexOf(channel)?.plus(1) ?: 1
-        binding.tvChannelNumber.text = channelIndex.toString()
+        // Match by id: the focused row and the list can hold different instances of the channel.
+        val channelIndex = viewModel.filteredChannels.value
+            ?.indexOfFirst { it.channelId == channel.channelId }
+            ?.takeIf { it >= 0 }
+            ?.plus(1)
+        binding.tvChannelNumber.visibility = if (channelIndex != null) View.VISIBLE else View.GONE
+        binding.tvChannelNumber.text = channelIndex?.toString().orEmpty()
         binding.tvChannelName.text = channel.name
 
         // Load EPG for focused channel
@@ -1234,6 +1239,11 @@ class LiveTvActivity : BaseTvActivity() {
             }
         }
 
+        viewModel.categoryChannelTotal.observe(this) { total ->
+            val loaded = viewModel.filteredChannels.value?.size ?: 0
+            binding.tvChannelCount.text = getString(R.string.channel_count_format, maxOf(loaded, total))
+        }
+
         viewModel.categoryCounts.observe(this) { counts ->
             groupAdapter.submitGroupList(viewModel.categories.value.orEmpty(), counts)
         }
@@ -1243,7 +1253,10 @@ class LiveTvActivity : BaseTvActivity() {
             safelyUpdateAdapter(channels, viewModel.currentChannel.value?.channelId)
 
             // Update channel count badge
-            binding.tvChannelCount.text = getString(R.string.channel_count_format, channels.size)
+            binding.tvChannelCount.text = getString(
+                R.string.channel_count_format,
+                maxOf(channels.size, viewModel.categoryChannelTotal.value ?: 0)
+            )
 
             if (viewModel.isLoading.value != true && channels.isEmpty()) {
                 binding.networkErrorView.showEmpty(
@@ -1300,6 +1313,8 @@ class LiveTvActivity : BaseTvActivity() {
     }
 
     private fun updateEpgDisplay(currentEpg: EpgEntity?, nextEpg: EpgEntity?) {
+        // No guide data for this channel: hide the card instead of an empty "Now / Next" box.
+        binding.epgCard.visibility = if (currentEpg == null && nextEpg == null) View.GONE else View.VISIBLE
         if (currentEpg != null) {
             // Update overlay panel
             binding.tvNowPlaying.text = currentEpg.title

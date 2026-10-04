@@ -4,6 +4,8 @@ Last updated: 2026-10-04
 
 ## Production state
 
+- 2026-10-04 (later): MoPlayer Classic 2.5.1 / code 26 (`moplayer-android-2.5.1`, universal 53,237,761 bytes, SHA-256 `210aba349a743437c6610bb6712ba78b719bd0bfc43389c2cbf966c909f3ea1c`). MoPlayer PC 1.0.4 is now served from GitHub Release `moplayer-pc-v1.0.4` (the Vercel Blob URLs returned 403). New short links `/mp`, `/mp2` and the TV page `/tv`.
+
 - 2026-10-04: MoPlayer Classic 2.5.0 / code 25 published as GitHub Release `moplayer-android-2.5.0` (universal APK 53,238,825 bytes, SHA-256 `48cdbda25ae91f99cb599a6c71177c4e821e31360dfce44ca5cbc6218480f2eb`, certificate `97dad776...593d`). Site and admin fallback release data now come from `packages/shared/src/app-releases.ts`. Details: `apps/moplayer-android/README.md` (2.5.0 section).
 
 - Pull request [#36](https://github.com/moalfarras-sys/Mohammad-alfarras/pull/36) was merged into `main` as `1f30b1f0be14a2ad46231bd4cf47489e538ab920` (MoPlayer Pro 2.7.2 / code 71). The previous release, 2.7.1, came from [#35](https://github.com/moalfarras-sys/Mohammad-alfarras/pull/35) (`f8d1444`).

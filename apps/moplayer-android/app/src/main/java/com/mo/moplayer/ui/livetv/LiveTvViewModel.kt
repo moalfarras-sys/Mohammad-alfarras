@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 @HiltViewModel
 class LiveTvViewModel @Inject constructor(
     private val repository: IptvRepository,
+    private val parentalLockManager: com.mo.moplayer.util.ParentalLockManager,
     private val networkErrorHandler: NetworkErrorHandler,
     private val xmltvEpgRepository: com.mo.moplayer.data.epg.XmltvEpgRepository
 ) : ViewModel() {
@@ -76,6 +77,10 @@ class LiveTvViewModel @Inject constructor(
     private var pendingChannelId: String? = null
     private var channelWindowSize = CHANNEL_PAGE_SIZE
     private var channelTotalCount = 0
+
+    /** Channels in the selected category (the list itself loads in windows of 400). */
+    private val _categoryChannelTotal = MutableLiveData(0)
+    val categoryChannelTotal: LiveData<Int> = _categoryChannelTotal
     private var channelLoadInFlight = false
 
     companion object {
@@ -114,7 +119,7 @@ class LiveTvViewModel @Inject constructor(
                     }
                     try {
                         val cats = withContext(Dispatchers.IO) {
-                            repository.getLiveCategories(server.id).first()
+                            parentalLockManager.filterAdultCategories(repository.getLiveCategories(server.id).first()) { it.name }
                         }
                         _categories.value = cats
                         loadCategoryCounts(cats)
@@ -344,6 +349,7 @@ class LiveTvViewModel @Inject constructor(
                         repository.getChannelCountByCategory(serverId, categoryId)
                     }
                 }
+                _categoryChannelTotal.value = channelTotalCount
                 val requestedLimit = channelWindowSize.coerceAtMost(channelTotalCount.coerceAtLeast(CHANNEL_PAGE_SIZE))
                 val flow = if (categoryId.isNullOrBlank()) {
                     repository.getAllChannelsLimited(serverId, requestedLimit)

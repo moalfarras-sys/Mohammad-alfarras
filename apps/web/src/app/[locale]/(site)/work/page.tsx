@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { buildSiteModel } from "@/components/site/site-model";
-import { WorkDigitalExhibition } from "@/components/site/work-digital-exhibition";
+import { WorkV3 } from "@/components/v3/pages/work-v3";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
-import "@/styles/route-work.css";
+import "@/styles/v3-motion.css";
+import "@/styles/v3-pages.css";
+import "@/styles/v3-work.css";
 import type { Locale } from "@/types/cms";
 
 export async function generateMetadata({
@@ -50,7 +52,7 @@ export default async function WorkRoute({ params }: { params: Promise<{ locale: 
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
-      <WorkDigitalExhibition locale={loc} projects={model.projects} />
+      <WorkV3 locale={loc} projects={model.projects} />
     </>
   );
 }

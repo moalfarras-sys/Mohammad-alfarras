@@ -21,6 +21,7 @@ import { socialLinks } from "@/content/site";
 import { youtubeChannel } from "@/content/site-data";
 import { rebuildContent } from "@/data/rebuild-content";
 import { withLocale } from "@/lib/i18n";
+import { unoptimizedImage } from "@/lib/asset-url";
 
 import type { SiteViewModel } from "./site-view-model";
 
@@ -480,7 +481,7 @@ export function HomePage({ model }: { model: SiteViewModel }) {
                   className="v3h-video"
                 >
                   <span className="v3h-video-thumb">
-                    <Image src={video.thumbnail} alt="" fill sizes="(max-width: 900px) 80vw, 300px" quality={65} className="v3-cover" />
+                    <Image src={video.thumbnail} alt="" fill sizes="(max-width: 900px) 80vw, 300px" quality={65} className="v3-cover" unoptimized={unoptimizedImage(video.thumbnail)} />
                     <span className="v3h-video-play" aria-hidden="true">
                       <PlayCircle />
                     </span>

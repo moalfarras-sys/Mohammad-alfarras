@@ -120,14 +120,43 @@ export function SplitHeadline({
   as = "h1",
   className,
   delay = 0,
+  immediate = false,
 }: {
   text: string;
   as?: "h1" | "h2" | "p";
   className?: string;
   delay?: number;
+  /**
+   * Above-the-fold headlines: animate with CSS on first paint instead of waiting for hydration,
+   * so the text (often the LCP element) is visible as early as possible.
+   */
+  immediate?: boolean;
 }) {
-  const Tag = motion[as];
   const words = text.split(/\s+/).filter(Boolean);
+  if (immediate) {
+    const Plain = as;
+    return (
+      <Plain className={cn("v3-split v3-split--load", className)} aria-label={text.replace(/\*/g, "")}>
+        {words.map((word, index) => {
+          const accent = /^\*.*\*[.,!?؟،]*$/.test(word);
+          return (
+            <Fragment key={`${word}-${index}`}>
+              <span className="v3-split-mask" aria-hidden="true">
+                <span
+                  className={cn("v3-split-word", accent && "v3-accent")}
+                  style={{ "--i": index, "--d": `${delay}s` } as CSSProperties}
+                >
+                  {word.replace(/\*/g, "")}
+                </span>
+              </span>
+              {index < words.length - 1 ? " " : null}
+            </Fragment>
+          );
+        })}
+      </Plain>
+    );
+  }
+  const Tag = motion[as];
   return (
     <Tag
       className={cn("v3-split", className)}
@@ -396,22 +425,19 @@ export function HoloPortrait({
       className={cn("v3-holo", className)}
       style={{ rotateX, rotateY, transformPerspective: 1400 }}
     >
-      <motion.div
-        className="v3-holo-photo"
-        style={{ x: photoX, y: photoY }}
-        initial={reduce ? false : { opacity: 0, scale: 1.08, filter: "blur(18px) saturate(0.4)" }}
-        animate={{ opacity: 1, scale: 1, filter: "blur(0px) saturate(1)" }}
-        transition={{ duration: 1.3, ease: easeOut }}
-      >
-        <Image src={src} alt={alt} fill priority sizes="(max-width: 900px) 92vw, 520px" className="v3-cover" />
-        {!reduce ? <span className="v3-holo-sweep" aria-hidden /> : null}
+      <motion.div className="v3-holo-photo" style={{ x: photoX, y: photoY }}>
+        {/* The entrance runs in CSS (v3-holo-in) so the photo paints before hydration. */}
+        <span className="v3-holo-photo-in">
+          <Image src={src} alt={alt} fill priority sizes="(max-width: 900px) 82vw, 520px" className="v3-cover" />
+        </span>
+        <span className="v3-holo-sweep" aria-hidden />
         <span className="v3-holo-scan" aria-hidden />
       </motion.div>
 
       <span className="v3-holo-ring" aria-hidden />
 
       {chips.map((chip, index) => (
-        <HoloChipView key={chip.label} chip={chip} index={index} origin={origin} px={px} py={py} reduce={!!reduce} />
+        <HoloChipView key={chip.label} chip={chip} index={index} origin={origin} px={px} py={py} />
       ))}
     </motion.div>
   );
@@ -423,14 +449,12 @@ function HoloChipView({
   origin,
   px,
   py,
-  reduce,
 }: {
   chip: HoloChip;
   index: number;
   origin: { x: number; y: number };
   px: MotionValue<number>;
   py: MotionValue<number>;
-  reduce: boolean;
 }) {
   const travel = 14 + chip.depth * 34;
   const x = useTransform(px, [-1, 1], [-travel, travel]);
@@ -452,26 +476,27 @@ function HoloChipView({
     <motion.div
       className="v3-chip-anchor"
       style={{ left: `${chip.x}%`, top: `${chip.y}%`, x, y, zIndex: 2 + Math.round(chip.depth * 10) }}
-      initial={
-        reduce
-          ? false
-          : {
-              opacity: 0,
-              scale: 0.4,
-              left: `${origin.x}%`,
-              top: `${origin.y}%`,
-            }
-      }
-      animate={{ opacity: 1, scale: 1, left: `${chip.x}%`, top: `${chip.y}%` }}
-      transition={{ ...v3Spring, delay: 0.9 + index * 0.14 }}
     >
-      {chip.href ? (
-        <a className="v3-chip" href={chip.href}>
-          {body}
-        </a>
-      ) : (
-        <div className="v3-chip">{body}</div>
-      )}
+      {/* Flies out of the origin (the hand) with a CSS transform: runs before hydration and
+          never shifts layout. Offsets use container units of the .v3-holo stage. */}
+      <span
+        className="v3-chip-in"
+        style={
+          {
+            "--dx": `${origin.x - chip.x}cqw`,
+            "--dy": `${origin.y - chip.y}cqh`,
+            "--delay": `${0.9 + index * 0.14}s`,
+          } as CSSProperties
+        }
+      >
+        {chip.href ? (
+          <a className="v3-chip" href={chip.href}>
+            {body}
+          </a>
+        ) : (
+          <div className="v3-chip">{body}</div>
+        )}
+      </span>
     </motion.div>
   );
 }

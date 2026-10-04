@@ -267,7 +267,7 @@ export function HomePage({ model }: { model: SiteViewModel }) {
                 {hero.eyebrow}
               </p>
             </Reveal>
-            <SplitHeadline as="h1" text={hero.title} className="v3h-title" />
+            <SplitHeadline as="h1" text={hero.title} className="v3h-title" immediate delay={0.1} />
             <Reveal delay={0.35} y={18}>
               <p className="v3h-lede">{hero.body}</p>
             </Reveal>

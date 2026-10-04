@@ -7,15 +7,12 @@ import {
   ArrowRight,
   ArrowUpRight,
   CheckCircle2,
-  Download,
   ExternalLink,
   Mail,
   MessageCircle,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { cvPageCopy } from "@/content/cv";
-import { privacyCopy } from "@/content/legal";
 import { caseStudyCopy } from "@/content/work";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
@@ -27,94 +24,9 @@ function isArabic(locale: string) {
 
 function PageShell({ locale, children }: { locale: string; children: ReactNode }) {
   return (
-    <main className="fresh-page" dir={isArabic(locale) ? "rtl" : "ltr"}>
+    <div className="fresh-page" dir={isArabic(locale) ? "rtl" : "ltr"}>
       {children}
-    </main>
-  );
-}
-
-export function PortfolioCvPage({ model }: { model: SiteViewModel }) {
-  const t = repairMojibakeDeep(cvPageCopy[model.locale]);
-  const ar = isArabic(model.locale);
-
-  return (
-    <PageShell locale={model.locale}>
-      <section className="fresh-hero">
-        <div className="fresh-hero-copy">
-          <p className="fresh-eyebrow">{t.eyebrow}</p>
-          <h1>{t.title}</h1>
-          <p>{t.body}</p>
-          <div className="fresh-actions">
-            {model.downloads.branded ? (
-              <a
-                href={model.downloads.branded}
-                download
-                className="fresh-button fresh-button-primary"
-              >
-                <Download className="h-4 w-4" />
-                {t.downloadDesigned}
-              </a>
-            ) : null}
-            {model.downloads.ats ? (
-              <a href={model.downloads.ats} download className="fresh-button">
-                <Download className="h-4 w-4" />
-                {t.downloadAts}
-              </a>
-            ) : null}
-            {model.downloads.docx ? (
-              <a href={model.downloads.docx} download className="fresh-button">
-                {ar ? "تنزيل DOCX" : "Download DOCX"}
-              </a>
-            ) : null}
-          </div>
-        </div>
-        <div className="fresh-portrait">
-          <Image
-            src={model.portraitImage || "/images/portrait.jpg"}
-            alt={model.profile.name}
-            fill
-            sizes="(max-width: 1024px) 92vw, 420px"
-            className="fresh-image object-top"
-            priority
-          />
-          <div>
-            <strong>{model.profile.name}</strong>
-            <span>{model.profile.subtitle}</span>
-          </div>
-        </div>
-      </section>
-    </PageShell>
-  );
-}
-
-export function PortfolioPrivacyPage({ locale, extraNote }: { locale: string; extraNote?: string }) {
-  const t = repairMojibakeDeep(privacyCopy[locale as "en" | "ar"] ?? privacyCopy.en);
-  const ar = isArabic(locale);
-
-  return (
-    <PageShell locale={locale}>
-      <section className="fresh-section fresh-first">
-        <div className="fresh-section-head">
-          <p className="fresh-eyebrow">{ar ? "الخصوصية" : "Privacy"}</p>
-          <h1>{t.title}</h1>
-          <p>{t.updated}</p>
-        </div>
-        <div className="fresh-list">
-          {t.sections.map((section) => (
-            <article key={section.title}>
-              <span>{section.title}</span>
-              <p>{section.body}</p>
-            </article>
-          ))}
-          {extraNote?.trim() ? (
-            <article>
-              <span>{ar ? "ملاحظة إضافية" : "Additional note"}</span>
-              <p>{extraNote.trim()}</p>
-            </article>
-          ) : null}
-        </div>
-      </section>
-    </PageShell>
+    </div>
   );
 }
 

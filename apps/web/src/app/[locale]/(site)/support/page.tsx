@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppWindow, Mail, MessageCircle, Shield } from "lucide-react";
 
 import { SITE_URL } from "@/content/site";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
-import { unoptimizedImage } from "@/lib/asset-url";
 import { readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, webPageJsonLd } from "@/lib/seo-jsonld";
 import { resolveSiteImages, siteImage } from "@/lib/site-images";
 import type { Locale } from "@/types/cms";
 import { SupportRequestForm } from "@/components/site/support-request-form";
+import { PageHero } from "@/components/studio/primitives";
 
 const supportPageCopy = {
   en: {
@@ -188,9 +187,7 @@ export default async function LocalizedSupportPage({
 
   const loc = locale as Locale;
   const copy = supportPageCopy[loc];
-  const [classic, pro, snapshot] = await Promise.all([readAppEcosystem("moplayer"), readAppEcosystem("moplayer2"), readSnapshot()]);
-  const siteImages = resolveSiteImages(snapshot);
-  const heroImage = siteImage(siteImages, "support_hero", "/images/moplayer-activation-flow.webp");
+  const [classic, pro] = await Promise.all([readAppEcosystem("moplayer"), readAppEcosystem("moplayer2")]);
   const query = (await searchParams) ?? {};
   const isSent = query.support === "sent";
   const supportEmail = pro.product.support_email || classic.product.support_email;
@@ -205,101 +202,108 @@ export default async function LocalizedSupportPage({
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <main className="fresh-page" dir={loc === "ar" ? "rtl" : "ltr"}>
-        <section className="fresh-hero">
-          <div className="fresh-hero-copy">
-            <p className="fresh-eyebrow">{copy.eyebrow}</p>
-            <h1>{copy.title}</h1>
-            <p>{copy.intro}</p>
-            {isSent ? <div className="fresh-note mt-6 text-blue-100">{copy.sent}</div> : null}
-          </div>
-          <aside className="fresh-card">
-            <div className="relative mb-5 aspect-video overflow-hidden rounded-2xl border border-white/10">
-              <Image
-                src={heroImage}
-                alt={copy.title as string}
-                fill
-                sizes="(max-width: 900px) 92vw, 420px"
-                className="fresh-image"
-                priority
-                unoptimized={unoptimizedImage(heroImage)}
+      <div className="st-page">
+        <PageHero pill={copy.eyebrow as string} title={copy.title as string} lead={copy.intro as string}>
+          {isSent ? (
+            <p className="st-notice" role="status">
+              {copy.sent as string}
+            </p>
+          ) : null}
+        </PageHero>
+
+        <section className="st-section st-section--tight">
+          <div className="st-container st-contact">
+            <section className="st-support-form" aria-label={copy.formTitle as string}>
+              <SupportRequestForm
+                locale={loc}
+                copy={{
+                  formTitle: copy.formTitle as string,
+                  product: copy.product as string,
+                  issue: copy.issue as string,
+                  device: copy.device as string,
+                  version: copy.version as string,
+                  name: copy.name as string,
+                  email: copy.email as string,
+                  whatsapp: copy.whatsapp as string,
+                  screenshot: copy.screenshot as string,
+                  message: copy.message as string,
+                  messageHelp: copy.messageHelp as string,
+                  submit: copy.submit as string,
+                  sent: copy.sent as string,
+                }}
+                productOptions={productOptions[loc]}
+                issueOptions={issueOptions[loc]}
+                deviceOptions={deviceOptions[loc]}
               />
-            </div>
-            <p className="fresh-eyebrow">{copy.directTitle}</p>
-            <div className="fresh-channel-list">
-              <a
-                href={`mailto:${supportEmail}`}
-                className="fresh-channel"
-                aria-label={loc === "ar" ? `راسلنا عبر البريد الإلكتروني ${supportEmail}` : `Email us at ${supportEmail}`}
-              >
-                <span className="fresh-channel-label">
-                  <Mail size={15} aria-hidden="true" /> {loc === "ar" ? "البريد الإلكتروني" : "Email"}
-                </span>
-                <span className="fresh-channel-value" dir="ltr">{supportEmail}</span>
-              </a>
-              {supportWhatsapp ? (
-                <a
-                  href={supportWhatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="fresh-channel"
-                  aria-label={loc === "ar" ? "تواصل عبر واتساب (يفتح في نافذة جديدة)" : "Contact on WhatsApp (opens in a new tab)"}
-                >
-                  <span className="fresh-channel-label">
-                    <MessageCircle size={15} aria-hidden="true" /> WhatsApp
-                  </span>
-                  <span className="fresh-channel-value">{loc === "ar" ? "محادثة مباشرة" : "Direct chat"}</span>
-                </a>
-              ) : null}
-              <Link href={`/${loc}/privacy`} className="fresh-channel">
-                <span className="fresh-channel-label">
-                  <Shield size={15} aria-hidden="true" /> {copy.privacy as string}
-                </span>
-              </Link>
-              <Link href={`/${loc}/apps/moplayer2`} className="fresh-channel">
-                <span className="fresh-channel-label">
-                  <AppWindow size={15} aria-hidden="true" /> {copy.appPage as string}
-                </span>
-              </Link>
-            </div>
-          </aside>
-        </section>
+            </section>
 
-        <section className="fresh-section">
-          <div className="fresh-contact">
-            <aside className="fresh-grid">
-              {(copy.cards as Array<[string, string]>).map(([title, body]) => (
-                <article key={title} className="fresh-card">
-                  <p className="fresh-eyebrow">{title}</p>
-                  <p>{body}</p>
-                </article>
-              ))}
+            <aside className="st-contact-side">
+              <div className="st-side-block">
+                <p className="st-meta st-mono">{copy.directTitle as string}</p>
+                <ul className="st-channels">
+                  <li>
+                    <a href={`mailto:${supportEmail}`}>
+                      <span className="st-channel-icon" aria-hidden="true">
+                        <Mail size={18} />
+                      </span>
+                      <span className="st-channel-text">
+                        <strong>{loc === "ar" ? "البريد الإلكتروني" : "Email"}</strong>
+                        <small dir="ltr">{supportEmail}</small>
+                      </span>
+                    </a>
+                  </li>
+                  {supportWhatsapp ? (
+                    <li>
+                      <a href={supportWhatsapp} target="_blank" rel="noopener noreferrer">
+                        <span className="st-channel-icon" aria-hidden="true">
+                          <MessageCircle size={18} />
+                        </span>
+                        <span className="st-channel-text">
+                          <strong>WhatsApp</strong>
+                          <small>{loc === "ar" ? "محادثة مباشرة" : "Direct chat"}</small>
+                        </span>
+                      </a>
+                    </li>
+                  ) : null}
+                  <li>
+                    <Link href={`/${loc}/apps/moplayer2`} prefetch={false}>
+                      <span className="st-channel-icon" aria-hidden="true">
+                        <AppWindow size={18} />
+                      </span>
+                      <span className="st-channel-text">
+                        <strong>{copy.appPage as string}</strong>
+                        <small>{loc === "ar" ? "التحميل والتفعيل" : "Downloads and activation"}</small>
+                      </span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href={`/${loc}/privacy`} prefetch={false}>
+                      <span className="st-channel-icon" aria-hidden="true">
+                        <Shield size={18} />
+                      </span>
+                      <span className="st-channel-text">
+                        <strong>{copy.privacy as string}</strong>
+                        <small>{loc === "ar" ? "كيف نتعامل مع بياناتك" : "How your data is handled"}</small>
+                      </span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div className="st-side-block">
+                <p className="st-meta st-mono">{loc === "ar" ? "لرد أسرع" : "For a faster reply"}</p>
+                <dl className="st-tips">
+                  {(copy.cards as Array<[string, string]>).map(([title, body]) => (
+                    <div key={title}>
+                      <dt>{title}</dt>
+                      <dd>{body}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
             </aside>
-
-            <SupportRequestForm
-              locale={loc}
-              copy={{
-                formTitle: copy.formTitle as string,
-                product: copy.product as string,
-                issue: copy.issue as string,
-                device: copy.device as string,
-                version: copy.version as string,
-                name: copy.name as string,
-                email: copy.email as string,
-                whatsapp: copy.whatsapp as string,
-                screenshot: copy.screenshot as string,
-                message: copy.message as string,
-                messageHelp: copy.messageHelp as string,
-                submit: copy.submit as string,
-                sent: copy.sent as string,
-              }}
-              productOptions={productOptions[loc]}
-              issueOptions={issueOptions[loc]}
-              deviceOptions={deviceOptions[loc]}
-            />
           </div>
         </section>
-      </main>
+      </div>
     </>
   );
 }

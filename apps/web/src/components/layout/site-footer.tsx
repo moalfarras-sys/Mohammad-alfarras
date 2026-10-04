@@ -1,13 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, ArrowUpRight } from "lucide-react";
 
 import { AssistantTrigger } from "@/components/site/assistant-trigger";
 import { socialLinks } from "@/content/site";
 import type { Locale } from "@/types/cms";
 
 type FooterLink = { id: string; label: string; href: string };
-type QuickFact = { label: string; value: string };
+export type FooterStat = { label: string; value: string };
 
 export function SiteFooter({
   locale,
@@ -15,107 +15,142 @@ export function SiteFooter({
   legalLinks = [],
   logoSrc,
   brandName,
-  quickFacts,
+  stats = [],
 }: {
   locale: Locale;
   links: FooterLink[];
   legalLinks?: FooterLink[];
   logoSrc: string;
   brandName: string;
-  quickFacts?: QuickFact[];
+  stats?: FooterStat[];
 }) {
   const isAr = locale === "ar";
   const year = new Date().getFullYear();
   const productLinks = [
+    { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "apps", label: isAr ? "كل التطبيقات" : "All apps", href: `/${locale}/apps` },
     { id: "moos", label: isAr ? "نظام MoOS" : "MoOS", href: `/${locale}/moos` },
-    { id: "moplayer", label: "MoPlayer", href: `/${locale}/apps/moplayer` },
     { id: "activate", label: isAr ? "التفعيل" : "Activate", href: `/${locale}/activate` },
     { id: "support", label: isAr ? "الدعم" : "Support", href: `/${locale}/support` },
-    // /about is in the sitemap at priority 0.85 but had no inbound link
-    // anywhere on the site, which is the worst of both worlds for crawling.
+  ];
+  // The main navigation minus the entries already listed under Products.
+  const siteLinks = [
+    ...links.filter((item) => item.id !== "apps" && item.id !== "moos"),
     { id: "about", label: isAr ? "عن محمد" : "About", href: `/${locale}/about` },
   ];
-  // Privacy + Impressum always appear (Impressum is a legal requirement for a
-  // Germany-based commercial site); any extra published legal links follow.
+  // Privacy and Impressum always appear (Impressum is required for a
+  // Germany-based commercial site); further published legal pages follow.
   const footerLegalLinks = [
     { id: "privacy", label: isAr ? "الخصوصية" : "Privacy", href: `/${locale}/privacy` },
     { id: "impressum", label: isAr ? "البيانات القانونية" : "Impressum", href: `/${locale}/impressum` },
     ...legalLinks.filter((item) => item.id !== "impressum" && item.id !== "privacy"),
   ];
+  const channels = [
+    { label: "YouTube", href: socialLinks.youtube },
+    { label: "LinkedIn", href: socialLinks.linkedin },
+    { label: "GitHub", href: socialLinks.github },
+    { label: "Instagram", href: socialLinks.instagram },
+    { label: "WhatsApp", href: socialLinks.whatsapp },
+  ];
 
   return (
-    <footer className="site-footer-wrap mt-20 pb-8" dir={isAr ? "rtl" : "ltr"}>
-      <div className="section-frame">
-        <div className="fresh-footer">
-          <div className="fresh-footer-aurora" aria-hidden="true" />
-          <div className="fresh-footer-brand">
-            <span className="fresh-brand-mark">
-              <Image src={logoSrc || "/images/logo.png"} alt={brandName} width={52} height={52} className="fresh-brand-logo" />
-            </span>
-            <div>
-              <strong>{brandName}</strong>
-              <p>
-                {isAr
-                  ? "محمد الفراس — تصميم وبرمجة المواقع والتطبيقات، وصناعة محتوى تقني عربي واضح ومفيد."
-                  : "Mohammad Alfarras — websites, apps, and clear tech content that help your project look professional."}
-              </p>
-            </div>
-          </div>
-
-          {quickFacts?.length ? (
-            <div className="fresh-footer-facts">
-              {quickFacts.map((fact) => (
-                <div key={`${fact.label}-${fact.value}`}>
-                  <span>{fact.label}</span>
-                  <strong>{fact.value}</strong>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="fresh-footer-grid">
-            <div>
-              <p className="fresh-eyebrow">{isAr ? "التنقل" : "Navigation"}</p>
-              {links.map((item) => (
-                <Link key={item.id} href={item.href} prefetch={false}>
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <div>
-              <p className="fresh-eyebrow">{isAr ? "المنتج" : "Product"}</p>
-              {productLinks.map((item) => (
-                <Link key={item.id} href={item.href} prefetch={false}>
-                  {item.label}
-                </Link>
-              ))}
-              <AssistantTrigger className="mo-ai-inline-trigger">Mo AI</AssistantTrigger>
-            </div>
-            <div>
-              <p className="fresh-eyebrow">{isAr ? "القنوات" : "Channels"}</p>
-              <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer">YouTube</a>
-              <a href={socialLinks.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-              <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-              <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            </div>
-            <div>
-              <p className="fresh-eyebrow">{isAr ? "قانوني" : "Legal"}</p>
-              {footerLegalLinks.map((item) => (
-                <Link key={item.id} href={item.href} prefetch={false}>
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div className="fresh-footer-bottom">
-            <p>{`© ${year} ${brandName}`}</p>
-            <Link href={`/${locale}/privacy`} prefetch={false}>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
-            <a href="#top" className="fresh-footer-top" aria-label={isAr ? "العودة للأعلى" : "Back to top"}>
-              <ArrowUp size={16} />
+    <footer className="st-footer" dir={isAr ? "rtl" : "ltr"}>
+      <div className="st-container">
+        <div className="st-footer-top">
+          <div className="st-footer-lead">
+            <p className="st-footer-kicker st-mono">{isAr ? "متاح لمشاريع مختارة" : "Open to selected projects"}</p>
+            <p className="st-footer-title">{isAr ? "لنبنِ شيئاً واضحاً معاً." : "Let's build something clear."}</p>
+            <a className="st-footer-mail" href={`mailto:${socialLinks.email}`}>
+              {socialLinks.email}
+              <ArrowUpRight size={20} aria-hidden />
             </a>
           </div>
+          {stats.length ? (
+            <dl className="st-footer-stats">
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  <dt>{stat.label}</dt>
+                  <dd>{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+        </div>
+
+        <div className="st-footer-grid">
+          <div className="st-footer-brand">
+            <Link href={`/${locale}`} prefetch={false} className="st-brand">
+              <span className="st-brand-mark">
+                <Image src={logoSrc || "/images/logo.png"} alt="" width={36} height={36} />
+              </span>
+              <span className="st-brand-text">
+                <strong>{brandName}</strong>
+              </span>
+            </Link>
+            <p>
+              {isAr
+                ? "تصميم وتطوير المواقع والمنتجات الرقمية، تطبيقات MoPlayer، ومحتوى تقني عربي. مقيم في ألمانيا، من الحسكة، ويعمل بالعربية والألمانية والإنجليزية."
+                : "Websites and digital products, the MoPlayer apps and Arabic tech content. Based in Germany, from Al-Hasakah, working in Arabic, German and English."}
+            </p>
+          </div>
+
+          <nav className="st-footer-col" aria-label={isAr ? "الموقع" : "Site"}>
+            <p className="st-footer-heading">{isAr ? "الموقع" : "Site"}</p>
+            <ul>
+              {siteLinks.map((item) => (
+                <li key={item.id}>
+                  <Link href={item.href} prefetch={false}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav className="st-footer-col" aria-label={isAr ? "المنتجات" : "Products"}>
+            <p className="st-footer-heading">{isAr ? "المنتجات" : "Products"}</p>
+            <ul>
+              {productLinks.map((item) => (
+                <li key={item.id}>
+                  <Link href={item.href} prefetch={false}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <AssistantTrigger className="st-footer-button">{isAr ? "مساعد Mo AI" : "Mo AI assistant"}</AssistantTrigger>
+              </li>
+            </ul>
+          </nav>
+
+          <nav className="st-footer-col" aria-label={isAr ? "القنوات" : "Channels"}>
+            <p className="st-footer-heading">{isAr ? "القنوات" : "Channels"}</p>
+            <ul>
+              {channels.map((item) => (
+                <li key={item.label}>
+                  <a href={item.href} target="_blank" rel="noopener noreferrer">
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        <div className="st-footer-bottom">
+          <p>{`© ${year} ${brandName}`}</p>
+          <ul className="st-footer-legal">
+            {footerLegalLinks.map((item) => (
+              <li key={item.id}>
+                <Link href={item.href} prefetch={false}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <a href="#top" className="st-footer-top-link" aria-label={isAr ? "العودة للأعلى" : "Back to top"}>
+            <ArrowUp size={16} aria-hidden />
+          </a>
         </div>
       </div>
     </footer>

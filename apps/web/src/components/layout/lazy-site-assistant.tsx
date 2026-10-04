@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { LoaderCircle, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { MoAiRobot } from "@/components/site/mo-ai-robot";
@@ -23,7 +24,8 @@ const SiteAssistantWidget = dynamic(
   },
 );
 
-const teaserKey = "mo-ai-teaser:dismissed";
+const teaserKey = "mo-ai-teaser:v2";
+const viewsKey = "mo-ai-views";
 
 const teaserCopy = {
   ar: {
@@ -44,6 +46,7 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
   const [ready, setReady] = useState(false);
   const [initialPrompt, setInitialPrompt] = useState("");
   const [teaser, setTeaser] = useState(false);
+  const pathname = usePathname();
   const t = teaserCopy[locale];
 
   // Wake triggers: the mo-ai:open event (buttons anywhere on the site),
@@ -85,27 +88,43 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
     };
   }, []);
 
-  // Gentle welcome teaser: once per session, a few seconds after load.
+  // A one-time hint, shown only after real engagement: the visitor is on at
+  // least their second page this session and has read past the middle of it.
+  // Never on a first visit, never twice.
   useEffect(() => {
     if (ready) return;
-    let dismissed = false;
+    let views = 0;
     try {
-      dismissed = sessionStorage.getItem(teaserKey) === "1";
+      if (localStorage.getItem(teaserKey) === "1") return;
+      views = Number(sessionStorage.getItem(viewsKey) || "0") + 1;
+      sessionStorage.setItem(viewsKey, String(views));
     } catch {
-      dismissed = false;
+      return;
     }
-    if (dismissed) return;
-    const timer = window.setTimeout(() => setTeaser(true), 2600);
-    return () => window.clearTimeout(timer);
-  }, [ready]);
+    if (views < 2) return;
+    let hideTimer = 0;
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const progress = (window.scrollY + window.innerHeight) / Math.max(1, doc.scrollHeight);
+      if (progress < 0.55) return;
+      window.removeEventListener("scroll", onScroll);
+      try {
+        localStorage.setItem(teaserKey, "1");
+      } catch {
+        // Storage is optional.
+      }
+      setTeaser(true);
+      hideTimer = window.setTimeout(() => setTeaser(false), 9000);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(hideTimer);
+    };
+  }, [ready, pathname]);
 
   function dismissTeaser() {
     setTeaser(false);
-    try {
-      sessionStorage.setItem(teaserKey, "1");
-    } catch {
-      // Session storage is optional.
-    }
   }
 
   function openChat() {
@@ -131,10 +150,8 @@ export function LazySiteAssistant({ locale }: { locale: Locale }) {
         </div>
       ) : null}
       <div className="mo-ai-dock">
-        <button type="button" className="mo-ai-fab" onClick={openChat} aria-label={t.open}>
-          <span className="mo-ai-fab-halo" aria-hidden />
+        <button type="button" className="mo-ai-fab st-ai-fab" onClick={openChat} aria-label={t.open} title={t.open}>
           <MoAiRobot className="mo-ai-fab-bot" />
-          <span className="mo-ai-fab-dot" aria-hidden />
         </button>
       </div>
     </div>

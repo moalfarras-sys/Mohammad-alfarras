@@ -13,6 +13,7 @@ import { useEffect } from "react";
  * Selector-based (no markup changes); re-scans on client navigation.
  */
 const SELECTOR = [
+  ".st-reveal",
   ".os-mode-card",
   ".os-home-explore-card",
   ".os-home-case-card",

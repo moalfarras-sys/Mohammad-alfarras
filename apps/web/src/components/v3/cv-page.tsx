@@ -357,7 +357,7 @@ export function CvPageV3({ locale, profileName, portrait, downloads, experience,
                 {t.pill}
               </p>
             </Reveal>
-            <SplitHeadline text={profileName} className="v3cv-name" delay={0.1} />
+            <SplitHeadline as="h1" immediate text={profileName} className="v3cv-name" delay={0.1} />
             <Reveal delay={0.25} y={14} className="v3cv-o-role">
               <p className="v3cv-role">{t.role}</p>
             </Reveal>

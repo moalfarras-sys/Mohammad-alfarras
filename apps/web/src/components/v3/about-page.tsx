@@ -2,8 +2,8 @@ import { ArrowUpRight, Compass, Languages, MapPin, ShieldCheck } from "lucide-re
 import Image from "next/image";
 import Link from "next/link";
 
-import { AboutChapters, type AboutChapter } from "@/components/v3/about-story";
-import { ParallaxImage, Reveal, SplitHeadline, Stagger, TiltCard } from "@/components/v3/motion-kit";
+import { AboutChapters, AboutStage, type AboutChapter } from "@/components/v3/about-story";
+import { Reveal, SplitHeadline, Stagger, TiltCard } from "@/components/v3/motion-kit";
 import { languageLevels } from "@/content/site-data";
 import { withLocale } from "@/lib/i18n";
 import type { Locale } from "@/types/cms";
@@ -96,7 +96,7 @@ function copy(locale: Locale, p: AboutPageV3Props) {
           body: `في قناتي أفتح الأجهزة وأراجعها وأشرح التقنية بعربية واضحة — بصراحة عن المفيد وغير المفيد. يتابعني حتى الآن ${subs} مشترك.`,
           facts: ["@Moalfarras"],
           link: { href: href("youtube"), label: "صفحة يوتيوب" },
-          media: { kind: "parallax", src: "/images/yt-channel-hero.png", alt: "غلاف قناة محمد الفراس على يوتيوب", caption: "Mohammad Alfarras — Unboxing Review" },
+          media: { kind: "parallax", wide: true, src: "/images/yt-channel-hero.png", alt: "غلاف قناة محمد الفراس على يوتيوب", caption: "Mohammad Alfarras — Unboxing Review" },
         },
       ] satisfies AboutChapter[],
       valuesLabel: "ما أؤمن به",
@@ -204,7 +204,7 @@ function copy(locale: Locale, p: AboutPageV3Props) {
         body: `On my channel I unbox, review and explain technology in clear Arabic — honest about what is useful and what isn't. ${subs} people subscribe so far.`,
         facts: ["@Moalfarras"],
         link: { href: href("youtube"), label: "The YouTube page" },
-        media: { kind: "parallax", src: "/images/yt-channel-hero.png", alt: "Mohammad Alfarras YouTube channel banner", caption: "Mohammad Alfarras — Unboxing Review" },
+        media: { kind: "parallax", wide: true, src: "/images/yt-channel-hero.png", alt: "Mohammad Alfarras YouTube channel banner", caption: "Mohammad Alfarras — Unboxing Review" },
       },
     ] satisfies AboutChapter[],
     valuesLabel: "What I believe",
@@ -281,7 +281,7 @@ export function AboutPageV3(props: AboutPageV3Props) {
                   {t.pill}
                 </p>
               </Reveal>
-              <SplitHeadline text={t.title} className="v3ab-title" delay={0.1} />
+              <SplitHeadline as="h1" immediate text={t.title} className="v3ab-title" delay={0.1} />
               <Reveal delay={0.3} y={16}>
                 <p className="v3ab-lead">{t.lead}</p>
               </Reveal>
@@ -302,23 +302,17 @@ export function AboutPageV3(props: AboutPageV3Props) {
             </Reveal>
           </div>
           <div className="v3ab-stage">
-            <ParallaxImage
-              src="/images/hero-profile-bg.png"
-              alt={t.heroAlt}
-              priority
-              strength={50}
-              sizes="(max-width: 1300px) 100vw, 1240px"
-              className="v3ab-stage-img"
-            />
-            <span className="v3ab-stage-fade" aria-hidden />
-            <ul className="v3ab-stage-chips">
-              {t.heroChips.map((chip, index) => (
-                <li key={chip}>
-                  {index === 0 ? <MapPin size={14} aria-hidden /> : null}
-                  {chip}
-                </li>
-              ))}
-            </ul>
+            <AboutStage src="/images/hero-profile-bg.png" alt={t.heroAlt}>
+              <span className="v3ab-stage-fade" aria-hidden />
+              <ul className="v3ab-stage-chips">
+                {t.heroChips.map((chip, index) => (
+                  <li key={chip}>
+                    {index === 0 ? <MapPin size={14} aria-hidden /> : null}
+                    {chip}
+                  </li>
+                ))}
+              </ul>
+            </AboutStage>
           </div>
         </div>
       </section>

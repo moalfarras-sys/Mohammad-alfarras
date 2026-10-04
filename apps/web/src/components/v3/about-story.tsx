@@ -5,7 +5,7 @@
  * visitor scrolls; each chapter lights its node when it reaches the middle of the viewport.
  */
 
-import { motion, useInView, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import { motion, useInView, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef, type ReactNode } from "react";
 
@@ -13,7 +13,7 @@ import { ParallaxImage, Reveal, TiltCard } from "@/components/v3/motion-kit";
 import { cn } from "@/lib/cn";
 
 export type AboutChapterMedia =
-  | { kind: "parallax"; src: string; alt: string; caption?: string }
+  | { kind: "parallax"; src: string; alt: string; caption?: string; wide?: boolean }
   | { kind: "browser"; src: string; mobile?: string; alt: string; domain: string; caption?: string }
   | { kind: "route"; from: string; to: string; year: string; chips: string[] }
   | {
@@ -33,6 +33,25 @@ export type AboutChapter = {
   media: AboutChapterMedia;
   link?: { href: string; label: string };
 };
+
+/**
+ * Hero stage: shows the whole studio artwork at its native ratio (its baked-in title must not be
+ * cropped), with a gentle scroll drift inside a small scale headroom instead of a deep parallax.
+ */
+export function AboutStage({ src, alt, children }: { src: string; alt: string; children?: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? ["0%", "0%"] : ["-2.6%", "2.6%"]);
+  return (
+    <div ref={ref} className="v3ab-stage-frame">
+      <motion.div className="v3ab-stage-layer" style={{ y, scale: reduce ? 1 : 1.06 }}>
+        <Image src={src} alt={alt} fill priority sizes="(max-width: 1300px) 100vw, 1240px" className="v3-cover" />
+      </motion.div>
+      {children}
+    </div>
+  );
+}
 
 export function AboutChapters({ chapters }: { chapters: AboutChapter[] }) {
   const ref = useRef<HTMLOListElement>(null);
@@ -94,7 +113,7 @@ function ChapterMedia({ media }: { media: AboutChapterMedia }) {
   if (media.kind === "parallax") {
     return (
       <figure className="v3ab-figure">
-        <ParallaxImage src={media.src} alt={media.alt} className="v3ab-parallax" strength={46} sizes="(max-width: 899px) 92vw, 620px" />
+        <ParallaxImage src={media.src} alt={media.alt} className={cn("v3ab-parallax", media.wide && "v3ab-parallax--wide")} strength={46} sizes="(max-width: 899px) 92vw, 620px" />
         <Caption>{media.caption}</Caption>
       </figure>
     );

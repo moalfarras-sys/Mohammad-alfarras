@@ -139,6 +139,13 @@
   transform: rotate(-2.5deg);
 }
 
+/* In RTL the card sits over the artwork's baked-in title (top-left): overlap it less. */
+@media (min-width: 900px) {
+  [dir="rtl"] .v3ab-hero-portrait {
+    margin-bottom: -44px;
+  }
+}
+
 .v3ab-portrait-img {
   object-position: 60% 20%;
 }
@@ -157,20 +164,27 @@
   margin-top: clamp(28px, 4vw, 48px);
 }
 
-.v3ab-stage-img {
-  aspect-ratio: 16 / 9;
+.v3ab-stage-frame {
+  position: relative;
+  aspect-ratio: 1376 / 768;
+  overflow: hidden;
   border: 1px solid var(--ab-line);
   border-radius: 34px;
+  background: #05080f;
   box-shadow: 0 60px 140px -60px rgba(0, 0, 0, 0.95);
+  isolation: isolate;
 }
 
-.v3ab-stage-img img {
-  object-position: center 30%;
+.v3ab-stage-layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
 }
 
 .v3ab-stage-fade {
   position: absolute;
   inset: 0;
+  z-index: 1;
   border-radius: 34px;
   background: linear-gradient(to top, rgba(6, 10, 20, 0.8), transparent 40%);
   pointer-events: none;
@@ -178,6 +192,7 @@
 
 .v3ab-stage-chips {
   position: absolute;
+  z-index: 2;
   inset-inline-start: clamp(16px, 3vw, 36px);
   bottom: clamp(16px, 3vw, 32px);
   display: flex;
@@ -863,12 +878,12 @@
     margin-inline-end: 10px;
   }
 
-  .v3ab-stage-img {
+  .v3ab-stage-frame {
     aspect-ratio: 4 / 5;
     border-radius: 26px;
   }
 
-  .v3ab-stage-img img {
+  .v3ab-stage-layer img {
     object-position: 78% center;
   }
 

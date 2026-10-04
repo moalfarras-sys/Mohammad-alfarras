@@ -36,25 +36,25 @@ export type CurrentAppRelease = {
 export const currentAppReleases: Record<ManagedAppSlug, CurrentAppRelease> = {
   moplayer: {
     productSlug: "moplayer",
-    releaseId: "release-moplayer-2-4-0",
-    releaseSlug: "moplayer-2.4.0",
-    versionName: "2.4.0",
-    versionCode: 24,
-    publishedAt: "2026-07-08T08:15:10.000Z",
+    releaseId: "release-moplayer-2-5-0",
+    releaseSlug: "moplayer-2.5.0",
+    versionName: "2.5.0",
+    versionCode: 25,
+    publishedAt: "2026-10-04T14:30:34.000Z",
     minSdk: 24,
     targetSdk: 35,
     releaseNotes:
-      "MoPlayer Classic 2.4.0 is a premium visual + performance pass: a brand typography system (Outfit headings, DM Sans body), bigger and bolder content posters with an unmistakable cyan D-pad focus, larger and clearer bottom dock, and a clean cinematic gradient background that replaces the old animated particle layers — much smoother on weak Android TV boxes. Live TV and the top widgets get stronger focus, the home poster rows no longer overlap, and the sign-in screen drops a heavy redundant background image to cut memory use on low-RAM devices.",
+      "MoPlayer Classic 2.5.0 draws the interface at the same size on every TV and box, with an Interface size option (Compact, Standard, Large), and adds phones and tablets in landscape. It ships the real DM Sans and Outfit fonts, a working language switch (device, English, Arabic with right-to-left layout) and a full Arabic translation. Live TV keeps the channel browser open while you choose, shows a 16:9 preview that never opens a second stream on one-connection accounts, and explains a failing channel within seconds (password changed, subscription expired, or the line in use elsewhere). Movies, Series, Search and Favorites use 2:3 posters in a grid that fits the space. Home starts on the first title, adds a Live TV row, shows real source names and 10-point ratings, and no longer flickers. Website activation never shows an unregistered code, retries and renews expired codes, and the EPG link from activation or the playlist fills the guide for M3U sources.",
     updateNotes:
-      "MoPlayer Classic 2.4.0 is a premium visual + performance pass: brand typography, bolder posters with a clear cyan D-pad focus, a larger bottom dock, and a clean cinematic gradient background (no particle layers) that runs much smoother on weak Android TV boxes.",
+      "MoPlayer Classic 2.5.0: the same interface size on every TV with an Interface size option, real fonts, a working Arabic/English switch, a smoother Live TV browser with clear error messages, cleaner poster grids, and more reliable website activation with EPG for M3U playlists.",
     compatibilityNotes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
     asset: {
-      id: "asset-moplayer-2-4-0-universal",
+      id: "asset-moplayer-2-5-0-universal",
       label: "Recommended TV APK",
       abi: "universal",
-      url: "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-sideload-universal-release.apk",
-      fileSizeBytes: 53204181,
-      checksumSha256: "8528124db43df511973d9e0764ce66250efe34e63c9adbd2ede1bfc291a6c946",
+      url: "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.5.0/app-sideload-universal-release.apk",
+      fileSizeBytes: 53238825,
+      checksumSha256: "48cdbda25ae91f99cb599a6c71177c4e821e31360dfce44ca5cbc6218480f2eb",
     },
   },
   moplayer2: {

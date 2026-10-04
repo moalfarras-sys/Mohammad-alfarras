@@ -900,6 +900,22 @@
   }
 }
 
+/* ── Case study pages: align headings with the studio type scale ───────── */
+
+.liquid-site .case-study-hero h1,
+.liquid-site .case-study-story h2,
+.liquid-site .fresh-page:has(.case-study-hero) .fresh-section-head h2 {
+  color: var(--st-text);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+[dir="rtl"] .liquid-site .case-study-hero h1,
+.liquid-site[dir="rtl"] .case-study-hero h1 {
+  font-family: var(--st-font-ar-display);
+  letter-spacing: 0;
+}
+
 /* ── MoOS (keeps its own teal product identity from route-moos.css) ─────── */
 
 .moos-theme-grid.moos-theme-grid--compact {

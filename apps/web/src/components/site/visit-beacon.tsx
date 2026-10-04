@@ -5,11 +5,10 @@ import { useEffect } from "react";
 /**
  * Records one visit per browser session, after the page is idle.
  *
- * A plain fetch is used on purpose: `keepalive: true` requests are handed to
- * the browser process and never report completion to the page, so headless
- * audits (Playwright `networkidle`, Lighthouse) saw a request "in flight"
- * forever on every first page view. Keepalive is only needed while unloading,
- * which this beacon never does.
+ * The response body is read on purpose: Chromium keeps a fetch whose body is
+ * never consumed open, so headless audits (Playwright "networkidle",
+ * Lighthouse) saw /api/track "in flight" forever on every first page view.
+ * keepalive is not used — it is only needed while unloading.
  */
 export function VisitBeacon() {
   useEffect(() => {
@@ -22,7 +21,9 @@ export function VisitBeacon() {
       } catch {
         return;
       }
-      fetch("/api/track", { method: "POST", cache: "no-store" }).catch(() => {});
+      fetch("/api/track", { method: "POST", cache: "no-store" })
+        .then((response) => response.arrayBuffer())
+        .catch(() => {});
     };
 
     const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;

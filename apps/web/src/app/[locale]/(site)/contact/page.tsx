@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { ContactHubPage } from "@/components/site/contact-hub-page";
 import { ProjectWizard } from "@/components/site/project-wizard";
 import { buildSiteModel } from "@/components/site/site-model";
 import { SiteOffersSection } from "@/components/site/site-offers-section";
+import { ContactV3 } from "@/components/v3/pages/contact-v3";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, contactPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
 import "@/styles/route-contact.css";
+import "@/styles/v3-pages.css";
+import "@/styles/v3-contact.css";
 import type { Locale } from "@/types/cms";
 
 export async function generateMetadata({
@@ -48,8 +50,8 @@ export default async function ContactPageRoute({
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
-      <ContactHubPage locale={loc} content={model.t.contact} />
-      <section className="st-section" id="design-your-project">
+      <ContactV3 locale={loc} content={model.t.contact} />
+      <section className="st-section v3k-wizard" id="design-your-project">
         <div className="st-container pw-section">
           <ProjectWizard locale={loc} />
         </div>

@@ -135,7 +135,6 @@ class HomeActivity : BaseTvActivity() {
     private var updateCheckStarted = false
     private var appRemoteConfig = AppRemoteConfig()
     private var appRemoteConfigUsingCached = true
-    private var appRemoteConfigStatusLabel = "Using cached Control Center config"
     private var homeCityWallpaperSelected = false
     private var cityWallpaperRefreshInFlight = false
     private var activeSourceName: String? = null
@@ -376,11 +375,9 @@ class HomeActivity : BaseTvActivity() {
         lifecycleScope.launch {
             appRemoteConfig = withContext(Dispatchers.IO) { appRemoteConfigService.cachedConfig() }
             appRemoteConfigUsingCached = withContext(Dispatchers.IO) { appRemoteConfigService.isUsingCachedConfig() }
-            appRemoteConfigStatusLabel = withContext(Dispatchers.IO) { appRemoteConfigService.connectionStatusLabel() }
             applyRemoteConfigState()
             appRemoteConfig = appRemoteConfigService.fetchConfig()
             appRemoteConfigUsingCached = withContext(Dispatchers.IO) { appRemoteConfigService.isUsingCachedConfig() }
-            appRemoteConfigStatusLabel = withContext(Dispatchers.IO) { appRemoteConfigService.connectionStatusLabel() }
             applyRemoteConfigState()
         }
     }
@@ -390,18 +387,18 @@ class HomeActivity : BaseTvActivity() {
         binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
 
         val message = when {
-            !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { "MoPlayer is temporarily unavailable." }
-            appRemoteConfig.maintenanceMode -> appRemoteConfig.message.ifBlank { "MoPlayer is in maintenance mode." }
+            !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { getString(R.string.remote_config_unavailable) }
+            appRemoteConfig.maintenanceMode -> appRemoteConfig.message.ifBlank { getString(R.string.remote_config_maintenance) }
             appRemoteConfig.message.isNotBlank() -> appRemoteConfig.message
             else -> null
         }
 
         if (!message.isNullOrBlank()) {
             binding.tvPreviewTitle.text = message
-            binding.tvPreviewDescription.text = "Managed from the Moalfarras control center."
+            binding.tvPreviewDescription.text = getString(R.string.remote_config_managed_by_control_center)
             binding.tvPreviewDescription.isVisible = true
         } else if (appRemoteConfigUsingCached) {
-            binding.tvPreviewDescription.text = appRemoteConfigStatusLabel
+            binding.tvPreviewDescription.text = getString(R.string.remote_config_using_cached)
             binding.tvPreviewDescription.isVisible = true
         }
         binding.root.post { setupFocusMap() }
@@ -1718,7 +1715,7 @@ class HomeActivity : BaseTvActivity() {
                         isFavorite = isFavorite,
                         details = movie?.let { ContentMenuDetails(
                             description = it.plot,
-                            duration = it.duration ?: ContentMenuDetails.formatDuration(it.durationSeconds),
+                            duration = it.duration ?: ContentMenuDetails.formatDuration(this@HomeActivity, it.durationSeconds),
                             rating = it.rating,
                             year = it.year ?: it.releaseDate,
                             genre = it.genre

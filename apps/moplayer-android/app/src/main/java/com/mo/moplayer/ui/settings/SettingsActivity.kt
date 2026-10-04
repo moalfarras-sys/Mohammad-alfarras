@@ -462,7 +462,12 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun showBufferSizeDialog() {
-        val sizes = arrayOf("Low (1s)", "Medium (2s)", "High (4s)", "Very High (8s)")
+        val sizes = arrayOf(
+            getString(R.string.buffer_size_low_format, 1),
+            getString(R.string.buffer_size_medium_format, 2),
+            getString(R.string.buffer_size_high_format, 4),
+            getString(R.string.buffer_size_very_high_format, 8)
+        )
         val values = arrayOf(
             PlayerPreferences.BUFFER_LOW,
             PlayerPreferences.BUFFER_MEDIUM,
@@ -506,7 +511,7 @@ class SettingsActivity : BaseTvActivity() {
             Toast.makeText(this, getString(R.string.settings_no_external_players), Toast.LENGTH_SHORT).show()
         } else {
             val names = installed.joinToString(", ") { it.name }
-            Toast.makeText(this, "Installed: $names", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.settings_installed_players_format, names), Toast.LENGTH_LONG).show()
         }
     }
     
@@ -616,20 +621,22 @@ class SettingsActivity : BaseTvActivity() {
                 binding.animatedBackground.setAnimationEnabled(allowed)
                 if (!allowed && isChecked) {
                     binding.switchAnimationEnabled.isChecked = false
-                    Toast.makeText(this@SettingsActivity, "Animations reduced automatically for this device.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SettingsActivity, getString(R.string.settings_animations_reduced_auto), Toast.LENGTH_SHORT).show()
                 }
             }
         }
 
         lifecycleScope.launch {
             tvUiPreferences.posterSize.collect { size ->
-                binding.tvPosterSizeValue.text = size.name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) }
+                binding.tvPosterSizeValue.text = posterSizeLabel(size)
             }
         }
 
         lifecycleScope.launch {
             tvUiPreferences.layoutStyle.collect { style ->
-                binding.tvLayoutStyleValue.text = if (style == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.ROWS) "Rows" else "Grid"
+                binding.tvLayoutStyleValue.text = getString(
+                    if (style == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.ROWS) R.string.layout_style_rows else R.string.layout_style_grid
+                )
             }
         }
 
@@ -1069,18 +1076,18 @@ class SettingsActivity : BaseTvActivity() {
                 if (location != null) {
                     binding.tvDetectedLocation.text = location.getDisplayName()
                 } else {
-                    binding.tvDetectedLocation.text = "Detecting location..."
+                    binding.tvDetectedLocation.text = getString(R.string.settings_detecting_location)
                     // Try to fetch location
                     val result = locationService.fetchLocation()
                     result.onSuccess { loc ->
                         binding.tvDetectedLocation.text = loc.getDisplayName()
                     }.onFailure {
-                        binding.tvDetectedLocation.text = "Location unavailable"
+                        binding.tvDetectedLocation.text = getString(R.string.settings_location_unavailable)
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                binding.tvDetectedLocation.text = "Error detecting location"
+                binding.tvDetectedLocation.text = getString(R.string.settings_location_detect_error)
             }
         }
     }
@@ -1243,7 +1250,12 @@ class SettingsActivity : BaseTvActivity() {
             applyThemeToViews(accentColor)
             updateAllAccentChipVisuals(accentId)
              
-            val themeName = themeManager.getThemeDisplayName(themeId)
+            val themeName = getString(
+                when (themeId) {
+                    ThemeManager.AppThemeId.LIQUID_BLUE -> R.string.theme_ink_blue
+                    ThemeManager.AppThemeId.HTC_ORANGE -> R.string.theme_cinematic_cyan
+                }
+            )
             Toast.makeText(
                 this@SettingsActivity,
                 getString(R.string.theme_applied_format, themeName),
@@ -1382,7 +1394,7 @@ class SettingsActivity : BaseTvActivity() {
                         type = "image/*"
                         addCategory(Intent.CATEGORY_OPENABLE)
                     }
-                    val chooser = Intent.createChooser(intent, "Select Image")
+                    val chooser = Intent.createChooser(intent, getString(R.string.settings_select_image))
                     @Suppress("DEPRECATION")
                     startActivityForResult(chooser, REQUEST_CODE_IMAGE_PICKER)
                 } catch (e3: android.content.ActivityNotFoundException) {
@@ -1618,7 +1630,7 @@ class SettingsActivity : BaseTvActivity() {
                 putExtra(Intent.EXTRA_EMAIL, arrayOf("Mohammad.alfarras@gmail.com"))
                 putExtra(Intent.EXTRA_SUBJECT, "MoPlayer IPTV - Feedback")
             }
-            startActivity(Intent.createChooser(intent, "Send Email"))
+            startActivity(Intent.createChooser(intent, getString(R.string.about_send_email)))
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.about_no_email_app), Toast.LENGTH_SHORT).show()
         }
@@ -2216,14 +2228,23 @@ class SettingsActivity : BaseTvActivity() {
         updateAllAccentChipVisuals(themeManager.currentAccentId.value)
     }
 
+    private fun posterSizeLabel(size: com.mo.moplayer.util.TvUiPreferences.PosterSize): String =
+        getString(
+            when (size) {
+                com.mo.moplayer.util.TvUiPreferences.PosterSize.SMALL -> R.string.poster_size_small
+                com.mo.moplayer.util.TvUiPreferences.PosterSize.MEDIUM -> R.string.poster_size_medium
+                com.mo.moplayer.util.TvUiPreferences.PosterSize.LARGE -> R.string.poster_size_large
+            }
+        )
+
     private fun showPosterSizeDialog() {
-        val labels = arrayOf("Small", "Medium", "Large")
         val values = com.mo.moplayer.util.TvUiPreferences.PosterSize.entries.toTypedArray()
+        val labels = values.map { posterSizeLabel(it) }.toTypedArray()
         lifecycleScope.launch {
             val current = tvUiPreferences.posterSize.first()
             val currentIndex = values.indexOf(current).coerceAtLeast(0)
             val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
-                .setTitle("Poster Size")
+                .setTitle(R.string.settings_poster_size)
                 .setSingleChoiceItems(labels, currentIndex) { d, which ->
                     lifecycleScope.launch {
                         tvUiPreferences.setPosterSize(values[which])
@@ -2238,13 +2259,13 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun showLayoutStyleDialog() {
-        val labels = arrayOf("Rows", "Grid")
+        val labels = arrayOf(getString(R.string.layout_style_rows), getString(R.string.layout_style_grid))
         val values = com.mo.moplayer.util.TvUiPreferences.LayoutStyle.entries.toTypedArray()
         lifecycleScope.launch {
             val current = tvUiPreferences.layoutStyle.first()
             val currentIndex = values.indexOf(current).coerceAtLeast(0)
             val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
-                .setTitle("Layout Style")
+                .setTitle(R.string.settings_layout_style)
                 .setSingleChoiceItems(labels, currentIndex) { d, which ->
                     lifecycleScope.launch {
                         tvUiPreferences.setLayoutStyle(values[which])

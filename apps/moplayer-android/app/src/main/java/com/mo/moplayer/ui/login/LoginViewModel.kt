@@ -10,6 +10,8 @@ import com.mo.moplayer.R
 import com.mo.moplayer.data.remote.dto.AuthResponse
 import com.mo.moplayer.data.repository.IptvRepository
 import com.mo.moplayer.data.util.ProviderSourceUrlParser
+import androidx.annotation.StringRes
+import com.mo.moplayer.util.DisplayScale
 import com.mo.moplayer.util.Resource
 import com.mo.moplayer.worker.ServerSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,19 +63,19 @@ class LoginViewModel @Inject constructor(
     fun login(serverUrl: String, username: String, password: String) {
         // Validate inputs
         if (serverUrl.isBlank() || username.isBlank() || password.isBlank()) {
-            _loginState.value = LoginState.Error("Please fill in all fields")
+            _loginState.value = LoginState.Error(str(R.string.login_error_empty))
             return
         }
         
         // Validate URL format
         val cleanUrl = ProviderSourceUrlParser.normalizeServerUrl(serverUrl)
         if (!isValidUrl(cleanUrl)) {
-            _loginState.value = LoginState.Error("Invalid server URL format")
+            _loginState.value = LoginState.Error(str(R.string.login_error_invalid_url))
             return
         }
         
         _isLoading.value = true
-        _loadingMessage.value = "Connecting to server..."
+        _loadingMessage.value = str(R.string.login_connecting)
         
         viewModelScope.launch {
             val result = repository.authenticateXtream(cleanUrl, username, password)
@@ -101,7 +103,7 @@ class LoginViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     _isLoading.value = false
-                    _loginState.value = LoginState.Error(result.message ?: "Unknown error")
+                    _loginState.value = LoginState.Error(localizeRepositoryError(result.message, R.string.error_unknown))
                 }
                 is Resource.Loading -> {
                     // Already handled
@@ -113,16 +115,16 @@ class LoginViewModel @Inject constructor(
     private suspend fun loadServerData() {
         val server = repository.getActiveServerSync() ?: return
         
-        _loadingMessage.postValue("Loading categories...")
+        _loadingMessage.postValue(str(R.string.login_loading_categories))
         repository.fetchAndSaveCategories(server)
         
-        _loadingMessage.postValue("Loading channels...")
+        _loadingMessage.postValue(str(R.string.login_loading_channels))
         repository.fetchAndSaveChannels(server)
         
-        _loadingMessage.postValue("Loading movies...")
+        _loadingMessage.postValue(str(R.string.login_loading_movies))
         repository.fetchAndSaveMovies(server)
         
-        _loadingMessage.postValue("Loading series...")
+        _loadingMessage.postValue(str(R.string.login_loading_series))
         repository.fetchAndSaveSeries(server)
     }
     
@@ -131,14 +133,14 @@ class LoginViewModel @Inject constructor(
      */
     fun importM3uFromUrl(url: String, playlistName: String, epgUrl: String? = null) {
         if (url.isBlank()) {
-            _loginState.value = LoginState.Error("Please enter a playlist URL")
+            _loginState.value = LoginState.Error(str(R.string.login_error_enter_playlist_url))
             return
         }
         
         val name = playlistName.ifBlank { extractPlaylistName(url) }
         
         _isLoading.value = true
-        _loadingMessage.value = "Downloading playlist..."
+        _loadingMessage.value = str(R.string.login_downloading_playlist)
         
         viewModelScope.launch {
             try {
@@ -151,7 +153,7 @@ class LoginViewModel @Inject constructor(
                 importM3uFromNetwork(url, name, epgUrl)
             } catch (e: Exception) {
                 _isLoading.value = false
-                _loginState.value = LoginState.Error("Error: ${e.message}")
+                _loginState.value = LoginState.Error(str(R.string.login_error_detail, e.message ?: ""))
             }
         }
     }
@@ -161,27 +163,27 @@ class LoginViewModel @Inject constructor(
      */
     fun importM3uFromFile(uri: Uri, playlistName: String) {
         _isLoading.value = true
-        _loadingMessage.value = "Reading file..."
+        _loadingMessage.value = str(R.string.login_reading_file)
         
         viewModelScope.launch {
             try {
                 val inputStream = application.contentResolver.openInputStream(uri)
                 if (inputStream != null) {
-                    val name = playlistName.ifBlank { "Local Playlist" }
-                    _loadingMessage.value = "Parsing playlist..."
+                    val name = playlistName.ifBlank { str(R.string.login_local_playlist_name) }
+                    _loadingMessage.value = str(R.string.login_parsing_playlist)
                     val result = repository.importM3uPlaylist(inputStream, name) { imported ->
                         _loadingMessage.postValue(
-                            application.getString(R.string.login_parsing_playlist_progress, imported)
+                            str(R.string.login_parsing_playlist_progress, imported)
                         )
                     }
                     handleM3uImportResult(result)
                 } else {
                     _isLoading.value = false
-                    _loginState.value = LoginState.Error("Failed to read file")
+                    _loginState.value = LoginState.Error(str(R.string.login_error_read_file_failed))
                 }
             } catch (e: Exception) {
                 _isLoading.value = false
-                _loginState.value = LoginState.Error("Error reading file: ${e.message}")
+                _loginState.value = LoginState.Error(str(R.string.login_error_reading_file, e.message ?: ""))
             }
         }
     }
@@ -191,7 +193,7 @@ class LoginViewModel @Inject constructor(
      */
     fun importM3u(content: String, name: String) {
         _isLoading.value = true
-        _loadingMessage.value = "Parsing playlist..."
+        _loadingMessage.value = str(R.string.login_parsing_playlist)
         
         viewModelScope.launch {
             val result = repository.importM3uPlaylist(content, name)
@@ -240,7 +242,7 @@ class LoginViewModel @Inject constructor(
             }
             is Resource.Error -> {
                 _isLoading.value = false
-                _loginState.value = LoginState.Error(result.message ?: "Failed to import M3U")
+                _loginState.value = LoginState.Error(localizeRepositoryError(result.message, R.string.login_error_import_m3u_failed))
             }
             is Resource.Loading -> { }
         }
@@ -255,7 +257,7 @@ class LoginViewModel @Inject constructor(
             
             okHttpClient.newCall(request).execute().use { response ->
                 if (response.isSuccessful && response.body != null) {
-                    _loadingMessage.postValue("Parsing playlist...")
+                    _loadingMessage.postValue(str(R.string.login_parsing_playlist))
                     val result = repository.importM3uPlaylist(
                         inputStream = response.body!!.byteStream(),
                         serverName = name,
@@ -263,7 +265,7 @@ class LoginViewModel @Inject constructor(
                         epgUrl = epgUrl
                     ) { imported ->
                         _loadingMessage.postValue(
-                            application.getString(R.string.login_parsing_playlist_progress, imported)
+                            str(R.string.login_parsing_playlist_progress, imported)
                         )
                     }
                     when (result) {
@@ -274,18 +276,18 @@ class LoginViewModel @Inject constructor(
                         }
                         is Resource.Error -> {
                             _isLoading.postValue(false)
-                            _loginState.postValue(LoginState.Error(result.message ?: "Failed to import M3U"))
+                            _loginState.postValue(LoginState.Error(localizeRepositoryError(result.message, R.string.login_error_import_m3u_failed)))
                         }
                         is Resource.Loading -> { }
                     }
                 } else {
                     _isLoading.postValue(false)
-                    _loginState.postValue(LoginState.Error("Failed to download playlist"))
+                    _loginState.postValue(LoginState.Error(str(R.string.login_error_download_playlist_failed)))
                 }
             }
         } catch (e: Exception) {
             _isLoading.postValue(false)
-            _loginState.postValue(LoginState.Error("Error: ${e.message}"))
+            _loginState.postValue(LoginState.Error(str(R.string.login_error_detail, e.message ?: "")))
         }
     }
     
@@ -297,7 +299,7 @@ class LoginViewModel @Inject constructor(
             val credentials = ProviderSourceUrlParser.parseXtream(url)
             if (credentials == null) {
                 _isLoading.value = false
-                _loginState.value = LoginState.Error("Invalid Xtream URL format")
+                _loginState.value = LoginState.Error(str(R.string.login_error_invalid_xtream_url))
                 return
             }
             val baseUrl = credentials.serverUrl
@@ -305,7 +307,7 @@ class LoginViewModel @Inject constructor(
             val password = credentials.password
             
             // Use normal login flow
-            _loadingMessage.postValue("Connecting to server...")
+            _loadingMessage.postValue(str(R.string.login_connecting))
             
             val result = repository.authenticateXtream(baseUrl, username, password)
             
@@ -330,16 +332,42 @@ class LoginViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     _isLoading.value = false
-                    _loginState.value = LoginState.Error(result.message ?: "Unknown error")
+                    _loginState.value = LoginState.Error(localizeRepositoryError(result.message, R.string.error_unknown))
                 }
                 is Resource.Loading -> { }
             }
         } catch (e: Exception) {
             _isLoading.value = false
-            _loginState.value = LoginState.Error("Could not read this source link. Check the URL and try again.")
+            _loginState.value = LoginState.Error(str(R.string.login_error_source_link_unreadable))
         }
     }
     
+    /** Resolves a string in the in-app language (the application context keeps the system locale). */
+    private fun str(@StringRes id: Int, vararg args: Any): String =
+        DisplayScale.localized(application).getString(id, *args)
+
+    /**
+     * Maps the known English messages from [IptvRepository] to localized text.
+     * Unknown messages (e.g. a provider's own text) are shown as they are.
+     */
+    private fun localizeRepositoryError(message: String?, @StringRes fallback: Int): String {
+        if (message.isNullOrBlank()) return str(fallback)
+        fun detailAfter(prefix: String) = message.removePrefix(prefix).trim()
+        return when {
+            message == "Authentication failed: Invalid credentials" -> str(R.string.login_error_invalid_credentials)
+            message.startsWith("Authentication failed: ") ->
+                str(R.string.login_error_auth_failed, detailAfter("Authentication failed: "))
+            message.startsWith("Server error: ") ->
+                str(R.string.login_error_server_code, detailAfter("Server error: "))
+            message.startsWith("Connection error: ") ->
+                str(R.string.login_error_connection_detail, detailAfter("Connection error: "))
+            message.startsWith("Failed to import M3U: ") ->
+                str(R.string.login_error_import_m3u_detail, detailAfter("Failed to import M3U: "))
+            message.startsWith("Playlist did not contain playable items") -> str(R.string.login_error_playlist_no_items)
+            else -> message
+        }
+    }
+
     fun clearError() {
         if (_loginState.value is LoginState.Error) {
             _loginState.value = LoginState.Idle
@@ -358,9 +386,9 @@ class LoginViewModel @Inject constructor(
     private fun extractServerName(url: String): String {
         return try {
             val uri = java.net.URI(url)
-            uri.host ?: "Server"
+            uri.host ?: str(R.string.source_default_server_name)
         } catch (e: Exception) {
-            "Server"
+            str(R.string.source_default_server_name)
         }
     }
     
@@ -372,7 +400,7 @@ class LoginViewModel @Inject constructor(
                 .replace("_", " ").replace("-", " ").trim()
             ProviderSourceUrlParser.displayName(fileName, url)
         } catch (e: Exception) {
-            "My Playlist"
+            str(R.string.source_default_playlist_name)
         }
     }
 

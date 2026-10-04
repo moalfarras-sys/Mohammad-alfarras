@@ -202,6 +202,45 @@ class IptvRepository @Inject constructor(
         }
     }
 
+    /** What the provider says about the active account, used to explain a stream that will not open. */
+    enum class AccountCheck { ACTIVE, REJECTED, EXPIRED, LIMIT_REACHED, UNREACHABLE, NOT_APPLICABLE }
+
+    /**
+     * Asks the provider about the active Xtream account. A channel that keeps failing is usually a
+     * changed password, an expired subscription or a one-connection line already in use elsewhere;
+     * telling these apart lets the player say so at once instead of retrying on a black screen.
+     */
+    suspend fun checkActiveAccount(): AccountCheck = withContext(Dispatchers.IO) {
+        val server = serverDao.getActiveServer() ?: return@withContext AccountCheck.NOT_APPLICABLE
+        if (!server.serverType.equals("xtream", ignoreCase = true) || server.serverUrl.isBlank()) {
+            return@withContext AccountCheck.NOT_APPLICABLE
+        }
+        val (username, password) = resolveCredentials(server)
+        if (username.isBlank()) return@withContext AccountCheck.NOT_APPLICABLE
+        try {
+            val response = xtreamApi.authenticate(buildApiUrl(server.serverUrl), username, password)
+            if (!response.isSuccessful) {
+                return@withContext if (response.code() in 401..403) AccountCheck.REJECTED else AccountCheck.UNREACHABLE
+            }
+            val info = response.body()?.userInfo ?: return@withContext AccountCheck.REJECTED
+            if (info.auth != 1) return@withContext AccountCheck.REJECTED
+            val status = info.status?.trim()?.lowercase()
+            if (!status.isNullOrEmpty() && status != "active") return@withContext AccountCheck.EXPIRED
+            val expiresAt = info.expDate?.trim()?.toLongOrNull()
+            if (expiresAt != null && expiresAt > 0 && expiresAt * 1000 < System.currentTimeMillis()) {
+                return@withContext AccountCheck.EXPIRED
+            }
+            val max = info.maxConnections?.trim()?.toIntOrNull()
+            val active = info.activeConnections?.trim()?.toIntOrNull()
+            if (max != null && active != null && max > 0 && active >= max) {
+                return@withContext AccountCheck.LIMIT_REACHED
+            }
+            AccountCheck.ACTIVE
+        } catch (e: Exception) {
+            AccountCheck.UNREACHABLE
+        }
+    }
+
     private fun existingPreferredOutputFormat(serverInfo: String?): String? {
         val json = serverInfo?.takeIf { it.isNotBlank() } ?: return null
         return runCatching {

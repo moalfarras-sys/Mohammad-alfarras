@@ -508,7 +508,7 @@ class LiveTvActivity : BaseTvActivity() {
             runOnUiThread {
                 android.widget.Toast.makeText(
                                 this,
-                                "Video player unavailable. Please use external player from settings.",
+                                getString(R.string.player_unavailable_use_external),
                                 android.widget.Toast.LENGTH_LONG
                         )
                         .show()
@@ -519,10 +519,45 @@ class LiveTvActivity : BaseTvActivity() {
         }
     }
 
+    private var accountCheckInFlight = false
+
+    /**
+     * On the first failure of a channel, asks the provider whether the account itself is the
+     * problem. A rejected or expired account (or a full one-connection line) cannot be fixed by
+     * retrying, so the retries stop and the viewer is told what to do.
+     */
+    private fun checkAccountAfterFailure(failedToken: Long) {
+        if (accountCheckInFlight) return
+        accountCheckInFlight = true
+        lifecycleScope.launch {
+            val result = runCatching { repository.checkActiveAccount() }
+                .getOrDefault(com.mo.moplayer.data.repository.IptvRepository.AccountCheck.UNREACHABLE)
+            accountCheckInFlight = false
+            if (failedToken != activePlaybackToken || isFinishing || isDestroying || hasStartedPlayback) return@launch
+            val message = when (result) {
+                com.mo.moplayer.data.repository.IptvRepository.AccountCheck.REJECTED ->
+                    getString(R.string.live_error_account_rejected)
+                com.mo.moplayer.data.repository.IptvRepository.AccountCheck.EXPIRED ->
+                    getString(R.string.live_error_account_expired)
+                com.mo.moplayer.data.repository.IptvRepository.AccountCheck.LIMIT_REACHED ->
+                    getString(R.string.live_error_connection_limit)
+                else -> null
+            } ?: return@launch
+            // Invalidate the pending retry and any late player events for this attempt.
+            activePlaybackToken++
+            retryScheduled = false
+            retryCount = 0
+            runCatching { mediaPlayer?.stop() }
+            setLoadingOverlayVisible(false)
+            showError(message)
+        }
+    }
+
     private fun handleStreamError() {
         if (retryScheduled) return
 
         val failedToken = activePlaybackToken
+        if (retryCount == 0) checkAccountAfterFailure(failedToken)
         if (LivePlaybackRetryPolicy.canRetry(retryCount, MAX_RETRIES) && currentChannel != null) {
             retryCount++
             retryScheduled = true
@@ -547,14 +582,17 @@ class LiveTvActivity : BaseTvActivity() {
                             currentChannel?.let { playChannel(it) }
                         } else {
                             setLoadingOverlayVisible(false)
-                            showError("No network connection. Check your internet.")
+                            showError(getString(R.string.error_no_network_check_internet))
                         }
                     },
                     delay
             )
         } else {
             val message = if (LivePlaybackRetryPolicy.isCircuitOpen) {
-                LivePlaybackRetryPolicy.circuitBlockReason()
+                getString(
+                        R.string.live_retry_blocked_seconds,
+                        LivePlaybackRetryPolicy.circuitBlockRemainingSeconds().coerceAtLeast(0L)
+                )
             } else {
                 getString(R.string.error_stream_failed)
             }
@@ -1176,7 +1214,7 @@ class LiveTvActivity : BaseTvActivity() {
                         )
                         errorView.showError(
                                 title = getString(R.string.error_connection),
-                                message = networkErrorHandler.getErrorMessage(error),
+                                message = networkErrorHandler.getLocalizedErrorMessage(error),
                                 showRetry = error.isRetryable
                         )
                     } else {
@@ -1321,7 +1359,7 @@ class LiveTvActivity : BaseTvActivity() {
                 binding.loadingOverlay.visibility = View.GONE
                 android.widget.Toast.makeText(
                                 this,
-                                "Video player not available. Please restart the app.",
+                                getString(R.string.player_not_available_restart),
                                 android.widget.Toast.LENGTH_LONG
                         )
                         .show()

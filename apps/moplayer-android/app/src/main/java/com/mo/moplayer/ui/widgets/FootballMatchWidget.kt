@@ -217,7 +217,7 @@ constructor(
             tvScore.text = "${data.homeScore} - ${data.awayScore}"
             tvLiveBadge.visibility = if (data.isLive) View.VISIBLE else View.GONE
         } else {
-            tvScore.text = "vs"
+            tvScore.text = context.getString(R.string.football_vs)
             tvLiveBadge.visibility = View.GONE
         }
 

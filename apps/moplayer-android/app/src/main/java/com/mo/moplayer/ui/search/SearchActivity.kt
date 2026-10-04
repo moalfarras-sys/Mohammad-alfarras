@@ -364,7 +364,7 @@ class SearchActivity : BaseTvActivity() {
                         isFavorite = isFavorite,
                         details = ContentMenuDetails(
                             description = result.movie.plot,
-                            duration = result.movie.duration ?: ContentMenuDetails.formatDuration(result.movie.durationSeconds),
+                            duration = result.movie.duration ?: ContentMenuDetails.formatDuration(this@SearchActivity, result.movie.durationSeconds),
                             rating = result.movie.rating,
                             year = result.movie.year ?: result.movie.releaseDate,
                             genre = result.movie.genre

@@ -49,7 +49,11 @@ class CategoryAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(category: CategoryEntity) {
-            binding.tvCategoryName.text = category.name
+            binding.tvCategoryName.text = if (category.categoryId == "all") {
+                binding.root.context.getString(R.string.all_categories)
+            } else {
+                category.name
+            }
 
             val isSelected = category.categoryId == selectedCategoryId
             binding.root.isSelected = isSelected

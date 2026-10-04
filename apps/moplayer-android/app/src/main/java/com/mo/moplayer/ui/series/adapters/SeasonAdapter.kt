@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.mo.moplayer.R
 import com.mo.moplayer.ui.common.design.TvCinematicTokens
 import com.mo.moplayer.databinding.ItemSeasonBinding
 import com.mo.moplayer.databinding.ItemSeasonTvBinding
@@ -91,12 +92,12 @@ class SeasonAdapter(
             val isSelected = seasonNum == selectedSeason
 
             binding.tvSeasonNumber.text = seasonNum.toString()
-            binding.tvSeasonLabel.text = "Season $seasonNum"
+            binding.tvSeasonLabel.text = binding.root.context.getString(R.string.series_season_format, seasonNum)
             
             // Show episode count if available
             getEpisodeCount?.let { getCount ->
                 val count = getCount(seasonNum)
-                binding.tvEpisodeCount.text = "$count eps"
+                binding.tvEpisodeCount.text = binding.root.context.getString(R.string.series_episode_count_short, count)
                 binding.tvEpisodeCount.visibility = View.VISIBLE
             } ?: run {
                 binding.tvEpisodeCount.visibility = View.GONE
@@ -141,7 +142,7 @@ class SeasonAdapter(
             val isSelected = seasonNum == selectedSeason
 
             binding.tvSeasonNumber.text = seasonNum.toString()
-            binding.tvSeasonLabel.text = "Season $seasonNum"
+            binding.tvSeasonLabel.text = binding.root.context.getString(R.string.series_season_format, seasonNum)
             
             // Show/hide selection indicator
             binding.selectionIndicator.visibility = if (isSelected) View.VISIBLE else View.GONE

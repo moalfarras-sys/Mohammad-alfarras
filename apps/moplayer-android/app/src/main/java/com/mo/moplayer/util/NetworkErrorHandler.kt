@@ -2,6 +2,7 @@ package com.mo.moplayer.util
 
 import android.content.Context
 import android.util.Log
+import com.mo.moplayer.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -187,6 +188,22 @@ class NetworkErrorHandler @Inject constructor(@ApplicationContext private val co
     /** Get user-friendly error message */
     fun getErrorMessage(error: NetworkError): String {
         return error.message
+    }
+
+    /**
+     * User-facing message for [error] in the in-app language. [getErrorMessage] keeps the
+     * English text for logs and tests.
+     */
+    fun getLocalizedErrorMessage(error: NetworkError): String {
+        val res = when (error) {
+            is NetworkError.NoInternet -> R.string.network_error_no_internet
+            is NetworkError.Timeout -> R.string.network_error_timeout
+            is NetworkError.ServerError -> R.string.network_error_server
+            is NetworkError.StreamError -> R.string.network_error_stream
+            is NetworkError.AuthError -> R.string.network_error_auth
+            is NetworkError.Unknown -> R.string.network_error_unknown
+        }
+        return DisplayScale.localized(context).getString(res)
     }
 
     /** Get suggested action for the error */

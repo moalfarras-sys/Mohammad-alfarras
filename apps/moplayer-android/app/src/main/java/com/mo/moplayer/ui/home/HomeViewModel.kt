@@ -72,6 +72,7 @@ class HomeViewModel @Inject constructor(
         "continue_watching",
         "recent_movies",
         "recent_series",
+        "live_channels",
         "favorites"
     )
     
@@ -118,7 +119,8 @@ class HomeViewModel @Inject constructor(
                         "continue_watching",
                         "favorites",
                         "recent_movies",
-                        "recent_series"
+                        "recent_series",
+                        "live_channels"
                     )
 
                     launch {
@@ -130,7 +132,7 @@ class HomeViewModel @Inject constructor(
                                     row = if (continueWatching.isNotEmpty()) {
                                         ContentRow(
                                             id = "continue_watching",
-                                            title = context.getString(R.string.section_continue_watching),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_continue_watching),
                                             items = continueWatching.map { it.toContentItem() },
                                             type = ContentRowType.CONTINUE_WATCHING
                                         )
@@ -150,7 +152,7 @@ class HomeViewModel @Inject constructor(
                                     row = if (favorites.isNotEmpty()) {
                                         ContentRow(
                                             id = "favorites",
-                                            title = context.getString(R.string.section_favorites),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_favorites),
                                             items = favorites.take(20).map { it.toContentItem() },
                                             type = ContentRowType.FAVORITES
                                         )
@@ -170,13 +172,35 @@ class HomeViewModel @Inject constructor(
                                     row = if (recentMovies.isNotEmpty()) {
                                         ContentRow(
                                             id = "recent_movies",
-                                            title = context.getString(R.string.section_recently_added_movies),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_recently_added_movies),
                                             items = recentMovies.map { it.toContentItem() },
                                             type = ContentRowType.MOVIES
                                         )
                                     } else null
                                 )
                                 pendingSections.remove("recent_movies")
+                                if (pendingSections.isEmpty()) setLoading(false)
+                            }
+                    }
+
+                    // Live channels in playlist order: the only row a live-only M3U source has,
+                    // so Home never sits on a "loading" card for those sources.
+                    launch {
+                        repository.getAllChannelsLimited(server.id, 24)
+                            .distinctUntilChangedBy { rows -> rows.map { it.channelId } }
+                            .collect { channels ->
+                                updateRow(
+                                    key = "live_channels",
+                                    row = if (channels.isNotEmpty()) {
+                                        ContentRow(
+                                            id = "live_channels",
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_live_tv),
+                                            items = channels.map { it.toContentItem() },
+                                            type = ContentRowType.CHANNELS
+                                        )
+                                    } else null
+                                )
+                                pendingSections.remove("live_channels")
                                 if (pendingSections.isEmpty()) setLoading(false)
                             }
                     }
@@ -190,7 +214,7 @@ class HomeViewModel @Inject constructor(
                                     row = if (recentSeries.isNotEmpty()) {
                                         ContentRow(
                                             id = "recent_series",
-                                            title = context.getString(R.string.section_recently_added_series),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_recently_added_series),
                                             items = recentSeries.map { it.toContentItem() },
                                             type = ContentRowType.SERIES
                                         )

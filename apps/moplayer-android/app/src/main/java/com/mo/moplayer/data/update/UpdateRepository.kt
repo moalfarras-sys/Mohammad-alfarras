@@ -10,6 +10,8 @@ import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import com.mo.moplayer.BuildConfig
+import com.mo.moplayer.R
+import com.mo.moplayer.util.DisplayScale
 import com.mo.moplayer.util.WebApiEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -77,10 +79,10 @@ class UpdateRepository(private val context: Context) {
         if (file.exists()) file.delete()
 
         val manager = context.getSystemService(DownloadManager::class.java)
-            ?: return@withContext UpdateInstallResult.Failed("Download service unavailable")
+            ?: return@withContext UpdateInstallResult.Failed(str(R.string.update_error_download_service_unavailable))
         val request = DownloadManager.Request(Uri.parse(info.downloadUrl))
             .setTitle("MoPlayer ${info.latestVersionName}")
-            .setDescription("Downloading the latest MoPlayer APK")
+            .setDescription(str(R.string.update_download_description))
             .setMimeType(APK_MIME_TYPE)
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setAllowedOverMetered(true)
@@ -88,15 +90,16 @@ class UpdateRepository(private val context: Context) {
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, UPDATE_FILE_NAME)
 
         val downloadId = manager.enqueue(request)
+        val timedOutMessage = str(R.string.update_error_download_timed_out)
         val result = try {
             withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) {
                 waitForDownload(manager, downloadId, info, onProgress)
-            } ?: UpdateInstallResult.Failed("Download timed out")
+            } ?: UpdateInstallResult.Failed(timedOutMessage)
         } catch (cancelled: CancellationException) {
             manager.remove(downloadId)
             throw cancelled
         }
-        if (result is UpdateInstallResult.Failed && result.message == "Download timed out") {
+        if (result is UpdateInstallResult.Failed && result.message == timedOutMessage) {
             manager.remove(downloadId)
         }
         if (result !is UpdateInstallResult.InstallerOpened) return@withContext result
@@ -160,7 +163,7 @@ class UpdateRepository(private val context: Context) {
                         }
                         DownloadManager.STATUS_FAILED -> {
                             val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
-                            return UpdateInstallResult.Failed("Download failed ($reason)")
+                            return UpdateInstallResult.Failed(str(R.string.update_error_download_failed_reason, reason))
                         }
                     }
                 }
@@ -170,7 +173,7 @@ class UpdateRepository(private val context: Context) {
     }
 
     private fun openInstaller(file: File): UpdateInstallResult {
-        if (!file.exists()) return UpdateInstallResult.Failed("Downloaded APK was not found")
+        if (!file.exists()) return UpdateInstallResult.Failed(str(R.string.update_error_apk_not_found))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
             openInstallPermissionSettings()
             return UpdateInstallResult.InstallPermissionRequired
@@ -185,7 +188,7 @@ class UpdateRepository(private val context: Context) {
             context.startActivity(intent)
             UpdateInstallResult.InstallerOpened
         } catch (error: ActivityNotFoundException) {
-            UpdateInstallResult.Failed(error.message ?: "No APK installer was found")
+            UpdateInstallResult.Failed(error.message ?: str(R.string.update_error_no_installer))
         }
     }
 
@@ -198,22 +201,25 @@ class UpdateRepository(private val context: Context) {
         runCatching { context.startActivity(intent) }
     }
 
+    private fun str(id: Int, vararg args: Any): String =
+        DisplayScale.localized(context).getString(id, *args)
+
     private fun updateFile(): File =
         File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), UPDATE_FILE_NAME)
 
     private fun validateDownloadedFile(info: AppUpdateInfo): String? {
         val file = updateFile()
-        if (!file.exists()) return "Downloaded APK was not found"
+        if (!file.exists()) return str(R.string.update_error_apk_not_found)
         info.apkSizeBytes?.let { expected ->
             if (expected > 0L && file.length() != expected) {
-                return "Downloaded APK size mismatch"
+                return str(R.string.update_error_apk_size_mismatch)
             }
         }
         val expectedHash = info.checksumSha256.trim().lowercase()
         if (expectedHash.isNotBlank()) {
             val actualHash = file.sha256()
             if (!actualHash.equals(expectedHash, ignoreCase = true)) {
-                return "Downloaded APK checksum mismatch"
+                return str(R.string.update_error_apk_checksum_mismatch)
             }
         }
         return null

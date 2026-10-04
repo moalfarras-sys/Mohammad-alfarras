@@ -103,6 +103,23 @@ object DisplayScale {
         return if (changed) base.createConfigurationContext(config) else base
     }
 
+    /**
+     * [context] with only the in-app language applied. Use it to resolve strings outside an
+     * Activity (ViewModels, singletons), because the application context keeps the system locale.
+     */
+    fun localized(context: Context): Context {
+        val app = context.applicationContext ?: context
+        val language = runCatching { language(app) }.getOrDefault(LANGUAGE_SYSTEM)
+        if (language != LANGUAGE_ENGLISH && language != LANGUAGE_ARABIC) return context
+        val locale = Locale.forLanguageTag(language)
+        val current = context.resources.configuration
+        if (current.locales.size() > 0 && current.locales[0].language == locale.language) return context
+        val config = Configuration(current)
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+        return context.createConfigurationContext(config)
+    }
+
     internal data class Grid(val density: Float, val fontScale: Float)
 
     /**

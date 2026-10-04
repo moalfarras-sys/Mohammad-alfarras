@@ -178,7 +178,7 @@ class FavoriteAdapter(
         
         fun bind(favorite: FavoriteEntity, position: Int) {
             // Reset all visible state so recycled views never show previous item data
-            binding.tvTitle.text = favorite.name.ifBlank { "Unknown title" }
+            binding.tvTitle.text = favorite.name.ifBlank { binding.root.context.getString(R.string.unknown_title) }
             binding.ratingBadge.visibility = View.GONE
 
             // Clear previous Glide request and image so we never show wrong poster on reuse

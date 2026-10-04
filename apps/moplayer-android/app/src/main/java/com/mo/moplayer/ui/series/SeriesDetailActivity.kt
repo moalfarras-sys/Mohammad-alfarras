@@ -174,7 +174,7 @@ class SeriesDetailActivity : BaseTvActivity() {
     private fun updatePreviewPanel(episode: SeriesDetailViewModel.Episode) {
         tvBinding?.previewPanel?.apply {
             // Update episode info
-            tvEpisodeNumber.text = "S${episode.seasonNumber} E${episode.episodeNumber}"
+            tvEpisodeNumber.text = getString(R.string.series_season_episode_short_format, episode.seasonNumber, episode.episodeNumber)
             tvEpisodeTitle.text = episode.title
             tvEpisodePlot.text = episode.plot ?: ""
             tvDuration.text = episode.duration ?: ""
@@ -371,7 +371,7 @@ class SeriesDetailActivity : BaseTvActivity() {
                         tvPlot.text = it.plot ?: ""
 
                         if (!it.cast.isNullOrEmpty()) {
-                            tvCast.text = "Cast: ${it.cast}"
+                            tvCast.text = getString(R.string.preview_cast, it.cast)
                             tvCast.visibility = View.VISIBLE
                         } else {
                             tvCast.visibility = View.GONE
@@ -421,8 +421,8 @@ class SeriesDetailActivity : BaseTvActivity() {
             episodeAdapter.submitList(episodes)
 
             val seasonNum = viewModel.currentSeason.value ?: 1
-            val headerText = "Season $seasonNum - ${episodes.size} Episodes"
-            val countText = "${episodes.size} episodes"
+            val headerText = getString(R.string.series_season_episodes_header, seasonNum, episodes.size)
+            val countText = getString(R.string.series_episode_count, episodes.size)
 
             if (isTvMode) {
                 tvBinding?.tvEpisodeHeader?.text = headerText

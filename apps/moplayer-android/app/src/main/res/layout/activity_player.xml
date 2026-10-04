@@ -151,6 +151,7 @@
     <!-- ══════════════════ BOTTOM CONTROL DECK (floating frosted glass) ══════════════════ -->
     <LinearLayout
         android:id="@+id/bottomControlsBar"
+        android:layoutDirection="ltr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"

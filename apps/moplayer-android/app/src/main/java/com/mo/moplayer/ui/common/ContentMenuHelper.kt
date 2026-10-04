@@ -27,12 +27,16 @@ data class ContentMenuDetails(
     val genre: String? = null
 ) {
     companion object {
-        /** Format duration from seconds to "Xh Ymin" */
-        fun formatDuration(seconds: Int?): String? {
+        /** Format duration from seconds to "Xh Ymin" (localized via [context]) */
+        fun formatDuration(context: Context, seconds: Int?): String? {
             if (seconds == null || seconds <= 0) return null
             val hours = seconds / 3600
             val minutes = (seconds % 3600) / 60
-            return if (hours > 0) "${hours}h ${minutes}min" else "${minutes}min"
+            return if (hours > 0) {
+                context.getString(R.string.duration_hours_minutes_short, hours, minutes)
+            } else {
+                context.getString(R.string.duration_minutes_short, minutes)
+            }
         }
     }
 }

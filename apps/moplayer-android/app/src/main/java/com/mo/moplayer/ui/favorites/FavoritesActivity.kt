@@ -151,7 +151,7 @@ class FavoritesActivity : BaseTvActivity() {
                 "movie" -> repository.getMovieById(favorite.contentId)?.let {
                     ContentMenuDetails(
                         description = it.plot,
-                        duration = it.duration ?: ContentMenuDetails.formatDuration(it.durationSeconds),
+                        duration = it.duration ?: ContentMenuDetails.formatDuration(this@FavoritesActivity, it.durationSeconds),
                         rating = it.rating,
                         year = it.year ?: it.releaseDate,
                         genre = it.genre

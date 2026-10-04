@@ -82,7 +82,7 @@ class SeriesAdapter(
 
         fun bind(series: SeriesEntity?, position: Int) {
             // Reset all visible state so recycled views never show previous item data
-            binding.tvTitle.text = series?.name?.takeIf { it.isNotBlank() } ?: "Unknown title"
+            binding.tvTitle.text = series?.name?.takeIf { it.isNotBlank() } ?: binding.root.context.getString(R.string.unknown_title)
             binding.ratingBadge.visibility = View.GONE
 
             // Clear previous Glide request and image so we never show wrong poster on reuse

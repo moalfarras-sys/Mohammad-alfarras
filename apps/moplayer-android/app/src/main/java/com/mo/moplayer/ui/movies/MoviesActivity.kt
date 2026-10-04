@@ -422,7 +422,7 @@ class MoviesActivity : BaseTvActivity() {
                         })
                         errorView.showError(
                             title = getString(R.string.error_connection),
-                            message = networkErrorHandler.getErrorMessage(error),
+                            message = networkErrorHandler.getLocalizedErrorMessage(error),
                             showRetry = error.isRetryable
                         )
                     } else {
@@ -461,7 +461,11 @@ class MoviesActivity : BaseTvActivity() {
         }
 
         viewModel.selectedCategory.observe(this) { category ->
-            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.movies_catalog)
+            binding.tvCategoryTitle.text = when {
+                category == null -> getString(R.string.movies_catalog)
+                category.categoryId == "all" -> getString(R.string.all_categories)
+                else -> category.name
+            }
             categoryAdapter.setSelectedCategory(category?.categoryId ?: "")
         }
     }
@@ -495,7 +499,7 @@ class MoviesActivity : BaseTvActivity() {
                 isFavorite = isFavorite,
                 details = ContentMenuDetails(
                     description = movie.plot,
-                    duration = movie.duration ?: ContentMenuDetails.formatDuration(movie.durationSeconds),
+                    duration = movie.duration ?: ContentMenuDetails.formatDuration(this@MoviesActivity, movie.durationSeconds),
                     rating = movie.rating,
                     year = movie.year ?: movie.releaseDate,
                     genre = movie.genre

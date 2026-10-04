@@ -408,7 +408,7 @@ class SeriesActivity : BaseTvActivity() {
                         )
                         errorView.showError(
                                 title = getString(R.string.error_connection),
-                                message = networkErrorHandler.getErrorMessage(error),
+                                message = networkErrorHandler.getLocalizedErrorMessage(error),
                                 showRetry = error.isRetryable
                         )
                     } else {
@@ -447,7 +447,11 @@ class SeriesActivity : BaseTvActivity() {
         }
 
         viewModel.selectedCategory.observe(this) { category ->
-            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.series_catalog)
+            binding.tvCategoryTitle.text = when {
+                category == null -> getString(R.string.series_catalog)
+                category.categoryId == "all" -> getString(R.string.all_categories)
+                else -> category.name
+            }
             categoryAdapter.setSelectedCategory(category?.categoryId ?: "")
         }
     }

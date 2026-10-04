@@ -9,9 +9,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mo.moplayer.R
 import com.mo.moplayer.data.local.entity.ServerEntity
 import com.mo.moplayer.data.local.entity.ServerSyncStateEntity
 import com.mo.moplayer.data.repository.IptvRepository
+import com.mo.moplayer.util.DisplayScale
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -112,9 +114,9 @@ class SettingsViewModel @Inject constructor(
     private fun maskEndpoint(server: ServerEntity): String {
         if (server.serverUrl.isBlank()) {
             return if (server.serverType.equals("m3u", ignoreCase = true)) {
-                "Imported playlist stored locally"
+                DisplayScale.localized(context).getString(R.string.source_local_playlist)
             } else {
-                "No endpoint stored"
+                DisplayScale.localized(context).getString(R.string.source_no_endpoint)
             }
         }
 
@@ -130,7 +132,7 @@ class SettingsViewModel @Inject constructor(
             if (host.isNotBlank()) {
                 "$host$port"
             } else {
-                "Endpoint saved"
+                DisplayScale.localized(context).getString(R.string.source_endpoint_saved)
             }
         }.getOrDefault(
             server.serverUrl

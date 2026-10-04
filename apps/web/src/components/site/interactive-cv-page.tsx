@@ -210,18 +210,18 @@ export function InteractiveCvPage({ locale, profileName, portrait, downloads, st
               ))}
             </div>
             <div className="fresh-actions">
-              <Link href={downloads.branded} className="fresh-button fresh-button-primary" download>
+              <a href={downloads.branded} className="fresh-button fresh-button-primary" download>
                 <Download size={17} />
                 {t.downloads}
-              </Link>
-              <Link href={downloads.docx} className="fresh-button" download>
+              </a>
+              <a href={downloads.docx} className="fresh-button" download>
                 <FileText size={17} />
                 {t.docx}
-              </Link>
-              <Link href="/api/cv-pdf?locale=de&variant=branded" className="fresh-button" download hrefLang="de">
+              </a>
+              <a href="/api/cv-pdf?locale=de&variant=branded" className="fresh-button" download hrefLang="de">
                 <Languages size={17} />
                 {t.germanCv}
-              </Link>
+              </a>
             </div>
           </div>
         </div>

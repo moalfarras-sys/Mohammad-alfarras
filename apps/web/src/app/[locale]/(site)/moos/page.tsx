@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MoosLanding } from "@/components/site/moos-landing";
+import { MoosV3 } from "@/components/v3/moos-v3";
 import { isLocale } from "@/lib/i18n";
 import { readLatestMoosRelease } from "@/lib/moos-release";
 import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo-jsonld";
-import "@/styles/route-moos.css";
 
 const SITE_URL = "https://moalfarras.space";
 
@@ -50,6 +49,7 @@ export async function generateMetadata({
           "تشغيل تطبيقات أندرويد",
           "تشغيل تطبيقات ويندوز",
           "Mo AI",
+          "ميرا مساعد ذكي",
           "Mo PC Remote",
           "نظام تشغيل للسيرفر",
           "نظام تشغيل سحابي",
@@ -68,6 +68,7 @@ export async function generateMetadata({
           "Android apps on Linux",
           "Windows apps on Linux",
           "Mo AI",
+          "Mira AI assistant",
           "Mo PC Remote",
           "Linux for Arabic users",
           "cloud server OS",
@@ -149,7 +150,7 @@ export default async function MoosRoute({ params }: { params: Promise<{ locale: 
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
-      <MoosLanding locale={locale as "en" | "ar"} release={release} />
+      <MoosV3 locale={locale as "en" | "ar"} release={release} />
     </>
   );
 }

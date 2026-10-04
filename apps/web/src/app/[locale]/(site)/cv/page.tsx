@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { InteractiveCvPage } from "@/components/site/interactive-cv-page";
 import { buildSiteModel } from "@/components/site/site-model";
-import { youtubeChannel } from "@/content/site-data";
+import { CvPageV3 } from "@/components/v3/cv-page";
 import { isLocale } from "@/lib/i18n";
 import {
   breadcrumbJsonLd,
@@ -13,6 +12,8 @@ import {
 } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
 import type { Locale } from "@/types/cms";
+
+import "@/styles/v3-cv.css";
 
 export async function generateMetadata({
   params,
@@ -29,41 +30,31 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
+  const isAr = loc === "ar";
   const model = await buildSiteModel({ locale: loc, slug: "cv" });
-  const views =
-    Number(
-      model.live.youtube?.totalViews ?? model.youtube.views ?? youtubeChannel.fallback.views,
-    ) || youtubeChannel.fallback.views;
-  const subscribers =
-    Number(
-      model.live.youtube?.subscribers ??
-        model.youtube.subscribers ??
-        youtubeChannel.fallback.subscribers,
-    ) || youtubeChannel.fallback.subscribers;
-  const videos =
-    Number(
-      model.live.youtube?.videoCount ?? model.youtube.videos ?? youtubeChannel.fallback.videos,
-    ) || youtubeChannel.fallback.videos;
   // Counted from the project data: client projects with a live URL.
-  const projectsCount = model.projects.filter(
+  const liveSites = model.projects.filter(
     (project) => !/moplayer/i.test(String(project.slug)) && /^https?:\/\//.test(project.href ?? ""),
   ).length;
-  // Released MoPlayer surfaces with public downloads: Classic and Pro
-  // (Android / Android TV) and PC (Windows). iOS is still in preparation, so it
-  // is not counted.
-  const appsCount = ["moplayer-classic", "moplayer-pro", "moplayer-pc"].length;
+  const education = model.cvBuilder.education.map((entry) => ({
+    id: entry.id,
+    school: isAr ? entry.school_ar : entry.school_en,
+    degree: isAr ? entry.degree_ar : entry.degree_en,
+    period: entry.period,
+    location: isAr ? entry.location_ar : entry.location_en,
+  }));
+
   const breadcrumb = breadcrumbJsonLd(loc, [
-    { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
-    { name: loc === "ar" ? "السيرة الذاتية" : "CV", path: `/${loc}/cv` },
+    { name: isAr ? "الرئيسية" : "Home", path: `/${loc}` },
+    { name: isAr ? "السيرة الذاتية" : "CV", path: `/${loc}/cv` },
   ]);
   const page = webPageJsonLd({
     locale: loc,
     path: `/${loc}/cv`,
-    name: loc === "ar" ? "السيرة الذاتية — محمد الفراس" : "Curriculum vitae — Mohammad Alfarras",
-    description:
-      loc === "ar"
-        ? "الخبرة المهنية، مبادئ العمل، والشهادات لمحمد الفراس."
-        : "Professional experience, working principles, and credentials for Mohammad Alfarras.",
+    name: isAr ? "السيرة الذاتية — محمد الفراس" : "Curriculum vitae — Mohammad Alfarras",
+    description: isAr
+      ? "الخبرة المهنية، المهارات، المشاريع المختارة وملفات السيرة الذاتية لمحمد الفراس."
+      : "Professional experience, skills, selected projects and CV downloads for Mohammad Alfarras.",
   });
 
   return (
@@ -83,13 +74,15 @@ export default async function LocaleCvPage({ params }: { params: Promise<{ local
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
-      <InteractiveCvPage
+      <CvPageV3
         locale={loc}
         profileName={model.profile.name}
         portrait="/images/portrait.jpg"
         downloads={{ branded: model.downloads.branded, docx: model.downloads.docx }}
-        stats={{ views, subscribers, videos, projects: projectsCount, apps: appsCount }}
         experience={model.cvExperience}
+        education={education}
+        projects={model.projects}
+        liveSites={liveSites}
       />
     </>
   );
